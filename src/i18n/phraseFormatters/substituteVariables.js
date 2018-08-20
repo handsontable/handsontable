@@ -1,4 +1,4 @@
-import {substitute} from './../../helpers/string';
+import { substitute } from './../../helpers/string';
 
 /**
  * Try to substitute variable inside phrase propositions.

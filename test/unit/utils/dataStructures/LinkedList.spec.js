@@ -1,4 +1,4 @@
-import LinkedList, {NodeStructure} from 'handsontable/utils/dataStructures/linkedList';
+import LinkedList, { NodeStructure } from 'handsontable/utils/dataStructures/linkedList';
 /**
  * Refactored implementation of LinkedList tests by Github user Jakehp
  * (part of javascript-algorithms project - all project contributors at repository website)

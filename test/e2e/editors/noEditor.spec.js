@@ -132,7 +132,7 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    spec().$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0)});
+    spec().$container.simulate('keydown', { keyCode: 'a'.charCodeAt(0) });
 
     expect(isEditorVisible()).toBe(false);
   });
@@ -146,7 +146,7 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    spec().$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0), shiftKey: true});
+    spec().$container.simulate('keydown', { keyCode: 'a'.charCodeAt(0), shiftKey: true });
 
     expect(isEditorVisible()).toBe(false);
   });

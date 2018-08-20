@@ -1,5 +1,5 @@
 import * as C from './../../../i18n/constants';
-import {checkSelectionBorders, markSelected} from './../utils';
+import { checkSelectionBorders, markSelected } from './../utils';
 
 export default function bottom(customBordersPlugin) {
   return {

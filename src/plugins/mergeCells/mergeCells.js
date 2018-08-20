@@ -1,18 +1,18 @@
 import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
-import {registerPlugin} from './../../plugins';
-import {stopImmediatePropagation} from './../../helpers/dom/event';
-import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
+import { registerPlugin } from './../../plugins';
+import { stopImmediatePropagation } from './../../helpers/dom/event';
+import { CellCoords, CellRange } from './../../3rdparty/walkontable/src';
 import MergedCellsCollection from './cellsCollection';
 import MergedCellCoords from './cellCoords';
 import AutofillCalculations from './calculations/autofill';
 import SelectionCalculations from './calculations/selection';
 import toggleMergeItem from './contextMenuItem/toggleMerge';
-import {arrayEach} from '../../helpers/array';
-import {clone} from '../../helpers/object';
-import {warn} from '../../helpers/console';
-import {rangeEach} from '../../helpers/number';
-import {applySpanProperties} from './utils';
+import { arrayEach } from '../../helpers/array';
+import { clone } from '../../helpers/object';
+import { warn } from '../../helpers/console';
+import { rangeEach } from '../../helpers/number';
+import { applySpanProperties } from './utils';
 import './mergeCells.css';
 
 Hooks.getSingleton().register('beforeMergeCells');
@@ -297,7 +297,7 @@ class MergeCells extends BasePlugin {
 
     currentRange.setDirection('NW-SE');
 
-    const {from, to} = currentRange;
+    const { from, to } = currentRange;
 
     this.toggleMerge(currentRange);
     this.hot.selectCell(from.row, from.col, to.row, to.col, false);
@@ -315,7 +315,7 @@ class MergeCells extends BasePlugin {
 
     cellRange.setDirection('NW-SE');
 
-    const {from, to} = cellRange;
+    const { from, to } = cellRange;
 
     this.unmergeRange(cellRange, true);
     this.mergeRange(cellRange);
@@ -332,7 +332,7 @@ class MergeCells extends BasePlugin {
       return;
     }
 
-    const {from, to} = cellRange;
+    const { from, to } = cellRange;
 
     this.unmergeRange(cellRange, true);
     this.hot.selectCell(from.row, from.col, to.row, to.col, false);
@@ -821,8 +821,8 @@ class MergeCells extends BasePlugin {
     }
 
     const mergedCellsWithinSelectionArea = this.mergedCellsCollection.getWithinRange({
-      from: {row: select[0], col: select[1]},
-      to: {row: select[2], col: select[3]}
+      from: { row: select[0], col: select[1] },
+      to: { row: select[2], col: select[3] }
     });
 
     if (!mergedCellsWithinSelectionArea) {

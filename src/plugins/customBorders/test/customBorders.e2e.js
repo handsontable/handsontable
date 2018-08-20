@@ -775,7 +775,7 @@ describe('CustomBorders', () => {
       customBorders: true,
     });
 
-    $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0).simulate('mousedown', {which: 3});
+    $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0).simulate('mousedown', { which: 3 });
     contextMenu();
 
     expect($('.htContextMenu tbody td.htDisabled').text()).toBe([

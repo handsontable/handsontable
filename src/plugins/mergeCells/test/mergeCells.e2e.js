@@ -17,7 +17,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         mergeCells: [
-          {row: 0, col: 0, rowspan: 2, colspan: 2}
+          { row: 0, col: 0, rowspan: 2, colspan: 2 }
         ]
       });
       let TD = hot.rootElement.querySelector('td');
@@ -34,9 +34,9 @@ describe('MergeCells', () => {
         width: 100,
         height: 100,
         mergeCells: [
-          {row: 0, col: 0, rowspan: 2, colspan: 1},
-          {row: 4, col: 0, rowspan: 30, colspan: 1},
-          {row: 48, col: 0, rowspan: 2, colspan: 1},
+          { row: 0, col: 0, rowspan: 2, colspan: 1 },
+          { row: 4, col: 0, rowspan: 30, colspan: 1 },
+          { row: 48, col: 0, rowspan: 2, colspan: 1 },
         ],
       });
 
@@ -51,7 +51,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
         mergeCells: [
-          {row: 0, col: 0, rowspan: 2, colspan: 2}
+          { row: 0, col: 0, rowspan: 2, colspan: 2 }
         ]
       });
       let TD = hot.rootElement.querySelector('td');
@@ -60,7 +60,7 @@ describe('MergeCells', () => {
 
       updateSettings({
         mergeCells: [
-          {row: 2, col: 2, rowspan: 2, colspan: 2}
+          { row: 2, col: 2, rowspan: 2, colspan: 2 }
         ]
       });
 
@@ -78,7 +78,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
         mergeCells: [
-          {row: 0, col: 0, rowspan: 2, colspan: 2}
+          { row: 0, col: 0, rowspan: 2, colspan: 2 }
         ]
       });
       let TD = hot.rootElement.querySelector('td');
@@ -98,7 +98,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
         mergeCells: [
-          {row: 0, col: 0, rowspan: 2, colspan: 2}
+          { row: 0, col: 0, rowspan: 2, colspan: 2 }
         ]
       });
       let TD = hot.rootElement.querySelector('td');
@@ -121,7 +121,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         mergeCells: [
-          {row: 0, col: 0, rowspan: 2, colspan: 2}
+          { row: 0, col: 0, rowspan: 2, colspan: 2 }
         ]
       });
       expect(hot.getCopyableText(0, 0, 2, 2)).toBe('A1\t\tC1\n\t\tC2\nA3\tB3\tC3');
@@ -204,8 +204,8 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
         mergeCells: [
-          {row: 1, col: 1, rowspan: 3, colspan: 3},
-          {row: 3, col: 4, rowspan: 2, colspan: 2}
+          { row: 1, col: 1, rowspan: 3, colspan: 3 },
+          { row: 3, col: 4, rowspan: 2, colspan: 2 }
         ]
       });
 
@@ -235,7 +235,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
         mergeCells: [
-          {row: 4, col: 4, rowspan: 2, colspan: 2}
+          { row: 4, col: 4, rowspan: 2, colspan: 2 }
         ]
       });
 
@@ -444,7 +444,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         mergeCells: [
-          {row: 0, col: 0, rowspan: 2, colspan: 2}
+          { row: 0, col: 0, rowspan: 2, colspan: 2 }
         ],
         height: 100,
         width: 400
@@ -460,7 +460,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         mergeCells: [
-          {row: 5, col: 0, rowspan: 2, colspan: 2}
+          { row: 5, col: 0, rowspan: 2, colspan: 2 }
         ],
         height: 100,
         width: 400
@@ -497,8 +497,8 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(40, 5),
         mergeCells: [
-          {row: 1, col: 0, rowspan: 21, colspan: 2},
-          {row: 21, col: 2, rowspan: 18, colspan: 2}
+          { row: 1, col: 0, rowspan: 21, colspan: 2 },
+          { row: 21, col: 2, rowspan: 18, colspan: 2 }
         ],
         height: 100,
         width: 400
@@ -511,8 +511,8 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(40, 5),
         mergeCells: [
-          {row: 1, col: 0, rowspan: 21, colspan: 2},
-          {row: 21, col: 2, rowspan: 18, colspan: 2}
+          { row: 1, col: 0, rowspan: 21, colspan: 2 },
+          { row: 21, col: 2, rowspan: 18, colspan: 2 }
         ],
         height: 100,
         width: 400
@@ -530,8 +530,8 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(5, 40),
         mergeCells: [
-          {row: 0, col: 1, rowspan: 2, colspan: 21},
-          {row: 2, col: 21, rowspan: 2, colspan: 18}
+          { row: 0, col: 1, rowspan: 2, colspan: 21 },
+          { row: 2, col: 21, rowspan: 2, colspan: 18 }
         ],
         height: 100,
         width: 400
@@ -544,8 +544,8 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(5, 40),
         mergeCells: [
-          {row: 0, col: 1, rowspan: 2, colspan: 21},
-          {row: 2, col: 21, rowspan: 2, colspan: 18}
+          { row: 0, col: 1, rowspan: 2, colspan: 21 },
+          { row: 2, col: 21, rowspan: 2, colspan: 18 }
         ],
         height: 100,
         width: 400
@@ -564,8 +564,8 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
-          {row: 1, col: 1, rowspan: 2, colspan: 2},
-          {row: 2, col: 5, rowspan: 2, colspan: 2}
+          { row: 1, col: 1, rowspan: 2, colspan: 2 },
+          { row: 2, col: 5, rowspan: 2, colspan: 2 }
         ],
         height: 400,
         width: 400
@@ -584,8 +584,8 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
-          {row: 1, col: 1, rowspan: 2, colspan: 2},
-          {row: 2, col: 5, rowspan: 2, colspan: 2}
+          { row: 1, col: 1, rowspan: 2, colspan: 2 },
+          { row: 2, col: 5, rowspan: 2, colspan: 2 }
         ],
         height: 400,
         width: 400
@@ -605,8 +605,8 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
-          {row: 1, col: 1, rowspan: 2, colspan: 2},
-          {row: 5, col: 5, rowspan: 2, colspan: 2}
+          { row: 1, col: 1, rowspan: 2, colspan: 2 },
+          { row: 5, col: 5, rowspan: 2, colspan: 2 }
         ],
         height: 400,
         width: 400
@@ -625,8 +625,8 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
-          {row: 1, col: 1, rowspan: 2, colspan: 2},
-          {row: 5, col: 5, rowspan: 2, colspan: 2}
+          { row: 1, col: 1, rowspan: 2, colspan: 2 },
+          { row: 5, col: 5, rowspan: 2, colspan: 2 }
         ],
         height: 400,
         width: 400
@@ -645,7 +645,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
-          {row: 1, col: 1, rowspan: 5, colspan: 3}
+          { row: 1, col: 1, rowspan: 5, colspan: 3 }
         ],
         height: 400,
         width: 400
@@ -672,7 +672,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
-          {row: 1, col: 1, rowspan: 3, colspan: 5}
+          { row: 1, col: 1, rowspan: 3, colspan: 5 }
         ],
         height: 400,
         width: 400
@@ -699,7 +699,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
-          {row: 5, col: 5, rowspan: 5, colspan: 3}
+          { row: 5, col: 5, rowspan: 5, colspan: 3 }
         ],
         height: 400,
         width: 400
@@ -734,7 +734,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
-          {row: 5, col: 5, rowspan: 3, colspan: 5}
+          { row: 5, col: 5, rowspan: 3, colspan: 5 }
         ],
         height: 400,
         width: 400
@@ -770,8 +770,8 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
-          {row: 0, col: 0, rowspan: 2, colspan: 2},
-          {row: 5, col: 5, rowspan: 3, colspan: 3}
+          { row: 0, col: 0, rowspan: 2, colspan: 2 },
+          { row: 5, col: 5, rowspan: 3, colspan: 3 }
         ],
         height: 400,
         width: 400
@@ -1013,7 +1013,7 @@ describe('MergeCells', () => {
   xdescribe('modifyTransform', () => {
     it('should not transform arrow right when entering a merged cell', () => {
       let mergeCellsSettings = [
-        {row: 1, col: 1, rowspan: 3, colspan: 3}
+        { row: 1, col: 1, rowspan: 3, colspan: 3 }
       ];
       let coords = new CellCoords(1, 0);
       let currentSelection = new CellRange(coords, coords, coords);
@@ -1026,7 +1026,7 @@ describe('MergeCells', () => {
 
     it('should transform arrow right when leaving a merged cell', () => {
       let mergeCellsSettings = [
-        {row: 1, col: 1, rowspan: 3, colspan: 3}
+        { row: 1, col: 1, rowspan: 3, colspan: 3 }
       ];
       let coords = new CellCoords(1, 1);
       let currentSelection = new CellRange(coords, coords, coords);
@@ -1039,7 +1039,7 @@ describe('MergeCells', () => {
 
     it('should transform arrow right when leaving a merged cell (return to desired row)', () => {
       let mergeCellsSettings = [
-        {row: 1, col: 1, rowspan: 3, colspan: 3}
+        { row: 1, col: 1, rowspan: 3, colspan: 3 }
       ];
       let mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
 
@@ -1060,7 +1060,7 @@ describe('MergeCells', () => {
 
     it('should transform arrow left when entering a merged cell', () => {
       let mergeCellsSettings = [
-        {row: 1, col: 1, rowspan: 3, colspan: 3}
+        { row: 1, col: 1, rowspan: 3, colspan: 3 }
       ];
       let coords = new CellCoords(1, 4);
       let currentSelection = new CellRange(coords, coords, coords);
@@ -1073,7 +1073,7 @@ describe('MergeCells', () => {
 
     it('should not transform arrow left when leaving a merged cell', () => {
       let mergeCellsSettings = [
-        {row: 1, col: 1, rowspan: 3, colspan: 3}
+        { row: 1, col: 1, rowspan: 3, colspan: 3 }
       ];
       let coords = new CellCoords(1, 1);
       let currentSelection = new CellRange(coords, coords, coords);
@@ -1086,7 +1086,7 @@ describe('MergeCells', () => {
 
     it('should transform arrow left when leaving a merged cell (return to desired row)', () => {
       let mergeCellsSettings = [
-        {row: 1, col: 1, rowspan: 3, colspan: 3}
+        { row: 1, col: 1, rowspan: 3, colspan: 3 }
       ];
       let mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
 
@@ -1107,7 +1107,7 @@ describe('MergeCells', () => {
 
     it('should not transform arrow down when entering a merged cell', () => {
       let mergeCellsSettings = [
-        {row: 1, col: 1, rowspan: 3, colspan: 3}
+        { row: 1, col: 1, rowspan: 3, colspan: 3 }
       ];
       let coords = new CellCoords(0, 1);
       let currentSelection = new CellRange(coords, coords, coords);
@@ -1120,7 +1120,7 @@ describe('MergeCells', () => {
 
     it('should transform arrow down when leaving a merged cell', () => {
       let mergeCellsSettings = [
-        {row: 1, col: 1, rowspan: 3, colspan: 3}
+        { row: 1, col: 1, rowspan: 3, colspan: 3 }
       ];
       let coords = new CellCoords(1, 1);
       let currentSelection = new CellRange(coords, coords, coords);
@@ -1133,7 +1133,7 @@ describe('MergeCells', () => {
 
     it('should transform arrow up when entering a merged cell', () => {
       let mergeCellsSettings = [
-        {row: 1, col: 1, rowspan: 3, colspan: 3}
+        { row: 1, col: 1, rowspan: 3, colspan: 3 }
       ];
       let coords = new CellCoords(4, 1);
       let currentSelection = new CellRange(coords, coords, coords);
@@ -1146,7 +1146,7 @@ describe('MergeCells', () => {
 
     it('should not transform arrow up when leaving a merged cell', () => {
       let mergeCellsSettings = [
-        {row: 1, col: 1, rowspan: 3, colspan: 3}
+        { row: 1, col: 1, rowspan: 3, colspan: 3 }
       ];
       let coords = new CellCoords(1, 1);
       let currentSelection = new CellRange(coords, coords, coords);
@@ -1172,7 +1172,7 @@ describe('MergeCells', () => {
         .find('thead')
         .find('th')
         .eq(0)
-        .simulate('mousedown', {which: 3});
+        .simulate('mousedown', { which: 3 });
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1195,8 +1195,8 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         mergeCells: [
-          {row: 5, col: 4, rowspan: 2, colspan: 2},
-          {row: 1, col: 1, rowspan: 2, colspan: 2},
+          { row: 5, col: 4, rowspan: 2, colspan: 2 },
+          { row: 1, col: 1, rowspan: 2, colspan: 2 },
         ],
         validator(query, callback) {
           callback(true);
@@ -1231,7 +1231,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         mergeCells: [
-          {row: 5, col: 4, rowspan: 2, colspan: 5}
+          { row: 5, col: 4, rowspan: 2, colspan: 5 }
         ]
       });
 
@@ -1247,7 +1247,7 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         mergeCells: [
-          {row: 5, col: 4, rowspan: 5, colspan: 2}
+          { row: 5, col: 4, rowspan: 5, colspan: 2 }
         ]
       });
 
@@ -1265,8 +1265,8 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         mergeCells: [
-          {row: 5, col: 4, rowspan: 2, colspan: 5},
-          {row: 1, col: 1, rowspan: 2, colspan: 2},
+          { row: 5, col: 4, rowspan: 2, colspan: 5 },
+          { row: 1, col: 1, rowspan: 2, colspan: 2 },
         ]
       });
 

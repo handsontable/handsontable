@@ -1,6 +1,6 @@
-import {empty, fastInnerText} from './../helpers/dom/element';
-import {stringify} from './../helpers/mixed';
-import {getRenderer} from './index';
+import { empty, fastInnerText } from './../helpers/dom/element';
+import { stringify } from './../helpers/mixed';
+import { getRenderer } from './index';
 
 /**
  * Default text renderer

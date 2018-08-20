@@ -125,8 +125,8 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
       return;
     }
 
-    const {row: startRow, col: startColumn} = selRange.getTopLeftCorner();
-    const {row: endRow, col: endColumn} = selRange.getBottomRightCorner();
+    const { row: startRow, col: startColumn } = selRange.getTopLeftCorner();
+    const { row: endRow, col: endColumn } = selRange.getBottomRightCorner();
     const changes = [];
 
     for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {

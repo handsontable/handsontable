@@ -49,7 +49,7 @@ describe('settings', () => {
         spyOn(checkboxEditorPrototype, 'init');
         handsontable({
           columns(column) {
-            return column === 0 ? {editor: 'checkbox'} : null;
+            return column === 0 ? { editor: 'checkbox' } : null;
           }
         });
         selectCell(0, 0);
@@ -87,7 +87,7 @@ describe('settings', () => {
 
         handsontable({
           columns(column) {
-            return column === 0 ? {editor: customEditor} : null;
+            return column === 0 ? { editor: customEditor } : null;
           }
         });
         selectCell(0, 0);
@@ -128,7 +128,7 @@ describe('settings', () => {
 
         handsontable({
           columns(column) {
-            return column === 0 ? {editor: 'myEditor'} : null;
+            return column === 0 ? { editor: 'myEditor' } : null;
           },
         });
         selectCell(0, 0);

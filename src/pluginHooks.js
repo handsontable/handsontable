@@ -1,5 +1,5 @@
-import {arrayEach} from './helpers/array';
-import {objectEach} from './helpers/object';
+import { arrayEach } from './helpers/array';
+import { objectEach } from './helpers/object';
 
 /**
  * @description

@@ -1,4 +1,4 @@
-import {generateASCIITable} from './asciiTable';
+import { generateASCIITable } from './asciiTable';
 
 /* eslint-disable import/prefer-default-export */
 let currentSpec;

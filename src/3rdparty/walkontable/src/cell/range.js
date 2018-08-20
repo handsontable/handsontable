@@ -105,7 +105,7 @@ class CellRange {
    * @returns {Boolean}
    */
   includes(cellCoords) {
-    const {row, col} = cellCoords;
+    const { row, col } = cellCoords;
     const topLeft = this.getTopLeftCorner();
     const bottomRight = this.getBottomRightCorner();
 

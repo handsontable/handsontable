@@ -82,8 +82,8 @@ describe('Comments', () => {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'test'}},
-          {row: 2, col: 2, comment: {value: 'test'}}
+          { row: 1, col: 1, comment: { value: 'test' } },
+          { row: 2, col: 2, comment: { value: 'test' } }
         ]
       });
 
@@ -174,8 +174,8 @@ describe('Comments', () => {
           displayDelay: 400
         },
         cell: [
-          {row: 1, col: 1, comment: {value: 'test'}},
-          {row: 2, col: 2, comment: {value: 'another test'}}
+          { row: 1, col: 1, comment: { value: 'test' } },
+          { row: 2, col: 2, comment: { value: 'another test' } }
         ]
       });
 
@@ -190,16 +190,16 @@ describe('Comments', () => {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'test'}},
-          {row: 2, col: 2, comment: {value: 'another test'}}
+          { row: 1, col: 1, comment: { value: 'test' } },
+          { row: 2, col: 2, comment: { value: 'another test' } }
         ]
       });
 
       const plugin = hot.getPlugin('comments');
 
-      plugin.setRange({from: {row: 1, col: 1}});
+      plugin.setRange({ from: { row: 1, col: 1 } });
       expect(plugin.getComment()).toEqual('test');
-      plugin.setRange({from: {row: 2, col: 2}});
+      plugin.setRange({ from: { row: 2, col: 2 } });
       expect(plugin.getComment()).toEqual('another test');
     });
 
@@ -229,7 +229,7 @@ describe('Comments', () => {
       const plugin = hot.getPlugin('comments');
 
       plugin.setCommentAtCell(1, 1, 'Added comment');
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', {value: 'Added comment'}, undefined, undefined);
+      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', { value: 'Added comment' }, undefined, undefined);
     });
 
     it('should allow removing comments using the `removeCommentAtCell` method', () => {
@@ -237,7 +237,7 @@ describe('Comments', () => {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'test'}}
+          { row: 1, col: 1, comment: { value: 'test' } }
         ]
       });
 
@@ -256,7 +256,7 @@ describe('Comments', () => {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'test'}}
+          { row: 1, col: 1, comment: { value: 'test' } }
         ],
         afterSetCellMeta: afterSetCellMetaCallback
       });
@@ -309,15 +309,15 @@ describe('Comments', () => {
     let readOnly;
     let comment;
 
-    setCellMeta(0, 0, 'comment', {readOnly: true});
-    plugin.updateCommentMeta(0, 0, {value: 'Test'});
+    setCellMeta(0, 0, 'comment', { readOnly: true });
+    plugin.updateCommentMeta(0, 0, { value: 'Test' });
 
     comment = getCellMeta(0, 0).comment;
     readOnly = comment && comment.readOnly;
 
     expect(readOnly).toEqual(true);
 
-    plugin.setRange({from: {row: 0, col: 0}, to: {row: 0, col: 0}});
+    plugin.setRange({ from: { row: 0, col: 0 }, to: { row: 0, col: 0 } });
     plugin.setComment('Test2');
 
     comment = getCellMeta(0, 0).comment;
@@ -384,7 +384,7 @@ describe('Comments', () => {
         contextMenu: true,
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'Test comment'}}
+          { row: 1, col: 1, comment: { value: 'Test comment' } }
         ]
       });
 
@@ -408,8 +408,8 @@ describe('Comments', () => {
         contextMenu: true,
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'Test comment'}},
-          {row: 2, col: 2, comment: {value: 'Test comment 2'}}
+          { row: 1, col: 1, comment: { value: 'Test comment' } },
+          { row: 2, col: 2, comment: { value: 'Test comment 2' } }
         ]
       });
 
@@ -435,7 +435,7 @@ describe('Comments', () => {
         contextMenu: true,
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'Test comment'}}
+          { row: 1, col: 1, comment: { value: 'Test comment' } }
         ]
       });
 
@@ -540,7 +540,7 @@ describe('Comments', () => {
 
       await sleep(400);
 
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', {value: 'Edited comment'}, undefined, undefined);
+      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' }, undefined, undefined);
     });
   });
 });

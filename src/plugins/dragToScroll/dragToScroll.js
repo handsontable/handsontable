@@ -1,6 +1,6 @@
 import BasePlugin from './../_base';
 import EventManager from './../../eventManager';
-import {registerPlugin} from './../../plugins';
+import { registerPlugin } from './../../plugins';
 
 /**
  * @description

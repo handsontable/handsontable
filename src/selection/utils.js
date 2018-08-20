@@ -68,7 +68,7 @@ export function detectSelectionType(selectionRanges, _callSymbol = rootCall) {
  *                                       defined as props should be normalized to the numeric values.
  * @returns {Number[]} Returns normalized data about selected range as an array (`[rowStart, columnStart, rowEnd, columnEnd]`).
  */
-export function normalizeSelectionFactory(type, {keepDirection = false, propToCol} = {}) {
+export function normalizeSelectionFactory(type, { keepDirection = false, propToCol } = {}) {
   if (!SELECTION_TYPES.includes(type)) {
     throw new Error('Unsupported selection ranges schema type was provided.');
   }

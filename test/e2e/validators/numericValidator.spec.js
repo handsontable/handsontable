@@ -14,16 +14,16 @@ describe('numericValidator', () => {
 
   const arrayOfObjects = function() {
     return [
-      {id: 1, name: 'Ted', lastName: 'Right'},
-      {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'},
-      {id: 4, name: 'Sid', lastName: 'Strong'},
-      {id: 5, name: 'Jane', lastName: 'Neat'},
-      {id: 6, name: 'Chuck', lastName: 'Jackson'},
-      {id: 7, name: 'Meg', lastName: 'Jansen'},
-      {id: 8, name: 'Rob', lastName: 'Norris'},
-      {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'}
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' },
+      { id: 4, name: 'Sid', lastName: 'Strong' },
+      { id: 5, name: 'Jane', lastName: 'Neat' },
+      { id: 6, name: 'Chuck', lastName: 'Jackson' },
+      { id: 7, name: 'Meg', lastName: 'Jansen' },
+      { id: 8, name: 'Rob', lastName: 'Norris' },
+      { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+      { id: 10, name: 'Eve', lastName: 'Branson' }
     ];
   };
 
@@ -33,9 +33,9 @@ describe('numericValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -54,9 +54,9 @@ describe('numericValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -75,9 +75,9 @@ describe('numericValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -96,9 +96,9 @@ describe('numericValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -118,9 +118,9 @@ describe('numericValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'id', type: 'numeric', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'id', type: 'numeric', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -139,9 +139,9 @@ describe('numericValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'id', type: 'numeric', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'id', type: 'numeric', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -160,9 +160,9 @@ describe('numericValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'id', type: 'numeric', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'id', type: 'numeric', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -181,9 +181,9 @@ describe('numericValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'id', type: 'numeric', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'id', type: 'numeric', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -199,14 +199,14 @@ describe('numericValidator', () => {
     it('should add / remove `htInvalid` class properly when validating non-numeric data', (done) => {
       const hot = handsontable({
         data: [
-          {id: 1, name: 'Ted', salary: 10000},
-          {id: 2, name: 'Frank', salary: '5300'},
-          {id: 3, name: 'Joan', salary: 'non-numeric value'}
+          { id: 1, name: 'Ted', salary: 10000 },
+          { id: 2, name: 'Frank', salary: '5300' },
+          { id: 3, name: 'Joan', salary: 'non-numeric value' }
         ],
         columns: [
-          {data: 'id'},
-          {data: 'name'},
-          {data: 'salary', type: 'numeric', allowInvalid: false}
+          { data: 'id' },
+          { data: 'name' },
+          { data: 'salary', type: 'numeric', allowInvalid: false }
         ]
       });
 

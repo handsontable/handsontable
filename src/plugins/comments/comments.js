@@ -264,7 +264,7 @@ class Comments extends BasePlugin {
     let row = this.range.from.row;
     let col = this.range.from.col;
 
-    this.updateCommentMeta(row, col, {[META_COMMENT_VALUE]: comment});
+    this.updateCommentMeta(row, col, { [META_COMMENT_VALUE]: comment });
     this.hot.render();
   }
 
@@ -641,7 +641,7 @@ class Comments extends BasePlugin {
   onContextMenuRemoveComment() {
     this.contextMenuEvent = true;
 
-    let {from, to} = this.hot.getSelectedRangeLast();
+    let { from, to } = this.hot.getSelectedRangeLast();
 
     for (let i = from.row; i <= to.row; i++) {
       for (let j = from.col; j <= to.col; j++) {
@@ -660,13 +660,13 @@ class Comments extends BasePlugin {
   onContextMenuMakeReadOnly() {
     this.contextMenuEvent = true;
 
-    let {from, to} = this.hot.getSelectedRangeLast();
+    let { from, to } = this.hot.getSelectedRangeLast();
 
     for (let i = from.row; i <= to.row; i++) {
       for (let j = from.col; j <= to.col; j++) {
         let currentState = !!this.getCommentMeta(i, j, META_READONLY);
 
-        this.updateCommentMeta(i, j, {[META_READONLY]: !currentState});
+        this.updateCommentMeta(i, j, { [META_READONLY]: !currentState });
       }
     }
   }

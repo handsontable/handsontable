@@ -334,8 +334,8 @@ describe('DateEditor', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       columns: [
-        {type: 'date'},
-        {type: 'date', dateFormat: 'YYYY-MM-DD'}
+        { type: 'date' },
+        { type: 'date', dateFormat: 'YYYY-MM-DD' }
       ],
       minSpareRows: 1
     });
@@ -364,8 +364,8 @@ describe('DateEditor', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       columns: [
-        {type: 'date'},
-        {type: 'date'}
+        { type: 'date' },
+        { type: 'date' }
       ]
     });
 
@@ -391,13 +391,13 @@ describe('DateEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(30, 10),
       colWidths: 60,
       columns: [
-        {type: 'date'},
-        {type: 'date'},
-        {type: 'date'},
-        {type: 'date'},
-        {type: 'date'},
-        {type: 'date'},
-        {type: 'date'}
+        { type: 'date' },
+        { type: 'date' },
+        { type: 'date' },
+        { type: 'date' },
+        { type: 'date' },
+        { type: 'date' },
+        { type: 'date' }
       ]
     });
 

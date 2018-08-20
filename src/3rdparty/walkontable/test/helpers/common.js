@@ -133,7 +133,7 @@ export function range(from, to) {
  * @param {Object} selections An object with custom selection instances.
  * @returns {Object} Selection controller.
  */
-export function createSelectionController({current, area, fill, custom} = {}) {
+export function createSelectionController({ current, area, fill, custom } = {}) {
   current = current || new Walkontable.Selection({
     className: 'current',
     border: {

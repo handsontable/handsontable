@@ -27,16 +27,16 @@ describe('manualRowResize', () => {
   it('should be enabled after specifying it in updateSettings config', () => {
     handsontable({
       data: [
-        {id: 1, name: 'Ted', lastName: 'Right'},
-        {id: 2, name: 'Frank', lastName: 'Honest'},
-        {id: 3, name: 'Joan', lastName: 'Well'},
-        {id: 4, name: 'Sid', lastName: 'Strong'},
-        {id: 5, name: 'Jane', lastName: 'Neat'}
+        { id: 1, name: 'Ted', lastName: 'Right' },
+        { id: 2, name: 'Frank', lastName: 'Honest' },
+        { id: 3, name: 'Joan', lastName: 'Well' },
+        { id: 4, name: 'Sid', lastName: 'Strong' },
+        { id: 5, name: 'Jane', lastName: 'Neat' }
       ],
       rowHeaders: true
     });
 
-    updateSettings({manualRowResize: true});
+    updateSettings({ manualRowResize: true });
 
     spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseover');
 
@@ -306,9 +306,9 @@ describe('manualRowResize', () => {
 
     await sleep(600);
 
-    $resizer.simulate('mousedown', {clientY: resizerPosition.top});
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mouseup');
-    $resizer.simulate('mousedown', {clientY: resizerPosition.top});
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mouseup');
 
     await sleep(1000);
@@ -340,8 +340,8 @@ describe('manualRowResize', () => {
     const resizerPosition = $resizer.position();
 
     await sleep(600);
-    $resizer.simulate('mousedown', {clientY: resizerPosition.top});
-    $resizer.simulate('mousemove', {clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 80});
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+    $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 80 });
     $resizer.simulate('mouseup');
 
     expect($rowsHeaders.eq(1).height()).toEqual(80);
@@ -350,8 +350,8 @@ describe('manualRowResize', () => {
 
     await sleep(1200);
 
-    $resizer.simulate('mousedown', {clientY: resizerPosition.top});
-    $resizer.simulate('mousemove', {clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35});
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+    $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35 });
     $resizer.simulate('mouseup');
 
     expect($rowsHeaders.eq(1).height()).toEqual(35);
@@ -363,11 +363,11 @@ describe('manualRowResize', () => {
     it('should display the resize handle in the proper position and with a proper size', () => {
       handsontable({
         data: [
-          {id: 1, name: 'Ted', lastName: 'Right'},
-          {id: 2, name: 'Frank', lastName: 'Honest'},
-          {id: 3, name: 'Joan', lastName: 'Well'},
-          {id: 4, name: 'Sid', lastName: 'Strong'},
-          {id: 5, name: 'Jane', lastName: 'Neat'}
+          { id: 1, name: 'Ted', lastName: 'Right' },
+          { id: 2, name: 'Frank', lastName: 'Honest' },
+          { id: 3, name: 'Joan', lastName: 'Well' },
+          { id: 4, name: 'Sid', lastName: 'Strong' },
+          { id: 5, name: 'Jane', lastName: 'Neat' }
         ],
         rowHeaders: true,
         manualRowResize: true

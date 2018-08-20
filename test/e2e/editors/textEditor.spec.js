@@ -717,7 +717,7 @@ describe('TextEditor', () => {
     expect(getCell(0, 0)).not.toBeNull();
     expect(getCell(19, 19)).toBeNull();
 
-    hot.view.scrollViewport({row: 19, col: 19});
+    hot.view.scrollViewport({ row: 19, col: 19 });
     hot.render();
 
     expect(getCell(0, 0)).toBeNull();

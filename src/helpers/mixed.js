@@ -1,5 +1,5 @@
 import moment from 'moment';
-import {toSingleLine} from './templateLiteralTag';
+import { toSingleLine } from './templateLiteralTag';
 
 /**
  * Converts any value to string.

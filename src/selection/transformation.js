@@ -1,5 +1,5 @@
-import {CellCoords} from './../3rdparty/walkontable/src';
-import {mixin} from './../helpers/object';
+import { CellCoords } from './../3rdparty/walkontable/src';
+import { mixin } from './../helpers/object';
 import localHooks from './../mixins/localHooks';
 
 /**

@@ -2,8 +2,8 @@
  * Utility to register plugins and common namespace for keeping reference to all plugins classes
  */
 import Hooks from './pluginHooks';
-import {objectEach} from './helpers/object';
-import {toUpperCaseFirst} from './helpers/string';
+import { objectEach } from './helpers/object';
+import { toUpperCaseFirst } from './helpers/string';
 
 const registeredPlugins = new WeakMap();
 
@@ -87,4 +87,4 @@ function getPluginName(hotInstance, plugin) {
   return pluginName;
 }
 
-export {registerPlugin, getPlugin, getRegistredPluginNames, getPluginName};
+export { registerPlugin, getPlugin, getRegistredPluginNames, getPluginName };
