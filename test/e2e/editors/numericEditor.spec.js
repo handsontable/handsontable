@@ -27,7 +27,7 @@ describe('NumericEditor', () => {
     ];
   };
 
-  it('should convert "integer like" input value to number (object data source)', async () => {
+  it('should convert "integer like" input value to number (object data source)', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -49,7 +49,7 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(2, 0)).toEqual(999);
   });
 
-  it('should not convert formatted "float like" input value to number (object data source) #4706', async () => {
+  it('should not convert formatted "float like" input value to number (object data source) #4706', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -122,7 +122,7 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(1, 3)).toEqual('400,000.5');
   });
 
-  it('should convert "float like" input value with dot as determiner to number (object data source)', async () => {
+  it('should convert "float like" input value with dot as determiner to number (object data source)', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -144,7 +144,7 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(2, 0)).toEqual(77.7);
   });
 
-  it('should convert "float like" input value with comma as determiner to number (object data source)', async () => {
+  it('should convert "float like" input value with comma as determiner to number (object data source)', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -166,7 +166,7 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(2, 0)).toEqual(77.7);
   });
 
-  it('should convert "float like" input without leading zero to a float', async () => {
+  it('should convert "float like" input without leading zero to a float', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -188,7 +188,7 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(2, 0)).toEqual(0.74);
   });
 
-  it('should apply changes to editor after validation', async () => {
+  it('should apply changes to editor after validation', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -204,7 +204,7 @@ describe('NumericEditor', () => {
     expect(getActiveEditor().originalValue).toEqual('');
   });
 
-  it('should not validate string input data containing numbers ', async () => {
+  it('should not validate string input data containing numbers ', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -292,7 +292,7 @@ describe('NumericEditor', () => {
   });
 
   it('should display a string in a format \'$X,XXX.XX\' when using language=en, appropriate format in column settings and \'XXXX.XX\' as ' +
-     'an input string', async () => {
+     'an input string', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -315,7 +315,7 @@ describe('NumericEditor', () => {
   });
 
   it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
-     'input string (that comes from manual input)', async () => {
+     'input string (that comes from manual input)', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -338,7 +338,7 @@ describe('NumericEditor', () => {
   });
 
   it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX.XX\' as an ' +
-     'input string (that comes from paste)', async () => {
+     'input string (that comes from paste)', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -364,7 +364,7 @@ describe('NumericEditor', () => {
   });
 
   it('should display a string in a format \'X XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
-     'input string and ignore not needed zeros at the end', async () => {
+     'input string and ignore not needed zeros at the end', async() => {
     handsontable({
       data: [
         {id: 1, name: 'Ted', lastName: 'Right', money: 0},
@@ -412,7 +412,7 @@ describe('NumericEditor', () => {
   });
 
   it('should display values as "float like" string with dot as determiner after pressing enter ' +
-    'and not change value after closing editor', async () => {
+    'and not change value after closing editor', async() => {
     handsontable({
       data: [
         {id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5}
@@ -469,7 +469,7 @@ describe('NumericEditor', () => {
   });
 
   it('should display values as "float like" string with dot as determiner after double click ' +
-    'and not change value after closing editor', async () => {
+    'and not change value after closing editor', async() => {
     handsontable({
       data: [
         {id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5}
@@ -522,7 +522,7 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(0, 3)).toEqual(1333.5);
   });
 
-  it('should mark text as invalid without removing when using `setDataAtCell`', async () => {
+  it('should mark text as invalid without removing when using `setDataAtCell`', async() => {
     const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -540,7 +540,7 @@ describe('NumericEditor', () => {
     expect($(getCell(0, 0)).hasClass('htInvalid')).toBe(true);
   });
 
-  it('should allow custom validator', async () => {
+  it('should allow custom validator', async() => {
     handsontable({
       data: arrayOfObjects(),
       allowInvalid: false,
@@ -577,7 +577,7 @@ describe('NumericEditor', () => {
   });
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
-  it('should not lose the focus on input element while inserting new characters (#839)', async () => {
+  it('should not lose the focus on input element while inserting new characters (#839)', async() => {
     let blured = false;
     const listener = () => {
       blured = true;
@@ -700,7 +700,7 @@ describe('NumericEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should focus editable element after selecting the cell', async () => {
+    it('should focus editable element after selecting the cell', async() => {
       handsontable({
         type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}
       });

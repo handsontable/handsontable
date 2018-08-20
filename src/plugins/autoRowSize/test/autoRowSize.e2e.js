@@ -174,7 +174,7 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should correctly detect row height when table is hidden on init (display: none)', async () => {
+  it('should correctly detect row height when table is hidden on init (display: none)', async() => {
     spec().$container.css('display', 'none');
     const hot = handsontable({
       data: arrayOfObjects(),

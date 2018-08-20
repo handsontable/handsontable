@@ -38,7 +38,7 @@ describe('Comments', () => {
   });
 
   describe('updateSettings', () => {
-    it('should change delay, after which comment is showed #4323', async () => {
+    it('should change delay, after which comment is showed #4323', async() => {
       const rows = 10;
       const columns = 10;
       const hot = handsontable({
@@ -326,7 +326,7 @@ describe('Comments', () => {
     expect(readOnly).toEqual(true);
   });
 
-  it('should not close the comment editor immediately after opening #4323', async () => {
+  it('should not close the comment editor immediately after opening #4323', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
@@ -499,7 +499,7 @@ describe('Comments', () => {
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', undefined, undefined, undefined);
     });
 
-    it('should trigger `afterSetCellMeta` callback after editing comment by context menu', async () => {
+    it('should trigger `afterSetCellMeta` callback after editing comment by context menu', async() => {
       const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
 
       handsontable({
