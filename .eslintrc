@@ -36,7 +36,6 @@
     "no-new": 2,
     "no-param-reassign": 0,
     "no-plusplus": 0,
-    "no-restricted-properties": 0,
     "no-spaced-func": 2,
     "no-trailing-spaces": 2,
     "no-undef": 0,
