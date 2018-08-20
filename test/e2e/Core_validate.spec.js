@@ -570,7 +570,7 @@ describe('Core_validate', () => {
     }, 600);
   });
 
-  it('should add class name `htInvalid` to an cell that does not validate - on validateColumns', async () => {
+  it('should add class name `htInvalid` to an cell that does not validate - on validateColumns', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
@@ -630,7 +630,7 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
   });
 
-  it('should add class name `htInvalid` to an cell that does not validate - when we trigger validateCell', async () => {
+  it('should add class name `htInvalid` to an cell that does not validate - when we trigger validateCell', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
@@ -1166,7 +1166,7 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('should validate edited cell after selecting another cell', async () => {
+  it('should validate edited cell after selecting another cell', async() => {
     let validatedValue;
 
     handsontable({
@@ -1354,7 +1354,7 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('should close the editor and save the new value after double clicking on a cell, if the previously edited cell validated correctly', async () => {
+  it('should close the editor and save the new value after double clicking on a cell, if the previously edited cell validated correctly', async() => {
     let validationResult;
 
     handsontable({
@@ -1436,7 +1436,7 @@ describe('Core_validate', () => {
     }, 300);
   });
 
-  it('should listen to key changes after cell is corrected (allowInvalid: false)', async () => {
+  it('should listen to key changes after cell is corrected (allowInvalid: false)', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -1481,7 +1481,7 @@ describe('Core_validate', () => {
     expect(getSelected()).toEqual([[2, 0, 2, 0]]);
   });
 
-  it('should allow keyboard movement when cell is being validated (move DOWN)', async () => {
+  it('should allow keyboard movement when cell is being validated (move DOWN)', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -1599,7 +1599,7 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('should not allow keyboard movement until cell is validated (move LEFT)', async () => {
+  it('should not allow keyboard movement until cell is validated (move LEFT)', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     hot = handsontable({

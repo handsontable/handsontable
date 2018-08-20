@@ -315,7 +315,7 @@ describe('Core_view', () => {
     expect($(window).scrollTop()).toEqual(lastScroll);
   });
 
-  it('should not shrink table when width and height is not specified for container', async () => {
+  it('should not shrink table when width and height is not specified for container', async() => {
     spec().$container[0].style.overflow = 'hidden';
     spec().$container.wrap('<div style="width: 50px;"></div>');
     handsontable({
@@ -376,7 +376,7 @@ describe('Core_view', () => {
     expect(spec().$container.width()).toEqual(107); // rootElement is full width but this should do the trick
   });
 
-  it('should fire beforeRender event after table has been scrolled', async () => {
+  it('should fire beforeRender event after table has been scrolled', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
@@ -395,7 +395,7 @@ describe('Core_view', () => {
     expect(beforeRenderCallback.calls.count()).toBe(1);
   });
 
-  it('should fire afterRender event after table has been scrolled', async () => {
+  it('should fire afterRender event after table has been scrolled', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
@@ -413,7 +413,7 @@ describe('Core_view', () => {
     expect(afterRenderCallback.calls.count()).toBe(1);
   });
 
-  it('should fire afterRender event after table physically rendered', async () => {
+  it('should fire afterRender event after table physically rendered', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';

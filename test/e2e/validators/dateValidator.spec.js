@@ -42,7 +42,7 @@ describe('dateValidator', () => {
     }, 100);
   });
 
-  it('should rewrite an ISO 8601 string to the correct format if a date-string in different format is provided', async () => {
+  it('should rewrite an ISO 8601 string to the correct format if a date-string in different format is provided', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({

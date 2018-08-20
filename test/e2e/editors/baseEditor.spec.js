@@ -86,7 +86,7 @@ describe('BaseEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should not throw an error when composition is started in multiple instances environment', async () => {
+    it('should not throw an error when composition is started in multiple instances environment', async() => {
       const errorSpy = jasmine.createSpyObj('error', ['test']);
       const prevError = window.onerror;
 

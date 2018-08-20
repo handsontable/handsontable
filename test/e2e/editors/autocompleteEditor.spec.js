@@ -365,7 +365,7 @@ describe('AutocompleteEditor', () => {
     // TODO: This test never properly tests the case of refreshing editor after re-render the table. Previously this
     // test passes because sleep timeout was small enough to read the valid width before the editor element was resized.
     // Related issue #5103
-    xit('autocomplete textarea should have cell dimensions (after render)', async () => {
+    xit('autocomplete textarea should have cell dimensions (after render)', async() => {
       const data = [
         ['a', 'b'],
         ['c', 'd']
@@ -428,7 +428,7 @@ describe('AutocompleteEditor', () => {
       expect(hot.getActiveEditor().beginEditing.calls.count()).toBe(3);
     });
 
-    it('should not display all the choices from a long source list and not leave any unused space in the dropdown', async () => {
+    it('should not display all the choices from a long source list and not leave any unused space in the dropdown', async() => {
       handsontable({
         columns: [
           {
@@ -541,7 +541,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
     });
 
-    it('should flip the dropdown upwards when there is no more room left below the cell after filtering the choice list', async () => {
+    it('should flip the dropdown upwards when there is no more room left below the cell after filtering the choice list', async() => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         columns: [
@@ -777,7 +777,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
     });
 
-    it('should destroy editor when pressed Enter then Esc', async () => {
+    it('should destroy editor when pressed Enter then Esc', async() => {
       const syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
@@ -804,7 +804,7 @@ describe('AutocompleteEditor', () => {
       expect(isEditorVisible(autocompleteEditor())).toBe(false);
     });
 
-    it('should destroy editor when mouse double clicked then Esc', async () => {
+    it('should destroy editor when mouse double clicked then Esc', async() => {
       const syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
@@ -861,7 +861,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
     });
 
-    it('should destroy editor when clicked outside the table', async () => {
+    it('should destroy editor when clicked outside the table', async() => {
       const syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
@@ -1998,7 +1998,7 @@ describe('AutocompleteEditor', () => {
       expect(hot.getCellMeta(0, 0).allowHtml).toBeFalsy();
     });
 
-    it('should strip html from strings provided in source (async mode)', async () => {
+    it('should strip html from strings provided in source (async mode)', async() => {
       const hot = handsontable({
         columns: [
           {
@@ -2055,7 +2055,7 @@ describe('AutocompleteEditor', () => {
       expect(getCell(0, 0).textContent).toMatch('bar');
     });
 
-    it('should strip html from strings provided in source (sync mode)', async () => {
+    it('should strip html from strings provided in source (sync mode)', async() => {
       const hot = handsontable({
         columns: [
           {
@@ -2313,7 +2313,7 @@ describe('AutocompleteEditor', () => {
   });
 
   // Input element should be focused on cell selection othrwise it breaks IME editor functionality for Asian users.
-  it('should not lose the focus on input element while inserting new characters (#839)', async () => {
+  it('should not lose the focus on input element while inserting new characters (#839)', async() => {
     const focusListener = jasmine.createSpy('focus');
     const hot = handsontable({
       data: [
@@ -2339,7 +2339,7 @@ describe('AutocompleteEditor', () => {
     hot.getActiveEditor().TEXTAREA.removeEventListener('focus', focusListener);
   });
 
-  it('should not lose the focus from the editor after selecting items from the choice list', async () => {
+  it('should not lose the focus from the editor after selecting items from the choice list', async() => {
     const hot = handsontable({
       data: [
         ['', 'two'],
@@ -2476,7 +2476,7 @@ describe('AutocompleteEditor', () => {
     }, 200);
   });
 
-  it('should add a scrollbar to the autocomplete dropdown, only if number of displayed choices exceeds 10', async () => {
+  it('should add a scrollbar to the autocomplete dropdown, only if number of displayed choices exceeds 10', async() => {
     const hot = handsontable({
       data: [
         ['', 'two', 'three'],
@@ -2522,7 +2522,7 @@ describe('AutocompleteEditor', () => {
     expect(dropdownHolder.scrollHeight > dropdownHolder.clientHeight).toBe(false);
   });
 
-  it('should not close editor on scrolling', async () => {
+  it('should not close editor on scrolling', async() => {
     const hot = handsontable({
       data: [
         ['', 'two', 'three'],
@@ -2566,7 +2566,7 @@ describe('AutocompleteEditor', () => {
     expect($(dropdown).is(':visible')).toBe(true);
   });
 
-  it('should keep textarea caret position, after moving the selection to the suggestion list (pressing down arrow)', async () => {
+  it('should keep textarea caret position, after moving the selection to the suggestion list (pressing down arrow)', async() => {
     const syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
@@ -2605,7 +2605,7 @@ describe('AutocompleteEditor', () => {
     expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
   });
 
-  it('should keep textarea selection, after moving the selection to the suggestion list (pressing down arrow)', async () => {
+  it('should keep textarea selection, after moving the selection to the suggestion list (pressing down arrow)', async() => {
     const syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
@@ -3000,7 +3000,7 @@ describe('AutocompleteEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should focus editable element after selecting the cell', async () => {
+    it('should focus editable element after selecting the cell', async() => {
       handsontable({
         columns: [
           {

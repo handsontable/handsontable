@@ -31,7 +31,7 @@ describe('AutoColumnSize', () => {
     expect(width1).toBeLessThan(width2);
   });
 
-  it('should update column width after update value in cell (array of objects)', async () => {
+  it('should update column width after update value in cell (array of objects)', async() => {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -179,7 +179,7 @@ describe('AutoColumnSize', () => {
   });
 
   // https://github.com/handsontable/handsontable/issues/2684
-  it('should correctly detect column width when table is hidden on init (display: none)', async () => {
+  it('should correctly detect column width when table is hidden on init (display: none)', async() => {
     spec().$container.css('display', 'none');
     const hot = handsontable({
       data: arrayOfObjects(),
@@ -230,7 +230,7 @@ describe('AutoColumnSize', () => {
     expect(rowHeight(spec().$container, 4)).toBe(23);
   });
 
-  it('should keep last columns width unchanged if all rows was removed', async () => {
+  it('should keep last columns width unchanged if all rows was removed', async() => {
     const hot = handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
