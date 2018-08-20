@@ -147,6 +147,8 @@ export function isChildOfWebComponentTable(element) {
   return result;
 }
 
+/* global Polymer wrap unwrap */
+
 /**
  * Wrap element into polymer/webcomponent container if exists
  *
@@ -154,7 +156,6 @@ export function isChildOfWebComponentTable(element) {
  * @returns {*}
  */
 export function polymerWrap(element) {
-  /* global Polymer */
   return typeof Polymer !== 'undefined' && typeof wrap === 'function' ? wrap(element) : element;
 }
 
@@ -165,7 +166,6 @@ export function polymerWrap(element) {
  * @returns {*}
  */
 export function polymerUnwrap(element) {
-  /* global Polymer */
   return typeof Polymer !== 'undefined' && typeof unwrap === 'function' ? unwrap(element) : element;
 }
 
