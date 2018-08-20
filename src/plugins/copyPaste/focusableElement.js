@@ -128,7 +128,7 @@ function destroyElement(wrapper) {
   }
 }
 
-const runLocalHooks = (eventName, subject) => (event) => subject.runLocalHooks(eventName, event);
+const runLocalHooks = (eventName, subject) => event => subject.runLocalHooks(eventName, event);
 
 /**
  * Register copy/cut/paste events and forward their actions to the subject local hooks system.

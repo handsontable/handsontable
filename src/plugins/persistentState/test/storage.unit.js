@@ -7,7 +7,7 @@ describe('persistentState', () => {
 
       return {
         setItem: (key, value) => { store[key] = value.toString(); },
-        getItem: (key) => store[key],
+        getItem: key => store[key],
         removeItem: (key) => { delete store[key]; }
       };
     })();

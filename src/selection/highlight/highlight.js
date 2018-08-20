@@ -252,9 +252,9 @@ class Highlight {
     this.cell.clear();
     this.fill.clear();
 
-    arrayEach(this.areas.values(), (highlight) => void highlight.clear());
-    arrayEach(this.headers.values(), (highlight) => void highlight.clear());
-    arrayEach(this.activeHeaders.values(), (highlight) => void highlight.clear());
+    arrayEach(this.areas.values(), highlight => void highlight.clear());
+    arrayEach(this.headers.values(), highlight => void highlight.clear());
+    arrayEach(this.activeHeaders.values(), highlight => void highlight.clear());
   }
 
   /**

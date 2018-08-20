@@ -356,7 +356,7 @@ function TableView(instance) {
       instance.runHooks('afterMomentumScroll');
     },
     onBeforeStretchingColumnWidth: (stretchedWidth, column) => instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column),
-    onModifyRowHeaderWidth: (rowHeaderWidth) => instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
+    onModifyRowHeaderWidth: rowHeaderWidth => instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
     onModifyGetCellCoords: (row, column, topmost) => instance.runHooks('modifyGetCellCoords', row, column, topmost),
     viewportRowCalculatorOverride(calc) {
       let rows = instance.countRows();

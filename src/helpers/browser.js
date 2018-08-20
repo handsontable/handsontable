@@ -13,11 +13,11 @@ const tester = (testerFunc) => {
 
 const browsers = {
   chrome: tester((ua, vendor) => /Chrome/.test(ua) && /Google/.test(vendor)),
-  edge: tester((ua) => /Edge/.test(ua)),
-  ie: tester((ua) => /Trident/.test(ua)),
+  edge: tester(ua => /Edge/.test(ua)),
+  ie: tester(ua => /Trident/.test(ua)),
   ie8: tester(() => !(document.createTextNode('test').textContent)),
   ie9: tester(() => !!(document.documentMode)),
-  mobile: tester((ua) => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
+  mobile: tester(ua => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
 };
 

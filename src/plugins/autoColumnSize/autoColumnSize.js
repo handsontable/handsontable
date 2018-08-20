@@ -165,9 +165,9 @@ class AutoColumnSize extends BasePlugin {
     this.setSamplingOptions();
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
-    this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
+    this.addHook('beforeChange', changes => this.onBeforeChange(changes));
 
-    this.addHook('beforeRender', (force) => this.onBeforeRender(force));
+    this.addHook('beforeRender', force => this.onBeforeRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
     this.addHook('afterInit', () => this.onAfterInit());
     super.enablePlugin();
@@ -442,7 +442,7 @@ class AutoColumnSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.widths, (item) => (item === void 0)).length;
+    return !!arrayFilter(this.widths, item => (item === void 0)).length;
   }
 
   /**

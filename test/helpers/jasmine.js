@@ -184,7 +184,7 @@ beforeEach(function() {
           }
 
           const isListWithValues = Array.isArray(checkedArray) || checkedArray.length > 0;
-          const elementNotFulfillingCondition = checkedArray.find((element) => !conditionFunction(element));
+          const elementNotFulfillingCondition = checkedArray.find(element => !conditionFunction(element));
           const containsUndefined = isListWithValues && checkedArray.includes(undefined);
           const pass = isListWithValues && !containsUndefined && elementNotFulfillingCondition === undefined;
           let message;

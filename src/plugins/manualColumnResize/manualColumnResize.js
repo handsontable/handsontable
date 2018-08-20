@@ -162,7 +162,7 @@ class ManualColumnResize extends BasePlugin {
         }
 
         if (this.currentCol >= start && this.currentCol <= end) {
-          rangeEach(start, end, (i) => this.selectedCols.push(i));
+          rangeEach(start, end, i => this.selectedCols.push(i));
 
         } else {
           this.selectedCols.push(this.currentCol);
@@ -442,9 +442,9 @@ class ManualColumnResize extends BasePlugin {
    * @private
    */
   bindEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (e) => this.onMouseOver(e));
-    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (e) => this.onMouseDown(e));
-    this.eventManager.addEventListener(window, 'mousemove', (e) => this.onMouseMove(e));
+    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', e => this.onMouseOver(e));
+    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', e => this.onMouseDown(e));
+    this.eventManager.addEventListener(window, 'mousemove', e => this.onMouseMove(e));
     this.eventManager.addEventListener(window, 'mouseup', () => this.onMouseUp());
   }
 

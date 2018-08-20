@@ -124,7 +124,7 @@ class ManualRowMove extends BasePlugin {
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeColumnSort', (column, order) => this.onBeforeColumnSort(column, order));
-    this.addHook('unmodifyRow', (row) => this.onUnmodifyRow(row));
+    this.addHook('unmodifyRow', row => this.onUnmodifyRow(row));
 
     this.registerEvents();
 
@@ -459,7 +459,7 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', event => this.onMouseMove(event));
     this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
   }
 

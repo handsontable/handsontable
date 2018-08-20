@@ -129,7 +129,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let selection = new Selection(priv.settings, {
     countCols: () => instance.countCols(),
     countRows: () => instance.countRows(),
-    propToCol: (prop) => datamap.propToCol(prop),
+    propToCol: prop => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
   });
 
@@ -892,7 +892,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   function validateChanges(changes, source, callback) {
     const waitingForValidator = new ValidatorsQueue();
-    const isNumericData = (value) => value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
+    const isNumericData = value => value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
 
     waitingForValidator.onQueueEmpty = resolve;
 
@@ -1953,7 +1953,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} row Physical row index.
    * @returns {Number} Returns visual row index.
    */
-  this.toVisualRow = (row) => recordTranslator.toVisualRow(row);
+  this.toVisualRow = row => recordTranslator.toVisualRow(row);
 
   /**
    * Translate physical column index into visual.
@@ -1966,7 +1966,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} column Physical column index.
    * @returns {Number} Returns visual column index.
    */
-  this.toVisualColumn = (column) => recordTranslator.toVisualColumn(column);
+  this.toVisualColumn = column => recordTranslator.toVisualColumn(column);
 
   /**
    * Translate visual row index into physical.
@@ -1979,7 +1979,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} row Visual row index.
    * @returns {Number} Returns physical row index.
    */
-  this.toPhysicalRow = (row) => recordTranslator.toPhysicalRow(row);
+  this.toPhysicalRow = row => recordTranslator.toPhysicalRow(row);
 
   /**
    * Translate visual column index into physical.
@@ -1992,7 +1992,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} column Visual column index.
    * @returns {Number} Returns physical column index.
    */
-  this.toPhysicalColumn = (column) => recordTranslator.toPhysicalColumn(column);
+  this.toPhysicalColumn = column => recordTranslator.toPhysicalColumn(column);
 
   /**
    * @description

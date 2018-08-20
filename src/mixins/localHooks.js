@@ -38,7 +38,7 @@ const localHooks = {
    */
   runLocalHooks(key, ...params) {
     if (this._localHooks[key]) {
-      arrayEach(this._localHooks[key], (callback) => callback.apply(this, params));
+      arrayEach(this._localHooks[key], callback => callback.apply(this, params));
     }
   },
 
