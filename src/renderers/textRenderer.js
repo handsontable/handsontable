@@ -15,14 +15,14 @@ import {getRenderer} from './index';
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
-function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  getRenderer('base').apply(this, arguments);
+function textRenderer(instance, TD, row, col, prop, value, cellProperties, ...args) {
+  getRenderer('base').apply(this, [instance, TD, row, col, prop, value, cellProperties, ...args]);
 
   if (!value && cellProperties.placeholder) {
     value = cellProperties.placeholder;
   }
 
-  var escaped = stringify(value);
+  let escaped = stringify(value);
 
   if (!instance.getSettings().trimWhitespace) {
     escaped = escaped.replace(/ /g, String.fromCharCode(160));
@@ -30,7 +30,7 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
   if (cellProperties.rendererTemplate) {
     empty(TD);
-    var TEMPLATE = document.createElement('TEMPLATE');
+    const TEMPLATE = document.createElement('TEMPLATE');
     TEMPLATE.setAttribute('bind', '{{}}');
     TEMPLATE.innerHTML = cellProperties.rendererTemplate;
     HTMLTemplateElement.decorate(TEMPLATE);

@@ -1,5 +1,5 @@
 describe('Core_init', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,17 +12,17 @@ describe('Core_init', () => {
     }
   });
 
-  it('should respect startRows and startCols when no data is provided', function() {
-    this.$container.remove();
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+  it('should respect startRows and startCols when no data is provided', () => {
+    spec().$container.remove();
+    spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
     handsontable();
 
     expect(countRows()).toEqual(5); // as given in README.md
     expect(countCols()).toEqual(5); // as given in README.md
   });
 
-  it('should respect width provided in inline style', function() {
-    this.$container.css({
+  it('should respect width provided in inline style', () => {
+    spec().$container.css({
       overflow: 'auto',
       width: '200px'
     });
@@ -32,34 +32,34 @@ describe('Core_init', () => {
       ]
     });
 
-    expect(this.$container.width()).toEqual(200);
+    expect(spec().$container.width()).toEqual(200);
   });
 
-  it('should respect width provided in CSS class', function() {
+  it('should respect width provided in CSS class', () => {
     $('<style>.myTable {overflow: auto; width: 200px}</style>').appendTo('head');
-    this.$container.addClass('myTable');
+    spec().$container.addClass('myTable');
     handsontable({
       data: [
         ['ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC']
       ]
     });
 
-    expect(this.$container.width()).toEqual(200);
+    expect(spec().$container.width()).toEqual(200);
   });
 
-  it('should construct when container is not appended to document', function() {
-    this.$container.remove();
+  it('should construct when container is not appended to document', () => {
+    spec().$container.remove();
     handsontable();
     expect(getData()).toBeTruthy();
   });
 
-  xit('should create table even if is launched inside custom element', function() {
+  xit('should create table even if is launched inside custom element', () => {
     // TODO: When we'll update phantomjs, then we should try to run this test case.
-    this.$container = $(`<hot-table><div id="${id}"></div></hot-table>`).appendTo('body');
+    spec().$container = $(`<hot-table><div id="${id}"></div></hot-table>`).appendTo('body');
     handsontable();
 
     expect(() => {
-      mouseOver(this.$container.find('tr:eq(0) td:eq(1)'));
+      mouseOver(spec().$container.find('tr:eq(0) td:eq(1)'));
     }).not.toThrow();
   });
 });

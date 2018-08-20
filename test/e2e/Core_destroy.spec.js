@@ -1,5 +1,5 @@
 describe('Core_destroy', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(() => {
     spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -20,7 +20,7 @@ describe('Core_destroy', () => {
   });
 
   it('should remove events from the root element, document element and window', () => {
-    var x = handsontable();
+    const x = handsontable();
 
     expect(x.eventListeners.length > 0).toBeTruthy();
     destroy();
@@ -32,7 +32,7 @@ describe('Core_destroy', () => {
     // test based on Core_selectionSpec.js (should deselect currently selected cell)
     handsontable();
 
-    var $tmp = $('<div id="tmp"></div>').appendTo(document.body);
+    const $tmp = $('<div id="tmp"></div>').appendTo(document.body);
     $tmp.handsontable();
     $tmp.handsontable('destroy');
     $tmp.remove();

@@ -3,7 +3,8 @@ import {
   isValidCoord,
   normalizeSelectionFactory,
   transformSelectionToColumnDistance,
-  transformSelectionToRowDistance,
+  // TODO: add tests for transformSelectionToRowDistance
+  // transformSelectionToRowDistance,
   SELECTION_TYPE_ARRAY,
   SELECTION_TYPE_EMPTY,
   SELECTION_TYPE_OBJECT,

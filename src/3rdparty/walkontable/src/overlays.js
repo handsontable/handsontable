@@ -1,12 +1,10 @@
 import {
   getScrollableElement,
   getScrollbarWidth,
-  getScrollLeft,
-  getScrollTop,
 } from './../../../helpers/dom/element';
-import {arrayEach} from './../../../helpers/array';
-import {isKey} from './../../../helpers/unicode';
-import {isMobileBrowser, isChrome} from './../../../helpers/browser';
+import { arrayEach } from './../../../helpers/array';
+import { isKey } from './../../../helpers/unicode';
+import { isChrome } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import Overlay from './overlay/_base.js';
 
@@ -384,13 +382,13 @@ class Overlays {
    * @private
    * @param {Event|Object} event
    */
-  syncScrollPositions(event) {
+  syncScrollPositions() {
     if (this.destroyed) {
       return;
     }
 
-    let topHolder = this.topOverlay.clone.wtTable.holder;
-    let leftHolder = this.leftOverlay.clone.wtTable.holder;
+    const topHolder = this.topOverlay.clone.wtTable.holder;
+    const leftHolder = this.leftOverlay.clone.wtTable.holder;
 
     const [scrollLeft, scrollTop] = [this.scrollableElement.scrollLeft, this.scrollableElement.scrollTop];
 
@@ -399,14 +397,16 @@ class Overlays {
 
     if (this.horizontalScrolling) {
       topHolder.scrollLeft = scrollLeft;
+
+      const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null;
+
+      if (bottomHolder) {
+        bottomHolder.scrollLeft = scrollLeft;
+      }
     }
 
     if (this.verticalScrolling) {
       leftHolder.scrollTop = scrollTop;
-
-      if (this.bottomOverlay.needFullRender) {
-        this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
-      }
     }
 
     this.refreshAll();
@@ -569,7 +569,7 @@ class Overlays {
     ];
     let result = null;
 
-    arrayEach(overlays, (elem, i) => {
+    arrayEach(overlays, (elem) => {
       if (!elem) {
         return;
       }

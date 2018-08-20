@@ -1,6 +1,5 @@
-import {getValidSelection} from './../utils';
-import {arrayEach} from './../../../helpers/array';
-import {transformSelectionToRowDistance} from './../../../selection/utils';
+import { getValidSelection } from './../utils';
+import { transformSelectionToRowDistance } from './../../../selection/utils';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'remove_row';

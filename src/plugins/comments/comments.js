@@ -8,13 +8,13 @@ import {
   outerHeight,
   getScrollableElement
 } from './../../helpers/dom/element';
-import {deepClone, deepExtend, isObject} from './../../helpers/object';
+import { deepClone, deepExtend, isObject } from './../../helpers/object';
 import EventManager from './../../eventManager';
-import {CellCoords} from './../../3rdparty/walkontable/src';
-import {registerPlugin, getPlugin} from './../../plugins';
+import { CellCoords } from './../../3rdparty/walkontable/src';
+import { registerPlugin } from './../../plugins';
 import BasePlugin from './../_base';
 import CommentEditor from './commentEditor';
-import {checkSelectionConsistency, markLabelAsSelected} from './../contextMenu/utils';
+import { checkSelectionConsistency, markLabelAsSelected } from './../contextMenu/utils';
 import DisplaySwitch from './displaySwitch';
 import * as C from './../../i18n/constants';
 
@@ -161,7 +161,7 @@ class Comments extends BasePlugin {
     this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
     this.addHook('afterScrollHorizontally', () => this.hide());
     this.addHook('afterScrollVertically', () => this.hide());
-    this.addHook('afterBeginEditing', (args) => this.onAfterBeginEditing(args));
+    this.addHook('afterBeginEditing', () => this.onAfterBeginEditing());
 
     this.displaySwitch.addLocalHook('hide', () => this.hide());
     this.displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
@@ -197,8 +197,8 @@ class Comments extends BasePlugin {
   registerListeners() {
     this.eventManager.addEventListener(document, 'mouseover', (event) => this.onMouseOver(event));
     this.eventManager.addEventListener(document, 'mousedown', (event) => this.onMouseDown(event));
-    this.eventManager.addEventListener(document, 'mouseup', (event) => this.onMouseUp(event));
-    this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', (event) => this.onEditorBlur(event));
+    this.eventManager.addEventListener(document, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', () => this.onEditorBlur());
     this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', (event) => this.onEditorMouseDown(event));
     this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', (event) => this.onEditorMouseUp(event));
   }
@@ -548,9 +548,8 @@ class Comments extends BasePlugin {
    * `mouseup` event callback.
    *
    * @private
-   * @param {MouseEvent} event The `mouseup` event.
    */
-  onMouseUp(event) {
+  onMouseUp() {
     this.mouseDown = false;
   }
 
@@ -571,9 +570,8 @@ class Comments extends BasePlugin {
    * `blur` event callback for the comment editor.
    *
    * @private
-   * @param {Event} event The `blur` event.
    */
-  onEditorBlur(event) {
+  onEditorBlur() {
     this.setComment();
   }
 
@@ -753,10 +751,8 @@ class Comments extends BasePlugin {
    * `afterBeginEditing` hook callback.
    *
    * @private
-   * @param {Number} row Visual row index of the currently edited cell.
-   * @param {Number} column Visual column index of the currently edited cell.
    */
-  onAfterBeginEditing(row, column) {
+  onAfterBeginEditing() {
     this.hide();
   }
 

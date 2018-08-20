@@ -1,14 +1,13 @@
 import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
-import {arrayEach} from './../../helpers/array';
-import {addClass, removeClass, offset} from './../../helpers/dom/element';
-import {rangeEach} from './../../helpers/number';
+import { arrayEach } from './../../helpers/array';
+import { addClass, removeClass, offset } from './../../helpers/dom/element';
+import { rangeEach } from './../../helpers/number';
 import EventManager from './../../eventManager';
 import {registerPlugin} from './../../plugins';
 import ColumnsMapper from './columnsMapper';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
-import {CellCoords} from './../../3rdparty/walkontable/src';
 
 import './manualColumnMove.css';
 
@@ -366,7 +365,7 @@ class ManualColumnMove extends BasePlugin {
       // unfortunately first column is bigger than rest
       tdOffsetLeft += priv.target.TD.offsetWidth;
 
-      if (priv.target.col > lastVisible) {
+      if (priv.target.col > lastVisible && lastVisible < priv.countCols) {
         this.hot.scrollViewportTo(void 0, lastVisible + 1, void 0, true);
       }
 
@@ -374,12 +373,12 @@ class ManualColumnMove extends BasePlugin {
       // elsewhere on table
       priv.target.col = priv.coordsColumn;
 
-      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns && firstVisible > 0) {
         this.hot.scrollViewportTo(void 0, firstVisible - 1);
       }
     }
 
-    if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+    if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns && firstVisible > 0) {
       this.hot.scrollViewportTo(void 0, firstVisible - 1);
     }
 

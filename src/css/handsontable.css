@@ -261,6 +261,17 @@
   display:none !important;
 }
 
+/* A layer order of the selection types */
+.handsontable .wtBorder.current {
+  z-index: 10;
+}
+.handsontable .wtBorder.area {
+  z-index: 8;
+}
+.handsontable .wtBorder.fill {
+  z-index: 6;
+}
+
 .handsontable td.area,
 .handsontable td.area-1,
 .handsontable td.area-2,

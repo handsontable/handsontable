@@ -53,7 +53,7 @@ export const KEY_CODES = {
  * @returns {Boolean}
  */
 export function isPrintableChar(keyCode) {
-  return ((keyCode == 32) || // space
+  return ((keyCode === 32) || // space
       (keyCode >= 48 && keyCode <= 57) || // 0-9
       (keyCode >= 96 && keyCode <= 111) || // numpad
       (keyCode >= 186 && keyCode <= 192) || // ;=,-./`
@@ -67,7 +67,7 @@ export function isPrintableChar(keyCode) {
  * @returns {Boolean}
  */
 export function isMetaKey(keyCode) {
-  var metaKeys = [
+  const metaKeys = [
     KEY_CODES.ARROW_DOWN,
     KEY_CODES.ARROW_UP,
     KEY_CODES.ARROW_LEFT,

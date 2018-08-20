@@ -1,7 +1,7 @@
 import {generateASCIITable} from './asciiTable';
 
 /* eslint-disable import/prefer-default-export */
-var currentSpec;
+let currentSpec;
 
 export function spec() {
   return currentSpec;
@@ -51,7 +51,7 @@ const scrollbarWidth = (function calculateScrollbarWidth() {
 beforeEach(function() {
   currentSpec = this;
 
-  var matchers = {
+  const matchers = {
     toBeInArray() {
       return {
         compare(actual, expected) {
@@ -63,7 +63,7 @@ beforeEach(function() {
     },
     toBeFunction() {
       return {
-        compare(actual, expected) {
+        compare(actual) {
           return {
             pass: typeof actual === 'function'
           };
@@ -75,8 +75,8 @@ beforeEach(function() {
         compare(actual, expected, diff) {
           diff = diff || 1;
 
-          var pass = actual >= expected - diff && actual <= expected + diff;
-          var message = `Expected ${actual} to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+          const pass = actual >= expected - diff && actual <= expected + diff;
+          let message = `Expected ${actual} to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
 
           if (!pass) {
             message = `Expected ${actual} NOT to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
@@ -301,7 +301,7 @@ beforeEach(function() {
 
   jasmine.addMatchers(matchers);
 
-  if (document.activeElement && document.activeElement != document.body) {
+  if (document.activeElement && document.activeElement !== document.body) {
     document.activeElement.blur();
 
   } else if (!document.activeElement) { // IE

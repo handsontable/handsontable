@@ -15,7 +15,7 @@ class DropdownEditor extends AutocompleteEditor {
   }
 }
 
-Hooks.getSingleton().add('beforeValidate', function(value, row, col, source) {
+Hooks.getSingleton().add('beforeValidate', function(value, row, col) {
   let cellMeta = this.getCellMeta(row, this.propToCol(col));
 
   if (cellMeta.editor === DropdownEditor) {

@@ -1,14 +1,14 @@
 import BasePlugin from './../_base';
-import {arrayEach, arrayFilter, arrayReduce, arrayMap} from './../../helpers/array';
-import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/feature';
-import {isVisible} from './../../helpers/dom/element';
+import { arrayEach, arrayFilter, arrayReduce, arrayMap } from './../../helpers/array';
+import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
+import { isVisible} from './../../helpers/dom/element';
 import GhostTable from './../../utils/ghostTable';
-import {isObject, objectEach, hasOwnProperty} from './../../helpers/object';
-import {valueAccordingPercent, rangeEach} from './../../helpers/number';
-import {registerPlugin} from './../../plugins';
+import { isObject, hasOwnProperty } from './../../helpers/object';
+import { valueAccordingPercent, rangeEach } from './../../helpers/number';
+import { registerPlugin } from './../../plugins';
 import SamplesGenerator from './../../utils/samplesGenerator';
-import {isPercentValue} from './../../helpers/string';
-import {ViewportColumnsCalculator} from './../../3rdparty/walkontable/src';
+import { isPercentValue } from './../../helpers/string';
+import { ViewportColumnsCalculator } from './../../3rdparty/walkontable/src';
 
 const privatePool = new WeakMap();
 
@@ -94,7 +94,32 @@ class AutoColumnSize extends BasePlugin {
      * @private
      * @type {SamplesGenerator}
      */
-    this.samplesGenerator = new SamplesGenerator((row, col) => (this.hot.getCellMeta(row, col).spanned ? '' : this.hot.getDataAtCell(row, col)));
+    this.samplesGenerator = new SamplesGenerator((row, column) => {
+      const cellMeta = this.hot.getCellMeta(row, column);
+      let cellValue = '';
+
+      if (!cellMeta.spanned) {
+        cellValue = this.hot.getDataAtCell(row, column);
+      }
+
+      let bundleCountSeed = 0;
+
+      if (cellMeta.label) {
+        const {value: labelValue, property: labelProperty} = cellMeta.label;
+        let labelText = '';
+
+        if (labelValue) {
+          labelText = typeof labelValue === 'function' ? labelValue(row, column, this.hot.colToProp(column), cellValue) : labelValue;
+
+        } else if (labelProperty) {
+          labelText = this.hot.getDataAtRowProp(row, labelProperty);
+        }
+
+        bundleCountSeed = labelText.length;
+      }
+
+      return {value: cellValue, bundleCountSeed};
+    });
     /**
      * `true` only if the first calculation was performed
      *
@@ -136,6 +161,8 @@ class AutoColumnSize extends BasePlugin {
     if (setting && setting.useHeaders != null) {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
+
+    this.setSamplingOptions();
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
@@ -184,7 +211,7 @@ class AutoColumnSize extends BasePlugin {
       if (force || (this.widths[col] === void 0 && !this.hot._getColWidthFromSettings(col))) {
         const samples = this.samplesGenerator.generateColumnSamples(col, rowRange);
 
-        samples.forEach((sample, col) => this.ghostTable.addColumn(col, sample));
+        arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
       }
     });
 
@@ -464,7 +491,7 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    const changedColumns = arrayMap(changes, ([row, column]) => this.hot.propToCol(column));
+    const changedColumns = arrayMap(changes, ([, column]) => this.hot.propToCol(column));
 
     this.clearCache(changedColumns);
   }

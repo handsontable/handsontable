@@ -3,7 +3,6 @@ import {
   getCaretPosition,
   getComputedStyle,
   getCssTransform,
-  getScrollableElement,
   getScrollbarWidth,
   innerWidth,
   offset,
@@ -13,11 +12,10 @@ import {
   hasHorizontalScrollbar
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
-import BaseEditor, {EditorState} from './_baseEditor';
+import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
-import {KEY_CODES} from './../helpers/unicode';
-import {isMSBrowser} from './../helpers/browser';
-import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
+import { KEY_CODES } from './../helpers/unicode';
+import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
 
 const TextEditor = BaseEditor.prototype.extend();
 
@@ -28,7 +26,7 @@ const TextEditor = BaseEditor.prototype.extend();
  * @dependencies autoResize
  */
 TextEditor.prototype.init = function() {
-  var that = this;
+  const that = this;
   this.createElements();
   this.eventManager = new EventManager(this);
   this.bindEvents();
@@ -40,10 +38,10 @@ TextEditor.prototype.init = function() {
   });
 };
 
-TextEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellProperties) {
+TextEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellProperties, ...args) {
   const previousState = this.state;
 
-  BaseEditor.prototype.prepare.apply(this, arguments);
+  BaseEditor.prototype.prepare.apply(this, [row, col, prop, td, originalValue, cellProperties, ...args]);
 
   if (!cellProperties.readOnly) {
     this.refreshDimensions(true);
@@ -89,20 +87,19 @@ TextEditor.prototype.setValue = function(newValue) {
   this.TEXTAREA.value = newValue;
 };
 
-TextEditor.prototype.beginEditing = function(newInitialValue, event) {
+TextEditor.prototype.beginEditing = function(...args) {
   if (this.state !== EditorState.VIRGIN) {
     return;
   }
 
   this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME).
-  BaseEditor.prototype.beginEditing.apply(this, arguments);
+  BaseEditor.prototype.beginEditing.apply(this, args);
 };
 
-var onBeforeKeyDown = function onBeforeKeyDown(event) {
-  var
-    instance = this,
-    that = instance.getActiveEditor(),
-    ctrlDown;
+const onBeforeKeyDown = function onBeforeKeyDown(event) {
+  const instance = this;
+  const that = instance.getActiveEditor();
+  let ctrlDown;
 
   // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
   ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
@@ -197,7 +194,7 @@ TextEditor.prototype.open = function() {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-TextEditor.prototype.close = function(tdOutside) {
+TextEditor.prototype.close = function() {
   this.autoResize.unObserve();
 
   if (document.activeElement === this.TEXTAREA) {
@@ -282,7 +279,7 @@ TextEditor.prototype.getEditedCell = function() {
       break;
   }
 
-  return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
+  return editedCell !== -1 && editedCell !== -2 ? editedCell : void 0;
 };
 
 TextEditor.prototype.refreshValue = function() {
@@ -326,7 +323,6 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
   const editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
 
   const settings = this.instance.getSettings();
-  const rowHeadersCount = this.instance.hasRowHeaders();
   const colHeadersCount = this.instance.hasColHeaders();
   const backgroundColor = this.TD.style.backgroundColor;
 
@@ -364,7 +360,7 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
     editLeft += 1;
   }
 
-  if (cssTransformOffset && cssTransformOffset != -1) {
+  if (cssTransformOffset && cssTransformOffset !== -1) {
     this.textareaParentStyle[cssTransformOffset[0]] = cssTransformOffset[1];
   } else {
     resetCssTransform(this.TEXTAREA_PARENT);
@@ -405,7 +401,7 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
 };
 
 TextEditor.prototype.bindEvents = function() {
-  var editor = this;
+  const editor = this;
 
   this.eventManager.addEventListener(this.TEXTAREA, 'cut', (event) => {
     stopPropagation(event);

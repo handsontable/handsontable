@@ -1,5 +1,5 @@
-import {align, getAlignmentClasses, checkSelectionConsistency, markLabelAsSelected} from './../utils';
-import {KEY as SEPARATOR} from './separator';
+import { align, getAlignmentClasses, checkSelectionConsistency, markLabelAsSelected } from './../utils';
+import { KEY as SEPARATOR } from './separator';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'alignment';
@@ -64,7 +64,7 @@ export default function alignmentItem() {
 
             return label;
           },
-          callback(key, selection) {
+          callback() {
             const selectedRange = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(selectedRange, (row, col) => this.getCellMeta(row, col).className);
             let type = 'horizontal';

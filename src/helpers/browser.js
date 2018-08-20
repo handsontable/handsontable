@@ -1,11 +1,11 @@
 import {objectEach} from './object';
 
-const tester = (tester) => {
+const tester = (testerFunc) => {
   const result = {
     value: false,
   };
   result.test = (ua, vendor) => {
-    result.value = tester(ua, vendor);
+    result.value = testerFunc(ua, vendor);
   };
 
   return result;

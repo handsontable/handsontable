@@ -1,5 +1,5 @@
 describe('dateValidator', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('dateValidator', () => {
     }
   });
 
-  var arrayOfObjects = function() {
+  const arrayOfObjects = function() {
     return [
       {date: '01/01/2015', name: 'Ted', lastName: 'Right'},
       {date: '01/01/15', name: 'Frank', lastName: 'Honest'},
@@ -22,7 +22,7 @@ describe('dateValidator', () => {
   };
 
   it('should validate an empty string (default behavior)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -62,7 +62,7 @@ describe('dateValidator', () => {
   });
 
   it('should not positively validate a non-date string', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -83,7 +83,7 @@ describe('dateValidator', () => {
   });
 
   it('should not positively validate a incorrect date string', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -104,7 +104,7 @@ describe('dateValidator', () => {
   });
 
   it('should not positively validate a date string in wrong format', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -125,7 +125,7 @@ describe('dateValidator', () => {
   });
 
   it('should not positively validate a date string in wrong format (if custom format is provided)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -146,7 +146,7 @@ describe('dateValidator', () => {
   });
 
   it('should positively validate a date string in correct format', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -167,7 +167,7 @@ describe('dateValidator', () => {
   });
 
   it('should positively validate a date string in correct format (if custom format is provided)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -189,7 +189,7 @@ describe('dateValidator', () => {
 
   describe('allowEmpty', () => {
     it('should not validate an empty string when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
@@ -210,7 +210,7 @@ describe('dateValidator', () => {
     });
 
     it('should not validate `null` when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
@@ -231,7 +231,7 @@ describe('dateValidator', () => {
     });
 
     it('should not validate `undefined` when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
@@ -254,7 +254,7 @@ describe('dateValidator', () => {
 
   describe('correctFormat', () => {
     it('should not make any changes to entered string if correctFormat is not set', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
@@ -275,7 +275,7 @@ describe('dateValidator', () => {
     });
 
     it('should not make any changes to entered string if correctFormat is set to false', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
@@ -296,7 +296,7 @@ describe('dateValidator', () => {
     });
 
     it('should rewrite the string to the correct format if a date-string in different format is provided', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
@@ -320,7 +320,7 @@ describe('dateValidator', () => {
     });
 
     it('should rewrite the string to the correct format if a date-string in different format is provided (for non-default format)', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
@@ -344,7 +344,7 @@ describe('dateValidator', () => {
     });
 
     it('should not try to correct format of non-date strings', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),

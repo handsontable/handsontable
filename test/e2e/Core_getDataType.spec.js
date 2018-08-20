@@ -1,5 +1,5 @@
 describe('Core_getDataType', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('Core_getDataType', () => {
     }
   });
 
-  var arrayOfArrays = function() {
+  const arrayOfArrays = function() {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
@@ -54,7 +54,7 @@ describe('Core_getDataType', () => {
     handsontable({
       data: arrayOfArrays(),
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.type = 'numeric';
@@ -91,7 +91,7 @@ describe('Core_getDataType', () => {
     handsontable({
       data: arrayOfArrays(),
       cells(row, column) {
-        var cellMeta = {};
+        const cellMeta = {};
 
         if (row === 1 && column === 1) {
           cellMeta.type = 'date';
