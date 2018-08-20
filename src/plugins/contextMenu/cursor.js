@@ -11,12 +11,12 @@ class Cursor {
   constructor(object) {
     let windowScrollTop = getWindowScrollTop();
     let windowScrollLeft = getWindowScrollLeft();
-    let top,
-      topRelative;
-    let left,
-      leftRelative;
-    let cellHeight,
-      cellWidth;
+    let top;
+    let topRelative;
+    let left;
+    let leftRelative;
+    let cellHeight;
+    let cellWidth;
 
     this.type = this.getSourceType(object);
 

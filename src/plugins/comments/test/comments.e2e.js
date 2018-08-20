@@ -468,11 +468,9 @@ describe('Comments', () => {
   describe('Hooks invoked after changing cell meta', () => {
     it('should trigger `afterSetCellMeta` callback after deleting comment by context menu', () => {
       const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
-      const rows = 10,
-        columns = 10;
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(rows, columns),
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,

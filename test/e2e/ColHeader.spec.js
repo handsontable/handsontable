@@ -308,8 +308,8 @@ describe('ColHeader', () => {
       fixedColumnsLeft: 2
     });
 
-    const topHeaderExample = $('.ht_clone_top').find('thead tr:first-child th:nth-child(1)'),
-      masterHeaderExample = $('.ht_master').find('thead tr:first-child th:nth-child(3)');
+    const topHeaderExample = $('.ht_clone_top').find('thead tr:first-child th:nth-child(1)');
+    const masterHeaderExample = $('.ht_master').find('thead tr:first-child th:nth-child(3)');
 
     expect(topHeaderExample.height()).toEqual(masterHeaderExample.height());
   });

@@ -81,8 +81,8 @@ describe('AutoRowSize', () => {
         this.$container = $(`<div id="${id}"></div>`).appendTo('body');
       }
 
-      const css = `.handsontable table td { height: ${cellHeightInPx}px !important }`,
-        head = document.head;
+      const css = `.handsontable table td { height: ${cellHeightInPx}px !important }`;
+      const head = document.head;
 
       style = document.createElement('style');
       style.type = 'text/css';
