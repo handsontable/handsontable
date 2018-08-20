@@ -75,8 +75,8 @@ describe('Core_dataSchema', () => {
       colHeaders: ['ID', 'First Name', 'Last Name'],
       columns: [
         { data: 'id' },
-          { data: 'name.first' },
-          { data: 'name.last' }
+        { data: 'name.first' },
+        { data: 'name.last' }
       ],
       minSpareRows: 1
     });
