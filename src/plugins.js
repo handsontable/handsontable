@@ -31,7 +31,7 @@ function registerPlugin(pluginName, PluginClass) {
     if (registeredPlugins.has(this)) {
       const pluginsHolder = registeredPlugins.get(this);
 
-      objectEach(pluginsHolder, (plugin) => plugin.destroy());
+      objectEach(pluginsHolder, plugin => plugin.destroy());
       registeredPlugins.delete(this);
     }
   });

@@ -139,11 +139,11 @@ class AutoRowSize extends BasePlugin {
     this.setSamplingOptions();
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
-    this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
+    this.addHook('beforeChange', changes => this.onBeforeChange(changes));
     this.addHook('beforeColumnMove', () => this.recalculateAllRowsHeight());
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
     this.addHook('beforeColumnSort', () => this.clearCache());
-    this.addHook('beforeRender', (force) => this.onBeforeRender(force));
+    this.addHook('beforeRender', force => this.onBeforeRender(force));
     this.addHook('beforeRowMove', (rowStart, rowEnd) => this.onBeforeRowMove(rowStart, rowEnd));
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
@@ -392,7 +392,7 @@ class AutoRowSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.heights, (item) => (item === void 0)).length;
+    return !!arrayFilter(this.heights, item => (item === void 0)).length;
   }
 
   /**

@@ -221,9 +221,9 @@ function registerEvents(instance) {
 
   if (!eventManager) {
     eventManager = new EventManager(instance);
-    eventManager.addEventListener(instance.rootElement, 'click', (event) => onClick(event, instance));
-    eventManager.addEventListener(instance.rootElement, 'mouseup', (event) => onMouseUp(event, instance));
-    eventManager.addEventListener(instance.rootElement, 'change', (event) => onChange(event, instance));
+    eventManager.addEventListener(instance.rootElement, 'click', event => onClick(event, instance));
+    eventManager.addEventListener(instance.rootElement, 'mouseup', event => onMouseUp(event, instance));
+    eventManager.addEventListener(instance.rootElement, 'change', event => onChange(event, instance));
 
     isCheckboxListenerAdded.set(instance, eventManager);
   }

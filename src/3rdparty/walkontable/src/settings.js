@@ -88,7 +88,7 @@ class Settings {
       onScrollHorizontally: null,
       onBeforeTouchScroll: null,
       onAfterMomentumScroll: null,
-      onBeforeStretchingColumnWidth: (width) => width,
+      onBeforeStretchingColumnWidth: width => width,
       onModifyRowHeaderWidth: null,
       onModifyGetCellCoords: null,
 

@@ -311,7 +311,7 @@ class ColumnSorting extends BasePlugin {
     this.blockPluginTranslation = false;
 
     // Save all indexes to arrayMapper, a completely new sequence is set by the plugin
-    this.rowsMapper._arrayMap = indexesWithData.map((indexWithData) => indexWithData[0]);
+    this.rowsMapper._arrayMap = indexesWithData.map(indexWithData => indexWithData[0]);
   }
 
   /**
@@ -416,7 +416,7 @@ class ColumnSorting extends BasePlugin {
       }
     }
 
-    const notAddedThenClasses = removedClassess.filter((removedClass) => addedClasses.includes(removedClass) === false);
+    const notAddedThenClasses = removedClassess.filter(removedClass => addedClasses.includes(removedClass) === false);
 
     removeClass(headerLink, notAddedThenClasses);
     addClass(headerLink, addedClasses);

@@ -10,7 +10,7 @@ import {substitute} from './../../helpers/string';
  */
 export default function substituteVariables(phrasePropositions, zippedVariablesAndValues) {
   if (Array.isArray(phrasePropositions)) {
-    return phrasePropositions.map((phraseProposition) => substituteVariables(phraseProposition, zippedVariablesAndValues));
+    return phrasePropositions.map(phraseProposition => substituteVariables(phraseProposition, zippedVariablesAndValues));
   }
 
   return substitute(phrasePropositions, zippedVariablesAndValues);

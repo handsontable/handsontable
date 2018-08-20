@@ -157,7 +157,7 @@ class ManualRowResize extends BasePlugin {
         }
 
         if (this.currentRow >= start && this.currentRow <= end) {
-          rangeEach(start, end, (i) => this.selectedRows.push(i));
+          rangeEach(start, end, i => this.selectedRows.push(i));
 
         } else {
           this.selectedRows.push(this.currentRow);
@@ -422,9 +422,9 @@ class ManualRowResize extends BasePlugin {
    * @private
    */
   bindEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (e) => this.onMouseOver(e));
-    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (e) => this.onMouseDown(e));
-    this.eventManager.addEventListener(window, 'mousemove', (e) => this.onMouseMove(e));
+    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', e => this.onMouseOver(e));
+    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', e => this.onMouseDown(e));
+    this.eventManager.addEventListener(window, 'mousemove', e => this.onMouseMove(e));
     this.eventManager.addEventListener(window, 'mouseup', () => this.onMouseUp());
   }
 

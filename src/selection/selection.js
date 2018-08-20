@@ -227,9 +227,9 @@ class Selection {
     // If the next layer level is lower than previous then clear all area and header highlights. This is the
     // indication that the new selection is performing.
     if (layerLevel < this.highlight.layerLevel) {
-      arrayEach(this.highlight.getAreas(), (highlight) => void highlight.clear());
-      arrayEach(this.highlight.getHeaders(), (highlight) => void highlight.clear());
-      arrayEach(this.highlight.getActiveHeaders(), (highlight) => void highlight.clear());
+      arrayEach(this.highlight.getAreas(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getHeaders(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getActiveHeaders(), highlight => void highlight.clear());
     }
 
     this.highlight.useLayerLevel(layerLevel);
@@ -481,7 +481,7 @@ class Selection {
     }
 
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
-      propToCol: (prop) => this.tableProps.propToCol(prop),
+      propToCol: prop => this.tableProps.propToCol(prop),
       keepDirection: true,
     });
     const countRows = this.tableProps.countRows();

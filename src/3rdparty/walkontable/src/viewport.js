@@ -330,7 +330,7 @@ class Viewport {
       height,
       pos,
       this.wot.getSetting('totalRows'),
-      (sourceRow) => this.wot.wtTable.getRowHeight(sourceRow),
+      sourceRow => this.wot.wtTable.getRowHeight(sourceRow),
       visible ? null : this.wot.wtSettings.settings.viewportRowCalculatorOverride,
       visible,
       scrollbarHeight
@@ -369,7 +369,7 @@ class Viewport {
       width,
       pos,
       this.wot.getSetting('totalColumns'),
-      (sourceCol) => this.wot.wtTable.getColumnWidth(sourceCol),
+      sourceCol => this.wot.wtTable.getColumnWidth(sourceCol),
       visible ? null : this.wot.wtSettings.settings.viewportColumnCalculatorOverride,
       visible,
       this.wot.getSetting('stretchH'),
