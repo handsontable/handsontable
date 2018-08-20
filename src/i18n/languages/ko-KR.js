@@ -1,9 +1,9 @@
 /**
  * @preserve
- * Authors: Handsoncode
- * Last updated: Nov 15, 2017
+ * Authors: Hwang, Gun-gu
+ * Last updated: Aug 20, 2018
  *
- * Description: Definition file for English - United States language-country.
+ * Description: Definition file for Korean.
  */
 import * as C from '../constants';
 
