@@ -6,6 +6,7 @@ import enUS from './en-US';
 import esMX from './es-MX';
 import frFR from './fr-FR';
 import jaJP from './ja-JP';
+import koKR from './ko-KR';
 import nbNO from './nb-NO';
 import plPL from './pl-PL';
 import ptBR from './pt-BR';
@@ -20,6 +21,7 @@ export {
   esMX,
   frFR,
   jaJP,
+  koKR,
   nbNO,
   plPL,
   ptBR,
