@@ -145,7 +145,7 @@ class DragToScroll extends BasePlugin {
    */
   registerEvents() {
     this.eventManager.addEventListener(document, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(document, 'mousemove', (event) => this.onMouseMove(event));
+    this.eventManager.addEventListener(document, 'mousemove', event => this.onMouseMove(event));
   }
 
   /**

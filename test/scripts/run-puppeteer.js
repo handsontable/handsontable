@@ -17,7 +17,7 @@ if (!path) {
 
 const cleanupFactory = (browser, server) => async (exitCode) => {
   await browser.close();
-  await new Promise((resolve) => server.close(resolve));
+  await new Promise(resolve => server.close(resolve));
   process.exit(exitCode);
 };
 
@@ -58,9 +58,9 @@ const cleanupFactory = (browser, server) => async (exitCode) => {
   });
   let errorCount = 0;
 
-  await page.exposeFunction('jasmineStarted', (specInfo) => reporter.jasmineStarted(specInfo));
+  await page.exposeFunction('jasmineStarted', specInfo => reporter.jasmineStarted(specInfo));
   await page.exposeFunction('jasmineSpecStarted', () => {});
-  await page.exposeFunction('jasmineSuiteStarted', (suite) => reporter.suiteStarted(suite));
+  await page.exposeFunction('jasmineSuiteStarted', suite => reporter.suiteStarted(suite));
   await page.exposeFunction('jasmineSuiteDone', () => reporter.suiteDone());
   await page.exposeFunction('jasmineSpecDone', (result) => {
     if (result.failedExpectations.length) {

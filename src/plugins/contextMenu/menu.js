@@ -62,7 +62,7 @@ class Menu {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mousedown', (event) => this.onDocumentMouseDown(event));
+    this.eventManager.addEventListener(document.documentElement, 'mousedown', event => this.onDocumentMouseDown(event));
   }
 
   /**
@@ -105,10 +105,10 @@ class Menu {
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
 
-    const delayedOpenSubMenu = debounce((row) => this.openSubMenu(row), 300);
+    const delayedOpenSubMenu = debounce(row => this.openSubMenu(row), 300);
     const minWidthOfMenu = this.options.minWidth || MIN_WIDTH;
 
-    let filteredItems = arrayFilter(this.menuItems, (item) => isItemHidden(item, this.hot));
+    let filteredItems = arrayFilter(this.menuItems, item => isItemHidden(item, this.hot));
 
     filteredItems = filterSeparators(filteredItems, SEPARATOR);
 
@@ -133,7 +133,7 @@ class Menu {
       renderAllRows: true,
       fragmentSelection: 'cell',
       disableVisualSelection: 'area',
-      beforeKeyDown: (event) => this.onBeforeKeyDown(event),
+      beforeKeyDown: event => this.onBeforeKeyDown(event),
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
@@ -141,7 +141,7 @@ class Menu {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: (row) => (filteredItems[row].name === SEPARATOR ? 1 : 23)
+      rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23)
     };
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
@@ -461,10 +461,10 @@ class Menu {
     let item = hot.getSourceDataAtRow(row);
     let wrapper = document.createElement('div');
 
-    let isSubMenu = (itemToTest) => hasOwnProperty(itemToTest, 'submenu');
-    let itemIsSeparator = (itemToTest) => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
-    let itemIsDisabled = (itemToTest) => itemToTest.disabled === true || (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
-    let itemIsSelectionDisabled = (itemToTest) => itemToTest.disableSelection;
+    let isSubMenu = itemToTest => hasOwnProperty(itemToTest, 'submenu');
+    let itemIsSeparator = itemToTest => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
+    let itemIsDisabled = itemToTest => itemToTest.disabled === true || (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
+    let itemIsSelectionDisabled = itemToTest => itemToTest.disableSelection;
 
     if (typeof value === 'function') {
       value = value.call(this.hot);

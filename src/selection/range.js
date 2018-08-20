@@ -78,7 +78,7 @@ class SelectionRange {
    * @returns {Boolean}
    */
   includes(coords) {
-    return this.ranges.some((cellRange) => cellRange.includes(coords));
+    return this.ranges.some(cellRange => cellRange.includes(coords));
   }
 
   /**

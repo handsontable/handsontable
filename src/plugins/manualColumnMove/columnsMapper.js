@@ -55,7 +55,7 @@ class ColumnsMapper {
    * Clearing arrayMap from `null` entries.
    */
   clearNull() {
-    this._arrayMap = arrayFilter(this._arrayMap, (i) => i !== null);
+    this._arrayMap = arrayFilter(this._arrayMap, i => i !== null);
   }
 }
 

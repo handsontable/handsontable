@@ -126,14 +126,14 @@ class CopyPaste extends BasePlugin {
       this.columnsLimit = settings.copyPaste.columnsLimit || this.columnsLimit;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
+    this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
 
     this.focusableElement = createElement();
     this.focusableElement
-      .addLocalHook('copy', (event) => this.onCopy(event))
-      .addLocalHook('cut', (event) => this.onCut(event))
-      .addLocalHook('paste', (event) => this.onPaste(event));
+      .addLocalHook('copy', event => this.onCopy(event))
+      .addLocalHook('cut', event => this.onCut(event))
+      .addLocalHook('paste', event => this.onPaste(event));
 
     super.enablePlugin();
   }

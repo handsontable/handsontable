@@ -125,7 +125,7 @@ class ManualColumnMove extends BasePlugin {
     this.addHook('afterRemoveCol', () => this.onAfterRemoveCol());
     this.addHook('afterCreateCol', (index, amount) => this.onAfterCreateCol(index, amount));
     this.addHook('afterLoadData', () => this.onAfterLoadData());
-    this.addHook('unmodifyCol', (column) => this.onUnmodifyCol(column));
+    this.addHook('unmodifyCol', column => this.onUnmodifyCol(column));
 
     this.registerEvents();
 
@@ -447,7 +447,7 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', event => this.onMouseMove(event));
     this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
   }
 

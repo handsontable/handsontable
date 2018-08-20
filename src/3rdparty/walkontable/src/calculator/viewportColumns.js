@@ -27,7 +27,7 @@ class ViewportColumnsCalculator {
    * @param {Function} [stretchingColumnWidthFn] Function that returns the new width of the stretched column.
    */
   constructor(viewportWidth, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH,
-              stretchingColumnWidthFn = (width) => width) {
+              stretchingColumnWidthFn = width => width) {
     privatePool.set(this, {
       viewportWidth,
       scrollOffset,

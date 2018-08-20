@@ -172,10 +172,10 @@ class ContextMenu extends BasePlugin {
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
-      this.addHook('afterOnCellContextMenu', (event) => this.onAfterOnCellContextMenu(event));
+      this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
 
       // Register all commands. Predefined and added by user or by plugins
-      arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
+      arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
     };
 
     this.callOnPluginsReady(() => {

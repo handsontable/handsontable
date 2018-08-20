@@ -1699,7 +1699,7 @@ class Hooks {
     const bucket = Object.create(null);
 
     // eslint-disable-next-line no-return-assign
-    arrayEach(REGISTERED_HOOKS, (hook) => (bucket[hook] = []));
+    arrayEach(REGISTERED_HOOKS, hook => (bucket[hook] = []));
 
     return bucket;
   }
@@ -1752,7 +1752,7 @@ class Hooks {
    */
   add(key, callback, context = null) {
     if (Array.isArray(callback)) {
-      arrayEach(callback, (c) => this.add(key, c, context));
+      arrayEach(callback, c => this.add(key, c, context));
 
     } else {
       const bucket = this.getBucket(context);
@@ -1802,7 +1802,7 @@ class Hooks {
    */
   once(key, callback, context = null) {
     if (Array.isArray(callback)) {
-      arrayEach(callback, (c) => this.once(key, c, context));
+      arrayEach(callback, c => this.once(key, c, context));
 
     } else {
       callback.runOnce = true;
