@@ -76,7 +76,7 @@ describe('editors', () => {
     expect(getEditor('myEditor')).toBe(MyEditor);
   });
 
-  it('should reset previous value when printable character was entered to selected, non-empty cell', async () => {
+  it('should reset previous value when printable character was entered to selected, non-empty cell', async() => {
     handsontable({
       data: [
         {id: 10, name: 'Cup'},

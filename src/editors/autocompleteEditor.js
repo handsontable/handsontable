@@ -404,11 +404,11 @@ AutocompleteEditor.prototype.getDropdownHeight = function() {
   return this.strippedChoices.length >= visibleRows ? (visibleRows * firstRowHeight) : (this.strippedChoices.length * firstRowHeight) + 8;
 };
 
-AutocompleteEditor.prototype.stripValueIfNeeded = function (value) {
+AutocompleteEditor.prototype.stripValueIfNeeded = function(value) {
   return this.stripValuesIfNeeded([value])[0];
 };
 
-AutocompleteEditor.prototype.stripValuesIfNeeded = function (values) {
+AutocompleteEditor.prototype.stripValuesIfNeeded = function(values) {
   const {allowHtml} = this.cellProperties;
 
   const stringifiedValues = arrayMap(values, (value) => stringify(value));

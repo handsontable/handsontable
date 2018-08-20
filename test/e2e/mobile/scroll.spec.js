@@ -1,10 +1,10 @@
 const id = 'testContainer';
 
-beforeEach(function () {
+beforeEach(function() {
   this.$container = $(`<div id="${id}"></div>`).appendTo('body');
 });
 
-afterEach(function () {
+afterEach(function() {
   if (this.$container) {
     destroy();
     this.$container.remove();
@@ -12,7 +12,7 @@ afterEach(function () {
 });
 
 describe('Scrolling', () => {
-  it('should load cells below the viewport on scroll down (dimensions of the table was set)', async () => {
+  it('should load cells below the viewport on scroll down (dimensions of the table was set)', async() => {
     const hot = handsontable({
       width: 400,
       height: 400,
@@ -37,7 +37,7 @@ describe('Scrolling', () => {
     expect(lastTRTextLater).not.toEqual(lastTRTextAtStart);
   });
 
-  it('should load cells below the viewport on scroll down (dimensions of the table was not set)', async () => {
+  it('should load cells below the viewport on scroll down (dimensions of the table was not set)', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(100, 15)
     });

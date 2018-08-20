@@ -63,7 +63,7 @@ describe('TextEditor', () => {
     expect(keyProxy().val()).toEqual('string');
   });
 
-  it('should render textarea editor with tabindex=-1 attribute', async () => {
+  it('should render textarea editor with tabindex=-1 attribute', async() => {
     const hot = handsontable();
 
     selectCell(0, 0);
@@ -174,7 +174,7 @@ describe('TextEditor', () => {
     }, 200);
   });
 
-  it('should hide editor when quick navigation by click scrollbar was triggered', async () => {
+  it('should hide editor when quick navigation by click scrollbar was triggered', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       rowHeaders: true,
@@ -847,7 +847,7 @@ describe('TextEditor', () => {
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
 
-  it('should open editor at the same coordinates as the edited cell after the table had been scrolled (top)', async () => {
+  it('should open editor at the same coordinates as the edited cell after the table had been scrolled (top)', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       fixedColumnsLeft: 2,
@@ -876,7 +876,7 @@ describe('TextEditor', () => {
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
 
-  it('should open editor at the same coordinates as the edited cell after the table had been scrolled (left)', async () => {
+  it('should open editor at the same coordinates as the edited cell after the table had been scrolled (left)', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       fixedColumnsLeft: 2,
@@ -1071,7 +1071,7 @@ describe('TextEditor', () => {
   });
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality.
-  it('should not lose the focus on input element while inserting new characters (#839)', async () => {
+  it('should not lose the focus on input element while inserting new characters (#839)', async() => {
     let blured = false;
     const listener = () => {
       blured = true;
@@ -1110,7 +1110,7 @@ describe('TextEditor', () => {
     done();
   });
 
-  it('should keep editor open, focusable and with untouched value when allowInvalid is set as false', async () => {
+  it('should keep editor open, focusable and with untouched value when allowInvalid is set as false', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       allowInvalid: false,
@@ -1151,7 +1151,7 @@ describe('TextEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should focus editable element after selecting the cell', async () => {
+    it('should focus editable element after selecting the cell', async() => {
       handsontable({
         type: 'text',
       });
@@ -1162,7 +1162,7 @@ describe('TextEditor', () => {
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
 
-    it('editor size should change after composition started', async () => {
+    it('editor size should change after composition started', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 5),
         width: 400,

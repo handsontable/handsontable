@@ -26,7 +26,7 @@ describe('cellTypes', () => {
     }
   });
 
-  it('should register custom cell type (with custom editor, renderer and validator)', async () => {
+  it('should register custom cell type (with custom editor, renderer and validator)', async() => {
     class MyEditor extends BaseEditor {
       init() {
         this.TEXTAREA = document.createElement('TEXTAREA');

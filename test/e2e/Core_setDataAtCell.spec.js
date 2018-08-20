@@ -81,7 +81,7 @@ describe('Core_setDataAtCell', () => {
     }, 200);
   });
 
-  it('should paste not more rows than maxRows', async () => {
+  it('should paste not more rows than maxRows', async() => {
     handsontable({
       minSpareRows: 1,
       minRows: 5,

@@ -1,18 +1,18 @@
 describe('ContextMenu', () => {
   const id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should update context menu items by calling `updateSettings` method', async () => {
+  it('should update context menu items by calling `updateSettings` method', async() => {
     handsontable({
       contextMenu: ['row_above', 'row_below', '---------', 'remove_row'],
       height: 100
@@ -80,7 +80,7 @@ describe('ContextMenu', () => {
   });
 
   describe('menu width', () => {
-    it('should display the menu with the minimum width', async () => {
+    it('should display the menu with the minimum width', async() => {
       handsontable({
         contextMenu: {
           items: {
@@ -103,7 +103,7 @@ describe('ContextMenu', () => {
       expect($menu.find('.wtHider').width()).toEqual(215);
     });
 
-    it('should expand menu when one of items is wider then default width of the menu', async () => {
+    it('should expand menu when one of items is wider then default width of the menu', async() => {
       handsontable({
         contextMenu: {
           items: {
@@ -126,7 +126,7 @@ describe('ContextMenu', () => {
       expect($menu.find('.wtHider').width()).toBeGreaterThan(215);
     });
 
-    it('should display a submenu with the minimum width', async () => {
+    it('should display a submenu with the minimum width', async() => {
       handsontable({
         contextMenu: {
           items: {
@@ -413,7 +413,7 @@ describe('ContextMenu', () => {
       expect(getPlugin('contextMenu').isEnabled()).toBe(false);
     });
 
-    it('should reenable menu', async () => {
+    it('should reenable menu', async() => {
       handsontable({
         contextMenu: true,
         height: 100
@@ -481,7 +481,7 @@ describe('ContextMenu', () => {
     });
 
     it('should work properly (remove row) after destroy and new init', () => {
-      const test = function () {
+      const test = function() {
         handsontable({
           startRows: 5,
           contextMenu: ['remove_row'],
@@ -597,7 +597,7 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.length).toEqual(0);
     });
 
-    it('should open subMenu with delay', async () => {
+    it('should open subMenu with delay', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -637,7 +637,7 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.length).toEqual(0);
     });
 
-    it('should not throw error when opening multi-level menu with name declared as `function` #4550', async () => {
+    it('should not throw error when opening multi-level menu with name declared as `function` #4550', async() => {
       const spy = spyOn(window, 'onerror');
 
       handsontable({
@@ -669,7 +669,7 @@ describe('ContextMenu', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('should not throw error when opening multi-level menu with name declared as `function` which return value not castable to string', async () => {
+    it('should not throw error when opening multi-level menu with name declared as `function` which return value not castable to string', async() => {
       const spy = spyOn(window, 'onerror');
 
       handsontable({
@@ -756,7 +756,7 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
     });
 
-    it('should open subMenu on the right of main menu if there\'s free space', async () => {
+    it('should open subMenu on the right of main menu if there\'s free space', async() => {
       handsontable({
         data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -781,7 +781,7 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
     });
 
-    it('should open subMenu on the left-bottom of main menu if there\'s free space', async () => {
+    it('should open subMenu on the left-bottom of main menu if there\'s free space', async() => {
       handsontable({
         data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -808,7 +808,7 @@ describe('ContextMenu', () => {
       expect(parseInt(contextSubMenu.offset().left, 10)).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
     });
 
-    it('should open subMenu on the right-bottom of main menu if there\'s free space', async () => {
+    it('should open subMenu on the right-bottom of main menu if there\'s free space', async() => {
       handsontable({
         data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -836,7 +836,7 @@ describe('ContextMenu', () => {
       expect(parseInt(contextSubMenu.offset().left, 10)).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
     });
 
-    it('should open subMenu on the left-top of main menu if there\'s no free space on bottom', async () => {
+    it('should open subMenu on the left-top of main menu if there\'s no free space on bottom', async() => {
       handsontable({
         data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -862,7 +862,7 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
     });
 
-    it('should open subMenu on the right-top of main menu if there\'s no free space on bottom', async () => {
+    it('should open subMenu on the right-top of main menu if there\'s no free space on bottom', async() => {
       handsontable({
         data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -2878,7 +2878,7 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it('should close sub-menu and parent menu in proper order when user hits ESC twice', async () => {
+    it('should close sub-menu and parent menu in proper order when user hits ESC twice', async() => {
       handsontable({
         contextMenu: true,
         height: 100
@@ -3070,11 +3070,11 @@ describe('ContextMenu', () => {
   });
 
   describe('working with multiple tables', () => {
-    beforeEach(function () {
+    beforeEach(function() {
       this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
     });
 
-    afterEach(function () {
+    afterEach(function() {
       if (this.$container2) {
         this.$container2.handsontable('destroy');
         this.$container2.remove();
@@ -3191,7 +3191,7 @@ describe('ContextMenu', () => {
   });
 
   describe('context menu with disabled `allowInvalid`', () => {
-    it('should not close invalid cell', async () => {
+    it('should not close invalid cell', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         contextMenu: true,
@@ -3358,7 +3358,7 @@ describe('ContextMenu', () => {
   });
 
   describe('afterContextMenuDefaultOptions hook', () => {
-    it('should call afterContextMenuDefaultOptions hook with context menu options as the first param', async () => {
+    it('should call afterContextMenuDefaultOptions hook with context menu options as the first param', async() => {
       const cb = jasmine.createSpy();
 
       cb.and.callFake((options) => {

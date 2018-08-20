@@ -92,7 +92,7 @@ describe('settings', () => {
       expect(getSelected()).toBeUndefined();
     });
 
-    it('should allow to focus on external input when outsideClickDeselects is set as true', async () => {
+    it('should allow to focus on external input when outsideClickDeselects is set as true', async() => {
       const textarea = $('<input type="text">').prependTo($('body'));
 
       handsontable({
@@ -115,7 +115,7 @@ describe('settings', () => {
       textarea.remove();
     });
 
-    it('should allow to focus on external input when outsideClickDeselects is set as true (outsideClickDeselects as function)', async () => {
+    it('should allow to focus on external input when outsideClickDeselects is set as true (outsideClickDeselects as function)', async() => {
       const textarea = $('<input type="text">').prependTo($('body'));
 
       handsontable({
@@ -137,7 +137,7 @@ describe('settings', () => {
       textarea.remove();
     });
 
-    it('should allow to focus on external input when outsideClickDeselects is set as false', async () => {
+    it('should allow to focus on external input when outsideClickDeselects is set as false', async() => {
       const textarea = $('<input type="text">').prependTo($('body'));
 
       handsontable({
@@ -159,7 +159,7 @@ describe('settings', () => {
       textarea.remove();
     });
 
-    it('should allow to focus on external input when outsideClickDeselects is set as false (outsideClickDeselects as function)', async () => {
+    it('should allow to focus on external input when outsideClickDeselects is set as false (outsideClickDeselects as function)', async() => {
       const textarea = $('<input type="text">').prependTo($('body'));
 
       handsontable({
@@ -181,7 +181,7 @@ describe('settings', () => {
       textarea.remove();
     });
 
-    it('should allow to type in external input while holding current selection information', async () => {
+    it('should allow to type in external input while holding current selection information', async() => {
       const textarea = $('<textarea></textarea>').prependTo($('body'));
       let keyPressed;
 
@@ -224,7 +224,7 @@ describe('settings', () => {
       textarea.remove();
     });
 
-    it('should allow to type in external input while holding current selection information (outsideClickDeselects as function)', async () => {
+    it('should allow to type in external input while holding current selection information (outsideClickDeselects as function)', async() => {
       const textarea = $('<textarea></textarea>').prependTo($('body'));
       let keyPressed;
 
@@ -267,7 +267,7 @@ describe('settings', () => {
       textarea.remove();
     });
 
-    xit('should allow to type in external input after opening cell editor', async () => {
+    xit('should allow to type in external input after opening cell editor', async() => {
       const textarea = $('<textarea></textarea>').prependTo($('body'));
       let keyPressed;
 
@@ -312,7 +312,7 @@ describe('settings', () => {
       textarea.remove();
     });
 
-    it('should allow to type in external input after opening cell editor (outsideClickDeselects as function)', async () => {
+    it('should allow to type in external input after opening cell editor (outsideClickDeselects as function)', async() => {
       const textarea = $('<textarea></textarea>').prependTo($('body'));
       let keyPressed;
 

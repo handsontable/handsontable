@@ -10,7 +10,7 @@ import {DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
  */
 export default function defaultSort(sortOrder, columnMeta) {
   // We are soring array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
-  return function ([, value], [, nextValue]) {
+  return function([, value], [, nextValue]) {
     const sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
 
     if (typeof value === 'string') {
