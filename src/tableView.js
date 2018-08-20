@@ -15,6 +15,22 @@ import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 
 /**
+ * Cross-platform helper to clear text selection.
+ */
+const clearTextSelection = function() {
+  // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
+  if (window.getSelection) {
+    if (window.getSelection().empty) { // Chrome
+      window.getSelection().empty();
+    } else if (window.getSelection().removeAllRanges) { // Firefox
+      window.getSelection().removeAllRanges();
+    }
+  } else if (document.selection) { // IE?
+    document.selection.empty();
+  }
+};
+
+/**
  * Handsontable TableView constructor
  * @param {Object} instance
  */
@@ -164,19 +180,6 @@ function TableView(instance) {
     // Prevent text from being selected when performing drag down.
     event.preventDefault();
   });
-
-  const clearTextSelection = function() {
-    // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
-    if (window.getSelection) {
-      if (window.getSelection().empty) { // Chrome
-        window.getSelection().empty();
-      } else if (window.getSelection().removeAllRanges) { // Firefox
-        window.getSelection().removeAllRanges();
-      }
-    } else if (document.selection) { // IE?
-      document.selection.empty();
-    }
-  };
 
   const walkontableConfig = {
     debug: () => that.settings.debug,

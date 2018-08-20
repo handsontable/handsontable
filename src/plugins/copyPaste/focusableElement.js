@@ -100,34 +100,6 @@ function deactivateElement(wrapper) {
   wrapper.eventManager.clear();
 }
 
-/**
- * Destroy the FocusableWrapper instance.
- *
- * @param {FocusableWrapper} wrapper
- */
-function destroyElement(wrapper) {
-  if (!(wrapper instanceof FocusableWrapper)) {
-    return;
-  }
-
-  if (refCounter > 0) {
-    refCounter -= 1;
-  }
-
-  deactivateElement(wrapper);
-
-  if (refCounter <= 0) {
-    refCounter = 0;
-
-    // Detach secondary element from the DOM.
-    if (secondaryElement && secondaryElement.parentNode) {
-      secondaryElement.parentNode.removeChild(secondaryElement);
-      secondaryElement = null;
-    }
-    wrapper.mainElement = null;
-  }
-}
-
 const runLocalHooks = (eventName, subject) => event => subject.runLocalHooks(eventName, event);
 
 /**
@@ -172,6 +144,34 @@ function createOrGetSecondaryElement() {
   document.body.appendChild(element);
 
   return element;
+}
+
+/**
+ * Destroy the FocusableWrapper instance.
+ *
+ * @param {FocusableWrapper} wrapper
+ */
+function destroyElement(wrapper) {
+  if (!(wrapper instanceof FocusableWrapper)) {
+    return;
+  }
+
+  if (refCounter > 0) {
+    refCounter -= 1;
+  }
+
+  deactivateElement(wrapper);
+
+  if (refCounter <= 0) {
+    refCounter = 0;
+
+    // Detach secondary element from the DOM.
+    if (secondaryElement && secondaryElement.parentNode) {
+      secondaryElement.parentNode.removeChild(secondaryElement);
+      secondaryElement = null;
+    }
+    wrapper.mainElement = null;
+  }
 }
 
 export { createElement, deactivateElement, destroyElement };
