@@ -309,8 +309,8 @@ describe('Walkontable.Selection', () => {
     expect(getTableLeftClone().find('.highlightColumn').length).toEqual(0);
     expect(getTableLeftClone().find('.highlightRow').length).toEqual(2);
 
-    const $colHeaders = $table.find('thead tr:first-child th'),
-      $rowHeaders = $table.find('tbody tr th:first-child');
+    const $colHeaders = $table.find('thead tr:first-child th');
+    const $rowHeaders = $table.find('tbody tr th:first-child');
 
     expect($colHeaders.eq(2).hasClass('highlightColumn')).toBe(true);
     expect($colHeaders.eq(3).hasClass('highlightColumn')).toBe(true);

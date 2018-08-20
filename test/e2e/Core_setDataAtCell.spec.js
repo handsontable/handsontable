@@ -175,12 +175,12 @@ describe('Core_setDataAtCell', () => {
     });
 
     function model(opts) {
-      const _pub = {},
-        _priv = $.extend({
-          id: undefined,
-          name: undefined,
-          address: undefined
-        }, opts);
+      const _pub = {};
+      const _priv = $.extend({
+        id: undefined,
+        name: undefined,
+        address: undefined
+      }, opts);
 
       _pub.attr = function(attr, val) {
         if (typeof val === 'undefined') {

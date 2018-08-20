@@ -718,8 +718,8 @@ DataMap.prototype.clearLengthCache = function() {
  * @returns {Number}
  */
 DataMap.prototype.getLength = function() {
-  let maxRows,
-    maxRowsFromSettings = this.instance.getSettings().maxRows;
+  let maxRowsFromSettings = this.instance.getSettings().maxRows;
+  let maxRows;
 
   if (maxRowsFromSettings < 0 || maxRowsFromSettings === 0) {
     maxRows = 0;
