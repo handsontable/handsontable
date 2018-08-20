@@ -1,15 +1,15 @@
 import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
 import SheetClip from './../../../lib/SheetClip/SheetClip';
-import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
-import {getSelectionText} from './../../helpers/dom/element';
-import {arrayEach} from './../../helpers/array';
-import {rangeEach} from './../../helpers/number';
-import {registerPlugin} from './../../plugins';
+import { CellCoords, CellRange } from './../../3rdparty/walkontable/src';
+import { getSelectionText } from './../../helpers/dom/element';
+import { arrayEach } from './../../helpers/array';
+import { rangeEach } from './../../helpers/number';
+import { registerPlugin } from './../../plugins';
 import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
-import {createElement, destroyElement} from './focusableElement';
+import { createElement, destroyElement } from './focusableElement';
 
 import './copyPaste.css';
 
@@ -448,7 +448,7 @@ class CopyPaste extends BasePlugin {
       const changesLength = changes ? changes.length : 0;
 
       if (changesLength) {
-        const offset = {row: 0, col: 0};
+        const offset = { row: 0, col: 0 };
         let highestColumnIndex = -1;
 
         arrayEach(changes, (change, index) => {
@@ -494,7 +494,7 @@ class CopyPaste extends BasePlugin {
    * @private
    */
   onAfterSelectionEnd() {
-    const {isFragmentSelectionEnabled} = privatePool.get(this);
+    const { isFragmentSelectionEnabled } = privatePool.get(this);
     const editor = this.hot.getActiveEditor();
 
     if (editor && editor.isOpened()) {

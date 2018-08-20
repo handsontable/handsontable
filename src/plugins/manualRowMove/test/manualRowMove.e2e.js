@@ -1,16 +1,16 @@
 describe('manualRowMove', () => {
   const id = 'testContainer';
   const arrayOfObjects = [
-    {id: 1, name: 'Ted', lastName: 'Right'},
-    {id: 2, name: 'Frank', lastName: 'Honest'},
-    {id: 3, name: 'Joan', lastName: 'Well'},
-    {id: 4, name: 'Sid', lastName: 'Strong'},
-    {id: 5, name: 'Jane', lastName: 'Neat'},
-    {id: 6, name: 'Chuck', lastName: 'Jackson'},
-    {id: 7, name: 'Meg', lastName: 'Jansen'},
-    {id: 8, name: 'Rob', lastName: 'Norris'},
-    {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-    {id: 10, name: 'Eve', lastName: 'Branson'}
+    { id: 1, name: 'Ted', lastName: 'Right' },
+    { id: 2, name: 'Frank', lastName: 'Honest' },
+    { id: 3, name: 'Joan', lastName: 'Well' },
+    { id: 4, name: 'Sid', lastName: 'Strong' },
+    { id: 5, name: 'Jane', lastName: 'Neat' },
+    { id: 6, name: 'Chuck', lastName: 'Jackson' },
+    { id: 7, name: 'Meg', lastName: 'Jansen' },
+    { id: 8, name: 'Rob', lastName: 'Norris' },
+    { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+    { id: 10, name: 'Eve', lastName: 'Branson' }
   ];
 
   beforeEach(function() {
@@ -563,7 +563,7 @@ describe('manualRowMove', () => {
         rowHeaders: true,
         manualRowMove: true,
         cell: [
-          {row: 1, col: 0, readOnly: true}
+          { row: 1, col: 0, readOnly: true }
         ]
       });
 

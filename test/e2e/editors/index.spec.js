@@ -79,13 +79,13 @@ describe('editors', () => {
   it('should reset previous value when printable character was entered to selected, non-empty cell', async() => {
     handsontable({
       data: [
-        {id: 10, name: 'Cup'},
-        {id: 23, name: 'Newspaper'},
-        {id: 31, name: 'Car'}
+        { id: 10, name: 'Cup' },
+        { id: 23, name: 'Newspaper' },
+        { id: 31, name: 'Car' }
       ],
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
       ]
     });
 

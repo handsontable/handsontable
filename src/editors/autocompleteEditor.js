@@ -99,7 +99,7 @@ AutocompleteEditor.prototype.open = function(...args) {
     colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
     width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
     afterRenderer(TD, row, col, prop, value) {
-      const {filteringCaseSensitive, allowHtml} = _this.cellProperties;
+      const { filteringCaseSensitive, allowHtml } = _this.cellProperties;
       let indexOfMatch;
       let match;
 
@@ -409,7 +409,7 @@ AutocompleteEditor.prototype.stripValueIfNeeded = function(value) {
 };
 
 AutocompleteEditor.prototype.stripValuesIfNeeded = function(values) {
-  const {allowHtml} = this.cellProperties;
+  const { allowHtml } = this.cellProperties;
 
   const stringifiedValues = arrayMap(values, value => stringify(value));
   const strippedValues = arrayMap(stringifiedValues, value => (allowHtml ? value : stripTags(value)));
@@ -419,8 +419,7 @@ AutocompleteEditor.prototype.stripValuesIfNeeded = function(values) {
 
 AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
   const selectedRange = this.htEditor.getSelectedRangeLast();
-
-  const selected = {row: selectedRange ? selectedRange.from.row : -1};
+  const selected = { row: selectedRange ? selectedRange.from.row : -1 };
   let allowed = false;
 
   if (keyCode === KEY_CODES.ARROW_DOWN && selected.row > 0 && selected.row < this.htEditor.countRows() - 1) {

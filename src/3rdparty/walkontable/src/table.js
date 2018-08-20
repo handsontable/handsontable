@@ -192,7 +192,7 @@ class Table {
    * @returns {Table}
    */
   draw(fastDraw) {
-    const {wtOverlays, wtViewport} = this.wot;
+    const { wtOverlays, wtViewport } = this.wot;
     const totalRows = this.instance.getSetting('totalRows');
     const rowHeaders = this.wot.getSetting('rowHeaders').length;
     const columnHeaders = this.wot.getSetting('columnHeaders').length;

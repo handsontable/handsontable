@@ -1,11 +1,11 @@
 import moment from 'moment';
 import Pikaday from 'pikaday';
 import 'pikaday/css/pikaday.css';
-import {addClass, outerHeight} from './../helpers/dom/element';
-import {deepExtend} from './../helpers/object';
+import { addClass, outerHeight } from './../helpers/dom/element';
+import { deepExtend } from './../helpers/object';
 import EventManager from './../eventManager';
-import {isMetaKey} from './../helpers/unicode';
-import {stopPropagation} from './../helpers/dom/event';
+import { isMetaKey } from './../helpers/unicode';
+import { stopPropagation } from './../helpers/dom/event';
 import TextEditor from './textEditor';
 
 /**

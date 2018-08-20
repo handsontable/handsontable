@@ -1,5 +1,5 @@
 import BaseEditor from './_baseEditor';
-import {hasClass} from './../helpers/dom/element';
+import { hasClass } from './../helpers/dom/element';
 
 /**
  * @private

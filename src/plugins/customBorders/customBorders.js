@@ -272,7 +272,7 @@ class CustomBorders extends BasePlugin {
     const hasCustomSelections = this.checkCustomSelections(border, cellRange, place);
 
     if (!hasCustomSelections) {
-      this.hot.selection.highlight.addCustomSelection({border, cellRange});
+      this.hot.selection.highlight.addCustomSelection({ border, cellRange });
       this.hot.view.wt.draw(true);
     }
   }
@@ -436,7 +436,7 @@ class CustomBorders extends BasePlugin {
    * @param {Boolean} remove True when remove borders, and false when add borders.
    */
   prepareBorder(selected, place, remove) {
-    arrayEach(selected, ({start, end}) => {
+    arrayEach(selected, ({ start, end }) => {
       if (start.row === end.row && start.col === end.col) {
         if (place === 'noBorders') {
           this.removeAllBorders(start.row, start.col);

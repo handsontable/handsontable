@@ -4,7 +4,7 @@ import { arrayEach } from './../../helpers/array';
 import { addClass, removeClass, offset } from './../../helpers/dom/element';
 import { rangeEach } from './../../helpers/number';
 import EventManager from './../../eventManager';
-import {registerPlugin} from './../../plugins';
+import { registerPlugin } from './../../plugins';
 import ColumnsMapper from './columnsMapper';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
@@ -491,7 +491,7 @@ class ManualColumnMove extends BasePlugin {
       this.backlight.appendTo(wtTable.hider);
     }
 
-    const {from, to} = selection;
+    const { from, to } = selection;
     const start = Math.min(from.col, to.col);
     const end = Math.max(from.col, to.col);
 

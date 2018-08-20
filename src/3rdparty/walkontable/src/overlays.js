@@ -417,7 +417,7 @@ class Overlays {
    */
   syncScrollWithMaster() {
     const master = this.topOverlay.mainTableScrollableElement;
-    const {scrollLeft, scrollTop} = master;
+    const { scrollLeft, scrollTop } = master;
 
     if (this.topOverlay.needFullRender) {
       this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;

@@ -1,4 +1,4 @@
-import {arrayEach} from './array';
+import { arrayEach } from './array';
 
 export const KEY_CODES = {
   MOUSE_LEFT: 1,

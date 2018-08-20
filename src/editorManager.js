@@ -1,9 +1,9 @@
-import {CellCoords} from './3rdparty/walkontable/src';
-import {KEY_CODES, isMetaKey, isCtrlMetaKey} from './helpers/unicode';
-import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './helpers/dom/event';
-import {getEditorInstance} from './editors';
+import { CellCoords } from './3rdparty/walkontable/src';
+import { KEY_CODES, isMetaKey, isCtrlMetaKey } from './helpers/unicode';
+import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
+import { getEditorInstance } from './editors';
 import EventManager from './eventManager';
-import {EditorState} from './editors/_baseEditor';
+import { EditorState } from './editors/_baseEditor';
 
 function EditorManager(instance, priv, selection) {
   const _this = this;

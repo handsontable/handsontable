@@ -1,4 +1,4 @@
-import {RecordTranslator, registerIdentity, getTranslator} from 'handsontable/utils/recordTranslator';
+import { RecordTranslator, registerIdentity, getTranslator } from 'handsontable/utils/recordTranslator';
 import Handsontable from 'handsontable';
 
 describe('RecordTranslator', () => {
@@ -28,7 +28,7 @@ describe('RecordTranslator', () => {
     spyOn(t, 'toVisualRow').and.returnValue(6);
     spyOn(t, 'toVisualColumn').and.returnValue(12);
 
-    expect(t.toVisual({row: 3, column: 4})).toEqual({row: 6, column: 12});
+    expect(t.toVisual({ row: 3, column: 4 })).toEqual({ row: 6, column: 12 });
   });
 
   it('should translate to visual coordinates (as an array)', () => {
@@ -66,7 +66,7 @@ describe('RecordTranslator', () => {
     spyOn(t, 'toPhysicalRow').and.returnValue(6);
     spyOn(t, 'toPhysicalColumn').and.returnValue(12);
 
-    expect(t.toPhysical({row: 3, column: 4})).toEqual({row: 6, column: 12});
+    expect(t.toPhysical({ row: 3, column: 4 })).toEqual({ row: 6, column: 12 });
   });
 
   it('should translate to physical coordinates (as an array)', () => {

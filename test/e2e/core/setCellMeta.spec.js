@@ -67,8 +67,8 @@ describe('Core.setCellMeta', () => {
 
     handsontable({
       cell: [
-        {row: 0, col: 0, className: classNames[0] },
-        {row: 1, col: 1, className: classNames[1] }
+        { row: 0, col: 0, className: classNames[0] },
+        { row: 1, col: 1, className: classNames[1] }
       ]
     });
 
@@ -84,8 +84,8 @@ describe('Core.setCellMeta', () => {
 
     handsontable({
       cell: [
-        {row: 0, col: 0, className: classNames[0] },
-        {row: 1, col: 1, className: classNames[1] }
+        { row: 0, col: 0, className: classNames[0] },
+        { row: 1, col: 1, className: classNames[1] }
       ]
     });
 
@@ -101,8 +101,8 @@ describe('Core.setCellMeta', () => {
 
     updateSettings({
       cell: [
-        {row: 0, col: 0, className: classNames[1] },
-        {row: 1, col: 1, className: classNames[0] }
+        { row: 0, col: 0, className: classNames[1] },
+        { row: 1, col: 1, className: classNames[0] }
       ]
     });
 

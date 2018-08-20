@@ -2,11 +2,11 @@
  * Handsontable UndoRedo class
  */
 import Hooks from './../../pluginHooks';
-import {arrayMap, arrayEach} from './../../helpers/array';
-import {rangeEach} from './../../helpers/number';
-import {inherit, deepClone} from './../../helpers/object';
-import {stopImmediatePropagation} from './../../helpers/dom/event';
-import {align} from './../contextMenu/utils';
+import { arrayMap, arrayEach } from './../../helpers/array';
+import { rangeEach } from './../../helpers/number';
+import { inherit, deepClone } from './../../helpers/object';
+import { stopImmediatePropagation } from './../../helpers/dom/event';
+import { align } from './../contextMenu/utils';
 
 /**
  * @description
@@ -458,7 +458,7 @@ UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.alignment = alignment;
 };
 UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
-  arrayEach(this.range, ({from, to}) => {
+  arrayEach(this.range, ({ from, to }) => {
     for (let row = from.row; row <= to.row; row += 1) {
       for (let col = from.col; col <= to.col; col += 1) {
         instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');

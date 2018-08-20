@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import {arrayReduce} from '../helpers/array';
+import { arrayReduce } from '../helpers/array';
 
 /**
  * Tags a multiline string and return new one without line break characters and following spaces.

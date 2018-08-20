@@ -1,4 +1,4 @@
-import {inherit} from './object';
+import { inherit } from './object';
 /* eslint-disable import/prefer-default-export */
 /**
  * Factory for columns constructors.

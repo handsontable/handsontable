@@ -1,7 +1,7 @@
-import {polymerWrap, closest} from './helpers/dom/element';
-import {hasOwnProperty} from './helpers/object';
-import {isWebComponentSupportedNatively} from './helpers/feature';
-import {stopImmediatePropagation as _stopImmediatePropagation} from './helpers/dom/event';
+import { polymerWrap, closest } from './helpers/dom/element';
+import { hasOwnProperty } from './helpers/object';
+import { isWebComponentSupportedNatively } from './helpers/feature';
+import { stopImmediatePropagation as _stopImmediatePropagation } from './helpers/dom/event';
 
 /**
  * Counter which tracks unregistered listeners (useful for detecting memory leaks).

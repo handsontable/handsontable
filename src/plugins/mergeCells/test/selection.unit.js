@@ -1,6 +1,6 @@
 import SelectionCalculations from '../calculations/selection';
 import MergedCellCoords from '../cellCoords';
-import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
+import { CellCoords, CellRange } from './../../../3rdparty/walkontable/src';
 
 describe('MergeCells-Selection calculations', () => {
   describe('snapDelta', () => {

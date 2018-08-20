@@ -26,7 +26,7 @@ class BasePlugin {
       writable: false
     });
 
-    privatePool.set(this, {hooks: {}});
+    privatePool.set(this, { hooks: {} });
     initializedPlugins = null;
 
     this.pluginName = null;

@@ -1,4 +1,4 @@
-import {arrayReduce} from './array';
+import { arrayReduce } from './array';
 
 /**
  * Checks if given variable is function.

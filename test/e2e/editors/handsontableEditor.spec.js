@@ -14,12 +14,12 @@ describe('HandsontableEditor', () => {
 
   function getManufacturerData() {
     return [
-      {name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG'},
-      {name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC'},
-      {name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd'},
-      {name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation'},
-      {name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation'},
-      {name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group'}
+      { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
+      { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
+      { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
+      { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
+      { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
+      { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' }
     ];
   }
 

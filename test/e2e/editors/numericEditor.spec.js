@@ -14,16 +14,16 @@ describe('NumericEditor', () => {
 
   const arrayOfObjects = function() {
     return [
-      {id: 1, name: 'Ted', lastName: 'Right'},
-      {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'},
-      {id: 4, name: 'Sid', lastName: 'Strong'},
-      {id: 5, name: 'Jane', lastName: 'Neat'},
-      {id: 6, name: 'Chuck', lastName: 'Jackson'},
-      {id: 7, name: 'Meg', lastName: 'Jansen'},
-      {id: 8, name: 'Rob', lastName: 'Norris'},
-      {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'}
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' },
+      { id: 4, name: 'Sid', lastName: 'Strong' },
+      { id: 5, name: 'Jane', lastName: 'Neat' },
+      { id: 6, name: 'Chuck', lastName: 'Jackson' },
+      { id: 7, name: 'Meg', lastName: 'Jansen' },
+      { id: 8, name: 'Rob', lastName: 'Norris' },
+      { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+      { id: 10, name: 'Eve', lastName: 'Branson' }
     ];
   };
 
@@ -31,9 +31,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
     selectCell(2, 0);
@@ -53,10 +53,10 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'price_eur', type: 'numeric'},
-        {data: 'price_pln', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
-        {data: 'price_aud', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}}
+        { data: 'id' },
+        { data: 'price_eur', type: 'numeric' },
+        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
       ]
     });
 
@@ -126,9 +126,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'price'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'price' },
+        { data: 'lastName' }
       ]
     });
     selectCell(2, 0);
@@ -148,9 +148,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
     selectCell(2, 0);
@@ -170,9 +170,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
 
@@ -192,7 +192,7 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
+        { data: 'id', type: 'numeric' },
       ]
     });
 
@@ -208,9 +208,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'price', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } },
+        { data: 'lastName' }
       ]
     });
 
@@ -296,9 +296,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
     selectCell(2, 0);
@@ -319,9 +319,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00 $', culture: 'de-DE'}},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
     selectCell(2, 0);
@@ -344,9 +344,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00 $', culture: 'de-DE'}},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -367,22 +367,22 @@ describe('NumericEditor', () => {
      'input string and ignore not needed zeros at the end', async() => {
     handsontable({
       data: [
-        {id: 1, name: 'Ted', lastName: 'Right', money: 0},
-        {id: 2, name: 'Frank', lastName: 'Honest', money: 0},
-        {id: 3, name: 'Joan', lastName: 'Well', money: 0},
-        {id: 4, name: 'Sid', lastName: 'Strong', money: 0},
-        {id: 5, name: 'Jane', lastName: 'Neat', money: 0},
-        {id: 6, name: 'Chuck', lastName: 'Jackson', money: 0},
-        {id: 7, name: 'Meg', lastName: 'Jansen', money: 0},
-        {id: 8, name: 'Rob', lastName: 'Norris', money: 0},
-        {id: 9, name: 'Sean', lastName: 'O\'Hara', money: 0},
-        {id: 10, name: 'Eve', lastName: 'Branson', money: 0}
+        { id: 1, name: 'Ted', lastName: 'Right', money: 0 },
+        { id: 2, name: 'Frank', lastName: 'Honest', money: 0 },
+        { id: 3, name: 'Joan', lastName: 'Well', money: 0 },
+        { id: 4, name: 'Sid', lastName: 'Strong', money: 0 },
+        { id: 5, name: 'Jane', lastName: 'Neat', money: 0 },
+        { id: 6, name: 'Chuck', lastName: 'Jackson', money: 0 },
+        { id: 7, name: 'Meg', lastName: 'Jansen', money: 0 },
+        { id: 8, name: 'Rob', lastName: 'Norris', money: 0 },
+        { id: 9, name: 'Sean', lastName: 'O\'Hara', money: 0 },
+        { id: 10, name: 'Eve', lastName: 'Branson', money: 0 }
       ],
       columns: [
-        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00 $', culture: 'de-DE'}},
-        {data: 'name'},
-        {data: 'lastName'},
-        {data: 'money', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}}
+        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'name' },
+        { data: 'lastName' },
+        { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
       ]
     });
 
@@ -415,13 +415,13 @@ describe('NumericEditor', () => {
     'and not change value after closing editor', async() => {
     handsontable({
       data: [
-        {id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5}
+        { id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5 }
       ],
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'price_eur', type: 'numeric'},
-        {data: 'price_pln', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
-        {data: 'price_aud', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}}
+        { data: 'id', type: 'numeric' },
+        { data: 'price_eur', type: 'numeric' },
+        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
       ]
     });
 
@@ -472,13 +472,13 @@ describe('NumericEditor', () => {
     'and not change value after closing editor', async() => {
     handsontable({
       data: [
-        {id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5}
+        { id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5 }
       ],
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'price_eur', type: 'numeric'},
-        {data: 'price_pln', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
-        {data: 'price_aud', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}}
+        { data: 'id', type: 'numeric' },
+        { data: 'price_eur', type: 'numeric' },
+        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
       ]
     });
 
@@ -526,9 +526,9 @@ describe('NumericEditor', () => {
     const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
     });
 
@@ -552,8 +552,8 @@ describe('NumericEditor', () => {
             cb(parseInt(val, 10) > 100);
           }
         },
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
     selectCell(2, 0);
@@ -585,9 +585,9 @@ describe('NumericEditor', () => {
     const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00', culture: 'en-US'}},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00', culture: 'en-US' } },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
     });
 
@@ -612,8 +612,8 @@ describe('NumericEditor', () => {
   it('should not throw error on closing editor when column data is defined as \'length\'', () => {
     hot = handsontable({
       data: [
-        {length: 4},
-        {length: 5},
+        { length: 4 },
+        { length: 5 },
       ],
       columns: [
         {
@@ -655,13 +655,13 @@ describe('NumericEditor', () => {
     it('Moving from numeric editor to text editor', (done) => {
       handsontable({
         data: [
-          {id: 1, name: 'Ted', lastName: 'Right', money: 0}
+          { id: 1, name: 'Ted', lastName: 'Right', money: 0 }
         ],
         columns: [
-          {data: 'id'},
-          {data: 'name'},
-          {data: 'lastName'},
-          {data: 'money', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}}
+          { data: 'id' },
+          { data: 'name' },
+          { data: 'lastName' },
+          { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
         ]
       });
 
@@ -678,13 +678,13 @@ describe('NumericEditor', () => {
     it('Moving from text editor to numeric editor', (done) => {
       handsontable({
         data: [
-          {id: 1, name: 'Ted', lastName: 'Right', money: 0}
+          { id: 1, name: 'Ted', lastName: 'Right', money: 0 }
         ],
         columns: [
-          {data: 'id'},
-          {data: 'name'},
-          {data: 'lastName'},
-          {data: 'money', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}}
+          { data: 'id' },
+          { data: 'name' },
+          { data: 'lastName' },
+          { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
         ]
       });
 
@@ -702,7 +702,7 @@ describe('NumericEditor', () => {
   describe('IME support', () => {
     it('should focus editable element after selecting the cell', async() => {
       handsontable({
-        type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}
+        type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' }
       });
       selectCell(0, 0, 0, 0, true, false);
 

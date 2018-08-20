@@ -1,5 +1,5 @@
-import {isIE8, isIE9, isSafari} from '../browser';
-import {hasCaptionProblem} from '../feature';
+import { isIE8, isIE9, isSafari } from '../browser';
+import { hasCaptionProblem } from '../feature';
 
 /**
  * Get the parent of the specified node in the DOM tree.

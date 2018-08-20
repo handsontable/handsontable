@@ -10,9 +10,9 @@ import {
   isOutsideInput
 } from './helpers/dom/element';
 import EventManager from './eventManager';
-import {stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick} from './helpers/dom/event';
+import { stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable from './3rdparty/walkontable/src';
-import {handleMouseEvent} from './selection/mouseEventHandler';
+import { handleMouseEvent } from './selection/mouseEventHandler';
 
 /**
  * Handsontable TableView constructor

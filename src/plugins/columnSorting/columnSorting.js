@@ -3,11 +3,11 @@ import {
   hasClass,
   removeClass,
 } from './../../helpers/dom/element';
-import {hasOwnProperty, isObject} from './../../helpers/object';
-import {isDefined, isUndefined} from './../../helpers/mixed';
-import {getSortFunctionForColumn} from './utils';
+import { hasOwnProperty, isObject } from './../../helpers/object';
+import { isDefined, isUndefined } from './../../helpers/mixed';
+import { getSortFunctionForColumn } from './utils';
 import BasePlugin from './../_base';
-import {registerPlugin} from './../../plugins';
+import { registerPlugin } from './../../plugins';
 import mergeSort from './../../utils/sortingAlgorithms/mergeSort';
 import Hooks from './../../pluginHooks';
 import RowsMapper from './rowsMapper';
@@ -289,7 +289,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (isUndefined(columnMeta.columnSorting.sortEmptyCells)) {
-      columnMeta.columnSorting = {sortEmptyCells: this.sortEmptyCells};
+      columnMeta.columnSorting = { sortEmptyCells: this.sortEmptyCells };
     }
 
     // Function `getDataAtCell` won't call the indices translation inside `onModifyRow` listener - we check the `blockPluginTranslation` flag

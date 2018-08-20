@@ -185,7 +185,7 @@ describe('MergeCells-Autofill calculations', () => {
         countRows: () => 100,
       };
       const instance = new AutofillCalculations({
-        mergedCellsCollection: new MergedCellsCollection({hot: hotMock}),
+        mergedCellsCollection: new MergedCellsCollection({ hot: hotMock }),
         hot: hotMock
       });
 
@@ -249,8 +249,8 @@ describe('MergeCells-Autofill calculations', () => {
         [10, 8, '[10, 8]', null]];
 
       expect(JSON.stringify(instance.getRangeFromChanges(changes))).toEqual(JSON.stringify({
-        from: {row: 7, column: 4},
-        to: {row: 10, column: 8}
+        from: { row: 7, column: 4 },
+        to: { row: 10, column: 8 }
       }));
     });
   });

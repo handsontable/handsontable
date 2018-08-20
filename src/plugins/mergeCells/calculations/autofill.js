@@ -1,6 +1,6 @@
-import {extend} from '../../../helpers/object';
-import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
-import {arrayEach} from './../../../helpers/array';
+import { extend } from '../../../helpers/object';
+import { CellCoords, CellRange } from './../../../3rdparty/walkontable/src';
+import { arrayEach } from './../../../helpers/array';
 
 /**
  * Class responsible for all of the Autofill-related operations on merged cells.
@@ -375,8 +375,8 @@ class AutofillCalculations {
    * @returns {Object} Object with `from` and `to` properties, both containing `row` and `column` keys.
    */
   getRangeFromChanges(changes) {
-    const rows = {min: null, max: null};
-    const columns = {min: null, max: null};
+    const rows = { min: null, max: null };
+    const columns = { min: null, max: null };
 
     arrayEach(changes, (change) => {
       if (rows.min === null || change[0] < rows.min) {
