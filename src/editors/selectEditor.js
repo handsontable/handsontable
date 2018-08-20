@@ -12,7 +12,7 @@ import {
 } from './../helpers/dom/element';
 import { stopImmediatePropagation } from './../helpers/dom/event';
 import { KEY_CODES } from './../helpers/unicode';
-import BaseEditor, {EditorState} from './_baseEditor';
+import BaseEditor, { EditorState } from './_baseEditor';
 import { objectEach } from '../helpers/object';
 
 const SelectEditor = BaseEditor.prototype.extend();
@@ -130,7 +130,7 @@ SelectEditor.prototype.focus = function() {
 };
 
 SelectEditor.prototype.refreshValue = function() {
-  let sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
+  const sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
   this.originalValue = sourceData;
 
   this.setValue(sourceData);

@@ -1,5 +1,5 @@
-import {isObject, deepClone} from '../helpers/object';
-import {extendNotExistingKeys} from './utils';
+import { isObject, deepClone } from '../helpers/object';
+import { extendNotExistingKeys } from './utils';
 import staticRegister from '../utils/staticRegister';
 import DEFAULT_DICTIONARY from './languages/en-US';
 

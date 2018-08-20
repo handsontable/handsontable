@@ -127,7 +127,7 @@ describe('Core_view', () => {
     });
 
     expect(() => {
-      hot1.view.scrollViewport({row: 0, col: 0});
+      hot1.view.scrollViewport({ row: 0, col: 0 });
     }).not.toThrow();
   });
 
@@ -139,9 +139,9 @@ describe('Core_view', () => {
       height: 100
     });
 
-    expect(hot1.view.scrollViewport({row: -1, col: 0})).toBe(false);
-    expect(hot1.view.scrollViewport({row: 0, col: -1})).toBe(false);
-    expect(hot1.view.scrollViewport({row: -1, col: -1})).toBe(false);
+    expect(hot1.view.scrollViewport({ row: -1, col: 0 })).toBe(false);
+    expect(hot1.view.scrollViewport({ row: 0, col: -1 })).toBe(false);
+    expect(hot1.view.scrollViewport({ row: -1, col: -1 })).toBe(false);
   });
 
   it('should scroll viewport, respecting fixed rows', () => {
@@ -300,10 +300,10 @@ describe('Core_view', () => {
       startRows: 40
     });
 
-    let lastScroll;
-
     $(window).scrollTop(10000);
-    lastScroll = $(window).scrollTop();
+
+    const lastScroll = $(window).scrollTop();
+
     render(); // renders synchronously so we don't have to put stuff in waits/runs
     selectCell(39, 0);
 
@@ -315,9 +315,7 @@ describe('Core_view', () => {
     expect($(window).scrollTop()).toEqual(lastScroll);
   });
 
-  it('should not shrink table when width and height is not specified for container', async () => {
-    let initHeight;
-
+  it('should not shrink table when width and height is not specified for container', async() => {
     spec().$container[0].style.overflow = 'hidden';
     spec().$container.wrap('<div style="width: 50px;"></div>');
     handsontable({
@@ -327,7 +325,7 @@ describe('Core_view', () => {
 
     await sleep(250);
 
-    initHeight = spec().$container.height();
+    const initHeight = spec().$container.height();
 
     await sleep(250);
 
@@ -378,7 +376,7 @@ describe('Core_view', () => {
     expect(spec().$container.width()).toEqual(107); // rootElement is full width but this should do the trick
   });
 
-  it('should fire beforeRender event after table has been scrolled', async () => {
+  it('should fire beforeRender event after table has been scrolled', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
@@ -397,7 +395,7 @@ describe('Core_view', () => {
     expect(beforeRenderCallback.calls.count()).toBe(1);
   });
 
-  it('should fire afterRender event after table has been scrolled', async () => {
+  it('should fire afterRender event after table has been scrolled', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
@@ -415,7 +413,7 @@ describe('Core_view', () => {
     expect(afterRenderCallback.calls.count()).toBe(1);
   });
 
-  it('should fire afterRender event after table physically rendered', async () => {
+  it('should fire afterRender event after table physically rendered', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';

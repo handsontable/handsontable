@@ -1,4 +1,4 @@
-import {addClass, hasClass} from './../../../helpers/dom/element';
+import { addClass, hasClass } from './../../../helpers/dom/element';
 import Border from './border';
 import CellCoords from './cell/coords';
 import CellRange from './cell/range';
@@ -259,7 +259,7 @@ class Selection {
           }
         }
 
-        let additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceCol, corners, this.settings.layerLevel);
+        const additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceCol, corners, this.settings.layerLevel);
 
         if (typeof additionalSelectionClass === 'string') {
           this.addClassAtCoords(wotInstance, sourceRow, sourceCol, additionalSelectionClass);

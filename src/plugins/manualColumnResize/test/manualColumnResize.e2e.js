@@ -25,16 +25,16 @@ describe('manualColumnResize', () => {
   it('should be enabled after specifying it in updateSettings config', () => {
     handsontable({
       data: [
-        {id: 1, name: 'Ted', lastName: 'Right'},
-        {id: 2, name: 'Frank', lastName: 'Honest'},
-        {id: 3, name: 'Joan', lastName: 'Well'},
-        {id: 4, name: 'Sid', lastName: 'Strong'},
-        {id: 5, name: 'Jane', lastName: 'Neat'}
+        { id: 1, name: 'Ted', lastName: 'Right' },
+        { id: 2, name: 'Frank', lastName: 'Honest' },
+        { id: 3, name: 'Joan', lastName: 'Well' },
+        { id: 4, name: 'Sid', lastName: 'Strong' },
+        { id: 5, name: 'Jane', lastName: 'Neat' }
       ],
       colHeaders: true
     });
 
-    updateSettings({manualColumnResize: true});
+    updateSettings({ manualColumnResize: true });
 
     spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseover');
 
@@ -151,7 +151,7 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(4).width()).toBe(128);
   });
 
-  it('should resize (narrowing) selected columns', async () => {
+  it('should resize (narrowing) selected columns', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -171,8 +171,8 @@ describe('manualColumnResize', () => {
     spec().$container.find('tr:eq(0) th:eq(3)').simulate('mousemove');
     spec().$container.find('tr:eq(0) th:eq(3)').simulate('mouseup');
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
-    $resizer.simulate('mousemove', {clientX: spec().$container.find('tr:eq(0) th:eq(1)').position().left + 29});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mousemove', { clientX: spec().$container.find('tr:eq(0) th:eq(1)').position().left + 29 });
     $resizer.simulate('mouseup');
 
     await sleep(1000);
@@ -182,7 +182,7 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(3).width()).toBe(34);
   });
 
-  it('should resize (expanding) selected columns', async () => {
+  it('should resize (expanding) selected columns', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -202,8 +202,8 @@ describe('manualColumnResize', () => {
     spec().$container.find('tr:eq(0) th:eq(3)').simulate('mousemove');
     spec().$container.find('tr:eq(0) th:eq(3)').simulate('mouseup');
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
-    $resizer.simulate('mousemove', {clientX: spec().$container.find('tr:eq(0) th:eq(1)').position().left + 150});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mousemove', { clientX: spec().$container.find('tr:eq(0) th:eq(1)').position().left + 150 });
     $resizer.simulate('mouseup');
 
     await sleep(1000);
@@ -213,7 +213,7 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(3).width()).toBe(155);
   });
 
-  it('should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`', async () => {
+  it('should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`', async() => {
     spec().$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -238,10 +238,10 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
     await sleep(1000);
@@ -253,7 +253,7 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(4).width()).toBe(181);
   });
 
-  it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', async () => {
+  it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', async() => {
     spec().$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -278,10 +278,10 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
     await sleep(1000);
@@ -374,14 +374,14 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
     expect(colWidth(spec().$container, 0)).toEqual(50);
   });
 
-  it('should trigger an afterColumnResize after column size changes, after double click', async () => {
+  it('should trigger an afterColumnResize after column size changes, after double click', async() => {
     const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
@@ -400,10 +400,10 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
     await sleep(1000);
@@ -415,12 +415,12 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 0)).toBeInArray([30, 31, 32, 24, 25]);
   });
 
-  it('should autosize column after double click (when initial width is not defined)', async () => {
+  it('should autosize column after double click (when initial width is not defined)', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
-      columns: [{width: 100}, {width: 200}, {}]
+      columns: [{ width: 100 }, { width: 200 }, {}]
     });
 
     expect(colWidth(spec().$container, 0)).toEqual(100);
@@ -432,10 +432,10 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
     await sleep(1000);
@@ -443,7 +443,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
   });
 
-  it('should autosize selected columns after double click on handler', async () => {
+  it('should autosize selected columns after double click on handler', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(9, 9),
       colHeaders: true,
@@ -463,9 +463,9 @@ describe('manualColumnResize', () => {
 
     await sleep(600);
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
     await sleep(600);
@@ -539,11 +539,11 @@ describe('manualColumnResize', () => {
     it('should display the resize handle in the proper position and with a proper size', () => {
       handsontable({
         data: [
-          {id: 1, name: 'Ted', lastName: 'Right'},
-          {id: 2, name: 'Frank', lastName: 'Honest'},
-          {id: 3, name: 'Joan', lastName: 'Well'},
-          {id: 4, name: 'Sid', lastName: 'Strong'},
-          {id: 5, name: 'Jane', lastName: 'Neat'}
+          { id: 1, name: 'Ted', lastName: 'Right' },
+          { id: 2, name: 'Frank', lastName: 'Honest' },
+          { id: 3, name: 'Joan', lastName: 'Well' },
+          { id: 4, name: 'Sid', lastName: 'Strong' },
+          { id: 5, name: 'Jane', lastName: 'Neat' }
         ],
         colHeaders: true,
         manualColumnResize: true

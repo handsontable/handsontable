@@ -14,9 +14,9 @@ describe('CellDecorator', () => {
 
   const arrayOfObjects = function() {
     return [
-      {id: 1, name: 'Ted', lastName: 'Right'},
-      {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'}
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' }
     ];
   };
 
@@ -24,15 +24,15 @@ describe('CellDecorator', () => {
     const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       wordWrap: false
     });
 
-    const cols = countCols(),
-      rows = countRows();
+    const cols = countCols();
+    const rows = countRows();
 
     for (let i = 0; i < cols; i++) {
       for (let j = 0; j < rows; j++) {
@@ -45,9 +45,9 @@ describe('CellDecorator', () => {
     const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'name', wordWrap: false},
-        {data: 'lastName'}
+        { data: 'id' },
+        { data: 'name', wordWrap: false },
+        { data: 'lastName' }
       ]
     });
 
@@ -67,9 +67,9 @@ describe('CellDecorator', () => {
     const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id' },
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
 
@@ -86,9 +86,9 @@ describe('CellDecorator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id' },
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
 
@@ -104,9 +104,9 @@ describe('CellDecorator', () => {
     const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'name'},
-        {data: 'salary', type: 'numeric', allowInvalid: false}
+        { data: 'id' },
+        { data: 'name' },
+        { data: 'salary', type: 'numeric', allowInvalid: false }
       ]
     });
 

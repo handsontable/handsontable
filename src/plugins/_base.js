@@ -26,7 +26,7 @@ class BasePlugin {
       writable: false
     });
 
-    privatePool.set(this, {hooks: {}});
+    privatePool.set(this, { hooks: {} });
     initializedPlugins = null;
 
     this.pluginName = null;
@@ -132,7 +132,7 @@ class BasePlugin {
    * @private
    */
   onAfterPluginsInitialized() {
-    arrayEach(this.pluginsInitializedCallbacks, (callback) => callback());
+    arrayEach(this.pluginsInitializedCallbacks, callback => callback());
     this.pluginsInitializedCallbacks.length = 0;
     this.isPluginsReady = true;
   }

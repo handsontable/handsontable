@@ -14,10 +14,10 @@ describe('dateValidator', () => {
 
   const arrayOfObjects = function() {
     return [
-      {date: '01/01/2015', name: 'Ted', lastName: 'Right'},
-      {date: '01/01/15', name: 'Frank', lastName: 'Honest'},
-      {date: '41/01/2015', name: 'Joan', lastName: 'Well'},
-      {date: '01/51/2015', name: 'Sid', lastName: 'Strong'}
+      { date: '01/01/2015', name: 'Ted', lastName: 'Right' },
+      { date: '01/01/15', name: 'Frank', lastName: 'Honest' },
+      { date: '41/01/2015', name: 'Joan', lastName: 'Well' },
+      { date: '01/51/2015', name: 'Sid', lastName: 'Strong' }
     ];
   };
 
@@ -27,9 +27,9 @@ describe('dateValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -42,14 +42,14 @@ describe('dateValidator', () => {
     }, 100);
   });
 
-  it('should rewrite an ISO 8601 string to the correct format if a date-string in different format is provided', async () => {
+  it('should rewrite an ISO 8601 string to the correct format if a date-string in different format is provided', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true},
-        {data: 'lastName'}
+        { data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -67,9 +67,9 @@ describe('dateValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -88,9 +88,9 @@ describe('dateValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -109,9 +109,9 @@ describe('dateValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -130,9 +130,9 @@ describe('dateValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date', dateFormat: 'DD/MM/YY'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date', dateFormat: 'DD/MM/YY' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -151,9 +151,9 @@ describe('dateValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -172,9 +172,9 @@ describe('dateValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date', dateFormat: 'DD/MM/YY'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date', dateFormat: 'DD/MM/YY' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -194,9 +194,9 @@ describe('dateValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -215,9 +215,9 @@ describe('dateValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -236,9 +236,9 @@ describe('dateValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -259,9 +259,9 @@ describe('dateValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'MM/DD/YY'},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'MM/DD/YY' },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -280,9 +280,9 @@ describe('dateValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'MM/DD/YY', correctFormat: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'MM/DD/YY', correctFormat: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -301,8 +301,8 @@ describe('dateValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -325,8 +325,8 @@ describe('dateValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'DD.MM.YYYY', correctFormat: true},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'DD.MM.YYYY', correctFormat: true },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -349,9 +349,9 @@ describe('dateValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', correctFormat: true},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'DD/MM/YY', correctFormat: true },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });

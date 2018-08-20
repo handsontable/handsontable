@@ -44,7 +44,7 @@ describe('SelectEditor', () => {
       columns: [
         {
           editor: 'select'
-        }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {editor: 'select'}
+        }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, { editor: 'select' }
       ]
     });
     const mainHolder = hot.view.wt.wtTable.holder;
@@ -275,7 +275,7 @@ describe('SelectEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should focus editable element (from copyPaste plugin) after selecting the cell', async () => {
+    it('should focus editable element (from copyPaste plugin) after selecting the cell', async() => {
       handsontable({
         editor: false,
       });

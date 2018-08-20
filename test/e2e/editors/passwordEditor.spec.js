@@ -126,7 +126,7 @@ describe('PasswordEditor', () => {
   });
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
-  it('should not lose the focus on input element while inserting new characters (#839)', async () => {
+  it('should not lose the focus on input element while inserting new characters (#839)', async() => {
     let blured = false;
     const listener = () => {
       blured = true;
@@ -139,7 +139,7 @@ describe('PasswordEditor', () => {
         ['Jerry']
       ],
       columns: [
-        {data: 'id', type: 'password'},
+        { data: 'id', type: 'password' },
       ],
     });
 
@@ -162,7 +162,7 @@ describe('PasswordEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should focus editable element after selecting the cell', async () => {
+    it('should focus editable element after selecting the cell', async() => {
       handsontable({
         type: 'password',
       });

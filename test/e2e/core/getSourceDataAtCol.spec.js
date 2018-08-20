@@ -15,17 +15,17 @@ describe('Core.getSourceDataAtCol', () => {
   it('should return col values when data is provided by dataSchema', () => {
     handsontable({
       data: [
-        model({id: 1, name: 'Ted Right', address: ''}),
-        model({id: 2, name: 'Frank Honest', address: ''}),
-        model({id: 3, name: 'Joan Well', address: ''}),
-        model({id: 4, name: 'Gail Polite', address: ''}),
-        model({id: 5, name: 'Michael Fair', address: ''})
+        model({ id: 1, name: 'Ted Right', address: '' }),
+        model({ id: 2, name: 'Frank Honest', address: '' }),
+        model({ id: 3, name: 'Joan Well', address: '' }),
+        model({ id: 4, name: 'Gail Polite', address: '' }),
+        model({ id: 5, name: 'Michael Fair', address: '' })
       ],
       dataSchema: model,
       columns: [
-        {data: property('id')},
-        {data: property('name')},
-        {data: property('address')}
+        { data: property('id') },
+        { data: property('name') },
+        { data: property('address') }
       ]
     });
 

@@ -1,5 +1,5 @@
-import {fastInnerHTML} from './../helpers/dom/element';
-import {getRenderer} from './index';
+import { fastInnerHTML } from './../helpers/dom/element';
+import { getRenderer } from './index';
 
 /**
  * @private

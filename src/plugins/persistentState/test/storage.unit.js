@@ -3,11 +3,11 @@ import Storage from 'handsontable/plugins/persistentState/storage';
 describe('persistentState', () => {
   describe('storage', () => {
     const localStorageMock = (() => {
-      let store = {};
+      const store = {};
 
       return {
         setItem: (key, value) => { store[key] = value.toString(); },
-        getItem: (key) => store[key],
+        getItem: key => store[key],
         removeItem: (key) => { delete store[key]; }
       };
     })();

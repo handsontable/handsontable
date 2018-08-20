@@ -19,6 +19,10 @@
     "import/no-extraneous-dependencies": 0,
     "new-cap": 2,
     "newline-per-chained-call": 0,
+    "no-constant-condition": [
+      "error",
+      { "checkLoops": false }
+    ],
     "no-eq-null": 2,
     "no-irregular-whitespace": 2,
     "no-mixed-spaces-and-tabs": 2,
@@ -51,10 +55,7 @@
     "no-use-before-define": 0,
     "no-void": 0,
     "no-with": 2,
-    "object-curly-spacing": 0,
-    "one-var": 0,
     "padded-blocks": 0,
-    "prefer-const": 0,
     "space-infix-ops": 2,
     "camelcase": [
       2,
@@ -79,11 +80,9 @@
       ]
     ],
     "arrow-parens": [
-      2,
-      "always",
-      {
-        "requireForBlockBody": true
-      }
+      "error",
+      "as-needed",
+      { "requireForBlockBody": true }
     ],
     "no-unneeded-ternary": [
       2,
@@ -121,13 +120,7 @@
       2,
       9
     ],
-    "space-before-function-paren": [
-      2,
-      {
-        "anonymous": "ignore",
-        "named": "never"
-      }
-    ],
+    "space-before-function-paren": ["error", "never"],
     "array-bracket-spacing": [
       2,
       "never",

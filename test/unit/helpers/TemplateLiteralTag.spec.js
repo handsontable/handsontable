@@ -1,4 +1,4 @@
-import {toSingleLine} from 'handsontable/helpers/templateLiteralTag';
+import { toSingleLine } from 'handsontable/helpers/templateLiteralTag';
 
 describe('Helpers for template literals', () => {
   describe('toSingleLine', () => {

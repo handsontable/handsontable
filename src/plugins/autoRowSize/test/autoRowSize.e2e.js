@@ -14,16 +14,16 @@ describe('AutoRowSize', () => {
 
   function arrayOfObjects() {
     return [
-      {id: 'Short'},
-      {id: 'Somewhat\nlong'},
-      {id: 'The\nvery\nvery\nvery\nlongest one'}
+      { id: 'Short' },
+      { id: 'Somewhat\nlong' },
+      { id: 'The\nvery\nvery\nvery\nlongest one' }
     ];
   }
   function arrayOfObjects2() {
     return [
-      {id: 'Short', name: 'Somewhat long'},
-      {id: 'Somewhat long', name: 'The very very longest one'},
-      {id: 'The very very very longest one', name: 'Short'}
+      { id: 'Short', name: 'Somewhat long' },
+      { id: 'Somewhat long', name: 'The very very longest one' },
+      { id: 'The very very very longest one', name: 'Short' }
     ];
   }
 
@@ -81,8 +81,8 @@ describe('AutoRowSize', () => {
         this.$container = $(`<div id="${id}"></div>`).appendTo('body');
       }
 
-      const css = `.handsontable table td { height: ${cellHeightInPx}px !important }`,
-        head = document.head;
+      const css = `.handsontable table td { height: ${cellHeightInPx}px !important }`;
+      const head = document.head;
 
       style = document.createElement('style');
       style.type = 'text/css';
@@ -174,7 +174,7 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should correctly detect row height when table is hidden on init (display: none)', async () => {
+  it('should correctly detect row height when table is hidden on init (display: none)', async() => {
     spec().$container.css('display', 'none');
     const hot = handsontable({
       data: arrayOfObjects(),
@@ -313,9 +313,9 @@ describe('AutoRowSize', () => {
       autoRowSize: true,
       rowHeights: 77,
       columns: [
-        {height: 70},
-        {height: 70},
-        {height: 70}
+        { height: 70 },
+        { height: 70 },
+        { height: 70 }
       ],
       width: 500,
       height: 100,
@@ -329,13 +329,13 @@ describe('AutoRowSize', () => {
 
   it('should consider renderer that uses conditional formatting for specific row & column index', () => {
     const data = arrayOfObjects();
-    data.push({id: '2', name: 'Rocket Man', lastName: 'In a tin can'});
+    data.push({ id: '2', name: 'Rocket Man', lastName: 'In a tin can' });
 
     const hot = handsontable({
       data,
       columns: [
-        {data: 'id'},
-        {data: 'name'}
+        { data: 'id' },
+        { data: 'name' }
       ],
       autoRowSize: true,
       renderer(instance, td, row, col, ...args) {

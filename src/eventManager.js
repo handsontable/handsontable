@@ -1,7 +1,7 @@
-import {polymerWrap, closest} from './helpers/dom/element';
-import {hasOwnProperty} from './helpers/object';
-import {isWebComponentSupportedNatively} from './helpers/feature';
-import {stopImmediatePropagation as _stopImmediatePropagation} from './helpers/dom/event';
+import { polymerWrap, closest } from './helpers/dom/element';
+import { hasOwnProperty } from './helpers/object';
+import { isWebComponentSupportedNatively } from './helpers/feature';
+import { stopImmediatePropagation as _stopImmediatePropagation } from './helpers/dom/event';
 
 /**
  * Counter which tracks unregistered listeners (useful for detecting memory leaks).
@@ -38,7 +38,7 @@ class EventManager {
    * @returns {Function} Returns function which you can easily call to remove that event
    */
   addEventListener(element, eventName, callback) {
-    let context = this.context;
+    const context = this.context;
 
     function callbackProxy(event) {
       event = extendEvent(context, event);
@@ -111,7 +111,7 @@ class EventManager {
 
     while (len) {
       len -= 1;
-      let event = this.context.eventListeners[len];
+      const event = this.context.eventListeners[len];
 
       if (event) {
         this.removeEventListener(event.element, event.event, event.callback);
@@ -141,7 +141,7 @@ class EventManager {
    * @param {String} eventName Event name.
    */
   fireEvent(element, eventName) {
-    let options = {
+    const options = {
       bubbles: true,
       cancelable: (eventName !== 'mousemove'),
       view: window,
@@ -186,18 +186,18 @@ class EventManager {
  * @returns {*}
  */
 function extendEvent(context, event) {
-  let componentName = 'HOT-TABLE';
+  const componentName = 'HOT-TABLE';
   let isHotTableSpotted;
   let fromElement;
   let realTarget;
   let target;
   let len;
-  let nativeStopImmediatePropagation;
 
   event.isTargetWebComponent = false;
   event.realTarget = event.target;
 
-  nativeStopImmediatePropagation = event.stopImmediatePropagation;
+  const nativeStopImmediatePropagation = event.stopImmediatePropagation;
+
   event.stopImmediatePropagation = function() {
     nativeStopImmediatePropagation.apply(this);
     _stopImmediatePropagation(this);

@@ -47,8 +47,8 @@ describe('Core_listen', () => {
   });
 
   it('should change focus on active element, when listen without arguments was called', () => {
-    let hot = handsontable();
-    let input = document.createElement('input');
+    const hot = handsontable();
+    const input = document.createElement('input');
 
     document.body.appendChild(input);
 
@@ -64,8 +64,8 @@ describe('Core_listen', () => {
   });
 
   it('should not change focus on active element, when listen with first argument as `false` was called', () => {
-    let hot = handsontable();
-    let input = document.createElement('input');
+    const hot = handsontable();
+    const input = document.createElement('input');
 
     document.body.appendChild(input);
 

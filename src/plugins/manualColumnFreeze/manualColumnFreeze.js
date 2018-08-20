@@ -62,7 +62,7 @@ class ManualColumnFreeze extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options) => this.addContextMenuEntry(options));
+    this.addHook('afterContextMenuDefaultOptions', options => this.addContextMenuEntry(options));
     this.addHook('afterInit', () => this.onAfterInit());
     this.addHook('beforeColumnMove', (rows, target) => this.onBeforeColumnMove(rows, target));
 
@@ -73,7 +73,7 @@ class ManualColumnFreeze extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    let priv = privatePool.get(this);
+    const priv = privatePool.get(this);
 
     priv.afterFirstUse = false;
     priv.moveByFreeze = false;
@@ -97,8 +97,8 @@ class ManualColumnFreeze extends BasePlugin {
    * @param {Number} column Visual column index.
    */
   freezeColumn(column) {
-    let priv = privatePool.get(this);
-    let settings = this.hot.getSettings();
+    const priv = privatePool.get(this);
+    const settings = this.hot.getSettings();
 
     if (!priv.afterFirstUse) {
       priv.afterFirstUse = true;
@@ -125,8 +125,8 @@ class ManualColumnFreeze extends BasePlugin {
    * @param {Number} column Visual column index.
    */
   unfreezeColumn(column) {
-    let priv = privatePool.get(this);
-    let settings = this.hot.getSettings();
+    const priv = privatePool.get(this);
+    const settings = this.hot.getSettings();
 
     if (!priv.afterFirstUse) {
       priv.afterFirstUse = true;
@@ -136,7 +136,7 @@ class ManualColumnFreeze extends BasePlugin {
       return; // not fixed
     }
 
-    let returnCol = this.getBestColumnReturnPosition(column);
+    const returnCol = this.getBestColumnReturnPosition(column);
 
     priv.moveByFreeze = true;
     settings.fixedColumnsLeft -= 1;
@@ -165,8 +165,8 @@ class ManualColumnFreeze extends BasePlugin {
    * @param {Number} column Visual column index.
    */
   getBestColumnReturnPosition(column) {
-    let movePlugin = this.getMovePlugin();
-    let settings = this.hot.getSettings();
+    const movePlugin = this.getMovePlugin();
+    const settings = this.hot.getSettings();
     let i = settings.fixedColumnsLeft;
     let j = movePlugin.columnsMapper.getValueByIndex(i);
     let initialCol;
@@ -201,7 +201,7 @@ class ManualColumnFreeze extends BasePlugin {
    */
   addContextMenuEntry(options) {
     options.items.push(
-      {name: '---------'},
+      { name: '---------' },
       freezeColumnItem(this),
       unfreezeColumnItem(this)
     );
@@ -226,10 +226,10 @@ class ManualColumnFreeze extends BasePlugin {
    * @param {Number} target
    */
   onBeforeColumnMove(rows, target) {
-    let priv = privatePool.get(this);
+    const priv = privatePool.get(this);
 
     if (priv.afterFirstUse && !priv.moveByFreeze) {
-      let frozenLen = this.hot.getSettings().fixedColumnsLeft;
+      const frozenLen = this.hot.getSettings().fixedColumnsLeft;
       let disallowMoving = target < frozenLen;
 
       if (!disallowMoving) {

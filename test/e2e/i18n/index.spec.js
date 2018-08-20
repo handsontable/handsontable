@@ -119,7 +119,7 @@ describe('i18n', () => {
   });
 
   describe('translation does not throw exceptions', () => {
-    it('should not throw error when setting not existing language code at start', async () => {
+    it('should not throw error when setting not existing language code at start', async() => {
       spyOn(console, 'error'); // overriding console.error
       const spy = spyOn(window, 'onerror');
 
@@ -132,7 +132,7 @@ describe('i18n', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('should not throw error when setting directly default language code at start', async () => {
+    it('should not throw error when setting directly default language code at start', async() => {
       const spy = spyOn(window, 'onerror');
 
       handsontable({
@@ -144,25 +144,25 @@ describe('i18n', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('should not throw error when trying to set not existing language code by updateSettings', async () => {
+    it('should not throw error when trying to set not existing language code by updateSettings', async() => {
       spyOn(console, 'error'); // overriding console.error
       const spy = spyOn(window, 'onerror');
 
       handsontable();
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       await sleep(100);
 
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('should not throw error when trying to set directly default language code by updateSettings', async () => {
+    it('should not throw error when trying to set directly default language code by updateSettings', async() => {
       const spy = spyOn(window, 'onerror');
 
       handsontable();
 
-      updateSettings({language: DEFAULT_LANGUAGE_CODE});
+      updateSettings({ language: DEFAULT_LANGUAGE_CODE });
 
       await sleep(100);
 
@@ -186,7 +186,7 @@ describe('i18n', () => {
 
       handsontable();
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       expect(spy).toHaveBeenCalled();
     });
@@ -205,7 +205,7 @@ describe('i18n', () => {
       const spy = spyOn(console, 'error');
       handsontable();
 
-      updateSettings({language: DEFAULT_LANGUAGE_CODE});
+      updateSettings({ language: DEFAULT_LANGUAGE_CODE });
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -228,7 +228,7 @@ describe('i18n', () => {
     it('should not set language code as own property of settings object when using updateSettings', () => {
       const hot = handsontable();
 
-      updateSettings({language: POLISH_LANGUAGE_CODE});
+      updateSettings({ language: POLISH_LANGUAGE_CODE });
 
       // eslint-disable-next-line no-prototype-builtins
       expect(hot.getSettings().hasOwnProperty('language')).toEqual(false);
@@ -249,7 +249,7 @@ describe('i18n', () => {
 
       const hot = handsontable();
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       expect(hot.getSettings().language).toEqual(DEFAULT_LANGUAGE_CODE);
     });
@@ -261,7 +261,7 @@ describe('i18n', () => {
         language: POLISH_LANGUAGE_CODE
       });
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
     });
@@ -328,12 +328,12 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_DEFAULT_LANGUAGE);
     });
 
-    it('should translate contextMenu UI when setting existing language code by updateSettings', async () => {
+    it('should translate contextMenu UI when setting existing language code by updateSettings', async() => {
       handsontable({
         contextMenu: ['row_above']
       });
 
-      updateSettings({language: POLISH_LANGUAGE_CODE});
+      updateSettings({ language: POLISH_LANGUAGE_CODE });
 
       await sleep(0);
 
@@ -344,14 +344,14 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE);
     });
 
-    it('should not change default contextMenu UI when trying to set not existing language code by updateSettings #1', async () => {
+    it('should not change default contextMenu UI when trying to set not existing language code by updateSettings #1', async() => {
       spyOn(console, 'error'); // overriding console.error
 
       handsontable({
         contextMenu: ['row_above']
       });
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       await sleep(0);
 
@@ -362,7 +362,7 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_DEFAULT_LANGUAGE);
     });
 
-    it('should not change default contextMenu UI when trying to set not existing language code by updateSettings #2', async () => {
+    it('should not change default contextMenu UI when trying to set not existing language code by updateSettings #2', async() => {
       spyOn(console, 'error'); // overriding console.error
 
       handsontable({
@@ -370,7 +370,7 @@ describe('i18n', () => {
         contextMenu: ['row_above']
       });
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE2});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE2 });
 
       await sleep(0);
 
@@ -381,7 +381,7 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_DEFAULT_LANGUAGE);
     });
 
-    it('should not change previously translated contextMenu UI when trying to set not existing language code by updateSettings', async () => {
+    it('should not change previously translated contextMenu UI when trying to set not existing language code by updateSettings', async() => {
       spyOn(console, 'error'); // overriding console.error
 
       handsontable({
@@ -389,7 +389,7 @@ describe('i18n', () => {
         contextMenu: ['row_above']
       });
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       await sleep(0);
 
@@ -400,7 +400,7 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE);
     });
 
-    it('should translate multi-level menu properly', async () => {
+    it('should translate multi-level menu properly', async() => {
       const ALIGN_LEFT_IN_POLISH = 'Do lewej';
 
       handsontable({

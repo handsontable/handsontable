@@ -19,7 +19,7 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          numericFormat: {pattern: '$0,0.00'}
+          numericFormat: { pattern: '$0,0.00' }
         };
       },
       afterValidate: onAfterValidate
@@ -39,7 +39,7 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          numericFormat: {pattern: '$0,0.00'}
+          numericFormat: { pattern: '$0,0.00' }
         };
       },
       afterValidate: onAfterValidate
@@ -58,7 +58,7 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          numericFormat: {pattern: '$0,0.00'}
+          numericFormat: { pattern: '$0,0.00' }
         };
       },
     });
@@ -105,7 +105,7 @@ describe('NumericRenderer', () => {
     const DIV = document.createElement('DIV');
     const instance = new Handsontable(DIV, {});
     const TD = document.createElement('TD');
-    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, {readOnly: true, readOnlyCellClassName: 'htDimmed'});
+    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, { readOnly: true, readOnlyCellClassName: 'htDimmed' });
     expect(TD.className).toContain('htDimmed');
     instance.destroy();
   });
@@ -119,7 +119,7 @@ describe('NumericRenderer', () => {
         cells() {
           return {
             type: 'numeric',
-            numericFormat: {pattern: '$0,0.00'}
+            numericFormat: { pattern: '$0,0.00' }
           };
         },
         height: 100

@@ -34,11 +34,11 @@ describe('Core_getDataType', () => {
     handsontable({
       data: arrayOfArrays(),
       columns: [
-        {type: 'numeric'},
-        {type: 'text'},
-        {type: 'date'},
-        {type: 'autocomplete'},
-        {type: 'dropdown'},
+        { type: 'numeric' },
+        { type: 'text' },
+        { type: 'date' },
+        { type: 'autocomplete' },
+        { type: 'dropdown' },
       ]
     });
 

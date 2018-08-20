@@ -1,5 +1,5 @@
-import {addClass, outerHeight, outerWidth} from './../helpers/dom/element';
-import {arrayEach} from './../helpers/array';
+import { addClass, outerHeight, outerWidth } from './../helpers/dom/element';
+import { arrayEach } from './../helpers/array';
 
 /**
  * @class GhostTable
@@ -68,7 +68,7 @@ class GhostTable {
     if (!this.rows.length) {
       this.container = this.createContainer(this.hot.rootElement.className);
     }
-    const rowObject = {row};
+    const rowObject = { row };
     this.rows.push(rowObject);
 
     this.samples = samples;
@@ -87,7 +87,7 @@ class GhostTable {
     const colHeader = this.hot.getColHeader(0);
 
     if (colHeader !== null && colHeader !== void 0) {
-      const rowObject = {row: -1};
+      const rowObject = { row: -1 };
 
       this.rows.push(rowObject);
 
@@ -116,7 +116,7 @@ class GhostTable {
     if (!this.columns.length) {
       this.container = this.createContainer(this.hot.rootElement.className);
     }
-    const columnObject = {col: column};
+    const columnObject = { col: column };
     this.columns.push(columnObject);
 
     this.samples = samples;
@@ -247,13 +247,13 @@ class GhostTable {
 
     this.samples.forEach((sample) => {
       arrayEach(sample.strings, (string) => {
-        let column = string.col;
-        let cellProperties = this.hot.getCellMeta(row, column);
+        const column = string.col;
+        const cellProperties = this.hot.getCellMeta(row, column);
 
         cellProperties.col = column;
         cellProperties.row = row;
 
-        let renderer = this.hot.getCellRenderer(cellProperties);
+        const renderer = this.hot.getCellRenderer(cellProperties);
         const td = d.createElement('td');
 
         renderer(this.hot, td, row, column, this.hot.colToProp(column), string.value, cellProperties);
@@ -276,7 +276,7 @@ class GhostTable {
 
     this.samples.forEach((sample) => {
       arrayEach(sample.strings, (string) => {
-        let column = string.col;
+        const column = string.col;
 
         const th = d.createElement('th');
 
@@ -300,13 +300,13 @@ class GhostTable {
 
     this.samples.forEach((sample) => {
       arrayEach(sample.strings, (string) => {
-        let row = string.row;
-        let cellProperties = this.hot.getCellMeta(row, column);
+        const row = string.row;
+        const cellProperties = this.hot.getCellMeta(row, column);
 
         cellProperties.col = column;
         cellProperties.row = row;
 
-        let renderer = this.hot.getCellRenderer(cellProperties);
+        const renderer = this.hot.getCellRenderer(cellProperties);
         const td = d.createElement('td');
         const tr = d.createElement('tr');
 
@@ -406,7 +406,7 @@ class GhostTable {
     addClass(table, className);
     fragment.appendChild(table);
 
-    return {fragment, table, tHead, tBody, colGroup, tr, th};
+    return { fragment, table, tHead, tBody, colGroup, tr, th };
   }
 
   /**
@@ -424,7 +424,7 @@ class GhostTable {
     addClass(container, className);
     fragment.appendChild(container);
 
-    return {fragment, container};
+    return { fragment, container };
   }
 
   /**

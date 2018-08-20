@@ -8,7 +8,7 @@
  * Source: https://stackoverflow.com/a/5473193
  */
 
-import {isDefined} from './mixed';
+import { isDefined } from './mixed';
 
 /**
  * Logs message to the console if the `console` object is exposed.

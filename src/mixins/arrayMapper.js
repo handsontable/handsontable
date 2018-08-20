@@ -48,8 +48,8 @@ const arrayMapper = {
    * @returns {Array} Returns added items.
    */
   insertItems(physicalIndex, amount = 1) {
-    let newIndex = arrayMax(this._arrayMap) + 1;
-    let addedItems = [];
+    const newIndex = arrayMax(this._arrayMap) + 1;
+    const addedItems = [];
 
     rangeEach(amount - 1, (count) => {
       addedItems.push(this._arrayMap.splice(physicalIndex + count, 0, newIndex + count));
@@ -69,7 +69,7 @@ const arrayMapper = {
     let removedItems = [];
 
     if (Array.isArray(physicalIndex)) {
-      let mapCopy = [].concat(this._arrayMap);
+      const mapCopy = [].concat(this._arrayMap);
 
       // Sort descending
       physicalIndex.sort((a, b) => b - a);
@@ -94,7 +94,7 @@ const arrayMapper = {
    * @param {Number} [amount=1] Defines how many items will be removed from an array (when index is passed as number).
    */
   unshiftItems(physicalIndex, amount = 1) {
-    let removedItems = this.removeItems(physicalIndex, amount);
+    const removedItems = this.removeItems(physicalIndex, amount);
 
     function countRowShift(logicalRow) {
       // Todo: compare perf between reduce vs sort->each->brake
@@ -108,7 +108,7 @@ const arrayMapper = {
     }
 
     this._arrayMap = arrayMap(this._arrayMap, (logicalRow) => {
-      let rowShift = countRowShift(logicalRow);
+      const rowShift = countRowShift(logicalRow);
 
       if (rowShift) {
         logicalRow -= rowShift;

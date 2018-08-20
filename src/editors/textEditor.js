@@ -99,10 +99,9 @@ TextEditor.prototype.beginEditing = function(...args) {
 const onBeforeKeyDown = function onBeforeKeyDown(event) {
   const instance = this;
   const that = instance.getActiveEditor();
-  let ctrlDown;
 
   // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-  ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+  const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
   // Process only events that have been fired in the editor
   if (event.target !== that.TEXTAREA || isImmediatePropagationStopped(event)) {
@@ -143,13 +142,13 @@ const onBeforeKeyDown = function onBeforeKeyDown(event) {
       break;
 
     case KEY_CODES.ENTER: {
-      let isMultipleSelection = this.selection.isMultiple();
+      const isMultipleSelection = this.selection.isMultiple();
 
       if ((ctrlDown && !isMultipleSelection) || event.altKey) { // if ctrl+enter or alt+enter, add new line
         if (that.isOpened()) {
-          let caretPosition = getCaretPosition(that.TEXTAREA);
-          let value = that.getValue();
-          let newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
+          const caretPosition = getCaretPosition(that.TEXTAREA);
+          const value = that.getValue();
+          const newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
 
           that.setValue(newValue);
 
@@ -234,7 +233,7 @@ TextEditor.prototype.createElements = function() {
 };
 
 TextEditor.prototype.getEditedCell = function() {
-  let editorSection = this.checkEditorSection();
+  const editorSection = this.checkEditorSection();
   let editedCell;
 
   switch (editorSection) {
@@ -283,7 +282,7 @@ TextEditor.prototype.getEditedCell = function() {
 };
 
 TextEditor.prototype.refreshValue = function() {
-  let sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
+  const sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
   this.originalValue = sourceData;
 
   this.setValue(sourceData);
@@ -370,21 +369,21 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
   this.textareaParentStyle.left = `${editLeft}px`;
   this.showEditableElement();
 
-  let firstRowOffset = this.instance.view.wt.wtViewport.rowsRenderCalculator.startPosition;
-  let firstColumnOffset = this.instance.view.wt.wtViewport.columnsRenderCalculator.startPosition;
-  let horizontalScrollPosition = this.instance.view.wt.wtOverlays.leftOverlay.getScrollPosition();
-  let verticalScrollPosition = this.instance.view.wt.wtOverlays.topOverlay.getScrollPosition();
-  let scrollbarWidth = getScrollbarWidth();
+  const firstRowOffset = this.instance.view.wt.wtViewport.rowsRenderCalculator.startPosition;
+  const firstColumnOffset = this.instance.view.wt.wtViewport.columnsRenderCalculator.startPosition;
+  const horizontalScrollPosition = this.instance.view.wt.wtOverlays.leftOverlay.getScrollPosition();
+  const verticalScrollPosition = this.instance.view.wt.wtOverlays.topOverlay.getScrollPosition();
+  const scrollbarWidth = getScrollbarWidth();
 
-  let cellTopOffset = this.TD.offsetTop + firstRowOffset - verticalScrollPosition;
-  let cellLeftOffset = this.TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
+  const cellTopOffset = this.TD.offsetTop + firstRowOffset - verticalScrollPosition;
+  const cellLeftOffset = this.TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
 
-  let width = innerWidth(this.TD) - 8;
-  let actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
-  let actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
-  let maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
-  let height = this.TD.scrollHeight + 1;
-  let maxHeight = Math.max(this.instance.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
+  const width = innerWidth(this.TD) - 8;
+  const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
+  const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
+  const maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
+  const height = this.TD.scrollHeight + 1;
+  const maxHeight = Math.max(this.instance.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
 
   const cellComputedStyle = getComputedStyle(this.TD);
 

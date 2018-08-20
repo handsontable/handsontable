@@ -17,12 +17,12 @@ export function toUpperCaseFirst(string) {
  * @returns {Boolean}
  */
 export function equalsIgnoreCase(...strings) {
-  let unique = [];
+  const unique = [];
   let length = strings.length;
 
   while (length) {
     length -= 1;
-    let string = stringify(strings[length]).toLowerCase();
+    const string = stringify(strings[length]).toLowerCase();
 
     if (unique.indexOf(string) === -1) {
       unique.push(string);

@@ -1,6 +1,6 @@
-import {extend} from '../../../helpers/object';
-import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
-import {arrayEach} from './../../../helpers/array';
+import { extend } from '../../../helpers/object';
+import { CellCoords, CellRange } from './../../../3rdparty/walkontable/src';
+import { arrayEach } from './../../../helpers/array';
 
 /**
  * Class responsible for all of the Autofill-related operations on merged cells.
@@ -39,7 +39,7 @@ class AutofillCalculations {
    */
   correctSelectionAreaSize(selectionArea) {
     if (selectionArea[0] === selectionArea[2] && selectionArea[1] === selectionArea[3]) {
-      let mergedCell = this.mergedCellsCollection.get(selectionArea[0], selectionArea[1]);
+      const mergedCell = this.mergedCellsCollection.get(selectionArea[0], selectionArea[1]);
 
       if (mergedCell) {
         selectionArea[2] = selectionArea[0] + mergedCell.rowspan - 1;
@@ -84,19 +84,19 @@ class AutofillCalculations {
    * @return {Array} The new drag area
    */
   snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells) {
-    let newDragArea = dragArea.slice(0);
-    let fillSize = this.getAutofillSize(baseArea, dragArea, dragDirection);
+    const newDragArea = dragArea.slice(0);
+    const fillSize = this.getAutofillSize(baseArea, dragArea, dragDirection);
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
     const verticalDirection = ['up', 'down'].indexOf(dragDirection) > -1;
     const fullCycle = verticalDirection ? baseAreaEndRow - baseAreaStartRow + 1 : baseAreaEndColumn - baseAreaStartColumn + 1;
     const fulls = Math.floor(fillSize / fullCycle) * fullCycle;
     const partials = fillSize - fulls;
-    let farthestCollection = this.getFarthestCollection(baseArea, dragArea, dragDirection, foundMergedCells);
+    const farthestCollection = this.getFarthestCollection(baseArea, dragArea, dragDirection, foundMergedCells);
 
     if (farthestCollection) {
       if (dragDirection === 'down') {
-        let fill = farthestCollection.row + farthestCollection.rowspan - baseAreaStartRow - partials;
-        let newLimit = newDragArea[2] + fill;
+        const fill = farthestCollection.row + farthestCollection.rowspan - baseAreaStartRow - partials;
+        const newLimit = newDragArea[2] + fill;
 
         if (newLimit >= this.plugin.hot.countRows()) {
           newDragArea[2] -= partials;
@@ -106,8 +106,8 @@ class AutofillCalculations {
         }
 
       } else if (dragDirection === 'right') {
-        let fill = farthestCollection.col + farthestCollection.colspan - baseAreaStartColumn - partials;
-        let newLimit = newDragArea[3] + fill;
+        const fill = farthestCollection.col + farthestCollection.colspan - baseAreaStartColumn - partials;
+        const newLimit = newDragArea[3] + fill;
 
         if (newLimit >= this.plugin.hot.countCols()) {
           newDragArea[3] -= partials;
@@ -117,8 +117,8 @@ class AutofillCalculations {
         }
 
       } else if (dragDirection === 'up') {
-        let fill = baseAreaEndRow - partials - farthestCollection.row + 1;
-        let newLimit = newDragArea[0] + fill;
+        const fill = baseAreaEndRow - partials - farthestCollection.row + 1;
+        const newLimit = newDragArea[0] + fill;
 
         if (newLimit < 0) {
           newDragArea[0] += partials;
@@ -128,8 +128,8 @@ class AutofillCalculations {
         }
 
       } else if (dragDirection === 'left') {
-        let fill = baseAreaEndColumn - partials - farthestCollection.col + 1;
-        let newLimit = newDragArea[1] + fill;
+        const fill = baseAreaEndColumn - partials - farthestCollection.col + 1;
+        const newLimit = newDragArea[1] + fill;
 
         if (newLimit < 0) {
           newDragArea[1] += partials;
@@ -375,8 +375,8 @@ class AutofillCalculations {
    * @returns {Object} Object with `from` and `to` properties, both containing `row` and `column` keys.
    */
   getRangeFromChanges(changes) {
-    const rows = {min: null, max: null};
-    const columns = {min: null, max: null};
+    const rows = { min: null, max: null };
+    const columns = { min: null, max: null };
 
     arrayEach(changes, (change) => {
       if (rows.min === null || change[0] < rows.min) {
@@ -419,9 +419,9 @@ class AutofillCalculations {
   dragAreaOverlapsCollections(baseArea, fullArea, direction) {
     const dragArea = this.getDragArea(baseArea, fullArea, direction);
     const [dragAreaStartRow, dragAreaStartColumn, dragAreaEndRow, dragAreaEndColumn] = dragArea;
-    let topLeft = new CellCoords(dragAreaStartRow, dragAreaStartColumn);
-    let bottomRight = new CellCoords(dragAreaEndRow, dragAreaEndColumn);
-    let dragRange = new CellRange(topLeft, topLeft, bottomRight);
+    const topLeft = new CellCoords(dragAreaStartRow, dragAreaStartColumn);
+    const bottomRight = new CellCoords(dragAreaEndRow, dragAreaEndColumn);
+    const dragRange = new CellRange(topLeft, topLeft, bottomRight);
 
     return !!this.mergedCellsCollection.getWithinRange(dragRange, true);
   }

@@ -3,7 +3,7 @@ import { hasClass } from './../../helpers/dom/element';
 import { KEY as SEPARATOR } from './predefinedItems/separator';
 
 export function normalizeSelection(selRanges) {
-  return arrayMap(selRanges, (range) => ({
+  return arrayMap(selRanges, range => ({
     start: range.getTopLeftCorner(),
     end: range.getBottomRightCorner()
   }));
@@ -26,7 +26,7 @@ export function isSelectionDisabled(cell) {
 }
 
 export function getValidSelection(hot) {
-  let selected = hot.getSelected();
+  const selected = hot.getSelected();
 
   if (!selected) {
     return null;
@@ -72,7 +72,7 @@ export function prepareHorizontalAlignClass(className, alignment) {
 export function getAlignmentClasses(ranges, callback) {
   const classes = {};
 
-  arrayEach(ranges, ({from, to}) => {
+  arrayEach(ranges, ({ from, to }) => {
     for (let row = from.row; row <= to.row; row++) {
       for (let col = from.col; col <= to.col; col++) {
         if (!classes[row]) {
@@ -87,7 +87,7 @@ export function getAlignmentClasses(ranges, callback) {
 }
 
 export function align(ranges, type, alignment, cellDescriptor, propertySetter) {
-  arrayEach(ranges, ({from, to}) => {
+  arrayEach(ranges, ({ from, to }) => {
     if (from.row === to.row && from.col === to.col) {
       applyAlignClassName(from.row, from.col, type, alignment, cellDescriptor, propertySetter);
     } else {
@@ -101,7 +101,7 @@ export function align(ranges, type, alignment, cellDescriptor, propertySetter) {
 }
 
 function applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter) {
-  let cellMeta = cellDescriptor(row, col);
+  const cellMeta = cellDescriptor(row, col);
   let className = alignment;
 
   if (cellMeta.className) {
@@ -145,7 +145,7 @@ export function isItemHidden(item, instance) {
 }
 
 function shiftSeparators(items, separator) {
-  let result = items.slice(0);
+  const result = items.slice(0);
 
   for (let i = 0; i < result.length;) {
     if (result[i].name === separator) {
@@ -168,7 +168,7 @@ function popSeparators(items, separator) {
 }
 
 function removeDuplicatedSeparators(items) {
-  let result = [];
+  const result = [];
 
   arrayEach(items, (value, index) => {
     if (index > 0) {

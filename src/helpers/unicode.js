@@ -1,4 +1,4 @@
-import {arrayEach} from './array';
+import { arrayEach } from './array';
 
 export const KEY_CODES = {
   MOUSE_LEFT: 1,
@@ -137,7 +137,7 @@ export function isCtrlMetaKey(keyCode) {
  * @returns {Boolean}
  */
 export function isKey(keyCode, baseCode) {
-  let keys = baseCode.split('|');
+  const keys = baseCode.split('|');
   let result = false;
 
   arrayEach(keys, (key) => {
