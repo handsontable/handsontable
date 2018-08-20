@@ -120,13 +120,7 @@
       2,
       9
     ],
-    "space-before-function-paren": [
-      2,
-      {
-        "anonymous": "ignore",
-        "named": "never"
-      }
-    ],
+    "space-before-function-paren": ["error", "never"],
     "array-bracket-spacing": [
       2,
       "never",

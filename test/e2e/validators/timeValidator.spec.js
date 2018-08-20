@@ -364,7 +364,7 @@ describe('timeValidator', () => {
       }, 130);
     });
 
-    it('should rewrite one and two-digit number to the correct format at minutes', async () => {
+    it('should rewrite one and two-digit number to the correct format at minutes', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({

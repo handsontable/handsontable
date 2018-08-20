@@ -377,7 +377,7 @@ describe('AutoFill', () => {
 
   });
 
-  it('should add new row after dragging the handle to the last table row', async () => {
+  it('should add new row after dragging the handle to the last table row', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -404,7 +404,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(6);
   });
 
-  it('should add new row after dragging the handle to the last table row (autoInsertRow as true)', async () => {
+  it('should add new row after dragging the handle to the last table row (autoInsertRow as true)', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -433,7 +433,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(6);
   });
 
-  it('should add new row after dragging the handle to the last table row (autoInsertRow as true, vertical)', async () => {
+  it('should add new row after dragging the handle to the last table row (autoInsertRow as true, vertical)', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -463,7 +463,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(6);
   });
 
-  it('should not add new row after dragging the handle to the last table row (autoInsertRow as true, horizontal)', async () => {
+  it('should not add new row after dragging the handle to the last table row (autoInsertRow as true, horizontal)', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -495,7 +495,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(4);
   });
 
-  it('should not add new row after dragging the handle below the viewport when `autoInsertRow` is disabled', async () => {
+  it('should not add new row after dragging the handle below the viewport when `autoInsertRow` is disabled', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -533,7 +533,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(4);
   });
 
-  it('should not add new rows if the current number of rows reaches the maxRows setting', async () => {
+  it('should not add new rows if the current number of rows reaches the maxRows setting', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -565,7 +565,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(5);
   });
 
-  it('should add new row after dragging the handle below the viewport', async () => {
+  it('should add new row after dragging the handle below the viewport', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -654,7 +654,7 @@ describe('AutoFill', () => {
     expect($('.fill').filter(function() { return $(this).css('display') !== 'none'; }).length).toEqual(0); // check if fill selection is refreshed
   });
 
-  it('should not add a new row if dragging from the last row upwards or sideways', async () => {
+  it('should not add a new row if dragging from the last row upwards or sideways', async() => {
     const mouseOverSpy = jasmine.createSpy('mouseOverSpy');
     const hot = handsontable({
       data: [
@@ -691,7 +691,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(4);
   });
 
-  it('should add new row after dragging the handle below the viewport', async () => {
+  it('should add new row after dragging the handle below the viewport', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -729,7 +729,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(6);
   });
 
-  it('should not add new row after dragging the handle below the viewport (direction is set to horizontal)', async () => {
+  it('should not add new row after dragging the handle below the viewport (direction is set to horizontal)', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],

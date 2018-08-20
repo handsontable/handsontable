@@ -564,7 +564,7 @@ describe('Core_selection', () => {
     expect(mainHolder.scrollTop).toBe(200);
   });
 
-  it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', async () => {
+  it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', async() => {
     const hot = handsontable({
       width: 200,
       height: 200,
@@ -603,7 +603,7 @@ describe('Core_selection', () => {
     expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex).toBe('8');
   });
 
-  it('should set the selection end to the first visible column, when dragging the selection from a cell to a row header', async () => {
+  it('should set the selection end to the first visible column, when dragging the selection from a cell to a row header', async() => {
     const hot = handsontable({
       width: 200,
       height: 200,
@@ -626,7 +626,7 @@ describe('Core_selection', () => {
     expect(getSelected()).toEqual([[12, 11, 12, 10]]);
   });
 
-  it('should allow to scroll the table when a whole column is selected and table is longer than it\'s container', async () => {
+  it('should allow to scroll the table when a whole column is selected and table is longer than it\'s container', async() => {
     let errCount = 0;
 
     $(window).on('error.selectionTest', () => {
@@ -829,7 +829,7 @@ describe('Core_selection', () => {
   });
 
   it('should select a cell in a newly added row after automatic row adding, triggered by editing a cell in the last row with minSpareRows > 0, ' +
-    'unless editing happened within the fixed bottom rows', async () => {
+    'unless editing happened within the fixed bottom rows', async() => {
     handsontable({
       startRows: 5,
       startCols: 2,
@@ -1017,7 +1017,7 @@ describe('Core_selection', () => {
       `).toBeMatchToSelectionPattern();
   });
 
-  it('should redraw selection when option `colHeaders` is set and user scrolled', async () => {
+  it('should redraw selection when option `colHeaders` is set and user scrolled', async() => {
     const hot = handsontable({
       startRows: 20,
       startCols: 20,
@@ -1046,7 +1046,7 @@ describe('Core_selection', () => {
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
-  it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled', async () => {
+  it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled', async() => {
     const hot = handsontable({
       fixedColumnsLeft: 2,
       startRows: 20,

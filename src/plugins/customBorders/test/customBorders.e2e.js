@@ -516,7 +516,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 3).borders).toBeUndefined();
   });
 
-  it('should draw borders from context menu options when was first cleared borders by the clearBorders method', async () => {
+  it('should draw borders from context menu options when was first cleared borders by the clearBorders method', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
@@ -566,7 +566,7 @@ describe('CustomBorders', () => {
   });
 
   it('should clear all borders when first was cleared borders by the clearBorders method with selections,' +
-  'then draw borders from context menu options, and then was cleared borders by the clearBorders method without selections', async () => {
+  'then draw borders from context menu options, and then was cleared borders by the clearBorders method without selections', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
@@ -618,7 +618,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders).toBeUndefined();
   });
 
-  it('should draw top border from context menu options', async () => {
+  it('should draw top border from context menu options', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
@@ -646,7 +646,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.right).toEqual(empty);
   });
 
-  it('should draw left border from context menu options', async () => {
+  it('should draw left border from context menu options', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
@@ -675,7 +675,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.right).toEqual(empty);
   });
 
-  it('should draw right border from context menu options', async () => {
+  it('should draw right border from context menu options', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
@@ -704,7 +704,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.right).toEqual(defaultBorder);
   });
 
-  it('should draw bottom border from context menu options', async () => {
+  it('should draw bottom border from context menu options', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
@@ -733,7 +733,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.right).toEqual(empty);
   });
 
-  it('should remove all bottoms border from context menu options', async () => {
+  it('should remove all bottoms border from context menu options', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,

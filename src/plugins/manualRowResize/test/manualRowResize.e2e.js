@@ -195,7 +195,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
   });
 
-  it('should trigger an afterRowResize after row size changes, after double click', async () => {
+  it('should trigger an afterRowResize after row size changes, after double click', async() => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -286,7 +286,7 @@ describe('manualRowResize', () => {
     expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
   });
 
-  it('should autosize selected rows after double click on handler', async () => {
+  it('should autosize selected rows after double click on handler', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(9, 9),
       rowHeaders: true,
@@ -318,7 +318,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 3)).toBeAroundValue(24);
   });
 
-  it('should resize (expanding and narrowing) selected rows', async () => {
+  it('should resize (expanding and narrowing) selected rows', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       rowHeaders: true,

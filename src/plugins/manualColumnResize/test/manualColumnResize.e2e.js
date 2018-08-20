@@ -151,7 +151,7 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(4).width()).toBe(128);
   });
 
-  it('should resize (narrowing) selected columns', async () => {
+  it('should resize (narrowing) selected columns', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -182,7 +182,7 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(3).width()).toBe(34);
   });
 
-  it('should resize (expanding) selected columns', async () => {
+  it('should resize (expanding) selected columns', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -213,7 +213,7 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(3).width()).toBe(155);
   });
 
-  it('should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`', async () => {
+  it('should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`', async() => {
     spec().$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -253,7 +253,7 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(4).width()).toBe(181);
   });
 
-  it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', async () => {
+  it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', async() => {
     spec().$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -381,7 +381,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 0)).toEqual(50);
   });
 
-  it('should trigger an afterColumnResize after column size changes, after double click', async () => {
+  it('should trigger an afterColumnResize after column size changes, after double click', async() => {
     const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
@@ -415,7 +415,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 0)).toBeInArray([30, 31, 32, 24, 25]);
   });
 
-  it('should autosize column after double click (when initial width is not defined)', async () => {
+  it('should autosize column after double click (when initial width is not defined)', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
@@ -443,7 +443,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
   });
 
-  it('should autosize selected columns after double click on handler', async () => {
+  it('should autosize selected columns after double click on handler', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(9, 9),
       colHeaders: true,

@@ -55,7 +55,7 @@ describe('CheckboxRenderer', () => {
     expect($(getRenderedContent(2, 0)).prop('checked')).toBe(true);
   });
 
-  it('should select cell after checkbox click', async () => {
+  it('should select cell after checkbox click', async() => {
     const spy = jasmine.createSpyObj('error', ['test']);
     window.onerror = function() {
       spy.test();

@@ -98,7 +98,7 @@ describe('ColumnSorting', () => {
     expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
   });
 
-  it('should render a correct number of TD elements after sorting', async () => {
+  it('should render a correct number of TD elements after sorting', async() => {
     handsontable({
       data: [
         ['1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'],
@@ -974,7 +974,7 @@ describe('ColumnSorting', () => {
     });
   });
 
-  it('should properly sort numeric data', async () => {
+  it('should properly sort numeric data', async() => {
     handsontable({
       data: [
         ['Mercedes', 'A 160', '01/14/2006', '6999.9999'],

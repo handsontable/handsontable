@@ -165,7 +165,7 @@ describe('noEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should focus editable element (from copyPaste plugin) after selecting the cell', async () => {
+    it('should focus editable element (from copyPaste plugin) after selecting the cell', async() => {
       handsontable({
         editor: false,
       });

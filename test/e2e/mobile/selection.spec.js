@@ -27,7 +27,7 @@ describe('Selection', () => {
     expect(bottomRightSelectionHandle.style.display).toEqual('block');
   });
 
-  it('should show both selection handles after drag & drop', async () => {
+  it('should show both selection handles after drag & drop', async() => {
     const hot = handsontable({
       width: 400,
       height: 400
