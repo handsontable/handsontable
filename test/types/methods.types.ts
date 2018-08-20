@@ -124,3 +124,5 @@ const trimeRows: Handsontable.plugins.TrimRows = hot.getPlugin('trimRows');
 const formulas: Handsontable.plugins.Formulas = hot.getPlugin('formulas');
 const ganttChart: Handsontable.plugins.GanttChart = hot.getPlugin('ganttChart');
 const nestedRows: Handsontable.plugins.NestedRows = hot.getPlugin('nestedRows');
+
+autoColumnSize.samplesGenerator.setSampleCount(5);
