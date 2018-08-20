@@ -65,7 +65,7 @@ class DateEditor extends TextEditor {
     /**
      * Prevent recognizing clicking on datepicker as clicking outside of table
      */
-    eventManager.addEventListener(this.datePicker, 'mousedown', (event) => stopPropagation(event));
+    eventManager.addEventListener(this.datePicker, 'mousedown', event => stopPropagation(event));
     this.hideDatepicker();
   }
 

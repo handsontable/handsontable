@@ -3420,7 +3420,7 @@ describe('ContextMenu', () => {
 
       Handsontable.hooks.add('beforeContextMenuSetItems', function(items) {
         if (this === hot || !hot) {
-          keys = items.map((v) => v.key);
+          keys = items.map(v => v.key);
         }
       });
 

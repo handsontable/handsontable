@@ -67,7 +67,7 @@ class Border {
     this.eventManager.addEventListener(document.body, 'mouseup', () => this.onMouseUp());
 
     for (let c = 0, len = this.main.childNodes.length; c < len; c++) {
-      this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', (event) => this.onMouseEnter(event, this.main.childNodes[c]));
+      this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', event => this.onMouseEnter(event, this.main.childNodes[c]));
     }
   }
 

@@ -411,8 +411,8 @@ AutocompleteEditor.prototype.stripValueIfNeeded = function(value) {
 AutocompleteEditor.prototype.stripValuesIfNeeded = function(values) {
   const {allowHtml} = this.cellProperties;
 
-  const stringifiedValues = arrayMap(values, (value) => stringify(value));
-  const strippedValues = arrayMap(stringifiedValues, (value) => (allowHtml ? value : stripTags(value)));
+  const stringifiedValues = arrayMap(values, value => stringify(value));
+  const strippedValues = arrayMap(stringifiedValues, value => (allowHtml ? value : stripTags(value)));
 
   return strippedValues;
 };

@@ -112,7 +112,7 @@ class CustomBorders extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
+    this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
     this.addHook('afterInit', () => this.onAfterInit());
 
     super.enablePlugin();
@@ -526,7 +526,7 @@ class CustomBorders extends BasePlugin {
   * @param {String} borderId Border id name as string.
   */
   clearBordersFromSelectionSettings(borderId) {
-    const index = arrayMap(this.hot.selection.highlight.customSelections, (customSelection) => customSelection.settings.id).indexOf(borderId);
+    const index = arrayMap(this.hot.selection.highlight.customSelections, customSelection => customSelection.settings.id).indexOf(borderId);
 
     if (index > -1) {
       this.hot.selection.highlight.customSelections[index].clear();
@@ -568,7 +568,7 @@ class CustomBorders extends BasePlugin {
   * @param {String} borderId Border id name as string.
   */
   spliceBorder(borderId) {
-    const index = arrayMap(this.savedBorders, (border) => border.id).indexOf(borderId);
+    const index = arrayMap(this.savedBorders, border => border.id).indexOf(borderId);
 
     if (index > -1) {
       this.savedBorders.splice(index, 1);

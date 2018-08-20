@@ -79,11 +79,9 @@
       ]
     ],
     "arrow-parens": [
-      2,
-      "always",
-      {
-        "requireForBlockBody": true
-      }
+      "error",
+      "as-needed",
+      { "requireForBlockBody": true }
     ],
     "no-unneeded-ternary": [
       2,

@@ -148,7 +148,7 @@ describe('selection utils', () => {
 
     it('should create ARRAY normalizer function which translates column string coordinates to visual indexes', () => {
       const propToColMap = new Map([['prop0', 9], ['prop1', 8], ['prop2', 7], ['prop3', 6]]);
-      const propToCol = (prop) => propToColMap.get(prop);
+      const propToCol = prop => propToColMap.get(prop);
       const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY, {propToCol});
 
       expect(normalizer([1, 1, 2, 2])).toEqual([1, 1, 2, 2]);

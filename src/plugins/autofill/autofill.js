@@ -97,8 +97,8 @@ class Autofill extends BasePlugin {
     this.mapSettings();
     this.registerEvents();
 
-    this.addHook('afterOnCellCornerMouseDown', (event) => this.onAfterCellCornerMouseDown(event));
-    this.addHook('afterOnCellCornerDblClick', (event) => this.onCellCornerDblClick(event));
+    this.addHook('afterOnCellCornerMouseDown', event => this.onAfterCellCornerMouseDown(event));
+    this.addHook('afterOnCellCornerDblClick', event => this.onCellCornerDblClick(event));
     this.addHook('beforeOnCellMouseOver', (event, coords) => this.onBeforeCellMouseOver(coords));
 
     super.enablePlugin();
@@ -454,7 +454,7 @@ class Autofill extends BasePlugin {
    */
   registerEvents() {
     this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', event => this.onMouseMove(event));
   }
 
   /**
