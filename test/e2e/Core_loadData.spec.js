@@ -402,7 +402,7 @@ describe('Core_loadData', () => {
         data: 'string'
       });
     } catch (e) {
-      errors++;
+      errors += 1;
     }
 
     expect(errors).toBe(1);
@@ -415,7 +415,7 @@ describe('Core_loadData', () => {
       handsontable();
       loadData('string');
     } catch (e) {
-      errors++;
+      errors += 1;
     }
 
     expect(errors).toBe(1);

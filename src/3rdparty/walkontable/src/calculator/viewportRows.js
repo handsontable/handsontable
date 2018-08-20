@@ -125,7 +125,7 @@ class ViewportRowsCalculator {
         const viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1];
 
         if (viewportSum <= viewportHeight - horizontalScrollbarHeight || !onlyFullyVisible) {
-          this.startRow--;
+          this.startRow -= 1;
         }
         if (viewportSum >= viewportHeight - horizontalScrollbarHeight) {
           break;

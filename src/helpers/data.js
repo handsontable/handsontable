@@ -38,7 +38,7 @@ export function spreadsheetColumnIndex(label) {
       result += Math.pow(COLUMN_LABEL_BASE_LENGTH, j) * (COLUMN_LABEL_BASE.indexOf(label[i]) + 1);
     }
   }
-  --result;
+  result -= 1;
 
   return result;
 }
@@ -125,7 +125,7 @@ export function translateRowsToColumns(input) {
     for (j = 0, jlen = input[i].length; j < jlen; j++) {
       if (j === olen) {
         output.push([]);
-        olen++;
+        olen += 1;
       }
       output[j].push(input[i][j]);
     }

@@ -100,7 +100,7 @@ const arrayMapper = {
       // Todo: compare perf between reduce vs sort->each->brake
       return arrayReduce(removedItems, (count, removedLogicalRow) => {
         if (logicalRow > removedLogicalRow) {
-          count++;
+          count += 1;
         }
 
         return count;

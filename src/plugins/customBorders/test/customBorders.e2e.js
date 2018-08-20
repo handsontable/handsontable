@@ -64,7 +64,7 @@ describe('CustomBorders', () => {
     try {
       customBorders.setBorders();
     } catch (err) {
-      errors++;
+      errors += 1;
     }
 
     expect(errors).toEqual(1);

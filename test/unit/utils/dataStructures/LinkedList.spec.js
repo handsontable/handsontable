@@ -164,7 +164,8 @@ describe('Linked List', () => {
     let pushedValue = 1;
 
     function callback(node) {
-      expect(node.data).toBe(pushedValue++);
+      expect(node.data).toBe(pushedValue);
+      pushedValue += 1;
     }
 
     linkedList.inorder(callback);

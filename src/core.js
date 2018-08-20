@@ -725,9 +725,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             cellMeta = instance.getCellMeta(current.row, current.col);
 
             if ((source === 'CopyPaste.paste' || source === 'Autofill.autofill') && cellMeta.skipRowOnPaste) {
-              skippedRow++;
-              current.row++;
-              rlen++;
+              skippedRow += 1;
+              current.row += 1;
+              rlen += 1;
               /* eslint-disable no-continue */
               continue;
             }
@@ -742,13 +742,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               cellMeta = instance.getCellMeta(current.row, current.col);
 
               if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipColumnOnPaste) {
-                skippedColumn++;
-                current.col++;
-                clen++;
+                skippedColumn += 1;
+                current.col += 1;
+                clen += 1;
                 continue;
               }
               if (cellMeta.readOnly) {
-                current.col++;
+                current.col += 1;
                 /* eslint-disable no-continue */
                 continue;
               }
@@ -790,9 +790,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 setData.push([current.row, current.col, value]);
               }
               pushData = true;
-              current.col++;
+              current.col += 1;
             }
-            current.row++;
+            current.row += 1;
           }
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
           break;
@@ -854,7 +854,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       validatorsInQueue: 0,
       valid: true,
       addValidatorToQueue() {
-        this.validatorsInQueue++;
+        this.validatorsInQueue += 1;
         resolved = false;
       },
       removeValidatorFormQueue() {
@@ -921,7 +921,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
                 const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
                 removeClass(cell, instance.getSettings().invalidCellClassName);
-                --index;
+                index -= 1;
               }
               waitingForValidator.removeValidatorFormQueue();
             };
@@ -1695,7 +1695,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
         }
 
-        j++;
+        j += 1;
       }
     }
 
@@ -2572,14 +2572,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     while (i >= 0) {
       if (rows !== undefined && rows.indexOf(i) === -1) {
-        i--;
+        i -= 1;
         continue;
       }
       let j = instance.countCols() - 1;
 
       while (j >= 0) {
         if (columns !== undefined && columns.indexOf(j) === -1) {
-          j--;
+          j -= 1;
           continue;
         }
         waitingForValidator.addValidatorToQueue();
@@ -2593,9 +2593,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
-        j--;
+        j -= 1;
       }
-      i--;
+      i -= 1;
     }
     waitingForValidator.checkIfQueueIsEmpty();
   };
@@ -2916,7 +2916,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
           for (let i = 0; i < dataLen; i++) {
             if (priv.settings.columns(i)) {
-              columnLen++;
+              columnLen += 1;
             }
           }
 

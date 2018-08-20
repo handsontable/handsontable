@@ -626,7 +626,7 @@ describe('AutoFill', () => {
     try {
       spec().$container.find('thead tr:first-child th:eq(2)').simulate('mouseover').simulate('mouseup');
     } catch (err) {
-      errors++;
+      errors += 1;
     }
 
     expect(errors).toEqual(0);
@@ -645,7 +645,7 @@ describe('AutoFill', () => {
     try {
       spec().$container.find('tbody tr:nth(2) th:first-child').simulate('mouseover').simulate('mouseup');
     } catch (err) {
-      errors++;
+      errors += 1;
     }
 
     expect(errors).toEqual(0);

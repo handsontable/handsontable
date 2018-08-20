@@ -278,7 +278,7 @@ export function deepObjectSize(object) {
         result += recursObjLen(key);
       });
     } else {
-      result++;
+      result += 1;
     }
 
     return result;

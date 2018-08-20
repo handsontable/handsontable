@@ -361,7 +361,7 @@ class ManualColumnResize extends BasePlugin {
 
         this.hot._registerTimeout(this.autoresizeTimeout);
       }
-      this.dblclick++;
+      this.dblclick += 1;
 
       this.startX = pageX(event);
       this.newSize = this.startWidth;
