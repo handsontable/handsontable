@@ -140,7 +140,7 @@ class ViewportColumnsCalculator {
     }
     this.startPosition = startPositions[this.startColumn];
 
-    if (this.startPosition == void 0) {
+    if (this.startPosition === void 0) {
       this.startPosition = null;
     }
     if (this.startColumn !== null) {

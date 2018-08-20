@@ -1,5 +1,5 @@
 describe('Core_removeCellMeta', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -20,7 +20,7 @@ describe('Core_removeCellMeta', () => {
         [0, 9, 8, 7]
       ]
     });
-    var border = {
+    const border = {
       top: {
 
       },
@@ -52,7 +52,7 @@ describe('Core_removeCellMeta', () => {
     expect(getCellMeta(0, 0).key).toBeUndefined();
   });
 
-  it('should trigger `beforeRemoveCellMeta` hook with proper parameters', function () {
+  it('should trigger `beforeRemoveCellMeta` hook with proper parameters', () => {
     const beforeRemoveCellMeta = jasmine.createSpy('beforeRemoveCellMeta');
 
     handsontable({
@@ -70,7 +70,7 @@ describe('Core_removeCellMeta', () => {
     expect(beforeRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value', undefined, undefined);
   });
 
-  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 1 (removed `key` existed)', function () {
+  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 1 (removed `key` existed)', () => {
     const afterRemoveCellMeta = jasmine.createSpy('afterRemoveCellMeta');
 
     handsontable({
@@ -88,7 +88,7 @@ describe('Core_removeCellMeta', () => {
     expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value', undefined, undefined);
   });
 
-  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 2  (removed `key` not existed)', function () {
+  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 2  (removed `key` not existed)', () => {
     const afterRemoveCellMeta = jasmine.createSpy('afterRemoveCellMeta');
 
     handsontable({
@@ -110,7 +110,7 @@ describe('Core_removeCellMeta', () => {
     let colInsideHook;
 
     handsontable({
-      beforeRemoveCellMeta: function (row, col) {
+      beforeRemoveCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },
@@ -133,7 +133,7 @@ describe('Core_removeCellMeta', () => {
     let colInsideHook;
 
     handsontable({
-      afterRemoveCellMeta: function (row, col) {
+      afterRemoveCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },
@@ -151,9 +151,9 @@ describe('Core_removeCellMeta', () => {
     expect(colInsideHook).toEqual(1);
   });
 
-  it('should block removing cell meta when hook `beforeRemoveCellMeta` return false', function () {
+  it('should block removing cell meta when hook `beforeRemoveCellMeta` return false', () => {
     handsontable({
-      beforeRemoveCellMeta: function (row, col) {
+      beforeRemoveCellMeta(row, col) {
         if (row === 0 && col === 0) {
           return false;
         }

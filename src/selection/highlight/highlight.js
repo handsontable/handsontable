@@ -1,5 +1,5 @@
-import {createHighlight} from './types';
-import {arrayEach, arrayFilter} from './../../helpers/array';
+import { createHighlight } from './types';
+import { arrayEach } from './../../helpers/array';
 
 export const ACTIVE_HEADER_TYPE = 'active-header';
 export const AREA_TYPE = 'area';

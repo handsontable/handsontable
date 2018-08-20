@@ -2,18 +2,18 @@ import EventManager from 'handsontable/eventManager';
 
 describe('EventManager', () => {
   it('should add/remove/clear event for multiple instances', () => {
-    var instance = {
+    const instance = {
       subinstance: {}
     };
-    var instance2 = {};
-    var eM0 = new EventManager(instance);
-    var eM1 = new EventManager(instance.subinstance);
-    var eM2 = new EventManager(instance2);
+    const instance2 = {};
+    const eM0 = new EventManager(instance);
+    const eM1 = new EventManager(instance.subinstance);
+    const eM2 = new EventManager(instance2);
 
     expect(instance.eventListeners.length).toEqual(0);
 
-    var test = function() {};
-    var test2 = function() {};
+    const test = function() {};
+    const test2 = function() {};
 
     eM0.addEventListener(window, 'click', test, true);
     eM1.addEventListener(window, 'mousedown', test);
@@ -46,16 +46,16 @@ describe('EventManager', () => {
       return;
     }
     EventManager.isHotTableEnv = true;
-    var instance = {};
-    var em = new EventManager(instance);
-    var classicHost = document.createElement('div');
-    var hotTable = document.createElement('hot-table');
+    const instance = {};
+    const em = new EventManager(instance);
+    const classicHost = document.createElement('div');
+    const hotTable = document.createElement('hot-table');
 
-    var shadowHotTable = hotTable.createShadowRoot();
+    const shadowHotTable = hotTable.createShadowRoot();
     shadowHotTable.innerHTML = '<span>shadow <inner-custom><p></p></inner-custom></span>';
 
-    var test1 = jasmine.createSpy('test1');
-    var test2 = jasmine.createSpy('test2');
+    const test1 = jasmine.createSpy('test1');
+    const test2 = jasmine.createSpy('test2');
 
     em.addEventListener(classicHost, 'click', test1);
     em.addEventListener(shadowHotTable.querySelector('p'), 'click', test2);
@@ -72,11 +72,11 @@ describe('EventManager', () => {
   });
 
   it('should clear all events', () => {
-    var instance = {};
-    var em = new EventManager(instance);
+    const instance = {};
+    const em = new EventManager(instance);
 
-    var test = jasmine.createSpy('test');
-    var test1 = jasmine.createSpy('test1');
+    const test = jasmine.createSpy('test');
+    const test1 = jasmine.createSpy('test1');
 
     em.addEventListener(window, 'click', test);
     em.addEventListener(window, 'click', test1);
@@ -94,11 +94,11 @@ describe('EventManager', () => {
   });
 
   it('should destroy instance', () => {
-    var instance = {};
-    var em = new EventManager(instance);
+    const instance = {};
+    const em = new EventManager(instance);
 
-    var test = jasmine.createSpy('test');
-    var test1 = jasmine.createSpy('test1');
+    const test = jasmine.createSpy('test');
+    const test1 = jasmine.createSpy('test1');
 
     em.addEventListener(window, 'click', test);
     em.addEventListener(window, 'click', test1);
@@ -118,11 +118,11 @@ describe('EventManager', () => {
   });
 
   it('should fire event', () => {
-    var instance = {};
-    var em = new EventManager(instance);
+    const instance = {};
+    const em = new EventManager(instance);
 
-    var test = jasmine.createSpy('test');
-    var test1 = jasmine.createSpy('test1');
+    const test = jasmine.createSpy('test');
+    const test1 = jasmine.createSpy('test1');
 
     em.addEventListener(window, 'click', test);
     em.addEventListener(window, 'click', test1);
@@ -141,11 +141,11 @@ describe('EventManager', () => {
   });
 
   it('should fire touchend event', () => {
-    var instance = {};
-    var em = new EventManager(instance);
+    const instance = {};
+    const em = new EventManager(instance);
 
-    var test = jasmine.createSpy('test');
-    var test1 = jasmine.createSpy('test1');
+    const test = jasmine.createSpy('test');
+    const test1 = jasmine.createSpy('test1');
 
     em.addEventListener(window, 'touchend', test);
     em.addEventListener(window, 'touchend', test1);
@@ -164,12 +164,12 @@ describe('EventManager', () => {
   });
 
   it('should remove event by calling function returned from addEvent', () => {
-    var instance = {};
-    var em = new EventManager(instance);
+    const instance = {};
+    const em = new EventManager(instance);
 
-    var test = jasmine.createSpy('test');
+    const test = jasmine.createSpy('test');
 
-    var clickRemoveEvent = em.addEventListener(window, 'click', test);
+    const clickRemoveEvent = em.addEventListener(window, 'click', test);
     em.fireEvent(window, 'click');
 
     expect(test.calls.count()).toEqual(1);

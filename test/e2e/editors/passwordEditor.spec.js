@@ -1,5 +1,5 @@
 describe('PasswordEditor', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 300px;"></div>`).appendTo('body');
@@ -30,7 +30,7 @@ describe('PasswordEditor', () => {
     selectCell(0, 0);
     keyDown('enter');
 
-    var editor = $('.handsontableInput');
+    const editor = $('.handsontableInput');
 
     expect(editor.is(':visible')).toBe(true);
     expect(editor.is(':password')).toBe(true);
@@ -55,7 +55,7 @@ describe('PasswordEditor', () => {
     selectCell(0, 0);
     keyDown('enter');
 
-    var editor = $('.handsontableInput');
+    const editor = $('.handsontableInput');
 
     expect(editor.is(':visible')).toBe(true);
     expect(editor.is(':password')).toBe(true);
@@ -80,8 +80,8 @@ describe('PasswordEditor', () => {
     selectCell(0, 0);
     keyDown('enter');
 
-    var editorHolder = $('.handsontableInputHolder');
-    var editor = editorHolder.find('.handsontableInput');
+    const editorHolder = $('.handsontableInputHolder');
+    const editor = editorHolder.find('.handsontableInput');
 
     expect(editorHolder.is(':visible')).toBe(true);
     expect(editor.is(':password')).toBe(true);
@@ -110,8 +110,8 @@ describe('PasswordEditor', () => {
 
     keyDown('enter');
 
-    var editorHolder = $('.handsontableInputHolder');
-    var editor = editorHolder.find('.handsontableInput');
+    const editorHolder = $('.handsontableInputHolder');
+    const editor = editorHolder.find('.handsontableInput');
 
     expect(parseInt(editorHolder.css('z-index'), 10)).toBeGreaterThan(0);
 

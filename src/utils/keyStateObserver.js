@@ -1,6 +1,5 @@
 import EventManager from '../eventManager';
-import {isCtrlMetaKey, isKey} from '../helpers/unicode';
-import {arrayEach, arrayReduce} from '../helpers/array';
+import {isCtrlMetaKey, isKey, isPrintableChar} from '../helpers/unicode';
 
 const eventManager = new EventManager();
 const pressedKeys = new Set();
@@ -69,7 +68,9 @@ function isPressed(keyCodes) {
  * @return {Boolean}
  */
 function isPressedCtrlKey() {
-  return Array.from(pressedKeys.values()).some((_keyCode) => isCtrlMetaKey(_keyCode));
+  const values = Array.from(pressedKeys.values());
+
+  return values.some((_keyCode) => isCtrlMetaKey(_keyCode)) && values.every((_keyCode) => !isPrintableChar(_keyCode));
 }
 
 /**

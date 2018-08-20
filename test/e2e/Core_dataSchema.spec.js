@@ -1,5 +1,5 @@
 describe('Core_dataSchema', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,7 @@ describe('Core_dataSchema', () => {
   });
 
   it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as object)', () => {
-    var schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
+    const schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
       hot = handsontable({
         data: [],
         dataSchema: schema,
@@ -32,7 +32,7 @@ describe('Core_dataSchema', () => {
   });
 
   it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as object) when columns is a function', () => {
-    var schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
+    const schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
       hot = handsontable({
         data: [],
         dataSchema: schema,
@@ -40,7 +40,7 @@ describe('Core_dataSchema', () => {
         minCols: 4,
         colHeaders: ['ID', 'First Name', 'Last Name'],
         columns(column) {
-          var colMeta = {};
+          let colMeta = {};
 
           if (column === 0) {
             colMeta.data = 'id';
@@ -64,7 +64,7 @@ describe('Core_dataSchema', () => {
   });
 
   it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as function)', () => {
-    var schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
+    const schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
       hot = handsontable({
         data: [],
         dataSchema() {
@@ -84,7 +84,7 @@ describe('Core_dataSchema', () => {
   });
 
   it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as function) when columns is a function', () => {
-    var schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
+    const schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
       hot = handsontable({
         data: [],
         dataSchema() {
@@ -94,7 +94,7 @@ describe('Core_dataSchema', () => {
         minCols: 4,
         colHeaders: ['ID', 'First Name', 'Last Name'],
         columns(column) {
-          var colMeta = {};
+          let colMeta = {};
 
           if (column === 0) {
             colMeta.data = 'id';
@@ -117,7 +117,7 @@ describe('Core_dataSchema', () => {
   });
 
   it('should be equal to `hot.getSchema()` when dataSchema is generated based on data structure', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         {id: 1, name: {first: 'Alan', last: 'Pakoli'}, cars: [{brand: 'Ford'}]}
       ],
@@ -137,7 +137,7 @@ describe('Core_dataSchema', () => {
   });
 
   it('should be equal to `hot.getSchema()` when dataSchema is generated based on data structure when columns is a function', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         {id: 1, name: {first: 'Alan', last: 'Pakoli'}, cars: [{brand: 'Ford'}]}
       ],
@@ -145,7 +145,7 @@ describe('Core_dataSchema', () => {
       minCols: 4,
       colHeaders: ['ID', 'First Name', 'Last Name'],
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.data = 'id';
@@ -201,7 +201,7 @@ describe('Core_dataSchema', () => {
       minCols: 4,
       colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.data = 'id';
@@ -239,7 +239,7 @@ describe('Core_dataSchema', () => {
         return {id: 1000 + index, name: {first: null, last: null}, address: null};
       },
       isEmptyRow(r) {
-        var row = this.getSourceData()[r];
+        const row = this.getSourceData()[r];
 
         return (row.name.first === null || row.name.first === '') &&
           (row.name.last === null || row.name.last === '') &&
@@ -281,7 +281,7 @@ describe('Core_dataSchema', () => {
         return {id: 1000 + index, name: {first: null, last: null}, address: null};
       },
       isEmptyRow(r) {
-        var row = this.getSourceData()[r];
+        const row = this.getSourceData()[r];
 
         return (row.name.first === null || row.name.first === '') &&
           (row.name.last === null || row.name.last === '') &&
@@ -291,7 +291,7 @@ describe('Core_dataSchema', () => {
       minCols: 4,
       colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.data = 'id';
@@ -332,8 +332,8 @@ describe('Core_dataSchema', () => {
   });
 
   it('should translate prop to col, when prop is a function', () => {
-    var idAccessor = createAccessorForProperty('id');
-    var nameAccessor = createAccessorForProperty('name');
+    const idAccessor = createAccessorForProperty('id');
+    const nameAccessor = createAccessorForProperty('name');
 
     hot = handsontable({
       data: [
@@ -366,8 +366,8 @@ describe('Core_dataSchema', () => {
   });
 
   it('should translate prop to col, when prop and columns is a function', () => {
-    var idAccessor = createAccessorForProperty('id');
-    var nameAccessor = createAccessorForProperty('name');
+    const idAccessor = createAccessorForProperty('id');
+    const nameAccessor = createAccessorForProperty('name');
 
     hot = handsontable({
       data: [
@@ -386,7 +386,7 @@ describe('Core_dataSchema', () => {
       ],
       dataSchema: Model,
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.data = idAccessor;
@@ -407,8 +407,8 @@ describe('Core_dataSchema', () => {
   });
 
   it('should create new row data matched to dataSchema (data type as `array`)', () => {
-    var spy = jasmine.createSpy();
-    var hot = handsontable({
+    const spy = jasmine.createSpy();
+    const hot = handsontable({
       data: [[{id: 1}]],
       dataSchema: [{id: null}],
       columns: [
@@ -430,12 +430,12 @@ describe('Core_dataSchema', () => {
   });
 
   it('should create new row data matched to dataSchema (data type as `array`) when columns is a function', () => {
-    var spy = jasmine.createSpy();
-    var hot = handsontable({
+    const spy = jasmine.createSpy();
+    const hot = handsontable({
       data: [[{id: 1}]],
       dataSchema: [{id: null}],
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.data = '0';
@@ -463,13 +463,13 @@ describe('Core_dataSchema', () => {
   });
 
   it('should create an array of objects as the source structure, when dataSchema is defined (as an object) but no data is provided', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startCols: 2,
       minSpareRows: 4,
       dataSchema: {id: null, name: null, surname: null},
     });
 
-    var dataAtRow = hot.getSourceDataAtRow(0);
+    const dataAtRow = hot.getSourceDataAtRow(0);
 
     expect(Array.isArray(dataAtRow)).toBe(false);
     expect(dataAtRow.id).toEqual(null);
@@ -478,7 +478,7 @@ describe('Core_dataSchema', () => {
   });
 
   it('should create an array of objects as the source structure, when dataSchema is defined (as a function) but no data is provided', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startCols: 2,
       minSpareRows: 4,
       dataSchema() {
@@ -486,7 +486,7 @@ describe('Core_dataSchema', () => {
       },
     });
 
-    var dataAtRow = hot.getSourceDataAtRow(0);
+    const dataAtRow = hot.getSourceDataAtRow(0);
 
     expect(Array.isArray(dataAtRow)).toBe(false);
     expect(dataAtRow.id).toEqual(null);
@@ -495,13 +495,13 @@ describe('Core_dataSchema', () => {
   });
 
   it('should create an array of objects as the source structure, when dataSchema is defined (as an array with an object) but no data is provided', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startCols: 2,
       minSpareRows: 4,
       dataSchema: [{id: null, name: null, surname: null}],
     });
 
-    var dataAtRow = hot.getSourceDataAtRow(0);
+    const dataAtRow = hot.getSourceDataAtRow(0);
 
     expect(Array.isArray(dataAtRow)).toBe(false);
     expect(dataAtRow.id).toEqual(null);

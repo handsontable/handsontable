@@ -6,8 +6,8 @@ import {
   innerHeight,
   outerWidth
 } from './../../../helpers/dom/element';
-import {warn} from './../../../helpers/console';
-import {toSingleLine} from './../../../helpers/templateLiteralTag';
+import { warn } from './../../../helpers/console';
+import { toSingleLine } from './../../../helpers/templateLiteralTag';
 import Overlay from './overlay/_base';
 
 let performanceWarningAppeared = false;
@@ -172,7 +172,6 @@ class TableRenderer {
    * @param {Number} columnsToRender
    */
   renderRows(totalRows, rowsToRender, columnsToRender) {
-    let lastTD;
     let TR;
     let visibleRowIndex = 0;
     let sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
@@ -194,8 +193,8 @@ class TableRenderer {
       this.renderRowHeaders(sourceRowIndex, TR);
       // Add and/or remove TDs to TR to match the desired number
       this.adjustColumns(TR, columnsToRender + this.rowHeaderCount);
-
-      lastTD = this.renderCells(sourceRowIndex, TR, columnsToRender);
+      // Render cells
+      this.renderCells(sourceRowIndex, TR, columnsToRender);
 
       if (!isWorkingOnClone ||
           // Necessary to refresh oversized row heights after editing cell in overlays
@@ -251,7 +250,6 @@ class TableRenderer {
     let sourceRowIndex;
     let currentTr;
     let rowHeader;
-    let totalRows = this.instance.getSetting('totalRows');
 
     if (expectedTableHeight === actualTableHeight && !this.instance.getSetting('fixedRowsBottom')) {
       // If the actual table height equals rowCount * default single row height, no row is oversized -> no need to iterate over them
@@ -379,7 +377,7 @@ class TableRenderer {
         TD = TD.nextSibling; // http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
       // If the number of headers has been reduced, we need to replace excess TH with TD
-      if (TD.nodeName == 'TH') {
+      if (TD.nodeName === 'TH') {
         TD = replaceThWithTd(TD, TR);
       }
       if (!hasClass(TD, 'hide')) {
@@ -495,7 +493,7 @@ class TableRenderer {
         TH = document.createElement('TH');
         TR.appendChild(TH);
 
-      } else if (TH.nodeName == 'TD') {
+      } else if (TH.nodeName === 'TD') {
         TH = replaceTdWithTh(TH, TR);
       }
       this.renderRowHeader(row, visibleColIndex, TH);

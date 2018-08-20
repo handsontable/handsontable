@@ -37,7 +37,7 @@ describe('Comments', () => {
     });
   });
 
-  describe('updateSettings', function () {
+  describe('updateSettings', () => {
     it('should change delay, after which comment is showed #4323', (done) => {
       const rows = 10;
       const columns = 10;
@@ -79,7 +79,7 @@ describe('Comments', () => {
 
   describe('Styling', () => {
     it('should display comment indicators in the appropriate cells', () => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
@@ -93,7 +93,7 @@ describe('Comments', () => {
     });
   });
 
-  describe('Displaying comment after `mouseover` event', function () {
+  describe('Displaying comment after `mouseover` event', () => {
     it('should display comment after predefined delay when custom `displayDelay` ' +
       'option of `comments` plugin wasn\'t set', (done) => {
       const rows = 10;
@@ -327,7 +327,7 @@ describe('Comments', () => {
     expect(readOnly).toEqual(true);
   });
 
-  it('should not close the comment editor immediately after opening #4323', (done) => {
+  it('should not close the comment editor immediately after opening #4323', async () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
@@ -352,10 +352,9 @@ describe('Comments', () => {
 
     const editor = hot.getPlugin('comments').editor.getInputElement();
 
-    setTimeout(function () {
-      expect($(editor).parents('.htComments')[0].style.display).toEqual('block');
-      done();
-    }, 300);
+    await sleep(300);
+
+    expect($(editor).parents('.htComments')[0].style.display).toEqual('block');
   });
 
   describe('Using the Context Menu', () => {
@@ -381,7 +380,7 @@ describe('Comments', () => {
     });
 
     it('should remove the comment from a cell after clicking the "Delete comment" entry', () => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
@@ -405,7 +404,7 @@ describe('Comments', () => {
     });
 
     it('should remove comments from a selected group of cells after clicking the "Delete comment" entry', () => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,

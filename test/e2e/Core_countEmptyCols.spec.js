@@ -1,7 +1,7 @@
 /* eslint-disable no-multi-spaces, array-bracket-spacing */
 
 describe('Core_countEmptyCols', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');

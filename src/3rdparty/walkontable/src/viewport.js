@@ -1,12 +1,11 @@
 import {
   getScrollbarWidth,
-  getScrollTop,
   getStyle,
   offset,
   outerHeight,
   outerWidth,
 } from './../../../helpers/dom/element';
-import {objectEach} from './../../../helpers/object';
+import { objectEach } from './../../../helpers/object';
 import EventManager from './../../../eventManager';
 import ViewportColumnsCalculator from './calculator/viewportColumns';
 import ViewportRowsCalculator from './calculator/viewportRows';
@@ -88,7 +87,7 @@ class Viewport {
     if (trimmingContainer !== window) {
       overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
 
-      if (overflow == 'scroll' || overflow == 'hidden' || overflow == 'auto') {
+      if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
         // this is used in `scroll.html`
         // TODO test me
         return Math.max(width, trimmingContainer.clientWidth);

@@ -78,8 +78,8 @@ class EventManager {
     while (len--) {
       tmpEvent = this.context.eventListeners[len];
 
-      if (tmpEvent.event == eventName && tmpEvent.element == element) {
-        if (callback && callback != tmpEvent.callback) {
+      if (tmpEvent.event === eventName && tmpEvent.element === element) {
+        if (callback && callback !== tmpEvent.callback) {
           /* eslint-disable no-continue */
           continue;
         }
@@ -154,7 +154,7 @@ class EventManager {
       button: 0,
       relatedTarget: undefined,
     };
-    var event;
+    let event;
 
     if (document.createEvent) {
       event = document.createEvent('MouseEvents');

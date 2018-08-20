@@ -1,7 +1,6 @@
-import {arrayEach, arrayMap} from './../../helpers/array';
-import {rangeEach} from './../../helpers/number';
-import {hasClass} from './../../helpers/dom/element';
-import {KEY as SEPARATOR} from './predefinedItems/separator';
+import { arrayEach, arrayMap } from './../../helpers/array';
+import { hasClass } from './../../helpers/dom/element';
+import { KEY as SEPARATOR } from './predefinedItems/separator';
 
 export function normalizeSelection(selRanges) {
   return arrayMap(selRanges, (range) => ({
@@ -40,7 +39,7 @@ export function getValidSelection(hot) {
 }
 
 export function prepareVerticalAlignClass(className, alignment) {
-  if (className.indexOf(alignment) != -1) {
+  if (className.indexOf(alignment) !== -1) {
     return className;
   }
   className = className
@@ -55,7 +54,7 @@ export function prepareVerticalAlignClass(className, alignment) {
 }
 
 export function prepareHorizontalAlignClass(className, alignment) {
-  if (className.indexOf(alignment) != -1) {
+  if (className.indexOf(alignment) !== -1) {
     return className;
   }
   className = className
@@ -89,7 +88,7 @@ export function getAlignmentClasses(ranges, callback) {
 
 export function align(ranges, type, alignment, cellDescriptor, propertySetter) {
   arrayEach(ranges, ({from, to}) => {
-    if (from.row == to.row && from.col == to.col) {
+    if (from.row === to.row && from.col === to.col) {
       applyAlignClassName(from.row, from.col, type, alignment, cellDescriptor, propertySetter);
     } else {
       for (let row = from.row; row <= to.row; row++) {
@@ -142,7 +141,7 @@ export function markLabelAsSelected(label) {
 }
 
 export function isItemHidden(item, instance) {
-  return !item.hidden || !(typeof item.hidden == 'function' && item.hidden.call(instance));
+  return !item.hidden || !(typeof item.hidden === 'function' && item.hidden.call(instance));
 }
 
 function shiftSeparators(items, separator) {

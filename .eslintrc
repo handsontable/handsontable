@@ -14,7 +14,6 @@
     "consistent-return": 1,
     "dot-notation": 2,
     "eol-last": 2,
-    "eqeqeq": 1,
     "func-names": 0,
     "import/extensions": 0,
     "import/no-extraneous-dependencies": 0,
@@ -36,12 +35,10 @@
     "no-plusplus": 0,
     "no-restricted-properties": 0,
     "no-restricted-syntax": 1,
-    "no-shadow": 1,
     "no-spaced-func": 2,
     "no-trailing-spaces": 2,
     "no-undef": 0,
     "no-underscore-dangle": 0,
-    "no-unused-vars": 1,
     "no-restricted-globals": [
       2,
       "Handsontable",
@@ -51,18 +48,12 @@
       }
     ],
     "no-use-before-define": 0,
-    "no-var": 0,
     "no-void": 0,
     "no-with": 2,
     "object-curly-spacing": 0,
-    "object-shorthand": 1,
     "one-var": 0,
     "padded-blocks": 0,
-    "prefer-arrow-callback": 1,
     "prefer-const": 0,
-    "prefer-rest-params": 1,
-    "prefer-spread": 1,
-    "prefer-template": 1,
     "space-infix-ops": 2,
     "vars-on-top": 0,
     "linebreak-style": 0,
@@ -119,10 +110,6 @@
     "comma-style": [
       2,
       "last"
-    ],
-    "max-depth": [
-      2,
-      5
     ],
     "max-len": [
       2,

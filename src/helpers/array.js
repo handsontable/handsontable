@@ -1,6 +1,6 @@
 export function to2dArray(arr) {
-  var i = 0,
-    ilen = arr.length;
+  const ilen = arr.length;
+  let i = 0;
 
   while (i < ilen) {
     arr[i] = [arr[i]];
@@ -9,8 +9,8 @@ export function to2dArray(arr) {
 }
 
 export function extendArray(arr, extension) {
-  var i = 0,
-    ilen = extension.length;
+  const ilen = extension.length;
+  let i = 0;
 
   while (i < ilen) {
     arr.push(extension[i]);
@@ -19,17 +19,17 @@ export function extendArray(arr, extension) {
 }
 
 export function pivot(arr) {
-  var pivotedArr = [];
+  const pivotedArr = [];
 
   if (!arr || arr.length === 0 || !arr[0] || arr[0].length === 0) {
     return pivotedArr;
   }
 
-  var rowCount = arr.length;
-  var colCount = arr[0].length;
+  const rowCount = arr.length;
+  const colCount = arr[0].length;
 
-  for (var i = 0; i < rowCount; i++) {
-    for (var j = 0; j < colCount; j++) {
+  for (let i = 0; i < rowCount; i++) {
+    for (let j = 0; j < colCount; j++) {
       if (!pivotedArr[j]) {
         pivotedArr[j] = [];
       }

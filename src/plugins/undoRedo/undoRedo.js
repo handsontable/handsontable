@@ -48,11 +48,11 @@ function UndoRedo(instance) {
       return;
     }
 
-    var originalData = plugin.instance.getSourceDataArray();
+    const originalData = plugin.instance.getSourceDataArray();
 
     index = (originalData.length + index) % originalData.length;
 
-    var removedData = deepClone(originalData.slice(index, index + amount));
+    const removedData = deepClone(originalData.slice(index, index + amount));
 
     plugin.done(new UndoRedo.RemoveRowAction(index, removedData));
   });
@@ -400,7 +400,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   let sortedHeaders = [];
   sortedHeaders = arrayMap(this.headers, sortByIndexes);
 
-  var changes = [];
+  const changes = [];
 
   // TODO: Temporary hook for undo/redo mess
   instance.runHooks('beforeCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
@@ -604,7 +604,7 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
 
 function init() {
   let instance = this;
-  let pluginEnabled = typeof instance.getSettings().undo == 'undefined' || instance.getSettings().undo;
+  let pluginEnabled = typeof instance.getSettings().undo === 'undefined' || instance.getSettings().undo;
 
   if (pluginEnabled) {
     if (!instance.undoRedo) {

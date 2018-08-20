@@ -1646,6 +1646,7 @@ declare namespace Handsontable {
     beforeValidate?: (value: any, row: number, prop: string | number, source?: string) => void;
     beforeValueRender?: (value: any, cellProperties: object) => void;
     construct?: () => void;
+    getRegistered?: () => string[];
     hiddenColumn?: (column: number) => void;
     hiddenRow?: (row: number) => void;
     init?: () => void;
