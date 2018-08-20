@@ -187,19 +187,19 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
 
     for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
       for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
-        let cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
+        const cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
 
         if (cachedCellProperties.type !== 'checkbox') {
           return;
         }
 
-        let cell = instance.getCell(visualRow, visualColumn);
+        const cell = instance.getCell(visualRow, visualColumn);
 
         if (cell === null || cell === void 0) {
           callback(visualRow, visualColumn, cachedCellProperties);
 
         } else {
-          let checkboxes = cell.querySelectorAll('input[type=checkbox]');
+          const checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
           if (checkboxes.length > 0 && !cachedCellProperties.readOnly) {
             callback(checkboxes);
@@ -237,7 +237,7 @@ function registerEvents(instance) {
  * @returns {Node}
  */
 function createInput() {
-  let input = document.createElement('input');
+  const input = document.createElement('input');
 
   input.className = 'htCheckboxRendererInput';
   input.type = 'checkbox';
@@ -253,7 +253,7 @@ function createInput() {
  * @returns {Node}
  */
 function createLabel(text) {
-  let label = document.createElement('label');
+  const label = document.createElement('label');
 
   label.className = 'htCheckboxRendererLabel';
   label.appendChild(document.createTextNode(text));

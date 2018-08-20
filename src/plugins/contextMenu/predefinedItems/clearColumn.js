@@ -10,7 +10,7 @@ export default function clearColumnItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CLEAR_COLUMN);
     },
     callback(key, selection) {
-      let column = selection[0].start.col;
+      const column = selection[0].start.col;
 
       if (this.countRows()) {
         this.populateFromArray(0, column, [[null]], Math.max(selection[0].start.row, selection[0].end.row), column, 'ContextMenu.clearColumn');

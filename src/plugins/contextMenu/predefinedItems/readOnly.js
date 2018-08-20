@@ -9,7 +9,7 @@ export default function readOnlyItem() {
     key: KEY,
     name() {
       let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
-      let atLeastOneReadOnly = checkSelectionConsistency(this.getSelectedRange(), (row, col) => this.getCellMeta(row, col).readOnly);
+      const atLeastOneReadOnly = checkSelectionConsistency(this.getSelectedRange(), (row, col) => this.getCellMeta(row, col).readOnly);
 
       if (atLeastOneReadOnly) {
         label = markLabelAsSelected(label);

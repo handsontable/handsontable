@@ -482,7 +482,7 @@ describe('manualRowMove', () => {
     });
 
     it('should not move row if it\'s not needed', () => {
-      let cache = [];
+      const cache = [];
 
       handsontable({
         data: arrayOfObjects,

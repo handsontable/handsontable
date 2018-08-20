@@ -556,7 +556,7 @@ describe('Core_selection', () => {
     mainHolder.scrollTop = 200;
 
     const firstLastVisibleColumn = hot.view.wt.wtTable.getLastVisibleColumn();
-    let headerElement = hot.view.wt.wtTable.getColumnHeader(firstLastVisibleColumn + 1);
+    const headerElement = hot.view.wt.wtTable.getColumnHeader(firstLastVisibleColumn + 1);
 
     $(headerElement).simulate('mousedown');
 
@@ -803,7 +803,7 @@ describe('Core_selection', () => {
     mainHolder.scrollLeft = 200;
 
     const firstLastVisibleRow = hot.view.wt.wtTable.getLastVisibleRow();
-    let headerElement = hot.view.wt.wtTable.getRowHeader(firstLastVisibleRow + 1);
+    const headerElement = hot.view.wt.wtTable.getRowHeader(firstLastVisibleRow + 1);
 
     $(headerElement).simulate('mousedown');
 
@@ -1027,7 +1027,7 @@ describe('Core_selection', () => {
       height: 200
     });
     let cellVerticalPosition;
-    let borderOffsetInPixels = 1;
+    const borderOffsetInPixels = 1;
     let topBorder;
 
     selectCell(5, 5);
@@ -1057,7 +1057,7 @@ describe('Core_selection', () => {
       height: 200
     });
     let cellVerticalPosition;
-    let borderOffsetInPixels = 1;
+    const borderOffsetInPixels = 1;
     let topBorder;
 
     selectCell(1, 0);

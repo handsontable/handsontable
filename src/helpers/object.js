@@ -117,7 +117,7 @@ export function deepClone(obj) {
  * @returns {Object}
  */
 export function clone(object) {
-  let result = {};
+  const result = {};
 
   objectEach(object, (value, key) => {
     result[key] = value;
@@ -148,10 +148,10 @@ export function mixin(Base, ...mixins) {
         Base.prototype[key] = value;
 
       } else {
-        let getter = function _getter(propertyName, initialValue) {
+        const getter = function _getter(propertyName, initialValue) {
           propertyName = `_${propertyName}`;
 
-          let initValue = (newValue) => {
+          const initValue = (newValue) => {
             if (Array.isArray(newValue) || isObject(newValue)) {
               newValue = deepClone(newValue);
             }
@@ -167,7 +167,7 @@ export function mixin(Base, ...mixins) {
             return this[propertyName];
           };
         };
-        let setter = function _setter(propertyName) {
+        const setter = function _setter(propertyName) {
           propertyName = `_${propertyName}`;
 
           return function(newValue) {
@@ -225,7 +225,7 @@ export function defineGetter(object, property, value, options) {
  */
 export function objectEach(object, iteratee) {
   // eslint-disable-next-line no-restricted-syntax
-  for (let key in object) {
+  for (const key in object) {
     if (!object.hasOwnProperty || (object.hasOwnProperty && Object.prototype.hasOwnProperty.call(object, key))) {
       if (iteratee(object[key], key, object) === false) {
         break;
@@ -244,7 +244,7 @@ export function objectEach(object, iteratee) {
  * @returns {*}
  */
 export function getProperty(object, name) {
-  let names = name.split('.');
+  const names = name.split('.');
   let result = object;
 
   objectEach(names, (nameItem) => {
@@ -270,7 +270,7 @@ export function deepObjectSize(object) {
   if (!isObject(object)) {
     return 0;
   }
-  let recursObjLen = function(obj) {
+  const recursObjLen = function(obj) {
     let result = 0;
 
     if (isObject(obj)) {

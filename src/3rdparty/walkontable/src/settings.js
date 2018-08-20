@@ -49,7 +49,7 @@ class Settings {
       totalRows: void 0,
       totalColumns: void 0,
       cellRenderer: (row, column, TD) => {
-        let cellData = this.getSetting('data', row, column);
+        const cellData = this.getSetting('data', row, column);
 
         fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
       },

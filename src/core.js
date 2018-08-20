@@ -285,7 +285,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       amount = amount || 1;
 
       function spliceWith(data, startIndex, count, toInject) {
-        let valueFactory = () => {
+        const valueFactory = () => {
           let result;
 
           if (toInject === 'array') {
@@ -297,7 +297,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
           return result;
         };
-        let spliceArgs = arrayMap(new Array(count), () => valueFactory());
+        const spliceArgs = arrayMap(new Array(count), () => valueFactory());
 
         spliceArgs.unshift(startIndex, 0);
         data.splice(...spliceArgs);
@@ -504,7 +504,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     adjustRowsAndCols() {
       if (priv.settings.minRows) {
         // should I add empty rows to data source to meet minRows?
-        let rows = instance.countRows();
+        const rows = instance.countRows();
 
         if (rows < priv.settings.minRows) {
           for (let r = 0, minRows = priv.settings.minRows; r < minRows - rows; r++) {
@@ -544,8 +544,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
         }
       }
-      let rowCount = instance.countRows();
-      let colCount = instance.countCols();
+      const rowCount = instance.countRows();
+      const colCount = instance.countCols();
 
       if (rowCount === 0 || colCount === 0) {
         selection.deselect();
@@ -680,7 +680,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           current.row = start.row;
           current.col = start.col;
 
-          let selected = { // selected range
+          const selected = { // selected range
             row: (end && start) ? (end.row - start.row + 1) : 1,
             col: (end && start) ? (end.col - start.col + 1) : 1
           };
@@ -689,8 +689,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           let pushData = true;
           let cellMeta;
 
-          let getInputValue = function getInputValue(row, col = null) {
-            let rowValue = input[row % input.length];
+          const getInputValue = function getInputValue(row, col = null) {
+            const rowValue = input[row % input.length];
 
             if (col !== null) {
               return rowValue[col % rowValue.length];
@@ -698,8 +698,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
             return rowValue;
           };
-          let rowInputLength = input.length;
-          let rowSelectionLength = end ? end.row - start.row + 1 : 0;
+          const rowInputLength = input.length;
+          const rowSelectionLength = end ? end.row - start.row + 1 : 0;
 
           if (end) {
             rlen = rowSelectionLength;
@@ -712,9 +712,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 (current.row >= priv.settings.maxRows)) {
               break;
             }
-            let visualRow = r - skippedRow;
-            let colInputLength = getInputValue(visualRow).length;
-            let colSelectionLength = end ? end.col - start.col + 1 : 0;
+            const visualRow = r - skippedRow;
+            const colInputLength = getInputValue(visualRow).length;
+            const colSelectionLength = end ? end.col - start.col + 1 : 0;
 
             if (end) {
               clen = colSelectionLength;
@@ -752,16 +752,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 /* eslint-disable no-continue */
                 continue;
               }
-              let visualColumn = c - skippedColumn;
+              const visualColumn = c - skippedColumn;
               let value = getInputValue(visualRow, visualColumn);
-              let orgValue = instance.getDataAtCell(current.row, current.col);
-              let index = {
+              const orgValue = instance.getDataAtCell(current.row, current.col);
+              const index = {
                 row: visualRow,
                 col: visualColumn
               };
 
               if (source === 'Autofill.fill') {
-                let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
+                const result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
 
                 if (result) {
                   value = isUndefined(result.value) ? value : result.value;
@@ -772,8 +772,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                   pushData = false;
 
                 } else {
-                  let orgValueSchema = duckSchema(orgValue[0] || orgValue);
-                  let valueSchema = duckSchema(value[0] || value);
+                  const orgValueSchema = duckSchema(orgValue[0] || orgValue);
+                  const valueSchema = duckSchema(value[0] || value);
 
                   /* eslint-disable max-depth */
                   if (isObjectEqual(orgValueSchema, valueSchema)) {
@@ -979,7 +979,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (priv.settings.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
-          let numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
+          const numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
 
           if (numberOfCreatedRows === 0) {
             skipThisChange = true;
@@ -1011,7 +1011,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.view.wt.wtOverlays.adjustElementsSize();
     instance.runHooks('afterChange', changes, source || 'edit');
 
-    let activeEditor = instance.getActiveEditor();
+    const activeEditor = instance.getActiveEditor();
 
     if (activeEditor && isDefined(activeEditor.refreshValue)) {
       activeEditor.refreshValue();
@@ -1184,7 +1184,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.listen = function(modifyDocumentFocus = true) {
     if (modifyDocumentFocus) {
-      let invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
+      const invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
 
       if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
         document.activeElement.blur();
@@ -1257,12 +1257,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *                       Useful **only** when the type of handled cells is `numeric`.
    */
   this.populateFromArray = function(row, column, input, endRow, endCol, source, method, direction, deltas) {
-    let c;
-
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
       throw new Error('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
     }
-    c = typeof endRow === 'number' ? new CellCoords(endRow, endCol) : null;
+
+    const c = typeof endRow === 'number' ? new CellCoords(endRow, endCol) : null;
 
     return grid.populateFromArray(new CellCoords(row, column), input, c, source, method, direction, deltas);
   };
@@ -1728,7 +1727,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (init) {
-      let initialStyle = instance.rootElement.getAttribute('style');
+      const initialStyle = instance.rootElement.getAttribute('style');
 
       if (initialStyle) {
         instance.rootElement.setAttribute('data-initialstyle', instance.rootElement.getAttribute('style'));
@@ -1736,7 +1735,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (height === null) {
-      let initialStyle = instance.rootElement.getAttribute('data-initialstyle');
+      const initialStyle = instance.rootElement.getAttribute('data-initialstyle');
 
       if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
         instance.rootElement.setAttribute('style', initialStyle);
@@ -1821,7 +1820,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     // eslint-disable-next-line no-restricted-syntax
-    for (let i in type) {
+    for (const i in type) {
       if (hasOwnProperty(type, i) && !hasOwnProperty(obj, i)) {
         expandedType[i] = type[i];
       }
@@ -2211,7 +2210,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       let isTypeEqual = true;
 
       rangeEach(Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo), (column) => {
-        let cellType = this.getCellMeta(row, column);
+        const cellType = this.getCellMeta(row, column);
 
         currentType = cellType.type;
 
@@ -2338,9 +2337,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getCellMeta = function(row, column) {
     const prop = datamap.colToProp(column);
-    let cellProperties;
-
-    let [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
+    const [potentialPhysicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
+    let physicalRow = potentialPhysicalRow;
 
     // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
     if (physicalRow === null) {
@@ -2358,7 +2356,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
     }
 
-    cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
+    const cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
 
     cellProperties.row = physicalRow;
     cellProperties.col = physicalColumn;
@@ -2678,14 +2676,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array|String|Number} The column header(s).
    */
   this.getColHeader = function(column) {
-    let columnsAsFunc = priv.settings.columns && isFunction(priv.settings.columns);
+    const columnsAsFunc = priv.settings.columns && isFunction(priv.settings.columns);
     let result = priv.settings.colHeaders;
 
     column = instance.runHooks('modifyColHeader', column);
 
     if (column === void 0) {
-      let out = [];
-      let ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
+      const out = [];
+      const ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
 
       for (let i = 0; i < ilen; i++) {
         out.push(instance.getColHeader(i));
@@ -2694,9 +2692,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       result = out;
 
     } else {
-      let translateVisualIndexToColumns = function(visualColumnIndex) {
-        let arr = [];
-        let columnsLen = instance.countSourceCols();
+      const translateVisualIndexToColumns = function(visualColumnIndex) {
+        const arr = [];
+        const columnsLen = instance.countSourceCols();
         let index = 0;
 
         for (; index < columnsLen; index++) {
@@ -2707,10 +2705,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         return arr[visualColumnIndex];
       };
-      let baseCol = column;
+      const baseCol = column;
       column = instance.runHooks('modifyCol', column);
 
-      let prop = translateVisualIndexToColumns(column);
+      const prop = translateVisualIndexToColumns(column);
 
       if (priv.settings.columns && isFunction(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
         result = priv.settings.columns(prop).title;
@@ -2853,7 +2851,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number} Total number of rows.
    */
   this.countSourceRows = function() {
-    let sourceLength = instance.runHooks('modifySourceLength');
+    const sourceLength = instance.runHooks('modifySourceLength');
     return sourceLength || (instance.getSourceData() ? instance.getSourceData().length : 0);
   };
 
@@ -2866,7 +2864,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countSourceCols = function() {
     let len = 0;
-    let obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
+    const obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
 
     if (isObject(obj)) {
       len = deepObjectSize(obj);
@@ -2910,7 +2908,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (priv.settings.columns) {
-      let columnsIsFunction = isFunction(priv.settings.columns);
+      const columnsIsFunction = isFunction(priv.settings.columns);
 
       if (columnsIsFunction) {
         if (instance.dataType === 'array') {

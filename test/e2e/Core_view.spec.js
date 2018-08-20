@@ -300,10 +300,10 @@ describe('Core_view', () => {
       startRows: 40
     });
 
-    let lastScroll;
-
     $(window).scrollTop(10000);
-    lastScroll = $(window).scrollTop();
+
+    const lastScroll = $(window).scrollTop();
+
     render(); // renders synchronously so we don't have to put stuff in waits/runs
     selectCell(39, 0);
 
@@ -316,8 +316,6 @@ describe('Core_view', () => {
   });
 
   it('should not shrink table when width and height is not specified for container', async() => {
-    let initHeight;
-
     spec().$container[0].style.overflow = 'hidden';
     spec().$container.wrap('<div style="width: 50px;"></div>');
     handsontable({
@@ -327,7 +325,7 @@ describe('Core_view', () => {
 
     await sleep(250);
 
-    initHeight = spec().$container.height();
+    const initHeight = spec().$container.height();
 
     await sleep(250);
 

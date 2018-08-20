@@ -2,7 +2,7 @@ describe('WalkontableScrollbar', () => {
   let $table;
   let $container;
   let $wrapper;
-  let debug = false;
+  const debug = false;
 
   beforeEach(() => {
     $wrapper = $('<div></div>').css({ overflow: 'hidden' });

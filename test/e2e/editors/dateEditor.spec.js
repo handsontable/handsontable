@@ -352,7 +352,7 @@ describe('DateEditor', () => {
     }, 150);
 
     setTimeout(() => {
-      let resultDate = getDataAtCell(5, 1);
+      const resultDate = getDataAtCell(5, 1);
 
       expect(moment(resultDate).year()).toEqual(moment().year());
       expect(moment(resultDate).month()).toEqual(moment().month());
@@ -372,8 +372,8 @@ describe('DateEditor', () => {
     selectCell(1, 1);
     keyDown('enter');
 
-    let cellOffset = $(hot.getActiveEditor().TD).offset();
-    let datePickerOffset = $('.pika-single').offset();
+    const cellOffset = $(hot.getActiveEditor().TD).offset();
+    const datePickerOffset = $('.pika-single').offset();
 
     // 23 is a height of the editor cell
     expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
@@ -404,8 +404,8 @@ describe('DateEditor', () => {
     selectCell(20, 6);
     keyDown('enter');
 
-    let cellOffset = $(hot.getActiveEditor().TD).offset();
-    let datePickerOffset = $('.pika-single').offset();
+    const cellOffset = $(hot.getActiveEditor().TD).offset();
+    const datePickerOffset = $('.pika-single').offset();
 
     expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
     expect(cellOffset.left).toBeCloseTo(datePickerOffset.left, 0);
@@ -426,12 +426,12 @@ describe('DateEditor', () => {
     });
 
     // setDataAtCell(0, 0, '02/02/2015 8:00 AM');
-    let cellValue = getDataAtCell(0, 0);
+    const cellValue = getDataAtCell(0, 0);
 
     selectCell(0, 0);
     keyDown('enter');
 
-    let editor = hot.getActiveEditor();
+    const editor = hot.getActiveEditor();
 
     expect(editor.TEXTAREA.value).toEqual(cellValue);
   });

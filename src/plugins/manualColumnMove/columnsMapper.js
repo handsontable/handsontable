@@ -23,7 +23,7 @@ class ColumnsMapper {
    * @param {Number} [length] Custom generated map length.
    */
   createMap(length) {
-    let originLength = length === void 0 ? this._arrayMap.length : length;
+    const originLength = length === void 0 ? this._arrayMap.length : length;
 
     this._arrayMap.length = 0;
 
@@ -46,7 +46,7 @@ class ColumnsMapper {
    * @param {Number} to Target index.
    */
   moveColumn(from, to) {
-    let indexToMove = this._arrayMap[from];
+    const indexToMove = this._arrayMap[from];
     this._arrayMap[from] = null;
     this._arrayMap.splice(to, 0, indexToMove);
   }

@@ -3,7 +3,7 @@ describe('CustomBorders', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-    let wrapper = $('<div></div>').css({
+    const wrapper = $('<div></div>').css({
       width: 400,
       height: 200,
       overflow: 'scroll'

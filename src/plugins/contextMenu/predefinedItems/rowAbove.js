@@ -15,7 +15,7 @@ export default function rowAboveItem() {
       this.alter('insert_row', latestSelection.start.row, 1, 'ContextMenu.rowAbove');
     },
     disabled() {
-      let selected = getValidSelection(this);
+      const selected = getValidSelection(this);
 
       if (!selected) {
         return true;

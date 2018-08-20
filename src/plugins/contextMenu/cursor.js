@@ -9,8 +9,8 @@ import { pageX, pageY } from './../../helpers/dom/event';
  */
 class Cursor {
   constructor(object) {
-    let windowScrollTop = getWindowScrollTop();
-    let windowScrollLeft = getWindowScrollLeft();
+    const windowScrollTop = getWindowScrollTop();
+    const windowScrollLeft = getWindowScrollLeft();
     let top;
     let topRelative;
     let left;

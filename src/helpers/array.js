@@ -226,7 +226,7 @@ export function arrayFlatten(array) {
  * @returns {Array}
  */
 export function arrayUnique(array) {
-  let unique = [];
+  const unique = [];
 
   arrayEach(array, (value) => {
     if (unique.indexOf(value) === -1) {

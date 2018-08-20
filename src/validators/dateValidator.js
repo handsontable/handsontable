@@ -35,9 +35,9 @@ export default function dateValidator(value, callback) {
 
   if (isValidDate && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
-      let correctedValue = correctFormat(value, this.dateFormat);
-      let row = this.instance.runHooks('unmodifyRow', this.row);
-      let column = this.instance.runHooks('unmodifyCol', this.col);
+      const correctedValue = correctFormat(value, this.dateFormat);
+      const row = this.instance.runHooks('unmodifyRow', this.row);
+      const column = this.instance.runHooks('unmodifyCol', this.col);
 
       this.instance.setDataAtCell(row, column, correctedValue, 'dateValidator');
       valid = true;
@@ -57,9 +57,9 @@ export default function dateValidator(value, callback) {
  * @returns {String}
  */
 export function correctFormat(value, dateFormat) {
-  let dateFromDate = moment(getNormalizedDate(value));
-  let dateFromMoment = moment(value, dateFormat);
-  let isAlphanumeric = value.search(/[A-z]/g) > -1;
+  const dateFromDate = moment(getNormalizedDate(value));
+  const dateFromMoment = moment(value, dateFormat);
+  const isAlphanumeric = value.search(/[A-z]/g) > -1;
   let date;
 
   if ((dateFromDate.isValid() && dateFromDate.format('x') === dateFromMoment.format('x')) ||

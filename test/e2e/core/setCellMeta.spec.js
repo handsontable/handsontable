@@ -22,7 +22,7 @@ describe('Core.setCellMeta', () => {
       }
     });
 
-    let cellMeta = getCellMeta(0, 0);
+    const cellMeta = getCellMeta(0, 0);
 
     expect(cellMeta.className).not.toBeUndefined();
     expect(cellMeta.className).toEqual(className);
@@ -53,7 +53,7 @@ describe('Core.setCellMeta', () => {
       }
     });
 
-    let cellMeta = getCellMeta(100, 100);
+    const cellMeta = getCellMeta(100, 100);
 
     expect(cellMeta.className).not.toBeUndefined();
     expect(cellMeta.className).toEqual(className);

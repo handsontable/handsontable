@@ -112,7 +112,7 @@ class Menu {
 
     filteredItems = filterSeparators(filteredItems, SEPARATOR);
 
-    let settings = {
+    const settings = {
       data: filteredItems,
       colHeaders: false,
       autoColumnSize: true,
@@ -190,15 +190,15 @@ class Menu {
     if (!this.hotMenu) {
       return false;
     }
-    let cell = this.hotMenu.getCell(row, 0);
+    const cell = this.hotMenu.getCell(row, 0);
 
     this.closeAllSubMenus();
 
     if (!cell || !hasSubMenu(cell)) {
       return false;
     }
-    let dataItem = this.hotMenu.getSourceDataAtRow(row);
-    let subMenu = new Menu(this.hot, {
+    const dataItem = this.hotMenu.getSourceDataAtRow(row);
+    const subMenu = new Menu(this.hot, {
       parent: this,
       name: dataItem.name,
       className: this.options.className,
@@ -218,8 +218,8 @@ class Menu {
    * @param {Number} row Row index.
    */
   closeSubMenu(row) {
-    let dataItem = this.hotMenu.getSourceDataAtRow(row);
-    let menus = this.hotSubMenus[dataItem.key];
+    const dataItem = this.hotMenu.getSourceDataAtRow(row);
+    const menus = this.hotSubMenus[dataItem.key];
 
     if (menus) {
       menus.destroy();
@@ -380,7 +380,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    let left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth() + 4;
+    const left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth() + 4;
 
     this.container.style.left = `${left}px`;
   }
@@ -389,7 +389,7 @@ class Menu {
    * Select first cell in opened menu.
    */
   selectFirstCell() {
-    let cell = this.hotMenu.getCell(0, 0);
+    const cell = this.hotMenu.getCell(0, 0);
 
     if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
       this.selectNextCell(0, 0);
@@ -402,8 +402,8 @@ class Menu {
    * Select last cell in opened menu.
    */
   selectLastCell() {
-    let lastRow = this.hotMenu.countRows() - 1;
-    let cell = this.hotMenu.getCell(lastRow, 0);
+    const lastRow = this.hotMenu.countRows() - 1;
+    const cell = this.hotMenu.getCell(lastRow, 0);
 
     if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
       this.selectPrevCell(lastRow, 0);
@@ -419,8 +419,8 @@ class Menu {
    * @param {Number} col Column index.
    */
   selectNextCell(row, col) {
-    let nextRow = row + 1;
-    let cell = nextRow < this.hotMenu.countRows() ? this.hotMenu.getCell(nextRow, col) : null;
+    const nextRow = row + 1;
+    const cell = nextRow < this.hotMenu.countRows() ? this.hotMenu.getCell(nextRow, col) : null;
 
     if (!cell) {
       return;
@@ -439,8 +439,8 @@ class Menu {
    * @param {Number} col Column index.
    */
   selectPrevCell(row, col) {
-    let prevRow = row - 1;
-    let cell = prevRow >= 0 ? this.hotMenu.getCell(prevRow, col) : null;
+    const prevRow = row - 1;
+    const cell = prevRow >= 0 ? this.hotMenu.getCell(prevRow, col) : null;
 
     if (!cell) {
       return;
@@ -458,13 +458,13 @@ class Menu {
    * @private
    */
   menuItemRenderer(hot, TD, row, col, prop, value) {
-    let item = hot.getSourceDataAtRow(row);
-    let wrapper = document.createElement('div');
+    const item = hot.getSourceDataAtRow(row);
+    const wrapper = document.createElement('div');
 
-    let isSubMenu = itemToTest => hasOwnProperty(itemToTest, 'submenu');
-    let itemIsSeparator = itemToTest => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
-    let itemIsDisabled = itemToTest => itemToTest.disabled === true || (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
-    let itemIsSelectionDisabled = itemToTest => itemToTest.disableSelection;
+    const isSubMenu = itemToTest => hasOwnProperty(itemToTest, 'submenu');
+    const itemIsSeparator = itemToTest => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
+    const itemIsDisabled = itemToTest => itemToTest.disabled === true || (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
+    const itemIsSelectionDisabled = itemToTest => itemToTest.disableSelection;
 
     if (typeof value === 'function') {
       value = value.call(this.hot);
@@ -583,7 +583,7 @@ class Menu {
    * @param {Event} event
    */
   onBeforeKeyDown(event) {
-    let selection = this.hotMenu.getSelectedLast();
+    const selection = this.hotMenu.getSelectedLast();
     let stopEvent = false;
     this.keyEvent = true;
 
@@ -624,7 +624,7 @@ class Menu {
 
       case KEY_CODES.ARROW_RIGHT:
         if (selection) {
-          let menu = this.openSubMenu(selection[0]);
+          const menu = this.openSubMenu(selection[0]);
 
           if (menu) {
             menu.selectFirstCell();
@@ -664,9 +664,9 @@ class Menu {
     const data = this.hotMenu.getSettings().data;
     const hiderStyle = this.hotMenu.view.wt.wtTable.hider.style;
     const holderStyle = this.hotMenu.view.wt.wtTable.holder.style;
-    let currentHiderWidth = parseInt(hiderStyle.width, 10);
+    const currentHiderWidth = parseInt(hiderStyle.width, 10);
 
-    let realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
+    const realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
 
     holderStyle.width = `${currentHiderWidth + 22}px`;
     holderStyle.height = `${realHeight + 4}px`;

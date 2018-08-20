@@ -7,12 +7,10 @@ import { EditorState } from './editors/_baseEditor';
 
 function EditorManager(instance, priv, selection) {
   const _this = this;
+  const eventManager = new EventManager(instance);
   let destroyed = false;
   let lock = false;
-  let eventManager;
   let activeEditor;
-
-  eventManager = new EventManager(instance);
 
   function moveSelectionAfterEnter(shiftKey) {
     const enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
@@ -327,14 +325,6 @@ function EditorManager(instance, priv, selection) {
       return;
     }
 
-    let row;
-    let col;
-    let prop;
-    let td;
-    let originalValue;
-    let cellProperties;
-    let editorClass;
-
     if (activeEditor && activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved) => {
         if (dataSaved) {
@@ -344,14 +334,14 @@ function EditorManager(instance, priv, selection) {
 
       return;
     }
-    row = instance.selection.selectedRange.current().highlight.row;
-    col = instance.selection.selectedRange.current().highlight.col;
-    prop = instance.colToProp(col);
-    td = instance.getCell(row, col);
 
-    originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), col);
-    cellProperties = instance.getCellMeta(row, col);
-    editorClass = instance.getCellEditor(cellProperties);
+    const row = instance.selection.selectedRange.current().highlight.row;
+    const col = instance.selection.selectedRange.current().highlight.col;
+    const prop = instance.colToProp(col);
+    const td = instance.getCell(row, col);
+    const originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), col);
+    const cellProperties = instance.getCellMeta(row, col);
+    const editorClass = instance.getCellEditor(cellProperties);
 
     if (editorClass) {
       activeEditor = getEditorInstance(editorClass, instance);

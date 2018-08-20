@@ -2318,7 +2318,7 @@ describe('ContextMenu', () => {
         keyDownUp('arrow_down');
         keyDownUp('arrow_down');
 
-        let scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
+        const scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
 
         expect(scrollHeight).not.toBe(0);
       });
@@ -2916,7 +2916,7 @@ describe('ContextMenu', () => {
       window.scrollTo(0, 0);
       $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').simulate('mouseenter');
 
-      let scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
+      const scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
 
       expect(scrollHeight).toBe(0);
     });
@@ -2949,7 +2949,7 @@ describe('ContextMenu', () => {
         .eq(0)
         .simulate('mousedown');
 
-      let scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
+      const scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
 
       expect(scrollHeight).toBe(0);
     });

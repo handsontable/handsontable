@@ -199,7 +199,7 @@ export function index(element) {
  * @returns {boolean}
  */
 export function overlayContainsElement(overlayType, element) {
-  let overlayElement = document.querySelector(`.ht_clone_${overlayType}`);
+  const overlayElement = document.querySelector(`.ht_clone_${overlayType}`);
   return overlayElement ? overlayElement.contains(element) : null;
 }
 
@@ -480,13 +480,11 @@ export function isVisible(elem) {
  * @return {Object} Returns object with `top` and `left` props
  */
 export function offset(elem) {
+  const docElem = document.documentElement;
   let offsetLeft;
   let offsetTop;
   let lastElem;
-  let docElem;
   let box;
-
-  docElem = document.documentElement;
 
   if (hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
     // fixes problem with Firefox ignoring <caption> in TABLE offset (see also export outerHeight)

@@ -434,7 +434,7 @@ describe('CopyPaste', () => {
 
       await sleep(60);
 
-      let expected = arrayOfArrays();
+      const expected = arrayOfArrays();
       expected[3][4] = 'Kia';
       expect(getData()).toEqual(expected);
     });

@@ -22,7 +22,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
     const cellCulture = numericFormat && numericFormat.culture || '-';
     const cellFormatPattern = numericFormat && numericFormat.pattern;
     const className = cellProperties.className || '';
-    let classArr = className.length ? className.split(' ') : [];
+    const classArr = className.length ? className.split(' ') : [];
 
     if (typeof cellCulture !== 'undefined' && !numbro.languages()[cellCulture]) {
       const shortTag = cellCulture.replace('-', '');

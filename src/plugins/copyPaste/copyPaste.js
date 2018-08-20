@@ -200,9 +200,9 @@ class CopyPaste extends BasePlugin {
    * @returns {String} Returns string which will be copied into clipboard.
    */
   getRangedCopyableData(ranges) {
-    let dataSet = [];
-    let copyableRows = [];
-    let copyableColumns = [];
+    const dataSet = [];
+    const copyableRows = [];
+    const copyableColumns = [];
 
     // Count all copyable rows and columns
     arrayEach(ranges, (range) => {
@@ -219,7 +219,7 @@ class CopyPaste extends BasePlugin {
     });
     // Concat all rows and columns data defined in ranges into one copyable string
     arrayEach(copyableRows, (row) => {
-      let rowSet = [];
+      const rowSet = [];
 
       arrayEach(copyableColumns, (column) => {
         rowSet.push(this.hot.getCopyableData(row, column));
@@ -257,7 +257,7 @@ class CopyPaste extends BasePlugin {
     });
     // Concat all rows and columns data defined in ranges into one copyable string
     arrayEach(copyableRows, (row) => {
-      let rowSet = [];
+      const rowSet = [];
 
       arrayEach(copyableColumns, (column) => {
         rowSet.push(this.hot.getCopyableData(row, column));
@@ -325,8 +325,8 @@ class CopyPaste extends BasePlugin {
     this.setCopyableText();
     priv.isTriggeredByCopy = false;
 
-    let rangedData = this.getRangedData(this.copyableRanges);
-    let allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
+    const rangedData = this.getRangedData(this.copyableRanges);
+    const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
     let value = '';
 
     if (allowCopying) {
@@ -367,8 +367,8 @@ class CopyPaste extends BasePlugin {
     this.setCopyableText();
     priv.isTriggeredByCut = false;
 
-    let rangedData = this.getRangedData(this.copyableRanges);
-    let allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
+    const rangedData = this.getRangedData(this.copyableRanges);
+    const allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
     let value;
 
     if (allowCuttingOut) {
@@ -409,7 +409,6 @@ class CopyPaste extends BasePlugin {
       event.preventDefault();
     }
 
-    let inputArray;
     let pastedData;
 
     if (event && typeof event.clipboardData !== 'undefined') {
@@ -419,41 +418,41 @@ class CopyPaste extends BasePlugin {
       pastedData = window.clipboardData.getData('Text');
     }
 
-    inputArray = SheetClip.parse(pastedData);
+    const inputArray = SheetClip.parse(pastedData);
 
     if (inputArray.length === 0) {
       return;
     }
 
-    let allowPasting = !!this.hot.runHooks('beforePaste', inputArray, this.copyableRanges);
+    const allowPasting = !!this.hot.runHooks('beforePaste', inputArray, this.copyableRanges);
 
     if (!allowPasting) {
       return;
     }
 
-    let selected = this.hot.getSelectedLast();
-    let coordsFrom = new CellCoords(selected[0], selected[1]);
-    let coordsTo = new CellCoords(selected[2], selected[3]);
-    let cellRange = new CellRange(coordsFrom, coordsFrom, coordsTo);
-    let topLeftCorner = cellRange.getTopLeftCorner();
-    let bottomRightCorner = cellRange.getBottomRightCorner();
-    let areaStart = topLeftCorner;
-    let areaEnd = new CellCoords(
+    const selected = this.hot.getSelectedLast();
+    const coordsFrom = new CellCoords(selected[0], selected[1]);
+    const coordsTo = new CellCoords(selected[2], selected[3]);
+    const cellRange = new CellRange(coordsFrom, coordsFrom, coordsTo);
+    const topLeftCorner = cellRange.getTopLeftCorner();
+    const bottomRightCorner = cellRange.getBottomRightCorner();
+    const areaStart = topLeftCorner;
+    const areaEnd = new CellCoords(
       Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
       Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
 
-    let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
-    let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
+    const isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
+    const isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
 
     this.hot.addHookOnce('afterChange', (changes) => {
-      let changesLength = changes ? changes.length : 0;
+      const changesLength = changes ? changes.length : 0;
 
       if (changesLength) {
-        let offset = { row: 0, col: 0 };
+        const offset = { row: 0, col: 0 };
         let highestColumnIndex = -1;
 
         arrayEach(changes, (change, index) => {
-          let nextChange = changesLength > index + 1 ? changes[index + 1] : null;
+          const nextChange = changesLength > index + 1 ? changes[index + 1] : null;
 
           if (nextChange) {
             if (!isSelRowAreaCoverInputValue) {

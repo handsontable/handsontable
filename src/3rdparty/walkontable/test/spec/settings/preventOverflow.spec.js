@@ -2,7 +2,7 @@ describe('preventOverflow option', () => {
   let $table;
   let $container;
   let $wrapper;
-  let debug = false;
+  const debug = false;
 
   beforeEach(() => {
     $wrapper = $('<div></div>').css({ position: 'relative' });

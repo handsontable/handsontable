@@ -91,7 +91,7 @@ DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
 
 DataMap.prototype.createMap = function() {
   let i;
-  let schema = this.getSchema();
+  const schema = this.getSchema();
 
   if (typeof schema === 'undefined') {
     throw new Error('trying to create `columns` definition but you didn\'t provide `schema` nor `data`');
@@ -100,14 +100,14 @@ DataMap.prototype.createMap = function() {
   this.colToPropCache = [];
   this.propToColCache = new MultiMap();
 
-  let columns = this.instance.getSettings().columns;
+  const columns = this.instance.getSettings().columns;
 
   if (columns) {
     const maxCols = this.instance.getSettings().maxCols;
     let columnsLen = Math.min(maxCols, columns.length);
     let filteredIndex = 0;
     let columnsAsFunc = false;
-    let schemaLen = deepObjectSize(schema);
+    const schemaLen = deepObjectSize(schema);
 
     if (typeof columns === 'function') {
       columnsLen = schemaLen > 0 ? schemaLen : this.instance.countSourceCols();
@@ -115,11 +115,11 @@ DataMap.prototype.createMap = function() {
     }
 
     for (i = 0; i < columnsLen; i++) {
-      let column = columnsAsFunc ? columns(i) : columns[i];
+      const column = columnsAsFunc ? columns(i) : columns[i];
 
       if (isObject(column)) {
         if (typeof column.data !== 'undefined') {
-          let index = columnsAsFunc ? filteredIndex : i;
+          const index = columnsAsFunc ? filteredIndex : i;
           this.colToPropCache[index] = column.data;
           this.propToColCache.set(column.data, index);
         }
@@ -171,7 +171,7 @@ DataMap.prototype.propToCol = function(prop) {
  * @returns {Object}
  */
 DataMap.prototype.getSchema = function() {
-  let schema = this.instance.getSettings().dataSchema;
+  const schema = this.instance.getSettings().dataSchema;
 
   if (schema) {
     if (typeof schema === 'function') {
@@ -335,17 +335,15 @@ DataMap.prototype.removeRow = function(index, amount, source) {
 
   index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
 
-  let logicRows = this.visualRowsToPhysical(index, amount);
-  let actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', index, amount, logicRows, source);
+  const logicRows = this.visualRowsToPhysical(index, amount);
+  const actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', index, amount, logicRows, source);
 
   if (actionWasNotCancelled === false) {
     return;
   }
 
-  let data = this.dataSource;
-  let newData;
-
-  newData = this.filterData(index, amount);
+  const data = this.dataSource;
+  const newData = this.filterData(index, amount);
 
   if (newData) {
     data.length = 0;
@@ -379,17 +377,17 @@ DataMap.prototype.removeCol = function(index, amount, source) {
 
   index = (this.instance.countCols() + index) % this.instance.countCols();
 
-  let logicColumns = this.visualColumnsToPhysical(index, amount);
-  let descendingLogicColumns = logicColumns.slice(0).sort((a, b) => b - a);
-  let actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', index, amount, logicColumns, source);
+  const logicColumns = this.visualColumnsToPhysical(index, amount);
+  const descendingLogicColumns = logicColumns.slice(0).sort((a, b) => b - a);
+  const actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', index, amount, logicColumns, source);
 
   if (actionWasNotCancelled === false) {
     return;
   }
 
   let isTableUniform = true;
-  let removedColumnsCount = descendingLogicColumns.length;
-  let data = this.dataSource;
+  const removedColumnsCount = descendingLogicColumns.length;
+  const data = this.dataSource;
 
   for (let c = 0; c < removedColumnsCount; c++) {
     if (isTableUniform && logicColumns[0] !== logicColumns[c] - c) {
@@ -478,7 +476,7 @@ DataMap.prototype.spliceRow = function(row, index, amount, ...elements) {
  * @param {Object} element Row to add.
  */
 DataMap.prototype.spliceData = function(index, amount, element) {
-  let continueSplicing = this.instance.runHooks('beforeDataSplice', index, amount, element);
+  const continueSplicing = this.instance.runHooks('beforeDataSplice', index, amount, element);
 
   if (continueSplicing !== false) {
     this.dataSource.splice(index, amount, element);
@@ -493,11 +491,11 @@ DataMap.prototype.spliceData = function(index, amount, element) {
  * @returns {Array}
  */
 DataMap.prototype.filterData = function(index, amount) {
-  let physicalRows = this.visualRowsToPhysical(index, amount);
-  let continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, physicalRows);
+  const physicalRows = this.visualRowsToPhysical(index, amount);
+  const continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, physicalRows);
 
   if (continueSplicing !== false) {
-    let newData = this.dataSource.filter((row, rowIndex) => physicalRows.indexOf(rowIndex) === -1);
+    const newData = this.dataSource.filter((row, rowIndex) => physicalRows.indexOf(rowIndex) === -1);
 
     return newData;
   }
@@ -514,7 +512,7 @@ DataMap.prototype.get = function(row, prop) {
 
   let dataRow = this.dataSource[row];
   // TODO: To remove, use 'modifyData' hook instead (see below)
-  let modifiedRowData = this.instance.runHooks('modifyRowData', row);
+  const modifiedRowData = this.instance.runHooks('modifyRowData', row);
 
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
   //
@@ -526,7 +524,7 @@ DataMap.prototype.get = function(row, prop) {
     value = dataRow[prop];
 
   } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
-    let sliced = prop.split('.');
+    const sliced = prop.split('.');
     let out = dataRow;
 
     if (!out) {
@@ -600,7 +598,7 @@ DataMap.prototype.set = function(row, prop, value, source) {
 
   let dataRow = this.dataSource[row];
   // TODO: To remove, use 'modifyData' hook instead (see below)
-  let modifiedRowData = this.instance.runHooks('modifyRowData', row);
+  const modifiedRowData = this.instance.runHooks('modifyRowData', row);
 
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
   //
@@ -620,7 +618,7 @@ DataMap.prototype.set = function(row, prop, value, source) {
     dataRow[prop] = value;
 
   } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
-    let sliced = prop.split('.');
+    const sliced = prop.split('.');
     let out = dataRow;
     let i = 0;
     let ilen;
@@ -677,13 +675,13 @@ DataMap.prototype.visualRowsToPhysical = function(index, amount) {
  * @returns {Array}
  */
 DataMap.prototype.visualColumnsToPhysical = function(index, amount) {
-  let totalCols = this.instance.countCols();
+  const totalCols = this.instance.countCols();
   let physicalCol = (totalCols + index) % totalCols;
-  let visualCols = [];
+  const visualCols = [];
   let colsToRemove = amount;
 
   while (physicalCol < totalCols && colsToRemove) {
-    let col = this.instance.runHooks('modifyCol', physicalCol);
+    const col = this.instance.runHooks('modifyCol', physicalCol);
 
     visualCols.push(col);
 
@@ -718,7 +716,7 @@ DataMap.prototype.clearLengthCache = function() {
  * @returns {Number}
  */
 DataMap.prototype.getLength = function() {
-  let maxRowsFromSettings = this.instance.getSettings().maxRows;
+  const maxRowsFromSettings = this.instance.getSettings().maxRows;
   let maxRows;
 
   if (maxRowsFromSettings < 0 || maxRowsFromSettings === 0) {
@@ -769,7 +767,7 @@ DataMap.prototype.getAll = function() {
     col: 0,
   };
 
-  let end = {
+  const end = {
     row: Math.max(this.instance.countSourceRows() - 1, 0),
     col: Math.max(this.instance.countCols() - 1, 0),
   };
@@ -792,9 +790,7 @@ DataMap.prototype.getAll = function() {
 DataMap.prototype.getRange = function(start, end, destination) {
   const output = [];
   let r;
-  let rlen;
   let c;
-  let clen;
   let row;
 
   const maxRows = this.instance.getSettings().maxRows;
@@ -806,12 +802,12 @@ DataMap.prototype.getRange = function(start, end, destination) {
 
   const getFn = destination === this.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
 
-  rlen = Math.min(Math.max(maxRows - 1, 0), Math.max(start.row, end.row));
-  clen = Math.min(Math.max(maxCols - 1, 0), Math.max(start.col, end.col));
+  const rlen = Math.min(Math.max(maxRows - 1, 0), Math.max(start.row, end.row));
+  const clen = Math.min(Math.max(maxCols - 1, 0), Math.max(start.col, end.col));
 
   for (r = Math.min(start.row, end.row); r <= rlen; r++) {
     row = [];
-    let physicalRow = this.instance.runHooks('modifyRow', r);
+    const physicalRow = this.instance.runHooks('modifyRow', r);
 
     for (c = Math.min(start.col, end.col); c <= clen; c++) {
 

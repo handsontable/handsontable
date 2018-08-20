@@ -203,12 +203,12 @@ class AutoRowSize extends BasePlugin {
    */
   calculateAllRowsHeight(colRange = { from: 0, to: this.hot.countCols() - 1 }) {
     let current = 0;
-    let length = this.hot.countRows() - 1;
+    const length = this.hot.countRows() - 1;
     let timer = null;
 
     this.inProgress = true;
 
-    let loop = () => {
+    const loop = () => {
       // When hot was destroyed after calculating finished cancel frame
       if (!this.hot) {
         cancelAnimationFrame(timer);
@@ -254,9 +254,9 @@ class AutoRowSize extends BasePlugin {
    * @private
    */
   setSamplingOptions() {
-    let setting = this.hot.getSettings().autoRowSize;
-    let samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
-    let allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ? this.hot.getSettings().autoRowSize.allowSampleDuplicates : void 0;
+    const setting = this.hot.getSettings().autoRowSize;
+    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
+    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ? this.hot.getSettings().autoRowSize.allowSampleDuplicates : void 0;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -286,7 +286,7 @@ class AutoRowSize extends BasePlugin {
   getSyncCalculationLimit() {
     /* eslint-disable no-bitwise */
     let limit = AutoRowSize.SYNC_CALCULATION_LIMIT;
-    let rowsLimit = this.hot.countRows() - 1;
+    const rowsLimit = this.hot.countRows() - 1;
 
     if (isObject(this.hot.getSettings().autoRowSize)) {
       limit = this.hot.getSettings().autoRowSize.syncLimit;
@@ -401,14 +401,14 @@ class AutoRowSize extends BasePlugin {
    * @private
    */
   onBeforeRender() {
-    let force = this.hot.renderCall;
-    this.calculateRowsHeight({ from: this.getFirstVisibleRow(), to: this.getLastVisibleRow() }, void 0, force);
+    const force = this.hot.renderCall;
+    const fixedRowsBottom = this.hot.getSettings().fixedRowsBottom;
 
-    let fixedRowsBottom = this.hot.getSettings().fixedRowsBottom;
+    this.calculateRowsHeight({ from: this.getFirstVisibleRow(), to: this.getLastVisibleRow() }, void 0, force);
 
     // Calculate rows height synchronously for bottom overlay
     if (fixedRowsBottom) {
-      let totalRows = this.hot.countRows() - 1;
+      const totalRows = this.hot.countRows() - 1;
       this.calculateRowsHeight({ from: totalRows - fixedRowsBottom, to: totalRows });
     }
 

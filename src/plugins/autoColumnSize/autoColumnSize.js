@@ -156,7 +156,7 @@ class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    let setting = this.hot.getSettings().autoColumnSize;
+    const setting = this.hot.getSettings().autoColumnSize;
 
     if (setting && setting.useHeaders !== null && setting.useHeaders !== void 0) {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
@@ -231,12 +231,12 @@ class AutoColumnSize extends BasePlugin {
    */
   calculateAllColumnsWidth(rowRange = { from: 0, to: this.hot.countRows() - 1 }) {
     let current = 0;
-    let length = this.hot.countCols() - 1;
+    const length = this.hot.countCols() - 1;
     let timer = null;
 
     this.inProgress = true;
 
-    let loop = () => {
+    const loop = () => {
       // When hot was destroyed after calculating finished cancel frame
       if (!this.hot) {
         cancelAnimationFrame(timer);
@@ -286,9 +286,9 @@ class AutoColumnSize extends BasePlugin {
    * @private
    */
   setSamplingOptions() {
-    let setting = this.hot.getSettings().autoColumnSize;
-    let samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
-    let allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ? this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
+    const setting = this.hot.getSettings().autoColumnSize;
+    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
+    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ? this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -318,7 +318,7 @@ class AutoColumnSize extends BasePlugin {
   getSyncCalculationLimit() {
     /* eslint-disable no-bitwise */
     let limit = AutoColumnSize.SYNC_CALCULATION_LIMIT;
-    let colsLimit = this.hot.countCols() - 1;
+    const colsLimit = this.hot.countCols() - 1;
 
     if (isObject(this.hot.getSettings().autoColumnSize)) {
       limit = this.hot.getSettings().autoColumnSize.syncLimit;

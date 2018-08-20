@@ -24,7 +24,7 @@ describe('Scrolling', () => {
 
     let TRs = $htCore.find('tr');
     let lastTR = [...TRs].pop();
-    let lastTRTextAtStart = $(lastTR).text();
+    const lastTRTextAtStart = $(lastTR).text();
 
     $(mainHolder).scrollTop(400);
 
@@ -32,7 +32,7 @@ describe('Scrolling', () => {
 
     TRs = $htCore.find('tr');
     lastTR = [...TRs].pop();
-    let lastTRTextLater = $(lastTR).text();
+    const lastTRTextLater = $(lastTR).text();
 
     expect(lastTRTextLater).not.toEqual(lastTRTextAtStart);
   });
@@ -46,7 +46,7 @@ describe('Scrolling', () => {
 
     let TRs = $htCore.find('tr');
     let lastTR = [...TRs].pop();
-    let lastTRTextAtStart = $(lastTR).text();
+    const lastTRTextAtStart = $(lastTR).text();
 
     await sleep(300);
 
@@ -56,7 +56,7 @@ describe('Scrolling', () => {
 
     TRs = $htCore.find('tr');
     lastTR = [...TRs].pop();
-    let lastTRTextLater = $(lastTR).text();
+    const lastTRTextLater = $(lastTR).text();
 
     expect(lastTRTextLater).not.toEqual(lastTRTextAtStart);
   });

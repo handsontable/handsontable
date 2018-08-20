@@ -261,8 +261,8 @@ class Comments extends BasePlugin {
       comment = editorValue;
     }
 
-    let row = this.range.from.row;
-    let col = this.range.from.col;
+    const row = this.range.from.row;
+    const col = this.range.from.col;
 
     this.updateCommentMeta(row, col, { [META_COMMENT_VALUE]: comment });
     this.hot.render();
@@ -347,7 +347,7 @@ class Comments extends BasePlugin {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
-    let meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
+    const meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
 
     this.refreshEditor(true);
     this.editor.setValue(meta[META_COMMENT] ? meta[META_COMMENT][META_COMMENT_VALUE] : null || '');
@@ -396,8 +396,8 @@ class Comments extends BasePlugin {
     const TD = this.hot.view.wt.wtTable.getCell(this.range.from);
     const row = this.range.from.row;
     const column = this.range.from.col;
-    let cellOffset = offset(TD);
-    let lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
+    const cellOffset = offset(TD);
+    const lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
     let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
     let cellLeftOffset = cellOffset.left;
 
@@ -409,8 +409,8 @@ class Comments extends BasePlugin {
       cellLeftOffset -= this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
     }
 
-    let x = cellLeftOffset + lastColWidth;
-    let y = cellTopOffset;
+    const x = cellLeftOffset + lastColWidth;
+    const y = cellTopOffset;
 
     const commentStyle = this.getCommentMeta(row, column, META_STYLE);
     const readOnly = this.getCommentMeta(row, column, META_READONLY);
@@ -439,7 +439,7 @@ class Comments extends BasePlugin {
       return false;
     }
     let hasComment = false;
-    let cell = selected.from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
+    const cell = selected.from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
 
     if (this.getCommentMeta(cell.row, cell.col, META_COMMENT_VALUE)) {
       hasComment = true;
@@ -618,7 +618,7 @@ class Comments extends BasePlugin {
    */
   onContextMenuAddComment() {
     this.displaySwitch.cancelHiding();
-    let coords = this.hot.getSelectedRangeLast();
+    const coords = this.hot.getSelectedRangeLast();
 
     this.contextMenuEvent = true;
     this.setRange({
@@ -639,9 +639,9 @@ class Comments extends BasePlugin {
    * @private
    */
   onContextMenuRemoveComment() {
-    this.contextMenuEvent = true;
+    const { from, to } = this.hot.getSelectedRangeLast();
 
-    let { from, to } = this.hot.getSelectedRangeLast();
+    this.contextMenuEvent = true;
 
     for (let i = from.row; i <= to.row; i++) {
       for (let j = from.col; j <= to.col; j++) {
@@ -658,13 +658,13 @@ class Comments extends BasePlugin {
    * @private
    */
   onContextMenuMakeReadOnly() {
-    this.contextMenuEvent = true;
+    const { from, to } = this.hot.getSelectedRangeLast();
 
-    let { from, to } = this.hot.getSelectedRangeLast();
+    this.contextMenuEvent = true;
 
     for (let i = from.row; i <= to.row; i++) {
       for (let j = from.col; j <= to.col; j++) {
-        let currentState = !!this.getCommentMeta(i, j, META_READONLY);
+        const currentState = !!this.getCommentMeta(i, j, META_READONLY);
 
         this.updateCommentMeta(i, j, { [META_READONLY]: !currentState });
       }
@@ -708,7 +708,7 @@ class Comments extends BasePlugin {
         key: 'commentsReadOnly',
         name() {
           let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
-          let hasProperty = checkSelectionConsistency(this.getSelectedRangeLast(), (row, col) => {
+          const hasProperty = checkSelectionConsistency(this.getSelectedRangeLast(), (row, col) => {
             let readOnlyProperty = this.getCellMeta(row, col)[META_COMMENT];
             if (readOnlyProperty) {
               readOnlyProperty = readOnlyProperty[META_READONLY];

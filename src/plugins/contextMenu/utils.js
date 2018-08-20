@@ -26,7 +26,7 @@ export function isSelectionDisabled(cell) {
 }
 
 export function getValidSelection(hot) {
-  let selected = hot.getSelected();
+  const selected = hot.getSelected();
 
   if (!selected) {
     return null;
@@ -101,7 +101,7 @@ export function align(ranges, type, alignment, cellDescriptor, propertySetter) {
 }
 
 function applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter) {
-  let cellMeta = cellDescriptor(row, col);
+  const cellMeta = cellDescriptor(row, col);
   let className = alignment;
 
   if (cellMeta.className) {
@@ -145,7 +145,7 @@ export function isItemHidden(item, instance) {
 }
 
 function shiftSeparators(items, separator) {
-  let result = items.slice(0);
+  const result = items.slice(0);
 
   for (let i = 0; i < result.length;) {
     if (result[i].name === separator) {
@@ -168,7 +168,7 @@ function popSeparators(items, separator) {
 }
 
 function removeDuplicatedSeparators(items) {
-  let result = [];
+  const result = [];
 
   arrayEach(items, (value, index) => {
     if (index > 0) {

@@ -53,7 +53,6 @@
     "no-void": 0,
     "no-with": 2,
     "padded-blocks": 0,
-    "prefer-const": 0,
     "space-infix-ops": 2,
     "camelcase": [
       2,

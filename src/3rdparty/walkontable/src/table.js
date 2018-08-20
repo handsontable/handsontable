@@ -167,7 +167,7 @@ class Table {
       this.holder.parentNode.style.position = 'relative';
 
       if (trimmingElement === window) {
-        let preventOverflow = this.wot.getSetting('preventOverflow');
+        const preventOverflow = this.wot.getSetting('preventOverflow');
 
         if (!preventOverflow) {
           this.holder.style.overflow = 'visible';
@@ -193,9 +193,9 @@ class Table {
    */
   draw(fastDraw) {
     const { wtOverlays, wtViewport } = this.wot;
-    let totalRows = this.instance.getSetting('totalRows');
-    let rowHeaders = this.wot.getSetting('rowHeaders').length;
-    let columnHeaders = this.wot.getSetting('columnHeaders').length;
+    const totalRows = this.instance.getSetting('totalRows');
+    const rowHeaders = this.wot.getSetting('rowHeaders').length;
+    const columnHeaders = this.wot.getSetting('columnHeaders').length;
     let syncScroll = false;
 
     if (!this.isWorkingOnClone()) {
@@ -342,7 +342,7 @@ class Table {
         }
       }
 
-      let additionalClassesToRemove = this.wot.getSetting('onBeforeRemoveCellClassNames');
+      const additionalClassesToRemove = this.wot.getSetting('onBeforeRemoveCellClassNames');
 
       if (Array.isArray(additionalClassesToRemove)) {
         for (let i = 0; i < additionalClassesToRemove.length; i++) {
@@ -545,7 +545,7 @@ class Table {
 
   getRenderedColumnsCount() {
     let columnsCount = this.wot.wtViewport.columnsRenderCalculator.count;
-    let totalColumns = this.wot.getSetting('totalColumns');
+    const totalColumns = this.wot.getSetting('totalColumns');
 
     if (this.wot.isOverlayName(Overlay.CLONE_DEBUG)) {
       columnsCount = totalColumns;
@@ -562,7 +562,7 @@ class Table {
 
   getRenderedRowsCount() {
     let rowsCount = this.wot.wtViewport.rowsRenderCalculator.count;
-    let totalRows = this.wot.getSetting('totalRows');
+    const totalRows = this.wot.getSetting('totalRows');
 
     if (this.wot.isOverlayName(Overlay.CLONE_DEBUG)) {
       rowsCount = totalRows;
@@ -595,7 +595,7 @@ class Table {
    */
   getRowHeight(sourceRow) {
     let height = this.wot.wtSettings.settings.rowHeight(sourceRow);
-    let oversizedHeight = this.wot.wtViewport.oversizedRows[sourceRow];
+    const oversizedHeight = this.wot.wtViewport.oversizedRows[sourceRow];
 
     if (oversizedHeight !== void 0) {
       height = height === void 0 ? oversizedHeight : Math.max(height, oversizedHeight);
@@ -606,7 +606,7 @@ class Table {
 
   getColumnHeaderHeight(level) {
     let height = this.wot.wtSettings.settings.defaultRowHeight;
-    let oversizedHeight = this.wot.wtViewport.oversizedColumnHeaders[level];
+    const oversizedHeight = this.wot.wtViewport.oversizedColumnHeaders[level];
 
     if (oversizedHeight !== void 0) {
       height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
@@ -637,12 +637,12 @@ class Table {
   }
 
   getStretchedColumnWidth(sourceColumn) {
-    let columnWidth = this.getColumnWidth(sourceColumn);
+    const columnWidth = this.getColumnWidth(sourceColumn);
     let width = (columnWidth === null || columnWidth === void 0) ? this.instance.wtSettings.settings.defaultColumnWidth : columnWidth;
-    let calculator = this.wot.wtViewport.columnsRenderCalculator;
+    const calculator = this.wot.wtViewport.columnsRenderCalculator;
 
     if (calculator) {
-      let stretchedWidth = calculator.getStretchedColumnWidth(sourceColumn, width);
+      const stretchedWidth = calculator.getStretchedColumnWidth(sourceColumn, width);
 
       if (stretchedWidth) {
         width = stretchedWidth;

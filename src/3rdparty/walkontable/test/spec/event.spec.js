@@ -1,6 +1,6 @@
 describe('WalkontableEvent', () => {
   let $table;
-  let debug = false;
+  const debug = false;
 
   beforeEach(() => {
     $table = $('<table></table>'); // create a table that is not attached to document

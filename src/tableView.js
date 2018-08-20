@@ -193,7 +193,7 @@ function TableView(instance) {
     minSpareRows: () => that.settings.minSpareRows,
     renderAllRows: that.settings.renderAllRows,
     rowHeaders: () => {
-      let headerRenderers = [];
+      const headerRenderers = [];
 
       if (instance.hasRowHeaders()) {
         headerRenderers.push((row, TH) => that.appendRowHeader(row, TH));
@@ -204,7 +204,7 @@ function TableView(instance) {
       return headerRenderers;
     },
     columnHeaders: () => {
-      let headerRenderers = [];
+      const headerRenderers = [];
 
       if (instance.hasColHeaders()) {
         headerRenderers.push((column, TH) => {
@@ -359,7 +359,7 @@ function TableView(instance) {
     onModifyRowHeaderWidth: rowHeaderWidth => instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
     onModifyGetCellCoords: (row, column, topmost) => instance.runHooks('modifyGetCellCoords', row, column, topmost),
     viewportRowCalculatorOverride(calc) {
-      let rows = instance.countRows();
+      const rows = instance.countRows();
       let viewportOffset = that.settings.viewportRowRenderingOffset;
 
       if (viewportOffset === 'auto' && that.settings.fixedRowsTop) {
@@ -370,8 +370,8 @@ function TableView(instance) {
         calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
       }
       if (viewportOffset === 'auto') {
-        let center = calc.startRow + calc.endRow - calc.startRow;
-        let offset = Math.ceil(center / rows * 12);
+        const center = calc.startRow + calc.endRow - calc.startRow;
+        const offset = Math.ceil(center / rows * 12);
 
         calc.startRow = Math.max(calc.startRow - offset, 0);
         calc.endRow = Math.min(calc.endRow + offset, rows - 1);
@@ -379,7 +379,7 @@ function TableView(instance) {
       instance.runHooks('afterViewportRowCalculatorOverride', calc);
     },
     viewportColumnCalculatorOverride(calc) {
-      let cols = instance.countCols();
+      const cols = instance.countCols();
       let viewportOffset = that.settings.viewportColumnRenderingOffset;
 
       if (viewportOffset === 'auto' && that.settings.fixedColumnsLeft) {
@@ -390,8 +390,8 @@ function TableView(instance) {
         calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
       }
       if (viewportOffset === 'auto') {
-        let center = calc.startColumn + calc.endColumn - calc.startColumn;
-        let offset = Math.ceil(center / cols * 12);
+        const center = calc.startColumn + calc.endColumn - calc.startColumn;
+        const offset = Math.ceil(center / cols * 12);
 
         calc.startRow = Math.max(calc.startColumn - offset, 0);
         calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
@@ -438,7 +438,7 @@ TableView.prototype.isTextSelectionAllowed = function(el) {
   if (isInput(el)) {
     return true;
   }
-  let isChildOfTableBody = isChildOf(el, this.instance.view.wt.wtTable.spreader);
+  const isChildOfTableBody = isChildOf(el, this.instance.view.wt.wtTable.spreader);
 
   if (this.settings.fragmentSelection === true && isChildOfTableBody) {
     return true;
@@ -551,7 +551,7 @@ TableView.prototype.scrollViewportVertically = function(row, snapToTop, snapToBo
  */
 TableView.prototype.appendRowHeader = function(row, TH) {
   if (TH.firstChild) {
-    let container = TH.firstChild;
+    const container = TH.firstChild;
 
     if (!hasClass(container, 'relative')) {
       empty(TH);
@@ -562,8 +562,8 @@ TableView.prototype.appendRowHeader = function(row, TH) {
     this.updateCellHeader(container.querySelector('.rowHeader'), row, this.instance.getRowHeader);
 
   } else {
-    let div = document.createElement('div');
-    let span = document.createElement('span');
+    const div = document.createElement('div');
+    const span = document.createElement('span');
 
     div.className = 'relative';
     span.className = 'rowHeader';
@@ -583,7 +583,7 @@ TableView.prototype.appendRowHeader = function(row, TH) {
  */
 TableView.prototype.appendColHeader = function(col, TH) {
   if (TH.firstChild) {
-    let container = TH.firstChild;
+    const container = TH.firstChild;
 
     if (hasClass(container, 'relative')) {
       this.updateCellHeader(container.querySelector('.colHeader'), col, this.instance.getColHeader);
@@ -617,7 +617,7 @@ TableView.prototype.appendColHeader = function(col, TH) {
  */
 TableView.prototype.updateCellHeader = function(element, index, content) {
   let renderedIndex = index;
-  let parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
+  const parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
 
   // prevent wrong calculations from SampleGenerator
   if (element.parentNode) {

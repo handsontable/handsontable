@@ -69,10 +69,10 @@ class DataSource {
    * @returns {Array}
    */
   getAtColumn(column) {
-    let result = [];
+    const result = [];
 
     arrayEach(this.data, (row) => {
-      let property = this.colToProp(column);
+      const property = this.colToProp(column);
 
       if (typeof property === 'string') {
         row = getProperty(row, property);
@@ -107,12 +107,12 @@ class DataSource {
   getAtCell(row, column) {
     let result = null;
 
-    let modifyRowData = this.hot.runHooks('modifyRowData', row);
+    const modifyRowData = this.hot.runHooks('modifyRowData', row);
 
-    let dataRow = isNaN(modifyRowData) ? modifyRowData : this.data[row];
+    const dataRow = isNaN(modifyRowData) ? modifyRowData : this.data[row];
 
     if (dataRow) {
-      let prop = this.colToProp(column);
+      const prop = this.colToProp(column);
 
       if (typeof prop === 'string') {
         result = getProperty(dataRow, prop);
@@ -138,14 +138,14 @@ class DataSource {
    * @returns {Array}
    */
   getByRange(start, end, toArray = false) {
-    let startRow = Math.min(start.row, end.row);
-    let startCol = Math.min(start.col, end.col);
-    let endRow = Math.max(start.row, end.row);
-    let endCol = Math.max(start.col, end.col);
-    let result = [];
+    const startRow = Math.min(start.row, end.row);
+    const startCol = Math.min(start.col, end.col);
+    const endRow = Math.max(start.row, end.row);
+    const endCol = Math.max(start.col, end.col);
+    const result = [];
 
     rangeEach(startRow, endRow, (currentRow) => {
-      let row = this.getAtRow(currentRow);
+      const row = this.getAtRow(currentRow);
       let newRow;
 
       if (this.dataType === 'array') {
@@ -155,7 +155,7 @@ class DataSource {
         newRow = toArray ? [] : {};
 
         rangeEach(startCol, endCol, (column) => {
-          let prop = this.colToProp(column);
+          const prop = this.colToProp(column);
 
           if (toArray) {
             newRow.push(row[prop]);

@@ -103,8 +103,8 @@ class Border {
     event.preventDefault();
     stopImmediatePropagation(event);
 
-    let _this = this;
-    let bounds = parentElement.getBoundingClientRect();
+    const _this = this;
+    const bounds = parentElement.getBoundingClientRect();
     // Hide border to prevents selection jumping when fragmentSelection is enabled.
     parentElement.style.display = 'none';
 
@@ -141,15 +141,15 @@ class Border {
   createBorders(settings) {
     this.main = document.createElement('div');
 
-    let borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
+    const borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
     let style = this.main.style;
     style.position = 'absolute';
     style.top = 0;
     style.left = 0;
 
     for (let i = 0; i < 5; i++) {
-      let position = borderDivs[i];
-      let div = document.createElement('div');
+      const position = borderDivs[i];
+      const div = document.createElement('div');
 
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
 
@@ -210,8 +210,8 @@ class Border {
       bottomRight: document.createElement('DIV'),
       bottomRightHitArea: document.createElement('DIV')
     };
-    let width = 10;
-    let hitAreaWidth = 40;
+    const width = 10;
+    const hitAreaWidth = 40;
 
     this.selectionHandles.topLeft.className = 'topLeftSelectionHandle';
     this.selectionHandles.topLeftHitArea.className = 'topLeftSelectionHandle-HitArea';
@@ -225,7 +225,7 @@ class Border {
       bottomRightHitArea: this.selectionHandles.bottomRightHitArea.style
     };
 
-    let hitAreaStyle = {
+    const hitAreaStyle = {
       position: 'absolute',
       height: `${hitAreaWidth}px`,
       width: `${hitAreaWidth}px`,
@@ -237,7 +237,7 @@ class Border {
       this.selectionHandles.styles.topLeftHitArea[key] = value;
     });
 
-    let handleStyle = {
+    const handleStyle = {
       position: 'absolute',
       height: `${width}px`,
       width: `${width}px`,
@@ -270,8 +270,8 @@ class Border {
   }
 
   updateMultipleSelectionHandlesPosition(row, col, top, left, width, height) {
-    let handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10);
-    let hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
+    const handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10);
+    const hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
 
     this.selectionHandles.styles.topLeft.top = `${parseInt(top - handleWidth, 10)}px`;
     this.selectionHandles.styles.topLeft.left = `${parseInt(left - handleWidth, 10)}px`;
@@ -330,7 +330,7 @@ class Border {
     const rowsCount = this.wot.wtTable.getRenderedRowsCount();
 
     for (let i = 0; i < rowsCount; i += 1) {
-      let s = this.wot.wtTable.rowFilter.renderedToSource(i);
+      const s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
         fromRow = s;
@@ -339,7 +339,7 @@ class Border {
     }
 
     for (let i = rowsCount - 1; i >= 0; i -= 1) {
-      let s = this.wot.wtTable.rowFilter.renderedToSource(i);
+      const s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
         toRow = s;
@@ -350,7 +350,7 @@ class Border {
     const columnsCount = this.wot.wtTable.getRenderedColumnsCount();
 
     for (let i = 0; i < columnsCount; i += 1) {
-      let s = this.wot.wtTable.columnFilter.renderedToSource(i);
+      const s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
         fromColumn = s;
@@ -359,7 +359,7 @@ class Border {
     }
 
     for (let i = columnsCount - 1; i >= 0; i -= 1) {
-      let s = this.wot.wtTable.columnFilter.renderedToSource(i);
+      const s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
         toColumn = s;
@@ -412,7 +412,7 @@ class Border {
       }
     }
 
-    let style = getComputedStyle(fromTD);
+    const style = getComputedStyle(fromTD);
 
     if (parseInt(style.borderTopWidth, 10) > 0) {
       top += 1;
@@ -596,8 +596,8 @@ class Border {
    * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
    */
   changeBorderStyle(borderElement, border) {
-    let style = this[borderElement].style;
-    let borderStyle = border[borderElement];
+    const style = this[borderElement].style;
+    const borderStyle = border[borderElement];
 
     if (!borderStyle || borderStyle.hide) {
       addClass(this[borderElement], 'hidden');
@@ -630,7 +630,7 @@ class Border {
       width: 1,
       color: '#000',
     };
-    let style = this[position].style;
+    const style = this[position].style;
 
     style.backgroundColor = defaultBorder.color;
     style.width = `${defaultBorder.width}px`;
