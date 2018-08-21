@@ -125,4 +125,16 @@ describe('Walkontable.ViewportRowsCalculator', () => {
     expect(visibleCalc.startRow).toBe(11);
     expect(visibleCalc.endRow).toBe(19);
   });
+
+  it('should calculate the number of rows based on a default height, ' +
+    'when the height returned from the function is not a number', () => {
+    const calc = new Walkontable.ViewportRowsCalculator(100, 0, 1000, () => (void 0 + 1));
+    expect(calc.startRow).toBe(0);
+    expect(calc.startPosition).toBe(0);
+    expect(calc.endRow).toBe(4);
+
+    const visibleCalc = new Walkontable.ViewportRowsCalculator(100, 0, 1000, () => (void 0 + 1), null, true);
+    expect(visibleCalc.startRow).toBe(0);
+    expect(visibleCalc.endRow).toBe(3);
+  });
 });

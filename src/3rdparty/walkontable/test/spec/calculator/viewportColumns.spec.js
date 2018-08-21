@@ -202,4 +202,16 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
     expect(calc.stretchAllColumnsWidth.length).toBe(0);
     expect(calc.needVerifyLastColumnWidth).toBe(true);
   });
+
+  it('should calculate the number of columns based on a default width, ' +
+    'when the width returned from the function is not a number', () => {
+    const calc = new Walkontable.ViewportColumnsCalculator(200, 0, 1000, () => (void 0 + 1));
+    expect(calc.startColumn).toBe(0);
+    expect(calc.startPosition).toBe(0);
+    expect(calc.endColumn).toBe(3);
+
+    const visibleCalc = new Walkontable.ViewportColumnsCalculator(200, 0, 1000, () => (void 0 + 1), null, true);
+    expect(visibleCalc.startColumn).toBe(0);
+    expect(visibleCalc.endColumn).toBe(3);
+  });
 });

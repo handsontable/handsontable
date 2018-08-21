@@ -89,7 +89,7 @@ class ViewportRowsCalculator {
     for (let i = 0; i < totalRows; i++) {
       rowHeight = rowHeightFn(i);
 
-      if (rowHeight === undefined) {
+      if (isNaN(rowHeight)) {
         rowHeight = ViewportRowsCalculator.DEFAULT_HEIGHT;
       }
       if (sum <= scrollOffset && !onlyFullyVisible) {

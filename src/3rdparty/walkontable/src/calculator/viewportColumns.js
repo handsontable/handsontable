@@ -268,7 +268,7 @@ class ViewportColumnsCalculator {
   _getColumnWidth(column) {
     let width = privatePool.get(this).columnWidthFn(column);
 
-    if (width === void 0) {
+    if (isNaN(width)) {
       width = ViewportColumnsCalculator.DEFAULT_WIDTH;
     }
 
