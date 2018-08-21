@@ -157,7 +157,8 @@ class ViewportColumnsCalculator {
     if (this.stretch === 'none') {
       return;
     }
-    this.totalTargetWidth = totalWidth;
+    let totalColumnsWidth = totalWidth;
+    this.totalTargetWidth = totalColumnsWidth;
 
     const priv = privatePool.get(this);
     const totalColumns = priv.totalColumns;
@@ -168,19 +169,19 @@ class ViewportColumnsCalculator {
       const permanentColumnWidth = priv.stretchingColumnWidthFn(void 0, i);
 
       if (typeof permanentColumnWidth === 'number') {
-        totalWidth -= permanentColumnWidth;
+        totalColumnsWidth -= permanentColumnWidth;
       } else {
         sumAll += columnWidth;
       }
     }
-    const remainingSize = totalWidth - sumAll;
+    const remainingSize = totalColumnsWidth - sumAll;
 
     if (this.stretch === 'all' && remainingSize > 0) {
-      this.stretchAllRatio = totalWidth / sumAll;
+      this.stretchAllRatio = totalColumnsWidth / sumAll;
       this.stretchAllColumnsWidth = [];
       this.needVerifyLastColumnWidth = true;
 
-    } else if (this.stretch === 'last' && totalWidth !== Infinity) {
+    } else if (this.stretch === 'last' && totalColumnsWidth !== Infinity) {
       const columnWidth = this._getColumnWidth(totalColumns - 1);
       const lastColumnWidth = remainingSize + columnWidth;
 

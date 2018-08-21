@@ -128,10 +128,11 @@ class Viewport {
    */
   sumColumnWidths(from, length) {
     let sum = 0;
+    let column = from;
 
-    while (from < length) {
-      sum += this.wot.wtTable.getColumnWidth(from);
-      from += 1;
+    while (column < length) {
+      sum += this.wot.wtTable.getColumnWidth(column);
+      column += 1;
     }
 
     return sum;
@@ -386,17 +387,19 @@ class Viewport {
    * @returns fastDraw {Boolean} The fastDraw value, possibly modified
    */
   createRenderCalculators(fastDraw = false) {
-    if (fastDraw) {
+    let runFastDraw = fastDraw;
+
+    if (runFastDraw) {
       const proposedRowsVisibleCalculator = this.createRowsCalculator(true);
       const proposedColumnsVisibleCalculator = this.createColumnsCalculator(true);
 
       if (!(this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) &&
           this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator))) {
-        fastDraw = false;
+        runFastDraw = false;
       }
     }
 
-    if (!fastDraw) {
+    if (!runFastDraw) {
       this.rowsRenderCalculator = this.createRowsCalculator();
       this.columnsRenderCalculator = this.createColumnsCalculator();
     }
@@ -404,7 +407,7 @@ class Viewport {
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
 
-    return fastDraw;
+    return runFastDraw;
   }
 
   /**

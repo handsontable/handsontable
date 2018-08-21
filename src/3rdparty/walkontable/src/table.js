@@ -197,10 +197,11 @@ class Table {
     const rowHeaders = this.wot.getSetting('rowHeaders').length;
     const columnHeaders = this.wot.getSetting('columnHeaders').length;
     let syncScroll = false;
+    let runFastDraw = fastDraw;
 
     if (!this.isWorkingOnClone()) {
       this.holderOffset = offset(this.holder);
-      fastDraw = wtViewport.createRenderCalculators(fastDraw);
+      runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
       if (rowHeaders && !this.wot.getSetting('fixedColumnsLeft')) {
         const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
@@ -209,7 +210,7 @@ class Table {
         this.correctHeaderWidth = leftScrollPos > 0;
 
         if (previousState !== this.correctHeaderWidth) {
-          fastDraw = false;
+          runFastDraw = false;
         }
       }
     }
@@ -218,7 +219,7 @@ class Table {
       syncScroll = wtOverlays.prepareOverlays();
     }
 
-    if (fastDraw) {
+    if (runFastDraw) {
       if (!this.isWorkingOnClone()) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
         wtViewport.createVisibleCalculators();
@@ -260,7 +261,7 @@ class Table {
       this.alignOverlaysWithTrimmingContainer();
       this._doDraw(); // creates calculator after draw
     }
-    this.refreshSelections(fastDraw);
+    this.refreshSelections(runFastDraw);
 
     if (!this.isWorkingOnClone()) {
       wtOverlays.topOverlay.resetFixedPosition();
@@ -435,20 +436,22 @@ class Table {
    * @returns {CellCoords|null} The coordinates of the provided TD element (or the closest TD element) or null, if the provided element is not applicable.
    */
   getCoords(TD) {
-    if (TD.nodeName !== 'TD' && TD.nodeName !== 'TH') {
-      TD = closest(TD, ['TD', 'TH']);
+    let CellElement = TD;
+
+    if (CellElement.nodeName !== 'TD' && CellElement.nodeName !== 'TH') {
+      CellElement = closest(CellElement, ['TD', 'TH']);
     }
 
-    if (TD === null) {
+    if (CellElement === null) {
       return null;
     }
 
-    const TR = TD.parentNode;
+    const TR = CellElement.parentNode;
     const CONTAINER = TR.parentNode;
     let row = index(TR);
-    let col = TD.cellIndex;
+    let col = CellElement.cellIndex;
 
-    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(Overlay.CLONE_TOP, TD)) {
+    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, CellElement) || overlayContainsElement(Overlay.CLONE_TOP, CellElement)) {
       if (CONTAINER.nodeName === 'THEAD') {
         row -= CONTAINER.childNodes.length;
       }
@@ -460,7 +463,7 @@ class Table {
       row = this.rowFilter.renderedToSource(row);
     }
 
-    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(Overlay.CLONE_LEFT, TD)) {
+    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, CellElement) || overlayContainsElement(Overlay.CLONE_LEFT, CellElement)) {
       col = this.columnFilter.offsettedTH(col);
 
     } else {
@@ -676,14 +679,16 @@ class Table {
    * @private
    */
   _correctRowHeaderWidth(width) {
-    if (typeof width !== 'number') {
-      width = this.wot.getSetting('defaultColumnWidth');
+    let rowHeaderWidth = width;
+
+    if (typeof rowHeaderWidth !== 'number') {
+      rowHeaderWidth = this.wot.getSetting('defaultColumnWidth');
     }
     if (this.correctHeaderWidth) {
-      width += 1;
+      rowHeaderWidth += 1;
     }
 
-    return width;
+    return rowHeaderWidth;
   }
 }
 

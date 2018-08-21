@@ -109,12 +109,13 @@ class LeftOverlay extends Overlay {
    * @returns {Number} Width sum.
    */
   sumCellSizes(from, to) {
-    let sum = 0;
     const defaultColumnWidth = this.wot.wtSettings.defaultColumnWidth;
+    let sum = 0;
+    let column = from;
 
-    while (from < to) {
+    while (column < to) {
       sum += this.wot.wtTable.getStretchedColumnWidth(from) || defaultColumnWidth;
-      from += 1;
+      column += 1;
     }
 
     return sum;
