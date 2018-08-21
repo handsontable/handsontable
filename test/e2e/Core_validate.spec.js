@@ -148,9 +148,8 @@ describe('Core_validate', () => {
         { data: 'name' },
         { data: 'lastName' }
       ],
-      beforeValidate(value) {
-        value = 999;
-        return value;
+      beforeValidate() {
+        return 999;
       },
       afterValidate: onAfterValidate
     });
@@ -191,9 +190,8 @@ describe('Core_validate', () => {
 
         return colMeta;
       },
-      beforeValidate(value) {
-        value = 999;
-        return value;
+      beforeValidate() {
+        return 999;
       },
       afterValidate: onAfterValidate
     });

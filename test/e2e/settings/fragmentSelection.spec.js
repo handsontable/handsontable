@@ -48,25 +48,27 @@ describe('settings', () => {
      */
     function selectElementText(fromEl, siblings) {
       const doc = window.document;
+      let element = fromEl;
+      let numOfSiblings = siblings;
       let sel;
       let range;
 
       if (window.getSelection && doc.createRange) { // standards
         sel = window.getSelection();
         range = doc.createRange();
-        range.setStartBefore(fromEl, 0);
-        while (siblings > 1) {
-          fromEl = fromEl.nextSibling;
-          siblings -= 1;
+        range.setStartBefore(element, 0);
+        while (numOfSiblings > 1) {
+          element = element.nextSibling;
+          numOfSiblings -= 1;
         }
-        range.setEndAfter(fromEl, 0);
+        range.setEndAfter(element, 0);
         sel.removeAllRanges();
         sel.addRange(range);
 
       } else if (doc.body.createTextRange) { // IE8
         range = doc.body.createTextRange();
-        range.moveToElementText(fromEl);
-        range.moveEnd('word', siblings + 1);
+        range.moveToElementText(element);
+        range.moveEnd('word', numOfSiblings + 1);
         range.select();
       }
     }
