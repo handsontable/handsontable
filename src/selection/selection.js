@@ -521,15 +521,15 @@ class Selection {
    * @returns {Boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectColumns(startColumn, endColumn = startColumn) {
-    startColumn = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
-    endColumn = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
+    const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
+    const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
 
     const countCols = this.tableProps.countCols();
-    const isValid = isValidCoord(startColumn, countCols) && isValidCoord(endColumn, countCols);
+    const isValid = isValidCoord(start, countCols) && isValidCoord(end, countCols);
 
     if (isValid) {
-      this.setRangeStartOnly(new CellCoords(-1, startColumn));
-      this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, endColumn));
+      this.setRangeStartOnly(new CellCoords(-1, start));
+      this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, end));
       this.finish();
     }
 
