@@ -354,12 +354,14 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Physical row index.
    */
   onModifyRow(row, source) {
+    let physicalRow = row;
+
     if (this.blockPluginTranslation === false && source !== this.pluginName) {
-      const rowInMapper = this.rowsMapper.getValueByIndex(row);
-      row = rowInMapper === null ? row : rowInMapper;
+      const rowInMapper = this.rowsMapper.getValueByIndex(physicalRow);
+      physicalRow = rowInMapper === null ? physicalRow : rowInMapper;
     }
 
-    return row;
+    return physicalRow;
   }
 
   /**
@@ -370,11 +372,13 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Visual row index.
    */
   onUnmodifyRow(row, source) {
+    let visualRow = row;
+
     if (this.blockPluginTranslation === false && source !== this.pluginName) {
-      row = this.rowsMapper.getIndexByValue(row);
+      visualRow = this.rowsMapper.getIndexByValue(visualRow);
     }
 
-    return row;
+    return visualRow;
   }
 
   /**

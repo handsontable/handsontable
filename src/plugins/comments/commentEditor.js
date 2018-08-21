@@ -110,8 +110,9 @@ class CommentEditor {
    * @param {String} [value] The value to use.
    */
   setValue(value = '') {
-    value = value || '';
-    this.getInputElement().value = value;
+    const comment = value || '';
+
+    this.getInputElement().value = comment;
   }
 
   /**

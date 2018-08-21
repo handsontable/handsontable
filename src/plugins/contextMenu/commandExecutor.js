@@ -42,13 +42,13 @@ class CommandExecutor {
    */
   execute(commandName, ...params) {
     const commandSplit = commandName.split(':');
-    commandName = commandSplit[0];
+    const commandNamePrimary = commandSplit[0];
 
     const subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
-    let command = this.commands[commandName];
+    let command = this.commands[commandNamePrimary];
 
     if (!command) {
-      throw new Error(`Menu command '${commandName}' not exists.`);
+      throw new Error(`Menu command '${commandNamePrimary}' not exists.`);
     }
     if (subCommandName && command.submenu) {
       command = findSubCommand(subCommandName, command.submenu.items);

@@ -46,9 +46,8 @@ class Storage {
    * @returns {}
    */
   loadValue(key, defaultValue) {
-    key = typeof key === 'undefined' ? defaultValue : key;
-
-    const value = window.localStorage.getItem(`${this.prefix}_${key}`);
+    const itemKey = typeof key === 'undefined' ? defaultValue : key;
+    const value = window.localStorage.getItem(`${this.prefix}_${itemKey}`);
 
     return value === null ? void 0 : JSON.parse(value);
   }

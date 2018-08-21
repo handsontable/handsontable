@@ -465,9 +465,10 @@ class Menu {
     const itemIsSeparator = itemToTest => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
     const itemIsDisabled = itemToTest => itemToTest.disabled === true || (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
     const itemIsSelectionDisabled = itemToTest => itemToTest.disableSelection;
+    let itemValue = value;
 
-    if (typeof value === 'function') {
-      value = value.call(this.hot);
+    if (typeof itemValue === 'function') {
+      itemValue = itemValue.call(this.hot);
     }
     empty(TD);
     addClass(wrapper, 'htItemWrapper');
@@ -478,10 +479,10 @@ class Menu {
 
     } else if (typeof item.renderer === 'function') {
       addClass(TD, 'htCustomMenuRenderer');
-      TD.appendChild(item.renderer(hot, wrapper, row, col, prop, value));
+      TD.appendChild(item.renderer(hot, wrapper, row, col, prop, itemValue));
 
     } else {
-      fastInnerHTML(wrapper, value);
+      fastInnerHTML(wrapper, itemValue);
     }
     if (itemIsDisabled(item)) {
       addClass(TD, 'htDisabled');
@@ -519,24 +520,25 @@ class Menu {
    * @returns {HTMLElement}
    */
   createContainer(name = null) {
+    let className = name;
     let container;
 
-    if (name) {
-      if (isFunction(name)) {
-        name = name.call(this.hot);
+    if (className) {
+      if (isFunction(className)) {
+        className = className.call(this.hot);
 
-        if (name === null || isUndefined(name)) {
-          name = '';
+        if (className === null || isUndefined(className)) {
+          className = '';
 
         } else {
-          name = name.toString();
+          className = className.toString();
         }
       }
 
-      name = name.replace(/[^A-z0-9]/g, '_');
-      name = `${this.options.className}Sub_${name}`;
+      className = className.replace(/[^A-z0-9]/g, '_');
+      className = `${this.options.className}Sub_${className}`;
 
-      container = document.querySelector(`.${this.options.className}.${name}`);
+      container = document.querySelector(`.${this.options.className}.${className}`);
 
     } else {
       container = document.querySelector(`.${this.options.className}`);
@@ -547,8 +549,8 @@ class Menu {
 
       addClass(container, `htMenu ${this.options.className}`);
 
-      if (name) {
-        addClass(container, name);
+      if (className) {
+        addClass(container, className);
       }
       document.getElementsByTagName('body')[0].appendChild(container);
     }
