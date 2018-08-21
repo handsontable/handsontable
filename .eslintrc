@@ -38,7 +38,6 @@
       "error",
       { "allowForLoopAfterthoughts": true }
     ],
-    "no-restricted-properties": 0,
     "no-spaced-func": 2,
     "no-trailing-spaces": 2,
     "no-underscore-dangle": 0,
