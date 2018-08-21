@@ -12,17 +12,18 @@ import { getEditorInstance } from '../editors';
  * @param {Function} callback - Callback called with validation result
  */
 export default function dateValidator(value, callback) {
-  let valid = true;
   const dateEditor = getEditorInstance('date', this.instance);
+  let valueToValidate = value;
+  let valid = true;
 
-  if (value === null || value === void 0) {
-    value = '';
+  if (valueToValidate === null || valueToValidate === void 0) {
+    valueToValidate = '';
   }
-  let isValidDate = moment(new Date(value)).isValid() || moment(value, dateEditor.defaultDateFormat).isValid();
+  let isValidDate = moment(new Date(valueToValidate)).isValid() || moment(valueToValidate, dateEditor.defaultDateFormat).isValid();
   // is it in the specified format
-  let isValidFormat = moment(value, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
+  let isValidFormat = moment(valueToValidate, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
 
-  if (this.allowEmpty && value === '') {
+  if (this.allowEmpty && valueToValidate === '') {
     isValidDate = true;
     isValidFormat = true;
   }
@@ -35,7 +36,7 @@ export default function dateValidator(value, callback) {
 
   if (isValidDate && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
-      const correctedValue = correctFormat(value, this.dateFormat);
+      const correctedValue = correctFormat(valueToValidate, this.dateFormat);
       const row = this.instance.runHooks('unmodifyRow', this.row);
       const column = this.instance.runHooks('unmodifyCol', this.col);
 

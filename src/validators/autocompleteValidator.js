@@ -7,11 +7,13 @@
  * @param {Function} callback - Callback called with validation result
  */
 export default function autocompleteValidator(value, callback) {
-  if (value === null || value === void 0) {
-    value = '';
+  let valueToValidate = value;
+
+  if (valueToValidate === null || valueToValidate === void 0) {
+    valueToValidate = '';
   }
 
-  if (this.allowEmpty && value === '') {
+  if (this.allowEmpty && valueToValidate === '') {
     callback(true);
 
     return;
@@ -19,9 +21,9 @@ export default function autocompleteValidator(value, callback) {
 
   if (this.strict && this.source) {
     if (typeof this.source === 'function') {
-      this.source(value, process(value, callback));
+      this.source(valueToValidate, process(valueToValidate, callback));
     } else {
-      process(value, callback)(this.source);
+      process(valueToValidate, callback)(this.source);
     }
   } else {
     callback(true);
