@@ -10,6 +10,8 @@ export function sleep(delay = 100) {
   });
 }
 
+let currentSpec;
+
 export function spec() {
   return currentSpec;
 }
@@ -46,8 +48,6 @@ export function getTotalRows() {
 export function getTotalColumns() {
   return spec().data[0] ? spec().data[0].length : 0;
 }
-
-let currentSpec;
 
 beforeEach(function() {
   currentSpec = this;

@@ -10,6 +10,100 @@ export function promisfy(fn) {
   return new Promise((resolve, reject) => fn(resolve, reject));
 }
 
+/**
+ * Calls a method in current Handsontable instance, returns its output
+ * @param method
+ * @return {Function}
+ */
+export function handsontableMethodFactory(method) {
+  return function(...args) {
+    let instance;
+
+    try {
+      instance = spec().$container.handsontable('getInstance');
+    } catch (err) {
+      /* eslint-disable */
+      console.error(err);
+      /* eslint-enable */
+    }
+
+    if (instance) {
+      if (method === 'destroy') {
+        spec().$container.removeData();
+      }
+    } else {
+      if (method === 'destroy') {
+        return; // we can forgive this... maybe it was destroyed in the test
+      }
+      throw new Error('Something wrong with the test spec: Handsontable instance not found');
+    }
+
+    return instance[method](...args);
+  };
+}
+
+export const addHook = handsontableMethodFactory('addHook');
+export const alter = handsontableMethodFactory('alter');
+export const colToProp = handsontableMethodFactory('colToProp');
+export const countCols = handsontableMethodFactory('countCols');
+export const countEmptyCols = handsontableMethodFactory('countEmptyCols');
+export const countEmptyRows = handsontableMethodFactory('countEmptyRows');
+export const countRows = handsontableMethodFactory('countRows');
+export const countSourceCols = handsontableMethodFactory('countSourceCols');
+export const countSourceRows = handsontableMethodFactory('countSourceRows');
+export const deselectCell = handsontableMethodFactory('deselectCell');
+export const destroy = handsontableMethodFactory('destroy');
+export const destroyEditor = handsontableMethodFactory('destroyEditor');
+export const emptySelectedCells = handsontableMethodFactory('emptySelectedCells');
+export const getActiveEditor = handsontableMethodFactory('getActiveEditor');
+export const getCell = handsontableMethodFactory('getCell');
+export const getCellEditor = handsontableMethodFactory('getCellEditor');
+export const getCellMeta = handsontableMethodFactory('getCellMeta');
+export const getCellMetaAtRow = handsontableMethodFactory('getCellMetaAtRow');
+export const getCellRenderer = handsontableMethodFactory('getCellRenderer');
+export const getCellsMeta = handsontableMethodFactory('getCellsMeta');
+export const getCellValidator = handsontableMethodFactory('getCellValidator');
+export const getColHeader = handsontableMethodFactory('getColHeader');
+export const getCopyableData = handsontableMethodFactory('getCopyableData');
+export const getCopyableText = handsontableMethodFactory('getCopyableText');
+export const getData = handsontableMethodFactory('getData');
+export const getDataAtCell = handsontableMethodFactory('getDataAtCell');
+export const getDataAtCol = handsontableMethodFactory('getDataAtCol');
+export const getDataAtRow = handsontableMethodFactory('getDataAtRow');
+export const getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
+export const getDataType = handsontableMethodFactory('getDataType');
+export const getInstance = handsontableMethodFactory('getInstance');
+export const getPlugin = handsontableMethodFactory('getPlugin');
+export const getRowHeader = handsontableMethodFactory('getRowHeader');
+export const getSelected = handsontableMethodFactory('getSelected');
+export const getSelectedLast = handsontableMethodFactory('getSelectedLast');
+export const getSelectedRange = handsontableMethodFactory('getSelectedRange');
+export const getSelectedRangeLast = handsontableMethodFactory('getSelectedRangeLast');
+export const getSourceData = handsontableMethodFactory('getSourceData');
+export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray');
+export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
+export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
+export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
+export const getValue = handsontableMethodFactory('getValue');
+export const loadData = handsontableMethodFactory('loadData');
+export const populateFromArray = handsontableMethodFactory('populateFromArray');
+export const propToCol = handsontableMethodFactory('propToCol');
+export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
+export const render = handsontableMethodFactory('render');
+export const selectAll = handsontableMethodFactory('selectAll');
+export const selectCell = handsontableMethodFactory('selectCell');
+export const selectCells = handsontableMethodFactory('selectCells');
+export const selectColumns = handsontableMethodFactory('selectColumns');
+export const selectRows = handsontableMethodFactory('selectRows');
+export const setCellMeta = handsontableMethodFactory('setCellMeta');
+export const setDataAtCell = handsontableMethodFactory('setDataAtCell');
+export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
+export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
+export const spliceCol = handsontableMethodFactory('spliceCol');
+export const spliceRow = handsontableMethodFactory('spliceRow');
+export const updateSettings = handsontableMethodFactory('updateSettings');
+export const undo = handsontableMethodFactory('undo');
+
 export function hot() {
   return spec().$container.data('handsontable');
 }
@@ -369,98 +463,6 @@ export function autocomplete() {
 export function triggerPaste(str) {
   spec().$container.data('handsontable').getPlugin('CopyPaste').paste(str);
 }
-
-/**
- * Calls a method in current Handsontable instance, returns its output
- * @param method
- * @return {Function}
- */
-export function handsontableMethodFactory(method) {
-  return function(...args) {
-    let instance;
-
-    try {
-      instance = spec().$container.handsontable('getInstance');
-    } catch (err) {
-      console.error(err);
-    }
-
-    if (instance) {
-      if (method === 'destroy') {
-        spec().$container.removeData();
-      }
-    } else {
-      if (method === 'destroy') {
-        return; // we can forgive this... maybe it was destroyed in the test
-      }
-      throw new Error('Something wrong with the test spec: Handsontable instance not found');
-    }
-
-    return instance[method](...args);
-  };
-}
-
-export const addHook = handsontableMethodFactory('addHook');
-export const alter = handsontableMethodFactory('alter');
-export const colToProp = handsontableMethodFactory('colToProp');
-export const countCols = handsontableMethodFactory('countCols');
-export const countEmptyCols = handsontableMethodFactory('countEmptyCols');
-export const countEmptyRows = handsontableMethodFactory('countEmptyRows');
-export const countRows = handsontableMethodFactory('countRows');
-export const countSourceCols = handsontableMethodFactory('countSourceCols');
-export const countSourceRows = handsontableMethodFactory('countSourceRows');
-export const deselectCell = handsontableMethodFactory('deselectCell');
-export const destroy = handsontableMethodFactory('destroy');
-export const destroyEditor = handsontableMethodFactory('destroyEditor');
-export const emptySelectedCells = handsontableMethodFactory('emptySelectedCells');
-export const getActiveEditor = handsontableMethodFactory('getActiveEditor');
-export const getCell = handsontableMethodFactory('getCell');
-export const getCellEditor = handsontableMethodFactory('getCellEditor');
-export const getCellMeta = handsontableMethodFactory('getCellMeta');
-export const getCellMetaAtRow = handsontableMethodFactory('getCellMetaAtRow');
-export const getCellRenderer = handsontableMethodFactory('getCellRenderer');
-export const getCellsMeta = handsontableMethodFactory('getCellsMeta');
-export const getCellValidator = handsontableMethodFactory('getCellValidator');
-export const getColHeader = handsontableMethodFactory('getColHeader');
-export const getCopyableData = handsontableMethodFactory('getCopyableData');
-export const getCopyableText = handsontableMethodFactory('getCopyableText');
-export const getData = handsontableMethodFactory('getData');
-export const getDataAtCell = handsontableMethodFactory('getDataAtCell');
-export const getDataAtCol = handsontableMethodFactory('getDataAtCol');
-export const getDataAtRow = handsontableMethodFactory('getDataAtRow');
-export const getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
-export const getDataType = handsontableMethodFactory('getDataType');
-export const getInstance = handsontableMethodFactory('getInstance');
-export const getPlugin = handsontableMethodFactory('getPlugin');
-export const getRowHeader = handsontableMethodFactory('getRowHeader');
-export const getSelected = handsontableMethodFactory('getSelected');
-export const getSelectedLast = handsontableMethodFactory('getSelectedLast');
-export const getSelectedRange = handsontableMethodFactory('getSelectedRange');
-export const getSelectedRangeLast = handsontableMethodFactory('getSelectedRangeLast');
-export const getSourceData = handsontableMethodFactory('getSourceData');
-export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray');
-export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
-export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
-export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
-export const getValue = handsontableMethodFactory('getValue');
-export const loadData = handsontableMethodFactory('loadData');
-export const populateFromArray = handsontableMethodFactory('populateFromArray');
-export const propToCol = handsontableMethodFactory('propToCol');
-export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
-export const render = handsontableMethodFactory('render');
-export const selectAll = handsontableMethodFactory('selectAll');
-export const selectCell = handsontableMethodFactory('selectCell');
-export const selectCells = handsontableMethodFactory('selectCells');
-export const selectColumns = handsontableMethodFactory('selectColumns');
-export const selectRows = handsontableMethodFactory('selectRows');
-export const setCellMeta = handsontableMethodFactory('setCellMeta');
-export const setDataAtCell = handsontableMethodFactory('setDataAtCell');
-export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
-export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
-export const spliceCol = handsontableMethodFactory('spliceCol');
-export const spliceRow = handsontableMethodFactory('spliceRow');
-export const updateSettings = handsontableMethodFactory('updateSettings');
-export const undo = handsontableMethodFactory('undo');
 
 /**
  * Returns column width for HOT container

@@ -1667,7 +1667,7 @@ const REGISTERED_HOOKS = [
 
 class Hooks {
   static getSingleton() {
-    return globalSingleton;
+    return getGlobalSingleton();
   }
 
   /**
@@ -2028,5 +2028,9 @@ class Hooks {
 }
 
 const globalSingleton = new Hooks();
+
+function getGlobalSingleton() {
+  return globalSingleton;
+}
 
 export default Hooks;
