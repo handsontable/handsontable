@@ -13,8 +13,8 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: '아래쪽에 행 삽입',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: '왼쪽에 열 삽입',
   [C.CONTEXTMENU_ITEMS_INSERT_RIGHT]: '오른쪽에 열 삽입',
-  [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['행 삭제', '행 삭제'],
-  [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['열 삭제', '열 삭제'],
+  [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['행 삭제', '여러 행 삭제'],
+  [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['열 삭제', '여러 열 삭제'],
   [C.CONTEXTMENU_ITEMS_UNDO]: '되돌리기',
   [C.CONTEXTMENU_ITEMS_REDO]: '다시하기',
   [C.CONTEXTMENU_ITEMS_READ_ONLY]: '읽기 전용',
@@ -53,11 +53,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: '자녀 행 추가',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: '부모행에서 제거',
 
-  [C.CONTEXTMENU_ITEMS_HIDE_COLUMN]: ['열 숨기기', '열 숨기기'],
-  [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: ['열 숨기기 해제', '열 숨기기 해제'],
+  [C.CONTEXTMENU_ITEMS_HIDE_COLUMN]: ['열 숨기기', '여러 열 숨기기'],
+  [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: ['열 숨기기 해제', '여러 열 숨기기 해제'],
 
-  [C.CONTEXTMENU_ITEMS_HIDE_ROW]: ['행 숨기기', '행 숨기기'],
-  [C.CONTEXTMENU_ITEMS_SHOW_ROW]: ['행 숨기기 해제', '행 숨기기 해제'],
+  [C.CONTEXTMENU_ITEMS_HIDE_ROW]: ['행 숨기기', '여러 행 숨기기'],
+  [C.CONTEXTMENU_ITEMS_SHOW_ROW]: ['행 숨기기 해제', '여러 행 숨기기 해제'],
 
   [C.FILTERS_CONDITIONS_NONE]: '조건없음',
   [C.FILTERS_CONDITIONS_EMPTY]: '비어있음',
