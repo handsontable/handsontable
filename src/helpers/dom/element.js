@@ -11,19 +11,20 @@ import { hasCaptionProblem } from '../feature';
 export function getParent(element, level = 0) {
   let iteration = -1;
   let parent = null;
+  let elementToCheck = element;
 
-  while (element !== null) {
+  while (elementToCheck !== null) {
     if (iteration === level) {
-      parent = element;
+      parent = elementToCheck;
       break;
     }
 
-    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      element = element.host;
+    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = elementToCheck.host;
 
     } else {
       iteration += 1;
-      element = element.parentNode;
+      elementToCheck = elementToCheck.parentNode;
     }
   }
 
@@ -40,15 +41,17 @@ export function getParent(element, level = 0) {
  * @returns {HTMLElement|null}
  */
 export function closest(element, nodes, until) {
-  while (element !== null && element !== until) {
-    if (element.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
-      return element;
+  let elementToCheck = element;
+
+  while (elementToCheck !== null && elementToCheck !== until) {
+    if (elementToCheck.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(elementToCheck.nodeName) > -1 || nodes.indexOf(elementToCheck) > -1)) {
+      return elementToCheck;
     }
-    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      element = element.host;
+    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = elementToCheck.host;
 
     } else {
-      element = element.parentNode;
+      elementToCheck = elementToCheck.parentNode;
     }
   }
 
@@ -65,20 +68,21 @@ export function closest(element, nodes, until) {
  */
 export function closestDown(element, nodes, until) {
   const matched = [];
+  let elementToCheck = element;
 
-  while (element) {
-    element = closest(element, nodes, until);
+  while (elementToCheck) {
+    elementToCheck = closest(elementToCheck, nodes, until);
 
-    if (!element || (until && !until.contains(element))) {
+    if (!elementToCheck || (until && !until.contains(elementToCheck))) {
       break;
     }
-    matched.push(element);
+    matched.push(elementToCheck);
 
-    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      element = element.host;
+    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = elementToCheck.host;
 
     } else {
-      element = element.parentNode;
+      elementToCheck = elementToCheck.parentNode;
     }
   }
   const length = matched.length;
@@ -180,10 +184,11 @@ export function polymerUnwrap(element) {
  */
 export function index(element) {
   let i = 0;
+  let elementToCheck = element;
 
-  if (element.previousSibling) {
+  if (elementToCheck.previousSibling) {
     /* eslint-disable no-cond-assign */
-    while (element = element.previousSibling) {
+    while (elementToCheck = elementToCheck.previousSibling) {
       i += 1;
     }
   }
@@ -242,7 +247,9 @@ if (classListSupport) {
     return element.classList.contains(className);
   };
 
-  _addClass = function(element, className) {
+  _addClass = function(element, classes) {
+    let className = classes;
+
     if (typeof className === 'string') {
       className = className.split(' ');
     }
@@ -264,7 +271,9 @@ if (classListSupport) {
     }
   };
 
-  _removeClass = function(element, className) {
+  _removeClass = function(element, classes) {
+    let className = classes;
+
     if (typeof className === 'string') {
       className = className.split(' ');
     }
@@ -296,9 +305,10 @@ if (classListSupport) {
     return element.className !== void 0 && createClassNameRegExp(className).test(element.className);
   };
 
-  _addClass = function(element, className) {
+  _addClass = function(element, classes) {
     let len = 0;
     let _className = element.className;
+    let className = classes;
 
     if (typeof className === 'string') {
       className = className.split(' ');
@@ -317,9 +327,10 @@ if (classListSupport) {
     element.className = _className;
   };
 
-  _removeClass = function(element, className) {
+  _removeClass = function(element, classes) {
     let len = 0;
     let _className = element.className;
+    let className = classes;
 
     if (typeof className === 'string') {
       className = className.split(' ');
@@ -481,34 +492,35 @@ export function isVisible(elem) {
  */
 export function offset(elem) {
   const docElem = document.documentElement;
+  let elementToCheck = elem;
   let offsetLeft;
   let offsetTop;
   let lastElem;
   let box;
 
-  if (hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
+  if (hasCaptionProblem() && elementToCheck.firstChild && elementToCheck.firstChild.nodeName === 'CAPTION') {
     // fixes problem with Firefox ignoring <caption> in TABLE offset (see also export outerHeight)
     // http://jsperf.com/offset-vs-getboundingclientrect/8
-    box = elem.getBoundingClientRect();
+    box = elementToCheck.getBoundingClientRect();
 
     return {
       top: box.top + (window.pageYOffset || docElem.scrollTop) - (docElem.clientTop || 0),
       left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0)
     };
   }
-  offsetLeft = elem.offsetLeft;
-  offsetTop = elem.offsetTop;
-  lastElem = elem;
+  offsetLeft = elementToCheck.offsetLeft;
+  offsetTop = elementToCheck.offsetTop;
+  lastElem = elementToCheck;
 
   /* eslint-disable no-cond-assign */
-  while (elem = elem.offsetParent) {
+  while (elementToCheck = elementToCheck.offsetParent) {
     // from my observation, document.body always has scrollLeft/scrollTop == 0
-    if (elem === document.body) {
+    if (elementToCheck === document.body) {
       break;
     }
-    offsetLeft += elem.offsetLeft;
-    offsetTop += elem.offsetTop;
-    lastElem = elem;
+    offsetLeft += elementToCheck.offsetLeft;
+    offsetTop += elementToCheck.offsetTop;
+    lastElem = elementToCheck;
   }
 
   // slow - http://jsperf.com/offset-vs-getboundingclientrect/6
