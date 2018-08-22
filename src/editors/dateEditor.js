@@ -218,7 +218,9 @@ class DateEditor extends TextEditor {
     options.bound = false;
     options.format = options.format || this.defaultDateFormat;
     options.reposition = options.reposition || false;
-    options.onSelect = (dateStr) => {
+    options.onSelect = (value) => {
+      let dateStr = value;
+
       if (!isNaN(dateStr.getTime())) {
         dateStr = moment(dateStr).format(this.cellProperties.dateFormat || this.defaultDateFormat);
       }
