@@ -16,18 +16,16 @@ export function spec() {
   return currentSpec;
 }
 
-export function createDataArray(rows, cols) {
+export function createDataArray(rows = 100, cols = 4) {
   spec().data = [];
-  const rowsMax = typeof rows === 'number' ? rows : 100;
-  const colsMax = typeof cols === 'number' ? cols : 4;
 
-  for (let i = 0; i < rowsMax; i++) {
+  for (let i = 0; i < rows; i++) {
     const row = [];
 
     if (cols > 0) {
       row.push(i);
 
-      for (let j = 0; j < colsMax - 1; j++) {
+      for (let j = 0; j < cols - 1; j++) {
         /* eslint-disable no-mixed-operators */
         /* eslint-disable no-bitwise */
         row.push(String.fromCharCode(65 + j % 20).toLowerCase() + (j / 20 | 0 || '')); // | 0 is parseInt - see http://jsperf.com/math-floor-vs-math-round-vs-parseint/18
@@ -73,14 +71,12 @@ beforeEach(function() {
     },
     toBeAroundValue() {
       return {
-        compare(actual, expected, diff) {
-          const margin = diff || 1;
-
-          const pass = actual >= expected - margin && actual <= expected + margin;
-          let message = `Expected ${actual} to be around ${expected} (between ${expected - margin} and ${expected + margin})`;
+        compare(actual, expected, diff = 1) {
+          const pass = actual >= expected - diff && actual <= expected + diff;
+          let message = `Expected ${actual} to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
 
           if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - margin} and ${expected + margin})`;
+            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
           }
 
           return {
@@ -103,13 +99,15 @@ export function getTableWidth(elem) {
   return $(elem).outerWidth() || $(elem).find('tbody').outerWidth() || $(elem).find('thead').outerWidth(); // IE8 reports 0 as <table> offsetWidth
 }
 
-export function range(...cellRange) {
-  if (!cellRange.length) {
+export function range(start, end) {
+  if (!arguments.length) {
     return [];
   }
-  let [from, to] = cellRange;
 
-  if (cellRange.length === 1) {
+  let from = start;
+  let to = end;
+
+  if (arguments.length === 1) {
     to = from;
     from = 0;
   }
@@ -136,48 +134,48 @@ export function range(...cellRange) {
  * @returns {Object} Selection controller.
  */
 export function createSelectionController({ current, area, fill, custom } = {}) {
-  const selectionCurrent = current || new Walkontable.Selection({
+  const currentCtrl = current || new Walkontable.Selection({
     className: 'current',
     border: {
       width: 2,
       color: '#4b89ff',
     },
   });
-  const selectionArea = area || new Walkontable.Selection({
+  const areaCtrl = area || new Walkontable.Selection({
     className: 'area',
     border: {
       width: 1,
       color: '#4b89ff',
     },
   });
-  const selectionFill = fill || new Walkontable.Selection({
+  const fillCtrl = fill || new Walkontable.Selection({
     className: 'fill',
     border: {
       width: 1,
       color: '#ff0000',
     },
   });
-  const selectionCustom = custom || [];
+  const customCtrl = custom || [];
 
   return {
     getCell() {
-      return selectionCurrent;
+      return currentCtrl;
     },
     createOrGetArea() {
-      return selectionArea;
+      return areaCtrl;
     },
     getAreas() {
-      return [selectionArea];
+      return [areaCtrl];
     },
     getFill() {
-      return selectionFill;
+      return fillCtrl;
     },
     [Symbol.iterator]() {
       return [
-        selectionFill,
-        selectionCurrent,
-        selectionArea,
-        ...selectionCustom,
+        fillCtrl,
+        currentCtrl,
+        areaCtrl,
+        ...customCtrl,
       ][Symbol.iterator]();
     },
   };

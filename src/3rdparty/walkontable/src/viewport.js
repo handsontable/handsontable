@@ -127,11 +127,12 @@ class Viewport {
    * @returns {Number}
    */
   sumColumnWidths(from, length) {
+    const wtTable = this.wot.wtTable;
     let sum = 0;
     let column = from;
 
     while (column < length) {
-      sum += this.wot.wtTable.getColumnWidth(column);
+      sum += wtTable.getColumnWidth(column);
       column += 1;
     }
 

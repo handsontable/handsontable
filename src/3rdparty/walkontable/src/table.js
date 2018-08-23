@@ -436,22 +436,22 @@ class Table {
    * @returns {CellCoords|null} The coordinates of the provided TD element (or the closest TD element) or null, if the provided element is not applicable.
    */
   getCoords(TD) {
-    let CellElement = TD;
+    let cellElement = TD;
 
-    if (CellElement.nodeName !== 'TD' && CellElement.nodeName !== 'TH') {
-      CellElement = closest(CellElement, ['TD', 'TH']);
+    if (cellElement.nodeName !== 'TD' && cellElement.nodeName !== 'TH') {
+      cellElement = closest(cellElement, ['TD', 'TH']);
     }
 
-    if (CellElement === null) {
+    if (cellElement === null) {
       return null;
     }
 
-    const TR = CellElement.parentNode;
+    const TR = cellElement.parentNode;
     const CONTAINER = TR.parentNode;
     let row = index(TR);
-    let col = CellElement.cellIndex;
+    let col = cellElement.cellIndex;
 
-    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, CellElement) || overlayContainsElement(Overlay.CLONE_TOP, CellElement)) {
+    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, cellElement) || overlayContainsElement(Overlay.CLONE_TOP, cellElement)) {
       if (CONTAINER.nodeName === 'THEAD') {
         row -= CONTAINER.childNodes.length;
       }
@@ -463,7 +463,7 @@ class Table {
       row = this.rowFilter.renderedToSource(row);
     }
 
-    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, CellElement) || overlayContainsElement(Overlay.CLONE_LEFT, CellElement)) {
+    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, cellElement) || overlayContainsElement(Overlay.CLONE_LEFT, cellElement)) {
       col = this.columnFilter.offsettedTH(col);
 
     } else {
@@ -681,7 +681,7 @@ class Table {
   _correctRowHeaderWidth(width) {
     let rowHeaderWidth = width;
 
-    if (typeof rowHeaderWidth !== 'number') {
+    if (typeof width !== 'number') {
       rowHeaderWidth = this.wot.getSetting('defaultColumnWidth');
     }
     if (this.correctHeaderWidth) {

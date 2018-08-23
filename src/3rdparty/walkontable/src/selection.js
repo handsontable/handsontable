@@ -127,17 +127,17 @@ class Selection {
     const TD = wotInstance.wtTable.getCell(new CellCoords(sourceRow, sourceColumn));
 
     if (typeof TD === 'object') {
-      let newClassName = className;
+      let cellClassName = className;
 
       if (markIntersections) {
-        newClassName = this.classNameGenerator(TD);
+        cellClassName = this.classNameGenerator(TD);
 
-        if (!this.classNames.includes(newClassName)) {
-          this.classNames.push(newClassName);
+        if (!this.classNames.includes(cellClassName)) {
+          this.classNames.push(cellClassName);
         }
       }
 
-      addClass(TD, newClassName);
+      addClass(TD, cellClassName);
     }
 
     return this;

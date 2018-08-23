@@ -66,29 +66,29 @@ DataMap.prototype.recursiveDuckSchema = function(object) {
  * @returns {Number}
  */
 DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
+  let lastColumn = lastCol;
+  let propertyParent = parent;
   let prop;
-  let columnIndex = lastCol;
-  let parentKey = parent;
 
-  if (typeof columnIndex === 'undefined') {
-    columnIndex = 0;
-    parentKey = '';
+  if (typeof lastColumn === 'undefined') {
+    lastColumn = 0;
+    propertyParent = '';
   }
   if (typeof schema === 'object' && !Array.isArray(schema)) {
     objectEach(schema, (value, key) => {
       if (value === null) {
-        prop = parentKey + key;
+        prop = propertyParent + key;
         this.colToPropCache.push(prop);
-        this.propToColCache.set(prop, columnIndex);
+        this.propToColCache.set(prop, lastColumn);
 
-        columnIndex += 1;
+        lastColumn += 1;
       } else {
-        columnIndex = this.recursiveDuckColumns(value, columnIndex, `${key}.`);
+        lastColumn = this.recursiveDuckColumns(value, lastColumn, `${key}.`);
       }
     });
   }
 
-  return columnIndex;
+  return lastColumn;
 };
 
 DataMap.prototype.createMap = function() {
@@ -142,13 +142,13 @@ DataMap.prototype.createMap = function() {
  * @returns {Number} Physical column index.
  */
 DataMap.prototype.colToProp = function(col) {
-  const columnIndex = this.instance.runHooks('modifyCol', col);
+  const physicalColumn = this.instance.runHooks('modifyCol', col);
 
-  if (!isNaN(columnIndex) && this.colToPropCache && typeof this.colToPropCache[columnIndex] !== 'undefined') {
-    return this.colToPropCache[columnIndex];
+  if (!isNaN(physicalColumn) && this.colToPropCache && typeof this.colToPropCache[physicalColumn] !== 'undefined') {
+    return this.colToPropCache[physicalColumn];
   }
 
-  return columnIndex;
+  return physicalColumn;
 };
 
 /**
@@ -198,12 +198,8 @@ DataMap.prototype.createRow = function(index, amount = 1, source) {
   let numberOfCreatedRows = 0;
   let rowIndex = index;
 
-  if (typeof rowIndex !== 'number') {
-    const countSourceRows = this.instance.countSourceRows();
-
-    if (rowIndex >= countSourceRows) {
-      rowIndex = countSourceRows;
-    }
+  if (typeof rowIndex !== 'number' || rowIndex >= this.instance.countSourceRows()) {
+    rowIndex = this.instance.countSourceRows();
   }
 
   const continueProcess = this.instance.runHooks('beforeCreateRow', rowIndex, amount, source);
@@ -257,7 +253,7 @@ DataMap.prototype.createRow = function(index, amount = 1, source) {
  * Creates col at the right of the data array.
  *
  * @param {Number} [index] Visual index of the column before which the new column will be inserted
- * @param {Number} [amount] An amount of columns to add.
+ * @param {Number} [amount=1] An amount of columns to add.
  * @param {String} [source] Source of method call.
  * @fires Hooks#afterCreateCol
  * @returns {Number} Returns number of created columns
@@ -268,29 +264,23 @@ DataMap.prototype.createCol = function(index, amount = 1, source) {
       'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
       'If you want to be able to add new columns, you have to use array datasource.');
   }
-
+  const rlen = this.instance.countSourceRows();
   const data = this.dataSource;
+  const countColumns = this.instance.countCols();
+  const columnIndex = typeof index !== 'number' || index >= countColumns ? countColumns : index;
   let constructor;
   let numberOfCreatedCols = 0;
-  let currentIndex = index;
+  let currentIndex;
 
-  {
-    const countCols = this.instance.countCols();
+  this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
 
-    if (typeof currentIndex !== 'number' || currentIndex >= countCols) {
-      currentIndex = countCols;
-    }
-  }
-
-  this.instance.runHooks('beforeCreateCol', currentIndex, amount, source);
+  currentIndex = columnIndex;
 
   const maxCols = this.instance.getSettings().maxCols;
-  const rlen = this.instance.countSourceRows();
-
   while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
     constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
 
-    if (typeof currentIndex !== 'number' || currentIndex >= this.instance.countCols()) {
+    if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countCols()) {
       if (rlen > 0) {
         for (let r = 0; r < rlen; r++) {
           if (typeof data[r] === 'undefined') {
@@ -316,7 +306,7 @@ DataMap.prototype.createCol = function(index, amount = 1, source) {
     currentIndex += 1;
   }
 
-  this.instance.runHooks('afterCreateCol', index, numberOfCreatedCols, source);
+  this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
   this.instance.forceFullRender = true; // used when data was changed
 
   return numberOfCreatedCols;
@@ -326,38 +316,33 @@ DataMap.prototype.createCol = function(index, amount = 1, source) {
  * Removes row from the data array.
  *
  * @param {Number} [index] Visual index of the row to be removed. If not provided, the last row will be removed
- * @param {Number} [amount] Amount of the rows to be removed. If not provided, one row will be removed
+ * @param {Number} [amount=1] Amount of the rows to be removed. If not provided, one row will be removed
  * @param {String} [source] Source of method call.
  * @fires Hooks#beforeRemoveRow
  * @fires Hooks#afterRemoveRow
  */
 DataMap.prototype.removeRow = function(index, amount = 1, source) {
-  let startIndex = index;
+  let rowIndex = typeof index !== 'number' ? -amount : index;
+  const rowsAmount = this.instance.runHooks('modifyRemovedAmount', amount, rowIndex);
 
-  if (typeof startIndex !== 'number') {
-    startIndex = -amount;
-  }
+  rowIndex = (this.instance.countSourceRows() + rowIndex) % this.instance.countSourceRows();
 
-  const rowsAmount = this.instance.runHooks('modifyRemovedAmount', amount, startIndex);
-
-  startIndex = (this.instance.countSourceRows() + startIndex) % this.instance.countSourceRows();
-
-  const logicRows = this.visualRowsToPhysical(startIndex, rowsAmount);
-  const actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', startIndex, rowsAmount, logicRows, source);
+  const logicRows = this.visualRowsToPhysical(rowIndex, rowsAmount);
+  const actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', rowIndex, rowsAmount, logicRows, source);
 
   if (actionWasNotCancelled === false) {
     return;
   }
 
   const data = this.dataSource;
-  const newData = this.filterData(startIndex, rowsAmount);
+  const newData = this.filterData(rowIndex, rowsAmount);
 
   if (newData) {
     data.length = 0;
     Array.prototype.push.apply(data, newData);
   }
 
-  this.instance.runHooks('afterRemoveRow', startIndex, rowsAmount, logicRows, source);
+  this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
 
   this.instance.forceFullRender = true; // used when data was changed
 };
@@ -366,7 +351,7 @@ DataMap.prototype.removeRow = function(index, amount = 1, source) {
  * Removes column from the data array.
  *
  * @param {Number} [index] Visual index of the column to be removed. If not provided, the last column will be removed
- * @param {Number} [amount] Amount of the columns to be removed. If not provided, one column will be removed
+ * @param {Number} [amount=1] Amount of the columns to be removed. If not provided, one column will be removed
  * @param {String} [source] Source of method call.
  * @fires Hooks#beforeRemoveCol
  * @fires Hooks#afterRemoveCol
@@ -375,17 +360,13 @@ DataMap.prototype.removeCol = function(index, amount = 1, source) {
   if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
     throw new Error('cannot remove column with object data source or columns option specified');
   }
-  let startColumn = index;
+  let columnIndex = typeof index !== 'number' ? -amount : index;
 
-  if (typeof startColumn !== 'number') {
-    startColumn = -amount;
-  }
+  columnIndex = (this.instance.countCols() + columnIndex) % this.instance.countCols();
 
-  startColumn = (this.instance.countCols() + startColumn) % this.instance.countCols();
-
-  const logicColumns = this.visualColumnsToPhysical(startColumn, amount);
+  const logicColumns = this.visualColumnsToPhysical(columnIndex, amount);
   const descendingLogicColumns = logicColumns.slice(0).sort((a, b) => b - a);
-  const actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', startColumn, amount, logicColumns, source);
+  const actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', columnIndex, amount, logicColumns, source);
 
   if (actionWasNotCancelled === false) {
     return;
@@ -418,7 +399,7 @@ DataMap.prototype.removeCol = function(index, amount = 1, source) {
     }
   }
 
-  this.instance.runHooks('afterRemoveCol', startColumn, amount, logicColumns, source);
+  this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
 
   this.instance.forceFullRender = true; // used when data was changed
 };
@@ -601,12 +582,13 @@ DataMap.prototype.getCopyable = function(row, prop) {
  */
 DataMap.prototype.set = function(row, prop, value, source) {
   const physicalRow = this.instance.runHooks('modifyRow', row, source || 'datamapGet');
+  let newValue = value;
+  let dataRow = this.dataSource[physicalRow];
   // TODO: To remove, use 'modifyData' hook instead (see below)
   const modifiedRowData = this.instance.runHooks('modifyRowData', physicalRow);
-  let newValue = value;
-  let dataRow = this.dataSource[row];
 
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
+  //
 
   if (this.instance.hasHook('modifyData')) {
     const valueHolder = createObjectPropListener(newValue);
@@ -638,7 +620,7 @@ DataMap.prototype.set = function(row, prop, value, source) {
 
   } else if (typeof prop === 'function') {
     /* see the `function` handler in `get` */
-    prop(this.dataSource.slice(row, row + 1)[0], newValue);
+    prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0], newValue);
 
   } else {
     dataRow[prop] = newValue;
