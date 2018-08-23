@@ -275,14 +275,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      *                             Alter actions such as "remove_row" and "remove_col" support array indexes in the
      *                             format `[[index, amount], [index, amount]...]` this can be used to remove
      *                             non-consecutive columns or rows in one call.
-     * @param {Number} amount Ammount rows or columns to remove.
+     * @param {Number} amount Amount rows or columns to remove.
      * @param {String} [source] Optional. Source of hook runner.
      * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
-    alter(action, index, amount, source, keepEmptyRows) {
+    alter(action, index, amount = 1, source, keepEmptyRows) {
       let delta;
-
-      amount = amount || 1;
 
       function spliceWith(data, startIndex, count, toInject) {
         const valueFactory = () => {
@@ -339,23 +337,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         return normalizedIndexes;
       };
 
-      /* eslint-disable no-case-declarations */
       switch (action) {
-        case 'insert_row':
-
+        case 'insert_row': {
           const numberOfSourceRows = instance.countSourceRows();
 
           if (instance.getSettings().maxRows === numberOfSourceRows) {
             return;
           }
 
-          index = (isDefined(index)) ? index : numberOfSourceRows;
+          const rowIndex = isDefined(index) ? index : numberOfSourceRows;
 
-          delta = datamap.createRow(index, amount, source);
-          spliceWith(priv.cellSettings, index, amount, 'array');
+          delta = datamap.createRow(rowIndex, amount, source);
+          spliceWith(priv.cellSettings, rowIndex, amount, 'array');
 
           if (delta) {
-            if (selection.isSelected() && selection.selectedRange.current().from.row >= index) {
+            if (selection.isSelected() && selection.selectedRange.current().from.row >= rowIndex) {
               selection.selectedRange.current().from.row += delta;
               selection.transformEnd(delta, 0); // will call render() internally
             } else {
@@ -363,7 +359,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             }
           }
           break;
-
+        }
         case 'insert_col':
           delta = datamap.createCol(index, amount, source);
 
@@ -389,24 +385,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
           break;
 
-        case 'remove_row':
-
+        case 'remove_row': {
           const removeRow = (indexes) => {
             let offset = 0;
 
             // Normalize the {index, amount} groups into bigger groups.
             arrayEach(indexes, ([groupIndex, groupAmount]) => {
-              const calcIndex = isEmpty(groupIndex) ? instance.countRows() - 1 : Math.max(groupIndex - offset, 0);
+              let groupId = groupIndex;
+              const calcIndex = isEmpty(groupId) ? instance.countRows() - 1 : Math.max(groupId - offset, 0);
 
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
-              if (Number.isInteger(groupIndex)) {
-                groupIndex = Math.max(groupIndex - offset, 0);
+              if (Number.isInteger(groupId)) {
+                groupId = Math.max(groupId - offset, 0);
               }
 
               // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeRow breaks the removing functionality.
-              datamap.removeRow(groupIndex, groupAmount, source);
+              datamap.removeRow(groupId, groupAmount, source);
               priv.cellSettings.splice(calcIndex, amount);
 
               const totalRows = instance.countRows();
@@ -435,27 +431,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           grid.adjustRowsAndCols();
           instance._refreshBorders(); // it will call render and prepare methods
           break;
+        }
 
-        case 'remove_col':
-
+        case 'remove_col': {
           const removeCol = (indexes) => {
             let offset = 0;
 
             // Normalize the {index, amount} groups into bigger groups.
             arrayEach(indexes, ([groupIndex, groupAmount]) => {
-              const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
+              let groupId = groupIndex;
+              const calcIndex = isEmpty(groupId) ? instance.countCols() - 1 : Math.max(groupId - offset, 0);
 
               let visualColumnIndex = recordTranslator.toPhysicalColumn(calcIndex);
 
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
-              if (Number.isInteger(groupIndex)) {
-                groupIndex = Math.max(groupIndex - offset, 0);
+              if (Number.isInteger(groupId)) {
+                groupId = Math.max(groupId - offset, 0);
               }
 
               // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeCol breaks the removing functionality.
-              datamap.removeCol(groupIndex, groupAmount, source);
+              datamap.removeCol(groupId, groupAmount, source);
 
               for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
                 if (priv.cellSettings[row]) { // if row hasn't been rendered it wouldn't have cellSettings
@@ -489,6 +486,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           instance._refreshBorders(); // it will call render and prepare methods
 
           break;
+        }
         default:
           throw new Error(`There is no such action "${action}"`);
       }
@@ -618,22 +616,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      */
     populateFromArray(start, input, end, source, method, direction, deltas) {
       // TODO: either remove or implement the `direction` argument. Currently it's not working at all.
-      let r;
-      let rlen;
-      let c;
-      let clen;
-      const setData = [];
-      const current = {};
-
-      rlen = input.length;
+      let rlen = input.length;
 
       if (rlen === 0) {
         return false;
       }
 
+      const current = {};
+      const setData = [];
+      let inputArray = input;
+      let c;
+      let clen;
+      let cmax;
+      let r;
       let repeatCol;
       let repeatRow;
-      let cmax;
       let rmax;
 
       /* eslint-disable no-case-declarations */
@@ -642,17 +639,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'shift_down' :
           repeatCol = end ? end.col - start.col + 1 : 0;
           repeatRow = end ? end.row - start.row + 1 : 0;
-          input = translateRowsToColumns(input);
-          for (c = 0, clen = input.length, cmax = Math.max(clen, repeatCol); c < cmax; c++) {
+          inputArray = translateRowsToColumns(inputArray);
+          for (c = 0, clen = inputArray.length, cmax = Math.max(clen, repeatCol); c < cmax; c++) {
             if (c < clen) {
-              for (r = 0, rlen = input[c].length; r < repeatRow - rlen; r++) {
-                input[c].push(input[c][r % rlen]);
+              for (r = 0, rlen = inputArray[c].length; r < repeatRow - rlen; r++) {
+                inputArray[c].push(inputArray[c][r % rlen]);
               }
-              input[c].unshift(start.col + c, start.row, 0);
-              instance.spliceCol(...input[c]);
+              inputArray[c].unshift(start.col + c, start.row, 0);
+              instance.spliceCol(...inputArray[c]);
             } else {
-              input[c % clen][0] = start.col + c;
-              instance.spliceCol(...input[c % clen]);
+              inputArray[c % clen][0] = start.col + c;
+              instance.spliceCol(...inputArray[c % clen]);
             }
           }
           break;
@@ -660,16 +657,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'shift_right':
           repeatCol = end ? end.col - start.col + 1 : 0;
           repeatRow = end ? end.row - start.row + 1 : 0;
-          for (r = 0, rlen = input.length, rmax = Math.max(rlen, repeatRow); r < rmax; r++) {
+          for (r = 0, rlen = inputArray.length, rmax = Math.max(rlen, repeatRow); r < rmax; r++) {
             if (r < rlen) {
-              for (c = 0, clen = input[r].length; c < repeatCol - clen; c++) {
-                input[r].push(input[r][c % clen]);
+              for (c = 0, clen = inputArray[r].length; c < repeatCol - clen; c++) {
+                inputArray[r].push(inputArray[r][c % clen]);
               }
-              input[r].unshift(start.row + r, start.col, 0);
-              instance.spliceRow(...input[r]);
+              inputArray[r].unshift(start.row + r, start.col, 0);
+              instance.spliceRow(...inputArray[r]);
             } else {
-              input[r % rlen][0] = start.row + r;
-              instance.spliceRow(...input[r % rlen]);
+              inputArray[r % rlen][0] = start.row + r;
+              instance.spliceRow(...inputArray[r % rlen]);
             }
           }
           break;
@@ -690,7 +687,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           let cellMeta;
 
           const getInputValue = function getInputValue(row, col = null) {
-            const rowValue = input[row % input.length];
+            const rowValue = inputArray[row % inputArray.length];
 
             if (col !== null) {
               return rowValue[col % rowValue.length];
@@ -698,7 +695,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
             return rowValue;
           };
-          const rowInputLength = input.length;
+          const rowInputLength = inputArray.length;
           const rowSelectionLength = end ? end.row - start.row + 1 : 0;
 
           if (end) {
@@ -761,7 +758,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               };
 
               if (source === 'Autofill.fill') {
-                const result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
+                const result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, inputArray, deltas, {}, selected);
 
                 if (result) {
                   value = isUndefined(result.value) ? value : result.value;
@@ -912,16 +909,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         if (instance.getCellValidator(cellProperties)) {
           waitingForValidator.addValidatorToQueue();
           instance.validateCell(changes[i][3], cellProperties, (function(index, cellPropertiesReference) {
+            let changeIndex = index;
+
             return function(result) {
               if (typeof result !== 'boolean') {
                 throw new Error('Validation error: result is not boolean');
               }
               if (result === false && cellPropertiesReference.allowInvalid === false) {
-                changes.splice(index, 1); // cancel the change
+                changes.splice(changeIndex, 1); // cancel the change
                 cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
                 const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
                 removeClass(cell, instance.getSettings().invalidCellClassName);
-                index -= 1;
+                changeIndex -= 1;
               }
               waitingForValidator.removeValidatorFormQueue();
             };
@@ -1028,6 +1027,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.validateCell = function(value, cellProperties, callback, source) {
     let validator = instance.getCellValidator(cellProperties);
+    let newValue = value;
 
     // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
     function done(valid, canBeValidated = true) {
@@ -1056,17 +1056,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (isFunction(validator)) {
-
-      value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
+      newValue = instance.runHooks('beforeValidate', newValue, cellProperties.visualRow, cellProperties.prop, source);
 
       // To provide consistent behaviour, validation should be always asynchronous
       instance._registerTimeout(setTimeout(() => {
-        validator.call(cellProperties, value, (valid) => {
-          valid = instance.runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
-          cellProperties.valid = valid;
+        validator.call(cellProperties, newValue, (valid) => {
+          const validationResult = instance.runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
+          cellProperties.valid = validationResult;
 
-          done(valid);
-          instance.runHooks('postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
+          done(validationResult);
+          instance.runHooks('postAfterValidate', validationResult, value, cellProperties.visualRow, cellProperties.prop, source);
         });
       }, 0));
 
@@ -1101,8 +1100,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
    */
   this.setDataAtCell = function(row, column, value, source) {
-    const input = setDataInputToArray(row, column, value);
     const changes = [];
+    const changesSource = !source && typeof row === 'object' ? column : source;
+    const input = setDataInputToArray(row, column, value);
     let i;
     let ilen;
     let prop;
@@ -1123,14 +1123,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ]);
     }
 
-    if (!source && typeof row === 'object') {
-      source = column;
-    }
+    instance.runHooks('afterSetDataAtCell', changes, changesSource);
 
-    instance.runHooks('afterSetDataAtCell', changes, source);
-
-    validateChanges(changes, source, () => {
-      applyChanges(changes, source);
+    validateChanges(changes, changesSource, () => {
+      applyChanges(changes, changesSource);
     });
   };
 
@@ -1147,8 +1143,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {String} [source] String that identifies how this change will be described in changes array (useful in onChange callback).
    */
   this.setDataAtRowProp = function(row, prop, value, source) {
-    const input = setDataInputToArray(row, prop, value);
     const changes = [];
+    const changesSource = !source && typeof row === 'object' ? prop : source;
+    const input = setDataInputToArray(row, prop, value);
     let i;
     let ilen;
 
@@ -1161,14 +1158,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ]);
     }
 
-    if (!source && typeof row === 'object') {
-      source = prop;
-    }
+    instance.runHooks('afterSetDataAtRowProp', changes, changesSource);
 
-    instance.runHooks('afterSetDataAtRowProp', changes, source);
-
-    validateChanges(changes, source, () => {
-      applyChanges(changes, source);
+    validateChanges(changes, changesSource, () => {
+      applyChanges(changes, changesSource);
     });
   };
 
@@ -1429,6 +1422,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterChange
    */
   this.loadData = function(data) {
+    let newDataset = data;
+
     if (Array.isArray(priv.settings.dataSchema)) {
       instance.dataType = 'array';
     } else if (isFunction(priv.settings.dataSchema)) {
@@ -1442,15 +1437,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     datamap = new DataMap(instance, priv, GridSettings);
 
-    if (typeof data === 'object' && data !== null) {
-      if (!(data.push && data.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it
+    if (typeof newDataset === 'object' && newDataset !== null) {
+      if (!(newDataset.push && newDataset.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it
         // when data is not an array, attempt to make a single-row array of it
-        data = [data];
+        newDataset = [newDataset];
       }
 
-    } else if (data === null) {
+    } else if (newDataset === null) {
       const dataSchema = datamap.getSchema();
-      data = [];
+      newDataset = [];
       let row;
       let r = 0;
       let rlen = 0;
@@ -1458,11 +1453,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
         if ((instance.dataType === 'object' || instance.dataType === 'function') && priv.settings.dataSchema) {
           row = deepClone(dataSchema);
-          data.push(row);
+          newDataset.push(row);
 
         } else if (instance.dataType === 'array') {
           row = deepClone(dataSchema[0]);
-          data.push(row);
+          newDataset.push(row);
 
         } else {
           row = [];
@@ -1471,12 +1466,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             row.push(null);
           }
 
-          data.push(row);
+          newDataset.push(row);
         }
       }
 
     } else {
-      throw new Error(`loadData only accepts array of objects or array of arrays (${typeof data} given)`);
+      throw new Error(`loadData only accepts array of objects or array of arrays (${typeof newDataset} given)`);
     }
 
     priv.isPopulated = false;
@@ -2188,28 +2183,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} columnTo To visual column index.
    * @returns {String} Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
    */
-  this.getDataType = function(rowFrom, columnFrom, rowTo, columnTo) {
+  this.getDataType = function(rowFrom, columnFrom, rowTo = rowFrom, columnTo = columnFrom) {
+    const coords = rowFrom === void 0 ? [0, 0, this.countRows(), this.countCols()] : [rowFrom, columnFrom, rowTo, columnTo];
+    const [rowStart, columnStart, rowEnd, columnEnd] = coords;
     let previousType = null;
     let currentType = null;
-
-    if (rowFrom === void 0) {
-      rowFrom = 0;
-      rowTo = this.countRows();
-      columnFrom = 0;
-      columnTo = this.countCols();
-    }
-    if (rowTo === void 0) {
-      rowTo = rowFrom;
-    }
-    if (columnTo === void 0) {
-      columnTo = columnFrom;
-    }
     let type = 'mixed';
 
-    rangeEach(Math.min(rowFrom, rowTo), Math.max(rowFrom, rowTo), (row) => {
+    rangeEach(Math.min(rowStart, rowEnd), Math.max(rowStart, rowEnd), (row) => {
       let isTypeEqual = true;
 
-      rangeEach(Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo), (column) => {
+      rangeEach(Math.min(columnStart, columnEnd), Math.max(columnStart, columnEnd), (column) => {
         const cellType = this.getCellMeta(row, column);
 
         currentType = cellType.type;
@@ -2610,25 +2594,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array|String|Number} Array of header values / single header value.
    */
   this.getRowHeader = function(row) {
+    const rowIndex = row !== void 0 ? instance.runHooks('modifyRowHeader', row) : row;
     let rowHeader = priv.settings.rowHeaders;
 
-    if (row !== void 0) {
-      row = instance.runHooks('modifyRowHeader', row);
-    }
-    if (row === void 0) {
+    if (rowIndex === void 0) {
       rowHeader = [];
+
       rangeEach(instance.countRows() - 1, (i) => {
         rowHeader.push(instance.getRowHeader(i));
       });
 
-    } else if (Array.isArray(rowHeader) && rowHeader[row] !== void 0) {
-      rowHeader = rowHeader[row];
+    } else if (Array.isArray(rowHeader) && rowHeader[rowIndex] !== void 0) {
+      rowHeader = rowHeader[rowIndex];
 
     } else if (isFunction(rowHeader)) {
-      rowHeader = rowHeader(row);
+      rowHeader = rowHeader(rowIndex);
 
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
-      rowHeader = row + 1;
+      rowHeader = rowIndex + 1;
     }
 
     return rowHeader;
@@ -2677,11 +2660,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getColHeader = function(column) {
     const columnsAsFunc = priv.settings.columns && isFunction(priv.settings.columns);
+    const modifiedColumn = instance.runHooks('modifyColHeader', column);
     let result = priv.settings.colHeaders;
 
-    column = instance.runHooks('modifyColHeader', column);
-
-    if (column === void 0) {
+    if (modifiedColumn === void 0) {
       const out = [];
       const ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
 
@@ -2705,22 +2687,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         return arr[visualColumnIndex];
       };
-      const baseCol = column;
-      column = instance.runHooks('modifyCol', column);
-
-      const prop = translateVisualIndexToColumns(column);
+      const baseCol = modifiedColumn;
+      const pysicalColumn = instance.runHooks('modifyCol', modifiedColumn);
+      const prop = translateVisualIndexToColumns(pysicalColumn);
 
       if (priv.settings.columns && isFunction(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
         result = priv.settings.columns(prop).title;
 
-      } else if (priv.settings.columns && priv.settings.columns[column] && priv.settings.columns[column].title) {
-        result = priv.settings.columns[column].title;
+      } else if (priv.settings.columns && priv.settings.columns[pysicalColumn] && priv.settings.columns[pysicalColumn].title) {
+        result = priv.settings.columns[pysicalColumn].title;
 
-      } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[column] !== void 0) {
-        result = priv.settings.colHeaders[column];
+      } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[pysicalColumn] !== void 0) {
+        result = priv.settings.colHeaders[pysicalColumn];
 
       } else if (isFunction(priv.settings.colHeaders)) {
-        result = priv.settings.colHeaders(column);
+        result = priv.settings.colHeaders(pysicalColumn);
 
       } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
         result = spreadsheetColumnLabel(baseCol); // see #1458
@@ -3524,11 +3505,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    */
   this._registerTimeout = function(handle, delay = 0) {
-    if (typeof handle === 'function') {
-      handle = setTimeout(handle, delay);
-    }
+    const handler = typeof handle === 'function' ? setTimeout(handle, delay) : handle;
 
-    this.timeouts.push(handle);
+    this.timeouts.push(handler);
   };
 
   /**

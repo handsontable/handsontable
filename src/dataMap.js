@@ -67,26 +67,28 @@ DataMap.prototype.recursiveDuckSchema = function(object) {
  */
 DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
   let prop;
+  let columnIndex = lastCol;
+  let parentKey = parent;
 
-  if (typeof lastCol === 'undefined') {
-    lastCol = 0;
-    parent = '';
+  if (typeof columnIndex === 'undefined') {
+    columnIndex = 0;
+    parentKey = '';
   }
   if (typeof schema === 'object' && !Array.isArray(schema)) {
     objectEach(schema, (value, key) => {
       if (value === null) {
-        prop = parent + key;
+        prop = parentKey + key;
         this.colToPropCache.push(prop);
-        this.propToColCache.set(prop, lastCol);
+        this.propToColCache.set(prop, columnIndex);
 
-        lastCol += 1;
+        columnIndex += 1;
       } else {
-        lastCol = this.recursiveDuckColumns(value, lastCol, `${key}.`);
+        columnIndex = this.recursiveDuckColumns(value, columnIndex, `${key}.`);
       }
     });
   }
 
-  return lastCol;
+  return columnIndex;
 };
 
 DataMap.prototype.createMap = function() {
@@ -140,13 +142,13 @@ DataMap.prototype.createMap = function() {
  * @returns {Number} Physical column index.
  */
 DataMap.prototype.colToProp = function(col) {
-  col = this.instance.runHooks('modifyCol', col);
+  const columnIndex = this.instance.runHooks('modifyCol', col);
 
-  if (!isNaN(col) && this.colToPropCache && typeof this.colToPropCache[col] !== 'undefined') {
-    return this.colToPropCache[col];
+  if (!isNaN(columnIndex) && this.colToPropCache && typeof this.colToPropCache[columnIndex] !== 'undefined') {
+    return this.colToPropCache[columnIndex];
   }
 
-  return col;
+  return columnIndex;
 };
 
 /**
@@ -194,12 +196,17 @@ DataMap.prototype.getSchema = function() {
  */
 DataMap.prototype.createRow = function(index, amount = 1, source) {
   let numberOfCreatedRows = 0;
+  let rowIndex = index;
 
-  if (typeof index !== 'number' || index >= this.instance.countSourceRows()) {
-    index = this.instance.countSourceRows();
+  if (typeof rowIndex !== 'number') {
+    const countSourceRows = this.instance.countSourceRows();
+
+    if (rowIndex >= countSourceRows) {
+      rowIndex = countSourceRows;
+    }
   }
 
-  const continueProcess = this.instance.runHooks('beforeCreateRow', index, amount, source);
+  const continueProcess = this.instance.runHooks('beforeCreateRow', rowIndex, amount, source);
 
   if (continueProcess === false) {
     return 0;
@@ -223,24 +230,24 @@ DataMap.prototype.createRow = function(index, amount = 1, source) {
       }
 
     } else if (this.instance.dataType === 'function') {
-      row = this.instance.getSettings().dataSchema(index);
+      row = this.instance.getSettings().dataSchema(rowIndex);
 
     } else {
       row = {};
       deepExtend(row, this.getSchema());
     }
 
-    if (index === this.instance.countSourceRows()) {
+    if (rowIndex === this.instance.countSourceRows()) {
       this.dataSource.push(row);
 
     } else {
-      this.spliceData(index, 0, row);
+      this.spliceData(rowIndex, 0, row);
     }
 
     numberOfCreatedRows += 1;
   }
 
-  this.instance.runHooks('afterCreateRow', index, numberOfCreatedRows, source);
+  this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
   this.instance.forceFullRender = true; // used when data was changed
 
   return numberOfCreatedRows;
@@ -255,34 +262,35 @@ DataMap.prototype.createRow = function(index, amount = 1, source) {
  * @fires Hooks#afterCreateCol
  * @returns {Number} Returns number of created columns
  */
-DataMap.prototype.createCol = function(index, amount, source) {
+DataMap.prototype.createCol = function(index, amount = 1, source) {
   if (!this.instance.isColumnModificationAllowed()) {
     throw new Error('Cannot create new column. When data source in an object, ' +
       'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
       'If you want to be able to add new columns, you have to use array datasource.');
   }
-  const rlen = this.instance.countSourceRows();
+
   const data = this.dataSource;
   let constructor;
   let numberOfCreatedCols = 0;
-  let currentIndex;
+  let currentIndex = index;
 
-  if (!amount) {
-    amount = 1;
+  {
+    const countCols = this.instance.countCols();
+
+    if (typeof currentIndex !== 'number' || currentIndex >= countCols) {
+      currentIndex = countCols;
+    }
   }
 
-  if (typeof index !== 'number' || index >= this.instance.countCols()) {
-    index = this.instance.countCols();
-  }
-  this.instance.runHooks('beforeCreateCol', index, amount, source);
-
-  currentIndex = index;
+  this.instance.runHooks('beforeCreateCol', currentIndex, amount, source);
 
   const maxCols = this.instance.getSettings().maxCols;
+  const rlen = this.instance.countSourceRows();
+
   while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
     constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
 
-    if (typeof index !== 'number' || index >= this.instance.countCols()) {
+    if (typeof currentIndex !== 'number' || currentIndex >= this.instance.countCols()) {
       if (rlen > 0) {
         for (let r = 0; r < rlen; r++) {
           if (typeof data[r] === 'undefined') {
@@ -323,34 +331,33 @@ DataMap.prototype.createCol = function(index, amount, source) {
  * @fires Hooks#beforeRemoveRow
  * @fires Hooks#afterRemoveRow
  */
-DataMap.prototype.removeRow = function(index, amount, source) {
-  if (!amount) {
-    amount = 1;
+DataMap.prototype.removeRow = function(index, amount = 1, source) {
+  let startIndex = index;
+
+  if (typeof startIndex !== 'number') {
+    startIndex = -amount;
   }
-  if (typeof index !== 'number') {
-    index = -amount;
-  }
 
-  amount = this.instance.runHooks('modifyRemovedAmount', amount, index);
+  const rowsAmount = this.instance.runHooks('modifyRemovedAmount', amount, startIndex);
 
-  index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
+  startIndex = (this.instance.countSourceRows() + startIndex) % this.instance.countSourceRows();
 
-  const logicRows = this.visualRowsToPhysical(index, amount);
-  const actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', index, amount, logicRows, source);
+  const logicRows = this.visualRowsToPhysical(startIndex, rowsAmount);
+  const actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', startIndex, rowsAmount, logicRows, source);
 
   if (actionWasNotCancelled === false) {
     return;
   }
 
   const data = this.dataSource;
-  const newData = this.filterData(index, amount);
+  const newData = this.filterData(startIndex, rowsAmount);
 
   if (newData) {
     data.length = 0;
     Array.prototype.push.apply(data, newData);
   }
 
-  this.instance.runHooks('afterRemoveRow', index, amount, logicRows, source);
+  this.instance.runHooks('afterRemoveRow', startIndex, rowsAmount, logicRows, source);
 
   this.instance.forceFullRender = true; // used when data was changed
 };
@@ -364,22 +371,21 @@ DataMap.prototype.removeRow = function(index, amount, source) {
  * @fires Hooks#beforeRemoveCol
  * @fires Hooks#afterRemoveCol
  */
-DataMap.prototype.removeCol = function(index, amount, source) {
+DataMap.prototype.removeCol = function(index, amount = 1, source) {
   if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
     throw new Error('cannot remove column with object data source or columns option specified');
   }
-  if (!amount) {
-    amount = 1;
-  }
-  if (typeof index !== 'number') {
-    index = -amount;
+  let startColumn = index;
+
+  if (typeof startColumn !== 'number') {
+    startColumn = -amount;
   }
 
-  index = (this.instance.countCols() + index) % this.instance.countCols();
+  startColumn = (this.instance.countCols() + startColumn) % this.instance.countCols();
 
-  const logicColumns = this.visualColumnsToPhysical(index, amount);
+  const logicColumns = this.visualColumnsToPhysical(startColumn, amount);
   const descendingLogicColumns = logicColumns.slice(0).sort((a, b) => b - a);
-  const actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', index, amount, logicColumns, source);
+  const actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', startColumn, amount, logicColumns, source);
 
   if (actionWasNotCancelled === false) {
     return;
@@ -412,7 +418,7 @@ DataMap.prototype.removeCol = function(index, amount, source) {
     }
   }
 
-  this.instance.runHooks('afterRemoveCol', index, amount, logicColumns, source);
+  this.instance.runHooks('afterRemoveCol', startColumn, amount, logicColumns, source);
 
   this.instance.forceFullRender = true; // used when data was changed
 };
@@ -508,11 +514,11 @@ DataMap.prototype.filterData = function(index, amount) {
  * @param {Number} prop
  */
 DataMap.prototype.get = function(row, prop) {
-  row = this.instance.runHooks('modifyRow', row);
+  const physicalRow = this.instance.runHooks('modifyRow', row);
 
-  let dataRow = this.dataSource[row];
+  let dataRow = this.dataSource[physicalRow];
   // TODO: To remove, use 'modifyData' hook instead (see below)
-  const modifiedRowData = this.instance.runHooks('modifyRowData', row);
+  const modifiedRowData = this.instance.runHooks('modifyRowData', physicalRow);
 
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
   //
@@ -553,13 +559,13 @@ DataMap.prototype.get = function(row, prop) {
      *      }
      *    }]}
      */
-    value = prop(this.dataSource.slice(row, row + 1)[0]);
+    value = prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
   }
 
   if (this.instance.hasHook('modifyData')) {
     const valueHolder = createObjectPropListener(value);
 
-    this.instance.runHooks('modifyData', row, this.propToCol(prop), valueHolder, 'get');
+    this.instance.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'get');
 
     if (valueHolder.isTouched()) {
       value = valueHolder.value;
@@ -594,28 +600,27 @@ DataMap.prototype.getCopyable = function(row, prop) {
  * @param {String} [source] Source of hook runner.
  */
 DataMap.prototype.set = function(row, prop, value, source) {
-  row = this.instance.runHooks('modifyRow', row, source || 'datamapGet');
-
-  let dataRow = this.dataSource[row];
+  const physicalRow = this.instance.runHooks('modifyRow', row, source || 'datamapGet');
   // TODO: To remove, use 'modifyData' hook instead (see below)
-  const modifiedRowData = this.instance.runHooks('modifyRowData', row);
+  const modifiedRowData = this.instance.runHooks('modifyRowData', physicalRow);
+  let newValue = value;
+  let dataRow = this.dataSource[row];
 
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
-  //
 
   if (this.instance.hasHook('modifyData')) {
-    const valueHolder = createObjectPropListener(value);
+    const valueHolder = createObjectPropListener(newValue);
 
-    this.instance.runHooks('modifyData', row, this.propToCol(prop), valueHolder, 'set');
+    this.instance.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'set');
 
     if (valueHolder.isTouched()) {
-      value = valueHolder.value;
+      newValue = valueHolder.value;
     }
   }
 
   // try to set value under property `prop` (includes dot)
   if (dataRow && dataRow.hasOwnProperty && hasOwnProperty(dataRow, prop)) {
-    dataRow[prop] = value;
+    dataRow[prop] = newValue;
 
   } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
     const sliced = prop.split('.');
@@ -629,14 +634,14 @@ DataMap.prototype.set = function(row, prop, value, source) {
       }
       out = out[sliced[i]];
     }
-    out[sliced[i]] = value;
+    out[sliced[i]] = newValue;
 
   } else if (typeof prop === 'function') {
     /* see the `function` handler in `get` */
-    prop(this.dataSource.slice(row, row + 1)[0], value);
+    prop(this.dataSource.slice(row, row + 1)[0], newValue);
 
   } else {
-    dataRow[prop] = value;
+    dataRow[prop] = newValue;
   }
 };
 
@@ -738,9 +743,9 @@ DataMap.prototype.getLength = function() {
     this.latestSourceRowsCount = length;
     if (this.cachedLength === null || reValidate) {
       rangeEach(length - 1, (row) => {
-        row = this.instance.runHooks('modifyRow', row);
+        const physicalRow = this.instance.runHooks('modifyRow', row);
 
-        if (row === null) {
+        if (physicalRow === null) {
           length -= 1;
         }
       });
