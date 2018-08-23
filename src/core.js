@@ -1475,14 +1475,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     priv.isPopulated = false;
-    GridSettings.prototype.data = data;
+    GridSettings.prototype.data = newDataset;
 
-    if (Array.isArray(data[0])) {
+    if (Array.isArray(newDataset[0])) {
       instance.dataType = 'array';
     }
 
-    datamap.dataSource = data;
-    dataSource.data = data;
+    datamap.dataSource = newDataset;
+    dataSource.data = newDataset;
     dataSource.dataType = instance.dataType;
     dataSource.colToProp = datamap.colToProp.bind(datamap);
     dataSource.propToCol = datamap.propToCol.bind(datamap);
