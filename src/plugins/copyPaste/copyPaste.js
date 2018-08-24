@@ -1,4 +1,4 @@
-import BasePlugin from './../_base.js';
+import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
 import SheetClip from './../../../lib/SheetClip/SheetClip';
 import { CellCoords, CellRange } from './../../3rdparty/walkontable/src';

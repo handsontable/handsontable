@@ -1,4 +1,4 @@
-import SheetClip from './../lib/SheetClip/SheetClip.js';
+import SheetClip from './../lib/SheetClip/SheetClip';
 import { cellMethodLookupFactory } from './helpers/data';
 import { columnFactory } from './helpers/setting';
 import {

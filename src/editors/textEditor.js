@@ -389,7 +389,7 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
 
   this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
   this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
-  this.TEXTAREA.style.backgroundColor = backgroundColor ? backgroundColor : getComputedStyle(this.TEXTAREA).backgroundColor;
+  this.TEXTAREA.style.backgroundColor = backgroundColor || getComputedStyle(this.TEXTAREA).backgroundColor;
 
   this.autoResize.init(this.TEXTAREA, {
     minHeight: Math.min(height, maxHeight),
