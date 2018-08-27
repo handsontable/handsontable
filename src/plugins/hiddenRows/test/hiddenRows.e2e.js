@@ -278,7 +278,7 @@ describe('HiddenRows', function() {
       setData(type, value) {
         this.data = value;
       }
-    };
+    }
 
     function getClipboardEvent() {
       let event = {};

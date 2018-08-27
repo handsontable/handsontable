@@ -3,7 +3,7 @@ describe('exportFile CSV type', () => {
 
   function data(x, y) {
     return Handsontable.helper.createSpreadsheetData(x, y);
-  };
+  }
 
   function countLines(str) {
     const lines = str.split('\r\n');

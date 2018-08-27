@@ -281,7 +281,7 @@ describe('TrimRows', function() {
       setData(type, value) {
         this.data = value;
       }
-    };
+    }
 
     function getClipboardEvent() {
       let event = {};
