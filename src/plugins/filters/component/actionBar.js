@@ -67,7 +67,7 @@ class ActionBarComponent extends BaseComponent {
       renderer: (hot, wrapper, row, col, prop, value) => {
         addClass(wrapper.parentNode, 'htFiltersMenuActionBar');
 
-        arrayEach(this.elements, (ui) => wrapper.appendChild(ui.element));
+        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
 
         return wrapper;
       }

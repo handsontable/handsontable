@@ -34,11 +34,11 @@ class ConditionComponent extends BaseComponent {
    * @private
    */
   registerHooks() {
-    this.getSelectElement().addLocalHook('select', (command) => this.onConditionSelect(command));
+    this.getSelectElement().addLocalHook('select', command => this.onConditionSelect(command));
     this.getSelectElement().addLocalHook('afterClose', () => this.onSelectUIClosed());
 
     arrayEach(this.getInputElements(), (input) => {
-      input.addLocalHook('keydown', (event) => this.onInputKeyDown(event));
+      input.addLocalHook('keydown', event => this.onInputKeyDown(event));
     });
   }
 
@@ -112,7 +112,7 @@ class ConditionComponent extends BaseComponent {
     });
 
     if (!condition) {
-      arrayEach(this.getInputElements(), (element) => element.setValue(null));
+      arrayEach(this.getInputElements(), element => element.setValue(null));
     }
   }
 
@@ -122,7 +122,7 @@ class ConditionComponent extends BaseComponent {
    * @returns {SelectUI}
    */
   getSelectElement() {
-    return this.elements.filter((element) => element instanceof SelectUI)[0];
+    return this.elements.filter(element => element instanceof SelectUI)[0];
   }
 
   /**
@@ -141,7 +141,7 @@ class ConditionComponent extends BaseComponent {
    * @returns {Array}
    */
   getInputElements() {
-    return this.elements.filter((element) => element instanceof InputUI);
+    return this.elements.filter(element => element instanceof InputUI);
   }
 
   /**
@@ -170,7 +170,7 @@ class ConditionComponent extends BaseComponent {
         label.textContent = value;
 
         wrapper.appendChild(label);
-        arrayEach(this.elements, (ui) => wrapper.appendChild(ui.element));
+        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
 
         return wrapper;
       }
@@ -186,7 +186,7 @@ class ConditionComponent extends BaseComponent {
     const columnType = this.hot.getDataType.apply(this.hot, this.hot.getSelectedLast() || [0, visualIndex]);
     const items = getOptionsList(columnType);
 
-    arrayEach(this.getInputElements(), (element) => element.hide());
+    arrayEach(this.getInputElements(), element => element.hide());
     this.getSelectElement().setItems(items);
     super.reset();
     // Select element as default 'None'

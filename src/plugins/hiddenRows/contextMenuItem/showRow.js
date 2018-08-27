@@ -52,7 +52,7 @@ export default function showRowItem(hiddenRowsPlugin) {
         }
 
       } else {
-        rangeEach(start, end, (row) => hiddenRowsPlugin.showRow(row));
+        rangeEach(start, end, row => hiddenRowsPlugin.showRow(row));
       }
 
       this.render();

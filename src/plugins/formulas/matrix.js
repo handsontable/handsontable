@@ -64,7 +64,7 @@ class Matrix {
    * @returns {Array}
    */
   getOutOfDateCells() {
-    return arrayFilter(this.data, (cell) => cell.isState(CellValue.STATE_OUT_OFF_DATE));
+    return arrayFilter(this.data, cell => cell.isState(CellValue.STATE_OUT_OFF_DATE));
   }
 
   /**
@@ -73,7 +73,7 @@ class Matrix {
    * @param {CellValue|Object} cellValue Cell value object.
    */
   add(cellValue) {
-    if (!arrayFilter(this.data, (cell) => cell.isEqual(cellValue)).length) {
+    if (!arrayFilter(this.data, cell => cell.isEqual(cellValue)).length) {
       this.data.push(cellValue);
     }
   }
@@ -102,7 +102,7 @@ class Matrix {
 
       return result;
     };
-    this.data = arrayFilter(this.data, (cell) => !isEqual(cell, cellValue));
+    this.data = arrayFilter(this.data, cell => !isEqual(cell, cellValue));
   }
 
   /**
@@ -145,7 +145,7 @@ class Matrix {
    * @param {CellReference|Object} cellReference Cell reference object.
    */
   registerCellRef(cellReference) {
-    if (!arrayFilter(this.cellReferences, (cell) => cell.isEqual(cellReference)).length) {
+    if (!arrayFilter(this.cellReferences, cell => cell.isEqual(cellReference)).length) {
       this.cellReferences.push(cellReference);
     }
   }
@@ -160,8 +160,8 @@ class Matrix {
   removeCellRefsAtRange({row: startRow, column: startColumn}, {row: endRow, column: endColumn}) {
     const removed = [];
 
-    const rowMatch = (cell) => (startRow === void 0 ? true : cell.row >= startRow && cell.row <= endRow);
-    const colMatch = (cell) => (startColumn === void 0 ? true : cell.column >= startColumn && cell.column <= endColumn);
+    const rowMatch = cell => (startRow === void 0 ? true : cell.row >= startRow && cell.row <= endRow);
+    const colMatch = cell => (startColumn === void 0 ? true : cell.column >= startColumn && cell.column <= endColumn);
 
     this.cellReferences = arrayFilter(this.cellReferences, (cell) => {
       if (rowMatch(cell) && colMatch(cell)) {

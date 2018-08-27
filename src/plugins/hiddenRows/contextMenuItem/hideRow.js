@@ -23,7 +23,7 @@ export default function hideRowItem(hiddenRowsPlugin) {
       let start = Math.min(from.row, to.row);
       let end = Math.max(from.row, to.row);
 
-      rangeEach(start, end, (row) => hiddenRowsPlugin.hideRow(row));
+      rangeEach(start, end, row => hiddenRowsPlugin.hideRow(row));
 
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);

@@ -29,8 +29,8 @@ class InputUI extends BaseUI {
    * Register all necessary hooks.
    */
   registerHooks() {
-    this.addLocalHook('click', (event) => this.onClick(event));
-    this.addLocalHook('keyup', (event) => this.onKeyup(event));
+    this.addLocalHook('click', event => this.onClick(event));
+    this.addLocalHook('keyup', event => this.onKeyup(event));
   }
 
   /**

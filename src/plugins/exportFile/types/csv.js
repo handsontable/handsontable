@@ -41,7 +41,7 @@ class Csv extends BaseType {
     let result = options.bom ? String.fromCharCode(0xFEFF) : '';
 
     if (hasColumnHeaders) {
-      columnHeaders = arrayMap(columnHeaders, (value) => this._escapeCell(value, true));
+      columnHeaders = arrayMap(columnHeaders, value => this._escapeCell(value, true));
 
       if (hasRowHeaders) {
         result += options.columnDelimiter;
@@ -57,7 +57,7 @@ class Csv extends BaseType {
       if (hasRowHeaders) {
         result += this._escapeCell(rowHeaders[index]) + options.columnDelimiter;
       }
-      result += value.map((value) => this._escapeCell(value)).join(options.columnDelimiter);
+      result += value.map(value => this._escapeCell(value)).join(options.columnDelimiter);
     });
 
     return result;

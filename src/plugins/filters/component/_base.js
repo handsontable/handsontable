@@ -28,7 +28,7 @@ class BaseComponent {
    * Reset elements to their initial state.
    */
   reset() {
-    arrayEach(this.elements, (ui) => ui.reset());
+    arrayEach(this.elements, ui => ui.reset());
   }
 
   /**
@@ -59,7 +59,7 @@ class BaseComponent {
    */
   destroy() {
     this.clearLocalHooks();
-    arrayEach(this.elements, (ui) => ui.destroy());
+    arrayEach(this.elements, ui => ui.destroy());
     this.elements = null;
     this.hot = null;
   }

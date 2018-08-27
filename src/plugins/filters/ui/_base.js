@@ -126,7 +126,7 @@ class BaseUI {
    */
   build() {
     const registerEvent = (element, eventName) => {
-      this.eventManager.addEventListener(element, eventName, (event) => this.runLocalHooks(eventName, event, this));
+      this.eventManager.addEventListener(element, eventName, event => this.runLocalHooks(eventName, event, this));
     };
 
     if (!this.buildState) {
@@ -136,7 +136,7 @@ class BaseUI {
       addClass(this._element, this.options.className);
     }
     if (this.options.children.length) {
-      arrayEach(this.options.children, (element) => this._element.appendChild(element.element));
+      arrayEach(this.options.children, element => this._element.appendChild(element.element));
 
     } else if (this.options.wrapIt) {
       const element = document.createElement(this.options.tagName);
@@ -149,10 +149,10 @@ class BaseUI {
 
       this._element.appendChild(element);
 
-      arrayEach(EVENTS_TO_REGISTER, (eventName) => registerEvent(element, eventName));
+      arrayEach(EVENTS_TO_REGISTER, eventName => registerEvent(element, eventName));
 
     } else {
-      arrayEach(EVENTS_TO_REGISTER, (eventName) => registerEvent(this._element, eventName));
+      arrayEach(EVENTS_TO_REGISTER, eventName => registerEvent(this._element, eventName));
     }
   }
 

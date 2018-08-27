@@ -6,7 +6,7 @@ import {arrayEach} from 'handsontable/helpers/array';
  * @pro
  */
 class DataFilter {
-  constructor(conditionCollection, columnDataFactory = (column) => []) {
+  constructor(conditionCollection, columnDataFactory = column => []) {
     /**
      * Reference to the instance of {ConditionCollection}.
      *

@@ -75,10 +75,10 @@ class MultipleSelectUI extends BaseUI {
    * Register all necessary hooks.
    */
   registerHooks() {
-    this.searchInput.addLocalHook('keydown', (event) => this.onInputKeyDown(event));
-    this.searchInput.addLocalHook('input', (event) => this.onInput(event));
-    this.selectAllUI.addLocalHook('click', (event) => this.onSelectAllClick(event));
-    this.clearAllUI.addLocalHook('click', (event) => this.onClearAllClick(event));
+    this.searchInput.addLocalHook('keydown', event => this.onInputKeyDown(event));
+    this.searchInput.addLocalHook('input', event => this.onInput(event));
+    this.selectAllUI.addLocalHook('click', event => this.onSelectAllClick(event));
+    this.clearAllUI.addLocalHook('click', event => this.onClearAllClick(event));
   }
 
   /**
@@ -163,7 +163,7 @@ class MultipleSelectUI extends BaseUI {
         fillHandle: false,
         fragmentSelection: 'cell',
         tabMoves: {row: 1, col: 0},
-        beforeKeyDown: (event) => this.onItemsBoxBeforeKeyDown(event)
+        beforeKeyDown: event => this.onItemsBoxBeforeKeyDown(event)
       });
       this.itemsBox.init();
     };
@@ -224,7 +224,7 @@ class MultipleSelectUI extends BaseUI {
     if (value === '') {
       filteredItems = [...this.items];
     } else {
-      filteredItems = arrayFilter(this.items, (item) => (item.value + '').toLowerCase().indexOf(value) >= 0);
+      filteredItems = arrayFilter(this.items, item => (item.value + '').toLowerCase().indexOf(value) >= 0);
     }
     this.itemsBox.loadData(filteredItems);
   }

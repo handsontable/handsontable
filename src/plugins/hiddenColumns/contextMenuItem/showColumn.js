@@ -52,7 +52,7 @@ export default function showColumnItem(hiddenColumnsPlugin) {
         }
 
       } else {
-        rangeEach(start, end, (column) => hiddenColumnsPlugin.showColumn(column));
+        rangeEach(start, end, column => hiddenColumnsPlugin.showColumn(column));
       }
 
       this.render();

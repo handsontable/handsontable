@@ -10,7 +10,7 @@ export function operationResult(conditions, value) {
     throw Error('Operation doesn\'t work on less then three conditions.');
   }
 
-  return conditions.slice(0, conditions.length - 1).some((condition) => condition.func(value))
+  return conditions.slice(0, conditions.length - 1).some(condition => condition.func(value))
     && conditions[conditions.length - 1].func(value);
 }
 

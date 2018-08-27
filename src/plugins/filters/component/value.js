@@ -31,7 +31,7 @@ class ValueComponent extends BaseComponent {
    * @private
    */
   registerHooks() {
-    this.getMultipleSelectElement().addLocalHook('keydown', (event) => this.onInputKeyDown(event));
+    this.getMultipleSelectElement().addLocalHook('keydown', event => this.onInputKeyDown(event));
   }
 
   /**
@@ -75,12 +75,12 @@ class ValueComponent extends BaseComponent {
    */
   updateState(stateInfo) {
     const updateColumnState = (column, conditions, conditionArgsChange, filteredRowsFactory, conditionsStack) => {
-      const [firstByValueCondition] = arrayFilter(conditions, (condition) => condition.name === CONDITION_BY_VALUE);
+      const [firstByValueCondition] = arrayFilter(conditions, condition => condition.name === CONDITION_BY_VALUE);
       const state = {};
       const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
 
       if (firstByValueCondition) {
-        let rowValues = arrayMap(filteredRowsFactory(column, conditionsStack), (row) => row.value);
+        let rowValues = arrayMap(filteredRowsFactory(column, conditionsStack), row => row.value);
 
         rowValues = unifyColumnValues(rowValues);
 
@@ -132,7 +132,7 @@ class ValueComponent extends BaseComponent {
    * @returns {MultipleSelectUI}
    */
   getMultipleSelectElement() {
-    return this.elements.filter((element) => element instanceof MultipleSelectUI)[0];
+    return this.elements.filter(element => element instanceof MultipleSelectUI)[0];
   }
 
   /**
@@ -156,7 +156,7 @@ class ValueComponent extends BaseComponent {
         label.textContent = value;
 
         wrapper.appendChild(label);
-        arrayEach(this.elements, (ui) => wrapper.appendChild(ui.element));
+        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
 
         return wrapper;
       }
@@ -199,7 +199,7 @@ class ValueComponent extends BaseComponent {
     const lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
     const visualIndex = lastSelectedColumn && lastSelectedColumn.visualIndex;
 
-    return arrayMap(this.hot.getDataAtCol(visualIndex), (v) => toEmptyString(v));
+    return arrayMap(this.hot.getDataAtCol(visualIndex), v => toEmptyString(v));
   }
 }
 

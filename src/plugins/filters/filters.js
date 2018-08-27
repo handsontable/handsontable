@@ -137,7 +137,7 @@ class Filters extends BasePlugin {
     let addConfirmationHooks = (component) => {
       component.addLocalHook('accept', () => this.onActionBarSubmit('accept'));
       component.addLocalHook('cancel', () => this.onActionBarSubmit('cancel'));
-      component.addLocalHook('change', (command) => this.onComponentChange(component, command));
+      component.addLocalHook('change', command => this.onComponentChange(component, command));
 
       return component;
     };
@@ -170,8 +170,8 @@ class Filters extends BasePlugin {
       this.conditionCollection = new ConditionCollection();
     }
     if (!this.conditionUpdateObserver) {
-      this.conditionUpdateObserver = new ConditionUpdateObserver(this.conditionCollection, (column) => this.getDataMapAtColumn(column));
-      this.conditionUpdateObserver.addLocalHook('update', (conditionState) => this.updateComponents(conditionState));
+      this.conditionUpdateObserver = new ConditionUpdateObserver(this.conditionCollection, column => this.getDataMapAtColumn(column));
+      this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
     }
 
     this.components.forEach((component) => {
@@ -179,8 +179,8 @@ class Filters extends BasePlugin {
     });
 
     this.registerEvents();
-    this.addHook('beforeDropdownMenuSetItems', (items) => this.onBeforeDropdownMenuSetItems(items));
-    this.addHook('afterDropdownMenuDefaultOptions', (defaultOptions) => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
+    this.addHook('beforeDropdownMenuSetItems', items => this.onBeforeDropdownMenuSetItems(items));
+    this.addHook('afterDropdownMenuDefaultOptions', defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
     this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
     this.addHook('afterChange', (changes, source) => this.onAfterChange(changes));
@@ -204,7 +204,7 @@ class Filters extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'click', (event) => this.onTableClick(event));
+    this.eventManager.addEventListener(this.hot.rootElement, 'click', event => this.onTableClick(event));
   }
 
   /**
@@ -346,7 +346,7 @@ class Filters extends BasePlugin {
 
         this.trimRowsPlugin.trimmedRows.length = 0;
 
-        visibleVisualRows = arrayMap(dataFilter.filter(), (rowData) => rowData.meta.visualRow);
+        visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
 
         const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
 
@@ -498,7 +498,7 @@ class Filters extends BasePlugin {
    * @param {Array} items DropdownMenu items created based on predefined items and settings provided by user.
    */
   onBeforeDropdownMenuSetItems(items) {
-    const menuKeys = arrayMap(items, (item) => item.key);
+    const menuKeys = arrayMap(items, item => item.key);
 
     this.components.forEach((component) => {
       component[menuKeys.indexOf(component.getMenuItemDescriptor().key) === -1 ? 'hide' : 'show']();
@@ -699,7 +699,7 @@ class Filters extends BasePlugin {
    * @returns {DataFilter}
    */
   _createDataFilter(conditionCollection = this.conditionCollection) {
-    return new DataFilter(conditionCollection, (column) => this.getDataMapAtColumn(column));
+    return new DataFilter(conditionCollection, column => this.getDataMapAtColumn(column));
   }
 
   /**
@@ -715,8 +715,8 @@ class Filters extends BasePlugin {
 
     const conditions = conditionsState.editedConditionStack.conditions;
     const column = conditionsState.editedConditionStack.column;
-    const conditionsByValue = conditions.filter((condition) => condition.name === CONDITION_BY_VALUE);
-    const conditionsWithoutByValue = conditions.filter((condition) => condition.name !== CONDITION_BY_VALUE);
+    const conditionsByValue = conditions.filter(condition => condition.name === CONDITION_BY_VALUE);
+    const conditionsWithoutByValue = conditions.filter(condition => condition.name !== CONDITION_BY_VALUE);
     const operationType = this.conditionCollection.columnTypes[column];
 
     if (conditionsByValue.length === 2 || conditionsWithoutByValue.length === 3) {

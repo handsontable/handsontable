@@ -889,7 +889,7 @@ describe('Filters UI', () => {
         expect($(byValueBoxRootElement()).find('tr:contains("BBB City - modified")').length).toEqual(1);
 
         const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
-        const checkedArray = checkboxes.map((element) => element.checked);
+        const checkedArray = checkboxes.map(element => element.checked);
 
         expect(checkedArray).toEqual([false, true, true]);
       });
@@ -961,12 +961,12 @@ describe('Filters UI', () => {
         dropdownMenu(2);
 
         const elements = $(byValueBoxRootElement()).find('label').toArray();
-        const text = elements.map((element) => $(element).text());
+        const text = elements.map(element => $(element).text());
 
         expect(text).toEqual(['AAA City', 'CCC City', 'DDD City']);
 
         const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
-        const checkedArray = checkboxes.map((element) => element.checked);
+        const checkedArray = checkboxes.map(element => element.checked);
 
         expect(checkedArray).toEqual([false, true, true]);
       });
@@ -1017,7 +1017,7 @@ describe('Filters UI', () => {
 
         dropdownMenu(2);
         const elements = $(byValueBoxRootElement()).find('label').toArray();
-        const text = elements.map((element) => $(element).text());
+        const text = elements.map(element => $(element).text());
 
         expect(text).toEqual(['AAA City', 'CCC City', 'DDD City']);
         done();
@@ -1067,12 +1067,12 @@ describe('Filters UI', () => {
         dropdownMenu(2);
 
         const elements = $(byValueBoxRootElement()).find('label').toArray();
-        const text = elements.map((element) => $(element).text());
+        const text = elements.map(element => $(element).text());
 
         expect(text).toEqual(['AAA City', 'BBB City', 'CCC City', 'DDD City']);
 
         const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
-        const checkedArray = checkboxes.map((element) => element.checked);
+        const checkedArray = checkboxes.map(element => element.checked);
 
         expect(checkedArray).toEqual([false, true, true, true]);
       });
@@ -1266,7 +1266,7 @@ describe('Filters UI', () => {
     setTimeout(function () {
       $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
 
-      expect(byValueMultipleSelect().items.map((o) => o.checked).indexOf(true)).toBe(-1);
+      expect(byValueMultipleSelect().items.map(o => o.checked).indexOf(true)).toBe(-1);
       done();
     }, 100);
   });
@@ -1286,11 +1286,11 @@ describe('Filters UI', () => {
     setTimeout(function () {
       $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
 
-      expect(byValueMultipleSelect().items.map((o) => o.checked).indexOf(true)).toBe(-1);
+      expect(byValueMultipleSelect().items.map(o => o.checked).indexOf(true)).toBe(-1);
 
       $(dropdownMenuRootElement().querySelector('.htUISelectAll a')).simulate('click');
 
-      expect(byValueMultipleSelect().items.map((o) => o.checked).indexOf(false)).toBe(-1);
+      expect(byValueMultipleSelect().items.map(o => o.checked).indexOf(false)).toBe(-1);
       done();
     }, 100);
   });
@@ -2732,7 +2732,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
-      const checkedArray = checkboxes.map((element) => element.checked);
+      const checkedArray = checkboxes.map(element => element.checked);
 
       expect(checkedArray).toEqual([true, false, true]);
       expect($(conditionSelectRootElements().first).text()).toEqual('Contains');
@@ -2783,7 +2783,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
-      const checkedArray = checkboxes.map((element) => element.checked);
+      const checkedArray = checkboxes.map(element => element.checked);
 
       expect(checkedArray).toEqual([true, false, true]);
       expect($(conditionSelectRootElements().first).text()).toEqual('Contains');
@@ -2834,7 +2834,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
-      const checkedArray = checkboxes.map((element) => element.checked);
+      const checkedArray = checkboxes.map(element => element.checked);
 
       expect(checkedArray).toEqual([true, false, true]);
       expect($(conditionSelectRootElements().first).text()).toEqual('Contains');
@@ -2884,7 +2884,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
-      const checkedArray = checkboxes.map((element) => element.checked);
+      const checkedArray = checkboxes.map(element => element.checked);
 
       expect(checkedArray).toEqual([true, false, true]);
       expect($(conditionSelectRootElements().first).text()).toEqual('Contains');
@@ -2933,7 +2933,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
-      const checkedArray = checkboxes.map((element) => element.checked);
+      const checkedArray = checkboxes.map(element => element.checked);
 
       expect(checkedArray).toEqual([true, false, true]);
       expect($(conditionSelectRootElements().first).text()).toEqual('None');
@@ -2985,7 +2985,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
-      const checkedArray = checkboxes.map((element) => element.checked);
+      const checkedArray = checkboxes.map(element => element.checked);
 
       // Watch out! Filters build values inside `by_value` (checkbox inputs) component basing on all applied filters
       expect(checkedArray).toEqual([true, true]);
@@ -3036,7 +3036,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
-      const checkedArray = checkboxes.map((element) => element.checked);
+      const checkedArray = checkboxes.map(element => element.checked);
 
       expect(checkedArray).toEqual([true, false, true]);
       expect($(conditionSelectRootElements().first).text()).toEqual('None');

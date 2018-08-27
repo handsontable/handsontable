@@ -39,7 +39,7 @@ class OperatorsComponent extends BaseComponent {
       renderer: (hot, wrapper, row, col, prop, value) => {
         addClass(wrapper.parentNode, 'htFiltersMenuOperators');
 
-        arrayEach(this.elements, (ui) => wrapper.appendChild(ui.element));
+        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
 
         return wrapper;
       }
@@ -66,7 +66,7 @@ class OperatorsComponent extends BaseComponent {
         id: operation
       });
 
-      radioInput.addLocalHook('change', (event) => this.onRadioInputChange(event));
+      radioInput.addLocalHook('change', event => this.onRadioInputChange(event));
       this.elements.push(radioInput);
     });
   }
@@ -92,7 +92,7 @@ class OperatorsComponent extends BaseComponent {
    * @returns {String}
    */
   getActiveOperationId() {
-    const operationElement = this.elements.find((element) => element instanceof RadioInputUI && element.isChecked());
+    const operationElement = this.elements.find(element => element instanceof RadioInputUI && element.isChecked());
 
     if (operationElement) {
       return operationElement.getValue();

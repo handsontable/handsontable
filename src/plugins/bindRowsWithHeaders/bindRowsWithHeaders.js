@@ -68,11 +68,11 @@ class BindRowsWithHeaders extends BasePlugin {
     this.bindStrategy.setStrategy(bindStrategy);
     this.bindStrategy.createMap(this.hot.countSourceRows());
 
-    this.addHook('modifyRowHeader', (row) => this.onModifyRowHeader(row));
+    this.addHook('modifyRowHeader', row => this.onModifyRowHeader(row));
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
-    this.addHook('afterLoadData', (firstRun) => this.onAfterLoadData(firstRun));
+    this.addHook('afterLoadData', firstRun => this.onAfterLoadData(firstRun));
 
     super.enablePlugin();
   }

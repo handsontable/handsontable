@@ -246,7 +246,7 @@ class ExpressionModifier {
    * @private
    */
   _searchCell(label) {
-    const [cell] = arrayFilter(this.cells, (cell) => cell.origLabel === label);
+    const [cell] = arrayFilter(this.cells, cell => cell.origLabel === label);
 
     return cell || null;
   }

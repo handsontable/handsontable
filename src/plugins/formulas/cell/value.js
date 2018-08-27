@@ -161,7 +161,7 @@ class CellValue extends BaseCell {
     if (this.isEqual(cellReference)) {
       throw Error(ERROR_REF);
     }
-    this.precedents = arrayFilter(this.precedents, (cell) => !cell.isEqual(cellReference));
+    this.precedents = arrayFilter(this.precedents, cell => !cell.isEqual(cellReference));
   }
 
   /**
@@ -196,7 +196,7 @@ class CellValue extends BaseCell {
    * @returns {Boolean}
    */
   hasPrecedent(cellReference) {
-    return arrayFilter(this.precedents, (cell) => cell.isEqual(cellReference)).length > 0;
+    return arrayFilter(this.precedents, cell => cell.isEqual(cellReference)).length > 0;
   }
 }
 

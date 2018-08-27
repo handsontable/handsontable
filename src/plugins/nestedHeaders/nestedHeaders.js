@@ -97,11 +97,11 @@ class NestedHeaders extends BasePlugin {
 
     this.settings = this.hot.getSettings().nestedHeaders;
 
-    this.addHook('afterGetColumnHeaderRenderers', (array) => this.onAfterGetColumnHeaderRenderers(array));
+    this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
     this.addHook('afterInit', () => this.onAfterInit());
     this.addHook('afterOnCellMouseDown', (event, coords, TD) => this.onAfterOnCellMouseDown(event, coords, TD));
     this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
-    this.addHook('afterViewportColumnCalculatorOverride', (calc) => this.onAfterViewportColumnCalculatorOverride(calc));
+    this.addHook('afterViewportColumnCalculatorOverride', calc => this.onAfterViewportColumnCalculatorOverride(calc));
     this.addHook('modifyColWidth', (width, column) => this.onModifyColWidth(width, column));
 
     this.setupColspanArray();
@@ -475,7 +475,7 @@ class NestedHeaders extends BasePlugin {
     const levelLimit = selectionByHeader ? -1 : this.columnHeaderLevelCount - 1;
 
     const changes = [];
-    const classNameModifier = (className) => (TH, modifier) => () => modifier(TH, className);
+    const classNameModifier = className => (TH, modifier) => () => modifier(TH, className);
     const highlightHeader = classNameModifier('ht__highlight');
     const activeHeader = classNameModifier('ht__active_highlight');
 
@@ -511,7 +511,7 @@ class NestedHeaders extends BasePlugin {
       }
     });
 
-    arrayEach(changes, (fn) => void fn());
+    arrayEach(changes, fn => void fn());
     changes.length = 0;
   }
 

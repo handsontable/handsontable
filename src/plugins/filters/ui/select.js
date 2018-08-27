@@ -43,7 +43,7 @@ class SelectUI extends BaseUI {
    * Register all necessary hooks.
    */
   registerHooks() {
-    this.addLocalHook('click', (event) => this.onClick(event));
+    this.addLocalHook('click', event => this.onClick(event));
   }
 
   /**
@@ -97,9 +97,9 @@ class SelectUI extends BaseUI {
     priv.captionElement = caption.element;
     priv.dropdown = dropdown;
 
-    arrayEach([caption, dropdown], (element) => this._element.appendChild(element.element));
+    arrayEach([caption, dropdown], element => this._element.appendChild(element.element));
 
-    this.menu.addLocalHook('select', (command) => this.onMenuSelect(command));
+    this.menu.addLocalHook('select', command => this.onMenuSelect(command));
     this.menu.addLocalHook('afterClose', () => this.onMenuClosed());
     this.update();
   }

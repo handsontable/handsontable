@@ -118,7 +118,7 @@ class GanttChartDataFeed {
    */
   addSourceHotHooks() {
     this.sourceHooks = {
-      afterLoadData: (firstRun) => this.onAfterSourceLoadData(firstRun),
+      afterLoadData: firstRun => this.onAfterSourceLoadData(firstRun),
       afterChange: (changes, source) => this.onAfterSourceChange(changes, source),
       afterColumnSort: (column, order) => this.onAfterColumnSort(column, order)
     };

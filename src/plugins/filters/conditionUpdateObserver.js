@@ -17,7 +17,7 @@ import {createArrayAssertion} from './utils';
  * @pro
  */
 class ConditionUpdateObserver {
-  constructor(conditionCollection, columnDataFactory = (column) => []) {
+  constructor(conditionCollection, columnDataFactory = column => []) {
     /**
      * Reference to the instance of {@link ConditionCollection}.
      *
@@ -57,9 +57,9 @@ class ConditionUpdateObserver {
      */
     this.latestOrderStack = [];
 
-    this.conditionCollection.addLocalHook('beforeRemove', (column) => this._onConditionBeforeModify(column));
-    this.conditionCollection.addLocalHook('afterAdd', (column) => this.updateStatesAtColumn(column));
-    this.conditionCollection.addLocalHook('afterClear', (column) => this.updateStatesAtColumn(column));
+    this.conditionCollection.addLocalHook('beforeRemove', column => this._onConditionBeforeModify(column));
+    this.conditionCollection.addLocalHook('afterAdd', column => this.updateStatesAtColumn(column));
+    this.conditionCollection.addLocalHook('afterClear', column => this.updateStatesAtColumn(column));
     this.conditionCollection.addLocalHook('beforeClean', () => this._onConditionBeforeClean());
     this.conditionCollection.addLocalHook('afterClean', () => this._onConditionAfterClean());
   }
@@ -142,13 +142,13 @@ class ConditionUpdateObserver {
       if (splitConditionCollection.isEmpty()) {
         visibleRows = allRows;
       } else {
-        visibleRows = (new DataFilter(splitConditionCollection, (column) => this.columnDataFactory(column))).filter();
+        visibleRows = (new DataFilter(splitConditionCollection, column => this.columnDataFactory(column))).filter();
       }
-      visibleRows = arrayMap(visibleRows, (rowData) => rowData.meta.visualRow);
+      visibleRows = arrayMap(visibleRows, rowData => rowData.meta.visualRow);
 
       const visibleRowsAssertion = createArrayAssertion(visibleRows);
 
-      return arrayFilter(allRows, (rowData) => visibleRowsAssertion(rowData.meta.visualRow));
+      return arrayFilter(allRows, rowData => visibleRowsAssertion(rowData.meta.visualRow));
     })(conditionsBefore);
 
     let editedConditions = [].concat(this.conditionCollection.getConditions(column));
