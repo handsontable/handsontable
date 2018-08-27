@@ -1150,6 +1150,24 @@ describe('TextEditor', () => {
     expect(getActiveEditor().TEXTAREA.value).toBe('999');
   });
 
+  it('should increase instance z-index after open editor, and decrease after close editor', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5)
+    });
+
+    selectCell(0, 0);
+
+    keyDownUp('enter');
+
+    const instanceHolder = $('.handsontable');
+
+    expect(parseInt(instanceHolder.css('z-index'), 10)).toBe(104);
+
+    selectCell(1, 0); // closes editor
+
+    expect(instanceHolder.css('z-index')).toBe('auto');
+  });
+
   describe('IME support', () => {
     it('should focus editable element after selecting the cell', async() => {
       handsontable({
