@@ -75,7 +75,7 @@ export function isFillHandleVisible() {
 export function getCorrespondingOverlay(cell, container) {
   var overlay = $(cell).parents('.handsontable');
 
-  if (overlay[0] == container[0]) {
+  if (overlay[0] === container[0]) {
     return $('.ht_master');
   }
 
@@ -702,7 +702,7 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
 
   var touch = document.createTouch(window, target, 0, pageX, pageY, pageX, pageY);
 
-  if (type == 'touchend') {
+  if (type === 'touchend') {
     touches = document.createTouchList();
     targetTouches = document.createTouchList();
     changedTouches = document.createTouchList(touch);
