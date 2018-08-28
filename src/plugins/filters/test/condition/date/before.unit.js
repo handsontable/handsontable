@@ -1,4 +1,4 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/date/before';
+import {condition} from 'handsontable-pro/plugins/filters/condition/date/before';
 import {dateRowFactory} from './../../helpers/utils';
 
 describe('Filters condition (`date_before`)', function() {

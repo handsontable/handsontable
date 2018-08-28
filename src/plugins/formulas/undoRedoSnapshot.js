@@ -1,5 +1,4 @@
 import {arrayEach} from 'handsontable/helpers/array';
-import {rangeEach} from 'handsontable/helpers/number';
 import Stack from 'handsontable/utils/dataStructures/stack';
 import CellValue from './cell/value';
 

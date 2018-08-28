@@ -1163,7 +1163,6 @@ describe('Filters UI', () => {
         height: 300
       });
 
-      const filters = hot.getPlugin('filters');
       const manualColumnMove = hot.getPlugin('manualColumnMove');
 
       // filtering first value of column (deselecting checkbox)
@@ -1225,7 +1224,6 @@ describe('Filters UI', () => {
         height: 300
       });
 
-      const filters = hot.getPlugin('filters');
       const manualColumnMove = hot.getPlugin('manualColumnMove');
 
       // filtering first value of column (deselecting checkbox)

@@ -1,5 +1,4 @@
 import BasePlugin from 'handsontable/plugins/_base';
-import {arrayEach} from 'handsontable/helpers/array';
 import {rangeEach} from 'handsontable/helpers/number';
 import {registerPlugin} from 'handsontable/plugins';
 import BindStrategy from './bindStrategy';
@@ -71,7 +70,7 @@ class BindRowsWithHeaders extends BasePlugin {
     this.addHook('modifyRowHeader', row => this.onModifyRowHeader(row));
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
-    this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
+    this.addHook('afterRemoveRow', () => this.onAfterRemoveRow());
     this.addHook('afterLoadData', firstRun => this.onAfterLoadData(firstRun));
 
     super.enablePlugin();
@@ -141,10 +140,8 @@ class BindRowsWithHeaders extends BasePlugin {
    * On after remove row listener.
    *
    * @private
-   * @param {Number} index Row index.
-   * @param {Number} amount Defines how many rows removed.
    */
-  onAfterRemoveRow(index, amount) {
+  onAfterRemoveRow() {
     this.bindStrategy.removeRow(this.removedRows);
   }
 

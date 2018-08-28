@@ -1,6 +1,5 @@
 import {addClass} from 'handsontable/helpers/dom/element';
 import {clone, extend} from 'handsontable/helpers/object';
-import * as C from 'handsontable/i18n/constants';
 import BaseUI from './_base';
 
 const privatePool = new WeakMap();
@@ -29,7 +28,7 @@ class InputUI extends BaseUI {
    * Register all necessary hooks.
    */
   registerHooks() {
-    this.addLocalHook('click', event => this.onClick(event));
+    this.addLocalHook('click', () => this.onClick());
     this.addLocalHook('keyup', event => this.onKeyup(event));
   }
 
@@ -77,10 +76,8 @@ class InputUI extends BaseUI {
 
   /**
    * OnClick listener.
-   *
-   * @param {Event} event
    */
-  onClick(event) {
+  onClick() {
 
   }
 

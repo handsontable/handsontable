@@ -1,7 +1,6 @@
 import BasePlugin from 'handsontable/plugins/_base.js';
-import {deepClone, objectEach, hasOwnProperty} from 'handsontable/helpers/object';
-import {arrayEach} from 'handsontable/helpers/array';
-import {registerPlugin, getPlugin} from 'handsontable/plugins.js';
+import {hasOwnProperty} from 'handsontable/helpers/object';
+import {registerPlugin} from 'handsontable/plugins.js';
 import Endpoints from './endpoints';
 
 /**
@@ -383,9 +382,8 @@ class ColumnSummary extends BasePlugin {
    *
    * @private
    * @param {Array} rows Array of logical rows to be moved.
-   * @param {Number} target Index of the destination row.
    */
-  onBeforeRowMove(rows, target) {
+  onBeforeRowMove(rows) {
     this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);
   }
 

@@ -43,7 +43,7 @@ class SelectUI extends BaseUI {
    * Register all necessary hooks.
    */
   registerHooks() {
-    this.addLocalHook('click', event => this.onClick(event));
+    this.addLocalHook('click', () => this.onClick());
   }
 
   /**
@@ -179,9 +179,8 @@ class SelectUI extends BaseUI {
    * On element click listener.
    *
    * @private
-   * @param {Event} event DOM Event
    */
-  onClick(event) {
+  onClick() {
     this.openOptions();
   }
 

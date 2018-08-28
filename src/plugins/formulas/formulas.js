@@ -181,9 +181,8 @@ class Formulas extends BasePlugin {
    *
    * @private
    * @param {Array} cells An array of recalculated/changed cells.
-   * @param {String} type Recalculation type (`optimized` or `full`).
    */
-  onSheetAfterRecalculate(cells, type) {
+  onSheetAfterRecalculate(cells) {
     if (this._skipRendering) {
       this._skipRendering = false;
 
@@ -238,9 +237,8 @@ class Formulas extends BasePlugin {
    * @param {*} value Value to validate.
    * @param {Number} row Row index.
    * @param {Number} prop Column property.
-   * @param {String} source Validation source call.
    */
-  onBeforeValidate(value, row, prop, source) {
+  onBeforeValidate(value, row, prop) {
     const column = this.hot.propToCol(prop);
 
     if (this.hasComputedCellValue(row, column)) {

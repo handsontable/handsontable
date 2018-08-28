@@ -1,9 +1,8 @@
 import {Parser, ERROR_REF, error as isFormulaError} from 'hot-formula-parser';
 import {arrayEach, arrayMap} from 'handsontable/helpers/array';
-import {rangeEach} from 'handsontable/helpers/number';
 import localHooks from 'handsontable/mixins/localHooks';
 import {getTranslator} from 'handsontable/utils/recordTranslator';
-import {objectEach, mixin} from 'handsontable/helpers/object';
+import {mixin} from 'handsontable/helpers/object';
 import CellValue from './cell/value';
 import CellReference from './cell/reference';
 import {isFormulaExpression, toUpperCaseFormula} from './utils';

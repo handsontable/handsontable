@@ -1,4 +1,4 @@
-import {objectEach, clone, deepClone} from 'handsontable/helpers/object';
+import {objectEach, clone} from 'handsontable/helpers/object';
 import {arrayEach} from 'handsontable/helpers/array';
 import {rangeEach} from 'handsontable/helpers/number';
 import {getAdditionalData, getEndDate, getStartDate, setEndDate, setStartDate} from './utils';
@@ -118,9 +118,9 @@ class GanttChartDataFeed {
    */
   addSourceHotHooks() {
     this.sourceHooks = {
-      afterLoadData: firstRun => this.onAfterSourceLoadData(firstRun),
-      afterChange: (changes, source) => this.onAfterSourceChange(changes, source),
-      afterColumnSort: (column, order) => this.onAfterColumnSort(column, order)
+      afterLoadData: () => this.onAfterSourceLoadData(),
+      afterChange: changes => this.onAfterSourceChange(changes),
+      afterColumnSort: () => this.onAfterColumnSort()
     };
 
     this.hotSource.instance.addHook('afterLoadData', this.sourceHooks.afterLoadData);
@@ -290,9 +290,8 @@ class GanttChartDataFeed {
    *
    * @private
    * @param {Array} changes List of changes.
-   * @param {String} source Change source.
    */
-  onAfterSourceChange(changes, source) {
+  onAfterSourceChange(changes) {
     this.asyncCall(() => {
       if (!changes) {
         return;
@@ -328,10 +327,9 @@ class GanttChartDataFeed {
    * afterLoadData hook callback for the source Handsontable instance.
    *
    * @private
-   * @param firstRun
    */
-  onAfterSourceLoadData(firstRun) {
-    this.asyncCall((firstRun) => {
+  onAfterSourceLoadData() {
+    this.asyncCall(() => {
       this.chartPlugin.removeAllRangeBars();
       this.updateFromSource();
     });
@@ -341,10 +339,8 @@ class GanttChartDataFeed {
    * afterColumnSort hook callback for the source Handsontable instance.
    *
    * @private
-   * @param {Number} column Sorted column.
-   * @param order
    */
-  onAfterColumnSort(column, order) {
+  onAfterColumnSort() {
     this.asyncCall(() => {
       this.chartPlugin.removeAllRangeBars();
       this.updateFromSource();

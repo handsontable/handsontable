@@ -118,7 +118,7 @@ describe('CollapsibleColumns', function() {
   describe('collapsing headers functionality', function() {
 
     it('should hide all "child" columns except the first one after clicking the "collapse/expand" button/indicator', function() {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
         nestedHeaders: [
@@ -151,7 +151,7 @@ describe('CollapsibleColumns', function() {
     });
 
     it('should hide all the "child" columns except the first "child" group, (if a "child group" exists), after clicking the collapse/expand button', function() {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
         nestedHeaders: [
@@ -214,7 +214,7 @@ describe('CollapsibleColumns', function() {
   describe('expand headers functionality', function() {
 
     it('should expand all the "child" columns of the colspanned header afte clicking the expand button', function() {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
         nestedHeaders: [
@@ -283,7 +283,7 @@ describe('CollapsibleColumns', function() {
     });
 
     it('should add an expand/collapse button only to the appropriate headers, if the collapsibleColumns option is set to an array of objects', function() {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         hiddenColumns: true,
         nestedHeaders: this.generateComplexSetup(4, 70, true),

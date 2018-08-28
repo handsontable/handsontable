@@ -23,10 +23,10 @@ describe('TrimRows', function() {
   });
 
   it('should trim rows defined in `trimRows` property', function() {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       trimRows: [2, 6, 7],
-      cells: function(row, col) {
+      cells: function(row) {
         var meta = {};
 
         if (row === 2) {
@@ -180,7 +180,7 @@ describe('TrimRows', function() {
   });
 
   it('should trim big data set', function() {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(1000, 5),
       // leave first row and last 3 rows
       trimRows: Array.apply(null, Array(996)).map(function(v, i) {
@@ -198,7 +198,7 @@ describe('TrimRows', function() {
   });
 
   it('should remove correct rows', function() {
-    var hot = handsontable({
+    handsontable({
       data: getMultilineData(5, 10),
       trimRows: [1],
       width: 500,
@@ -213,7 +213,7 @@ describe('TrimRows', function() {
   });
 
   it('should remove correct rows after inserting new ones', function() {
-    var hot = handsontable({
+    handsontable({
       data: getMultilineData(6, 10),
       trimRows: [1, 4],
       width: 500,
@@ -306,8 +306,6 @@ describe('TrimRows', function() {
       plugin.setCopyableText();
       plugin.onCopy(copyEvent);
 
-      var copyPasteTextarea = $('textarea.copyPaste');
-
       /* eslint-disable no-tabs */
       expect(copyEvent.clipboardData.getData()).toEqual('A1	B1	"C1\n' +
         'line"	D1	E1	F1	G1	H1	I1	J1\n' +
@@ -321,7 +319,7 @@ describe('TrimRows', function() {
 
   describe('navigation', function() {
     it('should ignore trimmed rows while navigating by arrow keys', function() {
-      var hot = handsontable({
+      handsontable({
         data: getMultilineData(50, 10),
         trimRows: [1, 5, 6, 7, 8],
         width: 500,
@@ -352,7 +350,7 @@ describe('TrimRows', function() {
 
   describe('column sorting', function() {
     it('should remove correct rows after sorting', function() {
-      var hot = handsontable({
+      handsontable({
         data: getMultilineData(5, 10),
         columnSorting: {
           column: 0,
@@ -371,7 +369,7 @@ describe('TrimRows', function() {
     });
 
     it('should remove correct rows after insert new rows in sorted column', function(done) {
-      var hot = handsontable({
+      handsontable({
         data: getMultilineData(5, 10),
         colHeaders: true,
         columnSorting: {
@@ -400,7 +398,7 @@ describe('TrimRows', function() {
     });
 
     it('should remove correct rows after insert new rows in sorted column (multiple sort click)', function(done) {
-      var hot = handsontable({
+      handsontable({
         data: getMultilineData(5, 10),
         colHeaders: true,
         columnSorting: {

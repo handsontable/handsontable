@@ -111,7 +111,7 @@ describe('DataFilter', function() {
 
     it('should filter input data based on condition collection (filtering odd numbers)', function() {
       var conditionCollectionMock = {
-        isMatch: jasmine.createSpy('isMatch').and.callFake(function(dataRow, column) {
+        isMatch: jasmine.createSpy('isMatch').and.callFake(function(dataRow) {
           return dataRow % 2;
         }),
       };

@@ -47,7 +47,7 @@ describe('GanttChart', function() {
     it('should throw a warning if colHeaders property is not defined for the ganttChart-enabled instance', function() {
       console.warn = jasmine.createSpy('warn');
 
-      const hot = handsontable({
+      handsontable({
         ganttChart: true,
         height: 250
       });
@@ -107,8 +107,6 @@ describe('GanttChart', function() {
         },
         height: 250
       });
-
-      const plugin = hot.getPlugin('ganttChart');
 
       expect(hot.getCellMeta(0, 1).className.indexOf('rangeBar')).toBeGreaterThan(-1);
       expect(hot.getCellMeta(0, 2).className.indexOf('rangeBar')).toBeGreaterThan(-1);
@@ -464,8 +462,6 @@ describe('GanttChart', function() {
     });
 
     it('should be able to feed the gantt chart data from another HOT instance, when the asyncUpdates option is enabled', function(done) {
-      let plugin;
-      let triesLimit;
       let source;
       let hot;
 
@@ -500,8 +496,6 @@ describe('GanttChart', function() {
           }
         }
       });
-
-      plugin = hot.getPlugin('ganttChart');
 
       setTimeout(function() {
         expect(hot.getCellMeta(0, 1).className.indexOf('rangeBar')).toBeGreaterThan(-1);
@@ -574,8 +568,6 @@ describe('GanttChart', function() {
           dataSource: source
         }
       });
-
-      const plugin = hot.getPlugin('ganttChart');
 
       expect(hot.getCellMeta(0, 1).className.indexOf('rangeBar')).toBeGreaterThan(-1);
       expect(hot.getCellMeta(0, 2).className.indexOf('rangeBar')).toBeGreaterThan(-1);

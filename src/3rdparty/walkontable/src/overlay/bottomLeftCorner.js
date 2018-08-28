@@ -2,7 +2,6 @@ import {
   getScrollbarWidth,
   outerHeight,
   outerWidth,
-  setOverlayPosition,
   resetCssTransform
 } from 'handsontable/helpers/dom/element';
 import Overlay from 'handsontable/3rdparty/walkontable/src/overlay/_base';

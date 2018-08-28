@@ -1,4 +1,4 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/notBetween';
+import {condition} from 'handsontable-pro/plugins/filters/condition/notBetween';
 import {dateRowFactory} from './../helpers/utils';
 
 describe('Filters condition (`not_between`)', function() {

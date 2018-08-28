@@ -405,7 +405,6 @@ describe('Filters', function() {
           manualColumnMove: true
         });
 
-        const filters = hot.getPlugin('filters');
         const manualColumnMove = hot.getPlugin('manualColumnMove');
 
         manualColumnMove.moveColumn(0, 3);

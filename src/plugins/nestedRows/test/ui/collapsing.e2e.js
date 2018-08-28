@@ -90,7 +90,6 @@ describe('NestedRows Collapsing UI', function() {
 
         var plugin = hot.getPlugin('nestedRows');
         var trimRowsPlugin = hot.getPlugin('trimRows');
-        var child = hot.getSourceData()[0];
 
         plugin.collapsingUI.collapseChildren(0);
         plugin.collapsingUI.expandChildren(0);

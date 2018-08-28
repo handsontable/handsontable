@@ -363,7 +363,6 @@ describe('ConditionCollection', function() {
   describe('clearConditions', function() {
     it('should trigger `beforeClear` and `afterClear` hook on clearing conditions', function() {
       const conditionCollection = new ConditionCollection();
-      const conditionsMock = [{}, {}];
 
       const hookBeforeSpy = jasmine.createSpy('hookBefore');
       const hookAfterSpy = jasmine.createSpy('hookAfter');

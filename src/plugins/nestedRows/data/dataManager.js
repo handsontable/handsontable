@@ -1,5 +1,5 @@
 import {rangeEach} from 'handsontable/helpers/number';
-import {objectEach, extend, hasOwnProperty} from 'handsontable/helpers/object';
+import {objectEach, hasOwnProperty} from 'handsontable/helpers/object';
 import {arrayEach} from 'handsontable/helpers/array';
 import {getTranslator} from 'handsontable/utils/recordTranslator';
 
@@ -95,7 +95,7 @@ class DataManager {
     });
 
     if (this.hasChildren(node)) {
-      arrayEach(node.__children, (elem, i) => {
+      arrayEach(node.__children, (elem) => {
         this.cacheNode(elem, level + 1, node);
       });
     }
@@ -146,7 +146,7 @@ class DataManager {
     readCount++;
 
     if (parent.__children) {
-      arrayEach(parent.__children, (val, i) => {
+      arrayEach(parent.__children, (val) => {
 
         this.parentReference.set(val, rootLevel ? null : parent);
 
@@ -262,7 +262,7 @@ class DataManager {
       return 0;
     }
 
-    arrayEach(parent.__children, (elem, i) => {
+    arrayEach(parent.__children, (elem) => {
       rowCount++;
       if (elem.__children) {
         rowCount += this.countChildren(elem);
@@ -526,11 +526,11 @@ class DataManager {
   filterData(index, amount, logicRows) {
     const elementsToRemove = [];
 
-    arrayEach(logicRows, (elem, ind) => {
+    arrayEach(logicRows, (elem) => {
       elementsToRemove.push(this.getDataObject(elem));
     });
 
-    arrayEach(elementsToRemove, (elem, ind) => {
+    arrayEach(elementsToRemove, (elem) => {
       const indexWithinParent = this.getRowIndexWithinParent(elem);
       const tempParent = this.getRowParent(elem);
 

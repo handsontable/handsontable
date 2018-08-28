@@ -1,6 +1,6 @@
 import {arrayEach, arrayMap, arrayFilter} from 'handsontable/helpers/array';
 import {mixin, objectEach} from 'handsontable/helpers/object';
-import {curry, debounce} from 'handsontable/helpers/function';
+import {curry} from 'handsontable/helpers/function';
 import localHooks from 'handsontable/mixins/localHooks';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
@@ -17,7 +17,7 @@ import {createArrayAssertion} from './utils';
  * @pro
  */
 class ConditionUpdateObserver {
-  constructor(conditionCollection, columnDataFactory = column => []) {
+  constructor(conditionCollection, columnDataFactory = () => []) {
     /**
      * Reference to the instance of {@link ConditionCollection}.
      *

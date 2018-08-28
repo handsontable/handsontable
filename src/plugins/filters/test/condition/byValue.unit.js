@@ -1,4 +1,4 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/byValue';
+import {condition} from 'handsontable-pro/plugins/filters/condition/byValue';
 import {dateRowFactory} from './../helpers/utils';
 
 describe('Filters condition (`by_value`)', function() {

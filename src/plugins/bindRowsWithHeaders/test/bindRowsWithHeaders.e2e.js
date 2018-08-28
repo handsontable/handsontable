@@ -14,7 +14,7 @@ describe('BindRowsWithHeaders', function() {
 
   it('should call rowHeader function with correct index as argument (strict mode)', function() {
     var callback = jasmine.createSpy();
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 10),
       rowHeaders: callback,
       bindRowsWithHeaders: 'strict',
@@ -60,7 +60,7 @@ describe('BindRowsWithHeaders', function() {
   });
 
   it('should correct bind rows with headers when row was removed (strict mode)', function() {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       rowHeaders: true,
       bindRowsWithHeaders: 'strict',
@@ -74,7 +74,7 @@ describe('BindRowsWithHeaders', function() {
   });
 
   it('should correct bind rows with headers when row was inserted (strict mode)', function() {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 10),
       rowHeaders: true,
       bindRowsWithHeaders: 'strict',
@@ -88,7 +88,7 @@ describe('BindRowsWithHeaders', function() {
   });
 
   it('should correct bind rows with headers when row was inserted and removed in mixed way (strict mode)', function() {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 10),
       rowHeaders: true,
       bindRowsWithHeaders: 'strict',
@@ -105,7 +105,7 @@ describe('BindRowsWithHeaders', function() {
 
   describe('column sorting', function() {
     it('should correct bind rows with headers when row was removed after sorting (strict mode)', async () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         columnSorting: true,
         rowHeaders: true,
@@ -130,7 +130,7 @@ describe('BindRowsWithHeaders', function() {
     });
 
     it('should correct bind rows with headers when row was inserted after sorting (strict mode)', async () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         columnSorting: true,
         rowHeaders: true,
@@ -155,7 +155,7 @@ describe('BindRowsWithHeaders', function() {
     });
 
     it('should correct bind rows with headers when row was inserted and removed in mixed way (strict mode)', async () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         columnSorting: true,
         rowHeaders: true,

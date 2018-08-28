@@ -470,7 +470,7 @@ describe('NestedHeaders', function() {
     });
 
     it('should highlight only last line of headers on cell selection', function() {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
@@ -492,7 +492,7 @@ describe('NestedHeaders', function() {
     });
 
     it('should highlight every header which was in selection on headers selection', function() {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
@@ -518,7 +518,7 @@ describe('NestedHeaders', function() {
     });
 
     it('should add selection borders in the expected positions, when selecting multi-columned headers', function() {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 10),
         colHeaders: true,
         nestedHeaders: [

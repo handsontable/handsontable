@@ -28,7 +28,7 @@ describe('HiddenRows', function() {
       hiddenRows: {
         rows: [2, 4]
       },
-      cells: function(row, col) {
+      cells: function(row) {
         var meta = {};
 
         if (row === 2) {
@@ -54,7 +54,7 @@ describe('HiddenRows', function() {
         rows: [2, 4]
       },
       rowHeaders: false,
-      cells: function(row, col) {
+      cells: function(row) {
         var meta = {};
 
         if (row === 2) {
@@ -410,7 +410,7 @@ describe('HiddenRows', function() {
 
   describe('navigation', function() {
     it('should ignore hidden rows while navigating by arrow keys', function() {
-      var hot = handsontable({
+      handsontable({
         data: getMultilineData(10, 10),
         hiddenRows: {
           rows: [2, 4]
@@ -458,7 +458,7 @@ describe('HiddenRows', function() {
 
   describe('context-menu', function() {
     it('should be visible "Hide row" on context menu when row is selected by header', function() {
-      var hot = handsontable({
+      handsontable({
         data: getMultilineData(10, 10),
         hiddenRows: true,
         width: 500,
@@ -479,7 +479,7 @@ describe('HiddenRows', function() {
     });
 
     it('should be NOT visible "Hide row" on context menu when row is selected by header', function() {
-      var hot = handsontable({
+      handsontable({
         data: getMultilineData(5, 10),
         hiddenRows: true,
         width: 500,

@@ -350,7 +350,7 @@ describe('HiddenColumns', function() {
 
   describe('navigation', function() {
     it('should ignore hidden columns while navigating by arrow keys', function() {
-      var hot = handsontable({
+      handsontable({
         data: getMultilineData(5, 10),
         hiddenColumns: {
           columns: [
@@ -379,7 +379,7 @@ describe('HiddenColumns', function() {
 
   describe('context-menu', function() {
     it('should be visible "hide column" on context menu when column is selected by header', function() {
-      var hot = handsontable({
+      handsontable({
         data: getMultilineData(5, 10),
         hiddenColumns: true,
         width: 500,
@@ -399,7 +399,7 @@ describe('HiddenColumns', function() {
       expect(actions.text()).toEqual('Hide column');
     });
     it('should be NOT visible "hide column" on context menu when column is selected by header', function() {
-      var hot = handsontable({
+      handsontable({
         data: getMultilineData(5, 10),
         hiddenColumns: true,
         width: 500,

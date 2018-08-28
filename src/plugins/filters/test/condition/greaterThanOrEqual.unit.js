@@ -1,4 +1,4 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/greaterThanOrEqual';
+import {condition} from 'handsontable-pro/plugins/filters/condition/greaterThanOrEqual';
 import {dateRowFactory} from './../helpers/utils';
 
 describe('Filters condition (`gte`)', function() {

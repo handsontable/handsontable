@@ -206,7 +206,6 @@ describe('NestedRows Data Manager', function() {
         });
 
         var plugin = hot.getPlugin('nestedRows');
-        var sourceData = hot.getSourceData();
 
         expect(plugin.dataManager.hasChildren(0)).toEqual(true);
         expect(plugin.dataManager.hasChildren(1)).toEqual(false);

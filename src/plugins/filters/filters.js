@@ -183,7 +183,7 @@ class Filters extends BasePlugin {
     this.addHook('afterDropdownMenuDefaultOptions', defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
     this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
-    this.addHook('afterChange', (changes, source) => this.onAfterChange(changes));
+    this.addHook('afterChange', changes => this.onAfterChange(changes));
 
     // force to enable dependent plugins
     this.hot.getSettings().trimRows = true;

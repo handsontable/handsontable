@@ -78,7 +78,7 @@ class HeadersUI extends BaseUI {
     const innerSpan = innerDiv.querySelector('span.rowHeader');
     const previousIndicators = innerDiv.querySelectorAll('[class^="ht_nesting"]');
 
-    arrayEach(previousIndicators, (elem, i) => {
+    arrayEach(previousIndicators, (elem) => {
       if (elem) {
         innerDiv.removeChild(elem);
       }
@@ -90,7 +90,7 @@ class HeadersUI extends BaseUI {
       const initialContent = innerSpan.cloneNode(true);
       innerDiv.innerHTML = '';
 
-      rangeEach(0, rowLevel - 1, (i) => {
+      rangeEach(0, rowLevel - 1, () => {
         const levelIndicator = document.createElement('SPAN');
         addClass(levelIndicator, HeadersUI.CSS_CLASSES.emptyIndicator);
         innerDiv.appendChild(levelIndicator);

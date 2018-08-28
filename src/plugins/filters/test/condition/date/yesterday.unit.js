@@ -1,5 +1,5 @@
 import moment from 'moment';
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/date/yesterday';
+import {condition} from 'handsontable-pro/plugins/filters/condition/date/yesterday';
 import {dateRowFactory} from './../../helpers/utils';
 
 describe('Filters condition (`date_yesterday`)', function() {

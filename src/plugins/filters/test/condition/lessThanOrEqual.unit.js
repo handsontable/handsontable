@@ -1,4 +1,4 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/lessThanOrEqual';
+import {condition} from 'handsontable-pro/plugins/filters/condition/lessThanOrEqual';
 import {dateRowFactory} from './../helpers/utils';
 
 describe('Filters condition (`lte`)', function() {

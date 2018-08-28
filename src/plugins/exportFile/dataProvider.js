@@ -1,5 +1,3 @@
-import {arrayEach} from 'handsontable/helpers/array';
-import {extend, clone} from 'handsontable/helpers/object';
 import {rangeEach} from 'handsontable/helpers/number';
 
 // Waiting for jshint >=2.9.0 where they added support for destructing

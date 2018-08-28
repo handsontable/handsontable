@@ -1,6 +1,6 @@
 import BasePlugin from 'handsontable/plugins/_base';
 import {registerPlugin} from 'handsontable/plugins';
-import {rangeEach, rangeEachReverse} from 'handsontable/helpers/number';
+import {rangeEach} from 'handsontable/helpers/number';
 import {arrayEach} from 'handsontable/helpers/array';
 import {CellCoords} from 'handsontable/3rdparty/walkontable/src';
 import DataManager from './data/dataManager';
@@ -355,10 +355,9 @@ class NestedRows extends BasePlugin {
    * @private
    * @param {Number} index
    * @param {Number} amount
-   * @param {Array} logicRows
    * @returns {Boolean}
    */
-  onBeforeDataFilter(index, amount, logicRows) {
+  onBeforeDataFilter(index, amount) {
     const realLogicRows = [];
     const startIndex = this.dataManager.translateTrimmedRow(index);
     const priv = privatePool.get(this);
@@ -484,10 +483,8 @@ class NestedRows extends BasePlugin {
    * `beforeAddChild` hook callback.
    *
    * @private
-   * @param {Object} parent Parent element.
-   * @param {Object} element New child element.
    */
-  onBeforeAddChild(parent, element) {
+  onBeforeAddChild() {
     this.collapsingUI.collapsedRowsStash.stash();
   }
 
@@ -509,10 +506,8 @@ class NestedRows extends BasePlugin {
    * `beforeDetachChild` hook callback.
    *
    * @private
-   * @param {Object} parent Parent element.
-   * @param {Object} element New child element.
    */
-  onBeforeDetachChild(parent, element) {
+  onBeforeDetachChild() {
     this.collapsingUI.collapsedRowsStash.stash();
   }
 

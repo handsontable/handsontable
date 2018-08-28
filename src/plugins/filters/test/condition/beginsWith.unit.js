@@ -1,4 +1,4 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/beginsWith';
+import {condition} from 'handsontable-pro/plugins/filters/condition/beginsWith';
 import {dateRowFactory} from './../helpers/utils';
 
 describe('Filters condition (`begins_with`)', function() {

@@ -1,4 +1,4 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/date/after';
+import {condition} from 'handsontable-pro/plugins/filters/condition/date/after';
 import {dateRowFactory} from './../../helpers/utils';
 
 describe('Filters condition (`date_after`)', function() {

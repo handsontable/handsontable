@@ -1,5 +1,3 @@
-import {arrayMapper} from 'handsontable/mixins/arrayMapper';
-import {mixin} from 'handsontable/helpers/object';
 import {rangeEach} from 'handsontable/helpers/number';
 import {toUpperCaseFirst} from 'handsontable/helpers/string';
 import * as strategies from './bindStrategies';

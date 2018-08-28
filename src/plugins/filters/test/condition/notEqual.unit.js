@@ -1,4 +1,4 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/notEqual';
+import {condition} from 'handsontable-pro/plugins/filters/condition/notEqual';
 import {dateRowFactory} from './../helpers/utils';
 
 describe('Filters condition (`neq`)', function() {

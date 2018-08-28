@@ -62,9 +62,6 @@ class ContextMenuUI extends BaseUI {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD);
         },
         callback: () => {
-          const translatedRowIndex = this.dataManager.translateTrimmedRow(this.hot.getSelectedLast()[0]);
-          const element = this.dataManager.getDataObject(translatedRowIndex);
-
           this.dataManager.detachFromParent(this.hot.getSelectedLast());
         },
         disabled: () => {

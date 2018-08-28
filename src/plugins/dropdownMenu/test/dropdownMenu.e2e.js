@@ -118,7 +118,7 @@ describe('DropdownMenu', function () {
     });
 
     it('should open menu after click on table header button when only header cells are visible', function () {
-      const hot = handsontable({
+      handsontable({
         data: [],
         colHeaders: ['Year', 'Kia'],
         columns: [{data: 0}, {data: 1}],
@@ -136,7 +136,7 @@ describe('DropdownMenu', function () {
 
   describe('menu closing', function () {
     it('should close menu after click', function () {
-      const hot = handsontable({
+      handsontable({
         dropdownMenu: true,
         colHeaders: true,
         height: 100
@@ -245,7 +245,7 @@ describe('DropdownMenu', function () {
 
   describe('menu destroy', function () {
     it('should close context menu when HOT is being destroyed', function () {
-      const hot = handsontable({
+      handsontable({
         dropdownMenu: true,
         colHeaders: true,
         height: 100
@@ -263,7 +263,7 @@ describe('DropdownMenu', function () {
 
   describe('default context menu actions', function () {
     it('should display the default set of actions', function () {
-      const hot = handsontable({
+      handsontable({
         dropdownMenu: true,
         colHeaders: true,
         comments: true,
@@ -335,7 +335,7 @@ describe('DropdownMenu', function () {
     });
 
     it('should remove column', function () {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         dropdownMenu: true,
         colHeaders: true,
@@ -375,7 +375,7 @@ describe('DropdownMenu', function () {
     });
 
     it('should display only the specified actions', function () {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         dropdownMenu: ['clear_column'],
         colHeaders: true,
@@ -394,7 +394,7 @@ describe('DropdownMenu', function () {
       const callback1 = jasmine.createSpy('callback1');
       const callback2 = jasmine.createSpy('callback2');
 
-      const hot = handsontable({
+      handsontable({
         dropdownMenu: {
           items: {
             cust1: {
@@ -430,7 +430,7 @@ describe('DropdownMenu', function () {
 
     it('should have custom items list (defined as a function)', function () {
       let enabled = false;
-      const hot = handsontable({
+      handsontable({
         dropdownMenu: {
           items: {
             cust1: {
@@ -468,7 +468,7 @@ describe('DropdownMenu', function () {
     it('should enable to define item options globally', function () {
       const callback = jasmine.createSpy('callback');
 
-      const hot = handsontable({
+      handsontable({
         dropdownMenu: {
           callback: callback,
           items: {
@@ -499,7 +499,7 @@ describe('DropdownMenu', function () {
     it('should override default items options', function () {
       const callback = jasmine.createSpy('callback');
 
-      const hot = handsontable({
+      handsontable({
         dropdownMenu: {
           items: {
             remove_col: {
@@ -532,7 +532,7 @@ describe('DropdownMenu', function () {
 
       spyOn(customItem, 'callback');
 
-      const hot = handsontable({
+      handsontable({
         dropdownMenu: {
           items: {
             customItemKey: customItem
@@ -605,7 +605,7 @@ describe('DropdownMenu', function () {
 
       Handsontable.hooks.add('afterDropdownMenuDefaultOptions', afterDropdownMenuDefaultOptions);
 
-      const hot = handsontable({
+      handsontable({
         dropdownMenu: true,
         colHeaders: true,
         height: 100

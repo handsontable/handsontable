@@ -1,4 +1,4 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/between';
+import {condition} from 'handsontable-pro/plugins/filters/condition/between';
 import {dateRowFactory} from './../helpers/utils';
 
 describe('Filters condition (`between`)', function() {
