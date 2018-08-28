@@ -1,4 +1,4 @@
-describe('Formulas -> engineering functions', function() {
+describe('Formulas -> engineering functions', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -12,7 +12,7 @@ describe('Formulas -> engineering functions', function() {
     }
   });
 
-  it('BESSELI', function() {
+  it('BESSELI', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=BESSELI(1.4, 1)', '=BESSELI(1.4)']),
       columns: getColumnsForFormulas(),
@@ -25,7 +25,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('#VALUE!');
   });
 
-  it('BESSELJ', function() {
+  it('BESSELJ', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=BESSELJ(1.4, 1)', '=BESSELJ(1.4)']),
       columns: getColumnsForFormulas(),
@@ -38,7 +38,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('#VALUE!');
   });
 
-  it('BESSELK', function() {
+  it('BESSELK', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=BESSELK(1.4, 1)', '=BESSELK(1.4)']),
       columns: getColumnsForFormulas(),
@@ -51,7 +51,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('#VALUE!');
   });
 
-  it('BESSELY', function() {
+  it('BESSELY', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=BESSELY(1.4, 1)', '=BESSELY(1.4)']),
       columns: getColumnsForFormulas(),
@@ -64,7 +64,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('#VALUE!');
   });
 
-  it('BIN2DEC', function() {
+  it('BIN2DEC', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=BIN2DEC()', '=BIN2DEC("1110")', '=BIN2DEC(011101)']),
       columns: getColumnsForFormulas(),
@@ -78,7 +78,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe(29);
   });
 
-  it('BIN2HEX', function() {
+  it('BIN2HEX', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=BIN2HEX()', '=BIN2HEX("1110")', '=BIN2HEX(011101)']),
       columns: getColumnsForFormulas(),
@@ -92,7 +92,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe('1d');
   });
 
-  it('BIN2OCT', function() {
+  it('BIN2OCT', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=BIN2OCT()', '=BIN2OCT("1110")', '=BIN2OCT(011101)']),
       columns: getColumnsForFormulas(),
@@ -106,7 +106,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe('35');
   });
 
-  it('BITAND', function() {
+  it('BITAND', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=BITAND()', '=BITAND(2)', '=BITAND(2, 4)']),
       columns: getColumnsForFormulas(),
@@ -120,7 +120,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe(0);
   });
 
-  it('BITLSHIFT', function() {
+  it('BITLSHIFT', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=BITLSHIFT()', '=BITLSHIFT(2)', '=BITLSHIFT(2, 4)']),
       columns: getColumnsForFormulas(),
@@ -134,7 +134,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe(32);
   });
 
-  it('BITOR', function() {
+  it('BITOR', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=BITOR()', '=BITOR(2)', '=BITOR(4, 2)']),
       columns: getColumnsForFormulas(),
@@ -148,7 +148,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe(6);
   });
 
-  it('BITRSHIFT', function() {
+  it('BITRSHIFT', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=BITRSHIFT()', '=BITRSHIFT(2)', '=BITRSHIFT(4, 2)']),
       columns: getColumnsForFormulas(),
@@ -162,7 +162,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe(1);
   });
 
-  it('BITXOR', function() {
+  it('BITXOR', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=BITXOR()', '=BITXOR(2)', '=BITXOR(4, 2)']),
       columns: getColumnsForFormulas(),
@@ -176,7 +176,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe(6);
   });
 
-  it('COMPLEX', function() {
+  it('COMPLEX', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=COMPLEX()', '=COMPLEX(2, 0)', '=COMPLEX(4, 2)']),
       columns: getColumnsForFormulas(),
@@ -190,7 +190,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe('4+2i');
   });
 
-  it('CONVERT', function() {
+  it('CONVERT', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=CONVERT()', '=CONVERT(2)', '=CONVERT(2, "lbm", "kg")']),
       columns: getColumnsForFormulas(),
@@ -204,7 +204,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe(0.90718474);
   });
 
-  it('DEC2BIN', function() {
+  it('DEC2BIN', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=DEC2BIN()', '=DEC2BIN(2)', '=DEC2BIN(254)', '=DEC2BIN(-1)']),
       columns: getColumnsForFormulas(),
@@ -219,7 +219,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(4, 1)).toBe('1111111111');
   });
 
-  it('DEC2HEX', function() {
+  it('DEC2HEX', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=DEC2HEX()', '=DEC2HEX(2)', '=DEC2HEX(254)', '=DEC2HEX(-1)']),
       columns: getColumnsForFormulas(),
@@ -234,7 +234,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(4, 1)).toBe('ffffffffff');
   });
 
-  it('DEC2OCT', function() {
+  it('DEC2OCT', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=DEC2OCT()', '=DEC2OCT(2)', '=DEC2OCT(254)', '=DEC2OCT(-1)']),
       columns: getColumnsForFormulas(),
@@ -249,7 +249,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(4, 1)).toBe('7777777777');
   });
 
-  it('DELTA', function() {
+  it('DELTA', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=DELTA()', '=DELTA(58)', '=DELTA(58, 4)']),
       columns: getColumnsForFormulas(),
@@ -263,7 +263,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe(0);
   });
 
-  it('ERF', function() {
+  it('ERF', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=ERF()', '=ERF(1)', '=ERF(2)']),
       columns: getColumnsForFormulas(),
@@ -277,7 +277,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBeCloseTo(0.9953222650189527, 12);
   });
 
-  it('ERFC', function() {
+  it('ERFC', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=ERFC()', '=ERFC(0)', '=ERFC(1)']),
       columns: getColumnsForFormulas(),
@@ -291,7 +291,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBeCloseTo(0.1572992070502851, 12);
   });
 
-  it('GESTEP', function() {
+  it('GESTEP', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=GESTEP()', '=GESTEP(1, 2)', '=GESTEP(-1, -2)']),
       columns: getColumnsForFormulas(),
@@ -305,7 +305,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe(1);
   });
 
-  it('HEX2BIN', function() {
+  it('HEX2BIN', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=HEX2BIN()', '=HEX2BIN("fa")', '=HEX2BIN("fa", 12)']),
       columns: getColumnsForFormulas(),
@@ -319,7 +319,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe('000011111010');
   });
 
-  it('HEX2DEC', function() {
+  it('HEX2DEC', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=HEX2DEC()', '=HEX2DEC("fa")']),
       columns: getColumnsForFormulas(),
@@ -332,7 +332,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(250);
   });
 
-  it('HEX2OCT', function() {
+  it('HEX2OCT', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=HEX2OCT()', '=HEX2OCT("fa")', '=HEX2OCT("fa", 12)']),
       columns: getColumnsForFormulas(),
@@ -346,7 +346,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe('000000000372');
   });
 
-  it('IMABS', function() {
+  it('IMABS', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMABS()', '=IMABS("5+12i")']),
       columns: getColumnsForFormulas(),
@@ -359,7 +359,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(13);
   });
 
-  it('IMAGINARY', function() {
+  it('IMAGINARY', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMAGINARY()', '=IMAGINARY("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -372,7 +372,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(4);
   });
 
-  it('IMARGUMENT', function() {
+  it('IMARGUMENT', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMARGUMENT()', '=IMARGUMENT(1)', '=IMARGUMENT(0)', '=IMARGUMENT("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -387,7 +387,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(4, 1)).toBeCloseTo(0.9272952180016122, 12);
   });
 
-  it('IMCONJUGATE', function() {
+  it('IMCONJUGATE', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMCONJUGATE()', '=IMCONJUGATE(1)', '=IMCONJUGATE("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -401,7 +401,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe('3-4i');
   });
 
-  it('IMCOS', function() {
+  it('IMCOS', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMCOS()', '=IMCOS("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -417,7 +417,7 @@ describe('Formulas -> engineering functions', function() {
     expect(parser.parse(`IMAGINARY("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(-3.8511533348117766, 12);
   });
 
-  it('IMCOSH', function() {
+  it('IMCOSH', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMCOSH()', '=IMCOSH("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -431,7 +431,7 @@ describe('Formulas -> engineering functions', function() {
     expect(parseFloat(hot.getDataAtCell(2, 1).split('-')[2])).toBeCloseTo(7.581552742746545, 12);
   });
 
-  it('IMCOT', function() {
+  it('IMCOT', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMCOT()', '=IMCOT("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -447,7 +447,7 @@ describe('Formulas -> engineering functions', function() {
     expect(parser.parse(`IMAGINARY("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(-1.0006443924715591, 12);
   });
 
-  it('IMCSC', function() {
+  it('IMCSC', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMCSC()', '=IMCSC("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -462,7 +462,7 @@ describe('Formulas -> engineering functions', function() {
     expect(parseFloat(hot.getDataAtCell(2, 1).split('+')[1])).toBeCloseTo(0.03627588962862602, 12);
   });
 
-  it('IMDIV', function() {
+  it('IMDIV', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMDIV()', '=IMDIV("3+4i")', '=IMDIV("3+4i", "2+2i")']),
       columns: getColumnsForFormulas(),
@@ -476,7 +476,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe('1.75+0.25i');
   });
 
-  it('IMEXP', function() {
+  it('IMEXP', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMEXP()', '=IMEXP("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -490,7 +490,7 @@ describe('Formulas -> engineering functions', function() {
     expect(parseFloat(hot.getDataAtCell(2, 1).split('-')[2])).toBeCloseTo(15.200784463067954, 12);
   });
 
-  it('IMLN', function() {
+  it('IMLN', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMLN()', '=IMLN("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -504,7 +504,7 @@ describe('Formulas -> engineering functions', function() {
     expect(parseFloat(hot.getDataAtCell(2, 1).split('+')[1])).toBeCloseTo(0.9272952180016122, 12);
   });
 
-  it('IMLOG10', function() {
+  it('IMLOG10', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMLOG10()', '=IMLOG10("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -517,7 +517,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('0.6989700043360187+0.4027191962733731i');
   });
 
-  it('IMLOG2', function() {
+  it('IMLOG2', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMLOG2()', '=IMLOG2("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -530,7 +530,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('2.321928094887362+1.3378042124509761i');
   });
 
-  it('IMPOWER', function() {
+  it('IMPOWER', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMPOWER()', '=IMPOWER("3+4i", 3)']),
       columns: getColumnsForFormulas(),
@@ -546,7 +546,7 @@ describe('Formulas -> engineering functions', function() {
     expect(parser.parse(`IMAGINARY("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(44, 12);
   });
 
-  it('IMPRODUCT', function() {
+  it('IMPRODUCT', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMPRODUCT()', '=IMPRODUCT("3+4i", "1+2i")']),
       columns: getColumnsForFormulas(),
@@ -559,7 +559,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('-5+10i');
   });
 
-  it('IMREAL', function() {
+  it('IMREAL', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMREAL()', '=IMREAL("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -572,7 +572,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(3);
   });
 
-  it('IMSEC', function() {
+  it('IMSEC', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMSEC()', '=IMSEC("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -588,7 +588,7 @@ describe('Formulas -> engineering functions', function() {
     expect(parser.parse(`IMAGINARY("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(0.005164344607753179, 12);
   });
 
-  it('IMSECH', function() {
+  it('IMSECH', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMSECH()', '=IMSECH("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -602,7 +602,7 @@ describe('Formulas -> engineering functions', function() {
     expect(parseFloat(hot.getDataAtCell(2, 1).split('+')[1])).toBeCloseTo(0.07522496030277322);
   });
 
-  it('IMSIN', function() {
+  it('IMSIN', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMSIN()', '=IMSIN("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -618,7 +618,7 @@ describe('Formulas -> engineering functions', function() {
     expect(parser.parse(`IMAGINARY("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(-27.016813258003932, 12);
   });
 
-  it('IMSINH', function() {
+  it('IMSINH', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMSINH()', '=IMSINH("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -632,7 +632,7 @@ describe('Formulas -> engineering functions', function() {
     expect(parseFloat(hot.getDataAtCell(2, 1).split('-')[2])).toBeCloseTo(7.61923172032141, 12);
   });
 
-  it('IMSQRT', function() {
+  it('IMSQRT', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMSQRT()', '=IMSQRT("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -645,7 +645,7 @@ describe('Formulas -> engineering functions', function() {
     expect(parseFloat(hot.getDataAtCell(2, 1).split('+')[0])).toBeCloseTo(2, 12);
   });
 
-  it('IMSUB', function() {
+  it('IMSUB', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMSUB()', '=IMSUB("3+4i")', '=IMSUB("3+4i", "2+3i")']),
       columns: getColumnsForFormulas(),
@@ -659,7 +659,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe('1+i');
   });
 
-  it('IMSUM', function() {
+  it('IMSUM', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMSUM()', '=IMSUM("3+4i")', '=IMSUM("3+4i", "2+3i")']),
       columns: getColumnsForFormulas(),
@@ -673,7 +673,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe('5+7i');
   });
 
-  it('IMTAN', function() {
+  it('IMTAN', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IMTAN()', '=IMTAN("3+4i")']),
       columns: getColumnsForFormulas(),
@@ -689,7 +689,7 @@ describe('Formulas -> engineering functions', function() {
     expect(parser.parse(`IMAGINARY("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(0.9993559873814731, 12);
   });
 
-  it('OCT2BIN', function() {
+  it('OCT2BIN', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=OCT2BIN()', '=OCT2BIN(3, 4)']),
       columns: getColumnsForFormulas(),
@@ -702,7 +702,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('0011');
   });
 
-  it('OCT2DEC', function() {
+  it('OCT2DEC', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=OCT2DEC()', '=OCT2DEC(34)']),
       columns: getColumnsForFormulas(),
@@ -715,7 +715,7 @@ describe('Formulas -> engineering functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(28);
   });
 
-  it('OCT2HEX', function() {
+  it('OCT2HEX', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=OCT2HEX()', '=OCT2HEX(34, 5)']),
       columns: getColumnsForFormulas(),

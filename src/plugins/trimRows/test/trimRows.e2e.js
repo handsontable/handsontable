@@ -1,4 +1,4 @@
-describe('TrimRows', function() {
+describe('TrimRows', () => {
   var id = 'testContainer';
 
   function getMultilineData(rows, cols) {
@@ -22,7 +22,7 @@ describe('TrimRows', function() {
     }
   });
 
-  it('should trim rows defined in `trimRows` property', function() {
+  it('should trim rows defined in `trimRows` property', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       trimRows: [2, 6, 7],
@@ -55,7 +55,7 @@ describe('TrimRows', function() {
     expect(getCellMeta(6, 0).type).toBe('text');
   });
 
-  it('should trim rows after re-load data calling loadData method', function() {
+  it('should trim rows after re-load data calling loadData method', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       trimRows: [0, 2],
@@ -72,7 +72,7 @@ describe('TrimRows', function() {
     expect(getDataAtCell(4, 0)).toBe(null);
   });
 
-  it('should return to default state after call disablePlugin method', function() {
+  it('should return to default state after call disablePlugin method', () => {
     var hot = handsontable({
       data: getMultilineData(10, 10),
       trimRows: [2, 6, 7],
@@ -91,7 +91,7 @@ describe('TrimRows', function() {
     expect(getDataAtCell(6, 0)).toBe('A7');
   });
 
-  it('should trim rows after call enablePlugin method', function() {
+  it('should trim rows after call enablePlugin method', () => {
     var hot = handsontable({
       data: getMultilineData(10, 10),
       trimRows: [2, 6, 7],
@@ -111,7 +111,7 @@ describe('TrimRows', function() {
     expect(getDataAtCell(6, 0)).toBe('A10');
   });
 
-  it('should trim row after call trimRow method', function() {
+  it('should trim row after call trimRow method', () => {
     var hot = handsontable({
       data: getMultilineData(5, 10),
       trimRows: true,
@@ -127,7 +127,7 @@ describe('TrimRows', function() {
     expect(getDataAtCell(1, 0)).toBe('A3');
   });
 
-  it('should untrim row after call untrimRow method', function() {
+  it('should untrim row after call untrimRow method', () => {
     var hot = handsontable({
       data: getMultilineData(5, 10),
       trimRows: [1],
@@ -143,7 +143,7 @@ describe('TrimRows', function() {
     expect(getDataAtCell(1, 0)).toBe('A2');
   });
 
-  it('should call hook after trim row', function() {
+  it('should call hook after trim row', () => {
     var callback = jasmine.createSpy();
     var hot = handsontable({
       data: getMultilineData(5, 10),
@@ -161,7 +161,7 @@ describe('TrimRows', function() {
     expect(callback).toHaveBeenCalledWith([1], void 0, void 0, void 0, void 0, void 0);
   });
 
-  it('should call hook after untrim row', function() {
+  it('should call hook after untrim row', () => {
     var callback = jasmine.createSpy();
     var hot = handsontable({
       data: getMultilineData(5, 10),
@@ -179,13 +179,11 @@ describe('TrimRows', function() {
     expect(callback).toHaveBeenCalledWith([1], void 0, void 0, void 0, void 0, void 0);
   });
 
-  it('should trim big data set', function() {
+  it('should trim big data set', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1000, 5),
       // leave first row and last 3 rows
-      trimRows: Array.apply(null, Array(996)).map(function(v, i) {
-        return i + 1;
-      }),
+      trimRows: Array.apply(null, Array(996)).map((v, i) => i + 1),
       width: 500,
       height: 300
     });
@@ -197,7 +195,7 @@ describe('TrimRows', function() {
     expect(getDataAtCell(4, 0)).toBe(null);
   });
 
-  it('should remove correct rows', function() {
+  it('should remove correct rows', () => {
     handsontable({
       data: getMultilineData(5, 10),
       trimRows: [1],
@@ -212,7 +210,7 @@ describe('TrimRows', function() {
     expect(getDataAtCell(2, 0)).toBe(null);
   });
 
-  it('should remove correct rows after inserting new ones', function() {
+  it('should remove correct rows after inserting new ones', () => {
     handsontable({
       data: getMultilineData(6, 10),
       trimRows: [1, 4],
@@ -238,13 +236,13 @@ describe('TrimRows', function() {
 
     hot.loadData(Handsontable.helper.createSpreadsheetData(10, 10));
 
-    setTimeout(function () {
+    setTimeout(() => {
       expect(this.$container.find('td').length).toEqual(100);
       done();
-    }.bind(this), 100);
+    }, 100);
   });
 
-  it('should not affect `afterValidate` hook #11', function (done) {
+  it('should not affect `afterValidate` hook #11', (done) => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       trimRows: true,
@@ -270,7 +268,7 @@ describe('TrimRows', function() {
     }, 100);
   });
 
-  describe('copy-paste functionality', function() {
+  describe('copy-paste functionality', () => {
     class DataTransferObject {
       constructor() {
         this.data = '';
@@ -290,7 +288,7 @@ describe('TrimRows', function() {
       return event;
     }
 
-    it('should skip trimmed rows, while copying data', function() {
+    it('should skip trimmed rows, while copying data', () => {
       var hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: [1, 5, 6, 7, 8],
@@ -317,8 +315,8 @@ describe('TrimRows', function() {
     });
   });
 
-  describe('navigation', function() {
-    it('should ignore trimmed rows while navigating by arrow keys', function() {
+  describe('navigation', () => {
+    it('should ignore trimmed rows while navigating by arrow keys', () => {
       handsontable({
         data: getMultilineData(50, 10),
         trimRows: [1, 5, 6, 7, 8],
@@ -348,8 +346,8 @@ describe('TrimRows', function() {
     });
   });
 
-  describe('column sorting', function() {
-    it('should remove correct rows after sorting', function() {
+  describe('column sorting', () => {
+    it('should remove correct rows after sorting', () => {
       handsontable({
         data: getMultilineData(5, 10),
         columnSorting: {
@@ -368,7 +366,7 @@ describe('TrimRows', function() {
       expect(getDataAtCell(2, 0)).toBe('A1');
     });
 
-    it('should remove correct rows after insert new rows in sorted column', function(done) {
+    it('should remove correct rows after insert new rows in sorted column', (done) => {
       handsontable({
         data: getMultilineData(5, 10),
         colHeaders: true,
@@ -382,7 +380,7 @@ describe('TrimRows', function() {
         height: 300
       });
 
-      setTimeout(function () {
+      setTimeout(() => {
         alter('insert_row', 2, 1);
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
@@ -397,7 +395,7 @@ describe('TrimRows', function() {
       }, 100);
     });
 
-    it('should remove correct rows after insert new rows in sorted column (multiple sort click)', function(done) {
+    it('should remove correct rows after insert new rows in sorted column (multiple sort click)', (done) => {
       handsontable({
         data: getMultilineData(5, 10),
         colHeaders: true,
@@ -411,7 +409,7 @@ describe('TrimRows', function() {
         height: 300
       });
 
-      setTimeout(function () {
+      setTimeout(() => {
         alter('insert_row', 2, 1);
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
@@ -431,15 +429,15 @@ describe('TrimRows', function() {
     });
   });
 
-  describe('maxRows option set', function () {
-    it('should return properly data after trimming', function (done) {
+  describe('maxRows option set', () => {
+    it('should return properly data after trimming', (done) => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         maxRows: 3,
         trimRows: [2, 3]
       });
 
-      setTimeout(function () {
+      setTimeout(() => {
         expect(getData().length).toEqual(3);
         expect(getDataAtCell(2, 1)).toEqual('B5');
         done();
@@ -487,8 +485,8 @@ describe('TrimRows', function() {
     });
   });
 
-  describe('updateSettings', function () {
-    it('should update list of trimmed rows when array of indexes is passed to the method - test no. 1', function() {
+  describe('updateSettings', () => {
+    it('should update list of trimmed rows when array of indexes is passed to the method - test no. 1', () => {
       var hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
@@ -506,7 +504,7 @@ describe('TrimRows', function() {
       expect(getDataAtCell(4, 0)).toBe('A10');
     });
 
-    it('should update list of trimmed rows when array of indexes is passed to the method - test no. 2', function() {
+    it('should update list of trimmed rows when array of indexes is passed to the method - test no. 2', () => {
       var hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
@@ -597,7 +595,7 @@ describe('TrimRows', function() {
     });
 
     it('shouldn\'t clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
-      'set to `true` - test no. 1', function () {
+      'set to `true` - test no. 1', () => {
       var hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
@@ -613,7 +611,7 @@ describe('TrimRows', function() {
     });
 
     it('shouldn\'t clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
-      'set to `true` - test no. 2', function () {
+      'set to `true` - test no. 2', () => {
       var hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
@@ -631,7 +629,7 @@ describe('TrimRows', function() {
       expect(getData().length).toEqual(7);
     });
 
-    it('shouldn\'t change list of trimmed rows when handled setting object don\'t have `trimRows` key - test no. 1', function () {
+    it('shouldn\'t change list of trimmed rows when handled setting object don\'t have `trimRows` key - test no. 1', () => {
       var hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
@@ -646,7 +644,7 @@ describe('TrimRows', function() {
       expect(getData().length).toEqual(7);
     });
 
-    it('shouldn\'t change list of trimmed rows when handled setting object don\'t have `trimRows` key - test no. 2', function () {
+    it('shouldn\'t change list of trimmed rows when handled setting object don\'t have `trimRows` key - test no. 2', () => {
       var hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,

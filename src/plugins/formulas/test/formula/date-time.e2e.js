@@ -1,4 +1,4 @@
-describe('Formulas -> date & time functions', function() {
+describe('Formulas -> date & time functions', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -12,7 +12,7 @@ describe('Formulas -> date & time functions', function() {
     }
   });
 
-  it('DATE', function() {
+  it('DATE', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', '=DATE(2010, 12, 20)'),
       columns: getColumnsForFormulas(),
@@ -29,7 +29,7 @@ describe('Formulas -> date & time functions', function() {
     expect(date.getDate()).toBe(20);
   });
 
-  it('DATEVALUE', function() {
+  it('DATEVALUE', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', '=DATEVALUE("12/31/9999")'),
       columns: getColumnsForFormulas(),
@@ -42,7 +42,7 @@ describe('Formulas -> date & time functions', function() {
     expect(parseInt(hot.getDataAtCell(1, 1), 10)).toBe(2958465);
   });
 
-  it('DAY', function() {
+  it('DAY', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=DAY(29585)', '=DAY("1/2/1900")']),
       columns: getColumnsForFormulas(),
@@ -57,7 +57,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(2);
   });
 
-  it('DAYS', function() {
+  it('DAYS', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=DAYS(5, 3)', '=DAYS("1/20/1900", "1/1/1900")']),
       columns: getColumnsForFormulas(),
@@ -70,7 +70,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(19);
   });
 
-  it('DAYS360', function() {
+  it('DAYS360', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=DAYS360("1/1/1901", "12/31/1901", FALSE)', '=DAYS360("1/1/1901", "12/31/1901")']),
       columns: getColumnsForFormulas(),
@@ -83,7 +83,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('#VALUE!');
   });
 
-  it('EDATE', function() {
+  it('EDATE', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=EDATE("1/1/1900", 1)', '=EDATE("1/1/1900", 12)']),
       columns: getColumnsForFormulas(),
@@ -96,7 +96,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(367);
   });
 
-  it('EOMONTH', function() {
+  it('EOMONTH', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=EOMONTH("1/1/1900", 1)', '=EOMONTH("1/1/1900", 12)']),
       columns: getColumnsForFormulas(),
@@ -109,7 +109,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(397);
   });
 
-  it('HOUR', function() {
+  it('HOUR', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=HOUR("1/1/1900")', '=HOUR("1/1/1900 3:12")']),
       columns: getColumnsForFormulas(),
@@ -122,7 +122,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(3);
   });
 
-  it('INTERVAL', function() {
+  it('INTERVAL', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=INTERVAL(10000000)', '=INTERVAL(123)']),
       columns: getColumnsForFormulas(),
@@ -135,7 +135,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('PT2M3S');
   });
 
-  it('ISOWEEKNUM', function() {
+  it('ISOWEEKNUM', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=ISOWEEKNUM("1/8/1901")', '=ISOWEEKNUM("12/29/1901")']),
       columns: getColumnsForFormulas(),
@@ -148,7 +148,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(52);
   });
 
-  it('MINUTE', function() {
+  it('MINUTE', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=MINUTE("1/8/1901")', '=MINUTE("12/29/1901 22:12")']),
       columns: getColumnsForFormulas(),
@@ -161,7 +161,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(12);
   });
 
-  it('MONTH', function() {
+  it('MONTH', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=MONTH("1/8/1901")', '=MONTH("12/29/1901 22:12")']),
       columns: getColumnsForFormulas(),
@@ -174,7 +174,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(12);
   });
 
-  it('NETWORKDAYS', function() {
+  it('NETWORKDAYS', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=NETWORKDAYS("2013-12-04", "2013-12-06")', '=NETWORKDAYS("12/4/2013", "12/4/2013")']),
       columns: getColumnsForFormulas(),
@@ -187,7 +187,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(1);
   });
 
-  it('NOW', function() {
+  it('NOW', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=NOW()']),
       columns: getColumnsForFormulas(),
@@ -205,7 +205,7 @@ describe('Formulas -> date & time functions', function() {
     expect(date.getDate()).toBe(now.getDate());
   });
 
-  it('SECOND', function() {
+  it('SECOND', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=SECOND("2/1/1901 13:33:12")', '=SECOND("4/4/2001 13:33:59")']),
       columns: getColumnsForFormulas(),
@@ -218,7 +218,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(59);
   });
 
-  it('TIME', function() {
+  it('TIME', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=TIME(0, 0, 0)', '=TIME(24, 0, 0)', '=TIME(24, 0)']),
       columns: getColumnsForFormulas(),
@@ -232,7 +232,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe('#VALUE!');
   });
 
-  it('TIMEVALUE', function() {
+  it('TIMEVALUE', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=TIMEVALUE("1/1/1900 00:00:00")', '=TIMEVALUE("1/1/1900 23:00:00")']),
       columns: getColumnsForFormulas(),
@@ -245,7 +245,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(0.9583333333333334);
   });
 
-  it('TODAY', function() {
+  it('TODAY', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=TODAY()']),
       columns: getColumnsForFormulas(),
@@ -257,7 +257,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(1, 1).getDate()).toBe(new Date().getDate());
   });
 
-  it('WEEKDAY', function() {
+  it('WEEKDAY', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=WEEKDAY("1/1/1901")', '=WEEKDAY("1/1/1901", 2)']),
       columns: getColumnsForFormulas(),
@@ -270,7 +270,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(2);
   });
 
-  it('WEEKNUM', function() {
+  it('WEEKNUM', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=WEEKNUM("2/1/1900")', '=WEEKNUM("2/1/1909", 2)']),
       columns: getColumnsForFormulas(),
@@ -283,7 +283,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(6);
   });
 
-  it('WORKDAY', function() {
+  it('WORKDAY', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=WORKDAY("1/1/1900", 1)', '=WORKDAY("1/1/1900")']),
       columns: getColumnsForFormulas(),
@@ -297,7 +297,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('#VALUE!');
   });
 
-  it('YEAR', function() {
+  it('YEAR', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=YEAR("1/1/1900")', '=YEAR("12/12/2001")']),
       columns: getColumnsForFormulas(),
@@ -310,7 +310,7 @@ describe('Formulas -> date & time functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(2001);
   });
 
-  it('YEARFRAC', function() {
+  it('YEARFRAC', () => {
     var hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=YEARFRAC("1/1/1900", "1/2/1900")', '=YEARFRAC("1/1/1900")']),
       columns: getColumnsForFormulas(),

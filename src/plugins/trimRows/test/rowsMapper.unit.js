@@ -1,18 +1,18 @@
 import RowsMapper from 'handsontable-pro/plugins/trimRows/rowsMapper';
 
-describe('TrimRows -> RowsMapper', function() {
-  it('should set trimRows plugin while constructing', function() {
+describe('TrimRows -> RowsMapper', () => {
+  it('should set trimRows plugin while constructing', () => {
     var trimRowsMock = {};
     var mapper = new RowsMapper(trimRowsMock);
 
     expect(mapper.trimRows).toBe(trimRowsMock);
   });
 
-  it('should be mixed with arrayMapper object', function() {
+  it('should be mixed with arrayMapper object', () => {
     expect(RowsMapper.MIXINS).toEqual(['arrayMapper']);
   });
 
-  it('should destroy array after calling destroy method', function() {
+  it('should destroy array after calling destroy method', () => {
     var mapper = new RowsMapper();
 
     expect(mapper._arrayMap).toEqual([]);
@@ -22,7 +22,7 @@ describe('TrimRows -> RowsMapper', function() {
     expect(mapper._arrayMap).toBe(null);
   });
 
-  it('should call isTrimmed method "length" times', function() {
+  it('should call isTrimmed method "length" times', () => {
     var trimRowsMock = {
       isTrimmed: function() {
         return false;
@@ -41,7 +41,7 @@ describe('TrimRows -> RowsMapper', function() {
     expect(trimRowsMock.isTrimmed.calls.argsFor(4)).toEqual([4]);
   });
 
-  it('should create map with pairs index->value', function() {
+  it('should create map with pairs index->value', () => {
     var trimRowsMock = {
       isTrimmed: function() {
         return false;
@@ -60,7 +60,7 @@ describe('TrimRows -> RowsMapper', function() {
     expect(mapper._arrayMap[5]).toBe(5);
   });
 
-  it('should create map with pairs index->value with some gaps', function() {
+  it('should create map with pairs index->value with some gaps', () => {
     var trimRowsMock = {
       isTrimmed: function(index) {
         return index === 2 || index === 5;

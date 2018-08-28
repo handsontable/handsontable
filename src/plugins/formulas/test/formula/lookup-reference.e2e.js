@@ -1,4 +1,4 @@
-describe('Formulas -> lookup reference functions', function() {
+describe('Formulas -> lookup reference functions', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -12,7 +12,7 @@ describe('Formulas -> lookup reference functions', function() {
     }
   });
 
-  it('MATCH', function() {
+  it('MATCH', () => {
     var data = getDataForFormulas(0, 'name', ['=MATCH()', '=MATCH("Saranap", C1:C5)', '=MATCH(4, A1:A5, 1)']);
 
     var hot = handsontable({

@@ -1,4 +1,4 @@
-describe('Header tooltips', function() {
+describe('Header tooltips', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -12,8 +12,8 @@ describe('Header tooltips', function() {
     }
   });
 
-  describe('initialization', function() {
-    it('should be initialized by HOT config', function() {
+  describe('initialization', () => {
+    it('should be initialized by HOT config', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
@@ -35,7 +35,7 @@ describe('Header tooltips', function() {
       }
     });
 
-    it('should be initialized by the updateSettings method', function() {
+    it('should be initialized by the updateSettings method', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
@@ -60,7 +60,7 @@ describe('Header tooltips', function() {
       }
     });
 
-    it('should be disabled by the disablePlugin method', function() {
+    it('should be disabled by the disablePlugin method', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
@@ -82,7 +82,7 @@ describe('Header tooltips', function() {
       }
     });
 
-    it('should be re-enabled by the enablePlugin method', function() {
+    it('should be re-enabled by the enablePlugin method', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
@@ -111,9 +111,8 @@ describe('Header tooltips', function() {
 
   });
 
-  describe('adding the title attribute', function() {
-
-    it('should add the "title" attribute to both rows and columns, if both "rows" and "columns" properties are set to "true"', function() {
+  describe('adding the title attribute', () => {
+    it('should add the "title" attribute to both rows and columns, if both "rows" and "columns" properties are set to "true"', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
@@ -138,7 +137,7 @@ describe('Header tooltips', function() {
       });
     });
 
-    it('should add the "title" attribute to only rows, of only "rows" property is set to "true"', function() {
+    it('should add the "title" attribute to only rows, of only "rows" property is set to "true"', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
@@ -163,7 +162,7 @@ describe('Header tooltips', function() {
       });
     });
 
-    it('should add the "title" attribute to only columns, of only "columns" property is set to "true"', function() {
+    it('should add the "title" attribute to only columns, of only "columns" property is set to "true"', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
@@ -188,7 +187,7 @@ describe('Header tooltips', function() {
       });
     });
 
-    it('should add the "title" attribute only if the header content exceeds the header with, when onlyTrimmed property is set to true', function() {
+    it('should add the "title" attribute only if the header content exceeds the header with, when onlyTrimmed property is set to true', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: ['very long column header', 'B', 'very long column header', 'C'],

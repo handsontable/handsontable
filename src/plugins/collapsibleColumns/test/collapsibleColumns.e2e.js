@@ -1,4 +1,4 @@
-describe('CollapsibleColumns', function() {
+describe('CollapsibleColumns', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -53,8 +53,8 @@ describe('CollapsibleColumns', function() {
     }
   });
 
-  describe('initialization', function() {
-    it('should be possible to disable the plugin using the disablePlugin method', function() {
+  describe('initialization', () => {
+    it('should be possible to disable the plugin using the disablePlugin method', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
@@ -75,7 +75,7 @@ describe('CollapsibleColumns', function() {
       expect($('.collapsibleIndicator').size()).toEqual(0);
     });
 
-    it('should be possible to re-enable the plugin using the enablePlugin method', function() {
+    it('should be possible to re-enable the plugin using the enablePlugin method', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
@@ -96,7 +96,7 @@ describe('CollapsibleColumns', function() {
       expect($('.collapsibleIndicator').size()).toBeGreaterThan(0);
     });
 
-    it('should be possible to initialize the plugin using the updateSettings method', function() {
+    it('should be possible to initialize the plugin using the updateSettings method', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
@@ -115,9 +115,8 @@ describe('CollapsibleColumns', function() {
 
   });
 
-  describe('collapsing headers functionality', function() {
-
-    it('should hide all "child" columns except the first one after clicking the "collapse/expand" button/indicator', function() {
+  describe('collapsing headers functionality', () => {
+    it('should hide all "child" columns except the first one after clicking the "collapse/expand" button/indicator', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
@@ -150,7 +149,7 @@ describe('CollapsibleColumns', function() {
       expect(parseInt(colgroupArray.eq(6).width(), 10)).toBeGreaterThan(0);
     });
 
-    it('should hide all the "child" columns except the first "child" group, (if a "child group" exists), after clicking the collapse/expand button', function() {
+    it('should hide all the "child" columns except the first "child" group, (if a "child group" exists), after clicking the collapse/expand button', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
@@ -211,9 +210,8 @@ describe('CollapsibleColumns', function() {
     });
   });
 
-  describe('expand headers functionality', function() {
-
-    it('should expand all the "child" columns of the colspanned header afte clicking the expand button', function() {
+  describe('expand headers functionality', () => {
+    it('should expand all the "child" columns of the colspanned header afte clicking the expand button', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
@@ -258,7 +256,7 @@ describe('CollapsibleColumns', function() {
         height: 300
       });
 
-      setTimeout(function() {
+      setTimeout(() => {
         hot.scrollViewportTo(void 0, 37);
         hot.render();
 

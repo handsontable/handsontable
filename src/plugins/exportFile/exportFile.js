@@ -110,7 +110,7 @@ class ExportFile extends BasePlugin {
       a.dispatchEvent(new MouseEvent('click'));
       document.body.removeChild(a);
 
-      setTimeout(function() {
+      setTimeout(() => {
         URL.revokeObjectURL(url);
       }, 100);
 

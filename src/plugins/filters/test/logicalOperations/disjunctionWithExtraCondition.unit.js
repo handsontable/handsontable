@@ -6,7 +6,7 @@ import { condition as containsFunction } from 'handsontable-pro/plugins/filters/
 import { operationResult as disjunctionWithExtraCondition } from 'handsontable-pro/plugins/filters/logicalOperations/disjunctionWithExtraCondition';
 import { conditionFactory, dateRowFactory } from './../helpers/utils';
 
-describe('Operation on set of conditions (`disjunction and variable`)', function() {
+describe('Operation on set of conditions (`disjunction and variable`)', () => {
   const data = dateRowFactory();
   const trueConditionMock = conditionFactory(trueFunction);
   const falseConditionMock = conditionFactory(falseFunction);
@@ -16,13 +16,13 @@ describe('Operation on set of conditions (`disjunction and variable`)', function
   const anycellData = data('');
   const cellData = data('Alibaba');
 
-  it('should filter matching values', function() {
+  it('should filter matching values', () => {
     expect(disjunctionWithExtraCondition([trueConditionMock(), trueConditionMock(), trueConditionMock()], anycellData)).toBe(true);
     expect(disjunctionWithExtraCondition([trueConditionMock(), falseConditionMock(), trueConditionMock()], anycellData)).toBe(true);
     expect(disjunctionWithExtraCondition([beginsWithConditionMock(['a']), endsWithConditionMock(['a']), containsWithConditionMock(['b'])], cellData)).toBe(true);
   });
 
-  it('should filter not matching values', function() {
+  it('should filter not matching values', () => {
     expect(disjunctionWithExtraCondition([trueConditionMock(), falseConditionMock(), falseConditionMock()], anycellData)).toBe(false);
     expect(disjunctionWithExtraCondition([beginsWithConditionMock(['a']), falseConditionMock(), falseConditionMock()], cellData)).toBe(false);
     expect(disjunctionWithExtraCondition([beginsWithConditionMock(['a']), endsWithConditionMock(['a']), containsWithConditionMock(['z'])], cellData)).toBe(false);
@@ -30,12 +30,12 @@ describe('Operation on set of conditions (`disjunction and variable`)', function
     expect(disjunctionWithExtraCondition([beginsWithConditionMock(['b']), endsWithConditionMock(['b']), containsWithConditionMock(['z'])], cellData)).toBe(false);
   });
 
-  it('should throw error when handling less than 3 arguments', function () {
-    expect(function() {
+  it('should throw error when handling less than 3 arguments', () => {
+    expect(() => {
       disjunctionWithExtraCondition([trueConditionMock()]);
     }).toThrow();
 
-    expect(function() {
+    expect(() => {
       disjunctionWithExtraCondition([trueConditionMock(), falseConditionMock()]);
     }).toThrow();
   });

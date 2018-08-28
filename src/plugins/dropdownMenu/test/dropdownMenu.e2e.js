@@ -1,4 +1,4 @@
-describe('DropdownMenu', function () {
+describe('DropdownMenu', () => {
   const id = 'testContainer';
 
   beforeEach(function () {
@@ -12,8 +12,8 @@ describe('DropdownMenu', function () {
     }
   });
 
-  describe('enable/disable plugin', function () {
-    it('should disable plugin after call disablePlugin method', function () {
+  describe('enable/disable plugin', () => {
+    it('should disable plugin after call disablePlugin method', () => {
       const hot = handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -28,7 +28,7 @@ describe('DropdownMenu', function () {
       expect(hot.view.wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
     });
 
-    it('should enable plugin after call enablePlugin method', function () {
+    it('should enable plugin after call enablePlugin method', () => {
       const hot = handsontable({
         dropdownMenu: false,
         colHeaders: true,
@@ -101,8 +101,8 @@ describe('DropdownMenu', function () {
     });
   });
 
-  describe('menu opening', function () {
-    it('should open menu after click on table header button', function () {
+  describe('menu opening', () => {
+    it('should open menu after click on table header button', () => {
       const hot = handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -117,7 +117,7 @@ describe('DropdownMenu', function () {
       expect($('.htDropdownMenu').is(':visible')).toBe(true);
     });
 
-    it('should open menu after click on table header button when only header cells are visible', function () {
+    it('should open menu after click on table header button when only header cells are visible', () => {
       handsontable({
         data: [],
         colHeaders: ['Year', 'Kia'],
@@ -134,7 +134,7 @@ describe('DropdownMenu', function () {
     });
   });
 
-  describe('menu closing', function () {
+  describe('menu closing', () => {
     it('should close menu after click', function () {
       handsontable({
         dropdownMenu: true,
@@ -152,8 +152,8 @@ describe('DropdownMenu', function () {
     });
   });
 
-  describe('menu disabled', function () {
-    it('should not open menu after table header button click', function () {
+  describe('menu disabled', () => {
+    it('should not open menu after table header button click', () => {
       const hot = handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -171,7 +171,7 @@ describe('DropdownMenu', function () {
       expect(hot.view.wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
     });
 
-    it('should not create dropdowm menu if it\'s disabled in constructor options', function () {
+    it('should not create dropdowm menu if it\'s disabled in constructor options', () => {
       const hot = handsontable({
         dropdownMenu: false,
         colHeaders: true,
@@ -182,7 +182,7 @@ describe('DropdownMenu', function () {
       expect(hot.view.wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
     });
 
-    it('should reenable menu', function () {
+    it('should reenable menu', () => {
       const hot = handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -204,7 +204,7 @@ describe('DropdownMenu', function () {
       expect($('.htDropdownMenu').is(':visible')).toBe(true);
     });
 
-    it('should reenable menu with updateSettings when it was disabled in constructor', function () {
+    it('should reenable menu with updateSettings when it was disabled in constructor', () => {
       const hot = handsontable({
         dropdownMenu: false,
         colHeaders: true,
@@ -226,7 +226,7 @@ describe('DropdownMenu', function () {
       expect($('.htDropdownMenu').is(':visible')).toBe(true);
     });
 
-    it('should disable menu with updateSettings when it was enabled in constructor', function () {
+    it('should disable menu with updateSettings when it was enabled in constructor', () => {
       const hot = handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -243,8 +243,8 @@ describe('DropdownMenu', function () {
     });
   });
 
-  describe('menu destroy', function () {
-    it('should close context menu when HOT is being destroyed', function () {
+  describe('menu destroy', () => {
+    it('should close context menu when HOT is being destroyed', () => {
       handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -261,8 +261,8 @@ describe('DropdownMenu', function () {
     });
   });
 
-  describe('default context menu actions', function () {
-    it('should display the default set of actions', function () {
+  describe('default context menu actions', () => {
+    it('should display the default set of actions', () => {
       handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -289,7 +289,7 @@ describe('DropdownMenu', function () {
       ].join(''));
     });
 
-    it('should insert column on the left of selection', function () {
+    it('should insert column on the left of selection', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         dropdownMenu: true,
@@ -312,7 +312,7 @@ describe('DropdownMenu', function () {
       expect(countCols()).toEqual(5);
     });
 
-    it('should Insert column right of selection', function () {
+    it('should Insert column right of selection', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         dropdownMenu: true,
@@ -334,7 +334,7 @@ describe('DropdownMenu', function () {
       expect(countCols()).toEqual(5);
     });
 
-    it('should remove column', function () {
+    it('should remove column', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         dropdownMenu: true,
@@ -352,7 +352,7 @@ describe('DropdownMenu', function () {
       expect(countCols()).toEqual(3);
     });
 
-    it('should clear column data', function () {
+    it('should clear column data', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         dropdownMenu: true,
@@ -374,7 +374,7 @@ describe('DropdownMenu', function () {
       expect(hot.getDataAtCell(3, 1)).toBeNull('');
     });
 
-    it('should display only the specified actions', function () {
+    it('should display only the specified actions', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         dropdownMenu: ['clear_column'],
@@ -388,8 +388,8 @@ describe('DropdownMenu', function () {
     });
   });
 
-  describe('custom options', function () {
-    it('should have custom items list', function () {
+  describe('custom options', () => {
+    it('should have custom items list', () => {
 
       const callback1 = jasmine.createSpy('callback1');
       const callback2 = jasmine.createSpy('callback2');
@@ -428,7 +428,7 @@ describe('DropdownMenu', function () {
       expect(callback2.calls.count()).toEqual(1);
     });
 
-    it('should have custom items list (defined as a function)', function () {
+    it('should have custom items list (defined as a function)', () => {
       let enabled = false;
       handsontable({
         dropdownMenu: {
@@ -465,7 +465,7 @@ describe('DropdownMenu', function () {
       $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
     });
 
-    it('should enable to define item options globally', function () {
+    it('should enable to define item options globally', () => {
       const callback = jasmine.createSpy('callback');
 
       handsontable({
@@ -496,7 +496,7 @@ describe('DropdownMenu', function () {
       expect(callback.calls.count()).toEqual(2);
     });
 
-    it('should override default items options', function () {
+    it('should override default items options', () => {
       const callback = jasmine.createSpy('callback');
 
       handsontable({
@@ -524,7 +524,7 @@ describe('DropdownMenu', function () {
       expect(callback.calls.count()).toEqual(1);
     });
 
-    it('should fire item callback after item has been clicked', function () {
+    it('should fire item callback after item has been clicked', () => {
       const customItem = {
         name: 'Custom item',
         callback: function() {}
@@ -551,7 +551,7 @@ describe('DropdownMenu', function () {
     });
   });
 
-  describe('working with multiple tables', function () {
+  describe('working with multiple tables', () => {
     beforeEach(function () {
       this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
     });
@@ -590,8 +590,8 @@ describe('DropdownMenu', function () {
     });
   });
 
-  describe('afterDropdownMenuDefaultOptions hook', function() {
-    it('should call with dropdown menu options as the first param', function () {
+  describe('afterDropdownMenuDefaultOptions hook', () => {
+    it('should call with dropdown menu options as the first param', () => {
       let options;
 
       const afterDropdownMenuDefaultOptions = function(options_) {
@@ -625,8 +625,8 @@ describe('DropdownMenu', function () {
     });
   });
 
-  describe('beforeDropdownMenuSetItems hook', function() {
-    it('should add new menu item even when item is excluded from plugin settings', function () {
+  describe('beforeDropdownMenuSetItems hook', () => {
+    it('should add new menu item even when item is excluded from plugin settings', () => {
       Handsontable.hooks.add('beforeDropdownMenuSetItems', function(options) {
         if (this === hot || !hot) {
           options.push({
@@ -653,14 +653,12 @@ describe('DropdownMenu', function () {
       ].join(''));
     });
 
-    it('should be called only with items selected in plugin settings', function () {
+    it('should be called only with items selected in plugin settings', () => {
       let keys = [];
 
       Handsontable.hooks.add('beforeDropdownMenuSetItems', function(items) {
         if (this === hot || !hot) {
-          keys = items.map(function(v) {
-            return v.key;
-          });
+          keys = items.map(v => v.key);
         }
       });
 

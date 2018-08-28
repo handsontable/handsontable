@@ -1,5 +1,5 @@
-describe('settings', function () {
-  describe('fixedRowsBottom', function () {
+describe('settings', () => {
+  describe('fixedRowsBottom', () => {
     var id = 'testContainer';
 
     beforeEach(function () {
@@ -13,8 +13,8 @@ describe('settings', function () {
       }
     });
 
-    describe('defined in constructor', function () {
-      it('should show rows headers', function () {
+    describe('defined in constructor', () => {
+      it('should show rows headers', () => {
         handsontable({
           fixedRowsBottom: 3
         });
@@ -22,7 +22,7 @@ describe('settings', function () {
         expect(getBottomClone().find('tbody tr').length).toEqual(3);
       });
 
-      it('should show rows headers when headers are enabled', function () {
+      it('should show rows headers when headers are enabled', () => {
         handsontable({
           rowHeaders: true,
           colHeaders: true,
@@ -35,8 +35,8 @@ describe('settings', function () {
       });
     });
 
-    describe('defined in updateSettings', function () {
-      it('should increase fixed rows', function () {
+    describe('defined in updateSettings', () => {
+      it('should increase fixed rows', () => {
         handsontable({
           fixedRowsBottom: 2
         });
@@ -48,7 +48,7 @@ describe('settings', function () {
         expect(getBottomClone().find('tbody tr').length).toEqual(4);
       });
 
-      it('should decrease fixed rows', function () {
+      it('should decrease fixed rows', () => {
         handsontable({
           fixedRowsBottom: 4
         });
@@ -60,7 +60,7 @@ describe('settings', function () {
         expect(getBottomClone().find('tbody tr').length).toEqual(2);
       });
 
-      it('should create fixed rows when they are disabled eariler', function () {
+      it('should create fixed rows when they are disabled eariler', () => {
         handsontable({
           fixedRowsBottom: 0
         });
@@ -72,7 +72,7 @@ describe('settings', function () {
         expect(getBottomClone().find('tbody tr').length).toEqual(2);
       });
 
-      it('should disable fixed rows', function () {
+      it('should disable fixed rows', () => {
         handsontable({
           fixedRowsBottom: 2
         });

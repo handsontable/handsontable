@@ -1,9 +1,9 @@
 import { condition } from 'handsontable-pro/plugins/filters/condition/beginsWith';
 import { dateRowFactory } from './../helpers/utils';
 
-describe('Filters condition (`begins_with`)', function() {
+describe('Filters condition (`begins_with`)', () => {
 
-  it('should filter matching values', function() {
+  it('should filter matching values', () => {
     var data = dateRowFactory();
 
     expect(condition(data('tom'), [''])).toBe(true);
@@ -23,7 +23,7 @@ describe('Filters condition (`begins_with`)', function() {
     expect(condition(data(true), ['t'])).toBe(true);
   });
 
-  it('should filter not matching values', function() {
+  it('should filter not matching values', () => {
     var data = dateRowFactory();
 
     expect(condition(data('tom'), ['o'])).toBe(false);

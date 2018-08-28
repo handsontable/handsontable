@@ -1,4 +1,4 @@
-describe('ConditionUpdateObserver', function() {
+describe('ConditionUpdateObserver', () => {
   const id = 'testContainer';
 
   function getConditionUpdateObserver() {
@@ -16,13 +16,13 @@ describe('ConditionUpdateObserver', function() {
     }
   });
 
-  it('should be initialized and accessible from the plugin', function() {
+  it('should be initialized and accessible from the plugin', () => {
     const conditionObserver = getConditionUpdateObserver();
 
     expect(conditionObserver).toBeDefined();
   });
 
-  it('should create properties and setup default values to them', function() {
+  it('should create properties and setup default values to them', () => {
     const conditionObserver = getConditionUpdateObserver();
 
     expect(conditionObserver.conditionCollection).toBeDefined();
@@ -33,7 +33,7 @@ describe('ConditionUpdateObserver', function() {
     expect(conditionObserver.latestOrderStack).toEqual([]);
   });
 
-  it('should fire `update` hook on every modified condition', function() {
+  it('should fire `update` hook on every modified condition', () => {
     const conditionObserver = getConditionUpdateObserver();
     const updateSpy = jasmine.createSpy('update');
 
@@ -75,8 +75,8 @@ describe('ConditionUpdateObserver', function() {
     expect(updateSpy.calls.argsFor(7)[0].editedConditionStack.column).toBe(2);
   });
 
-  describe('groupChanges', function() {
-    it('should fire `update` hook only once on `flush` method call when groupChanges is enabled', function() {
+  describe('groupChanges', () => {
+    it('should fire `update` hook only once on `flush` method call when groupChanges is enabled', () => {
       const conditionObserver = getConditionUpdateObserver();
       const updateSpy = jasmine.createSpy('update');
 
@@ -113,8 +113,8 @@ describe('ConditionUpdateObserver', function() {
     });
   });
 
-  describe('destroy', function() {
-    it('should nullable all properties', function() {
+  describe('destroy', () => {
+    it('should nullable all properties', () => {
       const conditionObserver = getConditionUpdateObserver();
 
       conditionObserver.conditionCollection = {};

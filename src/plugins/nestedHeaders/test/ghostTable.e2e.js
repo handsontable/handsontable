@@ -1,4 +1,4 @@
-describe('NestedHeaders', function() {
+describe('NestedHeaders', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -12,8 +12,8 @@ describe('NestedHeaders', function() {
     }
   });
 
-  describe('GhostTable', function() {
-    it('should be initialized and accessible from the plugin', function() {
+  describe('GhostTable', () => {
+    it('should be initialized and accessible from the plugin', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         nestedHeaders: [
@@ -26,8 +26,8 @@ describe('NestedHeaders', function() {
       expect(ghostTable).toBeDefined();
     });
 
-    describe('widthsCache', function() {
-      it('should contain cached widths after initialization', function() {
+    describe('widthsCache', () => {
+      it('should contain cached widths after initialization', () => {
         var hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           nestedHeaders: [
@@ -39,7 +39,7 @@ describe('NestedHeaders', function() {
 
         expect(ghostTable.widthsCache.length).toBeGreaterThan(0);
       });
-      it('should properly prepare widths cache, even if container is smaller than needed', function() {
+      it('should properly prepare widths cache, even if container is smaller than needed', () => {
         var hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(7, 7),
           width: 300,
@@ -52,7 +52,7 @@ describe('NestedHeaders', function() {
 
         expect(ghostTable.widthsCache[ghostTable.widthsCache.length - 1]).toBeGreaterThan(50);
       });
-      it('should container be removed after ', function() {
+      it('should container be removed after ', () => {
         var hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           nestedHeaders: [
@@ -66,8 +66,8 @@ describe('NestedHeaders', function() {
       });
     });
 
-    describe('updateSettings', function() {
-      it('should recreate the widths cache', function() {
+    describe('updateSettings', () => {
+      it('should recreate the widths cache', () => {
         var hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           nestedHeaders: [

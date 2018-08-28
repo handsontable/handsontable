@@ -1,4 +1,4 @@
-describe('NestedRows Collapsing UI', function() {
+describe('NestedRows Collapsing UI', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -12,9 +12,9 @@ describe('NestedRows Collapsing UI', function() {
     }
   });
 
-  describe('API', function() {
-    describe('collapseChildren', function() {
-      it('should collapse all children nodes of the row provided as a number', function() {
+  describe('API', () => {
+    describe('collapseChildren', () => {
+      it('should collapse all children nodes of the row provided as a number', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -38,7 +38,7 @@ describe('NestedRows Collapsing UI', function() {
         expect(trimRowsPlugin.isTrimmed(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
       });
 
-      it('should collapse all children nodes of the row provided as an object', function() {
+      it('should collapse all children nodes of the row provided as an object', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -64,8 +64,8 @@ describe('NestedRows Collapsing UI', function() {
       });
     });
 
-    describe('expandChildren', function() {
-      it('should collapse all children nodes of the row provided as a number', function() {
+    describe('expandChildren', () => {
+      it('should collapse all children nodes of the row provided as a number', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -82,7 +82,7 @@ describe('NestedRows Collapsing UI', function() {
         }
       });
 
-      it('should collapse all children nodes of the row provided as an object', function() {
+      it('should collapse all children nodes of the row provided as an object', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true,
@@ -100,8 +100,8 @@ describe('NestedRows Collapsing UI', function() {
       });
     });
 
-    describe('expandRows', function() {
-      it('Should make the rows provided in the arguments visible', function(done) {
+    describe('expandRows', () => {
+      it('Should make the rows provided in the arguments visible', (done) => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true,
@@ -115,15 +115,15 @@ describe('NestedRows Collapsing UI', function() {
         plugin.collapsingUI.expandRows([2], true, true);
         hot.render();
 
-        setTimeout(function () {
+        setTimeout(() => {
           expect(hot.countRows()).toEqual(11);
           done();
         }, 100);
       });
     });
 
-    describe('expandChildren', function() {
-      it('Should make the child rows of the provided element visible', function(done) {
+    describe('expandChildren', () => {
+      it('Should make the child rows of the provided element visible', (done) => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true,
@@ -136,13 +136,13 @@ describe('NestedRows Collapsing UI', function() {
         plugin.collapsingUI.expandChildren(2);
         hot.render();
 
-        setTimeout(function () {
+        setTimeout(() => {
           expect(hot.countRows()).toEqual(12);
           done();
         }, 100);
       });
 
-      it('Should make the child rows of the provided element visible, even if some of them are already visible', function(done) {
+      it('Should make the child rows of the provided element visible, even if some of them are already visible', (done) => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true,
@@ -155,7 +155,7 @@ describe('NestedRows Collapsing UI', function() {
         plugin.collapsingUI.expandChildren(0);
         hot.render();
 
-        setTimeout(function () {
+        setTimeout(() => {
           expect(hot.countRows()).toEqual(12);
           done();
         }, 100);

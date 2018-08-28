@@ -1,6 +1,6 @@
 import DataFilter from 'handsontable-pro/plugins/filters/dataFilter';
 
-describe('DataFilter', function() {
+describe('DataFilter', () => {
   function columnDataMock(column) {
     var data = [
       [1, 2, 3, 4, 5, 6, 7, 8, 9],
@@ -10,7 +10,7 @@ describe('DataFilter', function() {
     return data[column];
   }
 
-  it('should initialize with dependencies', function() {
+  it('should initialize with dependencies', () => {
     var conditionCollectionMock = {};
     var dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
 
@@ -18,8 +18,8 @@ describe('DataFilter', function() {
     expect(dataFilter.columnDataFactory).toBe(columnDataMock);
   });
 
-  describe('filter', function() {
-    it('should not filter input data when condition collection is empty', function() {
+  describe('filter', () => {
+    it('should not filter input data when condition collection is empty', () => {
       var conditionCollectionMock = { isEmpty: jasmine.createSpy('isEmpty').and.returnValue(true) };
       var dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
 
@@ -28,7 +28,7 @@ describe('DataFilter', function() {
       expect(conditionCollectionMock.isEmpty).toHaveBeenCalled();
     });
 
-    it('should filter input data based on condition collection (shallow filtering)', function() {
+    it('should filter input data based on condition collection (shallow filtering)', () => {
       var conditionCollectionMock = {
         isEmpty: jasmine.createSpy('isEmpty').and.returnValue(false),
         orderStack: [0] // filtering applied to column index 0
@@ -47,7 +47,7 @@ describe('DataFilter', function() {
       expect(result).toEqual([1, 2]);
     });
 
-    it('should filter input data based on condition collection (deep filtering)', function() {
+    it('should filter input data based on condition collection (deep filtering)', () => {
       var conditionCollectionMock = {
         isEmpty: jasmine.createSpy('isEmpty').and.returnValue(false),
         orderStack: [1, 0] // filtering applied first to column at index 1 and later at index 0
@@ -68,12 +68,10 @@ describe('DataFilter', function() {
     });
   });
 
-  describe('filterByColumn', function() {
-    it('should filter input data based on condition collection (filter all)', function() {
+  describe('filterByColumn', () => {
+    it('should filter input data based on condition collection (filter all)', () => {
       var conditionCollectionMock = {
-        isMatch: jasmine.createSpy('isMatch').and.callFake(function() {
-          return true;
-        }),
+        isMatch: jasmine.createSpy('isMatch').and.callFake(() => true),
       };
       var dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
       var data = [1, 2, 3, 4, 5];
@@ -89,11 +87,9 @@ describe('DataFilter', function() {
       expect(result).toEqual(data);
     });
 
-    it('should filter input data based on condition collection (filter none)', function() {
+    it('should filter input data based on condition collection (filter none)', () => {
       var conditionCollectionMock = {
-        isMatch: jasmine.createSpy('isMatch').and.callFake(function() {
-          return false;
-        }),
+        isMatch: jasmine.createSpy('isMatch').and.callFake(() => false),
       };
       var dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
       var data = [1, 2, 3, 4, 5];
@@ -109,11 +105,9 @@ describe('DataFilter', function() {
       expect(result).toEqual([]);
     });
 
-    it('should filter input data based on condition collection (filtering odd numbers)', function() {
+    it('should filter input data based on condition collection (filtering odd numbers)', () => {
       var conditionCollectionMock = {
-        isMatch: jasmine.createSpy('isMatch').and.callFake(function(dataRow) {
-          return dataRow % 2;
-        }),
+        isMatch: jasmine.createSpy('isMatch').and.callFake(dataRow => dataRow % 2),
       };
       var dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
       var data = [1, 2, 3, 4, 5];

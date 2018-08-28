@@ -22,8 +22,8 @@ describe('Filters UI', () => {
     }
   });
 
-  describe('Conditional component', function() {
-    it('should display conditional filter component under dropdown menu', function() {
+  describe('Conditional component', () => {
+    it('should display conditional filter component under dropdown menu', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -38,7 +38,7 @@ describe('Filters UI', () => {
       expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htFiltersMenuLabel').textContent).toBe('Filter by condition:');
     });
 
-    it('should appear conditional options menu after UISelect element click', function() {
+    it('should appear conditional options menu after UISelect element click', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -56,7 +56,7 @@ describe('Filters UI', () => {
       expect(document.querySelector('.htFiltersConditionsMenu.handsontable table')).not.toBeNull();
     });
 
-    it('should appear conditional options menu in the proper place after UISelect element click', function() {
+    it('should appear conditional options menu in the proper place after UISelect element click', () => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -76,7 +76,7 @@ describe('Filters UI', () => {
       hot.rootElement.style.marginTop = '';
     });
 
-    it('should appear specified conditional options menu for text cell types', function() {
+    it('should appear specified conditional options menu for text cell types', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -110,7 +110,7 @@ describe('Filters UI', () => {
       ]);
     });
 
-    it('should appear specified conditional options menu for numeric cell types', function() {
+    it('should appear specified conditional options menu for numeric cell types', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -145,7 +145,7 @@ describe('Filters UI', () => {
       ]);
     });
 
-    it('should appear specified conditional options menu for date cell types', function() {
+    it('should appear specified conditional options menu for date cell types', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -181,7 +181,7 @@ describe('Filters UI', () => {
       ]);
     });
 
-    it('should appear general conditional options menu for mixed cell types', function() {
+    it('should appear general conditional options menu for mixed cell types', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -220,7 +220,7 @@ describe('Filters UI', () => {
       ]);
     });
 
-    it('should appear specified conditional options menu depends on cell types when table has all filtered rows', function() {
+    it('should appear specified conditional options menu depends on cell types when table has all filtered rows', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -263,7 +263,7 @@ describe('Filters UI', () => {
       ]);
     });
 
-    it('should disappear conditional options menu after outside the table click', function() {
+    it('should disappear conditional options menu after outside the table click', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -283,7 +283,7 @@ describe('Filters UI', () => {
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
     });
 
-    it('should disappear conditional options menu after click inside main menu', function() {
+    it('should disappear conditional options menu after click inside main menu', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -304,7 +304,7 @@ describe('Filters UI', () => {
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
     });
 
-    it('should disappear conditional options menu after dropdown action click', function() {
+    it('should disappear conditional options menu after dropdown action click', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -325,7 +325,7 @@ describe('Filters UI', () => {
     });
 
     it('should disappear dropdown menu after hitting ESC key in conditional component ' +
-      'which show other input and focus the element', function(done) {
+      'which show other input and focus the element', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -339,7 +339,7 @@ describe('Filters UI', () => {
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       $(conditionMenuRootElements().first).find('tbody td:contains("Is equal to")').simulate('mousedown');
 
-      setTimeout(function () {
+      setTimeout(() => {
         keyDownUp('esc');
 
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -349,7 +349,7 @@ describe('Filters UI', () => {
     });
 
     it('should disappear dropdown menu after hitting ESC key in conditional component ' +
-      'which don\'t show other input and focus is loosen #86', function(done) {
+      'which don\'t show other input and focus is loosen #86', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -363,7 +363,7 @@ describe('Filters UI', () => {
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       $(conditionMenuRootElements().first).find('tbody td:contains("Is empty")').simulate('mousedown');
 
-      setTimeout(function () {
+      setTimeout(() => {
         keyDownUp('esc');
 
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -372,7 +372,7 @@ describe('Filters UI', () => {
       }, 200);
     });
 
-    it('should disappear dropdown menu after hitting ESC key, next to closing SelectUI #149', function(done) {
+    it('should disappear dropdown menu after hitting ESC key, next to closing SelectUI #149', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -385,7 +385,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
 
-      setTimeout(function () {
+      setTimeout(() => {
         keyDownUp('esc');
         keyDownUp('esc');
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -394,7 +394,7 @@ describe('Filters UI', () => {
       }, 200);
     });
 
-    it('shouldn\'t disappear dropdown menu after conditional options menu click', function() {
+    it('shouldn\'t disappear dropdown menu after conditional options menu click', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -412,8 +412,8 @@ describe('Filters UI', () => {
       expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
     });
 
-    describe('should display extra conditional component inside filters dropdownMenu properly #160', function () {
-      it('should not display extra condition element at start', function () {
+    describe('should display extra conditional component inside filters dropdownMenu properly #160', () => {
+      it('should not display extra condition element at start', () => {
         handsontable({
           data: getDataForFilters(),
           columns: getColumnsForFilters(),
@@ -427,7 +427,7 @@ describe('Filters UI', () => {
         expect($(conditionSelectRootElements().second).is(':visible')).toBe(false);
       });
 
-      it('should show extra condition element after specific conditional options menu click', function() {
+      it('should show extra condition element after specific conditional options menu click', () => {
         handsontable({
           data: getDataForFilters(),
           columns: getColumnsForFilters(),
@@ -446,7 +446,7 @@ describe('Filters UI', () => {
         expect($(conditionSelectRootElements().second).is(':visible')).toBe(true);
       });
 
-      it('should not show extra condition element after specific conditional options menu click', function() {
+      it('should not show extra condition element after specific conditional options menu click', () => {
         handsontable({
           data: getDataForFilters(),
           columns: getColumnsForFilters(),
@@ -465,7 +465,7 @@ describe('Filters UI', () => {
         expect($(conditionSelectRootElements().second).is(':visible')).toBe(false);
       });
 
-      it('should hide extra condition element after specific conditional options menu click', function() {
+      it('should hide extra condition element after specific conditional options menu click', () => {
         handsontable({
           data: getDataForFilters(),
           columns: getColumnsForFilters(),
@@ -488,7 +488,7 @@ describe('Filters UI', () => {
       });
 
       it('should not show extra condition elements after changing value of cell when conditions wasn\'t set' +
-        '(`conditionUpdateObserver` triggers hook)', function() {
+        '(`conditionUpdateObserver` triggers hook)', () => {
         handsontable({
           data: getDataForFilters(),
           columns: getColumnsForFilters(),
@@ -510,7 +510,7 @@ describe('Filters UI', () => {
       });
 
       it('should show proper condition elements after changing value of cell when condition was set' +
-        '(`conditionUpdateObserver` triggers hook)', function() {
+        '(`conditionUpdateObserver` triggers hook)', () => {
         const hot = handsontable({
           data: getDataForFilters(),
           columns: getColumnsForFilters(),
@@ -538,7 +538,7 @@ describe('Filters UI', () => {
       });
     });
 
-    it('should not select separator from conditional menu', function() {
+    it('should not select separator from conditional menu', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -612,7 +612,7 @@ describe('Filters UI', () => {
       expect(inputs[1].value).toBe('');
     });
 
-    it('should save state of applied filter for specified column when conditions was added from API', function(done) {
+    it('should save state of applied filter for specified column when conditions was added from API', (done) => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -629,7 +629,7 @@ describe('Filters UI', () => {
 
       dropdownMenu(1);
 
-      setTimeout(function () {
+      setTimeout(() => {
         expect(dropdownMenuRootElement().querySelector('.htUISelectCaption').textContent).toBe('Greater than or equal to');
 
         const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput input');
@@ -644,7 +644,7 @@ describe('Filters UI', () => {
         dropdownMenu(1);
       }, 200);
 
-      setTimeout(function () {
+      setTimeout(() => {
         expect(dropdownMenuRootElement().querySelector('.htUISelectCaption').textContent).toBe('None');
 
         const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput input');
@@ -679,7 +679,7 @@ describe('Filters UI', () => {
   });
 
   describe('"by value" component', () => {
-    it('should appear under dropdown menu', function() {
+    it('should appear under dropdown menu', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -694,7 +694,7 @@ describe('Filters UI', () => {
       expect(byValueMultipleSelect().element.parentNode.querySelector('.htFiltersMenuLabel').textContent).toBe('Filter by value:');
     });
 
-    it('should display empty values as "(Blank cells)"', function() {
+    it('should display empty values as "(Blank cells)"', () => {
       const data = getDataForFilters();
       data[3].name = '';
 
@@ -717,7 +717,7 @@ describe('Filters UI', () => {
       expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
     });
 
-    it('should display `null` values as "(Blank cells)"', function() {
+    it('should display `null` values as "(Blank cells)"', () => {
       const data = getDataForFilters();
       data[3].name = null;
 
@@ -740,7 +740,7 @@ describe('Filters UI', () => {
       expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
     });
 
-    it('should display `undefined` values as "(Blank cells)"', function() {
+    it('should display `undefined` values as "(Blank cells)"', () => {
       const data = getDataForFilters();
       data[3].name = void 0;
 
@@ -763,7 +763,7 @@ describe('Filters UI', () => {
       expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
     });
 
-    it('shouldn\'t break "by value" items in the next filter stacks', function(done) {
+    it('shouldn\'t break "by value" items in the next filter stacks', (done) => {
       const data = getDataForFilters();
       data[3].name = void 0;
 
@@ -778,34 +778,34 @@ describe('Filters UI', () => {
 
       dropdownMenu(1);
 
-      setTimeout(function () {
+      setTimeout(() => {
         // deselect "(Blank cells)"
         $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
         dropdownMenu(2);
       }, 200);
 
-      setTimeout(function () {
+      setTimeout(() => {
         // deselect "Alamo"
         $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
         dropdownMenu(1);
       }, 400);
 
-      setTimeout(function () {
+      setTimeout(() => {
         // select "(Blank cells)"
         $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
         dropdownMenu(2);
       }, 600);
 
-      setTimeout(function () {
+      setTimeout(() => {
         expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('Alamo');
         done();
       }, 800);
     });
 
-    it('should disappear after hitting ESC key (focused search input)', function(done) {
+    it('should disappear after hitting ESC key (focused search input)', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -818,7 +818,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
       byValueMultipleSelect().element.querySelector('input').focus();
 
-      setTimeout(function () {
+      setTimeout(() => {
         keyDownUp('esc');
 
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -827,7 +827,7 @@ describe('Filters UI', () => {
       }, 200);
     });
 
-    it('should disappear after hitting ESC key (focused items box)', function(done) {
+    it('should disappear after hitting ESC key (focused items box)', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -839,7 +839,7 @@ describe('Filters UI', () => {
 
       dropdownMenu(1);
 
-      setTimeout(function () {
+      setTimeout(() => {
         byValueMultipleSelect().itemsBox.listen();
         keyDownUp('esc');
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -849,7 +849,7 @@ describe('Filters UI', () => {
     });
 
     describe('Updating "by value" component cache #87', () => {
-      it('should update component view after applying filtering and changing cell value', function() {
+      it('should update component view after applying filtering and changing cell value', () => {
         handsontable({
           data: [
             {
@@ -921,7 +921,7 @@ describe('Filters UI', () => {
       });
 
       it('should show proper number of values after refreshing cache ' +
-        '(should remove the value from component), case nr 1 (changing value to match unfiltered value)', function() {
+        '(should remove the value from component), case nr 1 (changing value to match unfiltered value)', () => {
         handsontable({
           data: [
             {
@@ -973,7 +973,7 @@ describe('Filters UI', () => {
 
 
       it('should show proper number of values after refreshing cache ' +
-        '(should remove the value from component), case nr 2 (changing value to match filtered value)', function(done) {
+        '(should remove the value from component), case nr 2 (changing value to match filtered value)', (done) => {
         handsontable({
           data: [
             {
@@ -1023,7 +1023,7 @@ describe('Filters UI', () => {
         done();
       });
 
-      it('should show proper number of values after refreshing cache (should add new value to component)', function() {
+      it('should show proper number of values after refreshing cache (should add new value to component)', () => {
         handsontable({
           data: [
             {
@@ -1077,7 +1077,7 @@ describe('Filters UI', () => {
         expect(checkedArray).toEqual([false, true, true, true]);
       });
 
-      it('should sort updated values', function() {
+      it('should sort updated values', () => {
         handsontable({
           data: [
             {
@@ -1125,9 +1125,9 @@ describe('Filters UI', () => {
     });
   });
 
-  describe('Cooperation with Manual Column Move plugin #32', function () {
+  describe('Cooperation with Manual Column Move plugin #32', () => {
     it('should work as expected after actions sequence: filtering column by value -> moving the column -> ' +
-      'filtering any other column by value', function () {
+      'filtering any other column by value', () => {
       const hot = handsontable({
         data: [
           {
@@ -1188,7 +1188,7 @@ describe('Filters UI', () => {
     });
 
     it('should work as expected after actions sequence: filtering column by value -> moving the column -> ' +
-      'filtering the column by value ', function () {
+      'filtering the column by value ', () => {
       const hot = handsontable({
         data: [
           {
@@ -1249,7 +1249,7 @@ describe('Filters UI', () => {
     });
   });
 
-  it('should deselect all values in "Filter by value" after clicking "Clear" link', function(done) {
+  it('should deselect all values in "Filter by value" after clicking "Clear" link', (done) => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -1261,7 +1261,7 @@ describe('Filters UI', () => {
 
     dropdownMenu(1);
 
-    setTimeout(function () {
+    setTimeout(() => {
       $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
 
       expect(byValueMultipleSelect().items.map(o => o.checked).indexOf(true)).toBe(-1);
@@ -1269,7 +1269,7 @@ describe('Filters UI', () => {
     }, 100);
   });
 
-  it('should select all values in "Filter by value" after clicking "Select all" link', function(done) {
+  it('should select all values in "Filter by value" after clicking "Select all" link', (done) => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -1281,7 +1281,7 @@ describe('Filters UI', () => {
 
     dropdownMenu(1);
 
-    setTimeout(function () {
+    setTimeout(() => {
       $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
 
       expect(byValueMultipleSelect().items.map(o => o.checked).indexOf(true)).toBe(-1);
@@ -1293,8 +1293,8 @@ describe('Filters UI', () => {
     }, 100);
   });
 
-  describe('Simple filtering (one column)', function() {
-    it('should filter empty values and revert back after removing filter', function() {
+  describe('Simple filtering (one column)', () => {
+    it('should filter empty values and revert back after removing filter', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1321,7 +1321,7 @@ describe('Filters UI', () => {
       expect(getData().length).toBe(39);
     });
 
-    it('should filter numeric value (greater than)', function(done) {
+    it('should filter numeric value (greater than)', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1336,7 +1336,7 @@ describe('Filters UI', () => {
       // gt
       $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
 
-      setTimeout(function () {
+      setTimeout(() => {
         // Greater than 12
         document.activeElement.value = '12';
         $(document.activeElement).simulate('keyup');
@@ -1354,7 +1354,7 @@ describe('Filters UI', () => {
       }, 200);
     });
 
-    it('should filter text value (contains)', function(done) {
+    it('should filter text value (contains)', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1369,7 +1369,7 @@ describe('Filters UI', () => {
       // contains
       $(conditionMenuRootElements().first.querySelector('tbody :nth-child(12) td')).simulate('mousedown');
 
-      setTimeout(function () {
+      setTimeout(() => {
         // Contains ej
         document.activeElement.value = 'ej';
         $(document.activeElement).simulate('keyup');
@@ -1388,7 +1388,7 @@ describe('Filters UI', () => {
       }, 200);
     });
 
-    it('should filter date value (yesterday)', function() {
+    it('should filter date value (yesterday)', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1419,7 +1419,7 @@ describe('Filters UI', () => {
       ].join());
     });
 
-    it('should filter boolean value (true)', function(done) {
+    it('should filter boolean value (true)', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1434,7 +1434,7 @@ describe('Filters UI', () => {
       // contains
       $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown');
 
-      setTimeout(function () {
+      setTimeout(() => {
         // Is equal to 'true'
         document.activeElement.value = 'true';
         $(document.activeElement).simulate('keyup');
@@ -1453,7 +1453,7 @@ describe('Filters UI', () => {
       }, 200);
     });
 
-    it('should filter values using "by value" method', function(done) {
+    it('should filter values using "by value" method', (done) => {
       handsontable({
         data: getDataForFilters().slice(0, 15),
         columns: getColumnsForFilters(),
@@ -1465,7 +1465,7 @@ describe('Filters UI', () => {
 
       dropdownMenu(2);
 
-      setTimeout(function () {
+      setTimeout(() => {
         // disable first 5 records
         $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
         $(byValueBoxRootElement()).find('tr:nth-child(2) :checkbox').simulate('click');
@@ -1560,7 +1560,7 @@ describe('Filters UI', () => {
       expect(getData().length).toBe(6);
     });
 
-    it('should filter values again when data was changed (filter by value)', function(done) {
+    it('should filter values again when data was changed (filter by value)', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1572,14 +1572,14 @@ describe('Filters UI', () => {
 
       dropdownMenu(2);
 
-      setTimeout(function () {
+      setTimeout(() => {
         byValueMultipleSelect().setValue(['Bowie', 'Coral']);
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         dropdownMenu(2);
       }, 200);
 
-      setTimeout(function () {
+      setTimeout(() => {
         byValueMultipleSelect().setValue(['Alamo', 'Coral', 'Canby']);
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
@@ -1589,7 +1589,7 @@ describe('Filters UI', () => {
     });
   });
 
-  describe('Advanced filtering (multiple columns)', function() {
+  describe('Advanced filtering (multiple columns)', () => {
     it('should filter values from 3 columns', async () => {
       handsontable({
         data: getDataForFilters(),
@@ -1770,7 +1770,7 @@ describe('Filters UI', () => {
       expect(getData()[0][6]).toBe(true);
     });
 
-    it('should apply filtered values to the next "by value" component defined after edited conditions', function(done) {
+    it('should apply filtered values to the next "by value" component defined after edited conditions', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1785,7 +1785,7 @@ describe('Filters UI', () => {
       // gt
       $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
 
-      setTimeout(function () {
+      setTimeout(() => {
         // Greater than 25
         document.activeElement.value = '25';
         $(document.activeElement).simulate('keyup');
@@ -1794,7 +1794,7 @@ describe('Filters UI', () => {
         dropdownMenu(2);
       }, 200);
 
-      setTimeout(function () {
+      setTimeout(() => {
         // uncheck
         $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
         $(byValueBoxRootElement()).find('tr:nth-child(3) :checkbox').simulate('click');
@@ -1804,7 +1804,7 @@ describe('Filters UI', () => {
         dropdownMenu(1);
       }, 400);
 
-      setTimeout(function () {
+      setTimeout(() => {
         // uncheck
         $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
         $(byValueBoxRootElement()).find('tr:nth-child(2) :checkbox').simulate('click');
@@ -1816,7 +1816,7 @@ describe('Filters UI', () => {
         dropdownMenu(4);
       }, 600);
 
-      setTimeout(function () {
+      setTimeout(() => {
         // uncheck
         $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
         $(byValueBoxRootElement()).find('tr:nth-child(2) :checkbox').simulate('click');
@@ -1828,7 +1828,7 @@ describe('Filters UI', () => {
         dropdownMenu(2);
       }, 800);
 
-      setTimeout(function () {
+      setTimeout(() => {
         // check again (disable filter)
         $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
         $(byValueBoxRootElement()).find('tr:nth-child(3) :checkbox').simulate('click');
@@ -1838,14 +1838,14 @@ describe('Filters UI', () => {
         dropdownMenu(1);
       }, 1000);
 
-      setTimeout(function () {
+      setTimeout(() => {
         expect(byValueMultipleSelect().getItems().length).toBe(14);
         expect(byValueMultipleSelect().getValue().length).toBe(9);
 
         dropdownMenu(4);
       }, 1200);
 
-      setTimeout(function () {
+      setTimeout(() => {
         // unchanged state for condition behind second condition
         expect(byValueMultipleSelect().getItems().length).toBe(3);
         expect(byValueMultipleSelect().getValue().length).toBe(1);
@@ -1854,9 +1854,9 @@ describe('Filters UI', () => {
     });
   });
 
-  describe('Advanced filtering (conditions and operations combination #160)', function() {
+  describe('Advanced filtering (conditions and operations combination #160)', () => {
     it('should filter data properly when `disjunction` operation was chosen and ' +
-      'only one conditional was selected', function (done) {
+      'only one conditional was selected', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1884,7 +1884,7 @@ describe('Filters UI', () => {
     });
 
     it('should not change data when operation was changed from `disjunction` to `conjunction` ' +
-      'after filtering data by only one condition', function (done) {
+      'after filtering data by only one condition', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1924,7 +1924,7 @@ describe('Filters UI', () => {
     });
 
     it('should filter data properly after changing operator ' +
-      '(`conjunction` <-> `disjunction` operation)', function (done) {
+      '(`conjunction` <-> `disjunction` operation)', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1973,7 +1973,7 @@ describe('Filters UI', () => {
       }, 1200);
     });
 
-    it('should filter data properly after clearing second input', function (done) {
+    it('should filter data properly after clearing second input', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2019,7 +2019,7 @@ describe('Filters UI', () => {
       }, 1500);
     });
 
-    it('should filter data properly after resetting second condition `SelectUI` (value set to `None`)', function (done) {
+    it('should filter data properly after resetting second condition `SelectUI` (value set to `None`)', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2067,7 +2067,7 @@ describe('Filters UI', () => {
     });
   });
 
-  describe('Advanced filtering (conditions, operations and "by value" component #160)', function() {
+  describe('Advanced filtering (conditions, operations and "by value" component #160)', () => {
     it('First conditional chosen -> filter operation -> unchecked first value from multiple select -> selected `disjunction` operation -> filter operation', async () => {
       handsontable({
         data: getDataForFilters(),
@@ -2239,8 +2239,8 @@ describe('Filters UI', () => {
     });
   });
 
-  describe('API + UI #116', function () {
-    it('should change state of components by plugin function calls', function (done) {
+  describe('API + UI #116', () => {
+    it('should change state of components by plugin function calls', (done) => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2265,7 +2265,7 @@ describe('Filters UI', () => {
       }, 200);
     });
 
-    it('should not change state of components and data after clicking `OK` button', function (done) {
+    it('should not change state of components and data after clicking `OK` button', (done) => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2298,7 +2298,7 @@ describe('Filters UI', () => {
       }, 400);
     });
 
-    it('should allow to perform changes on conditions by UI, when they were added by API before #1', function (done) {
+    it('should allow to perform changes on conditions by UI, when they were added by API before #1', (done) => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2334,7 +2334,7 @@ describe('Filters UI', () => {
       }, 400);
     });
 
-    it('should allow to perform changes on conditions by UI, when they were added by API before #1', function (done) {
+    it('should allow to perform changes on conditions by UI, when they were added by API before #1', (done) => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2372,7 +2372,7 @@ describe('Filters UI', () => {
     });
   });
 
-  describe('Sorting', function() {
+  describe('Sorting', () => {
     it('should filter values when sorting is applied', async () => {
       handsontable({
         data: getDataForFilters(),
@@ -2422,7 +2422,7 @@ describe('Filters UI', () => {
       expect(getData()[2][0]).toBe(14);
     });
 
-    it('should correctly remove rows from filtered values when sorting is applied', function(done) {
+    it('should correctly remove rows from filtered values when sorting is applied', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2434,14 +2434,14 @@ describe('Filters UI', () => {
         height: 300
       });
 
-      setTimeout(function () {
+      setTimeout(() => {
         dropdownMenu(0);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // gt
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
       }, 300);
 
-      setTimeout(function () {
+      setTimeout(() => {
         // Greater than 12
 
         $(conditionSelectRootElements().first).next().find('input')[0].focus();
@@ -2462,7 +2462,7 @@ describe('Filters UI', () => {
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown');
       }, 600);
 
-      setTimeout(function () {
+      setTimeout(() => {
         // Ends with 'e'
 
         $(conditionSelectRootElements().first).next().find('input')[0].focus();
@@ -2485,7 +2485,7 @@ describe('Filters UI', () => {
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(1) td')).simulate('mousedown');
       }, 900);
 
-      setTimeout(function () {
+      setTimeout(() => {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toEqual(5);
@@ -2494,7 +2494,7 @@ describe('Filters UI', () => {
       }, 1200);
     });
 
-    it('should correctly insert rows into filtered values when sorting is applied', function(done) {
+    it('should correctly insert rows into filtered values when sorting is applied', (done) => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2506,14 +2506,14 @@ describe('Filters UI', () => {
         height: 300
       });
 
-      setTimeout(function () {
+      setTimeout(() => {
         dropdownMenu(0);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // gt
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
       }, 300);
 
-      setTimeout(function () {
+      setTimeout(() => {
         // Greater than 12
 
         $(conditionSelectRootElements().first).next().find('input')[0].focus();
@@ -2534,7 +2534,7 @@ describe('Filters UI', () => {
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown');
       }, 600);
 
-      setTimeout(function () {
+      setTimeout(() => {
         // Ends with 'e'
 
         $(conditionSelectRootElements().first).next().find('input')[0].focus();
@@ -2557,7 +2557,7 @@ describe('Filters UI', () => {
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(3) td')).simulate('mousedown');
       }, 900);
 
-      setTimeout(function () {
+      setTimeout(() => {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toBe(0);
@@ -2565,8 +2565,8 @@ describe('Filters UI', () => {
       }, 1200);
     });
   });
-  describe('should display components inside filters dropdownMenu properly', function () {
-    it('should not display extra condition element at start', function () {
+  describe('should display components inside filters dropdownMenu properly', () => {
+    it('should not display extra condition element at start', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2580,7 +2580,7 @@ describe('Filters UI', () => {
       expect($(conditionSelectRootElements().second).is(':visible')).toBe(false);
     });
 
-    it('should show extra condition element after specific conditional options menu click', function () {
+    it('should show extra condition element after specific conditional options menu click', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2599,7 +2599,7 @@ describe('Filters UI', () => {
       expect($(conditionSelectRootElements().second).is(':visible')).toBe(true);
     });
 
-    it('should not show extra condition element after specific conditional options menu click', function () {
+    it('should not show extra condition element after specific conditional options menu click', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2618,7 +2618,7 @@ describe('Filters UI', () => {
       expect($(conditionSelectRootElements().second).is(':visible')).toBe(false);
     });
 
-    it('should hide extra condition element after specific conditional options menu click', function () {
+    it('should hide extra condition element after specific conditional options menu click', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2641,7 +2641,7 @@ describe('Filters UI', () => {
     });
 
     it('should not show extra condition elements after changing value of cell when conditions wasn\'t set' +
-      '(`conditionUpdateObserver` triggers hook)', function () {
+      '(`conditionUpdateObserver` triggers hook)', () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2663,7 +2663,7 @@ describe('Filters UI', () => {
     });
 
     it('should show proper condition elements after changing value of cell when condition was set' +
-      '(`conditionUpdateObserver` triggers hook)', function () {
+      '(`conditionUpdateObserver` triggers hook)', () => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2690,7 +2690,7 @@ describe('Filters UI', () => {
       expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(true);
     });
 
-    it('should update components properly after API action #1', function () {
+    it('should update components properly after API action #1', () => {
       const hot = handsontable({
         data: [
           {
@@ -2741,7 +2741,7 @@ describe('Filters UI', () => {
       expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(true);
     });
 
-    it('should update components properly after API action #2', function () {
+    it('should update components properly after API action #2', () => {
       const hot = handsontable({
         data: [
           {
@@ -2792,7 +2792,7 @@ describe('Filters UI', () => {
       expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(true);
     });
 
-    it('should update components properly after API action #3', function () {
+    it('should update components properly after API action #3', () => {
       const hot = handsontable({
         data: [
           {
@@ -2843,7 +2843,7 @@ describe('Filters UI', () => {
       expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(true);
     });
 
-    it('should update components properly after API action #4', function () {
+    it('should update components properly after API action #4', () => {
       const hot = handsontable({
         data: [
           {
@@ -2893,7 +2893,7 @@ describe('Filters UI', () => {
       expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(true);
     });
 
-    it('should update components properly after API action #5', function () {
+    it('should update components properly after API action #5', () => {
       const hot = handsontable({
         data: [
           {
@@ -2942,7 +2942,7 @@ describe('Filters UI', () => {
       expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(false);
     });
 
-    it('should show last operation which was added from API and can be shown inside `dropdownMenu` #1', function () {
+    it('should show last operation which was added from API and can be shown inside `dropdownMenu` #1', () => {
       const hot = handsontable({
         data: [
           {
@@ -2995,7 +2995,7 @@ describe('Filters UI', () => {
       expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(true);
     });
 
-    it('should show last operation which was added from API and can be shown inside `dropdownMenu` #2', function () {
+    it('should show last operation which was added from API and can be shown inside `dropdownMenu` #2', () => {
       const hot = handsontable({
         data: [
           {

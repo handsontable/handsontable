@@ -1,17 +1,17 @@
 import ExpressionModifier from 'handsontable-pro/plugins/formulas/expressionModifier';
 
-describe('Formulas expression modifier', function() {
+describe('Formulas expression modifier', () => {
   var modifier;
 
-  beforeEach(function() {
+  beforeEach(() => {
     modifier = new ExpressionModifier();
   });
 
-  afterEach(function () {
+  afterEach(() => {
     modifier = null;
   });
 
-  it('should correctly process formula expression and convert to string without changes', function() {
+  it('should correctly process formula expression and convert to string without changes', () => {
     expect(modifier.setExpression('=B1').toString()).toBe('=B1');
     expect(modifier.setExpression('$DD$99').toString()).toBe('=$DD$99');
     expect(modifier.setExpression('=B1/A$4').toString()).toBe('=B1/A$4');
@@ -23,7 +23,7 @@ describe('Formulas expression modifier', function() {
       .toBe('=IF(B28<64, "F", IF(B28<73, "D", IF(B28<85, "C", IF(B28<95, "B", "A"))))');
   });
 
-  it('should correctly translate rows of formula expression (using default build-in modifier)', function() {
+  it('should correctly translate rows of formula expression (using default build-in modifier)', () => {
     var delta = { row: 5 };
 
     expect(modifier.setExpression('=B1').translate(delta).toString()).toBe('=B6');
@@ -47,7 +47,7 @@ describe('Formulas expression modifier', function() {
       .toBe('=IF(B23<64, "F", IF(B23<73, "D", IF(B23<85, "C", IF(B23<95, "B", "A"))))');
   });
 
-  it('should correctly translate columns of formula expression (using default build-in modifier)', function() {
+  it('should correctly translate columns of formula expression (using default build-in modifier)', () => {
     var delta = { column: 5 };
 
     expect(modifier.setExpression('=B1').translate(delta).toString()).toBe('=G1');

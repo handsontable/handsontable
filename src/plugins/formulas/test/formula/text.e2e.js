@@ -1,4 +1,4 @@
-describe('Formulas -> text functions', function() {
+describe('Formulas -> text functions', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -12,7 +12,7 @@ describe('Formulas -> text functions', function() {
     }
   });
 
-  it('CHAR', function() {
+  it('CHAR', () => {
     var data = getDataForFormulas(0, 'name', ['=CHAR()', '=CHAR(A1)']);
 
     data[0].id = 33;
@@ -29,7 +29,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('!');
   });
 
-  it('CLEAN', function() {
+  it('CLEAN', () => {
     var data = getDataForFormulas(0, 'name', ['=CLEAN()', '=CLEAN(A1)']);
 
     /* eslint-disable no-tabs */
@@ -47,7 +47,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('Monthly report');
   });
 
-  it('CODE', function() {
+  it('CODE', () => {
     var data = getDataForFormulas(0, 'name', ['=CODE()', '=CODE(A1)']);
 
     data[0].id = '!';
@@ -64,7 +64,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe(33);
   });
 
-  it('CONCATENATE', function() {
+  it('CONCATENATE', () => {
     var data = getDataForFormulas(0, 'name', ['=CONCATENATE()', '=CONCATENATE(A1, " "&A2, A3)']);
 
     data[0].id = 'Hello';
@@ -83,7 +83,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('Hello world!');
   });
 
-  xit('DOLLAR', function() {
+  xit('DOLLAR', () => {
     var data = getDataForFormulas(0, 'name', ['=DOLLAR()', '=DOLLAR(A1, 2)']);
 
     data[0].id = 1100;
@@ -100,7 +100,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('$1,100.00');
   });
 
-  it('EXACT', function() {
+  it('EXACT', () => {
     var data = getDataForFormulas(0, 'name', ['=EXACT()', '=EXACT(A1, 2)', '=EXACT(A1, 1100)']);
 
     data[0].id = 1100;
@@ -118,7 +118,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(true);
   });
 
-  it('FIND', function() {
+  it('FIND', () => {
     var data = getDataForFormulas(0, 'name', ['=FIND()', '=FIND(A1, C1)']);
 
     data[0].id = 'k';
@@ -135,7 +135,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe(4);
   });
 
-  xit('FIXED', function() {
+  xit('FIXED', () => {
     var data = getDataForFormulas(0, 'name', ['=FIXED()', '=FIXED(12345.11, 0)']);
 
     data[0].id = 'k';
@@ -152,7 +152,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('12,345');
   });
 
-  it('LEFT', function() {
+  it('LEFT', () => {
     var data = getDataForFormulas(0, 'name', ['=LEFT()', '=LEFT(A1, 4)']);
 
     data[0].id = 'Foo Bar';
@@ -169,7 +169,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('Foo ');
   });
 
-  it('LEN', function() {
+  it('LEN', () => {
     var data = getDataForFormulas(0, 'name', ['=LEN()', '=LEN(A1)']);
 
     data[0].id = 'Foo Bar';
@@ -186,7 +186,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe(7);
   });
 
-  it('LOWER', function() {
+  it('LOWER', () => {
     var data = getDataForFormulas(0, 'name', ['=LOWER()', '=LOWER(A1)']);
 
     data[0].id = 'Foo Bar';
@@ -203,7 +203,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('foo bar');
   });
 
-  it('MID', function() {
+  it('MID', () => {
     var data = getDataForFormulas(0, 'name', ['=MID()', '=MID(A1, 2, 5)']);
 
     data[0].id = 'Foo Bar';
@@ -220,7 +220,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('oo Ba');
   });
 
-  it('PROPER', function() {
+  it('PROPER', () => {
     var data = getDataForFormulas(0, 'name', ['=PROPER()', '=PROPER(A1)', '=PROPER(A2)']);
 
     data[0].id = 'foo bar';
@@ -239,7 +239,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('True');
   });
 
-  it('REGEXEXTRACT', function() {
+  it('REGEXEXTRACT', () => {
     var data = getDataForFormulas(0, 'name', ['=REGEXEXTRACT()', '=REGEXEXTRACT(A1, "(foo)")']);
 
     data[0].id = 'extract foo bar';
@@ -256,7 +256,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('foo');
   });
 
-  it('REGEXREPLACE', function() {
+  it('REGEXREPLACE', () => {
     var data = getDataForFormulas(0, 'name', ['=REGEXREPLACE()', '=REGEXREPLACE(A1, "(foo)", A2)']);
 
     data[0].id = 'extract foo bar';
@@ -274,7 +274,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('extract baz bar');
   });
 
-  it('REGEXMATCH', function() {
+  it('REGEXMATCH', () => {
     var data = getDataForFormulas(0, 'name', ['=REGEXMATCH()', '=REGEXMATCH(A1, "([0-9]+.[0-9]+)")']);
 
     data[0].id = 'pressure 12.21bar';
@@ -291,7 +291,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe(true);
   });
 
-  it('REPLACE', function() {
+  it('REPLACE', () => {
     var data = getDataForFormulas(0, 'name', ['=REPLACE()', '=REPLACE(A1, 2, 5, "*")']);
 
     data[0].id = 'foo bar';
@@ -308,7 +308,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('f*r');
   });
 
-  it('REPT', function() {
+  it('REPT', () => {
     var data = getDataForFormulas(0, 'name', ['=REPT()', '=REPT(A1, 5)']);
 
     data[0].id = 'foo';
@@ -325,7 +325,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('foofoofoofoofoo');
   });
 
-  it('RIGHT', function() {
+  it('RIGHT', () => {
     var data = getDataForFormulas(0, 'name', ['=RIGHT()', '=RIGHT(A1, 4)']);
 
     data[0].id = 'foo bar';
@@ -342,7 +342,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe(' bar');
   });
 
-  it('SEARCH', function() {
+  it('SEARCH', () => {
     var data = getDataForFormulas(0, 'name', ['=SEARCH()', '=SEARCH(A2, A1)']);
 
     data[0].id = 'foo bar';
@@ -360,7 +360,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe(5);
   });
 
-  it('SPLIT', function() {
+  it('SPLIT', () => {
     var data = getDataForFormulas(0, 'name', ['=SPLIT()', '=SPLIT(A1)', '=SPLIT(A2, ".")']);
 
     data[0].id = 'foo bar baz';
@@ -379,7 +379,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(2, 1)).toEqual(['foo', 'bar', 'b', 'az']);
   });
 
-  it('SUBSTITUTE', function() {
+  it('SUBSTITUTE', () => {
     var data = getDataForFormulas(0, 'name', ['=SUBSTITUTE()', '=SUBSTITUTE(A1)', '=SUBSTITUTE(A1, "a", "A")']);
 
     data[0].id = 'foo bar baz';
@@ -397,7 +397,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('foo bAr bAz');
   });
 
-  it('T', function() {
+  it('T', () => {
     var data = getDataForFormulas(0, 'name', ['=T()', '=T(A1)', '=T(A2)']);
 
     data[0].id = 'foo bar baz';
@@ -416,7 +416,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('');
   });
 
-  xit('TEXT', function() {
+  xit('TEXT', () => {
     var data = getDataForFormulas(0, 'name', ['=TEXT()', '=TEXT(A1, "####.#")']);
 
     data[0].id = '1234.99';
@@ -433,7 +433,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('1235.0');
   });
 
-  it('TRIM', function() {
+  it('TRIM', () => {
     var data = getDataForFormulas(0, 'name', ['=TRIM()', '=TRIM(A1)']);
 
     data[0].id = '   foo  ';
@@ -450,7 +450,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('foo');
   });
 
-  it('UNICHAR', function() {
+  it('UNICHAR', () => {
     var data = getDataForFormulas(0, 'name', ['=UNICHAR()', '=UNICHAR(A1)']);
 
     data[0].id = 33;
@@ -467,7 +467,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('!');
   });
 
-  it('UNICODE', function() {
+  it('UNICODE', () => {
     var data = getDataForFormulas(0, 'name', ['=UNICODE()', '=UNICODE(A1)']);
 
     data[0].id = '!';
@@ -484,7 +484,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe(33);
   });
 
-  it('UPPER', function() {
+  it('UPPER', () => {
     var data = getDataForFormulas(0, 'name', ['=UPPER()', '=UPPER(A1)']);
 
     data[0].id = 'Foo bAr';
@@ -501,7 +501,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('FOO BAR');
   });
 
-  xit('VALUE', function() {
+  xit('VALUE', () => {
     var data = getDataForFormulas(0, 'name', ['=VALUE()', '=VALUE(A1)', '=VALUE(A2)']);
 
     data[0].id = '$1,000';

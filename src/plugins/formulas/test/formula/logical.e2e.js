@@ -1,4 +1,4 @@
-describe('Formulas -> logical functions', function() {
+describe('Formulas -> logical functions', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -19,7 +19,7 @@ describe('Formulas -> logical functions', function() {
       if (!Array.isArray(value)) {
         value = [value];
       }
-      value.forEach(function(v, index) {
+      value.forEach((v, index) => {
         data[row + index][column] = v;
       });
     }
@@ -27,7 +27,7 @@ describe('Formulas -> logical functions', function() {
     return data;
   }
 
-  it('AND', function() {
+  it('AND', () => {
     var data = getData(0, 'name', ['=AND(A1)', '=AND(A1, A2, A3)', '=AND(A1, A2, A3, A4)']);
 
     data[0].id = true;
@@ -48,7 +48,7 @@ describe('Formulas -> logical functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(false);
   });
 
-  it('CHOOSE', function() {
+  it('CHOOSE', () => {
     var data = getData(0, 'name', ['=CHOOSE()', '=CHOOSE(2, A1, A2, A3)', '=CHOOSE(6, A1, A2, A3)']);
 
     data[0].id = 'foo';
@@ -68,7 +68,7 @@ describe('Formulas -> logical functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('#VALUE!');
   });
 
-  it('FALSE', function() {
+  it('FALSE', () => {
     var data = getData(0, 'name', ['=FALSE()']);
 
     var hot = handsontable({
@@ -82,7 +82,7 @@ describe('Formulas -> logical functions', function() {
     expect(hot.getDataAtCell(0, 1)).toBe(false);
   });
 
-  it('IF', function() {
+  it('IF', () => {
     var data = getData(0, 'name', ['=IF(A1, 1, 2)', '=IF(A2, "foo", "bar")']);
 
     data[0].id = true;
@@ -100,7 +100,7 @@ describe('Formulas -> logical functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('bar');
   });
 
-  it('NOT', function() {
+  it('NOT', () => {
     var data = getData(0, 'name', ['=NOT(A1)', '=NOT(A2)', '=NOT(A3)', '=NOT(A4)', '=NOT(A5)']);
 
     data[0].id = true;
@@ -124,7 +124,7 @@ describe('Formulas -> logical functions', function() {
     expect(hot.getDataAtCell(4, 1)).toBe(false);
   });
 
-  it('OR', function() {
+  it('OR', () => {
     var data = getData(0, 'name', ['=OR(A1)', '=OR(A1, A2, A3)', '=OR(A1, A2, A3, A4)']);
 
     data[0].id = false;
@@ -145,7 +145,7 @@ describe('Formulas -> logical functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe(true);
   });
 
-  it('TRUE', function() {
+  it('TRUE', () => {
     var data = getData(0, 'name', ['=TRUE()']);
 
     var hot = handsontable({
@@ -159,7 +159,7 @@ describe('Formulas -> logical functions', function() {
     expect(hot.getDataAtCell(0, 1)).toBe(true);
   });
 
-  it('XOR', function() {
+  it('XOR', () => {
     var data = getData(0, 'name', ['=XOR(A1)', '=XOR(A1, A2, A3)', '=XOR(A1, A2, A3, A4)', '=XOR(A1, A2, A4)']);
 
     data[0].id = false;
@@ -181,7 +181,7 @@ describe('Formulas -> logical functions', function() {
     expect(hot.getDataAtCell(3, 1)).toBe(false);
   });
 
-  it('SWITCH', function() {
+  it('SWITCH', () => {
     var data = getData(0, 'name', ['=SWITCH(A1, 9, "foo", 7, "bar")', '=SWITCH(A2, 1, "foo", 2, "bar", 3, "baz")']);
 
     data[0].id = 9;

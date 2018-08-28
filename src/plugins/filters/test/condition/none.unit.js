@@ -1,9 +1,9 @@
 import { condition } from 'handsontable-pro/plugins/filters/condition/none';
 import { dateRowFactory } from './../helpers/utils';
 
-describe('Filters condition (`none`)', function() {
+describe('Filters condition (`none`)', () => {
 
-  it('should filter all values', function() {
+  it('should filter all values', () => {
     var data = dateRowFactory();
 
     expect(condition(data(4))).toBe(true);

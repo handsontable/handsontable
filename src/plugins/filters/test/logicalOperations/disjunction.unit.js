@@ -6,7 +6,7 @@ import { condition as containsFunction } from 'handsontable-pro/plugins/filters/
 import { operationResult as disjunction } from 'handsontable-pro/plugins/filters/logicalOperations/disjunction';
 import { conditionFactory, dateRowFactory } from './../helpers/utils';
 
-describe('Operation on set of conditions (`disjunction`)', function() {
+describe('Operation on set of conditions (`disjunction`)', () => {
   const data = dateRowFactory();
   const trueConditionMock = conditionFactory(trueFunction);
   const falseConditionMock = conditionFactory(falseFunction);
@@ -16,7 +16,7 @@ describe('Operation on set of conditions (`disjunction`)', function() {
   const anycellData = data('');
   const cellData = data('Alibaba');
 
-  it('should filter matching values', function() {
+  it('should filter matching values', () => {
     expect(disjunction([trueConditionMock(), trueConditionMock(), trueConditionMock()], anycellData)).toBe(true);
     expect(disjunction([trueConditionMock(), falseConditionMock(), trueConditionMock()], anycellData)).toBe(true);
     expect(disjunction([trueConditionMock(), falseConditionMock(), falseConditionMock()], anycellData)).toBe(true);
@@ -25,7 +25,7 @@ describe('Operation on set of conditions (`disjunction`)', function() {
     expect(disjunction([beginsWithConditionMock(['a']), endsWithConditionMock(['a']), containsWithConditionMock(['z'])], cellData)).toBe(true);
   });
 
-  it('should filter not matching values', function() {
+  it('should filter not matching values', () => {
     expect(disjunction([falseConditionMock(), falseConditionMock(), falseConditionMock()], anycellData)).toBe(false);
     expect(disjunction([beginsWithConditionMock(['b']), endsWithConditionMock(['b']), containsWithConditionMock(['z'])], cellData)).toBe(false);
   });

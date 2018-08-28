@@ -1,4 +1,4 @@
-describe('NestedRows', function() {
+describe('NestedRows', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -12,8 +12,8 @@ describe('NestedRows', function() {
     }
   });
 
-  describe('Displaying a nested structure', function() {
-    it('should display as many rows as there are overall elements in a nested structure', function() {
+  describe('Displaying a nested structure', () => {
+    it('should display as many rows as there are overall elements in a nested structure', () => {
       var hot = handsontable({
         data: getDataForNestedRows(),
         nestedRows: true
@@ -22,7 +22,7 @@ describe('NestedRows', function() {
       expect(hot.countRows()).toEqual(12);
     });
 
-    it('should display all nested structure elements in correct order (parent, its children, its children children, next parent etc)', function() {
+    it('should display all nested structure elements in correct order (parent, its children, its children children, next parent etc)', () => {
       var hot = handsontable({
         data: getDataForNestedRows(),
         nestedRows: true
@@ -46,7 +46,7 @@ describe('NestedRows', function() {
       expect(hot.getData()).toEqual(dataInOrder);
     });
 
-    it('should display the right amount of entries with the `manualRowMove` plugin enabled', function() {
+    it('should display the right amount of entries with the `manualRowMove` plugin enabled', () => {
       var hot = handsontable({
         data: getDataForNestedRows(),
         nestedRows: true,

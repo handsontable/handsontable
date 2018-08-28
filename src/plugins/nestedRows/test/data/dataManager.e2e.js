@@ -1,4 +1,4 @@
-describe('NestedRows Data Manager', function() {
+describe('NestedRows Data Manager', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -12,9 +12,9 @@ describe('NestedRows Data Manager', function() {
     }
   });
 
-  describe('API', function() {
-    describe('getDataObject', function() {
-      it('should return the data source object corresponding to the provided visual row number', function() {
+  describe('API', () => {
+    describe('getDataObject', () => {
+      it('should return the data source object corresponding to the provided visual row number', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -33,8 +33,8 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('getRowIndex', function() {
-      it('should return a visual row index for the provided source data row object', function() {
+    describe('getRowIndex', () => {
+      it('should return a visual row index for the provided source data row object', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -52,8 +52,8 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('getRowIndexWithinParent', function() {
-      it('should return an index of the provided source data row object withing its parent', function() {
+    describe('getRowIndexWithinParent', () => {
+      it('should return an index of the provided source data row object withing its parent', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -72,8 +72,8 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('countAllRows', function() {
-      it('should return a number of all row objects within the data set', function() {
+    describe('countAllRows', () => {
+      it('should return a number of all row objects within the data set', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -86,8 +86,8 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('countChildren', function() {
-      it('should return a number of children (and children\'s children) of the row provided as an index', function() {
+    describe('countChildren', () => {
+      it('should return a number of children (and children\'s children) of the row provided as an index', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -105,7 +105,7 @@ describe('NestedRows Data Manager', function() {
 
       });
 
-      it('should return a number of children (and children\'s children) of the row provided as a row object from the data source', function() {
+      it('should return a number of children (and children\'s children) of the row provided as a row object from the data source', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -123,8 +123,8 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('getRowParent', function() {
-      it('should return a row object from the data source, being the parent node for the provided row index', function() {
+    describe('getRowParent', () => {
+      it('should return a row object from the data source, being the parent node for the provided row index', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -143,7 +143,7 @@ describe('NestedRows Data Manager', function() {
 
       });
 
-      it('should return a row object from the data source, being the parent node for the provided row object', function() {
+      it('should return a row object from the data source, being the parent node for the provided row object', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -161,8 +161,8 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('getRowLevel', function() {
-      it('should return the nesting level of the row, provided as an index', function() {
+    describe('getRowLevel', () => {
+      it('should return the nesting level of the row, provided as an index', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -180,7 +180,7 @@ describe('NestedRows Data Manager', function() {
 
       });
 
-      it('should return a row object from the data source, being the parent node for the provided row object', function() {
+      it('should return a row object from the data source, being the parent node for the provided row object', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -198,8 +198,8 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('hasChildren', function() {
-      it('should return whether the element at the provided row index has children', function() {
+    describe('hasChildren', () => {
+      it('should return whether the element at the provided row index has children', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -222,8 +222,8 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('addChild', function() {
-      it('should add an empty child to the provided parent, when the second method arguments is not declared', function() {
+    describe('addChild', () => {
+      it('should add an empty child to the provided parent, when the second method arguments is not declared', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -245,7 +245,7 @@ describe('NestedRows Data Manager', function() {
         expect(parentElement.__children[1].a).toEqual(null);
       });
 
-      it('should add a provided row element as a child to the provided parent', function() {
+      it('should add a provided row element as a child to the provided parent', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
@@ -274,8 +274,8 @@ describe('NestedRows Data Manager', function() {
 
     });
 
-    describe('detachFromParent', function() {
-      it('should detach a child node from it\'s parent and re-attach it to the parent of it\'s parent', function() {
+    describe('detachFromParent', () => {
+      it('should detach a child node from it\'s parent and re-attach it to the parent of it\'s parent', () => {
         var hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
