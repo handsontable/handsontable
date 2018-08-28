@@ -59,7 +59,6 @@
     "prefer-const": 0,
     "prefer-rest-params": 1,
     "prefer-spread": 1,
-    "prefer-template": 1,
     "space-infix-ops": 2,
     "vars-on-top": 0,
     "camelcase": [

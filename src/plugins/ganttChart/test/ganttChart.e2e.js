@@ -2,8 +2,8 @@ describe('GanttChart', function() {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
-    this.$sourceContainer = $('<div id="source_' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$sourceContainer = $(`<div id="source_${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {

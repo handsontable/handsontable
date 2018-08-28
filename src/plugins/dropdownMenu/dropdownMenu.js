@@ -337,7 +337,7 @@ class DropdownMenu extends BasePlugin {
       return;
     }
 
-    const existingButton = TH.querySelector('.' + BUTTON_CLASS_NAME);
+    const existingButton = TH.querySelector(`.${BUTTON_CLASS_NAME}`);
 
     // Plugin enabled and buttons already exists, return.
     if (this.enabled && existingButton) {

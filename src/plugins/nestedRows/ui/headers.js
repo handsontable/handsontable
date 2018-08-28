@@ -104,10 +104,10 @@ class HeadersUI extends BaseUI {
       addClass(TH, HeadersUI.CSS_CLASSES.parent);
 
       if (this.collapsingUI.areChildrenCollapsed(row)) {
-        addClass(buttonsContainer, HeadersUI.CSS_CLASSES.button + ' ' + HeadersUI.CSS_CLASSES.expandButton);
+        addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.expandButton}`);
 
       } else {
-        addClass(buttonsContainer, HeadersUI.CSS_CLASSES.button + ' ' + HeadersUI.CSS_CLASSES.collapseButton);
+        addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.collapseButton}`);
       }
 
       innerDiv.appendChild(buttonsContainer);

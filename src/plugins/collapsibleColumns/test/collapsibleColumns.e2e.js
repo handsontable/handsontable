@@ -2,7 +2,7 @@ describe('CollapsibleColumns', function() {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
 
     this.generateComplexSetup = function(rows, cols, obj) {
       var data = [];
@@ -14,28 +14,28 @@ describe('CollapsibleColumns', function() {
           }
 
           if (!obj) {
-            data[i][j] = i + '_' + j;
+            data[i][j] = `${i}_${j}`;
             /* eslint-disable no-continue */
             continue;
           }
 
           if (i === 0 && j % 2 !== 0) {
             data[i][j] = {
-              label: i + '_' + j,
+              label: `${i}_${j}`,
               colspan: 8
             };
           } else if (i === 1 && (j % 3 === 1 || j % 3 === 2)) {
             data[i][j] = {
-              label: i + '_' + j,
+              label: `${i}_${j}`,
               colspan: 4
             };
           } else if (i === 2 && (j % 5 === 1 || j % 5 === 2 || j % 5 === 3 || j % 5 === 4)) {
             data[i][j] = {
-              label: i + '_' + j,
+              label: `${i}_${j}`,
               colspan: 2
             };
           } else {
-            data[i][j] = i + '_' + j;
+            data[i][j] = `${i}_${j}`;
           }
 
         }

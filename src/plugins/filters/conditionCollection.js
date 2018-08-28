@@ -123,7 +123,7 @@ class ConditionCollection {
 
     } else {
       if (!this.conditions[operation]) {
-        throw new Error('Unexpected operation named `' + operation + '`. Possible ones are `disjunction` and `conjunction`.');
+        throw new Error(`Unexpected operation named \`${operation}\`. Possible ones are \`disjunction\` and \`conjunction\`.`);
       }
 
       this.columnTypes[column] = operation;

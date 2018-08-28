@@ -446,7 +446,7 @@ class Endpoints {
 
     arrayEach(changes, (value, key, changes) => {
       // if nothing changed, dont update anything
-      if ((value[2] || '') + '' === value[3] + '') {
+      if (`${value[2] || ''}` === `${value[3]}`) {
         return;
       }
 

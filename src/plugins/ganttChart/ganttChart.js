@@ -634,7 +634,7 @@ class GanttChart extends BasePlugin {
 
     for (let i = startDateColumn; i <= endDateColumn; i++) {
       let cellMeta = this.hot.getCellMeta(row, i);
-      let newClassName = (cellMeta.className || '') + ' rangeBar';
+      let newClassName = `${cellMeta.className || ''} rangeBar`;
 
       if ((i === startDateColumn && currentBar.partialStart) || (i === endDateColumn && currentBar.partialEnd)) {
         newClassName += ' partial';
@@ -751,7 +751,7 @@ class GanttChart extends BasePlugin {
     let titleValue = '';
 
     objectEach(cellProperties.additionalData, (prop, i) => {
-      titleValue += i + ': ' + prop + '\n';
+      titleValue += `${i}: ${prop}\n`;
     });
 
     titleValue = titleValue.replace(/\n$/, '');

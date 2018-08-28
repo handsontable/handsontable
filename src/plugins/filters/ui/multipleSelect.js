@@ -224,7 +224,7 @@ class MultipleSelectUI extends BaseUI {
     if (value === '') {
       filteredItems = [...this.items];
     } else {
-      filteredItems = arrayFilter(this.items, item => (item.value + '').toLowerCase().indexOf(value) >= 0);
+      filteredItems = arrayFilter(this.items, item => (`${item.value}`).toLowerCase().indexOf(value) >= 0);
     }
     this.itemsBox.loadData(filteredItems);
   }

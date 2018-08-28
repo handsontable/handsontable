@@ -134,7 +134,7 @@ class ExpressionModifier {
     });
 
     if (!expression.startsWith('=')) {
-      expression = '=' + expression;
+      expression = `=${expression}`;
     }
 
     return expression;
@@ -271,7 +271,7 @@ class ExpressionModifier {
         let label = toLabel(this.start.row, this.start.column);
 
         if (this.type === 'range') {
-          label += ':' + toLabel(this.end.row, this.end.column);
+          label += `:${toLabel(this.end.row, this.end.column)}`;
         }
 
         return label;

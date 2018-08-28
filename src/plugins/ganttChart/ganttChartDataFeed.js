@@ -272,11 +272,11 @@ class GanttChartDataFeed {
       const newBar = clone(bar);
 
       if (year !== startYear) {
-        setStartDate(newBar, '01/01/' + year);
+        setStartDate(newBar, `01/01/${year}`);
       }
 
       if (year !== endYear) {
-        setEndDate(newBar, '12/31/' + year);
+        setEndDate(newBar, `12/31/${year}`);
       }
 
       splitBars.push(newBar);

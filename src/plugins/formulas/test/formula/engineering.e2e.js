@@ -2,7 +2,7 @@ describe('Formulas -> engineering functions', function() {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function () {
@@ -413,8 +413,8 @@ describe('Formulas -> engineering functions', function() {
     var parser = hot.getPlugin('formulas').sheet.parser;
 
     expect(hot.getDataAtCell(1, 1)).toBe('#VALUE!');
-    expect(parser.parse('IMREAL("' + hot.getDataAtCell(2, 1) + '")').result).toBeCloseTo(-27.03494560307422, 12);
-    expect(parser.parse('IMAGINARY("' + hot.getDataAtCell(2, 1) + '")').result).toBeCloseTo(-3.8511533348117766, 12);
+    expect(parser.parse(`IMREAL("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(-27.03494560307422, 12);
+    expect(parser.parse(`IMAGINARY("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(-3.8511533348117766, 12);
   });
 
   it('IMCOSH', function() {
@@ -443,8 +443,8 @@ describe('Formulas -> engineering functions', function() {
     var parser = hot.getPlugin('formulas').sheet.parser;
 
     expect(hot.getDataAtCell(1, 1)).toBe('#VALUE!');
-    expect(parser.parse('IMREAL("' + hot.getDataAtCell(2, 1) + '")').result).toBeCloseTo(-0.00018758773798367118, 12);
-    expect(parser.parse('IMAGINARY("' + hot.getDataAtCell(2, 1) + '")').result).toBeCloseTo(-1.0006443924715591, 12);
+    expect(parser.parse(`IMREAL("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(-0.00018758773798367118, 12);
+    expect(parser.parse(`IMAGINARY("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(-1.0006443924715591, 12);
   });
 
   it('IMCSC', function() {
@@ -542,8 +542,8 @@ describe('Formulas -> engineering functions', function() {
     var parser = hot.getPlugin('formulas').sheet.parser;
 
     expect(hot.getDataAtCell(1, 1)).toBe('#VALUE!');
-    expect(parser.parse('IMREAL("' + hot.getDataAtCell(2, 1) + '")').result).toBeCloseTo(-117, 12);
-    expect(parser.parse('IMAGINARY("' + hot.getDataAtCell(2, 1) + '")').result).toBeCloseTo(44, 12);
+    expect(parser.parse(`IMREAL("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(-117, 12);
+    expect(parser.parse(`IMAGINARY("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(44, 12);
   });
 
   it('IMPRODUCT', function() {
@@ -584,8 +584,8 @@ describe('Formulas -> engineering functions', function() {
     var parser = hot.getPlugin('formulas').sheet.parser;
 
     expect(hot.getDataAtCell(1, 1)).toBe('#VALUE!');
-    expect(parser.parse('IMREAL("' + hot.getDataAtCell(2, 1) + '")').result).toBeCloseTo(-0.03625349691586887, 12);
-    expect(parser.parse('IMAGINARY("' + hot.getDataAtCell(2, 1) + '")').result).toBeCloseTo(0.005164344607753179, 12);
+    expect(parser.parse(`IMREAL("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(-0.03625349691586887, 12);
+    expect(parser.parse(`IMAGINARY("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(0.005164344607753179, 12);
   });
 
   it('IMSECH', function() {
@@ -614,8 +614,8 @@ describe('Formulas -> engineering functions', function() {
     var parser = hot.getPlugin('formulas').sheet.parser;
 
     expect(hot.getDataAtCell(1, 1)).toBe('#VALUE!');
-    expect(parser.parse('IMREAL("' + hot.getDataAtCell(2, 1) + '")').result).toBeCloseTo(3.853738037919377, 12);
-    expect(parser.parse('IMAGINARY("' + hot.getDataAtCell(2, 1) + '")').result).toBeCloseTo(-27.016813258003932, 12);
+    expect(parser.parse(`IMREAL("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(3.853738037919377, 12);
+    expect(parser.parse(`IMAGINARY("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(-27.016813258003932, 12);
   });
 
   it('IMSINH', function() {
@@ -685,8 +685,8 @@ describe('Formulas -> engineering functions', function() {
     var parser = hot.getPlugin('formulas').sheet.parser;
 
     expect(hot.getDataAtCell(1, 1)).toBe('#VALUE!');
-    expect(parser.parse('IMREAL("' + hot.getDataAtCell(2, 1) + '")').result).toBeCloseTo(-0.00018734620462949035, 12);
-    expect(parser.parse('IMAGINARY("' + hot.getDataAtCell(2, 1) + '")').result).toBeCloseTo(0.9993559873814731, 12);
+    expect(parser.parse(`IMREAL("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(-0.00018734620462949035, 12);
+    expect(parser.parse(`IMAGINARY("${hot.getDataAtCell(2, 1)}")`).result).toBeCloseTo(0.9993559873814731, 12);
   });
 
   it('OCT2BIN', function() {

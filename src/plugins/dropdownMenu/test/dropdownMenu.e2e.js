@@ -2,7 +2,7 @@ describe('DropdownMenu', function () {
   const id = 'testContainer';
 
   beforeEach(function () {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function () {
@@ -553,7 +553,7 @@ describe('DropdownMenu', function () {
 
   describe('working with multiple tables', function () {
     beforeEach(function () {
-      this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
+      this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
     });
 
     afterEach(function () {
