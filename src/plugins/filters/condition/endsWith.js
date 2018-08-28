@@ -1,6 +1,6 @@
 import * as C from 'handsontable/i18n/constants';
-import {stringify} from 'handsontable/helpers/mixed';
-import {registerCondition} from './../conditionRegisterer';
+import { stringify } from 'handsontable/helpers/mixed';
+import { registerCondition } from './../conditionRegisterer';
 
 export const CONDITION_NAME = 'ends_with';
 

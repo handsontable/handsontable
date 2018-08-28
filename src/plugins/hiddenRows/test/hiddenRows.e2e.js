@@ -146,7 +146,7 @@ describe('HiddenRows', function() {
       height: 300
     });
     hot.updateSettings({
-      hiddenRows: {rows: [1]}
+      hiddenRows: { rows: [1] }
     });
 
     // undefined as default value - not hidden
@@ -440,7 +440,7 @@ describe('HiddenRows', function() {
           rows: [0]
         },
         mergeCells: [
-          {row: 1, col: 1, colspan: 2, rowspan: 2}
+          { row: 1, col: 1, colspan: 2, rowspan: 2 }
         ],
         colHeaders: true
       });

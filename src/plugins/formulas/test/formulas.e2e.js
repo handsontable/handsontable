@@ -155,7 +155,7 @@ describe('Formulas general', function() {
       height: 300
     });
 
-    hot.updateSettings({formulas: false});
+    hot.updateSettings({ formulas: false });
 
     expect(hot.getDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
     expect(hot.getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
@@ -163,7 +163,7 @@ describe('Formulas general', function() {
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, '=Sum(a2:a5)', '=SUM(B5,E3)', '=A2/B2', 12, '\'=SUM(E5)']);
 
-    hot.updateSettings({formulas: true});
+    hot.updateSettings({ formulas: true });
 
     expect(hot.getDataAtRow(0)).toEqual([0, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 0]);
     expect(hot.getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
@@ -1068,7 +1068,7 @@ describe('Formulas general', function() {
         height: 300
       });
 
-      hot.updateSettings({columnSorting: {column: 2, sortOrder: 'asc'}});
+      hot.updateSettings({ columnSorting: { column: 2, sortOrder: 'asc' } });
 
       // source data is not involved in the translation process
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
@@ -1083,7 +1083,7 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(3)).toEqual([2012, 8042, 10056, 502.75, 12, '\'=SUM(E5)']);
       expect(hot.getDataAtRow(4)).toEqual([5, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 2011]);
 
-      hot.updateSettings({columnSorting: {column: 5, sortOrder: 'desc'}});
+      hot.updateSettings({ columnSorting: { column: 5, sortOrder: 'desc' } });
 
       // source data is not involved in the translation process
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
@@ -1109,7 +1109,7 @@ describe('Formulas general', function() {
         height: 300
       });
 
-      hot.updateSettings({columnSorting: {column: 2, sortOrder: 'asc'}});
+      hot.updateSettings({ columnSorting: { column: 2, sortOrder: 'asc' } });
 
       setTimeout(function () {
         hot.setDataAtCell(4, 0, '');
@@ -1165,7 +1165,7 @@ describe('Formulas general', function() {
         height: 300
       });
 
-      hot.updateSettings({columnSorting: {column: 2, sortOrder: 'asc'}});
+      hot.updateSettings({ columnSorting: { column: 2, sortOrder: 'asc' } });
 
       setTimeout(function () {
         hot.setDataAtCell(3, 1, '=SUM(B1:B3)');

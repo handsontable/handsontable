@@ -1,4 +1,4 @@
-import {conditions, getCondition, getConditionDescriptor, registerCondition} from 'handsontable-pro/plugins/filters/conditionRegisterer';
+import { conditions, getCondition, getConditionDescriptor, registerCondition } from 'handsontable-pro/plugins/filters/conditionRegisterer';
 
 describe('registerCondition', function() {
   it('should register condition function under its name', function() {
@@ -42,7 +42,7 @@ describe('getCondition', function() {
   });
 
   it('should return condition as a closure', function() {
-    const conditionMock = {condition: function() {}, descriptor: {}};
+    const conditionMock = { condition: function() {}, descriptor: {} };
 
     conditions.my_condition = conditionMock;
 
@@ -60,12 +60,12 @@ describe('getCondition', function() {
   it('should return `true`', function() {
     const conditionMock = jasmine.createSpy();
     const dataRow = {
-      meta: {instance: {}},
+      meta: { instance: {} },
       value: 'foo',
     };
 
     conditionMock.and.returnValue(true);
-    conditions.my_condition = {condition: conditionMock, descriptor: {}};
+    conditions.my_condition = { condition: conditionMock, descriptor: {} };
 
     const condition = getCondition('my_condition', 'baz')(dataRow);
 
@@ -76,7 +76,7 @@ describe('getCondition', function() {
 
 describe('getConditionDescriptor', function() {
   it('should return condition as a closure', function() {
-    conditions.my_condition = {condition: function() {}, descriptor: {foo: 'bar'}};
+    conditions.my_condition = { condition: function() {}, descriptor: { foo: 'bar' } };
 
     const descriptor = getConditionDescriptor('my_condition');
 

@@ -59,7 +59,7 @@ describe('CollapsibleColumns', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
         nestedHeaders: [
-          ['a', {label: 'd', colspan: 4}, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
           ['a', 'b', 'c', 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
         ],
         collapsibleColumns: true
@@ -80,7 +80,7 @@ describe('CollapsibleColumns', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
         nestedHeaders: [
-          ['a', {label: 'd', colspan: 4}, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
           ['a', 'b', 'c', 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
         ],
         collapsibleColumns: true
@@ -101,7 +101,7 @@ describe('CollapsibleColumns', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
         nestedHeaders: [
-          ['a', {label: 'd', colspan: 4}, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
           ['a', 'b', 'c', 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
         ]
       });
@@ -122,7 +122,7 @@ describe('CollapsibleColumns', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
         nestedHeaders: [
-          ['a', {label: 'd', colspan: 4}, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
           ['a', 'b', 'c', 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
         ],
         collapsibleColumns: true
@@ -155,8 +155,8 @@ describe('CollapsibleColumns', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
         nestedHeaders: [
-          ['a', {label: 'd', colspan: 4}, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
-          ['a', {label: 'b', colspan: 2}, {label: 'c', colspan: 2}, 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'b', colspan: 2 }, { label: 'c', colspan: 2 }, 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
         ],
         collapsibleColumns: true
       });
@@ -218,8 +218,8 @@ describe('CollapsibleColumns', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
         nestedHeaders: [
-          ['a', {label: 'd', colspan: 4}, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
-          ['a', {label: 'b', colspan: 2}, {label: 'c', colspan: 2}, 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'b', colspan: 2 }, { label: 'c', colspan: 2 }, 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
         ],
         collapsibleColumns: true
       });
@@ -288,8 +288,8 @@ describe('CollapsibleColumns', function() {
         hiddenColumns: true,
         nestedHeaders: this.generateComplexSetup(4, 70, true),
         collapsibleColumns: [
-          {row: -4, col: 1, collapsible: true},
-          {row: -3, col: 5, collapsible: true}
+          { row: -4, col: 1, collapsible: true },
+          { row: -3, col: 5, collapsible: true }
         ],
         width: 500,
         height: 300

@@ -1,7 +1,7 @@
 import BasePlugin from 'handsontable/plugins/_base';
-import {arrayEach} from 'handsontable/helpers/array';
-import {rangeEach} from 'handsontable/helpers/number';
-import {registerPlugin} from 'handsontable/plugins';
+import { arrayEach } from 'handsontable/helpers/array';
+import { rangeEach } from 'handsontable/helpers/number';
+import { registerPlugin } from 'handsontable/plugins';
 import RowsMapper from './rowsMapper';
 
 /**

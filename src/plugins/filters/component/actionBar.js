@@ -1,5 +1,5 @@
-import {addClass} from 'handsontable/helpers/dom/element';
-import {arrayEach} from 'handsontable/helpers/array';
+import { addClass } from 'handsontable/helpers/dom/element';
+import { arrayEach } from 'handsontable/helpers/array';
 import * as C from 'handsontable/i18n/constants';
 import BaseComponent from './_base';
 import InputUI from './../ui/input';

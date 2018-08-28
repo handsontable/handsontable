@@ -249,7 +249,7 @@ describe('TrimRows', function() {
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       trimRows: true,
       cells() {
-        return {type: 'numeric'};
+        return { type: 'numeric' };
       }
     });
 

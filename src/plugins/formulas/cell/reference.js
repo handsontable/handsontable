@@ -1,4 +1,4 @@
-import {toLabel} from 'hot-formula-parser';
+import { toLabel } from 'hot-formula-parser';
 import BaseCell from './_base';
 
 /**
@@ -16,8 +16,8 @@ class CellReference extends BaseCell {
    */
   toString() {
     return toLabel(
-      {index: this.row, isAbsolute: false},
-      {index: this.column, isAbsolute: false}
+      { index: this.row, isAbsolute: false },
+      { index: this.column, isAbsolute: false }
     );
   }
 }

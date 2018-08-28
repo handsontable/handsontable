@@ -1,5 +1,5 @@
-import {registerCondition} from './../conditionRegisterer';
-import {createArrayAssertion} from './../utils';
+import { registerCondition } from './../conditionRegisterer';
+import { createArrayAssertion } from './../utils';
 
 export const CONDITION_NAME = 'by_value';
 

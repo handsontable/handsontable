@@ -1,8 +1,8 @@
-import {toLabel, extractLabel, error, ERROR_REF} from 'hot-formula-parser';
-import {arrayEach, arrayFilter} from 'handsontable/helpers/array';
-import {mixin} from 'handsontable/helpers/object';
+import { toLabel, extractLabel, error, ERROR_REF } from 'hot-formula-parser';
+import { arrayEach, arrayFilter } from 'handsontable/helpers/array';
+import { mixin } from 'handsontable/helpers/object';
 import localHooks from 'handsontable/mixins/localHooks';
-import {toUpperCaseFormula} from './utils';
+import { toUpperCaseFormula } from './utils';
 
 const BARE_CELL_STRICT_REGEX = /^\$?[A-Z]+\$?\d+$/;
 const BARE_CELL_REGEX = /\$?[A-Z]+\$?\d+/;
@@ -90,7 +90,7 @@ class ExpressionModifier {
    * @param {Object} [startFrom] Coordinates which translation will be applied from.
    * @returns {ExpressionModifier}
    */
-  translate({row: deltaRow, column: deltaColumn}, startFrom = {}) {
+  translate({ row: deltaRow, column: deltaColumn }, startFrom = {}) {
     arrayEach(this.cells, (cell) => {
       if (deltaRow != null) {
         this._translateCell(cell, 'row', deltaRow, startFrom.row);
@@ -150,7 +150,7 @@ class ExpressionModifier {
    * @private
    */
   _translateCell(cell, axis, delta, startFromIndex) {
-    const {start, end} = cell;
+    const { start, end } = cell;
     let startIndex = start[axis].index;
     let endIndex = end[axis].index;
 
@@ -206,7 +206,7 @@ class ExpressionModifier {
       }
       const [row, column] = extractLabel(coord[0]);
 
-      this.cells.push(this._createCell({row, column}, {row, column}, coord[0]));
+      this.cells.push(this._createCell({ row, column }, { row, column }, coord[0]));
     });
   }
 

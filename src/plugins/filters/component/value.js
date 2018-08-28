@@ -1,13 +1,13 @@
-import {addClass} from 'handsontable/helpers/dom/element';
-import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
-import {arrayEach, arrayFilter, arrayMap} from 'handsontable/helpers/array';
-import {isKey} from 'handsontable/helpers/unicode';
+import { addClass } from 'handsontable/helpers/dom/element';
+import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
+import { arrayEach, arrayFilter, arrayMap } from 'handsontable/helpers/array';
+import { isKey } from 'handsontable/helpers/unicode';
 import * as C from 'handsontable/i18n/constants';
-import {unifyColumnValues, intersectValues, toEmptyString} from './../utils';
+import { unifyColumnValues, intersectValues, toEmptyString } from './../utils';
 import BaseComponent from './_base';
 import MultipleSelectUI from './../ui/multipleSelect';
-import {CONDITION_BY_VALUE, CONDITION_NONE} from './../constants';
-import {getConditionDescriptor} from './../conditionRegisterer';
+import { CONDITION_BY_VALUE, CONDITION_NONE } from './../constants';
+import { getConditionDescriptor } from './../conditionRegisterer';
 
 /**
  * @class ValueComponent
@@ -60,7 +60,7 @@ class ValueComponent extends BaseComponent {
     const availableItems = select.getItems();
 
     return {
-      command: {key: select.isSelectedAllValues() || !availableItems.length ? CONDITION_NONE : CONDITION_BY_VALUE},
+      command: { key: select.isSelectedAllValues() || !availableItems.length ? CONDITION_NONE : CONDITION_BY_VALUE },
       args: [select.getValue()],
       itemsSnapshot: availableItems
     };

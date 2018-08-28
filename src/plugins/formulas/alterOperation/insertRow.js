@@ -1,5 +1,5 @@
-import {arrayEach} from 'handsontable/helpers/array';
-import {cellCoordFactory, isFormulaExpression} from './../utils';
+import { arrayEach } from 'handsontable/helpers/array';
+import { cellCoordFactory, isFormulaExpression } from './../utils';
 import CellValue from './../cell/value';
 import ExpressionModifier from './../expressionModifier';
 
@@ -22,7 +22,7 @@ export const OPERATION_NAME = 'insert_row';
  *                                       operation so it doesn't modify formulas if undo action is triggered.
  */
 export function operate(start, amount, modifyFormula = true) {
-  const {matrix, dataProvider} = this;
+  const { matrix, dataProvider } = this;
   const translate = [amount, 0];
 
   arrayEach(matrix.cellReferences, (cell) => {
@@ -32,7 +32,7 @@ export function operate(start, amount, modifyFormula = true) {
   });
 
   arrayEach(matrix.data, (cell) => {
-    const {row: origRow, column: origColumn} = cell;
+    const { row: origRow, column: origColumn } = cell;
 
     if (cell.row >= start) {
       cell.translateTo(...translate);
@@ -40,7 +40,7 @@ export function operate(start, amount, modifyFormula = true) {
     }
 
     if (modifyFormula) {
-      const {row, column} = cell;
+      const { row, column } = cell;
       const value = dataProvider.getSourceDataAtCell(row, column);
 
       if (isFormulaExpression(value)) {
@@ -48,7 +48,7 @@ export function operate(start, amount, modifyFormula = true) {
         const expModifier = new ExpressionModifier(value);
 
         expModifier.useCustomModifier(customTranslateModifier);
-        expModifier.translate({row: amount}, startCoord({row: origRow, column: origColumn}));
+        expModifier.translate({ row: amount }, startCoord({ row: origRow, column: origColumn }));
 
         dataProvider.updateSourceData(row, column, expModifier.toString());
       }
@@ -57,7 +57,7 @@ export function operate(start, amount, modifyFormula = true) {
 }
 
 function customTranslateModifier(cell, axis, delta, startFromIndex) {
-  const {start, end} = cell;
+  const { start, end } = cell;
   const startIndex = start[axis].index;
   const endIndex = end[axis].index;
   let deltaStart = delta;

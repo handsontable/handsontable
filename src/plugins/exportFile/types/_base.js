@@ -1,5 +1,5 @@
-import {extend, clone} from 'handsontable/helpers/object';
-import {substitute} from 'handsontable/helpers/string';
+import { extend, clone } from 'handsontable/helpers/object';
+import { substitute } from 'handsontable/helpers/string';
 
 /**
  * @plugin ExportFile

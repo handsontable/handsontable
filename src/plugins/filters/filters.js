@@ -1,12 +1,12 @@
 import BasePlugin from 'handsontable/plugins/_base';
-import {arrayEach, arrayMap} from 'handsontable/helpers/array';
-import {toSingleLine} from 'handsontable/helpers/templateLiteralTag';
-import {warn} from 'handsontable/helpers/console';
-import {rangeEach} from 'handsontable/helpers/number';
+import { arrayEach, arrayMap } from 'handsontable/helpers/array';
+import { toSingleLine } from 'handsontable/helpers/templateLiteralTag';
+import { warn } from 'handsontable/helpers/console';
+import { rangeEach } from 'handsontable/helpers/number';
 import EventManager from 'handsontable/eventManager';
-import {addClass, removeClass, closest} from 'handsontable/helpers/dom/element';
-import {registerPlugin} from 'handsontable/plugins';
-import {SEPARATOR} from 'handsontable/plugins/contextMenu/predefinedItems';
+import { addClass, removeClass, closest } from 'handsontable/helpers/dom/element';
+import { registerPlugin } from 'handsontable/plugins';
+import { SEPARATOR } from 'handsontable/plugins/contextMenu/predefinedItems';
 import * as constants from 'handsontable/i18n/constants';
 import ConditionComponent from './component/condition';
 import OperatorsComponent from './component/operators';
@@ -15,8 +15,8 @@ import ActionBarComponent from './component/actionBar';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
-import {createArrayAssertion, toEmptyString, unifyColumnValues} from './utils';
-import {CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERATION_OR_THEN_VARIABLE} from './constants';
+import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
+import { CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERATION_OR_THEN_VARIABLE } from './constants';
 
 import './filters.css';
 
@@ -146,25 +146,25 @@ class Filters extends BasePlugin {
     const filterValueLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_VALUE)}:`;
 
     if (!this.components.get('filter_by_condition')) {
-      const conditionComponent = new ConditionComponent(this.hot, {id: 'filter_by_condition', name: filterByConditionLabel, addSeparator: false});
+      const conditionComponent = new ConditionComponent(this.hot, { id: 'filter_by_condition', name: filterByConditionLabel, addSeparator: false });
       conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
 
       this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
     }
     if (!this.components.get('filter_operators')) {
-      this.components.set('filter_operators', new OperatorsComponent(this.hot, {id: 'filter_operators', name: 'Operators'}));
+      this.components.set('filter_operators', new OperatorsComponent(this.hot, { id: 'filter_operators', name: 'Operators' }));
     }
     if (!this.components.get('filter_by_condition2')) {
-      const conditionComponent = new ConditionComponent(this.hot, {id: 'filter_by_condition2', name: '', addSeparator: true});
+      const conditionComponent = new ConditionComponent(this.hot, { id: 'filter_by_condition2', name: '', addSeparator: true });
       conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
 
       this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));
     }
     if (!this.components.get('filter_by_value')) {
-      this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {id: 'filter_by_value', name: filterValueLabel})));
+      this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, { id: 'filter_by_value', name: filterValueLabel })));
     }
     if (!this.components.get('filter_action_bar')) {
-      this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, {id: 'filter_action_bar', name: 'Action bar'})));
+      this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, { id: 'filter_action_bar', name: 'Action bar' })));
     }
     if (!this.conditionCollection) {
       this.conditionCollection = new ConditionCollection();
@@ -295,7 +295,7 @@ class Filters extends BasePlugin {
   addCondition(column, name, args, operationId = OPERATION_AND) {
     const physicalColumn = this.t.toPhysicalColumn(column);
 
-    this.conditionCollection.addCondition(physicalColumn, {command: {key: name}, args}, operationId);
+    this.conditionCollection.addCondition(physicalColumn, { command: { key: name }, args }, operationId);
   }
 
   /**
@@ -407,10 +407,10 @@ class Filters extends BasePlugin {
     const data = [];
 
     arrayEach(this.hot.getSourceDataAtCol(visualIndex), (value, rowIndex) => {
-      let {row, col, visualCol, visualRow, type, instance, dateFormat} = this.hot.getCellMeta(rowIndex, visualIndex);
+      let { row, col, visualCol, visualRow, type, instance, dateFormat } = this.hot.getCellMeta(rowIndex, visualIndex);
 
       data.push({
-        meta: {row, col, visualCol, visualRow, type, instance, dateFormat},
+        meta: { row, col, visualCol, visualRow, type, instance, dateFormat },
         value: toEmptyString(value),
       });
     });
@@ -514,7 +514,7 @@ class Filters extends BasePlugin {
    * @param {Object} defaultOptions ContextMenu default item options.
    */
   onAfterDropdownMenuDefaultOptions(defaultOptions) {
-    defaultOptions.items.push({name: SEPARATOR});
+    defaultOptions.items.push({ name: SEPARATOR });
 
     this.components.forEach((component) => {
       defaultOptions.items.push(component.getMenuItemDescriptor());
@@ -830,7 +830,7 @@ class Filters extends BasePlugin {
         this.hiddenRowsCache.set(index, this.getIndexesOfComponents(this.components.get('filter_operators'), this.components.get('filter_by_condition2')));
       }
 
-      this.dropdownMenuPlugin.menu.hotMenu.updateSettings({hiddenRows: {rows: this.hiddenRowsCache.get(index)}});
+      this.dropdownMenuPlugin.menu.hotMenu.updateSettings({ hiddenRows: { rows: this.hiddenRowsCache.get(index) } });
     });
   }
 

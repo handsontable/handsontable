@@ -1,8 +1,8 @@
 import {
   outerWidth
 } from 'handsontable/helpers/dom/element.js';
-import {registerPlugin} from 'handsontable/plugins.js';
-import {rangeEach} from 'handsontable/helpers/number';
+import { registerPlugin } from 'handsontable/plugins.js';
+import { rangeEach } from 'handsontable/helpers/number';
 import BasePlugin from 'handsontable/plugins/_base.js';
 
 /**

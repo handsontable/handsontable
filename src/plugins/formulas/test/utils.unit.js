@@ -1,4 +1,4 @@
-import {isFormulaExpression, isFormulaExpressionEscaped, unescapeFormulaExpression, toUpperCaseFormula} from 'handsontable-pro/plugins/formulas/utils';
+import { isFormulaExpression, isFormulaExpressionEscaped, unescapeFormulaExpression, toUpperCaseFormula } from 'handsontable-pro/plugins/formulas/utils';
 
 describe('Formulas utils', function() {
   describe('isFormulaExpression', function() {

@@ -1,4 +1,4 @@
-import {rangeEach} from 'handsontable/helpers/number';
+import { rangeEach } from 'handsontable/helpers/number';
 import * as C from 'handsontable/i18n/constants';
 
 export default function hideColumnItem(hiddenColumnsPlugin) {
@@ -19,7 +19,7 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_COLUMN, pluralForm);
     },
     callback() {
-      let {from, to} = this.getSelectedRangeLast();
+      let { from, to } = this.getSelectedRangeLast();
       let start = Math.min(from.col, to.col);
       let end = Math.max(from.col, to.col);
 

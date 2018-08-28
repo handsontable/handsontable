@@ -1,4 +1,4 @@
-import {mixin} from 'handsontable/helpers/object';
+import { mixin } from 'handsontable/helpers/object';
 import localHooks from 'handsontable/mixins/localHooks';
 
 import * as columnSorting from './alterOperation/columnSorting';

@@ -1,8 +1,8 @@
 import Menu from 'handsontable/plugins/contextMenu/menu';
-import {clone, extend} from 'handsontable/helpers/object';
-import {arrayEach} from 'handsontable/helpers/array';
+import { clone, extend } from 'handsontable/helpers/object';
+import { arrayEach } from 'handsontable/helpers/array';
 import * as C from 'handsontable/i18n/constants';
-import {SEPARATOR} from 'handsontable/plugins/contextMenu/predefinedItems';
+import { SEPARATOR } from 'handsontable/plugins/contextMenu/predefinedItems';
 import BaseUI from './_base';
 
 const privatePool = new WeakMap();
@@ -192,7 +192,7 @@ class SelectUI extends BaseUI {
       this.menu.destroy();
       this.menu = null;
     }
-    const {caption, dropdown} = privatePool.get(this);
+    const { caption, dropdown } = privatePool.get(this);
 
     if (caption) {
       caption.destroy();

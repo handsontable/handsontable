@@ -96,7 +96,7 @@ describe('Formulas -> math trig functions', function() {
   it('REFERENCE', function() {
     var data = getDataForFormulas(0, 'address', ['=REFERENCE()', '=REFERENCE(A1, "name.firstName")']);
 
-    data[0].id = {name: {firstName: 'Jim'}};
+    data[0].id = { name: { firstName: 'Jim' } };
 
     var hot = handsontable({
       data: data,

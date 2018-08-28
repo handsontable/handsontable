@@ -1,5 +1,5 @@
-import {arrayEach} from 'handsontable/helpers/array';
-import {isFormulaExpression} from './../utils';
+import { arrayEach } from 'handsontable/helpers/array';
+import { isFormulaExpression } from './../utils';
 import CellValue from './../cell/value';
 import ExpressionModifier from './../expressionModifier';
 
@@ -18,7 +18,7 @@ let visualRows;
  * Collect all previous visual rows from CellValues.
  */
 export function prepare() {
-  const {matrix, dataProvider} = this;
+  const { matrix, dataProvider } = this;
 
   visualRows = new WeakMap();
 
@@ -31,7 +31,7 @@ export function prepare() {
  * Translate all CellValues depends on previous position.
  */
 export function operate() {
-  const {matrix, dataProvider} = this;
+  const { matrix, dataProvider } = this;
 
   matrix.cellReferences.length = 0;
 
@@ -39,14 +39,14 @@ export function operate() {
     cell.setState(CellValue.STATE_OUT_OFF_DATE);
     cell.clearPrecedents();
 
-    const {row, column} = cell;
+    const { row, column } = cell;
     const value = dataProvider.getSourceDataAtCell(row, column);
 
     if (isFormulaExpression(value)) {
       const prevRow = visualRows.get(cell);
       const expModifier = new ExpressionModifier(value);
 
-      expModifier.translate({row: dataProvider.t.toVisualRow(row) - prevRow});
+      expModifier.translate({ row: dataProvider.t.toVisualRow(row) - prevRow });
 
       dataProvider.updateSourceData(row, column, expModifier.toString());
     }

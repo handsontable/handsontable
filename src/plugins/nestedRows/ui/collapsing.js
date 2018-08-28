@@ -1,7 +1,7 @@
-import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
-import {arrayEach} from 'handsontable/helpers/array';
-import {rangeEach} from 'handsontable/helpers/number';
-import {hasClass} from 'handsontable/helpers/dom/element';
+import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
+import { arrayEach } from 'handsontable/helpers/array';
+import { rangeEach } from 'handsontable/helpers/number';
+import { hasClass } from 'handsontable/helpers/dom/element';
 import BaseUI from './_base';
 import HeadersUI from './headers';
 

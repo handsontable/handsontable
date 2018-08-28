@@ -10,7 +10,7 @@ describe('BindRowsWithHeaders -> BindStrategy', function() {
   });
 
   it('should create a map based on `length` argument', function() {
-    var strategyMock = {_arrayMap: []};
+    var strategyMock = { _arrayMap: [] };
     var strategy = new BindStrategy();
 
     strategy.strategy = strategyMock;
@@ -24,7 +24,7 @@ describe('BindRowsWithHeaders -> BindStrategy', function() {
   });
 
   it('should re-create a map based on current map length', function() {
-    var strategyMock = {_arrayMap: []};
+    var strategyMock = { _arrayMap: [] };
     var strategy = new BindStrategy();
 
     strategy.strategy = strategyMock;

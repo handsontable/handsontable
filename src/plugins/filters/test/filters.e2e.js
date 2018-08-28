@@ -51,7 +51,7 @@ describe('Filters', function() {
     plugin.addCondition(1, 'begins_with', ['c']);
     plugin.filter();
 
-    hot.updateSettings({filters: false});
+    hot.updateSettings({ filters: false });
 
     dropdownMenu(1);
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htFiltersMenuLabel')).toBeNull();
@@ -69,7 +69,7 @@ describe('Filters', function() {
     });
     const plugin = hot.getPlugin('filters');
 
-    hot.updateSettings({filters: true});
+    hot.updateSettings({ filters: true });
     plugin.addCondition(1, 'begins_with', ['c']);
     plugin.filter();
 
@@ -721,17 +721,17 @@ describe('Filters', function() {
         expect(spy.calls.argsFor(0)[0][0]).toEqual({
           column: 0,
           operation: 'conjunction',
-          conditions: [{name: 'gt', args: [12]}]
+          conditions: [{ name: 'gt', args: [12] }]
         });
         expect(spy.calls.argsFor(0)[0][1]).toEqual({
           column: 2,
           operation: 'conjunction',
-          conditions: [{name: 'begins_with', args: ['b']}]
+          conditions: [{ name: 'begins_with', args: ['b'] }]
         });
         expect(spy.calls.argsFor(0)[0][2]).toEqual({
           column: 4,
           operation: 'conjunction',
-          conditions: [{name: 'eq', args: ['green']}]
+          conditions: [{ name: 'eq', args: ['green'] }]
         });
       });
 
@@ -787,17 +787,17 @@ describe('Filters', function() {
         expect(spy.calls.argsFor(0)[0][0]).toEqual({
           column: 0,
           operation: 'conjunction',
-          conditions: [{name: 'gt', args: [12]}]
+          conditions: [{ name: 'gt', args: [12] }]
         });
         expect(spy.calls.argsFor(0)[0][1]).toEqual({
           column: 2,
           operation: 'conjunction',
-          conditions: [{name: 'begins_with', args: ['b']}]
+          conditions: [{ name: 'begins_with', args: ['b'] }]
         });
         expect(spy.calls.argsFor(0)[0][2]).toEqual({
           column: 4,
           operation: 'conjunction',
-          conditions: [{name: 'eq', args: ['green']}]
+          conditions: [{ name: 'eq', args: ['green'] }]
         });
       });
     });

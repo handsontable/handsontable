@@ -1,6 +1,6 @@
-import {arrayEach} from 'handsontable/helpers/array';
-import {warn} from 'handsontable/helpers/console';
-import {getTranslator} from 'handsontable/utils/recordTranslator';
+import { arrayEach } from 'handsontable/helpers/array';
+import { warn } from 'handsontable/helpers/console';
+import { getTranslator } from 'handsontable/utils/recordTranslator';
 
 /**
  * Class used to make all endpoint-related operations.

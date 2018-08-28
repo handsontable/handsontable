@@ -1,6 +1,6 @@
 import * as C from 'handsontable/i18n/constants';
-import {registerCondition, getCondition} from './../conditionRegisterer';
-import {CONDITION_NAME as CONDITION_EQUAL} from './equal';
+import { registerCondition, getCondition } from './../conditionRegisterer';
+import { CONDITION_NAME as CONDITION_EQUAL } from './equal';
 
 export const CONDITION_NAME = 'neq';
 

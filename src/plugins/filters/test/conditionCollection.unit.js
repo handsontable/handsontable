@@ -1,7 +1,7 @@
 import ConditionCollection from 'handsontable-pro/plugins/filters/conditionCollection';
-import {conditions} from 'handsontable-pro/plugins/filters/conditionRegisterer';
-import {OPERATION_AND, OPERATION_OR} from 'handsontable-pro/plugins/filters/constants';
-import {operations} from 'handsontable-pro/plugins/filters/logicalOperationRegisterer';
+import { conditions } from 'handsontable-pro/plugins/filters/conditionRegisterer';
+import { OPERATION_AND, OPERATION_OR } from 'handsontable-pro/plugins/filters/constants';
+import { operations } from 'handsontable-pro/plugins/filters/logicalOperationRegisterer';
 
 describe('ConditionCollection', function() {
   it('should be initialized and accessible from the plugin', function() {
@@ -98,8 +98,8 @@ describe('ConditionCollection', function() {
     describe('OPERATION_AND', function () {
       it('should check if array of conditions is matched to the value', function () {
         const conditionCollection = new ConditionCollection();
-        const conditionMock = {func: () => true};
-        const conditionMock2 = {func: () => true};
+        const conditionMock = { func: () => true };
+        const conditionMock2 = { func: () => true };
 
         spyOn(conditionMock, 'func').and.callThrough();
         spyOn(conditionMock2, 'func').and.callThrough();
@@ -115,8 +115,8 @@ describe('ConditionCollection', function() {
 
       it('should break checking value when condition is not matched to the value', function () {
         const conditionCollection = new ConditionCollection();
-        const conditionMock = {func: () => false};
-        const conditionMock2 = {func: () => true};
+        const conditionMock = { func: () => false };
+        const conditionMock2 = { func: () => true };
 
         spyOn(conditionMock, 'func').and.callThrough();
         spyOn(conditionMock2, 'func').and.callThrough();
@@ -133,8 +133,8 @@ describe('ConditionCollection', function() {
     describe('OPERATION_OR', function () {
       it('should check if one of conditions is matched to the value #1', function () {
         const conditionCollection = new ConditionCollection();
-        const conditionMock = {func: () => false};
-        const conditionMock2 = {func: () => true};
+        const conditionMock = { func: () => false };
+        const conditionMock2 = { func: () => true };
 
         spyOn(conditionMock, 'func').and.callThrough();
         spyOn(conditionMock2, 'func').and.callThrough();
@@ -150,8 +150,8 @@ describe('ConditionCollection', function() {
 
       it('should check if one of conditions is matched to the value #2', function () {
         const conditionCollection = new ConditionCollection();
-        const conditionMock = {func: () => false};
-        const conditionMock2 = {func: () => false};
+        const conditionMock = { func: () => false };
+        const conditionMock2 = { func: () => false };
 
         spyOn(conditionMock, 'func').and.callThrough();
         spyOn(conditionMock2, 'func').and.callThrough();
@@ -167,9 +167,9 @@ describe('ConditionCollection', function() {
 
       it('should break checking value when condition is matched to the value', function () {
         const conditionCollection = new ConditionCollection();
-        const conditionMock = {func: () => false};
-        const conditionMock2 = {func: () => true};
-        const conditionMock3 = {func: () => false};
+        const conditionMock = { func: () => false };
+        const conditionMock2 = { func: () => true };
+        const conditionMock3 = { func: () => false };
 
         spyOn(conditionMock, 'func').and.callThrough();
         spyOn(conditionMock2, 'func').and.callThrough();
@@ -202,7 +202,7 @@ describe('ConditionCollection', function() {
 
     it('should trigger `beforeAdd` and `afterAdd` hook on adding condition', function() {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {args: [], command: {key: 'eq'}};
+      const conditionMock = { args: [], command: { key: 'eq' } };
       const hookBeforeSpy = jasmine.createSpy('hookBefore');
       const hookAfterSpy = jasmine.createSpy('hookAfter');
 
@@ -216,7 +216,7 @@ describe('ConditionCollection', function() {
 
     it('should add column index to the orderStack without duplicate values', function() {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {args: [], command: {key: 'eq'}};
+      const conditionMock = { args: [], command: { key: 'eq' } };
 
       conditionCollection.addCondition(3, conditionMock);
       conditionCollection.addCondition(3, conditionMock);
@@ -227,7 +227,7 @@ describe('ConditionCollection', function() {
 
     it('should add condition to the collection at specified column index.', function() {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {args: [1], command: {key: 'eq'}};
+      const conditionMock = { args: [1], command: { key: 'eq' } };
 
       conditionCollection.addCondition(3, conditionMock);
 
@@ -239,9 +239,9 @@ describe('ConditionCollection', function() {
 
     it('should allow to add few condition under the same name and column index #160', function() {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {args: ['A'], command: {key: 'contains'}};
-      const conditionMock2 = {args: ['B'], command: {key: 'contains'}};
-      const conditionMock3 = {args: ['C'], command: {key: 'contains'}};
+      const conditionMock = { args: ['A'], command: { key: 'contains' } };
+      const conditionMock2 = { args: ['B'], command: { key: 'contains' } };
+      const conditionMock3 = { args: ['C'], command: { key: 'contains' } };
 
       conditionCollection.addCondition(3, conditionMock);
       conditionCollection.addCondition(3, conditionMock2);
@@ -253,9 +253,9 @@ describe('ConditionCollection', function() {
     it('should allow to add few condition under the same column index ' +
       'only when they are related to the same operation (throw exception otherwise) #160', function() {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {args: ['A'], command: {key: 'contains'}};
-      const conditionMock2 = {args: ['B'], command: {key: 'contains'}};
-      const conditionMock3 = {args: ['C'], command: {key: 'contains'}};
+      const conditionMock = { args: ['A'], command: { key: 'contains' } };
+      const conditionMock2 = { args: ['B'], command: { key: 'contains' } };
+      const conditionMock3 = { args: ['C'], command: { key: 'contains' } };
 
       conditionCollection.addCondition(3, conditionMock, OPERATION_AND);
       conditionCollection.addCondition(3, conditionMock2, OPERATION_AND);
@@ -267,7 +267,7 @@ describe('ConditionCollection', function() {
     it('should allow to add conditions only when they are related to the known operation ' +
       '(throw exception otherwise) #174', function() {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {args: ['A'], command: {key: 'contains'}};
+      const conditionMock = { args: ['A'], command: { key: 'contains' } };
 
       expect(function () {
         conditionCollection.addCondition(3, conditionMock, 'unknownOperation');
@@ -288,9 +288,9 @@ describe('ConditionCollection', function() {
 
     it('should return conditions as an array of objects for all column in the same order as it was added', function() {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {name: 'begins_with', args: ['c']};
-      const conditionMock1 = {name: 'date_tomorrow', args: []};
-      const conditionMock2 = {name: 'eq', args: ['z']};
+      const conditionMock = { name: 'begins_with', args: ['c'] };
+      const conditionMock1 = { name: 'date_tomorrow', args: [] };
+      const conditionMock2 = { name: 'eq', args: ['z'] };
 
       conditionCollection.orderStack = [6, 1, 3];
       conditionCollection.columnTypes = { 1: OPERATION_AND, 3: OPERATION_AND, 6: OPERATION_AND };
@@ -413,7 +413,7 @@ describe('ConditionCollection', function() {
     it('should return `true` if at specified column index condition were found under its name', function() {
       const conditionCollection = new ConditionCollection();
       conditionCollection.columnTypes = { 3: OPERATION_AND };
-      const conditionsMock = [{name: 'lte'}, {name: 'eq'}];
+      const conditionsMock = [{ name: 'lte' }, { name: 'eq' }];
 
       spyOn(conditionCollection, 'getConditions').and.returnValue(conditionsMock);
 
@@ -424,7 +424,7 @@ describe('ConditionCollection', function() {
     it('should return `false` if at specified column index no conditions were found under its name', function() {
       const conditionCollection = new ConditionCollection();
       conditionCollection.columnTypes = { 3: OPERATION_AND };
-      const conditionsMock = [{name: 'lte'}, {name: 'eq'}];
+      const conditionsMock = [{ name: 'lte' }, { name: 'eq' }];
 
       spyOn(conditionCollection, 'getConditions').and.returnValue(conditionsMock);
 
@@ -439,7 +439,7 @@ describe('ConditionCollection', function() {
     it('should trigger `beforeClean` and `afterClean` hook on cleaning conditions', function() {
       const conditionCollection = new ConditionCollection();
 
-      conditionCollection.conditions = {0: []};
+      conditionCollection.conditions = { 0: [] };
       conditionCollection.conditions = [1, 2, 3, 4];
 
       const hookBeforeSpy = jasmine.createSpy('hookBefore');
@@ -456,7 +456,7 @@ describe('ConditionCollection', function() {
     it('should clear condition collection and orderStack', function() {
       const conditionCollection = new ConditionCollection();
 
-      conditionCollection.conditions = {0: []};
+      conditionCollection.conditions = { 0: [] };
       conditionCollection.conditions = [1, 2, 3, 4];
 
       conditionCollection.clean();
@@ -471,8 +471,8 @@ describe('ConditionCollection', function() {
     it('should nullable all properties', function() {
       const conditionCollection = new ConditionCollection();
 
-      conditionCollection.conditions[OPERATION_AND] = {0: [], 2: []};
-      conditionCollection.conditions[OPERATION_OR] = {3: [], 4: []};
+      conditionCollection.conditions[OPERATION_AND] = { 0: [], 2: [] };
+      conditionCollection.conditions[OPERATION_OR] = { 3: [], 4: [] };
       conditionCollection.orderStack = [1, 2, 3, 4];
 
       conditionCollection.destroy();

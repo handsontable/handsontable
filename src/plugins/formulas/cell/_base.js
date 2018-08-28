@@ -1,5 +1,5 @@
-import {isObject} from 'handsontable/helpers/object';
-import {toLabel} from 'hot-formula-parser';
+import { isObject } from 'handsontable/helpers/object';
+import { toLabel } from 'hot-formula-parser';
 
 /**
  * @class BaseCell
@@ -68,8 +68,8 @@ class BaseCell {
    */
   toString() {
     return toLabel(
-      {index: this.row, isAbsolute: this.rowAbsolute},
-      {index: this.column, isAbsolute: this.columnAbsolute}
+      { index: this.row, isAbsolute: this.rowAbsolute },
+      { index: this.column, isAbsolute: this.columnAbsolute }
     );
   }
 }

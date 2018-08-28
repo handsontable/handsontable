@@ -1,10 +1,10 @@
-import {condition as trueFunction} from 'handsontable-pro/plugins/filters/condition/true';
-import {condition as falseFunction} from 'handsontable-pro/plugins/filters/condition/false';
-import {condition as beginsWithFunction} from 'handsontable-pro/plugins/filters/condition/beginsWith';
-import {condition as endsWithFunction} from 'handsontable-pro/plugins/filters/condition/endsWith';
-import {condition as containsFunction} from 'handsontable-pro/plugins/filters/condition/contains';
-import {operationResult as conjunction} from 'handsontable-pro/plugins/filters/logicalOperations/conjunction';
-import {conditionFactory, dateRowFactory} from './../helpers/utils';
+import { condition as trueFunction } from 'handsontable-pro/plugins/filters/condition/true';
+import { condition as falseFunction } from 'handsontable-pro/plugins/filters/condition/false';
+import { condition as beginsWithFunction } from 'handsontable-pro/plugins/filters/condition/beginsWith';
+import { condition as endsWithFunction } from 'handsontable-pro/plugins/filters/condition/endsWith';
+import { condition as containsFunction } from 'handsontable-pro/plugins/filters/condition/contains';
+import { operationResult as conjunction } from 'handsontable-pro/plugins/filters/logicalOperations/conjunction';
+import { conditionFactory, dateRowFactory } from './../helpers/utils';
 
 describe('Operation on set of conditions (`conjunction`)', function() {
   const data = dateRowFactory();

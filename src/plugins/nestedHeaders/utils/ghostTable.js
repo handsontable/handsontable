@@ -1,5 +1,5 @@
-import {fastInnerHTML} from 'handsontable/helpers/dom/element';
-import {clone} from 'handsontable/helpers/object';
+import { fastInnerHTML } from 'handsontable/helpers/dom/element';
+import { clone } from 'handsontable/helpers/object';
 
 class GhostTable {
   constructor(plugin) {

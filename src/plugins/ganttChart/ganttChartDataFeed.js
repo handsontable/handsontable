@@ -1,7 +1,7 @@
-import {objectEach, clone} from 'handsontable/helpers/object';
-import {arrayEach} from 'handsontable/helpers/array';
-import {rangeEach} from 'handsontable/helpers/number';
-import {getAdditionalData, getEndDate, getStartDate, setEndDate, setStartDate} from './utils';
+import { objectEach, clone } from 'handsontable/helpers/object';
+import { arrayEach } from 'handsontable/helpers/array';
+import { rangeEach } from 'handsontable/helpers/number';
+import { getAdditionalData, getEndDate, getStartDate, setEndDate, setStartDate } from './utils';
 
 /**
  * This class handles the data-related calculations for the GanttChart plugin.

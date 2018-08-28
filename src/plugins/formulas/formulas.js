@@ -1,9 +1,9 @@
 import BasePlugin from 'handsontable/plugins/_base';
-import {arrayEach} from 'handsontable/helpers/array';
-import {isObject, objectEach} from 'handsontable/helpers/object';
+import { arrayEach } from 'handsontable/helpers/array';
+import { isObject, objectEach } from 'handsontable/helpers/object';
 import EventManager from 'handsontable/eventManager';
-import {registerPlugin} from 'handsontable/plugins';
-import {isFormulaExpression, toUpperCaseFormula, isFormulaExpressionEscaped, unescapeFormulaExpression} from './utils';
+import { registerPlugin } from 'handsontable/plugins';
+import { isFormulaExpression, toUpperCaseFormula, isFormulaExpressionEscaped, unescapeFormulaExpression } from './utils';
 import Sheet from './sheet';
 import DataProvider from './dataProvider';
 import UndoRedoSnapshot from './undoRedoSnapshot';
@@ -190,7 +190,7 @@ class Formulas extends BasePlugin {
     }
     const hot = this.hot;
 
-    arrayEach(cells, ({row, column}) => {
+    arrayEach(cells, ({ row, column }) => {
       hot.validateCell(hot.getDataAtCell(row, column), hot.getCellMeta(row, column), () => {});
     });
     hot.render();

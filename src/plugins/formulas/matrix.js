@@ -1,4 +1,4 @@
-import {arrayEach, arrayFilter, arrayReduce} from 'handsontable/helpers/array';
+import { arrayEach, arrayFilter, arrayReduce } from 'handsontable/helpers/array';
 import CellValue from './cell/value';
 
 /**
@@ -157,7 +157,7 @@ class Matrix {
    * @param {Object} end End visual coordinate.
    * @returns {Array} Returns removed cell references.
    */
-  removeCellRefsAtRange({row: startRow, column: startColumn}, {row: endRow, column: endColumn}) {
+  removeCellRefsAtRange({ row: startRow, column: startColumn }, { row: endRow, column: endColumn }) {
     const removed = [];
 
     const rowMatch = cell => (startRow === void 0 ? true : cell.row >= startRow && cell.row <= endRow);

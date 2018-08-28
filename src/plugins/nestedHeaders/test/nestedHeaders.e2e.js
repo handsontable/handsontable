@@ -18,7 +18,7 @@ describe('NestedHeaders', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['a', {label: 'b', colspan: 3}, 'c', 'd'],
+          ['a', { label: 'b', colspan: 3 }, 'c', 'd'],
           ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         ]
       });
@@ -38,7 +38,7 @@ describe('NestedHeaders', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['a', {label: 'b', colspan: 3}, 'c', 'd'],
+          ['a', { label: 'b', colspan: 3 }, 'c', 'd'],
           ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         ]
       });
@@ -63,7 +63,7 @@ describe('NestedHeaders', function() {
 
       hot.updateSettings({
         nestedHeaders: [
-          ['a', {label: 'b', colspan: 3}, 'c', 'd'],
+          ['a', { label: 'b', colspan: 3 }, 'c', 'd'],
           ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         ]
       });
@@ -92,7 +92,7 @@ describe('NestedHeaders', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['a', {label: 'b', colspan: 2}, 'c', 'd'],
+          ['a', { label: 'b', colspan: 2 }, 'c', 'd'],
           ['a', 'Long column header', 'c', 'd']
         ]
       });
@@ -110,7 +110,7 @@ describe('NestedHeaders', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['a', {label: 'b', colspan: 2}, 'c', 'd'],
+          ['a', { label: 'b', colspan: 2 }, 'c', 'd'],
           ['a', 'b', 'c', 'd', 'e']
         ]
       });
@@ -132,8 +132,8 @@ describe('NestedHeaders', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['a', {label: 'b', colspan: 4}, 'c', 'd'],
-          ['a', {label: 'b', colspan: 2}, {label: 'c', colspan: 2}, 'd', 'e']
+          ['a', { label: 'b', colspan: 4 }, 'c', 'd'],
+          ['a', { label: 'b', colspan: 2 }, { label: 'c', colspan: 2 }, 'd', 'e']
         ]
       });
 
@@ -266,9 +266,9 @@ describe('NestedHeaders', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['A', {label: 'B', colspan: 8}, 'C'],
-          ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
-          ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });
@@ -441,9 +441,9 @@ describe('NestedHeaders', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['A', {label: 'B', colspan: 8}, 'C'],
-          ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
-          ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });
@@ -474,9 +474,9 @@ describe('NestedHeaders', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['A', {label: 'B', colspan: 8}, 'C'],
-          ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
-          ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });
@@ -496,9 +496,9 @@ describe('NestedHeaders', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['A', {label: 'B', colspan: 8}, 'C'],
-          ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
-          ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });
@@ -522,9 +522,9 @@ describe('NestedHeaders', function() {
         data: Handsontable.helper.createSpreadsheetData(4, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['A', {label: 'B', colspan: 8}, 'C'],
-          ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
-          ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });

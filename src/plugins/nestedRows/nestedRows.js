@@ -1,8 +1,8 @@
 import BasePlugin from 'handsontable/plugins/_base';
-import {registerPlugin} from 'handsontable/plugins';
-import {rangeEach} from 'handsontable/helpers/number';
-import {arrayEach} from 'handsontable/helpers/array';
-import {CellCoords} from 'handsontable/3rdparty/walkontable/src';
+import { registerPlugin } from 'handsontable/plugins';
+import { rangeEach } from 'handsontable/helpers/number';
+import { arrayEach } from 'handsontable/helpers/array';
+import { CellCoords } from 'handsontable/3rdparty/walkontable/src';
 import DataManager from './data/dataManager';
 import CollapsingUI from './ui/collapsing';
 import HeadersUI from './ui/headers';

@@ -1,10 +1,10 @@
-import {condition} from 'handsontable-pro/plugins/filters/condition/notBetween';
-import {dateRowFactory} from './../helpers/utils';
+import { condition } from 'handsontable-pro/plugins/filters/condition/notBetween';
+import { dateRowFactory } from './../helpers/utils';
 
 describe('Filters condition (`not_between`)', function() {
 
   it('should filter matching values (numeric cell type)', function() {
-    var data = dateRowFactory({type: 'numeric'});
+    var data = dateRowFactory({ type: 'numeric' });
 
     expect(condition(data(4), [1, 3])).toBe(true);
     expect(condition(data(4), [-4, 3])).toBe(true);
@@ -17,7 +17,7 @@ describe('Filters condition (`not_between`)', function() {
   });
 
   it('should filter not matching values (numeric cell type)', function() {
-    var data = dateRowFactory({type: 'numeric'});
+    var data = dateRowFactory({ type: 'numeric' });
 
     expect(condition(data(4), [4, 9])).toBe(false);
     expect(condition(data(4), [4, 4])).toBe(false);
@@ -31,7 +31,7 @@ describe('Filters condition (`not_between`)', function() {
   });
 
   it('should filter matching values (date cell type)', function() {
-    var data = dateRowFactory({type: 'date', dateFormat: 'YYYY-MM-DD'});
+    var data = dateRowFactory({ type: 'date', dateFormat: 'YYYY-MM-DD' });
 
     expect(condition(data('2015-12-20'), ['2015-11-20', '2015-12-24'])).toBe(false);
     expect(condition(data('2015-12-20'), ['2015-12-20', '2015-12-20'])).toBe(false);
@@ -40,7 +40,7 @@ describe('Filters condition (`not_between`)', function() {
   });
 
   it('should filter not matching values (date cell type)', function() {
-    var data = dateRowFactory({type: 'date', dateFormat: 'YYYY-MM-DD'});
+    var data = dateRowFactory({ type: 'date', dateFormat: 'YYYY-MM-DD' });
 
     expect(condition(data('2015-12-20'), ['2015-11-20', '2015-12-24'])).toBe(false);
     expect(condition(data('2015-12-20'), ['2015-12-20', '2015-12-20'])).toBe(false);
@@ -48,7 +48,7 @@ describe('Filters condition (`not_between`)', function() {
   });
 
   it('should filter matching values (text cell type)', function() {
-    var data = dateRowFactory({type: 'text'});
+    var data = dateRowFactory({ type: 'text' });
 
     expect(condition(data('f'), ['a', 'z'])).toBe(false);
     expect(condition(data('foo'), ['a', 'z'])).toBe(false);

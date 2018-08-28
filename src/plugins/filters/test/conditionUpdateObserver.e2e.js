@@ -2,7 +2,7 @@ describe('ConditionUpdateObserver', function() {
   const id = 'testContainer';
 
   function getConditionUpdateObserver() {
-    return handsontable({filters: true}).getPlugin('filters').conditionUpdateObserver;
+    return handsontable({ filters: true }).getPlugin('filters').conditionUpdateObserver;
   }
 
   beforeEach(function() {
@@ -39,11 +39,11 @@ describe('ConditionUpdateObserver', function() {
 
     conditionObserver.addLocalHook('update', updateSpy);
 
-    conditionObserver.conditionCollection.addCondition(0, {name: 'gt', args: [2]});
+    conditionObserver.conditionCollection.addCondition(0, { name: 'gt', args: [2] });
     conditionObserver.conditionCollection.removeConditions(2);
-    conditionObserver.conditionCollection.addCondition(1, {name: 'contains', args: ['b']});
-    conditionObserver.conditionCollection.addCondition(2, {name: 'begins_with', args: ['c']});
-    conditionObserver.conditionCollection.addCondition(2, {name: 'ends_with', args: ['d']});
+    conditionObserver.conditionCollection.addCondition(1, { name: 'contains', args: ['b'] });
+    conditionObserver.conditionCollection.addCondition(2, { name: 'begins_with', args: ['c'] });
+    conditionObserver.conditionCollection.addCondition(2, { name: 'ends_with', args: ['d'] });
     conditionObserver.conditionCollection.clean();
 
     // add 'gt'
@@ -83,11 +83,11 @@ describe('ConditionUpdateObserver', function() {
       conditionObserver.addLocalHook('update', updateSpy);
 
       conditionObserver.groupChanges();
-      conditionObserver.conditionCollection.addCondition(0, {name: 'gt', args: [2]});
+      conditionObserver.conditionCollection.addCondition(0, { name: 'gt', args: [2] });
       conditionObserver.conditionCollection.removeConditions(2);
-      conditionObserver.conditionCollection.addCondition(1, {name: 'contains', args: ['b']});
-      conditionObserver.conditionCollection.addCondition(2, {name: 'begins_with', args: ['c']});
-      conditionObserver.conditionCollection.addCondition(2, {name: 'ends_with', args: ['d']});
+      conditionObserver.conditionCollection.addCondition(1, { name: 'contains', args: ['b'] });
+      conditionObserver.conditionCollection.addCondition(2, { name: 'begins_with', args: ['c'] });
+      conditionObserver.conditionCollection.addCondition(2, { name: 'ends_with', args: ['d'] });
 
       expect(updateSpy).not.toHaveBeenCalled();
 

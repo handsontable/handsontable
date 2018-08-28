@@ -34,5 +34,5 @@ export function getOperationName(id) {
  * @param {Function} func Operation function.
  */
 export function registerOperation(id, name, func) {
-  operations[id] = {name, func};
+  operations[id] = { name, func };
 }

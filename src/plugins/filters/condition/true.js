@@ -1,4 +1,4 @@
-import {registerCondition} from './../conditionRegisterer';
+import { registerCondition } from './../conditionRegisterer';
 
 export const CONDITION_NAME = 'true';
 

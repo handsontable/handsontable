@@ -1,5 +1,5 @@
 import * as C from 'handsontable/i18n/constants';
-import {registerOperation} from '../logicalOperationRegisterer';
+import { registerOperation } from '../logicalOperationRegisterer';
 
 export const OPERATION_ID = 'disjunction';
 export const SHORT_NAME_FOR_COMPONENT = C.FILTERS_LABELS_DISJUNCTION;

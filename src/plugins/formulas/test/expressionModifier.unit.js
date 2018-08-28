@@ -24,7 +24,7 @@ describe('Formulas expression modifier', function() {
   });
 
   it('should correctly translate rows of formula expression (using default build-in modifier)', function() {
-    var delta = {row: 5};
+    var delta = { row: 5 };
 
     expect(modifier.setExpression('=B1').translate(delta).toString()).toBe('=B6');
     expect(modifier.setExpression('$DD$99').translate(delta).toString()).toBe('=$DD$99');
@@ -35,7 +35,7 @@ describe('Formulas expression modifier', function() {
     expect(modifier.setExpression('=IF(B28<64, "F", IF(B28<73, "D", IF(B28<85, "C", IF(B28<95, "B", "A"))))').translate(delta).toString())
       .toBe('=IF(B33<64, "F", IF(B33<73, "D", IF(B33<85, "C", IF(B33<95, "B", "A"))))');
 
-    delta = {row: -5};
+    delta = { row: -5 };
 
     expect(modifier.setExpression('=B1').translate(delta).toString()).toBe('=#REF!');
     expect(modifier.setExpression('$DD$99').translate(delta).toString()).toBe('=$DD$99');
@@ -48,7 +48,7 @@ describe('Formulas expression modifier', function() {
   });
 
   it('should correctly translate columns of formula expression (using default build-in modifier)', function() {
-    var delta = {column: 5};
+    var delta = { column: 5 };
 
     expect(modifier.setExpression('=B1').translate(delta).toString()).toBe('=G1');
     expect(modifier.setExpression('$DD$99').translate(delta).toString()).toBe('=$DD$99');
@@ -59,7 +59,7 @@ describe('Formulas expression modifier', function() {
     expect(modifier.setExpression('=IF(B28<64, "F", IF(B28<73, "D", IF(B28<85, "C", IF(B28<95, "B", "A"))))').translate(delta).toString())
       .toBe('=IF(G28<64, "F", IF(G28<73, "D", IF(G28<85, "C", IF(G28<95, "B", "A"))))');
 
-    delta = {column: -5};
+    delta = { column: -5 };
 
     expect(modifier.setExpression('=B1').translate(delta).toString()).toBe('=#REF!');
     expect(modifier.setExpression('$DD$99').translate(delta).toString()).toBe('=$DD$99');

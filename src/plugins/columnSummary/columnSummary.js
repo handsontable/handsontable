@@ -1,6 +1,6 @@
 import BasePlugin from 'handsontable/plugins/_base.js';
-import {hasOwnProperty} from 'handsontable/helpers/object';
-import {registerPlugin} from 'handsontable/plugins.js';
+import { hasOwnProperty } from 'handsontable/helpers/object';
+import { registerPlugin } from 'handsontable/plugins.js';
 import Endpoints from './endpoints';
 
 /**
@@ -10,7 +10,7 @@ import Endpoints from './endpoints';
  * @description
  * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
  * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
- *
+ *s
  * @example
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {

@@ -869,9 +869,9 @@ describe('Filters UI', () => {
             },
           ],
           columns: [
-            {data: 'id', type: 'numeric', title: 'ID'},
-            {data: 'name', type: 'text', title: 'Full name'},
-            {data: 'address', type: 'text', title: 'Address'}
+            { data: 'id', type: 'numeric', title: 'ID' },
+            { data: 'name', type: 'text', title: 'Full name' },
+            { data: 'address', type: 'text', title: 'Address' }
           ],
           dropdownMenu: true,
           filters: true,
@@ -998,9 +998,9 @@ describe('Filters UI', () => {
             }
           ],
           columns: [
-            {data: 'id', type: 'numeric', title: 'ID'},
-            {data: 'name', type: 'text', title: 'Full name'},
-            {data: 'address', type: 'text', title: 'Address'}
+            { data: 'id', type: 'numeric', title: 'ID' },
+            { data: 'name', type: 'text', title: 'Full name' },
+            { data: 'address', type: 'text', title: 'Address' }
           ],
           dropdownMenu: true,
           filters: true,
@@ -1048,9 +1048,9 @@ describe('Filters UI', () => {
             }
           ],
           columns: [
-            {data: 'id', type: 'numeric', title: 'ID'},
-            {data: 'name', type: 'text', title: 'Full name'},
-            {data: 'address', type: 'text', title: 'Address'}
+            { data: 'id', type: 'numeric', title: 'ID' },
+            { data: 'name', type: 'text', title: 'Full name' },
+            { data: 'address', type: 'text', title: 'Address' }
           ],
           dropdownMenu: true,
           filters: true,
@@ -1102,9 +1102,9 @@ describe('Filters UI', () => {
             }
           ],
           columns: [
-            {data: 'id', type: 'numeric', title: 'ID'},
-            {data: 'name', type: 'text', title: 'Full name'},
-            {data: 'address', type: 'text', title: 'Address'}
+            { data: 'id', type: 'numeric', title: 'ID' },
+            { data: 'name', type: 'text', title: 'Full name' },
+            { data: 'address', type: 'text', title: 'Address' }
           ],
           dropdownMenu: true,
           filters: true,
@@ -1152,9 +1152,9 @@ describe('Filters UI', () => {
           }
         ],
         columns: [
-          {data: 'id', type: 'numeric', title: 'ID'},
-          {data: 'name', type: 'text', title: 'Full name'},
-          {data: 'address', type: 'text', title: 'Address'}
+          { data: 'id', type: 'numeric', title: 'ID' },
+          { data: 'name', type: 'text', title: 'Full name' },
+          { data: 'address', type: 'text', title: 'Address' }
         ],
         dropdownMenu: true,
         manualColumnMove: true,
@@ -1213,9 +1213,9 @@ describe('Filters UI', () => {
           }
         ],
         columns: [
-          {data: 'id', type: 'numeric', title: 'ID'},
-          {data: 'name', type: 'text', title: 'Full name'},
-          {data: 'address', type: 'text', title: 'Address'}
+          { data: 'id', type: 'numeric', title: 'ID' },
+          { data: 'name', type: 'text', title: 'Full name' },
+          { data: 'address', type: 'text', title: 'Address' }
         ],
         dropdownMenu: true,
         manualColumnMove: true,
@@ -2710,9 +2710,9 @@ describe('Filters UI', () => {
           }
         ],
         columns: [
-          {data: 'id', type: 'numeric', title: 'ID'},
-          {data: 'name', type: 'text', title: 'Full name'},
-          {data: 'address', type: 'text', title: 'Address'}
+          { data: 'id', type: 'numeric', title: 'ID' },
+          { data: 'name', type: 'text', title: 'Full name' },
+          { data: 'address', type: 'text', title: 'Address' }
         ],
         dropdownMenu: true,
         filters: true,
@@ -2761,9 +2761,9 @@ describe('Filters UI', () => {
           }
         ],
         columns: [
-          {data: 'id', type: 'numeric', title: 'ID'},
-          {data: 'name', type: 'text', title: 'Full name'},
-          {data: 'address', type: 'text', title: 'Address'}
+          { data: 'id', type: 'numeric', title: 'ID' },
+          { data: 'name', type: 'text', title: 'Full name' },
+          { data: 'address', type: 'text', title: 'Address' }
         ],
         dropdownMenu: true,
         filters: true,
@@ -2812,9 +2812,9 @@ describe('Filters UI', () => {
           }
         ],
         columns: [
-          {data: 'id', type: 'numeric', title: 'ID'},
-          {data: 'name', type: 'text', title: 'Full name'},
-          {data: 'address', type: 'text', title: 'Address'}
+          { data: 'id', type: 'numeric', title: 'ID' },
+          { data: 'name', type: 'text', title: 'Full name' },
+          { data: 'address', type: 'text', title: 'Address' }
         ],
         dropdownMenu: true,
         filters: true,
@@ -2863,9 +2863,9 @@ describe('Filters UI', () => {
           }
         ],
         columns: [
-          {data: 'id', type: 'numeric', title: 'ID'},
-          {data: 'name', type: 'text', title: 'Full name'},
-          {data: 'address', type: 'text', title: 'Address'}
+          { data: 'id', type: 'numeric', title: 'ID' },
+          { data: 'name', type: 'text', title: 'Full name' },
+          { data: 'address', type: 'text', title: 'Address' }
         ],
         dropdownMenu: true,
         filters: true,
@@ -2913,9 +2913,9 @@ describe('Filters UI', () => {
           }
         ],
         columns: [
-          {data: 'id', type: 'numeric', title: 'ID'},
-          {data: 'name', type: 'text', title: 'Full name'},
-          {data: 'address', type: 'text', title: 'Address'}
+          { data: 'id', type: 'numeric', title: 'ID' },
+          { data: 'name', type: 'text', title: 'Full name' },
+          { data: 'address', type: 'text', title: 'Address' }
         ],
         dropdownMenu: true,
         filters: true,
@@ -2962,9 +2962,9 @@ describe('Filters UI', () => {
           }
         ],
         columns: [
-          {data: 'id', type: 'numeric', title: 'ID'},
-          {data: 'name', type: 'text', title: 'Full name'},
-          {data: 'address', type: 'text', title: 'Address'}
+          { data: 'id', type: 'numeric', title: 'ID' },
+          { data: 'name', type: 'text', title: 'Full name' },
+          { data: 'address', type: 'text', title: 'Address' }
         ],
         dropdownMenu: true,
         filters: true,
@@ -3015,9 +3015,9 @@ describe('Filters UI', () => {
           }
         ],
         columns: [
-          {data: 'id', type: 'numeric', title: 'ID'},
-          {data: 'name', type: 'text', title: 'Full name'},
-          {data: 'address', type: 'text', title: 'Address'}
+          { data: 'id', type: 'numeric', title: 'ID' },
+          { data: 'name', type: 'text', title: 'Full name' },
+          { data: 'address', type: 'text', title: 'Address' }
         ],
         dropdownMenu: true,
         filters: true,
@@ -3235,7 +3235,7 @@ describe('Filters UI', () => {
 
       const firstWidth = $menu.find('.wtHider').width();
 
-      hot.updateSettings({dropdownMenu: true});
+      hot.updateSettings({ dropdownMenu: true });
 
       dropdownMenu(0);
 
@@ -3290,7 +3290,7 @@ describe('Filters UI', () => {
       const $conditionalMenu = $('.htFiltersConditionsMenu');
       const firstWidth = $conditionalMenu.find('.wtHider').width();
 
-      hot.updateSettings({language: 'en-US'});
+      hot.updateSettings({ language: 'en-US' });
 
       dropdownMenu(0);
 

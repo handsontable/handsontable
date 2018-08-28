@@ -1,5 +1,5 @@
-import {addClass} from 'handsontable/helpers/dom/element';
-import {clone, extend} from 'handsontable/helpers/object';
+import { addClass } from 'handsontable/helpers/dom/element';
+import { clone, extend } from 'handsontable/helpers/object';
 import BaseUI from './_base';
 
 const privatePool = new WeakMap();

@@ -1,4 +1,4 @@
-import {parseDate} from '../utils';
+import { parseDate } from '../utils';
 
 describe('the `parseDate` function', () => {
   it('should return a Date object if the provided date string is valid and null if it\'s invalid', () => {

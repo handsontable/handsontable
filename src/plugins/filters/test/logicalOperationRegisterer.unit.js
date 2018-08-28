@@ -1,4 +1,4 @@
-import {operations, registerOperation, getOperationFunc} from 'handsontable-pro/plugins/filters/logicalOperationRegisterer';
+import { operations, registerOperation, getOperationFunc } from 'handsontable-pro/plugins/filters/logicalOperationRegisterer';
 
 describe('registerOperation', function() {
   it('should register operation function under its name', function() {
@@ -40,7 +40,7 @@ describe('getOperationFunc', function() {
     const argsMock = 'hello world';
 
     operationMock.and.returnValue(true);
-    operations.xor = {func: operationMock, name: 'XOR'};
+    operations.xor = { func: operationMock, name: 'XOR' };
 
     const result = getOperationFunc('xor')(conditionsMock, argsMock);
 

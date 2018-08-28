@@ -1,13 +1,13 @@
 import BasePlugin from 'handsontable/plugins/_base';
-import {arrayEach} from 'handsontable/helpers/array';
+import { arrayEach } from 'handsontable/helpers/array';
 import CommandExecutor from 'handsontable/plugins/contextMenu/commandExecutor';
 import EventManager from 'handsontable/eventManager';
-import {hasClass} from 'handsontable/helpers/dom/element';
+import { hasClass } from 'handsontable/helpers/dom/element';
 import ItemsFactory from 'handsontable/plugins/contextMenu/itemsFactory';
 import Menu from 'handsontable/plugins/contextMenu/menu';
-import {registerPlugin} from 'handsontable/plugins';
+import { registerPlugin } from 'handsontable/plugins';
 import Hooks from 'handsontable/pluginHooks';
-import {stopPropagation} from 'handsontable/helpers/dom/event';
+import { stopPropagation } from 'handsontable/helpers/dom/event';
 import {
   COLUMN_LEFT,
   COLUMN_RIGHT,

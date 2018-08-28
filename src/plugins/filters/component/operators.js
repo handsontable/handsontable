@@ -1,11 +1,11 @@
-import {addClass} from 'handsontable/helpers/dom/element';
-import {arrayEach} from 'handsontable/helpers/array';
-import {toSingleLine} from 'handsontable/helpers/templateLiteralTag';
+import { addClass } from 'handsontable/helpers/dom/element';
+import { arrayEach } from 'handsontable/helpers/array';
+import { toSingleLine } from 'handsontable/helpers/templateLiteralTag';
 import BaseComponent from './_base';
-import {getOperationName} from '../logicalOperationRegisterer';
-import {OPERATION_ID as OPERATION_AND} from '../logicalOperations/conjunction';
-import {OPERATION_ID as OPERATION_OR} from '../logicalOperations/disjunction';
-import {OPERATION_ID as OPERATION_OR_THEN_VARIABLE} from '../logicalOperations/disjunctionWithExtraCondition';
+import { getOperationName } from '../logicalOperationRegisterer';
+import { OPERATION_ID as OPERATION_AND } from '../logicalOperations/conjunction';
+import { OPERATION_ID as OPERATION_OR } from '../logicalOperations/disjunction';
+import { OPERATION_ID as OPERATION_OR_THEN_VARIABLE } from '../logicalOperations/disjunctionWithExtraCondition';
 import RadioInputUI from './../ui/radioInput';
 
 const SELECTED_AT_START_ELEMENT_INDEX = 0;

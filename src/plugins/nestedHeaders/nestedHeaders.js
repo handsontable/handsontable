@@ -4,14 +4,14 @@ import {
   fastInnerHTML,
   empty,
 } from 'handsontable/helpers/dom/element';
-import {rangeEach} from 'handsontable/helpers/number';
-import {arrayEach} from 'handsontable/helpers/array';
-import {objectEach} from 'handsontable/helpers/object';
-import {toSingleLine} from 'handsontable/helpers/templateLiteralTag';
-import {warn} from 'handsontable/helpers/console';
-import {registerPlugin} from 'handsontable/plugins';
+import { rangeEach } from 'handsontable/helpers/number';
+import { arrayEach } from 'handsontable/helpers/array';
+import { objectEach } from 'handsontable/helpers/object';
+import { toSingleLine } from 'handsontable/helpers/templateLiteralTag';
+import { warn } from 'handsontable/helpers/console';
+import { registerPlugin } from 'handsontable/plugins';
 import BasePlugin from 'handsontable/plugins/_base';
-import {CellCoords} from 'handsontable/3rdparty/walkontable/src';
+import { CellCoords } from 'handsontable/3rdparty/walkontable/src';
 import GhostTable from './utils/ghostTable';
 
 import './nestedHeaders.css';
@@ -566,7 +566,7 @@ class NestedHeaders extends BasePlugin {
       return;
     }
 
-    let {from, to} = this.hot.getSelectedRangeLast();
+    let { from, to } = this.hot.getSelectedRangeLast();
     let colspan = this.getColspan(coords.row, coords.col);
     let lastColIndex = coords.col + colspan - 1;
     let changeDirection = false;

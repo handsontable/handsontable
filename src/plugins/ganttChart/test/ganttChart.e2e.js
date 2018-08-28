@@ -93,7 +93,7 @@ describe('GanttChart', function() {
     it('should allow to change the gantt chart\'s year using the updateSettings method', function() {
       const source = [
         {
-          additionalData: {vendor: 'Vendor One', format: 'Posters', market: 'New York, NY'},
+          additionalData: { vendor: 'Vendor One', format: 'Posters', market: 'New York, NY' },
           startDate: '1/5/2015',
           endDate: '1/20/2015'
         }
@@ -519,42 +519,42 @@ describe('GanttChart', function() {
     it('should be able to feed the gantt chart data from an object', function() {
       const source = [
         {
-          additionalData: {vendor: 'Vendor One', format: 'Posters', market: 'New York, NY'},
+          additionalData: { vendor: 'Vendor One', format: 'Posters', market: 'New York, NY' },
           startDate: '1/5/2015',
           endDate: '1/20/2015'
         },
         {
-          additionalData: {vendor: 'Vendor Two', format: 'Malls', market: 'Los Angeles, CA'},
+          additionalData: { vendor: 'Vendor Two', format: 'Malls', market: 'Los Angeles, CA' },
           startDate: '1/11/2015',
           endDate: '1/29/2015'
         },
         {
-          additionalData: {vendor: 'Vendor Three', format: 'Posters', market: 'Chicago, IL'},
+          additionalData: { vendor: 'Vendor Three', format: 'Posters', market: 'Chicago, IL' },
           startDate: '1/15/2015',
           endDate: '2/20/2015'
         },
         {
-          additionalData: {vendor: 'Vendor Four', format: 'Malls', market: 'Philadelphia, PA'},
+          additionalData: { vendor: 'Vendor Four', format: 'Malls', market: 'Philadelphia, PA' },
           startDate: '1/3/2015',
           endDate: '3/29/2015'
         },
         {
-          additionalData: {vendor: 'Vendor One', format: 'Posters', market: 'San Francisco, CA'},
+          additionalData: { vendor: 'Vendor One', format: 'Posters', market: 'San Francisco, CA' },
           startDate: '4/5/2015',
           endDate: '4/20/2015'
         },
         {
-          additionalData: {vendor: 'Vendor Four', format: 'Malls', market: 'Los Angeles, CA'},
+          additionalData: { vendor: 'Vendor Four', format: 'Malls', market: 'Los Angeles, CA' },
           startDate: '2/11/2015',
           endDate: '5/29/2015'
         },
         {
-          additionalData: {vendor: 'Vendor Two', format: 'Posters', market: 'New York, NY'},
+          additionalData: { vendor: 'Vendor Two', format: 'Posters', market: 'New York, NY' },
           startDate: '2/15/2015',
           endDate: '3/20/2015'
         },
         {
-          additionalData: {vendor: 'Vendor Two', format: 'Malls', market: 'Los Angeles, CA'},
+          additionalData: { vendor: 'Vendor Two', format: 'Malls', market: 'Los Angeles, CA' },
           startDate: '3/2/2015',
           endDate: '4/12/2015'
         },
@@ -590,17 +590,17 @@ describe('GanttChart', function() {
       'due to the `hideDaysBeforeFullWeeks` or `hideDaysAfterFullWeeks` setting', () => {
       const source = [
         {
-          additionalData: {vendor: 'Vendor One', format: 'Posters', market: 'New York, NY'},
+          additionalData: { vendor: 'Vendor One', format: 'Posters', market: 'New York, NY' },
           startDate: '2/3/2018',
           endDate: '4/30/2018'
         },
         {
-          additionalData: {vendor: 'Vendor Two', format: 'Malls', market: 'Los Angeles, CA'},
+          additionalData: { vendor: 'Vendor Two', format: 'Malls', market: 'Los Angeles, CA' },
           startDate: '5/3/2018',
           endDate: '5/30/2018'
         },
         {
-          additionalData: {vendor: 'Vendor Three', format: 'Posters', market: 'Chicago, IL'},
+          additionalData: { vendor: 'Vendor Three', format: 'Posters', market: 'Chicago, IL' },
           startDate: '11/1/2018',
           endDate: '2/20/2019'
         },

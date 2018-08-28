@@ -1,14 +1,14 @@
-import {addClass} from 'handsontable/helpers/dom/element';
-import {clone, extend} from 'handsontable/helpers/object';
-import {arrayFilter, arrayMap, arrayEach} from 'handsontable/helpers/array';
-import {isKey} from 'handsontable/helpers/unicode';
-import {partial} from 'handsontable/helpers/function';
+import { addClass } from 'handsontable/helpers/dom/element';
+import { clone, extend } from 'handsontable/helpers/object';
+import { arrayFilter, arrayMap, arrayEach } from 'handsontable/helpers/array';
+import { isKey } from 'handsontable/helpers/unicode';
+import { partial } from 'handsontable/helpers/function';
 import * as C from 'handsontable/i18n/constants';
-import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
+import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
 import BaseUI from './_base';
 import InputUI from './input';
 import LinkUI from './link';
-import {createArrayAssertion} from './../utils';
+import { createArrayAssertion } from './../utils';
 
 const privatePool = new WeakMap();
 
@@ -150,7 +150,7 @@ class MultipleSelectUI extends BaseUI {
       this.itemsBox = new this.hot.constructor(wrapper, {
         data: this.items,
         columns: [
-          {data: 'checked', type: 'checkbox', label: {property: 'visualValue', position: 'after'}}
+          { data: 'checked', type: 'checkbox', label: { property: 'visualValue', position: 'after' } }
         ],
         beforeRenderer: (TD, row, col, prop, value, cellProperties) => {
           TD.title = cellProperties.instance.getDataAtRowProp(row, cellProperties.label.property);
@@ -162,7 +162,7 @@ class MultipleSelectUI extends BaseUI {
         disableVisualSelection: 'area',
         fillHandle: false,
         fragmentSelection: 'cell',
-        tabMoves: {row: 1, col: 0},
+        tabMoves: { row: 1, col: 0 },
         beforeKeyDown: event => this.onItemsBoxBeforeKeyDown(event)
       });
       this.itemsBox.init();

@@ -1,4 +1,4 @@
-import {rangeEach} from 'handsontable/helpers/number';
+import { rangeEach } from 'handsontable/helpers/number';
 import * as C from 'handsontable/i18n/constants';
 
 export default function showRowItem(hiddenRowsPlugin) {
@@ -37,7 +37,7 @@ export default function showRowItem(hiddenRowsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_ROW, pluralForm);
     },
     callback() {
-      let {from, to} = this.getSelectedRangeLast();
+      let { from, to } = this.getSelectedRangeLast();
       let start = Math.min(from.row, to.row);
       let end = Math.max(from.row, to.row);
 
@@ -67,7 +67,7 @@ export default function showRowItem(hiddenRowsPlugin) {
       beforeHiddenRows.length = 0;
       afterHiddenRows.length = 0;
 
-      let {from, to} = this.getSelectedRangeLast();
+      let { from, to } = this.getSelectedRangeLast();
       let start = Math.min(from.row, to.row);
       let end = Math.max(from.row, to.row);
 

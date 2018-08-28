@@ -1,5 +1,5 @@
-import {arrayEach} from 'handsontable/helpers/array';
-import {mixin} from 'handsontable/helpers/object';
+import { arrayEach } from 'handsontable/helpers/array';
+import { mixin } from 'handsontable/helpers/object';
 import localHooks from 'handsontable/mixins/localHooks';
 import stateSaver from 'handsontable/mixins/stateSaver';
 

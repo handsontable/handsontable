@@ -11,7 +11,7 @@ export function getCondition(name, args) {
   if (!conditions[name]) {
     throw Error(`Filter condition "${name}" does not exist.`);
   }
-  const {condition, descriptor} = conditions[name];
+  const { condition, descriptor } = conditions[name];
 
   if (descriptor.inputValuesDecorator) {
     args = descriptor.inputValuesDecorator(args);

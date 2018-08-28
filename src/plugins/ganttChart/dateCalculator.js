@@ -1,7 +1,7 @@
-import {arrayEach} from 'handsontable/helpers/array';
-import {objectEach} from 'handsontable/helpers/object';
-import {warn} from 'handsontable/helpers/console';
-import {getMixedMonthObject, getMixedMonthName, parseDate, DEC_LENGTH, WEEK_LENGTH} from './utils';
+import { arrayEach } from 'handsontable/helpers/array';
+import { objectEach } from 'handsontable/helpers/object';
+import { warn } from 'handsontable/helpers/console';
+import { getMixedMonthObject, getMixedMonthName, parseDate, DEC_LENGTH, WEEK_LENGTH } from './utils';
 
 /**
  * This class handles the date-related calculations for the GanttChart plugin.
@@ -9,7 +9,7 @@ import {getMixedMonthObject, getMixedMonthName, parseDate, DEC_LENGTH, WEEK_LENG
  * @plugin GanttChart
  */
 class DateCalculator {
-  constructor({year, allowSplitWeeks = true, hideDaysBeforeFullWeeks = false, hideDaysAfterFullWeeks = false}) {
+  constructor({ year, allowSplitWeeks = true, hideDaysBeforeFullWeeks = false, hideDaysAfterFullWeeks = false }) {
     /**
      * Year to base calculations on.
      *
@@ -520,18 +520,18 @@ class DateCalculator {
    */
   calculateMonthData(year = this.year) {
     return [
-      {name: 'January', days: 31},
-      {name: 'February', days: new Date(year, 2, 0).getDate()},
-      {name: 'March', days: 31},
-      {name: 'April', days: 30},
-      {name: 'May', days: 31},
-      {name: 'June', days: 30},
-      {name: 'July', days: 31},
-      {name: 'August', days: 31},
-      {name: 'September', days: 30},
-      {name: 'October', days: 31},
-      {name: 'November', days: 30},
-      {name: 'December', days: 31}
+      { name: 'January', days: 31 },
+      { name: 'February', days: new Date(year, 2, 0).getDate() },
+      { name: 'March', days: 31 },
+      { name: 'April', days: 30 },
+      { name: 'May', days: 31 },
+      { name: 'June', days: 30 },
+      { name: 'July', days: 31 },
+      { name: 'August', days: 31 },
+      { name: 'September', days: 30 },
+      { name: 'October', days: 31 },
+      { name: 'November', days: 30 },
+      { name: 'December', days: 31 }
     ].slice(0);
   }
 

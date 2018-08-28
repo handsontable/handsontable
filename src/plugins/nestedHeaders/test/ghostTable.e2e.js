@@ -17,7 +17,7 @@ describe('NestedHeaders', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         nestedHeaders: [
-          ['a', {label: 'b', colspan: 3}, 'c', 'd'],
+          ['a', { label: 'b', colspan: 3 }, 'c', 'd'],
           ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         ]
       });
@@ -31,7 +31,7 @@ describe('NestedHeaders', function() {
         var hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           nestedHeaders: [
-            ['a', {label: 'b', colspan: 3}, 'c', 'd'],
+            ['a', { label: 'b', colspan: 3 }, 'c', 'd'],
             ['a', 'b', 'c', 'd', 'e', 'f', 'g']
           ]
         });
@@ -44,7 +44,7 @@ describe('NestedHeaders', function() {
           data: Handsontable.helper.createSpreadsheetData(7, 7),
           width: 300,
           nestedHeaders: [
-            ['a', {label: 'b', colspan: 3}, 'c', 'd', 'e'],
+            ['a', { label: 'b', colspan: 3 }, 'c', 'd', 'e'],
             ['Very Long Title', 'Very Long Title', 'Very Long Title', 'Very Long Title', 'Very Long Title', 'Very Long Title', 'Very Long Title']
           ]
         });
@@ -56,7 +56,7 @@ describe('NestedHeaders', function() {
         var hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           nestedHeaders: [
-            ['a', {label: 'b', colspan: 3}, 'c', 'd'],
+            ['a', { label: 'b', colspan: 3 }, 'c', 'd'],
             ['a', 'b', 'c', 'd', 'e', 'f', 'g']
           ]
         });
