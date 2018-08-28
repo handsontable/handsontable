@@ -97,6 +97,10 @@
         "allowParens": true
       }
     ],
+    "no-constant-condition": [
+      "error",
+      { "checkLoops": false }
+    ],
     "indent": [
       2,
       2,
