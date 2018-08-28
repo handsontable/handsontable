@@ -1,6 +1,5 @@
 import {
   addClass,
-  removeClass,
   getCaretPosition,
   getComputedStyle,
   getCssTransform,
@@ -191,7 +190,6 @@ TextEditor.prototype.open = function() {
   this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
   this.showEditableElement();
 
-  addClass(this.instance.rootElement, 'activeInstance');
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 };
 
@@ -204,7 +202,6 @@ TextEditor.prototype.close = function() {
 
   this.hideEditableElement();
 
-  removeClass(this.instance.rootElement, 'activeInstance');
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
 };
 

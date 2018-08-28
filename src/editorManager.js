@@ -1,5 +1,9 @@
 import { CellCoords } from './3rdparty/walkontable/src';
 import { KEY_CODES, isMetaKey, isCtrlMetaKey } from './helpers/unicode';
+import {
+  addClass,
+  removeClass,
+} from './helpers/dom/element';
 import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors';
 import EventManager from './eventManager';
@@ -386,6 +390,8 @@ function EditorManager(instance, priv, selection) {
     } else {
       activeEditor.beginEditing(newInitialValue, event);
     }
+
+    addClass(instance.rootElement, 'handsontableActiveInstance');
   };
 
   /**
@@ -404,6 +410,8 @@ function EditorManager(instance, priv, selection) {
     } else if (callback) {
       callback(false);
     }
+
+    removeClass(instance.rootElement, 'handsontableActiveInstance');
   };
 
   /**
