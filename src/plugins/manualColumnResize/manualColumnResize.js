@@ -1,4 +1,4 @@
-import BasePlugin from './../_base.js';
+import BasePlugin from './../_base';
 import { addClass, hasClass, removeClass, outerHeight } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
 import { pageX } from './../../helpers/dom/event';

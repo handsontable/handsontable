@@ -1,4 +1,4 @@
-import BasePlugin from './../_base.js';
+import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
 import { arrayEach } from './../../helpers/array';
 import { addClass, removeClass, offset } from './../../helpers/dom/element';

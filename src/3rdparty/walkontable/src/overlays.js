@@ -6,7 +6,7 @@ import { arrayEach } from './../../../helpers/array';
 import { isKey } from './../../../helpers/unicode';
 import { isChrome } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
-import Overlay from './overlay/_base.js';
+import Overlay from './overlay/_base';
 
 /**
  * @class Overlays
