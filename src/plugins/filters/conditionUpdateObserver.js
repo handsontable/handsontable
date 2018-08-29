@@ -111,7 +111,7 @@ class ConditionUpdateObserver {
 
       return;
     }
-    let allConditions = this.conditionCollection.exportAllConditions();
+    const allConditions = this.conditionCollection.exportAllConditions();
     let editedColumnPosition = this.conditionCollection.orderStack.indexOf(column);
 
     if (editedColumnPosition === -1) {
@@ -119,17 +119,17 @@ class ConditionUpdateObserver {
     }
 
     // Collection of all conditions defined before currently edited `column` (without edited one)
-    let conditionsBefore = allConditions.slice(0, editedColumnPosition);
+    const conditionsBefore = allConditions.slice(0, editedColumnPosition);
     // Collection of all conditions defined after currently edited `column` (without edited one)
-    let conditionsAfter = allConditions.slice(editedColumnPosition);
+    const conditionsAfter = allConditions.slice(editedColumnPosition);
 
     // Make sure that conditionAfter doesn't contain edited column conditions
     if (conditionsAfter.length && conditionsAfter[0].column === column) {
       conditionsAfter.shift();
     }
 
-    let visibleDataFactory = curry((conditionsBefore, column, conditionsStack = []) => {
-      let splitConditionCollection = new ConditionCollection();
+    const visibleDataFactory = curry((conditionsBefore, column, conditionsStack = []) => {
+      const splitConditionCollection = new ConditionCollection();
 
       conditionsBefore = [].concat(conditionsBefore, conditionsStack);
 
@@ -151,7 +151,7 @@ class ConditionUpdateObserver {
       return arrayFilter(allRows, rowData => visibleRowsAssertion(rowData.meta.visualRow));
     })(conditionsBefore);
 
-    let editedConditions = [].concat(this.conditionCollection.getConditions(column));
+    const editedConditions = [].concat(this.conditionCollection.getConditions(column));
 
     this.runLocalHooks('update', {
       editedConditionStack: { column, conditions: editedConditions },

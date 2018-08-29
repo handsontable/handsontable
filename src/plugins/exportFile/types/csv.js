@@ -36,7 +36,7 @@ class Csv extends BaseType {
     const data = this.dataProvider.getData();
     let columnHeaders = this.dataProvider.getColumnHeaders();
     const hasColumnHeaders = columnHeaders.length > 0;
-    let rowHeaders = this.dataProvider.getRowHeaders();
+    const rowHeaders = this.dataProvider.getRowHeaders();
     const hasRowHeaders = rowHeaders.length > 0;
     let result = options.bom ? String.fromCharCode(0xFEFF) : '';
 

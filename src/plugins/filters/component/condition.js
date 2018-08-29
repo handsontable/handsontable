@@ -63,7 +63,7 @@ class ConditionComponent extends BaseComponent {
           return false;
         }
 
-        let element = this.getInputElement(index);
+        const element = this.getInputElement(index);
 
         element.setValue(arg);
         element[copyOfCommand.inputsCount > index ? 'show' : 'hide']();
@@ -82,7 +82,7 @@ class ConditionComponent extends BaseComponent {
    */
   getState() {
     const command = this.getSelectElement().getValue() || getConditionDescriptor(CONDITION_NONE);
-    let args = [];
+    const args = [];
 
     arrayEach(this.getInputElements(), (element, index) => {
       if (command.inputsCount > index) {
@@ -104,7 +104,7 @@ class ConditionComponent extends BaseComponent {
    * @param column Physical column index.
    */
   updateState(condition, column) {
-    let command = condition ? getConditionDescriptor(condition.name) : getConditionDescriptor(CONDITION_NONE);
+    const command = condition ? getConditionDescriptor(condition.name) : getConditionDescriptor(CONDITION_NONE);
 
     this.setCachedState(column, {
       command,
@@ -163,7 +163,7 @@ class ConditionComponent extends BaseComponent {
           addClass(wrapper.parentNode, 'border');
         }
 
-        let label = document.createElement('div');
+        const label = document.createElement('div');
 
         addClass(label, 'htFiltersMenuLabel');
 

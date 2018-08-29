@@ -37,8 +37,8 @@ class InputUI extends BaseUI {
    */
   build() {
     super.build();
-    let priv = privatePool.get(this);
-    let icon = document.createElement('div');
+    const priv = privatePool.get(this);
+    const icon = document.createElement('div');
 
     priv.input = this._element.firstChild;
 
@@ -58,7 +58,7 @@ class InputUI extends BaseUI {
       return;
     }
 
-    let input = privatePool.get(this).input;
+    const input = privatePool.get(this).input;
 
     input.type = this.options.type;
     input.placeholder = this.translateIfPossible(this.options.placeholder);

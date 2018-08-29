@@ -139,7 +139,7 @@ class ColumnSummary extends BasePlugin {
   calculateSum(endpoint) {
     let sum = 0;
 
-    for (let r in endpoint.ranges) {
+    for (const r in endpoint.ranges) {
       if (hasOwnProperty(endpoint.ranges, r)) {
         sum += this.getPartialSum(endpoint.ranges[r], endpoint.sourceColumn);
       }
@@ -164,7 +164,7 @@ class ColumnSummary extends BasePlugin {
 
     do {
       cellValue = this.getCellValue(i, col) || 0;
-      let decimalPlaces = (((`${cellValue}`).split('.')[1] || []).length) || 1;
+      const decimalPlaces = (((`${cellValue}`).split('.')[1] || []).length) || 1;
       if (decimalPlaces > biggestDecimalPlacesCount) {
         biggestDecimalPlacesCount = decimalPlaces;
       }
@@ -188,9 +188,9 @@ class ColumnSummary extends BasePlugin {
   calculateMinMax(endpoint, type) {
     let result = null;
 
-    for (let r in endpoint.ranges) {
+    for (const r in endpoint.ranges) {
       if (hasOwnProperty(endpoint.ranges, r)) {
-        let partialResult = this.getPartialMinMax(endpoint.ranges[r], endpoint.sourceColumn, type);
+        const partialResult = this.getPartialMinMax(endpoint.ranges[r], endpoint.sourceColumn, type);
 
         if (result === null && partialResult !== null) {
           result = partialResult;
@@ -289,12 +289,12 @@ class ColumnSummary extends BasePlugin {
    */
   countEntries(endpoint) {
     let result = 0;
-    let ranges = endpoint.ranges;
+    const ranges = endpoint.ranges;
 
-    for (let r in ranges) {
+    for (const r in ranges) {
       if (hasOwnProperty(ranges, r)) {
-        let partial = ranges[r][1] === void 0 ? 1 : ranges[r][1] - ranges[r][0] + 1;
-        let emptyCount = this.countEmpty(ranges[r], endpoint.sourceColumn);
+        const partial = ranges[r][1] === void 0 ? 1 : ranges[r][1] - ranges[r][0] + 1;
+        const emptyCount = this.countEmpty(ranges[r], endpoint.sourceColumn);
 
         result += partial;
         result -= emptyCount;
@@ -312,8 +312,8 @@ class ColumnSummary extends BasePlugin {
    * @returns {Number} Avarage value.
    */
   calculateAverage(endpoint) {
-    let sum = this.calculateSum(endpoint);
-    let entriesCount = this.countEntries(endpoint);
+    const sum = this.calculateSum(endpoint);
+    const entriesCount = this.countEntries(endpoint);
 
     return sum / entriesCount;
   }
@@ -327,11 +327,11 @@ class ColumnSummary extends BasePlugin {
    * @returns {String} The cell value.
    */
   getCellValue(row, col) {
-    let visualRowIndex = this.endpoints.getVisualRowIndex(row);
-    let visualColumnIndex = this.endpoints.getVisualColumnIndex(col);
+    const visualRowIndex = this.endpoints.getVisualRowIndex(row);
+    const visualColumnIndex = this.endpoints.getVisualColumnIndex(col);
 
     let cellValue = this.hot.getSourceDataAtCell(row, col);
-    let cellClassName = this.hot.getCellMeta(visualRowIndex, visualColumnIndex).className || '';
+    const cellClassName = this.hot.getCellMeta(visualRowIndex, visualColumnIndex).className || '';
 
     if (cellClassName.indexOf('columnSummaryResult') > -1) {
       return null;

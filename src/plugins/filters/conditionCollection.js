@@ -102,8 +102,8 @@ class ConditionCollection {
    * @fires ConditionCollection#afterAdd
    */
   addCondition(column, conditionDefinition, operation = OPERATION_AND) {
-    let args = arrayMap(conditionDefinition.args, v => (typeof v === 'string' ? v.toLowerCase() : v));
-    let name = conditionDefinition.name || conditionDefinition.command.key;
+    const args = arrayMap(conditionDefinition.args, v => (typeof v === 'string' ? v.toLowerCase() : v));
+    const name = conditionDefinition.name || conditionDefinition.command.key;
 
     this.runLocalHooks('beforeAdd', column);
 
@@ -165,7 +165,7 @@ class ConditionCollection {
    * @returns {Array}
    */
   exportAllConditions() {
-    let result = [];
+    const result = [];
 
     arrayEach(this.orderStack, (column) => {
       const conditions = arrayMap(this.getConditions(column), ({ name, args } = condition) => ({ name, args }));
@@ -241,7 +241,7 @@ class ConditionCollection {
       return false;
     }
 
-    let conditions = this.getConditions(column);
+    const conditions = this.getConditions(column);
 
     if (name) {
       result = arrayFilter(conditions, condition => condition.name === name).length > 0;

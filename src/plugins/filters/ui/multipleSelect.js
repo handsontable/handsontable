@@ -137,7 +137,7 @@ class MultipleSelectUI extends BaseUI {
     this._element.appendChild(selectionControl.element);
     this._element.appendChild(itemsBoxWrapper);
 
-    let hotInitializer = (wrapper) => {
+    const hotInitializer = (wrapper) => {
       if (!this._element) {
         return;
       }
@@ -218,7 +218,7 @@ class MultipleSelectUI extends BaseUI {
    * @param {Event} event DOM event.
    */
   onInput(event) {
-    let value = event.target.value.toLowerCase();
+    const value = event.target.value.toLowerCase();
     let filteredItems;
 
     if (value === '') {
@@ -323,7 +323,7 @@ function valueToItems(availableItems, selectedValue) {
  * @returns {Array}
  */
 function itemsToValue(availableItems) {
-  let items = [];
+  const items = [];
 
   arrayEach(availableItems, (item) => {
     if (item.checked) {

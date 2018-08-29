@@ -90,7 +90,7 @@ class TrimRows extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    let settings = this.hot.getSettings().trimRows;
+    const settings = this.hot.getSettings().trimRows;
 
     if (Array.isArray(settings)) {
       this.trimmedRows = settings;

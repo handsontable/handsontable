@@ -109,7 +109,7 @@ class Endpoints {
    * @param {Array} settings The settings array.
    */
   parseSettings(settings) {
-    let endpointsArray = [];
+    const endpointsArray = [];
 
     if (!settings && typeof this.settings === 'function') {
       this.settingsType = 'function';
@@ -122,7 +122,7 @@ class Endpoints {
     }
 
     arrayEach(settings, (val) => {
-      let newEndpoint = {};
+      const newEndpoint = {};
 
       this.assignSetting(val, newEndpoint, 'ranges', [[0, this.hot.countRows() - 1]]);
       this.assignSetting(val, newEndpoint, 'reversedRowCoords', false);
@@ -244,9 +244,9 @@ class Endpoints {
       return;
     }
 
-    let type = action.indexOf('row') > -1 ? 'row' : 'col';
-    let multiplier = action.indexOf('remove') > -1 ? -1 : 1;
-    let endpoints = this.getAllEndpoints();
+    const type = action.indexOf('row') > -1 ? 'row' : 'col';
+    const multiplier = action.indexOf('remove') > -1 ? -1 : 1;
+    const endpoints = this.getAllEndpoints();
     const rowMoving = action.indexOf('move_row') === 0;
     const placeOfAlteration = index;
 
@@ -332,10 +332,10 @@ class Endpoints {
   recreatePhysicalRanges(endpoint) {
     const ranges = endpoint.ranges;
     const newRanges = [];
-    let allIndexes = [];
+    const allIndexes = [];
 
     arrayEach(ranges, (range) => {
-      let newRange = [];
+      const newRange = [];
       if (range[1]) {
         for (let i = range[0]; i <= range[1]; i++) {
           newRange.push(this.recordTranslator.toPhysicalRow(i));
@@ -441,7 +441,7 @@ class Endpoints {
    * @param {Array} changes Array of changes from the `afterChange` hook.
    */
   refreshChangedEndpoints(changes) {
-    let needToRefresh = [];
+    const needToRefresh = [];
     this.cellsToSetCache = [];
 
     arrayEach(changes, (value, key, changes) => {
@@ -484,9 +484,9 @@ class Endpoints {
    * @param {Boolean} [useOffset=true] Use the cell offset value.
    */
   resetEndpointValue(endpoint, useOffset = true) {
-    let alterRowOffset = endpoint.alterRowOffset || 0;
-    let alterColOffset = endpoint.alterColumnOffset || 0;
-    let [visualRowIndex, visualColumnIndex] = this.recordTranslator.toVisual(endpoint.destinationRow, endpoint.destinationColumn);
+    const alterRowOffset = endpoint.alterRowOffset || 0;
+    const alterColOffset = endpoint.alterColumnOffset || 0;
+    const [visualRowIndex, visualColumnIndex] = this.recordTranslator.toVisual(endpoint.destinationRow, endpoint.destinationColumn);
 
     // Clear the meta on the "old" indexes
     const cellMeta = this.hot.getCellMeta(visualRowIndex, visualColumnIndex);

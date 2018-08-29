@@ -281,7 +281,7 @@ describe('HiddenRows', () => {
     }
 
     function getClipboardEvent() {
-      let event = {};
+      const event = {};
       event.clipboardData = new DataTransferObject();
       event.preventDefault = () => {};
       return event;

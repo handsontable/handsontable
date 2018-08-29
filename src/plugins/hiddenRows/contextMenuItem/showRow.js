@@ -37,9 +37,9 @@ export default function showRowItem(hiddenRowsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_ROW, pluralForm);
     },
     callback() {
-      let { from, to } = this.getSelectedRangeLast();
-      let start = Math.min(from.row, to.row);
-      let end = Math.max(from.row, to.row);
+      const { from, to } = this.getSelectedRangeLast();
+      const start = Math.min(from.row, to.row);
+      const end = Math.max(from.row, to.row);
 
       if (start === end) {
         if (beforeHiddenRows.length === start) {
@@ -67,9 +67,9 @@ export default function showRowItem(hiddenRowsPlugin) {
       beforeHiddenRows.length = 0;
       afterHiddenRows.length = 0;
 
-      let { from, to } = this.getSelectedRangeLast();
-      let start = Math.min(from.row, to.row);
-      let end = Math.max(from.row, to.row);
+      const { from, to } = this.getSelectedRangeLast();
+      const start = Math.min(from.row, to.row);
+      const end = Math.max(from.row, to.row);
 
       let hiddenInSelection = false;
 
@@ -77,7 +77,7 @@ export default function showRowItem(hiddenRowsPlugin) {
         let totalRowsLength = this.countSourceRows();
 
         rangeEach(0, totalRowsLength, (i) => {
-          let partedHiddenLength = beforeHiddenRows.length + afterHiddenRows.length;
+          const partedHiddenLength = beforeHiddenRows.length + afterHiddenRows.length;
 
           if (partedHiddenLength === hiddenRowsPlugin.hiddenRows.length) {
             return false;

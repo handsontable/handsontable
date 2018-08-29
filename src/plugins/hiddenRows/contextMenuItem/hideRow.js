@@ -19,9 +19,9 @@ export default function hideRowItem(hiddenRowsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_ROW, pluralForm);
     },
     callback() {
-      let { from, to } = this.getSelectedRangeLast();
-      let start = Math.min(from.row, to.row);
-      let end = Math.max(from.row, to.row);
+      const { from, to } = this.getSelectedRangeLast();
+      const start = Math.min(from.row, to.row);
+      const end = Math.max(from.row, to.row);
 
       rangeEach(start, end, row => hiddenRowsPlugin.hideRow(row));
 

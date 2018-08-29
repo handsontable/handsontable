@@ -67,7 +67,7 @@ class DataProvider {
    * @return {Array}
    */
   getRowHeaders() {
-    let headers = [];
+    const headers = [];
 
     if (this.options.rowHeaders) {
       const { startRow, endRow } = this._getDataRange();
@@ -90,7 +90,7 @@ class DataProvider {
    * @return {Array}
    */
   getColumnHeaders() {
-    let headers = [];
+    const headers = [];
 
     if (this.options.columnHeaders) {
       const { startCol, endCol } = this._getDataRange();

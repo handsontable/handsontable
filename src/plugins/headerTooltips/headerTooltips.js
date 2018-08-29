@@ -104,16 +104,16 @@ class HeaderTooltips extends BasePlugin {
    * @private
    */
   clearTitleAttributes() {
-    let headerLevels = this.hot.view.wt.getSetting('columnHeaders').length;
-    let mainHeaders = this.hot.view.wt.wtTable.THEAD;
-    let topHeaders = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
-    let topLeftCornerHeaders = this.hot.view.wt.wtOverlays.topLeftCornerOverlay ?
+    const headerLevels = this.hot.view.wt.getSetting('columnHeaders').length;
+    const mainHeaders = this.hot.view.wt.wtTable.THEAD;
+    const topHeaders = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
+    const topLeftCornerHeaders = this.hot.view.wt.wtOverlays.topLeftCornerOverlay ?
       hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.THEAD : null;
 
     rangeEach(0, headerLevels - 1, (i) => {
-      let masterLevel = mainHeaders.childNodes[i];
-      let topLevel = topHeaders.childNodes[i];
-      let topLeftCornerLevel = topLeftCornerHeaders ? topLeftCornerHeaders.childNodes[i] : null;
+      const masterLevel = mainHeaders.childNodes[i];
+      const topLevel = topHeaders.childNodes[i];
+      const topLeftCornerLevel = topLeftCornerHeaders ? topLeftCornerHeaders.childNodes[i] : null;
 
       rangeEach(0, masterLevel.childNodes.length - 1, (j) => {
         masterLevel.childNodes[j].removeAttribute('title');
@@ -137,8 +137,8 @@ class HeaderTooltips extends BasePlugin {
    * @param {HTMLElement} TH
    */
   onAfterGetHeader(index, TH) {
-    let innerSpan = TH.querySelector('span');
-    let isColHeader = TH.parentNode.parentNode.nodeName === 'THEAD';
+    const innerSpan = TH.querySelector('span');
+    const isColHeader = TH.parentNode.parentNode.nodeName === 'THEAD';
 
     if (isColHeader && this.settings.columns || !isColHeader && this.settings.rows) {
       if (this.settings.onlyTrimmed) {

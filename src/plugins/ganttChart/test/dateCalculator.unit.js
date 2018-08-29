@@ -360,7 +360,7 @@ describe('DateCalculator', () => {
 
       plugin.calculateWeekStructure();
 
-      let monthList = plugin.monthListCache;
+      const monthList = plugin.monthListCache;
       expect(monthList[2017][0].name).toEqual('January');
       expect(monthList[2017][0].days).toEqual(31);
       expect(monthList[2017][0].daysBeforeFullWeeks).toEqual(1);
@@ -384,7 +384,7 @@ describe('DateCalculator', () => {
 
       plugin.calculateWeekStructure(2017);
 
-      let monthList = plugin.monthListCache;
+      const monthList = plugin.monthListCache;
       expect(monthList[2017][0].name).toEqual('January');
       expect(monthList[2017][0].days).toEqual(31);
       expect(monthList[2017][0].daysBeforeFullWeeks).toEqual(1);
@@ -408,7 +408,7 @@ describe('DateCalculator', () => {
 
       plugin.calculateWeekStructure();
 
-      let monthList = plugin.monthListCache;
+      const monthList = plugin.monthListCache;
       expect(monthList[2017][0].name).toEqual('Dec/Jan');
       expect(monthList[2017][0].days).toEqual(7);
       expect(monthList[2017][0].daysBeforeFullWeeks).toEqual(0);

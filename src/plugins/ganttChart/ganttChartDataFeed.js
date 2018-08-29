@@ -156,9 +156,9 @@ class GanttChartDataFeed {
    */
   getDataFromSource(row) {
     let additionalObjectData = {};
-    let hotSource = this.hotSource;
+    const hotSource = this.hotSource;
     let sourceHotRows;
-    let rangeBarData = [];
+    const rangeBarData = [];
 
     if (row === void 0) {
       sourceHotRows = hotSource.instance.getData(0, 0, hotSource.instance.countRows() - 1, hotSource.instance.countCols() - 1);
@@ -170,7 +170,7 @@ class GanttChartDataFeed {
 
     for (let i = row || 0, dataLength = sourceHotRows.length; i < (row ? row + 1 : dataLength); i++) {
       additionalObjectData = {};
-      let currentRow = sourceHotRows[i];
+      const currentRow = sourceHotRows[i];
 
       if (currentRow[hotSource.startColumn] === null || currentRow[hotSource.startColumn] === '') {
         /* eslint-disable no-continue */
@@ -196,7 +196,7 @@ class GanttChartDataFeed {
    * @param {Number} [row] Index of the row which needs updating.
    */
   updateFromSource(row) {
-    let dataFromSource = this.getDataFromSource(row);
+    const dataFromSource = this.getDataFromSource(row);
 
     if (!row && isNaN(row)) {
       this.chartPlugin.clearRangeBars();
@@ -254,15 +254,15 @@ class GanttChartDataFeed {
    */
   splitRangeIfNeeded(bar) {
     const splitBars = [];
-    let startDate = new Date(getStartDate(bar));
-    let endDate = new Date(getEndDate(bar));
+    const startDate = new Date(getStartDate(bar));
+    const endDate = new Date(getEndDate(bar));
 
     if (typeof startDate === 'string' || typeof endDate === 'string') {
       return false;
     }
 
-    let startYear = startDate.getFullYear();
-    let endYear = endDate.getFullYear();
+    const startYear = startDate.getFullYear();
+    const endYear = endDate.getFullYear();
 
     if (startYear === endYear) {
       return [bar];
@@ -297,12 +297,12 @@ class GanttChartDataFeed {
         return;
       }
 
-      let changesByRows = {};
+      const changesByRows = {};
 
       for (let i = 0, changesLength = changes.length; i < changesLength; i++) {
-        let currentChange = changes[i];
-        let row = parseInt(currentChange[0], 10);
-        let col = parseInt(currentChange[1], 10);
+        const currentChange = changes[i];
+        const row = parseInt(currentChange[0], 10);
+        const col = parseInt(currentChange[1], 10);
 
         if (!changesByRows[row]) {
           changesByRows[row] = {};

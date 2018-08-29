@@ -170,22 +170,22 @@ class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    let headerLevels = this.hot.view.wt.getSetting('columnHeaders').length;
-    let mainHeaders = this.hot.view.wt.wtTable.THEAD;
-    let topHeaders = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
-    let topLeftCornerHeaders = this.hot.view.wt.wtOverlays.topLeftCornerOverlay ?
+    const headerLevels = this.hot.view.wt.getSetting('columnHeaders').length;
+    const mainHeaders = this.hot.view.wt.wtTable.THEAD;
+    const topHeaders = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
+    const topLeftCornerHeaders = this.hot.view.wt.wtOverlays.topLeftCornerOverlay ?
       this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.THEAD : null;
 
-    let removeButton = function(button) {
+    const removeButton = function(button) {
       if (button) {
         button.parentNode.removeChild(button);
       }
     };
 
     rangeEach(0, headerLevels - 1, (i) => {
-      let masterLevel = mainHeaders.childNodes[i];
-      let topLevel = topHeaders.childNodes[i];
-      let topLeftCornerLevel = topLeftCornerHeaders ? topLeftCornerHeaders.childNodes[i] : null;
+      const masterLevel = mainHeaders.childNodes[i];
+      const topLevel = topHeaders.childNodes[i];
+      const topLeftCornerLevel = topLeftCornerHeaders ? topLeftCornerHeaders.childNodes[i] : null;
 
       rangeEach(0, masterLevel.childNodes.length - 1, (j) => {
         let button = masterLevel.childNodes[j].querySelector('.collapsibleIndicator');
@@ -230,7 +230,7 @@ class CollapsibleColumns extends BasePlugin {
    * @returns {Boolean}
    */
   meetsDependencies() {
-    let settings = this.hot.getSettings();
+    const settings = this.hot.getSettings();
 
     return settings.nestedHeaders && settings.hiddenColumns;
   }
@@ -241,7 +241,7 @@ class CollapsibleColumns extends BasePlugin {
    * @private
    */
   checkDependencies() {
-    let settings = this.hot.getSettings();
+    const settings = this.hot.getSettings();
 
     if (this.meetsDependencies()) {
       return;
@@ -265,15 +265,15 @@ class CollapsibleColumns extends BasePlugin {
    * @returns {HTMLElement}
    */
   generateIndicator(column, TH) {
-    let TR = TH.parentNode;
-    let THEAD = TR.parentNode;
-    let row = ((-1) * THEAD.childNodes.length) + Array.prototype.indexOf.call(THEAD.childNodes, TR);
+    const TR = TH.parentNode;
+    const THEAD = TR.parentNode;
+    const row = ((-1) * THEAD.childNodes.length) + Array.prototype.indexOf.call(THEAD.childNodes, TR);
 
     if (Object.keys(this.buttonEnabledList).length > 0 && (!this.buttonEnabledList[row] || !this.buttonEnabledList[row][column])) {
       return null;
     }
 
-    let divEl = document.createElement('DIV');
+    const divEl = document.createElement('DIV');
 
     addClass(divEl, 'collapsibleIndicator');
 
@@ -316,10 +316,10 @@ class CollapsibleColumns extends BasePlugin {
     }
 
     if (recursive) {
-      let nestedHeadersColspans = this.nestedHeadersPlugin.colspanArray;
-      let level = this.nestedHeadersPlugin.rowCoordsToLevel(row);
-      let childHeaders = this.nestedHeadersPlugin.getChildHeaders(row, column);
-      let childColspanLevel = nestedHeadersColspans[level + 1];
+      const nestedHeadersColspans = this.nestedHeadersPlugin.colspanArray;
+      const level = this.nestedHeadersPlugin.rowCoordsToLevel(row);
+      const childHeaders = this.nestedHeadersPlugin.getChildHeaders(row, column);
+      const childColspanLevel = nestedHeadersColspans[level + 1];
 
       for (let i = 1; i < childHeaders.length; i++) {
         if (childColspanLevel && childColspanLevel[childHeaders[i]].colspan > 1) {
@@ -355,7 +355,7 @@ class CollapsibleColumns extends BasePlugin {
    * @param {String} action 'collapse' or 'expand'.
    */
   toggleAllCollapsibleSections(action) {
-    let nestedHeadersColspanArray = this.nestedHeadersPlugin.colspanArray;
+    const nestedHeadersColspanArray = this.nestedHeadersPlugin.colspanArray;
 
     if (this.settings === true) {
 
@@ -365,8 +365,8 @@ class CollapsibleColumns extends BasePlugin {
             i = parseInt(i, 10);
             j = parseInt(j, 10);
 
-            let row = this.nestedHeadersPlugin.levelToRowCoords(i);
-            let col = j;
+            const row = this.nestedHeadersPlugin.levelToRowCoords(i);
+            const col = j;
 
             this.markSectionAs(action === 'collapse' ? 'collapsed' : 'expanded', row, col, true);
             this.toggleCollapsibleSection({
@@ -423,11 +423,11 @@ class CollapsibleColumns extends BasePlugin {
       coords.col = parseInt(coords.col, 10);
     }
 
-    let hiddenColumns = this.hiddenColumnsPlugin.hiddenColumns;
-    let colspanArray = this.nestedHeadersPlugin.colspanArray;
-    let level = this.nestedHeadersPlugin.rowCoordsToLevel(coords.row);
-    let currentHeaderColspan = colspanArray[level][coords.col].colspan;
-    let childHeaders = this.nestedHeadersPlugin.getChildHeaders(coords.row, coords.col);
+    const hiddenColumns = this.hiddenColumnsPlugin.hiddenColumns;
+    const colspanArray = this.nestedHeadersPlugin.colspanArray;
+    const level = this.nestedHeadersPlugin.rowCoordsToLevel(coords.row);
+    const currentHeaderColspan = colspanArray[level][coords.col].colspan;
+    const childHeaders = this.nestedHeadersPlugin.getChildHeaders(coords.row, coords.col);
     let nextLevel = level + 1;
     let childColspanLevel = colspanArray[nextLevel];
     let firstChildColspan = childColspanLevel ? childColspanLevel[childHeaders[0]].colspan || 1 : 1;
@@ -439,7 +439,7 @@ class CollapsibleColumns extends BasePlugin {
     }
 
     rangeEach(firstChildColspan, currentHeaderColspan - 1, (i) => {
-      let colToHide = coords.col + i;
+      const colToHide = coords.col + i;
 
       switch (action) {
         case 'collapse':
@@ -472,7 +472,7 @@ class CollapsibleColumns extends BasePlugin {
    */
   onAfterGetColHeader(column, TH) {
     if (TH.hasAttribute('colspan') && TH.getAttribute('colspan') > 1 && column >= this.hot.getSettings().fixedColumnsLeft) {
-      let button = this.generateIndicator(column, TH);
+      const button = this.generateIndicator(column, TH);
 
       if (button !== null) {
         TH.querySelector('div:first-child').appendChild(button);

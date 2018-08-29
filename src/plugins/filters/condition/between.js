@@ -7,15 +7,15 @@ export const CONDITION_NAME = 'between';
 
 export function condition(dataRow, [from, to] = inputValues) {
   if (dataRow.meta.type === 'numeric') {
-    let _from = parseFloat(from, 10);
-    let _to = parseFloat(to, 10);
+    const _from = parseFloat(from, 10);
+    const _to = parseFloat(to, 10);
 
     from = Math.min(_from, _to);
     to = Math.max(_from, _to);
 
   } else if (dataRow.meta.type === 'date') {
-    let dateBefore = getCondition(CONDITION_DATE_BEFORE, [to]);
-    let dateAfter = getCondition(CONDITION_DATE_AFTER, [from]);
+    const dateBefore = getCondition(CONDITION_DATE_BEFORE, [to]);
+    const dateAfter = getCondition(CONDITION_DATE_AFTER, [from]);
 
     return dateBefore(dataRow) && dateAfter(dataRow);
   }

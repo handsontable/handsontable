@@ -134,7 +134,7 @@ class Filters extends BasePlugin {
     this.trimRowsPlugin = this.hot.getPlugin('trimRows');
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
-    let addConfirmationHooks = (component) => {
+    const addConfirmationHooks = (component) => {
       component.addLocalHook('accept', () => this.onActionBarSubmit('accept'));
       component.addLocalHook('cancel', () => this.onActionBarSubmit('cancel'));
       component.addLocalHook('change', command => this.onComponentChange(component, command));
@@ -333,8 +333,8 @@ class Filters extends BasePlugin {
    * @fires Hooks#afterFilter
    */
   filter() {
-    let dataFilter = this._createDataFilter();
-    let needToFilter = !this.conditionCollection.isEmpty();
+    const dataFilter = this._createDataFilter();
+    const needToFilter = !this.conditionCollection.isEmpty();
     let visibleVisualRows = [];
 
     const conditions = this.conditionCollection.exportAllConditions();
@@ -342,7 +342,7 @@ class Filters extends BasePlugin {
 
     if (allowFiltering !== false) {
       if (needToFilter) {
-        let trimmedRows = [];
+        const trimmedRows = [];
 
         this.trimRowsPlugin.trimmedRows.length = 0;
 
@@ -389,7 +389,7 @@ class Filters extends BasePlugin {
    * @private
    */
   clearColumnSelection() {
-    let [row, col] = this.hot.getSelectedLast() || [];
+    const [row, col] = this.hot.getSelectedLast() || [];
 
     if (row !== void 0 && col !== void 0) {
       this.hot.selectCell(row, col);
@@ -407,7 +407,7 @@ class Filters extends BasePlugin {
     const data = [];
 
     arrayEach(this.hot.getSourceDataAtCol(visualIndex), (value, rowIndex) => {
-      let { row, col, visualCol, visualRow, type, instance, dateFormat } = this.hot.getCellMeta(rowIndex, visualIndex);
+      const { row, col, visualCol, visualRow, type, instance, dateFormat } = this.hot.getCellMeta(rowIndex, visualIndex);
 
       data.push({
         meta: { row, col, visualCol, visualRow, type, instance, dateFormat },
@@ -661,7 +661,7 @@ class Filters extends BasePlugin {
    * @param {Event} event DOM Event.
    */
   onTableClick(event) {
-    let th = closest(event.target, 'TH');
+    const th = closest(event.target, 'TH');
 
     if (th) {
       const visualIndex = this.hot.getCoords(th).col;

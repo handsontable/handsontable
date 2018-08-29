@@ -144,7 +144,7 @@ class DropdownMenu extends BasePlugin {
     this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
 
     const settings = this.hot.getSettings().dropdownMenu;
-    let predefinedItems = {
+    const predefinedItems = {
       items: this.itemsFactory.getItems(settings)
     };
     this.registerEvents();
@@ -158,7 +158,7 @@ class DropdownMenu extends BasePlugin {
       this.hot.runHooks('afterDropdownMenuDefaultOptions', predefinedItems);
 
       this.itemsFactory.setPredefinedItems(predefinedItems.items);
-      let menuItems = this.itemsFactory.getItems(settings);
+      const menuItems = this.itemsFactory.getItems(settings);
 
       if (this.menu) {
         this.menu.destroy();
@@ -305,7 +305,7 @@ class DropdownMenu extends BasePlugin {
     stopPropagation(event);
 
     if (hasClass(event.target, BUTTON_CLASS_NAME) && !this.menu.isOpened()) {
-      let rect = event.target.getBoundingClientRect();
+      const rect = event.target.getBoundingClientRect();
 
       this.open({
         left: rect.left,
@@ -325,13 +325,13 @@ class DropdownMenu extends BasePlugin {
    */
   onAfterGetColHeader(col, TH) {
     // Corner or a higher-level header
-    let headerRow = TH.parentNode;
+    const headerRow = TH.parentNode;
     if (!headerRow) {
       return;
     }
 
-    let headerRowList = headerRow.parentNode.childNodes;
-    let level = Array.prototype.indexOf.call(headerRowList, headerRow);
+    const headerRowList = headerRow.parentNode.childNodes;
+    const level = Array.prototype.indexOf.call(headerRowList, headerRow);
 
     if (col < 0 || level !== headerRowList.length - 1) {
       return;
@@ -351,7 +351,7 @@ class DropdownMenu extends BasePlugin {
 
       return;
     }
-    let button = document.createElement('button');
+    const button = document.createElement('button');
 
     button.className = BUTTON_CLASS_NAME;
 

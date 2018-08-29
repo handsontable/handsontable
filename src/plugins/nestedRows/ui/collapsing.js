@@ -361,7 +361,7 @@ class CollapsingUI extends BaseUI {
 
     if (this.dataManager.hasChildren(rowObj)) {
       arrayEach(rowObj.__children, (elem) => {
-        let rowIndex = this.dataManager.getRowIndex(elem);
+        const rowIndex = this.dataManager.getRowIndex(elem);
 
         if (!this.trimRowsPlugin.isTrimmed(rowIndex)) {
           allCollapsed = false;
@@ -385,7 +385,7 @@ class CollapsingUI extends BaseUI {
 
     while (parent !== null) {
       parent = this.dataManager.getRowParent(parent);
-      let parentIndex = this.dataManager.getRowIndex(parent);
+      const parentIndex = this.dataManager.getRowIndex(parent);
 
       if (this.collapsedRows.indexOf(parentIndex) > -1) {
         return true;

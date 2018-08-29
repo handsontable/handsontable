@@ -177,7 +177,7 @@ class DataManager {
    * @returns {*}
    */
   mockParent() {
-    let fakeParent = this.mockNode();
+    const fakeParent = this.mockNode();
 
     fakeParent.__children = this.data;
 
@@ -191,7 +191,7 @@ class DataManager {
    * @returns {{}}
    */
   mockNode() {
-    let fakeNode = {};
+    const fakeNode = {};
 
     objectEach(this.data[0], (val, key) => {
       fakeNode[key] = null;
@@ -225,7 +225,7 @@ class DataManager {
       rowObj = this.getDataObject(row);
     }
 
-    let parent = this.getRowParent(row);
+    const parent = this.getRowParent(row);
 
     if (parent == null) {
       return this.data.indexOf(rowObj);
@@ -238,7 +238,7 @@ class DataManager {
    * Count all rows (including all parents and children).
    */
   countAllRows() {
-    let rootNodeMock = {
+    const rootNodeMock = {
       __children: this.data
     };
 
@@ -456,11 +456,11 @@ class DataManager {
    */
   detachFromParent(elements, forceRender = true) {
     let element = null;
-    let rowObjects = [];
+    const rowObjects = [];
 
     if (Array.isArray(elements)) {
       rangeEach(elements[0], elements[2], (i) => {
-        let translatedIndex = this.translateTrimmedRow(i);
+        const translatedIndex = this.translateTrimmedRow(i);
         rowObjects.push(this.getDataObject(translatedIndex));
       });
 
@@ -559,7 +559,7 @@ class DataManager {
       return;
     }
 
-    let previousElement = this.getDataObject(index - 1);
+    const previousElement = this.getDataObject(index - 1);
     let newRowParent = null;
     let indexWithinParent = null;
 
@@ -596,10 +596,10 @@ class DataManager {
    * @param {Number} toIndex Index of the destination.
    */
   moveRow(fromIndex, toIndex) {
-    let targetIsParent = this.isParent(toIndex);
+    const targetIsParent = this.isParent(toIndex);
 
-    let fromParent = this.getRowParent(fromIndex);
-    let indexInFromParent = this.getRowIndexWithinParent(fromIndex);
+    const fromParent = this.getRowParent(fromIndex);
+    const indexInFromParent = this.getRowIndexWithinParent(fromIndex);
 
     let toParent = this.getRowParent(toIndex);
 
@@ -619,10 +619,10 @@ class DataManager {
       toParent.__children = [];
     }
 
-    let previousToTargetParent = this.getRowParent(toIndex - 1);
-    let indexInToParent = targetIsParent ? this.countChildren(previousToTargetParent) : this.getRowIndexWithinParent(toIndex);
+    const previousToTargetParent = this.getRowParent(toIndex - 1);
+    const indexInToParent = targetIsParent ? this.countChildren(previousToTargetParent) : this.getRowIndexWithinParent(toIndex);
 
-    let elemToMove = fromParent.__children.slice(indexInFromParent, indexInFromParent + 1);
+    const elemToMove = fromParent.__children.slice(indexInFromParent, indexInFromParent + 1);
 
     fromParent.__children.splice(indexInFromParent, 1);
     toParent.__children.splice(indexInToParent, 0, elemToMove[0]);

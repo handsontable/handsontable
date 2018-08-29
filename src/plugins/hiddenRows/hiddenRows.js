@@ -286,16 +286,16 @@ class HiddenRows extends BasePlugin {
         cellProperties.className += ' firstVisibleRow';
       }
     } else if (cellProperties.className) {
-      let classArr = cellProperties.className.split(' ');
+      const classArr = cellProperties.className.split(' ');
 
       if (classArr.length) {
-        let containAfterHiddenColumn = classArr.indexOf('afterHiddenRow');
+        const containAfterHiddenColumn = classArr.indexOf('afterHiddenRow');
 
         if (containAfterHiddenColumn > -1) {
           classArr.splice(containAfterHiddenColumn, 1);
         }
 
-        let containFirstVisible = classArr.indexOf('firstVisibleRow');
+        const containFirstVisible = classArr.indexOf('firstVisibleRow');
 
         if (containFirstVisible > -1) {
           classArr.splice(containFirstVisible, 1);
@@ -314,7 +314,7 @@ class HiddenRows extends BasePlugin {
    * @param {HTMLElement} th Table header element.
    */
   onAfterGetRowHeader(row, th) {
-    let tr = th.parentNode;
+    const tr = th.parentNode;
 
     if (tr) {
       if (this.isHidden(row)) {
@@ -373,9 +373,9 @@ class HiddenRows extends BasePlugin {
    * @returns {Array} Returns modyfied range.
    */
   onModifyCopyableRange(ranges) {
-    let newRanges = [];
+    const newRanges = [];
 
-    let pushRange = (startRow, endRow, startCol, endCol) => {
+    const pushRange = (startRow, endRow, startCol, endCol) => {
       newRanges.push({ startRow, endRow, startCol, endCol });
     };
 
@@ -411,10 +411,10 @@ class HiddenRows extends BasePlugin {
    * @param {Object} coords Object with `row` and `col` properties.
    */
   onBeforeSetRangeStart(coords) {
-    let actualSelection = this.hot.getSelectedLast() || false;
-    let lastPossibleIndex = this.hot.countRows() - 1;
+    const actualSelection = this.hot.getSelectedLast() || false;
+    const lastPossibleIndex = this.hot.countRows() - 1;
 
-    let getNextRow = (row) => {
+    const getNextRow = (row) => {
       let direction = 0;
 
       if (actualSelection) {
@@ -450,7 +450,7 @@ class HiddenRows extends BasePlugin {
 
     coords.row = 0;
 
-    let getNextRow = (row) => {
+    const getNextRow = (row) => {
 
       if (this.isHidden(row)) {
         row = getNextRow(++row);
@@ -469,9 +469,9 @@ class HiddenRows extends BasePlugin {
    * @param {Object} coords Object with `row` and `col` properties.
    */
   onBeforeSetRangeEnd(coords) {
-    let rowCount = this.hot.countRows();
+    const rowCount = this.hot.countRows();
 
-    let getNextRow = (row) => {
+    const getNextRow = (row) => {
       if (this.isHidden(row)) {
         if (this.lastSelectedRow > row || coords.row === rowCount - 1) {
           if (row > 0) {
@@ -523,7 +523,7 @@ class HiddenRows extends BasePlugin {
    * @param {Number} amount
    */
   onAfterCreateRow(index, amount) {
-    let tempHidden = [];
+    const tempHidden = [];
 
     arrayEach(this.hiddenRows, (col) => {
       if (col >= index) {
@@ -542,7 +542,7 @@ class HiddenRows extends BasePlugin {
    * @param {Number} amount
    */
   onAfterRemoveRow(index, amount) {
-    let tempHidden = [];
+    const tempHidden = [];
 
     arrayEach(this.hiddenRows, (col) => {
       if (col >= index) {
@@ -559,7 +559,7 @@ class HiddenRows extends BasePlugin {
    * @private
    */
   onAfterPluginsInitialized() {
-    let settings = this.hot.getSettings().hiddenRows;
+    const settings = this.hot.getSettings().hiddenRows;
 
     if (typeof settings === 'object') {
       this.settings = settings;

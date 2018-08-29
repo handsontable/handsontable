@@ -148,21 +148,21 @@ class NestedHeaders extends BasePlugin {
       return;
     }
 
-    let headerLevels = this.hot.view.wt.getSetting('columnHeaders').length;
-    let mainHeaders = this.hot.view.wt.wtTable.THEAD;
-    let topHeaders = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
-    let topLeftCornerHeaders = this.hot.view.wt.wtOverlays.topLeftCornerOverlay ?
+    const headerLevels = this.hot.view.wt.getSetting('columnHeaders').length;
+    const mainHeaders = this.hot.view.wt.wtTable.THEAD;
+    const topHeaders = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
+    const topLeftCornerHeaders = this.hot.view.wt.wtOverlays.topLeftCornerOverlay ?
       this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.THEAD : null;
 
     for (let i = 0; i < headerLevels; i++) {
-      let masterLevel = mainHeaders.childNodes[i];
+      const masterLevel = mainHeaders.childNodes[i];
 
       if (!masterLevel) {
         break;
       }
 
-      let topLevel = topHeaders.childNodes[i];
-      let topLeftCornerLevel = topLeftCornerHeaders ? topLeftCornerHeaders.childNodes[i] : null;
+      const topLevel = topHeaders.childNodes[i];
+      const topLeftCornerLevel = topLeftCornerHeaders ? topLeftCornerHeaders.childNodes[i] : null;
 
       for (let j = 0, masterNodes = masterLevel.childNodes.length; j < masterNodes; j++) {
         masterLevel.childNodes[j].removeAttribute('colspan');
@@ -184,7 +184,7 @@ class NestedHeaders extends BasePlugin {
    * @private
    */
   checkForFixedColumnsCollision() {
-    let fixedColumnsLeft = this.hot.getSettings().fixedColumnsLeft;
+    const fixedColumnsLeft = this.hot.getSettings().fixedColumnsLeft;
 
     arrayEach(this.colspanArray, (value, i) => {
       if (this.getNestedParent(i, fixedColumnsLeft) !== fixedColumnsLeft) {
@@ -203,8 +203,8 @@ class NestedHeaders extends BasePlugin {
     arrayEach(this.colspanArray, (level, i) => {
       arrayEach(this.colspanArray[i], (header, j) => {
         if (header.colspan > 1) {
-          let row = this.levelToRowCoords(i);
-          let childHeaders = this.getChildHeaders(row, j);
+          const row = this.levelToRowCoords(i);
+          const childHeaders = this.getChildHeaders(row, j);
 
           if (childHeaders.length > 0) {
             let childColspanSum = 0;
@@ -249,7 +249,7 @@ class NestedHeaders extends BasePlugin {
           });
 
         } else {
-          let colspan = levelValue[col].colspan || 1;
+          const colspan = levelValue[col].colspan || 1;
 
           this.colspanArray[level].push({
             label: levelValue[col].label || '',
@@ -290,7 +290,7 @@ class NestedHeaders extends BasePlugin {
    * @fires Hooks#afterGetColHeader
    */
   headerRendererFactory(headerRow) {
-    let _this = this;
+    const _this = this;
 
     return function(index, TH) {
       TH.removeAttribute('colspan');
@@ -298,12 +298,12 @@ class NestedHeaders extends BasePlugin {
 
       // header row is the index of header row counting from the top (=> positive values)
       if (_this.colspanArray[headerRow][index] && _this.colspanArray[headerRow][index].colspan) {
-        let colspan = _this.colspanArray[headerRow][index].colspan;
-        let fixedColumnsLeft = _this.hot.getSettings().fixedColumnsLeft || 0;
-        let topLeftCornerOverlay = _this.hot.view.wt.wtOverlays.topLeftCornerOverlay;
-        let leftOverlay = _this.hot.view.wt.wtOverlays.leftOverlay;
-        let isInTopLeftCornerOverlay = topLeftCornerOverlay ? topLeftCornerOverlay.clone.wtTable.THEAD.contains(TH) : false;
-        let isInLeftOverlay = leftOverlay ? leftOverlay.clone.wtTable.THEAD.contains(TH) : false;
+        const colspan = _this.colspanArray[headerRow][index].colspan;
+        const fixedColumnsLeft = _this.hot.getSettings().fixedColumnsLeft || 0;
+        const topLeftCornerOverlay = _this.hot.view.wt.wtOverlays.topLeftCornerOverlay;
+        const leftOverlay = _this.hot.view.wt.wtOverlays.leftOverlay;
+        const isInTopLeftCornerOverlay = topLeftCornerOverlay ? topLeftCornerOverlay.clone.wtTable.THEAD.contains(TH) : false;
+        const isInLeftOverlay = leftOverlay ? leftOverlay.clone.wtTable.THEAD.contains(TH) : false;
 
         if (colspan > 1) {
           TH.setAttribute('colspan', isInTopLeftCornerOverlay || isInLeftOverlay ? Math.min(colspan, fixedColumnsLeft - index) : colspan);
@@ -320,9 +320,9 @@ class NestedHeaders extends BasePlugin {
 
       empty(TH);
 
-      let divEl = document.createElement('DIV');
+      const divEl = document.createElement('DIV');
       addClass(divEl, 'relative');
-      let spanEl = document.createElement('SPAN');
+      const spanEl = document.createElement('SPAN');
       addClass(spanEl, 'colHeader');
 
       fastInnerHTML(spanEl, _this.colspanArray[headerRow][index] ? _this.colspanArray[headerRow][index].label || '' : '');
@@ -344,7 +344,7 @@ class NestedHeaders extends BasePlugin {
    * @returns {Number}
    */
   getColspan(row, column) {
-    let header = this.colspanArray[this.rowCoordsToLevel(row)][column];
+    const header = this.colspanArray[this.rowCoordsToLevel(row)][column];
 
     return header ? header.colspan : 1;
   }
@@ -384,8 +384,8 @@ class NestedHeaders extends BasePlugin {
       return false;
     }
 
-    let colspan = this.colspanArray[level][column] ? this.colspanArray[level][column].colspan : 1;
-    let hidden = this.colspanArray[level][column] ? this.colspanArray[level][column].hidden : false;
+    const colspan = this.colspanArray[level][column] ? this.colspanArray[level][column].colspan : 1;
+    const hidden = this.colspanArray[level][column] ? this.colspanArray[level][column].hidden : false;
 
     if (colspan > 1 || (colspan === 1 && hidden === false)) {
       return column;
@@ -413,11 +413,11 @@ class NestedHeaders extends BasePlugin {
    * @returns {Number[]}
    */
   getChildHeaders(row, column) {
-    let level = this.rowCoordsToLevel(row);
-    let childColspanLevel = this.colspanArray[level + 1];
-    let nestedParentCol = this.getNestedParent(level, column);
+    const level = this.rowCoordsToLevel(row);
+    const childColspanLevel = this.colspanArray[level + 1];
+    const nestedParentCol = this.getNestedParent(level, column);
     let colspan = this.colspanArray[level][column].colspan;
-    let childHeaderRange = [];
+    const childHeaderRange = [];
 
     if (!childColspanLevel) {
       return childHeaderRange;
@@ -460,7 +460,7 @@ class NestedHeaders extends BasePlugin {
    * @private
    */
   updateHeadersHighlight() {
-    let selection = this.hot.getSelectedLast();
+    const selection = this.hot.getSelectedLast();
 
     if (selection === void 0) {
       return;
@@ -523,7 +523,7 @@ class NestedHeaders extends BasePlugin {
     let newStartColumn = calc.startColumn;
 
     rangeEach(0, Math.max(this.columnHeaderLevelCount - 1, 0), (l) => {
-      let startColumnNestedParent = this.getNestedParent(l, calc.startColumn);
+      const startColumnNestedParent = this.getNestedParent(l, calc.startColumn);
 
       if (startColumnNestedParent < calc.startColumn) {
         newStartColumn = Math.min(newStartColumn, startColumnNestedParent);
@@ -566,9 +566,9 @@ class NestedHeaders extends BasePlugin {
       return;
     }
 
-    let { from, to } = this.hot.getSelectedRangeLast();
-    let colspan = this.getColspan(coords.row, coords.col);
-    let lastColIndex = coords.col + colspan - 1;
+    const { from, to } = this.hot.getSelectedRangeLast();
+    const colspan = this.getColspan(coords.row, coords.col);
+    const lastColIndex = coords.col + colspan - 1;
     let changeDirection = false;
 
     if (from.col <= to.col) {
@@ -656,7 +656,7 @@ class NestedHeaders extends BasePlugin {
    * @returns {Number}
    */
   onModifyColWidth(width, column) {
-    let cachedWidth = this.ghostTable.widthsCache[column];
+    const cachedWidth = this.ghostTable.widthsCache[column];
 
     return width > cachedWidth ? width : cachedWidth;
   }

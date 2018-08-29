@@ -129,7 +129,7 @@ class SelectUI extends BaseUI {
    * Open select dropdown menu with available options.
    */
   openOptions() {
-    let rect = this.element.getBoundingClientRect();
+    const rect = this.element.getBoundingClientRect();
 
     if (this.menu) {
       this.menu.open();

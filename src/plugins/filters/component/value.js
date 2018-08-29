@@ -150,7 +150,7 @@ class ValueComponent extends BaseComponent {
       renderer: (hot, wrapper, row, col, prop, value) => {
         addClass(wrapper.parentNode, 'htFiltersMenuValue');
 
-        let label = document.createElement('div');
+        const label = document.createElement('div');
 
         addClass(label, 'htFiltersMenuLabel');
         label.textContent = value;
@@ -168,8 +168,8 @@ class ValueComponent extends BaseComponent {
    */
   reset() {
     const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
-    let values = unifyColumnValues(this._getColumnVisibleValues());
-    let items = intersectValues(values, values, defaultBlankCellValue);
+    const values = unifyColumnValues(this._getColumnVisibleValues());
+    const items = intersectValues(values, values, defaultBlankCellValue);
 
     this.getMultipleSelectElement().setItems(items);
     super.reset();

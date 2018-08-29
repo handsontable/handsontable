@@ -337,16 +337,16 @@ class HiddenColumns extends BasePlugin {
         cellProperties.className += ' firstVisibleColumn';
       }
     } else if (cellProperties.className) {
-      let classArr = cellProperties.className.split(' ');
+      const classArr = cellProperties.className.split(' ');
 
       if (classArr.length) {
-        let containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
+        const containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
 
         if (containAfterHiddenColumn > -1) {
           classArr.splice(containAfterHiddenColumn, 1);
         }
 
-        let containFirstVisible = classArr.indexOf('firstVisibleColumn');
+        const containFirstVisible = classArr.indexOf('firstVisibleColumn');
 
         if (containFirstVisible > -1) {
           classArr.splice(containFirstVisible, 1);
@@ -365,9 +365,9 @@ class HiddenColumns extends BasePlugin {
    * @returns {Array}
    */
   onModifyCopyableRange(ranges) {
-    let newRanges = [];
+    const newRanges = [];
 
-    let pushRange = (startRow, endRow, startCol, endCol) => {
+    const pushRange = (startRow, endRow, startCol, endCol) => {
       newRanges.push({ startRow, endRow, startCol, endCol });
     };
 
@@ -453,8 +453,8 @@ class HiddenColumns extends BasePlugin {
 
     coords.col = 0;
 
-    let getNextColumn = (col) => {
-      let logicalCol = this.getLogicalColumnIndex(col);
+    const getNextColumn = (col) => {
+      const logicalCol = this.getLogicalColumnIndex(col);
 
       if (this.isHidden(logicalCol, true)) {
         col = getNextColumn(++col);
@@ -473,10 +473,10 @@ class HiddenColumns extends BasePlugin {
    * @param {Object} coords Object with `row` and `col` properties.
    */
   onBeforeSetRangeEnd(coords) {
-    let columnCount = this.hot.countCols();
+    const columnCount = this.hot.countCols();
 
-    let getNextColumn = (col) => {
-      let logicalCol = this.getLogicalColumnIndex(col);
+    const getNextColumn = (col) => {
+      const logicalCol = this.getLogicalColumnIndex(col);
 
       if (this.isHidden(logicalCol, true)) {
         if (this.lastSelectedColumn > col || coords.col === columnCount - 1) {
@@ -527,7 +527,7 @@ class HiddenColumns extends BasePlugin {
    * @private
    */
   onAfterCreateCol(index, amount) {
-    let tempHidden = [];
+    const tempHidden = [];
 
     arrayEach(this.hiddenColumns, (col) => {
       if (col >= index) {
@@ -545,7 +545,7 @@ class HiddenColumns extends BasePlugin {
    * @private
    */
   onAfterRemoveCol(index, amount) {
-    let tempHidden = [];
+    const tempHidden = [];
 
     arrayEach(this.hiddenColumns, (col) => {
       if (col >= index) {
@@ -562,7 +562,7 @@ class HiddenColumns extends BasePlugin {
    * @private
    */
   onAfterPluginsInitialized() {
-    let settings = this.hot.getSettings().hiddenColumns;
+    const settings = this.hot.getSettings().hiddenColumns;
 
     if (typeof settings === 'object') {
       this.settings = settings;

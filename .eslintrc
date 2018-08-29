@@ -54,7 +54,6 @@
     "object-shorthand": 1,
     "one-var": 0,
     "padded-blocks": 0,
-    "prefer-const": 0,
     "prefer-rest-params": 1,
     "space-infix-ops": 2,
     "vars-on-top": 0,

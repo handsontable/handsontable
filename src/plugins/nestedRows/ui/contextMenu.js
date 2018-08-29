@@ -67,7 +67,7 @@ class ContextMenuUI extends BaseUI {
         disabled: () => {
           const selected = this.hot.getSelectedLast();
           const translatedRowIndex = this.dataManager.translateTrimmedRow(selected[0]);
-          let parent = this.dataManager.getRowParent(translatedRowIndex);
+          const parent = this.dataManager.getRowParent(translatedRowIndex);
 
           return !parent || !selected || selected[0] < 0 || this.hot.selection.isSelectedByColumnHeader() || this.hot.countRows() >= this.hot.getSettings().maxRows;
         }
@@ -100,7 +100,7 @@ class ContextMenuUI extends BaseUI {
    * @returns {*}
    */
   modifyRowInsertingOptions(defaultOptions) {
-    let priv = privatePool.get(this);
+    const priv = privatePool.get(this);
 
     rangeEach(0, defaultOptions.items.length - 1, (i) => {
 

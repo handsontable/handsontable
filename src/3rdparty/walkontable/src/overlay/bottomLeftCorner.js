@@ -34,7 +34,7 @@ class BottomLeftCornerOverlay extends Overlay {
    */
   repositionOverlay() {
     let scrollbarWidth = getScrollbarWidth();
-    let cloneRoot = this.clone.wtTable.holder.parentNode;
+    const cloneRoot = this.clone.wtTable.holder.parentNode;
 
     if (this.wot.wtTable.holder.clientHeight === this.wot.wtTable.holder.offsetHeight) {
       scrollbarWidth = 0;
@@ -54,19 +54,19 @@ class BottomLeftCornerOverlay extends Overlay {
       // removed from DOM
       return;
     }
-    let overlayRoot = this.clone.wtTable.holder.parentNode;
-    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    let tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
 
     overlayRoot.style.top = '';
 
     if (this.trimmingContainer === window) {
-      let box = this.wot.wtTable.hider.getBoundingClientRect();
-      let bottom = Math.ceil(box.bottom);
-      let left = Math.ceil(box.left);
+      const box = this.wot.wtTable.hider.getBoundingClientRect();
+      const bottom = Math.ceil(box.bottom);
+      const left = Math.ceil(box.left);
       let finalLeft;
       let finalBottom;
-      let bodyHeight = document.body.offsetHeight;
+      const bodyHeight = document.body.offsetHeight;
 
       if (left < 0) {
         finalLeft = -left;

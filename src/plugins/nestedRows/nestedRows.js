@@ -281,7 +281,7 @@ class NestedRows extends BasePlugin {
       if (parentObject == null) {
         parentObject = this.dataManager.getDataObject(translatedTargetIndex - 1);
       }
-      let parentIndex = this.dataManager.getRowIndex(parentObject);
+      const parentIndex = this.dataManager.getRowIndex(parentObject);
 
       startRow = parentIndex;
       endRow = startRow;
@@ -445,8 +445,8 @@ class NestedRows extends BasePlugin {
 
     rangeEach(index, index + amount - 1, (i) => {
       let isChild = false;
-      let translated = this.collapsingUI.translateTrimmedRow(i);
-      let currentDataObj = this.dataManager.getDataObject(translated);
+      const translated = this.collapsingUI.translateTrimmedRow(i);
+      const currentDataObj = this.dataManager.getDataObject(translated);
 
       if (this.dataManager.hasChildren(currentDataObj)) {
         lastParents.push(currentDataObj);
@@ -551,7 +551,7 @@ class NestedRows extends BasePlugin {
       this.bindRowsWithHeadersPlugin.bindStrategy.createMap(this.hot.countSourceRows());
     }
 
-    let deepestLevel = Math.max(...this.dataManager.cache.levels);
+    const deepestLevel = Math.max(...this.dataManager.cache.levels);
 
     if (deepestLevel > 0) {
       this.headersUI.updateRowHeaderWidth(deepestLevel);

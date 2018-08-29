@@ -282,7 +282,7 @@ describe('TrimRows', () => {
     }
 
     function getClipboardEvent() {
-      let event = {};
+      const event = {};
       event.clipboardData = new DataTransferObject();
       event.preventDefault = () => {};
       return event;
@@ -447,7 +447,7 @@ describe('TrimRows', () => {
 
   describe('minRows option set', () => {
     it('should not fill the table with empty rows (to the `minRows` limit), when editing rows in a table with trimmed rows', (done) => {
-      let hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         minRows: 10,
         trimRows: [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -467,7 +467,7 @@ describe('TrimRows', () => {
 
   describe('minSpareRows option set', () => {
     it('should not fill the table with empty rows (to the `minSpareRows` limit), when editing rows in a table with trimmed rows', (done) => {
-      let hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         minSpareRows: 4,
         trimRows: [1, 2, 3, 4, 5, 6, 7, 8, 9]

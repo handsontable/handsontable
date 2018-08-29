@@ -27,7 +27,7 @@ class BindStrategy {
    * @param name
    */
   setStrategy(name) {
-    let Strategy = strategies[toUpperCaseFirst(name)];
+    const Strategy = strategies[toUpperCaseFirst(name)];
 
     if (!Strategy) {
       throw new Error(`Bind strategy "${name}" does not exist.`);
@@ -41,8 +41,8 @@ class BindStrategy {
    * @param {Number} [length] Custom generated map length.
    */
   createMap(length) {
-    let strategy = this.strategy;
-    let originLength = length === void 0 ? strategy._arrayMap.length : length;
+    const strategy = this.strategy;
+    const originLength = length === void 0 ? strategy._arrayMap.length : length;
 
     strategy._arrayMap.length = 0;
 

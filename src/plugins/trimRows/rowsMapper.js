@@ -24,7 +24,7 @@ class RowsMapper {
    */
   createMap(length) {
     let rowOffset = 0;
-    let originLength = length === void 0 ? this._arrayMap.length : length;
+    const originLength = length === void 0 ? this._arrayMap.length : length;
 
     this._arrayMap.length = 0;
 

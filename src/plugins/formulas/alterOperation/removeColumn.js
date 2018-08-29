@@ -28,8 +28,8 @@ export function operate(start, amount, modifyFormula = true) {
   const translate = [0, amount];
   const indexOffset = Math.abs(amount) - 1;
 
-  let removedCellRef = matrix.removeCellRefsAtRange({ column: start }, { column: start + indexOffset });
-  let toRemove = [];
+  const removedCellRef = matrix.removeCellRefsAtRange({ column: start }, { column: start + indexOffset });
+  const toRemove = [];
 
   arrayEach(matrix.data, (cell) => {
     arrayEach(removedCellRef, (cellRef) => {

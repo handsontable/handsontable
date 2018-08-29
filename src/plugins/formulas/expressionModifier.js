@@ -151,8 +151,8 @@ class ExpressionModifier {
    */
   _translateCell(cell, axis, delta, startFromIndex) {
     const { start, end } = cell;
-    let startIndex = start[axis].index;
-    let endIndex = end[axis].index;
+    const startIndex = start[axis].index;
+    const endIndex = end[axis].index;
 
     let deltaStart = delta;
     let deltaEnd = delta;

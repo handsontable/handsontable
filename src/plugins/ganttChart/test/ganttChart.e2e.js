@@ -368,7 +368,7 @@ describe('GanttChart', () => {
       await sleep(200);
 
       weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
-      let firstRendered = 53 - weekHeaders.length;
+      const firstRendered = 53 - weekHeaders.length;
 
       expect(weekHeaders[31 - firstRendered].querySelector('span').innerText).toEqual('1 - 5');
       expect(weekHeaders[32 - firstRendered].querySelector('span').innerText).toEqual('6 - 12');
@@ -395,7 +395,7 @@ describe('GanttChart', () => {
 
       expect(hot.countCols()).toEqual(42);
 
-      let weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+      const weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
 
       expect(weekHeaders[0].querySelector('span').innerText).toEqual('1 - 7');
       expect(weekHeaders[1].querySelector('span').innerText).toEqual('8 - 14');
@@ -462,10 +462,7 @@ describe('GanttChart', () => {
     });
 
     it('should be able to feed the gantt chart data from another HOT instance, when the asyncUpdates option is enabled', function(done) {
-      let source;
-      let hot;
-
-      source = this.$sourceContainer.handsontable({
+      const source = this.$sourceContainer.handsontable({
         data: [
           ['Vendor One', 'Posters', 'New York, NY', '2', '1/5/2015', '1/20/2015'],
           ['Vendor Two', 'Malls', 'Los Angeles, CA', '1', '1/11/2015', '1/29/2015'],
@@ -477,8 +474,7 @@ describe('GanttChart', () => {
           ['Vendor Two', 'Malls', 'Los Angeles, CA', '1', '3/2/2015', '4/12/2015'],
         ]
       }).handsontable('getInstance');
-
-      hot = handsontable({
+      const hot = handsontable({
         colHeaders: true,
         height: 250,
         ganttChart: {
