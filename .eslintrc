@@ -79,12 +79,6 @@
         ["+", "-", "*", "/", "%", "**"]
       ]
     ],
-    "no-unneeded-ternary": [
-      2,
-      {
-        "defaultAssignment": true
-      }
-    ],
     "no-confusing-arrow": [
       2,
       {
