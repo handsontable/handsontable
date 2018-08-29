@@ -57,7 +57,7 @@ class BindStrategy {
    * @param {*} params
    */
   createRow(...params) {
-    this.strategy.createRow.apply(this.strategy, params);
+    this.strategy.createRow(...params);
   }
 
   /**
@@ -66,7 +66,7 @@ class BindStrategy {
    * @param {*} params
    */
   removeRow(...params) {
-    this.strategy.removeRow.apply(this.strategy, params);
+    this.strategy.removeRow(...params);
   }
 
   /**
@@ -75,7 +75,7 @@ class BindStrategy {
    * @param {*} params
    */
   translate(...params) {
-    return this.strategy.getValueByIndex.apply(this.strategy, params);
+    return this.strategy.getValueByIndex(...params);
   }
 
   /**

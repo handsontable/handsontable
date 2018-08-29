@@ -56,7 +56,6 @@
     "padded-blocks": 0,
     "prefer-const": 0,
     "prefer-rest-params": 1,
-    "prefer-spread": 1,
     "space-infix-ops": 2,
     "vars-on-top": 0,
     "camelcase": [
