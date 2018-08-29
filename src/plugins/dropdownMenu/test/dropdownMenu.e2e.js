@@ -434,14 +434,14 @@ describe('DropdownMenu', () => {
         dropdownMenu: {
           items: {
             cust1: {
-              name: function() {
+              name() {
                 if (enabled) {
                   return 'Disable my custom option';
                 }
 
                 return 'Enable my custom option';
               },
-              callback: function() {
+              callback() {
 
               }
             }
@@ -470,7 +470,7 @@ describe('DropdownMenu', () => {
 
       handsontable({
         dropdownMenu: {
-          callback: callback,
+          callback,
           items: {
             cust1: {
               name: 'CustomItem1'
@@ -503,7 +503,7 @@ describe('DropdownMenu', () => {
         dropdownMenu: {
           items: {
             remove_col: {
-              callback: callback
+              callback
             },
             column_clear: {
               name: 'CLEAR'
@@ -527,7 +527,7 @@ describe('DropdownMenu', () => {
     it('should fire item callback after item has been clicked', () => {
       const customItem = {
         name: 'Custom item',
-        callback: function() {}
+        callback() {}
       };
 
       spyOn(customItem, 'callback');
@@ -598,7 +598,7 @@ describe('DropdownMenu', () => {
         options = options_;
         options.items.cust1 = {
           name: 'My custom item',
-          callback: function () {
+          callback() {
           }
         };
       };

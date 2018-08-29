@@ -267,7 +267,7 @@ class ExpressionModifier {
       origLabel: label,
       type: label.indexOf(':') === -1 ? 'cell' : 'range',
       refError: false,
-      toLabel: function() {
+      toLabel() {
         let label = toLabel(this.start.row, this.start.column);
 
         if (this.type === 'range') {

@@ -89,9 +89,9 @@ class DataManager {
     this.cache.levels[level].push(node);
     this.cache.rows.push(node);
     this.cache.nodeInfo.set(node, {
-      parent: parent,
+      parent,
       row: this.cache.rows.length - 1,
-      level: level
+      level
     });
 
     if (this.hasChildren(node)) {

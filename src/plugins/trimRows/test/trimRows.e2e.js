@@ -26,7 +26,7 @@ describe('TrimRows', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       trimRows: [2, 6, 7],
-      cells: function(row) {
+      cells(row) {
         var meta = {};
 
         if (row === 2) {

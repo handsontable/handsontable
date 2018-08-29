@@ -370,8 +370,8 @@ class CollapsibleColumns extends BasePlugin {
 
             this.markSectionAs(action === 'collapse' ? 'collapsed' : 'expanded', row, col, true);
             this.toggleCollapsibleSection({
-              row: row,
-              col: col
+              row,
+              col
             }, action);
 
           }

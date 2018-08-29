@@ -69,11 +69,11 @@ class GanttChartDataFeed {
    */
   bindWithHotInstance(instance, startDateColumn, endDateColumn, additionalData, asyncUpdates) {
     this.hotSource = {
-      instance: instance,
+      instance,
       startColumn: startDateColumn,
       endColumn: endDateColumn,
-      additionalData: additionalData,
-      asyncUpdates: asyncUpdates
+      additionalData,
+      asyncUpdates
     };
 
     this.addSourceHotHooks();

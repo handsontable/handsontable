@@ -79,7 +79,7 @@ describe('Formulas general', () => {
     data[4][2] = '=SUM(B5;E3)';
 
     var hot = handsontable({
-      data: data,
+      data,
       formulas: true,
       width: 500,
       height: 300
@@ -99,7 +99,7 @@ describe('Formulas general', () => {
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(0, 1, '=B5');
@@ -131,7 +131,7 @@ describe('Formulas general', () => {
     data[0][3] = '=SUM(A2:D2$)';
 
     var hot = handsontable({
-      data: data,
+      data,
       formulas: true,
       width: 500,
       height: 300
@@ -206,7 +206,7 @@ describe('Formulas general', () => {
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(1, 1, 20);
@@ -226,7 +226,7 @@ describe('Formulas general', () => {
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.getSourceData()[1][1] = 20;
@@ -247,7 +247,7 @@ describe('Formulas general', () => {
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(1, 1, '=Sum(a2:A4)');
@@ -267,7 +267,7 @@ describe('Formulas general', () => {
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(1, 1, '\'=SUM(A2:A4)');
@@ -287,7 +287,7 @@ describe('Formulas general', () => {
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(4, 5, hot.getDataAtCell(4, 5).substr(1));
@@ -307,7 +307,7 @@ describe('Formulas general', () => {
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(1, 1, '=SUM(A2:A4)');
@@ -327,7 +327,7 @@ describe('Formulas general', () => {
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(4, 1, 15);
@@ -347,7 +347,7 @@ describe('Formulas general', () => {
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(4, 1, '=SUM(A2:A4)');

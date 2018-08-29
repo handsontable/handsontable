@@ -253,7 +253,7 @@ class NestedHeaders extends BasePlugin {
 
           this.colspanArray[level].push({
             label: levelValue[col].label || '',
-            colspan: colspan,
+            colspan,
             hidden: false
           });
 

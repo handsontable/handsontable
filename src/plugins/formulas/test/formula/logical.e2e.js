@@ -36,7 +36,7 @@ describe('Formulas -> logical functions', () => {
     data[3].id = false;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -56,7 +56,7 @@ describe('Formulas -> logical functions', () => {
     data[2].id = 'baz';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -72,7 +72,7 @@ describe('Formulas -> logical functions', () => {
     var data = getData(0, 'name', ['=FALSE()']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -89,7 +89,7 @@ describe('Formulas -> logical functions', () => {
     data[1].id = false;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -110,7 +110,7 @@ describe('Formulas -> logical functions', () => {
     data[4].id = 'foo';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -133,7 +133,7 @@ describe('Formulas -> logical functions', () => {
     data[3].id = false;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -149,7 +149,7 @@ describe('Formulas -> logical functions', () => {
     var data = getData(0, 'name', ['=TRUE()']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -168,7 +168,7 @@ describe('Formulas -> logical functions', () => {
     data[3].id = false;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -188,7 +188,7 @@ describe('Formulas -> logical functions', () => {
     data[1].id = 33;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,

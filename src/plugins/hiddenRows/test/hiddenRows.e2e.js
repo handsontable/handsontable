@@ -28,7 +28,7 @@ describe('HiddenRows', () => {
       hiddenRows: {
         rows: [2, 4]
       },
-      cells: function(row) {
+      cells(row) {
         var meta = {};
 
         if (row === 2) {
@@ -54,7 +54,7 @@ describe('HiddenRows', () => {
         rows: [2, 4]
       },
       rowHeaders: false,
-      cells: function(row) {
+      cells(row) {
         var meta = {};
 
         if (row === 2) {
@@ -79,7 +79,7 @@ describe('HiddenRows', () => {
       hiddenRows: {
         rows: [2, 4]
       },
-      cells: function(row, col) {
+      cells(row, col) {
         var meta = {};
 
         if (col === 2) {
@@ -106,7 +106,7 @@ describe('HiddenRows', () => {
       hiddenRows: {
         rows: [2, 4]
       },
-      cells: function(row, col) {
+      cells(row, col) {
         var meta = {};
 
         if (col === 2) {
@@ -133,7 +133,7 @@ describe('HiddenRows', () => {
       hiddenRows: {
         rows: [2, 4]
       },
-      cells: function(row, col) {
+      cells(row, col) {
         var meta = {};
 
         if (col === 2) {

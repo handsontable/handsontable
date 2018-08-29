@@ -42,7 +42,7 @@ describe('getCondition', () => {
   });
 
   it('should return condition as a closure', () => {
-    const conditionMock = { condition: function() {}, descriptor: {} };
+    const conditionMock = { condition() {}, descriptor: {} };
 
     conditions.my_condition = conditionMock;
 
@@ -76,7 +76,7 @@ describe('getCondition', () => {
 
 describe('getConditionDescriptor', () => {
   it('should return condition as a closure', () => {
-    conditions.my_condition = { condition: function() {}, descriptor: { foo: 'bar' } };
+    conditions.my_condition = { condition() {}, descriptor: { foo: 'bar' } };
 
     const descriptor = getConditionDescriptor('my_condition');
 

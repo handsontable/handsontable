@@ -790,7 +790,7 @@ class GanttChart extends BasePlugin {
 
       if (barCoords) {
         this.updateRangeBarData(barCoords[0], barCoords[1], {
-          colors: colors
+          colors
         });
       }
     });

@@ -20,7 +20,7 @@ describe('Formulas -> information functions', () => {
     data[2].id = 'foo';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -43,7 +43,7 @@ describe('Formulas -> information functions', () => {
     data[5].id = '';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -66,7 +66,7 @@ describe('Formulas -> information functions', () => {
     data[2].id = 2.5;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -88,7 +88,7 @@ describe('Formulas -> information functions', () => {
     data[4].id = 'foo';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -111,7 +111,7 @@ describe('Formulas -> information functions', () => {
     data[3].id = 'foo';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -133,7 +133,7 @@ describe('Formulas -> information functions', () => {
     data[3].id = 'false';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -154,7 +154,7 @@ describe('Formulas -> information functions', () => {
     data[2].id = 2.5;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -175,7 +175,7 @@ describe('Formulas -> information functions', () => {
     data[3].id = 'true';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,

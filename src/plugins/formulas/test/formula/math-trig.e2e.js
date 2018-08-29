@@ -19,7 +19,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = 3;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -38,7 +38,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = -1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -57,7 +57,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = -1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -76,7 +76,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = -1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -95,7 +95,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = -1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -111,7 +111,7 @@ describe('Formulas -> math trig functions', () => {
     var data = getDataForFormulas(0, 'name', ['=ADD()', '=ADD(A1, A2)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -126,7 +126,7 @@ describe('Formulas -> math trig functions', () => {
     var data = getDataForFormulas(0, 'name', ['=ADD()', '=ADD(A1, A2)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -141,7 +141,7 @@ describe('Formulas -> math trig functions', () => {
     var data = getDataForFormulas(0, 'name', ['=AGGREGATE()', '=AGGREGATE(6, 4, A1:A3)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -158,7 +158,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 'MXL';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -175,7 +175,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -192,7 +192,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 0.5;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -209,7 +209,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 0.5;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -226,7 +226,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -243,7 +243,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 8;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -260,7 +260,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = -1.234;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -275,7 +275,7 @@ describe('Formulas -> math trig functions', () => {
     var data = getDataForFormulas(0, 'name', ['=COMBIN()', '=COMBIN(3, 1)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -290,7 +290,7 @@ describe('Formulas -> math trig functions', () => {
     var data = getDataForFormulas(0, 'name', ['=COMBINA()', '=COMBINA(3, 1)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -307,7 +307,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -324,7 +324,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -341,7 +341,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -358,7 +358,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -375,7 +375,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -392,7 +392,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -409,7 +409,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -427,7 +427,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = '32b';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -445,7 +445,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 2;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -464,7 +464,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = 5;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -483,7 +483,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = 5;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -502,7 +502,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = 5;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -520,7 +520,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 2;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -541,7 +541,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 6;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -558,7 +558,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 6;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -575,7 +575,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 6.998;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -592,7 +592,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 2;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -609,7 +609,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 2;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -627,7 +627,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1.5;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -644,7 +644,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1.1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -661,7 +661,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = Math.E;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -678,7 +678,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 10;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -695,7 +695,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 10;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -712,7 +712,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 10;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -730,7 +730,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 10;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -748,7 +748,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 10;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -766,7 +766,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 10;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -785,7 +785,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = -4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -804,7 +804,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = 3;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -823,7 +823,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = 3;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -842,7 +842,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = 3;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -861,7 +861,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = 11;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -880,7 +880,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = 11;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -897,7 +897,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = 11;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -916,7 +916,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = 11;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -937,7 +937,7 @@ describe('Formulas -> math trig functions', () => {
     data[3].id = 10;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -958,7 +958,7 @@ describe('Formulas -> math trig functions', () => {
     data[3].id = 10;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -977,7 +977,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = 90;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -993,7 +993,7 @@ describe('Formulas -> math trig functions', () => {
     var data = getDataForFormulas(0, 'name', ['=RAND()']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1010,7 +1010,7 @@ describe('Formulas -> math trig functions', () => {
     var data = getDataForFormulas(0, 'name', ['=RANDBETWEEN(-5, -3)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1029,7 +1029,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 992;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1046,7 +1046,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1.2234578;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1063,7 +1063,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1.2234578;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1080,7 +1080,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1.2234578;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1097,7 +1097,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1114,7 +1114,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1135,7 +1135,7 @@ describe('Formulas -> math trig functions', () => {
     data[3].address = -1 / 720;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1152,7 +1152,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 30;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1169,7 +1169,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = Math.PI / 2;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1186,7 +1186,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1203,7 +1203,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 64;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1220,7 +1220,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 64;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1240,7 +1240,7 @@ describe('Formulas -> math trig functions', () => {
     data[3].id = 23;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1260,7 +1260,7 @@ describe('Formulas -> math trig functions', () => {
     data[3].id = 23;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1280,7 +1280,7 @@ describe('Formulas -> math trig functions', () => {
     data[3].id = 23;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1300,7 +1300,7 @@ describe('Formulas -> math trig functions', () => {
     data[3].id = 23;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1329,7 +1329,7 @@ describe('Formulas -> math trig functions', () => {
     data[2].registered = 3;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1346,7 +1346,7 @@ describe('Formulas -> math trig functions', () => {
     data[1].id = 3.3;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1368,7 +1368,7 @@ describe('Formulas -> math trig functions', () => {
     data[2].address = 6;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1390,7 +1390,7 @@ describe('Formulas -> math trig functions', () => {
     data[2].address = 6;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1412,7 +1412,7 @@ describe('Formulas -> math trig functions', () => {
     data[2].address = 6;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1429,7 +1429,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 45;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1446,7 +1446,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1463,7 +1463,7 @@ describe('Formulas -> math trig functions', () => {
     data[0].id = 0.99988877;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,

@@ -16,7 +16,7 @@ describe('Formulas -> lookup reference functions', () => {
     var data = getDataForFormulas(0, 'name', ['=MATCH()', '=MATCH("Saranap", C1:C5)', '=MATCH(4, A1:A5, 1)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,

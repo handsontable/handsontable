@@ -70,7 +70,7 @@ describe('ColumnSummarySpec', () => {
               [0, 4], [6], [8, 9]
             ],
             type: 'custom',
-            customFunction: customFunction,
+            customFunction,
             forceNumeric: true,
             suppressDataTypeErrors: true,
             readOnly: true
@@ -246,7 +246,7 @@ describe('ColumnSummarySpec', () => {
               [0, 13]
             ],
             type: 'custom',
-            customFunction: function(endpoint) {
+            customFunction(endpoint) {
               var hotInstance = this.hot;
               var counter = 0;
 
@@ -277,7 +277,7 @@ describe('ColumnSummarySpec', () => {
             }
           }
         ],
-        afterInit: function() {
+        afterInit() {
           // set the extra property to certain cells
           this.setCellMeta(4, 4, 'extraProperty', true);
           this.setCellMeta(6, 4, 'extraProperty', true);
@@ -346,7 +346,7 @@ describe('ColumnSummarySpec', () => {
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
-        columnSummary: function() {
+        columnSummary() {
           var config = [];
 
           config.push({
@@ -656,7 +656,7 @@ describe('ColumnSummarySpec', () => {
         rowHeaders: true,
         colHeaders: summaryTypes,
         maxRows: 5,
-        columnSummary: function() {
+        columnSummary() {
           var configArray = [];
           for (var i = 0; i < columns; i++) {
             configArray.push({

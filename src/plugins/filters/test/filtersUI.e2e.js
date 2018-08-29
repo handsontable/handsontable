@@ -189,7 +189,7 @@ describe('Filters UI', () => {
         dropdownMenu: true,
         width: 500,
         height: 300,
-        cells: function(row, col) {
+        cells(row, col) {
           if (col === 3 && row === 2) {
             this.type = 'text';
           }
@@ -768,7 +768,7 @@ describe('Filters UI', () => {
       data[3].name = void 0;
 
       handsontable({
-        data: data,
+        data,
         columns: getColumnsForFilters(),
         filters: true,
         dropdownMenu: true,

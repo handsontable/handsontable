@@ -19,20 +19,20 @@ class BaseCell {
 
     // TODO: Change syntax to es6 after upgrade tests to newer version of phantom and jasmine.
     Object.defineProperty(this, 'row', {
-      get: function() {
+      get() {
         return this.rowOffset + this._row;
       },
-      set: function(row) {
+      set(row) {
         this._row = row;
       },
       enumerable: true,
       configurable: true
     });
     Object.defineProperty(this, 'column', {
-      get: function() {
+      get() {
         return this.columnOffset + this._column;
       },
-      set: function(column) {
+      set(column) {
         this._column = column;
       },
       enumerable: true,

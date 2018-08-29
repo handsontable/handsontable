@@ -18,7 +18,7 @@ describe('Formulas -> statistical functions', () => {
     data[0].id = 1.1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -35,7 +35,7 @@ describe('Formulas -> statistical functions', () => {
     data[0].id = 1.1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -52,7 +52,7 @@ describe('Formulas -> statistical functions', () => {
     data[0].id = 1.1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -76,7 +76,7 @@ describe('Formulas -> statistical functions', () => {
     data[3].name = 4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -100,7 +100,7 @@ describe('Formulas -> statistical functions', () => {
     data[3].name = 4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -115,7 +115,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=BETADIST()', '=BETADIST(2, 8, 10, TRUE, 1, 3)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -130,7 +130,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=BETAINV()', '=BETAINV(0.6854705810117458, 8, 10, 1, 3)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -145,7 +145,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=BINOMDIST()', '=BINOMDIST(6, 10, 0.5, FALSE)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -160,7 +160,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=BINOM.DIST.RANGE()', '=BINOM.DIST.RANGE(60, 0.5, 34)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -175,7 +175,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=BINOM.INV()', '=BINOM.INV(6, 0.5, 0.7)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -190,7 +190,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=CHISQ.DIST()', '=CHISQ.DIST(0.5, 1)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -205,7 +205,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=CHISQ.DIST.RT()', '=CHISQ.DIST.RT(3, 5)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -220,7 +220,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=CHISQ.INV()', '=CHISQ.INV(0.5, 6)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -235,7 +235,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=CHISQ.INV.RT()', '=CHISQ.INV.RT(0.4, 6)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -250,7 +250,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'id', ['=COLUMN()', '=COLUMN(B2:E5, 0)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -265,7 +265,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'id', ['=COLUMNS()', '=COLUMNS(B2:E5)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -280,7 +280,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'id', ['=CONFIDENCE()', '=CONFIDENCE(0.5, 1, 5)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -295,7 +295,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'id', ['=CONFIDENCE.T()', '=CONFIDENCE.T(0.5, 1, 5)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -321,7 +321,7 @@ describe('Formulas -> statistical functions', () => {
     data[4].address = 17;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -338,7 +338,7 @@ describe('Formulas -> statistical functions', () => {
     data[0].name = true;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -355,7 +355,7 @@ describe('Formulas -> statistical functions', () => {
     data[0].name = true;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -372,7 +372,7 @@ describe('Formulas -> statistical functions', () => {
     data[0].name = true;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -394,7 +394,7 @@ describe('Formulas -> statistical functions', () => {
     data[2].address = 'c';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -416,7 +416,7 @@ describe('Formulas -> statistical functions', () => {
     data[2].address = 'c';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -437,7 +437,7 @@ describe('Formulas -> statistical functions', () => {
     data[4].id = 2;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -458,7 +458,7 @@ describe('Formulas -> statistical functions', () => {
     data[4].id = 2;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -484,7 +484,7 @@ describe('Formulas -> statistical functions', () => {
     data[4].name = 17;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -506,7 +506,7 @@ describe('Formulas -> statistical functions', () => {
     data[2].name = 12;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -529,7 +529,7 @@ describe('Formulas -> statistical functions', () => {
     data[6].id = 3;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -544,7 +544,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=EXPONDIST()', '=EXPONDIST(0.2, 10, TRUE)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -559,7 +559,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=FDIST()', '=FDIST(15, 6, 4, TRUE)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -574,7 +574,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=FDISTRT()', '=FDISTRT(15, 6, 4)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -589,7 +589,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=FINV()', '=FINV(0.1, 6, 4)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -604,7 +604,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=FINVRT()', '=FINVRT(0.1, 6, 4)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -619,7 +619,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=FISHER()', '=FISHER(0.1)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -634,7 +634,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=FISHERINV()', '=FISHERINV(0.1)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -660,7 +660,7 @@ describe('Formulas -> statistical functions', () => {
     data[4].name = 40;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -688,7 +688,7 @@ describe('Formulas -> statistical functions', () => {
     data[2].name = 89;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -703,7 +703,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=GAMMA()', '=GAMMA(0.1)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -718,7 +718,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=GAMMADIST()', '=GAMMADIST(1, 3, 7, TRUE)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -733,7 +733,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=GAMMAINV()', '=GAMMAINV(1, 3, 7)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -748,7 +748,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=GAMMALN()', '=GAMMALN(4)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -763,7 +763,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=GAMMALN.PRECISE()', '=GAMMALN.PRECISE(4)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -778,7 +778,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=GAUSS()', '=GAUSS(4)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -801,7 +801,7 @@ describe('Formulas -> statistical functions', () => {
     data[6].id = 3;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -830,7 +830,7 @@ describe('Formulas -> statistical functions', () => {
     data[6].name = 11;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -868,7 +868,7 @@ describe('Formulas -> statistical functions', () => {
     data[6].id = 3;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -883,7 +883,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=HYPGEOMDIST()', '=HYPGEOMDIST(1, 4, 8, 20)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -909,7 +909,7 @@ describe('Formulas -> statistical functions', () => {
     data[4].name = 5;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -935,7 +935,7 @@ describe('Formulas -> statistical functions', () => {
     data[9].id = 7;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -956,7 +956,7 @@ describe('Formulas -> statistical functions', () => {
     data[4].id = 4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -980,7 +980,7 @@ describe('Formulas -> statistical functions', () => {
     data[3].name = 3;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1004,7 +1004,7 @@ describe('Formulas -> statistical functions', () => {
     data[3].name = 3;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1019,7 +1019,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=LOGNORMDIST()', '=LOGNORMDIST(4, 3.5, 1.2, TRUE)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1034,7 +1034,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=LOGNORMINV()', '=LOGNORMINV(0.0390835557068005, 3.5, 1.2)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1049,7 +1049,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=MAX()', '=MAX(-1, 9, 9.2, 4, "foo", TRUE)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1064,7 +1064,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=MAXA()', '=MAXA(-1, 9, 9.2, 4, "foo", TRUE)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1079,7 +1079,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=MEDIAN()', '=MEDIAN(1, 9, 9.2, 4)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1094,7 +1094,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=MIN()', '=MIN(-1.1, 9, 9.2, 4, "foo", TRUE)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1109,7 +1109,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=MINA()', '=MINA(-1.1, 9, 9.2, 4, "foo", TRUE)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1137,7 +1137,7 @@ describe('Formulas -> statistical functions', () => {
     data[11].id = 1;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1159,7 +1159,7 @@ describe('Formulas -> statistical functions', () => {
     data[5].id = 4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1174,7 +1174,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=NEGBINOMDIST()', '=NEGBINOMDIST(10, 5, 0.25)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1189,7 +1189,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=NORMDIST()', '=NORMDIST(1, 0, 1)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1204,7 +1204,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=NORMINV()', '=NORMINV(1, 0, 1)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1219,7 +1219,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=NORMSDIST()', '=NORMSDIST(1, TRUE)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1234,7 +1234,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=NORMSINV()', '=NORMSINV(1)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1260,7 +1260,7 @@ describe('Formulas -> statistical functions', () => {
     data[4].name = 3;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1280,7 +1280,7 @@ describe('Formulas -> statistical functions', () => {
     data[3].id = 4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1300,7 +1300,7 @@ describe('Formulas -> statistical functions', () => {
     data[3].id = 4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1320,7 +1320,7 @@ describe('Formulas -> statistical functions', () => {
     data[3].id = 4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1340,7 +1340,7 @@ describe('Formulas -> statistical functions', () => {
     data[3].id = 4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1355,7 +1355,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=PERMUT()', '=PERMUT(10, 3)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1370,7 +1370,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=PERMUTATIONA()', '=PERMUTATIONA(10, 3)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1385,7 +1385,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=PHI()', '=PHI(1)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1400,7 +1400,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=POISSONDIST()', '=POISSONDIST(1, 3)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1424,7 +1424,7 @@ describe('Formulas -> statistical functions', () => {
     data[3].name = 0.4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1451,7 +1451,7 @@ describe('Formulas -> statistical functions', () => {
     data[10].id = 49;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1475,7 +1475,7 @@ describe('Formulas -> statistical functions', () => {
     data[7].id = 12;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1498,7 +1498,7 @@ describe('Formulas -> statistical functions', () => {
     data[6].id = 95;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1519,7 +1519,7 @@ describe('Formulas -> statistical functions', () => {
     data[4].id = 2;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1541,7 +1541,7 @@ describe('Formulas -> statistical functions', () => {
     data[2].name = 4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1564,7 +1564,7 @@ describe('Formulas -> statistical functions', () => {
     data[2].name = 4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1594,7 +1594,7 @@ describe('Formulas -> statistical functions', () => {
     data[6].name = 4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1620,7 +1620,7 @@ describe('Formulas -> statistical functions', () => {
     data[9].id = 7;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1646,7 +1646,7 @@ describe('Formulas -> statistical functions', () => {
     data[9].id = 7;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1676,7 +1676,7 @@ describe('Formulas -> statistical functions', () => {
     data[6].name = 4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1701,7 +1701,7 @@ describe('Formulas -> statistical functions', () => {
     data[8].id = 7;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1716,7 +1716,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=STANDARDIZE()', '=STANDARDIZE(1, 3, 5)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1742,7 +1742,7 @@ describe('Formulas -> statistical functions', () => {
     data[9].id = 1299;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1768,7 +1768,7 @@ describe('Formulas -> statistical functions', () => {
     data[9].id = 1299;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1794,7 +1794,7 @@ describe('Formulas -> statistical functions', () => {
     data[9].id = 1299;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1820,7 +1820,7 @@ describe('Formulas -> statistical functions', () => {
     data[9].id = 1299;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1850,7 +1850,7 @@ describe('Formulas -> statistical functions', () => {
     data[6].name = 4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1872,7 +1872,7 @@ describe('Formulas -> statistical functions', () => {
     data[2].name = 6;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1887,7 +1887,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=TDIST()', '=TDIST(1, 3)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1902,7 +1902,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=T.DIST.RT()', '=T.DIST.RT(1, 6)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1917,7 +1917,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=TINV()', '=TINV(0.1, 6)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1932,7 +1932,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=T.INV.2T()', '=T.INV.2T(0.1, 6)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1958,7 +1958,7 @@ describe('Formulas -> statistical functions', () => {
     data[5].name = 8;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -1985,7 +1985,7 @@ describe('Formulas -> statistical functions', () => {
     data[10].id = 3;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -2000,7 +2000,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=VARP()', '=VARP(1, 2, 3)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -2015,7 +2015,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=VARS()', '=VARS(1, 2, 3)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -2030,7 +2030,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=VARA()', '=VARA(1, 2, 3)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -2045,7 +2045,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=VARPA()', '=VARPA(1, 2, 3)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -2060,7 +2060,7 @@ describe('Formulas -> statistical functions', () => {
     var data = getDataForFormulas(0, 'address', ['=WEIBULLDIST()', '=WEIBULLDIST(1, 2, 3)']);
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,

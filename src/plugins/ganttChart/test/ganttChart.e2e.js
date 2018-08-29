@@ -260,7 +260,7 @@ describe('GanttChart', () => {
         hot.updateSettings({
           ganttChart: {
             startYear: 2017,
-            weekHeaderGenerator: function(start, end) {
+            weekHeaderGenerator(start, end) {
               return `${start} -> ${end}`;
             }
           }
@@ -275,7 +275,7 @@ describe('GanttChart', () => {
         hot.updateSettings({
           ganttChart: {
             startYear: 2017,
-            weekHeaderGenerator: function(start, end) {
+            weekHeaderGenerator(start, end) {
               return `some text -> ${start}, ${end} (${end - start + 1})`;
             }
           }

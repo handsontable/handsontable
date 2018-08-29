@@ -138,7 +138,7 @@ describe('Formulas -> financial functions', () => {
     data[3].balance = 0.4;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -171,7 +171,7 @@ describe('Formulas -> financial functions', () => {
     data[3].balance = 24000;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -204,7 +204,7 @@ describe('Formulas -> financial functions', () => {
     data[3].balance = 24000;
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -413,7 +413,7 @@ describe('Formulas -> financial functions', () => {
     data[4].registered = '01/apr/09';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -439,7 +439,7 @@ describe('Formulas -> financial functions', () => {
     data[4].registered = '04/01/2009';
 
     var hot = handsontable({
-      data: data,
+      data,
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,

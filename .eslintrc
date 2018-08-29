@@ -51,7 +51,6 @@
     "no-var": 0,
     "no-void": 0,
     "no-with": 2,
-    "object-shorthand": 1,
     "one-var": 0,
     "padded-blocks": 0,
     "prefer-rest-params": 1,
