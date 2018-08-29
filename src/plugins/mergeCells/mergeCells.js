@@ -814,10 +814,12 @@ class MergeCells extends BasePlugin {
   onModifyAutofillRange(drag, select) {
     this.autofillCalculations.correctSelectionAreaSize(select);
     const dragDirection = this.autofillCalculations.getDirection(select, drag);
+    let dragArea = drag;
 
-    if (this.autofillCalculations.dragAreaOverlapsCollections(select, drag, dragDirection)) {
-      drag = select;
-      return drag;
+    if (this.autofillCalculations.dragAreaOverlapsCollections(select, dragArea, dragDirection)) {
+      dragArea = select;
+
+      return dragArea;
     }
 
     const mergedCellsWithinSelectionArea = this.mergedCellsCollection.getWithinRange({
@@ -826,12 +828,12 @@ class MergeCells extends BasePlugin {
     });
 
     if (!mergedCellsWithinSelectionArea) {
-      return drag;
+      return dragArea;
     }
 
-    drag = this.autofillCalculations.snapDragArea(select, drag, dragDirection, mergedCellsWithinSelectionArea);
+    dragArea = this.autofillCalculations.snapDragArea(select, dragArea, dragDirection, mergedCellsWithinSelectionArea);
 
-    return drag;
+    return dragArea;
   }
 
   /**

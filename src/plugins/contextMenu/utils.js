@@ -42,31 +42,28 @@ export function prepareVerticalAlignClass(className, alignment) {
   if (className.indexOf(alignment) !== -1) {
     return className;
   }
-  className = className
+
+  const replacedClassName = className
     .replace('htTop', '')
     .replace('htMiddle', '')
     .replace('htBottom', '')
     .replace('  ', '');
 
-  className += ` ${alignment}`;
-
-  return className;
+  return `${replacedClassName} ${alignment}`;
 }
 
 export function prepareHorizontalAlignClass(className, alignment) {
   if (className.indexOf(alignment) !== -1) {
     return className;
   }
-  className = className
+  const replacedClassName = className
     .replace('htLeft', '')
     .replace('htCenter', '')
     .replace('htRight', '')
     .replace('htJustify', '')
     .replace('  ', '');
 
-  className += ` ${alignment}`;
-
-  return className;
+  return `${replacedClassName} ${alignment}`;
 }
 
 export function getAlignmentClasses(ranges, callback) {

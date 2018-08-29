@@ -9,9 +9,12 @@ import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../utils';
  * @returns {Function} The compare function.
  */
 export default function defaultSort(sortOrder, columnMeta) {
-  // We are soring array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
-  return function([, value], [, nextValue]) {
+  // We are sorting array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
+  return function([, firstValue], [, secondValue]) {
     const sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
+
+    let value = firstValue;
+    let nextValue = secondValue;
 
     if (typeof value === 'string') {
       value = value.toLowerCase();

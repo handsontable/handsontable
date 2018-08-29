@@ -710,12 +710,14 @@ class ManualRowMove extends BasePlugin {
    * @returns {Number} Physical row index.
    */
   onModifyRow(row, source) {
+    let physicalRow = row;
+
     if (source !== this.pluginName) {
-      const rowInMapper = this.rowsMapper.getValueByIndex(row);
-      row = rowInMapper === null ? row : rowInMapper;
+      const rowInMapper = this.rowsMapper.getValueByIndex(physicalRow);
+      physicalRow = rowInMapper === null ? physicalRow : rowInMapper;
     }
 
-    return row;
+    return physicalRow;
   }
 
   /**

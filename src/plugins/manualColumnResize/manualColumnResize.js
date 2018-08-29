@@ -456,17 +456,17 @@ class ManualColumnResize extends BasePlugin {
    * @returns {Number} Returns new width.
    */
   setManualSize(column, width) {
-    width = Math.max(width, 20);
+    const newWidth = Math.max(width, 20);
 
     /**
      *  We need to run col through modifyCol hook, in case the order of displayed columns is different than the order
      *  in data source. For instance, this order can be modified by manualColumnMove plugin.
      */
-    column = this.hot.runHooks('modifyCol', column);
+    const physicalColumn = this.hot.runHooks('modifyCol', column);
 
-    this.manualColumnWidths[column] = width;
+    this.manualColumnWidths[physicalColumn] = newWidth;
 
-    return width;
+    return newWidth;
   }
 
   /**
@@ -475,9 +475,9 @@ class ManualColumnResize extends BasePlugin {
    * @param {Number} column Visual column index.
    */
   clearManualSize(column) {
-    column = this.hot.runHooks('modifyCol', column);
+    const physicalColumn = this.hot.runHooks('modifyCol', column);
 
-    this.manualColumnWidths[column] = void 0;
+    this.manualColumnWidths[physicalColumn] = void 0;
   }
 
   /**
@@ -489,15 +489,18 @@ class ManualColumnResize extends BasePlugin {
    * @returns {Number}
    */
   onModifyColWidth(width, column) {
-    if (this.enabled) {
-      column = this.hot.runHooks('modifyCol', column);
+    let newWidth = width;
 
-      if (this.hot.getSettings().manualColumnResize && this.manualColumnWidths[column]) {
-        return this.manualColumnWidths[column];
+    if (this.enabled) {
+      const physicalColumn = this.hot.runHooks('modifyCol', column);
+      const columnWidth = this.manualColumnWidths[physicalColumn];
+
+      if (this.hot.getSettings().manualColumnResize && columnWidth) {
+        newWidth = columnWidth;
       }
     }
 
-    return width;
+    return newWidth;
   }
 
   /**

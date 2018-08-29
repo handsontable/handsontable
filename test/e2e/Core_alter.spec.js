@@ -148,6 +148,21 @@ describe('Core_alter', () => {
       expect(getData().length).toEqual(5); // new row should be added by keepEmptyRows
     });
 
+    it('should not remove row if amount is zero', () => {
+      handsontable({
+        data: arrayOfNestedObjects(),
+        columns: [
+          { data: 'id' },
+          { data: 'name.first' }
+        ],
+      });
+      const countedRows = countRows();
+
+      alter('remove_row', 1, 0);
+
+      expect(countRows()).toBe(countedRows);
+    });
+
     it('should fire beforeRemoveRow event before removing row', () => {
       const onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
 
@@ -483,6 +498,17 @@ describe('Core_alter', () => {
         expect(getDataAtRow(0)).toEqual(['A1', 'K1', 'M1', 'N1', 'O1']);
         expect(getData()[0].length).toBe(5);
       });
+    });
+
+    it('should not remove column if amount is zero', () => {
+      handsontable({
+        data: arrayOfArrays(),
+      });
+      const countedColumns = countCols();
+
+      alter('remove_col', 1, 0);
+
+      expect(countCols()).toBe(countedColumns);
     });
 
     it('should remove one column if amount parameter is empty', () => {

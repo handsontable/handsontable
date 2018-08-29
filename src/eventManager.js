@@ -41,10 +41,9 @@ class EventManager {
     const context = this.context;
 
     function callbackProxy(event) {
-      event = extendEvent(context, event);
-
-      callback.call(this, event);
+      callback.call(this, extendEvent(context, event));
     }
+
     this.context.eventListeners.push({
       element,
       event: eventName,
@@ -206,6 +205,7 @@ function extendEvent(context, event) {
   if (!EventManager.isHotTableEnv) {
     return event;
   }
+  // eslint-disable-next-line no-param-reassign
   event = polymerWrap(event);
   len = event.path ? event.path.length : 0;
 

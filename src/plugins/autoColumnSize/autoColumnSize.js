@@ -200,16 +200,12 @@ class AutoColumnSize extends BasePlugin {
    * @param {Boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
   calculateColumnsWidth(colRange = { from: 0, to: this.hot.countCols() - 1 }, rowRange = { from: 0, to: this.hot.countRows() - 1 }, force = false) {
-    if (typeof colRange === 'number') {
-      colRange = { from: colRange, to: colRange };
-    }
-    if (typeof rowRange === 'number') {
-      rowRange = { from: rowRange, to: rowRange };
-    }
+    const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
+    const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
 
-    rangeEach(colRange.from, colRange.to, (col) => {
+    rangeEach(columnsRange.from, columnsRange.to, (col) => {
       if (force || (this.widths[col] === void 0 && !this.hot._getColWidthFromSettings(col))) {
-        const samples = this.samplesGenerator.generateColumnSamples(col, rowRange);
+        const samples = this.samplesGenerator.generateColumnSamples(col, rowsRange);
 
         arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
       }
@@ -506,12 +502,15 @@ class AutoColumnSize extends BasePlugin {
    * @returns {Number}
    */
   onBeforeColumnResize(col, size, isDblClick) {
+    let newSize = size;
+
     if (isDblClick) {
       this.calculateColumnsWidth(col, void 0, true);
-      size = this.getColumnWidth(col, void 0, false);
+
+      newSize = this.getColumnWidth(col, void 0, false);
     }
 
-    return size;
+    return newSize;
   }
 
   /**

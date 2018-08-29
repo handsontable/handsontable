@@ -103,11 +103,12 @@ class MergedCellsCollection {
   getWithinRange(range, countPartials = false) {
     const mergedCells = this.mergedCells;
     const foundMergedCells = [];
+    let testedRange = range;
 
-    if (!range.includesRange) {
-      const from = new CellCoords(range.from.row, range.from.col);
-      const to = new CellCoords(range.to.row, range.to.col);
-      range = new CellRange(from, from, to);
+    if (!testedRange.includesRange) {
+      const from = new CellCoords(testedRange.from.row, testedRange.from.col);
+      const to = new CellCoords(testedRange.to.row, testedRange.to.col);
+      testedRange = new CellRange(from, from, to);
     }
 
     arrayEach(mergedCells, (mergedCell) => {
@@ -116,11 +117,11 @@ class MergedCellsCollection {
       const mergedCellRange = new CellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
 
       if (countPartials) {
-        if (range.overlaps(mergedCellRange)) {
+        if (testedRange.overlaps(mergedCellRange)) {
           foundMergedCells.push(mergedCell);
         }
 
-      } else if (range.includesRange(mergedCellRange)) {
+      } else if (testedRange.includesRange(mergedCellRange)) {
         foundMergedCells.push(mergedCell);
       }
     });

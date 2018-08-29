@@ -511,11 +511,13 @@ class CustomBorders extends BasePlugin {
     const values = Object.values(border);
 
     return arrayReduce(values, (accumulator, value) => {
+      let result = accumulator;
+
       if (value.hide) {
-        accumulator += 1;
+        result += 1;
       }
 
-      return accumulator;
+      return result;
     }, 0);
   }
 

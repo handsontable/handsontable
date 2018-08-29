@@ -49,12 +49,10 @@ function UndoRedo(instance) {
     }
 
     const originalData = plugin.instance.getSourceDataArray();
+    const rowIndex = (originalData.length + index) % originalData.length;
+    const removedData = deepClone(originalData.slice(rowIndex, rowIndex + amount));
 
-    index = (originalData.length + index) % originalData.length;
-
-    const removedData = deepClone(originalData.slice(index, index + amount));
-
-    plugin.done(new UndoRedo.RemoveRowAction(index, removedData));
+    plugin.done(new UndoRedo.RemoveRowAction(rowIndex, removedData));
   });
 
   instance.addHook('afterCreateCol', (index, amount, source) => {
@@ -71,9 +69,7 @@ function UndoRedo(instance) {
     }
 
     const originalData = plugin.instance.getSourceDataArray();
-
-    index = (plugin.instance.countCols() + index) % plugin.instance.countCols();
-
+    const columnIndex = (plugin.instance.countCols() + index) % plugin.instance.countCols();
     const removedData = [];
     const headers = [];
     const indexes = [];
@@ -82,26 +78,25 @@ function UndoRedo(instance) {
       const column = [];
       const origRow = originalData[i];
 
-      rangeEach(index, index + (amount - 1), (j) => {
+      rangeEach(columnIndex, columnIndex + (amount - 1), (j) => {
         column.push(origRow[instance.runHooks('modifyCol', j)]);
       });
       removedData.push(column);
     });
 
     rangeEach(amount - 1, (i) => {
-      indexes.push(instance.runHooks('modifyCol', index + i));
+      indexes.push(instance.runHooks('modifyCol', columnIndex + i));
     });
 
     if (Array.isArray(instance.getSettings().colHeaders)) {
       rangeEach(amount - 1, (i) => {
-        headers.push(instance.getSettings().colHeaders[instance.runHooks('modifyCol', index + i)] || null);
+        headers.push(instance.getSettings().colHeaders[instance.runHooks('modifyCol', columnIndex + i)] || null);
       });
     }
 
     const manualColumnMovePlugin = plugin.instance.getPlugin('manualColumnMove');
-
     const columnsMap = manualColumnMovePlugin.isEnabled() ? manualColumnMovePlugin.columnsMapper.__arrayMap : [];
-    const action = new UndoRedo.RemoveColumnAction(index, indexes, removedData, headers, columnsMap);
+    const action = new UndoRedo.RemoveColumnAction(columnIndex, indexes, removedData, headers, columnsMap);
 
     plugin.done(action);
   });
