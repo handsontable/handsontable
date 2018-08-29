@@ -460,7 +460,7 @@ class CollapsibleColumns extends BasePlugin {
     });
 
     this.hot.render();
-
+    this.hot.view.wt.wtOverlays.adjustElementsSize(true);
   }
 
   /**
