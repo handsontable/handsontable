@@ -99,22 +99,25 @@ const arrayMapper = {
     function countRowShift(logicalRow) {
       // Todo: compare perf between reduce vs sort->each->brake
       return arrayReduce(removedItems, (count, removedLogicalRow) => {
+        let result = count;
+
         if (logicalRow > removedLogicalRow) {
-          count += 1;
+          result += 1;
         }
 
-        return count;
+        return result;
       }, 0);
     }
 
     this._arrayMap = arrayMap(this._arrayMap, (logicalRow) => {
-      const rowShift = countRowShift(logicalRow);
+      let logicalRowIndex = logicalRow;
+      const rowShift = countRowShift(logicalRowIndex);
 
       if (rowShift) {
-        logicalRow -= rowShift;
+        logicalRowIndex -= rowShift;
       }
 
-      return logicalRow;
+      return logicalRowIndex;
     });
   },
 
@@ -126,10 +129,13 @@ const arrayMapper = {
    */
   shiftItems(physicalIndex, amount = 1) {
     this._arrayMap = arrayMap(this._arrayMap, (row) => {
-      if (row >= physicalIndex) {
-        row += amount;
+      let physicalRowIndex = row;
+
+      if (physicalRowIndex >= physicalIndex) {
+        physicalRowIndex += amount;
       }
-      return row;
+
+      return physicalRowIndex;
     });
 
     rangeEach(amount - 1, (count) => {

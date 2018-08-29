@@ -108,11 +108,9 @@ class SamplesGenerator {
    */
   generateSamples(type, range, specifierRange) {
     const samples = new Map();
+    const { from, to } = typeof specifierRange === 'number' ? { from: specifierRange, to: specifierRange } : specifierRange;
 
-    if (typeof specifierRange === 'number') {
-      specifierRange = { from: specifierRange, to: specifierRange };
-    }
-    rangeEach(specifierRange.from, specifierRange.to, (index) => {
+    rangeEach(from, to, (index) => {
       const sample = this.generateSample(type, range, index);
 
       samples.set(index, sample);

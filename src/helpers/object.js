@@ -148,15 +148,17 @@ export function mixin(Base, ...mixins) {
         Base.prototype[key] = value;
 
       } else {
-        const getter = function _getter(propertyName, initialValue) {
-          propertyName = `_${propertyName}`;
+        const getter = function _getter(property, initialValue) {
+          const propertyName = `_${property}`;
 
           const initValue = (newValue) => {
-            if (Array.isArray(newValue) || isObject(newValue)) {
-              newValue = deepClone(newValue);
+            let result = newValue;
+
+            if (Array.isArray(result) || isObject(result)) {
+              result = deepClone(result);
             }
 
-            return newValue;
+            return result;
           };
 
           return function() {
@@ -167,8 +169,8 @@ export function mixin(Base, ...mixins) {
             return this[propertyName];
           };
         };
-        const setter = function _setter(propertyName) {
-          propertyName = `_${propertyName}`;
+        const setter = function _setter(property) {
+          const propertyName = `_${property}`;
 
           return function(newValue) {
             this[propertyName] = newValue;

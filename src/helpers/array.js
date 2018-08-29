@@ -56,6 +56,7 @@ export function pivot(arr) {
 export function arrayReduce(array, iteratee, accumulator, initFromArray) {
   let index = -1;
   let iterable = array;
+  let result = accumulator;
 
   if (!Array.isArray(array)) {
     iterable = Array.from(array);
@@ -64,17 +65,17 @@ export function arrayReduce(array, iteratee, accumulator, initFromArray) {
 
   if (initFromArray && length) {
     index += 1;
-    accumulator = iterable[index];
+    result = iterable[index];
   }
 
   index += 1;
 
   while (index < length) {
-    accumulator = iteratee(accumulator, iterable[index], index, iterable);
+    result = iteratee(result, iterable[index], index, iterable);
     index += 1;
   }
 
-  return accumulator;
+  return result;
 }
 
 /**

@@ -14,7 +14,7 @@ const registeredPlugins = new WeakMap();
  * @param {Function} PluginClass
  */
 function registerPlugin(pluginName, PluginClass) {
-  pluginName = toUpperCaseFirst(pluginName);
+  const correctedPluginName = toUpperCaseFirst(pluginName);
 
   Hooks.getSingleton().add('construct', function() {
     if (!registeredPlugins.has(this)) {
@@ -23,8 +23,8 @@ function registerPlugin(pluginName, PluginClass) {
 
     const holder = registeredPlugins.get(this);
 
-    if (!holder[pluginName]) {
-      holder[pluginName] = new PluginClass(this);
+    if (!holder[correctedPluginName]) {
+      holder[correctedPluginName] = new PluginClass(this);
     }
   });
   Hooks.getSingleton().add('afterDestroy', function() {

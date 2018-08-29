@@ -17,7 +17,9 @@ import { isNumeric } from './../helpers/number';
  * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
 function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  if (isNumeric(value)) {
+  let newValue = value;
+
+  if (isNumeric(newValue)) {
     const numericFormat = cellProperties.numericFormat;
     const cellCulture = numericFormat && numericFormat.culture || '-';
     const cellFormatPattern = numericFormat && numericFormat.pattern;
@@ -35,7 +37,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
     numbro.setLanguage(cellCulture);
 
-    value = numbro(value).format(cellFormatPattern || '0');
+    newValue = numbro(newValue).format(cellFormatPattern || '0');
 
     if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 &&
       classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
@@ -49,7 +51,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
     cellProperties.className = classArr.join(' ');
   }
 
-  getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
+  getRenderer('text')(instance, TD, row, col, prop, newValue, cellProperties);
 }
 
 export default numericRenderer;

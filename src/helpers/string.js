@@ -84,7 +84,5 @@ const STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|/][^>]*>/gi;
  * @return {String}
  */
 export function stripTags(string) {
-  string += '';
-
-  return string.replace(STRIP_TAGS_REGEX, '');
+  return `${string}`.replace(STRIP_TAGS_REGEX, '');
 }

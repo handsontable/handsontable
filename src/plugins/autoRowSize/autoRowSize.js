@@ -165,24 +165,20 @@ class AutoRowSize extends BasePlugin {
    * @param {Boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
   calculateRowsHeight(rowRange = { from: 0, to: this.hot.countRows() - 1 }, colRange = { from: 0, to: this.hot.countCols() - 1 }, force = false) {
-    if (typeof rowRange === 'number') {
-      rowRange = { from: rowRange, to: rowRange };
-    }
-    if (typeof colRange === 'number') {
-      colRange = { from: colRange, to: colRange };
-    }
+    const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
+    const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
 
     if (this.hot.getColHeader(0) !== null) {
-      const samples = this.samplesGenerator.generateRowSamples(-1, colRange);
+      const samples = this.samplesGenerator.generateRowSamples(-1, columnsRange);
 
       this.ghostTable.addColumnHeadersRow(samples.get(-1));
     }
 
-    rangeEach(rowRange.from, rowRange.to, (row) => {
+    rangeEach(rowsRange.from, rowsRange.to, (row) => {
       // For rows we must calculate row height even when user had set height value manually.
       // We can shrink column but cannot shrink rows!
       if (force || this.heights[row] === void 0) {
-        const samples = this.samplesGenerator.generateRowSamples(row, colRange);
+        const samples = this.samplesGenerator.generateRowSamples(row, columnsRange);
 
         arrayEach(samples, ([rowIndex, sample]) => this.ghostTable.addRow(rowIndex, sample));
       }
@@ -378,10 +374,9 @@ class AutoRowSize extends BasePlugin {
    * @param {Object|Number} range Row index or an object with `from` and `to` properties which define row range.
    */
   clearCacheByRange(range) {
-    if (typeof range === 'number') {
-      range = { from: range, to: range };
-    }
-    rangeEach(Math.min(range.from, range.to), Math.max(range.from, range.to), (row) => {
+    const { from, to } = typeof range === 'number' ? { from: range, to: range } : range;
+
+    rangeEach(Math.min(from, to), Math.max(from, to), (row) => {
       this.heights[row] = void 0;
     });
   }
@@ -439,12 +434,15 @@ class AutoRowSize extends BasePlugin {
    * @returns {Number}
    */
   onBeforeRowResize(row, size, isDblClick) {
+    let newSize = size;
+
     if (isDblClick) {
       this.calculateRowsHeight(row, void 0, true);
-      size = this.getRowHeight(row);
+
+      newSize = this.getRowHeight(row);
     }
 
-    return size;
+    return newSize;
   }
 
   /**

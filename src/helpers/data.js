@@ -152,8 +152,7 @@ export function translateRowsToColumns(input) {
  * @returns {Function}
  */
 export function cellMethodLookupFactory(methodName, allowUndefined) {
-
-  allowUndefined = typeof allowUndefined === 'undefined' ? true : allowUndefined;
+  const isUndefinedAllowed = typeof allowUndefined === 'undefined' ? true : allowUndefined;
 
   return function cellMethodLookup(row, col) {
     return (function getMethodFromProperties(properties) {
@@ -173,7 +172,7 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
 
         if (hasOwnProperty(type, methodName)) {
           return type[methodName]; // method defined in type.
-        } else if (allowUndefined) {
+        } else if (isUndefinedAllowed) {
           return; // method does not defined in type (eg. validator), returns undefined
         }
       }

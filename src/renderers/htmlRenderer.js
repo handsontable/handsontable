@@ -15,11 +15,7 @@ import { getRenderer } from './index';
 function htmlRenderer(instance, TD, row, col, prop, value, ...args) {
   getRenderer('base').apply(this, [instance, TD, row, col, prop, value, ...args]);
 
-  if (value === null || value === void 0) {
-    value = '';
-  }
-
-  fastInnerHTML(TD, value);
+  fastInnerHTML(TD, value === null || value === void 0 ? '' : value);
 }
 
 export default htmlRenderer;

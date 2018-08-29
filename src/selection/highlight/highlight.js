@@ -93,18 +93,15 @@ class Highlight {
    * @return {Boolean}
    */
   isEnabledFor(highlightType) {
-    let disableHighlight = this.options.disableHighlight;
-
     // Legacy compatibility.
-    if (highlightType === 'current') {
-      highlightType = CELL_TYPE;
-    }
+    const type = highlightType === 'current' ? CELL_TYPE : highlightType;
+    let disableHighlight = this.options.disableHighlight;
 
     if (typeof disableHighlight === 'string') {
       disableHighlight = [disableHighlight];
     }
 
-    return disableHighlight === false || Array.isArray(disableHighlight) && !disableHighlight.includes(highlightType);
+    return disableHighlight === false || Array.isArray(disableHighlight) && !disableHighlight.includes(type);
   }
 
   /**

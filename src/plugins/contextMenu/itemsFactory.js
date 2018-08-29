@@ -63,8 +63,9 @@ class ItemsFactory {
   }
 }
 
-function getItems(pattern = null, defaultPattern = [], items = {}) {
+function getItems(itemsPattern = null, defaultPattern = [], items = {}) {
   const result = [];
+  let pattern = itemsPattern;
 
   if (pattern && pattern.items) {
     pattern = pattern.items;

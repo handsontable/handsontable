@@ -100,31 +100,31 @@ AutocompleteEditor.prototype.open = function(...args) {
     width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
     afterRenderer(TD, row, col, prop, value) {
       const { filteringCaseSensitive, allowHtml } = _this.cellProperties;
+      let cellValue = stringify(value);
       let indexOfMatch;
       let match;
 
-      value = stringify(value);
-
-      if (value && !allowHtml) {
-        indexOfMatch = filteringCaseSensitive === true ? value.indexOf(this.query) : value.toLowerCase().indexOf(_this.query.toLowerCase());
+      if (cellValue && !allowHtml) {
+        indexOfMatch = filteringCaseSensitive === true ? cellValue.indexOf(this.query) : cellValue.toLowerCase().indexOf(_this.query.toLowerCase());
 
         if (indexOfMatch !== -1) {
-          match = value.substr(indexOfMatch, _this.query.length);
-          value = value.replace(match, `<strong>${match}</strong>`);
+          match = cellValue.substr(indexOfMatch, _this.query.length);
+          cellValue = cellValue.replace(match, `<strong>${match}</strong>`);
         }
       }
-      TD.innerHTML = value;
+      TD.innerHTML = cellValue;
     },
     autoColumnSize: true,
     modifyColWidth(width, col) {
       // workaround for <strong> text overlapping the dropdown, not really accurate
       const autoWidths = this.getPlugin('autoColumnSize').widths;
+      let columnWidth = width;
 
       if (autoWidths[col]) {
-        width = autoWidths[col];
+        columnWidth = autoWidths[col];
       }
 
-      return trimDropdown ? width : width + 15;
+      return trimDropdown ? columnWidth : columnWidth + 15;
     }
   });
 
@@ -159,13 +159,14 @@ AutocompleteEditor.prototype.queryChoices = function(query) {
   }
 };
 
-AutocompleteEditor.prototype.updateChoicesList = function(choices) {
+AutocompleteEditor.prototype.updateChoicesList = function(choicesList) {
   const pos = getCaretPosition(this.TEXTAREA);
   const endPos = getSelectionEndPosition(this.TEXTAREA);
   const sortByRelevanceSetting = this.cellProperties.sortByRelevance;
   const filterSetting = this.cellProperties.filter;
   let orderByRelevance = null;
   let highlightIndex = null;
+  let choices = choicesList;
 
   if (sortByRelevanceSetting) {
     orderByRelevance = AutocompleteEditor.sortByRelevance(

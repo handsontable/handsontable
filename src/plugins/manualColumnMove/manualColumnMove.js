@@ -693,13 +693,15 @@ class ManualColumnMove extends BasePlugin {
    * @returns {Number} Physical column index.
    */
   onModifyCol(column, source) {
+    let physicalColumn = column;
+
     if (source !== this.pluginName) {
       // ugly fix for try to insert new, needed columns after pasting data
-      const columnInMapper = this.columnsMapper.getValueByIndex(column);
-      column = columnInMapper === null ? column : columnInMapper;
+      const columnInMapper = this.columnsMapper.getValueByIndex(physicalColumn);
+      physicalColumn = columnInMapper === null ? physicalColumn : columnInMapper;
     }
 
-    return column;
+    return physicalColumn;
   }
 
   /**

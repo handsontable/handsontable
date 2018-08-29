@@ -73,15 +73,17 @@ class DataSource {
 
     arrayEach(this.data, (row) => {
       const property = this.colToProp(column);
+      let value;
 
       if (typeof property === 'string') {
-        row = getProperty(row, property);
+        value = getProperty(row, property);
       } else if (typeof property === 'function') {
-        row = property(row);
+        value = property(row);
       } else {
-        row = row[property];
+        value = row[property];
       }
-      result.push(row);
+
+      result.push(value);
     });
 
     return result;

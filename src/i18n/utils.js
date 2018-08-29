@@ -37,11 +37,13 @@ export function extendNotExistingKeys(target, extension) {
  */
 export function createCellHeadersRange(firstRowIndex, nextRowIndex, fromValue = firstRowIndex, toValue = nextRowIndex) {
   // Will swap `fromValue` with `toValue` if it's necessary.
+  let [from, to] = [fromValue, toValue];
+
   if (firstRowIndex > nextRowIndex) {
-    [fromValue, toValue] = [toValue, fromValue];
+    [from, to] = [to, from];
   }
 
-  return `${fromValue}-${toValue}`;
+  return `${from}-${to}`;
 }
 
 /**
