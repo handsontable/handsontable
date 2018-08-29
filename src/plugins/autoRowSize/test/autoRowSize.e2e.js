@@ -478,6 +478,6 @@ describe('AutoRowSize', () => {
       height: 300
     });
 
-    expect(rowHeight(spec().$container, -1)).toBe(89);
+    expect(rowHeight(spec().$container, -1)).toBe(75);
   });
 });
