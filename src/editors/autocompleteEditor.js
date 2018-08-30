@@ -308,9 +308,6 @@ AutocompleteEditor.prototype.setDropdownHeight = function(height) {
 };
 
 AutocompleteEditor.prototype.finishEditing = function(restoreOriginalValue, ...args) {
-  if (!restoreOriginalValue) {
-    this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-  }
   HandsontableEditor.prototype.finishEditing.apply(this, [restoreOriginalValue, ...args]);
 };
 
@@ -431,6 +428,11 @@ AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
   }
 
   return allowed;
+};
+
+AutocompleteEditor.prototype.close = function(...args) {
+  this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+  HandsontableEditor.prototype.close.apply(this, args);
 };
 
 AutocompleteEditor.prototype.discardEditor = function(...args) {
