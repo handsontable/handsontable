@@ -267,11 +267,9 @@ describe('ColumnSummarySpec', () => {
               }
 
               // go through all declared ranges
-              for (const r in endpoint.ranges) {
-                if (Object.prototype.hasOwnProperty.call(endpoint.ranges, r)) {
-                  counter += checkRange(endpoint.ranges[r]);
-                }
-              }
+              Handsontable.helper.objectEach(endpoint.ranges, (range) => {
+                counter += checkRange(range);
+              });
 
               return counter;
             }

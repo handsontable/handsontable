@@ -1,5 +1,5 @@
 import BasePlugin from 'handsontable/plugins/_base.js';
-import { hasOwnProperty } from 'handsontable/helpers/object';
+import { objectEach } from 'handsontable/helpers/object';
 import { registerPlugin } from 'handsontable/plugins.js';
 import Endpoints from './endpoints';
 
@@ -139,11 +139,9 @@ class ColumnSummary extends BasePlugin {
   calculateSum(endpoint) {
     let sum = 0;
 
-    for (const r in endpoint.ranges) {
-      if (hasOwnProperty(endpoint.ranges, r)) {
-        sum += this.getPartialSum(endpoint.ranges[r], endpoint.sourceColumn);
-      }
-    }
+    objectEach(endpoint.ranges, (range) => {
+      sum += this.getPartialSum(range, endpoint.sourceColumn);
+    });
 
     return sum;
   }
@@ -188,29 +186,26 @@ class ColumnSummary extends BasePlugin {
   calculateMinMax(endpoint, type) {
     let result = null;
 
-    for (const r in endpoint.ranges) {
-      if (hasOwnProperty(endpoint.ranges, r)) {
-        const partialResult = this.getPartialMinMax(endpoint.ranges[r], endpoint.sourceColumn, type);
+    objectEach(endpoint.ranges, (range) => {
+      const partialResult = this.getPartialMinMax(range, endpoint.sourceColumn, type);
 
-        if (result === null && partialResult !== null) {
-          result = partialResult;
-        }
+      if (result === null && partialResult !== null) {
+        result = partialResult;
+      }
 
-        if (partialResult !== null) {
-          switch (type) {
-            case 'min':
-              result = Math.min(result, partialResult);
-              break;
-            case 'max':
-              result = Math.max(result, partialResult);
-              break;
-            default:
-              break;
-          }
-
+      if (partialResult !== null) {
+        switch (type) {
+          case 'min':
+            result = Math.min(result, partialResult);
+            break;
+          case 'max':
+            result = Math.max(result, partialResult);
+            break;
+          default:
+            break;
         }
       }
-    }
+    });
 
     return result === null ? 'Not enough data' : result;
   }
@@ -291,15 +286,13 @@ class ColumnSummary extends BasePlugin {
     let result = 0;
     const ranges = endpoint.ranges;
 
-    for (const r in ranges) {
-      if (hasOwnProperty(ranges, r)) {
-        const partial = ranges[r][1] === void 0 ? 1 : ranges[r][1] - ranges[r][0] + 1;
-        const emptyCount = this.countEmpty(ranges[r], endpoint.sourceColumn);
+    objectEach(ranges, (range) => {
+      const partial = range[1] === void 0 ? 1 : range[1] - range[0] + 1;
+      const emptyCount = this.countEmpty(range, endpoint.sourceColumn);
 
-        result += partial;
-        result -= emptyCount;
-      }
-    }
+      result += partial;
+      result -= emptyCount;
+    });
 
     return result;
   }
