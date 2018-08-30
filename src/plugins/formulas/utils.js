@@ -40,7 +40,7 @@ export function toUpperCaseFormula(expression) {
   let index = -1;
 
   return expression.toUpperCase().replace(PATTERN, () => {
-    ++index;
+    index += 1;
 
     return strings[index];
   });

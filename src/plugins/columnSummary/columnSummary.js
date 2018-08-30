@@ -170,7 +170,7 @@ class ColumnSummary extends BasePlugin {
       }
 
       sum += cellValue || 0;
-      i--;
+      i -= 1;
     } while (i >= rowRange[0]);
 
     // Workaround for e.g. 802.2 + 1.1 = 803.3000000000001
@@ -248,7 +248,7 @@ class ColumnSummary extends BasePlugin {
 
       }
 
-      i--;
+      i -= 1;
     } while (i >= rowRange[0]);
 
     return result;
@@ -271,10 +271,10 @@ class ColumnSummary extends BasePlugin {
       cellValue = this.getCellValue(i, col);
 
       if (!cellValue) {
-        counter++;
+        counter += 1;
       }
 
-      i--;
+      i -= 1;
     } while (i >= rowRange[0]);
 
     return counter;

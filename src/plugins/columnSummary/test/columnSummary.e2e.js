@@ -258,10 +258,10 @@ describe('ColumnSummarySpec', () => {
                 do {
 
                   if (hotInstance.getCellMeta(i, endpoint.sourceColumn).extraProperty === true) {
-                    counter++;
+                    counter += 1;
                   }
 
-                  i--;
+                  i -= 1;
                 } while (i >= rowRange[0]);
                 return counter;
               }

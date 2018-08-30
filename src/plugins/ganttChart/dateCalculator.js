@@ -207,7 +207,7 @@ class DateCalculator {
         const monthObject = monthList[i];
 
         if (Object.keys(month).length > 1) {
-          fullMonthCount++;
+          fullMonthCount += 1;
         }
 
         if (fullMonthCount === monthIndex) {
@@ -596,7 +596,7 @@ class DateCalculator {
 
       if (!this.allowSplitWeeks && currentMonth.daysBeforeFullWeeks) {
         mixedMonthToAdd.push(getMixedMonthObject(getMixedMonthName(monthIndex, monthList), monthIndex));
-        mixedMonthsAdded++;
+        mixedMonthsAdded += 1;
       }
 
       currentMonth.fullWeeks = Math.floor((currentMonth.days - currentMonth.daysBeforeFullWeeks) / 7);
@@ -605,7 +605,7 @@ class DateCalculator {
       if (!this.allowSplitWeeks) {
         if (monthIndex === monthList.length - 1 && currentMonth.daysAfterFullWeeks) {
           mixedMonthToAdd.push(getMixedMonthObject(getMixedMonthName(monthIndex, monthList), null));
-          mixedMonthsAdded++;
+          mixedMonthsAdded += 1;
         }
 
         weekSectionCount += currentMonth.fullWeeks + mixedMonthsAdded;

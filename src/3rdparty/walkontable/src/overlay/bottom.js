@@ -126,7 +126,7 @@ class BottomOverlay extends Overlay {
       const height = this.wot.wtTable.getRowHeight(from);
 
       sum += height === void 0 ? defaultRowHeight : height;
-      from++;
+      from += 1;
     }
 
     return sum;

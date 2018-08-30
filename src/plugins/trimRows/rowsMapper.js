@@ -30,7 +30,7 @@ class RowsMapper {
 
     rangeEach(originLength - 1, (itemIndex) => {
       if (this.trimRows.isTrimmed(itemIndex)) {
-        rowOffset++;
+        rowOffset += 1;
       } else {
         this._arrayMap[itemIndex - rowOffset] = itemIndex;
       }

@@ -279,7 +279,7 @@ class HiddenRows extends BasePlugin {
           firstSectionHidden = false;
           break;
         }
-        i--;
+        i -= 1;
       } while (i >= 0);
 
       if (firstSectionHidden && cellProperties.className.indexOf('firstVisibleRow') === -1) {
@@ -332,7 +332,7 @@ class HiddenRows extends BasePlugin {
         firstSectionHidden = false;
         break;
       }
-      i--;
+      i -= 1;
     } while (i >= 0);
 
     if (firstSectionHidden) {
@@ -453,7 +453,8 @@ class HiddenRows extends BasePlugin {
     const getNextRow = (row) => {
 
       if (this.isHidden(row)) {
-        row = getNextRow(++row);
+        row += 1;
+        row = getNextRow(row);
       }
 
       return row;
@@ -475,7 +476,8 @@ class HiddenRows extends BasePlugin {
       if (this.isHidden(row)) {
         if (this.lastSelectedRow > row || coords.row === rowCount - 1) {
           if (row > 0) {
-            row = getNextRow(--row);
+            row -= 1;
+            row = getNextRow(row);
 
           } else {
             rangeEach(0, this.lastSelectedRow, (i) => {
@@ -488,7 +490,8 @@ class HiddenRows extends BasePlugin {
           }
 
         } else {
-          row = getNextRow(++row);
+          row += 1;
+          row = getNextRow(row);
         }
       }
 

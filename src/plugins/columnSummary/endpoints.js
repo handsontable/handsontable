@@ -315,8 +315,8 @@ class Endpoints {
           range[1] -= offset;
 
           if (placeOfAlteration <= range[0]) {
-            range[0]++;
-            range[1]++;
+            range[0] += 1;
+            range[1] += 1;
           }
         }
       }

@@ -84,7 +84,7 @@ class DataManager {
   cacheNode(node, level, parent) {
     if (!this.cache.levels[level]) {
       this.cache.levels[level] = [];
-      this.cache.levelCount++;
+      this.cache.levelCount += 1;
     }
     this.cache.levels[level].push(node);
     this.cache.rows.push(node);
@@ -132,7 +132,7 @@ class DataManager {
         __children: this.data
       };
       rootLevel = true;
-      readCount--;
+      readCount -= 1;
     }
 
     if (neededIndex != null && readCount === neededIndex) {
@@ -143,7 +143,7 @@ class DataManager {
       return { result: readCount, end: true };
     }
 
-    readCount++;
+    readCount += 1;
 
     if (parent.__children) {
       arrayEach(parent.__children, (val) => {
@@ -263,7 +263,7 @@ class DataManager {
     }
 
     arrayEach(parent.__children, (elem) => {
-      rowCount++;
+      rowCount += 1;
       if (elem.__children) {
         rowCount += this.countChildren(elem);
       }

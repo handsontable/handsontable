@@ -211,7 +211,7 @@ class NestedRows extends BasePlugin {
       translatedStartIndexes.reverse();
 
       if (priv.movedToFirstChild !== true) {
-        translatedTargetIndex--;
+        translatedTargetIndex -= 1;
       }
     }
 
@@ -472,7 +472,7 @@ class NestedRows extends BasePlugin {
       });
 
       if (isChild) {
-        childrenCount--;
+        childrenCount -= 1;
       }
     });
 

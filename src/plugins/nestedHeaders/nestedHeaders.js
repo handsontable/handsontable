@@ -398,7 +398,7 @@ class NestedHeaders extends BasePlugin {
         break;
       }
 
-      parentCol--;
+      parentCol -= 1;
     } while (column >= 0);
 
     return parentCol;

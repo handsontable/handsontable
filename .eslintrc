@@ -31,7 +31,10 @@
     "no-multiple-empty-lines": 2,
     "no-new": 2,
     "no-param-reassign": 0,
-    "no-plusplus": 0,
+    "no-plusplus": [
+      "error",
+      { "allowForLoopAfterthoughts": true }
+    ],
     "no-restricted-properties": 0,
     "no-restricted-syntax": 1,
     "no-shadow": 1,

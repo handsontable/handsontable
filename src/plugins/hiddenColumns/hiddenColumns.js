@@ -330,7 +330,7 @@ class HiddenColumns extends BasePlugin {
           break;
         }
 
-        i--;
+        i -= 1;
       } while (i >= 0);
 
       if (firstSectionHidden && cellProperties.className.indexOf('firstVisibleColumn') === -1) {
@@ -420,7 +420,7 @@ class HiddenColumns extends BasePlugin {
         firstSectionHidden = false;
         break;
       }
-      i--;
+      i -= 1;
     } while (i >= 0);
 
     if (firstSectionHidden) {
@@ -457,7 +457,8 @@ class HiddenColumns extends BasePlugin {
       const logicalCol = this.getLogicalColumnIndex(col);
 
       if (this.isHidden(logicalCol, true)) {
-        col = getNextColumn(++col);
+        col += 1;
+        col = getNextColumn(col);
       }
 
       return col;
@@ -481,7 +482,8 @@ class HiddenColumns extends BasePlugin {
       if (this.isHidden(logicalCol, true)) {
         if (this.lastSelectedColumn > col || coords.col === columnCount - 1) {
           if (col > 0) {
-            col = getNextColumn(--col);
+            col -= 1;
+            col = getNextColumn(col);
 
           } else {
             rangeEach(0, this.lastSelectedColumn, (i) => {
@@ -493,7 +495,8 @@ class HiddenColumns extends BasePlugin {
             });
           }
         } else {
-          col = getNextColumn(++col);
+          col += 1;
+          col = getNextColumn(col);
         }
       }
 
