@@ -15,13 +15,13 @@ if (!path) {
   return;
 }
 
-const cleanupFactory = (browser, server) => async (exitCode) => {
+const cleanupFactory = (browser, server) => async(exitCode) => {
   await browser.close();
   await new Promise(resolve => server.close(resolve));
   process.exit(exitCode);
 };
 
-(async () => {
+(async() => {
   const browser = await puppeteer.launch({
     timeout: DEFAULT_INACTIVITY_TIMEOUT,
     // devtools: true, // Turn it on to debug the tests.
@@ -68,13 +68,13 @@ const cleanupFactory = (browser, server) => async (exitCode) => {
     }
     reporter.specDone(result);
   });
-  await page.exposeFunction('jasmineDone', async () => {
+  await page.exposeFunction('jasmineDone', async() => {
     reporter.jasmineDone();
 
     await cleanup(errorCount === 0 ? 0 : 1);
   });
 
-  page.on('pageerror', async (msg) => {
+  page.on('pageerror', async(msg) => {
     /* eslint-disable no-console */
     console.log(msg);
     await cleanup(1);

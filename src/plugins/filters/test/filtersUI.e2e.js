@@ -15,7 +15,7 @@ describe('Filters UI', () => {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -556,7 +556,7 @@ describe('Filters UI', () => {
       expect($(conditionSelectRootElements().first).find('.htUISelectCaption').text()).toBe('None');
     });
 
-    it('should save state of applied filter for specified column', async () => {
+    it('should save state of applied filter for specified column', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -655,7 +655,7 @@ describe('Filters UI', () => {
       }, 400);
     });
 
-    it('should work properly when user added condition with too many arguments #179', async () => {
+    it('should work properly when user added condition with too many arguments #179', async() => {
       const spy = spyOn(window, 'onerror');
       const hot = handsontable({
         data: getDataForFilters(),
@@ -1480,7 +1480,7 @@ describe('Filters UI', () => {
       }, 200);
     });
 
-    it('should overwrite condition filter when at specified column filter was already applied', async () => {
+    it('should overwrite condition filter when at specified column filter was already applied', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1521,7 +1521,7 @@ describe('Filters UI', () => {
       expect(getData().length).toEqual(7);
     });
 
-    it('should filter values again when data was changed', async () => {
+    it('should filter values again when data was changed', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1590,7 +1590,7 @@ describe('Filters UI', () => {
   });
 
   describe('Advanced filtering (multiple columns)', () => {
-    it('should filter values from 3 columns', async () => {
+    it('should filter values from 3 columns', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1653,7 +1653,7 @@ describe('Filters UI', () => {
       expect(getData()[1][6]).toBe(false);
     });
 
-    it('should filter values from 3 columns (2 conditional and 1 by value)', async () => {
+    it('should filter values from 3 columns (2 conditional and 1 by value)', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1712,7 +1712,7 @@ describe('Filters UI', () => {
       expect(getData()[1][6]).toBe(false);
     });
 
-    it('should filter values from few columns (after change first column condition)', async () => {
+    it('should filter values from few columns (after change first column condition)', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2068,7 +2068,7 @@ describe('Filters UI', () => {
   });
 
   describe('Advanced filtering (conditions, operations and "by value" component #160)', () => {
-    it('First conditional chosen -> filter operation -> unchecked first value from multiple select -> selected `disjunction` operation -> filter operation', async () => {
+    it('First conditional chosen -> filter operation -> unchecked first value from multiple select -> selected `disjunction` operation -> filter operation', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2107,7 +2107,7 @@ describe('Filters UI', () => {
       expect(getData().length).toBe(4);
     });
 
-    it('Two conditionals chosen -> filter operation -> unchecked first value from multiple select -> filter operation', async () => {
+    it('Two conditionals chosen -> filter operation -> unchecked first value from multiple select -> filter operation', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2149,7 +2149,7 @@ describe('Filters UI', () => {
       expect(getData().length).toBe(2);
     });
 
-    it('Two conditionals chosen & unchecked value which will be filtered by conditions -> filter operation', async () => {
+    it('Two conditionals chosen & unchecked value which will be filtered by conditions -> filter operation', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2187,7 +2187,7 @@ describe('Filters UI', () => {
       expect(getData().length).toBe(3);
     });
 
-    it('Two conditionals chosen & unchecked value which won\'t be filtered by conditions -> filter operation', async () => {
+    it('Two conditionals chosen & unchecked value which won\'t be filtered by conditions -> filter operation', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2373,7 +2373,7 @@ describe('Filters UI', () => {
   });
 
   describe('Sorting', () => {
-    it('should filter values when sorting is applied', async () => {
+    it('should filter values when sorting is applied', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -3178,7 +3178,7 @@ describe('Filters UI', () => {
       expect(widthOfValueBox).toEqual(widthOfMenu - parentsPaddings);
     });
 
-    it('should fit the single value to the value box element (pixel perfect)', async () => {
+    it('should fit the single value to the value box element (pixel perfect)', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -3209,7 +3209,7 @@ describe('Filters UI', () => {
     });
 
     it('should display proper width of value box after change of another elements width to lower ' +
-      '(bug: once rendered `MultipleSelectUI` has elbowed the table created by AutoColumnSize plugin)', async () => {
+      '(bug: once rendered `MultipleSelectUI` has elbowed the table created by AutoColumnSize plugin)', async() => {
       const hot = handsontable({
         colHeaders: true,
         dropdownMenu: {
@@ -3273,7 +3273,7 @@ describe('Filters UI', () => {
       expect(nextWidth).toEqual(firstWidth);
     });
 
-    it('should display proper width of conditional select', async () => {
+    it('should display proper width of conditional select', async() => {
       const hot = handsontable({
         colHeaders: true,
         dropdownMenu: true,
@@ -3303,7 +3303,7 @@ describe('Filters UI', () => {
       expect(nextWidth).toBeLessThan(firstWidth);
     });
 
-    it('should not expand the drop-down menu after selecting longer value inside the conditional select', async () => {
+    it('should not expand the drop-down menu after selecting longer value inside the conditional select', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: true,

@@ -1,11 +1,11 @@
 describe('i18n', () => {
   const id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();

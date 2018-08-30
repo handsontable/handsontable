@@ -290,7 +290,7 @@ describe('GanttChart', () => {
       });
     });
 
-    it('should not render the incomplete week columns at the beginnings of the months, when the `hideDaysBeforeFullWeeks` option is enabled', async () => {
+    it('should not render the incomplete week columns at the beginnings of the months, when the `hideDaysBeforeFullWeeks` option is enabled', async() => {
       const hot = handsontable({
         colHeaders: true,
         height: 250,
@@ -335,7 +335,7 @@ describe('GanttChart', () => {
       expect(weekHeaders[38 - firstRendered].querySelector('span').innerText).toEqual('24 - 30');
     });
 
-    it('should not render the incomplete week columns at the end of the months, when the `hideDaysAfterFullWeeks` option is enabled', async () => {
+    it('should not render the incomplete week columns at the end of the months, when the `hideDaysAfterFullWeeks` option is enabled', async() => {
       const hot = handsontable({
         colHeaders: true,
         height: 250,
@@ -382,7 +382,7 @@ describe('GanttChart', () => {
     });
 
     it('should not render the incomplete week columns at the beginning nor end of the months, when ' +
-      'the `hideDaysBeforeFullWeeks` and `hideDaysAfterFullWeeks` options are enabled', async () => {
+      'the `hideDaysBeforeFullWeeks` and `hideDaysAfterFullWeeks` options are enabled', async() => {
       const hot = handsontable({
         colHeaders: true,
         height: 250,

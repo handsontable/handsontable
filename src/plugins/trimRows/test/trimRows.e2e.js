@@ -15,7 +15,7 @@ describe('TrimRows', () => {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -228,7 +228,7 @@ describe('TrimRows', () => {
     expect(getDataAtCell(3, 0)).toBe(null);
   });
 
-  it('should clear cache after loading new data by `loadData` function, when plugin `trimRows` is enabled #92', function (done) {
+  it('should clear cache after loading new data by `loadData` function, when plugin `trimRows` is enabled #92', function(done) {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       trimRows: true
@@ -526,7 +526,7 @@ describe('TrimRows', () => {
       expect(getDataAtCell(4, 0)).toBe('A10');
     });
 
-    it('should clear list of trimmed rows when empty array is passed to the method - test no. 1', function () {
+    it('should clear list of trimmed rows when empty array is passed to the method - test no. 1', function() {
       var hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
@@ -541,7 +541,7 @@ describe('TrimRows', () => {
       expect(this.$container.find('td').length).toEqual(100);
     });
 
-    it('should clear list of trimmed rows when empty array is passed to the method - test no. 2', function () {
+    it('should clear list of trimmed rows when empty array is passed to the method - test no. 2', function() {
       var hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
@@ -560,7 +560,7 @@ describe('TrimRows', () => {
     });
 
     it('should clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
-      'set to `false` - test no. 1', function () {
+      'set to `false` - test no. 1', function() {
       var hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
@@ -576,7 +576,7 @@ describe('TrimRows', () => {
     });
 
     it('should clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
-      'set to `false` - test no. 2', function () {
+      'set to `false` - test no. 2', function() {
       var hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,

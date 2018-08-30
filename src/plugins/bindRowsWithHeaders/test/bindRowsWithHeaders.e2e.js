@@ -5,7 +5,7 @@ describe('BindRowsWithHeaders', () => {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -42,7 +42,7 @@ describe('BindRowsWithHeaders', () => {
     expect(callback.calls.argsFor(16)).toEqual([4]);
   });
 
-  it('should correct bind rows with headers after re-load data calling loadData method (strict mode)', async () => {
+  it('should correct bind rows with headers after re-load data calling loadData method (strict mode)', async() => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       rowHeaders: true,
@@ -104,7 +104,7 @@ describe('BindRowsWithHeaders', () => {
   });
 
   describe('column sorting', () => {
-    it('should correct bind rows with headers when row was removed after sorting (strict mode)', async () => {
+    it('should correct bind rows with headers when row was removed after sorting (strict mode)', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         columnSorting: true,
@@ -129,7 +129,7 @@ describe('BindRowsWithHeaders', () => {
       expect(getRowHeader()).toEqual([6, 7, 8, 9]);
     });
 
-    it('should correct bind rows with headers when row was inserted after sorting (strict mode)', async () => {
+    it('should correct bind rows with headers when row was inserted after sorting (strict mode)', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         columnSorting: true,
@@ -154,7 +154,7 @@ describe('BindRowsWithHeaders', () => {
       expect(getRowHeader()).toEqual([12, 13, 14, 15, 16, 1, 10, 2, 3, 11, 4, 5, 6, 7, 8, 9]);
     });
 
-    it('should correct bind rows with headers when row was inserted and removed in mixed way (strict mode)', async () => {
+    it('should correct bind rows with headers when row was inserted and removed in mixed way (strict mode)', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         columnSorting: true,

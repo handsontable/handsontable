@@ -1,11 +1,11 @@
 describe('DropdownMenu', () => {
   const id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -45,7 +45,7 @@ describe('DropdownMenu', () => {
   });
 
   describe('menu width', () => {
-    it('should display the menu with the minimum width', async () => {
+    it('should display the menu with the minimum width', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: {
@@ -67,7 +67,7 @@ describe('DropdownMenu', () => {
       expect($menu.find('.wtHider').width()).toEqual(215);
     });
 
-    it('should display a submenu with the minimum width', async () => {
+    it('should display a submenu with the minimum width', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: {
@@ -135,7 +135,7 @@ describe('DropdownMenu', () => {
   });
 
   describe('menu closing', () => {
-    it('should close menu after click', function () {
+    it('should close menu after click', function() {
       handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -552,18 +552,18 @@ describe('DropdownMenu', () => {
   });
 
   describe('working with multiple tables', () => {
-    beforeEach(function () {
+    beforeEach(function() {
       this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
     });
 
-    afterEach(function () {
+    afterEach(function() {
       if (this.$container2) {
         this.$container2.handsontable('destroy');
         this.$container2.remove();
       }
     });
 
-    it('should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT', function () {
+    it('should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT', function() {
       const hot1 = handsontable({
         dropdownMenu: false,
         height: 100
@@ -598,8 +598,7 @@ describe('DropdownMenu', () => {
         options = options_;
         options.items.cust1 = {
           name: 'My custom item',
-          callback() {
-          }
+          callback() {}
         };
       };
 

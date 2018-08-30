@@ -5,7 +5,7 @@ describe('Filters', () => {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -323,7 +323,7 @@ describe('Filters', () => {
     });
 
     describe('Cooperation with Manual Column Move plugin #32', () => {
-      it('should show indicator at proper position when column order was changed - test no. 1', function () {
+      it('should show indicator at proper position when column order was changed - test no. 1', function() {
         const hot = handsontable({
           data: getDataForFilters(),
           columns: getColumnsForFilters(),
@@ -346,7 +346,7 @@ describe('Filters', () => {
         expect(this.$container.find('th:eq(2)').hasClass('htFiltersActive')).toEqual(true);
       });
 
-      it('should show indicator at proper position when column order was changed - test no. 2', function () {
+      it('should show indicator at proper position when column order was changed - test no. 2', function() {
         const hot = handsontable({
           data: getDataForFilters(),
           columns: getColumnsForFilters(),

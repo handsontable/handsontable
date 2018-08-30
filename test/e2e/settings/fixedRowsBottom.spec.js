@@ -2,11 +2,11 @@ describe('settings', () => {
   describe('fixedRowsBottom', () => {
     var id = 'testContainer';
 
-    beforeEach(function () {
+    beforeEach(function() {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    afterEach(function () {
+    afterEach(function() {
       if (this.$container) {
         destroy();
         this.$container.remove();
@@ -85,7 +85,7 @@ describe('settings', () => {
         expect(getLeftClone().height()).toBe(0);
       });
 
-      it('should not throw errors while scrolling vertically when fixed rows was set', async () => {
+      it('should not throw errors while scrolling vertically when fixed rows was set', async() => {
         var spy = jasmine.createSpyObj('error', ['test']);
         var prevError = window.onerror;
 
@@ -114,7 +114,7 @@ describe('settings', () => {
       });
     });
 
-    it('should synchronize scroll with master table', async () => {
+    it('should synchronize scroll with master table', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 50),
         width: 200,
