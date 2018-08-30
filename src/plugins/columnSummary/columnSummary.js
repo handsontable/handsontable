@@ -174,7 +174,7 @@ class ColumnSummary extends BasePlugin {
     } while (i >= rowRange[0]);
 
     // Workaround for e.g. 802.2 + 1.1 = 803.3000000000001
-    return Math.round(sum * Math.pow(10, biggestDecimalPlacesCount)) / Math.pow(10, biggestDecimalPlacesCount);
+    return Math.round(sum * (10 ** biggestDecimalPlacesCount)) / (10 ** biggestDecimalPlacesCount);
   }
 
   /**

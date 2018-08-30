@@ -34,7 +34,6 @@
       "error",
       { "allowForLoopAfterthoughts": true }
     ],
-    "no-restricted-properties": 0,
     "no-restricted-syntax": 1,
     "no-shadow": 1,
     "no-spaced-func": 2,
