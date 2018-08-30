@@ -178,11 +178,11 @@ class NestedRows extends BasePlugin {
     fromParent = this.dataManager.getRowParent(translatedStartIndexes[0]);
     toParent = this.dataManager.getRowParent(translatedTargetIndex);
 
-    if (toParent == null) {
+    if (toParent === null || toParent === void 0) {
       toParent = this.dataManager.getRowParent(translatedTargetIndex - 1);
     }
 
-    if (toParent == null) {
+    if (toParent === null || toParent === void 0) {
       toParent = this.dataManager.getDataObject(translatedTargetIndex - 1);
       priv.movedToFirstChild = true;
     }
@@ -278,7 +278,7 @@ class NestedRows extends BasePlugin {
 
     } else if (priv.movedToCollapsed) {
       let parentObject = this.dataManager.getRowParent(translatedTargetIndex - 1);
-      if (parentObject == null) {
+      if (parentObject === null || parentObject === void 0) {
         parentObject = this.dataManager.getDataObject(translatedTargetIndex - 1);
       }
       const parentIndex = this.dataManager.getRowIndex(parentObject);

@@ -92,10 +92,10 @@ class ExpressionModifier {
    */
   translate({ row: deltaRow, column: deltaColumn }, startFrom = {}) {
     arrayEach(this.cells, (cell) => {
-      if (deltaRow != null) {
+      if (deltaRow !== null && deltaRow !== void 0) {
         this._translateCell(cell, 'row', deltaRow, startFrom.row);
       }
-      if (deltaColumn != null) {
+      if (deltaColumn !== null && deltaColumn !== void 0) {
         this._translateCell(cell, 'column', deltaColumn, startFrom.column);
       }
     });

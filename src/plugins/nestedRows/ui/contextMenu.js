@@ -103,9 +103,10 @@ class ContextMenuUI extends BaseUI {
     const priv = privatePool.get(this);
 
     rangeEach(0, defaultOptions.items.length - 1, (i) => {
+      const option = priv[defaultOptions.items[i].key];
 
-      if (priv[defaultOptions.items[i].key] != null) {
-        defaultOptions.items[i].callback = priv[defaultOptions.items[i].key];
+      if (option !== null && option !== void 0) {
+        defaultOptions.items[i].callback = option;
       }
     });
 

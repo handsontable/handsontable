@@ -24,7 +24,7 @@
     "import/no-extraneous-dependencies": 0,
     "new-cap": 2,
     "newline-per-chained-call": 0,
-    "no-eq-null": 1,
+    "no-eq-null": 2,
     "no-irregular-whitespace": 2,
     "no-mixed-spaces-and-tabs": 2,
     "no-multi-str": 2,

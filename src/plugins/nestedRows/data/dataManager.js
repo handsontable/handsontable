@@ -107,7 +107,7 @@ class DataManager {
    * @param {Number} row Row index.
    */
   getDataObject(row) {
-    return row == null ? null : this.cache.rows[row];
+    return row === null || row === void 0 ? null : this.cache.rows[row];
   }
 
   /**
@@ -135,11 +135,11 @@ class DataManager {
       readCount -= 1;
     }
 
-    if (neededIndex != null && readCount === neededIndex) {
+    if (neededIndex !== null && neededIndex !== void 0 && readCount === neededIndex) {
       return { result: parent, end: true };
     }
 
-    if (neededObject != null && parent === neededObject) {
+    if (neededObject !== null && neededObject !== void 0 && parent === neededObject) {
       return { result: readCount, end: true };
     }
 
@@ -207,7 +207,7 @@ class DataManager {
    * @returns {Number} Row index.
    */
   getRowIndex(rowObj) {
-    return rowObj == null ? null : this.cache.nodeInfo.get(rowObj).row;
+    return rowObj === null || rowObj === void 0 ? null : this.cache.nodeInfo.get(rowObj).row;
   }
 
   /**
@@ -227,7 +227,7 @@ class DataManager {
 
     const parent = this.getRowParent(row);
 
-    if (parent == null) {
+    if (parent === null || parent === void 0) {
       return this.data.indexOf(rowObj);
     }
 
@@ -329,7 +329,7 @@ class DataManager {
    * @returns {Number} Row level.
    */
   getRowObjectLevel(rowObject) {
-    return rowObject == null ? null : this.cache.nodeInfo.get(rowObject).level;
+    return rowObject === null || rowObject === void 0 ? null : this.cache.nodeInfo.get(rowObject).level;
   }
 
   /**
@@ -482,7 +482,7 @@ class DataManager {
 
     this.hot.runHooks('beforeDetachChild', parent, element);
 
-    if (indexWithinParent != null) {
+    if (indexWithinParent !== null && indexWithinParent !== void 0) {
       this.hot.runHooks('beforeRemoveRow', childRowIndex, 1, [childRowIndex], this.plugin.pluginName);
 
       parent.__children.splice(indexWithinParent, 1);
@@ -555,7 +555,7 @@ class DataManager {
   spliceData(index, amount, element) {
     index = this.translateTrimmedRow(index);
 
-    if (index == null) {
+    if (index === null || index === void 0) {
       return;
     }
 
@@ -603,11 +603,11 @@ class DataManager {
 
     let toParent = this.getRowParent(toIndex);
 
-    if (toParent == null) {
+    if (toParent === null || toParent === void 0) {
       toParent = this.getRowParent(toIndex - 1);
     }
 
-    if (toParent == null) {
+    if (toParent === null || toParent === void 0) {
       toParent = this.getDataObject(toIndex - 1);
     }
 

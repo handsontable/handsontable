@@ -68,7 +68,7 @@ export function createArrayAssertion(initialData) {
  * @returns {String}
  */
 export function toEmptyString(value) {
-  return value == null ? '' : value;
+  return value === null || value === void 0 ? '' : value;
 }
 
 /**
