@@ -4,7 +4,7 @@ import { registerCondition } from './../../conditionRegisterer';
 
 export const CONDITION_NAME = 'date_before';
 
-export function condition(dataRow, [value] = inputValues) {
+export function condition(dataRow, [value]) {
   const date = moment(dataRow.value, dataRow.meta.dateFormat);
   const inputDate = moment(value, dataRow.meta.dateFormat);
 

@@ -3,7 +3,7 @@ import { registerCondition } from './../conditionRegisterer';
 
 export const CONDITION_NAME = 'lte';
 
-export function condition(dataRow, [value] = inputValues) {
+export function condition(dataRow, [value]) {
   if (dataRow.meta.type === 'numeric') {
     value = parseFloat(value, 10);
   }

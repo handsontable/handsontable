@@ -7,7 +7,6 @@
     "jasmine": true,
     "jest": true
   },
-  "globals": {},
   "rules": {
     "arrow-parens": [
       "error",
@@ -40,7 +39,6 @@
     "no-shadow": 1,
     "no-spaced-func": 2,
     "no-trailing-spaces": 2,
-    "no-undef": 0,
     "no-underscore-dangle": 0,
     "no-restricted-globals": [
       2,
@@ -74,9 +72,11 @@
     ],
     "no-mixed-operators": [
       2,
-      "groups": [
-        ["+", "-", "*", "/", "%", "**"]
-      ]
+      {
+        "groups": [
+          ["+", "-", "*", "/", "%", "**"]
+        ]
+      }
     ],
     "no-confusing-arrow": [
       2,
@@ -181,5 +181,14 @@
       2,
       "single"
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["test/**", "src/3rdparty/walkontable/test/**", "*.unit.js", "*.e2e.js", "src/plugins/**/test/helpers/**"],
+      "rules": {
+        "no-undef": "off",
+        "no-restricted-globals": "off"
+      }
+    }
+  ]
 }

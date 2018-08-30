@@ -17,7 +17,7 @@
   "jsnext:main": "es/index.js",
   "scripts": {
     "clean": "rimraf commonjs es coverage",
-    "lint": "eslint --rule 'no-restricted-globals: 0' test && eslint --rule 'no-restricted-globals: 0' --ext .unit.js --ext .e2e.js src/ && eslint --ignore-pattern 'src/plugins/**/test/**' --ignore-pattern \"^languages/**\" src/",
+    "lint": "eslint src/ test/",
     "test": "npm run lint && npm run test:unit && npm run test:production && npm run test:handsontable && npm run test:e2e",
     "test:handsontable": "npm run build:umd && npm run test:handsontable.dump && npm run test:e2e.puppeteer",
     "test:production": "npm run build:umd.min && npm run build:languages.min && npm run test:production.dump && npm run test:e2e.puppeteer",

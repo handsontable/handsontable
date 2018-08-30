@@ -5,7 +5,7 @@ import { CONDITION_NAME as CONDITION_DATE_BEFORE } from './date/before';
 
 export const CONDITION_NAME = 'between';
 
-export function condition(dataRow, [from, to] = inputValues) {
+export function condition(dataRow, [from, to]) {
   if (dataRow.meta.type === 'numeric') {
     const _from = parseFloat(from, 10);
     const _to = parseFloat(to, 10);

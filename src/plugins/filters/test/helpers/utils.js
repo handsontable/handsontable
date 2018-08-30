@@ -72,7 +72,7 @@ export function byValueMultipleSelect() {
 }
 
 export function dateRowFactory(meta) {
-  const options = {meta: meta || {}};
+  const options = { meta: meta || {} };
 
   return function(value) {
     options.value = value;
@@ -82,10 +82,10 @@ export function dateRowFactory(meta) {
 }
 
 export function conditionFactory(funcForCall) {
-  return function (args = []) {
+  return function(args = []) {
     return {
       args,
-      func: (dataRow) => funcForCall.apply(dataRow.meta.instance, [].concat([dataRow], [args]))
+      func: dataRow => funcForCall.apply(dataRow.meta.instance, [].concat([dataRow], [args]))
     };
   };
 }

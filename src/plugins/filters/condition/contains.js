@@ -4,7 +4,7 @@ import { registerCondition } from './../conditionRegisterer';
 
 export const CONDITION_NAME = 'contains';
 
-export function condition(dataRow, [value] = inputValues) {
+export function condition(dataRow, [value]) {
   return stringify(dataRow.value).toLowerCase().indexOf(stringify(value)) >= 0;
 }
 

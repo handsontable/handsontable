@@ -107,8 +107,8 @@ class HeaderTooltips extends BasePlugin {
     const headerLevels = this.hot.view.wt.getSetting('columnHeaders').length;
     const mainHeaders = this.hot.view.wt.wtTable.THEAD;
     const topHeaders = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
-    const topLeftCornerHeaders = this.hot.view.wt.wtOverlays.topLeftCornerOverlay ?
-      hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.THEAD : null;
+    const topLeftCornerOverlay = this.hot.view.wt.wtOverlays.topLeftCornerOverlay;
+    const topLeftCornerHeaders = topLeftCornerOverlay ? topLeftCornerOverlay.clone.wtTable.THEAD : null;
 
     rangeEach(0, headerLevels - 1, (i) => {
       const masterLevel = mainHeaders.childNodes[i];
