@@ -48,7 +48,13 @@
         "message": "Using the `console` object is not allowed within Handsontable. Please use one of the helpers from `console.js` file inside the Handsontable CE instead."
       }
     ],
-    "no-use-before-define": 0,
+    "no-use-before-define": [
+      "error",
+      {
+        "functions": false,
+        "classes": false
+      }
+    ],
     "no-void": 0,
     "no-with": 2,
     "padded-blocks": 0,

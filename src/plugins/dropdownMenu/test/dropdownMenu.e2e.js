@@ -626,6 +626,8 @@ describe('DropdownMenu', () => {
 
   describe('beforeDropdownMenuSetItems hook', () => {
     it('should add new menu item even when item is excluded from plugin settings', () => {
+      let hot;
+
       Handsontable.hooks.add('beforeDropdownMenuSetItems', function(options) {
         if (this === hot || !hot) {
           options.push({
@@ -635,7 +637,7 @@ describe('DropdownMenu', () => {
         }
       });
 
-      const hot = handsontable({
+      hot = handsontable({
         colHeaders: true,
         dropdownMenu: ['make_read_only'],
         height: 100
@@ -654,6 +656,7 @@ describe('DropdownMenu', () => {
 
     it('should be called only with items selected in plugin settings', () => {
       let keys = [];
+      let hot;
 
       Handsontable.hooks.add('beforeDropdownMenuSetItems', function(items) {
         if (this === hot || !hot) {
@@ -661,7 +664,7 @@ describe('DropdownMenu', () => {
         }
       });
 
-      const hot = handsontable({
+      hot = handsontable({
         colHeaders: true,
         dropdownMenu: ['make_read_only', 'col_left'],
         height: 100
