@@ -499,10 +499,9 @@ export function createNumericData(rowCount, colCount) {
   rowCount = typeof rowCount === 'number' ? rowCount : 100;
   colCount = typeof colCount === 'number' ? colCount : 4;
 
-  var
-    rows = [],
-    i,
-    j;
+  var rows = [];
+  var i;
+  var j;
 
   for (i = 0; i < rowCount; i++) {
     var row = [];
@@ -615,11 +614,10 @@ export function resizeRow(displayedRowIndex, height) {
 }
 
 export function moveSecondDisplayedRowBeforeFirstRow(container, secondDisplayedRowIndex) {
-  var
-    $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first(),
-    $rowHeaders = container.find('tbody tr th'),
-    $firstRowHeader = $rowHeaders.eq(secondDisplayedRowIndex - 1),
-    $secondRowHeader = $rowHeaders.eq(secondDisplayedRowIndex);
+  var $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
+  var $rowHeaders = container.find('tbody tr th');
+  var $firstRowHeader = $rowHeaders.eq(secondDisplayedRowIndex - 1);
+  var $secondRowHeader = $rowHeaders.eq(secondDisplayedRowIndex);
 
   $secondRowHeader.simulate('mouseover');
   var $manualRowMover = $mainContainer.find('.manualRowMover');
@@ -639,11 +637,10 @@ export function moveSecondDisplayedRowBeforeFirstRow(container, secondDisplayedR
 }
 
 export function moveFirstDisplayedRowAfterSecondRow(container, firstDisplayedRowIndex) {
-  var
-    $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first(),
-    $rowHeaders = container.find('tbody tr th'),
-    $firstRowHeader = $rowHeaders.eq(firstDisplayedRowIndex),
-    $secondRowHeader = $rowHeaders.eq(firstDisplayedRowIndex + 1);
+  var $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
+  var $rowHeaders = container.find('tbody tr th');
+  var $firstRowHeader = $rowHeaders.eq(firstDisplayedRowIndex);
+  var $secondRowHeader = $rowHeaders.eq(firstDisplayedRowIndex + 1);
 
   $secondRowHeader.simulate('mouseover');
   var $manualRowMover = $mainContainer.find('.manualRowMover');
