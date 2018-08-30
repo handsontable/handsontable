@@ -1,8 +1,8 @@
 describe('HiddenColumns', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   function getMultilineData(rows, cols) {
-    var data = Handsontable.helper.createSpreadsheetData(rows, cols);
+    const data = Handsontable.helper.createSpreadsheetData(rows, cols);
 
     // Column C
     data[0][2] += '\nline';
@@ -23,13 +23,13 @@ describe('HiddenColumns', () => {
   });
 
   it('should hide columns if the "hiddenColumns" property is set', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 10),
       hiddenColumns: {
         columns: [2, 4]
       },
       cells(row, col) {
-        var meta = {};
+        const meta = {};
 
         if (col === 2) {
           meta.type = 'date';
@@ -48,13 +48,13 @@ describe('HiddenColumns', () => {
   });
 
   it('should return to default state after calling the disablePlugin method', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getMultilineData(5, 10),
       hiddenColumns: {
         columns: [2, 4]
       },
       cells(row, col) {
-        var meta = {};
+        const meta = {};
 
         if (col === 2) {
           meta.type = 'date';
@@ -77,13 +77,13 @@ describe('HiddenColumns', () => {
   });
 
   it('should hide columns after calling the enablePlugin method', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getMultilineData(5, 10),
       hiddenColumns: {
         columns: [2, 4]
       },
       cells(row, col) {
-        var meta = {};
+        const meta = {};
 
         if (col === 2) {
           meta.type = 'date';
@@ -111,7 +111,7 @@ describe('HiddenColumns', () => {
   });
 
   it('should initialize the plugin after setting it up with the "updateSettings" method', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getMultilineData(5, 10),
       colHeaders: true,
       width: 500,
@@ -133,7 +133,7 @@ describe('HiddenColumns', () => {
   });
 
   it('should hide column after calling the hideColumn method', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getMultilineData(5, 10),
       hiddenColumns: true,
       width: 500,
@@ -151,7 +151,7 @@ describe('HiddenColumns', () => {
   });
 
   it('should show column after calling the showColumn method', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getMultilineData(5, 10),
       hiddenColumns: {
         columns: [2]
@@ -171,7 +171,7 @@ describe('HiddenColumns', () => {
   });
 
   it('should show the hidden column indicators if the "indicators" property is set to true', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 10),
       hiddenColumns: {
         columns: [2, 4],
@@ -182,7 +182,7 @@ describe('HiddenColumns', () => {
       height: 300
     });
 
-    var tHeadTRs = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+    const tHeadTRs = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
 
     expect(Handsontable.dom.hasClass(tHeadTRs[3], 'afterHiddenColumn')).toBe(true);
     expect(Handsontable.dom.hasClass(tHeadTRs[5], 'afterHiddenColumn')).toBe(true);
@@ -192,7 +192,7 @@ describe('HiddenColumns', () => {
   });
 
   it('should not throw any errors, when selecting a whole row with the last column hidden', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       hiddenColumns: {
         columns: [3]
@@ -200,7 +200,7 @@ describe('HiddenColumns', () => {
       rowHeaders: true
     });
 
-    var errorThrown = false;
+    let errorThrown = false;
 
     try {
       hot.selectCell(2, 0, 2, 3);
@@ -233,7 +233,7 @@ describe('HiddenColumns', () => {
     }
 
     it('should allow to copy hidden columns, when "copyPasteEnabled" property is not set', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(5, 10),
         hiddenColumns: {
           columns: [
@@ -267,7 +267,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should allow to copy hidden columns, when "copyPasteEnabled" property is set to true', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(5, 10),
         hiddenColumns: {
           columns: [2, 4],
@@ -299,7 +299,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should skip hidden columns, while copying data, when "copyPasteEnabled" property is set to false', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(5, 10),
         hiddenColumns: {
           columns: [2, 4],
@@ -328,7 +328,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should skip hidden columns, while pasting data, when "copyPasteEnabled" property is set to false', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         hiddenColumns: {
           columns: [2, 4],
@@ -340,7 +340,7 @@ describe('HiddenColumns', () => {
 
       selectCell(0, 0);
 
-      var plugin = hot.getPlugin('CopyPaste');
+      const plugin = hot.getPlugin('CopyPaste');
       plugin.paste('a\tb\tc\td\te\nf\tg\th\ti\tj');
 
       expect(getDataAtRow(0)).toEqual(['a', 'b', 'C1', 'c', 'E1', 'd', 'e', 'H1', 'I1', 'J1']);
@@ -388,13 +388,13 @@ describe('HiddenColumns', () => {
         colHeaders: true
       });
 
-      var header = $('.ht_clone_top tr:eq(0) th:eq(0)');
+      const header = $('.ht_clone_top tr:eq(0) th:eq(0)');
       header.simulate('mousedown');
       header.simulate('mouseup');
       contextMenu();
 
-      var items = $('.htContextMenu tbody td');
-      var actions = items.not('.htSeparator');
+      const items = $('.htContextMenu tbody td');
+      const actions = items.not('.htSeparator');
 
       expect(actions.text()).toEqual('Hide column');
     });
@@ -412,13 +412,13 @@ describe('HiddenColumns', () => {
       selectCell(0, 0);
       contextMenu();
 
-      var items = $('.htContextMenu tbody td');
-      var actions = items.not('.htSeparator');
+      const items = $('.htContextMenu tbody td');
+      const actions = items.not('.htSeparator');
 
       expect(actions.length).toEqual(0);
     });
     it('should hide selected columns by "Hide column" in context menu', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(5, 10),
         hiddenColumns: true,
         width: 500,
@@ -427,7 +427,7 @@ describe('HiddenColumns', () => {
         colHeaders: true
       });
 
-      var header = $('.ht_clone_top tr:eq(0)');
+      const header = $('.ht_clone_top tr:eq(0)');
 
       header.find('th:eq(3)').simulate('mousedown');
       header.find('th:eq(4)').simulate('mouseover');
@@ -435,8 +435,8 @@ describe('HiddenColumns', () => {
 
       contextMenu();
 
-      var items = $('.htContextMenu tbody td');
-      var actions = items.not('.htSeparator');
+      const items = $('.htContextMenu tbody td');
+      const actions = items.not('.htSeparator');
 
       actions.simulate('mousedown');
 
@@ -444,7 +444,7 @@ describe('HiddenColumns', () => {
       expect(hot.getColWidth(4)).toBe(0.1);
     });
     it('should show hidden columns by context menu', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(5, 10),
         hiddenColumns: {
           columns: [2, 3],
@@ -456,7 +456,7 @@ describe('HiddenColumns', () => {
         colHeaders: true
       });
 
-      var header = $('.ht_clone_top tr:eq(0)');
+      const header = $('.ht_clone_top tr:eq(0)');
 
       header.find('th:eq(1)').simulate('mousedown');
       header.find('th:eq(4)').simulate('mouseover');
@@ -464,8 +464,8 @@ describe('HiddenColumns', () => {
 
       contextMenu();
 
-      var items = $('.htContextMenu tbody td');
-      var actions = items.not('.htSeparator');
+      const items = $('.htContextMenu tbody td');
+      const actions = items.not('.htSeparator');
 
       actions.simulate('mousedown');
 
@@ -476,7 +476,7 @@ describe('HiddenColumns', () => {
 
   describe('manualColumnMove', () => {
     it('should properly render hidden ranges after moving action', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         hiddenColumns: {
           columns: [3]
@@ -485,8 +485,8 @@ describe('HiddenColumns', () => {
         height: 300,
         manualColumnMove: true
       });
-      var hiddenColumns = hot.getPlugin('hiddenColumns');
-      var manualColumnMove = hot.getPlugin('manualColumnMove');
+      const hiddenColumns = hot.getPlugin('hiddenColumns');
+      const manualColumnMove = hot.getPlugin('manualColumnMove');
 
       manualColumnMove.moveColumns([0, 1], 4);
       hot.render();

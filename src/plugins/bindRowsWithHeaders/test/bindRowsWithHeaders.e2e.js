@@ -1,5 +1,5 @@
 describe('BindRowsWithHeaders', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,7 @@ describe('BindRowsWithHeaders', () => {
   });
 
   it('should call rowHeader function with correct index as argument (strict mode)', () => {
-    var callback = jasmine.createSpy();
+    const callback = jasmine.createSpy();
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 10),
       rowHeaders: callback,
@@ -43,7 +43,7 @@ describe('BindRowsWithHeaders', () => {
   });
 
   it('should correct bind rows with headers after re-load data calling loadData method (strict mode)', async() => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       rowHeaders: true,
       bindRowsWithHeaders: 'strict',

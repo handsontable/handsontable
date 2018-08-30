@@ -64,10 +64,10 @@ describe('exportFile', () => {
 
   describe('`_createTypeFormatter` method', () => {
     it('should create formatter type object', () => {
-      var hot = handsontable();
-      var plugin = hot.getPlugin('exportFile');
+      const hot = handsontable();
+      const plugin = hot.getPlugin('exportFile');
 
-      var result = plugin._createTypeFormatter('csv');
+      const result = plugin._createTypeFormatter('csv');
 
       expect(result).toBeDefined();
       expect(result.options.fileExtension).toBeDefined('csv');

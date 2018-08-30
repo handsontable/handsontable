@@ -2,7 +2,7 @@ import DataFilter from 'handsontable-pro/plugins/filters/dataFilter';
 
 describe('DataFilter', () => {
   function columnDataMock(column) {
-    var data = [
+    const data = [
       [1, 2, 3, 4, 5, 6, 7, 8, 9],
       ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'],
     ];
@@ -11,8 +11,8 @@ describe('DataFilter', () => {
   }
 
   it('should initialize with dependencies', () => {
-    var conditionCollectionMock = {};
-    var dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
+    const conditionCollectionMock = {};
+    const dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
 
     expect(dataFilter.conditionCollection).toBe(conditionCollectionMock);
     expect(dataFilter.columnDataFactory).toBe(columnDataMock);
@@ -20,8 +20,8 @@ describe('DataFilter', () => {
 
   describe('filter', () => {
     it('should not filter input data when condition collection is empty', () => {
-      var conditionCollectionMock = { isEmpty: jasmine.createSpy('isEmpty').and.returnValue(true) };
-      var dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
+      const conditionCollectionMock = { isEmpty: jasmine.createSpy('isEmpty').and.returnValue(true) };
+      const dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
 
       dataFilter.filter();
 
@@ -29,17 +29,17 @@ describe('DataFilter', () => {
     });
 
     it('should filter input data based on condition collection (shallow filtering)', () => {
-      var conditionCollectionMock = {
+      const conditionCollectionMock = {
         isEmpty: jasmine.createSpy('isEmpty').and.returnValue(false),
         orderStack: [0] // filtering applied to column index 0
       };
-      var dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
+      const dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
 
       spyOn(dataFilter, 'columnDataFactory').and.callThrough();
       spyOn(dataFilter, '_getIntersectData').and.callThrough();
       spyOn(dataFilter, 'filterByColumn').and.returnValue([1, 2]);
 
-      var result = dataFilter.filter();
+      const result = dataFilter.filter();
 
       expect(dataFilter.columnDataFactory).toHaveBeenCalledWith(0);
       expect(dataFilter._getIntersectData).not.toHaveBeenCalled();
@@ -48,17 +48,17 @@ describe('DataFilter', () => {
     });
 
     it('should filter input data based on condition collection (deep filtering)', () => {
-      var conditionCollectionMock = {
+      const conditionCollectionMock = {
         isEmpty: jasmine.createSpy('isEmpty').and.returnValue(false),
         orderStack: [1, 0] // filtering applied first to column at index 1 and later at index 0
       };
-      var dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
+      const dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
 
       spyOn(dataFilter, 'columnDataFactory').and.callThrough();
       spyOn(dataFilter, '_getIntersectData').and.returnValue([1, 2]);
       spyOn(dataFilter, 'filterByColumn').and.returnValue([1, 2]);
 
-      var result = dataFilter.filter();
+      const result = dataFilter.filter();
 
       expect(dataFilter.columnDataFactory).toHaveBeenCalledWith(0);
       expect(dataFilter._getIntersectData).toHaveBeenCalledWith([1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2]);
@@ -70,13 +70,13 @@ describe('DataFilter', () => {
 
   describe('filterByColumn', () => {
     it('should filter input data based on condition collection (filter all)', () => {
-      var conditionCollectionMock = {
+      const conditionCollectionMock = {
         isMatch: jasmine.createSpy('isMatch').and.callFake(() => true),
       };
-      var dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
-      var data = [1, 2, 3, 4, 5];
+      const dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
+      const data = [1, 2, 3, 4, 5];
 
-      var result = dataFilter.filterByColumn(0, data);
+      const result = dataFilter.filterByColumn(0, data);
 
       expect(conditionCollectionMock.isMatch.calls.count()).toBe(5);
       expect(conditionCollectionMock.isMatch.calls.argsFor(0)).toEqual([1, 0]);
@@ -88,13 +88,13 @@ describe('DataFilter', () => {
     });
 
     it('should filter input data based on condition collection (filter none)', () => {
-      var conditionCollectionMock = {
+      const conditionCollectionMock = {
         isMatch: jasmine.createSpy('isMatch').and.callFake(() => false),
       };
-      var dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
-      var data = [1, 2, 3, 4, 5];
+      const dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
+      const data = [1, 2, 3, 4, 5];
 
-      var result = dataFilter.filterByColumn(0, data);
+      const result = dataFilter.filterByColumn(0, data);
 
       expect(conditionCollectionMock.isMatch.calls.count()).toBe(5);
       expect(conditionCollectionMock.isMatch.calls.argsFor(0)).toEqual([1, 0]);
@@ -106,13 +106,13 @@ describe('DataFilter', () => {
     });
 
     it('should filter input data based on condition collection (filtering odd numbers)', () => {
-      var conditionCollectionMock = {
+      const conditionCollectionMock = {
         isMatch: jasmine.createSpy('isMatch').and.callFake(dataRow => dataRow % 2),
       };
-      var dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
-      var data = [1, 2, 3, 4, 5];
+      const dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
+      const data = [1, 2, 3, 4, 5];
 
-      var result = dataFilter.filterByColumn(0, data);
+      const result = dataFilter.filterByColumn(0, data);
 
       expect(conditionCollectionMock.isMatch.calls.count()).toBe(5);
       expect(conditionCollectionMock.isMatch.calls.argsFor(0)).toEqual([1, 0]);

@@ -1,8 +1,8 @@
 describe('TrimRows', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   function getMultilineData(rows, cols) {
-    var data = Handsontable.helper.createSpreadsheetData(rows, cols);
+    const data = Handsontable.helper.createSpreadsheetData(rows, cols);
 
     // Column C
     data[0][2] += '\nline';
@@ -27,7 +27,7 @@ describe('TrimRows', () => {
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       trimRows: [2, 6, 7],
       cells(row) {
-        var meta = {};
+        const meta = {};
 
         if (row === 2) {
           meta.type = 'date';
@@ -56,7 +56,7 @@ describe('TrimRows', () => {
   });
 
   it('should trim rows after re-load data calling loadData method', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       trimRows: [0, 2],
       width: 500,
@@ -73,7 +73,7 @@ describe('TrimRows', () => {
   });
 
   it('should return to default state after call disablePlugin method', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getMultilineData(10, 10),
       trimRows: [2, 6, 7],
       width: 500,
@@ -92,7 +92,7 @@ describe('TrimRows', () => {
   });
 
   it('should trim rows after call enablePlugin method', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getMultilineData(10, 10),
       trimRows: [2, 6, 7],
       width: 500,
@@ -112,7 +112,7 @@ describe('TrimRows', () => {
   });
 
   it('should trim row after call trimRow method', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getMultilineData(5, 10),
       trimRows: true,
       width: 500,
@@ -128,7 +128,7 @@ describe('TrimRows', () => {
   });
 
   it('should untrim row after call untrimRow method', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getMultilineData(5, 10),
       trimRows: [1],
       width: 500,
@@ -144,8 +144,8 @@ describe('TrimRows', () => {
   });
 
   it('should call hook after trim row', () => {
-    var callback = jasmine.createSpy();
-    var hot = handsontable({
+    const callback = jasmine.createSpy();
+    const hot = handsontable({
       data: getMultilineData(5, 10),
       trimRows: true,
       width: 500,
@@ -162,8 +162,8 @@ describe('TrimRows', () => {
   });
 
   it('should call hook after untrim row', () => {
-    var callback = jasmine.createSpy();
-    var hot = handsontable({
+    const callback = jasmine.createSpy();
+    const hot = handsontable({
       data: getMultilineData(5, 10),
       trimRows: [1],
       width: 500,
@@ -229,7 +229,7 @@ describe('TrimRows', () => {
   });
 
   it('should clear cache after loading new data by `loadData` function, when plugin `trimRows` is enabled #92', function(done) {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       trimRows: true
     });
@@ -243,7 +243,7 @@ describe('TrimRows', () => {
   });
 
   it('should not affect `afterValidate` hook #11', (done) => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       trimRows: true,
       cells() {
@@ -289,7 +289,7 @@ describe('TrimRows', () => {
     }
 
     it('should skip trimmed rows, while copying data', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: [1, 5, 6, 7, 8],
         width: 500,
@@ -487,7 +487,7 @@ describe('TrimRows', () => {
 
   describe('updateSettings', () => {
     it('should update list of trimmed rows when array of indexes is passed to the method - test no. 1', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
@@ -505,7 +505,7 @@ describe('TrimRows', () => {
     });
 
     it('should update list of trimmed rows when array of indexes is passed to the method - test no. 2', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,
@@ -527,7 +527,7 @@ describe('TrimRows', () => {
     });
 
     it('should clear list of trimmed rows when empty array is passed to the method - test no. 1', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
@@ -542,7 +542,7 @@ describe('TrimRows', () => {
     });
 
     it('should clear list of trimmed rows when empty array is passed to the method - test no. 2', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,
@@ -561,7 +561,7 @@ describe('TrimRows', () => {
 
     it('should clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
       'set to `false` - test no. 1', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
@@ -577,7 +577,7 @@ describe('TrimRows', () => {
 
     it('should clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
       'set to `false` - test no. 2', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,
@@ -596,7 +596,7 @@ describe('TrimRows', () => {
 
     it('shouldn\'t clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
       'set to `true` - test no. 1', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
@@ -612,7 +612,7 @@ describe('TrimRows', () => {
 
     it('shouldn\'t clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
       'set to `true` - test no. 2', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,
@@ -630,7 +630,7 @@ describe('TrimRows', () => {
     });
 
     it('shouldn\'t change list of trimmed rows when handled setting object don\'t have `trimRows` key - test no. 1', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
@@ -645,7 +645,7 @@ describe('TrimRows', () => {
     });
 
     it('shouldn\'t change list of trimmed rows when handled setting object don\'t have `trimRows` key - test no. 2', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,

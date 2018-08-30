@@ -10,7 +10,7 @@ describe('Filters condition (`by_value`)', () => {
   }
 
   it('should filter matching values', () => {
-    var data = dateRowFactory();
+    const data = dateRowFactory();
 
     expect(condition(data(4), [assertion([4])])).toBe(true);
     expect(condition(data(4), [assertion([4, 4])])).toBe(true);
@@ -25,7 +25,7 @@ describe('Filters condition (`by_value`)', () => {
   });
 
   it('should filter not matching values', () => {
-    var data = dateRowFactory();
+    const data = dateRowFactory();
 
     expect(condition(data(null), [assertion([-9, '', -1])])).toBe(false);
     expect(condition(data(void 0), [assertion([-9, '', -1])])).toBe(false);

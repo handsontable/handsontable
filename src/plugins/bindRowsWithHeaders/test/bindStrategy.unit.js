@@ -2,7 +2,7 @@ import BindStrategy from 'handsontable-pro/plugins/bindRowsWithHeaders/bindStrat
 
 describe('BindRowsWithHeaders -> BindStrategy', () => {
   it('should throw error when used strategy is not exists', () => {
-    var strategy = new BindStrategy();
+    const strategy = new BindStrategy();
 
     expect(() => {
       strategy.setStrategy('test2');
@@ -10,8 +10,8 @@ describe('BindRowsWithHeaders -> BindStrategy', () => {
   });
 
   it('should create a map based on `length` argument', () => {
-    var strategyMock = { _arrayMap: [] };
-    var strategy = new BindStrategy();
+    const strategyMock = { _arrayMap: [] };
+    const strategy = new BindStrategy();
 
     strategy.strategy = strategyMock;
     strategy.createMap(4);
@@ -24,8 +24,8 @@ describe('BindRowsWithHeaders -> BindStrategy', () => {
   });
 
   it('should re-create a map based on current map length', () => {
-    var strategyMock = { _arrayMap: [] };
-    var strategy = new BindStrategy();
+    const strategyMock = { _arrayMap: [] };
+    const strategy = new BindStrategy();
 
     strategy.strategy = strategyMock;
     strategy.strategy._arrayMap[0] = 4;
@@ -40,8 +40,8 @@ describe('BindRowsWithHeaders -> BindStrategy', () => {
   });
 
   it('should forward `createRow` method call to the strategy object', () => {
-    var strategyMock = jasmine.createSpyObj('strategy', ['createRow']);
-    var strategy = new BindStrategy();
+    const strategyMock = jasmine.createSpyObj('strategy', ['createRow']);
+    const strategy = new BindStrategy();
 
     strategy.strategy = strategyMock;
     strategy.createRow(1, 1);
@@ -54,8 +54,8 @@ describe('BindRowsWithHeaders -> BindStrategy', () => {
   });
 
   it('should forward `removeRow` method call to the strategy object', () => {
-    var strategyMock = jasmine.createSpyObj('strategy', ['removeRow']);
-    var strategy = new BindStrategy();
+    const strategyMock = jasmine.createSpyObj('strategy', ['removeRow']);
+    const strategy = new BindStrategy();
 
     strategy.strategy = strategyMock;
     strategy.removeRow(1, 1);
@@ -68,8 +68,8 @@ describe('BindRowsWithHeaders -> BindStrategy', () => {
   });
 
   it('should forward `translate` method call to the strategy object', () => {
-    var strategyMock = jasmine.createSpyObj('strategy', ['getValueByIndex']);
-    var strategy = new BindStrategy();
+    const strategyMock = jasmine.createSpyObj('strategy', ['getValueByIndex']);
+    const strategy = new BindStrategy();
 
     strategy.strategy = strategyMock;
     strategy.translate(1);
@@ -78,8 +78,8 @@ describe('BindRowsWithHeaders -> BindStrategy', () => {
   });
 
   it('should forward `clearMap` method call to the strategy object', () => {
-    var strategyMock = jasmine.createSpyObj('strategy', ['clearMap']);
-    var strategy = new BindStrategy();
+    const strategyMock = jasmine.createSpyObj('strategy', ['clearMap']);
+    const strategy = new BindStrategy();
 
     strategy.strategy = strategyMock;
     strategy.clearMap();
@@ -88,8 +88,8 @@ describe('BindRowsWithHeaders -> BindStrategy', () => {
   });
 
   it('should destroy object after call `destroy` method', () => {
-    var strategyMock = jasmine.createSpyObj('strategy', ['destroy']);
-    var strategy = new BindStrategy();
+    const strategyMock = jasmine.createSpyObj('strategy', ['destroy']);
+    const strategy = new BindStrategy();
 
     strategy.strategy = strategyMock;
     strategy.destroy();

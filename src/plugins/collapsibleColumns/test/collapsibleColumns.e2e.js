@@ -1,14 +1,14 @@
 describe('CollapsibleColumns', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
 
     this.generateComplexSetup = function(rows, cols, obj) {
-      var data = [];
+      const data = [];
 
-      for (var i = 0; i < rows; i++) {
-        for (var j = 0; j < cols; j++) {
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
           if (!data[i]) {
             data[i] = [];
           }
@@ -55,7 +55,7 @@ describe('CollapsibleColumns', () => {
 
   describe('initialization', () => {
     it('should be possible to disable the plugin using the disablePlugin method', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
         nestedHeaders: [
@@ -65,7 +65,7 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      var collapsibleColumnsPlugin = hot.getPlugin('collapsibleColumns');
+      const collapsibleColumnsPlugin = hot.getPlugin('collapsibleColumns');
 
       expect($('.collapsibleIndicator').size()).toBeGreaterThan(0);
 
@@ -76,7 +76,7 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should be possible to re-enable the plugin using the enablePlugin method', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
         nestedHeaders: [
@@ -86,7 +86,7 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      var collapsibleColumnsPlugin = hot.getPlugin('collapsibleColumns');
+      const collapsibleColumnsPlugin = hot.getPlugin('collapsibleColumns');
 
       collapsibleColumnsPlugin.disablePlugin();
       hot.render();
@@ -97,7 +97,7 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should be possible to initialize the plugin using the updateSettings method', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
         nestedHeaders: [
@@ -127,8 +127,8 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      var button = $('.collapsibleIndicator').first();
-      var colgroupArray = $('colgroup col');
+      const button = $('.collapsibleIndicator').first();
+      const colgroupArray = $('colgroup col');
 
       expect(parseInt(colgroupArray.eq(0).width(), 10)).toBeGreaterThan(0);
       expect(parseInt(colgroupArray.eq(1).width(), 10)).toBeGreaterThan(0);
@@ -160,8 +160,8 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      var button = $('.collapsibleIndicator').first();
-      var colgroupArray = $('colgroup col');
+      const button = $('.collapsibleIndicator').first();
+      const colgroupArray = $('colgroup col');
 
       expect(parseInt(colgroupArray.eq(0).width(), 10)).toBeGreaterThan(0);
       expect(parseInt(colgroupArray.eq(1).width(), 10)).toBeGreaterThan(0);
@@ -183,7 +183,7 @@ describe('CollapsibleColumns', () => {
     });
 
     xit('should maintain the collapse functionality, when the table has been scrolled', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         hiddenColumns: true,
         nestedHeaders: this.generateComplexSetup(4, 70, true),
@@ -195,8 +195,8 @@ describe('CollapsibleColumns', () => {
       hot.scrollViewportTo(void 0, 37);
       hot.render();
 
-      var button = $('.collapsibleIndicator').eq(0);
-      var colgroupArray = $('colgroup col');
+      const button = $('.collapsibleIndicator').eq(0);
+      const colgroupArray = $('colgroup col');
 
       button.simulate('mousedown');
 
@@ -222,8 +222,8 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      var button = $('.collapsibleIndicator').first();
-      var colgroupArray = $('colgroup col');
+      const button = $('.collapsibleIndicator').first();
+      const colgroupArray = $('colgroup col');
       button.simulate('mousedown');
 
       expect(parseInt(colgroupArray.eq(0).width(), 10)).toBeGreaterThan(0);
@@ -247,7 +247,7 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should maintain the expand functionality, when the table has been scrolled', function(done) {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         hiddenColumns: true,
         nestedHeaders: this.generateComplexSetup(4, 70, true),
@@ -260,8 +260,8 @@ describe('CollapsibleColumns', () => {
         hot.scrollViewportTo(void 0, 37);
         hot.render();
 
-        var button = $('.collapsibleIndicator').eq(0);
-        var colgroupArray = $('colgroup col');
+        let button = $('.collapsibleIndicator').eq(0);
+        const colgroupArray = $('colgroup col');
 
         button.simulate('mousedown');
         button = $('.collapsibleIndicator').eq(0);
@@ -293,7 +293,7 @@ describe('CollapsibleColumns', () => {
         height: 300
       });
 
-      var TRs = document.querySelectorAll('.handsontable THEAD TR');
+      const TRs = document.querySelectorAll('.handsontable THEAD TR');
 
       expect(TRs[0].querySelector('TH:nth-child(2) .collapsibleIndicator')).not.toEqual(null);
       expect(TRs[0].querySelector('TH:nth-child(10) .collapsibleIndicator')).toEqual(null);

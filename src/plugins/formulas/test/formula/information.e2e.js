@@ -1,5 +1,5 @@
 describe('Formulas -> information functions', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,13 +13,13 @@ describe('Formulas -> information functions', () => {
   });
 
   it('ISBINARY', () => {
-    var data = getDataForFormulas(0, 'name', ['=ISBINARY(A1)', '=ISBINARY(A2)', '=ISBINARY(A3)']);
+    const data = getDataForFormulas(0, 'name', ['=ISBINARY(A1)', '=ISBINARY(A2)', '=ISBINARY(A3)']);
 
     data[0].id = '1';
     data[1].id = '01011';
     data[2].id = 'foo';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -33,7 +33,7 @@ describe('Formulas -> information functions', () => {
   });
 
   it('ISBLANK', () => {
-    var data = getDataForFormulas(0, 'name', ['=ISBLANK(A1)', '=ISBLANK(A2)', '=ISBLANK(A3)', '=ISBLANK(A4)', '=ISBLANK(A5)', '=ISBLANK(A6)']);
+    const data = getDataForFormulas(0, 'name', ['=ISBLANK(A1)', '=ISBLANK(A2)', '=ISBLANK(A3)', '=ISBLANK(A4)', '=ISBLANK(A5)', '=ISBLANK(A6)']);
 
     data[0].id = null;
     data[1].id = void 0;
@@ -42,7 +42,7 @@ describe('Formulas -> information functions', () => {
     data[4].id = 'foo';
     data[5].id = '';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -59,13 +59,13 @@ describe('Formulas -> information functions', () => {
   });
 
   it('ISEVEN', () => {
-    var data = getDataForFormulas(0, 'name', ['=ISEVEN(A1)', '=ISEVEN(A2)', '=ISEVEN(A3)']);
+    const data = getDataForFormulas(0, 'name', ['=ISEVEN(A1)', '=ISEVEN(A2)', '=ISEVEN(A3)']);
 
     data[0].id = 1;
     data[1].id = 2;
     data[2].id = 2.5;
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -79,7 +79,7 @@ describe('Formulas -> information functions', () => {
   });
 
   it('ISLOGICAL', () => {
-    var data = getDataForFormulas(0, 'name', ['=ISLOGICAL(A1)', '=ISLOGICAL(A2)', '=ISLOGICAL(A3)', '=ISLOGICAL(A4)', '=ISLOGICAL(A5)']);
+    const data = getDataForFormulas(0, 'name', ['=ISLOGICAL(A1)', '=ISLOGICAL(A2)', '=ISLOGICAL(A3)', '=ISLOGICAL(A4)', '=ISLOGICAL(A5)']);
 
     data[0].id = 1;
     data[1].id = false;
@@ -87,7 +87,7 @@ describe('Formulas -> information functions', () => {
     data[3].id = null;
     data[4].id = 'foo';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -103,14 +103,14 @@ describe('Formulas -> information functions', () => {
   });
 
   it('ISNONTEXT', () => {
-    var data = getDataForFormulas(0, 'name', ['=ISNONTEXT(A1)', '=ISNONTEXT(A2)', '=ISNONTEXT(A3)', '=ISNONTEXT(A4)']);
+    const data = getDataForFormulas(0, 'name', ['=ISNONTEXT(A1)', '=ISNONTEXT(A2)', '=ISNONTEXT(A3)', '=ISNONTEXT(A4)']);
 
     data[0].id = 1;
     data[1].id = true;
     data[2].id = 'false';
     data[3].id = 'foo';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -125,14 +125,14 @@ describe('Formulas -> information functions', () => {
   });
 
   it('ISNUMBER', () => {
-    var data = getDataForFormulas(0, 'name', ['=ISNUMBER(A1)', '=ISNUMBER(A2)', '=ISNUMBER(A3)', '=ISNUMBER(A4)']);
+    const data = getDataForFormulas(0, 'name', ['=ISNUMBER(A1)', '=ISNUMBER(A2)', '=ISNUMBER(A3)', '=ISNUMBER(A4)']);
 
     data[0].id = 1;
     data[1].id = 0.3456;
     data[2].id = '0.3456';
     data[3].id = 'false';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -147,13 +147,13 @@ describe('Formulas -> information functions', () => {
   });
 
   it('ISODD', () => {
-    var data = getDataForFormulas(0, 'name', ['=ISODD(A1)', '=ISODD(A2)', '=ISODD(A3)']);
+    const data = getDataForFormulas(0, 'name', ['=ISODD(A1)', '=ISODD(A2)', '=ISODD(A3)']);
 
     data[0].id = 1;
     data[1].id = 2;
     data[2].id = 2.5;
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -167,14 +167,14 @@ describe('Formulas -> information functions', () => {
   });
 
   it('ISTEXT', () => {
-    var data = getDataForFormulas(0, 'name', ['=ISTEXT(A1)', '=ISTEXT(A2)', '=ISTEXT(A3)', '=ISTEXT(A4)']);
+    const data = getDataForFormulas(0, 'name', ['=ISTEXT(A1)', '=ISTEXT(A2)', '=ISTEXT(A3)', '=ISTEXT(A4)']);
 
     data[0].id = 1;
     data[1].id = '2';
     data[2].id = true;
     data[3].id = 'true';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,

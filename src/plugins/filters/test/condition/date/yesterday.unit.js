@@ -3,16 +3,16 @@ import { condition } from 'handsontable-pro/plugins/filters/condition/date/yeste
 import { dateRowFactory } from './../../helpers/utils';
 
 describe('Filters condition (`date_yesterday`)', () => {
-  var format = 'DD/MM/YYYY';
+  const format = 'DD/MM/YYYY';
 
   it('should filter matching values', () => {
-    var data = dateRowFactory({ dateFormat: format });
+    const data = dateRowFactory({ dateFormat: format });
 
     expect(condition(data(moment().add(-1, 'days').format(format)))).toBe(true);
   });
 
   it('should filter not matching values', () => {
-    var data = dateRowFactory({ dateFormat: format });
+    const data = dateRowFactory({ dateFormat: format });
 
     expect(condition(data(moment().add(-3, 'days').format(format)))).toBe(false);
     expect(condition(data(moment().add(-2, 'days').format(format)))).toBe(false);

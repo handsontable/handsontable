@@ -1,5 +1,5 @@
 describe('Header tooltips', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -14,7 +14,7 @@ describe('Header tooltips', () => {
 
   describe('initialization', () => {
     it('should be initialized by HOT config', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         headerTooltips: {
@@ -26,17 +26,17 @@ describe('Header tooltips', () => {
         height: 300
       });
 
-      var headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+      const headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
 
-      for (var i = 0; i < headers.length; i++) {
-        var title = headers[i].getAttribute('title');
+      for (let i = 0; i < headers.length; i++) {
+        const title = headers[i].getAttribute('title');
         expect(headers[i].getAttribute('title')).not.toBe(null);
         expect(title).toEqual(headers[i].textContent);
       }
     });
 
     it('should be initialized by the updateSettings method', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         width: 500,
@@ -51,17 +51,17 @@ describe('Header tooltips', () => {
         }
       });
 
-      var headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+      const headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
 
-      for (var i = 0; i < headers.length; i++) {
-        var title = headers[i].getAttribute('title');
+      for (let i = 0; i < headers.length; i++) {
+        const title = headers[i].getAttribute('title');
         expect(headers[i].getAttribute('title')).not.toBe(null);
         expect(title).toEqual(headers[i].textContent);
       }
     });
 
     it('should be disabled by the disablePlugin method', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         headerTooltips: {
@@ -75,15 +75,15 @@ describe('Header tooltips', () => {
 
       hot.getPlugin('headerTooltips').disablePlugin();
 
-      var headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+      const headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
 
-      for (var i = 0; i < headers.length; i++) {
+      for (let i = 0; i < headers.length; i++) {
         expect(headers[i].getAttribute('title')).toBe(null);
       }
     });
 
     it('should be re-enabled by the enablePlugin method', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         headerTooltips: {
@@ -100,10 +100,10 @@ describe('Header tooltips', () => {
       hot.getPlugin('headerTooltips').enablePlugin();
       hot.render();
 
-      var headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+      const headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
 
-      for (var i = 0; i < headers.length; i++) {
-        var title = headers[i].getAttribute('title');
+      for (let i = 0; i < headers.length; i++) {
+        const title = headers[i].getAttribute('title');
         expect(headers[i].getAttribute('title')).not.toBe(null);
         expect(title).toEqual(headers[i].textContent);
       }
@@ -125,8 +125,8 @@ describe('Header tooltips', () => {
         height: 300
       });
 
-      var $colHeaders = $('thead th');
-      var $rowHeaders = $('tbody th');
+      const $colHeaders = $('thead th');
+      const $rowHeaders = $('tbody th');
 
       $colHeaders.each(function() {
         expect($(this).attr('title')).toEqual($(this).text());
@@ -150,8 +150,8 @@ describe('Header tooltips', () => {
         height: 300
       });
 
-      var $colHeaders = $('thead th');
-      var $rowHeaders = $('tbody th');
+      const $colHeaders = $('thead th');
+      const $rowHeaders = $('tbody th');
 
       $colHeaders.each(function() {
         expect($(this).attr('title')).not.toBeDefined();
@@ -175,8 +175,8 @@ describe('Header tooltips', () => {
         height: 300
       });
 
-      var $colHeaders = $('thead th');
-      var $rowHeaders = $('tbody th');
+      const $colHeaders = $('thead th');
+      const $rowHeaders = $('tbody th');
 
       $colHeaders.each(function() {
         expect($(this).attr('title')).toEqual($(this).text());

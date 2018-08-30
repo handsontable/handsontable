@@ -1,5 +1,5 @@
 describe('NestedRows', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -14,7 +14,7 @@ describe('NestedRows', () => {
 
   describe('Displaying a nested structure', () => {
     it('should display as many rows as there are overall elements in a nested structure', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getDataForNestedRows(),
         nestedRows: true
       });
@@ -23,12 +23,12 @@ describe('NestedRows', () => {
     });
 
     it('should display all nested structure elements in correct order (parent, its children, its children children, next parent etc)', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getDataForNestedRows(),
         nestedRows: true
       });
 
-      var dataInOrder = [
+      const dataInOrder = [
         ['a0', 'b0'],
         ['a0-a0', 'b0-b0'],
         ['a0-a1', 'b0-b1'],
@@ -47,7 +47,7 @@ describe('NestedRows', () => {
     });
 
     it('should display the right amount of entries with the `manualRowMove` plugin enabled', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getDataForNestedRows(),
         nestedRows: true,
         manualRowMove: true

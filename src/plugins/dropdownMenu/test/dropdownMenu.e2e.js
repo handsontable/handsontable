@@ -699,7 +699,7 @@ describe('DropdownMenu', () => {
     selectCell(0, 6, 8, 8);
     hot.getPlugin('dropdownMenu').executeCommand('alignment:bottom');
 
-    var cellMeta = hot.getCellMeta(0, 0);
+    let cellMeta = hot.getCellMeta(0, 0);
     expect(cellMeta.className.includes('htCenter')).toBeTruthy();
     expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
 
@@ -789,7 +789,7 @@ describe('DropdownMenu', () => {
     selectCell(0, 6, 8, 8);
     hot.getPlugin('dropdownMenu').executeCommand('alignment:bottom');
 
-    var cellMeta = hot.getCellMeta(0, 0);
+    let cellMeta = hot.getCellMeta(0, 0);
     expect(cellMeta.className.includes('htCenter')).toBeTruthy();
     expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
 

@@ -2,8 +2,8 @@ import RowsMapper from 'handsontable-pro/plugins/trimRows/rowsMapper';
 
 describe('TrimRows -> RowsMapper', () => {
   it('should set trimRows plugin while constructing', () => {
-    var trimRowsMock = {};
-    var mapper = new RowsMapper(trimRowsMock);
+    const trimRowsMock = {};
+    const mapper = new RowsMapper(trimRowsMock);
 
     expect(mapper.trimRows).toBe(trimRowsMock);
   });
@@ -13,7 +13,7 @@ describe('TrimRows -> RowsMapper', () => {
   });
 
   it('should destroy array after calling destroy method', () => {
-    var mapper = new RowsMapper();
+    const mapper = new RowsMapper();
 
     expect(mapper._arrayMap).toEqual([]);
 
@@ -23,12 +23,12 @@ describe('TrimRows -> RowsMapper', () => {
   });
 
   it('should call isTrimmed method "length" times', () => {
-    var trimRowsMock = {
+    const trimRowsMock = {
       isTrimmed() {
         return false;
       }
     };
-    var mapper = new RowsMapper(trimRowsMock);
+    const mapper = new RowsMapper(trimRowsMock);
 
     spyOn(trimRowsMock, 'isTrimmed').and.callThrough();
     mapper.createMap(5);
@@ -42,12 +42,12 @@ describe('TrimRows -> RowsMapper', () => {
   });
 
   it('should create map with pairs index->value', () => {
-    var trimRowsMock = {
+    const trimRowsMock = {
       isTrimmed() {
         return false;
       }
     };
-    var mapper = new RowsMapper(trimRowsMock);
+    const mapper = new RowsMapper(trimRowsMock);
 
     spyOn(trimRowsMock, 'isTrimmed').and.callThrough();
     mapper.createMap(6);
@@ -61,12 +61,12 @@ describe('TrimRows -> RowsMapper', () => {
   });
 
   it('should create map with pairs index->value with some gaps', () => {
-    var trimRowsMock = {
+    const trimRowsMock = {
       isTrimmed(index) {
         return index === 2 || index === 5;
       }
     };
-    var mapper = new RowsMapper(trimRowsMock);
+    const mapper = new RowsMapper(trimRowsMock);
 
     spyOn(trimRowsMock, 'isTrimmed').and.callThrough();
     mapper.createMap(6);

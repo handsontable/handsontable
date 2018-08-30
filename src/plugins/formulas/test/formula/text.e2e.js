@@ -1,5 +1,5 @@
 describe('Formulas -> text functions', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,11 +13,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('CHAR', () => {
-    var data = getDataForFormulas(0, 'name', ['=CHAR()', '=CHAR(A1)']);
+    const data = getDataForFormulas(0, 'name', ['=CHAR()', '=CHAR(A1)']);
 
     data[0].id = 33;
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -30,12 +30,12 @@ describe('Formulas -> text functions', () => {
   });
 
   it('CLEAN', () => {
-    var data = getDataForFormulas(0, 'name', ['=CLEAN()', '=CLEAN(A1)']);
+    const data = getDataForFormulas(0, 'name', ['=CLEAN()', '=CLEAN(A1)']);
 
     /* eslint-disable no-tabs */
     data[0].id = '	Monthly report	\n\n'; // tab with new line
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -48,11 +48,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('CODE', () => {
-    var data = getDataForFormulas(0, 'name', ['=CODE()', '=CODE(A1)']);
+    const data = getDataForFormulas(0, 'name', ['=CODE()', '=CODE(A1)']);
 
     data[0].id = '!';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -65,13 +65,13 @@ describe('Formulas -> text functions', () => {
   });
 
   it('CONCATENATE', () => {
-    var data = getDataForFormulas(0, 'name', ['=CONCATENATE()', '=CONCATENATE(A1, " "&A2, A3)']);
+    const data = getDataForFormulas(0, 'name', ['=CONCATENATE()', '=CONCATENATE(A1, " "&A2, A3)']);
 
     data[0].id = 'Hello';
     data[1].id = 'world';
     data[2].id = '!';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -84,11 +84,11 @@ describe('Formulas -> text functions', () => {
   });
 
   xit('DOLLAR', () => {
-    var data = getDataForFormulas(0, 'name', ['=DOLLAR()', '=DOLLAR(A1, 2)']);
+    const data = getDataForFormulas(0, 'name', ['=DOLLAR()', '=DOLLAR(A1, 2)']);
 
     data[0].id = 1100;
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -101,11 +101,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('EXACT', () => {
-    var data = getDataForFormulas(0, 'name', ['=EXACT()', '=EXACT(A1, 2)', '=EXACT(A1, 1100)']);
+    const data = getDataForFormulas(0, 'name', ['=EXACT()', '=EXACT(A1, 2)', '=EXACT(A1, 1100)']);
 
     data[0].id = 1100;
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -119,11 +119,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('FIND', () => {
-    var data = getDataForFormulas(0, 'name', ['=FIND()', '=FIND(A1, C1)']);
+    const data = getDataForFormulas(0, 'name', ['=FIND()', '=FIND(A1, C1)']);
 
     data[0].id = 'k';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -136,11 +136,11 @@ describe('Formulas -> text functions', () => {
   });
 
   xit('FIXED', () => {
-    var data = getDataForFormulas(0, 'name', ['=FIXED()', '=FIXED(12345.11, 0)']);
+    const data = getDataForFormulas(0, 'name', ['=FIXED()', '=FIXED(12345.11, 0)']);
 
     data[0].id = 'k';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -153,11 +153,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('LEFT', () => {
-    var data = getDataForFormulas(0, 'name', ['=LEFT()', '=LEFT(A1, 4)']);
+    const data = getDataForFormulas(0, 'name', ['=LEFT()', '=LEFT(A1, 4)']);
 
     data[0].id = 'Foo Bar';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -170,11 +170,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('LEN', () => {
-    var data = getDataForFormulas(0, 'name', ['=LEN()', '=LEN(A1)']);
+    const data = getDataForFormulas(0, 'name', ['=LEN()', '=LEN(A1)']);
 
     data[0].id = 'Foo Bar';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -187,11 +187,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('LOWER', () => {
-    var data = getDataForFormulas(0, 'name', ['=LOWER()', '=LOWER(A1)']);
+    const data = getDataForFormulas(0, 'name', ['=LOWER()', '=LOWER(A1)']);
 
     data[0].id = 'Foo Bar';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -204,11 +204,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('MID', () => {
-    var data = getDataForFormulas(0, 'name', ['=MID()', '=MID(A1, 2, 5)']);
+    const data = getDataForFormulas(0, 'name', ['=MID()', '=MID(A1, 2, 5)']);
 
     data[0].id = 'Foo Bar';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -221,12 +221,12 @@ describe('Formulas -> text functions', () => {
   });
 
   it('PROPER', () => {
-    var data = getDataForFormulas(0, 'name', ['=PROPER()', '=PROPER(A1)', '=PROPER(A2)']);
+    const data = getDataForFormulas(0, 'name', ['=PROPER()', '=PROPER(A1)', '=PROPER(A2)']);
 
     data[0].id = 'foo bar';
     data[1].id = true;
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -240,11 +240,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('REGEXEXTRACT', () => {
-    var data = getDataForFormulas(0, 'name', ['=REGEXEXTRACT()', '=REGEXEXTRACT(A1, "(foo)")']);
+    const data = getDataForFormulas(0, 'name', ['=REGEXEXTRACT()', '=REGEXEXTRACT(A1, "(foo)")']);
 
     data[0].id = 'extract foo bar';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -257,12 +257,12 @@ describe('Formulas -> text functions', () => {
   });
 
   it('REGEXREPLACE', () => {
-    var data = getDataForFormulas(0, 'name', ['=REGEXREPLACE()', '=REGEXREPLACE(A1, "(foo)", A2)']);
+    const data = getDataForFormulas(0, 'name', ['=REGEXREPLACE()', '=REGEXREPLACE(A1, "(foo)", A2)']);
 
     data[0].id = 'extract foo bar';
     data[1].id = 'baz';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -275,11 +275,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('REGEXMATCH', () => {
-    var data = getDataForFormulas(0, 'name', ['=REGEXMATCH()', '=REGEXMATCH(A1, "([0-9]+.[0-9]+)")']);
+    const data = getDataForFormulas(0, 'name', ['=REGEXMATCH()', '=REGEXMATCH(A1, "([0-9]+.[0-9]+)")']);
 
     data[0].id = 'pressure 12.21bar';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -292,11 +292,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('REPLACE', () => {
-    var data = getDataForFormulas(0, 'name', ['=REPLACE()', '=REPLACE(A1, 2, 5, "*")']);
+    const data = getDataForFormulas(0, 'name', ['=REPLACE()', '=REPLACE(A1, 2, 5, "*")']);
 
     data[0].id = 'foo bar';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -309,11 +309,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('REPT', () => {
-    var data = getDataForFormulas(0, 'name', ['=REPT()', '=REPT(A1, 5)']);
+    const data = getDataForFormulas(0, 'name', ['=REPT()', '=REPT(A1, 5)']);
 
     data[0].id = 'foo';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -326,11 +326,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('RIGHT', () => {
-    var data = getDataForFormulas(0, 'name', ['=RIGHT()', '=RIGHT(A1, 4)']);
+    const data = getDataForFormulas(0, 'name', ['=RIGHT()', '=RIGHT(A1, 4)']);
 
     data[0].id = 'foo bar';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -343,12 +343,12 @@ describe('Formulas -> text functions', () => {
   });
 
   it('SEARCH', () => {
-    var data = getDataForFormulas(0, 'name', ['=SEARCH()', '=SEARCH(A2, A1)']);
+    const data = getDataForFormulas(0, 'name', ['=SEARCH()', '=SEARCH(A2, A1)']);
 
     data[0].id = 'foo bar';
     data[1].id = 'bar';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -361,12 +361,12 @@ describe('Formulas -> text functions', () => {
   });
 
   it('SPLIT', () => {
-    var data = getDataForFormulas(0, 'name', ['=SPLIT()', '=SPLIT(A1)', '=SPLIT(A2, ".")']);
+    const data = getDataForFormulas(0, 'name', ['=SPLIT()', '=SPLIT(A1)', '=SPLIT(A2, ".")']);
 
     data[0].id = 'foo bar baz';
     data[1].id = 'foo.bar.b.az';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -380,11 +380,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('SUBSTITUTE', () => {
-    var data = getDataForFormulas(0, 'name', ['=SUBSTITUTE()', '=SUBSTITUTE(A1)', '=SUBSTITUTE(A1, "a", "A")']);
+    const data = getDataForFormulas(0, 'name', ['=SUBSTITUTE()', '=SUBSTITUTE(A1)', '=SUBSTITUTE(A1, "a", "A")']);
 
     data[0].id = 'foo bar baz';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -398,12 +398,12 @@ describe('Formulas -> text functions', () => {
   });
 
   it('T', () => {
-    var data = getDataForFormulas(0, 'name', ['=T()', '=T(A1)', '=T(A2)']);
+    const data = getDataForFormulas(0, 'name', ['=T()', '=T(A1)', '=T(A2)']);
 
     data[0].id = 'foo bar baz';
     data[1].id = 9.66;
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -417,11 +417,11 @@ describe('Formulas -> text functions', () => {
   });
 
   xit('TEXT', () => {
-    var data = getDataForFormulas(0, 'name', ['=TEXT()', '=TEXT(A1, "####.#")']);
+    const data = getDataForFormulas(0, 'name', ['=TEXT()', '=TEXT(A1, "####.#")']);
 
     data[0].id = '1234.99';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -434,11 +434,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('TRIM', () => {
-    var data = getDataForFormulas(0, 'name', ['=TRIM()', '=TRIM(A1)']);
+    const data = getDataForFormulas(0, 'name', ['=TRIM()', '=TRIM(A1)']);
 
     data[0].id = '   foo  ';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -451,11 +451,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('UNICHAR', () => {
-    var data = getDataForFormulas(0, 'name', ['=UNICHAR()', '=UNICHAR(A1)']);
+    const data = getDataForFormulas(0, 'name', ['=UNICHAR()', '=UNICHAR(A1)']);
 
     data[0].id = 33;
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -468,11 +468,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('UNICODE', () => {
-    var data = getDataForFormulas(0, 'name', ['=UNICODE()', '=UNICODE(A1)']);
+    const data = getDataForFormulas(0, 'name', ['=UNICODE()', '=UNICODE(A1)']);
 
     data[0].id = '!';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -485,11 +485,11 @@ describe('Formulas -> text functions', () => {
   });
 
   it('UPPER', () => {
-    var data = getDataForFormulas(0, 'name', ['=UPPER()', '=UPPER(A1)']);
+    const data = getDataForFormulas(0, 'name', ['=UPPER()', '=UPPER(A1)']);
 
     data[0].id = 'Foo bAr';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -502,12 +502,12 @@ describe('Formulas -> text functions', () => {
   });
 
   xit('VALUE', () => {
-    var data = getDataForFormulas(0, 'name', ['=VALUE()', '=VALUE(A1)', '=VALUE(A2)']);
+    const data = getDataForFormulas(0, 'name', ['=VALUE()', '=VALUE(A1)', '=VALUE(A2)']);
 
     data[0].id = '$1,000';
     data[1].id = 'foo';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,

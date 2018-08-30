@@ -11,7 +11,7 @@ export function hot() {
 }
 
 export function handsontable(options) {
-  var currentSpec = spec();
+  const currentSpec = spec();
 
   currentSpec.$container.handsontable(options);
   currentSpec.$container[0].focus(); // otherwise TextEditor tests do not pass in IE8
@@ -73,7 +73,7 @@ export function isFillHandleVisible() {
 }
 
 export function getCorrespondingOverlay(cell, container) {
-  var overlay = $(cell).parents('.handsontable');
+  const overlay = $(cell).parents('.handsontable');
 
   if (overlay[0] === container[0]) {
     return $('.ht_master');
@@ -86,8 +86,8 @@ export function getCorrespondingOverlay(cell, container) {
  * Shows context menu
  */
 export function contextMenu(cell) {
-  var hot = spec().$container.data('handsontable');
-  var selected = hot.getSelectedLast();
+  const hot = spec().$container.data('handsontable');
+  let selected = hot.getSelectedLast();
 
   if (!selected) {
     hot.selectCell(0, 0);
@@ -96,7 +96,7 @@ export function contextMenu(cell) {
   if (!cell) {
     cell = getCell(selected[0], selected[1]);
   }
-  var cellOffset = $(cell).offset();
+  const cellOffset = $(cell).offset();
 
   $(cell).simulate('contextmenu', {
     clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
@@ -113,9 +113,9 @@ export function closeContextMenu() {
  * Shows dropdown menu
  */
 export function dropdownMenu(columnIndex) {
-  var hot = spec().$container.data('handsontable');
-  var th = hot.view.wt.wtTable.getColumnHeader(columnIndex || 0);
-  var button = th.querySelector('.changeType');
+  const hot = spec().$container.data('handsontable');
+  const th = hot.view.wt.wtTable.getColumnHeader(columnIndex || 0);
+  const button = th.querySelector('.changeType');
 
   if (button) {
     $(button).simulate('mousedown');
@@ -128,8 +128,8 @@ export function closeDropdownMenu() {
 }
 
 export function dropdownMenuRootElement() {
-  var plugin = hot().getPlugin('dropdownMenu');
-  var root;
+  const plugin = hot().getPlugin('dropdownMenu');
+  let root;
 
   if (plugin && plugin.menu) {
     root = plugin.menu.container;
@@ -148,7 +148,7 @@ export function handsontableMouseTriggerFactory(type, button) {
     if (!(element instanceof jQuery)) {
       element = $(element);
     }
-    var ev = $.Event(type);
+    const ev = $.Event(type);
     ev.which = button || 1; // left click by default
 
     element.simulate(type, ev);
@@ -177,7 +177,7 @@ export const mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
  */
 export function handsontableKeyTriggerFactory(type) {
   return function(key, extend) {
-    var ev = {}; // $.Event(type);
+    const ev = {}; // $.Event(type);
 
     if (typeof key === 'string') {
       if (key.indexOf('shift+') > -1) {
@@ -318,13 +318,13 @@ export function autocompleteEditor() {
  * Sets text cursor inside keyboard proxy
  */
 export function setCaretPosition(pos) {
-  var el = keyProxy()[0];
+  const el = keyProxy()[0];
 
   if (el.setSelectionRange) {
     el.focus();
     el.setSelectionRange(pos, pos);
   } else if (el.createTextRange) {
-    var range = el.createTextRange();
+    const range = el.createTextRange();
     range.collapse(true);
     range.moveEnd('character', pos);
     range.moveStart('character', pos);
@@ -353,7 +353,7 @@ export function triggerPaste(str) {
  */
 export function handsontableMethodFactory(method) {
   return function(...args) {
-    var instance;
+    let instance;
     try {
       instance = spec().$container.handsontable('getInstance');
     } catch (err) {
@@ -431,8 +431,8 @@ export const updateSettings = handsontableMethodFactory('updateSettings');
  * @returns {Number}
  */
 export function colWidth($elem, col) {
-  var TR = $elem[0].querySelector('TBODY TR');
-  var cell;
+  const TR = $elem[0].querySelector('TBODY TR');
+  let cell;
 
   if (TR) {
     cell = TR.querySelectorAll('TD')[col];
@@ -454,7 +454,7 @@ export function colWidth($elem, col) {
  * @returns {Number}
  */
 export function rowHeight($elem, row) {
-  var TD;
+  let TD;
 
   if (row >= 0) {
     TD = $elem[0].querySelector(`tbody tr:nth-child(${row + 1}) td`);
@@ -499,12 +499,12 @@ export function createNumericData(rowCount, colCount) {
   rowCount = typeof rowCount === 'number' ? rowCount : 100;
   colCount = typeof colCount === 'number' ? colCount : 4;
 
-  var rows = [];
-  var i;
-  var j;
+  const rows = [];
+  let i;
+  let j;
 
   for (i = 0; i < rowCount; i++) {
-    var row = [];
+    const row = [];
 
     for (j = 0; j < colCount; j++) {
       row.push((i + 1));
@@ -523,9 +523,9 @@ export function createNumericData(rowCount, colCount) {
  * @constructor
  */
 export function Model(opts) {
-  var obj = {};
+  const obj = {};
 
-  var _data = $.extend({
+  const _data = $.extend({
     id: undefined,
     name: undefined,
     address: undefined
@@ -566,20 +566,20 @@ export function createAccessorForProperty(name) {
 }
 
 export function resizeColumn(displayedColumnIndex, width) {
-  var $container = spec().$container;
-  var $th = $container.find(`thead tr:eq(0) th:eq(${displayedColumnIndex})`);
+  const $container = spec().$container;
+  const $th = $container.find(`thead tr:eq(0) th:eq(${displayedColumnIndex})`);
 
   $th.simulate('mouseover');
 
-  var $resizer = $container.find('.manualColumnResizer');
-  var resizerPosition = $resizer.position();
+  const $resizer = $container.find('.manualColumnResizer');
+  const resizerPosition = $resizer.position();
 
   $resizer.simulate('mousedown', {
     clientX: resizerPosition.left,
   });
 
-  var delta = width - $th.width() - 2;
-  var newPosition = resizerPosition.left + delta;
+  const delta = width - $th.width() - 2;
+  const newPosition = resizerPosition.left + delta;
   $resizer.simulate('mousemove', {
     clientX: newPosition
   });
@@ -588,19 +588,19 @@ export function resizeColumn(displayedColumnIndex, width) {
 }
 
 export function resizeRow(displayedRowIndex, height) {
-  var $container = spec().$container;
-  var $th = $container.find(`tbody tr:eq(${displayedRowIndex}) th:eq(0)`);
+  const $container = spec().$container;
+  const $th = $container.find(`tbody tr:eq(${displayedRowIndex}) th:eq(0)`);
 
   $th.simulate('mouseover');
 
-  var $resizer = $container.find('.manualRowResizer');
-  var resizerPosition = $resizer.position();
+  const $resizer = $container.find('.manualRowResizer');
+  const resizerPosition = $resizer.position();
 
   $resizer.simulate('mousedown', {
     clientY: resizerPosition.top
   });
 
-  var delta = height - $th.height() - 2;
+  let delta = height - $th.height() - 2;
 
   if (delta < 0) {
     delta = 0;
@@ -614,13 +614,13 @@ export function resizeRow(displayedRowIndex, height) {
 }
 
 export function moveSecondDisplayedRowBeforeFirstRow(container, secondDisplayedRowIndex) {
-  var $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
-  var $rowHeaders = container.find('tbody tr th');
-  var $firstRowHeader = $rowHeaders.eq(secondDisplayedRowIndex - 1);
-  var $secondRowHeader = $rowHeaders.eq(secondDisplayedRowIndex);
+  const $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
+  const $rowHeaders = container.find('tbody tr th');
+  const $firstRowHeader = $rowHeaders.eq(secondDisplayedRowIndex - 1);
+  const $secondRowHeader = $rowHeaders.eq(secondDisplayedRowIndex);
 
   $secondRowHeader.simulate('mouseover');
-  var $manualRowMover = $mainContainer.find('.manualRowMover');
+  const $manualRowMover = $mainContainer.find('.manualRowMover');
 
   if ($manualRowMover.length) {
     $manualRowMover.simulate('mousedown', {
@@ -637,13 +637,13 @@ export function moveSecondDisplayedRowBeforeFirstRow(container, secondDisplayedR
 }
 
 export function moveFirstDisplayedRowAfterSecondRow(container, firstDisplayedRowIndex) {
-  var $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
-  var $rowHeaders = container.find('tbody tr th');
-  var $firstRowHeader = $rowHeaders.eq(firstDisplayedRowIndex);
-  var $secondRowHeader = $rowHeaders.eq(firstDisplayedRowIndex + 1);
+  const $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
+  const $rowHeaders = container.find('tbody tr th');
+  const $firstRowHeader = $rowHeaders.eq(firstDisplayedRowIndex);
+  const $secondRowHeader = $rowHeaders.eq(firstDisplayedRowIndex + 1);
 
   $secondRowHeader.simulate('mouseover');
-  var $manualRowMover = $mainContainer.find('.manualRowMover');
+  const $manualRowMover = $mainContainer.find('.manualRowMover');
 
   if ($manualRowMover.length) {
     $manualRowMover.simulate('mousedown', {
@@ -660,14 +660,14 @@ export function moveFirstDisplayedRowAfterSecondRow(container, firstDisplayedRow
 }
 
 export function swapDisplayedColumns(container, from, to) {
-  var $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
-  var $colHeaders = container.find('thead tr:eq(0) th');
-  var $to = $colHeaders.eq(to);
-  var $from = $colHeaders.eq(from);
+  const $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
+  const $colHeaders = container.find('thead tr:eq(0) th');
+  const $to = $colHeaders.eq(to);
+  const $from = $colHeaders.eq(from);
 
   // Enter the second column header
   $from.simulate('mouseover');
-  var $manualColumnMover = $mainContainer.find('.manualColumnMover');
+  const $manualColumnMover = $mainContainer.find('.manualColumnMover');
 
   // Grab the second column
   $manualColumnMover.simulate('mousedown', {
@@ -686,18 +686,18 @@ export function swapDisplayedColumns(container, from, to) {
 }
 
 export function triggerTouchEvent(type, target, pageX, pageY) {
-  var e = document.createEvent('TouchEvent');
-  var targetCoords = target.getBoundingClientRect();
-  var touches;
-  var targetTouches;
-  var changedTouches;
+  const e = document.createEvent('TouchEvent');
+  const targetCoords = target.getBoundingClientRect();
+  let touches;
+  let targetTouches;
+  let changedTouches;
 
   if (!pageX && !pageY) {
     pageX = parseInt(targetCoords.left + 3, 10);
     pageY = parseInt(targetCoords.top + 3, 10);
   }
 
-  var touch = document.createTouch(window, target, 0, pageX, pageY, pageX, pageY);
+  const touch = document.createTouch(window, target, 0, pageX, pageY, pageX, pageY);
 
   if (type === 'touchend') {
     touches = document.createTouchList();

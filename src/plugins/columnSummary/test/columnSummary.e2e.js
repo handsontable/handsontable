@@ -1,13 +1,13 @@
 describe('ColumnSummarySpec', () => {
-  var id = 'testContainer';
-  var columnSummaryFunction = function() {
+  const id = 'testContainer';
+  const columnSummaryFunction = function() {
     // We're assuming there are two levels, and the upper level has the summary results, while its children contain the calculation data.
-    var endpoints = [];
-    var nestedRowsPlugin = this.hot.getPlugin('nestedRows');
-    var getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(nestedRowsPlugin.dataManager);
-    var nestedRowsCache = null;
-    var tempEndpoint = null;
-    var resultColumn = 1;
+    const endpoints = [];
+    const nestedRowsPlugin = this.hot.getPlugin('nestedRows');
+    const getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(nestedRowsPlugin.dataManager);
+    let nestedRowsCache = null;
+    let tempEndpoint = null;
+    const resultColumn = 1;
 
     if (nestedRowsPlugin.isEnabled()) {
       nestedRowsCache = this.hot.getPlugin('nestedRows').dataManager.cache;
@@ -15,7 +15,7 @@ describe('ColumnSummarySpec', () => {
       return;
     }
 
-    for (var i = 0; i < nestedRowsCache.levels[0].length; i++) {
+    for (let i = 0; i < nestedRowsCache.levels[0].length; i++) {
       tempEndpoint = {};
 
       if (!nestedRowsCache.levels[0][i].__children || nestedRowsCache.levels[0][i].__children.length === 0) {
@@ -55,8 +55,8 @@ describe('ColumnSummarySpec', () => {
 
   describe('parseSettings', () => {
     it('should parse the settings from the Handsontable instance', () => {
-      var customFunction = function() {};
-      var hot = handsontable({
+      const customFunction = function() {};
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(15, 15),
         height: 200,
         width: 200,
@@ -87,8 +87,8 @@ describe('ColumnSummarySpec', () => {
         ]
       });
 
-      var plugin = hot.getPlugin('ColumnSummary');
-      var endpoints = [
+      const plugin = hot.getPlugin('ColumnSummary');
+      const endpoints = [
         plugin.endpoints.getEndpoint(0),
         plugin.endpoints.getEndpoint(1)
       ];
@@ -247,13 +247,13 @@ describe('ColumnSummarySpec', () => {
             ],
             type: 'custom',
             customFunction(endpoint) {
-              var hotInstance = this.hot;
-              var counter = 0;
+              const hotInstance = this.hot;
+              let counter = 0;
 
               // helper function
               function checkRange(rowRange) {
-                var i = rowRange[1] || rowRange[0];
-                var counter = 0;
+                let i = rowRange[1] || rowRange[0];
+                let counter = 0;
 
                 do {
 
@@ -267,7 +267,7 @@ describe('ColumnSummarySpec', () => {
               }
 
               // go through all declared ranges
-              for (var r in endpoint.ranges) {
+              for (const r in endpoint.ranges) {
                 if (Object.prototype.hasOwnProperty.call(endpoint.ranges, r)) {
                   counter += checkRange(endpoint.ranges[r]);
                 }
@@ -342,12 +342,12 @@ describe('ColumnSummarySpec', () => {
     });
 
     it('should accept endpoints configuration provided as a function', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
         columnSummary() {
-          var config = [];
+          const config = [];
 
           config.push({
             destinationColumn: 1,
@@ -359,7 +359,7 @@ describe('ColumnSummarySpec', () => {
         }
       });
 
-      var plugin = hot.getPlugin('columnSummary');
+      const plugin = hot.getPlugin('columnSummary');
       expect(plugin.endpoints.getEndpoint(0).destinationRow).toEqual(parseInt(hot.countRows() / 2, 10));
       expect(hot.getDataAtCell(parseInt(hot.countRows() / 2, 10), 1)).toEqual(820);
 
@@ -372,7 +372,7 @@ describe('ColumnSummarySpec', () => {
 
   describe('structure alteration', () => {
     it('should shift the endpoint coordinates when a new row was added above an endpoint', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -397,7 +397,7 @@ describe('ColumnSummarySpec', () => {
     });
 
     it('should shift the endpoint coordinates when a new column was added on the left of an endpoint', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -422,7 +422,7 @@ describe('ColumnSummarySpec', () => {
     });
 
     it('should shift the endpoint coordinates when a row was removed above an endpoint', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 520,
         rowHeaders: true,
@@ -448,7 +448,7 @@ describe('ColumnSummarySpec', () => {
     });
 
     it('should shift the endpoint coordinates when a column was removed on the left of an endpoint', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -473,7 +473,7 @@ describe('ColumnSummarySpec', () => {
     });
 
     it('should modify the calculation row range when a row was moved outside the range', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -495,7 +495,7 @@ describe('ColumnSummarySpec', () => {
     });
 
     it('should modify the calculation row range when a row was moved into the range', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -517,7 +517,7 @@ describe('ColumnSummarySpec', () => {
     });
 
     it('should shift the visual calculation result position when a row was moved outside the endpoint range', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -547,7 +547,7 @@ describe('ColumnSummarySpec', () => {
     });
 
     it('should shift the visual calculation result position when a row was moved inside the endpoint range', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -580,7 +580,7 @@ describe('ColumnSummarySpec', () => {
   describe('compatibility with other plugins', () => {
     describe('nestedRows', () => {
       it('should work properly with the nestedRows plugin', (done) => {
-        var hot = handsontable({
+        const hot = handsontable({
           data: getDataForColumnSummary(),
           height: 200,
           width: 200,
@@ -589,9 +589,9 @@ describe('ColumnSummarySpec', () => {
           columnSummary: columnSummaryFunction
         });
 
-        var nestedRowsPlugin = hot.getPlugin('nestedRows');
+        const nestedRowsPlugin = hot.getPlugin('nestedRows');
         function toggle(row) {
-          var rowIndex = parseInt(row, 10);
+          const rowIndex = parseInt(row, 10);
           if (isNaN(rowIndex)) {
             return false;
           }
@@ -622,7 +622,7 @@ describe('ColumnSummarySpec', () => {
     });
 
     it('should calculate the endpoints properly after moving rows between groups', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getDataForColumnSummary(),
         height: 200,
         width: 200,
@@ -646,10 +646,10 @@ describe('ColumnSummarySpec', () => {
   });
   describe('maxRows options set', () => {
     it('should apply summary operation only on rows which are < maxRows', () => {
-      var rows = 9;
-      var columns = 5;
+      const rows = 9;
+      const columns = 5;
 
-      var summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
+      const summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
 
       handsontable({
         data: createNumericData(rows, columns),
@@ -657,8 +657,8 @@ describe('ColumnSummarySpec', () => {
         colHeaders: summaryTypes,
         maxRows: 5,
         columnSummary() {
-          var configArray = [];
-          for (var i = 0; i < columns; i++) {
+          const configArray = [];
+          for (let i = 0; i < columns; i++) {
             configArray.push({
               sourceColumn: i,
               destinationRow: 0,

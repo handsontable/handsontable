@@ -4,7 +4,7 @@ import { dateRowFactory } from './../helpers/utils';
 describe('Filters condition (`none`)', () => {
 
   it('should filter all values', () => {
-    var data = dateRowFactory();
+    const data = dateRowFactory();
 
     expect(condition(data(4))).toBe(true);
     expect(condition(data(3))).toBe(true);

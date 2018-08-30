@@ -4,7 +4,7 @@ import { dateRowFactory } from './../helpers/utils';
 describe('Filters condition (`not_empty`)', () => {
 
   it('should filter matching values', () => {
-    var data = dateRowFactory();
+    const data = dateRowFactory();
 
     expect(condition(data('tom'), [])).toBe(true);
     expect(condition(data(1), [])).toBe(true);
@@ -16,7 +16,7 @@ describe('Filters condition (`not_empty`)', () => {
   });
 
   it('should filter not matching values', () => {
-    var data = dateRowFactory();
+    const data = dateRowFactory();
 
     expect(condition(data(''), [])).toBe(false);
     expect(condition(data(null), [])).toBe(false);

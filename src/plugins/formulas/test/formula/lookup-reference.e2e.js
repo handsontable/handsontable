@@ -1,5 +1,5 @@
 describe('Formulas -> lookup reference functions', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,9 +13,9 @@ describe('Formulas -> lookup reference functions', () => {
   });
 
   it('MATCH', () => {
-    var data = getDataForFormulas(0, 'name', ['=MATCH()', '=MATCH("Saranap", C1:C5)', '=MATCH(4, A1:A5, 1)']);
+    const data = getDataForFormulas(0, 'name', ['=MATCH()', '=MATCH("Saranap", C1:C5)', '=MATCH(4, A1:A5, 1)']);
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,

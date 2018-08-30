@@ -1,5 +1,5 @@
 describe('Formulas -> financial functions', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('ACCRINT', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=ACCRINT()', '=ACCRINT("2/2/2012", "3/30/2012", "12/4/2013", 0.1, 1000, 1, 0)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -26,7 +26,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('CUMIPMT', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=CUMIPMT()', '=CUMIPMT(0.1/12, 30*12, 100000, 13, 24, 0)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -39,7 +39,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('CUMPRINC', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=CUMPRINC()', '=CUMPRINC(0.1/12, 30*12, 100000, 13, 24, 0)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -52,7 +52,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('DB', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=DB()', '=DB(10000, 1000, 6, 1)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -65,7 +65,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('DDB', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=DDB()', '=DDB(10000, 1000, 6, 1)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -78,7 +78,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('DOLLARDE', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=DOLLARDE()', '=DOLLARDE(1.1, 4)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -91,7 +91,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('DOLLARFR', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=DOLLARFR()', '=DOLLARFR(1.1, 4)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -104,7 +104,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('EFFECT', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=EFFECT()', '=EFFECT(1.1, 4)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -117,7 +117,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('FV', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=FV()', '=FV(1.1, 10, -200, -500)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -130,14 +130,14 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('FVSCHEDULE', () => {
-    var data = getDataForFormulas(1, 'name', ['=FVSCHEDULE()', '=FVSCHEDULE(100, F1:F4)']);
+    const data = getDataForFormulas(1, 'name', ['=FVSCHEDULE()', '=FVSCHEDULE(100, F1:F4)']);
 
     data[0].balance = 0.09;
     data[1].balance = 0.1;
     data[2].balance = 0.11;
     data[3].balance = 0.4;
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -150,7 +150,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('IPMT', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=IPMT()', '=IPMT(0.2, 6, 24, 1000)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -163,14 +163,14 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('IRR', () => {
-    var data = getDataForFormulas(1, 'name', ['=IRR()', '=IRR(F1:F4)']);
+    const data = getDataForFormulas(1, 'name', ['=IRR()', '=IRR(F1:F4)']);
 
     data[0].balance = -70000;
     data[1].balance = 12000;
     data[2].balance = 4000;
     data[3].balance = 24000;
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -183,7 +183,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('ISPMT', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=ISPMT()', '=ISPMT(1.1, 2, 16, 1000)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -196,14 +196,14 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('MIRR', () => {
-    var data = getDataForFormulas(1, 'name', ['=MIRR()', '=MIRR(F1:F4, 0.1, 0.12)']);
+    const data = getDataForFormulas(1, 'name', ['=MIRR()', '=MIRR(F1:F4, 0.1, 0.12)']);
 
     data[0].balance = -70000;
     data[1].balance = 12000;
     data[2].balance = 4000;
     data[3].balance = 24000;
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -216,7 +216,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('NOMINAL', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=NOMINAL()', '=NOMINAL(1.1, 2)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -229,7 +229,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('NPER', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=NPER()', '=NPER(1.1, -2, -100, 1000)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -242,7 +242,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('NPV', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=NPV()', '=NPV(1.1, -2, -100, 1000)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -255,7 +255,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('PDURATION', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=PDURATION()', '=PDURATION(0.1, 200, 400)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -268,7 +268,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('PMT', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=PMT()', '=PMT(0.1, 200, 400, 500)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -281,7 +281,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('PPMT', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=PPMT()', '=PPMT(0.1, 200, 400, 5000)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -294,7 +294,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('PV', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=PV()', '=PV(1.1, 200, 400, 5000)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -307,7 +307,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('RATE', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=RATE()', '=RATE(24, -1000, -10000, 10000, 1)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -320,7 +320,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('RRI', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=RRI()', '=RRI(8, 100, 300)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -333,7 +333,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('SLN', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=SLN()', '=SLN(200, 750, 10)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -346,7 +346,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('SYD', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=SYD()', '=SYD(200, 750, 10, 1)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -359,7 +359,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('TBILLEQ', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=TBILLEQ()', '=TBILLEQ("03/31/2008", "06/01/2008", 0.09)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -372,7 +372,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('TBILLPRICE', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=TBILLPRICE()', '=TBILLPRICE("03/31/2008", "06/01/2008", 0.09)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -385,7 +385,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('TBILLYIELD', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: getDataForFormulas(1, 'name', ['=TBILLYIELD()', '=TBILLYIELD("03/31/2008", "06/01/2008", 0.09)']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -399,7 +399,7 @@ describe('Formulas -> financial functions', () => {
 
   // TODO: Not supported yet
   xit('XIRR', () => {
-    var data = getDataForFormulas(1, 'name', ['=XIRR()', '=XIRR(F1:F5, D1:D5, 0.1)']);
+    const data = getDataForFormulas(1, 'name', ['=XIRR()', '=XIRR(F1:F5, D1:D5, 0.1)']);
 
     data[0].balance = -10000;
     data[1].balance = 2750;
@@ -412,7 +412,7 @@ describe('Formulas -> financial functions', () => {
     data[3].registered = '15/feb/09';
     data[4].registered = '01/apr/09';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -425,7 +425,7 @@ describe('Formulas -> financial functions', () => {
   });
 
   it('XNPV', () => {
-    var data = getDataForFormulas(1, 'name', ['=XNPV()', '=XNPV(0.09, F1:F5, D1:D5)']);
+    const data = getDataForFormulas(1, 'name', ['=XNPV()', '=XNPV(0.09, F1:F5, D1:D5)']);
 
     data[0].balance = -10000;
     data[1].balance = 2750;
@@ -438,7 +438,7 @@ describe('Formulas -> financial functions', () => {
     data[3].registered = '02/15/2009';
     data[4].registered = '04/01/2009';
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: getColumnsForFormulas(),
       formulas: true,

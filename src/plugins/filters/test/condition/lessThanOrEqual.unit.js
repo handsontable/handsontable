@@ -3,7 +3,7 @@ import { dateRowFactory } from './../helpers/utils';
 
 describe('Filters condition (`lte`)', () => {
   it('should filter matching values (numeric cell type)', () => {
-    var data = dateRowFactory({ type: 'numeric' });
+    const data = dateRowFactory({ type: 'numeric' });
 
     expect(condition(data(4), [4])).toBe(true);
     expect(condition(data(3), [4])).toBe(true);
@@ -14,7 +14,7 @@ describe('Filters condition (`lte`)', () => {
   });
 
   it('should filter not matching values (numeric cell type)', () => {
-    var data = dateRowFactory({ type: 'numeric' });
+    const data = dateRowFactory({ type: 'numeric' });
 
     expect(condition(data(43), [4])).toBe(false);
     expect(condition(data('55'), [4])).toBe(false);
@@ -24,7 +24,7 @@ describe('Filters condition (`lte`)', () => {
   });
 
   it('should filter matching values (text cell type)', () => {
-    var data = dateRowFactory({ type: 'text' });
+    const data = dateRowFactory({ type: 'text' });
 
     expect(condition(data('bar'), ['foo'])).toBe(true);
     expect(condition(data('2'), ['4'])).toBe(true);
@@ -32,7 +32,7 @@ describe('Filters condition (`lte`)', () => {
   });
 
   it('should filter not matching values (text cell type)', () => {
-    var data = dateRowFactory({ type: 'text' });
+    const data = dateRowFactory({ type: 'text' });
 
     expect(condition(data('zar'), ['boo'])).toBe(false);
     expect(condition(data('45'), ['4'])).toBe(false);

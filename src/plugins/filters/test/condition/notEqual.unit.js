@@ -4,7 +4,7 @@ import { dateRowFactory } from './../helpers/utils';
 describe('Filters condition (`neq`)', () => {
 
   it('should filter matching values', () => {
-    var data = dateRowFactory();
+    const data = dateRowFactory();
 
     expect(condition(data('tom'), ['o'])).toBe(true);
     expect(condition(data('tom'), ['m'])).toBe(true);
@@ -22,7 +22,7 @@ describe('Filters condition (`neq`)', () => {
   });
 
   it('should filter not matching values', () => {
-    var data = dateRowFactory();
+    const data = dateRowFactory();
 
     expect(condition(data('tom'), ['tom'])).toBe(false);
     expect(condition(data('2015-10-10'), ['2015-10-10'])).toBe(false);

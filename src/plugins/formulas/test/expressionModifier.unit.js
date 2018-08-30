@@ -1,7 +1,7 @@
 import ExpressionModifier from 'handsontable-pro/plugins/formulas/expressionModifier';
 
 describe('Formulas expression modifier', () => {
-  var modifier;
+  let modifier;
 
   beforeEach(() => {
     modifier = new ExpressionModifier();
@@ -24,7 +24,7 @@ describe('Formulas expression modifier', () => {
   });
 
   it('should correctly translate rows of formula expression (using default build-in modifier)', () => {
-    var delta = { row: 5 };
+    let delta = { row: 5 };
 
     expect(modifier.setExpression('=B1').translate(delta).toString()).toBe('=B6');
     expect(modifier.setExpression('$DD$99').translate(delta).toString()).toBe('=$DD$99');
@@ -48,7 +48,7 @@ describe('Formulas expression modifier', () => {
   });
 
   it('should correctly translate columns of formula expression (using default build-in modifier)', () => {
-    var delta = { column: 5 };
+    let delta = { column: 5 };
 
     expect(modifier.setExpression('=B1').translate(delta).toString()).toBe('=G1');
     expect(modifier.setExpression('$DD$99').translate(delta).toString()).toBe('=$DD$99');
