@@ -110,18 +110,19 @@ class Endpoints {
    */
   parseSettings(settings) {
     const endpointsArray = [];
+    let settingsArray = settings;
 
-    if (!settings && typeof this.settings === 'function') {
+    if (!settingsArray && typeof this.settings === 'function') {
       this.settingsType = 'function';
 
       return;
     }
 
-    if (!settings) {
-      settings = this.settings;
+    if (!settingsArray) {
+      settingsArray = this.settings;
     }
 
-    arrayEach(settings, (val) => {
+    arrayEach(settingsArray, (val) => {
       const newEndpoint = {};
 
       this.assignSetting(val, newEndpoint, 'ranges', [[0, this.hot.countRows() - 1]]);
@@ -402,13 +403,14 @@ class Endpoints {
    * @param {Boolean} [useOffset=true] Use the cell offset value.
    */
   resetAllEndpoints(endpoints, useOffset = true) {
+    let endpointsArray = endpoints;
     this.cellsToSetCache = [];
 
-    if (!endpoints) {
-      endpoints = this.getAllEndpoints();
+    if (!endpointsArray) {
+      endpointsArray = this.getAllEndpoints();
     }
 
-    arrayEach(endpoints, (value) => {
+    arrayEach(endpointsArray, (value) => {
       this.resetEndpointValue(value, useOffset);
     });
 

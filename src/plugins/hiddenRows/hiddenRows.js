@@ -160,11 +160,11 @@ class HiddenRows extends BasePlugin {
    */
   showRows(rows) {
     arrayEach(rows, (row) => {
-      row = parseInt(row, 10);
-      row = this.getLogicalRowIndex(row);
+      let visualRow = parseInt(row, 10);
+      visualRow = this.getLogicalRowIndex(visualRow);
 
-      if (this.isHidden(row, true)) {
-        this.hiddenRows.splice(this.hiddenRows.indexOf(row), 1);
+      if (this.isHidden(visualRow, true)) {
+        this.hiddenRows.splice(this.hiddenRows.indexOf(visualRow), 1);
       }
     });
   }
@@ -185,11 +185,11 @@ class HiddenRows extends BasePlugin {
    */
   hideRows(rows) {
     arrayEach(rows, (row) => {
-      row = parseInt(row, 10);
-      row = this.getLogicalRowIndex(row);
+      let visualRow = parseInt(row, 10);
+      visualRow = this.getLogicalRowIndex(visualRow);
 
-      if (!this.isHidden(row, true)) {
-        this.hiddenRows.push(row);
+      if (!this.isHidden(visualRow, true)) {
+        this.hiddenRows.push(visualRow);
       }
     });
   }
@@ -211,11 +211,13 @@ class HiddenRows extends BasePlugin {
    * @returns {Boolean}
    */
   isHidden(row, isLogicIndex = false) {
+    let logicalRow = row;
+
     if (!isLogicIndex) {
-      row = this.getLogicalRowIndex(row);
+      logicalRow = this.getLogicalRowIndex(logicalRow);
     }
 
-    return this.hiddenRows.indexOf(row) > -1;
+    return this.hiddenRows.indexOf(logicalRow) > -1;
   }
 
   /**
@@ -255,18 +257,18 @@ class HiddenRows extends BasePlugin {
    * @fires Hooks#unmodifyRow
    */
   onAfterGetCellMeta(row, col, cellProperties) {
-    row = this.hot.runHooks('unmodifyRow', row);
+    const visualRow = this.hot.runHooks('unmodifyRow', row);
 
-    if (this.settings.copyPasteEnabled === false && this.isHidden(row)) {
+    if (this.settings.copyPasteEnabled === false && this.isHidden(visualRow)) {
       cellProperties.skipRowOnPaste = true;
 
     } else {
       cellProperties.skipRowOnPaste = false;
     }
 
-    if (this.isHidden(row - 1)) {
+    if (this.isHidden(visualRow - 1)) {
       let firstSectionHidden = true;
-      let i = row - 1;
+      let i = visualRow - 1;
 
       cellProperties.className = cellProperties.className || '';
 
@@ -416,22 +418,23 @@ class HiddenRows extends BasePlugin {
 
     const getNextRow = (row) => {
       let direction = 0;
+      let visualRow = row;
 
       if (actualSelection) {
-        direction = row > actualSelection[0] ? 1 : -1;
+        direction = visualRow > actualSelection[0] ? 1 : -1;
 
         this.lastSelectedRow = actualSelection[0];
       }
 
-      if (lastPossibleIndex < row || row < 0) {
+      if (lastPossibleIndex < visualRow || visualRow < 0) {
         return this.lastSelectedRow;
       }
 
-      if (this.isHidden(row)) {
-        row = getNextRow(row + direction);
+      if (this.isHidden(visualRow)) {
+        visualRow = getNextRow(visualRow + direction);
       }
 
-      return row;
+      return visualRow;
     };
 
     coords.row = getNextRow(coords.row);
@@ -451,13 +454,14 @@ class HiddenRows extends BasePlugin {
     coords.row = 0;
 
     const getNextRow = (row) => {
+      let visualRow = row;
 
-      if (this.isHidden(row)) {
-        row += 1;
-        row = getNextRow(row);
+      if (this.isHidden(visualRow)) {
+        visualRow += 1;
+        visualRow = getNextRow(visualRow);
       }
 
-      return row;
+      return visualRow;
     };
 
     coords.row = getNextRow(coords.row);
@@ -473,16 +477,18 @@ class HiddenRows extends BasePlugin {
     const rowCount = this.hot.countRows();
 
     const getNextRow = (row) => {
-      if (this.isHidden(row)) {
-        if (this.lastSelectedRow > row || coords.row === rowCount - 1) {
-          if (row > 0) {
-            row -= 1;
-            row = getNextRow(row);
+      let visualRow = row;
+
+      if (this.isHidden(visualRow)) {
+        if (this.lastSelectedRow > visualRow || coords.row === rowCount - 1) {
+          if (visualRow > 0) {
+            visualRow -= 1;
+            visualRow = getNextRow(visualRow);
 
           } else {
             rangeEach(0, this.lastSelectedRow, (i) => {
               if (!this.isHidden(i)) {
-                row = i;
+                visualRow = i;
 
                 return false;
               }
@@ -490,12 +496,12 @@ class HiddenRows extends BasePlugin {
           }
 
         } else {
-          row += 1;
-          row = getNextRow(row);
+          visualRow += 1;
+          visualRow = getNextRow(visualRow);
         }
       }
 
-      return row;
+      return visualRow;
     };
 
     coords.row = getNextRow(coords.row);
@@ -528,11 +534,13 @@ class HiddenRows extends BasePlugin {
   onAfterCreateRow(index, amount) {
     const tempHidden = [];
 
-    arrayEach(this.hiddenRows, (col) => {
-      if (col >= index) {
-        col += amount;
+    arrayEach(this.hiddenRows, (row) => {
+      let visualRow = row;
+
+      if (visualRow >= index) {
+        visualRow += amount;
       }
-      tempHidden.push(col);
+      tempHidden.push(visualRow);
     });
     this.hiddenRows = tempHidden;
   }
@@ -547,11 +555,13 @@ class HiddenRows extends BasePlugin {
   onAfterRemoveRow(index, amount) {
     const tempHidden = [];
 
-    arrayEach(this.hiddenRows, (col) => {
-      if (col >= index) {
-        col -= amount;
+    arrayEach(this.hiddenRows, (row) => {
+      let visualRow = row;
+
+      if (visualRow >= index) {
+        visualRow -= amount;
       }
-      tempHidden.push(col);
+      tempHidden.push(visualRow);
     });
     this.hiddenRows = tempHidden;
   }

@@ -87,9 +87,7 @@ class ContextMenuUI extends BaseUI {
       }
     });
 
-    defaultOptions = this.modifyRowInsertingOptions(defaultOptions);
-
-    return defaultOptions;
+    return this.modifyRowInsertingOptions(defaultOptions);
   }
 
   /**

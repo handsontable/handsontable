@@ -141,10 +141,10 @@ class TrimRows extends BasePlugin {
    */
   trimRows(rows) {
     arrayEach(rows, (row) => {
-      row = parseInt(row, 10);
+      const physicalRow = parseInt(row, 10);
 
-      if (!this.isTrimmed(row)) {
-        this.trimmedRows.push(row);
+      if (!this.isTrimmed(physicalRow)) {
+        this.trimmedRows.push(physicalRow);
       }
     });
 
@@ -171,10 +171,10 @@ class TrimRows extends BasePlugin {
    */
   untrimRows(rows) {
     arrayEach(rows, (row) => {
-      row = parseInt(row, 10);
+      const physicalRow = parseInt(row, 10);
 
-      if (this.isTrimmed(row)) {
-        this.trimmedRows.splice(this.trimmedRows.indexOf(row), 1);
+      if (this.isTrimmed(physicalRow)) {
+        this.trimmedRows.splice(this.trimmedRows.indexOf(physicalRow), 1);
       }
     });
 
@@ -217,11 +217,13 @@ class TrimRows extends BasePlugin {
    * @returns {Number|null}
    */
   onModifyRow(row, source) {
+    let physicalRow = row;
+
     if (source !== this.pluginName) {
-      row = this.rowsMapper.getValueByIndex(row);
+      physicalRow = this.rowsMapper.getValueByIndex(physicalRow);
     }
 
-    return row;
+    return physicalRow;
   }
 
   /**
@@ -233,11 +235,13 @@ class TrimRows extends BasePlugin {
    * @returns {Number|null}
    */
   onUnmodifyRow(row, source) {
+    let visualRow = row;
+
     if (source !== this.pluginName) {
-      row = this.rowsMapper.getIndexByValue(row);
+      visualRow = this.rowsMapper.getIndexByValue(visualRow);
     }
 
-    return row;
+    return visualRow;
   }
 
   /**

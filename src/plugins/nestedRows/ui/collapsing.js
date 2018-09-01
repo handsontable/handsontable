@@ -29,8 +29,8 @@ class CollapsingUI extends BaseUI {
         // Workaround for wrong indexes being set in the trimRows plugin
         this.expandMultipleChildren(this.lastCollapsedRows, false);
       },
-      shiftStash: (elementIndex, delta = 1) => {
-        elementIndex = this.translateTrimmedRow(elementIndex);
+      shiftStash: (index, delta = 1) => {
+        const elementIndex = this.translateTrimmedRow(index);
         arrayEach(this.lastCollapsedRows, (elem, i) => {
           if (elem > elementIndex - 1) {
             this.lastCollapsedRows[i] = elem + delta;

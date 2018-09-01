@@ -161,11 +161,11 @@ class HiddenColumns extends BasePlugin {
    */
   showColumns(columns) {
     arrayEach(columns, (column) => {
-      column = parseInt(column, 10);
-      column = this.getLogicalColumnIndex(column);
+      let columnIndex = parseInt(column, 10);
+      columnIndex = this.getLogicalColumnIndex(columnIndex);
 
-      if (this.isHidden(column, true)) {
-        this.hiddenColumns.splice(this.hiddenColumns.indexOf(column), 1);
+      if (this.isHidden(columnIndex, true)) {
+        this.hiddenColumns.splice(this.hiddenColumns.indexOf(columnIndex), 1);
       }
     });
   }
@@ -186,11 +186,11 @@ class HiddenColumns extends BasePlugin {
    */
   hideColumns(columns) {
     arrayEach(columns, (column) => {
-      column = parseInt(column, 10);
-      column = this.getLogicalColumnIndex(column);
+      let columnIndex = parseInt(column, 10);
+      columnIndex = this.getLogicalColumnIndex(columnIndex);
 
-      if (!this.isHidden(column, true)) {
-        this.hiddenColumns.push(column);
+      if (!this.isHidden(columnIndex, true)) {
+        this.hiddenColumns.push(columnIndex);
       }
     });
   }
@@ -212,11 +212,13 @@ class HiddenColumns extends BasePlugin {
    * @returns {Boolean}
    */
   isHidden(column, isLogicIndex = false) {
+    let columnIndex = column;
+
     if (!isLogicIndex) {
-      column = this.getLogicalColumnIndex(column);
+      columnIndex = this.getLogicalColumnIndex(columnIndex);
     }
 
-    return this.hiddenColumns.indexOf(column) > -1;
+    return this.hiddenColumns.indexOf(columnIndex) > -1;
   }
 
   /**
@@ -259,11 +261,13 @@ class HiddenColumns extends BasePlugin {
    * @returns {Number}
    */
   onBeforeStretchingColumnWidth(width, column) {
+    let stretchedWidth = width;
+
     if (this.isHidden(column)) {
-      width = 0;
+      stretchedWidth = 0;
     }
 
-    return width;
+    return stretchedWidth;
   }
 
   /**
@@ -297,13 +301,13 @@ class HiddenColumns extends BasePlugin {
    * @fires Hooks#unmodifyCol
    */
   onAfterGetCellMeta(row, col, cellProperties) {
-    col = this.hot.runHooks('unmodifyCol', col);
+    const colIndex = this.hot.runHooks('unmodifyCol', col);
 
     if (this.settings.copyPasteEnabled === false && this.isHidden(col)) {
       cellProperties.skipColumnOnPaste = true;
     }
 
-    if (this.isHidden(col)) {
+    if (this.isHidden(colIndex)) {
       if (cellProperties.renderer !== hiddenRenderer) {
         cellProperties.baseRenderer = cellProperties.renderer;
       }
@@ -454,14 +458,15 @@ class HiddenColumns extends BasePlugin {
     coords.col = 0;
 
     const getNextColumn = (col) => {
-      const logicalCol = this.getLogicalColumnIndex(col);
+      let visualColumn = col;
+      const logicalCol = this.getLogicalColumnIndex(visualColumn);
 
       if (this.isHidden(logicalCol, true)) {
-        col += 1;
-        col = getNextColumn(col);
+        visualColumn += 1;
+        visualColumn = getNextColumn(visualColumn);
       }
 
-      return col;
+      return visualColumn;
     };
 
     coords.col = getNextColumn(coords.col);
@@ -477,30 +482,31 @@ class HiddenColumns extends BasePlugin {
     const columnCount = this.hot.countCols();
 
     const getNextColumn = (col) => {
-      const logicalCol = this.getLogicalColumnIndex(col);
+      let visualColumn = col;
+      const logicalCol = this.getLogicalColumnIndex(visualColumn);
 
       if (this.isHidden(logicalCol, true)) {
-        if (this.lastSelectedColumn > col || coords.col === columnCount - 1) {
-          if (col > 0) {
-            col -= 1;
-            col = getNextColumn(col);
+        if (this.lastSelectedColumn > visualColumn || coords.col === columnCount - 1) {
+          if (visualColumn > 0) {
+            visualColumn -= 1;
+            visualColumn = getNextColumn(visualColumn);
 
           } else {
             rangeEach(0, this.lastSelectedColumn, (i) => {
               if (!this.isHidden(i)) {
-                col = i;
+                visualColumn = i;
 
                 return false;
               }
             });
           }
         } else {
-          col += 1;
-          col = getNextColumn(col);
+          visualColumn += 1;
+          visualColumn = getNextColumn(visualColumn);
         }
       }
 
-      return col;
+      return visualColumn;
     };
 
     coords.col = getNextColumn(coords.col);
@@ -533,10 +539,12 @@ class HiddenColumns extends BasePlugin {
     const tempHidden = [];
 
     arrayEach(this.hiddenColumns, (col) => {
-      if (col >= index) {
-        col += amount;
+      let visualColumn = col;
+
+      if (visualColumn >= index) {
+        visualColumn += amount;
       }
-      tempHidden.push(col);
+      tempHidden.push(visualColumn);
     });
     this.hiddenColumns = tempHidden;
   }
@@ -551,10 +559,12 @@ class HiddenColumns extends BasePlugin {
     const tempHidden = [];
 
     arrayEach(this.hiddenColumns, (col) => {
-      if (col >= index) {
-        col -= amount;
+      let visualColumn = col;
+
+      if (visualColumn >= index) {
+        visualColumn -= amount;
       }
-      tempHidden.push(col);
+      tempHidden.push(visualColumn);
     });
     this.hiddenColumns = tempHidden;
   }

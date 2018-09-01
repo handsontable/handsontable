@@ -122,43 +122,46 @@ class DataManager {
    */
   readTreeNodes(parent, readCount, neededIndex, neededObject) {
     let rootLevel = false;
+    let readedNodesCount = readCount;
 
-    if (isNaN(readCount) && readCount.end) {
-      return readCount;
+    if (isNaN(readedNodesCount) && readedNodesCount.end) {
+      return readedNodesCount;
     }
 
-    if (!parent) {
-      parent = {
+    let parentObj = parent;
+
+    if (!parentObj) {
+      parentObj = {
         __children: this.data
       };
       rootLevel = true;
-      readCount -= 1;
+      readedNodesCount -= 1;
     }
 
-    if (neededIndex !== null && neededIndex !== void 0 && readCount === neededIndex) {
-      return { result: parent, end: true };
+    if (neededIndex !== null && neededIndex !== void 0 && readedNodesCount === neededIndex) {
+      return { result: parentObj, end: true };
     }
 
-    if (neededObject !== null && neededObject !== void 0 && parent === neededObject) {
-      return { result: readCount, end: true };
+    if (neededObject !== null && neededObject !== void 0 && parentObj === neededObject) {
+      return { result: readedNodesCount, end: true };
     }
 
-    readCount += 1;
+    readedNodesCount += 1;
 
-    if (parent.__children) {
-      arrayEach(parent.__children, (val) => {
+    if (parentObj.__children) {
+      arrayEach(parentObj.__children, (val) => {
 
-        this.parentReference.set(val, rootLevel ? null : parent);
+        this.parentReference.set(val, rootLevel ? null : parentObj);
 
-        readCount = this.readTreeNodes(val, readCount, neededIndex, neededObject);
+        readedNodesCount = this.readTreeNodes(val, readedNodesCount, neededIndex, neededObject);
 
-        if (isNaN(readCount) && readCount.end) {
+        if (isNaN(readedNodesCount) && readedNodesCount.end) {
           return false;
         }
       });
     }
 
-    return readCount;
+    return readedNodesCount;
   }
 
   /**
@@ -253,16 +256,17 @@ class DataManager {
    */
   countChildren(parent) {
     let rowCount = 0;
+    let parentNode = parent;
 
-    if (!isNaN(parent)) {
-      parent = this.getDataObject(parent);
+    if (!isNaN(parentNode)) {
+      parentNode = this.getDataObject(parentNode);
     }
 
-    if (!parent || !parent.__children) {
+    if (!parentNode || !parentNode.__children) {
       return 0;
     }
 
-    arrayEach(parent.__children, (elem) => {
+    arrayEach(parentNode.__children, (elem) => {
       rowCount += 1;
       if (elem.__children) {
         rowCount += this.countChildren(elem);
@@ -339,19 +343,23 @@ class DataManager {
    * @returns {Boolean}
    */
   hasChildren(row) {
-    if (!isNaN(row)) {
-      row = this.getDataObject(row);
+    let rowObj = row;
+
+    if (!isNaN(rowObj)) {
+      rowObj = this.getDataObject(rowObj);
     }
 
-    return !!(row.__children && row.__children.length);
+    return !!(rowObj.__children && rowObj.__children.length);
   }
 
   isParent(row) {
-    if (!isNaN(row)) {
-      row = this.getDataObject(row);
+    let rowObj = row;
+
+    if (!isNaN(rowObj)) {
+      rowObj = this.getDataObject(rowObj);
     }
 
-    return !!(hasOwnProperty(row, '__children'));
+    return !!(hasOwnProperty(rowObj, '__children'));
   }
 
   /**
@@ -361,7 +369,8 @@ class DataManager {
    * @param {Object} [element] The element to add as a child.
    */
   addChild(parent, element) {
-    this.hot.runHooks('beforeAddChild', parent, element);
+    let childElement = element;
+    this.hot.runHooks('beforeAddChild', parent, childElement);
 
     let parentIndex = null;
     if (parent) {
@@ -378,18 +387,18 @@ class DataManager {
       functionalParent.__children = [];
     }
 
-    if (!element) {
-      element = this.mockNode();
+    if (!childElement) {
+      childElement = this.mockNode();
     }
 
-    functionalParent.__children.push(element);
+    functionalParent.__children.push(childElement);
 
     this.rewriteCache();
 
-    const newRowIndex = this.getRowIndex(element);
+    const newRowIndex = this.getRowIndex(childElement);
 
     this.hot.runHooks('afterCreateRow', newRowIndex, 1);
-    this.hot.runHooks('afterAddChild', parent, element);
+    this.hot.runHooks('afterAddChild', parent, childElement);
   }
 
   /**
@@ -401,7 +410,8 @@ class DataManager {
    * @param {Number} [globalIndex] Global index of the inserted row.
    */
   addChildAtIndex(parent, index, element, globalIndex) {
-    this.hot.runHooks('beforeAddChild', parent, element, index);
+    let childElement = element;
+    this.hot.runHooks('beforeAddChild', parent, childElement, index);
     this.hot.runHooks('beforeCreateRow', globalIndex + 1, 1);
     let functionalParent = parent;
 
@@ -413,16 +423,16 @@ class DataManager {
       functionalParent.__children = [];
     }
 
-    if (!element) {
-      element = this.mockNode();
+    if (!childElement) {
+      childElement = this.mockNode();
     }
 
-    functionalParent.__children.splice(index, null, element);
+    functionalParent.__children.splice(index, null, childElement);
 
     this.rewriteCache();
 
     this.hot.runHooks('afterCreateRow', globalIndex + 1, 1);
-    this.hot.runHooks('afterAddChild', parent, element, index);
+    this.hot.runHooks('afterAddChild', parent, childElement, index);
   }
 
   /**
@@ -553,13 +563,13 @@ class DataManager {
    * @param {Object} element Row to add.
    */
   spliceData(index, amount, element) {
-    index = this.translateTrimmedRow(index);
+    const elementIndex = this.translateTrimmedRow(index);
 
-    if (index === null || index === void 0) {
+    if (elementIndex === null || elementIndex === void 0) {
       return;
     }
 
-    const previousElement = this.getDataObject(index - 1);
+    const previousElement = this.getDataObject(elementIndex - 1);
     let newRowParent = null;
     let indexWithinParent = null;
 
@@ -568,8 +578,8 @@ class DataManager {
       indexWithinParent = 0;
 
     } else {
-      newRowParent = this.getRowParent(index);
-      indexWithinParent = this.getRowIndexWithinParent(index);
+      newRowParent = this.getRowParent(elementIndex);
+      indexWithinParent = this.getRowIndexWithinParent(elementIndex);
     }
 
     if (newRowParent) {

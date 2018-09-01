@@ -14,12 +14,13 @@ describe('Formulas -> logical functions', () => {
 
   function getData(row, column, value) {
     const data = getDataForFormulas();
+    let cellValue = value;
 
     if (row !== void 0) {
-      if (!Array.isArray(value)) {
-        value = [value];
+      if (!Array.isArray(cellValue)) {
+        cellValue = [cellValue];
       }
-      value.forEach((v, index) => {
+      cellValue.forEach((v, index) => {
         data[row + index][column] = v;
       });
     }

@@ -4,11 +4,13 @@ import { registerCondition } from './../conditionRegisterer';
 export const CONDITION_NAME = 'lte';
 
 export function condition(dataRow, [value]) {
+  let conditionValue = value;
+
   if (dataRow.meta.type === 'numeric') {
-    value = parseFloat(value, 10);
+    conditionValue = parseFloat(conditionValue, 10);
   }
 
-  return dataRow.value <= value;
+  return dataRow.value <= conditionValue;
 }
 
 registerCondition(CONDITION_NAME, condition, {

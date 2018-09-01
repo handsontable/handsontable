@@ -482,9 +482,9 @@ class GanttChart extends BasePlugin {
    * @param {Boolean} previous `true` if the previous week is needed.
    */
   getAdjacentWeekColumn(date, following, previous) {
-    date = parseDate(date);
+    const convertedDate = parseDate(date);
     const delta = previous === true ? -7 : 7;
-    const adjacentWeek = date.setDate(date.getDate() + delta);
+    const adjacentWeek = convertedDate.setDate(convertedDate.getDate() + delta);
 
     return this.dateCalculator.dateToColumn(adjacentWeek);
   }
@@ -685,10 +685,10 @@ class GanttChart extends BasePlugin {
     this.rangeBars[year][row][startDateColumn] = null;
 
     objectEach(this.rangeList, (prop, i) => {
-      i = parseInt(i, 10);
+      const id = parseInt(i, 10);
 
       if (JSON.stringify(prop) === JSON.stringify([row, startDateColumn])) {
-        this.rangeList[i] = null;
+        this.rangeList[id] = null;
       }
     });
   }

@@ -362,11 +362,8 @@ class CollapsibleColumns extends BasePlugin {
       arrayEach(nestedHeadersColspanArray, (headerLevel, i) => {
         arrayEach(headerLevel, (header, j) => {
           if (header.colspan > 1) {
-            i = parseInt(i, 10);
-            j = parseInt(j, 10);
-
-            const row = this.nestedHeadersPlugin.levelToRowCoords(i);
-            const col = j;
+            const row = this.nestedHeadersPlugin.levelToRowCoords(parseInt(i, 10));
+            const col = parseInt(j, 10);
 
             this.markSectionAs(action === 'collapse' ? 'collapsed' : 'expanded', row, col, true);
             this.toggleCollapsibleSection({
@@ -381,13 +378,13 @@ class CollapsibleColumns extends BasePlugin {
     } else {
       objectEach(this.buttonEnabledList, (headerRow, i) => {
         objectEach(headerRow, (header, j) => {
-          i = parseInt(i, 10);
-          j = parseInt(j, 10);
+          const rowIndex = parseInt(i, 10);
+          const columnIndex = parseInt(j, 10);
 
-          this.markSectionAs(action === 'collapse' ? 'collapsed' : 'expanded', i, j, true);
+          this.markSectionAs(action === 'collapse' ? 'collapsed' : 'expanded', rowIndex, columnIndex, true);
           this.toggleCollapsibleSection({
-            row: i,
-            col: j
+            row: rowIndex,
+            col: columnIndex
           }, action);
 
         });

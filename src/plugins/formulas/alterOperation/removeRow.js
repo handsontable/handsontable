@@ -22,11 +22,11 @@ export const OPERATION_NAME = 'remove_row';
  *                                       operation so it doesn't modify formulas if undo action is triggered.
  */
 export function operate(start, amount, modifyFormula = true) {
-  amount = -amount;
+  const rowsAmount = -amount;
 
   const { matrix, dataProvider, sheet } = this;
-  const translate = [amount, 0];
-  const indexOffset = Math.abs(amount) - 1;
+  const translate = [rowsAmount, 0];
+  const indexOffset = Math.abs(rowsAmount) - 1;
 
   const removedCellRef = matrix.removeCellRefsAtRange({ row: start }, { row: start + indexOffset });
   const toRemove = [];
@@ -75,7 +75,7 @@ export function operate(start, amount, modifyFormula = true) {
         const expModifier = new ExpressionModifier(value);
 
         expModifier.useCustomModifier(customTranslateModifier);
-        expModifier.translate({ row: amount }, startCoord({ row: origRow, column: origColumn }));
+        expModifier.translate({ row: rowsAmount }, startCoord({ row: origRow, column: origColumn }));
 
         dataProvider.updateSourceData(row, column, expModifier.toString());
       }

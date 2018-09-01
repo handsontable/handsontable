@@ -288,25 +288,27 @@ class Sheet {
       this.matrix.registerCellRef(cell);
       this._processingCell.addPrecedent(cell);
 
-      if (isFormulaError(cellData)) {
+      let newCellData = cellData;
+
+      if (isFormulaError(newCellData)) {
         const computedCell = this.matrix.getCellAt(cell.row, cell.column);
 
         if (computedCell && computedCell.hasError()) {
-          throw Error(cellData);
+          throw Error(newCellData);
         }
       }
 
-      if (isFormulaExpression(cellData)) {
-        const { error, result } = this.parser.parse(cellData.substr(1));
+      if (isFormulaExpression(newCellData)) {
+        const { error, result } = this.parser.parse(newCellData.substr(1));
 
         if (error) {
           throw Error(error);
         }
 
-        cellData = result;
+        newCellData = result;
       }
 
-      return cellData;
+      return newCellData;
     });
 
     const calculatedCellValues = arrayMap(cellValues, (rowData, rowIndex) => mapRowData(rowData, rowIndex));

@@ -165,18 +165,19 @@ export function getCorrespondingOverlay(cell, container) {
  */
 export function contextMenu(cell) {
   const hot = spec().$container.data('handsontable');
+  let clickedCell = cell;
   let selected = hot.getSelectedLast();
 
   if (!selected) {
     hot.selectCell(0, 0);
     selected = hot.getSelectedLast();
   }
-  if (!cell) {
-    cell = getCell(selected[0], selected[1]);
+  if (!clickedCell) {
+    clickedCell = getCell(selected[0], selected[1]);
   }
-  const cellOffset = $(cell).offset();
+  const cellOffset = $(clickedCell).offset();
 
-  $(cell).simulate('contextmenu', {
+  $(clickedCell).simulate('contextmenu', {
     clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
     clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(),
   });
@@ -223,13 +224,15 @@ export function dropdownMenuRootElement() {
  */
 export function handsontableMouseTriggerFactory(type, button) {
   return function(element) {
-    if (!(element instanceof jQuery)) {
-      element = $(element);
+    let handsontableElement = element;
+
+    if (!(handsontableElement instanceof jQuery)) {
+      handsontableElement = $(handsontableElement);
     }
     const ev = $.Event(type);
     ev.which = button || 1; // left click by default
 
-    element.simulate(type, ev);
+    handsontableElement.simulate(type, ev);
   };
 }
 
@@ -256,20 +259,21 @@ export const mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
 export function handsontableKeyTriggerFactory(type) {
   return function(key, extend) {
     const ev = {}; // $.Event(type);
+    let keyToTrigger = key;
 
-    if (typeof key === 'string') {
-      if (key.indexOf('shift+') > -1) {
-        key = key.substring(6);
+    if (typeof keyToTrigger === 'string') {
+      if (keyToTrigger.indexOf('shift+') > -1) {
+        keyToTrigger = keyToTrigger.substring(6);
         ev.shiftKey = true;
       }
 
-      if (key.indexOf('ctrl+') > -1) {
-        key = key.substring(5);
+      if (keyToTrigger.indexOf('ctrl+') > -1) {
+        keyToTrigger = keyToTrigger.substring(5);
         ev.ctrlKey = true;
         ev.metaKey = true;
       }
 
-      switch (key) {
+      switch (keyToTrigger) {
         case 'tab':
           ev.keyCode = 9;
           break;
@@ -335,10 +339,10 @@ export function handsontableKeyTriggerFactory(type) {
           break;
 
         default:
-          throw new Error(`Unrecognised key name: ${key}`);
+          throw new Error(`Unrecognised key name: ${keyToTrigger}`);
       }
-    } else if (typeof key === 'number') {
-      ev.keyCode = key;
+    } else if (typeof keyToTrigger === 'number') {
+      ev.keyCode = keyToTrigger;
     }
     //    ev.originalEvent = {}; //needed as long Handsontable searches for event.originalEvent
     $.extend(ev, extend);
@@ -496,17 +500,17 @@ export function getRenderedContent(trIndex, tdIndex) {
  * @returns {Array}
  */
 export function createNumericData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
+  const rowMax = typeof rowCount === 'number' ? rowCount : 100;
+  const columnMax = typeof colCount === 'number' ? colCount : 4;
 
   const rows = [];
   let i;
   let j;
 
-  for (i = 0; i < rowCount; i++) {
+  for (i = 0; i < rowMax; i++) {
     const row = [];
 
-    for (j = 0; j < colCount; j++) {
+    for (j = 0; j < columnMax; j++) {
       row.push((i + 1));
     }
     rows.push(row);
@@ -688,16 +692,13 @@ export function swapDisplayedColumns(container, from, to) {
 export function triggerTouchEvent(type, target, pageX, pageY) {
   const e = document.createEvent('TouchEvent');
   const targetCoords = target.getBoundingClientRect();
+  const targetPageX = pageX || parseInt(targetCoords.left + 3, 10);
+  const targetPageY = pageY || parseInt(targetCoords.top + 3, 10);
   let touches;
   let targetTouches;
   let changedTouches;
 
-  if (!pageX && !pageY) {
-    pageX = parseInt(targetCoords.left + 3, 10);
-    pageY = parseInt(targetCoords.top + 3, 10);
-  }
-
-  const touch = document.createTouch(window, target, 0, pageX, pageY, pageX, pageY);
+  const touch = document.createTouch(window, target, 0, targetPageX, targetPageY, targetPageX, targetPageY);
 
   if (type === 'touchend') {
     touches = document.createTouchList();

@@ -29,7 +29,10 @@
     "no-multi-str": 2,
     "no-multiple-empty-lines": 2,
     "no-new": 2,
-    "no-param-reassign": 0,
+    "no-param-reassign": [
+      "error",
+      { "props": false }
+    ],
     "no-plusplus": [
       "error",
       { "allowForLoopAfterthoughts": true }

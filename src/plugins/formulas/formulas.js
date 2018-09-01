@@ -223,11 +223,13 @@ class Formulas extends BasePlugin {
    * @returns {*}
    */
   onBeforeValueRender(value) {
-    if (isFormulaExpressionEscaped(value)) {
-      value = unescapeFormulaExpression(value);
+    let renderValue = value;
+
+    if (isFormulaExpressionEscaped(renderValue)) {
+      renderValue = unescapeFormulaExpression(renderValue);
     }
 
-    return value;
+    return renderValue;
   }
 
   /**
@@ -240,12 +242,13 @@ class Formulas extends BasePlugin {
    */
   onBeforeValidate(value, row, prop) {
     const column = this.hot.propToCol(prop);
+    let validateValue = value;
 
     if (this.hasComputedCellValue(row, column)) {
-      value = this.getCellValue(row, column);
+      validateValue = this.getCellValue(row, column);
     }
 
-    return value;
+    return validateValue;
   }
 
   /**
@@ -263,17 +266,18 @@ class Formulas extends BasePlugin {
     this.dataProvider.clearChanges();
 
     arrayEach(changes, ([row, column, oldValue, newValue]) => {
-      column = this.hot.propToCol(column);
-      row = this.t.toPhysicalRow(row);
+      const physicalColumn = this.hot.propToCol(column);
+      const physicalRow = this.t.toPhysicalRow(row);
+      let value = newValue;
 
-      if (isFormulaExpression(newValue)) {
-        newValue = toUpperCaseFormula(newValue);
+      if (isFormulaExpression(value)) {
+        value = toUpperCaseFormula(value);
       }
 
-      this.dataProvider.collectChanges(row, column, newValue);
+      this.dataProvider.collectChanges(physicalRow, physicalColumn, value);
 
-      if (oldValue !== newValue) {
-        this.sheet.applyChanges(row, column, newValue);
+      if (oldValue !== value) {
+        this.sheet.applyChanges(physicalRow, physicalColumn, value);
       }
     });
     this.recalculate();

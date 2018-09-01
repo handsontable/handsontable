@@ -71,19 +71,19 @@ class Csv extends BaseType {
    * @return {String}
    */
   _escapeCell(value, force = false) {
-    value = stringify(value);
+    let escapedValue = stringify(value);
 
-    if (value !== '' && (force ||
-        value.indexOf(CHAR_CARRIAGE_RETURN) >= 0 ||
-        value.indexOf(CHAR_DOUBLE_QUOTES) >= 0 ||
-        value.indexOf(CHAR_LINE_FEED) >= 0 ||
-        value.indexOf(this.options.columnDelimiter) >= 0)) {
+    if (escapedValue !== '' && (force ||
+      escapedValue.indexOf(CHAR_CARRIAGE_RETURN) >= 0 ||
+      escapedValue.indexOf(CHAR_DOUBLE_QUOTES) >= 0 ||
+      escapedValue.indexOf(CHAR_LINE_FEED) >= 0 ||
+      escapedValue.indexOf(this.options.columnDelimiter) >= 0)) {
 
-      value = value.replace(new RegExp('"', 'g'), '""');
-      value = `"${value}"`;
+      escapedValue = escapedValue.replace(new RegExp('"', 'g'), '""');
+      escapedValue = `"${escapedValue}"`;
     }
 
-    return value;
+    return escapedValue;
   }
 }
 

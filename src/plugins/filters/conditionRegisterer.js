@@ -12,13 +12,14 @@ export function getCondition(name, args) {
     throw Error(`Filter condition "${name}" does not exist.`);
   }
   const { condition, descriptor } = conditions[name];
+  let conditionArguments = args;
 
   if (descriptor.inputValuesDecorator) {
-    args = descriptor.inputValuesDecorator(args);
+    conditionArguments = descriptor.inputValuesDecorator(conditionArguments);
   }
 
   return function(dataRow) {
-    return condition.apply(dataRow.meta.instance, [].concat([dataRow], [args]));
+    return condition.apply(dataRow.meta.instance, [].concat([dataRow], [conditionArguments]));
   };
 }
 

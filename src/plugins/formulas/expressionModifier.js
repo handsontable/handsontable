@@ -199,14 +199,14 @@ class ExpressionModifier {
       return;
     }
     arrayEach(matches, (coord) => {
-      coord = coord.match(BARE_CELL_REGEX);
+      const cellCoords = coord.match(BARE_CELL_REGEX);
 
-      if (!coord) {
+      if (!cellCoords) {
         return;
       }
-      const [row, column] = extractLabel(coord[0]);
+      const [row, column] = extractLabel(cellCoords[0]);
 
-      this.cells.push(this._createCell({ row, column }, { row, column }, coord[0]));
+      this.cells.push(this._createCell({ row, column }, { row, column }, cellCoords[0]));
     });
   }
 

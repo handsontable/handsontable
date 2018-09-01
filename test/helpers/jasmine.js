@@ -32,13 +32,13 @@ beforeEach(function() {
     toBeAroundValue() {
       return {
         compare(actual, expected, diff) {
-          diff = diff || 1;
+          const margin = diff || 1;
 
-          const pass = actual >= expected - diff && actual <= expected + diff;
-          let message = `Expected ${actual} to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+          const pass = actual >= expected - margin && actual <= expected + margin;
+          let message = `Expected ${actual} to be around ${expected} (between ${expected - margin} and ${expected + margin})`;
 
           if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - margin} and ${expected + margin})`;
           }
 
           return {

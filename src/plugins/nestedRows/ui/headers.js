@@ -70,10 +70,9 @@ class HeadersUI extends BaseUI {
    * @param {HTMLElement} TH TH 3element.
    */
   appendLevelIndicators(row, TH) {
-    row = this.trimRowsPlugin.rowsMapper.getValueByIndex(row);
-
-    const rowLevel = this.dataManager.getRowLevel(row);
-    const rowObject = this.dataManager.getDataObject(row);
+    const rowIndex = this.trimRowsPlugin.rowsMapper.getValueByIndex(row);
+    const rowLevel = this.dataManager.getRowLevel(rowIndex);
+    const rowObject = this.dataManager.getDataObject(rowIndex);
     const innerDiv = TH.getElementsByTagName('DIV')[0];
     const innerSpan = innerDiv.querySelector('span.rowHeader');
     const previousIndicators = innerDiv.querySelectorAll('[class^="ht_nesting"]');
@@ -103,7 +102,7 @@ class HeadersUI extends BaseUI {
       const buttonsContainer = document.createElement('DIV');
       addClass(TH, HeadersUI.CSS_CLASSES.parent);
 
-      if (this.collapsingUI.areChildrenCollapsed(row)) {
+      if (this.collapsingUI.areChildrenCollapsed(rowIndex)) {
         addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.expandButton}`);
 
       } else {
@@ -121,11 +120,13 @@ class HeadersUI extends BaseUI {
    * @param {Number} deepestLevel Cached deepest level of nesting.
    */
   updateRowHeaderWidth(deepestLevel) {
-    if (!deepestLevel) {
-      deepestLevel = this.dataManager.cache.levelCount;
+    let deepestLevelIndex = deepestLevel;
+
+    if (!deepestLevelIndex) {
+      deepestLevelIndex = this.dataManager.cache.levelCount;
     }
 
-    this.rowHeaderWidthCache = Math.max(50, 11 + (10 * deepestLevel) + 25);
+    this.rowHeaderWidthCache = Math.max(50, 11 + (10 * deepestLevelIndex) + 25);
 
     this.hot.render();
   }

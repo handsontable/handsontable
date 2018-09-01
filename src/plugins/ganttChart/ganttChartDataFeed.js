@@ -312,10 +312,10 @@ class GanttChartDataFeed {
       }
 
       objectEach(changesByRows, (prop, i) => {
-        i = parseInt(i, 10);
+        const row = parseInt(i, 10);
 
-        if (this.chartPlugin.getRangeBarCoordinates(i)) {
-          this.chartPlugin.removeRangeBarByColumn(i, this.chartPlugin.rangeList[i][1]);
+        if (this.chartPlugin.getRangeBarCoordinates(row)) {
+          this.chartPlugin.removeRangeBarByColumn(row, this.chartPlugin.rangeList[row][1]);
         }
 
         this.updateFromSource(i);

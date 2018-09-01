@@ -143,15 +143,15 @@ class DateCalculator {
    * @returns {Number|Boolean}
    */
   dateToColumn(date) {
-    date = parseDate(date);
+    const convertedDate = parseDate(date);
 
-    if (!date) {
+    if (!convertedDate) {
       return false;
     }
 
-    const month = date.getMonth();
-    const day = date.getDate() - 1;
-    const year = date.getFullYear();
+    const month = convertedDate.getMonth();
+    const day = convertedDate.getDate() - 1;
+    const year = convertedDate.getFullYear();
 
     return this.getWeekColumn(day, month, year);
   }
@@ -272,15 +272,15 @@ class DateCalculator {
    * @returns {Array|Boolean} Returns null, if an invalid date was provided or an array of results ( [1,0] => is on the beginning of the week, [0,1] => is on the end of the week).
    */
   isOnTheEdgeOfWeek(date) {
-    date = parseDate(date);
+    const convertedDate = parseDate(date);
 
-    if (!date) {
+    if (!convertedDate) {
       return null;
     }
 
-    const month = date.getMonth();
-    const day = date.getDate() - 1;
-    const year = date.getFullYear();
+    const month = convertedDate.getMonth();
+    const day = convertedDate.getDate() - 1;
+    const year = convertedDate.getFullYear();
     const monthCacheArray = this.getMonthCacheArray(month, year);
     let isOnTheEdgeOfWeek = false;
 
@@ -288,7 +288,7 @@ class DateCalculator {
       objectEach(monthCache, (column) => {
 
         if (!this.allowSplitWeeks && column.length !== 7) {
-          if (day === 0 || day === new Date(date.getYear(), date.getMonth() + 1, 0).getDate() - 1) {
+          if (day === 0 || day === new Date(convertedDate.getYear(), convertedDate.getMonth() + 1, 0).getDate() - 1) {
             return true;
           }
         }

@@ -131,11 +131,13 @@ class OperatorsComponent extends BaseComponent {
    * @param column Physical column index.
    */
   updateState(operationId = OPERATION_AND, column) {
-    if (operationId === OPERATION_OR_THEN_VARIABLE) {
-      operationId = OPERATION_OR;
+    let selectedOperationId = operationId;
+
+    if (selectedOperationId === OPERATION_OR_THEN_VARIABLE) {
+      selectedOperationId = OPERATION_OR;
     }
 
-    this.setCachedState(column, operationId);
+    this.setCachedState(column, selectedOperationId);
   }
 
   /**
