@@ -971,7 +971,6 @@ describe('Filters UI', () => {
         expect(checkedArray).toEqual([false, true, true]);
       });
 
-
       it('should show proper number of values after refreshing cache ' +
         '(should remove the value from component), case nr 2 (changing value to match filtered value)', (done) => {
         handsontable({

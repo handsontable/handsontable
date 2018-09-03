@@ -71,7 +71,6 @@ describe('Formulas general', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('=');
   });
 
-
   it('should calculate table with semicolon as separator of formula arguments', () => {
     const data = getDataSimpleExampleFormulas();
 

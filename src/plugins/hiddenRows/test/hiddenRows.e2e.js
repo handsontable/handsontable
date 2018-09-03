@@ -452,8 +452,6 @@ describe('HiddenRows', () => {
 
       expect(hot.getSelectedRange()[0].highlight.row).toBe(1);
     });
-
-
   });
 
   describe('context-menu', () => {

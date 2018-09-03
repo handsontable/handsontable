@@ -753,7 +753,6 @@ class Filters extends BasePlugin {
     }
   }
 
-
   /**
    * Removes specific rows from `hiddenRows` cache for particular column.
    *

@@ -38,7 +38,6 @@ describe('ColumnSummarySpec', () => {
       tempEndpoint = null;
     }
 
-
     return endpoints;
   };
 

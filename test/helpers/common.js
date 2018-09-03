@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 export function sleep(delay = 100) {
   return Promise.resolve({
     then(resolve) {

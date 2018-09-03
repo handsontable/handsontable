@@ -400,7 +400,6 @@ describe('i18n', () => {
           const rowHeader1 = $('.ht_clone_left tr:eq(1) th:eq(0)');
           const rowHeader2 = $('.ht_clone_left tr:eq(2) th:eq(0)');
 
-
           rowHeader2.simulate('mousedown');
           rowHeader2.simulate('mouseup');
 
@@ -656,7 +655,6 @@ describe('i18n', () => {
 
           const $columnHeader1 = $('.ht_clone_top tr:eq(0) th:eq(1)');
           const $columnHeader2 = $('.ht_clone_top tr:eq(0) th:eq(2)');
-
 
           $columnHeader2.simulate('mousedown');
           $columnHeader2.simulate('mouseup');

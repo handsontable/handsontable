@@ -45,7 +45,6 @@ describe('DateCalculator', () => {
     });
   });
 
-
   describe('the `dateToColumn` method', () => {
     it('should return a column for a provided date (in string or Date format), when `allowSplitWeeks` is set to true (default)', () => {
       const plugin = new DateCalculator({
@@ -94,7 +93,6 @@ describe('DateCalculator', () => {
         year: 2017
       });
 
-
       // mock the day cache creation from the actual plugin:
       plugin.daysInColumns[2017] = stdCache;
 
@@ -106,7 +104,6 @@ describe('DateCalculator', () => {
       const plugin = new DateCalculator({
         year: 2018
       });
-
 
       // mock the day cache creation from the actual plugin:
       plugin.daysInColumns[2017] = stdCache;

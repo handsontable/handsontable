@@ -88,7 +88,6 @@ class HiddenColumns extends BasePlugin {
     this.lastSelectedColumn = -1;
   }
 
-
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link HiddenColumns#enablePlugin} method is called.
@@ -529,7 +528,6 @@ class HiddenColumns extends BasePlugin {
     );
   }
 
-
   /**
    * `onAfterCreateCol` hook callback.
    *
@@ -548,7 +546,6 @@ class HiddenColumns extends BasePlugin {
     });
     this.hiddenColumns = tempHidden;
   }
-
 
   /**
    * `onAfterRemoveCol` hook callback.
