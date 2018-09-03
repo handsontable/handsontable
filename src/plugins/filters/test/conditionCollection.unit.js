@@ -281,9 +281,9 @@ describe('ConditionCollection', () => {
 
       conditionCollection.orderStack = [];
 
-      const conditions = conditionCollection.exportAllConditions();
+      const exportedConditions = conditionCollection.exportAllConditions();
 
-      expect(conditions.length).toBe(0);
+      expect(exportedConditions.length).toBe(0);
     });
 
     it('should return conditions as an array of objects for all column in the same order as it was added', () => {
@@ -298,18 +298,18 @@ describe('ConditionCollection', () => {
       conditionCollection.conditions[OPERATION_AND]['6'] = [conditionMock1];
       conditionCollection.conditions[OPERATION_AND]['1'] = [conditionMock2];
 
-      const conditions = conditionCollection.exportAllConditions();
+      const exportedConditions = conditionCollection.exportAllConditions();
 
-      expect(conditions.length).toBe(3);
-      expect(conditions[0].column).toBe(6);
-      expect(conditions[0].conditions[0].name).toBe('date_tomorrow');
-      expect(conditions[0].conditions[0].args).toEqual([]);
-      expect(conditions[1].column).toBe(1);
-      expect(conditions[1].conditions[0].name).toBe('eq');
-      expect(conditions[1].conditions[0].args).toEqual(['z']);
-      expect(conditions[2].column).toBe(3);
-      expect(conditions[2].conditions[0].name).toBe('begins_with');
-      expect(conditions[2].conditions[0].args).toEqual(['c']);
+      expect(exportedConditions.length).toBe(3);
+      expect(exportedConditions[0].column).toBe(6);
+      expect(exportedConditions[0].conditions[0].name).toBe('date_tomorrow');
+      expect(exportedConditions[0].conditions[0].args).toEqual([]);
+      expect(exportedConditions[1].column).toBe(1);
+      expect(exportedConditions[1].conditions[0].name).toBe('eq');
+      expect(exportedConditions[1].conditions[0].args).toEqual(['z']);
+      expect(exportedConditions[2].column).toBe(3);
+      expect(exportedConditions[2].conditions[0].name).toBe('begins_with');
+      expect(exportedConditions[2].conditions[0].args).toEqual(['c']);
     });
   });
 

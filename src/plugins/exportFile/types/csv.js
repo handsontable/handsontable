@@ -57,7 +57,7 @@ class Csv extends BaseType {
       if (hasRowHeaders) {
         result += this._escapeCell(rowHeaders[index]) + options.columnDelimiter;
       }
-      result += value.map(value => this._escapeCell(value)).join(options.columnDelimiter);
+      result += value.map(cellValue => this._escapeCell(cellValue)).join(options.columnDelimiter);
     });
 
     return result;

@@ -237,8 +237,8 @@ class NestedHeaders extends BasePlugin {
       }
     }
 
-    objectEach(this.settings, (levelValue, level) => {
-      objectEach(levelValue, (val, col, levelValue) => {
+    objectEach(this.settings, (levelValues, level) => {
+      objectEach(levelValues, (val, col, levelValue) => {
         checkIfExists(this.colspanArray, level);
 
         if (levelValue[col].colspan === void 0) {

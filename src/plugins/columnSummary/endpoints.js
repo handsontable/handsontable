@@ -446,14 +446,14 @@ class Endpoints {
     const needToRefresh = [];
     this.cellsToSetCache = [];
 
-    arrayEach(changes, (value, key, changes) => {
+    arrayEach(changes, (value, key, changesObj) => {
       // if nothing changed, dont update anything
       if (`${value[2] || ''}` === `${value[3]}`) {
         return;
       }
 
-      arrayEach(this.getAllEndpoints(), (value, j) => {
-        if (this.hot.propToCol(changes[key][1]) === value.sourceColumn && needToRefresh.indexOf(j) === -1) {
+      arrayEach(this.getAllEndpoints(), (endpoint, j) => {
+        if (this.hot.propToCol(changesObj[key][1]) === endpoint.sourceColumn && needToRefresh.indexOf(j) === -1) {
           needToRefresh.push(j);
         }
       });

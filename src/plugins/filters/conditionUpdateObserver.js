@@ -128,20 +128,20 @@ class ConditionUpdateObserver {
       conditionsAfter.shift();
     }
 
-    const visibleDataFactory = curry((conditionsBefore, column, conditionsStack = []) => {
+    const visibleDataFactory = curry((curriedConditionsBefore, curriedColumn, conditionsStack = []) => {
       const splitConditionCollection = new ConditionCollection();
-      const curriedConditionsBefore = [].concat(conditionsBefore, conditionsStack);
+      const curriedConditionsBeforeArray = [].concat(curriedConditionsBefore, conditionsStack);
 
       // Create new condition collection to determine what rows should be visible in "filter by value" box in the next conditions in the chain
-      splitConditionCollection.importAllConditions(curriedConditionsBefore);
+      splitConditionCollection.importAllConditions(curriedConditionsBeforeArray);
 
-      const allRows = this.columnDataFactory(column);
+      const allRows = this.columnDataFactory(curriedColumn);
       let visibleRows;
 
       if (splitConditionCollection.isEmpty()) {
         visibleRows = allRows;
       } else {
-        visibleRows = (new DataFilter(splitConditionCollection, column => this.columnDataFactory(column))).filter();
+        visibleRows = (new DataFilter(splitConditionCollection, columnData => this.columnDataFactory(columnData))).filter();
       }
       visibleRows = arrayMap(visibleRows, rowData => rowData.meta.visualRow);
 

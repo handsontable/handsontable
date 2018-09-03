@@ -131,14 +131,15 @@ export default function getOptionsList(type) {
   if (!TYPES[typeName]) {
     typeName = TYPE_TEXT;
   }
-  arrayEach(TYPES[typeName], (type) => {
+
+  arrayEach(TYPES[typeName], (typeValue) => {
     let option;
 
-    if (type === SEPARATOR) {
+    if (typeValue === SEPARATOR) {
       option = { name: SEPARATOR };
 
     } else {
-      option = clone(getConditionDescriptor(type));
+      option = clone(getConditionDescriptor(typeValue));
     }
     items.push(option);
   });

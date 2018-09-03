@@ -85,11 +85,11 @@ class Matrix {
    */
   remove(cellValue) {
     const isArray = Array.isArray(cellValue);
-    const isEqual = (cell, cellValue) => {
+    const isEqual = (cell, values) => {
       let result = false;
 
       if (isArray) {
-        arrayEach(cellValue, (value) => {
+        arrayEach(values, (value) => {
           if (cell.isEqual(value)) {
             result = true;
 
@@ -97,7 +97,7 @@ class Matrix {
           }
         });
       } else {
-        result = cell.isEqual(cellValue);
+        result = cell.isEqual(values);
       }
 
       return result;

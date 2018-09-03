@@ -246,7 +246,7 @@ class ExpressionModifier {
    * @private
    */
   _searchCell(label) {
-    const [cell] = arrayFilter(this.cells, cell => cell.origLabel === label);
+    const [cell] = arrayFilter(this.cells, cellMeta => cellMeta.origLabel === label);
 
     return cell || null;
   }
@@ -268,13 +268,13 @@ class ExpressionModifier {
       type: label.indexOf(':') === -1 ? 'cell' : 'range',
       refError: false,
       toLabel() {
-        let label = toLabel(this.start.row, this.start.column);
+        let newLabel = toLabel(this.start.row, this.start.column);
 
         if (this.type === 'range') {
-          label += `:${toLabel(this.end.row, this.end.column)}`;
+          newLabel += `:${toLabel(this.end.row, this.end.column)}`;
         }
 
-        return label;
+        return newLabel;
       }
     };
   }

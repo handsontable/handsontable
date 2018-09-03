@@ -22,8 +22,8 @@ class BaseCell {
       get() {
         return this.rowOffset + this._row;
       },
-      set(row) {
-        this._row = row;
+      set(rowIndex) {
+        this._row = rowIndex;
       },
       enumerable: true,
       configurable: true
@@ -32,8 +32,8 @@ class BaseCell {
       get() {
         return this.columnOffset + this._column;
       },
-      set(column) {
-        this._column = column;
+      set(columnIndex) {
+        this._column = columnIndex;
       },
       enumerable: true,
       configurable: true

@@ -164,13 +164,13 @@ export function getCorrespondingOverlay(cell, container) {
  * Shows context menu
  */
 export function contextMenu(cell) {
-  const hot = spec().$container.data('handsontable');
+  const hotInstance = spec().$container.data('handsontable');
   let clickedCell = cell;
-  let selected = hot.getSelectedLast();
+  let selected = hotInstance.getSelectedLast();
 
   if (!selected) {
-    hot.selectCell(0, 0);
-    selected = hot.getSelectedLast();
+    hotInstance.selectCell(0, 0);
+    selected = hotInstance.getSelectedLast();
   }
   if (!clickedCell) {
     clickedCell = getCell(selected[0], selected[1]);
@@ -192,8 +192,8 @@ export function closeContextMenu() {
  * Shows dropdown menu
  */
 export function dropdownMenu(columnIndex) {
-  const hot = spec().$container.data('handsontable');
-  const th = hot.view.wt.wtTable.getColumnHeader(columnIndex || 0);
+  const hotInstance = spec().$container.data('handsontable');
+  const th = hotInstance.view.wt.wtTable.getColumnHeader(columnIndex || 0);
   const button = th.querySelector('.changeType');
 
   if (button) {

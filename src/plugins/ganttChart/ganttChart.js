@@ -750,8 +750,8 @@ class GanttChart extends BasePlugin {
 
     let titleValue = '';
 
-    objectEach(cellProperties.additionalData, (prop, i) => {
-      titleValue += `${i}: ${prop}\n`;
+    objectEach(cellProperties.additionalData, (cellMeta, i) => {
+      titleValue += `${i}: ${cellMeta}\n`;
     });
 
     titleValue = titleValue.replace(/\n$/, '');
