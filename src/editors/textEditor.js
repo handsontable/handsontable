@@ -282,7 +282,8 @@ TextEditor.prototype.getEditedCell = function() {
 };
 
 TextEditor.prototype.refreshValue = function() {
-  const sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
+  const physicalRow = this.instance.toPhysicalRow(this.row);
+  const sourceData = this.instance.getSourceDataAtCell(physicalRow, this.col);
   this.originalValue = sourceData;
 
   this.setValue(sourceData);

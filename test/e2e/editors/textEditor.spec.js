@@ -63,6 +63,20 @@ describe('TextEditor', () => {
     expect(keyProxy().val()).toEqual('string');
   });
 
+  it('should render proper value after cell coords manipulation', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      modifyRow(row) { return row === 4 ? 0 : row + 1; },
+      modifyCol(column) { return column === 4 ? 0 : column + 1; },
+    });
+
+    selectCell(0, 0);
+    getActiveEditor().beginEditing();
+    getActiveEditor().refreshValue();
+
+    expect(getActiveEditor().originalValue).toEqual('B2');
+  });
+
   it('should render textarea editor with tabindex=-1 attribute', async() => {
     const hot = handsontable();
 
