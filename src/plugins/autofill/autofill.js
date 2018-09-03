@@ -351,6 +351,7 @@ class Autofill extends BasePlugin {
         lastFilledInRowIndex = rowIndex;
       }
     }
+
     return lastFilledInRowIndex;
   }
 
@@ -394,10 +395,10 @@ class Autofill extends BasePlugin {
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
     const lastFilledInRowIndex = this.getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells);
 
-    if (lastFilledInRowIndex === -1) {
+    if (lastFilledInRowIndex === -1 || lastFilledInRowIndex === void 0) {
       return false;
-
     }
+
     this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
 
     return true;
