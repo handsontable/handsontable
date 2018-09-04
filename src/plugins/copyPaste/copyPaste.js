@@ -10,6 +10,7 @@ import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
+import { arrayToTable, tableToArray } from './utils';
 
 import './copyPaste.css';
 
@@ -327,16 +328,18 @@ class CopyPaste extends BasePlugin {
 
     const rangedData = this.getRangedData(this.copyableRanges);
     const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
-    let value = '';
 
     if (allowCopying) {
-      value = SheetClip.stringify(rangedData);
+      const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        event.clipboardData.setData('text/plain', value);
+        const textHTML = arrayToTable(rangedData);
+
+        event.clipboardData.setData('text/plain', textPlain);
+        event.clipboardData.setData('text/html', textHTML);
 
       } else if (typeof ClipboardEvent === 'undefined') {
-        window.clipboardData.setData('Text', value);
+        window.clipboardData.setData('Text', textPlain);
       }
 
       this.hot.runHooks('afterCopy', rangedData, this.copyableRanges);
@@ -369,16 +372,18 @@ class CopyPaste extends BasePlugin {
 
     const rangedData = this.getRangedData(this.copyableRanges);
     const allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
-    let value;
 
     if (allowCuttingOut) {
-      value = SheetClip.stringify(rangedData);
+      const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        event.clipboardData.setData('text/plain', value);
+        const textHTML = arrayToTable(rangedData);
+
+        event.clipboardData.setData('text/plain', textPlain);
+        event.clipboardData.setData('text/html', textHTML);
 
       } else if (typeof ClipboardEvent === 'undefined') {
-        window.clipboardData.setData('Text', value);
+        window.clipboardData.setData('Text', textPlain);
       }
 
       this.hot.emptySelectedCells();
@@ -412,13 +417,19 @@ class CopyPaste extends BasePlugin {
     let pastedData;
 
     if (event && typeof event.clipboardData !== 'undefined') {
-      pastedData = event.clipboardData.getData('text/plain');
+      const textHTML = event.clipboardData.getData('text/html');
+
+      if (textHTML && /<table/.test(textHTML)) {
+        pastedData = tableToArray(textHTML);
+      } else {
+        pastedData = event.clipboardData.getData('text/plain');
+      }
 
     } else if (typeof ClipboardEvent === 'undefined' && typeof window.clipboardData !== 'undefined') {
       pastedData = window.clipboardData.getData('Text');
     }
 
-    const inputArray = SheetClip.parse(pastedData);
+    const inputArray = typeof pastedData !== 'string' ? pastedData : SheetClip.parse(pastedData);
 
     if (inputArray.length === 0) {
       return;
