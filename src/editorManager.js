@@ -391,7 +391,7 @@ function EditorManager(instance, priv, selection) {
       activeEditor.beginEditing(newInitialValue, event);
     }
 
-    addClass(instance.rootElement, 'handsontableActiveInstance');
+    addClass(instance.rootElement, 'active');
   };
 
   /**
@@ -411,7 +411,7 @@ function EditorManager(instance, priv, selection) {
       callback(false);
     }
 
-    removeClass(instance.rootElement, 'handsontableActiveInstance');
+    removeClass(instance.rootElement, 'active');
   };
 
   /**

@@ -27,7 +27,7 @@
   height: auto;
 }
 
-.handsontableActiveInstance {
+.active {
   z-index: 104;
 }
 
@@ -556,7 +556,8 @@ CheckboxRenderer
   background: #eee;
 }
 
-.ht_clone_top {
+.ht_clone_top,
+.ht_clone_bottom {
   z-index: 101;
 }
 
