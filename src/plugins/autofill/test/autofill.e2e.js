@@ -323,6 +323,7 @@ describe('AutoFill', () => {
 
     document.body.removeChild($table[0]);
   });
+
   it('should fill cells below until the end of content in the neighbouring column with current cell\'s data', () => {
     handsontable({
       data: [
@@ -345,7 +346,6 @@ describe('AutoFill', () => {
 
     expect(getDataAtCell(2, 2)).toEqual(3);
     expect(getDataAtCell(3, 2)).toEqual(3);
-
   });
 
   it('should fill cells below until the end of content in the neighbouring column with the currently selected area\'s data', () => {
@@ -374,7 +374,27 @@ describe('AutoFill', () => {
     expect(getDataAtCell(3, 2)).toEqual(3);
     expect(getDataAtCell(2, 3)).toEqual(4);
     expect(getDataAtCell(3, 3)).toEqual(4);
+  });
 
+  it('shouldn\'t fill cells left #5023', () => {
+    handsontable({
+      data: [
+        ['1', '2', '', '3', '4'],
+        ['1', '', '', '', ''],
+        ['1', '', '', '', ''],
+        ['', '', '', '', ''],
+        ['', '', '', '', '']
+      ]
+    });
+
+    selectCell(0, 3);
+    const fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
+    mouseDoubleClick(fillHandle);
+
+    expect(getDataAtCell(0, 3)).toEqual('3');
+    expect(getDataAtCell(0, 2)).toEqual('');
+    expect(getDataAtCell(0, 1)).toEqual('2');
+    expect(getDataAtCell(0, 0)).toEqual('1');
   });
 
   it('should add new row after dragging the handle to the last table row', async() => {
