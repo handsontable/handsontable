@@ -20,8 +20,8 @@
  * RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
  * UNINTERRUPTED OR ERROR FREE.
  * 
- * Version: 5.0.1
- * Release date: 16/08/2018 (built at 16/08/2018 12:38:43)
+ * Version: 5.0.2
+ * Release date: 12/09/2018 (built at 05/09/2018 12:20:25)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -125,7 +125,7 @@ function to2dArray(arr) {
 
   while (i < ilen) {
     arr[i] = [arr[i]];
-    i++;
+    i += 1;
   }
 }
 
@@ -135,7 +135,7 @@ function extendArray(arr, extension) {
 
   while (i < ilen) {
     arr.push(extension[i]);
-    i++;
+    i += 1;
   }
 }
 
@@ -177,6 +177,7 @@ function pivot(arr) {
 function arrayReduce(array, iteratee, accumulator, initFromArray) {
   var index = -1;
   var iterable = array;
+  var result = accumulator;
 
   if (!Array.isArray(array)) {
     iterable = Array.from(array);
@@ -184,13 +185,18 @@ function arrayReduce(array, iteratee, accumulator, initFromArray) {
   var length = iterable.length;
 
   if (initFromArray && length) {
-    accumulator = iterable[++index];
-  }
-  while (++index < length) {
-    accumulator = iteratee(accumulator, iterable[index], index, iterable);
+    index += 1;
+    result = iterable[index];
   }
 
-  return accumulator;
+  index += 1;
+
+  while (index < length) {
+    result = iteratee(result, iterable[index], index, iterable);
+    index += 1;
+  }
+
+  return result;
 }
 
 /**
@@ -204,7 +210,7 @@ function arrayReduce(array, iteratee, accumulator, initFromArray) {
  * @returns {Array} Returns the new filtered array.
  */
 function arrayFilter(array, predicate) {
-  var index = -1;
+  var index = 0;
   var iterable = array;
 
   if (!Array.isArray(array)) {
@@ -215,12 +221,15 @@ function arrayFilter(array, predicate) {
   var result = [];
   var resIndex = -1;
 
-  while (++index < length) {
+  while (index < length) {
     var value = iterable[index];
 
     if (predicate(value, index, iterable)) {
-      result[++resIndex] = value;
+      resIndex += 1;
+      result[resIndex] = value;
     }
+
+    index += 1;
   }
 
   return result;
@@ -235,7 +244,7 @@ function arrayFilter(array, predicate) {
  * @returns {Array} Returns the new filtered array.
  */
 function arrayMap(array, iteratee) {
-  var index = -1;
+  var index = 0;
   var iterable = array;
 
   if (!Array.isArray(array)) {
@@ -246,10 +255,12 @@ function arrayMap(array, iteratee) {
   var result = [];
   var resIndex = -1;
 
-  while (++index < length) {
+  while (index < length) {
     var value = iterable[index];
 
-    result[++resIndex] = iteratee(value, index, iterable);
+    resIndex += 1;
+    result[resIndex] = iteratee(value, index, iterable);
+    index += 1;
   }
 
   return result;
@@ -266,7 +277,7 @@ function arrayMap(array, iteratee) {
  * @returns {Array} Returns `array`.
  */
 function arrayEach(array, iteratee) {
-  var index = -1;
+  var index = 0;
   var iterable = array;
 
   if (!Array.isArray(array)) {
@@ -275,10 +286,12 @@ function arrayEach(array, iteratee) {
 
   var length = iterable.length;
 
-  while (++index < length) {
+  while (index < length) {
     if (iteratee(iterable[index], index, iterable) === false) {
       break;
     }
+
+    index += 1;
   }
 
   return array;
@@ -546,15 +559,17 @@ function mixin(Base) {
       if (typeof value === 'function') {
         Base.prototype[key] = value;
       } else {
-        var getter = function _getter(propertyName, initialValue) {
-          propertyName = '_' + propertyName;
+        var getter = function _getter(property, initialValue) {
+          var propertyName = '_' + property;
 
           var initValue = function initValue(newValue) {
-            if (Array.isArray(newValue) || isObject(newValue)) {
-              newValue = deepClone(newValue);
+            var result = newValue;
+
+            if (Array.isArray(result) || isObject(result)) {
+              result = deepClone(result);
             }
 
-            return newValue;
+            return result;
           };
 
           return function () {
@@ -565,8 +580,8 @@ function mixin(Base) {
             return this[propertyName];
           };
         };
-        var setter = function _setter(propertyName) {
-          propertyName = '_' + propertyName;
+        var setter = function _setter(property) {
+          var propertyName = '_' + property;
 
           return function (newValue) {
             this[propertyName] = newValue;
@@ -622,6 +637,7 @@ function defineGetter(object, property, value, options) {
  * @returns {Object} Returns `object`.
  */
 function objectEach(object, iteratee) {
+  // eslint-disable-next-line no-restricted-syntax
   for (var key in object) {
     if (!object.hasOwnProperty || object.hasOwnProperty && Object.prototype.hasOwnProperty.call(object, key)) {
       if (iteratee(object[key], key, object) === false) {
@@ -675,7 +691,7 @@ function deepObjectSize(object) {
         result += recursObjLen(key);
       });
     } else {
-      result++;
+      result += 1;
     }
 
     return result;
@@ -785,7 +801,7 @@ exports.isOutsideInput = isOutsideInput;
 
 var _browser = __webpack_require__(50);
 
-var _feature = __webpack_require__(42);
+var _feature = __webpack_require__(41);
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -801,18 +817,19 @@ function getParent(element) {
 
   var iteration = -1;
   var parent = null;
+  var elementToCheck = element;
 
-  while (element != null) {
+  while (elementToCheck !== null) {
     if (iteration === level) {
-      parent = element;
+      parent = elementToCheck;
       break;
     }
 
-    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      element = element.host;
+    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = elementToCheck.host;
     } else {
-      iteration++;
-      element = element.parentNode;
+      iteration += 1;
+      elementToCheck = elementToCheck.parentNode;
     }
   }
 
@@ -829,14 +846,16 @@ function getParent(element) {
  * @returns {HTMLElement|null}
  */
 function closest(element, nodes, until) {
-  while (element != null && element !== until) {
-    if (element.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
-      return element;
+  var elementToCheck = element;
+
+  while (elementToCheck !== null && elementToCheck !== until) {
+    if (elementToCheck.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(elementToCheck.nodeName) > -1 || nodes.indexOf(elementToCheck) > -1)) {
+      return elementToCheck;
     }
-    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      element = element.host;
+    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = elementToCheck.host;
     } else {
-      element = element.parentNode;
+      elementToCheck = elementToCheck.parentNode;
     }
   }
 
@@ -853,19 +872,20 @@ function closest(element, nodes, until) {
  */
 function closestDown(element, nodes, until) {
   var matched = [];
+  var elementToCheck = element;
 
-  while (element) {
-    element = closest(element, nodes, until);
+  while (elementToCheck) {
+    elementToCheck = closest(elementToCheck, nodes, until);
 
-    if (!element || until && !until.contains(element)) {
+    if (!elementToCheck || until && !until.contains(elementToCheck)) {
       break;
     }
-    matched.push(element);
+    matched.push(elementToCheck);
 
-    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      element = element.host;
+    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = elementToCheck.host;
     } else {
-      element = element.parentNode;
+      elementToCheck = elementToCheck.parentNode;
     }
   }
   var length = matched.length;
@@ -891,7 +911,7 @@ function isChildOf(child, parent) {
     queriedParents.push(parent);
   }
 
-  while (node != null) {
+  while (node !== null) {
     if (queriedParents.indexOf(node) > -1) {
       return true;
     }
@@ -916,7 +936,7 @@ function isChildOfWebComponentTable(element) {
     return testElement.nodeType === Node.ELEMENT_NODE && testElement.nodeName === hotTableName.toUpperCase();
   }
 
-  while (parentNode != null) {
+  while (parentNode !== null) {
     if (isHotTable(parentNode)) {
       result = true;
       break;
@@ -934,6 +954,8 @@ function isChildOfWebComponentTable(element) {
   return result;
 }
 
+/* global Polymer wrap unwrap */
+
 /**
  * Wrap element into polymer/webcomponent container if exists
  *
@@ -941,7 +963,6 @@ function isChildOfWebComponentTable(element) {
  * @returns {*}
  */
 function polymerWrap(element) {
-  /* global Polymer */
   return typeof Polymer !== 'undefined' && typeof wrap === 'function' ? wrap(element) : element;
 }
 
@@ -952,7 +973,6 @@ function polymerWrap(element) {
  * @returns {*}
  */
 function polymerUnwrap(element) {
-  /* global Polymer */
   return typeof Polymer !== 'undefined' && typeof unwrap === 'function' ? unwrap(element) : element;
 }
 
@@ -967,11 +987,12 @@ function polymerUnwrap(element) {
  */
 function index(element) {
   var i = 0;
+  var elementToCheck = element;
 
-  if (element.previousSibling) {
+  if (elementToCheck.previousSibling) {
     /* eslint-disable no-cond-assign */
-    while (element = element.previousSibling) {
-      ++i;
+    while (elementToCheck = elementToCheck.previousSibling) {
+      i += 1;
     }
   }
 
@@ -1006,7 +1027,7 @@ function filterEmptyClassNames(classNames) {
 
   while (classNames[len]) {
     result.push(classNames[len]);
-    len++;
+    len += 1;
   }
 
   return result;
@@ -1029,7 +1050,9 @@ if (classListSupport) {
     return element.classList.contains(className);
   };
 
-  _addClass = function _addClass(element, className) {
+  _addClass = function _addClass(element, classes) {
+    var className = classes;
+
     if (typeof className === 'string') {
       className = className.split(' ');
     }
@@ -1046,13 +1069,15 @@ if (classListSupport) {
 
         while (className && className[len]) {
           element.classList.add(className[len]);
-          len++;
+          len += 1;
         }
       }
     }
   };
 
-  _removeClass = function _removeClass(element, className) {
+  _removeClass = function _removeClass(element, classes) {
+    var className = classes;
+
     if (typeof className === 'string') {
       className = className.split(' ');
     }
@@ -1069,7 +1094,7 @@ if (classListSupport) {
 
         while (className && className[len]) {
           element.classList.remove(className[len]);
-          len++;
+          len += 1;
         }
       }
     }
@@ -1084,9 +1109,10 @@ if (classListSupport) {
     return element.className !== void 0 && createClassNameRegExp(className).test(element.className);
   };
 
-  _addClass = function _addClass(element, className) {
+  _addClass = function _addClass(element, classes) {
     var len = 0;
     var _className = element.className;
+    var className = classes;
 
     if (typeof className === 'string') {
       className = className.split(' ');
@@ -1098,15 +1124,16 @@ if (classListSupport) {
         if (!createClassNameRegExp(className[len]).test(_className)) {
           _className += ' ' + className[len];
         }
-        len++;
+        len += 1;
       }
     }
     element.className = _className;
   };
 
-  _removeClass = function _removeClass(element, className) {
+  _removeClass = function _removeClass(element, classes) {
     var len = 0;
     var _className = element.className;
+    var className = classes;
 
     if (typeof className === 'string') {
       className = className.split(' ');
@@ -1114,7 +1141,7 @@ if (classListSupport) {
     while (className && className[len]) {
       // String.prototype.trim is defined in polyfill.js
       _className = _className.replace(createClassNameRegExp(className[len]), ' ').trim();
-      len++;
+      len += 1;
     }
     if (element.className !== _className) {
       element.className = _className;
@@ -1268,37 +1295,36 @@ function isVisible(elem) {
  * @return {Object} Returns object with `top` and `left` props
  */
 function offset(elem) {
+  var docElem = document.documentElement;
+  var elementToCheck = elem;
   var offsetLeft = void 0;
   var offsetTop = void 0;
   var lastElem = void 0;
-  var docElem = void 0;
   var box = void 0;
 
-  docElem = document.documentElement;
-
-  if ((0, _feature.hasCaptionProblem)() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
+  if ((0, _feature.hasCaptionProblem)() && elementToCheck.firstChild && elementToCheck.firstChild.nodeName === 'CAPTION') {
     // fixes problem with Firefox ignoring <caption> in TABLE offset (see also export outerHeight)
     // http://jsperf.com/offset-vs-getboundingclientrect/8
-    box = elem.getBoundingClientRect();
+    box = elementToCheck.getBoundingClientRect();
 
     return {
       top: box.top + (window.pageYOffset || docElem.scrollTop) - (docElem.clientTop || 0),
       left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0)
     };
   }
-  offsetLeft = elem.offsetLeft;
-  offsetTop = elem.offsetTop;
-  lastElem = elem;
+  offsetLeft = elementToCheck.offsetLeft;
+  offsetTop = elementToCheck.offsetTop;
+  lastElem = elementToCheck;
 
   /* eslint-disable no-cond-assign */
-  while (elem = elem.offsetParent) {
+  while (elementToCheck = elementToCheck.offsetParent) {
     // from my observation, document.body always has scrollLeft/scrollTop == 0
-    if (elem === document.body) {
+    if (elementToCheck === document.body) {
       break;
     }
-    offsetLeft += elem.offsetLeft;
-    offsetTop += elem.offsetTop;
-    lastElem = elem;
+    offsetLeft += elementToCheck.offsetLeft;
+    offsetTop += elementToCheck.offsetTop;
+    lastElem = elementToCheck;
   }
 
   // slow - http://jsperf.com/offset-vs-getboundingclientrect/6
@@ -2008,18 +2034,17 @@ var registeredPlugins = new WeakMap();
  * Utility to register plugins and common namespace for keeping reference to all plugins classes
  */
 function registerPlugin(pluginName, PluginClass) {
-  pluginName = (0, _string.toUpperCaseFirst)(pluginName);
+  var correctedPluginName = (0, _string.toUpperCaseFirst)(pluginName);
 
   _pluginHooks2.default.getSingleton().add('construct', function () {
-    var holder = void 0;
-
     if (!registeredPlugins.has(this)) {
       registeredPlugins.set(this, {});
     }
-    holder = registeredPlugins.get(this);
 
-    if (!holder[pluginName]) {
-      holder[pluginName] = new PluginClass(this);
+    var holder = registeredPlugins.get(this);
+
+    if (!holder[correctedPluginName]) {
+      holder[correctedPluginName] = new PluginClass(this);
     }
   });
   _pluginHooks2.default.getSingleton().add('afterDestroy', function () {
@@ -2094,9 +2119,9 @@ exports.getPluginName = getPluginName;
 
 var global = __webpack_require__(16);
 var core = __webpack_require__(48);
-var hide = __webpack_require__(38);
-var redefine = __webpack_require__(37);
-var ctx = __webpack_require__(39);
+var hide = __webpack_require__(37);
+var redefine = __webpack_require__(36);
+var ctx = __webpack_require__(38);
 var PROTOTYPE = 'prototype';
 
 var $export = function (type, name, source) {
@@ -2152,7 +2177,7 @@ var _object = __webpack_require__(1);
 
 var _array = __webpack_require__(0);
 
-var _recordTranslator = __webpack_require__(55);
+var _recordTranslator = __webpack_require__(54);
 
 var _plugins = __webpack_require__(5);
 
@@ -2634,7 +2659,7 @@ var _element = __webpack_require__(2);
 
 var _object = __webpack_require__(1);
 
-var _feature = __webpack_require__(42);
+var _feature = __webpack_require__(41);
 
 var _event = __webpack_require__(12);
 
@@ -2689,10 +2714,9 @@ var EventManager = function () {
       var context = this.context;
 
       function callbackProxy(event) {
-        event = extendEvent(context, event);
-
-        callback.call(this, event);
+        callback.call(this, extendEvent(context, event));
       }
+
       this.context.eventListeners.push({
         element: element,
         event: eventName,
@@ -2705,7 +2729,8 @@ var EventManager = function () {
       } else {
         element.attachEvent('on' + eventName, callbackProxy);
       }
-      listenersCounter++;
+
+      listenersCounter += 1;
 
       return function () {
         _this.removeEventListener(element, eventName, callback);
@@ -2726,7 +2751,8 @@ var EventManager = function () {
       var len = this.context.eventListeners.length;
       var tmpEvent = void 0;
 
-      while (len--) {
+      while (len) {
+        len -= 1;
         tmpEvent = this.context.eventListeners[len];
 
         if (tmpEvent.event === eventName && tmpEvent.element === element) {
@@ -2741,7 +2767,7 @@ var EventManager = function () {
           } else {
             tmpEvent.element.detachEvent('on' + tmpEvent.event, tmpEvent.callbackProxy);
           }
-          listenersCounter--;
+          listenersCounter -= 1;
         }
       }
     }
@@ -2761,7 +2787,8 @@ var EventManager = function () {
       }
       var len = this.context.eventListeners.length;
 
-      while (len--) {
+      while (len) {
+        len -= 1;
         var event = this.context.eventListeners[len];
 
         if (event) {
@@ -2852,12 +2879,12 @@ function extendEvent(context, event) {
   var realTarget = void 0;
   var target = void 0;
   var len = void 0;
-  var nativeStopImmediatePropagation = void 0;
 
   event.isTargetWebComponent = false;
   event.realTarget = event.target;
 
-  nativeStopImmediatePropagation = event.stopImmediatePropagation;
+  var nativeStopImmediatePropagation = event.stopImmediatePropagation;
+
   event.stopImmediatePropagation = function () {
     nativeStopImmediatePropagation.apply(this);
     (0, _event.stopImmediatePropagation)(this);
@@ -2866,10 +2893,13 @@ function extendEvent(context, event) {
   if (!EventManager.isHotTableEnv) {
     return event;
   }
+  // eslint-disable-next-line no-param-reassign
   event = (0, _element.polymerWrap)(event);
   len = event.path ? event.path.length : 0;
 
-  while (len--) {
+  while (len) {
+    len -= 1;
+
     if (event.path[len].nodeName === componentName) {
       isHotTableSpotted = true;
     } else if (isHotTableSpotted && event.path[len].shadowRoot) {
@@ -2924,7 +2954,7 @@ function extendEvent(context, event) {
 exports.default = EventManager;
 function getListenersCounter() {
   return listenersCounter;
-};
+}
 
 /***/ }),
 /* 10 */
@@ -2954,13 +2984,14 @@ function getCondition(name, args) {
       condition = _conditions$name.condition,
       descriptor = _conditions$name.descriptor;
 
+  var conditionArguments = args;
 
   if (descriptor.inputValuesDecorator) {
-    args = descriptor.inputValuesDecorator(args);
+    conditionArguments = descriptor.inputValuesDecorator(conditionArguments);
   }
 
   return function (dataRow) {
-    return condition.apply(dataRow.meta.instance, [].concat([dataRow], [args]));
+    return condition.apply(dataRow.meta.instance, [].concat([dataRow], [conditionArguments]));
   };
 }
 
@@ -3127,7 +3158,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment2.default)('16/08/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment2.default)('12/09/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       var keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
@@ -5088,7 +5119,7 @@ var Hooks = function () {
   _createClass(Hooks, null, [{
     key: 'getSingleton',
     value: function getSingleton() {
-      return globalSingleton;
+      return getGlobalSingleton();
     }
 
     /**
@@ -5341,13 +5372,14 @@ var Hooks = function () {
     value: function run(context, key, p1, p2, p3, p4, p5, p6) {
       {
         var globalHandlers = this.globalBucket[key];
-        var index = -1;
         var length = globalHandlers ? globalHandlers.length : 0;
+        var index = 0;
 
         if (length) {
           // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-          while (++index < length) {
+          while (index < length) {
             if (!globalHandlers[index] || globalHandlers[index].skip) {
+              index += 1;
               /* eslint-disable no-continue */
               continue;
             }
@@ -5355,23 +5387,27 @@ var Hooks = function () {
             var res = globalHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
 
             if (res !== void 0) {
+              // eslint-disable-next-line no-param-reassign
               p1 = res;
             }
             if (globalHandlers[index] && globalHandlers[index].runOnce) {
               this.remove(key, globalHandlers[index]);
             }
+
+            index += 1;
           }
         }
       }
       {
         var localHandlers = this.getBucket(context)[key];
-        var _index = -1;
         var _length = localHandlers ? localHandlers.length : 0;
+        var _index = 0;
 
         if (_length) {
           // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-          while (++_index < _length) {
+          while (_index < _length) {
             if (!localHandlers[_index] || localHandlers[_index].skip) {
+              _index += 1;
               /* eslint-disable no-continue */
               continue;
             }
@@ -5379,11 +5415,14 @@ var Hooks = function () {
             var _res = localHandlers[_index].call(context, p1, p2, p3, p4, p5, p6);
 
             if (_res !== void 0) {
+              // eslint-disable-next-line no-param-reassign
               p1 = _res;
             }
             if (localHandlers[_index] && localHandlers[_index].runOnce) {
               this.remove(key, localHandlers[_index], context);
             }
+
+            _index += 1;
           }
         }
       }
@@ -5510,6 +5549,10 @@ var Hooks = function () {
 }();
 
 var globalSingleton = new Hooks();
+
+function getGlobalSingleton() {
+  return globalSingleton;
+}
 
 exports.default = Hooks;
 
@@ -5987,22 +6030,19 @@ function prepareVerticalAlignClass(className, alignment) {
   if (className.indexOf(alignment) !== -1) {
     return className;
   }
-  className = className.replace('htTop', '').replace('htMiddle', '').replace('htBottom', '').replace('  ', '');
 
-  className += ' ' + alignment;
+  var replacedClassName = className.replace('htTop', '').replace('htMiddle', '').replace('htBottom', '').replace('  ', '');
 
-  return className;
+  return replacedClassName + ' ' + alignment;
 }
 
 function prepareHorizontalAlignClass(className, alignment) {
   if (className.indexOf(alignment) !== -1) {
     return className;
   }
-  className = className.replace('htLeft', '').replace('htCenter', '').replace('htRight', '').replace('htJustify', '').replace('  ', '');
+  var replacedClassName = className.replace('htLeft', '').replace('htCenter', '').replace('htRight', '').replace('htJustify', '').replace('  ', '');
 
-  className += ' ' + alignment;
-
-  return className;
+  return replacedClassName + ' ' + alignment;
 }
 
 function getAlignmentClasses(ranges, callback) {
@@ -6220,7 +6260,14 @@ function log() {
 
     (_console = console).log.apply(_console, arguments);
   }
-} /* eslint-disable no-console */
+}
+
+/**
+ * Logs warn to the console if the `console` object is exposed.
+ *
+ * @param {...*} args Values which will be logged.
+ */
+/* eslint-disable no-console */
 /* eslint-disable no-restricted-globals */
 
 /**
@@ -6230,20 +6277,13 @@ function log() {
  * Source: https://stackoverflow.com/a/5473193
  */
 
-;
-
-/**
- * Logs warn to the console if the `console` object is exposed.
- *
- * @param {...*} args Values which will be logged.
- */
 function warn() {
   if ((0, _mixed.isDefined)(console)) {
     var _console2;
 
     (_console2 = console).warn.apply(_console2, arguments);
   }
-};
+}
 
 /**
  * Logs info to the console if the `console` object is exposed.
@@ -6256,7 +6296,7 @@ function info() {
 
     (_console3 = console).info.apply(_console3, arguments);
   }
-};
+}
 
 /**
  * Logs error to the console if the `console` object is exposed.
@@ -6269,7 +6309,7 @@ function error() {
 
     (_console4 = console).error.apply(_console4, arguments);
   }
-};
+}
 
 /***/ }),
 /* 26 */
@@ -6376,7 +6416,8 @@ function equalsIgnoreCase() {
 
   var length = strings.length;
 
-  while (length--) {
+  while (length) {
+    length -= 1;
     var string = (0, _mixed.stringify)(strings[length]).toLowerCase();
 
     if (unique.indexOf(string) === -1) {
@@ -6440,9 +6481,7 @@ var STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|/][^>]*>/gi;
  * @return {String}
  */
 function stripTags(string) {
-  string += '';
-
-  return string.replace(STRIP_TAGS_REGEX, '');
+  return ('' + string).replace(STRIP_TAGS_REGEX, '');
 }
 
 /***/ }),
@@ -6916,7 +6955,7 @@ function throttleAfterHits(func) {
     }
 
     if (remainHits) {
-      remainHits--;
+      remainHits -= 1;
 
       return func.apply(this, args);
     }
@@ -7106,83 +7145,6 @@ function curryRight(func) {
 
 /***/ }),
 /* 35 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.isFormulaExpression = isFormulaExpression;
-exports.isFormulaExpressionEscaped = isFormulaExpressionEscaped;
-exports.unescapeFormulaExpression = unescapeFormulaExpression;
-exports.toUpperCaseFormula = toUpperCaseFormula;
-exports.cellCoordFactory = cellCoordFactory;
-/**
- * Check if provided expression is valid formula expression.
- *
- * @param {*} expression Expression to check.
- * @returns {Boolean}
- */
-function isFormulaExpression(expression) {
-  return typeof expression === 'string' && expression.length >= 2 && expression.charAt(0) === '=';
-}
-
-/**
- * Check if provided formula expression is escaped.
- *
- * @param {*} expression Expression to check.
- * @returns {Boolean}
- */
-function isFormulaExpressionEscaped(expression) {
-  return typeof expression === 'string' && expression.charAt(0) === '\'' && expression.charAt(1) === '=';
-}
-
-/**
- * Replace escaped formula expression into valid string.
- *
- * @param {String} expression Expression to process.
- * @returns {String}
- */
-function unescapeFormulaExpression(expression) {
-  return isFormulaExpressionEscaped(expression) ? expression.substr(1) : expression;
-}
-
-/**
- * Upper case formula expression.
- *
- * @param {String} expression Formula expression.
- * @returns {String}
- */
-function toUpperCaseFormula(expression) {
-  var PATTERN = /(\\"|"(?:\\"|[^"])*"|(\+))|(\\'|'(?:\\'|[^'])*'|(\+))/g;
-  var strings = expression.match(PATTERN) || [];
-  var index = -1;
-
-  return expression.toUpperCase().replace(PATTERN, function () {
-    ++index;
-
-    return strings[index];
-  });
-}
-
-/**
- * Cell coordinates function factory.
- *
- * @param {String} axis An axis name (`row` or `column`) which default index will be applied to.
- * @param {Number} defaultIndex Default index.
- * @returns {Function}
- */
-function cellCoordFactory(axis, defaultIndex) {
-  return function (cell) {
-    return {
-      row: axis === 'row' ? defaultIndex : cell.row,
-      column: axis === 'column' ? defaultIndex : cell.column
-    };
-  };
-}
-
-/***/ }),
-/* 36 */
 /***/ (function(module, exports) {
 
 var hasOwnProperty = {}.hasOwnProperty;
@@ -7192,12 +7154,12 @@ module.exports = function (it, key) {
 
 
 /***/ }),
-/* 37 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(16);
-var hide = __webpack_require__(38);
-var has = __webpack_require__(36);
+var hide = __webpack_require__(37);
+var has = __webpack_require__(35);
 var SRC = __webpack_require__(58)('src');
 var TO_STRING = 'toString';
 var $toString = Function[TO_STRING];
@@ -7229,7 +7191,7 @@ __webpack_require__(48).inspectSource = function (it) {
 
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var dP = __webpack_require__(23);
@@ -7243,7 +7205,7 @@ module.exports = __webpack_require__(26) ? function (object, key, value) {
 
 
 /***/ }),
-/* 39 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // optional / simple context binding
@@ -7269,7 +7231,7 @@ module.exports = function (fn, that, length) {
 
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.1.13 ToObject(argument)
@@ -7280,12 +7242,12 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 41 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var META = __webpack_require__(58)('meta');
 var isObject = __webpack_require__(13);
-var has = __webpack_require__(36);
+var has = __webpack_require__(35);
 var setDesc = __webpack_require__(23).f;
 var id = 0;
 var isExtensible = Object.isExtensible || function () {
@@ -7339,7 +7301,7 @@ var meta = module.exports = {
 
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7487,7 +7449,7 @@ function getComparisonFunction(language) {
 }
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7554,7 +7516,7 @@ exports.getRegisteredValidatorNames = getNames;
 exports.getRegisteredValidators = getValues;
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7734,6 +7696,83 @@ function addItem(key, item) {
   if (ITEMS.indexOf(key) === -1) {
     _predefinedItems[key] = item;
   }
+}
+
+/***/ }),
+/* 44 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.isFormulaExpression = isFormulaExpression;
+exports.isFormulaExpressionEscaped = isFormulaExpressionEscaped;
+exports.unescapeFormulaExpression = unescapeFormulaExpression;
+exports.toUpperCaseFormula = toUpperCaseFormula;
+exports.cellCoordFactory = cellCoordFactory;
+/**
+ * Check if provided expression is valid formula expression.
+ *
+ * @param {*} expression Expression to check.
+ * @returns {Boolean}
+ */
+function isFormulaExpression(expression) {
+  return typeof expression === 'string' && expression.length >= 2 && expression.charAt(0) === '=';
+}
+
+/**
+ * Check if provided formula expression is escaped.
+ *
+ * @param {*} expression Expression to check.
+ * @returns {Boolean}
+ */
+function isFormulaExpressionEscaped(expression) {
+  return typeof expression === 'string' && expression.charAt(0) === '\'' && expression.charAt(1) === '=';
+}
+
+/**
+ * Replace escaped formula expression into valid string.
+ *
+ * @param {String} expression Expression to process.
+ * @returns {String}
+ */
+function unescapeFormulaExpression(expression) {
+  return isFormulaExpressionEscaped(expression) ? expression.substr(1) : expression;
+}
+
+/**
+ * Upper case formula expression.
+ *
+ * @param {String} expression Formula expression.
+ * @returns {String}
+ */
+function toUpperCaseFormula(expression) {
+  var PATTERN = /(\\"|"(?:\\"|[^"])*"|(\+))|(\\'|'(?:\\'|[^'])*'|(\+))/g;
+  var strings = expression.match(PATTERN) || [];
+  var index = -1;
+
+  return expression.toUpperCase().replace(PATTERN, function () {
+    index += 1;
+
+    return strings[index];
+  });
+}
+
+/**
+ * Cell coordinates function factory.
+ *
+ * @param {String} axis An axis name (`row` or `column`) which default index will be applied to.
+ * @param {Number} defaultIndex Default index.
+ * @returns {Function}
+ */
+function cellCoordFactory(axis, defaultIndex) {
+  return function (cell) {
+    return {
+      row: axis === 'row' ? defaultIndex : cell.row,
+      column: axis === 'column' ? defaultIndex : cell.column
+    };
+  };
 }
 
 /***/ }),
@@ -8246,6 +8285,234 @@ function isSafari() {
 
 /***/ }),
 /* 51 */
+/***/ (function(module, exports) {
+
+var toString = {}.toString;
+
+module.exports = function (it) {
+  return toString.call(it).slice(8, -1);
+};
+
+
+/***/ }),
+/* 52 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var isObject = __webpack_require__(13);
+module.exports = function (it, TYPE) {
+  if (!isObject(it) || it._t !== TYPE) throw TypeError('Incompatible receiver, ' + TYPE + ' required!');
+  return it;
+};
+
+
+/***/ }),
+/* 53 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 22.1.3.31 Array.prototype[@@unscopables]
+var UNSCOPABLES = __webpack_require__(14)('unscopables');
+var ArrayProto = Array.prototype;
+if (ArrayProto[UNSCOPABLES] == undefined) __webpack_require__(37)(ArrayProto, UNSCOPABLES, {});
+module.exports = function (key) {
+  ArrayProto[UNSCOPABLES][key] = true;
+};
+
+
+/***/ }),
+/* 54 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.RecordTranslator = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+exports.registerIdentity = registerIdentity;
+exports.getTranslator = getTranslator;
+exports.getIdentity = getIdentity;
+
+var _core = __webpack_require__(156);
+
+var _core2 = _interopRequireDefault(_core);
+
+var _object = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * @class RecordTranslator
+ * @util
+ */
+var RecordTranslator = exports.RecordTranslator = function () {
+  function RecordTranslator(hot) {
+    _classCallCheck(this, RecordTranslator);
+
+    this.hot = hot;
+  }
+
+  /**
+   * Translate physical row index into visual.
+   *
+   * @param {Number} row Physical row index.
+   * @returns {Number} Returns visual row index.
+   */
+
+
+  _createClass(RecordTranslator, [{
+    key: 'toVisualRow',
+    value: function toVisualRow(row) {
+      return this.hot.runHooks('unmodifyRow', row);
+    }
+
+    /**
+     * Translate physical column index into visual.
+     *
+     * @param {Number} column Physical column index.
+     * @returns {Number} Returns visual column index.
+     */
+
+  }, {
+    key: 'toVisualColumn',
+    value: function toVisualColumn(column) {
+      return this.hot.runHooks('unmodifyCol', column);
+    }
+
+    /**
+     * Translate physical coordinates into visual. Can be passed as separate 2 arguments (row, column) or as an object in first
+     * argument with `row` and `column` keys.
+     *
+     * @param {Number|Object} row Physical coordinates or row index.
+     * @param {Number} [column] Physical column index.
+     * @returns {Object|Array} Returns an object with visual records or an array if coordinates passed as separate arguments.
+     */
+
+  }, {
+    key: 'toVisual',
+    value: function toVisual(row, column) {
+      var result = void 0;
+
+      if ((0, _object.isObject)(row)) {
+        result = {
+          row: this.toVisualRow(row.row),
+          column: this.toVisualColumn(row.column)
+        };
+      } else {
+        result = [this.toVisualRow(row), this.toVisualColumn(column)];
+      }
+
+      return result;
+    }
+
+    /**
+     * Translate visual row index into physical.
+     *
+     * @param {Number} row Visual row index.
+     * @returns {Number} Returns physical row index.
+     */
+
+  }, {
+    key: 'toPhysicalRow',
+    value: function toPhysicalRow(row) {
+      return this.hot.runHooks('modifyRow', row);
+    }
+
+    /**
+     * Translate visual column index into physical.
+     *
+     * @param {Number} column Visual column index.
+     * @returns {Number} Returns physical column index.
+     */
+
+  }, {
+    key: 'toPhysicalColumn',
+    value: function toPhysicalColumn(column) {
+      return this.hot.runHooks('modifyCol', column);
+    }
+
+    /**
+     * Translate visual coordinates into physical. Can be passed as separate 2 arguments (row, column) or as an object in first
+     * argument with `row` and `column` keys.
+     *
+     * @param {Number|Object} row Visual coordinates or row index.
+     * @param {Number} [column] Visual column index.
+     * @returns {Object|Array} Returns an object with physical records or an array if coordinates passed as separate arguments.
+     */
+
+  }, {
+    key: 'toPhysical',
+    value: function toPhysical(row, column) {
+      var result = void 0;
+
+      if ((0, _object.isObject)(row)) {
+        result = {
+          row: this.toPhysicalRow(row.row),
+          column: this.toPhysicalColumn(row.column)
+        };
+      } else {
+        result = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];
+      }
+
+      return result;
+    }
+  }]);
+
+  return RecordTranslator;
+}();
+
+var identities = new WeakMap();
+var translatorSingletons = new WeakMap();
+
+/**
+ * Allows to register custom identity manually.
+ *
+ * @param {*} identity
+ * @param {*} hot
+ */
+function registerIdentity(identity, hot) {
+  identities.set(identity, hot);
+}
+
+/**
+ * Returns a cached instance of RecordTranslator or create the new one for given identity.
+ *
+ * @param {*} identity
+ * @returns {RecordTranslator}
+ */
+function getTranslator(identity) {
+  var instance = identity instanceof _core2.default ? identity : getIdentity(identity);
+  var singleton = void 0;
+
+  if (translatorSingletons.has(instance)) {
+    singleton = translatorSingletons.get(instance);
+  } else {
+    singleton = new RecordTranslator(instance);
+    translatorSingletons.set(instance, singleton);
+  }
+
+  return singleton;
+}
+
+/**
+ * Returns mapped identity.
+ *
+ * @param {*} identity
+ * @returns {*}
+ */
+function getIdentity(identity) {
+  if (!identities.has(identity)) {
+    throw Error('Record translator was not registered for this object identity');
+  }
+
+  return identities.get(identity);
+}
+
+/***/ }),
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8373,22 +8640,25 @@ var arrayMapper = {
     function countRowShift(logicalRow) {
       // Todo: compare perf between reduce vs sort->each->brake
       return (0, _array.arrayReduce)(removedItems, function (count, removedLogicalRow) {
+        var result = count;
+
         if (logicalRow > removedLogicalRow) {
-          count++;
+          result += 1;
         }
 
-        return count;
+        return result;
       }, 0);
     }
 
     this._arrayMap = (0, _array.arrayMap)(this._arrayMap, function (logicalRow) {
-      var rowShift = countRowShift(logicalRow);
+      var logicalRowIndex = logicalRow;
+      var rowShift = countRowShift(logicalRowIndex);
 
       if (rowShift) {
-        logicalRow -= rowShift;
+        logicalRowIndex -= rowShift;
       }
 
-      return logicalRow;
+      return logicalRowIndex;
     });
   },
 
@@ -8405,10 +8675,13 @@ var arrayMapper = {
     var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
 
     this._arrayMap = (0, _array.arrayMap)(this._arrayMap, function (row) {
-      if (row >= physicalIndex) {
-        row += amount;
+      var physicalRowIndex = row;
+
+      if (physicalRowIndex >= physicalIndex) {
+        physicalRowIndex += amount;
       }
-      return row;
+
+      return physicalRowIndex;
     });
 
     (0, _number.rangeEach)(amount - 1, function (count) {
@@ -8444,215 +8717,6 @@ var arrayMapper = {
 });
 
 exports.default = arrayMapper;
-
-/***/ }),
-/* 52 */
-/***/ (function(module, exports) {
-
-var toString = {}.toString;
-
-module.exports = function (it) {
-  return toString.call(it).slice(8, -1);
-};
-
-
-/***/ }),
-/* 53 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var isObject = __webpack_require__(13);
-module.exports = function (it, TYPE) {
-  if (!isObject(it) || it._t !== TYPE) throw TypeError('Incompatible receiver, ' + TYPE + ' required!');
-  return it;
-};
-
-
-/***/ }),
-/* 54 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 22.1.3.31 Array.prototype[@@unscopables]
-var UNSCOPABLES = __webpack_require__(14)('unscopables');
-var ArrayProto = Array.prototype;
-if (ArrayProto[UNSCOPABLES] == undefined) __webpack_require__(38)(ArrayProto, UNSCOPABLES, {});
-module.exports = function (key) {
-  ArrayProto[UNSCOPABLES][key] = true;
-};
-
-
-/***/ }),
-/* 55 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.RecordTranslator = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-exports.registerIdentity = registerIdentity;
-exports.getTranslator = getTranslator;
-
-var _core = __webpack_require__(156);
-
-var _core2 = _interopRequireDefault(_core);
-
-var _object = __webpack_require__(1);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * @class RecordTranslator
- * @util
- */
-var RecordTranslator = function () {
-  function RecordTranslator(hot) {
-    _classCallCheck(this, RecordTranslator);
-
-    this.hot = hot;
-  }
-
-  /**
-   * Translate physical row index into visual.
-   *
-   * @param {Number} row Physical row index.
-   * @returns {Number} Returns visual row index.
-   */
-
-
-  _createClass(RecordTranslator, [{
-    key: 'toVisualRow',
-    value: function toVisualRow(row) {
-      return this.hot.runHooks('unmodifyRow', row);
-    }
-
-    /**
-     * Translate physical column index into visual.
-     *
-     * @param {Number} column Physical column index.
-     * @returns {Number} Returns visual column index.
-     */
-
-  }, {
-    key: 'toVisualColumn',
-    value: function toVisualColumn(column) {
-      return this.hot.runHooks('unmodifyCol', column);
-    }
-
-    /**
-     * Translate physical coordinates into visual. Can be passed as separate 2 arguments (row, column) or as an object in first
-     * argument with `row` and `column` keys.
-     *
-     * @param {Number|Object} row Physical coordinates or row index.
-     * @param {Number} [column] Physical column index.
-     * @returns {Object|Array} Returns an object with visual records or an array if coordinates passed as separate arguments.
-     */
-
-  }, {
-    key: 'toVisual',
-    value: function toVisual(row, column) {
-      var result = void 0;
-
-      if ((0, _object.isObject)(row)) {
-        result = {
-          row: this.toVisualRow(row.row),
-          column: this.toVisualColumn(row.column)
-        };
-      } else {
-        result = [this.toVisualRow(row), this.toVisualColumn(column)];
-      }
-
-      return result;
-    }
-
-    /**
-     * Translate visual row index into physical.
-     *
-     * @param {Number} row Visual row index.
-     * @returns {Number} Returns physical row index.
-     */
-
-  }, {
-    key: 'toPhysicalRow',
-    value: function toPhysicalRow(row) {
-      return this.hot.runHooks('modifyRow', row);
-    }
-
-    /**
-     * Translate visual column index into physical.
-     *
-     * @param {Number} column Visual column index.
-     * @returns {Number} Returns physical column index.
-     */
-
-  }, {
-    key: 'toPhysicalColumn',
-    value: function toPhysicalColumn(column) {
-      return this.hot.runHooks('modifyCol', column);
-    }
-
-    /**
-     * Translate visual coordinates into physical. Can be passed as separate 2 arguments (row, column) or as an object in first
-     * argument with `row` and `column` keys.
-     *
-     * @param {Number|Object} row Visual coordinates or row index.
-     * @param {Number} [column] Visual column index.
-     * @returns {Object|Array} Returns an object with physical records or an array if coordinates passed as separate arguments.
-     */
-
-  }, {
-    key: 'toPhysical',
-    value: function toPhysical(row, column) {
-      var result = void 0;
-
-      if ((0, _object.isObject)(row)) {
-        result = {
-          row: this.toPhysicalRow(row.row),
-          column: this.toPhysicalColumn(row.column)
-        };
-      } else {
-        result = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];
-      }
-
-      return result;
-    }
-  }]);
-
-  return RecordTranslator;
-}();
-
-exports.RecordTranslator = RecordTranslator;
-
-
-var identities = new WeakMap();
-var translatorSingletons = new WeakMap();
-
-function registerIdentity(identity, hot) {
-  identities.set(identity, hot);
-}
-
-function getTranslator(identity) {
-  var singleton = void 0;
-
-  if (!(identity instanceof _core2.default)) {
-    if (!identities.has(identity)) {
-      throw Error('Record translator was not registered for this object identity');
-    }
-    identity = identities.get(identity);
-  }
-  if (translatorSingletons.has(identity)) {
-    singleton = translatorSingletons.get(identity);
-  } else {
-    singleton = new RecordTranslator(identity);
-    translatorSingletons.set(identity, singleton);
-  }
-
-  return singleton;
-}
 
 /***/ }),
 /* 56 */
@@ -8884,7 +8948,7 @@ module.exports = {};
 /***/ (function(module, exports, __webpack_require__) {
 
 var def = __webpack_require__(23).f;
-var has = __webpack_require__(36);
+var has = __webpack_require__(35);
 var TAG = __webpack_require__(14)('toStringTag');
 
 module.exports = function (it, tag, stat) {
@@ -9425,10 +9489,12 @@ TextEditor.prototype.hideEditableElement = function () {
   this.textareaParentStyle.top = '-9999px';
   this.textareaParentStyle.left = '-9999px';
   this.textareaParentStyle.zIndex = '-1';
+  this.textareaParentStyle.position = 'fixed';
 };
 
 TextEditor.prototype.showEditableElement = function () {
   this.textareaParentStyle.zIndex = this.holderZIndex >= 0 ? this.holderZIndex : '';
+  this.textareaParentStyle.position = '';
 };
 
 TextEditor.prototype.getValue = function () {
@@ -9456,10 +9522,9 @@ TextEditor.prototype.beginEditing = function () {
 var onBeforeKeyDown = function onBeforeKeyDown(event) {
   var instance = this;
   var that = instance.getActiveEditor();
-  var ctrlDown = void 0;
 
   // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-  ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+  var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
   // Process only events that have been fired in the editor
   if (event.target !== that.TEXTAREA || (0, _event.isImmediatePropagationStopped)(event)) {
@@ -9638,7 +9703,8 @@ TextEditor.prototype.getEditedCell = function () {
 };
 
 TextEditor.prototype.refreshValue = function () {
-  var sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
+  var physicalRow = this.instance.toPhysicalRow(this.row);
+  var sourceData = this.instance.getSourceDataAtCell(physicalRow, this.col);
   this.originalValue = sourceData;
 
   this.setValue(sourceData);
@@ -9744,7 +9810,7 @@ TextEditor.prototype.refreshDimensions = function () {
 
   this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
   this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
-  this.TEXTAREA.style.backgroundColor = backgroundColor ? backgroundColor : (0, _element.getComputedStyle)(this.TEXTAREA).backgroundColor;
+  this.TEXTAREA.style.backgroundColor = backgroundColor || (0, _element.getComputedStyle)(this.TEXTAREA).backgroundColor;
 
   this.autoResize.init(this.TEXTAREA, {
     minHeight: Math.min(height, maxHeight),
@@ -9808,7 +9874,7 @@ exports.toEmptyString = toEmptyString;
 exports.unifyColumnValues = unifyColumnValues;
 exports.intersectValues = intersectValues;
 
-var _feature = __webpack_require__(42);
+var _feature = __webpack_require__(41);
 
 var _array = __webpack_require__(0);
 
@@ -9837,11 +9903,13 @@ function sortComparison(a, b) {
  * @returns {*}
  */
 function toVisualValue(value, defaultEmptyValue) {
-  if (value === '') {
-    value = '(' + defaultEmptyValue + ')';
+  var visualValue = value;
+
+  if (visualValue === '') {
+    visualValue = '(' + defaultEmptyValue + ')';
   }
 
-  return value;
+  return visualValue;
 }
 
 var SUPPORT_SET_CONSTRUCTOR = new Set([1]).has(1);
@@ -9854,18 +9922,20 @@ var SUPPORT_FAST_DEDUPE = SUPPORT_SET_CONSTRUCTOR && typeof Array.from === 'func
  * @returns {Function}
  */
 function createArrayAssertion(initialData) {
+  var dataset = initialData;
+
   if (SUPPORT_SET_CONSTRUCTOR) {
-    initialData = new Set(initialData);
+    dataset = new Set(dataset);
   }
 
   return function (value) {
     var result = void 0;
 
     if (SUPPORT_SET_CONSTRUCTOR) {
-      result = initialData.has(value);
+      result = dataset.has(value);
     } else {
       /* eslint-disable no-bitwise */
-      result = !!~initialData.indexOf(value);
+      result = !!~dataset.indexOf(value);
     }
 
     return result;
@@ -9879,7 +9949,7 @@ function createArrayAssertion(initialData) {
  * @returns {String}
  */
 function toEmptyString(value) {
-  return value == null ? '' : value;
+  return value === null || value === void 0 ? '' : value;
 }
 
 /**
@@ -9889,12 +9959,14 @@ function toEmptyString(value) {
  * @returns {Array}
  */
 function unifyColumnValues(values) {
+  var unifiedValues = values;
+
   if (SUPPORT_FAST_DEDUPE) {
-    values = Array.from(new Set(values));
+    unifiedValues = Array.from(new Set(unifiedValues));
   } else {
-    values = (0, _array.arrayUnique)(values);
+    unifiedValues = (0, _array.arrayUnique)(unifiedValues);
   }
-  values = values.sort(function (a, b) {
+  unifiedValues = unifiedValues.sort(function (a, b) {
     if (typeof a === 'number' && typeof b === 'number') {
       return a - b;
     }
@@ -9906,7 +9978,7 @@ function unifyColumnValues(values) {
     return a > b ? 1 : -1;
   });
 
-  return values;
+  return unifiedValues;
 }
 
 /**
@@ -10311,7 +10383,7 @@ var _localHooks = __webpack_require__(20);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
-var _utils = __webpack_require__(35);
+var _utils = __webpack_require__(44);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -10424,10 +10496,10 @@ var ExpressionModifier = function () {
       var startFrom = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       (0, _array.arrayEach)(this.cells, function (cell) {
-        if (deltaRow != null) {
+        if (deltaRow !== null && deltaRow !== void 0) {
           _this._translateCell(cell, 'row', deltaRow, startFrom.row);
         }
-        if (deltaColumn != null) {
+        if (deltaColumn !== null && deltaColumn !== void 0) {
           _this._translateCell(cell, 'column', deltaColumn, startFrom.column);
         }
       });
@@ -10552,18 +10624,18 @@ var ExpressionModifier = function () {
         return;
       }
       (0, _array.arrayEach)(matches, function (coord) {
-        coord = coord.match(BARE_CELL_REGEX);
+        var cellCoords = coord.match(BARE_CELL_REGEX);
 
-        if (!coord) {
+        if (!cellCoords) {
           return;
         }
 
-        var _extractLabel = (0, _hotFormulaParser.extractLabel)(coord[0]),
+        var _extractLabel = (0, _hotFormulaParser.extractLabel)(cellCoords[0]),
             _extractLabel2 = _slicedToArray(_extractLabel, 2),
             row = _extractLabel2[0],
             column = _extractLabel2[1];
 
-        _this3.cells.push(_this3._createCell({ row: row, column: column }, { row: row, column: column }, coord[0]));
+        _this3.cells.push(_this3._createCell({ row: row, column: column }, { row: row, column: column }, cellCoords[0]));
       });
     }
 
@@ -10623,8 +10695,8 @@ var ExpressionModifier = function () {
   }, {
     key: '_searchCell',
     value: function _searchCell(label) {
-      var _arrayFilter = (0, _array.arrayFilter)(this.cells, function (cell) {
-        return cell.origLabel === label;
+      var _arrayFilter = (0, _array.arrayFilter)(this.cells, function (cellMeta) {
+        return cellMeta.origLabel === label;
       }),
           _arrayFilter2 = _slicedToArray(_arrayFilter, 1),
           cell = _arrayFilter2[0];
@@ -10652,13 +10724,13 @@ var ExpressionModifier = function () {
         type: label.indexOf(':') === -1 ? 'cell' : 'range',
         refError: false,
         toLabel: function toLabel() {
-          var label = (0, _hotFormulaParser.toLabel)(this.start.row, this.start.column);
+          var newLabel = (0, _hotFormulaParser.toLabel)(this.start.row, this.start.column);
 
           if (this.type === 'range') {
-            label += ':' + (0, _hotFormulaParser.toLabel)(this.end.row, this.end.column);
+            newLabel += ':' + (0, _hotFormulaParser.toLabel)(this.end.row, this.end.column);
           }
 
-          return label;
+          return newLabel;
         }
       };
     }
@@ -10700,7 +10772,7 @@ module.exports = function (index, length) {
 /* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var redefine = __webpack_require__(37);
+var redefine = __webpack_require__(36);
 module.exports = function (target, src, safe) {
   for (var key in src) redefine(target, key, src[key], safe);
   return target;
@@ -10732,7 +10804,7 @@ module.exports = function (it, Constructor, name, forbiddenField) {
 /* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var ctx = __webpack_require__(39);
+var ctx = __webpack_require__(38);
 var call = __webpack_require__(172);
 var isArrayIter = __webpack_require__(173);
 var anObject = __webpack_require__(21);
@@ -10767,9 +10839,9 @@ exports.RETURN = RETURN;
 
 var global = __webpack_require__(16);
 var $export = __webpack_require__(6);
-var redefine = __webpack_require__(37);
+var redefine = __webpack_require__(36);
 var redefineAll = __webpack_require__(73);
-var meta = __webpack_require__(41);
+var meta = __webpack_require__(40);
 var forOf = __webpack_require__(76);
 var anInstance = __webpack_require__(75);
 var isObject = __webpack_require__(13);
@@ -10859,7 +10931,7 @@ var pIE = __webpack_require__(62);
 var createDesc = __webpack_require__(59);
 var toIObject = __webpack_require__(28);
 var toPrimitive = __webpack_require__(90);
-var has = __webpack_require__(36);
+var has = __webpack_require__(35);
 var IE8_DOM_DEFINE = __webpack_require__(168);
 var gOPD = Object.getOwnPropertyDescriptor;
 
@@ -10884,9 +10956,9 @@ exports.f = __webpack_require__(26) ? gOPD : function getOwnPropertyDescriptor(O
 // 4 -> Array#every
 // 5 -> Array#find
 // 6 -> Array#findIndex
-var ctx = __webpack_require__(39);
+var ctx = __webpack_require__(38);
 var IObject = __webpack_require__(92);
-var toObject = __webpack_require__(40);
+var toObject = __webpack_require__(39);
 var toLength = __webpack_require__(29);
 var asc = __webpack_require__(240);
 module.exports = function (TYPE, $create) {
@@ -10936,8 +11008,8 @@ exports.f = Object.getOwnPropertySymbols;
 
 "use strict";
 
-var hide = __webpack_require__(38);
-var redefine = __webpack_require__(37);
+var hide = __webpack_require__(37);
+var redefine = __webpack_require__(36);
 var fails = __webpack_require__(27);
 var defined = __webpack_require__(47);
 var wks = __webpack_require__(14);
@@ -10971,7 +11043,7 @@ module.exports = function (KEY, length, exec) {
 
 "use strict";
 
-var addToUnscopables = __webpack_require__(54);
+var addToUnscopables = __webpack_require__(53);
 var step = __webpack_require__(178);
 var Iterators = __webpack_require__(60);
 var toIObject = __webpack_require__(28);
@@ -11063,7 +11135,7 @@ function spreadsheetColumnIndex(label) {
       result += Math.pow(COLUMN_LABEL_BASE_LENGTH, j) * (COLUMN_LABEL_BASE.indexOf(label[i]) + 1);
     }
   }
-  --result;
+  result -= 1;
 
   return result;
 }
@@ -11156,7 +11228,7 @@ function translateRowsToColumns(input) {
     for (j = 0, jlen = input[i].length; j < jlen; j++) {
       if (j === olen) {
         output.push([]);
-        olen++;
+        olen += 1;
       }
       output[j].push(input[i][j]);
     }
@@ -11183,8 +11255,7 @@ function translateRowsToColumns(input) {
  * @returns {Function}
  */
 function cellMethodLookupFactory(methodName, allowUndefined) {
-
-  allowUndefined = typeof allowUndefined === 'undefined' ? true : allowUndefined;
+  var isUndefinedAllowed = typeof allowUndefined === 'undefined' ? true : allowUndefined;
 
   return function cellMethodLookup(row, col) {
     return function getMethodFromProperties(properties) {
@@ -11204,7 +11275,7 @@ function cellMethodLookupFactory(methodName, allowUndefined) {
 
         if ((0, _object.hasOwnProperty)(type, methodName)) {
           return type[methodName]; // method defined in type.
-        } else if (allowUndefined) {
+        } else if (isUndefinedAllowed) {
           return; // method does not defined in type (eg. validator), returns undefined
         }
       }
@@ -11256,19 +11327,20 @@ var _staticRegister = (0, _staticRegister3.default)('languagesDictionaries'),
 
 function registerLanguage(languageCodeOrDictionary, dictionary) {
   var languageCode = languageCodeOrDictionary;
+  var dictionaryObject = dictionary;
 
   // Dictionary passed as first argument.
   if ((0, _object.isObject)(languageCodeOrDictionary)) {
-    dictionary = languageCodeOrDictionary;
-    languageCode = dictionary.languageCode;
+    dictionaryObject = languageCodeOrDictionary;
+    languageCode = dictionaryObject.languageCode;
   }
 
-  extendLanguageDictionary(languageCode, dictionary);
-  registerGloballyLanguageDictionary(languageCode, (0, _object.deepClone)(dictionary));
+  extendLanguageDictionary(languageCode, dictionaryObject);
+  registerGloballyLanguageDictionary(languageCode, (0, _object.deepClone)(dictionaryObject));
 
   // We do not allow user to work with dictionary by reference, it can cause lot of bugs.
-  return (0, _object.deepClone)(dictionary);
-};
+  return (0, _object.deepClone)(dictionaryObject);
+}
 
 /**
  * Get language dictionary for specific language code.
@@ -11524,7 +11596,7 @@ function transformSelectionToColumnDistance(selectionRanges) {
   });
   var normalizedColumnRanges = (0, _array.arrayReduce)(orderedIndexes, function (acc, visualColumnIndex, index, array) {
     if (index !== 0 && visualColumnIndex === array[index - 1] + 1) {
-      acc[acc.length - 1][1]++;
+      acc[acc.length - 1][1] += 1;
     } else {
       acc.push([visualColumnIndex, 1]);
     }
@@ -11581,7 +11653,7 @@ function transformSelectionToRowDistance(selectionRanges) {
   });
   var normalizedRowRanges = (0, _array.arrayReduce)(orderedIndexes, function (acc, rowIndex, index, array) {
     if (index !== 0 && rowIndex === array[index - 1] + 1) {
-      acc[acc.length - 1][1]++;
+      acc[acc.length - 1][1] += 1;
     } else {
       acc.push([rowIndex, 1]);
     }
@@ -11604,7 +11676,7 @@ function isValidCoord(coord) {
   var maxTableItemsCount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Infinity;
 
   return typeof coord === 'number' && coord >= 0 && coord < maxTableItemsCount;
-};
+}
 
 /***/ }),
 /* 86 */
@@ -11780,7 +11852,7 @@ exports.default = BaseComponent;
 "use strict";
 
 var strong = __webpack_require__(167);
-var validate = __webpack_require__(53);
+var validate = __webpack_require__(52);
 var MAP = 'Map';
 
 // 23.1 Map Objects
@@ -11882,7 +11954,7 @@ module.exports = Object.create || function create(O, Properties) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // fallback for non-array-like ES3 and non-enumerable old V8 strings
-var cof = __webpack_require__(52);
+var cof = __webpack_require__(51);
 // eslint-disable-next-line no-prototype-builtins
 module.exports = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
   return cof(it) == 'String' ? it.split('') : Object(it);
@@ -11963,7 +12035,7 @@ module.exports = function (exec, skipClosing) {
 "use strict";
 
 var strong = __webpack_require__(167);
-var validate = __webpack_require__(53);
+var validate = __webpack_require__(52);
 var SET = 'Set';
 
 // 23.2 Set Objects
@@ -11984,13 +12056,13 @@ module.exports = __webpack_require__(77)(SET, function (get) {
 "use strict";
 
 var each = __webpack_require__(79)(0);
-var redefine = __webpack_require__(37);
-var meta = __webpack_require__(41);
+var redefine = __webpack_require__(36);
+var meta = __webpack_require__(40);
 var assign = __webpack_require__(182);
 var weak = __webpack_require__(183);
 var isObject = __webpack_require__(13);
 var fails = __webpack_require__(27);
-var validate = __webpack_require__(53);
+var validate = __webpack_require__(52);
 var WEAK_MAP = 'WeakMap';
 var getWeak = meta.getWeak;
 var isExtensible = Object.isExtensible;
@@ -12050,7 +12122,7 @@ if (fails(function () { return new $WeakMap().set((Object.freeze || Object)(tmp)
 "use strict";
 
 var weak = __webpack_require__(183);
-var validate = __webpack_require__(53);
+var validate = __webpack_require__(52);
 var WEAK_SET = 'WeakSet';
 
 // 23.4 WeakSet Objects
@@ -12072,7 +12144,7 @@ __webpack_require__(77)(WEAK_SET, function (get) {
 
 var LIBRARY = __webpack_require__(57);
 var global = __webpack_require__(16);
-var ctx = __webpack_require__(39);
+var ctx = __webpack_require__(38);
 var classof = __webpack_require__(175);
 var $export = __webpack_require__(6);
 var isObject = __webpack_require__(13);
@@ -12361,7 +12433,7 @@ $export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(96)(function
 /* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var ctx = __webpack_require__(39);
+var ctx = __webpack_require__(38);
 var invoke = __webpack_require__(243);
 var html = __webpack_require__(171);
 var cel = __webpack_require__(89);
@@ -12404,7 +12476,7 @@ if (!setTask || !clearTask) {
     delete queue[id];
   };
   // Node.js 0.8-
-  if (__webpack_require__(52)(process) == 'process') {
+  if (__webpack_require__(51)(process) == 'process') {
     defer = function (id) {
       process.nextTick(ctx(run, id, 1));
     };
@@ -12465,11 +12537,11 @@ module.exports = navigator && navigator.userAgent || '';
 
 // ECMAScript 6 symbols shim
 var global = __webpack_require__(16);
-var has = __webpack_require__(36);
+var has = __webpack_require__(35);
 var DESCRIPTORS = __webpack_require__(26);
 var $export = __webpack_require__(6);
-var redefine = __webpack_require__(37);
-var META = __webpack_require__(41).KEY;
+var redefine = __webpack_require__(36);
+var META = __webpack_require__(40).KEY;
 var $fails = __webpack_require__(27);
 var shared = __webpack_require__(94);
 var setToStringTag = __webpack_require__(61);
@@ -12689,7 +12761,7 @@ $JSON && $export($export.S + $export.F * (!USE_NATIVE || $fails(function () {
 });
 
 // 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
-$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(38)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
+$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(37)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
 // 19.4.3.5 Symbol.prototype[@@toStringTag]
 setToStringTag($Symbol, 'Symbol');
 // 20.2.1.9 Math[@@toStringTag]
@@ -12717,7 +12789,7 @@ exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
 
 // 19.1.2.5 Object.freeze(O)
 var isObject = __webpack_require__(13);
-var meta = __webpack_require__(41).onFreeze;
+var meta = __webpack_require__(40).onFreeze;
 
 __webpack_require__(30)('freeze', function ($freeze) {
   return function freeze(it) {
@@ -12732,7 +12804,7 @@ __webpack_require__(30)('freeze', function ($freeze) {
 
 // 19.1.2.17 Object.seal(O)
 var isObject = __webpack_require__(13);
-var meta = __webpack_require__(41).onFreeze;
+var meta = __webpack_require__(40).onFreeze;
 
 __webpack_require__(30)('seal', function ($seal) {
   return function seal(it) {
@@ -12747,7 +12819,7 @@ __webpack_require__(30)('seal', function ($seal) {
 
 // 19.1.2.15 Object.preventExtensions(O)
 var isObject = __webpack_require__(13);
-var meta = __webpack_require__(41).onFreeze;
+var meta = __webpack_require__(40).onFreeze;
 
 __webpack_require__(30)('preventExtensions', function ($preventExtensions) {
   return function preventExtensions(it) {
@@ -12818,7 +12890,7 @@ __webpack_require__(30)('getOwnPropertyDescriptor', function () {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.9 Object.getPrototypeOf(O)
-var toObject = __webpack_require__(40);
+var toObject = __webpack_require__(39);
 var $getPrototypeOf = __webpack_require__(177);
 
 __webpack_require__(30)('getPrototypeOf', function () {
@@ -12833,7 +12905,7 @@ __webpack_require__(30)('getPrototypeOf', function () {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.14 Object.keys(O)
-var toObject = __webpack_require__(40);
+var toObject = __webpack_require__(39);
 var $keys = __webpack_require__(46);
 
 __webpack_require__(30)('keys', function () {
@@ -13231,9 +13303,9 @@ __webpack_require__(81)('search', 1, function (defined, SEARCH, $search) {
 
 "use strict";
 
-var ctx = __webpack_require__(39);
+var ctx = __webpack_require__(38);
 var $export = __webpack_require__(6);
-var toObject = __webpack_require__(40);
+var toObject = __webpack_require__(39);
 var call = __webpack_require__(172);
 var isArrayIter = __webpack_require__(173);
 var toLength = __webpack_require__(29);
@@ -13319,7 +13391,7 @@ var $export = __webpack_require__(6);
 
 $export($export.P, 'Array', { copyWithin: __webpack_require__(252) });
 
-__webpack_require__(54)('copyWithin');
+__webpack_require__(53)('copyWithin');
 
 
 /***/ }),
@@ -13340,7 +13412,7 @@ $export($export.P + $export.F * forced, 'Array', {
     return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
-__webpack_require__(54)(KEY);
+__webpack_require__(53)(KEY);
 
 
 /***/ }),
@@ -13361,7 +13433,7 @@ $export($export.P + $export.F * forced, 'Array', {
     return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
-__webpack_require__(54)(KEY);
+__webpack_require__(53)(KEY);
 
 
 /***/ }),
@@ -13373,7 +13445,7 @@ var $export = __webpack_require__(6);
 
 $export($export.P, 'Array', { fill: __webpack_require__(253) });
 
-__webpack_require__(54)('fill');
+__webpack_require__(53)('fill');
 
 
 /***/ }),
@@ -13478,7 +13550,7 @@ $export($export.P, 'Array', {
   }
 });
 
-__webpack_require__(54)('includes');
+__webpack_require__(53)('includes');
 
 
 /***/ }),
@@ -13595,9 +13667,9 @@ $export($export.G + $export.B, {
 
 var $iterators = __webpack_require__(82);
 var getKeys = __webpack_require__(46);
-var redefine = __webpack_require__(37);
+var redefine = __webpack_require__(36);
 var global = __webpack_require__(16);
-var hide = __webpack_require__(38);
+var hide = __webpack_require__(37);
 var Iterators = __webpack_require__(60);
 var wks = __webpack_require__(14);
 var ITERATOR = wks('iterator');
@@ -13671,7 +13743,7 @@ var _editors = __webpack_require__(19);
 
 var _renderers = __webpack_require__(15);
 
-var _validators = __webpack_require__(43);
+var _validators = __webpack_require__(42);
 
 var _autocompleteType = __webpack_require__(285);
 
@@ -13824,7 +13896,7 @@ var _plugins = __webpack_require__(5);
 
 var _renderers = __webpack_require__(15);
 
-var _validators = __webpack_require__(43);
+var _validators = __webpack_require__(42);
 
 var _string = __webpack_require__(31);
 
@@ -13840,7 +13912,7 @@ var _dataSource2 = _interopRequireDefault(_dataSource);
 
 var _data = __webpack_require__(83);
 
-var _recordTranslator = __webpack_require__(55);
+var _recordTranslator = __webpack_require__(54);
 
 var _rootInstance = __webpack_require__(211);
 
@@ -14118,14 +14190,16 @@ function Core(rootElement, userSettings) {
      *                             Alter actions such as "remove_row" and "remove_col" support array indexes in the
      *                             format `[[index, amount], [index, amount]...]` this can be used to remove
      *                             non-consecutive columns or rows in one call.
-     * @param {Number} amount Ammount rows or columns to remove.
+     * @param {Number} [amount=1] Ammount rows or columns to remove.
      * @param {String} [source] Optional. Source of hook runner.
      * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
-    alter: function alter(action, index, amount, source, keepEmptyRows) {
-      var delta = void 0;
+    alter: function alter(action, index) {
+      var amount = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+      var source = arguments[3];
+      var keepEmptyRows = arguments[4];
 
-      amount = amount || 1;
+      var delta = void 0;
 
       function spliceWith(data, startIndex, count, toInject) {
         var valueFactory = function valueFactory() {
@@ -14206,7 +14280,7 @@ function Core(rootElement, userSettings) {
           if (instance.getSettings().maxRows === numberOfSourceRows) {
             return;
           }
-
+          // eslint-disable-next-line no-param-reassign
           index = (0, _mixed.isDefined)(index) ? index : numberOfSourceRows;
 
           delta = datamap.createRow(index, amount, source);
@@ -14263,6 +14337,7 @@ function Core(rootElement, userSettings) {
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
               if (Number.isInteger(groupIndex)) {
+                // eslint-disable-next-line no-param-reassign
                 groupIndex = Math.max(groupIndex - offset, 0);
               }
 
@@ -14316,6 +14391,7 @@ function Core(rootElement, userSettings) {
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
               if (Number.isInteger(groupIndex)) {
+                // eslint-disable-next-line no-param-reassign
                 groupIndex = Math.max(groupIndex - offset, 0);
               }
 
@@ -14510,6 +14586,7 @@ function Core(rootElement, userSettings) {
         case 'shift_down':
           repeatCol = end ? end.col - start.col + 1 : 0;
           repeatRow = end ? end.row - start.row + 1 : 0;
+          // eslint-disable-next-line no-param-reassign
           input = (0, _data.translateRowsToColumns)(input);
           for (c = 0, clen = input.length, cmax = Math.max(clen, repeatCol); c < cmax; c++) {
             if (c < clen) {
@@ -14601,9 +14678,9 @@ function Core(rootElement, userSettings) {
             cellMeta = instance.getCellMeta(current.row, current.col);
 
             if ((source === 'CopyPaste.paste' || source === 'Autofill.autofill') && cellMeta.skipRowOnPaste) {
-              skippedRow++;
-              current.row++;
-              rlen++;
+              skippedRow += 1;
+              current.row += 1;
+              rlen += 1;
               /* eslint-disable no-continue */
               continue;
             }
@@ -14616,13 +14693,13 @@ function Core(rootElement, userSettings) {
               cellMeta = instance.getCellMeta(current.row, current.col);
 
               if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipColumnOnPaste) {
-                skippedColumn++;
-                current.col++;
-                clen++;
+                skippedColumn += 1;
+                current.col += 1;
+                clen += 1;
                 continue;
               }
               if (cellMeta.readOnly) {
-                current.col++;
+                current.col += 1;
                 /* eslint-disable no-continue */
                 continue;
               }
@@ -14662,9 +14739,9 @@ function Core(rootElement, userSettings) {
                 setData.push([current.row, current.col, value]);
               }
               pushData = true;
-              current.col++;
+              current.col += 1;
             }
-            current.row++;
+            current.row += 1;
           }
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
           break;
@@ -14726,7 +14803,7 @@ function Core(rootElement, userSettings) {
       validatorsInQueue: 0,
       valid: true,
       addValidatorToQueue: function addValidatorToQueue() {
-        this.validatorsInQueue++;
+        this.validatorsInQueue += 1;
         resolved = false;
       },
       removeValidatorFormQueue: function removeValidatorFormQueue() {
@@ -14799,7 +14876,7 @@ function Core(rootElement, userSettings) {
                 cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
                 var cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
                 (0, _element.removeClass)(cell, instance.getSettings().invalidCellClassName);
-                --index;
+                // index -= 1;
               }
               waitingForValidator.removeValidatorFormQueue();
             };
@@ -14849,7 +14926,7 @@ function Core(rootElement, userSettings) {
         continue;
       }
 
-      if (changes[i][2] == null && changes[i][3] == null) {
+      if ((changes[i][2] === null || changes[i][2] === void 0) && (changes[i][3] === null || changes[i][3] === void 0)) {
         /* eslint-disable no-continue */
         continue;
       }
@@ -14935,12 +15012,13 @@ function Core(rootElement, userSettings) {
     }
 
     if ((0, _function.isFunction)(validator)) {
-
+      // eslint-disable-next-line no-param-reassign
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
       // To provide consistent behaviour, validation should be always asynchronous
       instance._registerTimeout(setTimeout(function () {
         validator.call(cellProperties, value, function (valid) {
+          // eslint-disable-next-line no-param-reassign
           valid = instance.runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
           cellProperties.valid = valid;
 
@@ -14980,6 +15058,7 @@ function Core(rootElement, userSettings) {
   this.setDataAtCell = function (row, column, value, source) {
     var input = setDataInputToArray(row, column, value);
     var changes = [];
+    var changeSource = source;
     var i = void 0;
     var ilen = void 0;
     var prop = void 0;
@@ -14995,14 +15074,14 @@ function Core(rootElement, userSettings) {
       changes.push([input[i][0], prop, dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]), input[i][2]]);
     }
 
-    if (!source && (typeof row === 'undefined' ? 'undefined' : _typeof(row)) === 'object') {
-      source = column;
+    if (!changeSource && (typeof row === 'undefined' ? 'undefined' : _typeof(row)) === 'object') {
+      changeSource = column;
     }
 
-    instance.runHooks('afterSetDataAtCell', changes, source);
+    instance.runHooks('afterSetDataAtCell', changes, changeSource);
 
-    validateChanges(changes, source, function () {
-      applyChanges(changes, source);
+    validateChanges(changes, changeSource, function () {
+      applyChanges(changes, changeSource);
     });
   };
 
@@ -15021,6 +15100,7 @@ function Core(rootElement, userSettings) {
   this.setDataAtRowProp = function (row, prop, value, source) {
     var input = setDataInputToArray(row, prop, value);
     var changes = [];
+    var changeSource = source;
     var i = void 0;
     var ilen = void 0;
 
@@ -15028,14 +15108,14 @@ function Core(rootElement, userSettings) {
       changes.push([input[i][0], input[i][1], dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]), input[i][2]]);
     }
 
-    if (!source && (typeof row === 'undefined' ? 'undefined' : _typeof(row)) === 'object') {
-      source = prop;
+    if (!changeSource && (typeof row === 'undefined' ? 'undefined' : _typeof(row)) === 'object') {
+      changeSource = prop;
     }
 
-    instance.runHooks('afterSetDataAtRowProp', changes, source);
+    instance.runHooks('afterSetDataAtRowProp', changes, changeSource);
 
-    validateChanges(changes, source, function () {
-      applyChanges(changes, source);
+    validateChanges(changes, changeSource, function () {
+      applyChanges(changes, changeSource);
     });
   };
 
@@ -15129,12 +15209,11 @@ function Core(rootElement, userSettings) {
    *                       Useful **only** when the type of handled cells is `numeric`.
    */
   this.populateFromArray = function (row, column, input, endRow, endCol, source, method, direction, deltas) {
-    var c = void 0;
-
     if (!((typeof input === 'undefined' ? 'undefined' : _typeof(input)) === 'object' && _typeof(input[0]) === 'object')) {
       throw new Error('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
     }
-    c = typeof endRow === 'number' ? new _src.CellCoords(endRow, endCol) : null;
+
+    var c = typeof endRow === 'number' ? new _src.CellCoords(endRow, endCol) : null;
 
     return grid.populateFromArray(new _src.CellCoords(row, column), input, c, source, method, direction, deltas);
   };
@@ -15339,10 +15418,12 @@ function Core(rootElement, userSettings) {
       if (!(data.push && data.splice)) {
         // check if data is array. Must use duck-type check so Backbone Collections also pass it
         // when data is not an array, attempt to make a single-row array of it
+        // eslint-disable-next-line no-param-reassign
         data = [data];
       }
     } else if (data === null) {
       var dataSchema = datamap.getSchema();
+      // eslint-disable-next-line no-param-reassign
       data = [];
       var row = void 0;
       var r = 0;
@@ -15509,6 +15590,7 @@ function Core(rootElement, userSettings) {
       throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
     }
 
+    // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
       if (i === 'data') {
         /* eslint-disable-next-line no-continue */
@@ -15581,18 +15663,14 @@ function Core(rootElement, userSettings) {
           }
         }
 
-        j++;
+        j += 1;
       }
     }
 
     if ((0, _mixed.isDefined)(settings.cell)) {
-      for (var key in settings.cell) {
-        if ((0, _object.hasOwnProperty)(settings.cell, key)) {
-          var cell = settings.cell[key];
-
-          instance.setCellMetaObject(cell.row, cell.col, cell);
-        }
-      }
+      (0, _object.objectEach)(settings.cell, function (cell) {
+        instance.setCellMetaObject(cell.row, cell.col, cell);
+      });
     }
 
     instance.runHooks('afterCellMetaReset');
@@ -15707,6 +15785,7 @@ function Core(rootElement, userSettings) {
       type = (0, _cellTypes.getCellType)(obj.type);
     }
 
+    // eslint-disable-next-line no-restricted-syntax
     for (var i in type) {
       if ((0, _object.hasOwnProperty)(type, i) && !(0, _object.hasOwnProperty)(obj, i)) {
         expandedType[i] = type[i];
@@ -16088,27 +16167,27 @@ function Core(rootElement, userSettings) {
   this.getDataType = function (rowFrom, columnFrom, rowTo, columnTo) {
     var _this3 = this;
 
+    var coords = rowFrom === void 0 ? [0, 0, this.countRows(), this.countCols()] : [rowFrom, columnFrom, rowTo, columnTo];
+    var rowStart = coords[0],
+        columnStart = coords[1];
+    var rowEnd = coords[2],
+        columnEnd = coords[3];
+
     var previousType = null;
     var currentType = null;
 
-    if (rowFrom === void 0) {
-      rowFrom = 0;
-      rowTo = this.countRows();
-      columnFrom = 0;
-      columnTo = this.countCols();
+    if (rowEnd === void 0) {
+      rowEnd = rowStart;
     }
-    if (rowTo === void 0) {
-      rowTo = rowFrom;
-    }
-    if (columnTo === void 0) {
-      columnTo = columnFrom;
+    if (columnEnd === void 0) {
+      columnEnd = columnStart;
     }
     var type = 'mixed';
 
-    (0, _number.rangeEach)(Math.min(rowFrom, rowTo), Math.max(rowFrom, rowTo), function (row) {
+    (0, _number.rangeEach)(Math.min(rowStart, rowEnd), Math.max(rowStart, rowEnd), function (row) {
       var isTypeEqual = true;
 
-      (0, _number.rangeEach)(Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo), function (column) {
+      (0, _number.rangeEach)(Math.min(columnStart, columnEnd), Math.max(columnStart, columnEnd), function (column) {
         var cellType = _this3.getCellMeta(row, column);
 
         currentType = cellType.type;
@@ -16187,13 +16266,12 @@ function Core(rootElement, userSettings) {
    * @param {Object} prop Meta object.
    */
   this.setCellMetaObject = function (row, column, prop) {
+    var _this4 = this;
+
     if ((typeof prop === 'undefined' ? 'undefined' : _typeof(prop)) === 'object') {
-      for (var key in prop) {
-        if ((0, _object.hasOwnProperty)(prop, key)) {
-          var value = prop[key];
-          this.setCellMeta(row, column, key, value);
-        }
-      }
+      (0, _object.objectEach)(prop, function (value, key) {
+        _this4.setCellMeta(row, column, key, value);
+      });
     }
   };
 
@@ -16252,16 +16330,15 @@ function Core(rootElement, userSettings) {
    */
   this.getCellMeta = function (row, column) {
     var prop = datamap.colToProp(column);
-    var cellProperties = void 0;
 
     var _recordTranslator$toP5 = recordTranslator.toPhysical(row, column),
         _recordTranslator$toP6 = _slicedToArray(_recordTranslator$toP5, 2),
-        physicalRow = _recordTranslator$toP6[0],
+        potentialPhysicalRow = _recordTranslator$toP6[0],
         physicalColumn = _recordTranslator$toP6[1];
 
+    var physicalRow = potentialPhysicalRow;
+
     // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
-
-
     if (physicalRow === null) {
       physicalRow = row;
     }
@@ -16277,7 +16354,7 @@ function Core(rootElement, userSettings) {
       priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
     }
 
-    cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
+    var cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
 
     cellProperties.row = physicalRow;
     cellProperties.col = physicalColumn;
@@ -16493,14 +16570,14 @@ function Core(rootElement, userSettings) {
 
     while (i >= 0) {
       if (rows !== undefined && rows.indexOf(i) === -1) {
-        i--;
+        i -= 1;
         continue;
       }
       var j = instance.countCols() - 1;
 
       while (j >= 0) {
         if (columns !== undefined && columns.indexOf(j) === -1) {
-          j--;
+          j -= 1;
           continue;
         }
         waitingForValidator.addValidatorToQueue();
@@ -16514,9 +16591,9 @@ function Core(rootElement, userSettings) {
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
-        j--;
+        j -= 1;
       }
-      i--;
+      i -= 1;
     }
     waitingForValidator.checkIfQueueIsEmpty();
   };
@@ -16532,21 +16609,22 @@ function Core(rootElement, userSettings) {
    */
   this.getRowHeader = function (row) {
     var rowHeader = priv.settings.rowHeaders;
+    var physicalRow = row;
 
-    if (row !== void 0) {
-      row = instance.runHooks('modifyRowHeader', row);
+    if (physicalRow !== void 0) {
+      physicalRow = instance.runHooks('modifyRowHeader', physicalRow);
     }
-    if (row === void 0) {
+    if (physicalRow === void 0) {
       rowHeader = [];
       (0, _number.rangeEach)(instance.countRows() - 1, function (i) {
         rowHeader.push(instance.getRowHeader(i));
       });
-    } else if (Array.isArray(rowHeader) && rowHeader[row] !== void 0) {
-      rowHeader = rowHeader[row];
+    } else if (Array.isArray(rowHeader) && rowHeader[physicalRow] !== void 0) {
+      rowHeader = rowHeader[physicalRow];
     } else if ((0, _function.isFunction)(rowHeader)) {
-      rowHeader = rowHeader(row);
+      rowHeader = rowHeader(physicalRow);
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
-      rowHeader = row + 1;
+      rowHeader = physicalRow + 1;
     }
 
     return rowHeader;
@@ -16596,11 +16674,10 @@ function Core(rootElement, userSettings) {
    */
   this.getColHeader = function (column) {
     var columnsAsFunc = priv.settings.columns && (0, _function.isFunction)(priv.settings.columns);
+    var columnIndex = instance.runHooks('modifyColHeader', column);
     var result = priv.settings.colHeaders;
 
-    column = instance.runHooks('modifyColHeader', column);
-
-    if (column === void 0) {
+    if (columnIndex === void 0) {
       var out = [];
       var ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
 
@@ -16623,19 +16700,19 @@ function Core(rootElement, userSettings) {
 
         return arr[visualColumnIndex];
       };
-      var baseCol = column;
-      column = instance.runHooks('modifyCol', column);
+      var baseCol = columnIndex;
+      var physicalColumn = instance.runHooks('modifyCol', baseCol);
 
-      var prop = translateVisualIndexToColumns(column);
+      var prop = translateVisualIndexToColumns(physicalColumn);
 
       if (priv.settings.columns && (0, _function.isFunction)(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
         result = priv.settings.columns(prop).title;
-      } else if (priv.settings.columns && priv.settings.columns[column] && priv.settings.columns[column].title) {
-        result = priv.settings.columns[column].title;
-      } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[column] !== void 0) {
-        result = priv.settings.colHeaders[column];
+      } else if (priv.settings.columns && priv.settings.columns[physicalColumn] && priv.settings.columns[physicalColumn].title) {
+        result = priv.settings.columns[physicalColumn].title;
+      } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[physicalColumn] !== void 0) {
+        result = priv.settings.colHeaders[physicalColumn];
       } else if ((0, _function.isFunction)(priv.settings.colHeaders)) {
-        result = priv.settings.colHeaders(column);
+        result = priv.settings.colHeaders(physicalColumn);
       } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
         result = (0, _data.spreadsheetColumnLabel)(baseCol); // see #1458
       }
@@ -16830,7 +16907,7 @@ function Core(rootElement, userSettings) {
 
           for (var i = 0; i < dataLen; i++) {
             if (priv.settings.columns(i)) {
-              columnLen++;
+              columnLen += 1;
             }
           }
 
@@ -17258,18 +17335,17 @@ function Core(rootElement, userSettings) {
     instance.runHooks('afterDestroy');
     _pluginHooks2.default.getSingleton().destroy(instance);
 
-    for (var i in instance) {
-      if ((0, _object.hasOwnProperty)(instance, i)) {
-        // replace instance methods with post mortem
-        if ((0, _function.isFunction)(instance[i])) {
-          instance[i] = postMortem(i);
-        } else if (i !== 'guid') {
-          // replace instance properties with null (restores memory)
-          // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
-          instance[i] = null;
-        }
+    (0, _object.objectEach)(instance, function (property, key, obj) {
+      // replace instance methods with post mortem
+      if ((0, _function.isFunction)(property)) {
+        obj[key] = postMortem(key);
+      } else if (key !== 'guid') {
+        // replace instance properties with null (restores memory)
+        // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
+        obj[key] = null;
       }
-    }
+    });
+
     instance.isDestroyed = true;
 
     // replace private properties with null (restores memory)
@@ -17457,11 +17533,13 @@ function Core(rootElement, userSettings) {
   this._registerTimeout = function (handle) {
     var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 
-    if (typeof handle === 'function') {
-      handle = setTimeout(handle, delay);
+    var handleFunc = handle;
+
+    if (typeof handleFunc === 'function') {
+      handleFunc = setTimeout(handleFunc, delay);
     }
 
-    this.timeouts.push(handle);
+    this.timeouts.push(handleFunc);
   };
 
   /**
@@ -17518,7 +17596,7 @@ function Core(rootElement, userSettings) {
   };
 
   _pluginHooks2.default.getSingleton().run(instance, 'construct');
-};
+}
 
 /***/ }),
 /* 157 */
@@ -17541,7 +17619,7 @@ var _object = __webpack_require__(1);
  * @return {Object} ColumnSettings
  */
 function columnFactory(GridSettings, conflictList) {
-  function ColumnSettings() {};
+  function ColumnSettings() {}
 
   (0, _object.inherit)(ColumnSettings, GridSettings);
 
@@ -17662,14 +17740,17 @@ var GhostTable = function () {
   }, {
     key: 'addColumnHeadersRow',
     value: function addColumnHeadersRow(samples) {
-      if (this.hot.getColHeader(0) != null) {
+      var colHeader = this.hot.getColHeader(0);
+
+      if (colHeader !== null && colHeader !== void 0) {
         var rowObject = { row: -1 };
+
         this.rows.push(rowObject);
 
         this.container = this.createContainer(this.hot.rootElement.className);
-
         this.samples = samples;
         this.table = this.createTable(this.hot.table.className);
+
         this.table.colGroup.appendChild(this.createColGroupsCol());
         this.table.tHead.appendChild(this.createColumnHeadersRow());
         this.container.container.appendChild(this.table.fragment);
@@ -18056,9 +18137,9 @@ var GhostTable = function () {
       var d = document;
       var fragment = d.createDocumentFragment();
       var container = d.createElement('div');
+      var containerClassName = 'htGhostTable htAutoSize ' + className.trim();
 
-      className = 'htGhostTable htAutoSize ' + className.trim();
-      (0, _element.addClass)(container, className);
+      (0, _element.addClass)(container, containerClassName);
       fragment.appendChild(container);
 
       return { fragment: fragment, container: container };
@@ -18152,7 +18233,7 @@ var _localHooks = __webpack_require__(20);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
-var _predefinedItems = __webpack_require__(44);
+var _predefinedItems = __webpack_require__(43);
 
 var _event = __webpack_require__(12);
 
@@ -18714,9 +18795,10 @@ var Menu = function () {
       var itemIsSelectionDisabled = function itemIsSelectionDisabled(itemToTest) {
         return itemToTest.disableSelection;
       };
+      var itemValue = value;
 
-      if (typeof value === 'function') {
-        value = value.call(this.hot);
+      if (typeof itemValue === 'function') {
+        itemValue = itemValue.call(this.hot);
       }
       (0, _element.empty)(TD);
       (0, _element.addClass)(wrapper, 'htItemWrapper');
@@ -18726,9 +18808,9 @@ var Menu = function () {
         (0, _element.addClass)(TD, 'htSeparator');
       } else if (typeof item.renderer === 'function') {
         (0, _element.addClass)(TD, 'htCustomMenuRenderer');
-        TD.appendChild(item.renderer(hot, wrapper, row, col, prop, value));
+        TD.appendChild(item.renderer(hot, wrapper, row, col, prop, itemValue));
       } else {
-        (0, _element.fastInnerHTML)(wrapper, value);
+        (0, _element.fastInnerHTML)(wrapper, itemValue);
       }
       if (itemIsDisabled(item)) {
         (0, _element.addClass)(TD, 'htDisabled');
@@ -18781,23 +18863,24 @@ var Menu = function () {
     value: function createContainer() {
       var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
 
+      var className = name;
       var container = void 0;
 
-      if (name) {
-        if ((0, _function.isFunction)(name)) {
-          name = name.call(this.hot);
+      if (className) {
+        if ((0, _function.isFunction)(className)) {
+          className = className.call(this.hot);
 
-          if (name === null || (0, _mixed.isUndefined)(name)) {
-            name = '';
+          if (className === null || (0, _mixed.isUndefined)(className)) {
+            className = '';
           } else {
-            name = name.toString();
+            className = className.toString();
           }
         }
 
-        name = name.replace(/[^A-z0-9]/g, '_');
-        name = this.options.className + 'Sub_' + name;
+        className = className.replace(/[^A-z0-9]/g, '_');
+        className = this.options.className + 'Sub_' + className;
 
-        container = document.querySelector('.' + this.options.className + '.' + name);
+        container = document.querySelector('.' + this.options.className + '.' + className);
       } else {
         container = document.querySelector('.' + this.options.className);
       }
@@ -18807,8 +18890,8 @@ var Menu = function () {
 
         (0, _element.addClass)(container, 'htMenu ' + this.options.className);
 
-        if (name) {
-          (0, _element.addClass)(container, name);
+        if (className) {
+          (0, _element.addClass)(container, className);
         }
         document.getElementsByTagName('body')[0].appendChild(container);
       }
@@ -19396,7 +19479,7 @@ var _object = __webpack_require__(1);
 
 var _array = __webpack_require__(0);
 
-var _predefinedItems = __webpack_require__(44);
+var _predefinedItems = __webpack_require__(43);
 
 var _conditionRegisterer = __webpack_require__(10);
 
@@ -19497,17 +19580,19 @@ var TYPES = exports.TYPES = (_TYPES = {}, _defineProperty(_TYPES, TYPE_NUMERIC, 
  */
 function getOptionsList(type) {
   var items = [];
+  var typeName = type;
 
-  if (!TYPES[type]) {
-    type = TYPE_TEXT;
+  if (!TYPES[typeName]) {
+    typeName = TYPE_TEXT;
   }
-  (0, _array.arrayEach)(TYPES[type], function (type) {
+
+  (0, _array.arrayEach)(TYPES[typeName], function (typeValue) {
     var option = void 0;
 
-    if (type === _predefinedItems.SEPARATOR) {
+    if (typeValue === _predefinedItems.SEPARATOR) {
       option = { name: _predefinedItems.SEPARATOR };
     } else {
-      option = (0, _object.clone)((0, _conditionRegisterer.getConditionDescriptor)(type));
+      option = (0, _object.clone)((0, _conditionRegisterer.getConditionDescriptor)(typeValue));
     }
     items.push(option);
   });
@@ -19563,17 +19648,11 @@ var _element = __webpack_require__(2);
 
 var _object = __webpack_require__(1);
 
-var _constants = __webpack_require__(3);
-
-var C = _interopRequireWildcard(_constants);
-
 var _base = __webpack_require__(68);
 
 var _base2 = _interopRequireDefault(_base);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -19622,8 +19701,8 @@ var InputUI = function (_BaseUI) {
     value: function registerHooks() {
       var _this2 = this;
 
-      this.addLocalHook('click', function (event) {
-        return _this2.onClick(event);
+      this.addLocalHook('click', function () {
+        return _this2.onClick();
       });
       this.addLocalHook('keyup', function (event) {
         return _this2.onKeyup(event);
@@ -19683,13 +19762,11 @@ var InputUI = function (_BaseUI) {
 
     /**
      * OnClick listener.
-     *
-     * @param {Event} event
      */
 
   }, {
     key: 'onClick',
-    value: function onClick(event) {}
+    value: function onClick() {}
 
     /**
      * OnKeyup listener.
@@ -19862,19 +19939,21 @@ function setEndDate(rangeBar, value) {
  * @returns {Date|null} Parsed Date object or null, if not a valid date string.
  */
 function parseDate(date) {
-  if (date === null) {
+  var newDate = date;
+
+  if (newDate === null) {
     return null;
   }
 
-  if (!(date instanceof Date)) {
-    date = new Date(date);
+  if (!(newDate instanceof Date)) {
+    newDate = new Date(newDate);
 
-    if (date.toString() === 'Invalid Date') {
+    if (newDate.toString() === 'Invalid Date') {
       return null;
     }
   }
 
-  return date;
+  return newDate;
 }
 
 /**
@@ -19884,9 +19963,9 @@ function parseDate(date) {
  * @returns {Number|null} The year from the provided date.
  */
 function getDateYear(date) {
-  date = parseDate(date);
+  var newDate = parseDate(date);
 
-  return date ? date.getFullYear() : null;
+  return newDate ? newDate.getFullYear() : null;
 }
 
 /***/ }),
@@ -19933,15 +20012,15 @@ exports.default = BaseUI;
 var dP = __webpack_require__(23).f;
 var create = __webpack_require__(91);
 var redefineAll = __webpack_require__(73);
-var ctx = __webpack_require__(39);
+var ctx = __webpack_require__(38);
 var anInstance = __webpack_require__(75);
 var forOf = __webpack_require__(76);
 var $iterDefine = __webpack_require__(176);
 var step = __webpack_require__(178);
 var setSpecies = __webpack_require__(179);
 var DESCRIPTORS = __webpack_require__(26);
-var fastKey = __webpack_require__(41).fastKey;
-var validate = __webpack_require__(53);
+var fastKey = __webpack_require__(40).fastKey;
+var validate = __webpack_require__(52);
 var SIZE = DESCRIPTORS ? '_s' : 'size';
 
 var getEntry = function (that, key) {
@@ -20088,7 +20167,7 @@ module.exports = !__webpack_require__(26) && !__webpack_require__(27)(function (
 /* 169 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var has = __webpack_require__(36);
+var has = __webpack_require__(35);
 var toIObject = __webpack_require__(28);
 var arrayIndexOf = __webpack_require__(170)(false);
 var IE_PROTO = __webpack_require__(93)('IE_PROTO');
@@ -20195,7 +20274,7 @@ module.exports = __webpack_require__(48).getIteratorMethod = function (it) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // getting tag from 19.1.3.6 Object.prototype.toString()
-var cof = __webpack_require__(52);
+var cof = __webpack_require__(51);
 var TAG = __webpack_require__(14)('toStringTag');
 // ES3 wrong here
 var ARG = cof(function () { return arguments; }()) == 'Arguments';
@@ -20227,8 +20306,8 @@ module.exports = function (it) {
 
 var LIBRARY = __webpack_require__(57);
 var $export = __webpack_require__(6);
-var redefine = __webpack_require__(37);
-var hide = __webpack_require__(38);
+var redefine = __webpack_require__(36);
+var hide = __webpack_require__(37);
 var Iterators = __webpack_require__(60);
 var $iterCreate = __webpack_require__(238);
 var setToStringTag = __webpack_require__(61);
@@ -20300,8 +20379,8 @@ module.exports = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCE
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
-var has = __webpack_require__(36);
-var toObject = __webpack_require__(40);
+var has = __webpack_require__(35);
+var toObject = __webpack_require__(39);
 var IE_PROTO = __webpack_require__(93)('IE_PROTO');
 var ObjectProto = Object.prototype;
 
@@ -20359,7 +20438,7 @@ module.exports = {
   set: Object.setPrototypeOf || ('__proto__' in {} ? // eslint-disable-line
     function (test, buggy, set) {
       try {
-        set = __webpack_require__(39)(Function.call, __webpack_require__(78).f(Object.prototype, '__proto__').set, 2);
+        set = __webpack_require__(38)(Function.call, __webpack_require__(78).f(Object.prototype, '__proto__').set, 2);
         set(test, []);
         buggy = !(test instanceof Array);
       } catch (e) { buggy = true; }
@@ -20379,7 +20458,7 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.2.2 IsArray(argument)
-var cof = __webpack_require__(52);
+var cof = __webpack_require__(51);
 module.exports = Array.isArray || function isArray(arg) {
   return cof(arg) == 'Array';
 };
@@ -20395,7 +20474,7 @@ module.exports = Array.isArray || function isArray(arg) {
 var getKeys = __webpack_require__(46);
 var gOPS = __webpack_require__(80);
 var pIE = __webpack_require__(62);
-var toObject = __webpack_require__(40);
+var toObject = __webpack_require__(39);
 var IObject = __webpack_require__(92);
 var $assign = Object.assign;
 
@@ -20433,14 +20512,14 @@ module.exports = !$assign || __webpack_require__(27)(function () {
 "use strict";
 
 var redefineAll = __webpack_require__(73);
-var getWeak = __webpack_require__(41).getWeak;
+var getWeak = __webpack_require__(40).getWeak;
 var anObject = __webpack_require__(21);
 var isObject = __webpack_require__(13);
 var anInstance = __webpack_require__(75);
 var forOf = __webpack_require__(76);
 var createArrayMethod = __webpack_require__(79);
-var $has = __webpack_require__(36);
-var validate = __webpack_require__(53);
+var $has = __webpack_require__(35);
+var validate = __webpack_require__(52);
 var arrayFind = createArrayMethod(5);
 var arrayFindIndex = createArrayMethod(6);
 var id = 0;
@@ -20600,7 +20679,7 @@ module.exports = function repeat(count) {
 
 // 7.2.8 IsRegExp(argument)
 var isObject = __webpack_require__(13);
-var cof = __webpack_require__(52);
+var cof = __webpack_require__(51);
 var MATCH = __webpack_require__(14)('match');
 module.exports = function (it) {
   var isRegExp;
@@ -20798,7 +20877,7 @@ var ViewportColumnsCalculator = function () {
         var compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
 
         if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + compensatedViewportWidth) {
-          if (this.startColumn == null) {
+          if (this.startColumn === null || this.startColumn === void 0) {
             this.startColumn = i;
           }
           this.endColumn = i;
@@ -20822,7 +20901,7 @@ var ViewportColumnsCalculator = function () {
           var viewportSum = startPositions[this.endColumn] + columnWidth - startPositions[this.startColumn - 1];
 
           if (viewportSum <= viewportWidth || !onlyFullyVisible) {
-            this.startColumn--;
+            this.startColumn -= 1;
           }
           if (viewportSum > viewportWidth) {
             break;
@@ -20855,7 +20934,8 @@ var ViewportColumnsCalculator = function () {
       if (this.stretch === 'none') {
         return;
       }
-      this.totalTargetWidth = totalWidth;
+      var totalColumnsWidth = totalWidth;
+      this.totalTargetWidth = totalColumnsWidth;
 
       var priv = privatePool.get(this);
       var totalColumns = priv.totalColumns;
@@ -20866,18 +20946,18 @@ var ViewportColumnsCalculator = function () {
         var permanentColumnWidth = priv.stretchingColumnWidthFn(void 0, i);
 
         if (typeof permanentColumnWidth === 'number') {
-          totalWidth -= permanentColumnWidth;
+          totalColumnsWidth -= permanentColumnWidth;
         } else {
           sumAll += columnWidth;
         }
       }
-      var remainingSize = totalWidth - sumAll;
+      var remainingSize = totalColumnsWidth - sumAll;
 
       if (this.stretch === 'all' && remainingSize > 0) {
-        this.stretchAllRatio = totalWidth / sumAll;
+        this.stretchAllRatio = totalColumnsWidth / sumAll;
         this.stretchAllColumnsWidth = [];
         this.needVerifyLastColumnWidth = true;
-      } else if (this.stretch === 'last' && totalWidth !== Infinity) {
+      } else if (this.stretch === 'last' && totalColumnsWidth !== Infinity) {
         var _columnWidth = this._getColumnWidth(totalColumns - 1);
         var lastColumnWidth = remainingSize + _columnWidth;
 
@@ -20976,7 +21056,7 @@ var ViewportColumnsCalculator = function () {
     value: function _getColumnWidth(column) {
       var width = privatePool.get(this).columnWidthFn(column);
 
-      if (width === void 0) {
+      if (isNaN(width)) {
         width = ViewportColumnsCalculator.DEFAULT_WIDTH;
       }
 
@@ -21106,7 +21186,7 @@ var ViewportRowsCalculator = function () {
       for (var i = 0; i < totalRows; i++) {
         rowHeight = rowHeightFn(i);
 
-        if (rowHeight === undefined) {
+        if (isNaN(rowHeight)) {
           rowHeight = ViewportRowsCalculator.DEFAULT_HEIGHT;
         }
         if (sum <= scrollOffset && !onlyFullyVisible) {
@@ -21142,7 +21222,7 @@ var ViewportRowsCalculator = function () {
           var viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1];
 
           if (viewportSum <= viewportHeight - horizontalScrollbarHeight || !onlyFullyVisible) {
-            this.startRow--;
+            this.startRow -= 1;
           }
           if (viewportSum >= viewportHeight - horizontalScrollbarHeight) {
             break;
@@ -23897,17 +23977,15 @@ var Settings = function () {
     // reference to settings
     this.settings = {};
 
-    for (var i in this.defaults) {
-      if ((0, _object.hasOwnProperty)(this.defaults, i)) {
-        if (settings[i] !== void 0) {
-          this.settings[i] = settings[i];
-        } else if (this.defaults[i] === void 0) {
-          throw new Error('A required setting "' + i + '" was not provided');
-        } else {
-          this.settings[i] = this.defaults[i];
-        }
+    (0, _object.objectEach)(this.defaults, function (value, key) {
+      if (settings[key] !== void 0) {
+        _this.settings[key] = settings[key];
+      } else if (value === void 0) {
+        throw new Error('A required setting "' + key + '" was not provided');
+      } else {
+        _this.settings[key] = value;
       }
-    }
+    });
   }
 
   /**
@@ -23922,13 +24000,13 @@ var Settings = function () {
   _createClass(Settings, [{
     key: 'update',
     value: function update(settings, value) {
+      var _this2 = this;
+
       if (value === void 0) {
         // settings is object
-        for (var i in settings) {
-          if ((0, _object.hasOwnProperty)(settings, i)) {
-            this.settings[i] = settings[i];
-          }
-        }
+        (0, _object.objectEach)(settings, function (settingValue, key) {
+          _this2.settings[key] = settingValue;
+        });
       } else {
         // if value is defined then settings is the key
         this.settings[settings] = value;
@@ -24233,10 +24311,11 @@ var Table = function () {
       var rowHeaders = this.wot.getSetting('rowHeaders').length;
       var columnHeaders = this.wot.getSetting('columnHeaders').length;
       var syncScroll = false;
+      var runFastDraw = fastDraw;
 
       if (!this.isWorkingOnClone()) {
         this.holderOffset = (0, _element.offset)(this.holder);
-        fastDraw = wtViewport.createRenderCalculators(fastDraw);
+        runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
         if (rowHeaders && !this.wot.getSetting('fixedColumnsLeft')) {
           var leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
@@ -24245,7 +24324,7 @@ var Table = function () {
           this.correctHeaderWidth = leftScrollPos > 0;
 
           if (previousState !== this.correctHeaderWidth) {
-            fastDraw = false;
+            runFastDraw = false;
           }
         }
       }
@@ -24254,7 +24333,7 @@ var Table = function () {
         syncScroll = wtOverlays.prepareOverlays();
       }
 
-      if (fastDraw) {
+      if (runFastDraw) {
         if (!this.isWorkingOnClone()) {
           // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
           wtViewport.createVisibleCalculators();
@@ -24290,7 +24369,7 @@ var Table = function () {
         this.alignOverlaysWithTrimmingContainer();
         this._doDraw(); // creates calculator after draw
       }
-      this.refreshSelections(fastDraw);
+      this.refreshSelections(runFastDraw);
 
       if (!this.isWorkingOnClone()) {
         wtOverlays.topOverlay.resetFixedPosition();
@@ -24486,20 +24565,22 @@ var Table = function () {
   }, {
     key: 'getCoords',
     value: function getCoords(TD) {
-      if (TD.nodeName !== 'TD' && TD.nodeName !== 'TH') {
-        TD = (0, _element.closest)(TD, ['TD', 'TH']);
+      var cellElement = TD;
+
+      if (cellElement.nodeName !== 'TD' && cellElement.nodeName !== 'TH') {
+        cellElement = (0, _element.closest)(cellElement, ['TD', 'TH']);
       }
 
-      if (TD === null) {
+      if (cellElement === null) {
         return null;
       }
 
-      var TR = TD.parentNode;
+      var TR = cellElement.parentNode;
       var CONTAINER = TR.parentNode;
       var row = (0, _element.index)(TR);
-      var col = TD.cellIndex;
+      var col = cellElement.cellIndex;
 
-      if ((0, _element.overlayContainsElement)(_base2.default.CLONE_TOP_LEFT_CORNER, TD) || (0, _element.overlayContainsElement)(_base2.default.CLONE_TOP, TD)) {
+      if ((0, _element.overlayContainsElement)(_base2.default.CLONE_TOP_LEFT_CORNER, cellElement) || (0, _element.overlayContainsElement)(_base2.default.CLONE_TOP, cellElement)) {
         if (CONTAINER.nodeName === 'THEAD') {
           row -= CONTAINER.childNodes.length;
         }
@@ -24509,7 +24590,7 @@ var Table = function () {
         row = this.rowFilter.renderedToSource(row);
       }
 
-      if ((0, _element.overlayContainsElement)(_base2.default.CLONE_TOP_LEFT_CORNER, TD) || (0, _element.overlayContainsElement)(_base2.default.CLONE_LEFT, TD)) {
+      if ((0, _element.overlayContainsElement)(_base2.default.CLONE_TOP_LEFT_CORNER, cellElement) || (0, _element.overlayContainsElement)(_base2.default.CLONE_LEFT, cellElement)) {
         col = this.columnFilter.offsettedTH(col);
       } else {
         col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
@@ -24711,7 +24792,7 @@ var Table = function () {
     key: 'getStretchedColumnWidth',
     value: function getStretchedColumnWidth(sourceColumn) {
       var columnWidth = this.getColumnWidth(sourceColumn);
-      var width = columnWidth == null ? this.instance.wtSettings.settings.defaultColumnWidth : columnWidth;
+      var width = columnWidth === null || columnWidth === void 0 ? this.instance.wtSettings.settings.defaultColumnWidth : columnWidth;
       var calculator = this.wot.wtViewport.columnsRenderCalculator;
 
       if (calculator) {
@@ -24755,14 +24836,16 @@ var Table = function () {
   }, {
     key: '_correctRowHeaderWidth',
     value: function _correctRowHeaderWidth(width) {
+      var rowHeaderWidth = width;
+
       if (typeof width !== 'number') {
-        width = this.wot.getSetting('defaultColumnWidth');
+        rowHeaderWidth = this.wot.getSetting('defaultColumnWidth');
       }
       if (this.correctHeaderWidth) {
-        width++;
+        rowHeaderWidth += 1;
       }
 
-      return width;
+      return rowHeaderWidth;
     }
   }]);
 
@@ -24927,11 +25010,11 @@ var TableRenderer = function () {
 
           rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
-          if (rowHeaderWidthSetting != null) {
+          if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== void 0) {
             for (var i = 0; i < this.rowHeaderCount; i++) {
               var width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
 
-              width = width == null ? defaultColumnWidth : width;
+              width = width === null || width === void 0 ? defaultColumnWidth : width;
 
               this.COLGROUP.childNodes[i].style.width = width + 'px';
             }
@@ -24960,7 +25043,7 @@ var TableRenderer = function () {
     value: function removeRedundantRows(renderedRowsCount) {
       while (this.wtTable.tbodyChildrenLength > renderedRowsCount) {
         this.TBODY.removeChild(this.TBODY.lastChild);
-        this.wtTable.tbodyChildrenLength--;
+        this.wtTable.tbodyChildrenLength -= 1;
       }
     }
 
@@ -25010,13 +25093,13 @@ var TableRenderer = function () {
 
           if (height) {
             // Decrease height. 1 pixel will be "replaced" by 1px border top
-            height--;
+            height -= 1;
             TR.firstChild.style.height = height + 'px';
           } else {
             TR.firstChild.style.height = '';
           }
         }
-        visibleRowIndex++;
+        visibleRowIndex += 1;
         sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
       }
     }
@@ -25063,7 +25146,7 @@ var TableRenderer = function () {
       }
 
       while (rowCount) {
-        rowCount--;
+        rowCount -= 1;
         sourceRowIndex = this.instance.wtTable.rowFilter.renderedToSource(rowCount);
         previousRowHeight = this.instance.wtTable.getRowHeight(sourceRowIndex);
         currentTr = this.instance.wtTable.getTrForRow(sourceRowIndex);
@@ -25076,7 +25159,8 @@ var TableRenderer = function () {
         }
 
         if (!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < rowInnerHeight || previousRowHeight < rowInnerHeight) {
-          this.instance.wtViewport.oversizedRows[sourceRowIndex] = ++rowInnerHeight;
+          rowInnerHeight += 1;
+          this.instance.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
         }
       }
     }
@@ -25142,7 +25226,7 @@ var TableRenderer = function () {
       var columnHeaderHeightSetting = this.wot.getSetting('columnHeaderHeight') || [];
 
       while (level) {
-        level--;
+        level -= 1;
 
         previousColHeaderHeight = this.wot.wtTable.getColumnHeaderHeight(level);
         currentHeader = this.wot.wtTable.getColumnHeader(sourceColIndex, level);
@@ -25158,7 +25242,7 @@ var TableRenderer = function () {
         }
 
         if (Array.isArray(columnHeaderHeightSetting)) {
-          if (columnHeaderHeightSetting[level] != null) {
+          if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== void 0) {
             this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
           }
         } else if (!isNaN(columnHeaderHeightSetting)) {
@@ -25226,11 +25310,11 @@ var TableRenderer = function () {
 
       rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
-      if (rowHeaderWidthSetting != null) {
+      if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== void 0) {
         for (var i = 0; i < this.rowHeaderCount; i++) {
           var width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
 
-          width = width == null ? defaultColumnWidth : width;
+          width = width === null || width === void 0 ? defaultColumnWidth : width;
 
           this.COLGROUP.childNodes[i].style.width = width + 'px';
         }
@@ -25251,7 +25335,7 @@ var TableRenderer = function () {
     key: 'appendToTbody',
     value: function appendToTbody(TR) {
       this.TBODY.appendChild(TR);
-      this.wtTable.tbodyChildrenLength++;
+      this.wtTable.tbodyChildrenLength += 1;
     }
 
     /**
@@ -25378,11 +25462,11 @@ var TableRenderer = function () {
 
       while (this.wtTable.colgroupChildrenLength < columnCount + this.rowHeaderCount) {
         this.COLGROUP.appendChild(document.createElement('COL'));
-        this.wtTable.colgroupChildrenLength++;
+        this.wtTable.colgroupChildrenLength += 1;
       }
       while (this.wtTable.colgroupChildrenLength > columnCount + this.rowHeaderCount) {
         this.COLGROUP.removeChild(this.COLGROUP.lastChild);
-        this.wtTable.colgroupChildrenLength--;
+        this.wtTable.colgroupChildrenLength -= 1;
       }
       if (this.rowHeaderCount) {
         (0, _element.addClass)(this.COLGROUP.childNodes[0], 'rowHeader');
@@ -25411,11 +25495,11 @@ var TableRenderer = function () {
 
           while (this.theadChildrenLength < columnCount + this.rowHeaderCount) {
             TR.appendChild(document.createElement('TH'));
-            this.theadChildrenLength++;
+            this.theadChildrenLength += 1;
           }
           while (this.theadChildrenLength > columnCount + this.rowHeaderCount) {
             TR.removeChild(TR.lastChild);
-            this.theadChildrenLength--;
+            this.theadChildrenLength -= 1;
           }
         }
         var theadChildrenLength = this.THEAD.childNodes.length;
@@ -25473,11 +25557,11 @@ var TableRenderer = function () {
         var TD = document.createElement('TD');
 
         TR.appendChild(TD);
-        count++;
+        count += 1;
       }
       while (count > desiredCount) {
         TR.removeChild(TR.lastChild);
-        count--;
+        count -= 1;
       }
     }
 
@@ -25490,7 +25574,7 @@ var TableRenderer = function () {
     value: function removeRedundantColumns(columnsToRender) {
       while (this.wtTable.tbodyChildrenLength > columnsToRender) {
         this.TBODY.removeChild(this.TBODY.lastChild);
-        this.wtTable.tbodyChildrenLength--;
+        this.wtTable.tbodyChildrenLength -= 1;
       }
     }
   }]);
@@ -25683,11 +25767,13 @@ var Viewport = function () {
   }, {
     key: 'sumColumnWidths',
     value: function sumColumnWidths(from, length) {
+      var wtTable = this.wot.wtTable;
       var sum = 0;
+      var column = from;
 
-      while (from < length) {
-        sum += this.wot.wtTable.getColumnWidth(from);
-        from++;
+      while (column < length) {
+        sum += wtTable.getColumnWidth(column);
+        column += 1;
       }
 
       return sum;
@@ -25703,15 +25789,15 @@ var Viewport = function () {
       if (this.containerWidth) {
         return this.containerWidth;
       }
-      var mainContainer = this.instance.wtTable.holder;
-      var fillWidth = void 0;
-      var dummyElement = void 0;
 
-      dummyElement = document.createElement('div');
+      var mainContainer = this.instance.wtTable.holder;
+      var dummyElement = document.createElement('div');
+
       dummyElement.style.width = '100%';
       dummyElement.style.height = '1px';
       mainContainer.appendChild(dummyElement);
-      fillWidth = dummyElement.offsetWidth;
+
+      var fillWidth = dummyElement.offsetWidth;
 
       this.containerWidth = fillWidth;
       mainContainer.removeChild(dummyElement);
@@ -25771,12 +25857,12 @@ var Viewport = function () {
     key: 'getViewportHeight',
     value: function getViewportHeight() {
       var containerHeight = this.getWorkspaceHeight();
-      var columnHeaderHeight = void 0;
 
       if (containerHeight === Infinity) {
         return containerHeight;
       }
-      columnHeaderHeight = this.getColumnHeaderHeight();
+
+      var columnHeaderHeight = this.getColumnHeaderHeight();
 
       if (columnHeaderHeight > 0) {
         containerHeight -= columnHeaderHeight;
@@ -25841,12 +25927,12 @@ var Viewport = function () {
     key: 'getViewportWidth',
     value: function getViewportWidth() {
       var containerWidth = this.getWorkspaceWidth();
-      var rowHeaderWidth = void 0;
 
       if (containerWidth === Infinity) {
         return containerWidth;
       }
-      rowHeaderWidth = this.getRowHeaderWidth();
+
+      var rowHeaderWidth = this.getRowHeaderWidth();
 
       if (rowHeaderWidth > 0) {
         return containerWidth - rowHeaderWidth;
@@ -25871,12 +25957,8 @@ var Viewport = function () {
       var visible = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
       var height = void 0;
-      var pos = void 0;
-      var fixedRowsTop = void 0;
       var scrollbarHeight = void 0;
-      var fixedRowsBottom = void 0;
       var fixedRowsHeight = void 0;
-      var totalRows = void 0;
 
       this.rowHeaderWidth = NaN;
 
@@ -25885,14 +25967,16 @@ var Viewport = function () {
       } else {
         height = this.getViewportHeight();
       }
-      pos = this.wot.wtOverlays.topOverlay.getScrollPosition() - this.wot.wtOverlays.topOverlay.getTableParentOffset();
+
+      var pos = this.wot.wtOverlays.topOverlay.getScrollPosition() - this.wot.wtOverlays.topOverlay.getTableParentOffset();
 
       if (pos < 0) {
         pos = 0;
       }
-      fixedRowsTop = this.wot.getSetting('fixedRowsTop');
-      fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
-      totalRows = this.wot.getSetting('totalRows');
+
+      var fixedRowsTop = this.wot.getSetting('fixedRowsTop');
+      var fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
+      var totalRows = this.wot.getSetting('totalRows');
 
       if (fixedRowsTop) {
         fixedRowsHeight = this.wot.wtOverlays.topOverlay.sumCellSizes(0, fixedRowsTop);
@@ -25933,17 +26017,15 @@ var Viewport = function () {
       var visible = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
       var width = this.getViewportWidth();
-      var pos = void 0;
-      var fixedColumnsLeft = void 0;
+      var pos = this.wot.wtOverlays.leftOverlay.getScrollPosition() - this.wot.wtOverlays.leftOverlay.getTableParentOffset();
 
       this.columnHeaderHeight = NaN;
-
-      pos = this.wot.wtOverlays.leftOverlay.getScrollPosition() - this.wot.wtOverlays.leftOverlay.getTableParentOffset();
 
       if (pos < 0) {
         pos = 0;
       }
-      fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
+
+      var fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
 
       if (fixedColumnsLeft) {
         var fixedColumnsWidth = this.wot.wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
@@ -25975,16 +26057,18 @@ var Viewport = function () {
     value: function createRenderCalculators() {
       var fastDraw = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
-      if (fastDraw) {
+      var runFastDraw = fastDraw;
+
+      if (runFastDraw) {
         var proposedRowsVisibleCalculator = this.createRowsCalculator(true);
         var proposedColumnsVisibleCalculator = this.createColumnsCalculator(true);
 
         if (!(this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) && this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator))) {
-          fastDraw = false;
+          runFastDraw = false;
         }
       }
 
-      if (!fastDraw) {
+      if (!runFastDraw) {
         this.rowsRenderCalculator = this.createRowsCalculator();
         this.columnsRenderCalculator = this.createColumnsCalculator();
       }
@@ -25992,7 +26076,7 @@ var Viewport = function () {
       this.rowsVisibleCalculator = null;
       this.columnsVisibleCalculator = null;
 
-      return fastDraw;
+      return runFastDraw;
     }
 
     /**
@@ -26323,6 +26407,8 @@ var Border = function () {
   }, {
     key: 'createMultipleSelectorHandles',
     value: function createMultipleSelectorHandles() {
+      var _this3 = this;
+
       this.selectionHandles = {
         topLeft: document.createElement('DIV'),
         topLeftHitArea: document.createElement('DIV'),
@@ -26351,12 +26437,10 @@ var Border = function () {
         'border-radius': parseInt(hitAreaWidth / 1.5, 10) + 'px'
       };
 
-      for (var prop in hitAreaStyle) {
-        if ((0, _object.hasOwnProperty)(hitAreaStyle, prop)) {
-          this.selectionHandles.styles.bottomRightHitArea[prop] = hitAreaStyle[prop];
-          this.selectionHandles.styles.topLeftHitArea[prop] = hitAreaStyle[prop];
-        }
-      }
+      (0, _object.objectEach)(hitAreaStyle, function (value, key) {
+        _this3.selectionHandles.styles.bottomRightHitArea[key] = value;
+        _this3.selectionHandles.styles.topLeftHitArea[key] = value;
+      });
 
       var handleStyle = {
         position: 'absolute',
@@ -26367,12 +26451,11 @@ var Border = function () {
         border: '1px solid #4285c8'
       };
 
-      for (var _prop in handleStyle) {
-        if ((0, _object.hasOwnProperty)(handleStyle, _prop)) {
-          this.selectionHandles.styles.bottomRight[_prop] = handleStyle[_prop];
-          this.selectionHandles.styles.topLeft[_prop] = handleStyle[_prop];
-        }
-      }
+      (0, _object.objectEach)(handleStyle, function (value, key) {
+        _this3.selectionHandles.styles.bottomRight[key] = value;
+        _this3.selectionHandles.styles.topLeft[key] = value;
+      });
+
       this.main.appendChild(this.selectionHandles.topLeft);
       this.main.appendChild(this.selectionHandles.bottomRight);
       this.main.appendChild(this.selectionHandles.topLeftHitArea);
@@ -26685,7 +26768,7 @@ var Border = function () {
   }, {
     key: 'getDimensionsFromHeader',
     value: function getDimensionsFromHeader(direction, fromIndex, toIndex, containerOffset) {
-      var _this3 = this;
+      var _this4 = this;
 
       var rootHotElement = this.wot.wtTable.wtRootElement.parentNode;
       var getHeaderFn = null;
@@ -26702,7 +26785,7 @@ var Border = function () {
           getHeaderFn = function getHeaderFn() {
             var _wot$wtTable;
 
-            return (_wot$wtTable = _this3.wot.wtTable).getRowHeader.apply(_wot$wtTable, arguments);
+            return (_wot$wtTable = _this4.wot.wtTable).getRowHeader.apply(_wot$wtTable, arguments);
           };
           dimensionFn = function dimensionFn() {
             return _element.outerHeight.apply(undefined, arguments);
@@ -26716,7 +26799,7 @@ var Border = function () {
           getHeaderFn = function getHeaderFn() {
             var _wot$wtTable2;
 
-            return (_wot$wtTable2 = _this3.wot.wtTable).getColumnHeader.apply(_wot$wtTable2, arguments);
+            return (_wot$wtTable2 = _this4.wot.wtTable).getColumnHeader.apply(_wot$wtTable2, arguments);
           };
           dimensionFn = function dimensionFn() {
             return _element.outerWidth.apply(undefined, arguments);
@@ -26981,32 +27064,32 @@ AutocompleteEditor.prototype.open = function () {
           filteringCaseSensitive = _this$cellProperties.filteringCaseSensitive,
           allowHtml = _this$cellProperties.allowHtml;
 
+      var cellValue = (0, _mixed.stringify)(value);
       var indexOfMatch = void 0;
       var match = void 0;
 
-      value = (0, _mixed.stringify)(value);
-
-      if (value && !allowHtml) {
-        indexOfMatch = filteringCaseSensitive === true ? value.indexOf(this.query) : value.toLowerCase().indexOf(_this.query.toLowerCase());
+      if (cellValue && !allowHtml) {
+        indexOfMatch = filteringCaseSensitive === true ? cellValue.indexOf(this.query) : cellValue.toLowerCase().indexOf(_this.query.toLowerCase());
 
         if (indexOfMatch !== -1) {
-          match = value.substr(indexOfMatch, _this.query.length);
-          value = value.replace(match, '<strong>' + match + '</strong>');
+          match = cellValue.substr(indexOfMatch, _this.query.length);
+          cellValue = cellValue.replace(match, '<strong>' + match + '</strong>');
         }
       }
-      TD.innerHTML = value;
+      TD.innerHTML = cellValue;
     },
 
     autoColumnSize: true,
     modifyColWidth: function modifyColWidth(width, col) {
       // workaround for <strong> text overlapping the dropdown, not really accurate
       var autoWidths = this.getPlugin('autoColumnSize').widths;
+      var columnWidth = width;
 
       if (autoWidths[col]) {
-        width = autoWidths[col];
+        columnWidth = autoWidths[col];
       }
 
-      return trimDropdown ? width : width + 15;
+      return trimDropdown ? columnWidth : columnWidth + 15;
     }
   });
 
@@ -27041,13 +27124,14 @@ AutocompleteEditor.prototype.queryChoices = function (query) {
   }
 };
 
-AutocompleteEditor.prototype.updateChoicesList = function (choices) {
+AutocompleteEditor.prototype.updateChoicesList = function (choicesList) {
   var pos = (0, _element.getCaretPosition)(this.TEXTAREA);
   var endPos = (0, _element.getSelectionEndPosition)(this.TEXTAREA);
   var sortByRelevanceSetting = this.cellProperties.sortByRelevance;
   var filterSetting = this.cellProperties.filter;
   var orderByRelevance = null;
   var highlightIndex = null;
+  var choices = choicesList;
 
   if (sortByRelevanceSetting) {
     orderByRelevance = AutocompleteEditor.sortByRelevance(this.stripValueIfNeeded(this.getValue()), choices, this.cellProperties.filteringCaseSensitive);
@@ -27133,7 +27217,7 @@ AutocompleteEditor.prototype.limitDropdownIfNeeded = function (spaceAvailable, d
     do {
       lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.wtSettings.settings.defaultRowHeight;
       tempHeight += lastRowHeight;
-      i++;
+      i += 1;
     } while (tempHeight < spaceAvailable);
 
     height = tempHeight - lastRowHeight;
@@ -27185,10 +27269,6 @@ AutocompleteEditor.prototype.setDropdownHeight = function (height) {
 };
 
 AutocompleteEditor.prototype.finishEditing = function (restoreOriginalValue) {
-  if (!restoreOriginalValue) {
-    this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-  }
-
   for (var _len5 = arguments.length, args = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
     args[_key5 - 1] = arguments[_key5];
   }
@@ -27307,7 +27387,6 @@ AutocompleteEditor.prototype.stripValuesIfNeeded = function (values) {
 
 AutocompleteEditor.prototype.allowKeyEventPropagation = function (keyCode) {
   var selectedRange = this.htEditor.getSelectedRangeLast();
-
   var selected = { row: selectedRange ? selectedRange.from.row : -1 };
   var allowed = false;
 
@@ -27321,9 +27400,19 @@ AutocompleteEditor.prototype.allowKeyEventPropagation = function (keyCode) {
   return allowed;
 };
 
-AutocompleteEditor.prototype.discardEditor = function () {
+AutocompleteEditor.prototype.close = function () {
+  this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+
   for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
     args[_key6] = arguments[_key6];
+  }
+
+  _handsontableEditor2.default.prototype.close.apply(this, args);
+};
+
+AutocompleteEditor.prototype.discardEditor = function () {
+  for (var _len7 = arguments.length, args = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+    args[_key7] = arguments[_key7];
   }
 
   _handsontableEditor2.default.prototype.discardEditor.apply(this, args);
@@ -30822,13 +30911,17 @@ function createCellHeadersRange(firstRowIndex, nextRowIndex) {
   var toValue = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : nextRowIndex;
 
   // Will swap `fromValue` with `toValue` if it's necessary.
+  var from = fromValue,
+      to = toValue;
+
+
   if (firstRowIndex > nextRowIndex) {
-    var _ref = [toValue, fromValue];
-    fromValue = _ref[0];
-    toValue = _ref[1];
+    var _ref = [to, from];
+    from = _ref[0];
+    to = _ref[1];
   }
 
-  return fromValue + '-' + toValue;
+  return from + '-' + to;
 }
 
 /**
@@ -31141,18 +31234,15 @@ var Highlight = function () {
   _createClass(Highlight, [{
     key: 'isEnabledFor',
     value: function isEnabledFor(highlightType) {
-      var disableHighlight = this.options.disableHighlight;
-
       // Legacy compatibility.
-      if (highlightType === 'current') {
-        highlightType = CELL_TYPE;
-      }
+      var type = highlightType === 'current' ? CELL_TYPE : highlightType;
+      var disableHighlight = this.options.disableHighlight;
 
       if (typeof disableHighlight === 'string') {
         disableHighlight = [disableHighlight];
       }
 
-      return disableHighlight === false || Array.isArray(disableHighlight) && !disableHighlight.includes(highlightType);
+      return disableHighlight === false || Array.isArray(disableHighlight) && !disableHighlight.includes(type);
     }
 
     /**
@@ -31451,15 +31541,15 @@ var SamplesGenerator = function () {
       }
       return SamplesGenerator.SAMPLE_COUNT;
     }
-  }, {
-    key: 'setSampleCount',
-
 
     /**
      * Set the sample count.
      *
      * @param {Number} sampleCount Number of samples to be collected.
      */
+
+  }, {
+    key: 'setSampleCount',
     value: function setSampleCount(sampleCount) {
       this.customSampleCount = sampleCount;
     }
@@ -31520,10 +31610,11 @@ var SamplesGenerator = function () {
 
       var samples = new Map();
 
-      if (typeof specifierRange === 'number') {
-        specifierRange = { from: specifierRange, to: specifierRange };
-      }
-      (0, _number.rangeEach)(specifierRange.from, specifierRange.to, function (index) {
+      var _ref = typeof specifierRange === 'number' ? { from: specifierRange, to: specifierRange } : specifierRange,
+          from = _ref.from,
+          to = _ref.to;
+
+      (0, _number.rangeEach)(from, to, function (index) {
         var sample = _this.generateSample(type, range, index);
 
         samples.set(index, sample);
@@ -31555,9 +31646,9 @@ var SamplesGenerator = function () {
       var sampledValues = [];
 
       (0, _number.rangeEach)(range.from, range.to, function (index) {
-        var _ref = type === 'row' ? _this2.dataFactory(specifierValue, index) : _this2.dataFactory(index, specifierValue),
-            value = _ref.value,
-            bundleCountSeed = _ref.bundleCountSeed;
+        var _ref2 = type === 'row' ? _this2.dataFactory(specifierValue, index) : _this2.dataFactory(index, specifierValue),
+            value = _ref2.value,
+            bundleCountSeed = _ref2.bundleCountSeed;
 
         var hasCustomBundleSeed = bundleCountSeed > 0;
         var length = void 0;
@@ -31588,7 +31679,7 @@ var SamplesGenerator = function () {
           if (!duplicate || _this2.allowDuplicates || hasCustomBundleSeed) {
             sample.strings.push(_defineProperty({ value: value }, computedKey, index));
             sampledValues.push(value);
-            sample.needed--;
+            sample.needed -= 1;
           }
         }
       });
@@ -31678,13 +31769,13 @@ var CommandExecutor = function () {
       }
 
       var commandSplit = commandName.split(':');
-      commandName = commandSplit[0];
+      var commandNamePrimary = commandSplit[0];
 
       var subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
-      var command = this.commands[commandName];
+      var command = this.commands[commandNamePrimary];
 
       if (!command) {
-        throw new Error('Menu command \'' + commandName + '\' not exists.');
+        throw new Error('Menu command \'' + commandNamePrimary + '\' not exists.');
       }
       if (subCommandName && command.submenu) {
         command = findSubCommand(subCommandName, command.submenu.items);
@@ -31749,7 +31840,7 @@ var _object = __webpack_require__(1);
 
 var _array = __webpack_require__(0);
 
-var _predefinedItems = __webpack_require__(44);
+var _predefinedItems = __webpack_require__(43);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -31828,11 +31919,12 @@ var ItemsFactory = function () {
 }();
 
 function _getItems() {
-  var pattern = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+  var itemsPattern = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
   var defaultPattern = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
   var items = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
   var result = [];
+  var pattern = itemsPattern;
 
   if (pattern && pattern.items) {
     pattern = pattern.items;
@@ -32414,9 +32506,8 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'eq';
 
-function condition(dataRow) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : inputValues,
-      _ref2 = _slicedToArray(_ref, 1),
+function condition(dataRow, _ref) {
+  var _ref2 = _slicedToArray(_ref, 1),
       value = _ref2[0];
 
   return (0, _mixed.stringify)(dataRow.value).toLowerCase() === (0, _mixed.stringify)(value);
@@ -32456,26 +32547,28 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'between';
 
-function condition(dataRow) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : inputValues,
-      _ref2 = _slicedToArray(_ref, 2),
+function condition(dataRow, _ref) {
+  var _ref2 = _slicedToArray(_ref, 2),
       from = _ref2[0],
       to = _ref2[1];
 
-  if (dataRow.meta.type === 'numeric') {
-    var _from = parseFloat(from, 10);
-    var _to = parseFloat(to, 10);
+  var fromValue = from;
+  var toValue = to;
 
-    from = Math.min(_from, _to);
-    to = Math.max(_from, _to);
+  if (dataRow.meta.type === 'numeric') {
+    var _from = parseFloat(fromValue, 10);
+    var _to = parseFloat(toValue, 10);
+
+    fromValue = Math.min(_from, _to);
+    toValue = Math.max(_from, _to);
   } else if (dataRow.meta.type === 'date') {
-    var dateBefore = (0, _conditionRegisterer.getCondition)(_before.CONDITION_NAME, [to]);
-    var dateAfter = (0, _conditionRegisterer.getCondition)(_after.CONDITION_NAME, [from]);
+    var dateBefore = (0, _conditionRegisterer.getCondition)(_before.CONDITION_NAME, [toValue]);
+    var dateAfter = (0, _conditionRegisterer.getCondition)(_after.CONDITION_NAME, [fromValue]);
 
     return dateBefore(dataRow) && dateAfter(dataRow);
   }
 
-  return dataRow.value >= from && dataRow.value <= to;
+  return dataRow.value >= fromValue && dataRow.value <= toValue;
 }
 
 (0, _conditionRegisterer.registerCondition)(CONDITION_NAME, condition, {
@@ -32514,9 +32607,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'date_after';
 
-function condition(dataRow) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : inputValues,
-      _ref2 = _slicedToArray(_ref, 1),
+function condition(dataRow, _ref) {
+  var _ref2 = _slicedToArray(_ref, 1),
       value = _ref2[0];
 
   var date = (0, _moment2.default)(dataRow.value, dataRow.meta.dateFormat);
@@ -32565,9 +32657,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'date_before';
 
-function condition(dataRow) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : inputValues,
-      _ref2 = _slicedToArray(_ref, 1),
+function condition(dataRow, _ref) {
+  var _ref2 = _slicedToArray(_ref, 1),
       value = _ref2[0];
 
   var date = (0, _moment2.default)(dataRow.value, dataRow.meta.dateFormat);
@@ -32612,9 +32703,8 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'contains';
 
-function condition(dataRow) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : inputValues,
-      _ref2 = _slicedToArray(_ref, 1),
+function condition(dataRow, _ref) {
+  var _ref2 = _slicedToArray(_ref, 1),
       value = _ref2[0];
 
   return (0, _mixed.stringify)(dataRow.value).toLowerCase().indexOf((0, _mixed.stringify)(value)) >= 0;
@@ -32914,11 +33004,9 @@ var ConditionCollection = function () {
       var result = [];
 
       (0, _array.arrayEach)(this.orderStack, function (column) {
-        var conditions = (0, _array.arrayMap)(_this2.getConditions(column), function () {
-          var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : condition,
-              name = _ref.name,
+        var conditions = (0, _array.arrayMap)(_this2.getConditions(column), function (_ref) {
+          var name = _ref.name,
               args = _ref.args;
-
           return { name: name, args: args };
         });
         var operation = _this2.columnTypes[column];
@@ -33100,7 +33188,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  */
 var DataFilter = function () {
   function DataFilter(conditionCollection) {
-    var columnDataFactory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function (column) {
+    var columnDataFactory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {
       return [];
     };
 
@@ -33246,9 +33334,10 @@ var BaseCell = function () {
       get: function get() {
         return this.rowOffset + this._row;
       },
-      set: function set(row) {
-        this._row = row;
+      set: function set(rowIndex) {
+        this._row = rowIndex;
       },
+
       enumerable: true,
       configurable: true
     });
@@ -33256,9 +33345,10 @@ var BaseCell = function () {
       get: function get() {
         return this.columnOffset + this._column;
       },
-      set: function set(column) {
-        this._column = column;
+      set: function set(columnIndex) {
+        this._column = columnIndex;
       },
+
       enumerable: true,
       configurable: true
     });
@@ -33420,15 +33510,14 @@ var HeadersUI = function (_BaseUI) {
   _createClass(HeadersUI, [{
     key: 'appendLevelIndicators',
     value: function appendLevelIndicators(row, TH) {
-      row = this.trimRowsPlugin.rowsMapper.getValueByIndex(row);
-
-      var rowLevel = this.dataManager.getRowLevel(row);
-      var rowObject = this.dataManager.getDataObject(row);
+      var rowIndex = this.trimRowsPlugin.rowsMapper.getValueByIndex(row);
+      var rowLevel = this.dataManager.getRowLevel(rowIndex);
+      var rowObject = this.dataManager.getDataObject(rowIndex);
       var innerDiv = TH.getElementsByTagName('DIV')[0];
       var innerSpan = innerDiv.querySelector('span.rowHeader');
       var previousIndicators = innerDiv.querySelectorAll('[class^="ht_nesting"]');
 
-      (0, _array.arrayEach)(previousIndicators, function (elem, i) {
+      (0, _array.arrayEach)(previousIndicators, function (elem) {
         if (elem) {
           innerDiv.removeChild(elem);
         }
@@ -33440,7 +33529,7 @@ var HeadersUI = function (_BaseUI) {
         var initialContent = innerSpan.cloneNode(true);
         innerDiv.innerHTML = '';
 
-        (0, _number.rangeEach)(0, rowLevel - 1, function (i) {
+        (0, _number.rangeEach)(0, rowLevel - 1, function () {
           var levelIndicator = document.createElement('SPAN');
           (0, _element.addClass)(levelIndicator, HeadersUI.CSS_CLASSES.emptyIndicator);
           innerDiv.appendChild(levelIndicator);
@@ -33453,7 +33542,7 @@ var HeadersUI = function (_BaseUI) {
         var buttonsContainer = document.createElement('DIV');
         (0, _element.addClass)(TH, HeadersUI.CSS_CLASSES.parent);
 
-        if (this.collapsingUI.areChildrenCollapsed(row)) {
+        if (this.collapsingUI.areChildrenCollapsed(rowIndex)) {
           (0, _element.addClass)(buttonsContainer, HeadersUI.CSS_CLASSES.button + ' ' + HeadersUI.CSS_CLASSES.expandButton);
         } else {
           (0, _element.addClass)(buttonsContainer, HeadersUI.CSS_CLASSES.button + ' ' + HeadersUI.CSS_CLASSES.collapseButton);
@@ -33473,11 +33562,13 @@ var HeadersUI = function (_BaseUI) {
   }, {
     key: 'updateRowHeaderWidth',
     value: function updateRowHeaderWidth(deepestLevel) {
-      if (!deepestLevel) {
-        deepestLevel = this.dataManager.cache.levelCount;
+      var deepestLevelIndex = deepestLevel;
+
+      if (!deepestLevelIndex) {
+        deepestLevelIndex = this.dataManager.cache.levelCount;
       }
 
-      this.rowHeaderWidthCache = Math.max(50, 11 + 10 * deepestLevel + 25);
+      this.rowHeaderWidthCache = Math.max(50, 11 + 10 * deepestLevelIndex + 25);
 
       this.hot.render();
     }
@@ -33625,8 +33716,11 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_handsontable2.default.baseVersion = '5.0.1';
+/* eslint-enable no-unused-vars */
 
+_handsontable2.default.baseVersion = 'handsontable/handsontable#release/5.0.2';
+
+/* eslint-disable no-unused-vars */
 exports.default = _handsontable2.default;
 
 /***/ }),
@@ -33660,7 +33754,7 @@ var setToStringTag = __webpack_require__(61);
 var IteratorPrototype = {};
 
 // 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
-__webpack_require__(38)(IteratorPrototype, __webpack_require__(14)('iterator'), function () { return this; });
+__webpack_require__(37)(IteratorPrototype, __webpack_require__(14)('iterator'), function () { return this; });
 
 module.exports = function (Constructor, NAME, next) {
   Constructor.prototype = create(IteratorPrototype, { next: descriptor(1, next) });
@@ -33763,7 +33857,7 @@ var macrotask = __webpack_require__(101).set;
 var Observer = global.MutationObserver || global.WebKitMutationObserver;
 var process = global.process;
 var Promise = global.Promise;
-var isNode = __webpack_require__(52)(process) == 'process';
+var isNode = __webpack_require__(51)(process) == 'process';
 
 module.exports = function () {
   var head, last, notify;
@@ -33957,7 +34051,7 @@ module.exports = function () {
 "use strict";
 // 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
 
-var toObject = __webpack_require__(40);
+var toObject = __webpack_require__(39);
 var toAbsoluteIndex = __webpack_require__(72);
 var toLength = __webpack_require__(29);
 
@@ -33990,7 +34084,7 @@ module.exports = [].copyWithin || function copyWithin(target /* = 0 */, start /*
 "use strict";
 // 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
 
-var toObject = __webpack_require__(40);
+var toObject = __webpack_require__(39);
 var toAbsoluteIndex = __webpack_require__(72);
 var toLength = __webpack_require__(29);
 module.exports = function fill(value /* , start = 0, end = @length */) {
@@ -34148,7 +34242,7 @@ var _editors = __webpack_require__(19);
 
 var _renderers = __webpack_require__(15);
 
-var _validators = __webpack_require__(43);
+var _validators = __webpack_require__(42);
 
 var _cellTypes = __webpack_require__(155);
 
@@ -34188,7 +34282,7 @@ var _date = __webpack_require__(208);
 
 var dateHelpers = _interopRequireWildcard(_date);
 
-var _feature = __webpack_require__(42);
+var _feature = __webpack_require__(41);
 
 var featureHelpers = _interopRequireWildcard(_feature);
 
@@ -34267,11 +34361,11 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '16/08/2018 12:38:43';
+Handsontable.buildDate = '05/09/2018 12:20:25';
 Handsontable.packageName = 'handsontable-pro';
-Handsontable.version = '5.0.1';
+Handsontable.version = '5.0.2';
 
-var baseVersion = '5.0.1';
+var baseVersion = 'handsontable/handsontable#release/5.0.2';
 
 if (baseVersion) {
   Handsontable.baseVersion = baseVersion;
@@ -34597,12 +34691,13 @@ var LeftOverlay = function (_Overlay) {
   }, {
     key: 'sumCellSizes',
     value: function sumCellSizes(from, to) {
-      var sum = 0;
       var defaultColumnWidth = this.wot.wtSettings.defaultColumnWidth;
+      var column = from;
+      var sum = 0;
 
-      while (from < to) {
-        sum += this.wot.wtTable.getStretchedColumnWidth(from) || defaultColumnWidth;
-        from++;
+      while (column < to) {
+        sum += this.wot.wtTable.getStretchedColumnWidth(column) || defaultColumnWidth;
+        column += 1;
       }
 
       return sum;
@@ -34643,7 +34738,6 @@ var LeftOverlay = function (_Overlay) {
       var overlayRoot = this.clone.wtTable.holder.parentNode;
       var overlayRootStyle = overlayRoot.style;
       var preventOverflow = this.wot.getSetting('preventOverflow');
-      var tableWidth = void 0;
 
       if (this.trimmingContainer !== window || preventOverflow === 'vertical') {
         var height = this.wot.wtViewport.getWorkspaceHeight() - scrollbarHeight;
@@ -34657,7 +34751,7 @@ var LeftOverlay = function (_Overlay) {
 
       this.clone.wtTable.holder.style.height = overlayRootStyle.height;
 
-      tableWidth = (0, _element.outerWidth)(this.clone.wtTable.TABLE);
+      var tableWidth = (0, _element.outerWidth)(this.clone.wtTable.TABLE);
       overlayRootStyle.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
     }
 
@@ -34970,14 +35064,15 @@ var TopOverlay = function (_Overlay) {
   }, {
     key: 'sumCellSizes',
     value: function sumCellSizes(from, to) {
-      var sum = 0;
       var defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
+      var row = from;
+      var sum = 0;
 
-      while (from < to) {
-        var height = this.wot.wtTable.getRowHeight(from);
+      while (row < to) {
+        var height = this.wot.wtTable.getRowHeight(row);
 
         sum += height === void 0 ? defaultRowHeight : height;
-        from++;
+        row += 1;
       }
 
       return sum;
@@ -35018,7 +35113,6 @@ var TopOverlay = function (_Overlay) {
       var overlayRoot = this.clone.wtTable.holder.parentNode;
       var overlayRootStyle = overlayRoot.style;
       var preventOverflow = this.wot.getSetting('preventOverflow');
-      var tableHeight = void 0;
 
       if (this.trimmingContainer !== window || preventOverflow === 'horizontal') {
         var width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth;
@@ -35032,7 +35126,7 @@ var TopOverlay = function (_Overlay) {
 
       this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
-      tableHeight = (0, _element.outerHeight)(this.clone.wtTable.TABLE);
+      var tableHeight = (0, _element.outerHeight)(this.clone.wtTable.TABLE);
       overlayRootStyle.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
     }
 
@@ -35540,15 +35634,17 @@ var Selection = function () {
       var TD = wotInstance.wtTable.getCell(new _coords2.default(sourceRow, sourceColumn));
 
       if ((typeof TD === 'undefined' ? 'undefined' : _typeof(TD)) === 'object') {
-        if (markIntersections) {
-          className = this.classNameGenerator(TD);
+        var cellClassName = className;
 
-          if (!this.classNames.includes(className)) {
-            this.classNames.push(className);
+        if (markIntersections) {
+          cellClassName = this.classNameGenerator(TD);
+
+          if (!this.classNames.includes(cellClassName)) {
+            this.classNames.push(cellClassName);
           }
         }
 
-        (0, _element.addClass)(TD, className);
+        (0, _element.addClass)(TD, cellClassName);
       }
 
       return this;
@@ -36274,7 +36370,9 @@ var DateEditor = function (_TextEditor) {
       options.bound = false;
       options.format = options.format || this.defaultDateFormat;
       options.reposition = options.reposition || false;
-      options.onSelect = function (dateStr) {
+      options.onSelect = function (value) {
+        var dateStr = value;
+
         if (!isNaN(dateStr.getTime())) {
           dateStr = (0, _moment2.default)(dateStr).format(_this4.cellProperties.dateFormat || _this4.defaultDateFormat);
         }
@@ -36509,6 +36607,8 @@ var _baseEditor = __webpack_require__(63);
 
 var _baseEditor2 = _interopRequireDefault(_baseEditor);
 
+var _object = __webpack_require__(1);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var SelectEditor = _baseEditor2.default.prototype.extend();
@@ -36544,6 +36644,8 @@ SelectEditor.prototype.registerHooks = function () {
 };
 
 SelectEditor.prototype.prepare = function () {
+  var _this2 = this;
+
   for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
     args[_key] = arguments[_key];
   }
@@ -36561,14 +36663,12 @@ SelectEditor.prototype.prepare = function () {
 
   (0, _element.empty)(this.select);
 
-  for (var option in options) {
-    if (Object.prototype.hasOwnProperty.call(options, option)) {
-      var optionElement = document.createElement('OPTION');
-      optionElement.value = option;
-      (0, _element.fastInnerHTML)(optionElement, options[option]);
-      this.select.appendChild(optionElement);
-    }
-  }
+  (0, _object.objectEach)(options, function (value, key) {
+    var optionElement = document.createElement('OPTION');
+    optionElement.value = key;
+    (0, _element.fastInnerHTML)(optionElement, value);
+    _this2.select.appendChild(optionElement);
+  });
 };
 
 SelectEditor.prototype.prepareOptions = function (optionsToPrepare) {
@@ -37112,8 +37212,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
         var cell = instance.getCell(visualRow, visualColumn);
 
-        if (cell == null) {
-
+        if (cell === null || cell === void 0) {
           callback(visualRow, visualColumn, cachedCellProperties);
         } else {
           var checkboxes = cell.querySelectorAll('input[type=checkbox]');
@@ -37293,11 +37392,7 @@ function htmlRenderer(instance, TD, row, col, prop, value) {
 
   (0, _index.getRenderer)('base').apply(this, [instance, TD, row, col, prop, value].concat(args));
 
-  if (value === null || value === void 0) {
-    value = '';
-  }
-
-  (0, _element.fastInnerHTML)(TD, value);
+  (0, _element.fastInnerHTML)(TD, value === null || value === void 0 ? '' : value);
 }
 
 exports.default = htmlRenderer;
@@ -37336,7 +37431,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
 function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  if ((0, _number.isNumeric)(value)) {
+  var newValue = value;
+
+  if ((0, _number.isNumeric)(newValue)) {
     var numericFormat = cellProperties.numericFormat;
     var cellCulture = numericFormat && numericFormat.culture || '-';
     var cellFormatPattern = numericFormat && numericFormat.pattern;
@@ -37354,7 +37451,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
     _numbro2.default.setLanguage(cellCulture);
 
-    value = (0, _numbro2.default)(value).format(cellFormatPattern || '0');
+    newValue = (0, _numbro2.default)(newValue).format(cellFormatPattern || '0');
 
     if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 && classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
       classArr.push('htRight');
@@ -37367,7 +37464,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
     cellProperties.className = classArr.join(' ');
   }
 
-  (0, _index.getRenderer)('text')(instance, TD, row, col, prop, value, cellProperties);
+  (0, _index.getRenderer)('text')(instance, TD, row, col, prop, newValue, cellProperties);
 }
 
 exports.default = numericRenderer;
@@ -37411,9 +37508,7 @@ function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
   (0, _index.getRenderer)('text').apply(this, [instance, TD, row, col, prop, value, cellProperties].concat(args));
 
-  value = TD.innerHTML;
-
-  var hashLength = cellProperties.hashLength || value.length;
+  var hashLength = cellProperties.hashLength || TD.innerHTML.length;
   var hashSymbol = cellProperties.hashSymbol || '*';
 
   var hash = '';
@@ -37460,12 +37555,13 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
   }
 
   (0, _index.getRenderer)('base').apply(this, [instance, TD, row, col, prop, value, cellProperties].concat(args));
+  var escaped = value;
 
-  if (!value && cellProperties.placeholder) {
-    value = cellProperties.placeholder;
+  if (!escaped && cellProperties.placeholder) {
+    escaped = cellProperties.placeholder;
   }
 
-  var escaped = (0, _mixed.stringify)(value);
+  escaped = (0, _mixed.stringify)(escaped);
 
   if (!instance.getSettings().trimWhitespace) {
     escaped = escaped.replace(/ /g, String.fromCharCode(160));
@@ -37505,11 +37601,13 @@ exports.default = autocompleteValidator;
  * @param {Function} callback - Callback called with validation result
  */
 function autocompleteValidator(value, callback) {
-  if (value == null) {
-    value = '';
+  var valueToValidate = value;
+
+  if (valueToValidate === null || valueToValidate === void 0) {
+    valueToValidate = '';
   }
 
-  if (this.allowEmpty && value === '') {
+  if (this.allowEmpty && valueToValidate === '') {
     callback(true);
 
     return;
@@ -37517,14 +37615,14 @@ function autocompleteValidator(value, callback) {
 
   if (this.strict && this.source) {
     if (typeof this.source === 'function') {
-      this.source(value, process(value, callback));
+      this.source(valueToValidate, process(valueToValidate, callback));
     } else {
-      process(value, callback)(this.source);
+      process(valueToValidate, callback)(this.source);
     }
   } else {
     callback(true);
   }
-};
+}
 
 /**
  * Function responsible for validation of autocomplete value.
@@ -37580,17 +37678,18 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @param {Function} callback - Callback called with validation result
  */
 function dateValidator(value, callback) {
-  var valid = true;
   var dateEditor = (0, _editors.getEditorInstance)('date', this.instance);
+  var valueToValidate = value;
+  var valid = true;
 
-  if (value == null) {
-    value = '';
+  if (valueToValidate === null || valueToValidate === void 0) {
+    valueToValidate = '';
   }
-  var isValidDate = (0, _moment2.default)(new Date(value)).isValid() || (0, _moment2.default)(value, dateEditor.defaultDateFormat).isValid();
+  var isValidDate = (0, _moment2.default)(new Date(valueToValidate)).isValid() || (0, _moment2.default)(valueToValidate, dateEditor.defaultDateFormat).isValid();
   // is it in the specified format
-  var isValidFormat = (0, _moment2.default)(value, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
+  var isValidFormat = (0, _moment2.default)(valueToValidate, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
 
-  if (this.allowEmpty && value === '') {
+  if (this.allowEmpty && valueToValidate === '') {
     isValidDate = true;
     isValidFormat = true;
   }
@@ -37604,7 +37703,7 @@ function dateValidator(value, callback) {
   if (isValidDate && !isValidFormat) {
     if (this.correctFormat === true) {
       // if format correction is enabled
-      var correctedValue = correctFormat(value, this.dateFormat);
+      var correctedValue = correctFormat(valueToValidate, this.dateFormat);
       var row = this.instance.runHooks('unmodifyRow', this.row);
       var column = this.instance.runHooks('unmodifyCol', this.col);
 
@@ -37616,7 +37715,7 @@ function dateValidator(value, callback) {
   }
 
   callback(valid);
-};
+}
 
 /**
  * Format the given string using moment.js' format feature
@@ -37638,7 +37737,7 @@ function correctFormat(value, dateFormat) {
   }
 
   return date.format(dateFormat);
-};
+}
 
 /***/ }),
 /* 283 */
@@ -37658,17 +37757,19 @@ exports.default = numericValidator;
  * @param {*} callback - Callback called with validation result
  */
 function numericValidator(value, callback) {
-  if (value == null) {
-    value = '';
+  var valueToValidate = value;
+
+  if (valueToValidate === null || valueToValidate === void 0) {
+    valueToValidate = '';
   }
-  if (this.allowEmpty && value === '') {
+  if (this.allowEmpty && valueToValidate === '') {
     callback(true);
-  } else if (value === '') {
+  } else if (valueToValidate === '') {
     callback(false);
   } else {
-    callback(/^-?\d*(\.|,)?\d*$/.test(value));
+    callback(/^-?\d*(\.|,)?\d*$/.test(valueToValidate));
   }
-};
+}
 
 /***/ }),
 /* 284 */
@@ -37701,28 +37802,29 @@ var STRICT_FORMATS = ['YYYY-MM-DDTHH:mm:ss.SSSZ', 'X', // Unix timestamp
  * @param {Function} callback - Callback called with validation result
  */
 function timeValidator(value, callback) {
-  var valid = true;
   var timeFormat = this.timeFormat || 'h:mm:ss a';
+  var valid = true;
+  var valueToValidate = value;
 
-  if (value === null) {
-    value = '';
+  if (valueToValidate === null) {
+    valueToValidate = '';
   }
 
-  value = /^\d{3,}$/.test(value) ? parseInt(value, 10) : value;
+  valueToValidate = /^\d{3,}$/.test(valueToValidate) ? parseInt(valueToValidate, 10) : valueToValidate;
 
-  var twoDigitValue = /^\d{1,2}$/.test(value);
+  var twoDigitValue = /^\d{1,2}$/.test(valueToValidate);
 
   if (twoDigitValue) {
-    value += ':00';
+    valueToValidate += ':00';
   }
 
-  var date = (0, _moment2.default)(value, STRICT_FORMATS, true).isValid() ? (0, _moment2.default)(value) : (0, _moment2.default)(value, timeFormat);
+  var date = (0, _moment2.default)(valueToValidate, STRICT_FORMATS, true).isValid() ? (0, _moment2.default)(valueToValidate) : (0, _moment2.default)(valueToValidate, timeFormat);
   var isValidTime = date.isValid();
 
   // is it in the specified format
-  var isValidFormat = (0, _moment2.default)(value, timeFormat, true).isValid() && !twoDigitValue;
+  var isValidFormat = (0, _moment2.default)(valueToValidate, timeFormat, true).isValid() && !twoDigitValue;
 
-  if (this.allowEmpty && value === '') {
+  if (this.allowEmpty && valueToValidate === '') {
     isValidTime = true;
     isValidFormat = true;
   }
@@ -37747,7 +37849,7 @@ function timeValidator(value, callback) {
   }
 
   callback(valid);
-};
+}
 
 /***/ }),
 /* 285 */
@@ -37762,7 +37864,7 @@ var _editors = __webpack_require__(19);
 
 var _renderers = __webpack_require__(15);
 
-var _validators = __webpack_require__(43);
+var _validators = __webpack_require__(42);
 
 var CELL_TYPE = 'autocomplete';
 
@@ -37805,7 +37907,7 @@ var _editors = __webpack_require__(19);
 
 var _renderers = __webpack_require__(15);
 
-var _validators = __webpack_require__(43);
+var _validators = __webpack_require__(42);
 
 var CELL_TYPE = 'date';
 
@@ -37829,7 +37931,7 @@ var _editors = __webpack_require__(19);
 
 var _renderers = __webpack_require__(15);
 
-var _validators = __webpack_require__(43);
+var _validators = __webpack_require__(42);
 
 var CELL_TYPE = 'dropdown';
 
@@ -37874,7 +37976,7 @@ var _editors = __webpack_require__(19);
 
 var _renderers = __webpack_require__(15);
 
-var _validators = __webpack_require__(43);
+var _validators = __webpack_require__(42);
 
 var CELL_TYPE = 'numeric';
 
@@ -37939,7 +38041,7 @@ var _editors = __webpack_require__(19);
 
 var _renderers = __webpack_require__(15);
 
-var _validators = __webpack_require__(43);
+var _validators = __webpack_require__(42);
 
 var CELL_TYPE = 'time';
 
@@ -38041,29 +38143,31 @@ DataMap.prototype.recursiveDuckSchema = function (object) {
  * @returns {Number}
  */
 DataMap.prototype.recursiveDuckColumns = function (schema, lastCol, parent) {
+  var _this2 = this;
+
+  var lastColumn = lastCol;
+  var propertyParent = parent;
   var prop = void 0;
 
-  if (typeof lastCol === 'undefined') {
-    lastCol = 0;
-    parent = '';
+  if (typeof lastColumn === 'undefined') {
+    lastColumn = 0;
+    propertyParent = '';
   }
   if ((typeof schema === 'undefined' ? 'undefined' : _typeof(schema)) === 'object' && !Array.isArray(schema)) {
-    for (var i in schema) {
-      if ((0, _object.hasOwnProperty)(schema, i)) {
-        if (schema[i] === null) {
-          prop = parent + i;
-          this.colToPropCache.push(prop);
-          this.propToColCache.set(prop, lastCol);
+    (0, _object.objectEach)(schema, function (value, key) {
+      if (value === null) {
+        prop = propertyParent + key;
+        _this2.colToPropCache.push(prop);
+        _this2.propToColCache.set(prop, lastColumn);
 
-          lastCol++;
-        } else {
-          lastCol = this.recursiveDuckColumns(schema[i], lastCol, i + '.');
-        }
+        lastColumn += 1;
+      } else {
+        lastColumn = _this2.recursiveDuckColumns(value, lastColumn, key + '.');
       }
-    }
+    });
   }
 
-  return lastCol;
+  return lastColumn;
 };
 
 DataMap.prototype.createMap = function () {
@@ -38101,7 +38205,7 @@ DataMap.prototype.createMap = function () {
           this.propToColCache.set(column.data, index);
         }
 
-        filteredIndex++;
+        filteredIndex += 1;
       }
     }
   } else {
@@ -38116,13 +38220,13 @@ DataMap.prototype.createMap = function () {
  * @returns {Number} Physical column index.
  */
 DataMap.prototype.colToProp = function (col) {
-  col = this.instance.runHooks('modifyCol', col);
+  var physicalColumn = this.instance.runHooks('modifyCol', col);
 
-  if (!isNaN(col) && this.colToPropCache && typeof this.colToPropCache[col] !== 'undefined') {
-    return this.colToPropCache[col];
+  if (!isNaN(physicalColumn) && this.colToPropCache && typeof this.colToPropCache[physicalColumn] !== 'undefined') {
+    return this.colToPropCache[physicalColumn];
   }
 
-  return col;
+  return physicalColumn;
 };
 
 /**
@@ -38169,18 +38273,19 @@ DataMap.prototype.getSchema = function () {
  * @returns {Number} Returns number of created rows.
  */
 DataMap.prototype.createRow = function (index) {
-  var _this2 = this;
+  var _this3 = this;
 
   var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
   var source = arguments[2];
 
   var numberOfCreatedRows = 0;
+  var rowIndex = index;
 
-  if (typeof index !== 'number' || index >= this.instance.countSourceRows()) {
-    index = this.instance.countSourceRows();
+  if (typeof rowIndex !== 'number' || rowIndex >= this.instance.countSourceRows()) {
+    rowIndex = this.instance.countSourceRows();
   }
 
-  var continueProcess = this.instance.runHooks('beforeCreateRow', index, amount, source);
+  var continueProcess = this.instance.runHooks('beforeCreateRow', rowIndex, amount, source);
 
   if (continueProcess === false) {
     return 0;
@@ -38192,10 +38297,10 @@ DataMap.prototype.createRow = function (index) {
   var _loop = function _loop() {
     var row = null;
 
-    if (_this2.instance.dataType === 'array') {
-      if (_this2.instance.getSettings().dataSchema) {
+    if (_this3.instance.dataType === 'array') {
+      if (_this3.instance.getSettings().dataSchema) {
         // Clone template array
-        row = (0, _object.deepClone)(_this2.getSchema());
+        row = (0, _object.deepClone)(_this3.getSchema());
       } else {
         row = [];
         /* eslint-disable no-loop-func */
@@ -38203,27 +38308,27 @@ DataMap.prototype.createRow = function (index) {
           return row.push(null);
         });
       }
-    } else if (_this2.instance.dataType === 'function') {
-      row = _this2.instance.getSettings().dataSchema(index);
+    } else if (_this3.instance.dataType === 'function') {
+      row = _this3.instance.getSettings().dataSchema(rowIndex);
     } else {
       row = {};
-      (0, _object.deepExtend)(row, _this2.getSchema());
+      (0, _object.deepExtend)(row, _this3.getSchema());
     }
 
-    if (index === _this2.instance.countSourceRows()) {
-      _this2.dataSource.push(row);
+    if (rowIndex === _this3.instance.countSourceRows()) {
+      _this3.dataSource.push(row);
     } else {
-      _this2.spliceData(index, 0, row);
+      _this3.spliceData(rowIndex, 0, row);
     }
 
-    numberOfCreatedRows++;
+    numberOfCreatedRows += 1;
   };
 
   while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
     _loop();
   }
 
-  this.instance.runHooks('afterCreateRow', index, numberOfCreatedRows, source);
+  this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
   this.instance.forceFullRender = true; // used when data was changed
 
   return numberOfCreatedRows;
@@ -38233,37 +38338,35 @@ DataMap.prototype.createRow = function (index) {
  * Creates col at the right of the data array.
  *
  * @param {Number} [index] Visual index of the column before which the new column will be inserted
- * @param {Number} [amount] An amount of columns to add.
+ * @param {Number} [amount=1] An amount of columns to add.
  * @param {String} [source] Source of method call.
  * @fires Hooks#afterCreateCol
  * @returns {Number} Returns number of created columns
  */
-DataMap.prototype.createCol = function (index, amount, source) {
+DataMap.prototype.createCol = function (index) {
+  var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  var source = arguments[2];
+
   if (!this.instance.isColumnModificationAllowed()) {
     throw new Error('Cannot create new column. When data source in an object, ' + 'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' + 'If you want to be able to add new columns, you have to use array datasource.');
   }
   var rlen = this.instance.countSourceRows();
   var data = this.dataSource;
+  var countColumns = this.instance.countCols();
+  var columnIndex = typeof index !== 'number' || index >= countColumns ? countColumns : index;
   var constructor = void 0;
   var numberOfCreatedCols = 0;
   var currentIndex = void 0;
 
-  if (!amount) {
-    amount = 1;
-  }
+  this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
 
-  if (typeof index !== 'number' || index >= this.instance.countCols()) {
-    index = this.instance.countCols();
-  }
-  this.instance.runHooks('beforeCreateCol', index, amount, source);
-
-  currentIndex = index;
+  currentIndex = columnIndex;
 
   var maxCols = this.instance.getSettings().maxCols;
   while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
     constructor = (0, _setting.columnFactory)(this.GridSettings, this.priv.columnsSettingConflicts);
 
-    if (typeof index !== 'number' || index >= this.instance.countCols()) {
+    if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countCols()) {
       if (rlen > 0) {
         for (var r = 0; r < rlen; r++) {
           if (typeof data[r] === 'undefined') {
@@ -38284,11 +38387,11 @@ DataMap.prototype.createCol = function (index, amount, source) {
       this.priv.columnSettings.splice(currentIndex, 0, constructor);
     }
 
-    numberOfCreatedCols++;
-    currentIndex++;
+    numberOfCreatedCols += 1;
+    currentIndex += 1;
   }
 
-  this.instance.runHooks('afterCreateCol', index, numberOfCreatedCols, source);
+  this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
   this.instance.forceFullRender = true; // used when data was changed
 
   return numberOfCreatedCols;
@@ -38298,41 +38401,36 @@ DataMap.prototype.createCol = function (index, amount, source) {
  * Removes row from the data array.
  *
  * @param {Number} [index] Visual index of the row to be removed. If not provided, the last row will be removed
- * @param {Number} [amount] Amount of the rows to be removed. If not provided, one row will be removed
+ * @param {Number} [amount=1] Amount of the rows to be removed. If not provided, one row will be removed
  * @param {String} [source] Source of method call.
  * @fires Hooks#beforeRemoveRow
  * @fires Hooks#afterRemoveRow
  */
-DataMap.prototype.removeRow = function (index, amount, source) {
-  if (!amount) {
-    amount = 1;
-  }
-  if (typeof index !== 'number') {
-    index = -amount;
-  }
+DataMap.prototype.removeRow = function (index) {
+  var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  var source = arguments[2];
 
-  amount = this.instance.runHooks('modifyRemovedAmount', amount, index);
+  var rowIndex = typeof index !== 'number' ? -amount : index;
+  var rowsAmount = this.instance.runHooks('modifyRemovedAmount', amount, rowIndex);
 
-  index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
+  rowIndex = (this.instance.countSourceRows() + rowIndex) % this.instance.countSourceRows();
 
-  var logicRows = this.visualRowsToPhysical(index, amount);
-  var actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', index, amount, logicRows, source);
+  var logicRows = this.visualRowsToPhysical(rowIndex, rowsAmount);
+  var actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', rowIndex, rowsAmount, logicRows, source);
 
   if (actionWasNotCancelled === false) {
     return;
   }
 
   var data = this.dataSource;
-  var newData = void 0;
-
-  newData = this.filterData(index, amount);
+  var newData = this.filterData(rowIndex, rowsAmount);
 
   if (newData) {
     data.length = 0;
     Array.prototype.push.apply(data, newData);
   }
 
-  this.instance.runHooks('afterRemoveRow', index, amount, logicRows, source);
+  this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
 
   this.instance.forceFullRender = true; // used when data was changed
 };
@@ -38341,29 +38439,27 @@ DataMap.prototype.removeRow = function (index, amount, source) {
  * Removes column from the data array.
  *
  * @param {Number} [index] Visual index of the column to be removed. If not provided, the last column will be removed
- * @param {Number} [amount] Amount of the columns to be removed. If not provided, one column will be removed
+ * @param {Number} [amount=1] Amount of the columns to be removed. If not provided, one column will be removed
  * @param {String} [source] Source of method call.
  * @fires Hooks#beforeRemoveCol
  * @fires Hooks#afterRemoveCol
  */
-DataMap.prototype.removeCol = function (index, amount, source) {
+DataMap.prototype.removeCol = function (index) {
+  var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  var source = arguments[2];
+
   if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
     throw new Error('cannot remove column with object data source or columns option specified');
   }
-  if (!amount) {
-    amount = 1;
-  }
-  if (typeof index !== 'number') {
-    index = -amount;
-  }
+  var columnIndex = typeof index !== 'number' ? -amount : index;
 
-  index = (this.instance.countCols() + index) % this.instance.countCols();
+  columnIndex = (this.instance.countCols() + columnIndex) % this.instance.countCols();
 
-  var logicColumns = this.visualColumnsToPhysical(index, amount);
+  var logicColumns = this.visualColumnsToPhysical(columnIndex, amount);
   var descendingLogicColumns = logicColumns.slice(0).sort(function (a, b) {
     return b - a;
   });
-  var actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', index, amount, logicColumns, source);
+  var actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', columnIndex, amount, logicColumns, source);
 
   if (actionWasNotCancelled === false) {
     return;
@@ -38395,7 +38491,7 @@ DataMap.prototype.removeCol = function (index, amount, source) {
     }
   }
 
-  this.instance.runHooks('afterRemoveCol', index, amount, logicColumns, source);
+  this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
 
   this.instance.forceFullRender = true; // used when data was changed
 };
@@ -38422,7 +38518,7 @@ DataMap.prototype.spliceCol = function (col, index, amount) {
   var i = 0;
   while (i < amount) {
     elements.push(null); // add null in place of removed elements
-    i++;
+    i += 1;
   }
   (0, _array.to2dArray)(elements);
   this.instance.populateFromArray(index, col, elements, null, null, 'spliceCol');
@@ -38452,7 +38548,7 @@ DataMap.prototype.spliceRow = function (row, index, amount) {
   var i = 0;
   while (i < amount) {
     elements.push(null); // add null in place of removed elements
-    i++;
+    i += 1;
   }
   this.instance.populateFromArray(row, index, [elements], null, null, 'spliceRow');
 
@@ -38501,11 +38597,11 @@ DataMap.prototype.filterData = function (index, amount) {
  * @param {Number} prop
  */
 DataMap.prototype.get = function (row, prop) {
-  row = this.instance.runHooks('modifyRow', row);
+  var physicalRow = this.instance.runHooks('modifyRow', row);
 
-  var dataRow = this.dataSource[row];
+  var dataRow = this.dataSource[physicalRow];
   // TODO: To remove, use 'modifyData' hook instead (see below)
-  var modifiedRowData = this.instance.runHooks('modifyRowData', row);
+  var modifiedRowData = this.instance.runHooks('modifyRowData', physicalRow);
 
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
   //
@@ -38544,13 +38640,13 @@ DataMap.prototype.get = function (row, prop) {
      *      }
      *    }]}
      */
-    value = prop(this.dataSource.slice(row, row + 1)[0]);
+    value = prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
   }
 
   if (this.instance.hasHook('modifyData')) {
     var valueHolder = (0, _object.createObjectPropListener)(value);
 
-    this.instance.runHooks('modifyData', row, this.propToCol(prop), valueHolder, 'get');
+    this.instance.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'get');
 
     if (valueHolder.isTouched()) {
       value = valueHolder.value;
@@ -38585,28 +38681,28 @@ DataMap.prototype.getCopyable = function (row, prop) {
  * @param {String} [source] Source of hook runner.
  */
 DataMap.prototype.set = function (row, prop, value, source) {
-  row = this.instance.runHooks('modifyRow', row, source || 'datamapGet');
-
-  var dataRow = this.dataSource[row];
+  var physicalRow = this.instance.runHooks('modifyRow', row, source || 'datamapGet');
+  var newValue = value;
+  var dataRow = this.dataSource[physicalRow];
   // TODO: To remove, use 'modifyData' hook instead (see below)
-  var modifiedRowData = this.instance.runHooks('modifyRowData', row);
+  var modifiedRowData = this.instance.runHooks('modifyRowData', physicalRow);
 
   dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
   //
 
   if (this.instance.hasHook('modifyData')) {
-    var valueHolder = (0, _object.createObjectPropListener)(value);
+    var valueHolder = (0, _object.createObjectPropListener)(newValue);
 
-    this.instance.runHooks('modifyData', row, this.propToCol(prop), valueHolder, 'set');
+    this.instance.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'set');
 
     if (valueHolder.isTouched()) {
-      value = valueHolder.value;
+      newValue = valueHolder.value;
     }
   }
 
   // try to set value under property `prop` (includes dot)
   if (dataRow && dataRow.hasOwnProperty && (0, _object.hasOwnProperty)(dataRow, prop)) {
-    dataRow[prop] = value;
+    dataRow[prop] = newValue;
   } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
     var sliced = prop.split('.');
     var out = dataRow;
@@ -38619,12 +38715,12 @@ DataMap.prototype.set = function (row, prop, value, source) {
       }
       out = out[sliced[i]];
     }
-    out[sliced[i]] = value;
+    out[sliced[i]] = newValue;
   } else if (typeof prop === 'function') {
     /* see the `function` handler in `get` */
-    prop(this.dataSource.slice(row, row + 1)[0], value);
+    prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0], newValue);
   } else {
-    dataRow[prop] = value;
+    dataRow[prop] = newValue;
   }
 };
 
@@ -38649,8 +38745,8 @@ DataMap.prototype.visualRowsToPhysical = function (index, amount) {
     row = this.instance.runHooks('modifyRow', physicRow);
     logicRows.push(row);
 
-    rowsToRemove--;
-    physicRow++;
+    rowsToRemove -= 1;
+    physicRow += 1;
   }
 
   return logicRows;
@@ -38673,8 +38769,8 @@ DataMap.prototype.visualColumnsToPhysical = function (index, amount) {
 
     visualCols.push(col);
 
-    colsToRemove--;
-    physicalCol++;
+    colsToRemove -= 1;
+    physicalCol += 1;
   }
 
   return visualCols;
@@ -38704,10 +38800,10 @@ DataMap.prototype.clearLengthCache = function () {
  * @returns {Number}
  */
 DataMap.prototype.getLength = function () {
-  var _this3 = this;
+  var _this4 = this;
 
-  var maxRows = void 0,
-      maxRowsFromSettings = this.instance.getSettings().maxRows;
+  var maxRowsFromSettings = this.instance.getSettings().maxRows;
+  var maxRows = void 0;
 
   if (maxRowsFromSettings < 0 || maxRowsFromSettings === 0) {
     maxRows = 0;
@@ -38728,10 +38824,10 @@ DataMap.prototype.getLength = function () {
     this.latestSourceRowsCount = length;
     if (this.cachedLength === null || reValidate) {
       (0, _number.rangeEach)(length - 1, function (row) {
-        row = _this3.instance.runHooks('modifyRow', row);
+        var physicalRow = _this4.instance.runHooks('modifyRow', row);
 
-        if (row === null) {
-          --length;
+        if (physicalRow === null) {
+          length -= 1;
         }
       });
       this.cachedLength = length;
@@ -38779,9 +38875,7 @@ DataMap.prototype.getAll = function () {
 DataMap.prototype.getRange = function (start, end, destination) {
   var output = [];
   var r = void 0;
-  var rlen = void 0;
   var c = void 0;
-  var clen = void 0;
   var row = void 0;
 
   var maxRows = this.instance.getSettings().maxRows;
@@ -38793,8 +38887,8 @@ DataMap.prototype.getRange = function (start, end, destination) {
 
   var getFn = destination === this.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
 
-  rlen = Math.min(Math.max(maxRows - 1, 0), Math.max(start.row, end.row));
-  clen = Math.min(Math.max(maxCols - 1, 0), Math.max(start.col, end.col));
+  var rlen = Math.min(Math.max(maxRows - 1, 0), Math.max(start.row, end.row));
+  var clen = Math.min(Math.max(maxCols - 1, 0), Math.max(start.col, end.col));
 
   for (r = Math.min(start.row, end.row); r <= rlen; r++) {
     row = [];
@@ -38843,11 +38937,11 @@ DataMap.prototype.getCopyableText = function (start, end) {
  * @param {Number} delay Time of the delay in milliseconds.
  */
 DataMap.prototype.onSkipLengthCache = function (delay) {
-  var _this4 = this;
+  var _this5 = this;
 
   this.skipCache = true;
   setTimeout(function () {
-    _this4.skipCache = false;
+    _this5.skipCache = false;
   }, delay);
 };
 
@@ -38881,7 +38975,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 exports.parseDelay = parseDelay;
 
-var _feature = __webpack_require__(42);
+var _feature = __webpack_require__(41);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -39009,12 +39103,22 @@ var Interval = function () {
 }();
 
 exports.default = Interval;
+
+/**
+ * Convert delay from string format to milliseconds.
+ *
+ * @param {Number|String} delay
+ * @returns {Number}
+ */
+
 function parseDelay(delay) {
-  if (typeof delay === 'string' && /fps$/.test(delay)) {
-    delay = 1000 / parseInt(delay.replace('fps', '') || 0, 10);
+  var result = delay;
+
+  if (typeof result === 'string' && /fps$/.test(result)) {
+    result = 1000 / parseInt(result.replace('fps', '') || 0, 10);
   }
 
-  return delay;
+  return result;
 }
 
 /***/ }),
@@ -39103,12 +39207,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function EditorManager(instance, priv, selection) {
   var _this = this;
+  var eventManager = new _eventManager2.default(instance);
   var destroyed = false;
   var lock = false;
-  var eventManager = void 0;
   var activeEditor = void 0;
-
-  eventManager = new _eventManager2.default(instance);
 
   function moveSelectionAfterEnter(shiftKey) {
     var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
@@ -39421,14 +39523,6 @@ function EditorManager(instance, priv, selection) {
       return;
     }
 
-    var row = void 0;
-    var col = void 0;
-    var prop = void 0;
-    var td = void 0;
-    var originalValue = void 0;
-    var cellProperties = void 0;
-    var editorClass = void 0;
-
     if (activeEditor && activeEditor.isWaiting()) {
       this.closeEditor(false, false, function (dataSaved) {
         if (dataSaved) {
@@ -39438,14 +39532,14 @@ function EditorManager(instance, priv, selection) {
 
       return;
     }
-    row = instance.selection.selectedRange.current().highlight.row;
-    col = instance.selection.selectedRange.current().highlight.col;
-    prop = instance.colToProp(col);
-    td = instance.getCell(row, col);
 
-    originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), col);
-    cellProperties = instance.getCellMeta(row, col);
-    editorClass = instance.getCellEditor(cellProperties);
+    var row = instance.selection.selectedRange.current().highlight.row;
+    var col = instance.selection.selectedRange.current().highlight.col;
+    var prop = instance.colToProp(col);
+    var td = instance.getCell(row, col);
+    var originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), col);
+    var cellProperties = instance.getCellMeta(row, col);
+    var editorClass = instance.getCellEditor(cellProperties);
 
     if (editorClass) {
       activeEditor = (0, _editors.getEditorInstance)(editorClass, instance);
@@ -39581,6 +39675,25 @@ var _src2 = _interopRequireDefault(_src);
 var _mouseEventHandler = __webpack_require__(210);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Cross-platform helper to clear text selection.
+ */
+var clearTextSelection = function clearTextSelection() {
+  // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
+  if (window.getSelection) {
+    if (window.getSelection().empty) {
+      // Chrome
+      window.getSelection().empty();
+    } else if (window.getSelection().removeAllRanges) {
+      // Firefox
+      window.getSelection().removeAllRanges();
+    }
+  } else if (document.selection) {
+    // IE?
+    document.selection.empty();
+  }
+};
 
 /**
  * Handsontable TableView constructor
@@ -39732,22 +39845,6 @@ function TableView(instance) {
     // Prevent text from being selected when performing drag down.
     event.preventDefault();
   });
-
-  var clearTextSelection = function clearTextSelection() {
-    // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
-    if (window.getSelection) {
-      if (window.getSelection().empty) {
-        // Chrome
-        window.getSelection().empty();
-      } else if (window.getSelection().removeAllRanges) {
-        // Firefox
-        window.getSelection().removeAllRanges();
-      }
-    } else if (document.selection) {
-      // IE?
-      document.selection.empty();
-    }
-  };
 
   var walkontableConfig = {
     debug: function debug() {
@@ -40389,15 +40486,17 @@ var DataSource = function () {
 
       (0, _array.arrayEach)(this.data, function (row) {
         var property = _this.colToProp(column);
+        var value = void 0;
 
         if (typeof property === 'string') {
-          row = (0, _object.getProperty)(row, property);
+          value = (0, _object.getProperty)(row, property);
         } else if (typeof property === 'function') {
-          row = property(row);
+          value = property(row);
         } else {
-          row = row[property];
+          value = row[property];
         }
-        result.push(row);
+
+        result.push(value);
       });
 
       return result;
@@ -40658,7 +40757,7 @@ function pluralize(phrasePropositions, pluralForm) {
   }
 
   return phrasePropositions;
-};
+}
 
 /***/ }),
 /* 303 */
@@ -41605,15 +41704,15 @@ var Selection = function () {
     value: function selectColumns(startColumn) {
       var endColumn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : startColumn;
 
-      startColumn = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
-      endColumn = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
+      var start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
+      var end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
 
       var countCols = this.tableProps.countCols();
-      var isValid = (0, _utils.isValidCoord)(startColumn, countCols) && (0, _utils.isValidCoord)(endColumn, countCols);
+      var isValid = (0, _utils.isValidCoord)(start, countCols) && (0, _utils.isValidCoord)(end, countCols);
 
       if (isValid) {
-        this.setRangeStartOnly(new _src.CellCoords(-1, startColumn));
-        this.setRangeEnd(new _src.CellCoords(this.tableProps.countRows() - 1, endColumn));
+        this.setRangeStartOnly(new _src.CellCoords(-1, start));
+        this.setRangeEnd(new _src.CellCoords(this.tableProps.countRows() - 1, end));
         this.finish();
       }
 
@@ -42066,7 +42165,7 @@ function jQueryWrapper(Handsontable) {
 
     return output;
   };
-};
+}
 
 /***/ }),
 /* 314 */
@@ -42464,9 +42563,8 @@ var Storage = function () {
   }, {
     key: 'loadValue',
     value: function loadValue(key, defaultValue) {
-      key = typeof key === 'undefined' ? defaultValue : key;
-
-      var value = window.localStorage.getItem(this.prefix + '_' + key);
+      var itemKey = typeof key === 'undefined' ? defaultValue : key;
+      var value = window.localStorage.getItem(this.prefix + '_' + itemKey);
 
       return value === null ? void 0 : JSON.parse(value);
     }
@@ -42512,29 +42610,29 @@ var Storage = function () {
       var keysJSON = window.localStorage.getItem(this.prefix + '__persistentStateKeys');
       var keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : void 0;
 
-      this.savedKeys = keys ? keys : [];
+      this.savedKeys = keys || [];
     }
-  }, {
-    key: 'saveSavedKeys',
-
 
     /**
      * Save saved key in localStorage.
      *
      * @private
      */
+
+  }, {
+    key: 'saveSavedKeys',
     value: function saveSavedKeys() {
       window.localStorage.setItem(this.prefix + '__persistentStateKeys', JSON.stringify(this.savedKeys));
     }
-  }, {
-    key: 'clearSavedKeys',
-
 
     /**
      * Clear saved key from localStorage.
      *
      * @private
      */
+
+  }, {
+    key: 'clearSavedKeys',
     value: function clearSavedKeys() {
       this.savedKeys.length = 0;
       this.saveSavedKeys();
@@ -42567,7 +42665,7 @@ var _base2 = _interopRequireDefault(_base);
 
 var _array = __webpack_require__(0);
 
-var _feature = __webpack_require__(42);
+var _feature = __webpack_require__(41);
 
 var _element = __webpack_require__(2);
 
@@ -42769,7 +42867,7 @@ var AutoColumnSize = function (_BasePlugin) {
 
       var setting = this.hot.getSettings().autoColumnSize;
 
-      if (setting && setting.useHeaders != null) {
+      if (setting && setting.useHeaders !== null && setting.useHeaders !== void 0) {
         this.ghostTable.setSetting('useHeaders', setting.useHeaders);
       }
 
@@ -42837,16 +42935,12 @@ var AutoColumnSize = function (_BasePlugin) {
       var rowRange = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : { from: 0, to: this.hot.countRows() - 1 };
       var force = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
-      if (typeof colRange === 'number') {
-        colRange = { from: colRange, to: colRange };
-      }
-      if (typeof rowRange === 'number') {
-        rowRange = { from: rowRange, to: rowRange };
-      }
+      var columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
+      var rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
 
-      (0, _number.rangeEach)(colRange.from, colRange.to, function (col) {
+      (0, _number.rangeEach)(columnsRange.from, columnsRange.to, function (col) {
         if (force || _this3.widths[col] === void 0 && !_this3.hot._getColWidthFromSettings(col)) {
-          var samples = _this3.samplesGenerator.generateColumnSamples(col, rowRange);
+          var samples = _this3.samplesGenerator.generateColumnSamples(col, rowsRange);
 
           (0, _array.arrayEach)(samples, function (_ref) {
             var _ref2 = _slicedToArray(_ref, 2),
@@ -43215,12 +43309,15 @@ var AutoColumnSize = function (_BasePlugin) {
   }, {
     key: 'onBeforeColumnResize',
     value: function onBeforeColumnResize(col, size, isDblClick) {
+      var newSize = size;
+
       if (isDblClick) {
         this.calculateColumnsWidth(col, void 0, true);
-        size = this.getColumnWidth(col, void 0, false);
+
+        newSize = this.getColumnWidth(col, void 0, false);
       }
 
-      return size;
+      return newSize;
     }
 
     /**
@@ -43684,6 +43781,7 @@ var Autofill = function (_BasePlugin) {
           lastFilledInRowIndex = rowIndex;
         }
       }
+
       return lastFilledInRowIndex;
     }
 
@@ -43729,9 +43827,10 @@ var Autofill = function (_BasePlugin) {
       var cornersOfSelectedCells = this.getCornersOfSelectedCells();
       var lastFilledInRowIndex = this.getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells);
 
-      if (lastFilledInRowIndex === -1) {
+      if (lastFilledInRowIndex === -1 || lastFilledInRowIndex === void 0) {
         return false;
       }
+
       this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
 
       return true;
@@ -43842,7 +43941,7 @@ var Autofill = function (_BasePlugin) {
     key: 'onBeforeCellMouseOver',
     value: function onBeforeCellMouseOver(coords) {
       if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
-        this.handleDraggedCells++;
+        this.handleDraggedCells += 1;
 
         this.showBorder(coords);
         this.addNewRowIfNeeded();
@@ -44012,9 +44111,9 @@ function getDeltas(start, end, data, direction) {
  * @returns {{direction: String, start: CellCoords, end: CellCoords}}
  */
 function getDragDirectionAndRange(startSelection, endSelection) {
-  var startOfDragCoords = void 0,
-      endOfDragCoords = void 0,
-      directionOfDrag = void 0;
+  var startOfDragCoords = void 0;
+  var endOfDragCoords = void 0;
+  var directionOfDrag = void 0;
 
   if (endSelection[0] === startSelection[0] && endSelection[1] < startSelection[1]) {
     directionOfDrag = 'left';
@@ -44110,7 +44209,7 @@ var _base2 = _interopRequireDefault(_base);
 
 var _array = __webpack_require__(0);
 
-var _feature = __webpack_require__(42);
+var _feature = __webpack_require__(41);
 
 var _element = __webpack_require__(2);
 
@@ -44345,24 +44444,20 @@ var AutoRowSize = function (_BasePlugin) {
       var colRange = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : { from: 0, to: this.hot.countCols() - 1 };
       var force = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
-      if (typeof rowRange === 'number') {
-        rowRange = { from: rowRange, to: rowRange };
-      }
-      if (typeof colRange === 'number') {
-        colRange = { from: colRange, to: colRange };
-      }
+      var rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
+      var columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
 
       if (this.hot.getColHeader(0) !== null) {
-        var samples = this.samplesGenerator.generateRowSamples(-1, colRange);
+        var samples = this.samplesGenerator.generateRowSamples(-1, columnsRange);
 
         this.ghostTable.addColumnHeadersRow(samples.get(-1));
       }
 
-      (0, _number.rangeEach)(rowRange.from, rowRange.to, function (row) {
+      (0, _number.rangeEach)(rowsRange.from, rowsRange.to, function (row) {
         // For rows we must calculate row height even when user had set height value manually.
         // We can shrink column but cannot shrink rows!
         if (force || _this3.heights[row] === void 0) {
-          var _samples = _this3.samplesGenerator.generateRowSamples(row, colRange);
+          var _samples = _this3.samplesGenerator.generateRowSamples(row, columnsRange);
 
           (0, _array.arrayEach)(_samples, function (_ref) {
             var _ref2 = _slicedToArray(_ref, 2),
@@ -44602,10 +44697,11 @@ var AutoRowSize = function (_BasePlugin) {
     value: function clearCacheByRange(range) {
       var _this5 = this;
 
-      if (typeof range === 'number') {
-        range = { from: range, to: range };
-      }
-      (0, _number.rangeEach)(Math.min(range.from, range.to), Math.max(range.from, range.to), function (row) {
+      var _ref3 = typeof range === 'number' ? { from: range, to: range } : range,
+          from = _ref3.from,
+          to = _ref3.to;
+
+      (0, _number.rangeEach)(Math.min(from, to), Math.max(from, to), function (row) {
         _this5.heights[row] = void 0;
       });
     }
@@ -44634,9 +44730,9 @@ var AutoRowSize = function (_BasePlugin) {
     key: 'onBeforeRender',
     value: function onBeforeRender() {
       var force = this.hot.renderCall;
-      this.calculateRowsHeight({ from: this.getFirstVisibleRow(), to: this.getLastVisibleRow() }, void 0, force);
-
       var fixedRowsBottom = this.hot.getSettings().fixedRowsBottom;
+
+      this.calculateRowsHeight({ from: this.getFirstVisibleRow(), to: this.getLastVisibleRow() }, void 0, force);
 
       // Calculate rows height synchronously for bottom overlay
       if (fixedRowsBottom) {
@@ -44677,12 +44773,15 @@ var AutoRowSize = function (_BasePlugin) {
   }, {
     key: 'onBeforeRowResize',
     value: function onBeforeRowResize(row, size, isDblClick) {
+      var newSize = size;
+
       if (isDblClick) {
         this.calculateRowsHeight(row, void 0, true);
-        size = this.getRowHeight(row);
+
+        newSize = this.getRowHeight(row);
       }
 
-      return size;
+      return newSize;
     }
 
     /**
@@ -45209,12 +45308,14 @@ var ColumnSorting = function (_BasePlugin) {
   }, {
     key: 'onModifyRow',
     value: function onModifyRow(row, source) {
+      var physicalRow = row;
+
       if (this.blockPluginTranslation === false && source !== this.pluginName) {
-        var rowInMapper = this.rowsMapper.getValueByIndex(row);
-        row = rowInMapper === null ? row : rowInMapper;
+        var rowInMapper = this.rowsMapper.getValueByIndex(physicalRow);
+        physicalRow = rowInMapper === null ? physicalRow : rowInMapper;
       }
 
-      return row;
+      return physicalRow;
     }
 
     /**
@@ -45228,11 +45329,13 @@ var ColumnSorting = function (_BasePlugin) {
   }, {
     key: 'onUnmodifyRow',
     value: function onUnmodifyRow(row, source) {
+      var visualRow = row;
+
       if (this.blockPluginTranslation === false && source !== this.pluginName) {
-        row = this.rowsMapper.getIndexByValue(row);
+        visualRow = this.rowsMapper.getIndexByValue(visualRow);
       }
 
-      return row;
+      return visualRow;
     }
 
     /**
@@ -45508,15 +45611,18 @@ var _utils = __webpack_require__(86);
  * @returns {Function} The compare function.
  */
 function defaultSort(sortOrder, columnMeta) {
-  // We are soring array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
+  // We are sorting array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
   return function (_ref, _ref2) {
     var _ref4 = _slicedToArray(_ref, 2),
-        value = _ref4[1];
+        firstValue = _ref4[1];
 
     var _ref3 = _slicedToArray(_ref2, 2),
-        nextValue = _ref3[1];
+        secondValue = _ref3[1];
 
     var sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
+
+    var value = firstValue;
+    var nextValue = secondValue;
 
     if (typeof value === 'string') {
       value = value.toLowerCase();
@@ -45767,7 +45873,7 @@ function merge(array, compareFunction, startIndex, middleIndex, endIndex) {
   }
 
   return array;
-};
+}
 
 /***/ }),
 /* 326 */
@@ -45975,15 +46081,15 @@ var LinkedList = function () {
         }
       }
     }
-  }, {
-    key: "pop",
-
 
     /**
      * Return last node from the linked list.
      *
      * @returns {NodeStructure} Last node.
      */
+
+  }, {
+    key: "pop",
     value: function pop() {
       if (this.last === null) {
         return null;
@@ -45994,15 +46100,15 @@ var LinkedList = function () {
 
       return temp;
     }
-  }, {
-    key: "shift",
-
 
     /**
      * Return first node from the linked list.
      *
      * @returns {NodeStructure} First node.
      */
+
+  }, {
+    key: "shift",
     value: function shift() {
       if (this.first === null) {
         return null;
@@ -46013,13 +46119,13 @@ var LinkedList = function () {
 
       return temp;
     }
-  }, {
-    key: "recursiveReverse",
-
 
     /**
      * Reverses the linked list recursively
      */
+
+  }, {
+    key: "recursiveReverse",
     value: function recursiveReverse() {
       function inverse(current, next) {
         if (!next) {
@@ -46040,13 +46146,13 @@ var LinkedList = function () {
       this.first = this.last;
       this.last = temp;
     }
-  }, {
-    key: "reverse",
-
 
     /**
      * Reverses the linked list iteratively
      */
+
+  }, {
+    key: "reverse",
     value: function reverse() {
       if (!this.first || !this.first.next) {
         return;
@@ -46075,8 +46181,6 @@ var LinkedList = function () {
   return LinkedList;
 }();
 
-;
-
 exports.NodeStructure = NodeStructure;
 exports.default = LinkedList;
 
@@ -46091,7 +46195,7 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _arrayMapper = __webpack_require__(51);
+var _arrayMapper = __webpack_require__(55);
 
 var _arrayMapper2 = _interopRequireDefault(_arrayMapper);
 
@@ -46518,9 +46622,9 @@ var Comments = function (_BasePlugin) {
       var editorValue = this.editor.getValue();
       var comment = '';
 
-      if (value != null) {
+      if (value !== null && value !== void 0) {
         comment = value;
-      } else if (editorValue != null) {
+      } else if (editorValue !== null && editorValue !== void 0) {
         comment = editorValue;
       }
 
@@ -46969,11 +47073,11 @@ var Comments = function (_BasePlugin) {
   }, {
     key: 'onContextMenuRemoveComment',
     value: function onContextMenuRemoveComment() {
-      this.contextMenuEvent = true;
-
       var _hot$getSelectedRange = this.hot.getSelectedRangeLast(),
           from = _hot$getSelectedRange.from,
           to = _hot$getSelectedRange.to;
+
+      this.contextMenuEvent = true;
 
       for (var i = from.row; i <= to.row; i++) {
         for (var j = from.col; j <= to.col; j++) {
@@ -46993,11 +47097,11 @@ var Comments = function (_BasePlugin) {
   }, {
     key: 'onContextMenuMakeReadOnly',
     value: function onContextMenuMakeReadOnly() {
-      this.contextMenuEvent = true;
-
       var _hot$getSelectedRange2 = this.hot.getSelectedRangeLast(),
           from = _hot$getSelectedRange2.from,
           to = _hot$getSelectedRange2.to;
+
+      this.contextMenuEvent = true;
 
       for (var i = from.row; i <= to.row; i++) {
         for (var j = from.col; j <= to.col; j++) {
@@ -47299,8 +47403,9 @@ var CommentEditor = function () {
     value: function setValue() {
       var value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
 
-      value = value || '';
-      this.getInputElement().value = value;
+      var comment = value || '';
+
+      this.getInputElement().value = comment;
     }
 
     /**
@@ -47346,19 +47451,17 @@ var CommentEditor = function () {
   }, {
     key: 'createEditor',
     value: function createEditor() {
+      var editor = document.createElement('div');
+      var textArea = document.createElement('textarea');
       var container = document.querySelector('.' + CommentEditor.CLASS_EDITOR_CONTAINER);
-      var editor = void 0;
-      var textArea = void 0;
 
       if (!container) {
         container = document.createElement('div');
         (0, _element.addClass)(container, CommentEditor.CLASS_EDITOR_CONTAINER);
         document.body.appendChild(container);
       }
-      editor = document.createElement('div');
-      (0, _element.addClass)(editor, CommentEditor.CLASS_EDITOR);
 
-      textArea = document.createElement('textarea');
+      (0, _element.addClass)(editor, CommentEditor.CLASS_EDITOR);
       (0, _element.addClass)(textArea, CommentEditor.CLASS_INPUT);
 
       editor.appendChild(textArea);
@@ -47488,13 +47591,13 @@ var DisplaySwitch = function () {
       this.wasLastActionShow = true;
       this.showDebounced(range);
     }
-  }, {
-    key: 'cancelHiding',
-
 
     /**
      * Cancel hiding comment.
      */
+
+  }, {
+    key: 'cancelHiding',
     value: function cancelHiding() {
       this.wasLastActionShow = true;
 
@@ -47591,7 +47694,7 @@ var _event = __webpack_require__(12);
 
 var _element = __webpack_require__(2);
 
-var _predefinedItems = __webpack_require__(44);
+var _predefinedItems = __webpack_require__(43);
 
 __webpack_require__(345);
 
@@ -48891,12 +48994,12 @@ var Cursor = function () {
 
     var windowScrollTop = (0, _element.getWindowScrollTop)();
     var windowScrollLeft = (0, _element.getWindowScrollLeft)();
-    var top = void 0,
-        topRelative = void 0;
-    var left = void 0,
-        leftRelative = void 0;
-    var cellHeight = void 0,
-        cellWidth = void 0;
+    var top = void 0;
+    var topRelative = void 0;
+    var left = void 0;
+    var leftRelative = void 0;
+    var cellHeight = void 0;
+    var cellWidth = void 0;
 
     this.type = this.getSourceType(object);
 
@@ -49537,7 +49640,6 @@ var CopyPaste = function (_BasePlugin) {
         event.preventDefault();
       }
 
-      var inputArray = void 0;
       var pastedData = void 0;
 
       if (event && typeof event.clipboardData !== 'undefined') {
@@ -49546,7 +49648,7 @@ var CopyPaste = function (_BasePlugin) {
         pastedData = window.clipboardData.getData('Text');
       }
 
-      inputArray = _SheetClip2.default.parse(pastedData);
+      var inputArray = _SheetClip2.default.parse(pastedData);
 
       if (inputArray.length === 0) {
         return;
@@ -49952,34 +50054,6 @@ function deactivateElement(wrapper) {
   wrapper.eventManager.clear();
 }
 
-/**
- * Destroy the FocusableWrapper instance.
- *
- * @param {FocusableWrapper} wrapper
- */
-function destroyElement(wrapper) {
-  if (!(wrapper instanceof FocusableWrapper)) {
-    return;
-  }
-
-  if (refCounter > 0) {
-    refCounter -= 1;
-  }
-
-  deactivateElement(wrapper);
-
-  if (refCounter <= 0) {
-    refCounter = 0;
-
-    // Detach secondary element from the DOM.
-    if (secondaryElement && secondaryElement.parentNode) {
-      secondaryElement.parentNode.removeChild(secondaryElement);
-      secondaryElement = null;
-    }
-    wrapper.mainElement = null;
-  }
-}
-
 var runLocalHooks = function runLocalHooks(eventName, subject) {
   return function (event) {
     return subject.runLocalHooks(eventName, event);
@@ -50028,6 +50102,34 @@ function createOrGetSecondaryElement() {
   document.body.appendChild(element);
 
   return element;
+}
+
+/**
+ * Destroy the FocusableWrapper instance.
+ *
+ * @param {FocusableWrapper} wrapper
+ */
+function destroyElement(wrapper) {
+  if (!(wrapper instanceof FocusableWrapper)) {
+    return;
+  }
+
+  if (refCounter > 0) {
+    refCounter -= 1;
+  }
+
+  deactivateElement(wrapper);
+
+  if (refCounter <= 0) {
+    refCounter = 0;
+
+    // Detach secondary element from the DOM.
+    if (secondaryElement && secondaryElement.parentNode) {
+      secondaryElement.parentNode.removeChild(secondaryElement);
+      secondaryElement = null;
+    }
+    wrapper.mainElement = null;
+  }
 }
 
 exports.createElement = createElement;
@@ -50664,11 +50766,13 @@ var CustomBorders = function (_BasePlugin) {
       var values = Object.values(border);
 
       return (0, _array.arrayReduce)(values, function (accumulator, value) {
+        var result = accumulator;
+
         if (value.hide) {
-          accumulator += 1;
+          result += 1;
         }
 
-        return accumulator;
+        return result;
       }, 0);
     }
 
@@ -51644,7 +51748,9 @@ var ManualColumnFreeze = function (_BasePlugin) {
         this.frozenColumnsBasePositions[settings.fixedColumnsLeft] = column;
       }
 
-      this.getMovePlugin().moveColumn(column, settings.fixedColumnsLeft++);
+      this.getMovePlugin().moveColumn(column, settings.fixedColumnsLeft);
+
+      settings.fixedColumnsLeft += 1;
     }
 
     /**
@@ -51670,7 +51776,7 @@ var ManualColumnFreeze = function (_BasePlugin) {
       var returnCol = this.getBestColumnReturnPosition(column);
 
       priv.moveByFreeze = true;
-      settings.fixedColumnsLeft--;
+      settings.fixedColumnsLeft -= 1;
 
       this.getMovePlugin().moveColumn(column, returnCol + 1);
     }
@@ -51712,7 +51818,7 @@ var ManualColumnFreeze = function (_BasePlugin) {
         initialCol = movePlugin.columnsMapper.getValueByIndex(column);
 
         while (j !== null && j <= initialCol) {
-          i++;
+          i += 1;
           j = movePlugin.columnsMapper.getValueByIndex(i);
         }
       } else {
@@ -51720,7 +51826,7 @@ var ManualColumnFreeze = function (_BasePlugin) {
         this.frozenColumnsBasePositions[column] = void 0;
 
         while (j !== null && j <= initialCol) {
-          i++;
+          i += 1;
           j = movePlugin.columnsMapper.getValueByIndex(i);
         }
         i = j;
@@ -52372,7 +52478,7 @@ var ManualColumnMove = function (_BasePlugin) {
 
       if (priv.rootElementOffset + wtTable.holder.offsetWidth + scrollLeft < priv.target.eventPageX) {
         if (priv.coordsColumn < priv.countCols) {
-          priv.coordsColumn++;
+          priv.coordsColumn += 1;
         }
       }
 
@@ -52767,13 +52873,15 @@ var ManualColumnMove = function (_BasePlugin) {
   }, {
     key: 'onModifyCol',
     value: function onModifyCol(column, source) {
+      var physicalColumn = column;
+
       if (source !== this.pluginName) {
         // ugly fix for try to insert new, needed columns after pasting data
-        var columnInMapper = this.columnsMapper.getValueByIndex(column);
-        column = columnInMapper === null ? column : columnInMapper;
+        var columnInMapper = this.columnsMapper.getValueByIndex(physicalColumn);
+        physicalColumn = columnInMapper === null ? physicalColumn : columnInMapper;
       }
 
-      return column;
+      return physicalColumn;
     }
 
     /**
@@ -52839,7 +52947,7 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _arrayMapper = __webpack_require__(51);
+var _arrayMapper = __webpack_require__(55);
 
 var _arrayMapper2 = _interopRequireDefault(_arrayMapper);
 
@@ -53530,7 +53638,7 @@ var ManualColumnResize = function (_BasePlugin) {
 
           this.hot._registerTimeout(this.autoresizeTimeout);
         }
-        this.dblclick++;
+        this.dblclick += 1;
 
         this.startX = (0, _event.pageX)(event);
         this.newSize = this.startWidth;
@@ -53651,17 +53759,17 @@ var ManualColumnResize = function (_BasePlugin) {
   }, {
     key: 'setManualSize',
     value: function setManualSize(column, width) {
-      width = Math.max(width, 20);
+      var newWidth = Math.max(width, 20);
 
       /**
        *  We need to run col through modifyCol hook, in case the order of displayed columns is different than the order
        *  in data source. For instance, this order can be modified by manualColumnMove plugin.
        */
-      column = this.hot.runHooks('modifyCol', column);
+      var physicalColumn = this.hot.runHooks('modifyCol', column);
 
-      this.manualColumnWidths[column] = width;
+      this.manualColumnWidths[physicalColumn] = newWidth;
 
-      return width;
+      return newWidth;
     }
 
     /**
@@ -53673,9 +53781,9 @@ var ManualColumnResize = function (_BasePlugin) {
   }, {
     key: 'clearManualSize',
     value: function clearManualSize(column) {
-      column = this.hot.runHooks('modifyCol', column);
+      var physicalColumn = this.hot.runHooks('modifyCol', column);
 
-      this.manualColumnWidths[column] = void 0;
+      this.manualColumnWidths[physicalColumn] = void 0;
     }
 
     /**
@@ -53690,15 +53798,18 @@ var ManualColumnResize = function (_BasePlugin) {
   }, {
     key: 'onModifyColWidth',
     value: function onModifyColWidth(width, column) {
-      if (this.enabled) {
-        column = this.hot.runHooks('modifyCol', column);
+      var newWidth = width;
 
-        if (this.hot.getSettings().manualColumnResize && this.manualColumnWidths[column]) {
-          return this.manualColumnWidths[column];
+      if (this.enabled) {
+        var physicalColumn = this.hot.runHooks('modifyCol', column);
+        var columnWidth = this.manualColumnWidths[physicalColumn];
+
+        if (this.hot.getSettings().manualColumnResize && columnWidth) {
+          newWidth = columnWidth;
         }
       }
 
-      return width;
+      return newWidth;
     }
 
     /**
@@ -54621,12 +54732,14 @@ var ManualRowMove = function (_BasePlugin) {
   }, {
     key: 'onModifyRow',
     value: function onModifyRow(row, source) {
+      var physicalRow = row;
+
       if (source !== this.pluginName) {
-        var rowInMapper = this.rowsMapper.getValueByIndex(row);
-        row = rowInMapper === null ? row : rowInMapper;
+        var rowInMapper = this.rowsMapper.getValueByIndex(physicalRow);
+        physicalRow = rowInMapper === null ? physicalRow : rowInMapper;
       }
 
-      return row;
+      return physicalRow;
     }
 
     /**
@@ -54693,7 +54806,7 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _arrayMapper = __webpack_require__(51);
+var _arrayMapper = __webpack_require__(55);
 
 var _arrayMapper2 = _interopRequireDefault(_arrayMapper);
 
@@ -55354,15 +55467,15 @@ var ManualRowResize = function (_BasePlugin) {
         this.setupGuidePosition();
         this.pressed = this.hot;
 
-        if (this.autoresizeTimeout == null) {
+        if (this.autoresizeTimeout === null) {
           this.autoresizeTimeout = setTimeout(function () {
             return _this5.afterMouseDownTimeout();
           }, 500);
 
           this.hot._registerTimeout(this.autoresizeTimeout);
         }
-        this.dblclick++;
 
+        this.dblclick += 1;
         this.startY = (0, _event.pageY)(event);
         this.newSize = this.startHeight;
       }
@@ -55483,8 +55596,9 @@ var ManualRowResize = function (_BasePlugin) {
   }, {
     key: 'setManualSize',
     value: function setManualSize(row, height) {
-      row = this.hot.runHooks('modifyRow', row);
-      this.manualRowHeights[row] = height;
+      var physicalRow = this.hot.runHooks('modifyRow', row);
+
+      this.manualRowHeights[physicalRow] = height;
 
       return height;
     }
@@ -55506,10 +55620,8 @@ var ManualRowResize = function (_BasePlugin) {
       if (this.enabled) {
         var autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
         var autoRowHeightResult = autoRowSizePlugin ? autoRowSizePlugin.heights[row] : null;
-
-        row = this.hot.runHooks('modifyRow', row);
-
-        var manualRowHeight = this.manualRowHeights[row];
+        var physicalRow = this.hot.runHooks('modifyRow', row);
+        var manualRowHeight = this.manualRowHeights[physicalRow];
 
         if (manualRowHeight !== void 0 && (manualRowHeight === autoRowHeightResult || manualRowHeight > (height || 0))) {
           return manualRowHeight;
@@ -56569,10 +56681,12 @@ var MergeCells = function (_BasePlugin) {
     value: function onModifyAutofillRange(drag, select) {
       this.autofillCalculations.correctSelectionAreaSize(select);
       var dragDirection = this.autofillCalculations.getDirection(select, drag);
+      var dragArea = drag;
 
-      if (this.autofillCalculations.dragAreaOverlapsCollections(select, drag, dragDirection)) {
-        drag = select;
-        return drag;
+      if (this.autofillCalculations.dragAreaOverlapsCollections(select, dragArea, dragDirection)) {
+        dragArea = select;
+
+        return dragArea;
       }
 
       var mergedCellsWithinSelectionArea = this.mergedCellsCollection.getWithinRange({
@@ -56581,12 +56695,12 @@ var MergeCells = function (_BasePlugin) {
       });
 
       if (!mergedCellsWithinSelectionArea) {
-        return drag;
+        return dragArea;
       }
 
-      drag = this.autofillCalculations.snapDragArea(select, drag, dragDirection, mergedCellsWithinSelectionArea);
+      dragArea = this.autofillCalculations.snapDragArea(select, dragArea, dragDirection, mergedCellsWithinSelectionArea);
 
-      return drag;
+      return dragArea;
     }
 
     /**
@@ -56911,11 +57025,12 @@ var MergedCellsCollection = function () {
 
       var mergedCells = this.mergedCells;
       var foundMergedCells = [];
+      var testedRange = range;
 
-      if (!range.includesRange) {
-        var from = new _index.CellCoords(range.from.row, range.from.col);
-        var to = new _index.CellCoords(range.to.row, range.to.col);
-        range = new _index.CellRange(from, from, to);
+      if (!testedRange.includesRange) {
+        var from = new _index.CellCoords(testedRange.from.row, testedRange.from.col);
+        var to = new _index.CellCoords(testedRange.to.row, testedRange.to.col);
+        testedRange = new _index.CellRange(from, from, to);
       }
 
       (0, _array.arrayEach)(mergedCells, function (mergedCell) {
@@ -56924,10 +57039,10 @@ var MergedCellsCollection = function () {
         var mergedCellRange = new _index.CellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
 
         if (countPartials) {
-          if (range.overlaps(mergedCellRange)) {
+          if (testedRange.overlaps(mergedCellRange)) {
             foundMergedCells.push(mergedCell);
           }
-        } else if (range.includesRange(mergedCellRange)) {
+        } else if (testedRange.includesRange(mergedCellRange)) {
           foundMergedCells.push(mergedCell);
         }
       });
@@ -58141,21 +58256,20 @@ var MultipleSelectionHandles = function (_BasePlugin) {
       });
 
       this.eventManager.addEventListener(this.hot.rootElement, 'touchmove', function (event) {
-        var scrollTop = (0, _element.getWindowScrollTop)(),
-            scrollLeft = (0, _element.getWindowScrollLeft)(),
-            endTarget = void 0,
-            targetCoords = void 0,
-            selectedRange = void 0,
-            rangeWidth = void 0,
-            rangeHeight = void 0,
-            rangeDirection = void 0,
-            newRangeCoords = void 0;
+        var scrollTop = (0, _element.getWindowScrollTop)();
+        var scrollLeft = (0, _element.getWindowScrollLeft)();
+        var targetCoords = void 0;
+        var selectedRange = void 0;
+        var rangeWidth = void 0;
+        var rangeHeight = void 0;
+        var rangeDirection = void 0;
+        var newRangeCoords = void 0;
 
         if (_this.dragged.length === 0) {
           return;
         }
 
-        endTarget = document.elementFromPoint(event.touches[0].screenX - scrollLeft, event.touches[0].screenY - scrollTop);
+        var endTarget = document.elementFromPoint(event.touches[0].screenX - scrollLeft, event.touches[0].screenY - scrollTop);
 
         if (!endTarget || endTarget === _this.lastSetCell) {
           return;
@@ -59438,7 +59552,7 @@ function cleanPatches(patches) {
    * If observeChanges uses native Object.observe method, then it produces patches for length property. Filter them.
    * If path can't be parsed. Filter it.
    */
-  patches = (0, _array.arrayFilter)(patches, function (patch) {
+  var cleanedPatches = (0, _array.arrayFilter)(patches, function (patch) {
     if (/[/]length/ig.test(patch.path)) {
       return false;
     }
@@ -59451,7 +59565,7 @@ function cleanPatches(patches) {
   /**
    * Extend patches with changed cells coords
    */
-  patches = (0, _array.arrayMap)(patches, function (patch) {
+  cleanedPatches = (0, _array.arrayMap)(cleanedPatches, function (patch) {
     var coords = parsePath(patch.path);
 
     patch.row = coords.row;
@@ -59463,7 +59577,7 @@ function cleanPatches(patches) {
    * Removing or adding column will produce one patch for each table row.
    * Leaves only one patch for each column add/remove operation.
    */
-  patches = (0, _array.arrayFilter)(patches, function (patch) {
+  cleanedPatches = (0, _array.arrayFilter)(cleanedPatches, function (patch) {
     if (['add', 'remove'].indexOf(patch.op) !== -1 && !isNaN(patch.col)) {
       if (newOrRemovedColumns.indexOf(patch.col) !== -1) {
         return false;
@@ -59475,7 +59589,7 @@ function cleanPatches(patches) {
   });
   newOrRemovedColumns.length = 0;
 
-  return patches;
+  return cleanedPatches;
 }
 
 /**
@@ -59735,15 +59849,15 @@ var Search = function (_BasePlugin) {
 
       return queryResult;
     }
-  }, {
-    key: 'getCallback',
-
 
     /**
      * Gets the callback function.
      *
      * @returns {Function} Return the callback function.
      */
+
+  }, {
+    key: 'getCallback',
     value: function getCallback() {
       return this.callback;
     }
@@ -59912,7 +60026,7 @@ var _base2 = _interopRequireDefault(_base);
 
 var _plugins = __webpack_require__(5);
 
-var _feature = __webpack_require__(42);
+var _feature = __webpack_require__(41);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -60228,12 +60342,10 @@ function UndoRedo(instance) {
     }
 
     var originalData = plugin.instance.getSourceDataArray();
+    var rowIndex = (originalData.length + index) % originalData.length;
+    var removedData = (0, _object.deepClone)(originalData.slice(rowIndex, rowIndex + amount));
 
-    index = (originalData.length + index) % originalData.length;
-
-    var removedData = (0, _object.deepClone)(originalData.slice(index, index + amount));
-
-    plugin.done(new UndoRedo.RemoveRowAction(index, removedData));
+    plugin.done(new UndoRedo.RemoveRowAction(rowIndex, removedData));
   });
 
   instance.addHook('afterCreateCol', function (index, amount, source) {
@@ -60250,9 +60362,7 @@ function UndoRedo(instance) {
     }
 
     var originalData = plugin.instance.getSourceDataArray();
-
-    index = (plugin.instance.countCols() + index) % plugin.instance.countCols();
-
+    var columnIndex = (plugin.instance.countCols() + index) % plugin.instance.countCols();
     var removedData = [];
     var headers = [];
     var indexes = [];
@@ -60261,26 +60371,25 @@ function UndoRedo(instance) {
       var column = [];
       var origRow = originalData[i];
 
-      (0, _number.rangeEach)(index, index + (amount - 1), function (j) {
+      (0, _number.rangeEach)(columnIndex, columnIndex + (amount - 1), function (j) {
         column.push(origRow[instance.runHooks('modifyCol', j)]);
       });
       removedData.push(column);
     });
 
     (0, _number.rangeEach)(amount - 1, function (i) {
-      indexes.push(instance.runHooks('modifyCol', index + i));
+      indexes.push(instance.runHooks('modifyCol', columnIndex + i));
     });
 
     if (Array.isArray(instance.getSettings().colHeaders)) {
       (0, _number.rangeEach)(amount - 1, function (i) {
-        headers.push(instance.getSettings().colHeaders[instance.runHooks('modifyCol', index + i)] || null);
+        headers.push(instance.getSettings().colHeaders[instance.runHooks('modifyCol', columnIndex + i)] || null);
       });
     }
 
     var manualColumnMovePlugin = plugin.instance.getPlugin('manualColumnMove');
-
     var columnsMap = manualColumnMovePlugin.isEnabled() ? manualColumnMovePlugin.columnsMapper.__arrayMap : [];
-    var action = new UndoRedo.RemoveColumnAction(index, indexes, removedData, headers, columnsMap);
+    var action = new UndoRedo.RemoveColumnAction(columnIndex, indexes, removedData, headers, columnsMap);
 
     plugin.done(action);
   });
@@ -60437,9 +60546,9 @@ UndoRedo.ChangeAction = function (changes) {
 (0, _object.inherit)(UndoRedo.ChangeAction, UndoRedo.Action);
 
 UndoRedo.ChangeAction.prototype.undo = function (instance, undoneCallback) {
-  var data = (0, _object.deepClone)(this.changes),
-      emptyRowsAtTheEnd = instance.countEmptyRows(true),
-      emptyColsAtTheEnd = instance.countEmptyCols(true);
+  var data = (0, _object.deepClone)(this.changes);
+  var emptyRowsAtTheEnd = instance.countEmptyRows(true);
+  var emptyColsAtTheEnd = instance.countEmptyCols(true);
 
   for (var i = 0, len = data.length; i < len; i++) {
     data[i].splice(3, 1);
@@ -60487,8 +60596,8 @@ UndoRedo.CreateRowAction = function (index, amount) {
 (0, _object.inherit)(UndoRedo.CreateRowAction, UndoRedo.Action);
 
 UndoRedo.CreateRowAction.prototype.undo = function (instance, undoneCallback) {
-  var rowCount = instance.countRows(),
-      minSpareRows = instance.getSettings().minSpareRows;
+  var rowCount = instance.countRows();
+  var minSpareRows = instance.getSettings().minSpareRows;
 
   if (this.index >= rowCount && this.index - minSpareRows < rowCount) {
     this.index -= minSpareRows; // work around the situation where the needed row was removed due to an 'undo' of a made change
@@ -61039,8 +61148,6 @@ var _base = __webpack_require__(7);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _array = __webpack_require__(0);
-
 var _number = __webpack_require__(4);
 
 var _plugins = __webpack_require__(5);
@@ -61145,8 +61252,8 @@ var BindRowsWithHeaders = function (_BasePlugin) {
       this.addHook('beforeRemoveRow', function (index, amount) {
         return _this2.onBeforeRemoveRow(index, amount);
       });
-      this.addHook('afterRemoveRow', function (index, amount) {
-        return _this2.onAfterRemoveRow(index, amount);
+      this.addHook('afterRemoveRow', function () {
+        return _this2.onAfterRemoveRow();
       });
       this.addHook('afterLoadData', function (firstRun) {
         return _this2.onAfterLoadData(firstRun);
@@ -61236,13 +61343,11 @@ var BindRowsWithHeaders = function (_BasePlugin) {
      * On after remove row listener.
      *
      * @private
-     * @param {Number} index Row index.
-     * @param {Number} amount Defines how many rows removed.
      */
 
   }, {
     key: 'onAfterRemoveRow',
-    value: function onAfterRemoveRow(index, amount) {
+    value: function onAfterRemoveRow() {
       this.bindStrategy.removeRow(this.removedRows);
     }
 
@@ -61290,10 +61395,6 @@ exports.default = BindRowsWithHeaders;
 exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _arrayMapper = __webpack_require__(51);
-
-var _object = __webpack_require__(1);
 
 var _number = __webpack_require__(4);
 
@@ -61378,11 +61479,9 @@ var BindStrategy = function () {
   }, {
     key: 'createRow',
     value: function createRow() {
-      for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
-        params[_key] = arguments[_key];
-      }
+      var _strategy;
 
-      this.strategy.createRow.apply(this.strategy, params);
+      (_strategy = this.strategy).createRow.apply(_strategy, arguments);
     }
 
     /**
@@ -61394,11 +61493,9 @@ var BindStrategy = function () {
   }, {
     key: 'removeRow',
     value: function removeRow() {
-      for (var _len2 = arguments.length, params = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        params[_key2] = arguments[_key2];
-      }
+      var _strategy2;
 
-      this.strategy.removeRow.apply(this.strategy, params);
+      (_strategy2 = this.strategy).removeRow.apply(_strategy2, arguments);
     }
 
     /**
@@ -61410,11 +61507,9 @@ var BindStrategy = function () {
   }, {
     key: 'translate',
     value: function translate() {
-      for (var _len3 = arguments.length, params = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        params[_key3] = arguments[_key3];
-      }
+      var _strategy3;
 
-      return this.strategy.getValueByIndex.apply(this.strategy, params);
+      return (_strategy3 = this.strategy).getValueByIndex.apply(_strategy3, arguments);
     }
 
     /**
@@ -61480,7 +61575,7 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _arrayMapper = __webpack_require__(51);
+var _arrayMapper = __webpack_require__(55);
 
 var _arrayMapper2 = _interopRequireDefault(_arrayMapper);
 
@@ -61566,7 +61661,7 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _arrayMapper = __webpack_require__(51);
+var _arrayMapper = __webpack_require__(55);
 
 var _arrayMapper2 = _interopRequireDefault(_arrayMapper);
 
@@ -62089,11 +62184,8 @@ var CollapsibleColumns = function (_BasePlugin) {
         (0, _array.arrayEach)(nestedHeadersColspanArray, function (headerLevel, i) {
           (0, _array.arrayEach)(headerLevel, function (header, j) {
             if (header.colspan > 1) {
-              i = parseInt(i, 10);
-              j = parseInt(j, 10);
-
-              var row = _this4.nestedHeadersPlugin.levelToRowCoords(i);
-              var col = j;
+              var row = _this4.nestedHeadersPlugin.levelToRowCoords(parseInt(i, 10));
+              var col = parseInt(j, 10);
 
               _this4.markSectionAs(action === 'collapse' ? 'collapsed' : 'expanded', row, col, true);
               _this4.toggleCollapsibleSection({
@@ -62106,13 +62198,13 @@ var CollapsibleColumns = function (_BasePlugin) {
       } else {
         (0, _object.objectEach)(this.buttonEnabledList, function (headerRow, i) {
           (0, _object.objectEach)(headerRow, function (header, j) {
-            i = parseInt(i, 10);
-            j = parseInt(j, 10);
+            var rowIndex = parseInt(i, 10);
+            var columnIndex = parseInt(j, 10);
 
-            _this4.markSectionAs(action === 'collapse' ? 'collapsed' : 'expanded', i, j, true);
+            _this4.markSectionAs(action === 'collapse' ? 'collapsed' : 'expanded', rowIndex, columnIndex, true);
             _this4.toggleCollapsibleSection({
-              row: i,
-              col: j
+              row: rowIndex,
+              col: columnIndex
             }, action);
           });
         });
@@ -62195,6 +62287,7 @@ var CollapsibleColumns = function (_BasePlugin) {
       });
 
       this.hot.render();
+      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     }
 
     /**
@@ -62321,8 +62414,6 @@ var _base2 = _interopRequireDefault(_base);
 
 var _object = __webpack_require__(1);
 
-var _array = __webpack_require__(0);
-
 var _plugins = __webpack_require__(5);
 
 var _endpoints5 = __webpack_require__(399);
@@ -62344,7 +62435,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  * @description
  * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
  * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
- *
+ *s
  * @example
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -62543,13 +62634,13 @@ var ColumnSummary = function (_BasePlugin) {
   }, {
     key: 'calculateSum',
     value: function calculateSum(endpoint) {
+      var _this3 = this;
+
       var sum = 0;
 
-      for (var r in endpoint.ranges) {
-        if ((0, _object.hasOwnProperty)(endpoint.ranges, r)) {
-          sum += this.getPartialSum(endpoint.ranges[r], endpoint.sourceColumn);
-        }
-      }
+      (0, _object.objectEach)(endpoint.ranges, function (range) {
+        sum += _this3.getPartialSum(range, endpoint.sourceColumn);
+      });
 
       return sum;
     }
@@ -62573,13 +62664,13 @@ var ColumnSummary = function (_BasePlugin) {
 
       do {
         cellValue = this.getCellValue(i, col) || 0;
-        var decimalPlaces = ((cellValue + '').split('.')[1] || []).length || 1;
+        var decimalPlaces = (('' + cellValue).split('.')[1] || []).length || 1;
         if (decimalPlaces > biggestDecimalPlacesCount) {
           biggestDecimalPlacesCount = decimalPlaces;
         }
 
         sum += cellValue || 0;
-        i--;
+        i -= 1;
       } while (i >= rowRange[0]);
 
       // Workaround for e.g. 802.2 + 1.1 = 803.3000000000001
@@ -62598,30 +62689,30 @@ var ColumnSummary = function (_BasePlugin) {
   }, {
     key: 'calculateMinMax',
     value: function calculateMinMax(endpoint, type) {
+      var _this4 = this;
+
       var result = null;
 
-      for (var r in endpoint.ranges) {
-        if ((0, _object.hasOwnProperty)(endpoint.ranges, r)) {
-          var partialResult = this.getPartialMinMax(endpoint.ranges[r], endpoint.sourceColumn, type);
+      (0, _object.objectEach)(endpoint.ranges, function (range) {
+        var partialResult = _this4.getPartialMinMax(range, endpoint.sourceColumn, type);
 
-          if (result === null && partialResult !== null) {
-            result = partialResult;
-          }
+        if (result === null && partialResult !== null) {
+          result = partialResult;
+        }
 
-          if (partialResult !== null) {
-            switch (type) {
-              case 'min':
-                result = Math.min(result, partialResult);
-                break;
-              case 'max':
-                result = Math.max(result, partialResult);
-                break;
-              default:
-                break;
-            }
+        if (partialResult !== null) {
+          switch (type) {
+            case 'min':
+              result = Math.min(result, partialResult);
+              break;
+            case 'max':
+              result = Math.max(result, partialResult);
+              break;
+            default:
+              break;
           }
         }
-      }
+      });
 
       return result === null ? 'Not enough data' : result;
     }
@@ -62661,7 +62752,7 @@ var ColumnSummary = function (_BasePlugin) {
           }
         }
 
-        i--;
+        i -= 1;
       } while (i >= rowRange[0]);
 
       return result;
@@ -62687,10 +62778,10 @@ var ColumnSummary = function (_BasePlugin) {
         cellValue = this.getCellValue(i, col);
 
         if (!cellValue) {
-          counter++;
+          counter += 1;
         }
 
-        i--;
+        i -= 1;
       } while (i >= rowRange[0]);
 
       return counter;
@@ -62707,18 +62798,18 @@ var ColumnSummary = function (_BasePlugin) {
   }, {
     key: 'countEntries',
     value: function countEntries(endpoint) {
+      var _this5 = this;
+
       var result = 0;
       var ranges = endpoint.ranges;
 
-      for (var r in ranges) {
-        if ((0, _object.hasOwnProperty)(ranges, r)) {
-          var partial = ranges[r][1] === void 0 ? 1 : ranges[r][1] - ranges[r][0] + 1;
-          var emptyCount = this.countEmpty(ranges[r], endpoint.sourceColumn);
+      (0, _object.objectEach)(ranges, function (range) {
+        var partial = range[1] === void 0 ? 1 : range[1] - range[0] + 1;
+        var emptyCount = _this5.countEmpty(range, endpoint.sourceColumn);
 
-          result += partial;
-          result -= emptyCount;
-        }
-      }
+        result += partial;
+        result -= emptyCount;
+      });
 
       return result;
     }
@@ -62813,12 +62904,11 @@ var ColumnSummary = function (_BasePlugin) {
      *
      * @private
      * @param {Array} rows Array of logical rows to be moved.
-     * @param {Number} target Index of the destination row.
      */
 
   }, {
     key: 'onBeforeRowMove',
-    value: function onBeforeRowMove(rows, target) {
+    value: function onBeforeRowMove(rows) {
       this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);
     }
 
@@ -62861,7 +62951,7 @@ var _array = __webpack_require__(0);
 
 var _console = __webpack_require__(25);
 
-var _recordTranslator = __webpack_require__(55);
+var _recordTranslator = __webpack_require__(54);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -62990,18 +63080,19 @@ var Endpoints = function () {
       var _this = this;
 
       var endpointsArray = [];
+      var settingsArray = settings;
 
-      if (!settings && typeof this.settings === 'function') {
+      if (!settingsArray && typeof this.settings === 'function') {
         this.settingsType = 'function';
 
         return;
       }
 
-      if (!settings) {
-        settings = this.settings;
+      if (!settingsArray) {
+        settingsArray = this.settings;
       }
 
-      (0, _array.arrayEach)(settings, function (val) {
+      (0, _array.arrayEach)(settingsArray, function (val) {
         var newEndpoint = {};
 
         _this.assignSetting(val, newEndpoint, 'ranges', [[0, _this.hot.countRows() - 1]]);
@@ -63065,13 +63156,11 @@ var Endpoints = function () {
      * @param {String} action Type of the action performed.
      * @param {Number} index Row/column index.
      * @param {Number} number Number of rows/columns added/removed.
-     * @param {Array} [logicRows] Array of the logical indexes.
-     * @param {String} [source] Source of change.
      */
 
   }, {
     key: 'resetSetupBeforeStructureAlteration',
-    value: function resetSetupBeforeStructureAlteration(action, index, number, logicRows, source) {
+    value: function resetSetupBeforeStructureAlteration(action, index, number) {
       if (this.settingsType !== 'function') {
         return;
       }
@@ -63079,7 +63168,7 @@ var Endpoints = function () {
       var type = action.indexOf('row') > -1 ? 'row' : 'col';
       var endpoints = this.getAllEndpoints();
 
-      (0, _array.arrayEach)(endpoints, function (val, key, obj) {
+      (0, _array.arrayEach)(endpoints, function (val) {
         if (type === 'row' && val.destinationRow >= index) {
           if (action === 'insert_row') {
             val.alterRowOffset = number;
@@ -63126,7 +63215,7 @@ var Endpoints = function () {
         // and it needs to be run to properly calculate the endpoint value.
         var beforeRenderCallback = function beforeRenderCallback() {
           _this2.hot.removeHook('beforeRender', beforeRenderCallback);
-          return _this2.refreshAllEndpoints(true);
+          return _this2.refreshAllEndpoints();
         };
         this.hot.addHookOnce('beforeRender', beforeRenderCallback);
         return;
@@ -63138,7 +63227,7 @@ var Endpoints = function () {
       var rowMoving = action.indexOf('move_row') === 0;
       var placeOfAlteration = index;
 
-      (0, _array.arrayEach)(endpoints, function (val, key, obj) {
+      (0, _array.arrayEach)(endpoints, function (val) {
         if (type === 'row' && val.destinationRow >= placeOfAlteration) {
           val.alterRowOffset = multiplier * number;
         }
@@ -63151,19 +63240,19 @@ var Endpoints = function () {
       this.resetAllEndpoints(endpoints, !rowMoving);
 
       if (rowMoving) {
-        (0, _array.arrayEach)(endpoints, function (endpoint, key, obj) {
+        (0, _array.arrayEach)(endpoints, function (endpoint) {
           _this2.extendEndpointRanges(endpoint, placeOfAlteration, logicRows[0], logicRows.length);
           _this2.recreatePhysicalRanges(endpoint);
           _this2.clearOffsetInformation(endpoint);
         });
       } else {
-        (0, _array.arrayEach)(endpoints, function (endpoint, key, obj) {
+        (0, _array.arrayEach)(endpoints, function (endpoint) {
           _this2.shiftEndpointCoordinates(endpoint, placeOfAlteration);
         });
       }
 
       if (forceRefresh) {
-        this.refreshAllEndpoints(true);
+        this.refreshAllEndpoints();
       }
     }
 
@@ -63194,7 +63283,7 @@ var Endpoints = function () {
   }, {
     key: 'extendEndpointRanges',
     value: function extendEndpointRanges(endpoint, placeOfAlteration, previousPosition, offset) {
-      (0, _array.arrayEach)(endpoint.ranges, function (range, i) {
+      (0, _array.arrayEach)(endpoint.ranges, function (range) {
         // is a range, not a single row
         if (range[1]) {
 
@@ -63208,8 +63297,8 @@ var Endpoints = function () {
             range[1] -= offset;
 
             if (placeOfAlteration <= range[0]) {
-              range[0]++;
-              range[1]++;
+              range[0] += 1;
+              range[1] += 1;
             }
           }
         }
@@ -63281,7 +63370,7 @@ var Endpoints = function () {
       if (endpoint.alterRowOffset && endpoint.alterRowOffset !== 0) {
         endpoint.destinationRow += endpoint.alterRowOffset || 0;
 
-        (0, _array.arrayEach)(endpoint.ranges, function (element, i) {
+        (0, _array.arrayEach)(endpoint.ranges, function (element) {
           (0, _array.arrayEach)(element, function (subElement, j) {
             if (subElement >= offsetStartIndex) {
               element[j] += endpoint.alterRowOffset || 0;
@@ -63308,13 +63397,14 @@ var Endpoints = function () {
 
       var useOffset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
+      var endpointsArray = endpoints;
       this.cellsToSetCache = [];
 
-      if (!endpoints) {
-        endpoints = this.getAllEndpoints();
+      if (!endpointsArray) {
+        endpointsArray = this.getAllEndpoints();
       }
 
-      (0, _array.arrayEach)(endpoints, function (value) {
+      (0, _array.arrayEach)(endpointsArray, function (value) {
         _this4.resetEndpointValue(value, useOffset);
       });
 
@@ -63325,13 +63415,11 @@ var Endpoints = function () {
 
     /**
      * Calculate and refresh all defined endpoints.
-     *
-     * @param {Boolean} init `true` if it's the initial call.
      */
 
   }, {
     key: 'refreshAllEndpoints',
-    value: function refreshAllEndpoints(init) {
+    value: function refreshAllEndpoints() {
       var _this5 = this;
 
       this.cellsToSetCache = [];
@@ -63362,14 +63450,14 @@ var Endpoints = function () {
       var needToRefresh = [];
       this.cellsToSetCache = [];
 
-      (0, _array.arrayEach)(changes, function (value, key, changes) {
+      (0, _array.arrayEach)(changes, function (value, key, changesObj) {
         // if nothing changed, dont update anything
-        if ((value[2] || '') + '' === value[3] + '') {
+        if ('' + (value[2] || '') === '' + value[3]) {
           return;
         }
 
-        (0, _array.arrayEach)(_this6.getAllEndpoints(), function (value, j) {
-          if (_this6.hot.propToCol(changes[key][1]) === value.sourceColumn && needToRefresh.indexOf(j) === -1) {
+        (0, _array.arrayEach)(_this6.getAllEndpoints(), function (endpoint, j) {
+          if (_this6.hot.propToCol(changesObj[key][1]) === endpoint.sourceColumn && needToRefresh.indexOf(j) === -1) {
             needToRefresh.push(j);
           }
         });
@@ -63537,11 +63625,9 @@ var _base2 = _interopRequireDefault(_base);
 
 var _array = __webpack_require__(0);
 
-var _object = __webpack_require__(1);
+var _commandExecutor2 = __webpack_require__(219);
 
-var _commandExecutor = __webpack_require__(219);
-
-var _commandExecutor2 = _interopRequireDefault(_commandExecutor);
+var _commandExecutor3 = _interopRequireDefault(_commandExecutor2);
 
 var _eventManager = __webpack_require__(9);
 
@@ -63565,7 +63651,7 @@ var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
 var _event = __webpack_require__(12);
 
-var _predefinedItems = __webpack_require__(44);
+var _predefinedItems = __webpack_require__(43);
 
 __webpack_require__(401);
 
@@ -63657,7 +63743,7 @@ var DropdownMenu = function (_BasePlugin) {
      * @private
      * @type {CommandExecutor}
      */
-    _this.commandExecutor = new _commandExecutor2.default(_this.hot);
+    _this.commandExecutor = new _commandExecutor3.default(_this.hot);
     /**
      * Instance of {@link ItemsFactory}.
      *
@@ -63749,11 +63835,13 @@ var DropdownMenu = function (_BasePlugin) {
           return _this2.onMenuAfterClose();
         });
         _this2.menu.addLocalHook('executeCommand', function () {
+          var _executeCommand;
+
           for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
             params[_key] = arguments[_key];
           }
 
-          return _this2.executeCommand.apply(_this2, params);
+          return (_executeCommand = _this2.executeCommand).call.apply(_executeCommand, [_this2].concat(params));
         });
 
         // Register all commands. Predefined and added by user or by plugins
@@ -63878,12 +63966,14 @@ var DropdownMenu = function (_BasePlugin) {
 
   }, {
     key: 'executeCommand',
-    value: function executeCommand() {
-      for (var _len2 = arguments.length, params = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        params[_key2] = arguments[_key2];
+    value: function executeCommand(commandName) {
+      var _commandExecutor;
+
+      for (var _len2 = arguments.length, params = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        params[_key2 - 1] = arguments[_key2];
       }
 
-      this.commandExecutor.execute.apply(this.commandExecutor, params);
+      (_commandExecutor = this.commandExecutor).execute.apply(_commandExecutor, [commandName].concat(params));
     }
 
     /**
@@ -64068,8 +64158,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _base = __webpack_require__(7);
 
 var _base2 = _interopRequireDefault(_base);
-
-var _object = __webpack_require__(1);
 
 var _plugins = __webpack_require__(5);
 
@@ -64293,10 +64381,6 @@ exports.__esModule = true;
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _array = __webpack_require__(0);
-
-var _object = __webpack_require__(1);
 
 var _number = __webpack_require__(4);
 
@@ -64623,8 +64707,8 @@ var Csv = function (_BaseType) {
         if (hasRowHeaders) {
           result += _this2._escapeCell(rowHeaders[index]) + options.columnDelimiter;
         }
-        result += value.map(function (value) {
-          return _this2._escapeCell(value);
+        result += value.map(function (cellValue) {
+          return _this2._escapeCell(cellValue);
         }).join(options.columnDelimiter);
       });
 
@@ -64644,15 +64728,15 @@ var Csv = function (_BaseType) {
     value: function _escapeCell(value) {
       var force = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
-      value = (0, _mixed.stringify)(value);
+      var escapedValue = (0, _mixed.stringify)(value);
 
-      if (value !== '' && (force || value.indexOf(CHAR_CARRIAGE_RETURN) >= 0 || value.indexOf(CHAR_DOUBLE_QUOTES) >= 0 || value.indexOf(CHAR_LINE_FEED) >= 0 || value.indexOf(this.options.columnDelimiter) >= 0)) {
+      if (escapedValue !== '' && (force || escapedValue.indexOf(CHAR_CARRIAGE_RETURN) >= 0 || escapedValue.indexOf(CHAR_DOUBLE_QUOTES) >= 0 || escapedValue.indexOf(CHAR_LINE_FEED) >= 0 || escapedValue.indexOf(this.options.columnDelimiter) >= 0)) {
 
-        value = value.replace(new RegExp('"', 'g'), '""');
-        value = '"' + value + '"';
+        escapedValue = escapedValue.replace(new RegExp('"', 'g'), '""');
+        escapedValue = '"' + escapedValue + '"';
       }
 
-      return value;
+      return escapedValue;
     }
   }], [{
     key: 'DEFAULT_OPTIONS',
@@ -64811,7 +64895,7 @@ var _element = __webpack_require__(2);
 
 var _plugins = __webpack_require__(5);
 
-var _predefinedItems = __webpack_require__(44);
+var _predefinedItems = __webpack_require__(43);
 
 var _constants = __webpack_require__(3);
 
@@ -65063,7 +65147,7 @@ var Filters = function (_BasePlugin) {
       this.addHook('afterDropdownMenuHide', function () {
         return _this2.onAfterDropdownMenuHide();
       });
-      this.addHook('afterChange', function (changes, source) {
+      this.addHook('afterChange', function (changes) {
         return _this2.onAfterChange(changes);
       });
 
@@ -65945,6 +66029,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -66181,9 +66267,11 @@ var ConditionComponent = function (_BaseComponent) {
   }, {
     key: 'reset',
     value: function reset() {
+      var _hot;
+
       var lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
       var visualIndex = lastSelectedColumn && lastSelectedColumn.visualIndex;
-      var columnType = this.hot.getDataType.apply(this.hot, this.hot.getSelectedLast() || [0, visualIndex]);
+      var columnType = (_hot = this.hot).getDataType.apply(_hot, _toConsumableArray(this.hot.getSelectedLast() || [0, visualIndex]));
       var items = (0, _constants3.default)(columnType);
 
       (0, _array.arrayEach)(this.getInputElements(), function (element) {
@@ -66431,16 +66519,17 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'gt';
 
-function condition(dataRow) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : inputValues,
-      _ref2 = _slicedToArray(_ref, 1),
+function condition(dataRow, _ref) {
+  var _ref2 = _slicedToArray(_ref, 1),
       value = _ref2[0];
 
+  var conditionValue = value;
+
   if (dataRow.meta.type === 'numeric') {
-    value = parseFloat(value, 10);
+    conditionValue = parseFloat(conditionValue, 10);
   }
 
-  return dataRow.value > value;
+  return dataRow.value > conditionValue;
 }
 
 (0, _conditionRegisterer.registerCondition)(CONDITION_NAME, condition, {
@@ -66473,16 +66562,17 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'gte';
 
-function condition(dataRow) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : inputValues,
-      _ref2 = _slicedToArray(_ref, 1),
+function condition(dataRow, _ref) {
+  var _ref2 = _slicedToArray(_ref, 1),
       value = _ref2[0];
 
+  var conditionValue = value;
+
   if (dataRow.meta.type === 'numeric') {
-    value = parseFloat(value, 10);
+    conditionValue = parseFloat(conditionValue, 10);
   }
 
-  return dataRow.value >= value;
+  return dataRow.value >= conditionValue;
 }
 
 (0, _conditionRegisterer.registerCondition)(CONDITION_NAME, condition, {
@@ -66515,16 +66605,17 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'lt';
 
-function condition(dataRow) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : inputValues,
-      _ref2 = _slicedToArray(_ref, 1),
+function condition(dataRow, _ref) {
+  var _ref2 = _slicedToArray(_ref, 1),
       value = _ref2[0];
 
+  var conditionValue = value;
+
   if (dataRow.meta.type === 'numeric') {
-    value = parseFloat(value, 10);
+    conditionValue = parseFloat(conditionValue, 10);
   }
 
-  return dataRow.value < value;
+  return dataRow.value < conditionValue;
 }
 
 (0, _conditionRegisterer.registerCondition)(CONDITION_NAME, condition, {
@@ -66557,16 +66648,17 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'lte';
 
-function condition(dataRow) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : inputValues,
-      _ref2 = _slicedToArray(_ref, 1),
+function condition(dataRow, _ref) {
+  var _ref2 = _slicedToArray(_ref, 1),
       value = _ref2[0];
 
+  var conditionValue = value;
+
   if (dataRow.meta.type === 'numeric') {
-    value = parseFloat(value, 10);
+    conditionValue = parseFloat(conditionValue, 10);
   }
 
-  return dataRow.value <= value;
+  return dataRow.value <= conditionValue;
 }
 
 (0, _conditionRegisterer.registerCondition)(CONDITION_NAME, condition, {
@@ -66634,9 +66726,8 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'begins_with';
 
-function condition(dataRow) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : inputValues,
-      _ref2 = _slicedToArray(_ref, 1),
+function condition(dataRow, _ref) {
+  var _ref2 = _slicedToArray(_ref, 1),
       value = _ref2[0];
 
   return (0, _mixed.stringify)(dataRow.value).toLowerCase().startsWith((0, _mixed.stringify)(value));
@@ -66674,9 +66765,8 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'ends_with';
 
-function condition(dataRow) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : inputValues,
-      _ref2 = _slicedToArray(_ref, 1),
+function condition(dataRow, _ref) {
+  var _ref2 = _slicedToArray(_ref, 1),
       value = _ref2[0];
 
   return (0, _mixed.stringify)(dataRow.value).toLowerCase().endsWith((0, _mixed.stringify)(value));
@@ -66867,9 +66957,8 @@ var _utils = __webpack_require__(66);
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'by_value';
 
-function condition(dataRow) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : inputValues,
-      _ref2 = _slicedToArray(_ref, 1),
+function condition(dataRow, _ref) {
+  var _ref2 = _slicedToArray(_ref, 1),
       value = _ref2[0];
 
   return value(dataRow.value);
@@ -66878,9 +66967,8 @@ function condition(dataRow) {
 (0, _conditionRegisterer.registerCondition)(CONDITION_NAME, condition, {
   name: 'By value',
   inputsCount: 0,
-  inputValuesDecorator: function inputValuesDecorator() {
-    var _ref3 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : inputValues,
-        _ref4 = _slicedToArray(_ref3, 1),
+  inputValuesDecorator: function inputValuesDecorator(_ref3) {
+    var _ref4 = _slicedToArray(_ref3, 1),
         data = _ref4[0];
 
     return [(0, _utils.createArrayAssertion)(data)];
@@ -66900,13 +66988,7 @@ exports.__esModule = true;
 exports.CONDITION_NAME = undefined;
 exports.condition = condition;
 
-var _constants = __webpack_require__(3);
-
-var C = _interopRequireWildcard(_constants);
-
 var _conditionRegisterer = __webpack_require__(10);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'true';
 
@@ -66929,13 +67011,7 @@ exports.__esModule = true;
 exports.CONDITION_NAME = undefined;
 exports.condition = condition;
 
-var _constants = __webpack_require__(3);
-
-var C = _interopRequireWildcard(_constants);
-
 var _conditionRegisterer = __webpack_require__(10);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var CONDITION_NAME = exports.CONDITION_NAME = 'false';
 
@@ -66972,7 +67048,7 @@ var _constants = __webpack_require__(3);
 
 var C = _interopRequireWildcard(_constants);
 
-var _predefinedItems = __webpack_require__(44);
+var _predefinedItems = __webpack_require__(43);
 
 var _base = __webpack_require__(68);
 
@@ -67041,8 +67117,8 @@ var SelectUI = function (_BaseUI) {
     value: function registerHooks() {
       var _this2 = this;
 
-      this.addLocalHook('click', function (event) {
-        return _this2.onClick(event);
+      this.addLocalHook('click', function () {
+        return _this2.onClick();
       });
     }
 
@@ -67212,12 +67288,11 @@ var SelectUI = function (_BaseUI) {
      * On element click listener.
      *
      * @private
-     * @param {Event} event DOM Event
      */
 
   }, {
     key: 'onClick',
-    value: function onClick(event) {
+    value: function onClick() {
       this.openOptions();
     }
 
@@ -67340,7 +67415,7 @@ var OperatorsComponent = function (_BaseComponent) {
         hidden: function hidden() {
           return _this2.isHidden();
         },
-        renderer: function renderer(hot, wrapper, row, col, prop, value) {
+        renderer: function renderer(hot, wrapper) {
           (0, _element.addClass)(wrapper.parentNode, 'htFiltersMenuOperators');
 
           (0, _array.arrayEach)(_this2.elements, function (ui) {
@@ -67464,11 +67539,13 @@ var OperatorsComponent = function (_BaseComponent) {
       var operationId = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _conjunction.OPERATION_ID;
       var column = arguments[1];
 
-      if (operationId === _disjunctionWithExtraCondition.OPERATION_ID) {
-        operationId = _disjunction.OPERATION_ID;
+      var selectedOperationId = operationId;
+
+      if (selectedOperationId === _disjunctionWithExtraCondition.OPERATION_ID) {
+        selectedOperationId = _disjunction.OPERATION_ID;
       }
 
-      this.setCachedState(column, operationId);
+      this.setCachedState(column, selectedOperationId);
     }
 
     /**
@@ -68260,7 +68337,7 @@ var MultipleSelectUI = function (_BaseUI) {
         filteredItems = [].concat(_toConsumableArray(this.items));
       } else {
         filteredItems = (0, _array.arrayFilter)(this.items, function (item) {
-          return (item.value + '').toLowerCase().indexOf(value) >= 0;
+          return ('' + item.value).toLowerCase().indexOf(value) >= 0;
         });
       }
       this.itemsBox.loadData(filteredItems);
@@ -68596,7 +68673,7 @@ var ActionBarComponent = function (_BaseComponent) {
         hidden: function hidden() {
           return _this3.isHidden();
         },
-        renderer: function renderer(hot, wrapper, row, col, prop, value) {
+        renderer: function renderer(hot, wrapper) {
           (0, _element.addClass)(wrapper.parentNode, 'htFiltersMenuActionBar');
 
           (0, _array.arrayEach)(_this3.elements, function (ui) {
@@ -68701,7 +68778,7 @@ var ConditionUpdateObserver = function () {
   function ConditionUpdateObserver(conditionCollection) {
     var _this = this;
 
-    var columnDataFactory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function (column) {
+    var columnDataFactory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {
       return [];
     };
 
@@ -68844,24 +68921,23 @@ var ConditionUpdateObserver = function () {
         conditionsAfter.shift();
       }
 
-      var visibleDataFactory = (0, _function.curry)(function (conditionsBefore, column) {
+      var visibleDataFactory = (0, _function.curry)(function (curriedConditionsBefore, curriedColumn) {
         var conditionsStack = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
 
         var splitConditionCollection = new _conditionCollection2.default();
-
-        conditionsBefore = [].concat(conditionsBefore, conditionsStack);
+        var curriedConditionsBeforeArray = [].concat(curriedConditionsBefore, conditionsStack);
 
         // Create new condition collection to determine what rows should be visible in "filter by value" box in the next conditions in the chain
-        splitConditionCollection.importAllConditions(conditionsBefore);
+        splitConditionCollection.importAllConditions(curriedConditionsBeforeArray);
 
-        var allRows = _this3.columnDataFactory(column);
+        var allRows = _this3.columnDataFactory(curriedColumn);
         var visibleRows = void 0;
 
         if (splitConditionCollection.isEmpty()) {
           visibleRows = allRows;
         } else {
-          visibleRows = new _dataFilter2.default(splitConditionCollection, function (column) {
-            return _this3.columnDataFactory(column);
+          visibleRows = new _dataFilter2.default(splitConditionCollection, function (columnData) {
+            return _this3.columnDataFactory(columnData);
           }).filter();
         }
         visibleRows = (0, _array.arrayMap)(visibleRows, function (rowData) {
@@ -68972,7 +69048,7 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _plugins = __webpack_require__(5);
 
-var _utils = __webpack_require__(35);
+var _utils = __webpack_require__(44);
 
 var _sheet = __webpack_require__(437);
 
@@ -69242,12 +69318,11 @@ var Formulas = function (_BasePlugin) {
      *
      * @private
      * @param {Array} cells An array of recalculated/changed cells.
-     * @param {String} type Recalculation type (`optimized` or `full`).
      */
 
   }, {
     key: 'onSheetAfterRecalculate',
-    value: function onSheetAfterRecalculate(cells, type) {
+    value: function onSheetAfterRecalculate(cells) {
       if (this._skipRendering) {
         this._skipRendering = false;
 
@@ -69296,11 +69371,13 @@ var Formulas = function (_BasePlugin) {
   }, {
     key: 'onBeforeValueRender',
     value: function onBeforeValueRender(value) {
-      if ((0, _utils.isFormulaExpressionEscaped)(value)) {
-        value = (0, _utils.unescapeFormulaExpression)(value);
+      var renderValue = value;
+
+      if ((0, _utils.isFormulaExpressionEscaped)(renderValue)) {
+        renderValue = (0, _utils.unescapeFormulaExpression)(renderValue);
       }
 
-      return value;
+      return renderValue;
     }
 
     /**
@@ -69310,19 +69387,19 @@ var Formulas = function (_BasePlugin) {
      * @param {*} value Value to validate.
      * @param {Number} row Row index.
      * @param {Number} prop Column property.
-     * @param {String} source Validation source call.
      */
 
   }, {
     key: 'onBeforeValidate',
-    value: function onBeforeValidate(value, row, prop, source) {
+    value: function onBeforeValidate(value, row, prop) {
       var column = this.hot.propToCol(prop);
+      var validateValue = value;
 
       if (this.hasComputedCellValue(row, column)) {
-        value = this.getCellValue(row, column);
+        validateValue = this.getCellValue(row, column);
       }
 
-      return value;
+      return validateValue;
     }
 
     /**
@@ -69351,17 +69428,18 @@ var Formulas = function (_BasePlugin) {
             oldValue = _ref3[2],
             newValue = _ref3[3];
 
-        column = _this3.hot.propToCol(column);
-        row = _this3.t.toPhysicalRow(row);
+        var physicalColumn = _this3.hot.propToCol(column);
+        var physicalRow = _this3.t.toPhysicalRow(row);
+        var value = newValue;
 
-        if ((0, _utils.isFormulaExpression)(newValue)) {
-          newValue = (0, _utils.toUpperCaseFormula)(newValue);
+        if ((0, _utils.isFormulaExpression)(value)) {
+          value = (0, _utils.toUpperCaseFormula)(value);
         }
 
-        _this3.dataProvider.collectChanges(row, column, newValue);
+        _this3.dataProvider.collectChanges(physicalRow, physicalColumn, value);
 
-        if (oldValue !== newValue) {
-          _this3.sheet.applyChanges(row, column, newValue);
+        if (oldValue !== value) {
+          _this3.sheet.applyChanges(physicalRow, physicalColumn, value);
         }
       });
       this.recalculate();
@@ -69566,13 +69644,11 @@ var _hotFormulaParser = __webpack_require__(69);
 
 var _array = __webpack_require__(0);
 
-var _number = __webpack_require__(4);
-
 var _localHooks = __webpack_require__(20);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
-var _recordTranslator = __webpack_require__(55);
+var _recordTranslator = __webpack_require__(54);
 
 var _object = __webpack_require__(1);
 
@@ -69584,7 +69660,7 @@ var _reference = __webpack_require__(438);
 
 var _reference2 = _interopRequireDefault(_reference);
 
-var _utils = __webpack_require__(35);
+var _utils = __webpack_require__(44);
 
 var _matrix = __webpack_require__(439);
 
@@ -69943,16 +70019,18 @@ var Sheet = function () {
           _this4.matrix.registerCellRef(cell);
           _this4._processingCell.addPrecedent(cell);
 
-          if ((0, _hotFormulaParser.error)(cellData)) {
+          var newCellData = cellData;
+
+          if ((0, _hotFormulaParser.error)(newCellData)) {
             var computedCell = _this4.matrix.getCellAt(cell.row, cell.column);
 
             if (computedCell && computedCell.hasError()) {
-              throw Error(cellData);
+              throw Error(newCellData);
             }
           }
 
-          if ((0, _utils.isFormulaExpression)(cellData)) {
-            var _parser$parse3 = _this4.parser.parse(cellData.substr(1)),
+          if ((0, _utils.isFormulaExpression)(newCellData)) {
+            var _parser$parse3 = _this4.parser.parse(newCellData.substr(1)),
                 error = _parser$parse3.error,
                 result = _parser$parse3.result;
 
@@ -69960,10 +70038,10 @@ var Sheet = function () {
               throw Error(error);
             }
 
-            cellData = result;
+            newCellData = result;
           }
 
-          return cellData;
+          return newCellData;
         });
       };
 
@@ -70195,11 +70273,11 @@ var Matrix = function () {
     key: 'remove',
     value: function remove(cellValue) {
       var isArray = Array.isArray(cellValue);
-      var isEqual = function isEqual(cell, cellValue) {
+      var isEqual = function isEqual(cell, values) {
         var result = false;
 
         if (isArray) {
-          (0, _array.arrayEach)(cellValue, function (value) {
+          (0, _array.arrayEach)(values, function (value) {
             if (cell.isEqual(value)) {
               result = true;
 
@@ -70207,7 +70285,7 @@ var Matrix = function () {
             }
           });
         } else {
-          result = cell.isEqual(cellValue);
+          result = cell.isEqual(values);
         }
 
         return result;
@@ -70339,8 +70417,6 @@ exports.__esModule = true;
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 exports.registerOperation = registerOperation;
-
-var _array = __webpack_require__(0);
 
 var _object = __webpack_require__(1);
 
@@ -70517,7 +70593,7 @@ exports.operate = operate;
 
 var _array = __webpack_require__(0);
 
-var _utils = __webpack_require__(35);
+var _utils = __webpack_require__(44);
 
 var _value = __webpack_require__(45);
 
@@ -70600,7 +70676,7 @@ exports.operate = operate;
 
 var _array = __webpack_require__(0);
 
-var _utils = __webpack_require__(35);
+var _utils = __webpack_require__(44);
 
 var _value = __webpack_require__(45);
 
@@ -70705,7 +70781,7 @@ exports.operate = operate;
 
 var _array = __webpack_require__(0);
 
-var _utils = __webpack_require__(35);
+var _utils = __webpack_require__(44);
 
 var _value = __webpack_require__(45);
 
@@ -70810,7 +70886,7 @@ exports.operate = operate;
 
 var _array = __webpack_require__(0);
 
-var _utils = __webpack_require__(35);
+var _utils = __webpack_require__(44);
 
 var _value = __webpack_require__(45);
 
@@ -70843,14 +70919,14 @@ var OPERATION_NAME = exports.OPERATION_NAME = 'remove_column';
 function operate(start, amount) {
   var modifyFormula = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
 
-  amount = -amount;
+  var columnsAmount = -amount;
 
   var matrix = this.matrix,
       dataProvider = this.dataProvider,
       sheet = this.sheet;
 
-  var translate = [0, amount];
-  var indexOffset = Math.abs(amount) - 1;
+  var translate = [0, columnsAmount];
+  var indexOffset = Math.abs(columnsAmount) - 1;
 
   var removedCellRef = matrix.removeCellRefsAtRange({ column: start }, { column: start + indexOffset });
   var toRemove = [];
@@ -70903,7 +70979,7 @@ function operate(start, amount) {
         var expModifier = new _expressionModifier2.default(value);
 
         expModifier.useCustomModifier(customTranslateModifier);
-        expModifier.translate({ column: amount }, startCoord({ row: origRow, column: origColumn }));
+        expModifier.translate({ column: columnsAmount }, startCoord({ row: origRow, column: origColumn }));
 
         dataProvider.updateSourceData(row, column, expModifier.toString());
       }
@@ -70967,7 +71043,7 @@ exports.operate = operate;
 
 var _array = __webpack_require__(0);
 
-var _utils = __webpack_require__(35);
+var _utils = __webpack_require__(44);
 
 var _value = __webpack_require__(45);
 
@@ -71000,14 +71076,14 @@ var OPERATION_NAME = exports.OPERATION_NAME = 'remove_row';
 function operate(start, amount) {
   var modifyFormula = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
 
-  amount = -amount;
+  var rowsAmount = -amount;
 
   var matrix = this.matrix,
       dataProvider = this.dataProvider,
       sheet = this.sheet;
 
-  var translate = [amount, 0];
-  var indexOffset = Math.abs(amount) - 1;
+  var translate = [rowsAmount, 0];
+  var indexOffset = Math.abs(rowsAmount) - 1;
 
   var removedCellRef = matrix.removeCellRefsAtRange({ row: start }, { row: start + indexOffset });
   var toRemove = [];
@@ -71060,7 +71136,7 @@ function operate(start, amount) {
         var expModifier = new _expressionModifier2.default(value);
 
         expModifier.useCustomModifier(customTranslateModifier);
-        expModifier.translate({ row: amount }, startCoord({ row: origRow, column: origColumn }));
+        expModifier.translate({ row: rowsAmount }, startCoord({ row: origRow, column: origColumn }));
 
         dataProvider.updateSourceData(row, column, expModifier.toString());
       }
@@ -71130,9 +71206,7 @@ var _number = __webpack_require__(4);
 
 var _object = __webpack_require__(1);
 
-var _recordTranslator = __webpack_require__(55);
-
-var _utils = __webpack_require__(35);
+var _recordTranslator = __webpack_require__(54);
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -71417,8 +71491,6 @@ exports.__esModule = true;
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _array = __webpack_require__(0);
-
-var _number = __webpack_require__(4);
 
 var _stack = __webpack_require__(448);
 
@@ -72229,13 +72301,10 @@ var GanttChart = function (_BasePlugin) {
 
   }, {
     key: 'getAdjacentWeekColumn',
-    value: function getAdjacentWeekColumn(date) {
-      var following = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-      var previous = arguments[2];
-
-      date = (0, _utils.parseDate)(date);
+    value: function getAdjacentWeekColumn(date, following, previous) {
+      var convertedDate = (0, _utils.parseDate)(date);
       var delta = previous === true ? -7 : 7;
-      var adjacentWeek = date.setDate(date.getDate() + delta);
+      var adjacentWeek = convertedDate.setDate(convertedDate.getDate() + delta);
 
       return this.dateCalculator.dateToColumn(adjacentWeek);
     }
@@ -72391,12 +72460,11 @@ var GanttChart = function (_BasePlugin) {
      * @param {Number} row Row index.
      * @param {Number} startDateColumn Start column index.
      * @param {Number} endDateColumn End column index.
-     * @param {Object} additionalData Additional range data.
      */
 
   }, {
     key: 'renderRangeBar',
-    value: function renderRangeBar(row, startDateColumn, endDateColumn, additionalData) {
+    value: function renderRangeBar(row, startDateColumn, endDateColumn) {
       var year = this.dateCalculator.getYear();
       var currentBar = this.rangeBars[year][row][startDateColumn];
 
@@ -72461,10 +72529,10 @@ var GanttChart = function (_BasePlugin) {
       this.rangeBars[year][row][startDateColumn] = null;
 
       (0, _object.objectEach)(this.rangeList, function (prop, i) {
-        i = parseInt(i, 10);
+        var id = parseInt(i, 10);
 
         if (JSON.stringify(prop) === JSON.stringify([row, startDateColumn])) {
-          _this6.rangeList[i] = null;
+          _this6.rangeList[id] = null;
         }
       });
     }
@@ -72537,8 +72605,8 @@ var GanttChart = function (_BasePlugin) {
 
       var titleValue = '';
 
-      (0, _object.objectEach)(cellProperties.additionalData, function (prop, i) {
-        titleValue += i + ': ' + prop + '\n';
+      (0, _object.objectEach)(cellProperties.additionalData, function (cellMeta, i) {
+        titleValue += i + ': ' + cellMeta + '\n';
       });
 
       titleValue = titleValue.replace(/\n$/, '');
@@ -72861,15 +72929,15 @@ var DateCalculator = function () {
   }, {
     key: 'dateToColumn',
     value: function dateToColumn(date) {
-      date = (0, _utils.parseDate)(date);
+      var convertedDate = (0, _utils.parseDate)(date);
 
-      if (!date) {
+      if (!convertedDate) {
         return false;
       }
 
-      var month = date.getMonth();
-      var day = date.getDate() - 1;
-      var year = date.getFullYear();
+      var month = convertedDate.getMonth();
+      var day = convertedDate.getDate() - 1;
+      var year = convertedDate.getFullYear();
 
       return this.getWeekColumn(day, month, year);
     }
@@ -72936,7 +73004,7 @@ var DateCalculator = function () {
           var monthObject = monthList[i];
 
           if (Object.keys(month).length > 1) {
-            fullMonthCount++;
+            fullMonthCount += 1;
           }
 
           if (fullMonthCount === monthIndex) {
@@ -73011,15 +73079,15 @@ var DateCalculator = function () {
     value: function isOnTheEdgeOfWeek(date) {
       var _this2 = this;
 
-      date = (0, _utils.parseDate)(date);
+      var convertedDate = (0, _utils.parseDate)(date);
 
-      if (!date) {
+      if (!convertedDate) {
         return null;
       }
 
-      var month = date.getMonth();
-      var day = date.getDate() - 1;
-      var year = date.getFullYear();
+      var month = convertedDate.getMonth();
+      var day = convertedDate.getDate() - 1;
+      var year = convertedDate.getFullYear();
       var monthCacheArray = this.getMonthCacheArray(month, year);
       var isOnTheEdgeOfWeek = false;
 
@@ -73027,7 +73095,7 @@ var DateCalculator = function () {
         (0, _object.objectEach)(monthCache, function (column) {
 
           if (!_this2.allowSplitWeeks && column.length !== 7) {
-            if (day === 0 || day === new Date(date.getYear(), date.getMonth() + 1, 0).getDate() - 1) {
+            if (day === 0 || day === new Date(convertedDate.getYear(), convertedDate.getMonth() + 1, 0).getDate() - 1) {
               return true;
             }
           }
@@ -73370,7 +73438,7 @@ var DateCalculator = function () {
 
         if (!_this4.allowSplitWeeks && currentMonth.daysBeforeFullWeeks) {
           mixedMonthToAdd.push((0, _utils.getMixedMonthObject)((0, _utils.getMixedMonthName)(monthIndex, monthList), monthIndex));
-          mixedMonthsAdded++;
+          mixedMonthsAdded += 1;
         }
 
         currentMonth.fullWeeks = Math.floor((currentMonth.days - currentMonth.daysBeforeFullWeeks) / 7);
@@ -73379,7 +73447,7 @@ var DateCalculator = function () {
         if (!_this4.allowSplitWeeks) {
           if (monthIndex === monthList.length - 1 && currentMonth.daysAfterFullWeeks) {
             mixedMonthToAdd.push((0, _utils.getMixedMonthObject)((0, _utils.getMixedMonthName)(monthIndex, monthList), null));
-            mixedMonthsAdded++;
+            mixedMonthsAdded += 1;
           }
 
           weekSectionCount += currentMonth.fullWeeks + mixedMonthsAdded;
@@ -73584,14 +73652,14 @@ var GanttChartDataFeed = function () {
       var _this2 = this;
 
       this.sourceHooks = {
-        afterLoadData: function afterLoadData(firstRun) {
-          return _this2.onAfterSourceLoadData(firstRun);
+        afterLoadData: function afterLoadData() {
+          return _this2.onAfterSourceLoadData();
         },
-        afterChange: function afterChange(changes, source) {
-          return _this2.onAfterSourceChange(changes, source);
+        afterChange: function afterChange(changes) {
+          return _this2.onAfterSourceChange(changes);
         },
-        afterColumnSort: function afterColumnSort(column, order) {
-          return _this2.onAfterColumnSort(column, order);
+        afterColumnSort: function afterColumnSort() {
+          return _this2.onAfterColumnSort();
         }
       };
 
@@ -73782,12 +73850,11 @@ var GanttChartDataFeed = function () {
      *
      * @private
      * @param {Array} changes List of changes.
-     * @param {String} source Change source.
      */
 
   }, {
     key: 'onAfterSourceChange',
-    value: function onAfterSourceChange(changes, source) {
+    value: function onAfterSourceChange(changes) {
       var _this4 = this;
 
       this.asyncCall(function () {
@@ -73810,10 +73877,10 @@ var GanttChartDataFeed = function () {
         }
 
         (0, _object.objectEach)(changesByRows, function (prop, i) {
-          i = parseInt(i, 10);
+          var row = parseInt(i, 10);
 
-          if (_this4.chartPlugin.getRangeBarCoordinates(i)) {
-            _this4.chartPlugin.removeRangeBarByColumn(i, _this4.chartPlugin.rangeList[i][1]);
+          if (_this4.chartPlugin.getRangeBarCoordinates(row)) {
+            _this4.chartPlugin.removeRangeBarByColumn(row, _this4.chartPlugin.rangeList[row][1]);
           }
 
           _this4.updateFromSource(i);
@@ -73825,15 +73892,14 @@ var GanttChartDataFeed = function () {
      * afterLoadData hook callback for the source Handsontable instance.
      *
      * @private
-     * @param firstRun
      */
 
   }, {
     key: 'onAfterSourceLoadData',
-    value: function onAfterSourceLoadData(firstRun) {
+    value: function onAfterSourceLoadData() {
       var _this5 = this;
 
-      this.asyncCall(function (firstRun) {
+      this.asyncCall(function () {
         _this5.chartPlugin.removeAllRangeBars();
         _this5.updateFromSource();
       });
@@ -73843,13 +73909,11 @@ var GanttChartDataFeed = function () {
      * afterColumnSort hook callback for the source Handsontable instance.
      *
      * @private
-     * @param {Number} column Sorted column.
-     * @param order
      */
 
   }, {
     key: 'onAfterColumnSort',
-    value: function onAfterColumnSort(column, order) {
+    value: function onAfterColumnSort() {
       var _this6 = this;
 
       this.asyncCall(function () {
@@ -74030,7 +74094,8 @@ var HeaderTooltips = function (_BasePlugin) {
       var headerLevels = this.hot.view.wt.getSetting('columnHeaders').length;
       var mainHeaders = this.hot.view.wt.wtTable.THEAD;
       var topHeaders = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
-      var topLeftCornerHeaders = this.hot.view.wt.wtOverlays.topLeftCornerOverlay ? hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.THEAD : null;
+      var topLeftCornerOverlay = this.hot.view.wt.wtOverlays.topLeftCornerOverlay;
+      var topLeftCornerHeaders = topLeftCornerOverlay ? topLeftCornerOverlay.clone.wtTable.THEAD : null;
 
       (0, _number.rangeEach)(0, headerLevels - 1, function (i) {
         var masterLevel = mainHeaders.childNodes[i];
@@ -74249,8 +74314,8 @@ var NestedHeaders = function (_BasePlugin) {
       this.addHook('afterInit', function () {
         return _this3.onAfterInit();
       });
-      this.addHook('afterOnCellMouseDown', function (event, coords, TD) {
-        return _this3.onAfterOnCellMouseDown(event, coords, TD);
+      this.addHook('afterOnCellMouseDown', function (event, coords) {
+        return _this3.onAfterOnCellMouseDown(event, coords);
       });
       this.addHook('beforeOnCellMouseOver', function (event, coords, TD, blockCalculations) {
         return _this3.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations);
@@ -74384,7 +74449,7 @@ var NestedHeaders = function (_BasePlugin) {
             if (childHeaders.length > 0) {
               var childColspanSum = 0;
 
-              (0, _array.arrayEach)(childHeaders, function (col, i) {
+              (0, _array.arrayEach)(childHeaders, function (col) {
                 childColspanSum += _this5.getColspan(row + 1, col);
               });
 
@@ -74416,8 +74481,8 @@ var NestedHeaders = function (_BasePlugin) {
         }
       }
 
-      (0, _object.objectEach)(this.settings, function (levelValue, level) {
-        (0, _object.objectEach)(levelValue, function (val, col, levelValue) {
+      (0, _object.objectEach)(this.settings, function (levelValues, level) {
+        (0, _object.objectEach)(levelValues, function (val, col, levelValue) {
           checkIfExists(_this6.colspanArray, level);
 
           if (levelValue[col].colspan === void 0) {
@@ -74454,7 +74519,7 @@ var NestedHeaders = function (_BasePlugin) {
     value: function fillColspanArrayWithDummies(colspan, level) {
       var _this7 = this;
 
-      (0, _number.rangeEach)(0, colspan - 2, function (i) {
+      (0, _number.rangeEach)(0, colspan - 2, function () {
         _this7.colspanArray[level].push({
           label: '',
           colspan: 1,
@@ -74595,7 +74660,7 @@ var NestedHeaders = function (_BasePlugin) {
           break;
         }
 
-        parentCol--;
+        parentCol -= 1;
       } while (column >= 0);
 
       return parentCol;
@@ -74674,8 +74739,6 @@ var NestedHeaders = function (_BasePlugin) {
       if (selection === void 0) {
         return;
       }
-      var highlightHeaderClassName = 'ht__highlight';
-      var activeHeaderClassName = 'ht__active_highlight';
 
       var wtOverlays = this.hot.view.wt.wtOverlays;
       var selectionByHeader = this.hot.selection.isSelectedByColumnHeader();
@@ -74703,7 +74766,7 @@ var NestedHeaders = function (_BasePlugin) {
           var colspanLen = _this9.getColspan(level - _this9.columnHeaderLevelCount, visibleColumnIndex);
           var isInSelection = visibleColumnIndex >= from && visibleColumnIndex + colspanLen - 1 <= to;
 
-          (0, _array.arrayEach)(listTH, function (TH, index, array) {
+          (0, _array.arrayEach)(listTH, function (TH) {
             if (TH === void 0) {
               return false;
             }
@@ -74766,12 +74829,11 @@ var NestedHeaders = function (_BasePlugin) {
      * @private
      * @param {MouseEvent} event Mouse event.
      * @param {Object} coords Clicked cell coords.
-     * @param {HTMLElement} TD
      */
 
   }, {
     key: 'onAfterOnCellMouseDown',
-    value: function onAfterOnCellMouseDown(event, coords, TD) {
+    value: function onAfterOnCellMouseDown(event, coords) {
       if (coords.row < 0) {
         var colspan = this.getColspan(coords.row, coords.col);
         var lastColIndex = coords.col + colspan - 1;
@@ -75367,11 +75429,11 @@ var NestedRows = function (_BasePlugin) {
       fromParent = this.dataManager.getRowParent(translatedStartIndexes[0]);
       toParent = this.dataManager.getRowParent(translatedTargetIndex);
 
-      if (toParent == null) {
+      if (toParent === null || toParent === void 0) {
         toParent = this.dataManager.getRowParent(translatedTargetIndex - 1);
       }
 
-      if (toParent == null) {
+      if (toParent === null || toParent === void 0) {
         toParent = this.dataManager.getDataObject(translatedTargetIndex - 1);
         priv.movedToFirstChild = true;
       }
@@ -75399,7 +75461,7 @@ var NestedRows = function (_BasePlugin) {
         translatedStartIndexes.reverse();
 
         if (priv.movedToFirstChild !== true) {
-          translatedTargetIndex--;
+          translatedTargetIndex -= 1;
         }
       }
 
@@ -75468,7 +75530,7 @@ var NestedRows = function (_BasePlugin) {
         }
       } else if (priv.movedToCollapsed) {
         var parentObject = this.dataManager.getRowParent(translatedTargetIndex - 1);
-        if (parentObject == null) {
+        if (parentObject === null || parentObject === void 0) {
           parentObject = this.dataManager.getDataObject(translatedTargetIndex - 1);
         }
         var parentIndex = this.dataManager.getRowIndex(parentObject);
@@ -75555,13 +75617,12 @@ var NestedRows = function (_BasePlugin) {
      * @private
      * @param {Number} index
      * @param {Number} amount
-     * @param {Array} logicRows
      * @returns {Boolean}
      */
 
   }, {
     key: 'onBeforeDataFilter',
-    value: function onBeforeDataFilter(index, amount, logicRows) {
+    value: function onBeforeDataFilter(index, amount) {
       var realLogicRows = [];
       var startIndex = this.dataManager.translateTrimmedRow(index);
       var priv = privatePool.get(this);
@@ -75695,7 +75756,7 @@ var NestedRows = function (_BasePlugin) {
         });
 
         if (isChild) {
-          childrenCount--;
+          childrenCount -= 1;
         }
       });
 
@@ -75706,13 +75767,11 @@ var NestedRows = function (_BasePlugin) {
      * `beforeAddChild` hook callback.
      *
      * @private
-     * @param {Object} parent Parent element.
-     * @param {Object} element New child element.
      */
 
   }, {
     key: 'onBeforeAddChild',
-    value: function onBeforeAddChild(parent, element) {
+    value: function onBeforeAddChild() {
       this.collapsingUI.collapsedRowsStash.stash();
     }
 
@@ -75737,13 +75796,11 @@ var NestedRows = function (_BasePlugin) {
      * `beforeDetachChild` hook callback.
      *
      * @private
-     * @param {Object} parent Parent element.
-     * @param {Object} element New child element.
      */
 
   }, {
     key: 'onBeforeDetachChild',
-    value: function onBeforeDetachChild(parent, element) {
+    value: function onBeforeDetachChild() {
       this.collapsingUI.collapsedRowsStash.stash();
     }
 
@@ -75848,7 +75905,7 @@ var _object = __webpack_require__(1);
 
 var _array = __webpack_require__(0);
 
-var _recordTranslator = __webpack_require__(55);
+var _recordTranslator = __webpack_require__(54);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -75946,7 +76003,7 @@ var DataManager = function () {
 
       if (!this.cache.levels[level]) {
         this.cache.levels[level] = [];
-        this.cache.levelCount++;
+        this.cache.levelCount += 1;
       }
       this.cache.levels[level].push(node);
       this.cache.rows.push(node);
@@ -75957,7 +76014,7 @@ var DataManager = function () {
       });
 
       if (this.hasChildren(node)) {
-        (0, _array.arrayEach)(node.__children, function (elem, i) {
+        (0, _array.arrayEach)(node.__children, function (elem) {
           _this2.cacheNode(elem, level + 1, node);
         });
       }
@@ -75972,7 +76029,7 @@ var DataManager = function () {
   }, {
     key: 'getDataObject',
     value: function getDataObject(row) {
-      return row == null ? null : this.cache.rows[row];
+      return row === null || row === void 0 ? null : this.cache.rows[row];
     }
 
     /**
@@ -75992,43 +76049,46 @@ var DataManager = function () {
       var _this3 = this;
 
       var rootLevel = false;
+      var readedNodesCount = readCount;
 
-      if (isNaN(readCount) && readCount.end) {
-        return readCount;
+      if (isNaN(readedNodesCount) && readedNodesCount.end) {
+        return readedNodesCount;
       }
 
-      if (!parent) {
-        parent = {
+      var parentObj = parent;
+
+      if (!parentObj) {
+        parentObj = {
           __children: this.data
         };
         rootLevel = true;
-        readCount--;
+        readedNodesCount -= 1;
       }
 
-      if (neededIndex != null && readCount === neededIndex) {
-        return { result: parent, end: true };
+      if (neededIndex !== null && neededIndex !== void 0 && readedNodesCount === neededIndex) {
+        return { result: parentObj, end: true };
       }
 
-      if (neededObject != null && parent === neededObject) {
-        return { result: readCount, end: true };
+      if (neededObject !== null && neededObject !== void 0 && parentObj === neededObject) {
+        return { result: readedNodesCount, end: true };
       }
 
-      readCount++;
+      readedNodesCount += 1;
 
-      if (parent.__children) {
-        (0, _array.arrayEach)(parent.__children, function (val, i) {
+      if (parentObj.__children) {
+        (0, _array.arrayEach)(parentObj.__children, function (val) {
 
-          _this3.parentReference.set(val, rootLevel ? null : parent);
+          _this3.parentReference.set(val, rootLevel ? null : parentObj);
 
-          readCount = _this3.readTreeNodes(val, readCount, neededIndex, neededObject);
+          readedNodesCount = _this3.readTreeNodes(val, readedNodesCount, neededIndex, neededObject);
 
-          if (isNaN(readCount) && readCount.end) {
+          if (isNaN(readedNodesCount) && readedNodesCount.end) {
             return false;
           }
         });
       }
 
-      return readCount;
+      return readedNodesCount;
     }
 
     /**
@@ -76089,7 +76149,7 @@ var DataManager = function () {
   }, {
     key: 'getRowIndex',
     value: function getRowIndex(rowObj) {
-      return rowObj == null ? null : this.cache.nodeInfo.get(rowObj).row;
+      return rowObj === null || rowObj === void 0 ? null : this.cache.nodeInfo.get(rowObj).row;
     }
 
     /**
@@ -76112,7 +76172,7 @@ var DataManager = function () {
 
       var parent = this.getRowParent(row);
 
-      if (parent == null) {
+      if (parent === null || parent === void 0) {
         return this.data.indexOf(rowObj);
       }
 
@@ -76146,17 +76206,18 @@ var DataManager = function () {
       var _this4 = this;
 
       var rowCount = 0;
+      var parentNode = parent;
 
-      if (!isNaN(parent)) {
-        parent = this.getDataObject(parent);
+      if (!isNaN(parentNode)) {
+        parentNode = this.getDataObject(parentNode);
       }
 
-      if (!parent || !parent.__children) {
+      if (!parentNode || !parentNode.__children) {
         return 0;
       }
 
-      (0, _array.arrayEach)(parent.__children, function (elem, i) {
-        rowCount++;
+      (0, _array.arrayEach)(parentNode.__children, function (elem) {
+        rowCount += 1;
         if (elem.__children) {
           rowCount += _this4.countChildren(elem);
         }
@@ -76234,7 +76295,7 @@ var DataManager = function () {
   }, {
     key: 'getRowObjectLevel',
     value: function getRowObjectLevel(rowObject) {
-      return rowObject == null ? null : this.cache.nodeInfo.get(rowObject).level;
+      return rowObject === null || rowObject === void 0 ? null : this.cache.nodeInfo.get(rowObject).level;
     }
 
     /**
@@ -76247,20 +76308,24 @@ var DataManager = function () {
   }, {
     key: 'hasChildren',
     value: function hasChildren(row) {
-      if (!isNaN(row)) {
-        row = this.getDataObject(row);
+      var rowObj = row;
+
+      if (!isNaN(rowObj)) {
+        rowObj = this.getDataObject(rowObj);
       }
 
-      return !!(row.__children && row.__children.length);
+      return !!(rowObj.__children && rowObj.__children.length);
     }
   }, {
     key: 'isParent',
     value: function isParent(row) {
-      if (!isNaN(row)) {
-        row = this.getDataObject(row);
+      var rowObj = row;
+
+      if (!isNaN(rowObj)) {
+        rowObj = this.getDataObject(rowObj);
       }
 
-      return !!(0, _object.hasOwnProperty)(row, '__children');
+      return !!(0, _object.hasOwnProperty)(rowObj, '__children');
     }
 
     /**
@@ -76273,7 +76338,8 @@ var DataManager = function () {
   }, {
     key: 'addChild',
     value: function addChild(parent, element) {
-      this.hot.runHooks('beforeAddChild', parent, element);
+      var childElement = element;
+      this.hot.runHooks('beforeAddChild', parent, childElement);
 
       var parentIndex = null;
       if (parent) {
@@ -76290,18 +76356,18 @@ var DataManager = function () {
         functionalParent.__children = [];
       }
 
-      if (!element) {
-        element = this.mockNode();
+      if (!childElement) {
+        childElement = this.mockNode();
       }
 
-      functionalParent.__children.push(element);
+      functionalParent.__children.push(childElement);
 
       this.rewriteCache();
 
-      var newRowIndex = this.getRowIndex(element);
+      var newRowIndex = this.getRowIndex(childElement);
 
       this.hot.runHooks('afterCreateRow', newRowIndex, 1);
-      this.hot.runHooks('afterAddChild', parent, element);
+      this.hot.runHooks('afterAddChild', parent, childElement);
     }
 
     /**
@@ -76316,7 +76382,8 @@ var DataManager = function () {
   }, {
     key: 'addChildAtIndex',
     value: function addChildAtIndex(parent, index, element, globalIndex) {
-      this.hot.runHooks('beforeAddChild', parent, element, index);
+      var childElement = element;
+      this.hot.runHooks('beforeAddChild', parent, childElement, index);
       this.hot.runHooks('beforeCreateRow', globalIndex + 1, 1);
       var functionalParent = parent;
 
@@ -76328,16 +76395,16 @@ var DataManager = function () {
         functionalParent.__children = [];
       }
 
-      if (!element) {
-        element = this.mockNode();
+      if (!childElement) {
+        childElement = this.mockNode();
       }
 
-      functionalParent.__children.splice(index, null, element);
+      functionalParent.__children.splice(index, null, childElement);
 
       this.rewriteCache();
 
       this.hot.runHooks('afterCreateRow', globalIndex + 1, 1);
-      this.hot.runHooks('afterAddChild', parent, element, index);
+      this.hot.runHooks('afterAddChild', parent, childElement, index);
     }
 
     /**
@@ -76409,7 +76476,7 @@ var DataManager = function () {
 
       this.hot.runHooks('beforeDetachChild', parent, element);
 
-      if (indexWithinParent != null) {
+      if (indexWithinParent !== null && indexWithinParent !== void 0) {
         this.hot.runHooks('beforeRemoveRow', childRowIndex, 1, [childRowIndex], this.plugin.pluginName);
 
         parent.__children.splice(indexWithinParent, 1);
@@ -76458,11 +76525,11 @@ var DataManager = function () {
 
       var elementsToRemove = [];
 
-      (0, _array.arrayEach)(logicRows, function (elem, ind) {
+      (0, _array.arrayEach)(logicRows, function (elem) {
         elementsToRemove.push(_this6.getDataObject(elem));
       });
 
-      (0, _array.arrayEach)(elementsToRemove, function (elem, ind) {
+      (0, _array.arrayEach)(elementsToRemove, function (elem) {
         var indexWithinParent = _this6.getRowIndexWithinParent(elem);
         var tempParent = _this6.getRowParent(elem);
 
@@ -76488,13 +76555,13 @@ var DataManager = function () {
   }, {
     key: 'spliceData',
     value: function spliceData(index, amount, element) {
-      index = this.translateTrimmedRow(index);
+      var elementIndex = this.translateTrimmedRow(index);
 
-      if (index == null) {
+      if (elementIndex === null || elementIndex === void 0) {
         return;
       }
 
-      var previousElement = this.getDataObject(index - 1);
+      var previousElement = this.getDataObject(elementIndex - 1);
       var newRowParent = null;
       var indexWithinParent = null;
 
@@ -76502,8 +76569,8 @@ var DataManager = function () {
         newRowParent = previousElement;
         indexWithinParent = 0;
       } else {
-        newRowParent = this.getRowParent(index);
-        indexWithinParent = this.getRowIndexWithinParent(index);
+        newRowParent = this.getRowParent(elementIndex);
+        indexWithinParent = this.getRowIndexWithinParent(elementIndex);
       }
 
       if (newRowParent) {
@@ -76538,11 +76605,11 @@ var DataManager = function () {
 
       var toParent = this.getRowParent(toIndex);
 
-      if (toParent == null) {
+      if (toParent === null || toParent === void 0) {
         toParent = this.getRowParent(toIndex - 1);
       }
 
-      if (toParent == null) {
+      if (toParent === null || toParent === void 0) {
         toParent = this.getDataObject(toIndex - 1);
       }
 
@@ -76666,10 +76733,10 @@ var CollapsingUI = function (_BaseUI) {
         // Workaround for wrong indexes being set in the trimRows plugin
         _this.expandMultipleChildren(_this.lastCollapsedRows, false);
       },
-      shiftStash: function shiftStash(elementIndex) {
+      shiftStash: function shiftStash(index) {
         var delta = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
 
-        elementIndex = _this.translateTrimmedRow(elementIndex);
+        var elementIndex = _this.translateTrimmedRow(index);
         (0, _array.arrayEach)(_this.lastCollapsedRows, function (elem, i) {
           if (elem > elementIndex - 1) {
             _this.lastCollapsedRows[i] = elem + delta;
@@ -76724,7 +76791,7 @@ var CollapsingUI = function (_BaseUI) {
       }
 
       if (this.dataManager.hasChildren(rowObject)) {
-        (0, _array.arrayEach)(rowObject.__children, function (elem, i) {
+        (0, _array.arrayEach)(rowObject.__children, function (elem) {
           rowsToCollapse.push(_this2.dataManager.getRowIndex(elem));
         });
       }
@@ -76764,7 +76831,7 @@ var CollapsingUI = function (_BaseUI) {
 
       var rowsToTrim = [];
 
-      (0, _array.arrayEach)(rows, function (elem, i) {
+      (0, _array.arrayEach)(rows, function (elem) {
         rowsToTrim = rowsToTrim.concat(_this3.collapseChildren(elem, false, false));
       });
 
@@ -76811,7 +76878,7 @@ var CollapsingUI = function (_BaseUI) {
 
       var rowsToTrim = [];
 
-      (0, _array.arrayEach)(rowIndexes, function (elem, i) {
+      (0, _array.arrayEach)(rowIndexes, function (elem) {
         rowsToTrim.push(elem);
         if (recursive) {
           _this4.collapseChildRows(elem, rowsToTrim);
@@ -76830,7 +76897,7 @@ var CollapsingUI = function (_BaseUI) {
      *
      * @param {Number} parentIndex Index of the parent node.
      * @param {Array} [rowsToTrim = []] Array of rows to trim. Defaults to an empty array.
-     * @param {Boolean} [recursive = true] `true` if the collapsing process should be recursive.
+     * @param {Boolean} [recursive] `true` if the collapsing process should be recursive.
      * @param {Boolean} [doTrimming = false] `true` if rows should be trimmed.
      */
 
@@ -76841,13 +76908,13 @@ var CollapsingUI = function (_BaseUI) {
 
       var _this5 = this;
 
-      var recursive = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+      var recursive = arguments[2];
       var doTrimming = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
       if (this.dataManager.hasChildren(parentIndex)) {
         var parentObject = this.dataManager.getDataObject(parentIndex);
 
-        (0, _array.arrayEach)(parentObject.__children, function (elem, i) {
+        (0, _array.arrayEach)(parentObject.__children, function (elem) {
           var elemIndex = _this5.dataManager.getRowIndex(elem);
           rowsToTrim.push(elemIndex);
           _this5.collapseChildRows(elemIndex, rowsToTrim);
@@ -76893,7 +76960,7 @@ var CollapsingUI = function (_BaseUI) {
 
       var rowsToUntrim = [];
 
-      (0, _array.arrayEach)(rowIndexes, function (elem, i) {
+      (0, _array.arrayEach)(rowIndexes, function (elem) {
         rowsToUntrim.push(elem);
         if (recursive) {
           _this6.expandChildRows(elem, rowsToUntrim);
@@ -76912,7 +76979,7 @@ var CollapsingUI = function (_BaseUI) {
      *
      * @param {Number} parentIndex Index of the parent row.
      * @param {Array} [rowsToUntrim = []] Array of the rows to be untrimmed.
-     * @param {Boolean} [recursive = true] `true` if it should expand the rows' children recursively.
+     * @param {Boolean} [recursive] `true` if it should expand the rows' children recursively.
      * @param {Boolean} [doTrimming = false] `true` if rows should be untrimmed.
      */
 
@@ -76923,13 +76990,13 @@ var CollapsingUI = function (_BaseUI) {
 
       var _this7 = this;
 
-      var recursive = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+      var recursive = arguments[2];
       var doTrimming = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
       if (this.dataManager.hasChildren(parentIndex)) {
         var parentObject = this.dataManager.getDataObject(parentIndex);
 
-        (0, _array.arrayEach)(parentObject.__children, function (elem, i) {
+        (0, _array.arrayEach)(parentObject.__children, function (elem) {
           if (!_this7.isAnyParentCollapsed(elem)) {
             var elemIndex = _this7.dataManager.getRowIndex(elem);
             rowsToUntrim.push(elemIndex);
@@ -76975,7 +77042,7 @@ var CollapsingUI = function (_BaseUI) {
       this.collapsedRows.splice(this.collapsedRows.indexOf(rowIndex), 1);
 
       if (this.dataManager.hasChildren(rowObject)) {
-        (0, _array.arrayEach)(rowObject.__children, function (elem, i) {
+        (0, _array.arrayEach)(rowObject.__children, function (elem) {
           var childIndex = _this8.dataManager.getRowIndex(elem);
 
           rowsToExpand.push(childIndex);
@@ -77013,7 +77080,7 @@ var CollapsingUI = function (_BaseUI) {
 
       var rowsToUntrim = [];
 
-      (0, _array.arrayEach)(rows, function (elem, i) {
+      (0, _array.arrayEach)(rows, function (elem) {
         rowsToUntrim = rowsToUntrim.concat(_this9.expandChildren(elem, false, false));
       });
 
@@ -77038,7 +77105,7 @@ var CollapsingUI = function (_BaseUI) {
       var sourceData = this.hot.getSourceData();
       var parentsToCollapse = [];
 
-      (0, _array.arrayEach)(sourceData, function (elem, i) {
+      (0, _array.arrayEach)(sourceData, function (elem) {
         if (_this10.dataManager.hasChildren(elem)) {
           parentsToCollapse.push(elem);
         }
@@ -77061,7 +77128,7 @@ var CollapsingUI = function (_BaseUI) {
       var sourceData = this.hot.getSourceData();
       var parentsToExpand = [];
 
-      (0, _array.arrayEach)(sourceData, function (elem, i) {
+      (0, _array.arrayEach)(sourceData, function (elem) {
         if (_this11.dataManager.hasChildren(elem)) {
           parentsToExpand.push(elem);
         }
@@ -77094,7 +77161,7 @@ var CollapsingUI = function (_BaseUI) {
       }
 
       if (this.dataManager.hasChildren(rowObj)) {
-        (0, _array.arrayEach)(rowObj.__children, function (elem, i) {
+        (0, _array.arrayEach)(rowObj.__children, function (elem) {
           var rowIndex = _this12.dataManager.getRowIndex(elem);
 
           if (!_this12.trimRowsPlugin.isTrimmed(rowIndex)) {
@@ -77138,12 +77205,11 @@ var CollapsingUI = function (_BaseUI) {
      * @private
      * @param {MouseEvent} event `mousedown` event
      * @param {Object} coords Coordinates of the clicked cell/header.
-     * @param {HTMLElement} TD Clicked cell/header.
      */
 
   }, {
     key: 'toggleState',
-    value: function toggleState(event, coords, TD) {
+    value: function toggleState(event, coords) {
       if (coords.col >= 0) {
         return;
       }
@@ -77300,9 +77366,6 @@ var ContextMenuUI = function (_BaseUI) {
         },
 
         callback: function callback() {
-          var translatedRowIndex = _this2.dataManager.translateTrimmedRow(_this2.hot.getSelectedLast()[0]);
-          var element = _this2.dataManager.getDataObject(translatedRowIndex);
-
           _this2.dataManager.detachFromParent(_this2.hot.getSelectedLast());
         },
         disabled: function disabled() {
@@ -77326,9 +77389,7 @@ var ContextMenuUI = function (_BaseUI) {
         }
       });
 
-      defaultOptions = this.modifyRowInsertingOptions(defaultOptions);
-
-      return defaultOptions;
+      return this.modifyRowInsertingOptions(defaultOptions);
     }
 
     /**
@@ -77345,9 +77406,10 @@ var ContextMenuUI = function (_BaseUI) {
       var priv = privatePool.get(this);
 
       (0, _number.rangeEach)(0, defaultOptions.items.length - 1, function (i) {
+        var option = priv[defaultOptions.items[i].key];
 
-        if (priv[defaultOptions.items[i].key] != null) {
-          defaultOptions.items[i].callback = priv[defaultOptions.items[i].key];
+        if (option !== null && option !== void 0) {
+          defaultOptions.items[i].callback = option;
         }
       });
 
@@ -77393,7 +77455,7 @@ var _array = __webpack_require__(0);
 
 var _plugins = __webpack_require__(5);
 
-var _predefinedItems = __webpack_require__(44);
+var _predefinedItems = __webpack_require__(43);
 
 var _hideColumn = __webpack_require__(463);
 
@@ -77612,11 +77674,11 @@ var HiddenColumns = function (_BasePlugin) {
       var _this3 = this;
 
       (0, _array.arrayEach)(columns, function (column) {
-        column = parseInt(column, 10);
-        column = _this3.getLogicalColumnIndex(column);
+        var columnIndex = parseInt(column, 10);
+        columnIndex = _this3.getLogicalColumnIndex(columnIndex);
 
-        if (_this3.isHidden(column, true)) {
-          _this3.hiddenColumns.splice(_this3.hiddenColumns.indexOf(column), 1);
+        if (_this3.isHidden(columnIndex, true)) {
+          _this3.hiddenColumns.splice(_this3.hiddenColumns.indexOf(columnIndex), 1);
         }
       });
     }
@@ -77649,11 +77711,11 @@ var HiddenColumns = function (_BasePlugin) {
       var _this4 = this;
 
       (0, _array.arrayEach)(columns, function (column) {
-        column = parseInt(column, 10);
-        column = _this4.getLogicalColumnIndex(column);
+        var columnIndex = parseInt(column, 10);
+        columnIndex = _this4.getLogicalColumnIndex(columnIndex);
 
-        if (!_this4.isHidden(column, true)) {
-          _this4.hiddenColumns.push(column);
+        if (!_this4.isHidden(columnIndex, true)) {
+          _this4.hiddenColumns.push(columnIndex);
         }
       });
     }
@@ -77687,11 +77749,13 @@ var HiddenColumns = function (_BasePlugin) {
     value: function isHidden(column) {
       var isLogicIndex = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
+      var columnIndex = column;
+
       if (!isLogicIndex) {
-        column = this.getLogicalColumnIndex(column);
+        columnIndex = this.getLogicalColumnIndex(columnIndex);
       }
 
-      return this.hiddenColumns.indexOf(column) > -1;
+      return this.hiddenColumns.indexOf(columnIndex) > -1;
     }
 
     /**
@@ -77743,11 +77807,13 @@ var HiddenColumns = function (_BasePlugin) {
   }, {
     key: 'onBeforeStretchingColumnWidth',
     value: function onBeforeStretchingColumnWidth(width, column) {
+      var stretchedWidth = width;
+
       if (this.isHidden(column)) {
-        width = 0;
+        stretchedWidth = 0;
       }
 
-      return width;
+      return stretchedWidth;
     }
 
     /**
@@ -77785,13 +77851,13 @@ var HiddenColumns = function (_BasePlugin) {
   }, {
     key: 'onAfterGetCellMeta',
     value: function onAfterGetCellMeta(row, col, cellProperties) {
-      col = this.hot.runHooks('unmodifyCol', col);
+      var colIndex = this.hot.runHooks('unmodifyCol', col);
 
       if (this.settings.copyPasteEnabled === false && this.isHidden(col)) {
         cellProperties.skipColumnOnPaste = true;
       }
 
-      if (this.isHidden(col)) {
+      if (this.isHidden(colIndex)) {
         if (cellProperties.renderer !== hiddenRenderer) {
           cellProperties.baseRenderer = cellProperties.renderer;
         }
@@ -77818,7 +77884,7 @@ var HiddenColumns = function (_BasePlugin) {
             break;
           }
 
-          i--;
+          i -= 1;
         } while (i >= 0);
 
         if (firstSectionHidden && cellProperties.className.indexOf('firstVisibleColumn') === -1) {
@@ -77915,7 +77981,7 @@ var HiddenColumns = function (_BasePlugin) {
           firstSectionHidden = false;
           break;
         }
-        i--;
+        i -= 1;
       } while (i >= 0);
 
       if (firstSectionHidden) {
@@ -77954,13 +78020,15 @@ var HiddenColumns = function (_BasePlugin) {
       coords.col = 0;
 
       var getNextColumn = function getNextColumn(col) {
-        var logicalCol = _this6.getLogicalColumnIndex(col);
+        var visualColumn = col;
+        var logicalCol = _this6.getLogicalColumnIndex(visualColumn);
 
         if (_this6.isHidden(logicalCol, true)) {
-          col = getNextColumn(++col);
+          visualColumn += 1;
+          visualColumn = getNextColumn(visualColumn);
         }
 
-        return col;
+        return visualColumn;
       };
 
       coords.col = getNextColumn(coords.col);
@@ -77981,27 +78049,30 @@ var HiddenColumns = function (_BasePlugin) {
       var columnCount = this.hot.countCols();
 
       var getNextColumn = function getNextColumn(col) {
-        var logicalCol = _this7.getLogicalColumnIndex(col);
+        var visualColumn = col;
+        var logicalCol = _this7.getLogicalColumnIndex(visualColumn);
 
         if (_this7.isHidden(logicalCol, true)) {
-          if (_this7.lastSelectedColumn > col || coords.col === columnCount - 1) {
-            if (col > 0) {
-              col = getNextColumn(--col);
+          if (_this7.lastSelectedColumn > visualColumn || coords.col === columnCount - 1) {
+            if (visualColumn > 0) {
+              visualColumn -= 1;
+              visualColumn = getNextColumn(visualColumn);
             } else {
               (0, _number.rangeEach)(0, _this7.lastSelectedColumn, function (i) {
                 if (!_this7.isHidden(i)) {
-                  col = i;
+                  visualColumn = i;
 
                   return false;
                 }
               });
             }
           } else {
-            col = getNextColumn(++col);
+            visualColumn += 1;
+            visualColumn = getNextColumn(visualColumn);
           }
         }
 
-        return col;
+        return visualColumn;
       };
 
       coords.col = getNextColumn(coords.col);
@@ -78035,10 +78106,12 @@ var HiddenColumns = function (_BasePlugin) {
       var tempHidden = [];
 
       (0, _array.arrayEach)(this.hiddenColumns, function (col) {
-        if (col >= index) {
-          col += amount;
+        var visualColumn = col;
+
+        if (visualColumn >= index) {
+          visualColumn += amount;
         }
-        tempHidden.push(col);
+        tempHidden.push(visualColumn);
       });
       this.hiddenColumns = tempHidden;
     }
@@ -78055,10 +78128,12 @@ var HiddenColumns = function (_BasePlugin) {
       var tempHidden = [];
 
       (0, _array.arrayEach)(this.hiddenColumns, function (col) {
-        if (col >= index) {
-          col -= amount;
+        var visualColumn = col;
+
+        if (visualColumn >= index) {
+          visualColumn -= amount;
         }
-        tempHidden.push(col);
+        tempHidden.push(visualColumn);
       });
       this.hiddenColumns = tempHidden;
     }
@@ -78569,11 +78644,11 @@ var HiddenRows = function (_BasePlugin) {
       var _this3 = this;
 
       (0, _array.arrayEach)(rows, function (row) {
-        row = parseInt(row, 10);
-        row = _this3.getLogicalRowIndex(row);
+        var visualRow = parseInt(row, 10);
+        visualRow = _this3.getLogicalRowIndex(visualRow);
 
-        if (_this3.isHidden(row, true)) {
-          _this3.hiddenRows.splice(_this3.hiddenRows.indexOf(row), 1);
+        if (_this3.isHidden(visualRow, true)) {
+          _this3.hiddenRows.splice(_this3.hiddenRows.indexOf(visualRow), 1);
         }
       });
     }
@@ -78606,11 +78681,11 @@ var HiddenRows = function (_BasePlugin) {
       var _this4 = this;
 
       (0, _array.arrayEach)(rows, function (row) {
-        row = parseInt(row, 10);
-        row = _this4.getLogicalRowIndex(row);
+        var visualRow = parseInt(row, 10);
+        visualRow = _this4.getLogicalRowIndex(visualRow);
 
-        if (!_this4.isHidden(row, true)) {
-          _this4.hiddenRows.push(row);
+        if (!_this4.isHidden(visualRow, true)) {
+          _this4.hiddenRows.push(visualRow);
         }
       });
     }
@@ -78644,11 +78719,13 @@ var HiddenRows = function (_BasePlugin) {
     value: function isHidden(row) {
       var isLogicIndex = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
+      var logicalRow = row;
+
       if (!isLogicIndex) {
-        row = this.getLogicalRowIndex(row);
+        logicalRow = this.getLogicalRowIndex(logicalRow);
       }
 
-      return this.hiddenRows.indexOf(row) > -1;
+      return this.hiddenRows.indexOf(logicalRow) > -1;
     }
 
     /**
@@ -78697,17 +78774,17 @@ var HiddenRows = function (_BasePlugin) {
   }, {
     key: 'onAfterGetCellMeta',
     value: function onAfterGetCellMeta(row, col, cellProperties) {
-      row = this.hot.runHooks('unmodifyRow', row);
+      var visualRow = this.hot.runHooks('unmodifyRow', row);
 
-      if (this.settings.copyPasteEnabled === false && this.isHidden(row)) {
+      if (this.settings.copyPasteEnabled === false && this.isHidden(visualRow)) {
         cellProperties.skipRowOnPaste = true;
       } else {
         cellProperties.skipRowOnPaste = false;
       }
 
-      if (this.isHidden(row - 1)) {
+      if (this.isHidden(visualRow - 1)) {
         var firstSectionHidden = true;
-        var i = row - 1;
+        var i = visualRow - 1;
 
         cellProperties.className = cellProperties.className || '';
 
@@ -78720,7 +78797,7 @@ var HiddenRows = function (_BasePlugin) {
             firstSectionHidden = false;
             break;
           }
-          i--;
+          i -= 1;
         } while (i >= 0);
 
         if (firstSectionHidden && cellProperties.className.indexOf('firstVisibleRow') === -1) {
@@ -78776,7 +78853,7 @@ var HiddenRows = function (_BasePlugin) {
           firstSectionHidden = false;
           break;
         }
-        i--;
+        i -= 1;
       } while (i >= 0);
 
       if (firstSectionHidden) {
@@ -78873,22 +78950,23 @@ var HiddenRows = function (_BasePlugin) {
 
       var getNextRow = function getNextRow(row) {
         var direction = 0;
+        var visualRow = row;
 
         if (actualSelection) {
-          direction = row > actualSelection[0] ? 1 : -1;
+          direction = visualRow > actualSelection[0] ? 1 : -1;
 
           _this6.lastSelectedRow = actualSelection[0];
         }
 
-        if (lastPossibleIndex < row || row < 0) {
+        if (lastPossibleIndex < visualRow || visualRow < 0) {
           return _this6.lastSelectedRow;
         }
 
-        if (_this6.isHidden(row)) {
-          row = getNextRow(row + direction);
+        if (_this6.isHidden(visualRow)) {
+          visualRow = getNextRow(visualRow + direction);
         }
 
-        return row;
+        return visualRow;
       };
 
       coords.row = getNextRow(coords.row);
@@ -78913,12 +78991,14 @@ var HiddenRows = function (_BasePlugin) {
       coords.row = 0;
 
       var getNextRow = function getNextRow(row) {
+        var visualRow = row;
 
-        if (_this7.isHidden(row)) {
-          row = getNextRow(++row);
+        if (_this7.isHidden(visualRow)) {
+          visualRow += 1;
+          visualRow = getNextRow(visualRow);
         }
 
-        return row;
+        return visualRow;
       };
 
       coords.row = getNextRow(coords.row);
@@ -78939,25 +79019,29 @@ var HiddenRows = function (_BasePlugin) {
       var rowCount = this.hot.countRows();
 
       var getNextRow = function getNextRow(row) {
-        if (_this8.isHidden(row)) {
-          if (_this8.lastSelectedRow > row || coords.row === rowCount - 1) {
-            if (row > 0) {
-              row = getNextRow(--row);
+        var visualRow = row;
+
+        if (_this8.isHidden(visualRow)) {
+          if (_this8.lastSelectedRow > visualRow || coords.row === rowCount - 1) {
+            if (visualRow > 0) {
+              visualRow -= 1;
+              visualRow = getNextRow(visualRow);
             } else {
               (0, _number.rangeEach)(0, _this8.lastSelectedRow, function (i) {
                 if (!_this8.isHidden(i)) {
-                  row = i;
+                  visualRow = i;
 
                   return false;
                 }
               });
             }
           } else {
-            row = getNextRow(++row);
+            visualRow += 1;
+            visualRow = getNextRow(visualRow);
           }
         }
 
-        return row;
+        return visualRow;
       };
 
       coords.row = getNextRow(coords.row);
@@ -78992,11 +79076,13 @@ var HiddenRows = function (_BasePlugin) {
     value: function onAfterCreateRow(index, amount) {
       var tempHidden = [];
 
-      (0, _array.arrayEach)(this.hiddenRows, function (col) {
-        if (col >= index) {
-          col += amount;
+      (0, _array.arrayEach)(this.hiddenRows, function (row) {
+        var visualRow = row;
+
+        if (visualRow >= index) {
+          visualRow += amount;
         }
-        tempHidden.push(col);
+        tempHidden.push(visualRow);
       });
       this.hiddenRows = tempHidden;
     }
@@ -79014,11 +79100,13 @@ var HiddenRows = function (_BasePlugin) {
     value: function onAfterRemoveRow(index, amount) {
       var tempHidden = [];
 
-      (0, _array.arrayEach)(this.hiddenRows, function (col) {
-        if (col >= index) {
-          col -= amount;
+      (0, _array.arrayEach)(this.hiddenRows, function (row) {
+        var visualRow = row;
+
+        if (visualRow >= index) {
+          visualRow -= amount;
         }
-        tempHidden.push(col);
+        tempHidden.push(visualRow);
       });
       this.hiddenRows = tempHidden;
     }
@@ -79441,8 +79529,8 @@ var TrimRows = function (_BasePlugin) {
       this.addHook('beforeRemoveRow', function (index, amount) {
         return _this2.onBeforeRemoveRow(index, amount);
       });
-      this.addHook('afterRemoveRow', function (index, amount) {
-        return _this2.onAfterRemoveRow(index, amount);
+      this.addHook('afterRemoveRow', function () {
+        return _this2.onAfterRemoveRow();
       });
       this.addHook('afterLoadData', function (firstRun) {
         return _this2.onAfterLoadData(firstRun);
@@ -79495,10 +79583,10 @@ var TrimRows = function (_BasePlugin) {
       var _this3 = this;
 
       (0, _array.arrayEach)(rows, function (row) {
-        row = parseInt(row, 10);
+        var physicalRow = parseInt(row, 10);
 
-        if (!_this3.isTrimmed(row)) {
-          _this3.trimmedRows.push(row);
+        if (!_this3.isTrimmed(physicalRow)) {
+          _this3.trimmedRows.push(physicalRow);
         }
       });
 
@@ -79537,10 +79625,10 @@ var TrimRows = function (_BasePlugin) {
       var _this4 = this;
 
       (0, _array.arrayEach)(rows, function (row) {
-        row = parseInt(row, 10);
+        var physicalRow = parseInt(row, 10);
 
-        if (_this4.isTrimmed(row)) {
-          _this4.trimmedRows.splice(_this4.trimmedRows.indexOf(row), 1);
+        if (_this4.isTrimmed(physicalRow)) {
+          _this4.trimmedRows.splice(_this4.trimmedRows.indexOf(physicalRow), 1);
         }
       });
 
@@ -79599,11 +79687,13 @@ var TrimRows = function (_BasePlugin) {
   }, {
     key: 'onModifyRow',
     value: function onModifyRow(row, source) {
+      var physicalRow = row;
+
       if (source !== this.pluginName) {
-        row = this.rowsMapper.getValueByIndex(row);
+        physicalRow = this.rowsMapper.getValueByIndex(physicalRow);
       }
 
-      return row;
+      return physicalRow;
     }
 
     /**
@@ -79618,11 +79708,13 @@ var TrimRows = function (_BasePlugin) {
   }, {
     key: 'onUnmodifyRow',
     value: function onUnmodifyRow(row, source) {
+      var visualRow = row;
+
       if (source !== this.pluginName) {
-        row = this.rowsMapper.getIndexByValue(row);
+        visualRow = this.rowsMapper.getIndexByValue(visualRow);
       }
 
-      return row;
+      return visualRow;
     }
 
     /**
@@ -79683,13 +79775,11 @@ var TrimRows = function (_BasePlugin) {
      * On after remove row listener.
      *
      * @private
-     * @param {Number} index Visual row index.
-     * @param {Number} amount Defines how many rows removed.
      */
 
   }, {
     key: 'onAfterRemoveRow',
-    value: function onAfterRemoveRow(index, amount) {
+    value: function onAfterRemoveRow() {
       this.rowsMapper.unshiftItems(this.removedRows);
     }
 
@@ -79738,7 +79828,7 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _arrayMapper = __webpack_require__(51);
+var _arrayMapper = __webpack_require__(55);
 
 var _arrayMapper2 = _interopRequireDefault(_arrayMapper);
 
@@ -79786,7 +79876,7 @@ var RowsMapper = function () {
 
       (0, _number.rangeEach)(originLength - 1, function (itemIndex) {
         if (_this.trimRows.isTrimmed(itemIndex)) {
-          rowOffset++;
+          rowOffset += 1;
         } else {
           _this._arrayMap[itemIndex - rowOffset] = itemIndex;
         }
@@ -79968,14 +80058,15 @@ var BottomOverlay = function (_Overlay) {
   }, {
     key: 'sumCellSizes',
     value: function sumCellSizes(from, to) {
+      var row = from;
       var sum = 0;
       var defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
 
-      while (from < to) {
-        var height = this.wot.wtTable.getRowHeight(from);
+      while (row < to) {
+        var height = this.wot.wtTable.getRowHeight(row);
 
         sum += height === void 0 ? defaultRowHeight : height;
-        from++;
+        row += 1;
       }
 
       return sum;
@@ -80015,7 +80106,6 @@ var BottomOverlay = function (_Overlay) {
       var scrollbarWidth = masterHolder.clientWidth === masterHolder.offsetWidth ? 0 : (0, _element.getScrollbarWidth)();
       var overlayRoot = this.clone.wtTable.holder.parentNode;
       var overlayRootStyle = overlayRoot.style;
-      var tableHeight = void 0;
 
       if (this.trimmingContainer === window) {
         overlayRootStyle.width = '';
@@ -80025,7 +80115,7 @@ var BottomOverlay = function (_Overlay) {
 
       this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
-      tableHeight = (0, _element.outerHeight)(this.clone.wtTable.TABLE);
+      var tableHeight = (0, _element.outerHeight)(this.clone.wtTable.TABLE);
       overlayRootStyle.height = (tableHeight === 0 ? tableHeight : tableHeight) + 'px';
     }
 
