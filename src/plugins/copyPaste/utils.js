@@ -2,6 +2,9 @@ export function arrayToTable(input) {
   const inputLen = input.length;
   const result = ['<table>'];
 
+  const tempElement = document.createElement('div');
+  document.documentElement.appendChild(tempElement);
+
   for (let row = 0; row < inputLen; row += 1) {
     const rowData = input[row];
     const columnsLen = rowData.length;
@@ -12,10 +15,9 @@ export function arrayToTable(input) {
     }
 
     for (let column = 0; column < columnsLen; column += 1) {
-      const tempElement = document.createElement('div');
       tempElement.innerHTML = `${rowData[column]}`;
 
-      columnsResult.push(`<td>${rowData[column].replace(/\n/, '<br>')}</td>`);
+      columnsResult.push(`<td>${tempElement.innerHTML}</td>`);
     }
 
     result.push('<tr>', ...columnsResult, '</tr>');
@@ -24,6 +26,8 @@ export function arrayToTable(input) {
       result.push('</tbody>');
     }
   }
+
+  document.documentElement.removeChild(tempElement);
 
   result.push('</table>');
 
@@ -46,7 +50,7 @@ function htmlTableToArray(table) {
 
     for (let column = 0; column < cellsLen; column += 1) {
       const cell = cells[column];
-      const cellText = cell.textContent.replace(/(<br)(\W)?(>)\n/g, '\n');
+      const cellText = cell.innerHTML;
       newRow.push(cellText);
     }
 
@@ -62,7 +66,7 @@ export function tableToArray(element) {
 
   if (typeof checkElement === 'string') {
     const tempElem = document.createElement('div');
-    tempElem.innerHTML = checkElement;
+    tempElem.innerHTML = checkElement.replace(/\n/g, '');
 
     checkElement = tempElem.querySelector('table');
   }
