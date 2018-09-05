@@ -53,6 +53,53 @@ describe('TextEditor', () => {
     expect(isEditorVisible()).toEqual(false);
   });
 
+  it('should create editor holder after cell selection', () => {
+    handsontable({
+      editor: 'text',
+    });
+
+    const container = spec().$container;
+
+    expect(container.find('.handsontableInputHolder').length).toBe(0);
+
+    selectCell(0, 0);
+
+    expect(container.find('.handsontableInputHolder').length).toBe(1);
+  });
+
+  it('should prepare editor with proper styles after selection', () => {
+    handsontable({
+      editor: 'text',
+    });
+
+    selectCell(0, 0);
+
+    const { left, position, top, zIndex } = spec().$container.find('.handsontableInputHolder').css(['left', 'position', 'top', 'zIndex']);
+
+    expect(left).toBe('-9999px');
+    expect(position).toBe('fixed');
+    expect(top).toBe('-9999px');
+    expect(zIndex).toBe('-1');
+  });
+
+  it('should change editor\'s CSS properties during switching to being visible', () => {
+    handsontable({
+      editor: 'text',
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    const cell = getCell(0, 0);
+    const [cellOffsetTop, cellOffsetLeft] = [cell.offsetTop, cell.offsetLeft];
+    const { left, position, top, zIndex } = spec().$container.find('.handsontableInputHolder').css(['left', 'position', 'top', 'zIndex']);
+
+    expect(parseInt(left, 10)).toBeAroundValue(cellOffsetLeft);
+    expect(position).toBe('absolute');
+    expect(parseInt(top, 10)).toBeAroundValue(cellOffsetTop);
+    expect(zIndex).not.toBe('-1');
+  });
+
   it('should render string in textarea', () => {
     handsontable();
     setDataAtCell(2, 2, 'string');

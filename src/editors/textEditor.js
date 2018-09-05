@@ -73,10 +73,12 @@ TextEditor.prototype.hideEditableElement = function() {
   this.textareaParentStyle.top = '-9999px';
   this.textareaParentStyle.left = '-9999px';
   this.textareaParentStyle.zIndex = '-1';
+  this.textareaParentStyle.position = 'fixed';
 };
 
 TextEditor.prototype.showEditableElement = function() {
   this.textareaParentStyle.zIndex = this.holderZIndex >= 0 ? this.holderZIndex : '';
+  this.textareaParentStyle.position = '';
 };
 
 TextEditor.prototype.getValue = function() {
