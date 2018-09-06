@@ -315,7 +315,7 @@ describe('Core.selectCell', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectCell(1, 1);
+    const wasSelected = selectCell(1, 1);
 
     expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     expect(wasSelected).toBe(true);
@@ -326,7 +326,7 @@ describe('Core.selectCell', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectCell(1, 'prop1');
+    const wasSelected = selectCell(1, 'prop1');
 
     expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     expect(wasSelected).toBe(true);
@@ -337,7 +337,7 @@ describe('Core.selectCell', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectCell(0, 0, 1);
+    const wasSelected = selectCell(0, 0, 1);
 
     expect(getSelected()).toEqual([[0, 0, 1, 0]]);
     expect(wasSelected).toBe(true);
@@ -348,7 +348,7 @@ describe('Core.selectCell', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectCell(0, 'prop0', 1);
+    const wasSelected = selectCell(0, 'prop0', 1);
 
     expect(getSelected()).toEqual([[0, 0, 1, 0]]);
     expect(wasSelected).toBe(true);
@@ -359,7 +359,7 @@ describe('Core.selectCell', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectCell(1, 1, 2, 3);
+    const wasSelected = selectCell(1, 1, 2, 3);
 
     expect(getSelected()).toEqual([[1, 1, 2, 3]]);
     expect(wasSelected).toBe(true);
@@ -370,7 +370,7 @@ describe('Core.selectCell', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectCell(1, 'prop1', 2, 'prop3');
+    const wasSelected = selectCell(1, 'prop1', 2, 'prop3');
 
     expect(getSelected()).toEqual([[1, 1, 2, 3]]);
     expect(wasSelected).toBe(true);
@@ -381,7 +381,7 @@ describe('Core.selectCell', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectCell(2, 3, 1, 1);
+    const wasSelected = selectCell(2, 3, 1, 1);
 
     expect(getSelected()).toEqual([[2, 3, 1, 1]]);
     expect(wasSelected).toBe(true);
@@ -392,7 +392,7 @@ describe('Core.selectCell', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectCell(2, 'prop3', 1, 'prop1');
+    const wasSelected = selectCell(2, 'prop3', 1, 'prop1');
 
     expect(getSelected()).toEqual([[2, 3, 1, 1]]);
     expect(wasSelected).toBe(true);
@@ -403,7 +403,7 @@ describe('Core.selectCell', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectCell(2, 1, 1, 3);
+    const wasSelected = selectCell(2, 1, 1, 3);
 
     expect(getSelected()).toEqual([[2, 1, 1, 3]]);
     expect(wasSelected).toBe(true);
@@ -414,7 +414,7 @@ describe('Core.selectCell', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectCell(2, 'prop1', 1, 'prop3');
+    const wasSelected = selectCell(2, 'prop1', 1, 'prop3');
 
     expect(getSelected()).toEqual([[2, 1, 1, 3]]);
     expect(wasSelected).toBe(true);
@@ -425,7 +425,7 @@ describe('Core.selectCell', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectCell(1, 3, 2, 1);
+    const wasSelected = selectCell(1, 3, 2, 1);
 
     expect(getSelected()).toEqual([[1, 3, 2, 1]]);
     expect(wasSelected).toBe(true);
@@ -436,7 +436,7 @@ describe('Core.selectCell', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectCell(1, 'prop3', 2, 'prop1');
+    const wasSelected = selectCell(1, 'prop3', 2, 'prop1');
 
     expect(getSelected()).toEqual([[1, 3, 2, 1]]);
     expect(wasSelected).toBe(true);

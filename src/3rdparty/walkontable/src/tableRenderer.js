@@ -6,8 +6,8 @@ import {
   innerHeight,
   outerWidth
 } from './../../../helpers/dom/element';
-import {warn} from './../../../helpers/console';
-import {toSingleLine} from './../../../helpers/templateLiteralTag';
+import { warn } from './../../../helpers/console';
+import { toSingleLine } from './../../../helpers/templateLiteralTag';
 import Overlay from './overlay/_base';
 
 let performanceWarningAppeared = false;
@@ -62,10 +62,10 @@ class TableRenderer {
     this.columnHeaders = this.wot.getSetting('columnHeaders');
     this.columnHeaderCount = this.columnHeaders.length;
 
-    let columnsToRender = this.wtTable.getRenderedColumnsCount();
-    let rowsToRender = this.wtTable.getRenderedRowsCount();
-    let totalColumns = this.wot.getSetting('totalColumns');
-    let totalRows = this.wot.getSetting('totalRows');
+    const columnsToRender = this.wtTable.getRenderedColumnsCount();
+    const rowsToRender = this.wtTable.getRenderedRowsCount();
+    const totalColumns = this.wot.getSetting('totalColumns');
+    const totalRows = this.wot.getSetting('totalRows');
     let workspaceWidth;
     let adjusted = false;
 
@@ -112,8 +112,8 @@ class TableRenderer {
 
       this.wot.wtOverlays.applyToDOM();
 
-      let hiderWidth = outerWidth(this.wtTable.hider);
-      let tableWidth = outerWidth(this.wtTable.TABLE);
+      const hiderWidth = outerWidth(this.wtTable.hider);
+      const tableWidth = outerWidth(this.wtTable.TABLE);
 
       if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
         // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
@@ -124,26 +124,26 @@ class TableRenderer {
         // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
         this.wot.wtViewport.containerWidth = null;
 
-        let firstRendered = this.wtTable.getFirstRenderedColumn();
-        let lastRendered = this.wtTable.getLastRenderedColumn();
-        let defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
+        const firstRendered = this.wtTable.getFirstRenderedColumn();
+        const lastRendered = this.wtTable.getLastRenderedColumn();
+        const defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
         let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
 
         rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
-        if (rowHeaderWidthSetting != null) {
+        if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== void 0) {
           for (let i = 0; i < this.rowHeaderCount; i++) {
             let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
 
-            width = width == null ? defaultColumnWidth : width;
+            width = (width === null || width === void 0) ? defaultColumnWidth : width;
 
             this.COLGROUP.childNodes[i].style.width = `${width}px`;
           }
         }
 
         for (let i = firstRendered; i < lastRendered; i++) {
-          let width = this.wtTable.getStretchedColumnWidth(i);
-          let renderedIndex = this.columnFilter.sourceToRendered(i);
+          const width = this.wtTable.getStretchedColumnWidth(i);
+          const renderedIndex = this.columnFilter.sourceToRendered(i);
 
           this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = `${width}px`;
         }
@@ -162,7 +162,7 @@ class TableRenderer {
   removeRedundantRows(renderedRowsCount) {
     while (this.wtTable.tbodyChildrenLength > renderedRowsCount) {
       this.TBODY.removeChild(this.TBODY.lastChild);
-      this.wtTable.tbodyChildrenLength--;
+      this.wtTable.tbodyChildrenLength -= 1;
     }
   }
 
@@ -172,11 +172,10 @@ class TableRenderer {
    * @param {Number} columnsToRender
    */
   renderRows(totalRows, rowsToRender, columnsToRender) {
-    let lastTD;
     let TR;
     let visibleRowIndex = 0;
     let sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
-    let isWorkingOnClone = this.wtTable.isWorkingOnClone();
+    const isWorkingOnClone = this.wtTable.isWorkingOnClone();
 
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {
@@ -194,8 +193,8 @@ class TableRenderer {
       this.renderRowHeaders(sourceRowIndex, TR);
       // Add and/or remove TDs to TR to match the desired number
       this.adjustColumns(TR, columnsToRender + this.rowHeaderCount);
-
-      lastTD = this.renderCells(sourceRowIndex, TR, columnsToRender);
+      // Render cells
+      this.renderCells(sourceRowIndex, TR, columnsToRender);
 
       if (!isWorkingOnClone ||
           // Necessary to refresh oversized row heights after editing cell in overlays
@@ -211,13 +210,13 @@ class TableRenderer {
 
         if (height) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top
-          height--;
+          height -= 1;
           TR.firstChild.style.height = `${height}px`;
         } else {
           TR.firstChild.style.height = '';
         }
       }
-      visibleRowIndex++;
+      visibleRowIndex += 1;
       sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     }
   }
@@ -244,14 +243,13 @@ class TableRenderer {
       return;
     }
     let rowCount = this.instance.wtTable.TBODY.childNodes.length;
-    let expectedTableHeight = rowCount * this.instance.wtSettings.settings.defaultRowHeight;
-    let actualTableHeight = innerHeight(this.instance.wtTable.TBODY) - 1;
+    const expectedTableHeight = rowCount * this.instance.wtSettings.settings.defaultRowHeight;
+    const actualTableHeight = innerHeight(this.instance.wtTable.TBODY) - 1;
     let previousRowHeight;
     let rowInnerHeight;
     let sourceRowIndex;
     let currentTr;
     let rowHeader;
-    let totalRows = this.instance.getSetting('totalRows');
 
     if (expectedTableHeight === actualTableHeight && !this.instance.getSetting('fixedRowsBottom')) {
       // If the actual table height equals rowCount * default single row height, no row is oversized -> no need to iterate over them
@@ -259,7 +257,7 @@ class TableRenderer {
     }
 
     while (rowCount) {
-      rowCount--;
+      rowCount -= 1;
       sourceRowIndex = this.instance.wtTable.rowFilter.renderedToSource(rowCount);
       previousRowHeight = this.instance.wtTable.getRowHeight(sourceRowIndex);
       currentTr = this.instance.wtTable.getTrForRow(sourceRowIndex);
@@ -273,7 +271,8 @@ class TableRenderer {
 
       if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < rowInnerHeight ||
           previousRowHeight < rowInnerHeight)) {
-        this.instance.wtViewport.oversizedRows[sourceRowIndex] = ++rowInnerHeight;
+        rowInnerHeight += 1;
+        this.instance.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
       }
     }
   }
@@ -282,12 +281,12 @@ class TableRenderer {
    * Check if any of the rendered columns is higher than expected, and if so, cache them.
    */
   markOversizedColumnHeaders() {
-    let overlayName = this.wot.getOverlayName();
+    const overlayName = this.wot.getOverlayName();
 
     if (!this.columnHeaderCount || this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] || this.wtTable.isWorkingOnClone()) {
       return;
     }
-    let columnCount = this.wtTable.getRenderedColumnsCount();
+    const columnCount = this.wtTable.getRenderedColumnsCount();
 
     for (let i = 0; i < this.columnHeaderCount; i++) {
       for (let renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
@@ -301,9 +300,9 @@ class TableRenderer {
    *
    */
   adjustColumnHeaderHeights() {
-    let columnHeaders = this.wot.getSetting('columnHeaders');
-    let children = this.wot.wtTable.THEAD.childNodes;
-    let oversizedColumnHeaders = this.wot.wtViewport.oversizedColumnHeaders;
+    const columnHeaders = this.wot.getSetting('columnHeaders');
+    const children = this.wot.wtTable.THEAD.childNodes;
+    const oversizedColumnHeaders = this.wot.wtViewport.oversizedColumnHeaders;
 
     for (let i = 0, len = columnHeaders.length; i < len; i++) {
       if (oversizedColumnHeaders[i]) {
@@ -321,16 +320,16 @@ class TableRenderer {
    * @param {Number} col Index of column
    */
   markIfOversizedColumnHeader(col) {
-    let sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
+    const sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
     let level = this.columnHeaderCount;
-    let defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
+    const defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
-    let columnHeaderHeightSetting = this.wot.getSetting('columnHeaderHeight') || [];
+    const columnHeaderHeightSetting = this.wot.getSetting('columnHeaderHeight') || [];
 
     while (level) {
-      level--;
+      level -= 1;
 
       previousColHeaderHeight = this.wot.wtTable.getColumnHeaderHeight(level);
       currentHeader = this.wot.wtTable.getColumnHeader(sourceColIndex, level);
@@ -346,7 +345,7 @@ class TableRenderer {
       }
 
       if (Array.isArray(columnHeaderHeightSetting)) {
-        if (columnHeaderHeightSetting[level] != null) {
+        if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== void 0) {
           this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
         }
 
@@ -379,7 +378,7 @@ class TableRenderer {
         TD = TD.nextSibling; // http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
       // If the number of headers has been reduced, we need to replace excess TH with TD
-      if (TD.nodeName == 'TH') {
+      if (TD.nodeName === 'TH') {
         TD = replaceThWithTd(TD, TR);
       }
       if (!hasClass(TD, 'hide')) {
@@ -397,9 +396,9 @@ class TableRenderer {
    */
   adjustColumnWidths(columnsToRender) {
     let scrollbarCompensation = 0;
-    let sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
-    let mainHolder = sourceInstance.wtTable.holder;
-    let defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
+    const sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
+    const mainHolder = sourceInstance.wtTable.holder;
+    const defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
     let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
 
     if (mainHolder.offsetHeight < mainHolder.scrollHeight) {
@@ -409,18 +408,18 @@ class TableRenderer {
 
     rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
-    if (rowHeaderWidthSetting != null) {
+    if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== void 0) {
       for (let i = 0; i < this.rowHeaderCount; i++) {
         let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
 
-        width = width == null ? defaultColumnWidth : width;
+        width = (width === null || width === void 0) ? defaultColumnWidth : width;
 
         this.COLGROUP.childNodes[i].style.width = `${width}px`;
       }
     }
 
     for (let renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
-      let width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
+      const width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
 
       this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = `${width}px`;
     }
@@ -431,7 +430,7 @@ class TableRenderer {
    */
   appendToTbody(TR) {
     this.TBODY.appendChild(TR);
-    this.wtTable.tbodyChildrenLength++;
+    this.wtTable.tbodyChildrenLength += 1;
   }
 
   /**
@@ -464,7 +463,7 @@ class TableRenderer {
    * @returns {HTMLTableCellElement}
    */
   createRow() {
-    let TR = document.createElement('TR');
+    const TR = document.createElement('TR');
 
     for (let visibleColIndex = 0; visibleColIndex < this.rowHeaderCount; visibleColIndex++) {
       TR.appendChild(document.createElement('TH'));
@@ -495,7 +494,7 @@ class TableRenderer {
         TH = document.createElement('TH');
         TR.appendChild(TH);
 
-      } else if (TH.nodeName == 'TD') {
+      } else if (TH.nodeName === 'TD') {
         TH = replaceTdWithTh(TH, TR);
       }
       this.renderRowHeader(row, visibleColIndex, TH);
@@ -519,13 +518,13 @@ class TableRenderer {
     if (!this.columnHeaderCount) {
       return;
     }
-    let columnCount = this.wtTable.getRenderedColumnsCount();
+    const columnCount = this.wtTable.getRenderedColumnsCount();
 
     for (let i = 0; i < this.columnHeaderCount; i++) {
-      let TR = this.getTrForColumnHeaders(i);
+      const TR = this.getTrForColumnHeaders(i);
 
       for (let renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
-        let sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
+        const sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
 
         this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
       }
@@ -536,15 +535,15 @@ class TableRenderer {
    * Adjusts the number of COL elements to match the number of columns that need to be rendered
    */
   adjustColGroups() {
-    let columnCount = this.wtTable.getRenderedColumnsCount();
+    const columnCount = this.wtTable.getRenderedColumnsCount();
 
     while (this.wtTable.colgroupChildrenLength < columnCount + this.rowHeaderCount) {
       this.COLGROUP.appendChild(document.createElement('COL'));
-      this.wtTable.colgroupChildrenLength++;
+      this.wtTable.colgroupChildrenLength += 1;
     }
     while (this.wtTable.colgroupChildrenLength > columnCount + this.rowHeaderCount) {
       this.COLGROUP.removeChild(this.COLGROUP.lastChild);
-      this.wtTable.colgroupChildrenLength--;
+      this.wtTable.colgroupChildrenLength -= 1;
     }
     if (this.rowHeaderCount) {
       addClass(this.COLGROUP.childNodes[0], 'rowHeader');
@@ -555,7 +554,7 @@ class TableRenderer {
    * Adjusts the number of TH elements in THEAD to match the number of headers and columns that need to be rendered
    */
   adjustThead() {
-    let columnCount = this.wtTable.getRenderedColumnsCount();
+    const columnCount = this.wtTable.getRenderedColumnsCount();
     let TR = this.THEAD.firstChild;
 
     if (this.columnHeaders.length) {
@@ -570,14 +569,14 @@ class TableRenderer {
 
         while (this.theadChildrenLength < columnCount + this.rowHeaderCount) {
           TR.appendChild(document.createElement('TH'));
-          this.theadChildrenLength++;
+          this.theadChildrenLength += 1;
         }
         while (this.theadChildrenLength > columnCount + this.rowHeaderCount) {
           TR.removeChild(TR.lastChild);
-          this.theadChildrenLength--;
+          this.theadChildrenLength -= 1;
         }
       }
-      let theadChildrenLength = this.THEAD.childNodes.length;
+      const theadChildrenLength = this.THEAD.childNodes.length;
 
       if (theadChildrenLength > this.columnHeaders.length) {
         for (let i = this.columnHeaders.length; i < theadChildrenLength; i++) {
@@ -620,14 +619,14 @@ class TableRenderer {
     let count = TR.childNodes.length;
 
     while (count < desiredCount) {
-      let TD = document.createElement('TD');
+      const TD = document.createElement('TD');
 
       TR.appendChild(TD);
-      count++;
+      count += 1;
     }
     while (count > desiredCount) {
       TR.removeChild(TR.lastChild);
-      count--;
+      count -= 1;
     }
   }
 
@@ -637,13 +636,13 @@ class TableRenderer {
   removeRedundantColumns(columnsToRender) {
     while (this.wtTable.tbodyChildrenLength > columnsToRender) {
       this.TBODY.removeChild(this.TBODY.lastChild);
-      this.wtTable.tbodyChildrenLength--;
+      this.wtTable.tbodyChildrenLength -= 1;
     }
   }
 }
 
 function replaceTdWithTh(TD, TR) {
-  let TH = document.createElement('TH');
+  const TH = document.createElement('TH');
 
   TR.insertBefore(TH, TD);
   TR.removeChild(TD);
@@ -652,7 +651,7 @@ function replaceTdWithTh(TD, TR) {
 }
 
 function replaceThWithTd(TH, TR) {
-  let TD = document.createElement('TD');
+  const TD = document.createElement('TD');
 
   TR.insertBefore(TD, TH);
   TR.removeChild(TH);

@@ -1,5 +1,5 @@
 import BasePlugin from './../_base';
-import {registerPlugin} from './../../plugins';
+import { registerPlugin } from './../../plugins';
 import Storage from './storage';
 import Hooks from './../../pluginHooks';
 

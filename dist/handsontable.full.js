@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 5.0.0
- * Release date: 11/07/2018 (built at 05/07/2018 08:24:58)
+ * Version: 5.0.1
+ * Release date: 16/08/2018 (built at 16/08/2018 12:19:04)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -98,7 +98,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 328);
+/******/ 	return __webpack_require__(__webpack_require__.s = 327);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -155,9 +155,11 @@ exports.resetCssTransform = resetCssTransform;
 exports.isInput = isInput;
 exports.isOutsideInput = isOutsideInput;
 
-var _browser = __webpack_require__(27);
+var _browser = __webpack_require__(39);
 
-var _feature = __webpack_require__(41);
+var _feature = __webpack_require__(40);
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -278,14 +280,12 @@ function isChildOf(child, parent) {
  * @returns {Boolean}
  */
 function isChildOfWebComponentTable(element) {
-  var hotTableName = 'hot-table',
-      result = false,
-      parentNode;
+  var hotTableName = 'hot-table';
+  var result = false;
+  var parentNode = polymerWrap(element);
 
-  parentNode = polymerWrap(element);
-
-  function isHotTable(element) {
-    return element.nodeType === Node.ELEMENT_NODE && element.nodeName === hotTableName.toUpperCase();
+  function isHotTable(testElement) {
+    return testElement.nodeType === Node.ELEMENT_NODE && testElement.nodeName === hotTableName.toUpperCase();
   }
 
   while (parentNode != null) {
@@ -363,7 +363,9 @@ function overlayContainsElement(overlayType, element) {
 }
 
 var classListSupport = !!document.documentElement.classList;
-var _hasClass, _addClass, _removeClass;
+var _hasClass = void 0;
+var _addClass = void 0;
+var _removeClass = void 0;
 
 function filterEmptyClassNames(classNames) {
   var result = [];
@@ -408,7 +410,9 @@ if (classListSupport) {
 
     if (className.length > 0) {
       if (isSupportMultipleClassesArg) {
-        element.classList.add.apply(element.classList, className);
+        var _element$classList;
+
+        (_element$classList = element.classList).add.apply(_element$classList, _toConsumableArray(className));
       } else {
         var len = 0;
 
@@ -429,7 +433,9 @@ if (classListSupport) {
 
     if (className.length > 0) {
       if (isSupportMultipleClassesArg) {
-        element.classList.remove.apply(element.classList, className);
+        var _element$classList2;
+
+        (_element$classList2 = element.classList).remove.apply(_element$classList2, _toConsumableArray(className));
       } else {
         var len = 0;
 
@@ -451,8 +457,8 @@ if (classListSupport) {
   };
 
   _addClass = function _addClass(element, className) {
-    var len = 0,
-        _className = element.className;
+    var len = 0;
+    var _className = element.className;
 
     if (typeof className === 'string') {
       className = className.split(' ');
@@ -471,8 +477,8 @@ if (classListSupport) {
   };
 
   _removeClass = function _removeClass(element, className) {
-    var len = 0,
-        _className = element.className;
+    var len = 0;
+    var _className = element.className;
 
     if (typeof className === 'string') {
       className = className.split(' ');
@@ -541,7 +547,7 @@ function removeTextNodes(element, parent) {
  */
 //
 function empty(element) {
-  var child;
+  var child = void 0;
   /* eslint-disable no-cond-assign */
   while (child = element.lastChild) {
     element.removeChild(child);
@@ -634,7 +640,11 @@ function isVisible(elem) {
  * @return {Object} Returns object with `top` and `left` props
  */
 function offset(elem) {
-  var offsetLeft, offsetTop, lastElem, docElem, box;
+  var offsetLeft = void 0;
+  var offsetTop = void 0;
+  var lastElem = void 0;
+  var docElem = void 0;
+  var box = void 0;
 
   docElem = document.documentElement;
 
@@ -741,22 +751,22 @@ function getScrollLeft(element) {
  * @returns {HTMLElement} Element's scrollable parent
  */
 function getScrollableElement(element) {
-  var el = element.parentNode,
-      props = ['auto', 'scroll'],
-      overflow,
-      overflowX,
-      overflowY,
-      computedStyle = '',
-      computedOverflow = '',
-      computedOverflowY = '',
-      computedOverflowX = '';
+  var props = ['auto', 'scroll'];
+  var el = element.parentNode;
+  var overflow = void 0;
+  var overflowX = void 0;
+  var overflowY = void 0;
+  var computedStyle = '';
+  var computedOverflow = '';
+  var computedOverflowY = '';
+  var computedOverflowX = '';
 
   while (el && el.style && document.body !== el) {
     overflow = el.style.overflow;
     overflowX = el.style.overflowX;
     overflowY = el.style.overflowY;
 
-    if (overflow == 'scroll' || overflowX == 'scroll' || overflowY == 'scroll') {
+    if (overflow === 'scroll' || overflowX === 'scroll' || overflowY === 'scroll') {
       return el;
     } else if (window.getComputedStyle) {
       computedStyle = window.getComputedStyle(el);
@@ -1104,7 +1114,7 @@ function setOverlayPosition(overlayElem, left, top) {
 }
 
 function getCssTransform(element) {
-  var transform;
+  var transform = void 0;
 
   if (element.style.transform && (transform = element.style.transform) !== '') {
     return ['transform', transform];
@@ -1156,6 +1166,369 @@ function isOutsideInput(element) {
 
 
 exports.__esModule = true;
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+exports.duckSchema = duckSchema;
+exports.inherit = inherit;
+exports.extend = extend;
+exports.deepExtend = deepExtend;
+exports.deepClone = deepClone;
+exports.clone = clone;
+exports.mixin = mixin;
+exports.isObjectEqual = isObjectEqual;
+exports.isObject = isObject;
+exports.defineGetter = defineGetter;
+exports.objectEach = objectEach;
+exports.getProperty = getProperty;
+exports.deepObjectSize = deepObjectSize;
+exports.createObjectPropListener = createObjectPropListener;
+exports.hasOwnProperty = hasOwnProperty;
+
+var _array = __webpack_require__(2);
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+/**
+ * Generate schema for passed object.
+ *
+ * @param {Array|Object} object
+ * @returns {Array|Object}
+ */
+function duckSchema(object) {
+  var schema = void 0;
+
+  if (Array.isArray(object)) {
+    schema = [];
+  } else {
+    schema = {};
+
+    objectEach(object, function (value, key) {
+      if (key === '__children') {
+        return;
+      }
+
+      if (value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && !Array.isArray(value)) {
+        schema[key] = duckSchema(value);
+      } else if (Array.isArray(value)) {
+        if (value.length && _typeof(value[0]) === 'object' && !Array.isArray(value[0])) {
+          schema[key] = [duckSchema(value[0])];
+        } else {
+          schema[key] = [];
+        }
+      } else {
+        schema[key] = null;
+      }
+    });
+  }
+
+  return schema;
+}
+
+/**
+ * Inherit without without calling parent constructor, and setting `Child.prototype.constructor` to `Child` instead of `Parent`.
+ * Creates temporary dummy function to call it as constructor.
+ * Described in ticket: https://github.com/handsontable/handsontable/pull/516
+ *
+ * @param  {Object} Child  child class
+ * @param  {Object} Parent parent class
+ * @return {Object}        extended Child
+ */
+function inherit(Child, Parent) {
+  Parent.prototype.constructor = Parent;
+  Child.prototype = new Parent();
+  Child.prototype.constructor = Child;
+
+  return Child;
+}
+
+/**
+ * Perform shallow extend of a target object with extension's own properties.
+ *
+ * @param {Object} target An object that will receive the new properties.
+ * @param {Object} extension An object containing additional properties to merge into the target.
+ */
+function extend(target, extension) {
+  objectEach(extension, function (value, key) {
+    target[key] = value;
+  });
+
+  return target;
+}
+
+/**
+ * Perform deep extend of a target object with extension's own properties.
+ *
+ * @param {Object} target An object that will receive the new properties.
+ * @param {Object} extension An object containing additional properties to merge into the target.
+ */
+function deepExtend(target, extension) {
+  objectEach(extension, function (value, key) {
+    if (extension[key] && _typeof(extension[key]) === 'object') {
+      if (!target[key]) {
+        if (Array.isArray(extension[key])) {
+          target[key] = [];
+        } else if (Object.prototype.toString.call(extension[key]) === '[object Date]') {
+          target[key] = extension[key];
+        } else {
+          target[key] = {};
+        }
+      }
+      deepExtend(target[key], extension[key]);
+    } else {
+      target[key] = extension[key];
+    }
+  });
+}
+
+/**
+ * Perform deep clone of an object.
+ * WARNING! Only clones JSON properties. Will cause error when `obj` contains a function, Date, etc.
+ *
+ * @param {Object} obj An object that will be cloned
+ * @return {Object}
+ */
+function deepClone(obj) {
+  if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  return obj;
+}
+
+/**
+ * Shallow clone object.
+ *
+ * @param {Object} object
+ * @returns {Object}
+ */
+function clone(object) {
+  var result = {};
+
+  objectEach(object, function (value, key) {
+    result[key] = value;
+  });
+
+  return result;
+}
+
+/**
+ * Extend the Base object (usually prototype) of the functionality the `mixins` objects.
+ *
+ * @param {Object} Base Base object which will be extended.
+ * @param {Object} mixins The object of the functionality will be "copied".
+ * @returns {Object}
+ */
+function mixin(Base) {
+  if (!Base.MIXINS) {
+    Base.MIXINS = [];
+  }
+
+  for (var _len = arguments.length, mixins = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    mixins[_key - 1] = arguments[_key];
+  }
+
+  (0, _array.arrayEach)(mixins, function (mixinItem) {
+    Base.MIXINS.push(mixinItem.MIXIN_NAME);
+
+    objectEach(mixinItem, function (value, key) {
+      if (Base.prototype[key] !== void 0) {
+        throw new Error('Mixin conflict. Property \'' + key + '\' already exist and cannot be overwritten.');
+      }
+      if (typeof value === 'function') {
+        Base.prototype[key] = value;
+      } else {
+        var getter = function _getter(propertyName, initialValue) {
+          propertyName = '_' + propertyName;
+
+          var initValue = function initValue(newValue) {
+            if (Array.isArray(newValue) || isObject(newValue)) {
+              newValue = deepClone(newValue);
+            }
+
+            return newValue;
+          };
+
+          return function () {
+            if (this[propertyName] === void 0) {
+              this[propertyName] = initValue(initialValue);
+            }
+
+            return this[propertyName];
+          };
+        };
+        var setter = function _setter(propertyName) {
+          propertyName = '_' + propertyName;
+
+          return function (newValue) {
+            this[propertyName] = newValue;
+          };
+        };
+        Object.defineProperty(Base.prototype, key, {
+          get: getter(key, value),
+          set: setter(key),
+          configurable: true
+        });
+      }
+    });
+  });
+
+  return Base;
+}
+
+/**
+ * Checks if two objects or arrays are (deep) equal
+ *
+ * @param {Object|Array} object1
+ * @param {Object|Array} object2
+ * @returns {Boolean}
+ */
+function isObjectEqual(object1, object2) {
+  return JSON.stringify(object1) === JSON.stringify(object2);
+}
+
+/**
+ * Determines whether given object is a plain Object.
+ * Note: String and Array are not plain Objects
+ * @param {*} obj
+ * @returns {boolean}
+ */
+function isObject(obj) {
+  return Object.prototype.toString.call(obj) === '[object Object]';
+}
+
+function defineGetter(object, property, value, options) {
+  options.value = value;
+  options.writable = options.writable !== false;
+  options.enumerable = options.enumerable !== false;
+  options.configurable = options.configurable !== false;
+
+  Object.defineProperty(object, property, options);
+}
+
+/**
+ * A specialized version of `.forEach` for objects.
+ *
+ * @param {Object} object The object to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @returns {Object} Returns `object`.
+ */
+function objectEach(object, iteratee) {
+  for (var key in object) {
+    if (!object.hasOwnProperty || object.hasOwnProperty && Object.prototype.hasOwnProperty.call(object, key)) {
+      if (iteratee(object[key], key, object) === false) {
+        break;
+      }
+    }
+  }
+
+  return object;
+}
+
+/**
+ * Get object property by its name. Access to sub properties can be achieved by dot notation (e.q. `'foo.bar.baz'`).
+ *
+ * @param {Object} object Object which value will be exported.
+ * @param {String} name Object property name.
+ * @returns {*}
+ */
+function getProperty(object, name) {
+  var names = name.split('.');
+  var result = object;
+
+  objectEach(names, function (nameItem) {
+    result = result[nameItem];
+
+    if (result === void 0) {
+      result = void 0;
+
+      return false;
+    }
+  });
+
+  return result;
+}
+
+/**
+ * Return object length (recursively).
+ *
+ * @param {*} object Object for which we want get length.
+ * @returns {Number}
+ */
+function deepObjectSize(object) {
+  if (!isObject(object)) {
+    return 0;
+  }
+  var recursObjLen = function recursObjLen(obj) {
+    var result = 0;
+
+    if (isObject(obj)) {
+      objectEach(obj, function (key) {
+        result += recursObjLen(key);
+      });
+    } else {
+      result++;
+    }
+
+    return result;
+  };
+
+  return recursObjLen(object);
+}
+
+/**
+ * Create object with property where its value change will be observed.
+ *
+ * @param {*} [defaultValue=undefined] Default value.
+ * @param {String} [propertyToListen='value'] Property to listen.
+ * @returns {Object}
+ */
+function createObjectPropListener(defaultValue) {
+  var _holder;
+
+  var propertyToListen = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'value';
+
+  var privateProperty = '_' + propertyToListen;
+  var holder = (_holder = {
+    _touched: false
+  }, _defineProperty(_holder, privateProperty, defaultValue), _defineProperty(_holder, 'isTouched', function isTouched() {
+    return this._touched;
+  }), _holder);
+
+  Object.defineProperty(holder, propertyToListen, {
+    get: function get() {
+      return this[privateProperty];
+    },
+    set: function set(value) {
+      this._touched = true;
+      this[privateProperty] = value;
+    },
+
+    enumerable: true,
+    configurable: true
+  });
+
+  return holder;
+}
+
+/**
+ * Check if at specified `key` there is any value for `object`.
+ *
+ * @param {Object} object Object to search value at specyfic key.
+ * @param {String} key String key to check.
+ */
+function hasOwnProperty(object, key) {
+  return Object.prototype.hasOwnProperty.call(object, key);
+}
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
 exports.to2dArray = to2dArray;
 exports.extendArray = extendArray;
 exports.pivot = pivot;
@@ -1170,8 +1543,8 @@ exports.arrayAvg = arrayAvg;
 exports.arrayFlatten = arrayFlatten;
 exports.arrayUnique = arrayUnique;
 function to2dArray(arr) {
-  var i = 0,
-      ilen = arr.length;
+  var ilen = arr.length;
+  var i = 0;
 
   while (i < ilen) {
     arr[i] = [arr[i]];
@@ -1180,8 +1553,8 @@ function to2dArray(arr) {
 }
 
 function extendArray(arr, extension) {
-  var i = 0,
-      ilen = extension.length;
+  var ilen = extension.length;
+  var i = 0;
 
   while (i < ilen) {
     arr.push(extension[i]);
@@ -1417,377 +1790,14 @@ function arrayUnique(array) {
 }
 
 /***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.duckSchema = duckSchema;
-exports.inherit = inherit;
-exports.extend = extend;
-exports.deepExtend = deepExtend;
-exports.deepClone = deepClone;
-exports.clone = clone;
-exports.mixin = mixin;
-exports.isObjectEqual = isObjectEqual;
-exports.isObject = isObject;
-exports.defineGetter = defineGetter;
-exports.objectEach = objectEach;
-exports.getProperty = getProperty;
-exports.deepObjectSize = deepObjectSize;
-exports.createObjectPropListener = createObjectPropListener;
-exports.hasOwnProperty = hasOwnProperty;
-
-var _array = __webpack_require__(1);
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-/**
- * Generate schema for passed object.
- *
- * @param {Array|Object} object
- * @returns {Array|Object}
- */
-function duckSchema(object) {
-  var schema;
-
-  if (Array.isArray(object)) {
-    schema = [];
-  } else {
-    schema = {};
-
-    objectEach(object, function (value, key) {
-      if (key === '__children') {
-        return;
-      }
-
-      if (value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && !Array.isArray(value)) {
-        schema[key] = duckSchema(value);
-      } else if (Array.isArray(value)) {
-        if (value.length && _typeof(value[0]) === 'object' && !Array.isArray(value[0])) {
-          schema[key] = [duckSchema(value[0])];
-        } else {
-          schema[key] = [];
-        }
-      } else {
-        schema[key] = null;
-      }
-    });
-  }
-
-  return schema;
-}
-
-/**
- * Inherit without without calling parent constructor, and setting `Child.prototype.constructor` to `Child` instead of `Parent`.
- * Creates temporary dummy function to call it as constructor.
- * Described in ticket: https://github.com/handsontable/handsontable/pull/516
- *
- * @param  {Object} Child  child class
- * @param  {Object} Parent parent class
- * @return {Object}        extended Child
- */
-function inherit(Child, Parent) {
-  Parent.prototype.constructor = Parent;
-  Child.prototype = new Parent();
-  Child.prototype.constructor = Child;
-
-  return Child;
-}
-
-/**
- * Perform shallow extend of a target object with extension's own properties.
- *
- * @param {Object} target An object that will receive the new properties.
- * @param {Object} extension An object containing additional properties to merge into the target.
- */
-function extend(target, extension) {
-  objectEach(extension, function (value, key) {
-    target[key] = value;
-  });
-
-  return target;
-}
-
-/**
- * Perform deep extend of a target object with extension's own properties.
- *
- * @param {Object} target An object that will receive the new properties.
- * @param {Object} extension An object containing additional properties to merge into the target.
- */
-function deepExtend(target, extension) {
-  objectEach(extension, function (value, key) {
-    if (extension[key] && _typeof(extension[key]) === 'object') {
-      if (!target[key]) {
-        if (Array.isArray(extension[key])) {
-          target[key] = [];
-        } else if (Object.prototype.toString.call(extension[key]) === '[object Date]') {
-          target[key] = extension[key];
-        } else {
-          target[key] = {};
-        }
-      }
-      deepExtend(target[key], extension[key]);
-    } else {
-      target[key] = extension[key];
-    }
-  });
-}
-
-/**
- * Perform deep clone of an object.
- * WARNING! Only clones JSON properties. Will cause error when `obj` contains a function, Date, etc.
- *
- * @param {Object} obj An object that will be cloned
- * @return {Object}
- */
-function deepClone(obj) {
-  if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
-    return JSON.parse(JSON.stringify(obj));
-  }
-
-  return obj;
-}
-
-/**
- * Shallow clone object.
- *
- * @param {Object} object
- * @returns {Object}
- */
-function clone(object) {
-  var result = {};
-
-  objectEach(object, function (value, key) {
-    result[key] = value;
-  });
-
-  return result;
-}
-
-/**
- * Extend the Base object (usually prototype) of the functionality the `mixins` objects.
- *
- * @param {Object} Base Base object which will be extended.
- * @param {Object} mixins The object of the functionality will be "copied".
- * @returns {Object}
- */
-function mixin(Base) {
-  if (!Base.MIXINS) {
-    Base.MIXINS = [];
-  }
-
-  for (var _len = arguments.length, mixins = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    mixins[_key - 1] = arguments[_key];
-  }
-
-  (0, _array.arrayEach)(mixins, function (mixin) {
-    Base.MIXINS.push(mixin.MIXIN_NAME);
-
-    objectEach(mixin, function (value, key) {
-      if (Base.prototype[key] !== void 0) {
-        throw new Error('Mixin conflict. Property \'' + key + '\' already exist and cannot be overwritten.');
-      }
-      if (typeof value === 'function') {
-        Base.prototype[key] = value;
-      } else {
-        var getter = function _getter(propertyName, initialValue) {
-          propertyName = '_' + propertyName;
-
-          var initValue = function initValue(value) {
-            if (Array.isArray(value) || isObject(value)) {
-              value = deepClone(value);
-            }
-
-            return value;
-          };
-
-          return function () {
-            if (this[propertyName] === void 0) {
-              this[propertyName] = initValue(initialValue);
-            }
-
-            return this[propertyName];
-          };
-        };
-        var setter = function _setter(propertyName) {
-          propertyName = '_' + propertyName;
-
-          return function (value) {
-            this[propertyName] = value;
-          };
-        };
-        Object.defineProperty(Base.prototype, key, {
-          get: getter(key, value),
-          set: setter(key),
-          configurable: true
-        });
-      }
-    });
-  });
-
-  return Base;
-}
-
-/**
- * Checks if two objects or arrays are (deep) equal
- *
- * @param {Object|Array} object1
- * @param {Object|Array} object2
- * @returns {Boolean}
- */
-function isObjectEqual(object1, object2) {
-  return JSON.stringify(object1) === JSON.stringify(object2);
-}
-
-/**
- * Determines whether given object is a plain Object.
- * Note: String and Array are not plain Objects
- * @param {*} obj
- * @returns {boolean}
- */
-function isObject(obj) {
-  return Object.prototype.toString.call(obj) == '[object Object]';
-}
-
-function defineGetter(object, property, value, options) {
-  options.value = value;
-  options.writable = options.writable !== false;
-  options.enumerable = options.enumerable !== false;
-  options.configurable = options.configurable !== false;
-
-  Object.defineProperty(object, property, options);
-}
-
-/**
- * A specialized version of `.forEach` for objects.
- *
- * @param {Object} object The object to iterate over.
- * @param {Function} iteratee The function invoked per iteration.
- * @returns {Object} Returns `object`.
- */
-function objectEach(object, iteratee) {
-  for (var key in object) {
-    if (!object.hasOwnProperty || object.hasOwnProperty && Object.prototype.hasOwnProperty.call(object, key)) {
-      if (iteratee(object[key], key, object) === false) {
-        break;
-      }
-    }
-  }
-
-  return object;
-}
-
-/**
- * Get object property by its name. Access to sub properties can be achieved by dot notation (e.q. `'foo.bar.baz'`).
- *
- * @param {Object} object Object which value will be exported.
- * @param {String} name Object property name.
- * @returns {*}
- */
-function getProperty(object, name) {
-  var names = name.split('.');
-  var result = object;
-
-  objectEach(names, function (name) {
-    result = result[name];
-
-    if (result === void 0) {
-      result = void 0;
-
-      return false;
-    }
-  });
-
-  return result;
-}
-
-/**
- * Return object length (recursively).
- *
- * @param {*} object Object for which we want get length.
- * @returns {Number}
- */
-function deepObjectSize(object) {
-  if (!isObject(object)) {
-    return 0;
-  }
-  var recursObjLen = function recursObjLen(obj) {
-    var result = 0;
-
-    if (isObject(obj)) {
-      objectEach(obj, function (key) {
-        result += recursObjLen(key);
-      });
-    } else {
-      result++;
-    }
-
-    return result;
-  };
-
-  return recursObjLen(object);
-}
-
-/**
- * Create object with property where its value change will be observed.
- *
- * @param {*} [defaultValue=undefined] Default value.
- * @param {String} [propertyToListen='value'] Property to listen.
- * @returns {Object}
- */
-function createObjectPropListener(defaultValue) {
-  var _holder;
-
-  var propertyToListen = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'value';
-
-  var privateProperty = '_' + propertyToListen;
-  var holder = (_holder = {
-    _touched: false
-  }, _defineProperty(_holder, privateProperty, defaultValue), _defineProperty(_holder, 'isTouched', function isTouched() {
-    return this._touched;
-  }), _holder);
-
-  Object.defineProperty(holder, propertyToListen, {
-    get: function get() {
-      return this[privateProperty];
-    },
-    set: function set(value) {
-      this._touched = true;
-      this[privateProperty] = value;
-    },
-
-    enumerable: true,
-    configurable: true
-  });
-
-  return holder;
-}
-
-/**
- * Check if at specified `key` there is any value for `object`.
- *
- * @param {Object} object Object to search value at specyfic key.
- * @param {String} key String key to check.
- */
-function hasOwnProperty(object, key) {
-  return Object.prototype.hasOwnProperty.call(object, key);
-}
-
-/***/ }),
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(15);
-var core = __webpack_require__(39);
-var hide = __webpack_require__(31);
-var redefine = __webpack_require__(30);
-var ctx = __webpack_require__(32);
+var core = __webpack_require__(37);
+var hide = __webpack_require__(29);
+var redefine = __webpack_require__(28);
+var ctx = __webpack_require__(30);
 var PROTOTYPE = 'prototype';
 
 var $export = function (type, name, source) {
@@ -1838,17 +1848,19 @@ module.exports = $export;
 exports.__esModule = true;
 exports.Viewport = exports.TableRenderer = exports.Table = exports.Settings = exports.Selection = exports.Scroll = exports.Overlays = exports.Event = exports.Core = exports.default = exports.Border = exports.TopLeftCornerOverlay = exports.TopOverlay = exports.LeftOverlay = exports.DebugOverlay = exports.RowFilter = exports.ColumnFilter = exports.CellRange = exports.CellCoords = exports.ViewportRowsCalculator = exports.ViewportColumnsCalculator = undefined;
 
-__webpack_require__(99);
+__webpack_require__(98);
+
+__webpack_require__(113);
 
 __webpack_require__(114);
 
-__webpack_require__(115);
+__webpack_require__(118);
 
 __webpack_require__(119);
 
-__webpack_require__(120);
+__webpack_require__(121);
 
-__webpack_require__(122);
+__webpack_require__(124);
 
 __webpack_require__(125);
 
@@ -1884,9 +1896,9 @@ __webpack_require__(140);
 
 __webpack_require__(141);
 
-__webpack_require__(142);
+__webpack_require__(143);
 
-__webpack_require__(144);
+__webpack_require__(145);
 
 __webpack_require__(146);
 
@@ -1912,13 +1924,13 @@ __webpack_require__(156);
 
 __webpack_require__(157);
 
-__webpack_require__(158);
-
 __webpack_require__(88);
+
+__webpack_require__(158);
 
 __webpack_require__(159);
 
-__webpack_require__(160);
+__webpack_require__(161);
 
 __webpack_require__(162);
 
@@ -1932,25 +1944,23 @@ __webpack_require__(166);
 
 __webpack_require__(167);
 
-__webpack_require__(168);
+__webpack_require__(169);
 
 __webpack_require__(170);
 
 __webpack_require__(171);
 
-__webpack_require__(172);
+__webpack_require__(173);
 
 __webpack_require__(174);
 
 __webpack_require__(175);
 
-__webpack_require__(176);
-
-var _viewportColumns = __webpack_require__(177);
+var _viewportColumns = __webpack_require__(176);
 
 var _viewportColumns2 = _interopRequireDefault(_viewportColumns);
 
-var _viewportRows = __webpack_require__(178);
+var _viewportRows = __webpack_require__(177);
 
 var _viewportRows2 = _interopRequireDefault(_viewportRows);
 
@@ -1958,7 +1968,7 @@ var _coords = __webpack_require__(57);
 
 var _coords2 = _interopRequireDefault(_coords);
 
-var _range = __webpack_require__(89);
+var _range = __webpack_require__(178);
 
 var _range2 = _interopRequireDefault(_range);
 
@@ -1970,19 +1980,19 @@ var _row = __webpack_require__(180);
 
 var _row2 = _interopRequireDefault(_row);
 
-var _debug = __webpack_require__(350);
+var _debug = __webpack_require__(349);
 
 var _debug2 = _interopRequireDefault(_debug);
 
-var _left = __webpack_require__(353);
+var _left = __webpack_require__(352);
 
 var _left2 = _interopRequireDefault(_left);
 
-var _top = __webpack_require__(354);
+var _top = __webpack_require__(353);
 
 var _top2 = _interopRequireDefault(_top);
 
-var _topLeftCorner = __webpack_require__(355);
+var _topLeftCorner = __webpack_require__(354);
 
 var _topLeftCorner2 = _interopRequireDefault(_topLeftCorner);
 
@@ -2006,7 +2016,7 @@ var _scroll = __webpack_require__(303);
 
 var _scroll2 = _interopRequireDefault(_scroll);
 
-var _selection = __webpack_require__(356);
+var _selection = __webpack_require__(355);
 
 var _selection2 = _interopRequireDefault(_selection);
 
@@ -2059,101 +2069,15 @@ exports.Viewport = _viewport2.default;
 
 exports.__esModule = true;
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.isNumeric = isNumeric;
-exports.rangeEach = rangeEach;
-exports.rangeEachReverse = rangeEachReverse;
-exports.valueAccordingPercent = valueAccordingPercent;
-/**
- * Checks if value of n is a numeric one
- * http://jsperf.com/isnan-vs-isnumeric/4
- * @param n
- * @returns {boolean}
- */
-function isNumeric(n) {
-  /* eslint-disable */
-  var t = typeof n === 'undefined' ? 'undefined' : _typeof(n);
-
-  return t == 'number' ? !isNaN(n) && isFinite(n) : t == 'string' ? !n.length ? false : n.length == 1 ? /\d/.test(n) : /^\s*[+-]?\s*(?:(?:\d+(?:\.\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/i.test(n) : t == 'object' ? !!n && typeof n.valueOf() == 'number' && !(n instanceof Date) : false;
-}
-
-/**
- * A specialized version of `.forEach` defined by ranges.
- *
- * @param {Number} rangeFrom The number from start iterate.
- * @param {Number|Function} rangeTo The number where finish iterate or function as a iteratee.
- * @param {Function} [iteratee] The function invoked per iteration.
- */
-function rangeEach(rangeFrom, rangeTo, iteratee) {
-  var index = -1;
-
-  if (typeof rangeTo === 'function') {
-    iteratee = rangeTo;
-    rangeTo = rangeFrom;
-  } else {
-    index = rangeFrom - 1;
-  }
-  while (++index <= rangeTo) {
-    if (iteratee(index) === false) {
-      break;
-    }
-  }
-}
-
-/**
- * A specialized version of `.forEach` defined by ranges iterable in reverse order.
- *
- * @param {Number} rangeFrom The number from start iterate.
- * @param {Number|Function} rangeTo The number where finish iterate or function as a iteratee.
- * @param {Function} [iteratee] The function invoked per iteration.
- */
-function rangeEachReverse(rangeFrom, rangeTo, iteratee) {
-  var index = rangeFrom + 1;
-
-  if (typeof rangeTo === 'function') {
-    iteratee = rangeTo;
-    rangeTo = 0;
-  }
-  while (--index >= rangeTo) {
-    if (iteratee(index) === false) {
-      break;
-    }
-  }
-}
-
-/**
- * Calculate value from percent.
- *
- * @param {Number} value Base value from percent will be calculated.
- * @param {String|Number} percent Can be Number or String (eq. `'33%'`).
- * @returns {Number}
- */
-function valueAccordingPercent(value, percent) {
-  percent = parseInt(percent.toString().replace('%', ''), 10);
-  percent = parseInt(value * percent / 100, 10);
-
-  return percent;
-}
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 exports.getListenersCounter = getListenersCounter;
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _feature = __webpack_require__(41);
+var _feature = __webpack_require__(40);
 
 var _event = __webpack_require__(13);
 
@@ -2248,8 +2172,8 @@ var EventManager = function () {
       while (len--) {
         tmpEvent = this.context.eventListeners[len];
 
-        if (tmpEvent.event == eventName && tmpEvent.element == element) {
-          if (callback && callback != tmpEvent.callback) {
+        if (tmpEvent.event === eventName && tmpEvent.element === element) {
+          if (callback && callback !== tmpEvent.callback) {
             /* eslint-disable no-continue */
             continue;
           }
@@ -2336,7 +2260,7 @@ var EventManager = function () {
         button: 0,
         relatedTarget: undefined
       };
-      var event;
+      var event = void 0;
 
       if (document.createEvent) {
         event = document.createEvent('MouseEvents');
@@ -2444,6 +2368,92 @@ exports.default = EventManager;
 function getListenersCounter() {
   return listenersCounter;
 };
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+exports.isNumeric = isNumeric;
+exports.rangeEach = rangeEach;
+exports.rangeEachReverse = rangeEachReverse;
+exports.valueAccordingPercent = valueAccordingPercent;
+/**
+ * Checks if value of n is a numeric one
+ * http://jsperf.com/isnan-vs-isnumeric/4
+ * @param n
+ * @returns {boolean}
+ */
+function isNumeric(n) {
+  /* eslint-disable */
+  var t = typeof n === 'undefined' ? 'undefined' : _typeof(n);
+
+  return t == 'number' ? !isNaN(n) && isFinite(n) : t == 'string' ? !n.length ? false : n.length == 1 ? /\d/.test(n) : /^\s*[+-]?\s*(?:(?:\d+(?:\.\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/i.test(n) : t == 'object' ? !!n && typeof n.valueOf() == 'number' && !(n instanceof Date) : false;
+}
+
+/**
+ * A specialized version of `.forEach` defined by ranges.
+ *
+ * @param {Number} rangeFrom The number from start iterate.
+ * @param {Number|Function} rangeTo The number where finish iterate or function as a iteratee.
+ * @param {Function} [iteratee] The function invoked per iteration.
+ */
+function rangeEach(rangeFrom, rangeTo, iteratee) {
+  var index = -1;
+
+  if (typeof rangeTo === 'function') {
+    iteratee = rangeTo;
+    rangeTo = rangeFrom;
+  } else {
+    index = rangeFrom - 1;
+  }
+  while (++index <= rangeTo) {
+    if (iteratee(index) === false) {
+      break;
+    }
+  }
+}
+
+/**
+ * A specialized version of `.forEach` defined by ranges iterable in reverse order.
+ *
+ * @param {Number} rangeFrom The number from start iterate.
+ * @param {Number|Function} rangeTo The number where finish iterate or function as a iteratee.
+ * @param {Function} [iteratee] The function invoked per iteration.
+ */
+function rangeEachReverse(rangeFrom, rangeTo, iteratee) {
+  var index = rangeFrom + 1;
+
+  if (typeof rangeTo === 'function') {
+    iteratee = rangeTo;
+    rangeTo = 0;
+  }
+  while (--index >= rangeTo) {
+    if (iteratee(index) === false) {
+      break;
+    }
+  }
+}
+
+/**
+ * Calculate value from percent.
+ *
+ * @param {Number} value Base value from percent will be calculated.
+ * @param {String|Number} percent Can be Number or String (eq. `'33%'`).
+ * @returns {Number}
+ */
+function valueAccordingPercent(value, percent) {
+  percent = parseInt(percent.toString().replace('%', ''), 10);
+  percent = parseInt(value * percent / 100, 10);
+
+  return percent;
+}
 
 /***/ }),
 /* 7 */
@@ -2563,9 +2573,9 @@ var _pluginHooks = __webpack_require__(16);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _string = __webpack_require__(36);
+var _string = __webpack_require__(33);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2613,7 +2623,7 @@ function registerPlugin(pluginName, PluginClass) {
  * @returns {Function} pluginClass Returns plugin instance if exists or `undefined` if not exists.
  */
 function getPlugin(instance, pluginName) {
-  if (typeof pluginName != 'string') {
+  if (typeof pluginName !== 'string') {
     throw Error('Only strings can be passed as "plugin" parameter');
   }
   var _pluginName = (0, _string.toUpperCaseFirst)(pluginName);
@@ -2681,9 +2691,9 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _recordTranslator = __webpack_require__(315);
 
@@ -3063,7 +3073,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment2.default)('11/07/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment2.default)('16/08/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       var keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
@@ -3247,35 +3257,35 @@ function isLeftClick(event) {
 exports.__esModule = true;
 exports.getRegisteredRenderers = exports.getRegisteredRendererNames = exports.hasRenderer = exports.getRenderer = exports.registerRenderer = undefined;
 
-var _staticRegister2 = __webpack_require__(40);
+var _staticRegister2 = __webpack_require__(38);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _cellDecorator = __webpack_require__(366);
+var _cellDecorator = __webpack_require__(365);
 
 var _cellDecorator2 = _interopRequireDefault(_cellDecorator);
 
-var _autocompleteRenderer = __webpack_require__(367);
+var _autocompleteRenderer = __webpack_require__(366);
 
 var _autocompleteRenderer2 = _interopRequireDefault(_autocompleteRenderer);
 
-var _checkboxRenderer = __webpack_require__(368);
+var _checkboxRenderer = __webpack_require__(367);
 
 var _checkboxRenderer2 = _interopRequireDefault(_checkboxRenderer);
 
-var _htmlRenderer = __webpack_require__(369);
+var _htmlRenderer = __webpack_require__(368);
 
 var _htmlRenderer2 = _interopRequireDefault(_htmlRenderer);
 
-var _numericRenderer = __webpack_require__(370);
+var _numericRenderer = __webpack_require__(369);
 
 var _numericRenderer2 = _interopRequireDefault(_numericRenderer);
 
-var _passwordRenderer = __webpack_require__(371);
+var _passwordRenderer = __webpack_require__(370);
 
 var _passwordRenderer2 = _interopRequireDefault(_passwordRenderer);
 
-var _textRenderer = __webpack_require__(372);
+var _textRenderer = __webpack_require__(371);
 
 var _textRenderer2 = _interopRequireDefault(_textRenderer);
 
@@ -3342,9 +3352,9 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -5452,7 +5462,7 @@ exports.getRegisteredEditors = exports.getRegisteredEditorNames = exports.hasEdi
 exports.RegisteredEditor = RegisteredEditor;
 exports._getEditorInstance = _getEditorInstance;
 
-var _staticRegister2 = __webpack_require__(40);
+var _staticRegister2 = __webpack_require__(38);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
@@ -5468,15 +5478,15 @@ var _autocompleteEditor = __webpack_require__(309);
 
 var _autocompleteEditor2 = _interopRequireDefault(_autocompleteEditor);
 
-var _checkboxEditor = __webpack_require__(358);
+var _checkboxEditor = __webpack_require__(357);
 
 var _checkboxEditor2 = _interopRequireDefault(_checkboxEditor);
 
-var _dateEditor = __webpack_require__(359);
+var _dateEditor = __webpack_require__(358);
 
 var _dateEditor2 = _interopRequireDefault(_dateEditor);
 
-var _dropdownEditor = __webpack_require__(362);
+var _dropdownEditor = __webpack_require__(361);
 
 var _dropdownEditor2 = _interopRequireDefault(_dropdownEditor);
 
@@ -5484,15 +5494,15 @@ var _handsontableEditor = __webpack_require__(310);
 
 var _handsontableEditor2 = _interopRequireDefault(_handsontableEditor);
 
-var _numericEditor = __webpack_require__(363);
+var _numericEditor = __webpack_require__(362);
 
 var _numericEditor2 = _interopRequireDefault(_numericEditor);
 
-var _passwordEditor = __webpack_require__(364);
+var _passwordEditor = __webpack_require__(363);
 
 var _passwordEditor2 = _interopRequireDefault(_passwordEditor);
 
-var _selectEditor = __webpack_require__(365);
+var _selectEditor = __webpack_require__(364);
 
 var _selectEditor2 = _interopRequireDefault(_selectEditor);
 
@@ -5644,13 +5654,11 @@ exports.markLabelAsSelected = markLabelAsSelected;
 exports.isItemHidden = isItemHidden;
 exports.filterSeparators = filterSeparators;
 
-var _array = __webpack_require__(1);
-
-var _number = __webpack_require__(5);
+var _array = __webpack_require__(2);
 
 var _element = __webpack_require__(0);
 
-var _separator = __webpack_require__(96);
+var _separator = __webpack_require__(95);
 
 function normalizeSelection(selRanges) {
   return (0, _array.arrayMap)(selRanges, function (range) {
@@ -5691,7 +5699,7 @@ function getValidSelection(hot) {
 }
 
 function prepareVerticalAlignClass(className, alignment) {
-  if (className.indexOf(alignment) != -1) {
+  if (className.indexOf(alignment) !== -1) {
     return className;
   }
   className = className.replace('htTop', '').replace('htMiddle', '').replace('htBottom', '').replace('  ', '');
@@ -5702,7 +5710,7 @@ function prepareVerticalAlignClass(className, alignment) {
 }
 
 function prepareHorizontalAlignClass(className, alignment) {
-  if (className.indexOf(alignment) != -1) {
+  if (className.indexOf(alignment) !== -1) {
     return className;
   }
   className = className.replace('htLeft', '').replace('htCenter', '').replace('htRight', '').replace('htJustify', '').replace('  ', '');
@@ -5737,7 +5745,7 @@ function align(ranges, type, alignment, cellDescriptor, propertySetter) {
     var from = _ref2.from,
         to = _ref2.to;
 
-    if (from.row == to.row && from.col == to.col) {
+    if (from.row === to.row && from.col === to.col) {
       applyAlignClassName(from.row, from.col, type, alignment, cellDescriptor, propertySetter);
     } else {
       for (var row = from.row; row <= to.row; row++) {
@@ -5790,7 +5798,7 @@ function markLabelAsSelected(label) {
 }
 
 function isItemHidden(item, instance) {
-  return !item.hidden || !(typeof item.hidden == 'function' && item.hidden.call(instance));
+  return !item.hidden || !(typeof item.hidden === 'function' && item.hidden.call(instance));
 }
 
 function shiftSeparators(items, separator) {
@@ -5849,7 +5857,7 @@ function filterSeparators(items) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var anObject = __webpack_require__(18);
-var IE8_DOM_DEFINE = __webpack_require__(101);
+var IE8_DOM_DEFINE = __webpack_require__(100);
 var toPrimitive = __webpack_require__(75);
 var dP = Object.defineProperty;
 
@@ -5881,7 +5889,7 @@ exports.isCtrlKey = isCtrlKey;
 exports.isCtrlMetaKey = isCtrlMetaKey;
 exports.isKey = isKey;
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var KEY_CODES = exports.KEY_CODES = {
   MOUSE_LEFT: 1,
@@ -5936,7 +5944,7 @@ var KEY_CODES = exports.KEY_CODES = {
  * @returns {Boolean}
  */
 function isPrintableChar(keyCode) {
-  return keyCode == 32 || // space
+  return keyCode === 32 || // space
   keyCode >= 48 && keyCode <= 57 || // 0-9
   keyCode >= 96 && keyCode <= 111 || // numpad
   keyCode >= 186 && keyCode <= 192 || // ;=,-./`
@@ -6034,7 +6042,7 @@ module.exports = function (exec) {
 
 // to indexed object, toObject with fallback for non-array-like ES3 strings
 var IObject = __webpack_require__(77);
-var defined = __webpack_require__(38);
+var defined = __webpack_require__(36);
 module.exports = function (it) {
   return IObject(defined(it));
 };
@@ -6058,7 +6066,7 @@ module.exports = function (it) {
 
 // most Object methods by ES6 should accept primitives
 var $export = __webpack_require__(3);
-var core = __webpack_require__(39);
+var core = __webpack_require__(37);
 var fails = __webpack_require__(23);
 module.exports = function (KEY, exec) {
   var fn = (core.Object || {})[KEY] || Object[KEY];
@@ -6070,6 +6078,452 @@ module.exports = function (KEY, exec) {
 
 /***/ }),
 /* 27 */
+/***/ (function(module, exports) {
+
+var hasOwnProperty = {}.hasOwnProperty;
+module.exports = function (it, key) {
+  return hasOwnProperty.call(it, key);
+};
+
+
+/***/ }),
+/* 28 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var global = __webpack_require__(15);
+var hide = __webpack_require__(29);
+var has = __webpack_require__(27);
+var SRC = __webpack_require__(51)('src');
+var TO_STRING = 'toString';
+var $toString = Function[TO_STRING];
+var TPL = ('' + $toString).split(TO_STRING);
+
+__webpack_require__(37).inspectSource = function (it) {
+  return $toString.call(it);
+};
+
+(module.exports = function (O, key, val, safe) {
+  var isFunction = typeof val == 'function';
+  if (isFunction) has(val, 'name') || hide(val, 'name', key);
+  if (O[key] === val) return;
+  if (isFunction) has(val, SRC) || hide(val, SRC, O[key] ? '' + O[key] : TPL.join(String(key)));
+  if (O === global) {
+    O[key] = val;
+  } else if (!safe) {
+    delete O[key];
+    hide(O, key, val);
+  } else if (O[key]) {
+    O[key] = val;
+  } else {
+    hide(O, key, val);
+  }
+// add fake Function#toString for correct work wrapped methods / constructors with methods like LoDash isNative
+})(Function.prototype, TO_STRING, function toString() {
+  return typeof this == 'function' && this[SRC] || $toString.call(this);
+});
+
+
+/***/ }),
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var dP = __webpack_require__(20);
+var createDesc = __webpack_require__(52);
+module.exports = __webpack_require__(22) ? function (object, key, value) {
+  return dP.f(object, key, createDesc(1, value));
+} : function (object, key, value) {
+  object[key] = value;
+  return object;
+};
+
+
+/***/ }),
+/* 30 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// optional / simple context binding
+var aFunction = __webpack_require__(63);
+module.exports = function (fn, that, length) {
+  aFunction(fn);
+  if (that === undefined) return fn;
+  switch (length) {
+    case 1: return function (a) {
+      return fn.call(that, a);
+    };
+    case 2: return function (a, b) {
+      return fn.call(that, a, b);
+    };
+    case 3: return function (a, b, c) {
+      return fn.call(that, a, b, c);
+    };
+  }
+  return function (/* ...args */) {
+    return fn.apply(that, arguments);
+  };
+};
+
+
+/***/ }),
+/* 31 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 7.1.13 ToObject(argument)
+var defined = __webpack_require__(36);
+module.exports = function (it) {
+  return Object(defined(it));
+};
+
+
+/***/ }),
+/* 32 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var META = __webpack_require__(51)('meta');
+var isObject = __webpack_require__(9);
+var has = __webpack_require__(27);
+var setDesc = __webpack_require__(20).f;
+var id = 0;
+var isExtensible = Object.isExtensible || function () {
+  return true;
+};
+var FREEZE = !__webpack_require__(23)(function () {
+  return isExtensible(Object.preventExtensions({}));
+});
+var setMeta = function (it) {
+  setDesc(it, META, { value: {
+    i: 'O' + ++id, // object ID
+    w: {}          // weak collections IDs
+  } });
+};
+var fastKey = function (it, create) {
+  // return primitive with prefix
+  if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
+  if (!has(it, META)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return 'F';
+    // not necessary to add metadata
+    if (!create) return 'E';
+    // add missing metadata
+    setMeta(it);
+  // return object ID
+  } return it[META].i;
+};
+var getWeak = function (it, create) {
+  if (!has(it, META)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return true;
+    // not necessary to add metadata
+    if (!create) return false;
+    // add missing metadata
+    setMeta(it);
+  // return hash weak collections IDs
+  } return it[META].w;
+};
+// add metadata on freeze-family methods calling
+var onFreeze = function (it) {
+  if (FREEZE && meta.NEED && isExtensible(it) && !has(it, META)) setMeta(it);
+  return it;
+};
+var meta = module.exports = {
+  KEY: META,
+  NEED: false,
+  fastKey: fastKey,
+  getWeak: getWeak,
+  onFreeze: onFreeze
+};
+
+
+/***/ }),
+/* 33 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.toUpperCaseFirst = toUpperCaseFirst;
+exports.equalsIgnoreCase = equalsIgnoreCase;
+exports.randomString = randomString;
+exports.isPercentValue = isPercentValue;
+exports.substitute = substitute;
+exports.stripTags = stripTags;
+
+var _mixed = __webpack_require__(11);
+
+/**
+ * Convert string to upper case first letter.
+ *
+ * @param {String} string String to convert.
+ * @returns {String}
+ */
+function toUpperCaseFirst(string) {
+  return string[0].toUpperCase() + string.substr(1);
+}
+
+/**
+ * Compare strings case insensitively.
+ *
+ * @param {...String} strings Strings to compare.
+ * @returns {Boolean}
+ */
+function equalsIgnoreCase() {
+  var unique = [];
+
+  for (var _len = arguments.length, strings = Array(_len), _key = 0; _key < _len; _key++) {
+    strings[_key] = arguments[_key];
+  }
+
+  var length = strings.length;
+
+  while (length--) {
+    var string = (0, _mixed.stringify)(strings[length]).toLowerCase();
+
+    if (unique.indexOf(string) === -1) {
+      unique.push(string);
+    }
+  }
+
+  return unique.length === 1;
+}
+
+/**
+ * Generates a random hex string. Used as namespace for Handsontable instance events.
+ *
+ * @return {String} Returns 16-long character random string (eq. `'92b1bfc74ec4'`).
+ */
+function randomString() {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+  }
+
+  return s4() + s4() + s4() + s4();
+}
+
+/**
+ * Checks if value is valid percent.
+ *
+ * @param {String} value
+ * @returns {Boolean}
+ */
+function isPercentValue(value) {
+  return (/^([0-9][0-9]?%$)|(^100%$)/.test(value)
+  );
+}
+
+/**
+ * Substitute strings placed beetwen square brackets into value defined in `variables` object. String names defined in
+ * square brackets must be the same as property name of `variables` object.
+ *
+ * @param {String} template Template string.
+ * @param {Object} variables Object which contains all available values which can be injected into template.
+ * @returns {String}
+ */
+function substitute(template) {
+  var variables = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  return ('' + template).replace(/(?:\\)?\[([^[\]]+)]/g, function (match, name) {
+    if (match.charAt(0) === '\\') {
+      return match.substr(1, match.length - 1);
+    }
+
+    return variables[name] === void 0 ? '' : variables[name];
+  });
+}
+
+var STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|/][^>]*>/gi;
+
+/**
+ * Strip any HTML tag from the string.
+ *
+ * @param  {String} string String to cut HTML from.
+ * @return {String}
+ */
+function stripTags(string) {
+  string += '';
+
+  return string.replace(STRIP_TAGS_REGEX, '');
+}
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.getRegisteredValidators = exports.getRegisteredValidatorNames = exports.hasValidator = exports.getValidator = exports.registerValidator = undefined;
+
+var _staticRegister2 = __webpack_require__(38);
+
+var _staticRegister3 = _interopRequireDefault(_staticRegister2);
+
+var _autocompleteValidator = __webpack_require__(372);
+
+var _autocompleteValidator2 = _interopRequireDefault(_autocompleteValidator);
+
+var _dateValidator = __webpack_require__(373);
+
+var _dateValidator2 = _interopRequireDefault(_dateValidator);
+
+var _numericValidator = __webpack_require__(374);
+
+var _numericValidator2 = _interopRequireDefault(_numericValidator);
+
+var _timeValidator = __webpack_require__(375);
+
+var _timeValidator2 = _interopRequireDefault(_timeValidator);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var _staticRegister = (0, _staticRegister3.default)('validators'),
+    register = _staticRegister.register,
+    getItem = _staticRegister.getItem,
+    hasItem = _staticRegister.hasItem,
+    getNames = _staticRegister.getNames,
+    getValues = _staticRegister.getValues;
+
+register('autocomplete', _autocompleteValidator2.default);
+register('date', _dateValidator2.default);
+register('numeric', _numericValidator2.default);
+register('time', _timeValidator2.default);
+
+/**
+ * Retrieve validator function.
+ *
+ * @param {String} name Validator identification.
+ * @returns {Function} Returns validator function.
+ */
+function _getItem(name) {
+  if (typeof name === 'function') {
+    return name;
+  }
+  if (!hasItem(name)) {
+    throw Error('No registered validator found under "' + name + '" name');
+  }
+
+  return getItem(name);
+}
+
+exports.registerValidator = register;
+exports.getValidator = _getItem;
+exports.hasValidator = hasItem;
+exports.getRegisteredValidatorNames = getNames;
+exports.getRegisteredValidators = getValues;
+
+/***/ }),
+/* 35 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.14 / 15.2.3.14 Object.keys(O)
+var $keys = __webpack_require__(101);
+var enumBugKeys = __webpack_require__(80);
+
+module.exports = Object.keys || function keys(O) {
+  return $keys(O, enumBugKeys);
+};
+
+
+/***/ }),
+/* 36 */
+/***/ (function(module, exports) {
+
+// 7.2.1 RequireObjectCoercible(argument)
+module.exports = function (it) {
+  if (it == undefined) throw TypeError("Can't call method on  " + it);
+  return it;
+};
+
+
+/***/ }),
+/* 37 */
+/***/ (function(module, exports) {
+
+var core = module.exports = { version: '2.5.7' };
+if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
+
+
+/***/ }),
+/* 38 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.default = staticRegister;
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var collection = exports.collection = new Map();
+
+function staticRegister() {
+  var namespace = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'common';
+
+  if (!collection.has(namespace)) {
+    collection.set(namespace, new Map());
+  }
+  var subCollection = collection.get(namespace);
+
+  /**
+   * Register an item to the collection. If the item under the same was exist earlier then this item will be replaced with new one.
+   *
+   * @param {String} name Identification of the item.
+   * @param {*} item Item to save in the collection.
+   */
+  function register(name, item) {
+    subCollection.set(name, item);
+  }
+
+  /**
+   * Retrieve the item from the collection.
+   *
+   * @param {String} name Identification of the item.
+   * @returns {*} Returns item which was saved in the collection.
+   */
+  function getItem(name) {
+    return subCollection.get(name);
+  }
+
+  /**
+   * Check if item under specyfied name is exists.
+   *
+   * @param {String} name Identification of the item.
+   * @returns {Boolean} Returns `true` or `false` depends on if element exists in the collection.
+   */
+  function hasItem(name) {
+    return subCollection.has(name);
+  }
+
+  /**
+   * Retrieve list of names registered from the collection.
+   *
+   * @returns {Array} Returns an array of strings with all names under which objects are stored.
+   */
+  function getNames() {
+    return [].concat(_toConsumableArray(subCollection.keys()));
+  }
+
+  /**
+   * Retrieve all registered values from the collection.
+   *
+   * @returns {Array} Returns an array with all values stored in the collection.
+   */
+  function getValues() {
+    return [].concat(_toConsumableArray(subCollection.values()));
+  }
+
+  return {
+    register: register,
+    getItem: getItem,
+    hasItem: hasItem,
+    getNames: getNames,
+    getValues: getValues
+  };
+}
+
+/***/ }),
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6086,14 +6540,14 @@ exports.isMSBrowser = isMSBrowser;
 exports.isMobileBrowser = isMobileBrowser;
 exports.isSafari = isSafari;
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var tester = function tester(_tester) {
+var tester = function tester(testerFunc) {
   var result = {
     value: false
   };
   result.test = function (ua, vendor) {
-    result.value = _tester(ua, vendor);
+    result.value = testerFunc(ua, vendor);
   };
 
   return result;
@@ -6176,231 +6630,155 @@ function isSafari() {
 }
 
 /***/ }),
-/* 28 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 exports.__esModule = true;
-exports.getRegisteredValidators = exports.getRegisteredValidatorNames = exports.hasValidator = exports.getValidator = exports.registerValidator = undefined;
 
-var _staticRegister2 = __webpack_require__(40);
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _staticRegister3 = _interopRequireDefault(_staticRegister2);
+exports.requestAnimationFrame = requestAnimationFrame;
+exports.cancelAnimationFrame = cancelAnimationFrame;
+exports.isTouchSupported = isTouchSupported;
+exports.isWebComponentSupportedNatively = isWebComponentSupportedNatively;
+exports.hasCaptionProblem = hasCaptionProblem;
+exports.getComparisonFunction = getComparisonFunction;
+// https://gist.github.com/paulirish/1579671
+var lastTime = 0;
+var vendors = ['ms', 'moz', 'webkit', 'o'];
+var _requestAnimationFrame = window.requestAnimationFrame;
+var _cancelAnimationFrame = window.cancelAnimationFrame;
 
-var _autocompleteValidator = __webpack_require__(373);
-
-var _autocompleteValidator2 = _interopRequireDefault(_autocompleteValidator);
-
-var _dateValidator = __webpack_require__(374);
-
-var _dateValidator2 = _interopRequireDefault(_dateValidator);
-
-var _numericValidator = __webpack_require__(375);
-
-var _numericValidator2 = _interopRequireDefault(_numericValidator);
-
-var _timeValidator = __webpack_require__(376);
-
-var _timeValidator2 = _interopRequireDefault(_timeValidator);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var _staticRegister = (0, _staticRegister3.default)('validators'),
-    register = _staticRegister.register,
-    getItem = _staticRegister.getItem,
-    hasItem = _staticRegister.hasItem,
-    getNames = _staticRegister.getNames,
-    getValues = _staticRegister.getValues;
-
-register('autocomplete', _autocompleteValidator2.default);
-register('date', _dateValidator2.default);
-register('numeric', _numericValidator2.default);
-register('time', _timeValidator2.default);
-
-/**
- * Retrieve validator function.
- *
- * @param {String} name Validator identification.
- * @returns {Function} Returns validator function.
- */
-function _getItem(name) {
-  if (typeof name === 'function') {
-    return name;
-  }
-  if (!hasItem(name)) {
-    throw Error('No registered validator found under "' + name + '" name');
-  }
-
-  return getItem(name);
+for (var x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
+  _requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+  _cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
 }
 
-exports.registerValidator = register;
-exports.getValidator = _getItem;
-exports.hasValidator = hasItem;
-exports.getRegisteredValidatorNames = getNames;
-exports.getRegisteredValidators = getValues;
+if (!_requestAnimationFrame) {
+  _requestAnimationFrame = function _requestAnimationFrame(callback) {
+    var currTime = new Date().getTime();
+    var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+    var id = window.setTimeout(function () {
+      callback(currTime + timeToCall);
+    }, timeToCall);
+    lastTime = currTime + timeToCall;
 
-/***/ }),
-/* 29 */
-/***/ (function(module, exports) {
-
-var hasOwnProperty = {}.hasOwnProperty;
-module.exports = function (it, key) {
-  return hasOwnProperty.call(it, key);
-};
-
-
-/***/ }),
-/* 30 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var global = __webpack_require__(15);
-var hide = __webpack_require__(31);
-var has = __webpack_require__(29);
-var SRC = __webpack_require__(51)('src');
-var TO_STRING = 'toString';
-var $toString = Function[TO_STRING];
-var TPL = ('' + $toString).split(TO_STRING);
-
-__webpack_require__(39).inspectSource = function (it) {
-  return $toString.call(it);
-};
-
-(module.exports = function (O, key, val, safe) {
-  var isFunction = typeof val == 'function';
-  if (isFunction) has(val, 'name') || hide(val, 'name', key);
-  if (O[key] === val) return;
-  if (isFunction) has(val, SRC) || hide(val, SRC, O[key] ? '' + O[key] : TPL.join(String(key)));
-  if (O === global) {
-    O[key] = val;
-  } else if (!safe) {
-    delete O[key];
-    hide(O, key, val);
-  } else if (O[key]) {
-    O[key] = val;
-  } else {
-    hide(O, key, val);
-  }
-// add fake Function#toString for correct work wrapped methods / constructors with methods like LoDash isNative
-})(Function.prototype, TO_STRING, function toString() {
-  return typeof this == 'function' && this[SRC] || $toString.call(this);
-});
-
-
-/***/ }),
-/* 31 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var dP = __webpack_require__(20);
-var createDesc = __webpack_require__(52);
-module.exports = __webpack_require__(22) ? function (object, key, value) {
-  return dP.f(object, key, createDesc(1, value));
-} : function (object, key, value) {
-  object[key] = value;
-  return object;
-};
-
-
-/***/ }),
-/* 32 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// optional / simple context binding
-var aFunction = __webpack_require__(63);
-module.exports = function (fn, that, length) {
-  aFunction(fn);
-  if (that === undefined) return fn;
-  switch (length) {
-    case 1: return function (a) {
-      return fn.call(that, a);
-    };
-    case 2: return function (a, b) {
-      return fn.call(that, a, b);
-    };
-    case 3: return function (a, b, c) {
-      return fn.call(that, a, b, c);
-    };
-  }
-  return function (/* ...args */) {
-    return fn.apply(that, arguments);
+    return id;
   };
-};
+}
 
+if (!_cancelAnimationFrame) {
+  _cancelAnimationFrame = function _cancelAnimationFrame(id) {
+    clearTimeout(id);
+  };
+}
+
+/**
+ * Polyfill for requestAnimationFrame
+ *
+ * @param {Function} callback
+ * @returns {Number}
+ */
+function requestAnimationFrame(callback) {
+  return _requestAnimationFrame.call(window, callback);
+}
+
+/**
+ * Polyfill for cancelAnimationFrame
+ *
+ * @param {Number} id
+ */
+function cancelAnimationFrame(id) {
+  _cancelAnimationFrame.call(window, id);
+}
+
+function isTouchSupported() {
+  return 'ontouchstart' in window;
+}
+
+/**
+ * Checks if browser is support web components natively
+ *
+ * @returns {Boolean}
+ */
+function isWebComponentSupportedNatively() {
+  var test = document.createElement('div');
+
+  return !!(test.createShadowRoot && test.createShadowRoot.toString().match(/\[native code\]/));
+}
+
+var _hasCaptionProblem = void 0;
+
+function detectCaptionProblem() {
+  var TABLE = document.createElement('TABLE');
+  TABLE.style.borderSpacing = 0;
+  TABLE.style.borderWidth = 0;
+  TABLE.style.padding = 0;
+  var TBODY = document.createElement('TBODY');
+  TABLE.appendChild(TBODY);
+  TBODY.appendChild(document.createElement('TR'));
+  TBODY.firstChild.appendChild(document.createElement('TD'));
+  TBODY.firstChild.firstChild.innerHTML = '<tr><td>t<br>t</td></tr>';
+
+  var CAPTION = document.createElement('CAPTION');
+  CAPTION.innerHTML = 'c<br>c<br>c<br>c';
+  CAPTION.style.padding = 0;
+  CAPTION.style.margin = 0;
+  TABLE.insertBefore(CAPTION, TBODY);
+
+  document.body.appendChild(TABLE);
+  _hasCaptionProblem = TABLE.offsetHeight < 2 * TABLE.lastChild.offsetHeight; // boolean
+  document.body.removeChild(TABLE);
+}
+
+function hasCaptionProblem() {
+  if (_hasCaptionProblem === void 0) {
+    detectCaptionProblem();
+  }
+
+  return _hasCaptionProblem;
+}
+
+var comparisonFunction = void 0;
+
+/**
+ * Get string comparison function for sorting purposes. It supports multilingual string comparison base on Internationalization API.
+ *
+ * @param {String} [language]
+ * @param {Object} [options]
+ * @returns {*}
+ */
+function getComparisonFunction(language) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  if (comparisonFunction) {
+    return comparisonFunction;
+  }
+
+  if ((typeof Intl === 'undefined' ? 'undefined' : _typeof(Intl)) === 'object') {
+    comparisonFunction = new Intl.Collator(language, options).compare;
+  } else if (typeof String.prototype.localeCompare === 'function') {
+    comparisonFunction = function comparisonFunction(a, b) {
+      return ('' + a).localeCompare(b);
+    };
+  } else {
+    comparisonFunction = function comparisonFunction(a, b) {
+      if (a === b) {
+        return 0;
+      }
+
+      return a > b ? -1 : 1;
+    };
+  }
+
+  return comparisonFunction;
+}
 
 /***/ }),
-/* 33 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 7.1.13 ToObject(argument)
-var defined = __webpack_require__(38);
-module.exports = function (it) {
-  return Object(defined(it));
-};
-
-
-/***/ }),
-/* 34 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var META = __webpack_require__(51)('meta');
-var isObject = __webpack_require__(9);
-var has = __webpack_require__(29);
-var setDesc = __webpack_require__(20).f;
-var id = 0;
-var isExtensible = Object.isExtensible || function () {
-  return true;
-};
-var FREEZE = !__webpack_require__(23)(function () {
-  return isExtensible(Object.preventExtensions({}));
-});
-var setMeta = function (it) {
-  setDesc(it, META, { value: {
-    i: 'O' + ++id, // object ID
-    w: {}          // weak collections IDs
-  } });
-};
-var fastKey = function (it, create) {
-  // return primitive with prefix
-  if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
-  if (!has(it, META)) {
-    // can't set metadata to uncaught frozen object
-    if (!isExtensible(it)) return 'F';
-    // not necessary to add metadata
-    if (!create) return 'E';
-    // add missing metadata
-    setMeta(it);
-  // return object ID
-  } return it[META].i;
-};
-var getWeak = function (it, create) {
-  if (!has(it, META)) {
-    // can't set metadata to uncaught frozen object
-    if (!isExtensible(it)) return true;
-    // not necessary to add metadata
-    if (!create) return false;
-    // add missing metadata
-    setMeta(it);
-  // return hash weak collections IDs
-  } return it[META].w;
-};
-// add metadata on freeze-family methods calling
-var onFreeze = function (it) {
-  if (FREEZE && meta.NEED && isExtensible(it) && !has(it, META)) setMeta(it);
-  return it;
-};
-var meta = module.exports = {
-  KEY: META,
-  NEED: false,
-  fastKey: fastKey,
-  getWeak: getWeak,
-  onFreeze: onFreeze
-};
-
-
-/***/ }),
-/* 35 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6412,11 +6790,11 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
@@ -6754,378 +7132,6 @@ var Overlay = function () {
 }();
 
 exports.default = Overlay;
-
-/***/ }),
-/* 36 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.toUpperCaseFirst = toUpperCaseFirst;
-exports.equalsIgnoreCase = equalsIgnoreCase;
-exports.randomString = randomString;
-exports.isPercentValue = isPercentValue;
-exports.substitute = substitute;
-exports.stripTags = stripTags;
-
-var _mixed = __webpack_require__(11);
-
-var _number = __webpack_require__(5);
-
-/**
- * Convert string to upper case first letter.
- *
- * @param {String} string String to convert.
- * @returns {String}
- */
-function toUpperCaseFirst(string) {
-  return string[0].toUpperCase() + string.substr(1);
-}
-
-/**
- * Compare strings case insensitively.
- *
- * @param {...String} strings Strings to compare.
- * @returns {Boolean}
- */
-function equalsIgnoreCase() {
-  var unique = [];
-
-  for (var _len = arguments.length, strings = Array(_len), _key = 0; _key < _len; _key++) {
-    strings[_key] = arguments[_key];
-  }
-
-  var length = strings.length;
-
-  while (length--) {
-    var string = (0, _mixed.stringify)(strings[length]).toLowerCase();
-
-    if (unique.indexOf(string) === -1) {
-      unique.push(string);
-    }
-  }
-
-  return unique.length === 1;
-}
-
-/**
- * Generates a random hex string. Used as namespace for Handsontable instance events.
- *
- * @return {String} Returns 16-long character random string (eq. `'92b1bfc74ec4'`).
- */
-function randomString() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-  }
-
-  return s4() + s4() + s4() + s4();
-}
-
-/**
- * Checks if value is valid percent.
- *
- * @param {String} value
- * @returns {Boolean}
- */
-function isPercentValue(value) {
-  return (/^([0-9][0-9]?%$)|(^100%$)/.test(value)
-  );
-}
-
-/**
- * Substitute strings placed beetwen square brackets into value defined in `variables` object. String names defined in
- * square brackets must be the same as property name of `variables` object.
- *
- * @param {String} template Template string.
- * @param {Object} variables Object which contains all available values which can be injected into template.
- * @returns {String}
- */
-function substitute(template) {
-  var variables = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  return ('' + template).replace(/(?:\\)?\[([^[\]]+)]/g, function (match, name) {
-    if (match.charAt(0) === '\\') {
-      return match.substr(1, match.length - 1);
-    }
-
-    return variables[name] === void 0 ? '' : variables[name];
-  });
-}
-
-var STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|/][^>]*>/gi;
-
-/**
- * Strip any HTML tag from the string.
- *
- * @param  {String} string String to cut HTML from.
- * @return {String}
- */
-function stripTags(string) {
-  string += '';
-
-  return string.replace(STRIP_TAGS_REGEX, '');
-}
-
-/***/ }),
-/* 37 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.2.14 / 15.2.3.14 Object.keys(O)
-var $keys = __webpack_require__(102);
-var enumBugKeys = __webpack_require__(80);
-
-module.exports = Object.keys || function keys(O) {
-  return $keys(O, enumBugKeys);
-};
-
-
-/***/ }),
-/* 38 */
-/***/ (function(module, exports) {
-
-// 7.2.1 RequireObjectCoercible(argument)
-module.exports = function (it) {
-  if (it == undefined) throw TypeError("Can't call method on  " + it);
-  return it;
-};
-
-
-/***/ }),
-/* 39 */
-/***/ (function(module, exports) {
-
-var core = module.exports = { version: '2.5.7' };
-if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
-
-
-/***/ }),
-/* 40 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.default = staticRegister;
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-var collection = exports.collection = new Map();
-
-function staticRegister() {
-  var namespace = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'common';
-
-  if (!collection.has(namespace)) {
-    collection.set(namespace, new Map());
-  }
-  var subCollection = collection.get(namespace);
-
-  /**
-   * Register an item to the collection. If the item under the same was exist earlier then this item will be replaced with new one.
-   *
-   * @param {String} name Identification of the item.
-   * @param {*} item Item to save in the collection.
-   */
-  function register(name, item) {
-    subCollection.set(name, item);
-  }
-
-  /**
-   * Retrieve the item from the collection.
-   *
-   * @param {String} name Identification of the item.
-   * @returns {*} Returns item which was saved in the collection.
-   */
-  function getItem(name) {
-    return subCollection.get(name);
-  }
-
-  /**
-   * Check if item under specyfied name is exists.
-   *
-   * @param {String} name Identification of the item.
-   * @returns {Boolean} Returns `true` or `false` depends on if element exists in the collection.
-   */
-  function hasItem(name) {
-    return subCollection.has(name);
-  }
-
-  /**
-   * Retrieve list of names registered from the collection.
-   *
-   * @returns {Array} Returns an array of strings with all names under which objects are stored.
-   */
-  function getNames() {
-    return [].concat(_toConsumableArray(subCollection.keys()));
-  }
-
-  /**
-   * Retrieve all registered values from the collection.
-   *
-   * @returns {Array} Returns an array with all values stored in the collection.
-   */
-  function getValues() {
-    return [].concat(_toConsumableArray(subCollection.values()));
-  }
-
-  return {
-    register: register,
-    getItem: getItem,
-    hasItem: hasItem,
-    getNames: getNames,
-    getValues: getValues
-  };
-}
-
-/***/ }),
-/* 41 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.requestAnimationFrame = requestAnimationFrame;
-exports.cancelAnimationFrame = cancelAnimationFrame;
-exports.isTouchSupported = isTouchSupported;
-exports.isWebComponentSupportedNatively = isWebComponentSupportedNatively;
-exports.hasCaptionProblem = hasCaptionProblem;
-exports.getComparisonFunction = getComparisonFunction;
-// https://gist.github.com/paulirish/1579671
-var lastTime = 0;
-var vendors = ['ms', 'moz', 'webkit', 'o'];
-var _requestAnimationFrame = window.requestAnimationFrame;
-var _cancelAnimationFrame = window.cancelAnimationFrame;
-
-for (var x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
-  _requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-  _cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
-}
-
-if (!_requestAnimationFrame) {
-  _requestAnimationFrame = function _requestAnimationFrame(callback) {
-    var currTime = new Date().getTime();
-    var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-    var id = window.setTimeout(function () {
-      callback(currTime + timeToCall);
-    }, timeToCall);
-    lastTime = currTime + timeToCall;
-
-    return id;
-  };
-}
-
-if (!_cancelAnimationFrame) {
-  _cancelAnimationFrame = function _cancelAnimationFrame(id) {
-    clearTimeout(id);
-  };
-}
-
-/**
- * Polyfill for requestAnimationFrame
- *
- * @param {Function} callback
- * @returns {Number}
- */
-function requestAnimationFrame(callback) {
-  return _requestAnimationFrame.call(window, callback);
-}
-
-/**
- * Polyfill for cancelAnimationFrame
- *
- * @param {Number} id
- */
-function cancelAnimationFrame(id) {
-  _cancelAnimationFrame.call(window, id);
-}
-
-function isTouchSupported() {
-  return 'ontouchstart' in window;
-}
-
-/**
- * Checks if browser is support web components natively
- *
- * @returns {Boolean}
- */
-function isWebComponentSupportedNatively() {
-  var test = document.createElement('div');
-
-  return !!(test.createShadowRoot && test.createShadowRoot.toString().match(/\[native code\]/));
-}
-
-var _hasCaptionProblem;
-
-function detectCaptionProblem() {
-  var TABLE = document.createElement('TABLE');
-  TABLE.style.borderSpacing = 0;
-  TABLE.style.borderWidth = 0;
-  TABLE.style.padding = 0;
-  var TBODY = document.createElement('TBODY');
-  TABLE.appendChild(TBODY);
-  TBODY.appendChild(document.createElement('TR'));
-  TBODY.firstChild.appendChild(document.createElement('TD'));
-  TBODY.firstChild.firstChild.innerHTML = '<tr><td>t<br>t</td></tr>';
-
-  var CAPTION = document.createElement('CAPTION');
-  CAPTION.innerHTML = 'c<br>c<br>c<br>c';
-  CAPTION.style.padding = 0;
-  CAPTION.style.margin = 0;
-  TABLE.insertBefore(CAPTION, TBODY);
-
-  document.body.appendChild(TABLE);
-  _hasCaptionProblem = TABLE.offsetHeight < 2 * TABLE.lastChild.offsetHeight; // boolean
-  document.body.removeChild(TABLE);
-}
-
-function hasCaptionProblem() {
-  if (_hasCaptionProblem === void 0) {
-    detectCaptionProblem();
-  }
-
-  return _hasCaptionProblem;
-}
-
-var comparisonFunction = void 0;
-
-/**
- * Get string comparison function for sorting purposes. It supports multilingual string comparison base on Internationalization API.
- *
- * @param {String} [language]
- * @param {Object} [options]
- * @returns {*}
- */
-function getComparisonFunction(language) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  if (comparisonFunction) {
-    return comparisonFunction;
-  }
-
-  if ((typeof Intl === 'undefined' ? 'undefined' : _typeof(Intl)) === 'object') {
-    comparisonFunction = new Intl.Collator(language, options).compare;
-  } else if (typeof String.prototype.localeCompare === 'function') {
-    comparisonFunction = function comparisonFunction(a, b) {
-      return ('' + a).localeCompare(b);
-    };
-  } else {
-    comparisonFunction = function comparisonFunction(a, b) {
-      if (a === b) {
-        return 0;
-      }
-
-      return a > b ? -1 : 1;
-    };
-  }
-
-  return comparisonFunction;
-}
 
 /***/ }),
 /* 42 */
@@ -8975,7 +8981,7 @@ function loadLocale(name) {
         try {
             oldLocale = globalLocale._abbr;
             var aliasedRequire = require;
-            __webpack_require__(352)("./" + name);
+            __webpack_require__(351)("./" + name);
             getSetGlobalLocale(oldLocale);
         } catch (e) {}
     }
@@ -11670,7 +11676,7 @@ return hooks;
 
 /*** EXPORTS FROM exports-to-window-loader ***/
 window['moment'] = __webpack_require__(42);
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(351)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(350)(module)))
 
 /***/ }),
 /* 43 */
@@ -11682,7 +11688,7 @@ window['moment'] = __webpack_require__(42);
 exports.__esModule = true;
 exports.toSingleLine = toSingleLine;
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 /**
  * Tags a multiline string and return new one without line break characters and following spaces.
@@ -11724,7 +11730,7 @@ exports.partial = partial;
 exports.curry = curry;
 exports.curryRight = curryRight;
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 /**
  * Checks if given variable is function.
@@ -11755,7 +11761,10 @@ function throttle(func) {
   function _throttle() {
     var _this = this;
 
-    var args = arguments;
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
     var stamp = Date.now();
     var needCall = false;
 
@@ -11808,13 +11817,17 @@ function throttleAfterHits(func) {
     remainHits = hits;
   }
   function _throttleAfterHits() {
+    for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      args[_key2] = arguments[_key2];
+    }
+
     if (remainHits) {
       remainHits--;
 
-      return func.apply(this, arguments);
+      return func.apply(this, args);
     }
 
-    return funcThrottle.apply(this, arguments);
+    return funcThrottle.apply(this, args);
   }
   _throttleAfterHits.clearHits = _clearHits;
 
@@ -11838,7 +11851,9 @@ function debounce(func) {
   function _debounce() {
     var _this2 = this;
 
-    var args = arguments;
+    for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+      args[_key3] = arguments[_key3];
+    }
 
     if (lastTimer) {
       clearTimeout(lastTimer);
@@ -11861,8 +11876,8 @@ function debounce(func) {
  * @returns {Function}
  */
 function pipe() {
-  for (var _len = arguments.length, functions = Array(_len), _key = 0; _key < _len; _key++) {
-    functions[_key] = arguments[_key];
+  for (var _len4 = arguments.length, functions = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+    functions[_key4] = arguments[_key4];
   }
 
   var firstFunc = functions[0],
@@ -11870,9 +11885,13 @@ function pipe() {
 
 
   return function _pipe() {
+    for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+      args[_key5] = arguments[_key5];
+    }
+
     return (0, _array.arrayReduce)(restFunc, function (acc, fn) {
       return fn(acc);
-    }, firstFunc.apply(this, arguments));
+    }, firstFunc.apply(this, args));
   };
 }
 
@@ -11884,13 +11903,13 @@ function pipe() {
  * @returns {Function}
  */
 function partial(func) {
-  for (var _len2 = arguments.length, params = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-    params[_key2 - 1] = arguments[_key2];
+  for (var _len6 = arguments.length, params = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
+    params[_key6 - 1] = arguments[_key6];
   }
 
   return function _partial() {
-    for (var _len3 = arguments.length, restParams = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-      restParams[_key3] = arguments[_key3];
+    for (var _len7 = arguments.length, restParams = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+      restParams[_key7] = arguments[_key7];
     }
 
     return func.apply(this, params.concat(restParams));
@@ -11924,8 +11943,8 @@ function curry(func) {
 
   function given(argsSoFar) {
     return function _curry() {
-      for (var _len4 = arguments.length, params = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-        params[_key4] = arguments[_key4];
+      for (var _len8 = arguments.length, params = Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+        params[_key8] = arguments[_key8];
       }
 
       var passedArgsSoFar = argsSoFar.concat(params);
@@ -11971,8 +11990,8 @@ function curryRight(func) {
 
   function given(argsSoFar) {
     return function _curry() {
-      for (var _len5 = arguments.length, params = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-        params[_key5] = arguments[_key5];
+      for (var _len9 = arguments.length, params = Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
+        params[_key9] = arguments[_key9];
       }
 
       var passedArgsSoFar = argsSoFar.concat(params.reverse());
@@ -12020,7 +12039,7 @@ module.exports = function (it, TYPE) {
 // 22.1.3.31 Array.prototype[@@unscopables]
 var UNSCOPABLES = __webpack_require__(12)('unscopables');
 var ArrayProto = Array.prototype;
-if (ArrayProto[UNSCOPABLES] == undefined) __webpack_require__(31)(ArrayProto, UNSCOPABLES, {});
+if (ArrayProto[UNSCOPABLES] == undefined) __webpack_require__(29)(ArrayProto, UNSCOPABLES, {});
 module.exports = function (key) {
   ArrayProto[UNSCOPABLES][key] = true;
 };
@@ -12035,9 +12054,9 @@ module.exports = function (key) {
 
 exports.__esModule = true;
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var MIXIN_NAME = 'localHooks';
 
@@ -12126,9 +12145,9 @@ exports.extendDefaultBorder = extendDefaultBorder;
 exports.checkSelectionBorders = checkSelectionBorders;
 exports.markSelected = markSelected;
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 /**
  * Create separated id for borders for each cell.
@@ -12201,19 +12220,55 @@ function extendDefaultBorder(defaultBorder, customBorder) {
   }
 
   if ((0, _object.hasOwnProperty)(customBorder, 'top')) {
-    defaultBorder.top = customBorder.top;
+    if (customBorder.top) {
+      if (!(0, _object.isObject)(customBorder.top)) {
+        customBorder.top = createDefaultCustomBorder();
+      }
+
+      defaultBorder.top = customBorder.top;
+    } else {
+      customBorder.top = createSingleEmptyBorder();
+      defaultBorder.top = customBorder.top;
+    }
   }
 
   if ((0, _object.hasOwnProperty)(customBorder, 'right')) {
-    defaultBorder.right = customBorder.right;
+    if (customBorder.right) {
+      if (!(0, _object.isObject)(customBorder.right)) {
+        customBorder.right = createDefaultCustomBorder();
+      }
+
+      defaultBorder.right = customBorder.right;
+    } else {
+      customBorder.right = createSingleEmptyBorder();
+      defaultBorder.right = customBorder.right;
+    }
   }
 
   if ((0, _object.hasOwnProperty)(customBorder, 'bottom')) {
-    defaultBorder.bottom = customBorder.bottom;
+    if (customBorder.bottom) {
+      if (!(0, _object.isObject)(customBorder.bottom)) {
+        customBorder.bottom = createDefaultCustomBorder();
+      }
+
+      defaultBorder.bottom = customBorder.bottom;
+    } else {
+      customBorder.bottom = createSingleEmptyBorder();
+      defaultBorder.bottom = customBorder.bottom;
+    }
   }
 
   if ((0, _object.hasOwnProperty)(customBorder, 'left')) {
-    defaultBorder.left = customBorder.left;
+    if (customBorder.left) {
+      if (!(0, _object.isObject)(customBorder.left)) {
+        customBorder.left = createDefaultCustomBorder();
+      }
+
+      defaultBorder.left = customBorder.left;
+    } else {
+      customBorder.left = createSingleEmptyBorder();
+      defaultBorder.left = customBorder.left;
+    }
   }
 
   return defaultBorder;
@@ -12303,7 +12358,7 @@ module.exports = {};
 /***/ (function(module, exports, __webpack_require__) {
 
 var def = __webpack_require__(20).f;
-var has = __webpack_require__(29);
+var has = __webpack_require__(27);
 var TAG = __webpack_require__(12)('toStringTag');
 
 module.exports = function (it, tag, stat) {
@@ -12367,7 +12422,7 @@ BaseEditor.prototype.getValue = function () {
   throw Error('Editor getValue() method unimplemented');
 };
 
-BaseEditor.prototype.setValue = function (newValue) {
+BaseEditor.prototype.setValue = function () {
   throw Error('Editor setValue() method unimplemented');
 };
 
@@ -12393,7 +12448,11 @@ BaseEditor.prototype.extend = function () {
   var baseClass = this.constructor;
 
   function Editor() {
-    baseClass.apply(this, arguments);
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    baseClass.apply(this, args);
   }
 
   function inherit(Child, Parent) {
@@ -12459,8 +12518,8 @@ BaseEditor.prototype.beginEditing = function (newInitialValue, event) {
 };
 
 BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown, callback) {
-  var _this = this,
-      val;
+  var _this = this;
+  var val = void 0;
 
   if (callback) {
     var previousCloseCallback = this._closeCallback;
@@ -12479,7 +12538,7 @@ BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown, c
     return;
   }
 
-  if (this.state == EditorState.VIRGIN) {
+  if (this.state === EditorState.VIRGIN) {
     this.instance._registerTimeout(function () {
       _this._fireCallbacks(true);
     });
@@ -12487,7 +12546,7 @@ BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown, c
     return;
   }
 
-  if (this.state == EditorState.EDITING) {
+  if (this.state === EditorState.EDITING) {
     if (restoreOriginalValue) {
       this.cancelChanges();
       this.instance.view.render();
@@ -12836,7 +12895,7 @@ exports.__esModule = true;
 
 var _element = __webpack_require__(0);
 
-var _autoResize = __webpack_require__(357);
+var _autoResize = __webpack_require__(356);
 
 var _autoResize2 = _interopRequireDefault(_autoResize);
 
@@ -12844,13 +12903,11 @@ var _baseEditor = __webpack_require__(56);
 
 var _baseEditor2 = _interopRequireDefault(_baseEditor);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _unicode = __webpack_require__(21);
-
-var _browser = __webpack_require__(27);
 
 var _event = __webpack_require__(13);
 
@@ -12882,7 +12939,11 @@ TextEditor.prototype.prepare = function (row, col, prop, td, originalValue, cell
 
   var previousState = this.state;
 
-  _baseEditor2.default.prototype.prepare.apply(this, arguments);
+  for (var _len = arguments.length, args = Array(_len > 6 ? _len - 6 : 0), _key = 6; _key < _len; _key++) {
+    args[_key - 6] = arguments[_key];
+  }
+
+  _baseEditor2.default.prototype.prepare.apply(this, [row, col, prop, td, originalValue, cellProperties].concat(args));
 
   if (!cellProperties.readOnly) {
     this.refreshDimensions(true);
@@ -12929,19 +12990,24 @@ TextEditor.prototype.setValue = function (newValue) {
   this.TEXTAREA.value = newValue;
 };
 
-TextEditor.prototype.beginEditing = function (newInitialValue, event) {
+TextEditor.prototype.beginEditing = function () {
   if (this.state !== _baseEditor.EditorState.VIRGIN) {
     return;
   }
 
   this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME).
-  _baseEditor2.default.prototype.beginEditing.apply(this, arguments);
+
+  for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    args[_key2] = arguments[_key2];
+  }
+
+  _baseEditor2.default.prototype.beginEditing.apply(this, args);
 };
 
 var onBeforeKeyDown = function onBeforeKeyDown(event) {
-  var instance = this,
-      that = instance.getActiveEditor(),
-      ctrlDown;
+  var instance = this;
+  var that = instance.getActiveEditor();
+  var ctrlDown = void 0;
 
   // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
   ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
@@ -13034,7 +13100,7 @@ TextEditor.prototype.open = function () {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-TextEditor.prototype.close = function (tdOutside) {
+TextEditor.prototype.close = function () {
   this.autoResize.unObserve();
 
   if (document.activeElement === this.TEXTAREA) {
@@ -13119,7 +13185,7 @@ TextEditor.prototype.getEditedCell = function () {
       break;
   }
 
-  return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
+  return editedCell !== -1 && editedCell !== -2 ? editedCell : void 0;
 };
 
 TextEditor.prototype.refreshValue = function () {
@@ -13163,7 +13229,6 @@ TextEditor.prototype.refreshDimensions = function () {
   var editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
 
   var settings = this.instance.getSettings();
-  var rowHeadersCount = this.instance.hasRowHeaders();
   var colHeadersCount = this.instance.hasColHeaders();
   var backgroundColor = this.TD.style.backgroundColor;
 
@@ -13200,7 +13265,7 @@ TextEditor.prototype.refreshDimensions = function () {
     editLeft += 1;
   }
 
-  if (cssTransformOffset && cssTransformOffset != -1) {
+  if (cssTransformOffset && cssTransformOffset !== -1) {
     this.textareaParentStyle[cssTransformOffset[0]] = cssTransformOffset[1];
   } else {
     (0, _element.resetCssTransform)(this.TEXTAREA_PARENT);
@@ -13308,7 +13373,7 @@ module.exports = function (index, length) {
 /* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var redefine = __webpack_require__(30);
+var redefine = __webpack_require__(28);
 module.exports = function (target, src, safe) {
   for (var key in src) redefine(target, key, src[key], safe);
   return target;
@@ -13340,12 +13405,12 @@ module.exports = function (it, Constructor, name, forbiddenField) {
 /* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var ctx = __webpack_require__(32);
-var call = __webpack_require__(105);
-var isArrayIter = __webpack_require__(106);
+var ctx = __webpack_require__(30);
+var call = __webpack_require__(104);
+var isArrayIter = __webpack_require__(105);
 var anObject = __webpack_require__(18);
 var toLength = __webpack_require__(25);
-var getIterFn = __webpack_require__(107);
+var getIterFn = __webpack_require__(106);
 var BREAK = {};
 var RETURN = {};
 var exports = module.exports = function (iterable, entries, fn, that, ITERATOR) {
@@ -13375,16 +13440,16 @@ exports.RETURN = RETURN;
 
 var global = __webpack_require__(15);
 var $export = __webpack_require__(3);
-var redefine = __webpack_require__(30);
+var redefine = __webpack_require__(28);
 var redefineAll = __webpack_require__(62);
-var meta = __webpack_require__(34);
+var meta = __webpack_require__(32);
 var forOf = __webpack_require__(65);
 var anInstance = __webpack_require__(64);
 var isObject = __webpack_require__(9);
 var fails = __webpack_require__(23);
 var $iterDetect = __webpack_require__(81);
 var setToStringTag = __webpack_require__(54);
-var inheritIfRequired = __webpack_require__(331);
+var inheritIfRequired = __webpack_require__(330);
 
 module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
   var Base = global[NAME];
@@ -13467,8 +13532,8 @@ var pIE = __webpack_require__(55);
 var createDesc = __webpack_require__(52);
 var toIObject = __webpack_require__(24);
 var toPrimitive = __webpack_require__(75);
-var has = __webpack_require__(29);
-var IE8_DOM_DEFINE = __webpack_require__(101);
+var has = __webpack_require__(27);
+var IE8_DOM_DEFINE = __webpack_require__(100);
 var gOPD = Object.getOwnPropertyDescriptor;
 
 exports.f = __webpack_require__(22) ? gOPD : function getOwnPropertyDescriptor(O, P) {
@@ -13492,11 +13557,11 @@ exports.f = __webpack_require__(22) ? gOPD : function getOwnPropertyDescriptor(O
 // 4 -> Array#every
 // 5 -> Array#find
 // 6 -> Array#findIndex
-var ctx = __webpack_require__(32);
+var ctx = __webpack_require__(30);
 var IObject = __webpack_require__(77);
-var toObject = __webpack_require__(33);
+var toObject = __webpack_require__(31);
 var toLength = __webpack_require__(25);
-var asc = __webpack_require__(332);
+var asc = __webpack_require__(331);
 module.exports = function (TYPE, $create) {
   var IS_MAP = TYPE == 1;
   var IS_FILTER = TYPE == 2;
@@ -13544,10 +13609,10 @@ exports.f = Object.getOwnPropertySymbols;
 
 "use strict";
 
-var hide = __webpack_require__(31);
-var redefine = __webpack_require__(30);
+var hide = __webpack_require__(29);
+var redefine = __webpack_require__(28);
 var fails = __webpack_require__(23);
-var defined = __webpack_require__(38);
+var defined = __webpack_require__(36);
 var wks = __webpack_require__(12);
 
 module.exports = function (KEY, length, exec) {
@@ -13583,15 +13648,15 @@ module.exports = function (KEY, length, exec) {
 exports.__esModule = true;
 exports.DEFAULT_LANGUAGE_CODE = exports.getLanguagesDictionaries = exports.getDefaultLanguageDictionary = exports.hasLanguageDictionary = exports.getLanguageDictionary = exports.registerLanguageDictionary = undefined;
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _utils = __webpack_require__(319);
 
-var _staticRegister2 = __webpack_require__(40);
+var _staticRegister2 = __webpack_require__(38);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _enUS = __webpack_require__(392);
+var _enUS = __webpack_require__(391);
 
 var _enUS2 = _interopRequireDefault(_enUS);
 
@@ -13720,7 +13785,7 @@ exports.isValidCoord = isValidCoord;
 
 var _src = __webpack_require__(4);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _mixed = __webpack_require__(11);
 
@@ -13976,15 +14041,15 @@ exports.__esModule = true;
 exports.FIRST_AFTER_SECOND = exports.FIRST_BEFORE_SECOND = exports.DO_NOT_SWAP = undefined;
 exports.getSortFunctionForColumn = getSortFunctionForColumn;
 
-var _date = __webpack_require__(414);
+var _date = __webpack_require__(413);
 
 var _date2 = _interopRequireDefault(_date);
 
-var _default = __webpack_require__(415);
+var _default = __webpack_require__(414);
 
 var _default2 = _interopRequireDefault(_default);
 
-var _numeric = __webpack_require__(416);
+var _numeric = __webpack_require__(415);
 
 var _numeric2 = _interopRequireDefault(_numeric);
 
@@ -14050,7 +14115,7 @@ module.exports = function (it, S) {
 
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = __webpack_require__(18);
-var dPs = __webpack_require__(329);
+var dPs = __webpack_require__(328);
 var enumBugKeys = __webpack_require__(80);
 var IE_PROTO = __webpack_require__(78)('IE_PROTO');
 var Empty = function () { /* empty */ };
@@ -14065,7 +14130,7 @@ var createDict = function () {
   var gt = '>';
   var iframeDocument;
   iframe.style.display = 'none';
-  __webpack_require__(104).appendChild(iframe);
+  __webpack_require__(103).appendChild(iframe);
   iframe.src = 'javascript:'; // eslint-disable-line no-script-url
   // createDict = iframe.contentWindow.Object;
   // html.removeChild(iframe);
@@ -14118,7 +14183,7 @@ module.exports = function (key) {
 /* 79 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var core = __webpack_require__(39);
+var core = __webpack_require__(37);
 var global = __webpack_require__(15);
 var SHARED = '__core-js_shared__';
 var store = global[SHARED] || (global[SHARED] = {});
@@ -14174,9 +14239,9 @@ module.exports = function (exec, skipClosing) {
 /* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var ctx = __webpack_require__(32);
-var invoke = __webpack_require__(335);
-var html = __webpack_require__(104);
+var ctx = __webpack_require__(30);
+var invoke = __webpack_require__(334);
+var html = __webpack_require__(103);
 var cel = __webpack_require__(74);
 var global = __webpack_require__(15);
 var process = global.process;
@@ -14275,7 +14340,7 @@ module.exports = navigator && navigator.userAgent || '';
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
-var $keys = __webpack_require__(102);
+var $keys = __webpack_require__(101);
 var hiddenKeys = __webpack_require__(80).concat('length', 'prototype');
 
 exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
@@ -14288,8 +14353,8 @@ exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // helper for String#{startsWith, endsWith, includes}
-var isRegExp = __webpack_require__(145);
-var defined = __webpack_require__(38);
+var isRegExp = __webpack_require__(144);
+var defined = __webpack_require__(36);
 
 module.exports = function (that, searchString, NAME) {
   if (isRegExp(searchString)) throw TypeError('String#' + NAME + " doesn't accept regex!");
@@ -14337,7 +14402,7 @@ module.exports = function (object, index, value) {
 "use strict";
 
 var addToUnscopables = __webpack_require__(47);
-var step = __webpack_require__(111);
+var step = __webpack_require__(110);
 var Iterators = __webpack_require__(53);
 var toIObject = __webpack_require__(24);
 
@@ -14345,7 +14410,7 @@ var toIObject = __webpack_require__(24);
 // 22.1.3.13 Array.prototype.keys()
 // 22.1.3.29 Array.prototype.values()
 // 22.1.3.30 Array.prototype[@@iterator]()
-module.exports = __webpack_require__(109)(Array, 'Array', function (iterated, kind) {
+module.exports = __webpack_require__(108)(Array, 'Array', function (iterated, kind) {
   this._t = toIObject(iterated); // target
   this._i = 0;                   // next index
   this._k = kind;                // kind
@@ -14373,6 +14438,8242 @@ addToUnscopables('entries');
 
 /***/ }),
 /* 89 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.getRegisteredCellTypes = exports.getRegisteredCellTypeNames = exports.hasCellType = exports.getCellType = exports.registerCellType = undefined;
+
+var _staticRegister2 = __webpack_require__(38);
+
+var _staticRegister3 = _interopRequireDefault(_staticRegister2);
+
+var _editors = __webpack_require__(17);
+
+var _renderers = __webpack_require__(14);
+
+var _validators = __webpack_require__(34);
+
+var _autocompleteType = __webpack_require__(376);
+
+var _autocompleteType2 = _interopRequireDefault(_autocompleteType);
+
+var _checkboxType = __webpack_require__(377);
+
+var _checkboxType2 = _interopRequireDefault(_checkboxType);
+
+var _dateType = __webpack_require__(378);
+
+var _dateType2 = _interopRequireDefault(_dateType);
+
+var _dropdownType = __webpack_require__(379);
+
+var _dropdownType2 = _interopRequireDefault(_dropdownType);
+
+var _handsontableType = __webpack_require__(380);
+
+var _handsontableType2 = _interopRequireDefault(_handsontableType);
+
+var _numericType = __webpack_require__(381);
+
+var _numericType2 = _interopRequireDefault(_numericType);
+
+var _passwordType = __webpack_require__(382);
+
+var _passwordType2 = _interopRequireDefault(_passwordType);
+
+var _textType = __webpack_require__(383);
+
+var _textType2 = _interopRequireDefault(_textType);
+
+var _timeType = __webpack_require__(384);
+
+var _timeType2 = _interopRequireDefault(_timeType);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var _staticRegister = (0, _staticRegister3.default)('cellTypes'),
+    register = _staticRegister.register,
+    getItem = _staticRegister.getItem,
+    hasItem = _staticRegister.hasItem,
+    getNames = _staticRegister.getNames,
+    getValues = _staticRegister.getValues;
+
+_register('autocomplete', _autocompleteType2.default);
+_register('checkbox', _checkboxType2.default);
+_register('date', _dateType2.default);
+_register('dropdown', _dropdownType2.default);
+_register('handsontable', _handsontableType2.default);
+_register('numeric', _numericType2.default);
+_register('password', _passwordType2.default);
+_register('text', _textType2.default);
+_register('time', _timeType2.default);
+
+/**
+ * Retrieve cell type object.
+ *
+ * @param {String} name Cell type identification.
+ * @returns {Object} Returns cell type object.
+ */
+function _getItem(name) {
+  if (!hasItem(name)) {
+    throw Error('You declared cell type "' + name + '" as a string that is not mapped to a known object.\n                 Cell type must be an object or a string mapped to an object registered by "Handsontable.cellTypes.registerCellType" method');
+  }
+
+  return getItem(name);
+}
+
+/**
+ * Register cell type under specified name.
+ *
+ * @param {String} name Cell type identification.
+ * @param {Object} type An object with contains keys (eq: `editor`, `renderer`, `validator`) which describes specified behaviour of the cell.
+ */
+function _register(name, type) {
+  var editor = type.editor,
+      renderer = type.renderer,
+      validator = type.validator;
+
+
+  if (editor) {
+    (0, _editors.registerEditor)(name, editor);
+  }
+  if (renderer) {
+    (0, _renderers.registerRenderer)(name, renderer);
+  }
+  if (validator) {
+    (0, _validators.registerValidator)(name, validator);
+  }
+
+  register(name, type);
+}
+
+exports.registerCellType = _register;
+exports.getCellType = _getItem;
+exports.hasCellType = hasItem;
+exports.getRegisteredCellTypeNames = getNames;
+exports.getRegisteredCellTypes = getValues;
+
+/***/ }),
+/* 90 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _templateObject = _taggedTemplateLiteral(['Deprecation warning: This method is going to be removed in the next release.\n      If you want to select a cell using props, please use the `selectCell` method.'], ['Deprecation warning: This method is going to be removed in the next release.\n      If you want to select a cell using props, please use the \\`selectCell\\` method.']);
+
+exports.default = Core;
+
+var _element = __webpack_require__(0);
+
+var _setting = __webpack_require__(91);
+
+var _function = __webpack_require__(44);
+
+var _console = __webpack_require__(58);
+
+var _mixed = __webpack_require__(11);
+
+var _browser = __webpack_require__(39);
+
+var _dataMap = __webpack_require__(385);
+
+var _dataMap2 = _interopRequireDefault(_dataMap);
+
+var _editorManager = __webpack_require__(388);
+
+var _editorManager2 = _interopRequireDefault(_editorManager);
+
+var _eventManager = __webpack_require__(5);
+
+var _eventManager2 = _interopRequireDefault(_eventManager);
+
+var _object = __webpack_require__(1);
+
+var _array = __webpack_require__(2);
+
+var _templateLiteralTag = __webpack_require__(43);
+
+var _plugins = __webpack_require__(8);
+
+var _renderers = __webpack_require__(14);
+
+var _validators = __webpack_require__(34);
+
+var _string = __webpack_require__(33);
+
+var _number = __webpack_require__(6);
+
+var _tableView = __webpack_require__(389);
+
+var _tableView2 = _interopRequireDefault(_tableView);
+
+var _dataSource = __webpack_require__(390);
+
+var _dataSource2 = _interopRequireDefault(_dataSource);
+
+var _data = __webpack_require__(92);
+
+var _recordTranslator = __webpack_require__(315);
+
+var _rootInstance = __webpack_require__(316);
+
+var _src = __webpack_require__(4);
+
+var _pluginHooks = __webpack_require__(16);
+
+var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
+
+var _defaultSettings = __webpack_require__(317);
+
+var _defaultSettings2 = _interopRequireDefault(_defaultSettings);
+
+var _cellTypes = __webpack_require__(89);
+
+var _i18n = __webpack_require__(318);
+
+var _dictionariesManager = __webpack_require__(71);
+
+var _utils = __webpack_require__(319);
+
+var _keyStateObserver = __webpack_require__(320);
+
+var _selection = __webpack_require__(321);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var activeGuid = null;
+
+/**
+ * Handsontable constructor
+ *
+ * @core
+ * @constructor Core
+ * @description
+ *
+ * After Handsontable is constructed, you can modify the grid behavior using the available public methods.
+ *
+ * ---
+ * ## How to call methods
+ *
+ * These are 2 equal ways to call a Handsontable method:
+ *
+ * ```js
+ * // all following examples assume that you constructed Handsontable like this
+ * const hot = new Handsontable(document.getElementById('example1'), options);
+ *
+ * // now, to use setDataAtCell method, you can either:
+ * ht.setDataAtCell(0, 0, 'new value');
+ * ```
+ *
+ * Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
+ * ```js
+ *   $('#example1').handsontable('setDataAtCell', 0, 0, 'new value');
+ * ```
+ * ---
+ */
+function Core(rootElement, userSettings) {
+  var _this = this;
+
+  var rootInstanceSymbol = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+  var preventScrollingToCell = false;
+  var instance = this;
+  var GridSettings = function GridSettings() {};
+  var eventManager = new _eventManager2.default(instance);
+  var priv = void 0;
+  var datamap = void 0;
+  var dataSource = void 0;
+  var grid = void 0;
+  var editorManager = void 0;
+
+  (0, _object.extend)(GridSettings.prototype, _defaultSettings2.default.prototype); // create grid settings as a copy of default settings
+  (0, _object.extend)(GridSettings.prototype, userSettings); // overwrite defaults with user settings
+  (0, _object.extend)(GridSettings.prototype, expandType(userSettings));
+
+  (0, _utils.applyLanguageSetting)(GridSettings.prototype, userSettings.language);
+
+  if ((0, _rootInstance.hasValidParameter)(rootInstanceSymbol)) {
+    (0, _rootInstance.registerAsRootInstance)(this);
+  }
+
+  (0, _keyStateObserver.startObserving)();
+
+  this.isDestroyed = false;
+  this.rootElement = rootElement;
+  this.isHotTableEnv = (0, _element.isChildOfWebComponentTable)(this.rootElement);
+  _eventManager2.default.isHotTableEnv = this.isHotTableEnv;
+
+  this.container = document.createElement('div');
+  this.renderCall = false;
+
+  rootElement.insertBefore(this.container, rootElement.firstChild);
+
+  if (false) {
+    (0, _mixed._injectProductInfo)(userSettings.licenseKey, rootElement);
+  }
+
+  this.guid = 'ht_' + (0, _string.randomString)(); // this is the namespace for global events
+
+  var recordTranslator = (0, _recordTranslator.getTranslator)(instance);
+
+  dataSource = new _dataSource2.default(instance);
+
+  if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
+    this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
+  }
+  priv = {
+    cellSettings: [],
+    columnSettings: [],
+    columnsSettingConflicts: ['data', 'width', 'language'],
+    settings: new GridSettings(), // current settings instance
+    selRange: null, // exposed by public method `getSelectedRange`
+    isPopulated: null,
+    scrollable: null,
+    firstRun: true
+  };
+
+  var selection = new _selection.Selection(priv.settings, {
+    countCols: function countCols() {
+      return instance.countCols();
+    },
+    countRows: function countRows() {
+      return instance.countRows();
+    },
+    propToCol: function propToCol(prop) {
+      return datamap.propToCol(prop);
+    },
+    isEditorOpened: function isEditorOpened() {
+      return instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false;
+    }
+  });
+
+  this.selection = selection;
+
+  this.selection.addLocalHook('beforeSetRangeStart', function (cellCoords) {
+    _this.runHooks('beforeSetRangeStart', cellCoords);
+  });
+
+  this.selection.addLocalHook('beforeSetRangeStartOnly', function (cellCoords) {
+    _this.runHooks('beforeSetRangeStartOnly', cellCoords);
+  });
+
+  this.selection.addLocalHook('beforeSetRangeEnd', function (cellCoords) {
+    _this.runHooks('beforeSetRangeEnd', cellCoords);
+
+    if (cellCoords.row < 0) {
+      cellCoords.row = _this.view.wt.wtTable.getFirstVisibleRow();
+    }
+    if (cellCoords.col < 0) {
+      cellCoords.col = _this.view.wt.wtTable.getFirstVisibleColumn();
+    }
+  });
+
+  this.selection.addLocalHook('afterSetRangeEnd', function (cellCoords) {
+    var preventScrolling = (0, _object.createObjectPropListener)(false);
+    var selectionRange = _this.selection.getSelectedRange();
+
+    var _selectionRange$curre = selectionRange.current(),
+        from = _selectionRange$curre.from,
+        to = _selectionRange$curre.to;
+
+    var selectionLayerLevel = selectionRange.size() - 1;
+
+    _this.runHooks('afterSelection', from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
+    _this.runHooks('afterSelectionByProp', from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel);
+
+    var isSelectedByAnyHeader = _this.selection.isSelectedByAnyHeader();
+    var currentSelectedRange = _this.selection.selectedRange.current();
+
+    var scrollToCell = true;
+
+    if (preventScrollingToCell) {
+      scrollToCell = false;
+    }
+
+    if (preventScrolling.isTouched()) {
+      scrollToCell = !preventScrolling.value;
+    }
+
+    var isSelectedByRowHeader = _this.selection.isSelectedByRowHeader();
+    var isSelectedByColumnHeader = _this.selection.isSelectedByColumnHeader();
+
+    if (scrollToCell !== false) {
+      if (!isSelectedByAnyHeader) {
+        if (currentSelectedRange && !_this.selection.isMultiple()) {
+          _this.view.scrollViewport(currentSelectedRange.from);
+        } else {
+          _this.view.scrollViewport(cellCoords);
+        }
+      } else if (isSelectedByRowHeader) {
+        _this.view.scrollViewportVertically(cellCoords.row);
+      } else if (isSelectedByColumnHeader) {
+        _this.view.scrollViewportHorizontally(cellCoords.col);
+      }
+    }
+
+    // @TODO: These CSS classes are no longer needed anymore. They are used only as a indicator of the selected
+    // rows/columns in the MergedCells plugin (via border.js#L520 in the walkontable module). After fixing
+    // the Border class this should be removed.
+    if (isSelectedByRowHeader && isSelectedByColumnHeader) {
+      (0, _element.addClass)(_this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+    } else if (isSelectedByRowHeader) {
+      (0, _element.removeClass)(_this.rootElement, 'ht__selection--columns');
+      (0, _element.addClass)(_this.rootElement, 'ht__selection--rows');
+    } else if (isSelectedByColumnHeader) {
+      (0, _element.removeClass)(_this.rootElement, 'ht__selection--rows');
+      (0, _element.addClass)(_this.rootElement, 'ht__selection--columns');
+    } else {
+      (0, _element.removeClass)(_this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+    }
+
+    _this._refreshBorders(null);
+  });
+
+  this.selection.addLocalHook('afterSelectionFinished', function (cellRanges) {
+    var selectionLayerLevel = cellRanges.length - 1;
+    var _cellRanges$selection = cellRanges[selectionLayerLevel],
+        from = _cellRanges$selection.from,
+        to = _cellRanges$selection.to;
+
+
+    _this.runHooks('afterSelectionEnd', from.row, from.col, to.row, to.col, selectionLayerLevel);
+    _this.runHooks('afterSelectionEndByProp', from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+  });
+
+  this.selection.addLocalHook('afterIsMultipleSelection', function (isMultiple) {
+    var changedIsMultiple = _this.runHooks('afterIsMultipleSelection', isMultiple.value);
+
+    if (isMultiple.value) {
+      isMultiple.value = changedIsMultiple;
+    }
+  });
+
+  this.selection.addLocalHook('beforeModifyTransformStart', function (cellCoordsDelta) {
+    _this.runHooks('modifyTransformStart', cellCoordsDelta);
+  });
+  this.selection.addLocalHook('afterModifyTransformStart', function (coords, rowTransformDir, colTransformDir) {
+    _this.runHooks('afterModifyTransformStart', coords, rowTransformDir, colTransformDir);
+  });
+  this.selection.addLocalHook('beforeModifyTransformEnd', function (cellCoordsDelta) {
+    _this.runHooks('modifyTransformEnd', cellCoordsDelta);
+  });
+  this.selection.addLocalHook('afterModifyTransformEnd', function (coords, rowTransformDir, colTransformDir) {
+    _this.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
+  });
+  this.selection.addLocalHook('afterDeselect', function () {
+    editorManager.destroyEditor();
+
+    _this._refreshBorders();
+    (0, _element.removeClass)(_this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+
+    _this.runHooks('afterDeselect');
+  });
+  this.selection.addLocalHook('insertRowRequire', function (totalRows) {
+    _this.alter('insert_row', totalRows, 1, 'auto');
+  });
+  this.selection.addLocalHook('insertColRequire', function (totalCols) {
+    _this.alter('insert_col', totalCols, 1, 'auto');
+  });
+
+  grid = {
+    /**
+     * Inserts or removes rows and columns.
+     *
+     * @memberof Core#
+     * @function alter
+     * @private
+     * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col".
+     * @param {Number|Array} index Row or column visual index which from the alter action will be triggered.
+     *                             Alter actions such as "remove_row" and "remove_col" support array indexes in the
+     *                             format `[[index, amount], [index, amount]...]` this can be used to remove
+     *                             non-consecutive columns or rows in one call.
+     * @param {Number} amount Ammount rows or columns to remove.
+     * @param {String} [source] Optional. Source of hook runner.
+     * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
+     */
+    alter: function alter(action, index, amount, source, keepEmptyRows) {
+      var delta = void 0;
+
+      amount = amount || 1;
+
+      function spliceWith(data, startIndex, count, toInject) {
+        var valueFactory = function valueFactory() {
+          var result = void 0;
+
+          if (toInject === 'array') {
+            result = [];
+          } else if (toInject === 'object') {
+            result = {};
+          }
+
+          return result;
+        };
+        var spliceArgs = (0, _array.arrayMap)(new Array(count), function () {
+          return valueFactory();
+        });
+
+        spliceArgs.unshift(startIndex, 0);
+        data.splice.apply(data, _toConsumableArray(spliceArgs));
+      }
+
+      var normalizeIndexesGroup = function normalizeIndexesGroup(indexes) {
+        if (indexes.length === 0) {
+          return [];
+        }
+
+        var sortedIndexes = [].concat(_toConsumableArray(indexes));
+
+        // Sort the indexes in ascending order.
+        sortedIndexes.sort(function (_ref, _ref2) {
+          var _ref4 = _slicedToArray(_ref, 1),
+              indexA = _ref4[0];
+
+          var _ref3 = _slicedToArray(_ref2, 1),
+              indexB = _ref3[0];
+
+          if (indexA === indexB) {
+            return 0;
+          }
+
+          return indexA > indexB ? 1 : -1;
+        });
+
+        // Normalize the {index, amount} groups into bigger groups.
+        var normalizedIndexes = (0, _array.arrayReduce)(sortedIndexes, function (acc, _ref5) {
+          var _ref6 = _slicedToArray(_ref5, 2),
+              groupIndex = _ref6[0],
+              groupAmount = _ref6[1];
+
+          var previousItem = acc[acc.length - 1];
+
+          var _previousItem = _slicedToArray(previousItem, 2),
+              prevIndex = _previousItem[0],
+              prevAmount = _previousItem[1];
+
+          var prevLastIndex = prevIndex + prevAmount;
+
+          if (groupIndex <= prevLastIndex) {
+            var amountToAdd = Math.max(groupAmount - (prevLastIndex - groupIndex), 0);
+
+            previousItem[1] += amountToAdd;
+          } else {
+            acc.push([groupIndex, groupAmount]);
+          }
+
+          return acc;
+        }, [sortedIndexes[0]]);
+
+        return normalizedIndexes;
+      };
+
+      /* eslint-disable no-case-declarations */
+      switch (action) {
+        case 'insert_row':
+
+          var numberOfSourceRows = instance.countSourceRows();
+
+          if (instance.getSettings().maxRows === numberOfSourceRows) {
+            return;
+          }
+
+          index = (0, _mixed.isDefined)(index) ? index : numberOfSourceRows;
+
+          delta = datamap.createRow(index, amount, source);
+          spliceWith(priv.cellSettings, index, amount, 'array');
+
+          if (delta) {
+            if (selection.isSelected() && selection.selectedRange.current().from.row >= index) {
+              selection.selectedRange.current().from.row += delta;
+              selection.transformEnd(delta, 0); // will call render() internally
+            } else {
+              instance._refreshBorders(); // it will call render and prepare methods
+            }
+          }
+          break;
+
+        case 'insert_col':
+          delta = datamap.createCol(index, amount, source);
+
+          for (var row = 0, len = instance.countSourceRows(); row < len; row++) {
+            if (priv.cellSettings[row]) {
+              spliceWith(priv.cellSettings[row], index, amount);
+            }
+          }
+
+          if (delta) {
+            if (Array.isArray(instance.getSettings().colHeaders)) {
+              var spliceArray = [index, 0];
+              spliceArray.length += delta; // inserts empty (undefined) elements at the end of an array
+              Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
+            }
+
+            if (selection.isSelected() && selection.selectedRange.current().from.col >= index) {
+              selection.selectedRange.current().from.col += delta;
+              selection.transformEnd(0, delta); // will call render() internally
+            } else {
+              instance._refreshBorders(); // it will call render and prepare methods
+            }
+          }
+          break;
+
+        case 'remove_row':
+
+          var removeRow = function removeRow(indexes) {
+            var offset = 0;
+
+            // Normalize the {index, amount} groups into bigger groups.
+            (0, _array.arrayEach)(indexes, function (_ref7) {
+              var _ref8 = _slicedToArray(_ref7, 2),
+                  groupIndex = _ref8[0],
+                  groupAmount = _ref8[1];
+
+              var calcIndex = (0, _mixed.isEmpty)(groupIndex) ? instance.countRows() - 1 : Math.max(groupIndex - offset, 0);
+
+              // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
+              // compatible with datamap.removeCol method.
+              if (Number.isInteger(groupIndex)) {
+                groupIndex = Math.max(groupIndex - offset, 0);
+              }
+
+              // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
+              // inside the datamap.removeRow breaks the removing functionality.
+              datamap.removeRow(groupIndex, groupAmount, source);
+              priv.cellSettings.splice(calcIndex, amount);
+
+              var totalRows = instance.countRows();
+              var fixedRowsTop = instance.getSettings().fixedRowsTop;
+
+              if (fixedRowsTop >= calcIndex + 1) {
+                instance.getSettings().fixedRowsTop -= Math.min(groupAmount, fixedRowsTop - calcIndex);
+              }
+
+              var fixedRowsBottom = instance.getSettings().fixedRowsBottom;
+
+              if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
+                instance.getSettings().fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
+              }
+
+              offset += groupAmount;
+            });
+          };
+
+          if (Array.isArray(index)) {
+            removeRow(normalizeIndexesGroup(index));
+          } else {
+            removeRow([[index, amount]]);
+          }
+
+          grid.adjustRowsAndCols();
+          instance._refreshBorders(); // it will call render and prepare methods
+          break;
+
+        case 'remove_col':
+
+          var removeCol = function removeCol(indexes) {
+            var offset = 0;
+
+            // Normalize the {index, amount} groups into bigger groups.
+            (0, _array.arrayEach)(indexes, function (_ref9) {
+              var _ref10 = _slicedToArray(_ref9, 2),
+                  groupIndex = _ref10[0],
+                  groupAmount = _ref10[1];
+
+              var calcIndex = (0, _mixed.isEmpty)(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
+
+              var visualColumnIndex = recordTranslator.toPhysicalColumn(calcIndex);
+
+              // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
+              // compatible with datamap.removeCol method.
+              if (Number.isInteger(groupIndex)) {
+                groupIndex = Math.max(groupIndex - offset, 0);
+              }
+
+              // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
+              // inside the datamap.removeCol breaks the removing functionality.
+              datamap.removeCol(groupIndex, groupAmount, source);
+
+              for (var _row = 0, _len = instance.countSourceRows(); _row < _len; _row++) {
+                if (priv.cellSettings[_row]) {
+                  // if row hasn't been rendered it wouldn't have cellSettings
+                  priv.cellSettings[_row].splice(visualColumnIndex, groupAmount);
+                }
+              }
+              var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
+
+              if (fixedColumnsLeft >= calcIndex + 1) {
+                instance.getSettings().fixedColumnsLeft -= Math.min(groupAmount, fixedColumnsLeft - calcIndex);
+              }
+
+              if (Array.isArray(instance.getSettings().colHeaders)) {
+                if (typeof visualColumnIndex === 'undefined') {
+                  visualColumnIndex = -1;
+                }
+                instance.getSettings().colHeaders.splice(visualColumnIndex, groupAmount);
+              }
+
+              offset += groupAmount;
+            });
+          };
+
+          if (Array.isArray(index)) {
+            removeCol(normalizeIndexesGroup(index));
+          } else {
+            removeCol([[index, amount]]);
+          }
+
+          grid.adjustRowsAndCols();
+          instance._refreshBorders(); // it will call render and prepare methods
+
+          break;
+        default:
+          throw new Error('There is no such action "' + action + '"');
+      }
+
+      if (!keepEmptyRows) {
+        grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
+      }
+    },
+
+
+    /**
+     * Makes sure there are empty rows at the bottom of the table
+     */
+    adjustRowsAndCols: function adjustRowsAndCols() {
+      if (priv.settings.minRows) {
+        // should I add empty rows to data source to meet minRows?
+        var rows = instance.countRows();
+
+        if (rows < priv.settings.minRows) {
+          for (var r = 0, minRows = priv.settings.minRows; r < minRows - rows; r++) {
+            datamap.createRow(instance.countRows(), 1, 'auto');
+          }
+        }
+      }
+      if (priv.settings.minSpareRows) {
+        var emptyRows = instance.countEmptyRows(true);
+
+        // should I add empty rows to meet minSpareRows?
+        if (emptyRows < priv.settings.minSpareRows) {
+          for (; emptyRows < priv.settings.minSpareRows && instance.countSourceRows() < priv.settings.maxRows; emptyRows++) {
+            datamap.createRow(instance.countRows(), 1, 'auto');
+          }
+        }
+      }
+      {
+        var emptyCols = void 0;
+
+        // count currently empty cols
+        if (priv.settings.minCols || priv.settings.minSpareCols) {
+          emptyCols = instance.countEmptyCols(true);
+        }
+
+        // should I add empty cols to meet minCols?
+        if (priv.settings.minCols && !priv.settings.columns && instance.countCols() < priv.settings.minCols) {
+          for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
+            datamap.createCol(instance.countCols(), 1, 'auto');
+          }
+        }
+        // should I add empty cols to meet minSpareCols?
+        if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' && emptyCols < priv.settings.minSpareCols) {
+          for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
+            datamap.createCol(instance.countCols(), 1, 'auto');
+          }
+        }
+      }
+      var rowCount = instance.countRows();
+      var colCount = instance.countCols();
+
+      if (rowCount === 0 || colCount === 0) {
+        selection.deselect();
+      }
+
+      if (selection.isSelected()) {
+        (0, _array.arrayEach)(selection.selectedRange, function (range) {
+          var selectionChanged = false;
+          var fromRow = range.from.row;
+          var fromCol = range.from.col;
+          var toRow = range.to.row;
+          var toCol = range.to.col;
+
+          // if selection is outside, move selection to last row
+          if (fromRow > rowCount - 1) {
+            fromRow = rowCount - 1;
+            selectionChanged = true;
+
+            if (toRow > fromRow) {
+              toRow = fromRow;
+            }
+          } else if (toRow > rowCount - 1) {
+            toRow = rowCount - 1;
+            selectionChanged = true;
+
+            if (fromRow > toRow) {
+              fromRow = toRow;
+            }
+          }
+          // if selection is outside, move selection to last row
+          if (fromCol > colCount - 1) {
+            fromCol = colCount - 1;
+            selectionChanged = true;
+
+            if (toCol > fromCol) {
+              toCol = fromCol;
+            }
+          } else if (toCol > colCount - 1) {
+            toCol = colCount - 1;
+            selectionChanged = true;
+
+            if (fromCol > toCol) {
+              fromCol = toCol;
+            }
+          }
+
+          if (selectionChanged) {
+            instance.selectCell(fromRow, fromCol, toRow, toCol);
+          }
+        });
+      }
+      if (instance.view) {
+        instance.view.wt.wtOverlays.adjustElementsSize();
+      }
+    },
+
+
+    /**
+     * Populate the data from the provided 2d array from the given cell coordinates.
+     *
+     * @private
+     * @param {Object} start Start selection position. Visual indexes.
+     * @param {Array} input 2d data array.
+     * @param {Object} [end] End selection position (only for drag-down mode). Visual indexes.
+     * @param {String} [source="populateFromArray"] Source information string.
+     * @param {String} [method="overwrite"] Populate method. Possible options: `shift_down`, `shift_right`, `overwrite`.
+     * @param {String} direction (left|right|up|down) String specifying the direction.
+     * @param {Array} deltas The deltas array. A difference between values of adjacent cells.
+     *                       Useful **only** when the type of handled cells is `numeric`.
+     * @returns {Object|undefined} ending td in pasted area (only if any cell was changed).
+     */
+    populateFromArray: function populateFromArray(start, input, end, source, method, direction, deltas) {
+      // TODO: either remove or implement the `direction` argument. Currently it's not working at all.
+      var r = void 0;
+      var rlen = void 0;
+      var c = void 0;
+      var clen = void 0;
+      var setData = [];
+      var current = {};
+
+      rlen = input.length;
+
+      if (rlen === 0) {
+        return false;
+      }
+
+      var repeatCol = void 0;
+      var repeatRow = void 0;
+      var cmax = void 0;
+      var rmax = void 0;
+
+      /* eslint-disable no-case-declarations */
+      // insert data with specified pasteMode method
+      switch (method) {
+        case 'shift_down':
+          repeatCol = end ? end.col - start.col + 1 : 0;
+          repeatRow = end ? end.row - start.row + 1 : 0;
+          input = (0, _data.translateRowsToColumns)(input);
+          for (c = 0, clen = input.length, cmax = Math.max(clen, repeatCol); c < cmax; c++) {
+            if (c < clen) {
+              var _instance;
+
+              for (r = 0, rlen = input[c].length; r < repeatRow - rlen; r++) {
+                input[c].push(input[c][r % rlen]);
+              }
+              input[c].unshift(start.col + c, start.row, 0);
+              (_instance = instance).spliceCol.apply(_instance, _toConsumableArray(input[c]));
+            } else {
+              var _instance2;
+
+              input[c % clen][0] = start.col + c;
+              (_instance2 = instance).spliceCol.apply(_instance2, _toConsumableArray(input[c % clen]));
+            }
+          }
+          break;
+
+        case 'shift_right':
+          repeatCol = end ? end.col - start.col + 1 : 0;
+          repeatRow = end ? end.row - start.row + 1 : 0;
+          for (r = 0, rlen = input.length, rmax = Math.max(rlen, repeatRow); r < rmax; r++) {
+            if (r < rlen) {
+              var _instance3;
+
+              for (c = 0, clen = input[r].length; c < repeatCol - clen; c++) {
+                input[r].push(input[r][c % clen]);
+              }
+              input[r].unshift(start.row + r, start.col, 0);
+              (_instance3 = instance).spliceRow.apply(_instance3, _toConsumableArray(input[r]));
+            } else {
+              var _instance4;
+
+              input[r % rlen][0] = start.row + r;
+              (_instance4 = instance).spliceRow.apply(_instance4, _toConsumableArray(input[r % rlen]));
+            }
+          }
+          break;
+
+        case 'overwrite':
+        default:
+          // overwrite and other not specified options
+          current.row = start.row;
+          current.col = start.col;
+
+          var selected = { // selected range
+            row: end && start ? end.row - start.row + 1 : 1,
+            col: end && start ? end.col - start.col + 1 : 1
+          };
+          var skippedRow = 0;
+          var skippedColumn = 0;
+          var pushData = true;
+          var cellMeta = void 0;
+
+          var getInputValue = function getInputValue(row) {
+            var col = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+
+            var rowValue = input[row % input.length];
+
+            if (col !== null) {
+              return rowValue[col % rowValue.length];
+            }
+
+            return rowValue;
+          };
+          var rowInputLength = input.length;
+          var rowSelectionLength = end ? end.row - start.row + 1 : 0;
+
+          if (end) {
+            rlen = rowSelectionLength;
+          } else {
+            rlen = Math.max(rowInputLength, rowSelectionLength);
+          }
+          for (r = 0; r < rlen; r++) {
+            if (end && current.row > end.row && rowSelectionLength > rowInputLength || !priv.settings.allowInsertRow && current.row > instance.countRows() - 1 || current.row >= priv.settings.maxRows) {
+              break;
+            }
+            var visualRow = r - skippedRow;
+            var colInputLength = getInputValue(visualRow).length;
+            var colSelectionLength = end ? end.col - start.col + 1 : 0;
+
+            if (end) {
+              clen = colSelectionLength;
+            } else {
+              clen = Math.max(colInputLength, colSelectionLength);
+            }
+            current.col = start.col;
+            cellMeta = instance.getCellMeta(current.row, current.col);
+
+            if ((source === 'CopyPaste.paste' || source === 'Autofill.autofill') && cellMeta.skipRowOnPaste) {
+              skippedRow++;
+              current.row++;
+              rlen++;
+              /* eslint-disable no-continue */
+              continue;
+            }
+            skippedColumn = 0;
+
+            for (c = 0; c < clen; c++) {
+              if (end && current.col > end.col && colSelectionLength > colInputLength || !priv.settings.allowInsertColumn && current.col > instance.countCols() - 1 || current.col >= priv.settings.maxCols) {
+                break;
+              }
+              cellMeta = instance.getCellMeta(current.row, current.col);
+
+              if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipColumnOnPaste) {
+                skippedColumn++;
+                current.col++;
+                clen++;
+                continue;
+              }
+              if (cellMeta.readOnly) {
+                current.col++;
+                /* eslint-disable no-continue */
+                continue;
+              }
+              var visualColumn = c - skippedColumn;
+              var value = getInputValue(visualRow, visualColumn);
+              var orgValue = instance.getDataAtCell(current.row, current.col);
+              var index = {
+                row: visualRow,
+                col: visualColumn
+              };
+
+              if (source === 'Autofill.fill') {
+                var result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
+
+                if (result) {
+                  value = (0, _mixed.isUndefined)(result.value) ? value : result.value;
+                }
+              }
+              if (value !== null && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
+                if (orgValue === null || (typeof orgValue === 'undefined' ? 'undefined' : _typeof(orgValue)) !== 'object') {
+                  pushData = false;
+                } else {
+                  var orgValueSchema = (0, _object.duckSchema)(orgValue[0] || orgValue);
+                  var valueSchema = (0, _object.duckSchema)(value[0] || value);
+
+                  /* eslint-disable max-depth */
+                  if ((0, _object.isObjectEqual)(orgValueSchema, valueSchema)) {
+                    value = (0, _object.deepClone)(value);
+                  } else {
+                    pushData = false;
+                  }
+                }
+              } else if (orgValue !== null && (typeof orgValue === 'undefined' ? 'undefined' : _typeof(orgValue)) === 'object') {
+                pushData = false;
+              }
+              if (pushData) {
+                setData.push([current.row, current.col, value]);
+              }
+              pushData = true;
+              current.col++;
+            }
+            current.row++;
+          }
+          instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
+          break;
+      }
+    }
+  };
+
+  /**
+   * Internal function to set `language` key of settings.
+   *
+   * @private
+   * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'
+   * @fires Hooks#afterLanguageChange
+   */
+  function setLanguage(languageCode) {
+    var normalizedLanguageCode = (0, _utils.normalizeLanguageCode)(languageCode);
+
+    if ((0, _dictionariesManager.hasLanguageDictionary)(normalizedLanguageCode)) {
+      instance.runHooks('beforeLanguageChange', normalizedLanguageCode);
+
+      GridSettings.prototype.language = normalizedLanguageCode;
+
+      instance.runHooks('afterLanguageChange', normalizedLanguageCode);
+    } else {
+      (0, _utils.warnUserAboutLanguageRegistration)(languageCode);
+    }
+  }
+
+  this.init = function () {
+    dataSource.setData(priv.settings.data);
+    instance.runHooks('beforeInit');
+
+    if ((0, _browser.isMobileBrowser)()) {
+      (0, _element.addClass)(instance.rootElement, 'mobile');
+    }
+
+    this.updateSettings(priv.settings, true);
+
+    this.view = new _tableView2.default(this);
+    editorManager = _editorManager2.default.getInstance(instance, priv, selection, datamap);
+
+    this.forceFullRender = true; // used when data was changed
+
+    instance.runHooks('init');
+    this.view.render();
+
+    if (_typeof(priv.firstRun) === 'object') {
+      instance.runHooks('afterChange', priv.firstRun[0], priv.firstRun[1]);
+      priv.firstRun = false;
+    }
+    instance.runHooks('afterInit');
+  };
+
+  function ValidatorsQueue() {
+    // moved this one level up so it can be used in any function here. Probably this should be moved to a separate file
+    var resolved = false;
+
+    return {
+      validatorsInQueue: 0,
+      valid: true,
+      addValidatorToQueue: function addValidatorToQueue() {
+        this.validatorsInQueue++;
+        resolved = false;
+      },
+      removeValidatorFormQueue: function removeValidatorFormQueue() {
+        this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
+        this.checkIfQueueIsEmpty();
+      },
+      onQueueEmpty: function onQueueEmpty() {},
+      checkIfQueueIsEmpty: function checkIfQueueIsEmpty() {
+        if (this.validatorsInQueue === 0 && resolved === false) {
+          resolved = true;
+          this.onQueueEmpty(this.valid);
+        }
+      }
+    };
+  }
+
+  /**
+   * Get parsed number from numeric string.
+   *
+   * @private
+   * @param {String} numericData Float (separated by a dot or a comma) or integer.
+   * @returns {Number} Number if we get data in parsable format, not changed value otherwise.
+   */
+  function getParsedNumber(numericData) {
+    // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
+    // for example from `450,65` to `450.65`.
+    var unifiedNumericData = numericData.replace(',', '.');
+
+    if (isNaN(parseFloat(unifiedNumericData)) === false) {
+      return parseFloat(unifiedNumericData);
+    }
+
+    return numericData;
+  }
+
+  function validateChanges(changes, source, callback) {
+    var waitingForValidator = new ValidatorsQueue();
+    var isNumericData = function isNumericData(value) {
+      return value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
+    };
+
+    waitingForValidator.onQueueEmpty = resolve;
+
+    for (var i = changes.length - 1; i >= 0; i--) {
+      if (changes[i] === null) {
+        changes.splice(i, 1);
+      } else {
+        var _changes$i = _slicedToArray(changes[i], 4),
+            row = _changes$i[0],
+            prop = _changes$i[1],
+            newValue = _changes$i[3];
+
+        var col = datamap.propToCol(prop);
+        var cellProperties = instance.getCellMeta(row, col);
+
+        if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericData(newValue)) {
+          changes[i][3] = getParsedNumber(newValue);
+        }
+
+        /* eslint-disable no-loop-func */
+        if (instance.getCellValidator(cellProperties)) {
+          waitingForValidator.addValidatorToQueue();
+          instance.validateCell(changes[i][3], cellProperties, function (index, cellPropertiesReference) {
+            return function (result) {
+              if (typeof result !== 'boolean') {
+                throw new Error('Validation error: result is not boolean');
+              }
+              if (result === false && cellPropertiesReference.allowInvalid === false) {
+                changes.splice(index, 1); // cancel the change
+                cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
+                var cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
+                (0, _element.removeClass)(cell, instance.getSettings().invalidCellClassName);
+                --index;
+              }
+              waitingForValidator.removeValidatorFormQueue();
+            };
+          }(i, cellProperties), source);
+        }
+      }
+    }
+    waitingForValidator.checkIfQueueIsEmpty();
+
+    function resolve() {
+      var beforeChangeResult = void 0;
+
+      if (changes.length) {
+        beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
+        if ((0, _function.isFunction)(beforeChangeResult)) {
+          (0, _console.warn)('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
+        } else if (beforeChangeResult === false) {
+          changes.splice(0, changes.length); // invalidate all changes (remove everything from array)
+        }
+      }
+      callback(); // called when async validators are resolved and beforeChange was not async
+    }
+  }
+
+  /**
+   * Internal function to apply changes. Called after validateChanges
+   *
+   * @private
+   * @param {Array} changes Array in form of [row, prop, oldValue, newValue]
+   * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
+   * @fires Hooks#beforeChangeRender
+   * @fires Hooks#afterChange
+   */
+  function applyChanges(changes, source) {
+    var i = changes.length - 1;
+
+    if (i < 0) {
+      return;
+    }
+
+    for (; i >= 0; i--) {
+      var skipThisChange = false;
+
+      if (changes[i] === null) {
+        changes.splice(i, 1);
+        /* eslint-disable no-continue */
+        continue;
+      }
+
+      if (changes[i][2] == null && changes[i][3] == null) {
+        /* eslint-disable no-continue */
+        continue;
+      }
+
+      if (priv.settings.allowInsertRow) {
+        while (changes[i][0] > instance.countRows() - 1) {
+          var numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
+
+          if (numberOfCreatedRows === 0) {
+            skipThisChange = true;
+            break;
+          }
+        }
+      }
+
+      if (skipThisChange) {
+        /* eslint-disable no-continue */
+        continue;
+      }
+
+      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
+        while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
+          datamap.createCol(void 0, void 0, source);
+        }
+      }
+
+      datamap.set(changes[i][0], changes[i][1], changes[i][3]);
+    }
+
+    instance.forceFullRender = true; // used when data was changed
+    grid.adjustRowsAndCols();
+    instance.runHooks('beforeChangeRender', changes, source);
+    editorManager.lockEditor();
+    instance._refreshBorders(null);
+    editorManager.unlockEditor();
+    instance.view.wt.wtOverlays.adjustElementsSize();
+    instance.runHooks('afterChange', changes, source || 'edit');
+
+    var activeEditor = instance.getActiveEditor();
+
+    if (activeEditor && (0, _mixed.isDefined)(activeEditor.refreshValue)) {
+      activeEditor.refreshValue();
+    }
+  }
+
+  /**
+   * Validate a single cell.
+   *
+   * @param {String|Number} value
+   * @param cellProperties
+   * @param callback
+   * @param source
+   */
+  this.validateCell = function (value, cellProperties, callback, source) {
+    var validator = instance.getCellValidator(cellProperties);
+
+    // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
+    function done(valid) {
+      var canBeValidated = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+      // Fixes GH#3903
+      if (!canBeValidated || cellProperties.hidden === true) {
+        callback(valid);
+        return;
+      }
+
+      var col = cellProperties.visualCol;
+      var row = cellProperties.visualRow;
+      var td = instance.getCell(row, col, true);
+
+      if (td && td.nodeName !== 'TH') {
+        instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
+      }
+      callback(valid);
+    }
+
+    if ((0, _mixed.isRegExp)(validator)) {
+      validator = function (expression) {
+        return function (cellValue, validatorCallback) {
+          validatorCallback(expression.test(cellValue));
+        };
+      }(validator);
+    }
+
+    if ((0, _function.isFunction)(validator)) {
+
+      value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
+
+      // To provide consistent behaviour, validation should be always asynchronous
+      instance._registerTimeout(setTimeout(function () {
+        validator.call(cellProperties, value, function (valid) {
+          valid = instance.runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
+          cellProperties.valid = valid;
+
+          done(valid);
+          instance.runHooks('postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
+        });
+      }, 0));
+    } else {
+      // resolve callback even if validator function was not found
+      instance._registerTimeout(setTimeout(function () {
+        cellProperties.valid = true;
+        done(cellProperties.valid, false);
+      }, 0));
+    }
+  };
+
+  function setDataInputToArray(row, propOrCol, value) {
+    if ((typeof row === 'undefined' ? 'undefined' : _typeof(row)) === 'object') {
+      // is it an array of changes
+      return row;
+    }
+    return [[row, propOrCol, value]];
+  }
+
+  /**
+   * @description
+   * Set new value to a cell. To change many cells at once (recommended way), pass an array of `changes` in format
+   * `[[row, col, value],...]` as the first argument.
+   *
+   * @memberof Core#
+   * @function setDataAtCell
+   * @param {Number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
+   * @param {Number} [column] Visual column index.
+   * @param {String} [value] New value.
+   * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
+   */
+  this.setDataAtCell = function (row, column, value, source) {
+    var input = setDataInputToArray(row, column, value);
+    var changes = [];
+    var i = void 0;
+    var ilen = void 0;
+    var prop = void 0;
+
+    for (i = 0, ilen = input.length; i < ilen; i++) {
+      if (_typeof(input[i]) !== 'object') {
+        throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
+      }
+      if (typeof input[i][1] !== 'number') {
+        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
+      }
+      prop = datamap.colToProp(input[i][1]);
+      changes.push([input[i][0], prop, dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]), input[i][2]]);
+    }
+
+    if (!source && (typeof row === 'undefined' ? 'undefined' : _typeof(row)) === 'object') {
+      source = column;
+    }
+
+    instance.runHooks('afterSetDataAtCell', changes, source);
+
+    validateChanges(changes, source, function () {
+      applyChanges(changes, source);
+    });
+  };
+
+  /**
+   * @description
+   * Set new value to a cell. To change many cells at once (recommended way), pass an array of `changes` in format
+   * `[[row, prop, value],...]` as the first argument.
+   *
+   * @memberof Core#
+   * @function setDataAtRowProp
+   * @param {Number|Array} row Visual row index or array of changes in format `[[row, prop, value], ...]`.
+   * @param {String} prop Property name or the source string (e.g. `'first.name'` or `'0'`).
+   * @param {String} value Value to be set.
+   * @param {String} [source] String that identifies how this change will be described in changes array (useful in onChange callback).
+   */
+  this.setDataAtRowProp = function (row, prop, value, source) {
+    var input = setDataInputToArray(row, prop, value);
+    var changes = [];
+    var i = void 0;
+    var ilen = void 0;
+
+    for (i = 0, ilen = input.length; i < ilen; i++) {
+      changes.push([input[i][0], input[i][1], dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]), input[i][2]]);
+    }
+
+    if (!source && (typeof row === 'undefined' ? 'undefined' : _typeof(row)) === 'object') {
+      source = prop;
+    }
+
+    instance.runHooks('afterSetDataAtRowProp', changes, source);
+
+    validateChanges(changes, source, function () {
+      applyChanges(changes, source);
+    });
+  };
+
+  /**
+   * Listen to the keyboard input on document body. This allows Handsontable to capture keyboard events and respond
+   * in the right way.
+   *
+   * @memberof Core#
+   * @function listen
+   * @param {Boolean} [modifyDocumentFocus=true] If `true`, currently focused element will be blured (which returns focus
+   *                                             to the document.body). Otherwise the active element does not lose its focus.
+   * @fires Hooks#afterListen
+   */
+  this.listen = function () {
+    var modifyDocumentFocus = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+
+    if (modifyDocumentFocus) {
+      var invalidActiveElement = !document.activeElement || document.activeElement && document.activeElement.nodeName === void 0;
+
+      if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
+        document.activeElement.blur();
+      } else if (invalidActiveElement) {
+        // IE
+        document.body.focus();
+      }
+    }
+
+    if (instance && !instance.isListening()) {
+      activeGuid = instance.guid;
+      instance.runHooks('afterListen');
+    }
+  };
+
+  /**
+   * Stop listening to keyboard input on the document body. Calling this method makes the Handsontable inactive for
+   * any keyboard events.
+   *
+   * @memberof Core#
+   * @function unlisten
+   */
+  this.unlisten = function () {
+    if (this.isListening()) {
+      activeGuid = null;
+      instance.runHooks('afterUnlisten');
+    }
+  };
+
+  /**
+   * Returns `true` if the current Handsontable instance is listening to keyboard input on document body.
+   *
+   * @memberof Core#
+   * @function isListening
+   * @returns {Boolean} `true` if the instance is listening, `false` otherwise.
+   */
+  this.isListening = function () {
+    return activeGuid === instance.guid;
+  };
+
+  /**
+   * Destroys the current editor, render the table and prepares the editor of the newly selected cell.
+   *
+   * @memberof Core#
+   * @function destroyEditor
+   * @param {Boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
+   * @param {Boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
+   */
+  this.destroyEditor = function () {
+    var revertOriginal = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+    var prepareEditorIfNeeded = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+    instance._refreshBorders(revertOriginal, prepareEditorIfNeeded);
+  };
+
+  /**
+   * Populate cells at position with 2D input array (e.g. `[[1, 2], [3, 4]]`). Use `endRow`, `endCol` when you
+   * want to cut input when a certain row is reached.
+   *
+   * Optional `method` argument has the same effect as pasteMode option (see {@link Options#pasteMode}).
+   *
+   * @memberof Core#
+   * @function populateFromArray
+   * @param {Number} row Start visual row index.
+   * @param {Number} column Start visual column index.
+   * @param {Array} input 2d array
+   * @param {Number} [endRow] End visual row index (use when you want to cut input when certain row is reached).
+   * @param {Number} [endCol] End visual column index (use when you want to cut input when certain column is reached).
+   * @param {String} [source=populateFromArray] Used to identify this call in the resulting events (beforeChange, afterChange).
+   * @param {String} [method=overwrite] Populate method, possible values: `'shift_down'`, `'shift_right'`, `'overwrite'`.
+   * @param {String} direction Populate direction, possible values: `'left'`, `'right'`, `'up'`, `'down'`.
+   * @param {Array} deltas The deltas array. A difference between values of adjacent cells.
+   *                       Useful **only** when the type of handled cells is `numeric`.
+   */
+  this.populateFromArray = function (row, column, input, endRow, endCol, source, method, direction, deltas) {
+    var c = void 0;
+
+    if (!((typeof input === 'undefined' ? 'undefined' : _typeof(input)) === 'object' && _typeof(input[0]) === 'object')) {
+      throw new Error('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
+    }
+    c = typeof endRow === 'number' ? new _src.CellCoords(endRow, endCol) : null;
+
+    return grid.populateFromArray(new _src.CellCoords(row, column), input, c, source, method, direction, deltas);
+  };
+
+  /**
+   * Adds/removes data from the column. This method works the same as Array.splice for arrays (see {@link DataMap#spliceCol}).
+   *
+   * @memberof Core#
+   * @function spliceCol
+   * @param {Number} column Index of the column in which do you want to do splice.
+   * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
+   * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
+   * @param {...Number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
+   */
+  this.spliceCol = function (column, index, amount) {
+    var _datamap;
+
+    for (var _len2 = arguments.length, elements = Array(_len2 > 3 ? _len2 - 3 : 0), _key = 3; _key < _len2; _key++) {
+      elements[_key - 3] = arguments[_key];
+    }
+
+    return (_datamap = datamap).spliceCol.apply(_datamap, [column, index, amount].concat(elements));
+  };
+
+  /**
+   * Adds/removes data from the row. This method works the same as Array.splice for arrays (see {@link DataMap#spliceRow}).
+   *
+   * @memberof Core#
+   * @function spliceRow
+   * @param {Number} row Index of column in which do you want to do splice.
+   * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
+   * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
+   * @param {...Number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
+   */
+  this.spliceRow = function (row, index, amount) {
+    var _datamap2;
+
+    for (var _len3 = arguments.length, elements = Array(_len3 > 3 ? _len3 - 3 : 0), _key2 = 3; _key2 < _len3; _key2++) {
+      elements[_key2 - 3] = arguments[_key2];
+    }
+
+    return (_datamap2 = datamap).spliceRow.apply(_datamap2, [row, index, amount].concat(elements));
+  };
+
+  /**
+   * Returns indexes of the currently selected cells as an array of arrays `[[startRow, startCol, endRow, endCol],...]`.
+   *
+   * Start row and start column are the coordinates of the active cell (where the selection was started).
+   *
+   * The version 0.36.0 adds a non-consecutive selection feature. Since this version, the method returns an array of arrays.
+   * Additionally to collect the coordinates of the currently selected area (as it was previously done by the method)
+   * you need to use `getSelectedLast` method.
+   *
+   * @memberof Core#
+   * @function getSelected
+   * @returns {Array[]|undefined} An array of arrays of the selection's coordinates.
+   */
+  this.getSelected = function () {
+    // https://github.com/handsontable/handsontable/issues/44  //cjl
+    if (selection.isSelected()) {
+      return (0, _array.arrayMap)(selection.getSelectedRange(), function (_ref11) {
+        var from = _ref11.from,
+            to = _ref11.to;
+        return [from.row, from.col, to.row, to.col];
+      });
+    }
+  };
+
+  /**
+   * Returns the last coordinates applied to the table as a an array `[startRow, startCol, endRow, endCol]`.
+   *
+   * @since 0.36.0
+   * @memberof Core#
+   * @function getSelectedLast
+   * @returns {Array|undefined} An array of the selection's coordinates.
+   */
+  this.getSelectedLast = function () {
+    var selected = this.getSelected();
+    var result = void 0;
+
+    if (selected && selected.length > 0) {
+      result = selected[selected.length - 1];
+    }
+
+    return result;
+  };
+
+  /**
+   * Returns the current selection as an array of CellRange objects.
+   *
+   * The version 0.36.0 adds a non-consecutive selection feature. Since this version, the method returns an array of arrays.
+   * Additionally to collect the coordinates of the currently selected area (as it was previously done by the method)
+   * you need to use `getSelectedRangeLast` method.
+   *
+   * @memberof Core#
+   * @function getSelectedRange
+   * @returns {CellRange[]|undefined} Selected range object or undefined if there is no selection.
+   */
+  this.getSelectedRange = function () {
+    // https://github.com/handsontable/handsontable/issues/44  //cjl
+    if (selection.isSelected()) {
+      return Array.from(selection.getSelectedRange());
+    }
+  };
+
+  /**
+  * Returns the last coordinates applied to the table as a CellRange object.
+  *
+  * @memberof Core#
+  * @function getSelectedRangeLast
+  * @since 0.36.0
+  * @returns {CellRange|undefined} Selected range object or undefined` if there is no selection.
+   */
+  this.getSelectedRangeLast = function () {
+    var selectedRange = this.getSelectedRange();
+    var result = void 0;
+
+    if (selectedRange && selectedRange.length > 0) {
+      result = selectedRange[selectedRange.length - 1];
+    }
+
+    return result;
+  };
+
+  /**
+   * Erases content from cells that have been selected in the table.
+   *
+   * @memberof Core#
+   * @function emptySelectedCells
+   * @since 0.36.0
+   */
+  this.emptySelectedCells = function () {
+    var _this2 = this;
+
+    if (!selection.isSelected()) {
+      return;
+    }
+    var changes = [];
+
+    (0, _array.arrayEach)(selection.getSelectedRange(), function (cellRange) {
+      var topLeft = cellRange.getTopLeftCorner();
+      var bottomRight = cellRange.getBottomRightCorner();
+
+      (0, _number.rangeEach)(topLeft.row, bottomRight.row, function (row) {
+        (0, _number.rangeEach)(topLeft.col, bottomRight.col, function (column) {
+          if (!_this2.getCellMeta(row, column).readOnly) {
+            changes.push([row, column, '']);
+          }
+        });
+      });
+    });
+
+    if (changes.length > 0) {
+      this.setDataAtCell(changes);
+    }
+  };
+
+  /**
+   * Rerender the table. Calling this method starts the process of recalculating, redrawing and applying the changes
+   * to the DOM. While rendering the table all cell renderers are recalled.
+   *
+   * Calling this method manually is not recommended. Handsontable tries to render itself by choosing the most
+   * optimal moments in its lifecycle.
+   *
+   * @memberof Core#
+   * @function render
+   */
+  this.render = function () {
+    if (instance.view) {
+      instance.renderCall = true;
+      instance.forceFullRender = true; // used when data was changed
+      editorManager.lockEditor();
+      instance._refreshBorders(null);
+      editorManager.unlockEditor();
+    }
+  };
+
+  /**
+   * Loads new data to Handsontable. Loading new data resets the cell meta.
+   *
+   * @memberof Core#
+   * @function loadData
+   * @param {Array} data Array of arrays or array of objects containing data.
+   * @fires Hooks#afterLoadData
+   * @fires Hooks#afterChange
+   */
+  this.loadData = function (data) {
+    if (Array.isArray(priv.settings.dataSchema)) {
+      instance.dataType = 'array';
+    } else if ((0, _function.isFunction)(priv.settings.dataSchema)) {
+      instance.dataType = 'function';
+    } else {
+      instance.dataType = 'object';
+    }
+
+    if (datamap) {
+      datamap.destroy();
+    }
+    datamap = new _dataMap2.default(instance, priv, GridSettings);
+
+    if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === 'object' && data !== null) {
+      if (!(data.push && data.splice)) {
+        // check if data is array. Must use duck-type check so Backbone Collections also pass it
+        // when data is not an array, attempt to make a single-row array of it
+        data = [data];
+      }
+    } else if (data === null) {
+      var dataSchema = datamap.getSchema();
+      data = [];
+      var row = void 0;
+      var r = 0;
+      var rlen = 0;
+
+      for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
+        if ((instance.dataType === 'object' || instance.dataType === 'function') && priv.settings.dataSchema) {
+          row = (0, _object.deepClone)(dataSchema);
+          data.push(row);
+        } else if (instance.dataType === 'array') {
+          row = (0, _object.deepClone)(dataSchema[0]);
+          data.push(row);
+        } else {
+          row = [];
+
+          for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
+            row.push(null);
+          }
+
+          data.push(row);
+        }
+      }
+    } else {
+      throw new Error('loadData only accepts array of objects or array of arrays (' + (typeof data === 'undefined' ? 'undefined' : _typeof(data)) + ' given)');
+    }
+
+    priv.isPopulated = false;
+    GridSettings.prototype.data = data;
+
+    if (Array.isArray(data[0])) {
+      instance.dataType = 'array';
+    }
+
+    datamap.dataSource = data;
+    dataSource.data = data;
+    dataSource.dataType = instance.dataType;
+    dataSource.colToProp = datamap.colToProp.bind(datamap);
+    dataSource.propToCol = datamap.propToCol.bind(datamap);
+
+    clearCellSettingCache();
+
+    grid.adjustRowsAndCols();
+    instance.runHooks('afterLoadData', priv.firstRun);
+
+    if (priv.firstRun) {
+      priv.firstRun = [null, 'loadData'];
+    } else {
+      instance.runHooks('afterChange', null, 'loadData');
+      instance.render();
+    }
+    priv.isPopulated = true;
+
+    function clearCellSettingCache() {
+      priv.cellSettings.length = 0;
+    }
+  };
+
+  /**
+   * Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
+   * unless the `modifyRow` hook was used to trim some of the rows. If that's the case - use the {@link Core#getSourceData} method.).
+   *
+   * Optionally you can provide cell range by defining `row`, `column`, `row2`, `column2` to get only a fragment of table data.
+   *
+   * @memberof Core#
+   * @function getData
+   * @param {Number} [row] From visual row index.
+   * @param {Number} [column] From visual column index.
+   * @param {Number} [row2] To visual row index.
+   * @param {Number} [column2] To visual column index.
+   * @returns {Array[]} Array with the data.
+   * @example
+   * ```js
+   * // Get all data (in order how it is rendered in the table).
+   * hot.getData();
+   * // Get data fragment (from top-left 0, 0 to bottom-right 3, 3).
+   * hot.getData(3, 3);
+   * // Get data fragment (from top-left 2, 1 to bottom-right 3, 3).
+   * hot.getData(2, 1, 3, 3);
+   * ```
+   */
+  this.getData = function (row, column, row2, column2) {
+    if ((0, _mixed.isUndefined)(row)) {
+      return datamap.getAll();
+    }
+
+    return datamap.getRange(new _src.CellCoords(row, column), new _src.CellCoords(row2, column2), datamap.DESTINATION_RENDERER);
+  };
+
+  /**
+   * Returns a string value of the selected range. Each column is separated by tab, each row is separated by a new
+   * line character (see {@link DataMap#getCopyableText}).
+   *
+   * @memberof Core#
+   * @function getCopyableText
+   * @param {Number} startRow From visual row index.
+   * @param {Number} startCol From visual column index.
+   * @param {Number} endRow To visual row index.
+   * @param {Number} endCol To visual column index.
+   * @returns {String}
+   */
+  this.getCopyableText = function (startRow, startCol, endRow, endCol) {
+    return datamap.getCopyableText(new _src.CellCoords(startRow, startCol), new _src.CellCoords(endRow, endCol));
+  };
+
+  /**
+   * Returns the data's copyable value at specified `row` and `column` index (see {@link DataMap#getCopyable}).
+   *
+   * @memberof Core#
+   * @function getCopyableData
+   * @param {Number} row Visual row index.
+   * @param {Number} column Visual column index.
+   * @returns {String}
+   */
+  this.getCopyableData = function (row, column) {
+    return datamap.getCopyable(row, datamap.colToProp(column));
+  };
+
+  /**
+   * Returns schema provided by constructor settings. If it doesn't exist then it returns the schema based on the data
+   * structure in the first row.
+   *
+   * @memberof Core#
+   * @function getSchema
+   * @returns {Object} Schema object.
+   */
+  this.getSchema = function () {
+    return datamap.getSchema();
+  };
+
+  /**
+   * Use it if you need to change configuration after initialization. The `settings` argument is an object containing the new
+   * settings, declared the same way as in the initial settings object.
+   *
+   * __Note__, that although the `updateSettings` method doesn't overwrite the previously declared settings, it might reset
+   * the settings made post-initialization. (for example - ignore changes made using the columnResize feature).
+   *
+   * @memberof Core#
+   * @function updateSettings
+   * @param {Object} settings New settings object (see {@link Options}).
+   * @param {Boolean} [init=false] Internally used for in initialization mode.
+   * @example
+   * ```js
+   * hot.updateSettings({
+   *    contextMenu: true,
+   *    colHeaders: true,
+   *    fixedRowsTop: 2
+   * });
+   * ```
+   * @fires Hooks#afterCellMetaReset
+   * @fires Hooks#afterUpdateSettings
+   */
+  this.updateSettings = function (settings) {
+    var init = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+    var columnsAsFunc = false;
+    var i = void 0;
+    var j = void 0;
+    var clen = void 0;
+
+    if ((0, _mixed.isDefined)(settings.rows)) {
+      throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
+    }
+    if ((0, _mixed.isDefined)(settings.cols)) {
+      throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
+    }
+
+    for (i in settings) {
+      if (i === 'data') {
+        /* eslint-disable-next-line no-continue */
+        continue; // loadData will be triggered later
+      } else if (i === 'language') {
+        setLanguage(settings.language);
+
+        /* eslint-disable-next-line no-continue */
+        continue;
+      } else if (_pluginHooks2.default.getSingleton().getRegistered().indexOf(i) > -1) {
+        if ((0, _function.isFunction)(settings[i]) || Array.isArray(settings[i])) {
+          settings[i].initialHook = true;
+          instance.addHook(i, settings[i]);
+        }
+      } else if (!init && (0, _object.hasOwnProperty)(settings, i)) {
+        // Update settings
+        GridSettings.prototype[i] = settings[i];
+      }
+    }
+
+    // Load data or create data map
+    if (settings.data === void 0 && priv.settings.data === void 0) {
+      instance.loadData(null); // data source created just now
+    } else if (settings.data !== void 0) {
+      instance.loadData(settings.data); // data source given as option
+    } else if (settings.columns !== void 0) {
+      datamap.createMap();
+    }
+
+    clen = instance.countCols();
+
+    var columnSetting = settings.columns || GridSettings.prototype.columns;
+
+    // Init columns constructors configuration
+    if (columnSetting && (0, _function.isFunction)(columnSetting)) {
+      clen = instance.countSourceCols();
+      columnsAsFunc = true;
+    }
+
+    // Clear cellSettings cache
+    if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
+      priv.cellSettings.length = 0;
+    }
+
+    if (clen > 0) {
+      var proto = void 0;
+      var column = void 0;
+
+      for (i = 0, j = 0; i < clen; i++) {
+        if (columnsAsFunc && !columnSetting(i)) {
+          /* eslint-disable no-continue */
+          continue;
+        }
+        priv.columnSettings[j] = (0, _setting.columnFactory)(GridSettings, priv.columnsSettingConflicts);
+
+        // shortcut for prototype
+        proto = priv.columnSettings[j].prototype;
+
+        // Use settings provided by user
+        if (columnSetting) {
+          if (columnsAsFunc) {
+            column = columnSetting(i);
+          } else {
+            column = columnSetting[j];
+          }
+
+          if (column) {
+            (0, _object.extend)(proto, column);
+            (0, _object.extend)(proto, expandType(column));
+          }
+        }
+
+        j++;
+      }
+    }
+
+    if ((0, _mixed.isDefined)(settings.cell)) {
+      for (var key in settings.cell) {
+        if ((0, _object.hasOwnProperty)(settings.cell, key)) {
+          var cell = settings.cell[key];
+
+          instance.setCellMetaObject(cell.row, cell.col, cell);
+        }
+      }
+    }
+
+    instance.runHooks('afterCellMetaReset');
+
+    if ((0, _mixed.isDefined)(settings.className)) {
+      if (GridSettings.prototype.className) {
+        (0, _element.removeClass)(instance.rootElement, GridSettings.prototype.className);
+      }
+      if (settings.className) {
+        (0, _element.addClass)(instance.rootElement, settings.className);
+      }
+    }
+
+    var currentHeight = instance.rootElement.style.height;
+    if (currentHeight !== '') {
+      currentHeight = parseInt(instance.rootElement.style.height, 10);
+    }
+
+    var height = settings.height;
+    if ((0, _function.isFunction)(height)) {
+      height = height();
+    }
+
+    if (init) {
+      var initialStyle = instance.rootElement.getAttribute('style');
+
+      if (initialStyle) {
+        instance.rootElement.setAttribute('data-initialstyle', instance.rootElement.getAttribute('style'));
+      }
+    }
+
+    if (height === null) {
+      var _initialStyle = instance.rootElement.getAttribute('data-initialstyle');
+
+      if (_initialStyle && (_initialStyle.indexOf('height') > -1 || _initialStyle.indexOf('overflow') > -1)) {
+        instance.rootElement.setAttribute('style', _initialStyle);
+      } else {
+        instance.rootElement.style.height = '';
+        instance.rootElement.style.overflow = '';
+      }
+    } else if (height !== void 0) {
+      instance.rootElement.style.height = height + 'px';
+      instance.rootElement.style.overflow = 'hidden';
+    }
+
+    if (typeof settings.width !== 'undefined') {
+      var width = settings.width;
+
+      if ((0, _function.isFunction)(width)) {
+        width = width();
+      }
+
+      instance.rootElement.style.width = width + 'px';
+    }
+
+    if (!init) {
+      datamap.clearLengthCache(); // force clear cache length on updateSettings() #3416
+
+      if (instance.view) {
+        instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
+      }
+
+      instance.runHooks('afterUpdateSettings', settings);
+    }
+
+    grid.adjustRowsAndCols();
+    if (instance.view && !priv.firstRun) {
+      instance.forceFullRender = true; // used when data was changed
+      editorManager.lockEditor();
+      instance._refreshBorders(null);
+      editorManager.unlockEditor();
+    }
+
+    if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
+      instance.view.wt.wtOverlays.updateMainScrollableElements();
+    }
+  };
+
+  /**
+   * Get value from the selected cell.
+   *
+   * @memberof Core#
+   * @function getValue
+   * @returns {*} Value of selected cell.
+   */
+  this.getValue = function () {
+    var sel = instance.getSelectedLast();
+
+    if (GridSettings.prototype.getValue) {
+      if ((0, _function.isFunction)(GridSettings.prototype.getValue)) {
+        return GridSettings.prototype.getValue.call(instance);
+      } else if (sel) {
+        return instance.getData()[sel[0][0]][GridSettings.prototype.getValue];
+      }
+    } else if (sel) {
+      return instance.getDataAtCell(sel[0], sel[1]);
+    }
+  };
+
+  function expandType(obj) {
+    if (!(0, _object.hasOwnProperty)(obj, 'type')) {
+      // ignore obj.prototype.type
+      return;
+    }
+
+    var expandedType = {};
+    var type = void 0;
+
+    if (_typeof(obj.type) === 'object') {
+      type = obj.type;
+    } else if (typeof obj.type === 'string') {
+      type = (0, _cellTypes.getCellType)(obj.type);
+    }
+
+    for (var i in type) {
+      if ((0, _object.hasOwnProperty)(type, i) && !(0, _object.hasOwnProperty)(obj, i)) {
+        expandedType[i] = type[i];
+      }
+    }
+
+    return expandedType;
+  }
+
+  /**
+   * Returns the object settings.
+   *
+   * @memberof Core#
+   * @function getSettings
+   * @returns {Object} Object containing the current table settings.
+   */
+  this.getSettings = function () {
+    return priv.settings;
+  };
+
+  /**
+   * Clears the data from the table (the table settings remain intact).
+   *
+   * @memberof Core#
+   * @function clear
+   */
+  this.clear = function () {
+    this.selectAll();
+    this.emptySelectedCells();
+  };
+
+  /**
+   * Allows altering the table structure by either inserting/removing rows or columns.
+   *
+   * @memberof Core#
+   * @function alter
+   * @param {String} action Possible alter operations:
+   *  * `'insert_row'`
+   *  * `'insert_col'`
+   *  * `'remove_row'`
+   *  * `'remove_col'`
+   * @param {Number|Number[]} index Visual index of the row/column before which the new row/column will be
+   *                                inserted/removed or an array of arrays in format `[[index, amount],...]`.
+   * @param {Number} [amount=1] Amount of rows/columns to be inserted or removed.
+   * @param {String} [source] Source indicator.
+   * @param {Boolean} [keepEmptyRows] Flag for preventing deletion of empty rows.
+   * @example
+   * ```js
+   * // Insert new row above the row at given visual index.
+   * hot.alter('insert_row', 10);
+   * // Insert 3 new columns before 10th column.
+   * hot.alter('insert_col', 10, 3);
+   * // Remove 2 rows starting from 10th row.
+   * hot.alter('remove_row', 10, 2);
+   * // Remove 5 non-contiquous rows (it removes 3 rows from visual index 1 and 2 rows from visual index 5).
+   * hot.alter('remove_row', [[1, 3], [5, 2]]);
+   * ```
+   */
+  this.alter = function (action, index, amount, source, keepEmptyRows) {
+    grid.alter(action, index, amount, source, keepEmptyRows);
+  };
+
+  /**
+   * Returns a TD element for the given `row` and `column` arguments, if it is rendered on screen.
+   * Returns `null` if the TD is not rendered on screen (probably because that part of the table is not visible).
+   *
+   * @memberof Core#
+   * @function getCell
+   * @param {Number} row Visual row index.
+   * @param {Number} column Visual column index.
+   * @param {Boolean} [topmost=false] If set to `true`, it returns the TD element from the topmost overlay. For example,
+   * if the wanted cell is in the range of fixed rows, it will return a TD element from the `top` overlay.
+   * @returns {HTMLTableCellElement|null} The cell's TD element.
+   */
+  this.getCell = function (row, column) {
+    var topmost = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+    return instance.view.getCellAtCoords(new _src.CellCoords(row, column), topmost);
+  };
+
+  /**
+   * Returns the coordinates of the cell, provided as a HTML table cell element.
+   *
+   * @memberof Core#
+   * @function getCoords
+   * @param {HTMLTableCellElement} element The HTML Element representing the cell.
+   * @returns {CellCoords} Visual coordinates object.
+   * @example
+   * ```js
+   * hot.getCoords(hot.getCell(1, 1));
+   * // it returns CellCoords object instance with props row: 1 and col: 1.
+   * ```
+   */
+  this.getCoords = function (element) {
+    return this.view.wt.wtTable.getCoords.call(this.view.wt.wtTable, element);
+  };
+
+  /**
+   * Returns the property name that corresponds with the given column index (see {@link DataMap#colToProp}).
+   * If the data source is an array of arrays, it returns the columns index.
+   *
+   * @memberof Core#
+   * @function colToProp
+   * @param {Number} column Visual column index.
+   * @returns {String|Number} Column property or physical column index.
+   */
+  this.colToProp = function (column) {
+    return datamap.colToProp(column);
+  };
+
+  /**
+   * Returns column index that corresponds with the given property (see {@link DataMap#propToCol}).
+   *
+   * @memberof Core#
+   * @function propToCol
+   * @param {String|Number} prop Property name or physical column index.
+   * @returns {Number} Visual column index.
+   */
+  this.propToCol = function (prop) {
+    return datamap.propToCol(prop);
+  };
+
+  /**
+   * Translate physical row index into visual.
+   *
+   * This method is useful when you want to retrieve visual row index which can be reordered, moved or trimmed
+   * based on a physical index
+   *
+   * @memberof Core#
+   * @function toVisualRow
+   * @param {Number} row Physical row index.
+   * @returns {Number} Returns visual row index.
+   */
+  this.toVisualRow = function (row) {
+    return recordTranslator.toVisualRow(row);
+  };
+
+  /**
+   * Translate physical column index into visual.
+   *
+   * This method is useful when you want to retrieve visual column index which can be reordered, moved or trimmed
+   * based on a physical index
+   *
+   * @memberof Core#
+   * @function toVisualColumn
+   * @param {Number} column Physical column index.
+   * @returns {Number} Returns visual column index.
+   */
+  this.toVisualColumn = function (column) {
+    return recordTranslator.toVisualColumn(column);
+  };
+
+  /**
+   * Translate visual row index into physical.
+   *
+   * This method is useful when you want to retrieve physical row index based on a visual index which can be
+   * reordered, moved or trimmed.
+   *
+   * @memberof Core#
+   * @function toPhysicalRow
+   * @param {Number} row Visual row index.
+   * @returns {Number} Returns physical row index.
+   */
+  this.toPhysicalRow = function (row) {
+    return recordTranslator.toPhysicalRow(row);
+  };
+
+  /**
+   * Translate visual column index into physical.
+   *
+   * This method is useful when you want to retrieve physical column index based on a visual index which can be
+   * reordered, moved or trimmed.
+   *
+   * @memberof Core#
+   * @function toPhysicalColumn
+   * @param {Number} column Visual column index.
+   * @returns {Number} Returns physical column index.
+   */
+  this.toPhysicalColumn = function (column) {
+    return recordTranslator.toPhysicalColumn(column);
+  };
+
+  /**
+   * @description
+   * Returns the cell value at `row`, `column`.
+   *
+   * __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
+   *
+   * @memberof Core#
+   * @function getDataAtCell
+   * @param {Number} row Visual row index.
+   * @param {Number} column Visual column index.
+   * @returns {*} Data at cell.
+   */
+  this.getDataAtCell = function (row, column) {
+    return datamap.get(row, datamap.colToProp(column));
+  };
+
+  /**
+   * Returns value at visual `row` and `prop` indexes (see {@link DataMap#get}).
+   *
+   * __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
+   *
+   * @memberof Core#
+   * @function getDataAtRowProp
+   * @param {Number} row Visual row index.
+   * @param {String} prop Property name.
+   * @returns {*} Cell value.
+   */
+  this.getDataAtRowProp = function (row, prop) {
+    return datamap.get(row, prop);
+  };
+
+  /**
+   * @description
+   * Returns array of column values from the data source.
+   *
+   * __Note__: If columns were reordered or sorted, the currently visible order will be used.
+   *
+   * @memberof Core#
+   * @function getDataAtCol
+   * @param {Number} column Visual column index.
+   * @returns {Array} Array of cell values.
+   */
+  this.getDataAtCol = function (column) {
+    var _ref12;
+
+    return (_ref12 = []).concat.apply(_ref12, _toConsumableArray(datamap.getRange(new _src.CellCoords(0, column), new _src.CellCoords(priv.settings.data.length - 1, column), datamap.DESTINATION_RENDERER)));
+  };
+
+  /**
+   * Given the object property name (e.g. `'first.name'` or `'0'`), returns an array of column's values from the table data.
+   * You can also provide a column index as the first argument.
+   *
+   * @memberof Core#
+   * @function getDataAtProp
+   * @param {String|Number} prop Property name or physical column index.
+   * @returns {Array} Array of cell values.
+   */
+  // TODO: Getting data from `datamap` should work on visual indexes.
+  this.getDataAtProp = function (prop) {
+    var _ref13;
+
+    var range = datamap.getRange(new _src.CellCoords(0, datamap.propToCol(prop)), new _src.CellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)), datamap.DESTINATION_RENDERER);
+
+    return (_ref13 = []).concat.apply(_ref13, _toConsumableArray(range));
+  };
+
+  /**
+   * Returns the source data object (the same that was passed by `data` configuration option or `loadData` method).
+   * Optionally you can provide a cell range by using the `row`, `column`, `row2`, `column2` arguments, to get only a
+   * fragment of the table data.
+   *
+   * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
+   * sorted or trimmed only physical indexes are correct.
+   *
+   * @memberof Core#
+   * @function getSourceData
+   * @param {Number} [row] From physical row index.
+   * @param {Number} [column] From physical column index (or visual index, if data type is an array of objects).
+   * @param {Number} [row2] To physical row index.
+   * @param {Number} [column2] To physical column index (or visual index, if data type is an array of objects).
+   * @returns {Array[]|Object[]} The table data.
+   */
+  this.getSourceData = function (row, column, row2, column2) {
+    var data = void 0;
+
+    if (row === void 0) {
+      data = dataSource.getData();
+    } else {
+      data = dataSource.getByRange(new _src.CellCoords(row, column), new _src.CellCoords(row2, column2));
+    }
+
+    return data;
+  };
+
+  /**
+   * Returns the source data object as an arrays of arrays format even when source data was provided in another format.
+   * Optionally you can provide a cell range by using the `row`, `column`, `row2`, `column2` arguments, to get only a
+   * fragment of the table data.
+   *
+   * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
+   * sorted or trimmed only physical indexes are correct.
+   *
+   * @memberof Core#
+   * @function getSourceDataArray
+   * @param {Number} [row] From physical row index.
+   * @param {Number} [column] From physical column index (or visual index, if data type is an array of objects).
+   * @param {Number} [row2] To physical row index.
+   * @param {Number} [column2] To physical column index (or visual index, if data type is an array of objects).
+   * @returns {Array} An array of arrays.
+   */
+  this.getSourceDataArray = function (row, column, row2, column2) {
+    var data = void 0;
+
+    if (row === void 0) {
+      data = dataSource.getData(true);
+    } else {
+      data = dataSource.getByRange(new _src.CellCoords(row, column), new _src.CellCoords(row2, column2), true);
+    }
+
+    return data;
+  };
+
+  /**
+   * Returns an array of column values from the data source.
+   *
+   * @memberof Core#
+   * @function getSourceDataAtCol
+   * @param {Number} column Visual column index.
+   * @returns {Array} Array of the column's cell values.
+   */
+  // TODO: Getting data from `sourceData` should work always on physical indexes.
+  this.getSourceDataAtCol = function (column) {
+    return dataSource.getAtColumn(column);
+  };
+
+  /**
+   * Returns a single row of the data (array or object, depending on what data format you use).
+   *
+   * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
+   * sorted or trimmed only physical indexes are correct.
+   *
+   * @memberof Core#
+   * @function getSourceDataAtRow
+   * @param {Number} row Physical row index.
+   * @returns {Array|Object} Single row of data.
+   */
+  this.getSourceDataAtRow = function (row) {
+    return dataSource.getAtRow(row);
+  };
+
+  /**
+   * Returns a single value from the data source.
+   *
+   * @memberof Core#
+   * @function getSourceDataAtCell
+   * @param {Number} row Physical row index.
+   * @param {Number} column Visual column index.
+   * @returns {*} Cell data.
+   */
+  // TODO: Getting data from `sourceData` should work always on physical indexes.
+  this.getSourceDataAtCell = function (row, column) {
+    return dataSource.getAtCell(row, column);
+  };
+
+  /**
+   * @description
+   * Returns a single row of the data.
+   *
+   * __Note__: If rows were reordered, sorted or trimmed, the currently visible order will be used.
+   *
+   * @memberof Core#
+   * @function getDataAtRow
+   * @param {Number} row Visual row index.
+   * @returns {Array} Array of row's cell data.
+   */
+  this.getDataAtRow = function (row) {
+    var data = datamap.getRange(new _src.CellCoords(row, 0), new _src.CellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER);
+
+    return data[0] || [];
+  };
+
+  /**
+   * @description
+   * Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](http://docs.handsontable.com/Options.html#type)).
+   * If there are cells with different types in the selected range, it returns `'mixed'`.
+   *
+   * __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
+   *
+   * @memberof Core#
+   * @function getDataType
+   * @param {Number} rowFrom From visual row index.
+   * @param {Number} columnFrom From visual column index.
+   * @param {Number} rowTo To visual row index.
+   * @param {Number} columnTo To visual column index.
+   * @returns {String} Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
+   */
+  this.getDataType = function (rowFrom, columnFrom, rowTo, columnTo) {
+    var _this3 = this;
+
+    var previousType = null;
+    var currentType = null;
+
+    if (rowFrom === void 0) {
+      rowFrom = 0;
+      rowTo = this.countRows();
+      columnFrom = 0;
+      columnTo = this.countCols();
+    }
+    if (rowTo === void 0) {
+      rowTo = rowFrom;
+    }
+    if (columnTo === void 0) {
+      columnTo = columnFrom;
+    }
+    var type = 'mixed';
+
+    (0, _number.rangeEach)(Math.min(rowFrom, rowTo), Math.max(rowFrom, rowTo), function (row) {
+      var isTypeEqual = true;
+
+      (0, _number.rangeEach)(Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo), function (column) {
+        var cellType = _this3.getCellMeta(row, column);
+
+        currentType = cellType.type;
+
+        if (previousType) {
+          isTypeEqual = previousType === currentType;
+        } else {
+          previousType = currentType;
+        }
+
+        return isTypeEqual;
+      });
+      type = isTypeEqual ? currentType : 'mixed';
+
+      return isTypeEqual;
+    });
+
+    return type;
+  };
+
+  /**
+   * Remove a property defined by the `key` argument from the cell meta object for the provided `row` and `column` coordinates.
+   *
+   * @memberof Core#
+   * @function removeCellMeta
+   * @param {Number} row Visual row index.
+   * @param {Number} column Visual column index.
+   * @param {String} key Property name.
+   * @fires Hooks#beforeRemoveCellMeta
+   * @fires Hooks#afterRemoveCellMeta
+   */
+  this.removeCellMeta = function (row, column, key) {
+    var _recordTranslator$toP = recordTranslator.toPhysical(row, column),
+        _recordTranslator$toP2 = _slicedToArray(_recordTranslator$toP, 2),
+        physicalRow = _recordTranslator$toP2[0],
+        physicalColumn = _recordTranslator$toP2[1];
+
+    var cachedValue = priv.cellSettings[physicalRow][physicalColumn][key];
+
+    var hookResult = instance.runHooks('beforeRemoveCellMeta', row, column, key, cachedValue);
+
+    if (hookResult !== false) {
+      delete priv.cellSettings[physicalRow][physicalColumn][key];
+
+      instance.runHooks('afterRemoveCellMeta', row, column, key, cachedValue);
+    }
+
+    cachedValue = null;
+  };
+
+  /**
+   * Remove one or more rows from the cell meta object.
+   *
+   * @since 0.30.0
+   * @param {Number} index An integer that specifies at what position to add/remove items, Use negative values to specify the position from the end of the array.
+   * @param {Number} deleteAmount The number of items to be removed. If set to 0, no items will be removed.
+   * @param {Array} items The new items to be added to the array.
+   */
+  this.spliceCellsMeta = function (index, deleteAmount) {
+    var _priv$cellSettings;
+
+    for (var _len4 = arguments.length, items = Array(_len4 > 2 ? _len4 - 2 : 0), _key3 = 2; _key3 < _len4; _key3++) {
+      items[_key3 - 2] = arguments[_key3];
+    }
+
+    (_priv$cellSettings = priv.cellSettings).splice.apply(_priv$cellSettings, [index, deleteAmount].concat(items));
+  };
+
+  /**
+   * Set cell meta data object defined by `prop` to the corresponding params `row` and `column`.
+   *
+   * @memberof Core#
+   * @function setCellMetaObject
+   * @param {Number} row Visual row index.
+   * @param {Number} column Visual column index.
+   * @param {Object} prop Meta object.
+   */
+  this.setCellMetaObject = function (row, column, prop) {
+    if ((typeof prop === 'undefined' ? 'undefined' : _typeof(prop)) === 'object') {
+      for (var key in prop) {
+        if ((0, _object.hasOwnProperty)(prop, key)) {
+          var value = prop[key];
+          this.setCellMeta(row, column, key, value);
+        }
+      }
+    }
+  };
+
+  /**
+   * Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
+   *
+   * @memberof Core#
+   * @function setCellMeta
+   * @param {Number} row Visual row index.
+   * @param {Number} column Visual column index.
+   * @param {String} key Property name.
+   * @param {String} value Property value.
+   * @fires Hooks#afterSetCellMeta
+   */
+  this.setCellMeta = function (row, column, key, value) {
+    var _recordTranslator$toP3 = recordTranslator.toPhysical(row, column),
+        _recordTranslator$toP4 = _slicedToArray(_recordTranslator$toP3, 2),
+        physicalRow = _recordTranslator$toP4[0],
+        physicalColumn = _recordTranslator$toP4[1];
+
+    if (!priv.columnSettings[physicalColumn]) {
+      priv.columnSettings[physicalColumn] = (0, _setting.columnFactory)(GridSettings, priv.columnsSettingConflicts);
+    }
+
+    if (!priv.cellSettings[physicalRow]) {
+      priv.cellSettings[physicalRow] = [];
+    }
+    if (!priv.cellSettings[physicalRow][physicalColumn]) {
+      priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
+    }
+    priv.cellSettings[physicalRow][physicalColumn][key] = value;
+    instance.runHooks('afterSetCellMeta', row, column, key, value);
+  };
+
+  /**
+   * Get all the cells meta settings at least once generated in the table (in order of cell initialization).
+   *
+   * @memberof Core#
+   * @function getCellsMeta
+   * @returns {Array} Returns an array of ColumnSettings object instances.
+   */
+  this.getCellsMeta = function () {
+    return (0, _array.arrayFlatten)(priv.cellSettings);
+  };
+
+  /**
+   * Returns the cell properties object for the given `row` and `column` coordinates.
+   *
+   * @memberof Core#
+   * @function getCellMeta
+   * @param {Number} row Visual row index.
+   * @param {Number} column Visual column index.
+   * @returns {Object} The cell properties object.
+   * @fires Hooks#beforeGetCellMeta
+   * @fires Hooks#afterGetCellMeta
+   */
+  this.getCellMeta = function (row, column) {
+    var prop = datamap.colToProp(column);
+    var cellProperties = void 0;
+
+    var _recordTranslator$toP5 = recordTranslator.toPhysical(row, column),
+        _recordTranslator$toP6 = _slicedToArray(_recordTranslator$toP5, 2),
+        physicalRow = _recordTranslator$toP6[0],
+        physicalColumn = _recordTranslator$toP6[1];
+
+    // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
+
+
+    if (physicalRow === null) {
+      physicalRow = row;
+    }
+
+    if (!priv.columnSettings[physicalColumn]) {
+      priv.columnSettings[physicalColumn] = (0, _setting.columnFactory)(GridSettings, priv.columnsSettingConflicts);
+    }
+
+    if (!priv.cellSettings[physicalRow]) {
+      priv.cellSettings[physicalRow] = [];
+    }
+    if (!priv.cellSettings[physicalRow][physicalColumn]) {
+      priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
+    }
+
+    cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
+
+    cellProperties.row = physicalRow;
+    cellProperties.col = physicalColumn;
+    cellProperties.visualRow = row;
+    cellProperties.visualCol = column;
+    cellProperties.prop = prop;
+    cellProperties.instance = instance;
+
+    instance.runHooks('beforeGetCellMeta', row, column, cellProperties);
+    (0, _object.extend)(cellProperties, expandType(cellProperties)); // for `type` added in beforeGetCellMeta
+
+    if (cellProperties.cells) {
+      var settings = cellProperties.cells.call(cellProperties, physicalRow, physicalColumn, prop);
+
+      if (settings) {
+        (0, _object.extend)(cellProperties, settings);
+        (0, _object.extend)(cellProperties, expandType(settings)); // for `type` added in cells
+      }
+    }
+
+    instance.runHooks('afterGetCellMeta', row, column, cellProperties);
+
+    return cellProperties;
+  };
+
+  /**
+   * Returns an array of cell meta objects for specyfied physical row index.
+   *
+   * @memberof Core#
+   * @function getCellMetaAtRow
+   * @param {Number} row Physical row index.
+   * @returns {Array}
+   */
+  this.getCellMetaAtRow = function (row) {
+    return priv.cellSettings[row];
+  };
+
+  /**
+   * Checks if the data format and config allows user to modify the column structure.
+   *
+   * @memberof Core#
+   * @function isColumnModificationAllowed
+   * @returns {Boolean}
+   */
+  this.isColumnModificationAllowed = function () {
+    return !(instance.dataType === 'object' || instance.getSettings().columns);
+  };
+
+  var rendererLookup = (0, _data.cellMethodLookupFactory)('renderer');
+
+  /**
+   * Returns the cell renderer function by given `row` and `column` arguments.
+   *
+   * @memberof Core#
+   * @function getCellRenderer
+   * @param {Number|Object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {Number} column Visual column index.
+   * @returns {Function} The renderer function.
+   * @example
+   * ```js
+   * // Get cell renderer using `row` and `column` coordinates.
+   * hot.getCellRenderer(1, 1);
+   * // Get cell renderer using cell meta object.
+   * hot.getCellRenderer(hot.getCellMeta(1, 1));
+   * ```
+   */
+  this.getCellRenderer = function (row, column) {
+    return (0, _renderers.getRenderer)(rendererLookup.call(this, row, column));
+  };
+
+  /**
+   * Returns the cell editor class by the provided `row` and `column` arguments.
+   *
+   * @memberof Core#
+   * @function getCellEditor
+   * @param {Number} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {Number} column Visual column index.
+   * @returns {Function} The editor class.
+   * @example
+   * ```js
+   * // Get cell editor class using `row` and `column` coordinates.
+   * hot.getCellEditor(1, 1);
+   * // Get cell editor class using cell meta object.
+   * hot.getCellEditor(hot.getCellMeta(1, 1));
+   * ```
+   */
+  this.getCellEditor = (0, _data.cellMethodLookupFactory)('editor');
+
+  var validatorLookup = (0, _data.cellMethodLookupFactory)('validator');
+
+  /**
+   * Returns the cell validator by `row` and `column`.
+   *
+   * @memberof Core#
+   * @function getCellValidator
+   * @param {Number|Object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {Number} column Visual column index.
+   * @returns {Function|RegExp|undefined} The validator function.
+   * @example
+   * ```js
+   * // Get cell valiator using `row` and `column` coordinates.
+   * hot.getCellValidator(1, 1);
+   * // Get cell valiator using cell meta object.
+   * hot.getCellValidator(hot.getCellMeta(1, 1));
+   * ```
+   */
+  this.getCellValidator = function (row, column) {
+    var validator = validatorLookup.call(this, row, column);
+
+    if (typeof validator === 'string') {
+      validator = (0, _validators.getValidator)(validator);
+    }
+
+    return validator;
+  };
+
+  /**
+   * Validates all cells using their validator functions and calls callback when finished.
+   *
+   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
+   * would equal `true`.
+   *
+   * @memberof Core#
+   * @function validateCells
+   * @param {Function} [callback] The callback function.
+   * @example
+   * ```js
+   * hot.validateCells((valid) => {
+   *   if (valid) {
+   *     // ... code for validated cells
+   *   }
+   * })
+   * ```
+   */
+  this.validateCells = function (callback) {
+    this._validateCells(callback);
+  };
+
+  /**
+   * Validates rows using their validator functions and calls callback when finished.
+   *
+   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
+   *  would equal `true`.
+   *
+   * @memberof Core#
+   * @function validateRows
+   * @param {Array} [rows] Array of validation target visual row indexes.
+   * @param {Function} [callback] The callback function.
+   * @example
+   * ```js
+   * hot.validateRows([3, 4, 5], (valid) => {
+   *   if (valid) {
+   *     // ... code for validated rows
+   *   }
+   * })
+   * ```
+   */
+  this.validateRows = function (rows, callback) {
+    if (!Array.isArray(rows)) {
+      throw new Error('validateRows parameter `rows` must be an array');
+    }
+    this._validateCells(callback, rows);
+  };
+
+  /**
+   * Validates columns using their validator functions and calls callback when finished.
+   *
+   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
+   *  would equal `true`.
+   *
+   * @memberof Core#
+   * @function validateColumns
+   * @param {Array} [columns] Array of validation target visual columns indexes.
+   * @param {Function} [callback] The callback function.
+   * @example
+   * ```js
+   * hot.validateColumns([3, 4, 5], (valid) => {
+   *   if (valid) {
+   *     // ... code for validated columns
+   *   }
+   * })
+   * ```
+   */
+  this.validateColumns = function (columns, callback) {
+    if (!Array.isArray(columns)) {
+      throw new Error('validateColumns parameter `columns` must be an array');
+    }
+    this._validateCells(callback, undefined, columns);
+  };
+
+  /**
+   * Validates all cells using their validator functions and calls callback when finished.
+   *
+   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it would equal `true`.
+   *
+   * Private use intended.
+   *
+   * @private
+   * @memberof Core#
+   * @function _validateCells
+   * @param {Function} [callback] The callback function.
+   * @param {Array} [rows] An array of validation target visual row indexes.
+   * @param {Array} [columns] An array of validation target visual column indexes.
+   */
+  this._validateCells = function (callback, rows, columns) {
+    var waitingForValidator = new ValidatorsQueue();
+
+    if (callback) {
+      waitingForValidator.onQueueEmpty = callback;
+    }
+
+    var i = instance.countRows() - 1;
+
+    while (i >= 0) {
+      if (rows !== undefined && rows.indexOf(i) === -1) {
+        i--;
+        continue;
+      }
+      var j = instance.countCols() - 1;
+
+      while (j >= 0) {
+        if (columns !== undefined && columns.indexOf(j) === -1) {
+          j--;
+          continue;
+        }
+        waitingForValidator.addValidatorToQueue();
+
+        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), function (result) {
+          if (typeof result !== 'boolean') {
+            throw new Error('Validation error: result is not boolean');
+          }
+          if (result === false) {
+            waitingForValidator.valid = false;
+          }
+          waitingForValidator.removeValidatorFormQueue();
+        }, 'validateCells');
+        j--;
+      }
+      i--;
+    }
+    waitingForValidator.checkIfQueueIsEmpty();
+  };
+
+  /**
+   * Returns an array of row headers' values (if they are enabled). If param `row` was given, it returns the header of the given row as a string.
+   *
+   * @memberof Core#
+   * @function getRowHeader
+   * @param {Number} [row] Visual row index.
+   * @fires Hooks#modifyRowHeader
+   * @returns {Array|String|Number} Array of header values / single header value.
+   */
+  this.getRowHeader = function (row) {
+    var rowHeader = priv.settings.rowHeaders;
+
+    if (row !== void 0) {
+      row = instance.runHooks('modifyRowHeader', row);
+    }
+    if (row === void 0) {
+      rowHeader = [];
+      (0, _number.rangeEach)(instance.countRows() - 1, function (i) {
+        rowHeader.push(instance.getRowHeader(i));
+      });
+    } else if (Array.isArray(rowHeader) && rowHeader[row] !== void 0) {
+      rowHeader = rowHeader[row];
+    } else if ((0, _function.isFunction)(rowHeader)) {
+      rowHeader = rowHeader(row);
+    } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
+      rowHeader = row + 1;
+    }
+
+    return rowHeader;
+  };
+
+  /**
+   * Returns information about if this table is configured to display row headers.
+   *
+   * @memberof Core#
+   * @function hasRowHeaders
+   * @returns {Boolean} `true` if the instance has the row headers enabled, `false` otherwise.
+   */
+  this.hasRowHeaders = function () {
+    return !!priv.settings.rowHeaders;
+  };
+
+  /**
+   * Returns information about if this table is configured to display column headers.
+   *
+   * @memberof Core#
+   * @function hasColHeaders
+   * @returns {Boolean} `true` if the instance has the column headers enabled, `false` otherwise.
+   */
+  this.hasColHeaders = function () {
+    if (priv.settings.colHeaders !== void 0 && priv.settings.colHeaders !== null) {
+      // Polymer has empty value = null
+      return !!priv.settings.colHeaders;
+    }
+    for (var i = 0, ilen = instance.countCols(); i < ilen; i++) {
+      if (instance.getColHeader(i)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  /**
+   * Returns an array of column headers (in string format, if they are enabled). If param `column` is given, it
+   * returns the header at the given column.
+   *
+   * @memberof Core#
+   * @function getColHeader
+   * @param {Number} [column] Visual column index.
+   * @fires Hooks#modifyColHeader
+   * @returns {Array|String|Number} The column header(s).
+   */
+  this.getColHeader = function (column) {
+    var columnsAsFunc = priv.settings.columns && (0, _function.isFunction)(priv.settings.columns);
+    var result = priv.settings.colHeaders;
+
+    column = instance.runHooks('modifyColHeader', column);
+
+    if (column === void 0) {
+      var out = [];
+      var ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
+
+      for (var i = 0; i < ilen; i++) {
+        out.push(instance.getColHeader(i));
+      }
+
+      result = out;
+    } else {
+      var translateVisualIndexToColumns = function translateVisualIndexToColumns(visualColumnIndex) {
+        var arr = [];
+        var columnsLen = instance.countSourceCols();
+        var index = 0;
+
+        for (; index < columnsLen; index++) {
+          if ((0, _function.isFunction)(instance.getSettings().columns) && instance.getSettings().columns(index)) {
+            arr.push(index);
+          }
+        }
+
+        return arr[visualColumnIndex];
+      };
+      var baseCol = column;
+      column = instance.runHooks('modifyCol', column);
+
+      var prop = translateVisualIndexToColumns(column);
+
+      if (priv.settings.columns && (0, _function.isFunction)(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
+        result = priv.settings.columns(prop).title;
+      } else if (priv.settings.columns && priv.settings.columns[column] && priv.settings.columns[column].title) {
+        result = priv.settings.columns[column].title;
+      } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[column] !== void 0) {
+        result = priv.settings.colHeaders[column];
+      } else if ((0, _function.isFunction)(priv.settings.colHeaders)) {
+        result = priv.settings.colHeaders(column);
+      } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
+        result = (0, _data.spreadsheetColumnLabel)(baseCol); // see #1458
+      }
+    }
+
+    return result;
+  };
+
+  /**
+   * Return column width from settings (no guessing). Private use intended.
+   *
+   * @private
+   * @memberof Core#
+   * @function _getColWidthFromSettings
+   * @param {Number} col Visual col index.
+   * @returns {Number}
+   */
+  this._getColWidthFromSettings = function (col) {
+    var cellProperties = instance.getCellMeta(0, col);
+    var width = cellProperties.width;
+
+    if (width === void 0 || width === priv.settings.width) {
+      width = cellProperties.colWidths;
+    }
+    if (width !== void 0 && width !== null) {
+      switch (typeof width === 'undefined' ? 'undefined' : _typeof(width)) {
+        case 'object':
+          // array
+          width = width[col];
+          break;
+
+        case 'function':
+          width = width(col);
+          break;
+        default:
+          break;
+      }
+      if (typeof width === 'string') {
+        width = parseInt(width, 10);
+      }
+    }
+
+    return width;
+  };
+
+  /**
+   * Returns the width of the requested column.
+   *
+   * @memberof Core#
+   * @function getColWidth
+   * @param {Number} column Visual column index.
+   * @returns {Number} Column width.
+   * @fires Hooks#modifyColWidth
+   */
+  this.getColWidth = function (column) {
+    var width = instance._getColWidthFromSettings(column);
+
+    width = instance.runHooks('modifyColWidth', width, column);
+
+    if (width === void 0) {
+      width = _src.ViewportColumnsCalculator.DEFAULT_WIDTH;
+    }
+
+    return width;
+  };
+
+  /**
+   * Return row height from settings (no guessing). Private use intended.
+   *
+   * @private
+   * @memberof Core#
+   * @function _getRowHeightFromSettings
+   * @param {Number} row Visual row index.
+   * @returns {Number}
+   */
+  this._getRowHeightFromSettings = function (row) {
+    // let cellProperties = instance.getCellMeta(row, 0);
+    // let height = cellProperties.height;
+    //
+    // if (height === void 0 || height === priv.settings.height) {
+    //  height = cellProperties.rowHeights;
+    // }
+    var height = priv.settings.rowHeights;
+
+    if (height !== void 0 && height !== null) {
+      switch (typeof height === 'undefined' ? 'undefined' : _typeof(height)) {
+        case 'object':
+          // array
+          height = height[row];
+          break;
+
+        case 'function':
+          height = height(row);
+          break;
+        default:
+          break;
+      }
+      if (typeof height === 'string') {
+        height = parseInt(height, 10);
+      }
+    }
+
+    return height;
+  };
+
+  /**
+   * Returns the row height.
+   *
+   * @memberof Core#
+   * @function getRowHeight
+   * @param {Number} row Visual row index.
+   * @returns {Number} The given row's height.
+   * @fires Hooks#modifyRowHeight
+   */
+  this.getRowHeight = function (row) {
+    var height = instance._getRowHeightFromSettings(row);
+
+    height = instance.runHooks('modifyRowHeight', height, row);
+
+    return height;
+  };
+
+  /**
+   * Returns the total number of rows in the data source.
+   *
+   * @memberof Core#
+   * @function countSourceRows
+   * @returns {Number} Total number of rows.
+   */
+  this.countSourceRows = function () {
+    var sourceLength = instance.runHooks('modifySourceLength');
+    return sourceLength || (instance.getSourceData() ? instance.getSourceData().length : 0);
+  };
+
+  /**
+   * Returns the total number of columns in the data source.
+   *
+   * @memberof Core#
+   * @function countSourceCols
+   * @returns {Number} Total number of columns.
+   */
+  this.countSourceCols = function () {
+    var len = 0;
+    var obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
+
+    if ((0, _object.isObject)(obj)) {
+      len = (0, _object.deepObjectSize)(obj);
+    } else {
+      len = obj.length || 0;
+    }
+
+    return len;
+  };
+
+  /**
+   * Returns the total number of visual rows in the table.
+   *
+   * @memberof Core#
+   * @function countRows
+   * @returns {Number} Total number of rows.
+   */
+  this.countRows = function () {
+    return datamap.getLength();
+  };
+
+  /**
+   * Returns the total number of visible columns in the table.
+   *
+   * @memberof Core#
+   * @function countCols
+   * @returns {Number} Total number of columns.
+   */
+  this.countCols = function () {
+    var maxCols = this.getSettings().maxCols;
+    var dataHasLength = false;
+    var dataLen = 0;
+
+    if (instance.dataType === 'array') {
+      dataHasLength = priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length;
+    }
+
+    if (dataHasLength) {
+      dataLen = priv.settings.data[0].length;
+    }
+
+    if (priv.settings.columns) {
+      var columnsIsFunction = (0, _function.isFunction)(priv.settings.columns);
+
+      if (columnsIsFunction) {
+        if (instance.dataType === 'array') {
+          var columnLen = 0;
+
+          for (var i = 0; i < dataLen; i++) {
+            if (priv.settings.columns(i)) {
+              columnLen++;
+            }
+          }
+
+          dataLen = columnLen;
+        } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+          dataLen = datamap.colToPropCache.length;
+        }
+      } else {
+        dataLen = priv.settings.columns.length;
+      }
+    } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+      dataLen = datamap.colToPropCache.length;
+    }
+
+    return Math.min(maxCols, dataLen);
+  };
+
+  /**
+   * Returns an visual index of the first rendered row.
+   *
+   * @memberof Core#
+   * @function rowOffset
+   * @returns {Number} Visual index of first rendered row.
+   */
+  this.rowOffset = function () {
+    return instance.view.wt.wtTable.getFirstRenderedRow();
+  };
+
+  /**
+   * Returns the visual index of the first rendered column.
+   *
+   * @memberof Core#
+   * @function colOffset
+   * @returns {Number} Visual index of the first visible column.
+   */
+  this.colOffset = function () {
+    return instance.view.wt.wtTable.getFirstRenderedColumn();
+  };
+
+  /**
+   * Returns the number of rendered rows (including rows partially or fully rendered outside viewport).
+   *
+   * @memberof Core#
+   * @function countRenderedRows
+   * @returns {Number} Returns -1 if table is not visible.
+   */
+  this.countRenderedRows = function () {
+    return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedRowsCount() : -1;
+  };
+
+  /**
+   * Returns the number of visible rows (rendered rows that fully fit inside viewport).
+   *
+   * @memberof Core#
+   * @function countVisibleRows
+   * @returns {Number} Number of visible rows or -1.
+   */
+  this.countVisibleRows = function () {
+    return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleRowsCount() : -1;
+  };
+
+  /**
+   * Returns the number of rendered columns (including columns partially or fully rendered outside viewport).
+   *
+   * @memberof Core#
+   * @function countRenderedCols
+   * @returns {Number} Returns -1 if table is not visible.
+   */
+  this.countRenderedCols = function () {
+    return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedColumnsCount() : -1;
+  };
+
+  /**
+   * Returns the number of visible columns. Returns -1 if table is not visible
+   *
+   * @memberof Core#
+   * @function countVisibleCols
+   * @return {Number} Number of visible columns or -1.
+   */
+  this.countVisibleCols = function () {
+    return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleColumnsCount() : -1;
+  };
+
+  /**
+   * Returns the number of empty rows. If the optional ending parameter is `true`, returns the
+   * number of empty rows at the bottom of the table.
+   *
+   * @memberof Core#
+   * @function countEmptyRows
+   * @param {Boolean} [ending=false] If `true`, will only count empty rows at the end of the data source.
+   * @returns {Number} Count empty rows.
+   */
+  this.countEmptyRows = function () {
+    var ending = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+    var emptyRows = 0;
+
+    (0, _number.rangeEachReverse)(instance.countRows() - 1, function (visualIndex) {
+      if (instance.isEmptyRow(visualIndex)) {
+        emptyRows += 1;
+      } else if (ending === true) {
+        return false;
+      }
+    });
+
+    return emptyRows;
+  };
+
+  /**
+   * Returns the number of empty columns. If the optional ending parameter is `true`, returns the number of empty
+   * columns at right hand edge of the table.
+   *
+   * @memberof Core#
+   * @function countEmptyCols
+   * @param {Boolean} [ending=false] If `true`, will only count empty columns at the end of the data source row.
+   * @returns {Number} Count empty cols.
+   */
+  this.countEmptyCols = function () {
+    var ending = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+    if (instance.countRows() < 1) {
+      return 0;
+    }
+
+    var emptyColumns = 0;
+
+    (0, _number.rangeEachReverse)(instance.countCols() - 1, function (visualIndex) {
+      if (instance.isEmptyCol(visualIndex)) {
+        emptyColumns += 1;
+      } else if (ending === true) {
+        return false;
+      }
+    });
+
+    return emptyColumns;
+  };
+
+  /**
+   * Check if all cells in the row declared by the `row` argument are empty.
+   *
+   * @memberof Core#
+   * @function isEmptyRow
+   * @param {Number} row Visual row index.
+   * @returns {Boolean} `true` if the row at the given `row` is empty, `false` otherwise.
+   */
+  this.isEmptyRow = function (row) {
+    return priv.settings.isEmptyRow.call(instance, row);
+  };
+
+  /**
+   * Check if all cells in the the column declared by the `column` argument are empty.
+   *
+   * @memberof Core#
+   * @function isEmptyCol
+   * @param {Number} column Column index.
+   * @returns {Boolean} `true` if the column at the given `col` is empty, `false` otherwise.
+   */
+  this.isEmptyCol = function (column) {
+    return priv.settings.isEmptyCol.call(instance, column);
+  };
+
+  /**
+   * Select cell specified by `row` and `column` values or a range of cells finishing at `endRow`, `endCol`. If the table
+   * was configured to support data column properties that properties can be used to making a selection.
+   *
+   * By default, viewport will be scrolled to the selection. After the `selectCell` method had finished, the instance
+   * will be listening to keyboard input on the document.
+   *
+   * @example
+   * ```js
+   * // select a single cell
+   * hot.selectCell(2, 4);
+   * // select a single cell using column property
+   * hot.selectCell(2, 'address');
+   * // select a range of cells
+   * hot.selectCell(2, 4, 3, 5);
+   * // select a range of cells using column properties
+   * hot.selectCell(2, 'address', 3, 'phone_number');
+   * // select a range of cells without scrolling to them
+   * hot.selectCell(2, 'address', 3, 'phone_number', false);
+   * ```
+   *
+   * @memberof Core#
+   * @function selectCell
+   * @param {Number} row Visual row index.
+   * @param {Number|String} column Visual column index or column property.
+   * @param {Number} [endRow] Visual end row index (if selecting a range).
+   * @param {Number|String} [endColumn] Visual end column index or column property (if selecting a range).
+   * @param {Boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
+   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
+   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   */
+  this.selectCell = function (row, column, endRow, endColumn) {
+    var scrollToCell = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
+    var changeListener = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : true;
+
+    if ((0, _mixed.isUndefined)(row) || (0, _mixed.isUndefined)(column)) {
+      return false;
+    }
+
+    return this.selectCells([[row, column, endRow, endColumn]], scrollToCell, changeListener);
+  };
+
+  /**
+   * Make multiple, non-contiguous selection specified by `row` and `column` values or a range of cells
+   * finishing at `endRow`, `endColumn`. The method supports two input formats which are the same as that
+   * produces by `getSelected` and `getSelectedRange` methods.
+   *
+   * By default, viewport will be scrolled to selection. After the `selectCells` method had finished, the instance
+   * will be listening to keyboard input on the document.
+   *
+   * @example
+   * ```js
+   * // Using an array of arrays.
+   * hot.selectCells([[1, 1, 2, 2], [3, 3], [6, 2, 0, 2]]);
+   * // Using an array of arrays with defined columns as props.
+   * hot.selectCells([[1, 'id', 2, 'first_name'], [3, 'full_name'], [6, 'last_name', 0, 'first_name']]);
+   * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
+   * const selected = hot.getSelectedRange();
+   *
+   * selected[0].from.row = 0;
+   * selected[0].from.col = 0;
+   *
+   * hot.selectCells(selected);
+   * ```
+   *
+   * @memberof Core#
+   * @since 0.38.0
+   * @function selectCells
+   * @param {Array[]|CellRange[]} coords Visual coords passed as an array of array (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
+   *                                     the same format as `getSelected` method returns or as an CellRange objects
+   *                                     which is the same format what `getSelectedRange` method returns.
+   * @param {Boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
+   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
+   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   */
+  this.selectCells = function () {
+    var coords = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [[]];
+    var scrollToCell = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+    var changeListener = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+
+    if (scrollToCell === false) {
+      preventScrollingToCell = true;
+    }
+
+    var wasSelected = selection.selectCells(coords);
+
+    if (wasSelected && changeListener) {
+      instance.listen();
+    }
+    preventScrollingToCell = false;
+
+    return wasSelected;
+  };
+
+  /**
+   * Select the cell specified by the `row` and `prop` arguments, or a range finishing at `endRow`, `endProp`.
+   * By default, viewport will be scrolled to selection.
+   *
+   * @deprecated
+   * @memberof Core#
+   * @function selectCellByProp
+   * @param {Number} row Visual row index.
+   * @param {String} prop Property name.
+   * @param {Number} [endRow] visual end row index (if selecting a range).
+   * @param {String} [endProp] End property name (if selecting a range).
+   * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the selection.
+   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
+   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   */
+  this.selectCellByProp = function (row, prop, endRow, endProp) {
+    var scrollToCell = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
+    var changeListener = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : true;
+
+    (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject));
+
+    return this.selectCells([[row, prop, endRow, endProp]], scrollToCell, changeListener);
+  };
+
+  /**
+   * Select column specified by `startColumn` visual index, column property or a range of columns finishing at `endColumn`.
+   *
+   * @example
+   * ```js
+   * // Select column using visual index.
+   * hot.selectColumns(1);
+   * // Select column using column property.
+   * hot.selectColumns('id');
+   * // Select range of columns using visual indexes.
+   * hot.selectColumns(1, 4);
+   * // Select range of columns using column properties.
+   * hot.selectColumns('id', 'last_name');
+   * ```
+   *
+   * @memberof Core#
+   * @since 0.38.0
+   * @function selectColumns
+   * @param {Number} startColumn The visual column index from which the selection starts.
+   * @param {Number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
+   *                                         is not defined the column defined by `startColumn` will be selected.
+   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   */
+  this.selectColumns = function (startColumn) {
+    var endColumn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : startColumn;
+
+    return selection.selectColumns(startColumn, endColumn);
+  };
+
+  /**
+   * Select row specified by `startRow` visual index or a range of rows finishing at `endRow`.
+   *
+   * @example
+   * ```js
+   * // Select row using visual index.
+   * hot.selectRows(1);
+   * // Select range of rows using visual indexes.
+   * hot.selectRows(1, 4);
+   * ```
+   *
+   * @memberof Core#
+   * @since 0.38.0
+   * @function selectRows
+   * @param {Number} startRow The visual row index from which the selection starts.
+   * @param {Number} [endRow=startRow] The visual row index to which the selection finishes. If `endRow`
+   *                                   is not defined the row defined by `startRow` will be selected.
+   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   */
+  this.selectRows = function (startRow) {
+    var endRow = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : startRow;
+
+    return selection.selectRows(startRow, endRow);
+  };
+
+  /**
+   * Deselects the current cell selection on the table.
+   *
+   * @memberof Core#
+   * @function deselectCell
+   */
+  this.deselectCell = function () {
+    selection.deselect();
+  };
+
+  /**
+   * Select the whole table. The previous selection will be overwritten.
+   *
+   * @since 0.38.2
+   * @memberof Core#
+   * @function selectAll
+   */
+  this.selectAll = function () {
+    preventScrollingToCell = true;
+    selection.selectAll();
+    preventScrollingToCell = false;
+  };
+
+  /**
+   * Scroll viewport to coordinates specified by the `row` and `column` arguments.
+   *
+   * @memberof Core#
+   * @function scrollViewportTo
+   * @param {Number} [row] Visual row index.
+   * @param {Number} [column] Visual column index.
+   * @param {Boolean} [snapToBottom = false] If `true`, viewport is scrolled to show the cell on the bottom of the table.
+   * @param {Boolean} [snapToRight = false] If `true`, viewport is scrolled to show the cell on the right side of the table.
+   * @returns {Boolean} `true` if scroll was successful, `false` otherwise.
+   */
+  this.scrollViewportTo = function (row, column) {
+    var snapToBottom = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+    var snapToRight = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+
+    var snapToTop = !snapToBottom;
+    var snapToLeft = !snapToRight;
+    var result = false;
+
+    if (row !== void 0 && column !== void 0) {
+      result = instance.view.scrollViewport(new _src.CellCoords(row, column), snapToTop, snapToRight, snapToBottom, snapToLeft);
+    }
+    if (typeof row === 'number' && typeof column !== 'number') {
+      result = instance.view.scrollViewportVertically(row, snapToTop, snapToBottom);
+    }
+    if (typeof column === 'number' && typeof row !== 'number') {
+      result = instance.view.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+    }
+
+    return result;
+  };
+
+  /**
+   * Removes the table from the DOM and destroys the instance of the Handsontable.
+   *
+   * @memberof Core#
+   * @function destroy
+   * @fires Hooks#afterDestroy
+   */
+  this.destroy = function () {
+    instance._clearTimeouts();
+    instance._clearImmediates();
+
+    if (instance.view) {
+      // in case HT is destroyed before initialization has finished
+      instance.view.destroy();
+    }
+    if (dataSource) {
+      dataSource.destroy();
+    }
+    dataSource = null;
+
+    (0, _keyStateObserver.stopObserving)();
+
+    if (false) {
+      var licenseInfo = document.querySelector('#hot-display-license-info');
+
+      if (licenseInfo) {
+        licenseInfo.parentNode.removeChild(licenseInfo);
+      }
+    }
+    (0, _element.empty)(instance.rootElement);
+    eventManager.destroy();
+
+    if (editorManager) {
+      editorManager.destroy();
+    }
+
+    instance.runHooks('afterDestroy');
+    _pluginHooks2.default.getSingleton().destroy(instance);
+
+    for (var i in instance) {
+      if ((0, _object.hasOwnProperty)(instance, i)) {
+        // replace instance methods with post mortem
+        if ((0, _function.isFunction)(instance[i])) {
+          instance[i] = postMortem(i);
+        } else if (i !== 'guid') {
+          // replace instance properties with null (restores memory)
+          // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
+          instance[i] = null;
+        }
+      }
+    }
+    instance.isDestroyed = true;
+
+    // replace private properties with null (restores memory)
+    // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
+    if (datamap) {
+      datamap.destroy();
+    }
+    datamap = null;
+    priv = null;
+    grid = null;
+    selection = null;
+    editorManager = null;
+    instance = null;
+    GridSettings = null;
+  };
+
+  /**
+   * Replacement for all methods after Handsotnable was destroyed.
+   *
+   * @private
+   */
+  function postMortem(method) {
+    return function () {
+      throw new Error('The "' + method + '" method cannot be called because this Handsontable instance has been destroyed');
+    };
+  }
+
+  /**
+   * Returns the active editor class instance.
+   *
+   * @memberof Core#
+   * @function getActiveEditor
+   * @returns {BaseEditor} The active editor instance.
+   */
+  this.getActiveEditor = function () {
+    return editorManager.getActiveEditor();
+  };
+
+  /**
+   * Returns plugin instance by provided its name.
+   *
+   * @memberof Core#
+   * @function getPlugin
+   * @param {String} pluginName The plugin name.
+   * @returns {BasePlugin} The plugin instance.
+   */
+  this.getPlugin = function (pluginName) {
+    return (0, _plugins.getPlugin)(this, pluginName);
+  };
+
+  /**
+   * Returns the Handsontable instance.
+   *
+   * @memberof Core#
+   * @function getInstance
+   * @returns {Handsontable} The Handsontable instance.
+   */
+  this.getInstance = function () {
+    return instance;
+  };
+
+  /**
+   * Adds listener to the specified hook name (only for this Handsontable instance).
+   *
+   * @memberof Core#
+   * @function addHook
+   * @see Hooks#add
+   * @param {String} key Hook name (see {@link Hooks}).
+   * @param {Function|Array} callback Function or array of functions.
+   * @example
+   * ```js
+   * hot.addHook('beforeInit', myCallback);
+   * ```
+   */
+  this.addHook = function (key, callback) {
+    _pluginHooks2.default.getSingleton().add(key, callback, instance);
+  };
+
+  /**
+   * Check if for a specified hook name there are added listeners (only for this Handsontable instance). All available
+   * hooks you will find {@link Hooks}.
+   *
+   * @memberof Core#
+   * @function hasHook
+   * @see Hooks#has
+   * @param {String} key Hook name
+   * @return {Boolean}
+   *
+   * @example
+   * ```js
+   * const hasBeforeInitListeners = hot.hasHook('beforeInit');
+   * ```
+   */
+  this.hasHook = function (key) {
+    return _pluginHooks2.default.getSingleton().has(key, instance);
+  };
+
+  /**
+   * Adds listener to specified hook name (only for this Handsontable instance). After the listener is triggered,
+   * it will be automatically removed.
+   *
+   * @memberof Core#
+   * @function addHookOnce
+   * @see Hooks#once
+   * @param {String} key Hook name (see {@link Hooks}).
+   * @param {Function|Array} callback Function or array of functions.
+   * @example
+   * ```js
+   * hot.addHookOnce('beforeInit', myCallback);
+   * ```
+   */
+  this.addHookOnce = function (key, callback) {
+    _pluginHooks2.default.getSingleton().once(key, callback, instance);
+  };
+
+  /**
+   * Removes the hook listener previously registered with {@link Core#addHook}.
+   *
+   * @memberof Core#
+   * @function removeHook
+   * @see Hooks#remove
+   * @param {String} key Hook name.
+   * @param {Function} callback Reference to the function which has been registered using {@link Core#addHook}.
+   *
+   * @example
+   * ```js
+   * hot.removeHook('beforeInit', myCallback);
+   * ```
+   */
+  this.removeHook = function (key, callback) {
+    _pluginHooks2.default.getSingleton().remove(key, callback, instance);
+  };
+
+  /**
+   * Run the callbacks for the hook provided in the `key` argument using the parameters given in the other arguments.
+   *
+   * @memberof Core#
+   * @function runHooks
+   * @see Hooks#run
+   * @param {String} key Hook name.
+   * @param {*} [p1] Argument passed to the callback.
+   * @param {*} [p2] Argument passed to the callback.
+   * @param {*} [p3] Argument passed to the callback.
+   * @param {*} [p4] Argument passed to the callback.
+   * @param {*} [p5] Argument passed to the callback.
+   * @param {*} [p6] Argument passed to the callback.
+   * @returns {*}
+   *
+   * @example
+   * ```js
+   * // Run built-in hook
+   * hot.runHooks('beforeInit');
+   * // Run custom hook
+   * hot.runHooks('customAction', 10, 'foo');
+   * ```
+   */
+  this.runHooks = function (key, p1, p2, p3, p4, p5, p6) {
+    return _pluginHooks2.default.getSingleton().run(instance, key, p1, p2, p3, p4, p5, p6);
+  };
+
+  /**
+   * Get language phrase for specified dictionary key.
+   *
+   * @memberof Core#
+   * @function getTranslatedPhrase
+   * @since 0.35.0
+   * @param {String} dictionaryKey Constant which is dictionary key.
+   * @param {*} extraArguments Arguments which will be handled by formatters.
+   * @returns {String}
+   */
+  this.getTranslatedPhrase = function (dictionaryKey, extraArguments) {
+    return (0, _i18n.getTranslatedPhrase)(priv.settings.language, dictionaryKey, extraArguments);
+  };
+
+  this.timeouts = [];
+
+  /**
+   * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called.
+   *
+   * @param {Number|Function} handle Handler returned from setTimeout or function to execute (it will be automatically wraped
+   *                                 by setTimeout function).
+   * @param {Number} [delay=0] If first argument is passed as a function this argument set delay of the execution of that function.
+   * @private
+   */
+  this._registerTimeout = function (handle) {
+    var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+
+    if (typeof handle === 'function') {
+      handle = setTimeout(handle, delay);
+    }
+
+    this.timeouts.push(handle);
+  };
+
+  /**
+   * Clears all known timeouts.
+   *
+   * @private
+   */
+  this._clearTimeouts = function () {
+    (0, _array.arrayEach)(this.timeouts, function (handler) {
+      clearTimeout(handler);
+    });
+  };
+
+  this.immediates = [];
+
+  /**
+   * Execute function execution to the next event loop cycle. Purpose of this method is to clear all known timeouts when `destroy` method is called.
+   *
+   * @param {Function} callback Function to be delayed in execution.
+   * @private
+   */
+  this._registerImmediate = function (callback) {
+    this.immediates.push(setImmediate(callback));
+  };
+
+  /**
+   * Clears all known timeouts.
+   *
+   * @private
+   */
+  this._clearImmediates = function () {
+    (0, _array.arrayEach)(this.immediates, function (handler) {
+      clearImmediate(handler);
+    });
+  };
+
+  /**
+   * Refresh selection borders. This is temporary method relic after selection rewrite.
+   *
+   * @private
+   * @param {Boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
+   * @param {Boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
+   */
+  this._refreshBorders = function () {
+    var revertOriginal = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+    var prepareEditorIfNeeded = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+    editorManager.destroyEditor(revertOriginal);
+    instance.view.render();
+
+    if (prepareEditorIfNeeded && selection.isSelected()) {
+      editorManager.prepareEditor();
+    }
+  };
+
+  _pluginHooks2.default.getSingleton().run(instance, 'construct');
+};
+
+/***/ }),
+/* 91 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.columnFactory = columnFactory;
+
+var _object = __webpack_require__(1);
+
+/* eslint-disable import/prefer-default-export */
+/**
+ * Factory for columns constructors.
+ *
+ * @param {Object} GridSettings
+ * @param {Array} conflictList
+ * @return {Object} ColumnSettings
+ */
+function columnFactory(GridSettings, conflictList) {
+  function ColumnSettings() {};
+
+  (0, _object.inherit)(ColumnSettings, GridSettings);
+
+  // Clear conflict settings
+  for (var i = 0, len = conflictList.length; i < len; i++) {
+    ColumnSettings.prototype[conflictList[i]] = void 0;
+  }
+
+  return ColumnSettings;
+}
+
+/***/ }),
+/* 92 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.spreadsheetColumnLabel = spreadsheetColumnLabel;
+exports.spreadsheetColumnIndex = spreadsheetColumnIndex;
+exports.createSpreadsheetData = createSpreadsheetData;
+exports.createSpreadsheetObjectData = createSpreadsheetObjectData;
+exports.createEmptySpreadsheetData = createEmptySpreadsheetData;
+exports.translateRowsToColumns = translateRowsToColumns;
+exports.cellMethodLookupFactory = cellMethodLookupFactory;
+
+var _cellTypes = __webpack_require__(89);
+
+var _object = __webpack_require__(1);
+
+var COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+var COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
+
+/**
+ * Generates spreadsheet-like column names: A, B, C, ..., Z, AA, AB, etc.
+ *
+ * @param {Number} index Column index.
+ * @returns {String}
+ */
+function spreadsheetColumnLabel(index) {
+  var dividend = index + 1;
+  var columnLabel = '';
+  var modulo = void 0;
+
+  while (dividend > 0) {
+    modulo = (dividend - 1) % COLUMN_LABEL_BASE_LENGTH;
+    columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
+    dividend = parseInt((dividend - modulo) / COLUMN_LABEL_BASE_LENGTH, 10);
+  }
+
+  return columnLabel;
+}
+
+/**
+ * Generates spreadsheet-like column index from theirs labels: A, B, C ...., Z, AA, AB, etc.
+ *
+ * @param {String} label Column label.
+ * @returns {Number}
+ */
+function spreadsheetColumnIndex(label) {
+  var result = 0;
+
+  if (label) {
+    for (var i = 0, j = label.length - 1; i < label.length; i += 1, j -= 1) {
+      result += Math.pow(COLUMN_LABEL_BASE_LENGTH, j) * (COLUMN_LABEL_BASE.indexOf(label[i]) + 1);
+    }
+  }
+  --result;
+
+  return result;
+}
+
+/**
+ * Creates 2D array of Excel-like values "A1", "A2", ...
+ *
+ * @param {Number} rows Number of rows to generate.
+ * @param {Number} columns Number of columns to generate.
+ * @returns {Array}
+ */
+function createSpreadsheetData() {
+  var rows = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 100;
+  var columns = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 4;
+
+  var _rows = [];
+  var i = void 0;
+  var j = void 0;
+
+  for (i = 0; i < rows; i++) {
+    var row = [];
+
+    for (j = 0; j < columns; j++) {
+      row.push(spreadsheetColumnLabel(j) + (i + 1));
+    }
+    _rows.push(row);
+  }
+
+  return _rows;
+}
+
+/**
+ * Creates 2D array of Excel-like values "A1", "A2", as an array of objects.
+ *
+ * @param {Number} rows Number of rows to generate.
+ * @param {Number} colCount Number of columns to generate.
+ * @returns {Array}
+ */
+function createSpreadsheetObjectData() {
+  var rows = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 100;
+  var colCount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 4;
+
+  var _rows = [];
+  var i = void 0;
+  var j = void 0;
+
+  for (i = 0; i < rows; i++) {
+    var row = {};
+
+    for (j = 0; j < colCount; j++) {
+      row['prop' + j] = spreadsheetColumnLabel(j) + (i + 1);
+    }
+    _rows.push(row);
+  }
+
+  return _rows;
+}
+
+/**
+ * Generates an empty data object.
+ *
+ * @param {Number} rows Number of rows to generate.
+ * @param {Number} columns Number of columns to generate
+ * @returns {Array}
+ */
+function createEmptySpreadsheetData(rows, columns) {
+  var data = [];
+  var row = void 0;
+
+  for (var i = 0; i < rows; i++) {
+    row = [];
+    for (var j = 0; j < columns; j++) {
+      row.push('');
+    }
+    data.push(row);
+  }
+
+  return data;
+}
+
+function translateRowsToColumns(input) {
+  var output = [];
+  var i = void 0;
+  var ilen = void 0;
+  var j = void 0;
+  var jlen = void 0;
+  var olen = 0;
+
+  for (i = 0, ilen = input.length; i < ilen; i++) {
+    for (j = 0, jlen = input[i].length; j < jlen; j++) {
+      if (j === olen) {
+        output.push([]);
+        olen++;
+      }
+      output[j].push(input[i][j]);
+    }
+  }
+
+  return output;
+}
+
+/**
+ * Factory that produces a function for searching methods (or any properties) which could be defined directly in
+ * table configuration or implicitly, within cell type definition.
+ *
+ * For example: renderer can be defined explicitly using "renderer" property in column configuration or it can be
+ * defined implicitly using "type" property.
+ *
+ * Methods/properties defined explicitly always takes precedence over those defined through "type".
+ *
+ * If the method/property is not found in an object, searching is continued recursively through prototype chain, until
+ * it reaches the Object.prototype.
+ *
+ *
+ * @param methodName {String} name of the method/property to search (i.e. 'renderer', 'validator', 'copyable')
+ * @param allowUndefined {Boolean} [optional] if false, the search is continued if methodName has not been found in cell "type"
+ * @returns {Function}
+ */
+function cellMethodLookupFactory(methodName, allowUndefined) {
+
+  allowUndefined = typeof allowUndefined === 'undefined' ? true : allowUndefined;
+
+  return function cellMethodLookup(row, col) {
+    return function getMethodFromProperties(properties) {
+
+      if (!properties) {
+        return; // method not found
+      } else if ((0, _object.hasOwnProperty)(properties, methodName) && properties[methodName] !== void 0) {
+        // check if it is own and is not empty
+        return properties[methodName]; // method defined directly
+      } else if ((0, _object.hasOwnProperty)(properties, 'type') && properties.type) {
+        // check if it is own and is not empty
+        if (typeof properties.type !== 'string') {
+          throw new Error('Cell type must be a string ');
+        }
+
+        var type = (0, _cellTypes.getCellType)(properties.type);
+
+        if ((0, _object.hasOwnProperty)(type, methodName)) {
+          return type[methodName]; // method defined in type.
+        } else if (allowUndefined) {
+          return; // method does not defined in type (eg. validator), returns undefined
+        }
+      }
+
+      return getMethodFromProperties(Object.getPrototypeOf(properties));
+    }(typeof row === 'number' ? this.getCellMeta(row, col) : row);
+  };
+}
+
+/***/ }),
+/* 93 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _element = __webpack_require__(0);
+
+var _array = __webpack_require__(2);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * @class GhostTable
+ * @util
+ */
+var GhostTable = function () {
+  function GhostTable(hotInstance) {
+    _classCallCheck(this, GhostTable);
+
+    /**
+     * Handsontable instance.
+     *
+     * @type {Core}
+     */
+    this.hot = hotInstance;
+    /**
+     * Container element where every table will be injected.
+     *
+     * @type {HTMLElement|null}
+     */
+    this.container = null;
+    /**
+     * Flag which determine is table was injected to DOM.
+     *
+     * @type {Boolean}
+     */
+    this.injected = false;
+    /**
+     * Added rows collection.
+     *
+     * @type {Array}
+     */
+    this.rows = [];
+    /**
+     * Added columns collection.
+     *
+     * @type {Array}
+     */
+    this.columns = [];
+    /**
+     * Samples prepared for calculations.
+     *
+     * @type {Map}
+     * @default {null}
+     */
+    this.samples = null;
+    /**
+     * Ghost table settings.
+     *
+     * @type {Object}
+     * @default {Object}
+     */
+    this.settings = {
+      useHeaders: true
+    };
+  }
+
+  /**
+   * Add row.
+   *
+   * @param {Number} row Row index.
+   * @param {Map} samples Samples Map object.
+   */
+
+
+  _createClass(GhostTable, [{
+    key: 'addRow',
+    value: function addRow(row, samples) {
+      if (this.columns.length) {
+        throw new Error('Doesn\'t support multi-dimensional table');
+      }
+      if (!this.rows.length) {
+        this.container = this.createContainer(this.hot.rootElement.className);
+      }
+      var rowObject = { row: row };
+      this.rows.push(rowObject);
+
+      this.samples = samples;
+      this.table = this.createTable(this.hot.table.className);
+      this.table.colGroup.appendChild(this.createColGroupsCol());
+      this.table.tr.appendChild(this.createRow(row));
+      this.container.container.appendChild(this.table.fragment);
+
+      rowObject.table = this.table.table;
+    }
+
+    /**
+     * Add a row consisting of the column headers.
+     */
+
+  }, {
+    key: 'addColumnHeadersRow',
+    value: function addColumnHeadersRow(samples) {
+      if (this.hot.getColHeader(0) != null) {
+        var rowObject = { row: -1 };
+        this.rows.push(rowObject);
+
+        this.container = this.createContainer(this.hot.rootElement.className);
+
+        this.samples = samples;
+        this.table = this.createTable(this.hot.table.className);
+        this.table.colGroup.appendChild(this.createColGroupsCol());
+        this.table.tHead.appendChild(this.createColumnHeadersRow());
+        this.container.container.appendChild(this.table.fragment);
+
+        rowObject.table = this.table.table;
+      }
+    }
+
+    /**
+     * Add column.
+     *
+     * @param {Number} column Column index.
+     * @param {Map} samples Samples Map object.
+     */
+
+  }, {
+    key: 'addColumn',
+    value: function addColumn(column, samples) {
+      if (this.rows.length) {
+        throw new Error('Doesn\'t support multi-dimensional table');
+      }
+      if (!this.columns.length) {
+        this.container = this.createContainer(this.hot.rootElement.className);
+      }
+      var columnObject = { col: column };
+      this.columns.push(columnObject);
+
+      this.samples = samples;
+      this.table = this.createTable(this.hot.table.className);
+
+      if (this.getSetting('useHeaders') && this.hot.getColHeader(column) !== null) {
+        this.hot.view.appendColHeader(column, this.table.th);
+      }
+      this.table.tBody.appendChild(this.createCol(column));
+      this.container.container.appendChild(this.table.fragment);
+
+      columnObject.table = this.table.table;
+    }
+
+    /**
+     * Get calculated heights.
+     *
+     * @param {Function} callback Callback which will be fired for each calculated row.
+     */
+
+  }, {
+    key: 'getHeights',
+    value: function getHeights(callback) {
+      if (!this.injected) {
+        this.injectTable();
+      }
+      (0, _array.arrayEach)(this.rows, function (row) {
+        // -1 <- reduce border-top from table
+        callback(row.row, (0, _element.outerHeight)(row.table) - 1);
+      });
+    }
+
+    /**
+     * Get calculated widths.
+     *
+     * @param {Function} callback Callback which will be fired for each calculated column.
+     */
+
+  }, {
+    key: 'getWidths',
+    value: function getWidths(callback) {
+      if (!this.injected) {
+        this.injectTable();
+      }
+      (0, _array.arrayEach)(this.columns, function (column) {
+        callback(column.col, (0, _element.outerWidth)(column.table));
+      });
+    }
+
+    /**
+     * Set the Ghost Table settings to the provided object.
+     *
+     * @param {Object} settings New Ghost Table Settings
+     */
+
+  }, {
+    key: 'setSettings',
+    value: function setSettings(settings) {
+      this.settings = settings;
+    }
+
+    /**
+     * Set a single setting of the Ghost Table.
+     *
+     * @param {String} name Setting name.
+     * @param {*} value Setting value.
+     */
+
+  }, {
+    key: 'setSetting',
+    value: function setSetting(name, value) {
+      if (!this.settings) {
+        this.settings = {};
+      }
+
+      this.settings[name] = value;
+    }
+
+    /**
+     * Get the Ghost Table settings.
+     *
+     * @returns {Object|null}
+     */
+
+  }, {
+    key: 'getSettings',
+    value: function getSettings() {
+      return this.settings;
+    }
+
+    /**
+     * Get a single Ghost Table setting.
+     *
+     * @param {String} name
+     * @returns {Boolean|null}
+     */
+
+  }, {
+    key: 'getSetting',
+    value: function getSetting(name) {
+      if (this.settings) {
+        return this.settings[name];
+      }
+      return null;
+    }
+
+    /**
+     * Create colgroup col elements.
+     *
+     * @returns {DocumentFragment}
+     */
+
+  }, {
+    key: 'createColGroupsCol',
+    value: function createColGroupsCol() {
+      var _this = this;
+
+      var d = document;
+      var fragment = d.createDocumentFragment();
+
+      if (this.hot.hasRowHeaders()) {
+        fragment.appendChild(this.createColElement(-1));
+      }
+
+      this.samples.forEach(function (sample) {
+        (0, _array.arrayEach)(sample.strings, function (string) {
+          fragment.appendChild(_this.createColElement(string.col));
+        });
+      });
+
+      return fragment;
+    }
+
+    /**
+     * Create table row element.
+     *
+     * @param {Number} row Row index.
+     * @returns {DocumentFragment} Returns created table row elements.
+     */
+
+  }, {
+    key: 'createRow',
+    value: function createRow(row) {
+      var _this2 = this;
+
+      var d = document;
+      var fragment = d.createDocumentFragment();
+      var th = d.createElement('th');
+
+      if (this.hot.hasRowHeaders()) {
+        this.hot.view.appendRowHeader(row, th);
+
+        fragment.appendChild(th);
+      }
+
+      this.samples.forEach(function (sample) {
+        (0, _array.arrayEach)(sample.strings, function (string) {
+          var column = string.col;
+          var cellProperties = _this2.hot.getCellMeta(row, column);
+
+          cellProperties.col = column;
+          cellProperties.row = row;
+
+          var renderer = _this2.hot.getCellRenderer(cellProperties);
+          var td = d.createElement('td');
+
+          renderer(_this2.hot, td, row, column, _this2.hot.colToProp(column), string.value, cellProperties);
+          fragment.appendChild(td);
+        });
+      });
+
+      return fragment;
+    }
+  }, {
+    key: 'createColumnHeadersRow',
+    value: function createColumnHeadersRow() {
+      var _this3 = this;
+
+      var d = document;
+      var fragment = d.createDocumentFragment();
+
+      if (this.hot.hasRowHeaders()) {
+        var th = d.createElement('th');
+        this.hot.view.appendColHeader(-1, th);
+        fragment.appendChild(th);
+      }
+
+      this.samples.forEach(function (sample) {
+        (0, _array.arrayEach)(sample.strings, function (string) {
+          var column = string.col;
+
+          var th = d.createElement('th');
+
+          _this3.hot.view.appendColHeader(column, th);
+          fragment.appendChild(th);
+        });
+      });
+
+      return fragment;
+    }
+
+    /**
+     * Create table column elements.
+     *
+     * @param {Number} column Column index.
+     * @returns {DocumentFragment} Returns created column table column elements.
+     */
+
+  }, {
+    key: 'createCol',
+    value: function createCol(column) {
+      var _this4 = this;
+
+      var d = document;
+      var fragment = d.createDocumentFragment();
+
+      this.samples.forEach(function (sample) {
+        (0, _array.arrayEach)(sample.strings, function (string) {
+          var row = string.row;
+          var cellProperties = _this4.hot.getCellMeta(row, column);
+
+          cellProperties.col = column;
+          cellProperties.row = row;
+
+          var renderer = _this4.hot.getCellRenderer(cellProperties);
+          var td = d.createElement('td');
+          var tr = d.createElement('tr');
+
+          renderer(_this4.hot, td, row, column, _this4.hot.colToProp(column), string.value, cellProperties);
+          tr.appendChild(td);
+          fragment.appendChild(tr);
+        });
+      });
+
+      return fragment;
+    }
+
+    /**
+     * Remove table from document and reset internal state.
+     */
+
+  }, {
+    key: 'clean',
+    value: function clean() {
+      this.rows.length = 0;
+      this.rows[-1] = void 0;
+      this.columns.length = 0;
+
+      if (this.samples) {
+        this.samples.clear();
+      }
+      this.samples = null;
+      this.removeTable();
+    }
+
+    /**
+     * Inject generated table into document.
+     *
+     * @param {HTMLElement} [parent=null]
+     */
+
+  }, {
+    key: 'injectTable',
+    value: function injectTable() {
+      var parent = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+
+      if (!this.injected) {
+        (parent || this.hot.rootElement).appendChild(this.container.fragment);
+        this.injected = true;
+      }
+    }
+
+    /**
+     * Remove table from document.
+     */
+
+  }, {
+    key: 'removeTable',
+    value: function removeTable() {
+      if (this.injected && this.container.container.parentNode) {
+        this.container.container.parentNode.removeChild(this.container.container);
+        this.container = null;
+        this.injected = false;
+      }
+    }
+
+    /**
+     * Create col element.
+     *
+     * @param {Number} column Column index.
+     * @returns {HTMLElement}
+     */
+
+  }, {
+    key: 'createColElement',
+    value: function createColElement(column) {
+      var d = document;
+      var col = d.createElement('col');
+
+      col.style.width = this.hot.view.wt.wtTable.getStretchedColumnWidth(column) + 'px';
+
+      return col;
+    }
+
+    /**
+     * Create table element.
+     *
+     * @param {String} className
+     * @returns {Object}
+     */
+
+  }, {
+    key: 'createTable',
+    value: function createTable() {
+      var className = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+      var d = document;
+      var fragment = d.createDocumentFragment();
+      var table = d.createElement('table');
+      var tHead = d.createElement('thead');
+      var tBody = d.createElement('tbody');
+      var colGroup = d.createElement('colgroup');
+      var tr = d.createElement('tr');
+      var th = d.createElement('th');
+
+      if (this.isVertical()) {
+        table.appendChild(colGroup);
+      }
+      if (this.isHorizontal()) {
+        tr.appendChild(th);
+        tHead.appendChild(tr);
+        table.style.tableLayout = 'auto';
+        table.style.width = 'auto';
+      }
+      table.appendChild(tHead);
+
+      if (this.isVertical()) {
+        tBody.appendChild(tr);
+      }
+      table.appendChild(tBody);
+      (0, _element.addClass)(table, className);
+      fragment.appendChild(table);
+
+      return { fragment: fragment, table: table, tHead: tHead, tBody: tBody, colGroup: colGroup, tr: tr, th: th };
+    }
+
+    /**
+     * Create container for tables.
+     *
+     * @param {String} className
+     * @returns {Object}
+     */
+
+  }, {
+    key: 'createContainer',
+    value: function createContainer() {
+      var className = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+      var d = document;
+      var fragment = d.createDocumentFragment();
+      var container = d.createElement('div');
+
+      className = 'htGhostTable htAutoSize ' + className.trim();
+      (0, _element.addClass)(container, className);
+      fragment.appendChild(container);
+
+      return { fragment: fragment, container: container };
+    }
+
+    /**
+     * Checks if table is raised vertically (checking rows).
+     *
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: 'isVertical',
+    value: function isVertical() {
+      return !!(this.rows.length && !this.columns.length);
+    }
+
+    /**
+     * Checks if table is raised horizontally (checking columns).
+     *
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: 'isHorizontal',
+    value: function isHorizontal() {
+      return !!(this.columns.length && !this.rows.length);
+    }
+  }]);
+
+  return GhostTable;
+}();
+
+exports.default = GhostTable;
+
+/***/ }),
+/* 94 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _array = __webpack_require__(2);
+
+var _object = __webpack_require__(1);
+
+var _number = __webpack_require__(6);
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var MIXIN_NAME = 'arrayMapper';
+
+/**
+ * @type {Object}
+ */
+var arrayMapper = {
+  _arrayMap: [],
+
+  /**
+   * Get translated index by its physical index.
+   *
+   * @param {Number} physicalIndex Physical index.
+   * @return {Number|null} Returns translated index mapped by passed physical index.
+   */
+  getValueByIndex: function getValueByIndex(physicalIndex) {
+    var length = this._arrayMap.length;
+    var translatedIndex = null;
+
+    if (physicalIndex < length) {
+      translatedIndex = this._arrayMap[physicalIndex];
+    }
+
+    return translatedIndex;
+  },
+
+
+  /**
+   * Get physical index by its translated index.
+   *
+   * @param {*} translatedIndex Value to search.
+   * @returns {Number|null} Returns a physical index of the array mapper.
+   */
+  getIndexByValue: function getIndexByValue(translatedIndex) {
+    var physicalIndex = void 0;
+
+    // eslint-disable-next-line no-cond-assign, no-return-assign
+    return (physicalIndex = this._arrayMap.indexOf(translatedIndex)) === -1 ? null : physicalIndex;
+  },
+
+
+  /**
+   * Insert new items to array mapper starting at passed index. New entries will be a continuation of last value in the array.
+   *
+   * @param {Number} physicalIndex Array index.
+   * @param {Number} [amount=1] Defines how many items will be created to an array.
+   * @returns {Array} Returns added items.
+   */
+  insertItems: function insertItems(physicalIndex) {
+    var _this = this;
+
+    var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+    var newIndex = (0, _array.arrayMax)(this._arrayMap) + 1;
+    var addedItems = [];
+
+    (0, _number.rangeEach)(amount - 1, function (count) {
+      addedItems.push(_this._arrayMap.splice(physicalIndex + count, 0, newIndex + count));
+    });
+
+    return addedItems;
+  },
+
+
+  /**
+   * Remove items from array mapper.
+   *
+   * @param {Number} physicalIndex Array index.
+   * @param {Number} [amount=1] Defines how many items will be created to an array.
+   * @returns {Array} Returns removed items.
+   */
+  removeItems: function removeItems(physicalIndex) {
+    var _this2 = this;
+
+    var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+    var removedItems = [];
+
+    if (Array.isArray(physicalIndex)) {
+      var mapCopy = [].concat(this._arrayMap);
+
+      // Sort descending
+      physicalIndex.sort(function (a, b) {
+        return b - a;
+      });
+
+      removedItems = (0, _array.arrayReduce)(physicalIndex, function (acc, item) {
+        _this2._arrayMap.splice(item, 1);
+
+        return acc.concat(mapCopy.slice(item, item + 1));
+      }, []);
+    } else {
+      removedItems = this._arrayMap.splice(physicalIndex, amount);
+    }
+
+    return removedItems;
+  },
+
+
+  /**
+   * Unshift items (remove and shift chunk of array to the left).
+   *
+   * @param {Number|Array} physicalIndex Array index or Array of indexes to unshift.
+   * @param {Number} [amount=1] Defines how many items will be removed from an array (when index is passed as number).
+   */
+  unshiftItems: function unshiftItems(physicalIndex) {
+    var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+    var removedItems = this.removeItems(physicalIndex, amount);
+
+    function countRowShift(logicalRow) {
+      // Todo: compare perf between reduce vs sort->each->brake
+      return (0, _array.arrayReduce)(removedItems, function (count, removedLogicalRow) {
+        if (logicalRow > removedLogicalRow) {
+          count++;
+        }
+
+        return count;
+      }, 0);
+    }
+
+    this._arrayMap = (0, _array.arrayMap)(this._arrayMap, function (logicalRow) {
+      var rowShift = countRowShift(logicalRow);
+
+      if (rowShift) {
+        logicalRow -= rowShift;
+      }
+
+      return logicalRow;
+    });
+  },
+
+
+  /**
+   * Shift (right shifting) items starting at passed index.
+   *
+   * @param {Number} physicalIndex Array index.
+   * @param {Number} [amount=1] Defines how many items will be created to an array.
+   */
+  shiftItems: function shiftItems(physicalIndex) {
+    var _this3 = this;
+
+    var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+    this._arrayMap = (0, _array.arrayMap)(this._arrayMap, function (row) {
+      if (row >= physicalIndex) {
+        row += amount;
+      }
+      return row;
+    });
+
+    (0, _number.rangeEach)(amount - 1, function (count) {
+      _this3._arrayMap.splice(physicalIndex + count, 0, physicalIndex + count);
+    });
+  },
+
+
+  /**
+   * Swap indexes in arrayMapper.
+   *
+   * @param {Number} physicalIndexFrom index to move.
+   * @param {Number} physicalIndexTo index to.
+   */
+  swapIndexes: function swapIndexes(physicalIndexFrom, physicalIndexTo) {
+    var _arrayMap;
+
+    (_arrayMap = this._arrayMap).splice.apply(_arrayMap, [physicalIndexTo, 0].concat(_toConsumableArray(this._arrayMap.splice(physicalIndexFrom, 1))));
+  },
+
+
+  /**
+   * Clear all stored index<->value information from an array.
+   */
+  clearMap: function clearMap() {
+    this._arrayMap.length = 0;
+  }
+};
+
+(0, _object.defineGetter)(arrayMapper, 'MIXIN_NAME', MIXIN_NAME, {
+  writable: false,
+  enumerable: false
+});
+
+exports.default = arrayMapper;
+
+/***/ }),
+/* 95 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.default = separatorItem;
+var KEY = exports.KEY = '---------';
+
+function separatorItem() {
+  return {
+    name: KEY
+  };
+}
+
+/***/ }),
+/* 96 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.ITEMS = exports.UNDO = exports.SEPARATOR = exports.ROW_BELOW = exports.ROW_ABOVE = exports.REMOVE_ROW = exports.REMOVE_COLUMN = exports.REDO = exports.READ_ONLY = exports.COLUMN_RIGHT = exports.COLUMN_LEFT = exports.CLEAR_COLUMN = exports.ALIGNMENT = undefined;
+
+var _predefinedItems2;
+
+var _alignment = __webpack_require__(426);
+
+Object.defineProperty(exports, 'ALIGNMENT', {
+  enumerable: true,
+  get: function get() {
+    return _alignment.KEY;
+  }
+});
+
+var _clearColumn = __webpack_require__(427);
+
+Object.defineProperty(exports, 'CLEAR_COLUMN', {
+  enumerable: true,
+  get: function get() {
+    return _clearColumn.KEY;
+  }
+});
+
+var _columnLeft = __webpack_require__(428);
+
+Object.defineProperty(exports, 'COLUMN_LEFT', {
+  enumerable: true,
+  get: function get() {
+    return _columnLeft.KEY;
+  }
+});
+
+var _columnRight = __webpack_require__(429);
+
+Object.defineProperty(exports, 'COLUMN_RIGHT', {
+  enumerable: true,
+  get: function get() {
+    return _columnRight.KEY;
+  }
+});
+
+var _readOnly = __webpack_require__(430);
+
+Object.defineProperty(exports, 'READ_ONLY', {
+  enumerable: true,
+  get: function get() {
+    return _readOnly.KEY;
+  }
+});
+
+var _redo = __webpack_require__(431);
+
+Object.defineProperty(exports, 'REDO', {
+  enumerable: true,
+  get: function get() {
+    return _redo.KEY;
+  }
+});
+
+var _removeColumn = __webpack_require__(432);
+
+Object.defineProperty(exports, 'REMOVE_COLUMN', {
+  enumerable: true,
+  get: function get() {
+    return _removeColumn.KEY;
+  }
+});
+
+var _removeRow = __webpack_require__(433);
+
+Object.defineProperty(exports, 'REMOVE_ROW', {
+  enumerable: true,
+  get: function get() {
+    return _removeRow.KEY;
+  }
+});
+
+var _rowAbove = __webpack_require__(434);
+
+Object.defineProperty(exports, 'ROW_ABOVE', {
+  enumerable: true,
+  get: function get() {
+    return _rowAbove.KEY;
+  }
+});
+
+var _rowBelow = __webpack_require__(435);
+
+Object.defineProperty(exports, 'ROW_BELOW', {
+  enumerable: true,
+  get: function get() {
+    return _rowBelow.KEY;
+  }
+});
+
+var _separator = __webpack_require__(95);
+
+Object.defineProperty(exports, 'SEPARATOR', {
+  enumerable: true,
+  get: function get() {
+    return _separator.KEY;
+  }
+});
+
+var _undo = __webpack_require__(436);
+
+Object.defineProperty(exports, 'UNDO', {
+  enumerable: true,
+  get: function get() {
+    return _undo.KEY;
+  }
+});
+exports.predefinedItems = predefinedItems;
+exports.addItem = addItem;
+
+var _object = __webpack_require__(1);
+
+var _alignment2 = _interopRequireDefault(_alignment);
+
+var _clearColumn2 = _interopRequireDefault(_clearColumn);
+
+var _columnLeft2 = _interopRequireDefault(_columnLeft);
+
+var _columnRight2 = _interopRequireDefault(_columnRight);
+
+var _readOnly2 = _interopRequireDefault(_readOnly);
+
+var _redo2 = _interopRequireDefault(_redo);
+
+var _removeColumn2 = _interopRequireDefault(_removeColumn);
+
+var _removeRow2 = _interopRequireDefault(_removeRow);
+
+var _rowAbove2 = _interopRequireDefault(_rowAbove);
+
+var _rowBelow2 = _interopRequireDefault(_rowBelow);
+
+var _separator2 = _interopRequireDefault(_separator);
+
+var _undo2 = _interopRequireDefault(_undo);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var ITEMS = exports.ITEMS = [_rowAbove.KEY, _rowBelow.KEY, _columnLeft.KEY, _columnRight.KEY, _clearColumn.KEY, _removeRow.KEY, _removeColumn.KEY, _undo.KEY, _redo.KEY, _readOnly.KEY, _alignment.KEY, _separator.KEY];
+
+var _predefinedItems = (_predefinedItems2 = {}, _defineProperty(_predefinedItems2, _separator.KEY, _separator2.default), _defineProperty(_predefinedItems2, _rowAbove.KEY, _rowAbove2.default), _defineProperty(_predefinedItems2, _rowBelow.KEY, _rowBelow2.default), _defineProperty(_predefinedItems2, _columnLeft.KEY, _columnLeft2.default), _defineProperty(_predefinedItems2, _columnRight.KEY, _columnRight2.default), _defineProperty(_predefinedItems2, _clearColumn.KEY, _clearColumn2.default), _defineProperty(_predefinedItems2, _removeRow.KEY, _removeRow2.default), _defineProperty(_predefinedItems2, _removeColumn.KEY, _removeColumn2.default), _defineProperty(_predefinedItems2, _undo.KEY, _undo2.default), _defineProperty(_predefinedItems2, _redo.KEY, _redo2.default), _defineProperty(_predefinedItems2, _readOnly.KEY, _readOnly2.default), _defineProperty(_predefinedItems2, _alignment.KEY, _alignment2.default), _predefinedItems2);
+
+/**
+ * Gets new object with all predefined menu items.
+ *
+ * @returns {Object}
+ */
+function predefinedItems() {
+  var items = {};
+
+  (0, _object.objectEach)(_predefinedItems, function (itemFactory, key) {
+    items[key] = itemFactory();
+  });
+
+  return items;
+}
+
+/**
+ * Add new predefined menu item to the collection.
+ *
+ * @param {String} key Menu command id.
+ * @param {Object} item Object command descriptor.
+ */
+function addItem(key, item) {
+  if (ITEMS.indexOf(key) === -1) {
+    _predefinedItems[key] = item;
+  }
+}
+
+/***/ }),
+/* 97 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _templateObject = _taggedTemplateLiteral(['The merged cell declared with {row: ', ', col: ', ', rowspan: \n    ', ', colspan: ', '} contains negative values, which is not supported. It \n    will not be added to the collection.'], ['The merged cell declared with {row: ', ', col: ', ', rowspan: \n    ', ', colspan: ', '} contains negative values, which is not supported. It \n    will not be added to the collection.']),
+    _templateObject2 = _taggedTemplateLiteral(['The merged cell declared at [', ', ', '] is positioned (or positioned partially) \n       outside of the table range. It was not added to the table, please fix your setup.'], ['The merged cell declared at [', ', ', '] is positioned (or positioned partially) \n       outside of the table range. It was not added to the table, please fix your setup.']),
+    _templateObject3 = _taggedTemplateLiteral(['The merged cell declared at [', ', ', '] has both "rowspan" \n     and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.'], ['The merged cell declared at [', ', ', '] has both "rowspan" \n     and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.']),
+    _templateObject4 = _taggedTemplateLiteral(['The merged cell declared at [', ', ', '] has "rowspan" or "colspan" declared as \n      "0", which is not supported. It cannot be added to the collection.'], ['The merged cell declared at [', ', ', '] has "rowspan" or "colspan" declared as \n      "0", which is not supported. It cannot be added to the collection.']);
+
+var _index = __webpack_require__(4);
+
+var _templateLiteralTag = __webpack_require__(43);
+
+function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * The `MergedCellCoords` class represents a single merged cell.
+ *
+ * @class MergedCellCoords
+ * @plugin MergeCells
+ */
+var MergedCellCoords = function () {
+  function MergedCellCoords(row, column, rowspan, colspan) {
+    _classCallCheck(this, MergedCellCoords);
+
+    /**
+     * The index of the topmost merged cell row.
+     *
+     * @type {Number}
+     */
+    this.row = row;
+    /**
+     * The index of the leftmost column.
+     *
+     * @type {Number}
+     */
+    this.col = column;
+    /**
+     * The `rowspan` value of the merged cell.
+     *
+     * @type {Number}
+     */
+    this.rowspan = rowspan;
+    /**
+     * The `colspan` value of the merged cell.
+     *
+     * @type {Number}
+     */
+    this.colspan = colspan;
+    /**
+     * `true` only if the merged cell is bound to be removed.
+     *
+     * @type {Boolean}
+     */
+    this.removed = false;
+  }
+
+  /**
+   * Get a warning message for when the declared merged cell data contains negative values.
+   *
+   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @return {String}
+   */
+
+
+  _createClass(MergedCellCoords, [{
+    key: 'normalize',
+
+
+    /**
+     * Sanitize (prevent from going outside the boundaries) the merged cell.
+     *
+     * @param hotInstance
+     */
+    value: function normalize(hotInstance) {
+      var totalRows = hotInstance.countRows();
+      var totalColumns = hotInstance.countCols();
+
+      if (this.row < 0) {
+        this.row = 0;
+      } else if (this.row > totalRows - 1) {
+        this.row = totalRows - 1;
+      }
+
+      if (this.col < 0) {
+        this.col = 0;
+      } else if (this.col > totalColumns - 1) {
+        this.col = totalColumns - 1;
+      }
+
+      if (this.row + this.rowspan > totalRows - 1) {
+        this.rowspan = totalRows - this.row;
+      }
+
+      if (this.col + this.colspan > totalColumns - 1) {
+        this.colspan = totalColumns - this.col;
+      }
+    }
+
+    /**
+     * Returns `true` if the provided coordinates are inside the merged cell.
+     *
+     * @param {Number} row The row index.
+     * @param {Number} column The column index.
+     * @return {Boolean}
+     */
+
+  }, {
+    key: 'includes',
+    value: function includes(row, column) {
+      return this.row <= row && this.col <= column && this.row + this.rowspan - 1 >= row && this.col + this.colspan - 1 >= column;
+    }
+
+    /**
+     * Returns `true` if the provided `column` property is within the column span of the merged cell.
+     *
+     * @param {Number} column The column index.
+     * @return {Boolean}
+     */
+
+  }, {
+    key: 'includesHorizontally',
+    value: function includesHorizontally(column) {
+      return this.col <= column && this.col + this.colspan - 1 >= column;
+    }
+
+    /**
+     * Returns `true` if the provided `row` property is within the row span of the merged cell.
+     *
+     * @param {Number} row Row index.
+     * @return {Boolean}
+     */
+
+  }, {
+    key: 'includesVertically',
+    value: function includesVertically(row) {
+      return this.row <= row && this.row + this.rowspan - 1 >= row;
+    }
+
+    /**
+     * Shift (and possibly resize, if needed) the merged cell.
+     *
+     * @param {Array} shiftVector 2-element array containing the information on the shifting in the `x` and `y` axis.
+     * @param {Number} indexOfChange Index of the preceding change.
+     * @returns {Boolean} Returns `false` if the whole merged cell was removed.
+     */
+
+  }, {
+    key: 'shift',
+    value: function shift(shiftVector, indexOfChange) {
+      var shiftValue = shiftVector[0] || shiftVector[1];
+      var shiftedIndex = indexOfChange + Math.abs(shiftVector[0] || shiftVector[1]) - 1;
+      var span = shiftVector[0] ? 'colspan' : 'rowspan';
+      var index = shiftVector[0] ? 'col' : 'row';
+      var changeStart = Math.min(indexOfChange, shiftedIndex);
+      var changeEnd = Math.max(indexOfChange, shiftedIndex);
+      var mergeStart = this[index];
+      var mergeEnd = this[index] + this[span] - 1;
+
+      if (mergeStart >= indexOfChange) {
+        this[index] += shiftValue;
+      }
+
+      // adding rows/columns
+      if (shiftValue > 0) {
+        if (indexOfChange <= mergeEnd && indexOfChange > mergeStart) {
+          this[span] += shiftValue;
+        }
+
+        // removing rows/columns
+      } else if (shiftValue < 0) {
+
+        // removing the whole merge
+        if (changeStart <= mergeStart && changeEnd >= mergeEnd) {
+          this.removed = true;
+          return false;
+
+          // removing the merge partially, including the beginning
+        } else if (mergeStart >= changeStart && mergeStart <= changeEnd) {
+          var removedOffset = changeEnd - mergeStart + 1;
+          var preRemovedOffset = Math.abs(shiftValue) - removedOffset;
+
+          this[index] -= preRemovedOffset + shiftValue;
+          this[span] -= removedOffset;
+
+          // removing the middle part of the merge
+        } else if (mergeStart <= changeStart && mergeEnd >= changeEnd) {
+          this[span] += shiftValue;
+
+          // removing the end part of the merge
+        } else if (mergeStart <= changeStart && mergeEnd >= changeStart && mergeEnd < changeEnd) {
+          var removedPart = mergeEnd - changeStart + 1;
+
+          this[span] -= removedPart;
+        }
+      }
+
+      return true;
+    }
+
+    /**
+     * Check if the second provided merged cell is "farther" in the provided direction.
+     *
+     * @param {MergedCellCoords} mergedCell The merged cell to check.
+     * @param {String} direction Drag direction.
+     * @return {Boolean|null} `true` if the second provided merged cell is "farther".
+     */
+
+  }, {
+    key: 'isFarther',
+    value: function isFarther(mergedCell, direction) {
+      if (!mergedCell) {
+        return true;
+      }
+
+      if (direction === 'down') {
+        return mergedCell.row + mergedCell.rowspan - 1 < this.row + this.rowspan - 1;
+      } else if (direction === 'up') {
+        return mergedCell.row > this.row;
+      } else if (direction === 'right') {
+        return mergedCell.col + mergedCell.colspan - 1 < this.col + this.colspan - 1;
+      } else if (direction === 'left') {
+        return mergedCell.col > this.col;
+      }
+      return null;
+    }
+
+    /**
+     * Get the bottom row index of the merged cell.
+     *
+     * @returns {Number}
+     */
+
+  }, {
+    key: 'getLastRow',
+    value: function getLastRow() {
+      return this.row + this.rowspan - 1;
+    }
+
+    /**
+     * Get the rightmost column index of the merged cell.
+     *
+     * @returns {Number}
+     */
+
+  }, {
+    key: 'getLastColumn',
+    value: function getLastColumn() {
+      return this.col + this.colspan - 1;
+    }
+
+    /**
+     * Get the range coordinates of the merged cell.
+     *
+     * @return {CellRange}
+     */
+
+  }, {
+    key: 'getRange',
+    value: function getRange() {
+      return new _index.CellRange(new _index.CellCoords(this.row, this.col), new _index.CellCoords(this.row, this.col), new _index.CellCoords(this.getLastRow(), this.getLastColumn()));
+    }
+  }], [{
+    key: 'NEGATIVE_VALUES_WARNING',
+    value: function NEGATIVE_VALUES_WARNING(newMergedCell) {
+      return (0, _templateLiteralTag.toSingleLine)(_templateObject, newMergedCell.row, newMergedCell.col, newMergedCell.rowspan, newMergedCell.colspan);
+    }
+
+    /**
+     * Get a warning message for when the declared merged cell data contains values exceeding the table limits.
+     *
+     * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+     * @return {String}
+     */
+
+  }, {
+    key: 'IS_OUT_OF_BOUNDS_WARNING',
+    value: function IS_OUT_OF_BOUNDS_WARNING(newMergedCell) {
+      return (0, _templateLiteralTag.toSingleLine)(_templateObject2, newMergedCell.row, newMergedCell.col);
+    }
+
+    /**
+     * Get a warning message for when the declared merged cell data represents a single cell.
+     *
+     * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+     * @return {String}
+     */
+
+  }, {
+    key: 'IS_SINGLE_CELL',
+    value: function IS_SINGLE_CELL(newMergedCell) {
+      return (0, _templateLiteralTag.toSingleLine)(_templateObject3, newMergedCell.row, newMergedCell.col);
+    }
+
+    /**
+     * Get a warning message for when the declared merged cell data contains "colspan" or "rowspan", that equals 0.
+     *
+     * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+     * @return {String}
+     */
+
+  }, {
+    key: 'ZERO_SPAN_WARNING',
+    value: function ZERO_SPAN_WARNING(newMergedCell) {
+      return (0, _templateLiteralTag.toSingleLine)(_templateObject4, newMergedCell.row, newMergedCell.col);
+    }
+
+    /**
+     * Check whether the values provided for a merged cell contain any negative values.
+     *
+     * @param {Object} mergedCellInfo Object containing the `row`, `col`, `rowspan` and `colspan` properties.
+     * @return {Boolean}
+     */
+
+  }, {
+    key: 'containsNegativeValues',
+    value: function containsNegativeValues(mergedCellInfo) {
+      return mergedCellInfo.row < 0 || mergedCellInfo.col < 0 || mergedCellInfo.rowspan < 0 || mergedCellInfo.colspan < 0;
+    }
+
+    /**
+     * Check whether the provided merged cell information object represents a single cell.
+     *
+     * @private
+     * @param {Object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
+     * @return {Boolean}
+     */
+
+  }, {
+    key: 'isSingleCell',
+    value: function isSingleCell(mergedCellInfo) {
+      return mergedCellInfo.colspan === 1 && mergedCellInfo.rowspan === 1;
+    }
+
+    /**
+     * Check whether the provided merged cell information object contains a rowspan or colspan of 0.
+     *
+     * @private
+     * @param {Object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
+     * @return {Boolean}
+     */
+
+  }, {
+    key: 'containsZeroSpan',
+    value: function containsZeroSpan(mergedCellInfo) {
+      return mergedCellInfo.colspan === 0 || mergedCellInfo.rowspan === 0;
+    }
+
+    /**
+     * Check whether the provided merged cell object is to be declared out of bounds of the table.
+     *
+     * @param {Object} mergeCell Object containing the `row`, `col`, `rowspan` and `colspan` properties.
+     * @param {Number} rowCount Number of rows in the table.
+     * @param {Number} columnCount Number of rows in the table.
+     * @return {Boolean}
+     */
+
+  }, {
+    key: 'isOutOfBounds',
+    value: function isOutOfBounds(mergeCell, rowCount, columnCount) {
+      return mergeCell.row < 0 || mergeCell.col < 0 || mergeCell.row >= rowCount || mergeCell.row + mergeCell.rowspan - 1 >= rowCount || mergeCell.col >= columnCount || mergeCell.col + mergeCell.colspan - 1 >= columnCount;
+    }
+  }]);
+
+  return MergedCellCoords;
+}();
+
+exports.default = MergedCellCoords;
+
+/***/ }),
+/* 98 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var strong = __webpack_require__(99);
+var validate = __webpack_require__(46);
+var MAP = 'Map';
+
+// 23.1 Map Objects
+module.exports = __webpack_require__(66)(MAP, function (get) {
+  return function Map() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
+}, {
+  // 23.1.3.6 Map.prototype.get(key)
+  get: function get(key) {
+    var entry = strong.getEntry(validate(this, MAP), key);
+    return entry && entry.v;
+  },
+  // 23.1.3.9 Map.prototype.set(key, value)
+  set: function set(key, value) {
+    return strong.def(validate(this, MAP), key === 0 ? 0 : key, value);
+  }
+}, strong, true);
+
+
+/***/ }),
+/* 99 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var dP = __webpack_require__(20).f;
+var create = __webpack_require__(76);
+var redefineAll = __webpack_require__(62);
+var ctx = __webpack_require__(30);
+var anInstance = __webpack_require__(64);
+var forOf = __webpack_require__(65);
+var $iterDefine = __webpack_require__(108);
+var step = __webpack_require__(110);
+var setSpecies = __webpack_require__(111);
+var DESCRIPTORS = __webpack_require__(22);
+var fastKey = __webpack_require__(32).fastKey;
+var validate = __webpack_require__(46);
+var SIZE = DESCRIPTORS ? '_s' : 'size';
+
+var getEntry = function (that, key) {
+  // fast case
+  var index = fastKey(key);
+  var entry;
+  if (index !== 'F') return that._i[index];
+  // frozen object case
+  for (entry = that._f; entry; entry = entry.n) {
+    if (entry.k == key) return entry;
+  }
+};
+
+module.exports = {
+  getConstructor: function (wrapper, NAME, IS_MAP, ADDER) {
+    var C = wrapper(function (that, iterable) {
+      anInstance(that, C, NAME, '_i');
+      that._t = NAME;         // collection type
+      that._i = create(null); // index
+      that._f = undefined;    // first entry
+      that._l = undefined;    // last entry
+      that[SIZE] = 0;         // size
+      if (iterable != undefined) forOf(iterable, IS_MAP, that[ADDER], that);
+    });
+    redefineAll(C.prototype, {
+      // 23.1.3.1 Map.prototype.clear()
+      // 23.2.3.2 Set.prototype.clear()
+      clear: function clear() {
+        for (var that = validate(this, NAME), data = that._i, entry = that._f; entry; entry = entry.n) {
+          entry.r = true;
+          if (entry.p) entry.p = entry.p.n = undefined;
+          delete data[entry.i];
+        }
+        that._f = that._l = undefined;
+        that[SIZE] = 0;
+      },
+      // 23.1.3.3 Map.prototype.delete(key)
+      // 23.2.3.4 Set.prototype.delete(value)
+      'delete': function (key) {
+        var that = validate(this, NAME);
+        var entry = getEntry(that, key);
+        if (entry) {
+          var next = entry.n;
+          var prev = entry.p;
+          delete that._i[entry.i];
+          entry.r = true;
+          if (prev) prev.n = next;
+          if (next) next.p = prev;
+          if (that._f == entry) that._f = next;
+          if (that._l == entry) that._l = prev;
+          that[SIZE]--;
+        } return !!entry;
+      },
+      // 23.2.3.6 Set.prototype.forEach(callbackfn, thisArg = undefined)
+      // 23.1.3.5 Map.prototype.forEach(callbackfn, thisArg = undefined)
+      forEach: function forEach(callbackfn /* , that = undefined */) {
+        validate(this, NAME);
+        var f = ctx(callbackfn, arguments.length > 1 ? arguments[1] : undefined, 3);
+        var entry;
+        while (entry = entry ? entry.n : this._f) {
+          f(entry.v, entry.k, this);
+          // revert to the last existing entry
+          while (entry && entry.r) entry = entry.p;
+        }
+      },
+      // 23.1.3.7 Map.prototype.has(key)
+      // 23.2.3.7 Set.prototype.has(value)
+      has: function has(key) {
+        return !!getEntry(validate(this, NAME), key);
+      }
+    });
+    if (DESCRIPTORS) dP(C.prototype, 'size', {
+      get: function () {
+        return validate(this, NAME)[SIZE];
+      }
+    });
+    return C;
+  },
+  def: function (that, key, value) {
+    var entry = getEntry(that, key);
+    var prev, index;
+    // change existing entry
+    if (entry) {
+      entry.v = value;
+    // create new entry
+    } else {
+      that._l = entry = {
+        i: index = fastKey(key, true), // <- index
+        k: key,                        // <- key
+        v: value,                      // <- value
+        p: prev = that._l,             // <- previous entry
+        n: undefined,                  // <- next entry
+        r: false                       // <- removed
+      };
+      if (!that._f) that._f = entry;
+      if (prev) prev.n = entry;
+      that[SIZE]++;
+      // add to index
+      if (index !== 'F') that._i[index] = entry;
+    } return that;
+  },
+  getEntry: getEntry,
+  setStrong: function (C, NAME, IS_MAP) {
+    // add .keys, .values, .entries, [@@iterator]
+    // 23.1.3.4, 23.1.3.8, 23.1.3.11, 23.1.3.12, 23.2.3.5, 23.2.3.8, 23.2.3.10, 23.2.3.11
+    $iterDefine(C, NAME, function (iterated, kind) {
+      this._t = validate(iterated, NAME); // target
+      this._k = kind;                     // kind
+      this._l = undefined;                // previous
+    }, function () {
+      var that = this;
+      var kind = that._k;
+      var entry = that._l;
+      // revert to the last existing entry
+      while (entry && entry.r) entry = entry.p;
+      // get next entry
+      if (!that._t || !(that._l = entry = entry ? entry.n : that._t._f)) {
+        // or finish the iteration
+        that._t = undefined;
+        return step(1);
+      }
+      // return step by kind
+      if (kind == 'keys') return step(0, entry.k);
+      if (kind == 'values') return step(0, entry.v);
+      return step(0, [entry.k, entry.v]);
+    }, IS_MAP ? 'entries' : 'values', !IS_MAP, true);
+
+    // add [@@species], 23.1.2.2, 23.2.2.2
+    setSpecies(NAME);
+  }
+};
+
+
+/***/ }),
+/* 100 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = !__webpack_require__(22) && !__webpack_require__(23)(function () {
+  return Object.defineProperty(__webpack_require__(74)('div'), 'a', { get: function () { return 7; } }).a != 7;
+});
+
+
+/***/ }),
+/* 101 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var has = __webpack_require__(27);
+var toIObject = __webpack_require__(24);
+var arrayIndexOf = __webpack_require__(102)(false);
+var IE_PROTO = __webpack_require__(78)('IE_PROTO');
+
+module.exports = function (object, names) {
+  var O = toIObject(object);
+  var i = 0;
+  var result = [];
+  var key;
+  for (key in O) if (key != IE_PROTO) has(O, key) && result.push(key);
+  // Don't enum bug & hidden keys
+  while (names.length > i) if (has(O, key = names[i++])) {
+    ~arrayIndexOf(result, key) || result.push(key);
+  }
+  return result;
+};
+
+
+/***/ }),
+/* 102 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// false -> Array#indexOf
+// true  -> Array#includes
+var toIObject = __webpack_require__(24);
+var toLength = __webpack_require__(25);
+var toAbsoluteIndex = __webpack_require__(61);
+module.exports = function (IS_INCLUDES) {
+  return function ($this, el, fromIndex) {
+    var O = toIObject($this);
+    var length = toLength(O.length);
+    var index = toAbsoluteIndex(fromIndex, length);
+    var value;
+    // Array#includes uses SameValueZero equality algorithm
+    // eslint-disable-next-line no-self-compare
+    if (IS_INCLUDES && el != el) while (length > index) {
+      value = O[index++];
+      // eslint-disable-next-line no-self-compare
+      if (value != value) return true;
+    // Array#indexOf ignores holes, Array#includes - not
+    } else for (;length > index; index++) if (IS_INCLUDES || index in O) {
+      if (O[index] === el) return IS_INCLUDES || index || 0;
+    } return !IS_INCLUDES && -1;
+  };
+};
+
+
+/***/ }),
+/* 103 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var document = __webpack_require__(15).document;
+module.exports = document && document.documentElement;
+
+
+/***/ }),
+/* 104 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// call something on iterator step with safe closing on error
+var anObject = __webpack_require__(18);
+module.exports = function (iterator, fn, value, entries) {
+  try {
+    return entries ? fn(anObject(value)[0], value[1]) : fn(value);
+  // 7.4.6 IteratorClose(iterator, completion)
+  } catch (e) {
+    var ret = iterator['return'];
+    if (ret !== undefined) anObject(ret.call(iterator));
+    throw e;
+  }
+};
+
+
+/***/ }),
+/* 105 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// check on default Array iterator
+var Iterators = __webpack_require__(53);
+var ITERATOR = __webpack_require__(12)('iterator');
+var ArrayProto = Array.prototype;
+
+module.exports = function (it) {
+  return it !== undefined && (Iterators.Array === it || ArrayProto[ITERATOR] === it);
+};
+
+
+/***/ }),
+/* 106 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var classof = __webpack_require__(107);
+var ITERATOR = __webpack_require__(12)('iterator');
+var Iterators = __webpack_require__(53);
+module.exports = __webpack_require__(37).getIteratorMethod = function (it) {
+  if (it != undefined) return it[ITERATOR]
+    || it['@@iterator']
+    || Iterators[classof(it)];
+};
+
+
+/***/ }),
+/* 107 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// getting tag from 19.1.3.6 Object.prototype.toString()
+var cof = __webpack_require__(45);
+var TAG = __webpack_require__(12)('toStringTag');
+// ES3 wrong here
+var ARG = cof(function () { return arguments; }()) == 'Arguments';
+
+// fallback for IE11 Script Access Denied error
+var tryGet = function (it, key) {
+  try {
+    return it[key];
+  } catch (e) { /* empty */ }
+};
+
+module.exports = function (it) {
+  var O, T, B;
+  return it === undefined ? 'Undefined' : it === null ? 'Null'
+    // @@toStringTag case
+    : typeof (T = tryGet(O = Object(it), TAG)) == 'string' ? T
+    // builtinTag case
+    : ARG ? cof(O)
+    // ES3 arguments fallback
+    : (B = cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
+};
+
+
+/***/ }),
+/* 108 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var LIBRARY = __webpack_require__(50);
+var $export = __webpack_require__(3);
+var redefine = __webpack_require__(28);
+var hide = __webpack_require__(29);
+var Iterators = __webpack_require__(53);
+var $iterCreate = __webpack_require__(329);
+var setToStringTag = __webpack_require__(54);
+var getPrototypeOf = __webpack_require__(109);
+var ITERATOR = __webpack_require__(12)('iterator');
+var BUGGY = !([].keys && 'next' in [].keys()); // Safari has buggy iterators w/o `next`
+var FF_ITERATOR = '@@iterator';
+var KEYS = 'keys';
+var VALUES = 'values';
+
+var returnThis = function () { return this; };
+
+module.exports = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCED) {
+  $iterCreate(Constructor, NAME, next);
+  var getMethod = function (kind) {
+    if (!BUGGY && kind in proto) return proto[kind];
+    switch (kind) {
+      case KEYS: return function keys() { return new Constructor(this, kind); };
+      case VALUES: return function values() { return new Constructor(this, kind); };
+    } return function entries() { return new Constructor(this, kind); };
+  };
+  var TAG = NAME + ' Iterator';
+  var DEF_VALUES = DEFAULT == VALUES;
+  var VALUES_BUG = false;
+  var proto = Base.prototype;
+  var $native = proto[ITERATOR] || proto[FF_ITERATOR] || DEFAULT && proto[DEFAULT];
+  var $default = $native || getMethod(DEFAULT);
+  var $entries = DEFAULT ? !DEF_VALUES ? $default : getMethod('entries') : undefined;
+  var $anyNative = NAME == 'Array' ? proto.entries || $native : $native;
+  var methods, key, IteratorPrototype;
+  // Fix native
+  if ($anyNative) {
+    IteratorPrototype = getPrototypeOf($anyNative.call(new Base()));
+    if (IteratorPrototype !== Object.prototype && IteratorPrototype.next) {
+      // Set @@toStringTag to native iterators
+      setToStringTag(IteratorPrototype, TAG, true);
+      // fix for some old engines
+      if (!LIBRARY && typeof IteratorPrototype[ITERATOR] != 'function') hide(IteratorPrototype, ITERATOR, returnThis);
+    }
+  }
+  // fix Array#{values, @@iterator}.name in V8 / FF
+  if (DEF_VALUES && $native && $native.name !== VALUES) {
+    VALUES_BUG = true;
+    $default = function values() { return $native.call(this); };
+  }
+  // Define iterator
+  if ((!LIBRARY || FORCED) && (BUGGY || VALUES_BUG || !proto[ITERATOR])) {
+    hide(proto, ITERATOR, $default);
+  }
+  // Plug for library
+  Iterators[NAME] = $default;
+  Iterators[TAG] = returnThis;
+  if (DEFAULT) {
+    methods = {
+      values: DEF_VALUES ? $default : getMethod(VALUES),
+      keys: IS_SET ? $default : getMethod(KEYS),
+      entries: $entries
+    };
+    if (FORCED) for (key in methods) {
+      if (!(key in proto)) redefine(proto, key, methods[key]);
+    } else $export($export.P + $export.F * (BUGGY || VALUES_BUG), NAME, methods);
+  }
+  return methods;
+};
+
+
+/***/ }),
+/* 109 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
+var has = __webpack_require__(27);
+var toObject = __webpack_require__(31);
+var IE_PROTO = __webpack_require__(78)('IE_PROTO');
+var ObjectProto = Object.prototype;
+
+module.exports = Object.getPrototypeOf || function (O) {
+  O = toObject(O);
+  if (has(O, IE_PROTO)) return O[IE_PROTO];
+  if (typeof O.constructor == 'function' && O instanceof O.constructor) {
+    return O.constructor.prototype;
+  } return O instanceof Object ? ObjectProto : null;
+};
+
+
+/***/ }),
+/* 110 */
+/***/ (function(module, exports) {
+
+module.exports = function (done, value) {
+  return { value: value, done: !!done };
+};
+
+
+/***/ }),
+/* 111 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var global = __webpack_require__(15);
+var dP = __webpack_require__(20);
+var DESCRIPTORS = __webpack_require__(22);
+var SPECIES = __webpack_require__(12)('species');
+
+module.exports = function (KEY) {
+  var C = global[KEY];
+  if (DESCRIPTORS && C && !C[SPECIES]) dP.f(C, SPECIES, {
+    configurable: true,
+    get: function () { return this; }
+  });
+};
+
+
+/***/ }),
+/* 112 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// Works with __proto__ only. Old v8 can't work with null proto objects.
+/* eslint-disable no-proto */
+var isObject = __webpack_require__(9);
+var anObject = __webpack_require__(18);
+var check = function (O, proto) {
+  anObject(O);
+  if (!isObject(proto) && proto !== null) throw TypeError(proto + ": can't set as prototype!");
+};
+module.exports = {
+  set: Object.setPrototypeOf || ('__proto__' in {} ? // eslint-disable-line
+    function (test, buggy, set) {
+      try {
+        set = __webpack_require__(30)(Function.call, __webpack_require__(67).f(Object.prototype, '__proto__').set, 2);
+        set(test, []);
+        buggy = !(test instanceof Array);
+      } catch (e) { buggy = true; }
+      return function setPrototypeOf(O, proto) {
+        check(O, proto);
+        if (buggy) O.__proto__ = proto;
+        else set(O, proto);
+        return O;
+      };
+    }({}, false) : undefined),
+  check: check
+};
+
+
+/***/ }),
+/* 113 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var strong = __webpack_require__(99);
+var validate = __webpack_require__(46);
+var SET = 'Set';
+
+// 23.2 Set Objects
+module.exports = __webpack_require__(66)(SET, function (get) {
+  return function Set() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
+}, {
+  // 23.2.3.1 Set.prototype.add(value)
+  add: function add(value) {
+    return strong.def(validate(this, SET), value = value === 0 ? 0 : value, value);
+  }
+}, strong);
+
+
+/***/ }),
+/* 114 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var each = __webpack_require__(68)(0);
+var redefine = __webpack_require__(28);
+var meta = __webpack_require__(32);
+var assign = __webpack_require__(116);
+var weak = __webpack_require__(117);
+var isObject = __webpack_require__(9);
+var fails = __webpack_require__(23);
+var validate = __webpack_require__(46);
+var WEAK_MAP = 'WeakMap';
+var getWeak = meta.getWeak;
+var isExtensible = Object.isExtensible;
+var uncaughtFrozenStore = weak.ufstore;
+var tmp = {};
+var InternalMap;
+
+var wrapper = function (get) {
+  return function WeakMap() {
+    return get(this, arguments.length > 0 ? arguments[0] : undefined);
+  };
+};
+
+var methods = {
+  // 23.3.3.3 WeakMap.prototype.get(key)
+  get: function get(key) {
+    if (isObject(key)) {
+      var data = getWeak(key);
+      if (data === true) return uncaughtFrozenStore(validate(this, WEAK_MAP)).get(key);
+      return data ? data[this._i] : undefined;
+    }
+  },
+  // 23.3.3.5 WeakMap.prototype.set(key, value)
+  set: function set(key, value) {
+    return weak.def(validate(this, WEAK_MAP), key, value);
+  }
+};
+
+// 23.3 WeakMap Objects
+var $WeakMap = module.exports = __webpack_require__(66)(WEAK_MAP, wrapper, methods, weak, true, true);
+
+// IE11 WeakMap frozen keys fix
+if (fails(function () { return new $WeakMap().set((Object.freeze || Object)(tmp), 7).get(tmp) != 7; })) {
+  InternalMap = weak.getConstructor(wrapper, WEAK_MAP);
+  assign(InternalMap.prototype, methods);
+  meta.NEED = true;
+  each(['delete', 'has', 'get', 'set'], function (key) {
+    var proto = $WeakMap.prototype;
+    var method = proto[key];
+    redefine(proto, key, function (a, b) {
+      // store frozen objects on internal weakmap shim
+      if (isObject(a) && !isExtensible(a)) {
+        if (!this._f) this._f = new InternalMap();
+        var result = this._f[key](a, b);
+        return key == 'set' ? this : result;
+      // store all the rest on native weakmap
+      } return method.call(this, a, b);
+    });
+  });
+}
+
+
+/***/ }),
+/* 115 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 7.2.2 IsArray(argument)
+var cof = __webpack_require__(45);
+module.exports = Array.isArray || function isArray(arg) {
+  return cof(arg) == 'Array';
+};
+
+
+/***/ }),
+/* 116 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// 19.1.2.1 Object.assign(target, source, ...)
+var getKeys = __webpack_require__(35);
+var gOPS = __webpack_require__(69);
+var pIE = __webpack_require__(55);
+var toObject = __webpack_require__(31);
+var IObject = __webpack_require__(77);
+var $assign = Object.assign;
+
+// should work with symbols and should have deterministic property order (V8 bug)
+module.exports = !$assign || __webpack_require__(23)(function () {
+  var A = {};
+  var B = {};
+  // eslint-disable-next-line no-undef
+  var S = Symbol();
+  var K = 'abcdefghijklmnopqrst';
+  A[S] = 7;
+  K.split('').forEach(function (k) { B[k] = k; });
+  return $assign({}, A)[S] != 7 || Object.keys($assign({}, B)).join('') != K;
+}) ? function assign(target, source) { // eslint-disable-line no-unused-vars
+  var T = toObject(target);
+  var aLen = arguments.length;
+  var index = 1;
+  var getSymbols = gOPS.f;
+  var isEnum = pIE.f;
+  while (aLen > index) {
+    var S = IObject(arguments[index++]);
+    var keys = getSymbols ? getKeys(S).concat(getSymbols(S)) : getKeys(S);
+    var length = keys.length;
+    var j = 0;
+    var key;
+    while (length > j) if (isEnum.call(S, key = keys[j++])) T[key] = S[key];
+  } return T;
+} : $assign;
+
+
+/***/ }),
+/* 117 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var redefineAll = __webpack_require__(62);
+var getWeak = __webpack_require__(32).getWeak;
+var anObject = __webpack_require__(18);
+var isObject = __webpack_require__(9);
+var anInstance = __webpack_require__(64);
+var forOf = __webpack_require__(65);
+var createArrayMethod = __webpack_require__(68);
+var $has = __webpack_require__(27);
+var validate = __webpack_require__(46);
+var arrayFind = createArrayMethod(5);
+var arrayFindIndex = createArrayMethod(6);
+var id = 0;
+
+// fallback for uncaught frozen keys
+var uncaughtFrozenStore = function (that) {
+  return that._l || (that._l = new UncaughtFrozenStore());
+};
+var UncaughtFrozenStore = function () {
+  this.a = [];
+};
+var findUncaughtFrozen = function (store, key) {
+  return arrayFind(store.a, function (it) {
+    return it[0] === key;
+  });
+};
+UncaughtFrozenStore.prototype = {
+  get: function (key) {
+    var entry = findUncaughtFrozen(this, key);
+    if (entry) return entry[1];
+  },
+  has: function (key) {
+    return !!findUncaughtFrozen(this, key);
+  },
+  set: function (key, value) {
+    var entry = findUncaughtFrozen(this, key);
+    if (entry) entry[1] = value;
+    else this.a.push([key, value]);
+  },
+  'delete': function (key) {
+    var index = arrayFindIndex(this.a, function (it) {
+      return it[0] === key;
+    });
+    if (~index) this.a.splice(index, 1);
+    return !!~index;
+  }
+};
+
+module.exports = {
+  getConstructor: function (wrapper, NAME, IS_MAP, ADDER) {
+    var C = wrapper(function (that, iterable) {
+      anInstance(that, C, NAME, '_i');
+      that._t = NAME;      // collection type
+      that._i = id++;      // collection id
+      that._l = undefined; // leak store for uncaught frozen objects
+      if (iterable != undefined) forOf(iterable, IS_MAP, that[ADDER], that);
+    });
+    redefineAll(C.prototype, {
+      // 23.3.3.2 WeakMap.prototype.delete(key)
+      // 23.4.3.3 WeakSet.prototype.delete(value)
+      'delete': function (key) {
+        if (!isObject(key)) return false;
+        var data = getWeak(key);
+        if (data === true) return uncaughtFrozenStore(validate(this, NAME))['delete'](key);
+        return data && $has(data, this._i) && delete data[this._i];
+      },
+      // 23.3.3.4 WeakMap.prototype.has(key)
+      // 23.4.3.4 WeakSet.prototype.has(value)
+      has: function has(key) {
+        if (!isObject(key)) return false;
+        var data = getWeak(key);
+        if (data === true) return uncaughtFrozenStore(validate(this, NAME)).has(key);
+        return data && $has(data, this._i);
+      }
+    });
+    return C;
+  },
+  def: function (that, key, value) {
+    var data = getWeak(anObject(key), true);
+    if (data === true) uncaughtFrozenStore(that).set(key, value);
+    else data[that._i] = value;
+    return that;
+  },
+  ufstore: uncaughtFrozenStore
+};
+
+
+/***/ }),
+/* 118 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var weak = __webpack_require__(117);
+var validate = __webpack_require__(46);
+var WEAK_SET = 'WeakSet';
+
+// 23.4 WeakSet Objects
+__webpack_require__(66)(WEAK_SET, function (get) {
+  return function WeakSet() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
+}, {
+  // 23.4.3.1 WeakSet.prototype.add(value)
+  add: function add(value) {
+    return weak.def(validate(this, WEAK_SET), value, true);
+  }
+}, weak, false, true);
+
+
+/***/ }),
+/* 119 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var LIBRARY = __webpack_require__(50);
+var global = __webpack_require__(15);
+var ctx = __webpack_require__(30);
+var classof = __webpack_require__(107);
+var $export = __webpack_require__(3);
+var isObject = __webpack_require__(9);
+var aFunction = __webpack_require__(63);
+var anInstance = __webpack_require__(64);
+var forOf = __webpack_require__(65);
+var speciesConstructor = __webpack_require__(333);
+var task = __webpack_require__(82).set;
+var microtask = __webpack_require__(335)();
+var newPromiseCapabilityModule = __webpack_require__(120);
+var perform = __webpack_require__(336);
+var userAgent = __webpack_require__(83);
+var promiseResolve = __webpack_require__(337);
+var PROMISE = 'Promise';
+var TypeError = global.TypeError;
+var process = global.process;
+var versions = process && process.versions;
+var v8 = versions && versions.v8 || '';
+var $Promise = global[PROMISE];
+var isNode = classof(process) == 'process';
+var empty = function () { /* empty */ };
+var Internal, newGenericPromiseCapability, OwnPromiseCapability, Wrapper;
+var newPromiseCapability = newGenericPromiseCapability = newPromiseCapabilityModule.f;
+
+var USE_NATIVE = !!function () {
+  try {
+    // correct subclassing with @@species support
+    var promise = $Promise.resolve(1);
+    var FakePromise = (promise.constructor = {})[__webpack_require__(12)('species')] = function (exec) {
+      exec(empty, empty);
+    };
+    // unhandled rejections tracking support, NodeJS Promise without it fails @@species test
+    return (isNode || typeof PromiseRejectionEvent == 'function')
+      && promise.then(empty) instanceof FakePromise
+      // v8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
+      // https://bugs.chromium.org/p/chromium/issues/detail?id=830565
+      // we can't detect it synchronously, so just check versions
+      && v8.indexOf('6.6') !== 0
+      && userAgent.indexOf('Chrome/66') === -1;
+  } catch (e) { /* empty */ }
+}();
+
+// helpers
+var isThenable = function (it) {
+  var then;
+  return isObject(it) && typeof (then = it.then) == 'function' ? then : false;
+};
+var notify = function (promise, isReject) {
+  if (promise._n) return;
+  promise._n = true;
+  var chain = promise._c;
+  microtask(function () {
+    var value = promise._v;
+    var ok = promise._s == 1;
+    var i = 0;
+    var run = function (reaction) {
+      var handler = ok ? reaction.ok : reaction.fail;
+      var resolve = reaction.resolve;
+      var reject = reaction.reject;
+      var domain = reaction.domain;
+      var result, then, exited;
+      try {
+        if (handler) {
+          if (!ok) {
+            if (promise._h == 2) onHandleUnhandled(promise);
+            promise._h = 1;
+          }
+          if (handler === true) result = value;
+          else {
+            if (domain) domain.enter();
+            result = handler(value); // may throw
+            if (domain) {
+              domain.exit();
+              exited = true;
+            }
+          }
+          if (result === reaction.promise) {
+            reject(TypeError('Promise-chain cycle'));
+          } else if (then = isThenable(result)) {
+            then.call(result, resolve, reject);
+          } else resolve(result);
+        } else reject(value);
+      } catch (e) {
+        if (domain && !exited) domain.exit();
+        reject(e);
+      }
+    };
+    while (chain.length > i) run(chain[i++]); // variable length - can't use forEach
+    promise._c = [];
+    promise._n = false;
+    if (isReject && !promise._h) onUnhandled(promise);
+  });
+};
+var onUnhandled = function (promise) {
+  task.call(global, function () {
+    var value = promise._v;
+    var unhandled = isUnhandled(promise);
+    var result, handler, console;
+    if (unhandled) {
+      result = perform(function () {
+        if (isNode) {
+          process.emit('unhandledRejection', value, promise);
+        } else if (handler = global.onunhandledrejection) {
+          handler({ promise: promise, reason: value });
+        } else if ((console = global.console) && console.error) {
+          console.error('Unhandled promise rejection', value);
+        }
+      });
+      // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
+      promise._h = isNode || isUnhandled(promise) ? 2 : 1;
+    } promise._a = undefined;
+    if (unhandled && result.e) throw result.v;
+  });
+};
+var isUnhandled = function (promise) {
+  return promise._h !== 1 && (promise._a || promise._c).length === 0;
+};
+var onHandleUnhandled = function (promise) {
+  task.call(global, function () {
+    var handler;
+    if (isNode) {
+      process.emit('rejectionHandled', promise);
+    } else if (handler = global.onrejectionhandled) {
+      handler({ promise: promise, reason: promise._v });
+    }
+  });
+};
+var $reject = function (value) {
+  var promise = this;
+  if (promise._d) return;
+  promise._d = true;
+  promise = promise._w || promise; // unwrap
+  promise._v = value;
+  promise._s = 2;
+  if (!promise._a) promise._a = promise._c.slice();
+  notify(promise, true);
+};
+var $resolve = function (value) {
+  var promise = this;
+  var then;
+  if (promise._d) return;
+  promise._d = true;
+  promise = promise._w || promise; // unwrap
+  try {
+    if (promise === value) throw TypeError("Promise can't be resolved itself");
+    if (then = isThenable(value)) {
+      microtask(function () {
+        var wrapper = { _w: promise, _d: false }; // wrap
+        try {
+          then.call(value, ctx($resolve, wrapper, 1), ctx($reject, wrapper, 1));
+        } catch (e) {
+          $reject.call(wrapper, e);
+        }
+      });
+    } else {
+      promise._v = value;
+      promise._s = 1;
+      notify(promise, false);
+    }
+  } catch (e) {
+    $reject.call({ _w: promise, _d: false }, e); // wrap
+  }
+};
+
+// constructor polyfill
+if (!USE_NATIVE) {
+  // 25.4.3.1 Promise(executor)
+  $Promise = function Promise(executor) {
+    anInstance(this, $Promise, PROMISE, '_h');
+    aFunction(executor);
+    Internal.call(this);
+    try {
+      executor(ctx($resolve, this, 1), ctx($reject, this, 1));
+    } catch (err) {
+      $reject.call(this, err);
+    }
+  };
+  // eslint-disable-next-line no-unused-vars
+  Internal = function Promise(executor) {
+    this._c = [];             // <- awaiting reactions
+    this._a = undefined;      // <- checked in isUnhandled reactions
+    this._s = 0;              // <- state
+    this._d = false;          // <- done
+    this._v = undefined;      // <- value
+    this._h = 0;              // <- rejection state, 0 - default, 1 - handled, 2 - unhandled
+    this._n = false;          // <- notify
+  };
+  Internal.prototype = __webpack_require__(62)($Promise.prototype, {
+    // 25.4.5.3 Promise.prototype.then(onFulfilled, onRejected)
+    then: function then(onFulfilled, onRejected) {
+      var reaction = newPromiseCapability(speciesConstructor(this, $Promise));
+      reaction.ok = typeof onFulfilled == 'function' ? onFulfilled : true;
+      reaction.fail = typeof onRejected == 'function' && onRejected;
+      reaction.domain = isNode ? process.domain : undefined;
+      this._c.push(reaction);
+      if (this._a) this._a.push(reaction);
+      if (this._s) notify(this, false);
+      return reaction.promise;
+    },
+    // 25.4.5.1 Promise.prototype.catch(onRejected)
+    'catch': function (onRejected) {
+      return this.then(undefined, onRejected);
+    }
+  });
+  OwnPromiseCapability = function () {
+    var promise = new Internal();
+    this.promise = promise;
+    this.resolve = ctx($resolve, promise, 1);
+    this.reject = ctx($reject, promise, 1);
+  };
+  newPromiseCapabilityModule.f = newPromiseCapability = function (C) {
+    return C === $Promise || C === Wrapper
+      ? new OwnPromiseCapability(C)
+      : newGenericPromiseCapability(C);
+  };
+}
+
+$export($export.G + $export.W + $export.F * !USE_NATIVE, { Promise: $Promise });
+__webpack_require__(54)($Promise, PROMISE);
+__webpack_require__(111)(PROMISE);
+Wrapper = __webpack_require__(37)[PROMISE];
+
+// statics
+$export($export.S + $export.F * !USE_NATIVE, PROMISE, {
+  // 25.4.4.5 Promise.reject(r)
+  reject: function reject(r) {
+    var capability = newPromiseCapability(this);
+    var $$reject = capability.reject;
+    $$reject(r);
+    return capability.promise;
+  }
+});
+$export($export.S + $export.F * (LIBRARY || !USE_NATIVE), PROMISE, {
+  // 25.4.4.6 Promise.resolve(x)
+  resolve: function resolve(x) {
+    return promiseResolve(LIBRARY && this === Wrapper ? $Promise : this, x);
+  }
+});
+$export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(81)(function (iter) {
+  $Promise.all(iter)['catch'](empty);
+})), PROMISE, {
+  // 25.4.4.1 Promise.all(iterable)
+  all: function all(iterable) {
+    var C = this;
+    var capability = newPromiseCapability(C);
+    var resolve = capability.resolve;
+    var reject = capability.reject;
+    var result = perform(function () {
+      var values = [];
+      var index = 0;
+      var remaining = 1;
+      forOf(iterable, false, function (promise) {
+        var $index = index++;
+        var alreadyCalled = false;
+        values.push(undefined);
+        remaining++;
+        C.resolve(promise).then(function (value) {
+          if (alreadyCalled) return;
+          alreadyCalled = true;
+          values[$index] = value;
+          --remaining || resolve(values);
+        }, reject);
+      });
+      --remaining || resolve(values);
+    });
+    if (result.e) reject(result.v);
+    return capability.promise;
+  },
+  // 25.4.4.4 Promise.race(iterable)
+  race: function race(iterable) {
+    var C = this;
+    var capability = newPromiseCapability(C);
+    var reject = capability.reject;
+    var result = perform(function () {
+      forOf(iterable, false, function (promise) {
+        C.resolve(promise).then(capability.resolve, reject);
+      });
+    });
+    if (result.e) reject(result.v);
+    return capability.promise;
+  }
+});
+
+
+/***/ }),
+/* 120 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// 25.4.1.5 NewPromiseCapability(C)
+var aFunction = __webpack_require__(63);
+
+function PromiseCapability(C) {
+  var resolve, reject;
+  this.promise = new C(function ($$resolve, $$reject) {
+    if (resolve !== undefined || reject !== undefined) throw TypeError('Bad Promise constructor');
+    resolve = $$resolve;
+    reject = $$reject;
+  });
+  this.resolve = aFunction(resolve);
+  this.reject = aFunction(reject);
+}
+
+module.exports.f = function (C) {
+  return new PromiseCapability(C);
+};
+
+
+/***/ }),
+/* 121 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// ECMAScript 6 symbols shim
+var global = __webpack_require__(15);
+var has = __webpack_require__(27);
+var DESCRIPTORS = __webpack_require__(22);
+var $export = __webpack_require__(3);
+var redefine = __webpack_require__(28);
+var META = __webpack_require__(32).KEY;
+var $fails = __webpack_require__(23);
+var shared = __webpack_require__(79);
+var setToStringTag = __webpack_require__(54);
+var uid = __webpack_require__(51);
+var wks = __webpack_require__(12);
+var wksExt = __webpack_require__(122);
+var wksDefine = __webpack_require__(338);
+var enumKeys = __webpack_require__(339);
+var isArray = __webpack_require__(115);
+var anObject = __webpack_require__(18);
+var isObject = __webpack_require__(9);
+var toIObject = __webpack_require__(24);
+var toPrimitive = __webpack_require__(75);
+var createDesc = __webpack_require__(52);
+var _create = __webpack_require__(76);
+var gOPNExt = __webpack_require__(123);
+var $GOPD = __webpack_require__(67);
+var $DP = __webpack_require__(20);
+var $keys = __webpack_require__(35);
+var gOPD = $GOPD.f;
+var dP = $DP.f;
+var gOPN = gOPNExt.f;
+var $Symbol = global.Symbol;
+var $JSON = global.JSON;
+var _stringify = $JSON && $JSON.stringify;
+var PROTOTYPE = 'prototype';
+var HIDDEN = wks('_hidden');
+var TO_PRIMITIVE = wks('toPrimitive');
+var isEnum = {}.propertyIsEnumerable;
+var SymbolRegistry = shared('symbol-registry');
+var AllSymbols = shared('symbols');
+var OPSymbols = shared('op-symbols');
+var ObjectProto = Object[PROTOTYPE];
+var USE_NATIVE = typeof $Symbol == 'function';
+var QObject = global.QObject;
+// Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
+var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
+
+// fallback for old Android, https://code.google.com/p/v8/issues/detail?id=687
+var setSymbolDesc = DESCRIPTORS && $fails(function () {
+  return _create(dP({}, 'a', {
+    get: function () { return dP(this, 'a', { value: 7 }).a; }
+  })).a != 7;
+}) ? function (it, key, D) {
+  var protoDesc = gOPD(ObjectProto, key);
+  if (protoDesc) delete ObjectProto[key];
+  dP(it, key, D);
+  if (protoDesc && it !== ObjectProto) dP(ObjectProto, key, protoDesc);
+} : dP;
+
+var wrap = function (tag) {
+  var sym = AllSymbols[tag] = _create($Symbol[PROTOTYPE]);
+  sym._k = tag;
+  return sym;
+};
+
+var isSymbol = USE_NATIVE && typeof $Symbol.iterator == 'symbol' ? function (it) {
+  return typeof it == 'symbol';
+} : function (it) {
+  return it instanceof $Symbol;
+};
+
+var $defineProperty = function defineProperty(it, key, D) {
+  if (it === ObjectProto) $defineProperty(OPSymbols, key, D);
+  anObject(it);
+  key = toPrimitive(key, true);
+  anObject(D);
+  if (has(AllSymbols, key)) {
+    if (!D.enumerable) {
+      if (!has(it, HIDDEN)) dP(it, HIDDEN, createDesc(1, {}));
+      it[HIDDEN][key] = true;
+    } else {
+      if (has(it, HIDDEN) && it[HIDDEN][key]) it[HIDDEN][key] = false;
+      D = _create(D, { enumerable: createDesc(0, false) });
+    } return setSymbolDesc(it, key, D);
+  } return dP(it, key, D);
+};
+var $defineProperties = function defineProperties(it, P) {
+  anObject(it);
+  var keys = enumKeys(P = toIObject(P));
+  var i = 0;
+  var l = keys.length;
+  var key;
+  while (l > i) $defineProperty(it, key = keys[i++], P[key]);
+  return it;
+};
+var $create = function create(it, P) {
+  return P === undefined ? _create(it) : $defineProperties(_create(it), P);
+};
+var $propertyIsEnumerable = function propertyIsEnumerable(key) {
+  var E = isEnum.call(this, key = toPrimitive(key, true));
+  if (this === ObjectProto && has(AllSymbols, key) && !has(OPSymbols, key)) return false;
+  return E || !has(this, key) || !has(AllSymbols, key) || has(this, HIDDEN) && this[HIDDEN][key] ? E : true;
+};
+var $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(it, key) {
+  it = toIObject(it);
+  key = toPrimitive(key, true);
+  if (it === ObjectProto && has(AllSymbols, key) && !has(OPSymbols, key)) return;
+  var D = gOPD(it, key);
+  if (D && has(AllSymbols, key) && !(has(it, HIDDEN) && it[HIDDEN][key])) D.enumerable = true;
+  return D;
+};
+var $getOwnPropertyNames = function getOwnPropertyNames(it) {
+  var names = gOPN(toIObject(it));
+  var result = [];
+  var i = 0;
+  var key;
+  while (names.length > i) {
+    if (!has(AllSymbols, key = names[i++]) && key != HIDDEN && key != META) result.push(key);
+  } return result;
+};
+var $getOwnPropertySymbols = function getOwnPropertySymbols(it) {
+  var IS_OP = it === ObjectProto;
+  var names = gOPN(IS_OP ? OPSymbols : toIObject(it));
+  var result = [];
+  var i = 0;
+  var key;
+  while (names.length > i) {
+    if (has(AllSymbols, key = names[i++]) && (IS_OP ? has(ObjectProto, key) : true)) result.push(AllSymbols[key]);
+  } return result;
+};
+
+// 19.4.1.1 Symbol([description])
+if (!USE_NATIVE) {
+  $Symbol = function Symbol() {
+    if (this instanceof $Symbol) throw TypeError('Symbol is not a constructor!');
+    var tag = uid(arguments.length > 0 ? arguments[0] : undefined);
+    var $set = function (value) {
+      if (this === ObjectProto) $set.call(OPSymbols, value);
+      if (has(this, HIDDEN) && has(this[HIDDEN], tag)) this[HIDDEN][tag] = false;
+      setSymbolDesc(this, tag, createDesc(1, value));
+    };
+    if (DESCRIPTORS && setter) setSymbolDesc(ObjectProto, tag, { configurable: true, set: $set });
+    return wrap(tag);
+  };
+  redefine($Symbol[PROTOTYPE], 'toString', function toString() {
+    return this._k;
+  });
+
+  $GOPD.f = $getOwnPropertyDescriptor;
+  $DP.f = $defineProperty;
+  __webpack_require__(84).f = gOPNExt.f = $getOwnPropertyNames;
+  __webpack_require__(55).f = $propertyIsEnumerable;
+  __webpack_require__(69).f = $getOwnPropertySymbols;
+
+  if (DESCRIPTORS && !__webpack_require__(50)) {
+    redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
+  }
+
+  wksExt.f = function (name) {
+    return wrap(wks(name));
+  };
+}
+
+$export($export.G + $export.W + $export.F * !USE_NATIVE, { Symbol: $Symbol });
+
+for (var es6Symbols = (
+  // 19.4.2.2, 19.4.2.3, 19.4.2.4, 19.4.2.6, 19.4.2.8, 19.4.2.9, 19.4.2.10, 19.4.2.11, 19.4.2.12, 19.4.2.13, 19.4.2.14
+  'hasInstance,isConcatSpreadable,iterator,match,replace,search,species,split,toPrimitive,toStringTag,unscopables'
+).split(','), j = 0; es6Symbols.length > j;)wks(es6Symbols[j++]);
+
+for (var wellKnownSymbols = $keys(wks.store), k = 0; wellKnownSymbols.length > k;) wksDefine(wellKnownSymbols[k++]);
+
+$export($export.S + $export.F * !USE_NATIVE, 'Symbol', {
+  // 19.4.2.1 Symbol.for(key)
+  'for': function (key) {
+    return has(SymbolRegistry, key += '')
+      ? SymbolRegistry[key]
+      : SymbolRegistry[key] = $Symbol(key);
+  },
+  // 19.4.2.5 Symbol.keyFor(sym)
+  keyFor: function keyFor(sym) {
+    if (!isSymbol(sym)) throw TypeError(sym + ' is not a symbol!');
+    for (var key in SymbolRegistry) if (SymbolRegistry[key] === sym) return key;
+  },
+  useSetter: function () { setter = true; },
+  useSimple: function () { setter = false; }
+});
+
+$export($export.S + $export.F * !USE_NATIVE, 'Object', {
+  // 19.1.2.2 Object.create(O [, Properties])
+  create: $create,
+  // 19.1.2.4 Object.defineProperty(O, P, Attributes)
+  defineProperty: $defineProperty,
+  // 19.1.2.3 Object.defineProperties(O, Properties)
+  defineProperties: $defineProperties,
+  // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
+  getOwnPropertyDescriptor: $getOwnPropertyDescriptor,
+  // 19.1.2.7 Object.getOwnPropertyNames(O)
+  getOwnPropertyNames: $getOwnPropertyNames,
+  // 19.1.2.8 Object.getOwnPropertySymbols(O)
+  getOwnPropertySymbols: $getOwnPropertySymbols
+});
+
+// 24.3.2 JSON.stringify(value [, replacer [, space]])
+$JSON && $export($export.S + $export.F * (!USE_NATIVE || $fails(function () {
+  var S = $Symbol();
+  // MS Edge converts symbol values to JSON as {}
+  // WebKit converts symbol values to JSON as null
+  // V8 throws on boxed symbols
+  return _stringify([S]) != '[null]' || _stringify({ a: S }) != '{}' || _stringify(Object(S)) != '{}';
+})), 'JSON', {
+  stringify: function stringify(it) {
+    var args = [it];
+    var i = 1;
+    var replacer, $replacer;
+    while (arguments.length > i) args.push(arguments[i++]);
+    $replacer = replacer = args[1];
+    if (!isObject(replacer) && it === undefined || isSymbol(it)) return; // IE8 returns string on undefined
+    if (!isArray(replacer)) replacer = function (key, value) {
+      if (typeof $replacer == 'function') value = $replacer.call(this, key, value);
+      if (!isSymbol(value)) return value;
+    };
+    args[1] = replacer;
+    return _stringify.apply($JSON, args);
+  }
+});
+
+// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
+$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(29)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
+// 19.4.3.5 Symbol.prototype[@@toStringTag]
+setToStringTag($Symbol, 'Symbol');
+// 20.2.1.9 Math[@@toStringTag]
+setToStringTag(Math, 'Math', true);
+// 24.3.3 JSON[@@toStringTag]
+setToStringTag(global.JSON, 'JSON', true);
+
+
+/***/ }),
+/* 122 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports.f = __webpack_require__(12);
+
+
+/***/ }),
+/* 123 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
+var toIObject = __webpack_require__(24);
+var gOPN = __webpack_require__(84).f;
+var toString = {}.toString;
+
+var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
+  ? Object.getOwnPropertyNames(window) : [];
+
+var getWindowNames = function (it) {
+  try {
+    return gOPN(it);
+  } catch (e) {
+    return windowNames.slice();
+  }
+};
+
+module.exports.f = function getOwnPropertyNames(it) {
+  return windowNames && toString.call(it) == '[object Window]' ? getWindowNames(it) : gOPN(toIObject(it));
+};
+
+
+/***/ }),
+/* 124 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.5 Object.freeze(O)
+var isObject = __webpack_require__(9);
+var meta = __webpack_require__(32).onFreeze;
+
+__webpack_require__(26)('freeze', function ($freeze) {
+  return function freeze(it) {
+    return $freeze && isObject(it) ? $freeze(meta(it)) : it;
+  };
+});
+
+
+/***/ }),
+/* 125 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.17 Object.seal(O)
+var isObject = __webpack_require__(9);
+var meta = __webpack_require__(32).onFreeze;
+
+__webpack_require__(26)('seal', function ($seal) {
+  return function seal(it) {
+    return $seal && isObject(it) ? $seal(meta(it)) : it;
+  };
+});
+
+
+/***/ }),
+/* 126 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.15 Object.preventExtensions(O)
+var isObject = __webpack_require__(9);
+var meta = __webpack_require__(32).onFreeze;
+
+__webpack_require__(26)('preventExtensions', function ($preventExtensions) {
+  return function preventExtensions(it) {
+    return $preventExtensions && isObject(it) ? $preventExtensions(meta(it)) : it;
+  };
+});
+
+
+/***/ }),
+/* 127 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.12 Object.isFrozen(O)
+var isObject = __webpack_require__(9);
+
+__webpack_require__(26)('isFrozen', function ($isFrozen) {
+  return function isFrozen(it) {
+    return isObject(it) ? $isFrozen ? $isFrozen(it) : false : true;
+  };
+});
+
+
+/***/ }),
+/* 128 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.13 Object.isSealed(O)
+var isObject = __webpack_require__(9);
+
+__webpack_require__(26)('isSealed', function ($isSealed) {
+  return function isSealed(it) {
+    return isObject(it) ? $isSealed ? $isSealed(it) : false : true;
+  };
+});
+
+
+/***/ }),
+/* 129 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.11 Object.isExtensible(O)
+var isObject = __webpack_require__(9);
+
+__webpack_require__(26)('isExtensible', function ($isExtensible) {
+  return function isExtensible(it) {
+    return isObject(it) ? $isExtensible ? $isExtensible(it) : true : false;
+  };
+});
+
+
+/***/ }),
+/* 130 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
+var toIObject = __webpack_require__(24);
+var $getOwnPropertyDescriptor = __webpack_require__(67).f;
+
+__webpack_require__(26)('getOwnPropertyDescriptor', function () {
+  return function getOwnPropertyDescriptor(it, key) {
+    return $getOwnPropertyDescriptor(toIObject(it), key);
+  };
+});
+
+
+/***/ }),
+/* 131 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.9 Object.getPrototypeOf(O)
+var toObject = __webpack_require__(31);
+var $getPrototypeOf = __webpack_require__(109);
+
+__webpack_require__(26)('getPrototypeOf', function () {
+  return function getPrototypeOf(it) {
+    return $getPrototypeOf(toObject(it));
+  };
+});
+
+
+/***/ }),
+/* 132 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.14 Object.keys(O)
+var toObject = __webpack_require__(31);
+var $keys = __webpack_require__(35);
+
+__webpack_require__(26)('keys', function () {
+  return function keys(it) {
+    return $keys(toObject(it));
+  };
+});
+
+
+/***/ }),
+/* 133 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.2.7 Object.getOwnPropertyNames(O)
+__webpack_require__(26)('getOwnPropertyNames', function () {
+  return __webpack_require__(123).f;
+});
+
+
+/***/ }),
+/* 134 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.3.1 Object.assign(target, source)
+var $export = __webpack_require__(3);
+
+$export($export.S + $export.F, 'Object', { assign: __webpack_require__(116) });
+
+
+/***/ }),
+/* 135 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.3.10 Object.is(value1, value2)
+var $export = __webpack_require__(3);
+$export($export.S, 'Object', { is: __webpack_require__(340) });
+
+
+/***/ }),
+/* 136 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 19.1.3.19 Object.setPrototypeOf(O, proto)
+var $export = __webpack_require__(3);
+$export($export.S, 'Object', { setPrototypeOf: __webpack_require__(112).set });
+
+
+/***/ }),
+/* 137 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var dP = __webpack_require__(20).f;
+var FProto = Function.prototype;
+var nameRE = /^\s*function ([^ (]*)/;
+var NAME = 'name';
+
+// 19.2.4.2 name
+NAME in FProto || __webpack_require__(22) && dP(FProto, NAME, {
+  configurable: true,
+  get: function () {
+    try {
+      return ('' + this).match(nameRE)[1];
+    } catch (e) {
+      return '';
+    }
+  }
+});
+
+
+/***/ }),
+/* 138 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var $export = __webpack_require__(3);
+var toIObject = __webpack_require__(24);
+var toLength = __webpack_require__(25);
+
+$export($export.S, 'String', {
+  // 21.1.2.4 String.raw(callSite, ...substitutions)
+  raw: function raw(callSite) {
+    var tpl = toIObject(callSite.raw);
+    var len = toLength(tpl.length);
+    var aLen = arguments.length;
+    var res = [];
+    var i = 0;
+    while (len > i) {
+      res.push(String(tpl[i++]));
+      if (i < aLen) res.push(String(arguments[i]));
+    } return res.join('');
+  }
+});
+
+
+/***/ }),
+/* 139 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var $export = __webpack_require__(3);
+var toAbsoluteIndex = __webpack_require__(61);
+var fromCharCode = String.fromCharCode;
+var $fromCodePoint = String.fromCodePoint;
+
+// length should be 1, old FF problem
+$export($export.S + $export.F * (!!$fromCodePoint && $fromCodePoint.length != 1), 'String', {
+  // 21.1.2.2 String.fromCodePoint(...codePoints)
+  fromCodePoint: function fromCodePoint(x) { // eslint-disable-line no-unused-vars
+    var res = [];
+    var aLen = arguments.length;
+    var i = 0;
+    var code;
+    while (aLen > i) {
+      code = +arguments[i++];
+      if (toAbsoluteIndex(code, 0x10ffff) !== code) throw RangeError(code + ' is not a valid code point');
+      res.push(code < 0x10000
+        ? fromCharCode(code)
+        : fromCharCode(((code -= 0x10000) >> 10) + 0xd800, code % 0x400 + 0xdc00)
+      );
+    } return res.join('');
+  }
+});
+
+
+/***/ }),
+/* 140 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $export = __webpack_require__(3);
+var $at = __webpack_require__(341)(false);
+$export($export.P, 'String', {
+  // 21.1.3.3 String.prototype.codePointAt(pos)
+  codePointAt: function codePointAt(pos) {
+    return $at(this, pos);
+  }
+});
+
+
+/***/ }),
+/* 141 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var $export = __webpack_require__(3);
+
+$export($export.P, 'String', {
+  // 21.1.3.13 String.prototype.repeat(count)
+  repeat: __webpack_require__(142)
+});
+
+
+/***/ }),
+/* 142 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var toInteger = __webpack_require__(60);
+var defined = __webpack_require__(36);
+
+module.exports = function repeat(count) {
+  var str = String(defined(this));
+  var res = '';
+  var n = toInteger(count);
+  if (n < 0 || n == Infinity) throw RangeError("Count can't be negative");
+  for (;n > 0; (n >>>= 1) && (str += str)) if (n & 1) res += str;
+  return res;
+};
+
+
+/***/ }),
+/* 143 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+// 21.1.3.18 String.prototype.startsWith(searchString [, position ])
+
+var $export = __webpack_require__(3);
+var toLength = __webpack_require__(25);
+var context = __webpack_require__(85);
+var STARTS_WITH = 'startsWith';
+var $startsWith = ''[STARTS_WITH];
+
+$export($export.P + $export.F * __webpack_require__(86)(STARTS_WITH), 'String', {
+  startsWith: function startsWith(searchString /* , position = 0 */) {
+    var that = context(this, searchString, STARTS_WITH);
+    var index = toLength(Math.min(arguments.length > 1 ? arguments[1] : undefined, that.length));
+    var search = String(searchString);
+    return $startsWith
+      ? $startsWith.call(that, search, index)
+      : that.slice(index, index + search.length) === search;
+  }
+});
+
+
+/***/ }),
+/* 144 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 7.2.8 IsRegExp(argument)
+var isObject = __webpack_require__(9);
+var cof = __webpack_require__(45);
+var MATCH = __webpack_require__(12)('match');
+module.exports = function (it) {
+  var isRegExp;
+  return isObject(it) && ((isRegExp = it[MATCH]) !== undefined ? !!isRegExp : cof(it) == 'RegExp');
+};
+
+
+/***/ }),
+/* 145 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+// 21.1.3.6 String.prototype.endsWith(searchString [, endPosition])
+
+var $export = __webpack_require__(3);
+var toLength = __webpack_require__(25);
+var context = __webpack_require__(85);
+var ENDS_WITH = 'endsWith';
+var $endsWith = ''[ENDS_WITH];
+
+$export($export.P + $export.F * __webpack_require__(86)(ENDS_WITH), 'String', {
+  endsWith: function endsWith(searchString /* , endPosition = @length */) {
+    var that = context(this, searchString, ENDS_WITH);
+    var endPosition = arguments.length > 1 ? arguments[1] : undefined;
+    var len = toLength(that.length);
+    var end = endPosition === undefined ? len : Math.min(toLength(endPosition), len);
+    var search = String(searchString);
+    return $endsWith
+      ? $endsWith.call(that, search, end)
+      : that.slice(end - search.length, end) === search;
+  }
+});
+
+
+/***/ }),
+/* 146 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+// 21.1.3.7 String.prototype.includes(searchString, position = 0)
+
+var $export = __webpack_require__(3);
+var context = __webpack_require__(85);
+var INCLUDES = 'includes';
+
+$export($export.P + $export.F * __webpack_require__(86)(INCLUDES), 'String', {
+  includes: function includes(searchString /* , position = 0 */) {
+    return !!~context(this, searchString, INCLUDES)
+      .indexOf(searchString, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+
+
+/***/ }),
+/* 147 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 21.2.5.3 get RegExp.prototype.flags()
+if (__webpack_require__(22) && /./g.flags != 'g') __webpack_require__(20).f(RegExp.prototype, 'flags', {
+  configurable: true,
+  get: __webpack_require__(342)
+});
+
+
+/***/ }),
+/* 148 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// @@match logic
+__webpack_require__(70)('match', 1, function (defined, MATCH, $match) {
+  // 21.1.3.11 String.prototype.match(regexp)
+  return [function match(regexp) {
+    'use strict';
+    var O = defined(this);
+    var fn = regexp == undefined ? undefined : regexp[MATCH];
+    return fn !== undefined ? fn.call(regexp, O) : new RegExp(regexp)[MATCH](String(O));
+  }, $match];
+});
+
+
+/***/ }),
+/* 149 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// @@replace logic
+__webpack_require__(70)('replace', 2, function (defined, REPLACE, $replace) {
+  // 21.1.3.14 String.prototype.replace(searchValue, replaceValue)
+  return [function replace(searchValue, replaceValue) {
+    'use strict';
+    var O = defined(this);
+    var fn = searchValue == undefined ? undefined : searchValue[REPLACE];
+    return fn !== undefined
+      ? fn.call(searchValue, O, replaceValue)
+      : $replace.call(String(O), searchValue, replaceValue);
+  }, $replace];
+});
+
+
+/***/ }),
+/* 150 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// @@split logic
+__webpack_require__(70)('split', 2, function (defined, SPLIT, $split) {
+  'use strict';
+  var isRegExp = __webpack_require__(144);
+  var _split = $split;
+  var $push = [].push;
+  var $SPLIT = 'split';
+  var LENGTH = 'length';
+  var LAST_INDEX = 'lastIndex';
+  if (
+    'abbc'[$SPLIT](/(b)*/)[1] == 'c' ||
+    'test'[$SPLIT](/(?:)/, -1)[LENGTH] != 4 ||
+    'ab'[$SPLIT](/(?:ab)*/)[LENGTH] != 2 ||
+    '.'[$SPLIT](/(.?)(.?)/)[LENGTH] != 4 ||
+    '.'[$SPLIT](/()()/)[LENGTH] > 1 ||
+    ''[$SPLIT](/.?/)[LENGTH]
+  ) {
+    var NPCG = /()??/.exec('')[1] === undefined; // nonparticipating capturing group
+    // based on es5-shim implementation, need to rework it
+    $split = function (separator, limit) {
+      var string = String(this);
+      if (separator === undefined && limit === 0) return [];
+      // If `separator` is not a regex, use native split
+      if (!isRegExp(separator)) return _split.call(string, separator, limit);
+      var output = [];
+      var flags = (separator.ignoreCase ? 'i' : '') +
+                  (separator.multiline ? 'm' : '') +
+                  (separator.unicode ? 'u' : '') +
+                  (separator.sticky ? 'y' : '');
+      var lastLastIndex = 0;
+      var splitLimit = limit === undefined ? 4294967295 : limit >>> 0;
+      // Make `global` and avoid `lastIndex` issues by working with a copy
+      var separatorCopy = new RegExp(separator.source, flags + 'g');
+      var separator2, match, lastIndex, lastLength, i;
+      // Doesn't need flags gy, but they don't hurt
+      if (!NPCG) separator2 = new RegExp('^' + separatorCopy.source + '$(?!\\s)', flags);
+      while (match = separatorCopy.exec(string)) {
+        // `separatorCopy.lastIndex` is not reliable cross-browser
+        lastIndex = match.index + match[0][LENGTH];
+        if (lastIndex > lastLastIndex) {
+          output.push(string.slice(lastLastIndex, match.index));
+          // Fix browsers whose `exec` methods don't consistently return `undefined` for NPCG
+          // eslint-disable-next-line no-loop-func
+          if (!NPCG && match[LENGTH] > 1) match[0].replace(separator2, function () {
+            for (i = 1; i < arguments[LENGTH] - 2; i++) if (arguments[i] === undefined) match[i] = undefined;
+          });
+          if (match[LENGTH] > 1 && match.index < string[LENGTH]) $push.apply(output, match.slice(1));
+          lastLength = match[0][LENGTH];
+          lastLastIndex = lastIndex;
+          if (output[LENGTH] >= splitLimit) break;
+        }
+        if (separatorCopy[LAST_INDEX] === match.index) separatorCopy[LAST_INDEX]++; // Avoid an infinite loop
+      }
+      if (lastLastIndex === string[LENGTH]) {
+        if (lastLength || !separatorCopy.test('')) output.push('');
+      } else output.push(string.slice(lastLastIndex));
+      return output[LENGTH] > splitLimit ? output.slice(0, splitLimit) : output;
+    };
+  // Chakra, V8
+  } else if ('0'[$SPLIT](undefined, 0)[LENGTH]) {
+    $split = function (separator, limit) {
+      return separator === undefined && limit === 0 ? [] : _split.call(this, separator, limit);
+    };
+  }
+  // 21.1.3.17 String.prototype.split(separator, limit)
+  return [function split(separator, limit) {
+    var O = defined(this);
+    var fn = separator == undefined ? undefined : separator[SPLIT];
+    return fn !== undefined ? fn.call(separator, O, limit) : $split.call(String(O), separator, limit);
+  }, $split];
+});
+
+
+/***/ }),
+/* 151 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// @@search logic
+__webpack_require__(70)('search', 1, function (defined, SEARCH, $search) {
+  // 21.1.3.15 String.prototype.search(regexp)
+  return [function search(regexp) {
+    'use strict';
+    var O = defined(this);
+    var fn = regexp == undefined ? undefined : regexp[SEARCH];
+    return fn !== undefined ? fn.call(regexp, O) : new RegExp(regexp)[SEARCH](String(O));
+  }, $search];
+});
+
+
+/***/ }),
+/* 152 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var ctx = __webpack_require__(30);
+var $export = __webpack_require__(3);
+var toObject = __webpack_require__(31);
+var call = __webpack_require__(104);
+var isArrayIter = __webpack_require__(105);
+var toLength = __webpack_require__(25);
+var createProperty = __webpack_require__(87);
+var getIterFn = __webpack_require__(106);
+
+$export($export.S + $export.F * !__webpack_require__(81)(function (iter) { Array.from(iter); }), 'Array', {
+  // 22.1.2.1 Array.from(arrayLike, mapfn = undefined, thisArg = undefined)
+  from: function from(arrayLike /* , mapfn = undefined, thisArg = undefined */) {
+    var O = toObject(arrayLike);
+    var C = typeof this == 'function' ? this : Array;
+    var aLen = arguments.length;
+    var mapfn = aLen > 1 ? arguments[1] : undefined;
+    var mapping = mapfn !== undefined;
+    var index = 0;
+    var iterFn = getIterFn(O);
+    var length, result, step, iterator;
+    if (mapping) mapfn = ctx(mapfn, aLen > 2 ? arguments[2] : undefined, 2);
+    // if object isn't iterable or it's array with default iterator - use simple case
+    if (iterFn != undefined && !(C == Array && isArrayIter(iterFn))) {
+      for (iterator = iterFn.call(O), result = new C(); !(step = iterator.next()).done; index++) {
+        createProperty(result, index, mapping ? call(iterator, mapfn, [step.value, index], true) : step.value);
+      }
+    } else {
+      length = toLength(O.length);
+      for (result = new C(length); length > index; index++) {
+        createProperty(result, index, mapping ? mapfn(O[index], index) : O[index]);
+      }
+    }
+    result.length = index;
+    return result;
+  }
+});
+
+
+/***/ }),
+/* 153 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $export = __webpack_require__(3);
+var createProperty = __webpack_require__(87);
+
+// WebKit Array.of isn't generic
+$export($export.S + $export.F * __webpack_require__(23)(function () {
+  function F() { /* empty */ }
+  return !(Array.of.call(F) instanceof F);
+}), 'Array', {
+  // 22.1.2.3 Array.of( ...items)
+  of: function of(/* ...args */) {
+    var index = 0;
+    var aLen = arguments.length;
+    var result = new (typeof this == 'function' ? this : Array)(aLen);
+    while (aLen > index) createProperty(result, index, arguments[index++]);
+    result.length = aLen;
+    return result;
+  }
+});
+
+
+/***/ }),
+/* 154 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
+var $export = __webpack_require__(3);
+
+$export($export.P, 'Array', { copyWithin: __webpack_require__(343) });
+
+__webpack_require__(47)('copyWithin');
+
+
+/***/ }),
+/* 155 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// 22.1.3.8 Array.prototype.find(predicate, thisArg = undefined)
+var $export = __webpack_require__(3);
+var $find = __webpack_require__(68)(5);
+var KEY = 'find';
+var forced = true;
+// Shouldn't skip holes
+if (KEY in []) Array(1)[KEY](function () { forced = false; });
+$export($export.P + $export.F * forced, 'Array', {
+  find: function find(callbackfn /* , that = undefined */) {
+    return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+__webpack_require__(47)(KEY);
+
+
+/***/ }),
+/* 156 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// 22.1.3.9 Array.prototype.findIndex(predicate, thisArg = undefined)
+var $export = __webpack_require__(3);
+var $find = __webpack_require__(68)(6);
+var KEY = 'findIndex';
+var forced = true;
+// Shouldn't skip holes
+if (KEY in []) Array(1)[KEY](function () { forced = false; });
+$export($export.P + $export.F * forced, 'Array', {
+  findIndex: function findIndex(callbackfn /* , that = undefined */) {
+    return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+__webpack_require__(47)(KEY);
+
+
+/***/ }),
+/* 157 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
+var $export = __webpack_require__(3);
+
+$export($export.P, 'Array', { fill: __webpack_require__(344) });
+
+__webpack_require__(47)('fill');
+
+
+/***/ }),
+/* 158 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 20.1.2.2 Number.isFinite(number)
+var $export = __webpack_require__(3);
+var _isFinite = __webpack_require__(15).isFinite;
+
+$export($export.S, 'Number', {
+  isFinite: function isFinite(it) {
+    return typeof it == 'number' && _isFinite(it);
+  }
+});
+
+
+/***/ }),
+/* 159 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 20.1.2.3 Number.isInteger(number)
+var $export = __webpack_require__(3);
+
+$export($export.S, 'Number', { isInteger: __webpack_require__(160) });
+
+
+/***/ }),
+/* 160 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 20.1.2.3 Number.isInteger(number)
+var isObject = __webpack_require__(9);
+var floor = Math.floor;
+module.exports = function isInteger(it) {
+  return !isObject(it) && isFinite(it) && floor(it) === it;
+};
+
+
+/***/ }),
+/* 161 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 20.1.2.5 Number.isSafeInteger(number)
+var $export = __webpack_require__(3);
+var isInteger = __webpack_require__(160);
+var abs = Math.abs;
+
+$export($export.S, 'Number', {
+  isSafeInteger: function isSafeInteger(number) {
+    return isInteger(number) && abs(number) <= 0x1fffffffffffff;
+  }
+});
+
+
+/***/ }),
+/* 162 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 20.1.2.4 Number.isNaN(number)
+var $export = __webpack_require__(3);
+
+$export($export.S, 'Number', {
+  isNaN: function isNaN(number) {
+    // eslint-disable-next-line no-self-compare
+    return number != number;
+  }
+});
+
+
+/***/ }),
+/* 163 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 20.1.2.1 Number.EPSILON
+var $export = __webpack_require__(3);
+
+$export($export.S, 'Number', { EPSILON: Math.pow(2, -52) });
+
+
+/***/ }),
+/* 164 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 20.1.2.10 Number.MIN_SAFE_INTEGER
+var $export = __webpack_require__(3);
+
+$export($export.S, 'Number', { MIN_SAFE_INTEGER: -0x1fffffffffffff });
+
+
+/***/ }),
+/* 165 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 20.1.2.6 Number.MAX_SAFE_INTEGER
+var $export = __webpack_require__(3);
+
+$export($export.S, 'Number', { MAX_SAFE_INTEGER: 0x1fffffffffffff });
+
+
+/***/ }),
+/* 166 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// https://github.com/tc39/Array.prototype.includes
+var $export = __webpack_require__(3);
+var $includes = __webpack_require__(102)(true);
+
+$export($export.P, 'Array', {
+  includes: function includes(el /* , fromIndex = 0 */) {
+    return $includes(this, el, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+
+__webpack_require__(47)('includes');
+
+
+/***/ }),
+/* 167 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// https://github.com/tc39/proposal-object-values-entries
+var $export = __webpack_require__(3);
+var $values = __webpack_require__(168)(false);
+
+$export($export.S, 'Object', {
+  values: function values(it) {
+    return $values(it);
+  }
+});
+
+
+/***/ }),
+/* 168 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var getKeys = __webpack_require__(35);
+var toIObject = __webpack_require__(24);
+var isEnum = __webpack_require__(55).f;
+module.exports = function (isEntries) {
+  return function (it) {
+    var O = toIObject(it);
+    var keys = getKeys(O);
+    var length = keys.length;
+    var i = 0;
+    var result = [];
+    var key;
+    while (length > i) if (isEnum.call(O, key = keys[i++])) {
+      result.push(isEntries ? [key, O[key]] : O[key]);
+    } return result;
+  };
+};
+
+
+/***/ }),
+/* 169 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// https://github.com/tc39/proposal-object-values-entries
+var $export = __webpack_require__(3);
+var $entries = __webpack_require__(168)(true);
+
+$export($export.S, 'Object', {
+  entries: function entries(it) {
+    return $entries(it);
+  }
+});
+
+
+/***/ }),
+/* 170 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// https://github.com/tc39/proposal-object-getownpropertydescriptors
+var $export = __webpack_require__(3);
+var ownKeys = __webpack_require__(345);
+var toIObject = __webpack_require__(24);
+var gOPD = __webpack_require__(67);
+var createProperty = __webpack_require__(87);
+
+$export($export.S, 'Object', {
+  getOwnPropertyDescriptors: function getOwnPropertyDescriptors(object) {
+    var O = toIObject(object);
+    var getDesc = gOPD.f;
+    var keys = ownKeys(O);
+    var result = {};
+    var i = 0;
+    var key, desc;
+    while (keys.length > i) {
+      desc = getDesc(O, key = keys[i++]);
+      if (desc !== undefined) createProperty(result, key, desc);
+    }
+    return result;
+  }
+});
+
+
+/***/ }),
+/* 171 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// https://github.com/tc39/proposal-string-pad-start-end
+var $export = __webpack_require__(3);
+var $pad = __webpack_require__(172);
+var userAgent = __webpack_require__(83);
+
+// https://github.com/zloirock/core-js/issues/280
+$export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAgent), 'String', {
+  padStart: function padStart(maxLength /* , fillString = ' ' */) {
+    return $pad(this, maxLength, arguments.length > 1 ? arguments[1] : undefined, true);
+  }
+});
+
+
+/***/ }),
+/* 172 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// https://github.com/tc39/proposal-string-pad-start-end
+var toLength = __webpack_require__(25);
+var repeat = __webpack_require__(142);
+var defined = __webpack_require__(36);
+
+module.exports = function (that, maxLength, fillString, left) {
+  var S = String(defined(that));
+  var stringLength = S.length;
+  var fillStr = fillString === undefined ? ' ' : String(fillString);
+  var intMaxLength = toLength(maxLength);
+  if (intMaxLength <= stringLength || fillStr == '') return S;
+  var fillLen = intMaxLength - stringLength;
+  var stringFiller = repeat.call(fillStr, Math.ceil(fillLen / fillStr.length));
+  if (stringFiller.length > fillLen) stringFiller = stringFiller.slice(0, fillLen);
+  return left ? stringFiller + S : S + stringFiller;
+};
+
+
+/***/ }),
+/* 173 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// https://github.com/tc39/proposal-string-pad-start-end
+var $export = __webpack_require__(3);
+var $pad = __webpack_require__(172);
+var userAgent = __webpack_require__(83);
+
+// https://github.com/zloirock/core-js/issues/280
+$export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAgent), 'String', {
+  padEnd: function padEnd(maxLength /* , fillString = ' ' */) {
+    return $pad(this, maxLength, arguments.length > 1 ? arguments[1] : undefined, false);
+  }
+});
+
+
+/***/ }),
+/* 174 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var $export = __webpack_require__(3);
+var $task = __webpack_require__(82);
+$export($export.G + $export.B, {
+  setImmediate: $task.set,
+  clearImmediate: $task.clear
+});
+
+
+/***/ }),
+/* 175 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var $iterators = __webpack_require__(88);
+var getKeys = __webpack_require__(35);
+var redefine = __webpack_require__(28);
+var global = __webpack_require__(15);
+var hide = __webpack_require__(29);
+var Iterators = __webpack_require__(53);
+var wks = __webpack_require__(12);
+var ITERATOR = wks('iterator');
+var TO_STRING_TAG = wks('toStringTag');
+var ArrayValues = Iterators.Array;
+
+var DOMIterables = {
+  CSSRuleList: true, // TODO: Not spec compliant, should be false.
+  CSSStyleDeclaration: false,
+  CSSValueList: false,
+  ClientRectList: false,
+  DOMRectList: false,
+  DOMStringList: false,
+  DOMTokenList: true,
+  DataTransferItemList: false,
+  FileList: false,
+  HTMLAllCollection: false,
+  HTMLCollection: false,
+  HTMLFormElement: false,
+  HTMLSelectElement: false,
+  MediaList: true, // TODO: Not spec compliant, should be false.
+  MimeTypeArray: false,
+  NamedNodeMap: false,
+  NodeList: true,
+  PaintRequestList: false,
+  Plugin: false,
+  PluginArray: false,
+  SVGLengthList: false,
+  SVGNumberList: false,
+  SVGPathSegList: false,
+  SVGPointList: false,
+  SVGStringList: false,
+  SVGTransformList: false,
+  SourceBufferList: false,
+  StyleSheetList: true, // TODO: Not spec compliant, should be false.
+  TextTrackCueList: false,
+  TextTrackList: false,
+  TouchList: false
+};
+
+for (var collections = getKeys(DOMIterables), i = 0; i < collections.length; i++) {
+  var NAME = collections[i];
+  var explicit = DOMIterables[NAME];
+  var Collection = global[NAME];
+  var proto = Collection && Collection.prototype;
+  var key;
+  if (proto) {
+    if (!proto[ITERATOR]) hide(proto, ITERATOR, ArrayValues);
+    if (!proto[TO_STRING_TAG]) hide(proto, TO_STRING_TAG, NAME);
+    Iterators[NAME] = ArrayValues;
+    if (explicit) for (key in $iterators) if (!proto[key]) redefine(proto, key, $iterators[key], true);
+  }
+}
+
+
+/***/ }),
+/* 176 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var privatePool = new WeakMap();
+
+/**
+ * Calculates indexes of columns to render OR columns that are visible.
+ * To redo the calculation, you need to create a new calculator.
+ *
+ * @class ViewportColumnsCalculator
+ */
+
+var ViewportColumnsCalculator = function () {
+  _createClass(ViewportColumnsCalculator, null, [{
+    key: 'DEFAULT_WIDTH',
+
+    /**
+     * Default column width
+     *
+     * @type {Number}
+     */
+    get: function get() {
+      return 50;
+    }
+
+    /**
+     * @param {Number} viewportWidth Width of the viewport
+     * @param {Number} scrollOffset Current horizontal scroll position of the viewport
+     * @param {Number} totalColumns Total number of rows
+     * @param {Function} columnWidthFn Function that returns the width of the column at a given index (in px)
+     * @param {Function} overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
+     * @param {Boolean} onlyFullyVisible if `true`, only startRow and endRow will be indexes of rows that are fully in viewport
+     * @param {Boolean} stretchH
+     * @param {Function} [stretchingColumnWidthFn] Function that returns the new width of the stretched column.
+     */
+
+  }]);
+
+  function ViewportColumnsCalculator(viewportWidth, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH) {
+    var stretchingColumnWidthFn = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : function (width) {
+      return width;
+    };
+
+    _classCallCheck(this, ViewportColumnsCalculator);
+
+    privatePool.set(this, {
+      viewportWidth: viewportWidth,
+      scrollOffset: scrollOffset,
+      totalColumns: totalColumns,
+      columnWidthFn: columnWidthFn,
+      overrideFn: overrideFn,
+      onlyFullyVisible: onlyFullyVisible,
+      stretchingColumnWidthFn: stretchingColumnWidthFn
+    });
+
+    /**
+     * Number of rendered/visible columns
+     *
+     * @type {Number}
+     */
+    this.count = 0;
+
+    /**
+     * Index of the first rendered/visible column (can be overwritten using overrideFn)
+     *
+     * @type {Number|null}
+     */
+    this.startColumn = null;
+
+    /**
+     * Index of the last rendered/visible column (can be overwritten using overrideFn)
+     *
+     * @type {null}
+     */
+    this.endColumn = null;
+
+    /**
+     * Position of the first rendered/visible column (in px)
+     *
+     * @type {Number|null}
+     */
+    this.startPosition = null;
+
+    this.stretchAllRatio = 0;
+    this.stretchLastWidth = 0;
+    this.stretch = stretchH;
+    this.totalTargetWidth = 0;
+    this.needVerifyLastColumnWidth = true;
+    this.stretchAllColumnsWidth = [];
+
+    this.calculate();
+  }
+
+  /**
+   * Calculates viewport
+   */
+
+
+  _createClass(ViewportColumnsCalculator, [{
+    key: 'calculate',
+    value: function calculate() {
+      var sum = 0;
+      var needReverse = true;
+      var startPositions = [];
+      var columnWidth = void 0;
+
+      var priv = privatePool.get(this);
+      var onlyFullyVisible = priv.onlyFullyVisible;
+      var overrideFn = priv.overrideFn;
+      var scrollOffset = priv.scrollOffset;
+      var totalColumns = priv.totalColumns;
+      var viewportWidth = priv.viewportWidth;
+
+      for (var i = 0; i < totalColumns; i++) {
+        columnWidth = this._getColumnWidth(i);
+
+        if (sum <= scrollOffset && !onlyFullyVisible) {
+          this.startColumn = i;
+        }
+
+        // +1 pixel for row header width compensation for horizontal scroll > 0
+        var compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
+
+        if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + compensatedViewportWidth) {
+          if (this.startColumn == null) {
+            this.startColumn = i;
+          }
+          this.endColumn = i;
+        }
+        startPositions.push(sum);
+        sum += columnWidth;
+
+        if (!onlyFullyVisible) {
+          this.endColumn = i;
+        }
+        if (sum >= scrollOffset + viewportWidth) {
+          needReverse = false;
+          break;
+        }
+      }
+
+      if (this.endColumn === totalColumns - 1 && needReverse) {
+        this.startColumn = this.endColumn;
+
+        while (this.startColumn > 0) {
+          var viewportSum = startPositions[this.endColumn] + columnWidth - startPositions[this.startColumn - 1];
+
+          if (viewportSum <= viewportWidth || !onlyFullyVisible) {
+            this.startColumn--;
+          }
+          if (viewportSum > viewportWidth) {
+            break;
+          }
+        }
+      }
+
+      if (this.startColumn !== null && overrideFn) {
+        overrideFn(this);
+      }
+      this.startPosition = startPositions[this.startColumn];
+
+      if (this.startPosition === void 0) {
+        this.startPosition = null;
+      }
+      if (this.startColumn !== null) {
+        this.count = this.endColumn - this.startColumn + 1;
+      }
+    }
+
+    /**
+     * Recalculate columns stretching.
+     *
+     * @param {Number} totalWidth
+     */
+
+  }, {
+    key: 'refreshStretching',
+    value: function refreshStretching(totalWidth) {
+      if (this.stretch === 'none') {
+        return;
+      }
+      this.totalTargetWidth = totalWidth;
+
+      var priv = privatePool.get(this);
+      var totalColumns = priv.totalColumns;
+      var sumAll = 0;
+
+      for (var i = 0; i < totalColumns; i++) {
+        var columnWidth = this._getColumnWidth(i);
+        var permanentColumnWidth = priv.stretchingColumnWidthFn(void 0, i);
+
+        if (typeof permanentColumnWidth === 'number') {
+          totalWidth -= permanentColumnWidth;
+        } else {
+          sumAll += columnWidth;
+        }
+      }
+      var remainingSize = totalWidth - sumAll;
+
+      if (this.stretch === 'all' && remainingSize > 0) {
+        this.stretchAllRatio = totalWidth / sumAll;
+        this.stretchAllColumnsWidth = [];
+        this.needVerifyLastColumnWidth = true;
+      } else if (this.stretch === 'last' && totalWidth !== Infinity) {
+        var _columnWidth = this._getColumnWidth(totalColumns - 1);
+        var lastColumnWidth = remainingSize + _columnWidth;
+
+        this.stretchLastWidth = lastColumnWidth >= 0 ? lastColumnWidth : _columnWidth;
+      }
+    }
+
+    /**
+     * Get stretched column width based on stretchH (all or last) setting passed in handsontable instance.
+     *
+     * @param {Number} column
+     * @param {Number} baseWidth
+     * @returns {Number|null}
+     */
+
+  }, {
+    key: 'getStretchedColumnWidth',
+    value: function getStretchedColumnWidth(column, baseWidth) {
+      var result = null;
+
+      if (this.stretch === 'all' && this.stretchAllRatio !== 0) {
+        result = this._getStretchedAllColumnWidth(column, baseWidth);
+      } else if (this.stretch === 'last' && this.stretchLastWidth !== 0) {
+        result = this._getStretchedLastColumnWidth(column);
+      }
+
+      return result;
+    }
+
+    /**
+     * @param {Number} column
+     * @param {Number} baseWidth
+     * @returns {Number}
+     * @private
+     */
+
+  }, {
+    key: '_getStretchedAllColumnWidth',
+    value: function _getStretchedAllColumnWidth(column, baseWidth) {
+      var sumRatioWidth = 0;
+      var priv = privatePool.get(this);
+      var totalColumns = priv.totalColumns;
+
+      if (!this.stretchAllColumnsWidth[column]) {
+        var stretchedWidth = Math.round(baseWidth * this.stretchAllRatio);
+        var newStretchedWidth = priv.stretchingColumnWidthFn(stretchedWidth, column);
+
+        if (newStretchedWidth === void 0) {
+          this.stretchAllColumnsWidth[column] = stretchedWidth;
+        } else {
+          this.stretchAllColumnsWidth[column] = isNaN(newStretchedWidth) ? this._getColumnWidth(column) : newStretchedWidth;
+        }
+      }
+
+      if (this.stretchAllColumnsWidth.length === totalColumns && this.needVerifyLastColumnWidth) {
+        this.needVerifyLastColumnWidth = false;
+
+        for (var i = 0; i < this.stretchAllColumnsWidth.length; i++) {
+          sumRatioWidth += this.stretchAllColumnsWidth[i];
+        }
+        if (sumRatioWidth !== this.totalTargetWidth) {
+          this.stretchAllColumnsWidth[this.stretchAllColumnsWidth.length - 1] += this.totalTargetWidth - sumRatioWidth;
+        }
+      }
+
+      return this.stretchAllColumnsWidth[column];
+    }
+
+    /**
+     * @param {Number} column
+     * @returns {Number|null}
+     * @private
+     */
+
+  }, {
+    key: '_getStretchedLastColumnWidth',
+    value: function _getStretchedLastColumnWidth(column) {
+      var priv = privatePool.get(this);
+      var totalColumns = priv.totalColumns;
+
+      if (column === totalColumns - 1) {
+        return this.stretchLastWidth;
+      }
+
+      return null;
+    }
+
+    /**
+     * @param {Number} column Column index.
+     * @returns {Number}
+     * @private
+     */
+
+  }, {
+    key: '_getColumnWidth',
+    value: function _getColumnWidth(column) {
+      var width = privatePool.get(this).columnWidthFn(column);
+
+      if (width === void 0) {
+        width = ViewportColumnsCalculator.DEFAULT_WIDTH;
+      }
+
+      return width;
+    }
+  }]);
+
+  return ViewportColumnsCalculator;
+}();
+
+exports.default = ViewportColumnsCalculator;
+
+/***/ }),
+/* 177 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var privatePool = new WeakMap();
+
+/**
+ * Calculates indexes of rows to render OR rows that are visible.
+ * To redo the calculation, you need to create a new calculator.
+ *
+ * @class ViewportRowsCalculator
+ */
+
+var ViewportRowsCalculator = function () {
+  _createClass(ViewportRowsCalculator, null, [{
+    key: "DEFAULT_HEIGHT",
+
+    /**
+     * Default row height
+     *
+     * @type {Number}
+     */
+    get: function get() {
+      return 23;
+    }
+
+    /**
+     * @param {Number} viewportHeight Height of the viewport
+     * @param {Number} scrollOffset Current vertical scroll position of the viewport
+     * @param {Number} totalRows Total number of rows
+     * @param {Function} rowHeightFn Function that returns the height of the row at a given index (in px)
+     * @param {Function} overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
+     * @param {Boolean} onlyFullyVisible if `true`, only startRow and endRow will be indexes of rows that are fully in viewport
+     * @param {Number} horizontalScrollbarHeight
+     */
+
+  }]);
+
+  function ViewportRowsCalculator(viewportHeight, scrollOffset, totalRows, rowHeightFn, overrideFn, onlyFullyVisible, horizontalScrollbarHeight) {
+    _classCallCheck(this, ViewportRowsCalculator);
+
+    privatePool.set(this, {
+      viewportHeight: viewportHeight,
+      scrollOffset: scrollOffset,
+      totalRows: totalRows,
+      rowHeightFn: rowHeightFn,
+      overrideFn: overrideFn,
+      onlyFullyVisible: onlyFullyVisible,
+      horizontalScrollbarHeight: horizontalScrollbarHeight
+    });
+
+    /**
+     * Number of rendered/visible rows
+     *
+     * @type {Number}
+     */
+    this.count = 0;
+
+    /**
+     * Index of the first rendered/visible row (can be overwritten using overrideFn)
+     *
+     * @type {Number|null}
+     */
+    this.startRow = null;
+
+    /**
+     * Index of the last rendered/visible row (can be overwritten using overrideFn)
+     *
+     * @type {null}
+     */
+    this.endRow = null;
+
+    /**
+     * Position of the first rendered/visible row (in px)
+     *
+     * @type {Number|null}
+     */
+    this.startPosition = null;
+
+    this.calculate();
+  }
+
+  /**
+   * Calculates viewport
+   */
+
+
+  _createClass(ViewportRowsCalculator, [{
+    key: "calculate",
+    value: function calculate() {
+      var sum = 0;
+      var needReverse = true;
+      var startPositions = [];
+
+      var priv = privatePool.get(this);
+      var onlyFullyVisible = priv.onlyFullyVisible;
+      var overrideFn = priv.overrideFn;
+      var rowHeightFn = priv.rowHeightFn;
+      var scrollOffset = priv.scrollOffset;
+      var totalRows = priv.totalRows;
+      var viewportHeight = priv.viewportHeight;
+      var horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
+      var rowHeight = void 0;
+
+      // Calculate the number (start and end index) of rows needed
+      for (var i = 0; i < totalRows; i++) {
+        rowHeight = rowHeightFn(i);
+
+        if (rowHeight === undefined) {
+          rowHeight = ViewportRowsCalculator.DEFAULT_HEIGHT;
+        }
+        if (sum <= scrollOffset && !onlyFullyVisible) {
+          this.startRow = i;
+        }
+
+        // the row is within the "visible range"
+        if (sum >= scrollOffset && sum + rowHeight <= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
+          if (this.startRow === null) {
+            this.startRow = i;
+          }
+          this.endRow = i;
+        }
+        startPositions.push(sum);
+        sum += rowHeight;
+
+        if (!onlyFullyVisible) {
+          this.endRow = i;
+        }
+        if (sum >= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
+          needReverse = false;
+          break;
+        }
+      }
+
+      // If the estimation has reached the last row and there is still some space available in the viewport,
+      // we need to render in reverse in order to fill the whole viewport with rows
+      if (this.endRow === totalRows - 1 && needReverse) {
+        this.startRow = this.endRow;
+
+        while (this.startRow > 0) {
+          // rowHeight is the height of the last row
+          var viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1];
+
+          if (viewportSum <= viewportHeight - horizontalScrollbarHeight || !onlyFullyVisible) {
+            this.startRow--;
+          }
+          if (viewportSum >= viewportHeight - horizontalScrollbarHeight) {
+            break;
+          }
+        }
+      }
+
+      if (this.startRow !== null && overrideFn) {
+        overrideFn(this);
+      }
+      this.startPosition = startPositions[this.startRow];
+
+      if (this.startPosition === void 0) {
+        this.startPosition = null;
+      }
+      if (this.startRow !== null) {
+        this.count = this.endRow - this.startRow + 1;
+      }
+    }
+  }]);
+
+  return ViewportRowsCalculator;
+}();
+
+exports.default = ViewportRowsCalculator;
+
+/***/ }),
+/* 178 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14971,16 +23272,16 @@ var CellRange = function () {
       };
       var result = [];
 
-      if (thisBorders.top == rangeBorders.top) {
+      if (thisBorders.top === rangeBorders.top) {
         result.push('top');
       }
-      if (thisBorders.right == rangeBorders.right) {
+      if (thisBorders.right === rangeBorders.right) {
         result.push('right');
       }
-      if (thisBorders.bottom == rangeBorders.bottom) {
+      if (thisBorders.bottom === rangeBorders.bottom) {
         result.push('bottom');
       }
-      if (thisBorders.left == rangeBorders.left) {
+      if (thisBorders.left === rangeBorders.left) {
         result.push('left');
       }
 
@@ -15083,8243 +23384,6 @@ var CellRange = function () {
 }();
 
 exports.default = CellRange;
-
-/***/ }),
-/* 90 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.getRegisteredCellTypes = exports.getRegisteredCellTypeNames = exports.hasCellType = exports.getCellType = exports.registerCellType = undefined;
-
-var _staticRegister2 = __webpack_require__(40);
-
-var _staticRegister3 = _interopRequireDefault(_staticRegister2);
-
-var _editors = __webpack_require__(17);
-
-var _renderers = __webpack_require__(14);
-
-var _validators = __webpack_require__(28);
-
-var _autocompleteType = __webpack_require__(377);
-
-var _autocompleteType2 = _interopRequireDefault(_autocompleteType);
-
-var _checkboxType = __webpack_require__(378);
-
-var _checkboxType2 = _interopRequireDefault(_checkboxType);
-
-var _dateType = __webpack_require__(379);
-
-var _dateType2 = _interopRequireDefault(_dateType);
-
-var _dropdownType = __webpack_require__(380);
-
-var _dropdownType2 = _interopRequireDefault(_dropdownType);
-
-var _handsontableType = __webpack_require__(381);
-
-var _handsontableType2 = _interopRequireDefault(_handsontableType);
-
-var _numericType = __webpack_require__(382);
-
-var _numericType2 = _interopRequireDefault(_numericType);
-
-var _passwordType = __webpack_require__(383);
-
-var _passwordType2 = _interopRequireDefault(_passwordType);
-
-var _textType = __webpack_require__(384);
-
-var _textType2 = _interopRequireDefault(_textType);
-
-var _timeType = __webpack_require__(385);
-
-var _timeType2 = _interopRequireDefault(_timeType);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var _staticRegister = (0, _staticRegister3.default)('cellTypes'),
-    register = _staticRegister.register,
-    getItem = _staticRegister.getItem,
-    hasItem = _staticRegister.hasItem,
-    getNames = _staticRegister.getNames,
-    getValues = _staticRegister.getValues;
-
-_register('autocomplete', _autocompleteType2.default);
-_register('checkbox', _checkboxType2.default);
-_register('date', _dateType2.default);
-_register('dropdown', _dropdownType2.default);
-_register('handsontable', _handsontableType2.default);
-_register('numeric', _numericType2.default);
-_register('password', _passwordType2.default);
-_register('text', _textType2.default);
-_register('time', _timeType2.default);
-
-/**
- * Retrieve cell type object.
- *
- * @param {String} name Cell type identification.
- * @returns {Object} Returns cell type object.
- */
-function _getItem(name) {
-  if (!hasItem(name)) {
-    throw Error('You declared cell type "' + name + '" as a string that is not mapped to a known object.\n                 Cell type must be an object or a string mapped to an object registered by "Handsontable.cellTypes.registerCellType" method');
-  }
-
-  return getItem(name);
-}
-
-/**
- * Register cell type under specified name.
- *
- * @param {String} name Cell type identification.
- * @param {Object} type An object with contains keys (eq: `editor`, `renderer`, `validator`) which describes specified behaviour of the cell.
- */
-function _register(name, type) {
-  var editor = type.editor,
-      renderer = type.renderer,
-      validator = type.validator;
-
-
-  if (editor) {
-    (0, _editors.registerEditor)(name, editor);
-  }
-  if (renderer) {
-    (0, _renderers.registerRenderer)(name, renderer);
-  }
-  if (validator) {
-    (0, _validators.registerValidator)(name, validator);
-  }
-
-  register(name, type);
-}
-
-exports.registerCellType = _register;
-exports.getCellType = _getItem;
-exports.hasCellType = hasItem;
-exports.getRegisteredCellTypeNames = getNames;
-exports.getRegisteredCellTypes = getValues;
-
-/***/ }),
-/* 91 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var _templateObject = _taggedTemplateLiteral(['Deprecation warning: This method is going to be removed in the next release.\n      If you want to select a cell using props, please use the `selectCell` method.'], ['Deprecation warning: This method is going to be removed in the next release.\n      If you want to select a cell using props, please use the \\`selectCell\\` method.']);
-
-exports.default = Core;
-
-var _element = __webpack_require__(0);
-
-var _setting = __webpack_require__(92);
-
-var _function = __webpack_require__(44);
-
-var _console = __webpack_require__(58);
-
-var _mixed = __webpack_require__(11);
-
-var _browser = __webpack_require__(27);
-
-var _dataMap = __webpack_require__(386);
-
-var _dataMap2 = _interopRequireDefault(_dataMap);
-
-var _editorManager = __webpack_require__(389);
-
-var _editorManager2 = _interopRequireDefault(_editorManager);
-
-var _eventManager = __webpack_require__(6);
-
-var _eventManager2 = _interopRequireDefault(_eventManager);
-
-var _object = __webpack_require__(2);
-
-var _array = __webpack_require__(1);
-
-var _templateLiteralTag = __webpack_require__(43);
-
-var _plugins = __webpack_require__(8);
-
-var _renderers = __webpack_require__(14);
-
-var _validators = __webpack_require__(28);
-
-var _string = __webpack_require__(36);
-
-var _number = __webpack_require__(5);
-
-var _tableView = __webpack_require__(390);
-
-var _tableView2 = _interopRequireDefault(_tableView);
-
-var _dataSource = __webpack_require__(391);
-
-var _dataSource2 = _interopRequireDefault(_dataSource);
-
-var _data = __webpack_require__(93);
-
-var _recordTranslator = __webpack_require__(315);
-
-var _rootInstance = __webpack_require__(316);
-
-var _src = __webpack_require__(4);
-
-var _pluginHooks = __webpack_require__(16);
-
-var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
-
-var _defaultSettings = __webpack_require__(317);
-
-var _defaultSettings2 = _interopRequireDefault(_defaultSettings);
-
-var _cellTypes = __webpack_require__(90);
-
-var _i18n = __webpack_require__(318);
-
-var _dictionariesManager = __webpack_require__(71);
-
-var _utils = __webpack_require__(319);
-
-var _keyStateObserver = __webpack_require__(320);
-
-var _selection = __webpack_require__(321);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-var activeGuid = null;
-
-/**
- * Handsontable constructor
- *
- * @core
- * @constructor Core
- * @description
- *
- * After Handsontable is constructed, you can modify the grid behavior using the available public methods.
- *
- * ---
- * ## How to call methods
- *
- * These are 2 equal ways to call a Handsontable method:
- *
- * ```js
- * // all following examples assume that you constructed Handsontable like this
- * const hot = new Handsontable(document.getElementById('example1'), options);
- *
- * // now, to use setDataAtCell method, you can either:
- * ht.setDataAtCell(0, 0, 'new value');
- * ```
- *
- * Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
- * ```js
- *   $('#example1').handsontable('setDataAtCell', 0, 0, 'new value');
- * ```
- * ---
- */
-function Core(rootElement, userSettings) {
-  var _this = this;
-
-  var rootInstanceSymbol = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-
-  var priv,
-      datamap,
-      dataSource,
-      grid,
-      editorManager,
-      preventScrollingToCell = false,
-      instance = this,
-      GridSettings = function GridSettings() {},
-      eventManager = new _eventManager2.default(instance);
-
-  (0, _object.extend)(GridSettings.prototype, _defaultSettings2.default.prototype); // create grid settings as a copy of default settings
-  (0, _object.extend)(GridSettings.prototype, userSettings); // overwrite defaults with user settings
-  (0, _object.extend)(GridSettings.prototype, expandType(userSettings));
-
-  (0, _utils.applyLanguageSetting)(GridSettings.prototype, userSettings.language);
-
-  if ((0, _rootInstance.hasValidParameter)(rootInstanceSymbol)) {
-    (0, _rootInstance.registerAsRootInstance)(this);
-  }
-
-  (0, _keyStateObserver.startObserving)();
-
-  this.isDestroyed = false;
-  this.rootElement = rootElement;
-  this.isHotTableEnv = (0, _element.isChildOfWebComponentTable)(this.rootElement);
-  _eventManager2.default.isHotTableEnv = this.isHotTableEnv;
-
-  this.container = document.createElement('div');
-  this.renderCall = false;
-
-  rootElement.insertBefore(this.container, rootElement.firstChild);
-
-  if (false) {
-    (0, _mixed._injectProductInfo)(userSettings.licenseKey, rootElement);
-  }
-
-  this.guid = 'ht_' + (0, _string.randomString)(); // this is the namespace for global events
-
-  var recordTranslator = (0, _recordTranslator.getTranslator)(instance);
-
-  dataSource = new _dataSource2.default(instance);
-
-  if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
-    this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
-  }
-  priv = {
-    cellSettings: [],
-    columnSettings: [],
-    columnsSettingConflicts: ['data', 'width', 'language'],
-    settings: new GridSettings(), // current settings instance
-    selRange: null, // exposed by public method `getSelectedRange`
-    isPopulated: null,
-    scrollable: null,
-    firstRun: true
-  };
-
-  var selection = new _selection.Selection(priv.settings, {
-    countCols: function countCols() {
-      return instance.countCols();
-    },
-    countRows: function countRows() {
-      return instance.countRows();
-    },
-    propToCol: function propToCol(prop) {
-      return datamap.propToCol(prop);
-    },
-    isEditorOpened: function isEditorOpened() {
-      return instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false;
-    }
-  });
-
-  this.selection = selection;
-
-  this.selection.addLocalHook('beforeSetRangeStart', function (cellCoords) {
-    _this.runHooks('beforeSetRangeStart', cellCoords);
-  });
-
-  this.selection.addLocalHook('beforeSetRangeStartOnly', function (cellCoords) {
-    _this.runHooks('beforeSetRangeStartOnly', cellCoords);
-  });
-
-  this.selection.addLocalHook('beforeSetRangeEnd', function (cellCoords) {
-    _this.runHooks('beforeSetRangeEnd', cellCoords);
-
-    if (cellCoords.row < 0) {
-      cellCoords.row = _this.view.wt.wtTable.getFirstVisibleRow();
-    }
-    if (cellCoords.col < 0) {
-      cellCoords.col = _this.view.wt.wtTable.getFirstVisibleColumn();
-    }
-  });
-
-  this.selection.addLocalHook('afterSetRangeEnd', function (cellCoords) {
-    var preventScrolling = (0, _object.createObjectPropListener)(false);
-    var selectionRange = _this.selection.getSelectedRange();
-
-    var _selectionRange$curre = selectionRange.current(),
-        from = _selectionRange$curre.from,
-        to = _selectionRange$curre.to;
-
-    var selectionLayerLevel = selectionRange.size() - 1;
-
-    _this.runHooks('afterSelection', from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
-    _this.runHooks('afterSelectionByProp', from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel);
-
-    var isSelectedByAnyHeader = _this.selection.isSelectedByAnyHeader();
-    var currentSelectedRange = _this.selection.selectedRange.current();
-
-    var scrollToCell = true;
-
-    if (preventScrollingToCell) {
-      scrollToCell = false;
-    }
-
-    if (preventScrolling.isTouched()) {
-      scrollToCell = !preventScrolling.value;
-    }
-
-    if (scrollToCell !== false && !isSelectedByAnyHeader) {
-      if (currentSelectedRange && !_this.selection.isMultiple()) {
-        _this.view.scrollViewport(currentSelectedRange.from);
-      } else {
-        _this.view.scrollViewport(cellCoords);
-      }
-    }
-
-    var isSelectedByRowHeader = _this.selection.isSelectedByRowHeader();
-    var isSelectedByColumnHeader = _this.selection.isSelectedByColumnHeader();
-
-    // @TODO: These CSS classes are no longer needed anymore. They are used only as a indicator of the selected
-    // rows/columns in the MergedCells plugin (via border.js#L520 in the walkontable module). After fixing
-    // the Border class this should be removed.
-    if (isSelectedByRowHeader && isSelectedByColumnHeader) {
-      (0, _element.addClass)(_this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-    } else if (isSelectedByRowHeader) {
-      (0, _element.removeClass)(_this.rootElement, 'ht__selection--columns');
-      (0, _element.addClass)(_this.rootElement, 'ht__selection--rows');
-    } else if (isSelectedByColumnHeader) {
-      (0, _element.removeClass)(_this.rootElement, 'ht__selection--rows');
-      (0, _element.addClass)(_this.rootElement, 'ht__selection--columns');
-    } else {
-      (0, _element.removeClass)(_this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-    }
-
-    _this._refreshBorders(null);
-  });
-
-  this.selection.addLocalHook('afterSelectionFinished', function (cellRanges) {
-    var selectionLayerLevel = cellRanges.length - 1;
-    var _cellRanges$selection = cellRanges[selectionLayerLevel],
-        from = _cellRanges$selection.from,
-        to = _cellRanges$selection.to;
-
-
-    _this.runHooks('afterSelectionEnd', from.row, from.col, to.row, to.col, selectionLayerLevel);
-    _this.runHooks('afterSelectionEndByProp', from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
-  });
-
-  this.selection.addLocalHook('afterIsMultipleSelection', function (isMultiple) {
-    var changedIsMultiple = _this.runHooks('afterIsMultipleSelection', isMultiple.value);
-
-    if (isMultiple.value) {
-      isMultiple.value = changedIsMultiple;
-    }
-  });
-
-  this.selection.addLocalHook('beforeModifyTransformStart', function (cellCoordsDelta) {
-    _this.runHooks('modifyTransformStart', cellCoordsDelta);
-  });
-  this.selection.addLocalHook('afterModifyTransformStart', function (coords, rowTransformDir, colTransformDir) {
-    _this.runHooks('afterModifyTransformStart', coords, rowTransformDir, colTransformDir);
-  });
-  this.selection.addLocalHook('beforeModifyTransformEnd', function (cellCoordsDelta) {
-    _this.runHooks('modifyTransformEnd', cellCoordsDelta);
-  });
-  this.selection.addLocalHook('afterModifyTransformEnd', function (coords, rowTransformDir, colTransformDir) {
-    _this.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
-  });
-  this.selection.addLocalHook('afterDeselect', function () {
-    editorManager.destroyEditor();
-
-    _this._refreshBorders();
-    (0, _element.removeClass)(_this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-
-    _this.runHooks('afterDeselect');
-  });
-  this.selection.addLocalHook('insertRowRequire', function (totalRows) {
-    _this.alter('insert_row', totalRows, 1, 'auto');
-  });
-  this.selection.addLocalHook('insertColRequire', function (totalCols) {
-    _this.alter('insert_col', totalCols, 1, 'auto');
-  });
-
-  grid = {
-    /**
-     * Inserts or removes rows and columns.
-     *
-     * @memberof Core#
-     * @function alter
-     * @private
-     * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col".
-     * @param {Number|Array} index Row or column visual index which from the alter action will be triggered.
-     *                             Alter actions such as "remove_row" and "remove_col" support array indexes in the
-     *                             format `[[index, amount], [index, amount]...]` this can be used to remove
-     *                             non-consecutive columns or rows in one call.
-     * @param {Number} amount Ammount rows or columns to remove.
-     * @param {String} [source] Optional. Source of hook runner.
-     * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
-     */
-    alter: function alter(action, index, amount, source, keepEmptyRows) {
-      var delta;
-
-      amount = amount || 1;
-
-      function spliceWith(data, index, count, toInject) {
-        var valueFactory = function valueFactory() {
-          var result = void 0;
-
-          if (toInject === 'array') {
-            result = [];
-          } else if (toInject === 'object') {
-            result = {};
-          }
-
-          return result;
-        };
-        var spliceArgs = (0, _array.arrayMap)(new Array(count), function () {
-          return valueFactory();
-        });
-
-        spliceArgs.unshift(index, 0);
-        data.splice.apply(data, _toConsumableArray(spliceArgs));
-      }
-
-      var normalizeIndexesGroup = function normalizeIndexesGroup(indexes) {
-        if (indexes.length === 0) {
-          return [];
-        }
-
-        var sortedIndexes = [].concat(_toConsumableArray(indexes));
-
-        // Sort the indexes in ascending order.
-        sortedIndexes.sort(function (_ref, _ref2) {
-          var _ref4 = _slicedToArray(_ref, 1),
-              indexA = _ref4[0];
-
-          var _ref3 = _slicedToArray(_ref2, 1),
-              indexB = _ref3[0];
-
-          if (indexA === indexB) {
-            return 0;
-          }
-
-          return indexA > indexB ? 1 : -1;
-        });
-
-        // Normalize the {index, amount} groups into bigger groups.
-        var normalizedIndexes = (0, _array.arrayReduce)(sortedIndexes, function (acc, _ref5) {
-          var _ref6 = _slicedToArray(_ref5, 2),
-              index = _ref6[0],
-              amount = _ref6[1];
-
-          var previousItem = acc[acc.length - 1];
-
-          var _previousItem = _slicedToArray(previousItem, 2),
-              prevIndex = _previousItem[0],
-              prevAmount = _previousItem[1];
-
-          var prevLastIndex = prevIndex + prevAmount;
-
-          if (index <= prevLastIndex) {
-            var amountToAdd = Math.max(amount - (prevLastIndex - index), 0);
-
-            previousItem[1] += amountToAdd;
-          } else {
-            acc.push([index, amount]);
-          }
-
-          return acc;
-        }, [sortedIndexes[0]]);
-
-        return normalizedIndexes;
-      };
-
-      /* eslint-disable no-case-declarations */
-      switch (action) {
-        case 'insert_row':
-
-          var numberOfSourceRows = instance.countSourceRows();
-
-          if (instance.getSettings().maxRows === numberOfSourceRows) {
-            return;
-          }
-
-          index = (0, _mixed.isDefined)(index) ? index : numberOfSourceRows;
-
-          delta = datamap.createRow(index, amount, source);
-          spliceWith(priv.cellSettings, index, amount, 'array');
-
-          if (delta) {
-            if (selection.isSelected() && selection.selectedRange.current().from.row >= index) {
-              selection.selectedRange.current().from.row += delta;
-              selection.transformEnd(delta, 0); // will call render() internally
-            } else {
-              instance._refreshBorders(); // it will call render and prepare methods
-            }
-          }
-          break;
-
-        case 'insert_col':
-          delta = datamap.createCol(index, amount, source);
-
-          for (var row = 0, len = instance.countSourceRows(); row < len; row++) {
-            if (priv.cellSettings[row]) {
-              spliceWith(priv.cellSettings[row], index, amount);
-            }
-          }
-
-          if (delta) {
-            if (Array.isArray(instance.getSettings().colHeaders)) {
-              var spliceArray = [index, 0];
-              spliceArray.length += delta; // inserts empty (undefined) elements at the end of an array
-              Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
-            }
-
-            if (selection.isSelected() && selection.selectedRange.current().from.col >= index) {
-              selection.selectedRange.current().from.col += delta;
-              selection.transformEnd(0, delta); // will call render() internally
-            } else {
-              instance._refreshBorders(); // it will call render and prepare methods
-            }
-          }
-          break;
-
-        case 'remove_row':
-
-          var removeRow = function removeRow(indexes) {
-            var offset = 0;
-
-            (0, _array.arrayEach)(indexes, function (_ref7) {
-              var _ref8 = _slicedToArray(_ref7, 2),
-                  index = _ref8[0],
-                  amount = _ref8[1];
-
-              var calcIndex = (0, _mixed.isEmpty)(index) ? instance.countRows() - 1 : Math.max(index - offset, 0);
-
-              // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
-              // compatible with datamap.removeCol method.
-              if (Number.isInteger(index)) {
-                index = Math.max(index - offset, 0);
-              }
-
-              // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
-              // inside the datamap.removeRow breaks the removing functionality.
-              datamap.removeRow(index, amount, source);
-              priv.cellSettings.splice(calcIndex, amount);
-
-              var totalRows = instance.countRows();
-              var fixedRowsTop = instance.getSettings().fixedRowsTop;
-
-              if (fixedRowsTop >= calcIndex + 1) {
-                instance.getSettings().fixedRowsTop -= Math.min(amount, fixedRowsTop - calcIndex);
-              }
-
-              var fixedRowsBottom = instance.getSettings().fixedRowsBottom;
-
-              if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
-                instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom);
-              }
-
-              offset += amount;
-            });
-          };
-
-          if (Array.isArray(index)) {
-            removeRow(normalizeIndexesGroup(index));
-          } else {
-            removeRow([[index, amount]]);
-          }
-
-          grid.adjustRowsAndCols();
-          instance._refreshBorders(); // it will call render and prepare methods
-          break;
-
-        case 'remove_col':
-
-          var removeCol = function removeCol(indexes) {
-            var offset = 0;
-
-            (0, _array.arrayEach)(indexes, function (_ref9) {
-              var _ref10 = _slicedToArray(_ref9, 2),
-                  index = _ref10[0],
-                  amount = _ref10[1];
-
-              var calcIndex = (0, _mixed.isEmpty)(index) ? instance.countCols() - 1 : Math.max(index - offset, 0);
-
-              var visualColumnIndex = recordTranslator.toPhysicalColumn(calcIndex);
-
-              // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
-              // compatible with datamap.removeCol method.
-              if (Number.isInteger(index)) {
-                index = Math.max(index - offset, 0);
-              }
-
-              // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
-              // inside the datamap.removeCol breaks the removing functionality.
-              datamap.removeCol(index, amount, source);
-
-              for (var _row = 0, _len = instance.countSourceRows(); _row < _len; _row++) {
-                if (priv.cellSettings[_row]) {
-                  // if row hasn't been rendered it wouldn't have cellSettings
-                  priv.cellSettings[_row].splice(visualColumnIndex, amount);
-                }
-              }
-              var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
-
-              if (fixedColumnsLeft >= calcIndex + 1) {
-                instance.getSettings().fixedColumnsLeft -= Math.min(amount, fixedColumnsLeft - calcIndex);
-              }
-
-              if (Array.isArray(instance.getSettings().colHeaders)) {
-                if (typeof visualColumnIndex === 'undefined') {
-                  visualColumnIndex = -1;
-                }
-                instance.getSettings().colHeaders.splice(visualColumnIndex, amount);
-              }
-
-              offset += amount;
-            });
-          };
-
-          if (Array.isArray(index)) {
-            removeCol(normalizeIndexesGroup(index));
-          } else {
-            removeCol([[index, amount]]);
-          }
-
-          grid.adjustRowsAndCols();
-          instance._refreshBorders(); // it will call render and prepare methods
-
-          break;
-        default:
-          throw new Error('There is no such action "' + action + '"');
-      }
-
-      if (!keepEmptyRows) {
-        grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
-      }
-    },
-
-
-    /**
-     * Makes sure there are empty rows at the bottom of the table
-     */
-    adjustRowsAndCols: function adjustRowsAndCols() {
-      if (priv.settings.minRows) {
-        // should I add empty rows to data source to meet minRows?
-        var rows = instance.countRows();
-
-        if (rows < priv.settings.minRows) {
-          for (var r = 0, minRows = priv.settings.minRows; r < minRows - rows; r++) {
-            datamap.createRow(instance.countRows(), 1, 'auto');
-          }
-        }
-      }
-      if (priv.settings.minSpareRows) {
-        var emptyRows = instance.countEmptyRows(true);
-
-        // should I add empty rows to meet minSpareRows?
-        if (emptyRows < priv.settings.minSpareRows) {
-          for (; emptyRows < priv.settings.minSpareRows && instance.countSourceRows() < priv.settings.maxRows; emptyRows++) {
-            datamap.createRow(instance.countRows(), 1, 'auto');
-          }
-        }
-      }
-      {
-        var emptyCols = void 0;
-
-        // count currently empty cols
-        if (priv.settings.minCols || priv.settings.minSpareCols) {
-          emptyCols = instance.countEmptyCols(true);
-        }
-
-        // should I add empty cols to meet minCols?
-        if (priv.settings.minCols && !priv.settings.columns && instance.countCols() < priv.settings.minCols) {
-          for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
-            datamap.createCol(instance.countCols(), 1, 'auto');
-          }
-        }
-        // should I add empty cols to meet minSpareCols?
-        if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' && emptyCols < priv.settings.minSpareCols) {
-          for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
-            datamap.createCol(instance.countCols(), 1, 'auto');
-          }
-        }
-      }
-      var rowCount = instance.countRows();
-      var colCount = instance.countCols();
-
-      if (rowCount === 0 || colCount === 0) {
-        selection.deselect();
-      }
-
-      if (selection.isSelected()) {
-        (0, _array.arrayEach)(selection.selectedRange, function (range) {
-          var selectionChanged = false;
-          var fromRow = range.from.row;
-          var fromCol = range.from.col;
-          var toRow = range.to.row;
-          var toCol = range.to.col;
-
-          // if selection is outside, move selection to last row
-          if (fromRow > rowCount - 1) {
-            fromRow = rowCount - 1;
-            selectionChanged = true;
-
-            if (toRow > fromRow) {
-              toRow = fromRow;
-            }
-          } else if (toRow > rowCount - 1) {
-            toRow = rowCount - 1;
-            selectionChanged = true;
-
-            if (fromRow > toRow) {
-              fromRow = toRow;
-            }
-          }
-          // if selection is outside, move selection to last row
-          if (fromCol > colCount - 1) {
-            fromCol = colCount - 1;
-            selectionChanged = true;
-
-            if (toCol > fromCol) {
-              toCol = fromCol;
-            }
-          } else if (toCol > colCount - 1) {
-            toCol = colCount - 1;
-            selectionChanged = true;
-
-            if (fromCol > toCol) {
-              fromCol = toCol;
-            }
-          }
-
-          if (selectionChanged) {
-            instance.selectCell(fromRow, fromCol, toRow, toCol);
-          }
-        });
-      }
-      if (instance.view) {
-        instance.view.wt.wtOverlays.adjustElementsSize();
-      }
-    },
-
-
-    /**
-     * Populate the data from the provided 2d array from the given cell coordinates.
-     *
-     * @private
-     * @param {Object} start Start selection position. Visual indexes.
-     * @param {Array} input 2d data array.
-     * @param {Object} [end] End selection position (only for drag-down mode). Visual indexes.
-     * @param {String} [source="populateFromArray"] Source information string.
-     * @param {String} [method="overwrite"] Populate method. Possible options: `shift_down`, `shift_right`, `overwrite`.
-     * @param {String} direction (left|right|up|down) String specifying the direction.
-     * @param {Array} deltas The deltas array. A difference between values of adjacent cells.
-     *                       Useful **only** when the type of handled cells is `numeric`.
-     * @returns {Object|undefined} ending td in pasted area (only if any cell was changed).
-     */
-    populateFromArray: function populateFromArray(start, input, end, source, method, direction, deltas) {
-      // TODO: either remove or implement the `direction` argument. Currently it's not working at all.
-      var r,
-          rlen,
-          c,
-          clen,
-          setData = [],
-          current = {};
-
-      rlen = input.length;
-
-      if (rlen === 0) {
-        return false;
-      }
-
-      var repeatCol,
-          repeatRow,
-          cmax,
-          rmax,
-          baseEnd = {
-        row: end === null ? null : end.row,
-        col: end === null ? null : end.col
-      };
-
-      /* eslint-disable no-case-declarations */
-      // insert data with specified pasteMode method
-      switch (method) {
-        case 'shift_down':
-          repeatCol = end ? end.col - start.col + 1 : 0;
-          repeatRow = end ? end.row - start.row + 1 : 0;
-          input = (0, _data.translateRowsToColumns)(input);
-          for (c = 0, clen = input.length, cmax = Math.max(clen, repeatCol); c < cmax; c++) {
-            if (c < clen) {
-              var _instance;
-
-              for (r = 0, rlen = input[c].length; r < repeatRow - rlen; r++) {
-                input[c].push(input[c][r % rlen]);
-              }
-              input[c].unshift(start.col + c, start.row, 0);
-              (_instance = instance).spliceCol.apply(_instance, _toConsumableArray(input[c]));
-            } else {
-              var _instance2;
-
-              input[c % clen][0] = start.col + c;
-              (_instance2 = instance).spliceCol.apply(_instance2, _toConsumableArray(input[c % clen]));
-            }
-          }
-          break;
-
-        case 'shift_right':
-          repeatCol = end ? end.col - start.col + 1 : 0;
-          repeatRow = end ? end.row - start.row + 1 : 0;
-          for (r = 0, rlen = input.length, rmax = Math.max(rlen, repeatRow); r < rmax; r++) {
-            if (r < rlen) {
-              var _instance3;
-
-              for (c = 0, clen = input[r].length; c < repeatCol - clen; c++) {
-                input[r].push(input[r][c % clen]);
-              }
-              input[r].unshift(start.row + r, start.col, 0);
-              (_instance3 = instance).spliceRow.apply(_instance3, _toConsumableArray(input[r]));
-            } else {
-              var _instance4;
-
-              input[r % rlen][0] = start.row + r;
-              (_instance4 = instance).spliceRow.apply(_instance4, _toConsumableArray(input[r % rlen]));
-            }
-          }
-          break;
-
-        case 'overwrite':
-        default:
-          // overwrite and other not specified options
-          current.row = start.row;
-          current.col = start.col;
-
-          var selected = { // selected range
-            row: end && start ? end.row - start.row + 1 : 1,
-            col: end && start ? end.col - start.col + 1 : 1
-          };
-          var skippedRow = 0;
-          var skippedColumn = 0;
-          var pushData = true;
-          var cellMeta = void 0;
-
-          var getInputValue = function getInputValue(row) {
-            var col = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-
-            var rowValue = input[row % input.length];
-
-            if (col !== null) {
-              return rowValue[col % rowValue.length];
-            }
-
-            return rowValue;
-          };
-          var rowInputLength = input.length;
-          var rowSelectionLength = end ? end.row - start.row + 1 : 0;
-
-          if (end) {
-            rlen = rowSelectionLength;
-          } else {
-            rlen = Math.max(rowInputLength, rowSelectionLength);
-          }
-          for (r = 0; r < rlen; r++) {
-            if (end && current.row > end.row && rowSelectionLength > rowInputLength || !priv.settings.allowInsertRow && current.row > instance.countRows() - 1 || current.row >= priv.settings.maxRows) {
-              break;
-            }
-            var visualRow = r - skippedRow;
-            var colInputLength = getInputValue(visualRow).length;
-            var colSelectionLength = end ? end.col - start.col + 1 : 0;
-
-            if (end) {
-              clen = colSelectionLength;
-            } else {
-              clen = Math.max(colInputLength, colSelectionLength);
-            }
-            current.col = start.col;
-            cellMeta = instance.getCellMeta(current.row, current.col);
-
-            if ((source === 'CopyPaste.paste' || source === 'Autofill.autofill') && cellMeta.skipRowOnPaste) {
-              skippedRow++;
-              current.row++;
-              rlen++;
-              /* eslint-disable no-continue */
-              continue;
-            }
-            skippedColumn = 0;
-
-            for (c = 0; c < clen; c++) {
-              if (end && current.col > end.col && colSelectionLength > colInputLength || !priv.settings.allowInsertColumn && current.col > instance.countCols() - 1 || current.col >= priv.settings.maxCols) {
-                break;
-              }
-              cellMeta = instance.getCellMeta(current.row, current.col);
-
-              if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipColumnOnPaste) {
-                skippedColumn++;
-                current.col++;
-                clen++;
-                continue;
-              }
-              if (cellMeta.readOnly) {
-                current.col++;
-                /* eslint-disable no-continue */
-                continue;
-              }
-              var visualColumn = c - skippedColumn;
-              var value = getInputValue(visualRow, visualColumn);
-              var orgValue = instance.getDataAtCell(current.row, current.col);
-              var index = {
-                row: visualRow,
-                col: visualColumn
-              };
-
-              if (source === 'Autofill.fill') {
-                var result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
-
-                if (result) {
-                  value = (0, _mixed.isUndefined)(result.value) ? value : result.value;
-                }
-              }
-              if (value !== null && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
-                if (orgValue === null || (typeof orgValue === 'undefined' ? 'undefined' : _typeof(orgValue)) !== 'object') {
-                  pushData = false;
-                } else {
-                  var orgValueSchema = (0, _object.duckSchema)(orgValue[0] || orgValue);
-                  var valueSchema = (0, _object.duckSchema)(value[0] || value);
-
-                  /* eslint-disable max-depth */
-                  if ((0, _object.isObjectEqual)(orgValueSchema, valueSchema)) {
-                    value = (0, _object.deepClone)(value);
-                  } else {
-                    pushData = false;
-                  }
-                }
-              } else if (orgValue !== null && (typeof orgValue === 'undefined' ? 'undefined' : _typeof(orgValue)) === 'object') {
-                pushData = false;
-              }
-              if (pushData) {
-                setData.push([current.row, current.col, value]);
-              }
-              pushData = true;
-              current.col++;
-            }
-            current.row++;
-          }
-          instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
-          break;
-      }
-    }
-  };
-
-  /**
-   * Internal function to set `language` key of settings.
-   *
-   * @private
-   * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'
-   * @fires Hooks#afterLanguageChange
-   */
-  function setLanguage(languageCode) {
-    var normalizedLanguageCode = (0, _utils.normalizeLanguageCode)(languageCode);
-
-    if ((0, _dictionariesManager.hasLanguageDictionary)(normalizedLanguageCode)) {
-      instance.runHooks('beforeLanguageChange', normalizedLanguageCode);
-
-      GridSettings.prototype.language = normalizedLanguageCode;
-
-      instance.runHooks('afterLanguageChange', normalizedLanguageCode);
-    } else {
-      (0, _utils.warnUserAboutLanguageRegistration)(languageCode);
-    }
-  }
-
-  this.init = function () {
-    dataSource.setData(priv.settings.data);
-    instance.runHooks('beforeInit');
-
-    if ((0, _browser.isMobileBrowser)()) {
-      (0, _element.addClass)(instance.rootElement, 'mobile');
-    }
-
-    this.updateSettings(priv.settings, true);
-
-    this.view = new _tableView2.default(this);
-    editorManager = _editorManager2.default.getInstance(instance, priv, selection, datamap);
-
-    this.forceFullRender = true; // used when data was changed
-
-    instance.runHooks('init');
-    this.view.render();
-
-    if (_typeof(priv.firstRun) === 'object') {
-      instance.runHooks('afterChange', priv.firstRun[0], priv.firstRun[1]);
-      priv.firstRun = false;
-    }
-    instance.runHooks('afterInit');
-  };
-
-  function ValidatorsQueue() {
-    // moved this one level up so it can be used in any function here. Probably this should be moved to a separate file
-    var resolved = false;
-
-    return {
-      validatorsInQueue: 0,
-      valid: true,
-      addValidatorToQueue: function addValidatorToQueue() {
-        this.validatorsInQueue++;
-        resolved = false;
-      },
-      removeValidatorFormQueue: function removeValidatorFormQueue() {
-        this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
-        this.checkIfQueueIsEmpty();
-      },
-      onQueueEmpty: function onQueueEmpty(valid) {},
-      checkIfQueueIsEmpty: function checkIfQueueIsEmpty() {
-        if (this.validatorsInQueue == 0 && resolved == false) {
-          resolved = true;
-          this.onQueueEmpty(this.valid);
-        }
-      }
-    };
-  }
-
-  /**
-   * Get parsed number from numeric string.
-   *
-   * @private
-   * @param {String} numericData Float (separated by a dot or a comma) or integer.
-   * @returns {Number} Number if we get data in parsable format, not changed value otherwise.
-   */
-  function getParsedNumber(numericData) {
-    // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
-    // for example from `450,65` to `450.65`.
-    var unifiedNumericData = numericData.replace(',', '.');
-
-    if (isNaN(parseFloat(unifiedNumericData)) === false) {
-      return parseFloat(unifiedNumericData);
-    }
-
-    return numericData;
-  }
-
-  function validateChanges(changes, source, callback) {
-    var waitingForValidator = new ValidatorsQueue();
-    var isNumericData = function isNumericData(value) {
-      return value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
-    };
-
-    waitingForValidator.onQueueEmpty = resolve;
-
-    for (var i = changes.length - 1; i >= 0; i--) {
-      if (changes[i] === null) {
-        changes.splice(i, 1);
-      } else {
-        var _changes$i = _slicedToArray(changes[i], 4),
-            row = _changes$i[0],
-            prop = _changes$i[1],
-            newValue = _changes$i[3];
-
-        var col = datamap.propToCol(prop);
-        var cellProperties = instance.getCellMeta(row, col);
-
-        if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericData(newValue)) {
-          changes[i][3] = getParsedNumber(newValue);
-        }
-
-        /* eslint-disable no-loop-func */
-        if (instance.getCellValidator(cellProperties)) {
-          waitingForValidator.addValidatorToQueue();
-          instance.validateCell(changes[i][3], cellProperties, function (i, cellProperties) {
-            return function (result) {
-              if (typeof result !== 'boolean') {
-                throw new Error('Validation error: result is not boolean');
-              }
-              if (result === false && cellProperties.allowInvalid === false) {
-                changes.splice(i, 1); // cancel the change
-                cellProperties.valid = true; // we cancelled the change, so cell value is still valid
-                var cell = instance.getCell(cellProperties.visualRow, cellProperties.visualCol);
-                (0, _element.removeClass)(cell, instance.getSettings().invalidCellClassName);
-                --i;
-              }
-              waitingForValidator.removeValidatorFormQueue();
-            };
-          }(i, cellProperties), source);
-        }
-      }
-    }
-    waitingForValidator.checkIfQueueIsEmpty();
-
-    function resolve() {
-      var beforeChangeResult;
-
-      if (changes.length) {
-        beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
-        if ((0, _function.isFunction)(beforeChangeResult)) {
-          (0, _console.warn)('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
-        } else if (beforeChangeResult === false) {
-          changes.splice(0, changes.length); // invalidate all changes (remove everything from array)
-        }
-      }
-      callback(); // called when async validators are resolved and beforeChange was not async
-    }
-  }
-
-  /**
-   * Internal function to apply changes. Called after validateChanges
-   *
-   * @private
-   * @param {Array} changes Array in form of [row, prop, oldValue, newValue]
-   * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
-   * @fires Hooks#beforeChangeRender
-   * @fires Hooks#afterChange
-   */
-  function applyChanges(changes, source) {
-    var i = changes.length - 1;
-
-    if (i < 0) {
-      return;
-    }
-
-    for (; i >= 0; i--) {
-      var skipThisChange = false;
-
-      if (changes[i] === null) {
-        changes.splice(i, 1);
-        /* eslint-disable no-continue */
-        continue;
-      }
-
-      if (changes[i][2] == null && changes[i][3] == null) {
-        /* eslint-disable no-continue */
-        continue;
-      }
-
-      if (priv.settings.allowInsertRow) {
-        while (changes[i][0] > instance.countRows() - 1) {
-          var numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
-
-          if (numberOfCreatedRows === 0) {
-            skipThisChange = true;
-            break;
-          }
-        }
-      }
-
-      if (skipThisChange) {
-        /* eslint-disable no-continue */
-        continue;
-      }
-
-      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
-        while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
-          datamap.createCol(void 0, void 0, source);
-        }
-      }
-
-      datamap.set(changes[i][0], changes[i][1], changes[i][3]);
-    }
-
-    instance.forceFullRender = true; // used when data was changed
-    grid.adjustRowsAndCols();
-    instance.runHooks('beforeChangeRender', changes, source);
-    editorManager.lockEditor();
-    instance._refreshBorders(null);
-    editorManager.unlockEditor();
-    instance.view.wt.wtOverlays.adjustElementsSize();
-    instance.runHooks('afterChange', changes, source || 'edit');
-
-    var activeEditor = instance.getActiveEditor();
-
-    if (activeEditor && (0, _mixed.isDefined)(activeEditor.refreshValue)) {
-      activeEditor.refreshValue();
-    }
-  }
-
-  /**
-   * Validate a single cell.
-   *
-   * @param {String|Number} value
-   * @param cellProperties
-   * @param callback
-   * @param source
-   */
-  this.validateCell = function (value, cellProperties, callback, source) {
-    var validator = instance.getCellValidator(cellProperties);
-
-    // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
-    function done(valid) {
-      var canBeValidated = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-
-      // Fixes GH#3903
-      if (!canBeValidated || cellProperties.hidden === true) {
-        callback(valid);
-        return;
-      }
-
-      var col = cellProperties.visualCol,
-          row = cellProperties.visualRow,
-          td = instance.getCell(row, col, true);
-
-      if (td && td.nodeName != 'TH') {
-        instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
-      }
-      callback(valid);
-    }
-
-    if ((0, _mixed.isRegExp)(validator)) {
-      validator = function (validator) {
-        return function (value, callback) {
-          callback(validator.test(value));
-        };
-      }(validator);
-    }
-
-    if ((0, _function.isFunction)(validator)) {
-
-      value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
-
-      // To provide consistent behaviour, validation should be always asynchronous
-      instance._registerTimeout(setTimeout(function () {
-        validator.call(cellProperties, value, function (valid) {
-          valid = instance.runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
-          cellProperties.valid = valid;
-
-          done(valid);
-          instance.runHooks('postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
-        });
-      }, 0));
-    } else {
-      // resolve callback even if validator function was not found
-      instance._registerTimeout(setTimeout(function () {
-        cellProperties.valid = true;
-        done(cellProperties.valid, false);
-      }, 0));
-    }
-  };
-
-  function setDataInputToArray(row, propOrCol, value) {
-    if ((typeof row === 'undefined' ? 'undefined' : _typeof(row)) === 'object') {
-      // is it an array of changes
-      return row;
-    }
-    return [[row, propOrCol, value]];
-  }
-
-  /**
-   * @description
-   * Set new value to a cell. To change many cells at once (recommended way), pass an array of `changes` in format
-   * `[[row, col, value],...]` as the first argument.
-   *
-   * @memberof Core#
-   * @function setDataAtCell
-   * @param {Number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
-   * @param {Number} [column] Visual column index.
-   * @param {String} [value] New value.
-   * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
-   */
-  this.setDataAtCell = function (row, column, value, source) {
-    var input = setDataInputToArray(row, column, value),
-        i,
-        ilen,
-        changes = [],
-        prop;
-
-    for (i = 0, ilen = input.length; i < ilen; i++) {
-      if (_typeof(input[i]) !== 'object') {
-        throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
-      }
-      if (typeof input[i][1] !== 'number') {
-        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
-      }
-      prop = datamap.colToProp(input[i][1]);
-      changes.push([input[i][0], prop, dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]), input[i][2]]);
-    }
-
-    if (!source && (typeof row === 'undefined' ? 'undefined' : _typeof(row)) === 'object') {
-      source = column;
-    }
-
-    instance.runHooks('afterSetDataAtCell', changes, source);
-
-    validateChanges(changes, source, function () {
-      applyChanges(changes, source);
-    });
-  };
-
-  /**
-   * @description
-   * Set new value to a cell. To change many cells at once (recommended way), pass an array of `changes` in format
-   * `[[row, prop, value],...]` as the first argument.
-   *
-   * @memberof Core#
-   * @function setDataAtRowProp
-   * @param {Number|Array} row Visual row index or array of changes in format `[[row, prop, value], ...]`.
-   * @param {String} prop Property name or the source string (e.g. `'first.name'` or `'0'`).
-   * @param {String} value Value to be set.
-   * @param {String} [source] String that identifies how this change will be described in changes array (useful in onChange callback).
-   */
-  this.setDataAtRowProp = function (row, prop, value, source) {
-    var input = setDataInputToArray(row, prop, value),
-        i,
-        ilen,
-        changes = [];
-
-    for (i = 0, ilen = input.length; i < ilen; i++) {
-      changes.push([input[i][0], input[i][1], dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]), input[i][2]]);
-    }
-
-    if (!source && (typeof row === 'undefined' ? 'undefined' : _typeof(row)) === 'object') {
-      source = prop;
-    }
-
-    instance.runHooks('afterSetDataAtRowProp', changes, source);
-
-    validateChanges(changes, source, function () {
-      applyChanges(changes, source);
-    });
-  };
-
-  /**
-   * Listen to the keyboard input on document body. This allows Handsontable to capture keyboard events and respond
-   * in the right way.
-   *
-   * @memberof Core#
-   * @function listen
-   * @param {Boolean} [modifyDocumentFocus=true] If `true`, currently focused element will be blured (which returns focus
-   *                                             to the document.body). Otherwise the active element does not lose its focus.
-   * @fires Hooks#afterListen
-   */
-  this.listen = function () {
-    var modifyDocumentFocus = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
-
-    if (modifyDocumentFocus) {
-      var invalidActiveElement = !document.activeElement || document.activeElement && document.activeElement.nodeName === void 0;
-
-      if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
-        document.activeElement.blur();
-      } else if (invalidActiveElement) {
-        // IE
-        document.body.focus();
-      }
-    }
-
-    if (instance && !instance.isListening()) {
-      activeGuid = instance.guid;
-      instance.runHooks('afterListen');
-    }
-  };
-
-  /**
-   * Stop listening to keyboard input on the document body. Calling this method makes the Handsontable inactive for
-   * any keyboard events.
-   *
-   * @memberof Core#
-   * @function unlisten
-   */
-  this.unlisten = function () {
-    if (this.isListening()) {
-      activeGuid = null;
-      instance.runHooks('afterUnlisten');
-    }
-  };
-
-  /**
-   * Returns `true` if the current Handsontable instance is listening to keyboard input on document body.
-   *
-   * @memberof Core#
-   * @function isListening
-   * @returns {Boolean} `true` if the instance is listening, `false` otherwise.
-   */
-  this.isListening = function () {
-    return activeGuid === instance.guid;
-  };
-
-  /**
-   * Destroys the current editor, render the table and prepares the editor of the newly selected cell.
-   *
-   * @memberof Core#
-   * @function destroyEditor
-   * @param {Boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
-   * @param {Boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
-   */
-  this.destroyEditor = function () {
-    var revertOriginal = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-    var prepareEditorIfNeeded = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-
-    instance._refreshBorders(revertOriginal, prepareEditorIfNeeded);
-  };
-
-  /**
-   * Populate cells at position with 2D input array (e.g. `[[1, 2], [3, 4]]`). Use `endRow`, `endCol` when you
-   * want to cut input when a certain row is reached.
-   *
-   * Optional `method` argument has the same effect as pasteMode option (see {@link Options#pasteMode}).
-   *
-   * @memberof Core#
-   * @function populateFromArray
-   * @param {Number} row Start visual row index.
-   * @param {Number} column Start visual column index.
-   * @param {Array} input 2d array
-   * @param {Number} [endRow] End visual row index (use when you want to cut input when certain row is reached).
-   * @param {Number} [endCol] End visual column index (use when you want to cut input when certain column is reached).
-   * @param {String} [source=populateFromArray] Used to identify this call in the resulting events (beforeChange, afterChange).
-   * @param {String} [method=overwrite] Populate method, possible values: `'shift_down'`, `'shift_right'`, `'overwrite'`.
-   * @param {String} direction Populate direction, possible values: `'left'`, `'right'`, `'up'`, `'down'`.
-   * @param {Array} deltas The deltas array. A difference between values of adjacent cells.
-   *                       Useful **only** when the type of handled cells is `numeric`.
-   */
-  this.populateFromArray = function (row, column, input, endRow, endCol, source, method, direction, deltas) {
-    var c;
-
-    if (!((typeof input === 'undefined' ? 'undefined' : _typeof(input)) === 'object' && _typeof(input[0]) === 'object')) {
-      throw new Error('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
-    }
-    c = typeof endRow === 'number' ? new _src.CellCoords(endRow, endCol) : null;
-
-    return grid.populateFromArray(new _src.CellCoords(row, column), input, c, source, method, direction, deltas);
-  };
-
-  /**
-   * Adds/removes data from the column. This method works the same as Array.splice for arrays (see {@link DataMap#spliceCol}).
-   *
-   * @memberof Core#
-   * @function spliceCol
-   * @param {Number} column Index of the column in which do you want to do splice.
-   * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
-   * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
-   * @param {...Number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
-   */
-  this.spliceCol = function (column, index, amount /* , elements... */) {
-    var _datamap;
-
-    return (_datamap = datamap).spliceCol.apply(_datamap, arguments);
-  };
-
-  /**
-   * Adds/removes data from the row. This method works the same as Array.splice for arrays (see {@link DataMap#spliceRow}).
-   *
-   * @memberof Core#
-   * @function spliceRow
-   * @param {Number} row Index of column in which do you want to do splice.
-   * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
-   * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
-   * @param {...Number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
-   */
-  this.spliceRow = function (row, index, amount /* , elements... */) {
-    var _datamap2;
-
-    return (_datamap2 = datamap).spliceRow.apply(_datamap2, arguments);
-  };
-
-  /**
-   * Returns indexes of the currently selected cells as an array of arrays `[[startRow, startCol, endRow, endCol],...]`.
-   *
-   * Start row and start column are the coordinates of the active cell (where the selection was started).
-   *
-   * The version 0.36.0 adds a non-consecutive selection feature. Since this version, the method returns an array of arrays.
-   * Additionally to collect the coordinates of the currently selected area (as it was previously done by the method)
-   * you need to use `getSelectedLast` method.
-   *
-   * @memberof Core#
-   * @function getSelected
-   * @returns {Array[]|undefined} An array of arrays of the selection's coordinates.
-   */
-  this.getSelected = function () {
-    // https://github.com/handsontable/handsontable/issues/44  //cjl
-    if (selection.isSelected()) {
-      return (0, _array.arrayMap)(selection.getSelectedRange(), function (_ref11) {
-        var from = _ref11.from,
-            to = _ref11.to;
-        return [from.row, from.col, to.row, to.col];
-      });
-    }
-  };
-
-  /**
-   * Returns the last coordinates applied to the table as a an array `[startRow, startCol, endRow, endCol]`.
-   *
-   * @since 0.36.0
-   * @memberof Core#
-   * @function getSelectedLast
-   * @returns {Array|undefined} An array of the selection's coordinates.
-   */
-  this.getSelectedLast = function () {
-    var selected = this.getSelected();
-    var result = void 0;
-
-    if (selected && selected.length > 0) {
-      result = selected[selected.length - 1];
-    }
-
-    return result;
-  };
-
-  /**
-   * Returns the current selection as an array of CellRange objects.
-   *
-   * The version 0.36.0 adds a non-consecutive selection feature. Since this version, the method returns an array of arrays.
-   * Additionally to collect the coordinates of the currently selected area (as it was previously done by the method)
-   * you need to use `getSelectedRangeLast` method.
-   *
-   * @memberof Core#
-   * @function getSelectedRange
-   * @returns {CellRange[]|undefined} Selected range object or undefined if there is no selection.
-   */
-  this.getSelectedRange = function () {
-    // https://github.com/handsontable/handsontable/issues/44  //cjl
-    if (selection.isSelected()) {
-      return Array.from(selection.getSelectedRange());
-    }
-  };
-
-  /**
-  * Returns the last coordinates applied to the table as a CellRange object.
-  *
-  * @memberof Core#
-  * @function getSelectedRangeLast
-  * @since 0.36.0
-  * @returns {CellRange|undefined} Selected range object or undefined` if there is no selection.
-   */
-  this.getSelectedRangeLast = function () {
-    var selectedRange = this.getSelectedRange();
-    var result = void 0;
-
-    if (selectedRange && selectedRange.length > 0) {
-      result = selectedRange[selectedRange.length - 1];
-    }
-
-    return result;
-  };
-
-  /**
-   * Erases content from cells that have been selected in the table.
-   *
-   * @memberof Core#
-   * @function emptySelectedCells
-   * @since 0.36.0
-   */
-  this.emptySelectedCells = function () {
-    var _this2 = this;
-
-    if (!selection.isSelected()) {
-      return;
-    }
-    var changes = [];
-
-    (0, _array.arrayEach)(selection.getSelectedRange(), function (cellRange) {
-      var topLeft = cellRange.getTopLeftCorner();
-      var bottomRight = cellRange.getBottomRightCorner();
-
-      (0, _number.rangeEach)(topLeft.row, bottomRight.row, function (row) {
-        (0, _number.rangeEach)(topLeft.col, bottomRight.col, function (column) {
-          if (!_this2.getCellMeta(row, column).readOnly) {
-            changes.push([row, column, '']);
-          }
-        });
-      });
-    });
-
-    if (changes.length > 0) {
-      this.setDataAtCell(changes);
-    }
-  };
-
-  /**
-   * Rerender the table. Calling this method starts the process of recalculating, redrawing and applying the changes
-   * to the DOM. While rendering the table all cell renderers are recalled.
-   *
-   * Calling this method manually is not recommended. Handsontable tries to render itself by choosing the most
-   * optimal moments in its lifecycle.
-   *
-   * @memberof Core#
-   * @function render
-   */
-  this.render = function () {
-    if (instance.view) {
-      instance.renderCall = true;
-      instance.forceFullRender = true; // used when data was changed
-      editorManager.lockEditor();
-      instance._refreshBorders(null);
-      editorManager.unlockEditor();
-    }
-  };
-
-  /**
-   * Loads new data to Handsontable. Loading new data resets the cell meta.
-   *
-   * @memberof Core#
-   * @function loadData
-   * @param {Array} data Array of arrays or array of objects containing data.
-   * @fires Hooks#afterLoadData
-   * @fires Hooks#afterChange
-   */
-  this.loadData = function (data) {
-    if (Array.isArray(priv.settings.dataSchema)) {
-      instance.dataType = 'array';
-    } else if ((0, _function.isFunction)(priv.settings.dataSchema)) {
-      instance.dataType = 'function';
-    } else {
-      instance.dataType = 'object';
-    }
-
-    if (datamap) {
-      datamap.destroy();
-    }
-    datamap = new _dataMap2.default(instance, priv, GridSettings);
-
-    if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === 'object' && data !== null) {
-      if (!(data.push && data.splice)) {
-        // check if data is array. Must use duck-type check so Backbone Collections also pass it
-        // when data is not an array, attempt to make a single-row array of it
-        data = [data];
-      }
-    } else if (data === null) {
-      data = [];
-      var row;
-      var r = 0;
-      var rlen = 0;
-      var dataSchema = datamap.getSchema();
-
-      for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
-        if ((instance.dataType === 'object' || instance.dataType === 'function') && priv.settings.dataSchema) {
-          row = (0, _object.deepClone)(dataSchema);
-          data.push(row);
-        } else if (instance.dataType === 'array') {
-          row = (0, _object.deepClone)(dataSchema[0]);
-          data.push(row);
-        } else {
-          row = [];
-
-          for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
-            row.push(null);
-          }
-
-          data.push(row);
-        }
-      }
-    } else {
-      throw new Error('loadData only accepts array of objects or array of arrays (' + (typeof data === 'undefined' ? 'undefined' : _typeof(data)) + ' given)');
-    }
-
-    priv.isPopulated = false;
-    GridSettings.prototype.data = data;
-
-    if (Array.isArray(data[0])) {
-      instance.dataType = 'array';
-    }
-
-    datamap.dataSource = data;
-    dataSource.data = data;
-    dataSource.dataType = instance.dataType;
-    dataSource.colToProp = datamap.colToProp.bind(datamap);
-    dataSource.propToCol = datamap.propToCol.bind(datamap);
-
-    clearCellSettingCache();
-
-    grid.adjustRowsAndCols();
-    instance.runHooks('afterLoadData', priv.firstRun);
-
-    if (priv.firstRun) {
-      priv.firstRun = [null, 'loadData'];
-    } else {
-      instance.runHooks('afterChange', null, 'loadData');
-      instance.render();
-    }
-    priv.isPopulated = true;
-
-    function clearCellSettingCache() {
-      priv.cellSettings.length = 0;
-    }
-  };
-
-  /**
-   * Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
-   * unless the `modifyRow` hook was used to trim some of the rows. If that's the case - use the {@link Core#getSourceData} method.).
-   *
-   * Optionally you can provide cell range by defining `row`, `column`, `row2`, `column2` to get only a fragment of table data.
-   *
-   * @memberof Core#
-   * @function getData
-   * @param {Number} [row] From visual row index.
-   * @param {Number} [column] From visual column index.
-   * @param {Number} [row2] To visual row index.
-   * @param {Number} [column2] To visual column index.
-   * @returns {Array[]} Array with the data.
-   * @example
-   * ```js
-   * // Get all data (in order how it is rendered in the table).
-   * hot.getData();
-   * // Get data fragment (from top-left 0, 0 to bottom-right 3, 3).
-   * hot.getData(3, 3);
-   * // Get data fragment (from top-left 2, 1 to bottom-right 3, 3).
-   * hot.getData(2, 1, 3, 3);
-   * ```
-   */
-  this.getData = function (row, column, row2, column2) {
-    if ((0, _mixed.isUndefined)(row)) {
-      return datamap.getAll();
-    }
-
-    return datamap.getRange(new _src.CellCoords(row, column), new _src.CellCoords(row2, column2), datamap.DESTINATION_RENDERER);
-  };
-
-  /**
-   * Returns a string value of the selected range. Each column is separated by tab, each row is separated by a new
-   * line character (see {@link DataMap#getCopyableText}).
-   *
-   * @memberof Core#
-   * @function getCopyableText
-   * @param {Number} startRow From visual row index.
-   * @param {Number} startCol From visual column index.
-   * @param {Number} endRow To visual row index.
-   * @param {Number} endCol To visual column index.
-   * @returns {String}
-   */
-  this.getCopyableText = function (startRow, startCol, endRow, endCol) {
-    return datamap.getCopyableText(new _src.CellCoords(startRow, startCol), new _src.CellCoords(endRow, endCol));
-  };
-
-  /**
-   * Returns the data's copyable value at specified `row` and `column` index (see {@link DataMap#getCopyable}).
-   *
-   * @memberof Core#
-   * @function getCopyableData
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @returns {String}
-   */
-  this.getCopyableData = function (row, column) {
-    return datamap.getCopyable(row, datamap.colToProp(column));
-  };
-
-  /**
-   * Returns schema provided by constructor settings. If it doesn't exist then it returns the schema based on the data
-   * structure in the first row.
-   *
-   * @memberof Core#
-   * @function getSchema
-   * @returns {Object} Schema object.
-   */
-  this.getSchema = function () {
-    return datamap.getSchema();
-  };
-
-  /**
-   * Use it if you need to change configuration after initialization. The `settings` argument is an object containing the new
-   * settings, declared the same way as in the initial settings object.
-   *
-   * __Note__, that although the `updateSettings` method doesn't overwrite the previously declared settings, it might reset
-   * the settings made post-initialization. (for example - ignore changes made using the columnResize feature).
-   *
-   * @memberof Core#
-   * @function updateSettings
-   * @param {Object} settings New settings object (see {@link Options}).
-   * @param {Boolean} [init=false] Internally used for in initialization mode.
-   * @example
-   * ```js
-   * hot.updateSettings({
-   *    contextMenu: true,
-   *    colHeaders: true,
-   *    fixedRowsTop: 2
-   * });
-   * ```
-   * @fires Hooks#afterCellMetaReset
-   * @fires Hooks#afterUpdateSettings
-   */
-  this.updateSettings = function (settings) {
-    var init = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-
-    var columnsAsFunc = false;
-    var i = void 0;
-    var j = void 0;
-    var clen = void 0;
-
-    if ((0, _mixed.isDefined)(settings.rows)) {
-      throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
-    }
-    if ((0, _mixed.isDefined)(settings.cols)) {
-      throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
-    }
-
-    for (i in settings) {
-      if (i === 'data') {
-        /* eslint-disable-next-line no-continue */
-        continue; // loadData will be triggered later
-      } else if (i === 'language') {
-        setLanguage(settings.language);
-
-        /* eslint-disable-next-line no-continue */
-        continue;
-      } else if (_pluginHooks2.default.getSingleton().getRegistered().indexOf(i) > -1) {
-        if ((0, _function.isFunction)(settings[i]) || Array.isArray(settings[i])) {
-          settings[i].initialHook = true;
-          instance.addHook(i, settings[i]);
-        }
-      } else if (!init && (0, _object.hasOwnProperty)(settings, i)) {
-        // Update settings
-        GridSettings.prototype[i] = settings[i];
-      }
-    }
-
-    // Load data or create data map
-    if (settings.data === void 0 && priv.settings.data === void 0) {
-      instance.loadData(null); // data source created just now
-    } else if (settings.data !== void 0) {
-      instance.loadData(settings.data); // data source given as option
-    } else if (settings.columns !== void 0) {
-      datamap.createMap();
-    }
-
-    clen = instance.countCols();
-
-    var columnSetting = settings.columns || GridSettings.prototype.columns;
-
-    // Init columns constructors configuration
-    if (columnSetting && (0, _function.isFunction)(columnSetting)) {
-      clen = instance.countSourceCols();
-      columnsAsFunc = true;
-    }
-
-    // Clear cellSettings cache
-    if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
-      priv.cellSettings.length = 0;
-    }
-
-    if (clen > 0) {
-      var proto = void 0;
-      var column = void 0;
-
-      for (i = 0, j = 0; i < clen; i++) {
-        if (columnsAsFunc && !columnSetting(i)) {
-          /* eslint-disable no-continue */
-          continue;
-        }
-        priv.columnSettings[j] = (0, _setting.columnFactory)(GridSettings, priv.columnsSettingConflicts);
-
-        // shortcut for prototype
-        proto = priv.columnSettings[j].prototype;
-
-        // Use settings provided by user
-        if (columnSetting) {
-          if (columnsAsFunc) {
-            column = columnSetting(i);
-          } else {
-            column = columnSetting[j];
-          }
-
-          if (column) {
-            (0, _object.extend)(proto, column);
-            (0, _object.extend)(proto, expandType(column));
-          }
-        }
-
-        j++;
-      }
-    }
-
-    if ((0, _mixed.isDefined)(settings.cell)) {
-      for (var key in settings.cell) {
-        if ((0, _object.hasOwnProperty)(settings.cell, key)) {
-          var cell = settings.cell[key];
-
-          instance.setCellMetaObject(cell.row, cell.col, cell);
-        }
-      }
-    }
-
-    instance.runHooks('afterCellMetaReset');
-
-    if ((0, _mixed.isDefined)(settings.className)) {
-      if (GridSettings.prototype.className) {
-        (0, _element.removeClass)(instance.rootElement, GridSettings.prototype.className);
-      }
-      if (settings.className) {
-        (0, _element.addClass)(instance.rootElement, settings.className);
-      }
-    }
-
-    var currentHeight = instance.rootElement.style.height;
-    if (currentHeight !== '') {
-      currentHeight = parseInt(instance.rootElement.style.height, 10);
-    }
-
-    var height = settings.height;
-    if ((0, _function.isFunction)(height)) {
-      height = height();
-    }
-
-    if (init) {
-      var initialStyle = instance.rootElement.getAttribute('style');
-
-      if (initialStyle) {
-        instance.rootElement.setAttribute('data-initialstyle', instance.rootElement.getAttribute('style'));
-      }
-    }
-
-    if (height === null) {
-      var _initialStyle = instance.rootElement.getAttribute('data-initialstyle');
-
-      if (_initialStyle && (_initialStyle.indexOf('height') > -1 || _initialStyle.indexOf('overflow') > -1)) {
-        instance.rootElement.setAttribute('style', _initialStyle);
-      } else {
-        instance.rootElement.style.height = '';
-        instance.rootElement.style.overflow = '';
-      }
-    } else if (height !== void 0) {
-      instance.rootElement.style.height = height + 'px';
-      instance.rootElement.style.overflow = 'hidden';
-    }
-
-    if (typeof settings.width !== 'undefined') {
-      var width = settings.width;
-
-      if ((0, _function.isFunction)(width)) {
-        width = width();
-      }
-
-      instance.rootElement.style.width = width + 'px';
-    }
-
-    if (!init) {
-      datamap.clearLengthCache(); // force clear cache length on updateSettings() #3416
-
-      if (instance.view) {
-        instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
-      }
-
-      instance.runHooks('afterUpdateSettings', settings);
-    }
-
-    grid.adjustRowsAndCols();
-    if (instance.view && !priv.firstRun) {
-      instance.forceFullRender = true; // used when data was changed
-      editorManager.lockEditor();
-      instance._refreshBorders(null);
-      editorManager.unlockEditor();
-    }
-
-    if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
-      instance.view.wt.wtOverlays.updateMainScrollableElements();
-    }
-  };
-
-  /**
-   * Get value from the selected cell.
-   *
-   * @memberof Core#
-   * @function getValue
-   * @returns {*} Value of selected cell.
-   */
-  this.getValue = function () {
-    var sel = instance.getSelectedLast();
-
-    if (GridSettings.prototype.getValue) {
-      if ((0, _function.isFunction)(GridSettings.prototype.getValue)) {
-        return GridSettings.prototype.getValue.call(instance);
-      } else if (sel) {
-        return instance.getData()[sel[0][0]][GridSettings.prototype.getValue];
-      }
-    } else if (sel) {
-      return instance.getDataAtCell(sel[0], sel[1]);
-    }
-  };
-
-  function expandType(obj) {
-    if (!(0, _object.hasOwnProperty)(obj, 'type')) {
-      // ignore obj.prototype.type
-      return;
-    }
-
-    var type,
-        expandedType = {};
-
-    if (_typeof(obj.type) === 'object') {
-      type = obj.type;
-    } else if (typeof obj.type === 'string') {
-      type = (0, _cellTypes.getCellType)(obj.type);
-    }
-
-    for (var i in type) {
-      if ((0, _object.hasOwnProperty)(type, i) && !(0, _object.hasOwnProperty)(obj, i)) {
-        expandedType[i] = type[i];
-      }
-    }
-
-    return expandedType;
-  }
-
-  /**
-   * Returns the object settings.
-   *
-   * @memberof Core#
-   * @function getSettings
-   * @returns {Object} Object containing the current table settings.
-   */
-  this.getSettings = function () {
-    return priv.settings;
-  };
-
-  /**
-   * Clears the data from the table (the table settings remain intact).
-   *
-   * @memberof Core#
-   * @function clear
-   */
-  this.clear = function () {
-    this.selectAll();
-    this.emptySelectedCells();
-  };
-
-  /**
-   * Allows altering the table structure by either inserting/removing rows or columns.
-   *
-   * @memberof Core#
-   * @function alter
-   * @param {String} action Possible alter operations:
-   *  * `'insert_row'`
-   *  * `'insert_col'`
-   *  * `'remove_row'`
-   *  * `'remove_col'`
-   * @param {Number|Number[]} index Visual index of the row/column before which the new row/column will be
-   *                                inserted/removed or an array of arrays in format `[[index, amount],...]`.
-   * @param {Number} [amount=1] Amount of rows/columns to be inserted or removed.
-   * @param {String} [source] Source indicator.
-   * @param {Boolean} [keepEmptyRows] Flag for preventing deletion of empty rows.
-   * @example
-   * ```js
-   * // Insert new row above the row at given visual index.
-   * hot.alter('insert_row', 10);
-   * // Insert 3 new columns before 10th column.
-   * hot.alter('insert_col', 10, 3);
-   * // Remove 2 rows starting from 10th row.
-   * hot.alter('remove_row', 10, 2);
-   * // Remove 5 non-contiquous rows (it removes 3 rows from visual index 1 and 2 rows from visual index 5).
-   * hot.alter('remove_row', [[1, 3], [5, 2]]);
-   * ```
-   */
-  this.alter = function (action, index, amount, source, keepEmptyRows) {
-    grid.alter(action, index, amount, source, keepEmptyRows);
-  };
-
-  /**
-   * Returns a TD element for the given `row` and `column` arguments, if it is rendered on screen.
-   * Returns `null` if the TD is not rendered on screen (probably because that part of the table is not visible).
-   *
-   * @memberof Core#
-   * @function getCell
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {Boolean} [topmost=false] If set to `true`, it returns the TD element from the topmost overlay. For example,
-   * if the wanted cell is in the range of fixed rows, it will return a TD element from the `top` overlay.
-   * @returns {HTMLTableCellElement|null} The cell's TD element.
-   */
-  this.getCell = function (row, column) {
-    var topmost = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-
-    return instance.view.getCellAtCoords(new _src.CellCoords(row, column), topmost);
-  };
-
-  /**
-   * Returns the coordinates of the cell, provided as a HTML table cell element.
-   *
-   * @memberof Core#
-   * @function getCoords
-   * @param {HTMLTableCellElement} element The HTML Element representing the cell.
-   * @returns {CellCoords} Visual coordinates object.
-   * @example
-   * ```js
-   * hot.getCoords(hot.getCell(1, 1));
-   * // it returns CellCoords object instance with props row: 1 and col: 1.
-   * ```
-   */
-  this.getCoords = function (element) {
-    return this.view.wt.wtTable.getCoords.call(this.view.wt.wtTable, element);
-  };
-
-  /**
-   * Returns the property name that corresponds with the given column index (see {@link DataMap#colToProp}).
-   * If the data source is an array of arrays, it returns the columns index.
-   *
-   * @memberof Core#
-   * @function colToProp
-   * @param {Number} column Visual column index.
-   * @returns {String|Number} Column property or physical column index.
-   */
-  this.colToProp = function (column) {
-    return datamap.colToProp(column);
-  };
-
-  /**
-   * Returns column index that corresponds with the given property (see {@link DataMap#propToCol}).
-   *
-   * @memberof Core#
-   * @function propToCol
-   * @param {String|Number} prop Property name or physical column index.
-   * @returns {Number} Visual column index.
-   */
-  this.propToCol = function (prop) {
-    return datamap.propToCol(prop);
-  };
-
-  /**
-   * Translate physical row index into visual.
-   *
-   * This method is useful when you want to retrieve visual row index which can be reordered, moved or trimmed
-   * based on a physical index
-   *
-   * @memberof Core#
-   * @function toVisualRow
-   * @param {Number} row Physical row index.
-   * @returns {Number} Returns visual row index.
-   */
-  this.toVisualRow = function (row) {
-    return recordTranslator.toVisualRow(row);
-  };
-
-  /**
-   * Translate physical column index into visual.
-   *
-   * This method is useful when you want to retrieve visual column index which can be reordered, moved or trimmed
-   * based on a physical index
-   *
-   * @memberof Core#
-   * @function toVisualColumn
-   * @param {Number} column Physical column index.
-   * @returns {Number} Returns visual column index.
-   */
-  this.toVisualColumn = function (column) {
-    return recordTranslator.toVisualColumn(column);
-  };
-
-  /**
-   * Translate visual row index into physical.
-   *
-   * This method is useful when you want to retrieve physical row index based on a visual index which can be
-   * reordered, moved or trimmed.
-   *
-   * @memberof Core#
-   * @function toPhysicalRow
-   * @param {Number} row Visual row index.
-   * @returns {Number} Returns physical row index.
-   */
-  this.toPhysicalRow = function (row) {
-    return recordTranslator.toPhysicalRow(row);
-  };
-
-  /**
-   * Translate visual column index into physical.
-   *
-   * This method is useful when you want to retrieve physical column index based on a visual index which can be
-   * reordered, moved or trimmed.
-   *
-   * @memberof Core#
-   * @function toPhysicalColumn
-   * @param {Number} column Visual column index.
-   * @returns {Number} Returns physical column index.
-   */
-  this.toPhysicalColumn = function (column) {
-    return recordTranslator.toPhysicalColumn(column);
-  };
-
-  /**
-   * @description
-   * Returns the cell value at `row`, `column`.
-   *
-   * __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
-   *
-   * @memberof Core#
-   * @function getDataAtCell
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @returns {*} Data at cell.
-   */
-  this.getDataAtCell = function (row, column) {
-    return datamap.get(row, datamap.colToProp(column));
-  };
-
-  /**
-   * Returns value at visual `row` and `prop` indexes (see {@link DataMap#get}).
-   *
-   * __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
-   *
-   * @memberof Core#
-   * @function getDataAtRowProp
-   * @param {Number} row Visual row index.
-   * @param {String} prop Property name.
-   * @returns {*} Cell value.
-   */
-  this.getDataAtRowProp = function (row, prop) {
-    return datamap.get(row, prop);
-  };
-
-  /**
-   * @description
-   * Returns array of column values from the data source.
-   *
-   * __Note__: If columns were reordered or sorted, the currently visible order will be used.
-   *
-   * @memberof Core#
-   * @function getDataAtCol
-   * @param {Number} column Visual column index.
-   * @returns {Array} Array of cell values.
-   */
-  this.getDataAtCol = function (column) {
-    var _ref12;
-
-    return (_ref12 = []).concat.apply(_ref12, _toConsumableArray(datamap.getRange(new _src.CellCoords(0, column), new _src.CellCoords(priv.settings.data.length - 1, column), datamap.DESTINATION_RENDERER)));
-  };
-
-  /**
-   * Given the object property name (e.g. `'first.name'` or `'0'`), returns an array of column's values from the table data.
-   * You can also provide a column index as the first argument.
-   *
-   * @memberof Core#
-   * @function getDataAtProp
-   * @param {String|Number} prop Property name or physical column index.
-   * @returns {Array} Array of cell values.
-   */
-  // TODO: Getting data from `datamap` should work on visual indexes.
-  this.getDataAtProp = function (prop) {
-    var _ref13;
-
-    var range = datamap.getRange(new _src.CellCoords(0, datamap.propToCol(prop)), new _src.CellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)), datamap.DESTINATION_RENDERER);
-
-    return (_ref13 = []).concat.apply(_ref13, _toConsumableArray(range));
-  };
-
-  /**
-   * Returns the source data object (the same that was passed by `data` configuration option or `loadData` method).
-   * Optionally you can provide a cell range by using the `row`, `column`, `row2`, `column2` arguments, to get only a
-   * fragment of the table data.
-   *
-   * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
-   * sorted or trimmed only physical indexes are correct.
-   *
-   * @memberof Core#
-   * @function getSourceData
-   * @param {Number} [row] From physical row index.
-   * @param {Number} [column] From physical column index (or visual index, if data type is an array of objects).
-   * @param {Number} [row2] To physical row index.
-   * @param {Number} [column2] To physical column index (or visual index, if data type is an array of objects).
-   * @returns {Array[]|Object[]} The table data.
-   */
-  this.getSourceData = function (row, column, row2, column2) {
-    var data = void 0;
-
-    if (row === void 0) {
-      data = dataSource.getData();
-    } else {
-      data = dataSource.getByRange(new _src.CellCoords(row, column), new _src.CellCoords(row2, column2));
-    }
-
-    return data;
-  };
-
-  /**
-   * Returns the source data object as an arrays of arrays format even when source data was provided in another format.
-   * Optionally you can provide a cell range by using the `row`, `column`, `row2`, `column2` arguments, to get only a
-   * fragment of the table data.
-   *
-   * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
-   * sorted or trimmed only physical indexes are correct.
-   *
-   * @memberof Core#
-   * @function getSourceDataArray
-   * @param {Number} [row] From physical row index.
-   * @param {Number} [column] From physical column index (or visual index, if data type is an array of objects).
-   * @param {Number} [row2] To physical row index.
-   * @param {Number} [column2] To physical column index (or visual index, if data type is an array of objects).
-   * @returns {Array} An array of arrays.
-   */
-  this.getSourceDataArray = function (row, column, row2, column2) {
-    var data = void 0;
-
-    if (row === void 0) {
-      data = dataSource.getData(true);
-    } else {
-      data = dataSource.getByRange(new _src.CellCoords(row, column), new _src.CellCoords(row2, column2), true);
-    }
-
-    return data;
-  };
-
-  /**
-   * Returns an array of column values from the data source.
-   *
-   * @memberof Core#
-   * @function getSourceDataAtCol
-   * @param {Number} column Visual column index.
-   * @returns {Array} Array of the column's cell values.
-   */
-  // TODO: Getting data from `sourceData` should work always on physical indexes.
-  this.getSourceDataAtCol = function (column) {
-    return dataSource.getAtColumn(column);
-  };
-
-  /**
-   * Returns a single row of the data (array or object, depending on what data format you use).
-   *
-   * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
-   * sorted or trimmed only physical indexes are correct.
-   *
-   * @memberof Core#
-   * @function getSourceDataAtRow
-   * @param {Number} row Physical row index.
-   * @returns {Array|Object} Single row of data.
-   */
-  this.getSourceDataAtRow = function (row) {
-    return dataSource.getAtRow(row);
-  };
-
-  /**
-   * Returns a single value from the data source.
-   *
-   * @memberof Core#
-   * @function getSourceDataAtCell
-   * @param {Number} row Physical row index.
-   * @param {Number} column Visual column index.
-   * @returns {*} Cell data.
-   */
-  // TODO: Getting data from `sourceData` should work always on physical indexes.
-  this.getSourceDataAtCell = function (row, column) {
-    return dataSource.getAtCell(row, column);
-  };
-
-  /**
-   * @description
-   * Returns a single row of the data.
-   *
-   * __Note__: If rows were reordered, sorted or trimmed, the currently visible order will be used.
-   *
-   * @memberof Core#
-   * @function getDataAtRow
-   * @param {Number} row Visual row index.
-   * @returns {Array} Array of row's cell data.
-   */
-  this.getDataAtRow = function (row) {
-    var data = datamap.getRange(new _src.CellCoords(row, 0), new _src.CellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER);
-
-    return data[0] || [];
-  };
-
-  /**
-   * @description
-   * Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](http://docs.handsontable.com/Options.html#type)).
-   * If there are cells with different types in the selected range, it returns `'mixed'`.
-   *
-   * __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
-   *
-   * @memberof Core#
-   * @function getDataType
-   * @param {Number} rowFrom From visual row index.
-   * @param {Number} columnFrom From visual column index.
-   * @param {Number} rowTo To visual row index.
-   * @param {Number} columnTo To visual column index.
-   * @returns {String} Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
-   */
-  this.getDataType = function (rowFrom, columnFrom, rowTo, columnTo) {
-    var _this3 = this;
-
-    var previousType = null;
-    var currentType = null;
-
-    if (rowFrom === void 0) {
-      rowFrom = 0;
-      rowTo = this.countRows();
-      columnFrom = 0;
-      columnTo = this.countCols();
-    }
-    if (rowTo === void 0) {
-      rowTo = rowFrom;
-    }
-    if (columnTo === void 0) {
-      columnTo = columnFrom;
-    }
-    var type = 'mixed';
-
-    (0, _number.rangeEach)(Math.min(rowFrom, rowTo), Math.max(rowFrom, rowTo), function (row) {
-      var isTypeEqual = true;
-
-      (0, _number.rangeEach)(Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo), function (column) {
-        var cellType = _this3.getCellMeta(row, column);
-
-        currentType = cellType.type;
-
-        if (previousType) {
-          isTypeEqual = previousType === currentType;
-        } else {
-          previousType = currentType;
-        }
-
-        return isTypeEqual;
-      });
-      type = isTypeEqual ? currentType : 'mixed';
-
-      return isTypeEqual;
-    });
-
-    return type;
-  };
-
-  /**
-   * Remove a property defined by the `key` argument from the cell meta object for the provided `row` and `column` coordinates.
-   *
-   * @memberof Core#
-   * @function removeCellMeta
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {String} key Property name.
-   * @fires Hooks#beforeRemoveCellMeta
-   * @fires Hooks#afterRemoveCellMeta
-   */
-  this.removeCellMeta = function (row, column, key) {
-    var _recordTranslator$toP = recordTranslator.toPhysical(row, column),
-        _recordTranslator$toP2 = _slicedToArray(_recordTranslator$toP, 2),
-        physicalRow = _recordTranslator$toP2[0],
-        physicalColumn = _recordTranslator$toP2[1];
-
-    var cachedValue = priv.cellSettings[physicalRow][physicalColumn][key];
-
-    var hookResult = instance.runHooks('beforeRemoveCellMeta', row, column, key, cachedValue);
-
-    if (hookResult !== false) {
-      delete priv.cellSettings[physicalRow][physicalColumn][key];
-
-      instance.runHooks('afterRemoveCellMeta', row, column, key, cachedValue);
-    }
-
-    cachedValue = null;
-  };
-
-  /**
-   * Remove one or more rows from the cell meta object.
-   *
-   * @since 0.30.0
-   * @param {Number} index An integer that specifies at what position to add/remove items, Use negative values to specify the position from the end of the array.
-   * @param {Number} deleteAmount The number of items to be removed. If set to 0, no items will be removed.
-   * @param {Array} items The new items to be added to the array.
-   */
-  this.spliceCellsMeta = function (index, deleteAmount) {
-    var _priv$cellSettings;
-
-    for (var _len2 = arguments.length, items = Array(_len2 > 2 ? _len2 - 2 : 0), _key = 2; _key < _len2; _key++) {
-      items[_key - 2] = arguments[_key];
-    }
-
-    (_priv$cellSettings = priv.cellSettings).splice.apply(_priv$cellSettings, [index, deleteAmount].concat(items));
-  };
-
-  /**
-   * Set cell meta data object defined by `prop` to the corresponding params `row` and `column`.
-   *
-   * @memberof Core#
-   * @function setCellMetaObject
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {Object} prop Meta object.
-   */
-  this.setCellMetaObject = function (row, column, prop) {
-    if ((typeof prop === 'undefined' ? 'undefined' : _typeof(prop)) === 'object') {
-      for (var key in prop) {
-        if ((0, _object.hasOwnProperty)(prop, key)) {
-          var value = prop[key];
-          this.setCellMeta(row, column, key, value);
-        }
-      }
-    }
-  };
-
-  /**
-   * Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
-   *
-   * @memberof Core#
-   * @function setCellMeta
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {String} key Property name.
-   * @param {String} value Property value.
-   * @fires Hooks#afterSetCellMeta
-   */
-  this.setCellMeta = function (row, column, key, value) {
-    var _recordTranslator$toP3 = recordTranslator.toPhysical(row, column),
-        _recordTranslator$toP4 = _slicedToArray(_recordTranslator$toP3, 2),
-        physicalRow = _recordTranslator$toP4[0],
-        physicalColumn = _recordTranslator$toP4[1];
-
-    if (!priv.columnSettings[physicalColumn]) {
-      priv.columnSettings[physicalColumn] = (0, _setting.columnFactory)(GridSettings, priv.columnsSettingConflicts);
-    }
-
-    if (!priv.cellSettings[physicalRow]) {
-      priv.cellSettings[physicalRow] = [];
-    }
-    if (!priv.cellSettings[physicalRow][physicalColumn]) {
-      priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
-    }
-    priv.cellSettings[physicalRow][physicalColumn][key] = value;
-    instance.runHooks('afterSetCellMeta', row, column, key, value);
-  };
-
-  /**
-   * Get all the cells meta settings at least once generated in the table (in order of cell initialization).
-   *
-   * @memberof Core#
-   * @function getCellsMeta
-   * @returns {Array} Returns an array of ColumnSettings object instances.
-   */
-  this.getCellsMeta = function () {
-    return (0, _array.arrayFlatten)(priv.cellSettings);
-  };
-
-  /**
-   * Returns the cell properties object for the given `row` and `column` coordinates.
-   *
-   * @memberof Core#
-   * @function getCellMeta
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @returns {Object} The cell properties object.
-   * @fires Hooks#beforeGetCellMeta
-   * @fires Hooks#afterGetCellMeta
-   */
-  this.getCellMeta = function (row, column) {
-    var prop = datamap.colToProp(column);
-    var cellProperties = void 0;
-
-    var _recordTranslator$toP5 = recordTranslator.toPhysical(row, column),
-        _recordTranslator$toP6 = _slicedToArray(_recordTranslator$toP5, 2),
-        physicalRow = _recordTranslator$toP6[0],
-        physicalColumn = _recordTranslator$toP6[1];
-
-    // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
-
-
-    if (physicalRow === null) {
-      physicalRow = row;
-    }
-
-    if (!priv.columnSettings[physicalColumn]) {
-      priv.columnSettings[physicalColumn] = (0, _setting.columnFactory)(GridSettings, priv.columnsSettingConflicts);
-    }
-
-    if (!priv.cellSettings[physicalRow]) {
-      priv.cellSettings[physicalRow] = [];
-    }
-    if (!priv.cellSettings[physicalRow][physicalColumn]) {
-      priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
-    }
-
-    cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
-
-    cellProperties.row = physicalRow;
-    cellProperties.col = physicalColumn;
-    cellProperties.visualRow = row;
-    cellProperties.visualCol = column;
-    cellProperties.prop = prop;
-    cellProperties.instance = instance;
-
-    instance.runHooks('beforeGetCellMeta', row, column, cellProperties);
-    (0, _object.extend)(cellProperties, expandType(cellProperties)); // for `type` added in beforeGetCellMeta
-
-    if (cellProperties.cells) {
-      var settings = cellProperties.cells.call(cellProperties, physicalRow, physicalColumn, prop);
-
-      if (settings) {
-        (0, _object.extend)(cellProperties, settings);
-        (0, _object.extend)(cellProperties, expandType(settings)); // for `type` added in cells
-      }
-    }
-
-    instance.runHooks('afterGetCellMeta', row, column, cellProperties);
-
-    return cellProperties;
-  };
-
-  /**
-   * Returns an array of cell meta objects for specyfied physical row index.
-   *
-   * @memberof Core#
-   * @function getCellMetaAtRow
-   * @param {Number} row Physical row index.
-   * @returns {Array}
-   */
-  this.getCellMetaAtRow = function (row) {
-    return priv.cellSettings[row];
-  };
-
-  /**
-   * Checks if the data format and config allows user to modify the column structure.
-   *
-   * @memberof Core#
-   * @function isColumnModificationAllowed
-   * @returns {Boolean}
-   */
-  this.isColumnModificationAllowed = function () {
-    return !(instance.dataType === 'object' || instance.getSettings().columns);
-  };
-
-  var rendererLookup = (0, _data.cellMethodLookupFactory)('renderer');
-
-  /**
-   * Returns the cell renderer function by given `row` and `column` arguments.
-   *
-   * @memberof Core#
-   * @function getCellRenderer
-   * @param {Number|Object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
-   * @param {Number} column Visual column index.
-   * @returns {Function} The renderer function.
-   * @example
-   * ```js
-   * // Get cell renderer using `row` and `column` coordinates.
-   * hot.getCellRenderer(1, 1);
-   * // Get cell renderer using cell meta object.
-   * hot.getCellRenderer(hot.getCellMeta(1, 1));
-   * ```
-   */
-  this.getCellRenderer = function (row, column) {
-    return (0, _renderers.getRenderer)(rendererLookup.call(this, row, column));
-  };
-
-  /**
-   * Returns the cell editor class by the provided `row` and `column` arguments.
-   *
-   * @memberof Core#
-   * @function getCellEditor
-   * @param {Number} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
-   * @param {Number} column Visual column index.
-   * @returns {Function} The editor class.
-   * @example
-   * ```js
-   * // Get cell editor class using `row` and `column` coordinates.
-   * hot.getCellEditor(1, 1);
-   * // Get cell editor class using cell meta object.
-   * hot.getCellEditor(hot.getCellMeta(1, 1));
-   * ```
-   */
-  this.getCellEditor = (0, _data.cellMethodLookupFactory)('editor');
-
-  var validatorLookup = (0, _data.cellMethodLookupFactory)('validator');
-
-  /**
-   * Returns the cell validator by `row` and `column`.
-   *
-   * @memberof Core#
-   * @function getCellValidator
-   * @param {Number|Object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
-   * @param {Number} column Visual column index.
-   * @returns {Function|RegExp|undefined} The validator function.
-   * @example
-   * ```js
-   * // Get cell valiator using `row` and `column` coordinates.
-   * hot.getCellValidator(1, 1);
-   * // Get cell valiator using cell meta object.
-   * hot.getCellValidator(hot.getCellMeta(1, 1));
-   * ```
-   */
-  this.getCellValidator = function (row, column) {
-    var validator = validatorLookup.call(this, row, column);
-
-    if (typeof validator === 'string') {
-      validator = (0, _validators.getValidator)(validator);
-    }
-
-    return validator;
-  };
-
-  /**
-   * Validates all cells using their validator functions and calls callback when finished.
-   *
-   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
-   * would equal `true`.
-   *
-   * @memberof Core#
-   * @function validateCells
-   * @param {Function} [callback] The callback function.
-   * @example
-   * ```js
-   * hot.validateCells((valid) => {
-   *   if (valid) {
-   *     // ... code for validated cells
-   *   }
-   * })
-   * ```
-   */
-  this.validateCells = function (callback) {
-    this._validateCells(callback);
-  };
-
-  /**
-   * Validates rows using their validator functions and calls callback when finished.
-   *
-   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
-   *  would equal `true`.
-   *
-   * @memberof Core#
-   * @function validateRows
-   * @param {Array} [rows] Array of validation target visual row indexes.
-   * @param {Function} [callback] The callback function.
-   * @example
-   * ```js
-   * hot.validateRows([3, 4, 5], (valid) => {
-   *   if (valid) {
-   *     // ... code for validated rows
-   *   }
-   * })
-   * ```
-   */
-  this.validateRows = function (rows, callback) {
-    if (!Array.isArray(rows)) {
-      throw new Error('validateRows parameter `rows` must be an array');
-    }
-    this._validateCells(callback, rows);
-  };
-
-  /**
-   * Validates columns using their validator functions and calls callback when finished.
-   *
-   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
-   *  would equal `true`.
-   *
-   * @memberof Core#
-   * @function validateColumns
-   * @param {Array} [columns] Array of validation target visual columns indexes.
-   * @param {Function} [callback] The callback function.
-   * @example
-   * ```js
-   * hot.validateColumns([3, 4, 5], (valid) => {
-   *   if (valid) {
-   *     // ... code for validated columns
-   *   }
-   * })
-   * ```
-   */
-  this.validateColumns = function (columns, callback) {
-    if (!Array.isArray(columns)) {
-      throw new Error('validateColumns parameter `columns` must be an array');
-    }
-    this._validateCells(callback, undefined, columns);
-  };
-
-  /**
-   * Validates all cells using their validator functions and calls callback when finished.
-   *
-   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it would equal `true`.
-   *
-   * Private use intended.
-   *
-   * @private
-   * @memberof Core#
-   * @function _validateCells
-   * @param {Function} [callback] The callback function.
-   * @param {Array} [rows] An array of validation target visual row indexes.
-   * @param {Array} [columns] An array of validation target visual column indexes.
-   */
-  this._validateCells = function (callback, rows, columns) {
-    var waitingForValidator = new ValidatorsQueue();
-
-    if (callback) {
-      waitingForValidator.onQueueEmpty = callback;
-    }
-
-    var i = instance.countRows() - 1;
-
-    while (i >= 0) {
-      if (rows !== undefined && rows.indexOf(i) === -1) {
-        i--;
-        continue;
-      }
-      var j = instance.countCols() - 1;
-
-      while (j >= 0) {
-        if (columns !== undefined && columns.indexOf(j) === -1) {
-          j--;
-          continue;
-        }
-        waitingForValidator.addValidatorToQueue();
-
-        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), function (result) {
-          if (typeof result !== 'boolean') {
-            throw new Error('Validation error: result is not boolean');
-          }
-          if (result === false) {
-            waitingForValidator.valid = false;
-          }
-          waitingForValidator.removeValidatorFormQueue();
-        }, 'validateCells');
-        j--;
-      }
-      i--;
-    }
-    waitingForValidator.checkIfQueueIsEmpty();
-  };
-
-  /**
-   * Returns an array of row headers' values (if they are enabled). If param `row` was given, it returns the header of the given row as a string.
-   *
-   * @memberof Core#
-   * @function getRowHeader
-   * @param {Number} [row] Visual row index.
-   * @fires Hooks#modifyRowHeader
-   * @returns {Array|String|Number} Array of header values / single header value.
-   */
-  this.getRowHeader = function (row) {
-    var rowHeader = priv.settings.rowHeaders;
-
-    if (row !== void 0) {
-      row = instance.runHooks('modifyRowHeader', row);
-    }
-    if (row === void 0) {
-      rowHeader = [];
-      (0, _number.rangeEach)(instance.countRows() - 1, function (i) {
-        rowHeader.push(instance.getRowHeader(i));
-      });
-    } else if (Array.isArray(rowHeader) && rowHeader[row] !== void 0) {
-      rowHeader = rowHeader[row];
-    } else if ((0, _function.isFunction)(rowHeader)) {
-      rowHeader = rowHeader(row);
-    } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
-      rowHeader = row + 1;
-    }
-
-    return rowHeader;
-  };
-
-  /**
-   * Returns information about if this table is configured to display row headers.
-   *
-   * @memberof Core#
-   * @function hasRowHeaders
-   * @returns {Boolean} `true` if the instance has the row headers enabled, `false` otherwise.
-   */
-  this.hasRowHeaders = function () {
-    return !!priv.settings.rowHeaders;
-  };
-
-  /**
-   * Returns information about if this table is configured to display column headers.
-   *
-   * @memberof Core#
-   * @function hasColHeaders
-   * @returns {Boolean} `true` if the instance has the column headers enabled, `false` otherwise.
-   */
-  this.hasColHeaders = function () {
-    if (priv.settings.colHeaders !== void 0 && priv.settings.colHeaders !== null) {
-      // Polymer has empty value = null
-      return !!priv.settings.colHeaders;
-    }
-    for (var i = 0, ilen = instance.countCols(); i < ilen; i++) {
-      if (instance.getColHeader(i)) {
-        return true;
-      }
-    }
-
-    return false;
-  };
-
-  /**
-   * Returns an array of column headers (in string format, if they are enabled). If param `column` is given, it
-   * returns the header at the given column.
-   *
-   * @memberof Core#
-   * @function getColHeader
-   * @param {Number} [column] Visual column index.
-   * @fires Hooks#modifyColHeader
-   * @returns {Array|String|Number} The column header(s).
-   */
-  this.getColHeader = function (column) {
-    var columnsAsFunc = priv.settings.columns && (0, _function.isFunction)(priv.settings.columns);
-    var result = priv.settings.colHeaders;
-
-    column = instance.runHooks('modifyColHeader', column);
-
-    if (column === void 0) {
-      var out = [];
-      var ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
-
-      for (var i = 0; i < ilen; i++) {
-        out.push(instance.getColHeader(i));
-      }
-
-      result = out;
-    } else {
-      var translateVisualIndexToColumns = function translateVisualIndexToColumns(column) {
-        var arr = [];
-        var columnsLen = instance.countSourceCols();
-        var index = 0;
-
-        for (; index < columnsLen; index++) {
-          if ((0, _function.isFunction)(instance.getSettings().columns) && instance.getSettings().columns(index)) {
-            arr.push(index);
-          }
-        }
-
-        return arr[column];
-      };
-      var baseCol = column;
-      column = instance.runHooks('modifyCol', column);
-
-      var prop = translateVisualIndexToColumns(column);
-
-      if (priv.settings.columns && (0, _function.isFunction)(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
-        result = priv.settings.columns(prop).title;
-      } else if (priv.settings.columns && priv.settings.columns[column] && priv.settings.columns[column].title) {
-        result = priv.settings.columns[column].title;
-      } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[column] !== void 0) {
-        result = priv.settings.colHeaders[column];
-      } else if ((0, _function.isFunction)(priv.settings.colHeaders)) {
-        result = priv.settings.colHeaders(column);
-      } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
-        result = (0, _data.spreadsheetColumnLabel)(baseCol); // see #1458
-      }
-    }
-
-    return result;
-  };
-
-  /**
-   * Return column width from settings (no guessing). Private use intended.
-   *
-   * @private
-   * @memberof Core#
-   * @function _getColWidthFromSettings
-   * @param {Number} col Visual col index.
-   * @returns {Number}
-   */
-  this._getColWidthFromSettings = function (col) {
-    var cellProperties = instance.getCellMeta(0, col);
-    var width = cellProperties.width;
-
-    if (width === void 0 || width === priv.settings.width) {
-      width = cellProperties.colWidths;
-    }
-    if (width !== void 0 && width !== null) {
-      switch (typeof width === 'undefined' ? 'undefined' : _typeof(width)) {
-        case 'object':
-          // array
-          width = width[col];
-          break;
-
-        case 'function':
-          width = width(col);
-          break;
-        default:
-          break;
-      }
-      if (typeof width === 'string') {
-        width = parseInt(width, 10);
-      }
-    }
-
-    return width;
-  };
-
-  /**
-   * Returns the width of the requested column.
-   *
-   * @memberof Core#
-   * @function getColWidth
-   * @param {Number} column Visual column index.
-   * @returns {Number} Column width.
-   * @fires Hooks#modifyColWidth
-   */
-  this.getColWidth = function (column) {
-    var width = instance._getColWidthFromSettings(column);
-
-    width = instance.runHooks('modifyColWidth', width, column);
-
-    if (width === void 0) {
-      width = _src.ViewportColumnsCalculator.DEFAULT_WIDTH;
-    }
-
-    return width;
-  };
-
-  /**
-   * Return row height from settings (no guessing). Private use intended.
-   *
-   * @private
-   * @memberof Core#
-   * @function _getRowHeightFromSettings
-   * @param {Number} row Visual row index.
-   * @returns {Number}
-   */
-  this._getRowHeightFromSettings = function (row) {
-    // let cellProperties = instance.getCellMeta(row, 0);
-    // let height = cellProperties.height;
-    //
-    // if (height === void 0 || height === priv.settings.height) {
-    //  height = cellProperties.rowHeights;
-    // }
-    var height = priv.settings.rowHeights;
-
-    if (height !== void 0 && height !== null) {
-      switch (typeof height === 'undefined' ? 'undefined' : _typeof(height)) {
-        case 'object':
-          // array
-          height = height[row];
-          break;
-
-        case 'function':
-          height = height(row);
-          break;
-        default:
-          break;
-      }
-      if (typeof height === 'string') {
-        height = parseInt(height, 10);
-      }
-    }
-
-    return height;
-  };
-
-  /**
-   * Returns the row height.
-   *
-   * @memberof Core#
-   * @function getRowHeight
-   * @param {Number} row Visual row index.
-   * @returns {Number} The given row's height.
-   * @fires Hooks#modifyRowHeight
-   */
-  this.getRowHeight = function (row) {
-    var height = instance._getRowHeightFromSettings(row);
-
-    height = instance.runHooks('modifyRowHeight', height, row);
-
-    return height;
-  };
-
-  /**
-   * Returns the total number of rows in the data source.
-   *
-   * @memberof Core#
-   * @function countSourceRows
-   * @returns {Number} Total number of rows.
-   */
-  this.countSourceRows = function () {
-    var sourceLength = instance.runHooks('modifySourceLength');
-    return sourceLength || (instance.getSourceData() ? instance.getSourceData().length : 0);
-  };
-
-  /**
-   * Returns the total number of columns in the data source.
-   *
-   * @memberof Core#
-   * @function countSourceCols
-   * @returns {Number} Total number of columns.
-   */
-  this.countSourceCols = function () {
-    var len = 0;
-    var obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
-
-    if ((0, _object.isObject)(obj)) {
-      len = (0, _object.deepObjectSize)(obj);
-    } else {
-      len = obj.length || 0;
-    }
-
-    return len;
-  };
-
-  /**
-   * Returns the total number of visual rows in the table.
-   *
-   * @memberof Core#
-   * @function countRows
-   * @returns {Number} Total number of rows.
-   */
-  this.countRows = function () {
-    return datamap.getLength();
-  };
-
-  /**
-   * Returns the total number of visible columns in the table.
-   *
-   * @memberof Core#
-   * @function countCols
-   * @returns {Number} Total number of columns.
-   */
-  this.countCols = function () {
-    var maxCols = this.getSettings().maxCols;
-    var dataHasLength = false;
-    var dataLen = 0;
-
-    if (instance.dataType === 'array') {
-      dataHasLength = priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length;
-    }
-
-    if (dataHasLength) {
-      dataLen = priv.settings.data[0].length;
-    }
-
-    if (priv.settings.columns) {
-      var columnsIsFunction = (0, _function.isFunction)(priv.settings.columns);
-
-      if (columnsIsFunction) {
-        if (instance.dataType === 'array') {
-          var columnLen = 0;
-
-          for (var i = 0; i < dataLen; i++) {
-            if (priv.settings.columns(i)) {
-              columnLen++;
-            }
-          }
-
-          dataLen = columnLen;
-        } else if (instance.dataType === 'object' || instance.dataType === 'function') {
-          dataLen = datamap.colToPropCache.length;
-        }
-      } else {
-        dataLen = priv.settings.columns.length;
-      }
-    } else if (instance.dataType === 'object' || instance.dataType === 'function') {
-      dataLen = datamap.colToPropCache.length;
-    }
-
-    return Math.min(maxCols, dataLen);
-  };
-
-  /**
-   * Returns an visual index of the first rendered row.
-   *
-   * @memberof Core#
-   * @function rowOffset
-   * @returns {Number} Visual index of first rendered row.
-   */
-  this.rowOffset = function () {
-    return instance.view.wt.wtTable.getFirstRenderedRow();
-  };
-
-  /**
-   * Returns the visual index of the first rendered column.
-   *
-   * @memberof Core#
-   * @function colOffset
-   * @returns {Number} Visual index of the first visible column.
-   */
-  this.colOffset = function () {
-    return instance.view.wt.wtTable.getFirstRenderedColumn();
-  };
-
-  /**
-   * Returns the number of rendered rows (including rows partially or fully rendered outside viewport).
-   *
-   * @memberof Core#
-   * @function countRenderedRows
-   * @returns {Number} Returns -1 if table is not visible.
-   */
-  this.countRenderedRows = function () {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedRowsCount() : -1;
-  };
-
-  /**
-   * Returns the number of visible rows (rendered rows that fully fit inside viewport).
-   *
-   * @memberof Core#
-   * @function countVisibleRows
-   * @returns {Number} Number of visible rows or -1.
-   */
-  this.countVisibleRows = function () {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleRowsCount() : -1;
-  };
-
-  /**
-   * Returns the number of rendered columns (including columns partially or fully rendered outside viewport).
-   *
-   * @memberof Core#
-   * @function countRenderedCols
-   * @returns {Number} Returns -1 if table is not visible.
-   */
-  this.countRenderedCols = function () {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedColumnsCount() : -1;
-  };
-
-  /**
-   * Returns the number of visible columns. Returns -1 if table is not visible
-   *
-   * @memberof Core#
-   * @function countVisibleCols
-   * @return {Number} Number of visible columns or -1.
-   */
-  this.countVisibleCols = function () {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleColumnsCount() : -1;
-  };
-
-  /**
-   * Returns the number of empty rows. If the optional ending parameter is `true`, returns the
-   * number of empty rows at the bottom of the table.
-   *
-   * @memberof Core#
-   * @function countEmptyRows
-   * @param {Boolean} [ending=false] If `true`, will only count empty rows at the end of the data source.
-   * @returns {Number} Count empty rows.
-   */
-  this.countEmptyRows = function () {
-    var ending = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-
-    var emptyRows = 0;
-
-    (0, _number.rangeEachReverse)(instance.countRows() - 1, function (visualIndex) {
-      if (instance.isEmptyRow(visualIndex)) {
-        emptyRows += 1;
-      } else if (ending === true) {
-        return false;
-      }
-    });
-
-    return emptyRows;
-  };
-
-  /**
-   * Returns the number of empty columns. If the optional ending parameter is `true`, returns the number of empty
-   * columns at right hand edge of the table.
-   *
-   * @memberof Core#
-   * @function countEmptyCols
-   * @param {Boolean} [ending=false] If `true`, will only count empty columns at the end of the data source row.
-   * @returns {Number} Count empty cols.
-   */
-  this.countEmptyCols = function () {
-    var ending = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-
-    if (instance.countRows() < 1) {
-      return 0;
-    }
-
-    var emptyColumns = 0;
-
-    (0, _number.rangeEachReverse)(instance.countCols() - 1, function (visualIndex) {
-      if (instance.isEmptyCol(visualIndex)) {
-        emptyColumns += 1;
-      } else if (ending === true) {
-        return false;
-      }
-    });
-
-    return emptyColumns;
-  };
-
-  /**
-   * Check if all cells in the row declared by the `row` argument are empty.
-   *
-   * @memberof Core#
-   * @function isEmptyRow
-   * @param {Number} row Visual row index.
-   * @returns {Boolean} `true` if the row at the given `row` is empty, `false` otherwise.
-   */
-  this.isEmptyRow = function (row) {
-    return priv.settings.isEmptyRow.call(instance, row);
-  };
-
-  /**
-   * Check if all cells in the the column declared by the `column` argument are empty.
-   *
-   * @memberof Core#
-   * @function isEmptyCol
-   * @param {Number} column Column index.
-   * @returns {Boolean} `true` if the column at the given `col` is empty, `false` otherwise.
-   */
-  this.isEmptyCol = function (column) {
-    return priv.settings.isEmptyCol.call(instance, column);
-  };
-
-  /**
-   * Select cell specified by `row` and `column` values or a range of cells finishing at `endRow`, `endCol`. If the table
-   * was configured to support data column properties that properties can be used to making a selection.
-   *
-   * By default, viewport will be scrolled to the selection. After the `selectCell` method had finished, the instance
-   * will be listening to keyboard input on the document.
-   *
-   * @example
-   * ```js
-   * // select a single cell
-   * hot.selectCell(2, 4);
-   * // select a single cell using column property
-   * hot.selectCell(2, 'address');
-   * // select a range of cells
-   * hot.selectCell(2, 4, 3, 5);
-   * // select a range of cells using column properties
-   * hot.selectCell(2, 'address', 3, 'phone_number');
-   * // select a range of cells without scrolling to them
-   * hot.selectCell(2, 'address', 3, 'phone_number', false);
-   * ```
-   *
-   * @memberof Core#
-   * @function selectCell
-   * @param {Number} row Visual row index.
-   * @param {Number|String} column Visual column index or column property.
-   * @param {Number} [endRow] Visual end row index (if selecting a range).
-   * @param {Number|String} [endColumn] Visual end column index or column property (if selecting a range).
-   * @param {Boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
-   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
-   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
-   */
-  this.selectCell = function (row, column, endRow, endColumn) {
-    var scrollToCell = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
-    var changeListener = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : true;
-
-    if ((0, _mixed.isUndefined)(row) || (0, _mixed.isUndefined)(column)) {
-      return false;
-    }
-
-    return this.selectCells([[row, column, endRow, endColumn]], scrollToCell, changeListener);
-  };
-
-  /**
-   * Make multiple, non-contiguous selection specified by `row` and `column` values or a range of cells
-   * finishing at `endRow`, `endColumn`. The method supports two input formats which are the same as that
-   * produces by `getSelected` and `getSelectedRange` methods.
-   *
-   * By default, viewport will be scrolled to selection. After the `selectCells` method had finished, the instance
-   * will be listening to keyboard input on the document.
-   *
-   * @example
-   * ```js
-   * // Using an array of arrays.
-   * hot.selectCells([[1, 1, 2, 2], [3, 3], [6, 2, 0, 2]]);
-   * // Using an array of arrays with defined columns as props.
-   * hot.selectCells([[1, 'id', 2, 'first_name'], [3, 'full_name'], [6, 'last_name', 0, 'first_name']]);
-   * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
-   * const selected = hot.getSelectedRange();
-   *
-   * selected[0].from.row = 0;
-   * selected[0].from.col = 0;
-   *
-   * hot.selectCells(selected);
-   * ```
-   *
-   * @memberof Core#
-   * @since 0.38.0
-   * @function selectCells
-   * @param {Array[]|CellRange[]} coords Visual coords passed as an array of array (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
-   *                                     the same format as `getSelected` method returns or as an CellRange objects
-   *                                     which is the same format what `getSelectedRange` method returns.
-   * @param {Boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
-   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
-   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
-   */
-  this.selectCells = function () {
-    var coords = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [[]];
-    var scrollToCell = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-    var changeListener = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-
-    if (scrollToCell === false) {
-      preventScrollingToCell = true;
-    }
-
-    var wasSelected = selection.selectCells(coords);
-
-    if (wasSelected && changeListener) {
-      instance.listen();
-    }
-    preventScrollingToCell = false;
-
-    return wasSelected;
-  };
-
-  /**
-   * Select the cell specified by the `row` and `prop` arguments, or a range finishing at `endRow`, `endProp`.
-   * By default, viewport will be scrolled to selection.
-   *
-   * @deprecated
-   * @memberof Core#
-   * @function selectCellByProp
-   * @param {Number} row Visual row index.
-   * @param {String} prop Property name.
-   * @param {Number} [endRow] visual end row index (if selecting a range).
-   * @param {String} [endProp] End property name (if selecting a range).
-   * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the selection.
-   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
-   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
-   */
-  this.selectCellByProp = function (row, prop, endRow, endProp) {
-    var scrollToCell = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
-    var changeListener = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : true;
-
-    (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject));
-
-    return this.selectCells([[row, prop, endRow, endProp]], scrollToCell, changeListener);
-  };
-
-  /**
-   * Select column specified by `startColumn` visual index, column property or a range of columns finishing at `endColumn`.
-   *
-   * @example
-   * ```js
-   * // Select column using visual index.
-   * hot.selectColumns(1);
-   * // Select column using column property.
-   * hot.selectColumns('id');
-   * // Select range of columns using visual indexes.
-   * hot.selectColumns(1, 4);
-   * // Select range of columns using column properties.
-   * hot.selectColumns('id', 'last_name');
-   * ```
-   *
-   * @memberof Core#
-   * @since 0.38.0
-   * @function selectColumns
-   * @param {Number} startColumn The visual column index from which the selection starts.
-   * @param {Number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
-   *                                         is not defined the column defined by `startColumn` will be selected.
-   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
-   */
-  this.selectColumns = function (startColumn) {
-    var endColumn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : startColumn;
-
-    return selection.selectColumns(startColumn, endColumn);
-  };
-
-  /**
-   * Select row specified by `startRow` visual index or a range of rows finishing at `endRow`.
-   *
-   * @example
-   * ```js
-   * // Select row using visual index.
-   * hot.selectRows(1);
-   * // Select range of rows using visual indexes.
-   * hot.selectRows(1, 4);
-   * ```
-   *
-   * @memberof Core#
-   * @since 0.38.0
-   * @function selectRows
-   * @param {Number} startRow The visual row index from which the selection starts.
-   * @param {Number} [endRow=startRow] The visual row index to which the selection finishes. If `endRow`
-   *                                   is not defined the row defined by `startRow` will be selected.
-   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
-   */
-  this.selectRows = function (startRow) {
-    var endRow = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : startRow;
-
-    return selection.selectRows(startRow, endRow);
-  };
-
-  /**
-   * Deselects the current cell selection on the table.
-   *
-   * @memberof Core#
-   * @function deselectCell
-   */
-  this.deselectCell = function () {
-    selection.deselect();
-  };
-
-  /**
-   * Select the whole table. The previous selection will be overwritten.
-   *
-   * @since 0.38.2
-   * @memberof Core#
-   * @function selectAll
-   */
-  this.selectAll = function () {
-    preventScrollingToCell = true;
-    selection.selectAll();
-    preventScrollingToCell = false;
-  };
-
-  /**
-   * Scroll viewport to coordinates specified by the `row` and `column` arguments.
-   *
-   * @memberof Core#
-   * @function scrollViewportTo
-   * @param {Number} [row] Visual row index.
-   * @param {Number} [column] Visual column index.
-   * @param {Boolean} [snapToBottom = false] If `true`, viewport is scrolled to show the cell on the bottom of the table.
-   * @param {Boolean} [snapToRight = false] If `true`, viewport is scrolled to show the cell on the right side of the table.
-   * @returns {Boolean} `true` if scroll was successful, `false` otherwise.
-   */
-  this.scrollViewportTo = function (row, column) {
-    var snapToBottom = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    var snapToRight = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
-
-    if (row !== void 0 && (row < 0 || row >= instance.countRows())) {
-      return false;
-    }
-    if (column !== void 0 && (column < 0 || column >= instance.countCols())) {
-      return false;
-    }
-
-    var result = false;
-
-    if (row !== void 0 && column !== void 0) {
-      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
-      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
-
-      result = true;
-    }
-    if (typeof row === 'number' && typeof column !== 'number') {
-      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
-
-      result = true;
-    }
-    if (typeof column === 'number' && typeof row !== 'number') {
-      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
-
-      result = true;
-    }
-
-    return result;
-  };
-
-  /**
-   * Removes the table from the DOM and destroys the instance of the Handsontable.
-   *
-   * @memberof Core#
-   * @function destroy
-   * @fires Hooks#afterDestroy
-   */
-  this.destroy = function () {
-    instance._clearTimeouts();
-    instance._clearImmediates();
-
-    if (instance.view) {
-      // in case HT is destroyed before initialization has finished
-      instance.view.destroy();
-    }
-    if (dataSource) {
-      dataSource.destroy();
-    }
-    dataSource = null;
-
-    (0, _keyStateObserver.stopObserving)();
-
-    if (false) {
-      var licenseInfo = document.querySelector('#hot-display-license-info');
-
-      if (licenseInfo) {
-        licenseInfo.parentNode.removeChild(licenseInfo);
-      }
-    }
-    (0, _element.empty)(instance.rootElement);
-    eventManager.destroy();
-
-    if (editorManager) {
-      editorManager.destroy();
-    }
-
-    instance.runHooks('afterDestroy');
-    _pluginHooks2.default.getSingleton().destroy(instance);
-
-    for (var i in instance) {
-      if ((0, _object.hasOwnProperty)(instance, i)) {
-        // replace instance methods with post mortem
-        if ((0, _function.isFunction)(instance[i])) {
-          instance[i] = postMortem(i);
-        } else if (i !== 'guid') {
-          // replace instance properties with null (restores memory)
-          // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
-          instance[i] = null;
-        }
-      }
-    }
-    instance.isDestroyed = true;
-
-    // replace private properties with null (restores memory)
-    // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
-    if (datamap) {
-      datamap.destroy();
-    }
-    datamap = null;
-    priv = null;
-    grid = null;
-    selection = null;
-    editorManager = null;
-    instance = null;
-    GridSettings = null;
-  };
-
-  /**
-   * Replacement for all methods after Handsotnable was destroyed.
-   *
-   * @private
-   */
-  function postMortem(method) {
-    return function () {
-      throw new Error('The "' + method + '" method cannot be called because this Handsontable instance has been destroyed');
-    };
-  }
-
-  /**
-   * Returns the active editor class instance.
-   *
-   * @memberof Core#
-   * @function getActiveEditor
-   * @returns {BaseEditor} The active editor instance.
-   */
-  this.getActiveEditor = function () {
-    return editorManager.getActiveEditor();
-  };
-
-  /**
-   * Returns plugin instance by provided its name.
-   *
-   * @memberof Core#
-   * @function getPlugin
-   * @param {String} pluginName The plugin name.
-   * @returns {BasePlugin} The plugin instance.
-   */
-  this.getPlugin = function (pluginName) {
-    return (0, _plugins.getPlugin)(this, pluginName);
-  };
-
-  /**
-   * Returns the Handsontable instance.
-   *
-   * @memberof Core#
-   * @function getInstance
-   * @returns {Handsontable} The Handsontable instance.
-   */
-  this.getInstance = function () {
-    return instance;
-  };
-
-  /**
-   * Adds listener to the specified hook name (only for this Handsontable instance).
-   *
-   * @memberof Core#
-   * @function addHook
-   * @see Hooks#add
-   * @param {String} key Hook name (see {@link Hooks}).
-   * @param {Function|Array} callback Function or array of functions.
-   * @example
-   * ```js
-   * hot.addHook('beforeInit', myCallback);
-   * ```
-   */
-  this.addHook = function (key, callback) {
-    _pluginHooks2.default.getSingleton().add(key, callback, instance);
-  };
-
-  /**
-   * Check if for a specified hook name there are added listeners (only for this Handsontable instance). All available
-   * hooks you will find {@link Hooks}.
-   *
-   * @memberof Core#
-   * @function hasHook
-   * @see Hooks#has
-   * @param {String} key Hook name
-   * @return {Boolean}
-   *
-   * @example
-   * ```js
-   * const hasBeforeInitListeners = hot.hasHook('beforeInit');
-   * ```
-   */
-  this.hasHook = function (key) {
-    return _pluginHooks2.default.getSingleton().has(key, instance);
-  };
-
-  /**
-   * Adds listener to specified hook name (only for this Handsontable instance). After the listener is triggered,
-   * it will be automatically removed.
-   *
-   * @memberof Core#
-   * @function addHookOnce
-   * @see Hooks#once
-   * @param {String} key Hook name (see {@link Hooks}).
-   * @param {Function|Array} callback Function or array of functions.
-   * @example
-   * ```js
-   * hot.addHookOnce('beforeInit', myCallback);
-   * ```
-   */
-  this.addHookOnce = function (key, callback) {
-    _pluginHooks2.default.getSingleton().once(key, callback, instance);
-  };
-
-  /**
-   * Removes the hook listener previously registered with {@link Core#addHook}.
-   *
-   * @memberof Core#
-   * @function removeHook
-   * @see Hooks#remove
-   * @param {String} key Hook name.
-   * @param {Function} callback Reference to the function which has been registered using {@link Core#addHook}.
-   *
-   * @example
-   * ```js
-   * hot.removeHook('beforeInit', myCallback);
-   * ```
-   */
-  this.removeHook = function (key, callback) {
-    _pluginHooks2.default.getSingleton().remove(key, callback, instance);
-  };
-
-  /**
-   * Run the callbacks for the hook provided in the `key` argument using the parameters given in the other arguments.
-   *
-   * @memberof Core#
-   * @function runHooks
-   * @see Hooks#run
-   * @param {String} key Hook name.
-   * @param {*} [p1] Argument passed to the callback.
-   * @param {*} [p2] Argument passed to the callback.
-   * @param {*} [p3] Argument passed to the callback.
-   * @param {*} [p4] Argument passed to the callback.
-   * @param {*} [p5] Argument passed to the callback.
-   * @param {*} [p6] Argument passed to the callback.
-   * @returns {*}
-   *
-   * @example
-   * ```js
-   * // Run built-in hook
-   * hot.runHooks('beforeInit');
-   * // Run custom hook
-   * hot.runHooks('customAction', 10, 'foo');
-   * ```
-   */
-  this.runHooks = function (key, p1, p2, p3, p4, p5, p6) {
-    return _pluginHooks2.default.getSingleton().run(instance, key, p1, p2, p3, p4, p5, p6);
-  };
-
-  /**
-   * Get language phrase for specified dictionary key.
-   *
-   * @memberof Core#
-   * @function getTranslatedPhrase
-   * @since 0.35.0
-   * @param {String} dictionaryKey Constant which is dictionary key.
-   * @param {*} extraArguments Arguments which will be handled by formatters.
-   * @returns {String}
-   */
-  this.getTranslatedPhrase = function (dictionaryKey, extraArguments) {
-    return (0, _i18n.getTranslatedPhrase)(priv.settings.language, dictionaryKey, extraArguments);
-  };
-
-  this.timeouts = [];
-
-  /**
-   * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called.
-   *
-   * @param {Number|Function} handle Handler returned from setTimeout or function to execute (it will be automatically wraped
-   *                                 by setTimeout function).
-   * @param {Number} [delay=0] If first argument is passed as a function this argument set delay of the execution of that function.
-   * @private
-   */
-  this._registerTimeout = function (handle) {
-    var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-
-    if (typeof handle === 'function') {
-      handle = setTimeout(handle, delay);
-    }
-
-    this.timeouts.push(handle);
-  };
-
-  /**
-   * Clears all known timeouts.
-   *
-   * @private
-   */
-  this._clearTimeouts = function () {
-    (0, _array.arrayEach)(this.timeouts, function (handler) {
-      clearTimeout(handler);
-    });
-  };
-
-  this.immediates = [];
-
-  /**
-   * Execute function execution to the next event loop cycle. Purpose of this method is to clear all known timeouts when `destroy` method is called.
-   *
-   * @param {Function} callback Function to be delayed in execution.
-   * @private
-   */
-  this._registerImmediate = function (callback) {
-    this.immediates.push(setImmediate(callback));
-  };
-
-  /**
-   * Clears all known timeouts.
-   *
-   * @private
-   */
-  this._clearImmediates = function () {
-    (0, _array.arrayEach)(this.immediates, function (handler) {
-      clearImmediate(handler);
-    });
-  };
-
-  /**
-   * Refresh selection borders. This is temporary method relic after selection rewrite.
-   *
-   * @private
-   * @param {Boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
-   * @param {Boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
-   */
-  this._refreshBorders = function () {
-    var revertOriginal = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-    var prepareEditorIfNeeded = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-
-    editorManager.destroyEditor(revertOriginal);
-    instance.view.render();
-
-    if (prepareEditorIfNeeded && selection.isSelected()) {
-      editorManager.prepareEditor();
-    }
-  };
-
-  _pluginHooks2.default.getSingleton().run(instance, 'construct');
-};
-
-/***/ }),
-/* 92 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.columnFactory = columnFactory;
-
-var _object = __webpack_require__(2);
-
-/* eslint-disable import/prefer-default-export */
-/**
- * Factory for columns constructors.
- *
- * @param {Object} GridSettings
- * @param {Array} conflictList
- * @return {Object} ColumnSettings
- */
-function columnFactory(GridSettings, conflictList) {
-  function ColumnSettings() {};
-
-  (0, _object.inherit)(ColumnSettings, GridSettings);
-
-  // Clear conflict settings
-  for (var i = 0, len = conflictList.length; i < len; i++) {
-    ColumnSettings.prototype[conflictList[i]] = void 0;
-  }
-
-  return ColumnSettings;
-}
-
-/***/ }),
-/* 93 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.spreadsheetColumnLabel = spreadsheetColumnLabel;
-exports.spreadsheetColumnIndex = spreadsheetColumnIndex;
-exports.createSpreadsheetData = createSpreadsheetData;
-exports.createSpreadsheetObjectData = createSpreadsheetObjectData;
-exports.createEmptySpreadsheetData = createEmptySpreadsheetData;
-exports.translateRowsToColumns = translateRowsToColumns;
-exports.cellMethodLookupFactory = cellMethodLookupFactory;
-
-var _cellTypes = __webpack_require__(90);
-
-var _object = __webpack_require__(2);
-
-var COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-var COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
-
-/**
- * Generates spreadsheet-like column names: A, B, C, ..., Z, AA, AB, etc.
- *
- * @param {Number} index Column index.
- * @returns {String}
- */
-function spreadsheetColumnLabel(index) {
-  var dividend = index + 1;
-  var columnLabel = '';
-  var modulo = void 0;
-
-  while (dividend > 0) {
-    modulo = (dividend - 1) % COLUMN_LABEL_BASE_LENGTH;
-    columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-    dividend = parseInt((dividend - modulo) / COLUMN_LABEL_BASE_LENGTH, 10);
-  }
-
-  return columnLabel;
-}
-
-/**
- * Generates spreadsheet-like column index from theirs labels: A, B, C ...., Z, AA, AB, etc.
- *
- * @param {String} label Column label.
- * @returns {Number}
- */
-function spreadsheetColumnIndex(label) {
-  var result = 0;
-
-  if (label) {
-    for (var i = 0, j = label.length - 1; i < label.length; i += 1, j -= 1) {
-      result += Math.pow(COLUMN_LABEL_BASE_LENGTH, j) * (COLUMN_LABEL_BASE.indexOf(label[i]) + 1);
-    }
-  }
-  --result;
-
-  return result;
-}
-
-/**
- * Creates 2D array of Excel-like values "A1", "A2", ...
- *
- * @param {Number} rows Number of rows to generate.
- * @param {Number} columns Number of columns to generate.
- * @returns {Array}
- */
-function createSpreadsheetData() {
-  var rows = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 100;
-  var columns = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 4;
-
-  var _rows = [],
-      i,
-      j;
-
-  for (i = 0; i < rows; i++) {
-    var row = [];
-
-    for (j = 0; j < columns; j++) {
-      row.push(spreadsheetColumnLabel(j) + (i + 1));
-    }
-    _rows.push(row);
-  }
-
-  return _rows;
-}
-
-/**
- * Creates 2D array of Excel-like values "A1", "A2", as an array of objects.
- *
- * @param {Number} rows Number of rows to generate.
- * @param {Number} colCount Number of columns to generate.
- * @returns {Array}
- */
-function createSpreadsheetObjectData() {
-  var rows = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 100;
-  var colCount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 4;
-
-  var _rows = [],
-      i,
-      j;
-
-  for (i = 0; i < rows; i++) {
-    var row = {};
-
-    for (j = 0; j < colCount; j++) {
-      row['prop' + j] = spreadsheetColumnLabel(j) + (i + 1);
-    }
-    _rows.push(row);
-  }
-
-  return _rows;
-}
-
-/**
- * Generates an empty data object.
- *
- * @param {Number} rows Number of rows to generate.
- * @param {Number} columns Number of columns to generate
- * @returns {Array}
- */
-function createEmptySpreadsheetData(rows, columns) {
-  var data = [];
-  var row = void 0;
-
-  for (var i = 0; i < rows; i++) {
-    row = [];
-    for (var j = 0; j < columns; j++) {
-      row.push('');
-    }
-    data.push(row);
-  }
-
-  return data;
-}
-
-function translateRowsToColumns(input) {
-  var i,
-      ilen,
-      j,
-      jlen,
-      output = [],
-      olen = 0;
-
-  for (i = 0, ilen = input.length; i < ilen; i++) {
-    for (j = 0, jlen = input[i].length; j < jlen; j++) {
-      if (j == olen) {
-        output.push([]);
-        olen++;
-      }
-      output[j].push(input[i][j]);
-    }
-  }
-
-  return output;
-}
-
-/**
- * Factory that produces a function for searching methods (or any properties) which could be defined directly in
- * table configuration or implicitly, within cell type definition.
- *
- * For example: renderer can be defined explicitly using "renderer" property in column configuration or it can be
- * defined implicitly using "type" property.
- *
- * Methods/properties defined explicitly always takes precedence over those defined through "type".
- *
- * If the method/property is not found in an object, searching is continued recursively through prototype chain, until
- * it reaches the Object.prototype.
- *
- *
- * @param methodName {String} name of the method/property to search (i.e. 'renderer', 'validator', 'copyable')
- * @param allowUndefined {Boolean} [optional] if false, the search is continued if methodName has not been found in cell "type"
- * @returns {Function}
- */
-function cellMethodLookupFactory(methodName, allowUndefined) {
-
-  allowUndefined = typeof allowUndefined == 'undefined' ? true : allowUndefined;
-
-  return function cellMethodLookup(row, col) {
-    return function getMethodFromProperties(properties) {
-
-      if (!properties) {
-        return; // method not found
-      } else if ((0, _object.hasOwnProperty)(properties, methodName) && properties[methodName] !== void 0) {
-        // check if it is own and is not empty
-        return properties[methodName]; // method defined directly
-      } else if ((0, _object.hasOwnProperty)(properties, 'type') && properties.type) {
-        // check if it is own and is not empty
-        var type;
-
-        if (typeof properties.type != 'string') {
-          throw new Error('Cell type must be a string ');
-        }
-        type = (0, _cellTypes.getCellType)(properties.type);
-
-        if ((0, _object.hasOwnProperty)(type, methodName)) {
-          return type[methodName]; // method defined in type.
-        } else if (allowUndefined) {
-          return; // method does not defined in type (eg. validator), returns undefined
-        }
-      }
-
-      return getMethodFromProperties(Object.getPrototypeOf(properties));
-    }(typeof row == 'number' ? this.getCellMeta(row, col) : row);
-  };
-}
-
-/***/ }),
-/* 94 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _element = __webpack_require__(0);
-
-var _array = __webpack_require__(1);
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * @class GhostTable
- * @util
- */
-var GhostTable = function () {
-  function GhostTable(hotInstance) {
-    _classCallCheck(this, GhostTable);
-
-    /**
-     * Handsontable instance.
-     *
-     * @type {Core}
-     */
-    this.hot = hotInstance;
-    /**
-     * Container element where every table will be injected.
-     *
-     * @type {HTMLElement|null}
-     */
-    this.container = null;
-    /**
-     * Flag which determine is table was injected to DOM.
-     *
-     * @type {Boolean}
-     */
-    this.injected = false;
-    /**
-     * Added rows collection.
-     *
-     * @type {Array}
-     */
-    this.rows = [];
-    /**
-     * Added columns collection.
-     *
-     * @type {Array}
-     */
-    this.columns = [];
-    /**
-     * Samples prepared for calculations.
-     *
-     * @type {Map}
-     * @default {null}
-     */
-    this.samples = null;
-    /**
-     * Ghost table settings.
-     *
-     * @type {Object}
-     * @default {Object}
-     */
-    this.settings = {
-      useHeaders: true
-    };
-  }
-
-  /**
-   * Add row.
-   *
-   * @param {Number} row Row index.
-   * @param {Map} samples Samples Map object.
-   */
-
-
-  _createClass(GhostTable, [{
-    key: 'addRow',
-    value: function addRow(row, samples) {
-      if (this.columns.length) {
-        throw new Error('Doesn\'t support multi-dimensional table');
-      }
-      if (!this.rows.length) {
-        this.container = this.createContainer(this.hot.rootElement.className);
-      }
-      var rowObject = { row: row };
-      this.rows.push(rowObject);
-
-      this.samples = samples;
-      this.table = this.createTable(this.hot.table.className);
-      this.table.colGroup.appendChild(this.createColGroupsCol());
-      this.table.tr.appendChild(this.createRow(row));
-      this.container.container.appendChild(this.table.fragment);
-
-      rowObject.table = this.table.table;
-    }
-
-    /**
-     * Add a row consisting of the column headers.
-     */
-
-  }, {
-    key: 'addColumnHeadersRow',
-    value: function addColumnHeadersRow(samples) {
-      if (this.hot.getColHeader(0) != null) {
-        var rowObject = { row: -1 };
-        this.rows.push(rowObject);
-
-        this.container = this.createContainer(this.hot.rootElement.className);
-
-        this.samples = samples;
-        this.table = this.createTable(this.hot.table.className);
-        this.table.colGroup.appendChild(this.createColGroupsCol());
-        this.table.tHead.appendChild(this.createColumnHeadersRow());
-        this.container.container.appendChild(this.table.fragment);
-
-        rowObject.table = this.table.table;
-      }
-    }
-
-    /**
-     * Add column.
-     *
-     * @param {Number} column Column index.
-     * @param {Map} samples Samples Map object.
-     */
-
-  }, {
-    key: 'addColumn',
-    value: function addColumn(column, samples) {
-      if (this.rows.length) {
-        throw new Error('Doesn\'t support multi-dimensional table');
-      }
-      if (!this.columns.length) {
-        this.container = this.createContainer(this.hot.rootElement.className);
-      }
-      var columnObject = { col: column };
-      this.columns.push(columnObject);
-
-      this.samples = samples;
-      this.table = this.createTable(this.hot.table.className);
-
-      if (this.getSetting('useHeaders') && this.hot.getColHeader(column) !== null) {
-        this.hot.view.appendColHeader(column, this.table.th);
-      }
-      this.table.tBody.appendChild(this.createCol(column));
-      this.container.container.appendChild(this.table.fragment);
-
-      columnObject.table = this.table.table;
-    }
-
-    /**
-     * Get calculated heights.
-     *
-     * @param {Function} callback Callback which will be fired for each calculated row.
-     */
-
-  }, {
-    key: 'getHeights',
-    value: function getHeights(callback) {
-      if (!this.injected) {
-        this.injectTable();
-      }
-      (0, _array.arrayEach)(this.rows, function (row) {
-        // -1 <- reduce border-top from table
-        callback(row.row, (0, _element.outerHeight)(row.table) - 1);
-      });
-    }
-
-    /**
-     * Get calculated widths.
-     *
-     * @param {Function} callback Callback which will be fired for each calculated column.
-     */
-
-  }, {
-    key: 'getWidths',
-    value: function getWidths(callback) {
-      if (!this.injected) {
-        this.injectTable();
-      }
-      (0, _array.arrayEach)(this.columns, function (column) {
-        callback(column.col, (0, _element.outerWidth)(column.table));
-      });
-    }
-
-    /**
-     * Set the Ghost Table settings to the provided object.
-     *
-     * @param {Object} settings New Ghost Table Settings
-     */
-
-  }, {
-    key: 'setSettings',
-    value: function setSettings(settings) {
-      this.settings = settings;
-    }
-
-    /**
-     * Set a single setting of the Ghost Table.
-     *
-     * @param {String} name Setting name.
-     * @param {*} value Setting value.
-     */
-
-  }, {
-    key: 'setSetting',
-    value: function setSetting(name, value) {
-      if (!this.settings) {
-        this.settings = {};
-      }
-
-      this.settings[name] = value;
-    }
-
-    /**
-     * Get the Ghost Table settings.
-     *
-     * @returns {Object|null}
-     */
-
-  }, {
-    key: 'getSettings',
-    value: function getSettings() {
-      return this.settings;
-    }
-
-    /**
-     * Get a single Ghost Table setting.
-     *
-     * @param {String} name
-     * @returns {Boolean|null}
-     */
-
-  }, {
-    key: 'getSetting',
-    value: function getSetting(name) {
-      if (this.settings) {
-        return this.settings[name];
-      }
-      return null;
-    }
-
-    /**
-     * Create colgroup col elements.
-     *
-     * @returns {DocumentFragment}
-     */
-
-  }, {
-    key: 'createColGroupsCol',
-    value: function createColGroupsCol() {
-      var _this = this;
-
-      var d = document;
-      var fragment = d.createDocumentFragment();
-
-      if (this.hot.hasRowHeaders()) {
-        fragment.appendChild(this.createColElement(-1));
-      }
-
-      this.samples.forEach(function (sample) {
-        (0, _array.arrayEach)(sample.strings, function (string) {
-          fragment.appendChild(_this.createColElement(string.col));
-        });
-      });
-
-      return fragment;
-    }
-
-    /**
-     * Create table row element.
-     *
-     * @param {Number} row Row index.
-     * @returns {DocumentFragment} Returns created table row elements.
-     */
-
-  }, {
-    key: 'createRow',
-    value: function createRow(row) {
-      var _this2 = this;
-
-      var d = document;
-      var fragment = d.createDocumentFragment();
-      var th = d.createElement('th');
-
-      if (this.hot.hasRowHeaders()) {
-        this.hot.view.appendRowHeader(row, th);
-
-        fragment.appendChild(th);
-      }
-
-      this.samples.forEach(function (sample) {
-        (0, _array.arrayEach)(sample.strings, function (string) {
-          var column = string.col;
-          var cellProperties = _this2.hot.getCellMeta(row, column);
-
-          cellProperties.col = column;
-          cellProperties.row = row;
-
-          var renderer = _this2.hot.getCellRenderer(cellProperties);
-          var td = d.createElement('td');
-
-          renderer(_this2.hot, td, row, column, _this2.hot.colToProp(column), string.value, cellProperties);
-          fragment.appendChild(td);
-        });
-      });
-
-      return fragment;
-    }
-  }, {
-    key: 'createColumnHeadersRow',
-    value: function createColumnHeadersRow() {
-      var _this3 = this;
-
-      var d = document;
-      var fragment = d.createDocumentFragment();
-
-      if (this.hot.hasRowHeaders()) {
-        var th = d.createElement('th');
-        this.hot.view.appendColHeader(-1, th);
-        fragment.appendChild(th);
-      }
-
-      this.samples.forEach(function (sample) {
-        (0, _array.arrayEach)(sample.strings, function (string) {
-          var column = string.col;
-
-          var th = d.createElement('th');
-
-          _this3.hot.view.appendColHeader(column, th);
-          fragment.appendChild(th);
-        });
-      });
-
-      return fragment;
-    }
-
-    /**
-     * Create table column elements.
-     *
-     * @param {Number} column Column index.
-     * @returns {DocumentFragment} Returns created column table column elements.
-     */
-
-  }, {
-    key: 'createCol',
-    value: function createCol(column) {
-      var _this4 = this;
-
-      var d = document;
-      var fragment = d.createDocumentFragment();
-
-      this.samples.forEach(function (sample) {
-        (0, _array.arrayEach)(sample.strings, function (string) {
-          var row = string.row;
-          var cellProperties = _this4.hot.getCellMeta(row, column);
-
-          cellProperties.col = column;
-          cellProperties.row = row;
-
-          var renderer = _this4.hot.getCellRenderer(cellProperties);
-          var td = d.createElement('td');
-          var tr = d.createElement('tr');
-
-          renderer(_this4.hot, td, row, column, _this4.hot.colToProp(column), string.value, cellProperties);
-          tr.appendChild(td);
-          fragment.appendChild(tr);
-        });
-      });
-
-      return fragment;
-    }
-
-    /**
-     * Remove table from document and reset internal state.
-     */
-
-  }, {
-    key: 'clean',
-    value: function clean() {
-      this.rows.length = 0;
-      this.rows[-1] = void 0;
-      this.columns.length = 0;
-
-      if (this.samples) {
-        this.samples.clear();
-      }
-      this.samples = null;
-      this.removeTable();
-    }
-
-    /**
-     * Inject generated table into document.
-     *
-     * @param {HTMLElement} [parent=null]
-     */
-
-  }, {
-    key: 'injectTable',
-    value: function injectTable() {
-      var parent = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
-
-      if (!this.injected) {
-        (parent || this.hot.rootElement).appendChild(this.container.fragment);
-        this.injected = true;
-      }
-    }
-
-    /**
-     * Remove table from document.
-     */
-
-  }, {
-    key: 'removeTable',
-    value: function removeTable() {
-      if (this.injected && this.container.container.parentNode) {
-        this.container.container.parentNode.removeChild(this.container.container);
-        this.container = null;
-        this.injected = false;
-      }
-    }
-
-    /**
-     * Create col element.
-     *
-     * @param {Number} column Column index.
-     * @returns {HTMLElement}
-     */
-
-  }, {
-    key: 'createColElement',
-    value: function createColElement(column) {
-      var d = document;
-      var col = d.createElement('col');
-
-      col.style.width = this.hot.view.wt.wtTable.getStretchedColumnWidth(column) + 'px';
-
-      return col;
-    }
-
-    /**
-     * Create table element.
-     *
-     * @param {String} className
-     * @returns {Object}
-     */
-
-  }, {
-    key: 'createTable',
-    value: function createTable() {
-      var className = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-
-      var d = document;
-      var fragment = d.createDocumentFragment();
-      var table = d.createElement('table');
-      var tHead = d.createElement('thead');
-      var tBody = d.createElement('tbody');
-      var colGroup = d.createElement('colgroup');
-      var tr = d.createElement('tr');
-      var th = d.createElement('th');
-
-      if (this.isVertical()) {
-        table.appendChild(colGroup);
-      }
-      if (this.isHorizontal()) {
-        tr.appendChild(th);
-        tHead.appendChild(tr);
-        table.style.tableLayout = 'auto';
-        table.style.width = 'auto';
-      }
-      table.appendChild(tHead);
-
-      if (this.isVertical()) {
-        tBody.appendChild(tr);
-      }
-      table.appendChild(tBody);
-      (0, _element.addClass)(table, className);
-      fragment.appendChild(table);
-
-      return { fragment: fragment, table: table, tHead: tHead, tBody: tBody, colGroup: colGroup, tr: tr, th: th };
-    }
-
-    /**
-     * Create container for tables.
-     *
-     * @param {String} className
-     * @returns {Object}
-     */
-
-  }, {
-    key: 'createContainer',
-    value: function createContainer() {
-      var className = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-
-      var d = document;
-      var fragment = d.createDocumentFragment();
-      var container = d.createElement('div');
-
-      className = 'htGhostTable htAutoSize ' + className.trim();
-      (0, _element.addClass)(container, className);
-      fragment.appendChild(container);
-
-      return { fragment: fragment, container: container };
-    }
-
-    /**
-     * Checks if table is raised vertically (checking rows).
-     *
-     * @returns {Boolean}
-     */
-
-  }, {
-    key: 'isVertical',
-    value: function isVertical() {
-      return !!(this.rows.length && !this.columns.length);
-    }
-
-    /**
-     * Checks if table is raised horizontally (checking columns).
-     *
-     * @returns {Boolean}
-     */
-
-  }, {
-    key: 'isHorizontal',
-    value: function isHorizontal() {
-      return !!(this.columns.length && !this.rows.length);
-    }
-  }]);
-
-  return GhostTable;
-}();
-
-exports.default = GhostTable;
-
-/***/ }),
-/* 95 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _array = __webpack_require__(1);
-
-var _object = __webpack_require__(2);
-
-var _number = __webpack_require__(5);
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-var MIXIN_NAME = 'arrayMapper';
-
-/**
- * @type {Object}
- */
-var arrayMapper = {
-  _arrayMap: [],
-
-  /**
-   * Get translated index by its physical index.
-   *
-   * @param {Number} physicalIndex Physical index.
-   * @return {Number|null} Returns translated index mapped by passed physical index.
-   */
-  getValueByIndex: function getValueByIndex(physicalIndex) {
-    var length = this._arrayMap.length;
-    var translatedIndex = null;
-
-    if (physicalIndex < length) {
-      translatedIndex = this._arrayMap[physicalIndex];
-    }
-
-    return translatedIndex;
-  },
-
-
-  /**
-   * Get physical index by its translated index.
-   *
-   * @param {*} translatedIndex Value to search.
-   * @returns {Number|null} Returns a physical index of the array mapper.
-   */
-  getIndexByValue: function getIndexByValue(translatedIndex) {
-    var physicalIndex = void 0;
-
-    // eslint-disable-next-line no-cond-assign, no-return-assign
-    return (physicalIndex = this._arrayMap.indexOf(translatedIndex)) === -1 ? null : physicalIndex;
-  },
-
-
-  /**
-   * Insert new items to array mapper starting at passed index. New entries will be a continuation of last value in the array.
-   *
-   * @param {Number} physicalIndex Array index.
-   * @param {Number} [amount=1] Defines how many items will be created to an array.
-   * @returns {Array} Returns added items.
-   */
-  insertItems: function insertItems(physicalIndex) {
-    var _this = this;
-
-    var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
-    var newIndex = (0, _array.arrayMax)(this._arrayMap) + 1;
-    var addedItems = [];
-
-    (0, _number.rangeEach)(amount - 1, function (count) {
-      addedItems.push(_this._arrayMap.splice(physicalIndex + count, 0, newIndex + count));
-    });
-
-    return addedItems;
-  },
-
-
-  /**
-   * Remove items from array mapper.
-   *
-   * @param {Number} physicalIndex Array index.
-   * @param {Number} [amount=1] Defines how many items will be created to an array.
-   * @returns {Array} Returns removed items.
-   */
-  removeItems: function removeItems(physicalIndex) {
-    var _this2 = this;
-
-    var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
-    var removedItems = [];
-
-    if (Array.isArray(physicalIndex)) {
-      var mapCopy = [].concat(this._arrayMap);
-
-      // Sort descending
-      physicalIndex.sort(function (a, b) {
-        return b - a;
-      });
-
-      removedItems = (0, _array.arrayReduce)(physicalIndex, function (acc, item) {
-        _this2._arrayMap.splice(item, 1);
-
-        return acc.concat(mapCopy.slice(item, item + 1));
-      }, []);
-    } else {
-      removedItems = this._arrayMap.splice(physicalIndex, amount);
-    }
-
-    return removedItems;
-  },
-
-
-  /**
-   * Unshift items (remove and shift chunk of array to the left).
-   *
-   * @param {Number|Array} physicalIndex Array index or Array of indexes to unshift.
-   * @param {Number} [amount=1] Defines how many items will be removed from an array (when index is passed as number).
-   */
-  unshiftItems: function unshiftItems(physicalIndex) {
-    var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
-    var removedItems = this.removeItems(physicalIndex, amount);
-
-    function countRowShift(logicalRow) {
-      // Todo: compare perf between reduce vs sort->each->brake
-      return (0, _array.arrayReduce)(removedItems, function (count, removedLogicalRow) {
-        if (logicalRow > removedLogicalRow) {
-          count++;
-        }
-
-        return count;
-      }, 0);
-    }
-
-    this._arrayMap = (0, _array.arrayMap)(this._arrayMap, function (logicalRow, physicalRow) {
-      var rowShift = countRowShift(logicalRow);
-
-      if (rowShift) {
-        logicalRow -= rowShift;
-      }
-
-      return logicalRow;
-    });
-  },
-
-
-  /**
-   * Shift (right shifting) items starting at passed index.
-   *
-   * @param {Number} physicalIndex Array index.
-   * @param {Number} [amount=1] Defines how many items will be created to an array.
-   */
-  shiftItems: function shiftItems(physicalIndex) {
-    var _this3 = this;
-
-    var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
-    this._arrayMap = (0, _array.arrayMap)(this._arrayMap, function (row) {
-      if (row >= physicalIndex) {
-        row += amount;
-      }
-      return row;
-    });
-
-    (0, _number.rangeEach)(amount - 1, function (count) {
-      _this3._arrayMap.splice(physicalIndex + count, 0, physicalIndex + count);
-    });
-  },
-
-
-  /**
-   * Swap indexes in arrayMapper.
-   *
-   * @param {Number} physicalIndexFrom index to move.
-   * @param {Number} physicalIndexTo index to.
-   */
-  swapIndexes: function swapIndexes(physicalIndexFrom, physicalIndexTo) {
-    var _arrayMap;
-
-    (_arrayMap = this._arrayMap).splice.apply(_arrayMap, [physicalIndexTo, 0].concat(_toConsumableArray(this._arrayMap.splice(physicalIndexFrom, 1))));
-  },
-
-
-  /**
-   * Clear all stored index<->value information from an array.
-   */
-  clearMap: function clearMap() {
-    this._arrayMap.length = 0;
-  }
-};
-
-(0, _object.defineGetter)(arrayMapper, 'MIXIN_NAME', MIXIN_NAME, {
-  writable: false,
-  enumerable: false
-});
-
-exports.default = arrayMapper;
-
-/***/ }),
-/* 96 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.default = separatorItem;
-var KEY = exports.KEY = '---------';
-
-function separatorItem() {
-  return {
-    name: KEY
-  };
-}
-
-/***/ }),
-/* 97 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.ITEMS = exports.UNDO = exports.SEPARATOR = exports.ROW_BELOW = exports.ROW_ABOVE = exports.REMOVE_ROW = exports.REMOVE_COLUMN = exports.REDO = exports.READ_ONLY = exports.COLUMN_RIGHT = exports.COLUMN_LEFT = exports.CLEAR_COLUMN = exports.ALIGNMENT = undefined;
-
-var _predefinedItems2;
-
-var _alignment = __webpack_require__(427);
-
-Object.defineProperty(exports, 'ALIGNMENT', {
-  enumerable: true,
-  get: function get() {
-    return _alignment.KEY;
-  }
-});
-
-var _clearColumn = __webpack_require__(428);
-
-Object.defineProperty(exports, 'CLEAR_COLUMN', {
-  enumerable: true,
-  get: function get() {
-    return _clearColumn.KEY;
-  }
-});
-
-var _columnLeft = __webpack_require__(429);
-
-Object.defineProperty(exports, 'COLUMN_LEFT', {
-  enumerable: true,
-  get: function get() {
-    return _columnLeft.KEY;
-  }
-});
-
-var _columnRight = __webpack_require__(430);
-
-Object.defineProperty(exports, 'COLUMN_RIGHT', {
-  enumerable: true,
-  get: function get() {
-    return _columnRight.KEY;
-  }
-});
-
-var _readOnly = __webpack_require__(431);
-
-Object.defineProperty(exports, 'READ_ONLY', {
-  enumerable: true,
-  get: function get() {
-    return _readOnly.KEY;
-  }
-});
-
-var _redo = __webpack_require__(432);
-
-Object.defineProperty(exports, 'REDO', {
-  enumerable: true,
-  get: function get() {
-    return _redo.KEY;
-  }
-});
-
-var _removeColumn = __webpack_require__(433);
-
-Object.defineProperty(exports, 'REMOVE_COLUMN', {
-  enumerable: true,
-  get: function get() {
-    return _removeColumn.KEY;
-  }
-});
-
-var _removeRow = __webpack_require__(434);
-
-Object.defineProperty(exports, 'REMOVE_ROW', {
-  enumerable: true,
-  get: function get() {
-    return _removeRow.KEY;
-  }
-});
-
-var _rowAbove = __webpack_require__(435);
-
-Object.defineProperty(exports, 'ROW_ABOVE', {
-  enumerable: true,
-  get: function get() {
-    return _rowAbove.KEY;
-  }
-});
-
-var _rowBelow = __webpack_require__(436);
-
-Object.defineProperty(exports, 'ROW_BELOW', {
-  enumerable: true,
-  get: function get() {
-    return _rowBelow.KEY;
-  }
-});
-
-var _separator = __webpack_require__(96);
-
-Object.defineProperty(exports, 'SEPARATOR', {
-  enumerable: true,
-  get: function get() {
-    return _separator.KEY;
-  }
-});
-
-var _undo = __webpack_require__(437);
-
-Object.defineProperty(exports, 'UNDO', {
-  enumerable: true,
-  get: function get() {
-    return _undo.KEY;
-  }
-});
-exports.predefinedItems = predefinedItems;
-exports.addItem = addItem;
-
-var _object = __webpack_require__(2);
-
-var _alignment2 = _interopRequireDefault(_alignment);
-
-var _clearColumn2 = _interopRequireDefault(_clearColumn);
-
-var _columnLeft2 = _interopRequireDefault(_columnLeft);
-
-var _columnRight2 = _interopRequireDefault(_columnRight);
-
-var _readOnly2 = _interopRequireDefault(_readOnly);
-
-var _redo2 = _interopRequireDefault(_redo);
-
-var _removeColumn2 = _interopRequireDefault(_removeColumn);
-
-var _removeRow2 = _interopRequireDefault(_removeRow);
-
-var _rowAbove2 = _interopRequireDefault(_rowAbove);
-
-var _rowBelow2 = _interopRequireDefault(_rowBelow);
-
-var _separator2 = _interopRequireDefault(_separator);
-
-var _undo2 = _interopRequireDefault(_undo);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-var ITEMS = exports.ITEMS = [_rowAbove.KEY, _rowBelow.KEY, _columnLeft.KEY, _columnRight.KEY, _clearColumn.KEY, _removeRow.KEY, _removeColumn.KEY, _undo.KEY, _redo.KEY, _readOnly.KEY, _alignment.KEY, _separator.KEY];
-
-var _predefinedItems = (_predefinedItems2 = {}, _defineProperty(_predefinedItems2, _separator.KEY, _separator2.default), _defineProperty(_predefinedItems2, _rowAbove.KEY, _rowAbove2.default), _defineProperty(_predefinedItems2, _rowBelow.KEY, _rowBelow2.default), _defineProperty(_predefinedItems2, _columnLeft.KEY, _columnLeft2.default), _defineProperty(_predefinedItems2, _columnRight.KEY, _columnRight2.default), _defineProperty(_predefinedItems2, _clearColumn.KEY, _clearColumn2.default), _defineProperty(_predefinedItems2, _removeRow.KEY, _removeRow2.default), _defineProperty(_predefinedItems2, _removeColumn.KEY, _removeColumn2.default), _defineProperty(_predefinedItems2, _undo.KEY, _undo2.default), _defineProperty(_predefinedItems2, _redo.KEY, _redo2.default), _defineProperty(_predefinedItems2, _readOnly.KEY, _readOnly2.default), _defineProperty(_predefinedItems2, _alignment.KEY, _alignment2.default), _predefinedItems2);
-
-/**
- * Gets new object with all predefined menu items.
- *
- * @returns {Object}
- */
-function predefinedItems() {
-  var items = {};
-
-  (0, _object.objectEach)(_predefinedItems, function (itemFactory, key) {
-    items[key] = itemFactory();
-  });
-
-  return items;
-}
-
-/**
- * Add new predefined menu item to the collection.
- *
- * @param {String} key Menu command id.
- * @param {Object} item Object command descriptor.
- */
-function addItem(key, item) {
-  if (ITEMS.indexOf(key) === -1) {
-    _predefinedItems[key] = item;
-  }
-}
-
-/***/ }),
-/* 98 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _templateObject = _taggedTemplateLiteral(['The merged cell declared with {row: ', ', col: ', ', rowspan: \n    ', ', colspan: ', '} contains negative values, which is not supported. It \n    will not be added to the collection.'], ['The merged cell declared with {row: ', ', col: ', ', rowspan: \n    ', ', colspan: ', '} contains negative values, which is not supported. It \n    will not be added to the collection.']),
-    _templateObject2 = _taggedTemplateLiteral(['The merged cell declared at [', ', ', '] is positioned (or positioned partially) \n       outside of the table range. It was not added to the table, please fix your setup.'], ['The merged cell declared at [', ', ', '] is positioned (or positioned partially) \n       outside of the table range. It was not added to the table, please fix your setup.']),
-    _templateObject3 = _taggedTemplateLiteral(['The merged cell declared at [', ', ', '] has both "rowspan" \n     and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.'], ['The merged cell declared at [', ', ', '] has both "rowspan" \n     and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.']),
-    _templateObject4 = _taggedTemplateLiteral(['The merged cell declared at [', ', ', '] has "rowspan" or "colspan" declared as \n      "0", which is not supported. It cannot be added to the collection.'], ['The merged cell declared at [', ', ', '] has "rowspan" or "colspan" declared as \n      "0", which is not supported. It cannot be added to the collection.']);
-
-var _index = __webpack_require__(4);
-
-var _templateLiteralTag = __webpack_require__(43);
-
-function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * The `MergedCellCoords` class represents a single merged cell.
- *
- * @class MergedCellCoords
- * @plugin MergeCells
- */
-var MergedCellCoords = function () {
-  function MergedCellCoords(row, column, rowspan, colspan) {
-    _classCallCheck(this, MergedCellCoords);
-
-    /**
-     * The index of the topmost merged cell row.
-     *
-     * @type {Number}
-     */
-    this.row = row;
-    /**
-     * The index of the leftmost column.
-     *
-     * @type {Number}
-     */
-    this.col = column;
-    /**
-     * The `rowspan` value of the merged cell.
-     *
-     * @type {Number}
-     */
-    this.rowspan = rowspan;
-    /**
-     * The `colspan` value of the merged cell.
-     *
-     * @type {Number}
-     */
-    this.colspan = colspan;
-    /**
-     * `true` only if the merged cell is bound to be removed.
-     *
-     * @type {Boolean}
-     */
-    this.removed = false;
-  }
-
-  /**
-   * Get a warning message for when the declared merged cell data contains negative values.
-   *
-   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
-   * @return {String}
-   */
-
-
-  _createClass(MergedCellCoords, [{
-    key: 'normalize',
-
-
-    /**
-     * Sanitize (prevent from going outside the boundaries) the merged cell.
-     *
-     * @param hotInstance
-     */
-    value: function normalize(hotInstance) {
-      var totalRows = hotInstance.countRows();
-      var totalColumns = hotInstance.countCols();
-
-      if (this.row < 0) {
-        this.row = 0;
-      } else if (this.row > totalRows - 1) {
-        this.row = totalRows - 1;
-      }
-
-      if (this.col < 0) {
-        this.col = 0;
-      } else if (this.col > totalColumns - 1) {
-        this.col = totalColumns - 1;
-      }
-
-      if (this.row + this.rowspan > totalRows - 1) {
-        this.rowspan = totalRows - this.row;
-      }
-
-      if (this.col + this.colspan > totalColumns - 1) {
-        this.colspan = totalColumns - this.col;
-      }
-    }
-
-    /**
-     * Returns `true` if the provided coordinates are inside the merged cell.
-     *
-     * @param {Number} row The row index.
-     * @param {Number} column The column index.
-     * @return {Boolean}
-     */
-
-  }, {
-    key: 'includes',
-    value: function includes(row, column) {
-      return this.row <= row && this.col <= column && this.row + this.rowspan - 1 >= row && this.col + this.colspan - 1 >= column;
-    }
-
-    /**
-     * Returns `true` if the provided `column` property is within the column span of the merged cell.
-     *
-     * @param {Number} column The column index.
-     * @return {Boolean}
-     */
-
-  }, {
-    key: 'includesHorizontally',
-    value: function includesHorizontally(column) {
-      return this.col <= column && this.col + this.colspan - 1 >= column;
-    }
-
-    /**
-     * Returns `true` if the provided `row` property is within the row span of the merged cell.
-     *
-     * @param {Number} row Row index.
-     * @return {Boolean}
-     */
-
-  }, {
-    key: 'includesVertically',
-    value: function includesVertically(row) {
-      return this.row <= row && this.row + this.rowspan - 1 >= row;
-    }
-
-    /**
-     * Shift (and possibly resize, if needed) the merged cell.
-     *
-     * @param {Array} shiftVector 2-element array containing the information on the shifting in the `x` and `y` axis.
-     * @param {Number} indexOfChange Index of the preceding change.
-     * @returns {Boolean} Returns `false` if the whole merged cell was removed.
-     */
-
-  }, {
-    key: 'shift',
-    value: function shift(shiftVector, indexOfChange) {
-      var shiftValue = shiftVector[0] || shiftVector[1];
-      var shiftedIndex = indexOfChange + Math.abs(shiftVector[0] || shiftVector[1]) - 1;
-      var span = shiftVector[0] ? 'colspan' : 'rowspan';
-      var index = shiftVector[0] ? 'col' : 'row';
-      var changeStart = Math.min(indexOfChange, shiftedIndex);
-      var changeEnd = Math.max(indexOfChange, shiftedIndex);
-      var mergeStart = this[index];
-      var mergeEnd = this[index] + this[span] - 1;
-
-      if (mergeStart >= indexOfChange) {
-        this[index] += shiftValue;
-      }
-
-      // adding rows/columns
-      if (shiftValue > 0) {
-        if (indexOfChange <= mergeEnd && indexOfChange > mergeStart) {
-          this[span] += shiftValue;
-        }
-
-        // removing rows/columns
-      } else if (shiftValue < 0) {
-
-        // removing the whole merge
-        if (changeStart <= mergeStart && changeEnd >= mergeEnd) {
-          this.removed = true;
-          return false;
-
-          // removing the merge partially, including the beginning
-        } else if (mergeStart >= changeStart && mergeStart <= changeEnd) {
-          var removedOffset = changeEnd - mergeStart + 1;
-          var preRemovedOffset = Math.abs(shiftValue) - removedOffset;
-
-          this[index] -= preRemovedOffset + shiftValue;
-          this[span] -= removedOffset;
-
-          // removing the middle part of the merge
-        } else if (mergeStart <= changeStart && mergeEnd >= changeEnd) {
-          this[span] += shiftValue;
-
-          // removing the end part of the merge
-        } else if (mergeStart <= changeStart && mergeEnd >= changeStart && mergeEnd < changeEnd) {
-          var removedPart = mergeEnd - changeStart + 1;
-
-          this[span] -= removedPart;
-        }
-      }
-
-      return true;
-    }
-
-    /**
-     * Check if the second provided merged cell is "farther" in the provided direction.
-     *
-     * @param {MergedCellCoords} mergedCell The merged cell to check.
-     * @param {String} direction Drag direction.
-     * @return {Boolean|null} `true` if the second provided merged cell is "farther".
-     */
-
-  }, {
-    key: 'isFarther',
-    value: function isFarther(mergedCell, direction) {
-      if (!mergedCell) {
-        return true;
-      }
-
-      if (direction === 'down') {
-        return mergedCell.row + mergedCell.rowspan - 1 < this.row + this.rowspan - 1;
-      } else if (direction === 'up') {
-        return mergedCell.row > this.row;
-      } else if (direction === 'right') {
-        return mergedCell.col + mergedCell.colspan - 1 < this.col + this.colspan - 1;
-      } else if (direction === 'left') {
-        return mergedCell.col > this.col;
-      }
-      return null;
-    }
-
-    /**
-     * Get the bottom row index of the merged cell.
-     *
-     * @returns {Number}
-     */
-
-  }, {
-    key: 'getLastRow',
-    value: function getLastRow() {
-      return this.row + this.rowspan - 1;
-    }
-
-    /**
-     * Get the rightmost column index of the merged cell.
-     *
-     * @returns {Number}
-     */
-
-  }, {
-    key: 'getLastColumn',
-    value: function getLastColumn() {
-      return this.col + this.colspan - 1;
-    }
-
-    /**
-     * Get the range coordinates of the merged cell.
-     *
-     * @return {CellRange}
-     */
-
-  }, {
-    key: 'getRange',
-    value: function getRange() {
-      return new _index.CellRange(new _index.CellCoords(this.row, this.col), new _index.CellCoords(this.row, this.col), new _index.CellCoords(this.getLastRow(), this.getLastColumn()));
-    }
-  }], [{
-    key: 'NEGATIVE_VALUES_WARNING',
-    value: function NEGATIVE_VALUES_WARNING(newMergedCell) {
-      return (0, _templateLiteralTag.toSingleLine)(_templateObject, newMergedCell.row, newMergedCell.col, newMergedCell.rowspan, newMergedCell.colspan);
-    }
-
-    /**
-     * Get a warning message for when the declared merged cell data contains values exceeding the table limits.
-     *
-     * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
-     * @return {String}
-     */
-
-  }, {
-    key: 'IS_OUT_OF_BOUNDS_WARNING',
-    value: function IS_OUT_OF_BOUNDS_WARNING(newMergedCell) {
-      return (0, _templateLiteralTag.toSingleLine)(_templateObject2, newMergedCell.row, newMergedCell.col);
-    }
-
-    /**
-     * Get a warning message for when the declared merged cell data represents a single cell.
-     *
-     * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
-     * @return {String}
-     */
-
-  }, {
-    key: 'IS_SINGLE_CELL',
-    value: function IS_SINGLE_CELL(newMergedCell) {
-      return (0, _templateLiteralTag.toSingleLine)(_templateObject3, newMergedCell.row, newMergedCell.col);
-    }
-
-    /**
-     * Get a warning message for when the declared merged cell data contains "colspan" or "rowspan", that equals 0.
-     *
-     * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
-     * @return {String}
-     */
-
-  }, {
-    key: 'ZERO_SPAN_WARNING',
-    value: function ZERO_SPAN_WARNING(newMergedCell) {
-      return (0, _templateLiteralTag.toSingleLine)(_templateObject4, newMergedCell.row, newMergedCell.col);
-    }
-
-    /**
-     * Check whether the values provided for a merged cell contain any negative values.
-     *
-     * @param {Object} mergedCellInfo Object containing the `row`, `col`, `rowspan` and `colspan` properties.
-     * @return {Boolean}
-     */
-
-  }, {
-    key: 'containsNegativeValues',
-    value: function containsNegativeValues(mergedCellInfo) {
-      return mergedCellInfo.row < 0 || mergedCellInfo.col < 0 || mergedCellInfo.rowspan < 0 || mergedCellInfo.colspan < 0;
-    }
-
-    /**
-     * Check whether the provided merged cell information object represents a single cell.
-     *
-     * @private
-     * @param {Object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
-     * @return {Boolean}
-     */
-
-  }, {
-    key: 'isSingleCell',
-    value: function isSingleCell(mergedCellInfo) {
-      return mergedCellInfo.colspan === 1 && mergedCellInfo.rowspan === 1;
-    }
-
-    /**
-     * Check whether the provided merged cell information object contains a rowspan or colspan of 0.
-     *
-     * @private
-     * @param {Object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
-     * @return {Boolean}
-     */
-
-  }, {
-    key: 'containsZeroSpan',
-    value: function containsZeroSpan(mergedCellInfo) {
-      return mergedCellInfo.colspan === 0 || mergedCellInfo.rowspan === 0;
-    }
-
-    /**
-     * Check whether the provided merged cell object is to be declared out of bounds of the table.
-     *
-     * @param {Object} mergeCell Object containing the `row`, `col`, `rowspan` and `colspan` properties.
-     * @param {Number} rowCount Number of rows in the table.
-     * @param {Number} columnCount Number of rows in the table.
-     * @return {Boolean}
-     */
-
-  }, {
-    key: 'isOutOfBounds',
-    value: function isOutOfBounds(mergeCell, rowCount, columnCount) {
-      return mergeCell.row < 0 || mergeCell.col < 0 || mergeCell.row >= rowCount || mergeCell.row + mergeCell.rowspan - 1 >= rowCount || mergeCell.col >= columnCount || mergeCell.col + mergeCell.colspan - 1 >= columnCount;
-    }
-  }]);
-
-  return MergedCellCoords;
-}();
-
-exports.default = MergedCellCoords;
-
-/***/ }),
-/* 99 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var strong = __webpack_require__(100);
-var validate = __webpack_require__(46);
-var MAP = 'Map';
-
-// 23.1 Map Objects
-module.exports = __webpack_require__(66)(MAP, function (get) {
-  return function Map() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
-}, {
-  // 23.1.3.6 Map.prototype.get(key)
-  get: function get(key) {
-    var entry = strong.getEntry(validate(this, MAP), key);
-    return entry && entry.v;
-  },
-  // 23.1.3.9 Map.prototype.set(key, value)
-  set: function set(key, value) {
-    return strong.def(validate(this, MAP), key === 0 ? 0 : key, value);
-  }
-}, strong, true);
-
-
-/***/ }),
-/* 100 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var dP = __webpack_require__(20).f;
-var create = __webpack_require__(76);
-var redefineAll = __webpack_require__(62);
-var ctx = __webpack_require__(32);
-var anInstance = __webpack_require__(64);
-var forOf = __webpack_require__(65);
-var $iterDefine = __webpack_require__(109);
-var step = __webpack_require__(111);
-var setSpecies = __webpack_require__(112);
-var DESCRIPTORS = __webpack_require__(22);
-var fastKey = __webpack_require__(34).fastKey;
-var validate = __webpack_require__(46);
-var SIZE = DESCRIPTORS ? '_s' : 'size';
-
-var getEntry = function (that, key) {
-  // fast case
-  var index = fastKey(key);
-  var entry;
-  if (index !== 'F') return that._i[index];
-  // frozen object case
-  for (entry = that._f; entry; entry = entry.n) {
-    if (entry.k == key) return entry;
-  }
-};
-
-module.exports = {
-  getConstructor: function (wrapper, NAME, IS_MAP, ADDER) {
-    var C = wrapper(function (that, iterable) {
-      anInstance(that, C, NAME, '_i');
-      that._t = NAME;         // collection type
-      that._i = create(null); // index
-      that._f = undefined;    // first entry
-      that._l = undefined;    // last entry
-      that[SIZE] = 0;         // size
-      if (iterable != undefined) forOf(iterable, IS_MAP, that[ADDER], that);
-    });
-    redefineAll(C.prototype, {
-      // 23.1.3.1 Map.prototype.clear()
-      // 23.2.3.2 Set.prototype.clear()
-      clear: function clear() {
-        for (var that = validate(this, NAME), data = that._i, entry = that._f; entry; entry = entry.n) {
-          entry.r = true;
-          if (entry.p) entry.p = entry.p.n = undefined;
-          delete data[entry.i];
-        }
-        that._f = that._l = undefined;
-        that[SIZE] = 0;
-      },
-      // 23.1.3.3 Map.prototype.delete(key)
-      // 23.2.3.4 Set.prototype.delete(value)
-      'delete': function (key) {
-        var that = validate(this, NAME);
-        var entry = getEntry(that, key);
-        if (entry) {
-          var next = entry.n;
-          var prev = entry.p;
-          delete that._i[entry.i];
-          entry.r = true;
-          if (prev) prev.n = next;
-          if (next) next.p = prev;
-          if (that._f == entry) that._f = next;
-          if (that._l == entry) that._l = prev;
-          that[SIZE]--;
-        } return !!entry;
-      },
-      // 23.2.3.6 Set.prototype.forEach(callbackfn, thisArg = undefined)
-      // 23.1.3.5 Map.prototype.forEach(callbackfn, thisArg = undefined)
-      forEach: function forEach(callbackfn /* , that = undefined */) {
-        validate(this, NAME);
-        var f = ctx(callbackfn, arguments.length > 1 ? arguments[1] : undefined, 3);
-        var entry;
-        while (entry = entry ? entry.n : this._f) {
-          f(entry.v, entry.k, this);
-          // revert to the last existing entry
-          while (entry && entry.r) entry = entry.p;
-        }
-      },
-      // 23.1.3.7 Map.prototype.has(key)
-      // 23.2.3.7 Set.prototype.has(value)
-      has: function has(key) {
-        return !!getEntry(validate(this, NAME), key);
-      }
-    });
-    if (DESCRIPTORS) dP(C.prototype, 'size', {
-      get: function () {
-        return validate(this, NAME)[SIZE];
-      }
-    });
-    return C;
-  },
-  def: function (that, key, value) {
-    var entry = getEntry(that, key);
-    var prev, index;
-    // change existing entry
-    if (entry) {
-      entry.v = value;
-    // create new entry
-    } else {
-      that._l = entry = {
-        i: index = fastKey(key, true), // <- index
-        k: key,                        // <- key
-        v: value,                      // <- value
-        p: prev = that._l,             // <- previous entry
-        n: undefined,                  // <- next entry
-        r: false                       // <- removed
-      };
-      if (!that._f) that._f = entry;
-      if (prev) prev.n = entry;
-      that[SIZE]++;
-      // add to index
-      if (index !== 'F') that._i[index] = entry;
-    } return that;
-  },
-  getEntry: getEntry,
-  setStrong: function (C, NAME, IS_MAP) {
-    // add .keys, .values, .entries, [@@iterator]
-    // 23.1.3.4, 23.1.3.8, 23.1.3.11, 23.1.3.12, 23.2.3.5, 23.2.3.8, 23.2.3.10, 23.2.3.11
-    $iterDefine(C, NAME, function (iterated, kind) {
-      this._t = validate(iterated, NAME); // target
-      this._k = kind;                     // kind
-      this._l = undefined;                // previous
-    }, function () {
-      var that = this;
-      var kind = that._k;
-      var entry = that._l;
-      // revert to the last existing entry
-      while (entry && entry.r) entry = entry.p;
-      // get next entry
-      if (!that._t || !(that._l = entry = entry ? entry.n : that._t._f)) {
-        // or finish the iteration
-        that._t = undefined;
-        return step(1);
-      }
-      // return step by kind
-      if (kind == 'keys') return step(0, entry.k);
-      if (kind == 'values') return step(0, entry.v);
-      return step(0, [entry.k, entry.v]);
-    }, IS_MAP ? 'entries' : 'values', !IS_MAP, true);
-
-    // add [@@species], 23.1.2.2, 23.2.2.2
-    setSpecies(NAME);
-  }
-};
-
-
-/***/ }),
-/* 101 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = !__webpack_require__(22) && !__webpack_require__(23)(function () {
-  return Object.defineProperty(__webpack_require__(74)('div'), 'a', { get: function () { return 7; } }).a != 7;
-});
-
-
-/***/ }),
-/* 102 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var has = __webpack_require__(29);
-var toIObject = __webpack_require__(24);
-var arrayIndexOf = __webpack_require__(103)(false);
-var IE_PROTO = __webpack_require__(78)('IE_PROTO');
-
-module.exports = function (object, names) {
-  var O = toIObject(object);
-  var i = 0;
-  var result = [];
-  var key;
-  for (key in O) if (key != IE_PROTO) has(O, key) && result.push(key);
-  // Don't enum bug & hidden keys
-  while (names.length > i) if (has(O, key = names[i++])) {
-    ~arrayIndexOf(result, key) || result.push(key);
-  }
-  return result;
-};
-
-
-/***/ }),
-/* 103 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// false -> Array#indexOf
-// true  -> Array#includes
-var toIObject = __webpack_require__(24);
-var toLength = __webpack_require__(25);
-var toAbsoluteIndex = __webpack_require__(61);
-module.exports = function (IS_INCLUDES) {
-  return function ($this, el, fromIndex) {
-    var O = toIObject($this);
-    var length = toLength(O.length);
-    var index = toAbsoluteIndex(fromIndex, length);
-    var value;
-    // Array#includes uses SameValueZero equality algorithm
-    // eslint-disable-next-line no-self-compare
-    if (IS_INCLUDES && el != el) while (length > index) {
-      value = O[index++];
-      // eslint-disable-next-line no-self-compare
-      if (value != value) return true;
-    // Array#indexOf ignores holes, Array#includes - not
-    } else for (;length > index; index++) if (IS_INCLUDES || index in O) {
-      if (O[index] === el) return IS_INCLUDES || index || 0;
-    } return !IS_INCLUDES && -1;
-  };
-};
-
-
-/***/ }),
-/* 104 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var document = __webpack_require__(15).document;
-module.exports = document && document.documentElement;
-
-
-/***/ }),
-/* 105 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// call something on iterator step with safe closing on error
-var anObject = __webpack_require__(18);
-module.exports = function (iterator, fn, value, entries) {
-  try {
-    return entries ? fn(anObject(value)[0], value[1]) : fn(value);
-  // 7.4.6 IteratorClose(iterator, completion)
-  } catch (e) {
-    var ret = iterator['return'];
-    if (ret !== undefined) anObject(ret.call(iterator));
-    throw e;
-  }
-};
-
-
-/***/ }),
-/* 106 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// check on default Array iterator
-var Iterators = __webpack_require__(53);
-var ITERATOR = __webpack_require__(12)('iterator');
-var ArrayProto = Array.prototype;
-
-module.exports = function (it) {
-  return it !== undefined && (Iterators.Array === it || ArrayProto[ITERATOR] === it);
-};
-
-
-/***/ }),
-/* 107 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var classof = __webpack_require__(108);
-var ITERATOR = __webpack_require__(12)('iterator');
-var Iterators = __webpack_require__(53);
-module.exports = __webpack_require__(39).getIteratorMethod = function (it) {
-  if (it != undefined) return it[ITERATOR]
-    || it['@@iterator']
-    || Iterators[classof(it)];
-};
-
-
-/***/ }),
-/* 108 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// getting tag from 19.1.3.6 Object.prototype.toString()
-var cof = __webpack_require__(45);
-var TAG = __webpack_require__(12)('toStringTag');
-// ES3 wrong here
-var ARG = cof(function () { return arguments; }()) == 'Arguments';
-
-// fallback for IE11 Script Access Denied error
-var tryGet = function (it, key) {
-  try {
-    return it[key];
-  } catch (e) { /* empty */ }
-};
-
-module.exports = function (it) {
-  var O, T, B;
-  return it === undefined ? 'Undefined' : it === null ? 'Null'
-    // @@toStringTag case
-    : typeof (T = tryGet(O = Object(it), TAG)) == 'string' ? T
-    // builtinTag case
-    : ARG ? cof(O)
-    // ES3 arguments fallback
-    : (B = cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
-};
-
-
-/***/ }),
-/* 109 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var LIBRARY = __webpack_require__(50);
-var $export = __webpack_require__(3);
-var redefine = __webpack_require__(30);
-var hide = __webpack_require__(31);
-var Iterators = __webpack_require__(53);
-var $iterCreate = __webpack_require__(330);
-var setToStringTag = __webpack_require__(54);
-var getPrototypeOf = __webpack_require__(110);
-var ITERATOR = __webpack_require__(12)('iterator');
-var BUGGY = !([].keys && 'next' in [].keys()); // Safari has buggy iterators w/o `next`
-var FF_ITERATOR = '@@iterator';
-var KEYS = 'keys';
-var VALUES = 'values';
-
-var returnThis = function () { return this; };
-
-module.exports = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCED) {
-  $iterCreate(Constructor, NAME, next);
-  var getMethod = function (kind) {
-    if (!BUGGY && kind in proto) return proto[kind];
-    switch (kind) {
-      case KEYS: return function keys() { return new Constructor(this, kind); };
-      case VALUES: return function values() { return new Constructor(this, kind); };
-    } return function entries() { return new Constructor(this, kind); };
-  };
-  var TAG = NAME + ' Iterator';
-  var DEF_VALUES = DEFAULT == VALUES;
-  var VALUES_BUG = false;
-  var proto = Base.prototype;
-  var $native = proto[ITERATOR] || proto[FF_ITERATOR] || DEFAULT && proto[DEFAULT];
-  var $default = $native || getMethod(DEFAULT);
-  var $entries = DEFAULT ? !DEF_VALUES ? $default : getMethod('entries') : undefined;
-  var $anyNative = NAME == 'Array' ? proto.entries || $native : $native;
-  var methods, key, IteratorPrototype;
-  // Fix native
-  if ($anyNative) {
-    IteratorPrototype = getPrototypeOf($anyNative.call(new Base()));
-    if (IteratorPrototype !== Object.prototype && IteratorPrototype.next) {
-      // Set @@toStringTag to native iterators
-      setToStringTag(IteratorPrototype, TAG, true);
-      // fix for some old engines
-      if (!LIBRARY && typeof IteratorPrototype[ITERATOR] != 'function') hide(IteratorPrototype, ITERATOR, returnThis);
-    }
-  }
-  // fix Array#{values, @@iterator}.name in V8 / FF
-  if (DEF_VALUES && $native && $native.name !== VALUES) {
-    VALUES_BUG = true;
-    $default = function values() { return $native.call(this); };
-  }
-  // Define iterator
-  if ((!LIBRARY || FORCED) && (BUGGY || VALUES_BUG || !proto[ITERATOR])) {
-    hide(proto, ITERATOR, $default);
-  }
-  // Plug for library
-  Iterators[NAME] = $default;
-  Iterators[TAG] = returnThis;
-  if (DEFAULT) {
-    methods = {
-      values: DEF_VALUES ? $default : getMethod(VALUES),
-      keys: IS_SET ? $default : getMethod(KEYS),
-      entries: $entries
-    };
-    if (FORCED) for (key in methods) {
-      if (!(key in proto)) redefine(proto, key, methods[key]);
-    } else $export($export.P + $export.F * (BUGGY || VALUES_BUG), NAME, methods);
-  }
-  return methods;
-};
-
-
-/***/ }),
-/* 110 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
-var has = __webpack_require__(29);
-var toObject = __webpack_require__(33);
-var IE_PROTO = __webpack_require__(78)('IE_PROTO');
-var ObjectProto = Object.prototype;
-
-module.exports = Object.getPrototypeOf || function (O) {
-  O = toObject(O);
-  if (has(O, IE_PROTO)) return O[IE_PROTO];
-  if (typeof O.constructor == 'function' && O instanceof O.constructor) {
-    return O.constructor.prototype;
-  } return O instanceof Object ? ObjectProto : null;
-};
-
-
-/***/ }),
-/* 111 */
-/***/ (function(module, exports) {
-
-module.exports = function (done, value) {
-  return { value: value, done: !!done };
-};
-
-
-/***/ }),
-/* 112 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var global = __webpack_require__(15);
-var dP = __webpack_require__(20);
-var DESCRIPTORS = __webpack_require__(22);
-var SPECIES = __webpack_require__(12)('species');
-
-module.exports = function (KEY) {
-  var C = global[KEY];
-  if (DESCRIPTORS && C && !C[SPECIES]) dP.f(C, SPECIES, {
-    configurable: true,
-    get: function () { return this; }
-  });
-};
-
-
-/***/ }),
-/* 113 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// Works with __proto__ only. Old v8 can't work with null proto objects.
-/* eslint-disable no-proto */
-var isObject = __webpack_require__(9);
-var anObject = __webpack_require__(18);
-var check = function (O, proto) {
-  anObject(O);
-  if (!isObject(proto) && proto !== null) throw TypeError(proto + ": can't set as prototype!");
-};
-module.exports = {
-  set: Object.setPrototypeOf || ('__proto__' in {} ? // eslint-disable-line
-    function (test, buggy, set) {
-      try {
-        set = __webpack_require__(32)(Function.call, __webpack_require__(67).f(Object.prototype, '__proto__').set, 2);
-        set(test, []);
-        buggy = !(test instanceof Array);
-      } catch (e) { buggy = true; }
-      return function setPrototypeOf(O, proto) {
-        check(O, proto);
-        if (buggy) O.__proto__ = proto;
-        else set(O, proto);
-        return O;
-      };
-    }({}, false) : undefined),
-  check: check
-};
-
-
-/***/ }),
-/* 114 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var strong = __webpack_require__(100);
-var validate = __webpack_require__(46);
-var SET = 'Set';
-
-// 23.2 Set Objects
-module.exports = __webpack_require__(66)(SET, function (get) {
-  return function Set() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
-}, {
-  // 23.2.3.1 Set.prototype.add(value)
-  add: function add(value) {
-    return strong.def(validate(this, SET), value = value === 0 ? 0 : value, value);
-  }
-}, strong);
-
-
-/***/ }),
-/* 115 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var each = __webpack_require__(68)(0);
-var redefine = __webpack_require__(30);
-var meta = __webpack_require__(34);
-var assign = __webpack_require__(117);
-var weak = __webpack_require__(118);
-var isObject = __webpack_require__(9);
-var fails = __webpack_require__(23);
-var validate = __webpack_require__(46);
-var WEAK_MAP = 'WeakMap';
-var getWeak = meta.getWeak;
-var isExtensible = Object.isExtensible;
-var uncaughtFrozenStore = weak.ufstore;
-var tmp = {};
-var InternalMap;
-
-var wrapper = function (get) {
-  return function WeakMap() {
-    return get(this, arguments.length > 0 ? arguments[0] : undefined);
-  };
-};
-
-var methods = {
-  // 23.3.3.3 WeakMap.prototype.get(key)
-  get: function get(key) {
-    if (isObject(key)) {
-      var data = getWeak(key);
-      if (data === true) return uncaughtFrozenStore(validate(this, WEAK_MAP)).get(key);
-      return data ? data[this._i] : undefined;
-    }
-  },
-  // 23.3.3.5 WeakMap.prototype.set(key, value)
-  set: function set(key, value) {
-    return weak.def(validate(this, WEAK_MAP), key, value);
-  }
-};
-
-// 23.3 WeakMap Objects
-var $WeakMap = module.exports = __webpack_require__(66)(WEAK_MAP, wrapper, methods, weak, true, true);
-
-// IE11 WeakMap frozen keys fix
-if (fails(function () { return new $WeakMap().set((Object.freeze || Object)(tmp), 7).get(tmp) != 7; })) {
-  InternalMap = weak.getConstructor(wrapper, WEAK_MAP);
-  assign(InternalMap.prototype, methods);
-  meta.NEED = true;
-  each(['delete', 'has', 'get', 'set'], function (key) {
-    var proto = $WeakMap.prototype;
-    var method = proto[key];
-    redefine(proto, key, function (a, b) {
-      // store frozen objects on internal weakmap shim
-      if (isObject(a) && !isExtensible(a)) {
-        if (!this._f) this._f = new InternalMap();
-        var result = this._f[key](a, b);
-        return key == 'set' ? this : result;
-      // store all the rest on native weakmap
-      } return method.call(this, a, b);
-    });
-  });
-}
-
-
-/***/ }),
-/* 116 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 7.2.2 IsArray(argument)
-var cof = __webpack_require__(45);
-module.exports = Array.isArray || function isArray(arg) {
-  return cof(arg) == 'Array';
-};
-
-
-/***/ }),
-/* 117 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// 19.1.2.1 Object.assign(target, source, ...)
-var getKeys = __webpack_require__(37);
-var gOPS = __webpack_require__(69);
-var pIE = __webpack_require__(55);
-var toObject = __webpack_require__(33);
-var IObject = __webpack_require__(77);
-var $assign = Object.assign;
-
-// should work with symbols and should have deterministic property order (V8 bug)
-module.exports = !$assign || __webpack_require__(23)(function () {
-  var A = {};
-  var B = {};
-  // eslint-disable-next-line no-undef
-  var S = Symbol();
-  var K = 'abcdefghijklmnopqrst';
-  A[S] = 7;
-  K.split('').forEach(function (k) { B[k] = k; });
-  return $assign({}, A)[S] != 7 || Object.keys($assign({}, B)).join('') != K;
-}) ? function assign(target, source) { // eslint-disable-line no-unused-vars
-  var T = toObject(target);
-  var aLen = arguments.length;
-  var index = 1;
-  var getSymbols = gOPS.f;
-  var isEnum = pIE.f;
-  while (aLen > index) {
-    var S = IObject(arguments[index++]);
-    var keys = getSymbols ? getKeys(S).concat(getSymbols(S)) : getKeys(S);
-    var length = keys.length;
-    var j = 0;
-    var key;
-    while (length > j) if (isEnum.call(S, key = keys[j++])) T[key] = S[key];
-  } return T;
-} : $assign;
-
-
-/***/ }),
-/* 118 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var redefineAll = __webpack_require__(62);
-var getWeak = __webpack_require__(34).getWeak;
-var anObject = __webpack_require__(18);
-var isObject = __webpack_require__(9);
-var anInstance = __webpack_require__(64);
-var forOf = __webpack_require__(65);
-var createArrayMethod = __webpack_require__(68);
-var $has = __webpack_require__(29);
-var validate = __webpack_require__(46);
-var arrayFind = createArrayMethod(5);
-var arrayFindIndex = createArrayMethod(6);
-var id = 0;
-
-// fallback for uncaught frozen keys
-var uncaughtFrozenStore = function (that) {
-  return that._l || (that._l = new UncaughtFrozenStore());
-};
-var UncaughtFrozenStore = function () {
-  this.a = [];
-};
-var findUncaughtFrozen = function (store, key) {
-  return arrayFind(store.a, function (it) {
-    return it[0] === key;
-  });
-};
-UncaughtFrozenStore.prototype = {
-  get: function (key) {
-    var entry = findUncaughtFrozen(this, key);
-    if (entry) return entry[1];
-  },
-  has: function (key) {
-    return !!findUncaughtFrozen(this, key);
-  },
-  set: function (key, value) {
-    var entry = findUncaughtFrozen(this, key);
-    if (entry) entry[1] = value;
-    else this.a.push([key, value]);
-  },
-  'delete': function (key) {
-    var index = arrayFindIndex(this.a, function (it) {
-      return it[0] === key;
-    });
-    if (~index) this.a.splice(index, 1);
-    return !!~index;
-  }
-};
-
-module.exports = {
-  getConstructor: function (wrapper, NAME, IS_MAP, ADDER) {
-    var C = wrapper(function (that, iterable) {
-      anInstance(that, C, NAME, '_i');
-      that._t = NAME;      // collection type
-      that._i = id++;      // collection id
-      that._l = undefined; // leak store for uncaught frozen objects
-      if (iterable != undefined) forOf(iterable, IS_MAP, that[ADDER], that);
-    });
-    redefineAll(C.prototype, {
-      // 23.3.3.2 WeakMap.prototype.delete(key)
-      // 23.4.3.3 WeakSet.prototype.delete(value)
-      'delete': function (key) {
-        if (!isObject(key)) return false;
-        var data = getWeak(key);
-        if (data === true) return uncaughtFrozenStore(validate(this, NAME))['delete'](key);
-        return data && $has(data, this._i) && delete data[this._i];
-      },
-      // 23.3.3.4 WeakMap.prototype.has(key)
-      // 23.4.3.4 WeakSet.prototype.has(value)
-      has: function has(key) {
-        if (!isObject(key)) return false;
-        var data = getWeak(key);
-        if (data === true) return uncaughtFrozenStore(validate(this, NAME)).has(key);
-        return data && $has(data, this._i);
-      }
-    });
-    return C;
-  },
-  def: function (that, key, value) {
-    var data = getWeak(anObject(key), true);
-    if (data === true) uncaughtFrozenStore(that).set(key, value);
-    else data[that._i] = value;
-    return that;
-  },
-  ufstore: uncaughtFrozenStore
-};
-
-
-/***/ }),
-/* 119 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var weak = __webpack_require__(118);
-var validate = __webpack_require__(46);
-var WEAK_SET = 'WeakSet';
-
-// 23.4 WeakSet Objects
-__webpack_require__(66)(WEAK_SET, function (get) {
-  return function WeakSet() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
-}, {
-  // 23.4.3.1 WeakSet.prototype.add(value)
-  add: function add(value) {
-    return weak.def(validate(this, WEAK_SET), value, true);
-  }
-}, weak, false, true);
-
-
-/***/ }),
-/* 120 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var LIBRARY = __webpack_require__(50);
-var global = __webpack_require__(15);
-var ctx = __webpack_require__(32);
-var classof = __webpack_require__(108);
-var $export = __webpack_require__(3);
-var isObject = __webpack_require__(9);
-var aFunction = __webpack_require__(63);
-var anInstance = __webpack_require__(64);
-var forOf = __webpack_require__(65);
-var speciesConstructor = __webpack_require__(334);
-var task = __webpack_require__(82).set;
-var microtask = __webpack_require__(336)();
-var newPromiseCapabilityModule = __webpack_require__(121);
-var perform = __webpack_require__(337);
-var userAgent = __webpack_require__(83);
-var promiseResolve = __webpack_require__(338);
-var PROMISE = 'Promise';
-var TypeError = global.TypeError;
-var process = global.process;
-var versions = process && process.versions;
-var v8 = versions && versions.v8 || '';
-var $Promise = global[PROMISE];
-var isNode = classof(process) == 'process';
-var empty = function () { /* empty */ };
-var Internal, newGenericPromiseCapability, OwnPromiseCapability, Wrapper;
-var newPromiseCapability = newGenericPromiseCapability = newPromiseCapabilityModule.f;
-
-var USE_NATIVE = !!function () {
-  try {
-    // correct subclassing with @@species support
-    var promise = $Promise.resolve(1);
-    var FakePromise = (promise.constructor = {})[__webpack_require__(12)('species')] = function (exec) {
-      exec(empty, empty);
-    };
-    // unhandled rejections tracking support, NodeJS Promise without it fails @@species test
-    return (isNode || typeof PromiseRejectionEvent == 'function')
-      && promise.then(empty) instanceof FakePromise
-      // v8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
-      // https://bugs.chromium.org/p/chromium/issues/detail?id=830565
-      // we can't detect it synchronously, so just check versions
-      && v8.indexOf('6.6') !== 0
-      && userAgent.indexOf('Chrome/66') === -1;
-  } catch (e) { /* empty */ }
-}();
-
-// helpers
-var isThenable = function (it) {
-  var then;
-  return isObject(it) && typeof (then = it.then) == 'function' ? then : false;
-};
-var notify = function (promise, isReject) {
-  if (promise._n) return;
-  promise._n = true;
-  var chain = promise._c;
-  microtask(function () {
-    var value = promise._v;
-    var ok = promise._s == 1;
-    var i = 0;
-    var run = function (reaction) {
-      var handler = ok ? reaction.ok : reaction.fail;
-      var resolve = reaction.resolve;
-      var reject = reaction.reject;
-      var domain = reaction.domain;
-      var result, then, exited;
-      try {
-        if (handler) {
-          if (!ok) {
-            if (promise._h == 2) onHandleUnhandled(promise);
-            promise._h = 1;
-          }
-          if (handler === true) result = value;
-          else {
-            if (domain) domain.enter();
-            result = handler(value); // may throw
-            if (domain) {
-              domain.exit();
-              exited = true;
-            }
-          }
-          if (result === reaction.promise) {
-            reject(TypeError('Promise-chain cycle'));
-          } else if (then = isThenable(result)) {
-            then.call(result, resolve, reject);
-          } else resolve(result);
-        } else reject(value);
-      } catch (e) {
-        if (domain && !exited) domain.exit();
-        reject(e);
-      }
-    };
-    while (chain.length > i) run(chain[i++]); // variable length - can't use forEach
-    promise._c = [];
-    promise._n = false;
-    if (isReject && !promise._h) onUnhandled(promise);
-  });
-};
-var onUnhandled = function (promise) {
-  task.call(global, function () {
-    var value = promise._v;
-    var unhandled = isUnhandled(promise);
-    var result, handler, console;
-    if (unhandled) {
-      result = perform(function () {
-        if (isNode) {
-          process.emit('unhandledRejection', value, promise);
-        } else if (handler = global.onunhandledrejection) {
-          handler({ promise: promise, reason: value });
-        } else if ((console = global.console) && console.error) {
-          console.error('Unhandled promise rejection', value);
-        }
-      });
-      // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
-      promise._h = isNode || isUnhandled(promise) ? 2 : 1;
-    } promise._a = undefined;
-    if (unhandled && result.e) throw result.v;
-  });
-};
-var isUnhandled = function (promise) {
-  return promise._h !== 1 && (promise._a || promise._c).length === 0;
-};
-var onHandleUnhandled = function (promise) {
-  task.call(global, function () {
-    var handler;
-    if (isNode) {
-      process.emit('rejectionHandled', promise);
-    } else if (handler = global.onrejectionhandled) {
-      handler({ promise: promise, reason: promise._v });
-    }
-  });
-};
-var $reject = function (value) {
-  var promise = this;
-  if (promise._d) return;
-  promise._d = true;
-  promise = promise._w || promise; // unwrap
-  promise._v = value;
-  promise._s = 2;
-  if (!promise._a) promise._a = promise._c.slice();
-  notify(promise, true);
-};
-var $resolve = function (value) {
-  var promise = this;
-  var then;
-  if (promise._d) return;
-  promise._d = true;
-  promise = promise._w || promise; // unwrap
-  try {
-    if (promise === value) throw TypeError("Promise can't be resolved itself");
-    if (then = isThenable(value)) {
-      microtask(function () {
-        var wrapper = { _w: promise, _d: false }; // wrap
-        try {
-          then.call(value, ctx($resolve, wrapper, 1), ctx($reject, wrapper, 1));
-        } catch (e) {
-          $reject.call(wrapper, e);
-        }
-      });
-    } else {
-      promise._v = value;
-      promise._s = 1;
-      notify(promise, false);
-    }
-  } catch (e) {
-    $reject.call({ _w: promise, _d: false }, e); // wrap
-  }
-};
-
-// constructor polyfill
-if (!USE_NATIVE) {
-  // 25.4.3.1 Promise(executor)
-  $Promise = function Promise(executor) {
-    anInstance(this, $Promise, PROMISE, '_h');
-    aFunction(executor);
-    Internal.call(this);
-    try {
-      executor(ctx($resolve, this, 1), ctx($reject, this, 1));
-    } catch (err) {
-      $reject.call(this, err);
-    }
-  };
-  // eslint-disable-next-line no-unused-vars
-  Internal = function Promise(executor) {
-    this._c = [];             // <- awaiting reactions
-    this._a = undefined;      // <- checked in isUnhandled reactions
-    this._s = 0;              // <- state
-    this._d = false;          // <- done
-    this._v = undefined;      // <- value
-    this._h = 0;              // <- rejection state, 0 - default, 1 - handled, 2 - unhandled
-    this._n = false;          // <- notify
-  };
-  Internal.prototype = __webpack_require__(62)($Promise.prototype, {
-    // 25.4.5.3 Promise.prototype.then(onFulfilled, onRejected)
-    then: function then(onFulfilled, onRejected) {
-      var reaction = newPromiseCapability(speciesConstructor(this, $Promise));
-      reaction.ok = typeof onFulfilled == 'function' ? onFulfilled : true;
-      reaction.fail = typeof onRejected == 'function' && onRejected;
-      reaction.domain = isNode ? process.domain : undefined;
-      this._c.push(reaction);
-      if (this._a) this._a.push(reaction);
-      if (this._s) notify(this, false);
-      return reaction.promise;
-    },
-    // 25.4.5.1 Promise.prototype.catch(onRejected)
-    'catch': function (onRejected) {
-      return this.then(undefined, onRejected);
-    }
-  });
-  OwnPromiseCapability = function () {
-    var promise = new Internal();
-    this.promise = promise;
-    this.resolve = ctx($resolve, promise, 1);
-    this.reject = ctx($reject, promise, 1);
-  };
-  newPromiseCapabilityModule.f = newPromiseCapability = function (C) {
-    return C === $Promise || C === Wrapper
-      ? new OwnPromiseCapability(C)
-      : newGenericPromiseCapability(C);
-  };
-}
-
-$export($export.G + $export.W + $export.F * !USE_NATIVE, { Promise: $Promise });
-__webpack_require__(54)($Promise, PROMISE);
-__webpack_require__(112)(PROMISE);
-Wrapper = __webpack_require__(39)[PROMISE];
-
-// statics
-$export($export.S + $export.F * !USE_NATIVE, PROMISE, {
-  // 25.4.4.5 Promise.reject(r)
-  reject: function reject(r) {
-    var capability = newPromiseCapability(this);
-    var $$reject = capability.reject;
-    $$reject(r);
-    return capability.promise;
-  }
-});
-$export($export.S + $export.F * (LIBRARY || !USE_NATIVE), PROMISE, {
-  // 25.4.4.6 Promise.resolve(x)
-  resolve: function resolve(x) {
-    return promiseResolve(LIBRARY && this === Wrapper ? $Promise : this, x);
-  }
-});
-$export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(81)(function (iter) {
-  $Promise.all(iter)['catch'](empty);
-})), PROMISE, {
-  // 25.4.4.1 Promise.all(iterable)
-  all: function all(iterable) {
-    var C = this;
-    var capability = newPromiseCapability(C);
-    var resolve = capability.resolve;
-    var reject = capability.reject;
-    var result = perform(function () {
-      var values = [];
-      var index = 0;
-      var remaining = 1;
-      forOf(iterable, false, function (promise) {
-        var $index = index++;
-        var alreadyCalled = false;
-        values.push(undefined);
-        remaining++;
-        C.resolve(promise).then(function (value) {
-          if (alreadyCalled) return;
-          alreadyCalled = true;
-          values[$index] = value;
-          --remaining || resolve(values);
-        }, reject);
-      });
-      --remaining || resolve(values);
-    });
-    if (result.e) reject(result.v);
-    return capability.promise;
-  },
-  // 25.4.4.4 Promise.race(iterable)
-  race: function race(iterable) {
-    var C = this;
-    var capability = newPromiseCapability(C);
-    var reject = capability.reject;
-    var result = perform(function () {
-      forOf(iterable, false, function (promise) {
-        C.resolve(promise).then(capability.resolve, reject);
-      });
-    });
-    if (result.e) reject(result.v);
-    return capability.promise;
-  }
-});
-
-
-/***/ }),
-/* 121 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// 25.4.1.5 NewPromiseCapability(C)
-var aFunction = __webpack_require__(63);
-
-function PromiseCapability(C) {
-  var resolve, reject;
-  this.promise = new C(function ($$resolve, $$reject) {
-    if (resolve !== undefined || reject !== undefined) throw TypeError('Bad Promise constructor');
-    resolve = $$resolve;
-    reject = $$reject;
-  });
-  this.resolve = aFunction(resolve);
-  this.reject = aFunction(reject);
-}
-
-module.exports.f = function (C) {
-  return new PromiseCapability(C);
-};
-
-
-/***/ }),
-/* 122 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// ECMAScript 6 symbols shim
-var global = __webpack_require__(15);
-var has = __webpack_require__(29);
-var DESCRIPTORS = __webpack_require__(22);
-var $export = __webpack_require__(3);
-var redefine = __webpack_require__(30);
-var META = __webpack_require__(34).KEY;
-var $fails = __webpack_require__(23);
-var shared = __webpack_require__(79);
-var setToStringTag = __webpack_require__(54);
-var uid = __webpack_require__(51);
-var wks = __webpack_require__(12);
-var wksExt = __webpack_require__(123);
-var wksDefine = __webpack_require__(339);
-var enumKeys = __webpack_require__(340);
-var isArray = __webpack_require__(116);
-var anObject = __webpack_require__(18);
-var isObject = __webpack_require__(9);
-var toIObject = __webpack_require__(24);
-var toPrimitive = __webpack_require__(75);
-var createDesc = __webpack_require__(52);
-var _create = __webpack_require__(76);
-var gOPNExt = __webpack_require__(124);
-var $GOPD = __webpack_require__(67);
-var $DP = __webpack_require__(20);
-var $keys = __webpack_require__(37);
-var gOPD = $GOPD.f;
-var dP = $DP.f;
-var gOPN = gOPNExt.f;
-var $Symbol = global.Symbol;
-var $JSON = global.JSON;
-var _stringify = $JSON && $JSON.stringify;
-var PROTOTYPE = 'prototype';
-var HIDDEN = wks('_hidden');
-var TO_PRIMITIVE = wks('toPrimitive');
-var isEnum = {}.propertyIsEnumerable;
-var SymbolRegistry = shared('symbol-registry');
-var AllSymbols = shared('symbols');
-var OPSymbols = shared('op-symbols');
-var ObjectProto = Object[PROTOTYPE];
-var USE_NATIVE = typeof $Symbol == 'function';
-var QObject = global.QObject;
-// Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
-var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
-
-// fallback for old Android, https://code.google.com/p/v8/issues/detail?id=687
-var setSymbolDesc = DESCRIPTORS && $fails(function () {
-  return _create(dP({}, 'a', {
-    get: function () { return dP(this, 'a', { value: 7 }).a; }
-  })).a != 7;
-}) ? function (it, key, D) {
-  var protoDesc = gOPD(ObjectProto, key);
-  if (protoDesc) delete ObjectProto[key];
-  dP(it, key, D);
-  if (protoDesc && it !== ObjectProto) dP(ObjectProto, key, protoDesc);
-} : dP;
-
-var wrap = function (tag) {
-  var sym = AllSymbols[tag] = _create($Symbol[PROTOTYPE]);
-  sym._k = tag;
-  return sym;
-};
-
-var isSymbol = USE_NATIVE && typeof $Symbol.iterator == 'symbol' ? function (it) {
-  return typeof it == 'symbol';
-} : function (it) {
-  return it instanceof $Symbol;
-};
-
-var $defineProperty = function defineProperty(it, key, D) {
-  if (it === ObjectProto) $defineProperty(OPSymbols, key, D);
-  anObject(it);
-  key = toPrimitive(key, true);
-  anObject(D);
-  if (has(AllSymbols, key)) {
-    if (!D.enumerable) {
-      if (!has(it, HIDDEN)) dP(it, HIDDEN, createDesc(1, {}));
-      it[HIDDEN][key] = true;
-    } else {
-      if (has(it, HIDDEN) && it[HIDDEN][key]) it[HIDDEN][key] = false;
-      D = _create(D, { enumerable: createDesc(0, false) });
-    } return setSymbolDesc(it, key, D);
-  } return dP(it, key, D);
-};
-var $defineProperties = function defineProperties(it, P) {
-  anObject(it);
-  var keys = enumKeys(P = toIObject(P));
-  var i = 0;
-  var l = keys.length;
-  var key;
-  while (l > i) $defineProperty(it, key = keys[i++], P[key]);
-  return it;
-};
-var $create = function create(it, P) {
-  return P === undefined ? _create(it) : $defineProperties(_create(it), P);
-};
-var $propertyIsEnumerable = function propertyIsEnumerable(key) {
-  var E = isEnum.call(this, key = toPrimitive(key, true));
-  if (this === ObjectProto && has(AllSymbols, key) && !has(OPSymbols, key)) return false;
-  return E || !has(this, key) || !has(AllSymbols, key) || has(this, HIDDEN) && this[HIDDEN][key] ? E : true;
-};
-var $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(it, key) {
-  it = toIObject(it);
-  key = toPrimitive(key, true);
-  if (it === ObjectProto && has(AllSymbols, key) && !has(OPSymbols, key)) return;
-  var D = gOPD(it, key);
-  if (D && has(AllSymbols, key) && !(has(it, HIDDEN) && it[HIDDEN][key])) D.enumerable = true;
-  return D;
-};
-var $getOwnPropertyNames = function getOwnPropertyNames(it) {
-  var names = gOPN(toIObject(it));
-  var result = [];
-  var i = 0;
-  var key;
-  while (names.length > i) {
-    if (!has(AllSymbols, key = names[i++]) && key != HIDDEN && key != META) result.push(key);
-  } return result;
-};
-var $getOwnPropertySymbols = function getOwnPropertySymbols(it) {
-  var IS_OP = it === ObjectProto;
-  var names = gOPN(IS_OP ? OPSymbols : toIObject(it));
-  var result = [];
-  var i = 0;
-  var key;
-  while (names.length > i) {
-    if (has(AllSymbols, key = names[i++]) && (IS_OP ? has(ObjectProto, key) : true)) result.push(AllSymbols[key]);
-  } return result;
-};
-
-// 19.4.1.1 Symbol([description])
-if (!USE_NATIVE) {
-  $Symbol = function Symbol() {
-    if (this instanceof $Symbol) throw TypeError('Symbol is not a constructor!');
-    var tag = uid(arguments.length > 0 ? arguments[0] : undefined);
-    var $set = function (value) {
-      if (this === ObjectProto) $set.call(OPSymbols, value);
-      if (has(this, HIDDEN) && has(this[HIDDEN], tag)) this[HIDDEN][tag] = false;
-      setSymbolDesc(this, tag, createDesc(1, value));
-    };
-    if (DESCRIPTORS && setter) setSymbolDesc(ObjectProto, tag, { configurable: true, set: $set });
-    return wrap(tag);
-  };
-  redefine($Symbol[PROTOTYPE], 'toString', function toString() {
-    return this._k;
-  });
-
-  $GOPD.f = $getOwnPropertyDescriptor;
-  $DP.f = $defineProperty;
-  __webpack_require__(84).f = gOPNExt.f = $getOwnPropertyNames;
-  __webpack_require__(55).f = $propertyIsEnumerable;
-  __webpack_require__(69).f = $getOwnPropertySymbols;
-
-  if (DESCRIPTORS && !__webpack_require__(50)) {
-    redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
-  }
-
-  wksExt.f = function (name) {
-    return wrap(wks(name));
-  };
-}
-
-$export($export.G + $export.W + $export.F * !USE_NATIVE, { Symbol: $Symbol });
-
-for (var es6Symbols = (
-  // 19.4.2.2, 19.4.2.3, 19.4.2.4, 19.4.2.6, 19.4.2.8, 19.4.2.9, 19.4.2.10, 19.4.2.11, 19.4.2.12, 19.4.2.13, 19.4.2.14
-  'hasInstance,isConcatSpreadable,iterator,match,replace,search,species,split,toPrimitive,toStringTag,unscopables'
-).split(','), j = 0; es6Symbols.length > j;)wks(es6Symbols[j++]);
-
-for (var wellKnownSymbols = $keys(wks.store), k = 0; wellKnownSymbols.length > k;) wksDefine(wellKnownSymbols[k++]);
-
-$export($export.S + $export.F * !USE_NATIVE, 'Symbol', {
-  // 19.4.2.1 Symbol.for(key)
-  'for': function (key) {
-    return has(SymbolRegistry, key += '')
-      ? SymbolRegistry[key]
-      : SymbolRegistry[key] = $Symbol(key);
-  },
-  // 19.4.2.5 Symbol.keyFor(sym)
-  keyFor: function keyFor(sym) {
-    if (!isSymbol(sym)) throw TypeError(sym + ' is not a symbol!');
-    for (var key in SymbolRegistry) if (SymbolRegistry[key] === sym) return key;
-  },
-  useSetter: function () { setter = true; },
-  useSimple: function () { setter = false; }
-});
-
-$export($export.S + $export.F * !USE_NATIVE, 'Object', {
-  // 19.1.2.2 Object.create(O [, Properties])
-  create: $create,
-  // 19.1.2.4 Object.defineProperty(O, P, Attributes)
-  defineProperty: $defineProperty,
-  // 19.1.2.3 Object.defineProperties(O, Properties)
-  defineProperties: $defineProperties,
-  // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
-  getOwnPropertyDescriptor: $getOwnPropertyDescriptor,
-  // 19.1.2.7 Object.getOwnPropertyNames(O)
-  getOwnPropertyNames: $getOwnPropertyNames,
-  // 19.1.2.8 Object.getOwnPropertySymbols(O)
-  getOwnPropertySymbols: $getOwnPropertySymbols
-});
-
-// 24.3.2 JSON.stringify(value [, replacer [, space]])
-$JSON && $export($export.S + $export.F * (!USE_NATIVE || $fails(function () {
-  var S = $Symbol();
-  // MS Edge converts symbol values to JSON as {}
-  // WebKit converts symbol values to JSON as null
-  // V8 throws on boxed symbols
-  return _stringify([S]) != '[null]' || _stringify({ a: S }) != '{}' || _stringify(Object(S)) != '{}';
-})), 'JSON', {
-  stringify: function stringify(it) {
-    var args = [it];
-    var i = 1;
-    var replacer, $replacer;
-    while (arguments.length > i) args.push(arguments[i++]);
-    $replacer = replacer = args[1];
-    if (!isObject(replacer) && it === undefined || isSymbol(it)) return; // IE8 returns string on undefined
-    if (!isArray(replacer)) replacer = function (key, value) {
-      if (typeof $replacer == 'function') value = $replacer.call(this, key, value);
-      if (!isSymbol(value)) return value;
-    };
-    args[1] = replacer;
-    return _stringify.apply($JSON, args);
-  }
-});
-
-// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
-$Symbol[PROTOTYPE][TO_PRIMITIVE] || __webpack_require__(31)($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
-// 19.4.3.5 Symbol.prototype[@@toStringTag]
-setToStringTag($Symbol, 'Symbol');
-// 20.2.1.9 Math[@@toStringTag]
-setToStringTag(Math, 'Math', true);
-// 24.3.3 JSON[@@toStringTag]
-setToStringTag(global.JSON, 'JSON', true);
-
-
-/***/ }),
-/* 123 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports.f = __webpack_require__(12);
-
-
-/***/ }),
-/* 124 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
-var toIObject = __webpack_require__(24);
-var gOPN = __webpack_require__(84).f;
-var toString = {}.toString;
-
-var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
-  ? Object.getOwnPropertyNames(window) : [];
-
-var getWindowNames = function (it) {
-  try {
-    return gOPN(it);
-  } catch (e) {
-    return windowNames.slice();
-  }
-};
-
-module.exports.f = function getOwnPropertyNames(it) {
-  return windowNames && toString.call(it) == '[object Window]' ? getWindowNames(it) : gOPN(toIObject(it));
-};
-
-
-/***/ }),
-/* 125 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.2.5 Object.freeze(O)
-var isObject = __webpack_require__(9);
-var meta = __webpack_require__(34).onFreeze;
-
-__webpack_require__(26)('freeze', function ($freeze) {
-  return function freeze(it) {
-    return $freeze && isObject(it) ? $freeze(meta(it)) : it;
-  };
-});
-
-
-/***/ }),
-/* 126 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.2.17 Object.seal(O)
-var isObject = __webpack_require__(9);
-var meta = __webpack_require__(34).onFreeze;
-
-__webpack_require__(26)('seal', function ($seal) {
-  return function seal(it) {
-    return $seal && isObject(it) ? $seal(meta(it)) : it;
-  };
-});
-
-
-/***/ }),
-/* 127 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.2.15 Object.preventExtensions(O)
-var isObject = __webpack_require__(9);
-var meta = __webpack_require__(34).onFreeze;
-
-__webpack_require__(26)('preventExtensions', function ($preventExtensions) {
-  return function preventExtensions(it) {
-    return $preventExtensions && isObject(it) ? $preventExtensions(meta(it)) : it;
-  };
-});
-
-
-/***/ }),
-/* 128 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.2.12 Object.isFrozen(O)
-var isObject = __webpack_require__(9);
-
-__webpack_require__(26)('isFrozen', function ($isFrozen) {
-  return function isFrozen(it) {
-    return isObject(it) ? $isFrozen ? $isFrozen(it) : false : true;
-  };
-});
-
-
-/***/ }),
-/* 129 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.2.13 Object.isSealed(O)
-var isObject = __webpack_require__(9);
-
-__webpack_require__(26)('isSealed', function ($isSealed) {
-  return function isSealed(it) {
-    return isObject(it) ? $isSealed ? $isSealed(it) : false : true;
-  };
-});
-
-
-/***/ }),
-/* 130 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.2.11 Object.isExtensible(O)
-var isObject = __webpack_require__(9);
-
-__webpack_require__(26)('isExtensible', function ($isExtensible) {
-  return function isExtensible(it) {
-    return isObject(it) ? $isExtensible ? $isExtensible(it) : true : false;
-  };
-});
-
-
-/***/ }),
-/* 131 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
-var toIObject = __webpack_require__(24);
-var $getOwnPropertyDescriptor = __webpack_require__(67).f;
-
-__webpack_require__(26)('getOwnPropertyDescriptor', function () {
-  return function getOwnPropertyDescriptor(it, key) {
-    return $getOwnPropertyDescriptor(toIObject(it), key);
-  };
-});
-
-
-/***/ }),
-/* 132 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.2.9 Object.getPrototypeOf(O)
-var toObject = __webpack_require__(33);
-var $getPrototypeOf = __webpack_require__(110);
-
-__webpack_require__(26)('getPrototypeOf', function () {
-  return function getPrototypeOf(it) {
-    return $getPrototypeOf(toObject(it));
-  };
-});
-
-
-/***/ }),
-/* 133 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.2.14 Object.keys(O)
-var toObject = __webpack_require__(33);
-var $keys = __webpack_require__(37);
-
-__webpack_require__(26)('keys', function () {
-  return function keys(it) {
-    return $keys(toObject(it));
-  };
-});
-
-
-/***/ }),
-/* 134 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.2.7 Object.getOwnPropertyNames(O)
-__webpack_require__(26)('getOwnPropertyNames', function () {
-  return __webpack_require__(124).f;
-});
-
-
-/***/ }),
-/* 135 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.3.1 Object.assign(target, source)
-var $export = __webpack_require__(3);
-
-$export($export.S + $export.F, 'Object', { assign: __webpack_require__(117) });
-
-
-/***/ }),
-/* 136 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.3.10 Object.is(value1, value2)
-var $export = __webpack_require__(3);
-$export($export.S, 'Object', { is: __webpack_require__(341) });
-
-
-/***/ }),
-/* 137 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.3.19 Object.setPrototypeOf(O, proto)
-var $export = __webpack_require__(3);
-$export($export.S, 'Object', { setPrototypeOf: __webpack_require__(113).set });
-
-
-/***/ }),
-/* 138 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var dP = __webpack_require__(20).f;
-var FProto = Function.prototype;
-var nameRE = /^\s*function ([^ (]*)/;
-var NAME = 'name';
-
-// 19.2.4.2 name
-NAME in FProto || __webpack_require__(22) && dP(FProto, NAME, {
-  configurable: true,
-  get: function () {
-    try {
-      return ('' + this).match(nameRE)[1];
-    } catch (e) {
-      return '';
-    }
-  }
-});
-
-
-/***/ }),
-/* 139 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var $export = __webpack_require__(3);
-var toIObject = __webpack_require__(24);
-var toLength = __webpack_require__(25);
-
-$export($export.S, 'String', {
-  // 21.1.2.4 String.raw(callSite, ...substitutions)
-  raw: function raw(callSite) {
-    var tpl = toIObject(callSite.raw);
-    var len = toLength(tpl.length);
-    var aLen = arguments.length;
-    var res = [];
-    var i = 0;
-    while (len > i) {
-      res.push(String(tpl[i++]));
-      if (i < aLen) res.push(String(arguments[i]));
-    } return res.join('');
-  }
-});
-
-
-/***/ }),
-/* 140 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var $export = __webpack_require__(3);
-var toAbsoluteIndex = __webpack_require__(61);
-var fromCharCode = String.fromCharCode;
-var $fromCodePoint = String.fromCodePoint;
-
-// length should be 1, old FF problem
-$export($export.S + $export.F * (!!$fromCodePoint && $fromCodePoint.length != 1), 'String', {
-  // 21.1.2.2 String.fromCodePoint(...codePoints)
-  fromCodePoint: function fromCodePoint(x) { // eslint-disable-line no-unused-vars
-    var res = [];
-    var aLen = arguments.length;
-    var i = 0;
-    var code;
-    while (aLen > i) {
-      code = +arguments[i++];
-      if (toAbsoluteIndex(code, 0x10ffff) !== code) throw RangeError(code + ' is not a valid code point');
-      res.push(code < 0x10000
-        ? fromCharCode(code)
-        : fromCharCode(((code -= 0x10000) >> 10) + 0xd800, code % 0x400 + 0xdc00)
-      );
-    } return res.join('');
-  }
-});
-
-
-/***/ }),
-/* 141 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var $export = __webpack_require__(3);
-var $at = __webpack_require__(342)(false);
-$export($export.P, 'String', {
-  // 21.1.3.3 String.prototype.codePointAt(pos)
-  codePointAt: function codePointAt(pos) {
-    return $at(this, pos);
-  }
-});
-
-
-/***/ }),
-/* 142 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var $export = __webpack_require__(3);
-
-$export($export.P, 'String', {
-  // 21.1.3.13 String.prototype.repeat(count)
-  repeat: __webpack_require__(143)
-});
-
-
-/***/ }),
-/* 143 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var toInteger = __webpack_require__(60);
-var defined = __webpack_require__(38);
-
-module.exports = function repeat(count) {
-  var str = String(defined(this));
-  var res = '';
-  var n = toInteger(count);
-  if (n < 0 || n == Infinity) throw RangeError("Count can't be negative");
-  for (;n > 0; (n >>>= 1) && (str += str)) if (n & 1) res += str;
-  return res;
-};
-
-
-/***/ }),
-/* 144 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-// 21.1.3.18 String.prototype.startsWith(searchString [, position ])
-
-var $export = __webpack_require__(3);
-var toLength = __webpack_require__(25);
-var context = __webpack_require__(85);
-var STARTS_WITH = 'startsWith';
-var $startsWith = ''[STARTS_WITH];
-
-$export($export.P + $export.F * __webpack_require__(86)(STARTS_WITH), 'String', {
-  startsWith: function startsWith(searchString /* , position = 0 */) {
-    var that = context(this, searchString, STARTS_WITH);
-    var index = toLength(Math.min(arguments.length > 1 ? arguments[1] : undefined, that.length));
-    var search = String(searchString);
-    return $startsWith
-      ? $startsWith.call(that, search, index)
-      : that.slice(index, index + search.length) === search;
-  }
-});
-
-
-/***/ }),
-/* 145 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 7.2.8 IsRegExp(argument)
-var isObject = __webpack_require__(9);
-var cof = __webpack_require__(45);
-var MATCH = __webpack_require__(12)('match');
-module.exports = function (it) {
-  var isRegExp;
-  return isObject(it) && ((isRegExp = it[MATCH]) !== undefined ? !!isRegExp : cof(it) == 'RegExp');
-};
-
-
-/***/ }),
-/* 146 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-// 21.1.3.6 String.prototype.endsWith(searchString [, endPosition])
-
-var $export = __webpack_require__(3);
-var toLength = __webpack_require__(25);
-var context = __webpack_require__(85);
-var ENDS_WITH = 'endsWith';
-var $endsWith = ''[ENDS_WITH];
-
-$export($export.P + $export.F * __webpack_require__(86)(ENDS_WITH), 'String', {
-  endsWith: function endsWith(searchString /* , endPosition = @length */) {
-    var that = context(this, searchString, ENDS_WITH);
-    var endPosition = arguments.length > 1 ? arguments[1] : undefined;
-    var len = toLength(that.length);
-    var end = endPosition === undefined ? len : Math.min(toLength(endPosition), len);
-    var search = String(searchString);
-    return $endsWith
-      ? $endsWith.call(that, search, end)
-      : that.slice(end - search.length, end) === search;
-  }
-});
-
-
-/***/ }),
-/* 147 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-// 21.1.3.7 String.prototype.includes(searchString, position = 0)
-
-var $export = __webpack_require__(3);
-var context = __webpack_require__(85);
-var INCLUDES = 'includes';
-
-$export($export.P + $export.F * __webpack_require__(86)(INCLUDES), 'String', {
-  includes: function includes(searchString /* , position = 0 */) {
-    return !!~context(this, searchString, INCLUDES)
-      .indexOf(searchString, arguments.length > 1 ? arguments[1] : undefined);
-  }
-});
-
-
-/***/ }),
-/* 148 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 21.2.5.3 get RegExp.prototype.flags()
-if (__webpack_require__(22) && /./g.flags != 'g') __webpack_require__(20).f(RegExp.prototype, 'flags', {
-  configurable: true,
-  get: __webpack_require__(343)
-});
-
-
-/***/ }),
-/* 149 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// @@match logic
-__webpack_require__(70)('match', 1, function (defined, MATCH, $match) {
-  // 21.1.3.11 String.prototype.match(regexp)
-  return [function match(regexp) {
-    'use strict';
-    var O = defined(this);
-    var fn = regexp == undefined ? undefined : regexp[MATCH];
-    return fn !== undefined ? fn.call(regexp, O) : new RegExp(regexp)[MATCH](String(O));
-  }, $match];
-});
-
-
-/***/ }),
-/* 150 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// @@replace logic
-__webpack_require__(70)('replace', 2, function (defined, REPLACE, $replace) {
-  // 21.1.3.14 String.prototype.replace(searchValue, replaceValue)
-  return [function replace(searchValue, replaceValue) {
-    'use strict';
-    var O = defined(this);
-    var fn = searchValue == undefined ? undefined : searchValue[REPLACE];
-    return fn !== undefined
-      ? fn.call(searchValue, O, replaceValue)
-      : $replace.call(String(O), searchValue, replaceValue);
-  }, $replace];
-});
-
-
-/***/ }),
-/* 151 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// @@split logic
-__webpack_require__(70)('split', 2, function (defined, SPLIT, $split) {
-  'use strict';
-  var isRegExp = __webpack_require__(145);
-  var _split = $split;
-  var $push = [].push;
-  var $SPLIT = 'split';
-  var LENGTH = 'length';
-  var LAST_INDEX = 'lastIndex';
-  if (
-    'abbc'[$SPLIT](/(b)*/)[1] == 'c' ||
-    'test'[$SPLIT](/(?:)/, -1)[LENGTH] != 4 ||
-    'ab'[$SPLIT](/(?:ab)*/)[LENGTH] != 2 ||
-    '.'[$SPLIT](/(.?)(.?)/)[LENGTH] != 4 ||
-    '.'[$SPLIT](/()()/)[LENGTH] > 1 ||
-    ''[$SPLIT](/.?/)[LENGTH]
-  ) {
-    var NPCG = /()??/.exec('')[1] === undefined; // nonparticipating capturing group
-    // based on es5-shim implementation, need to rework it
-    $split = function (separator, limit) {
-      var string = String(this);
-      if (separator === undefined && limit === 0) return [];
-      // If `separator` is not a regex, use native split
-      if (!isRegExp(separator)) return _split.call(string, separator, limit);
-      var output = [];
-      var flags = (separator.ignoreCase ? 'i' : '') +
-                  (separator.multiline ? 'm' : '') +
-                  (separator.unicode ? 'u' : '') +
-                  (separator.sticky ? 'y' : '');
-      var lastLastIndex = 0;
-      var splitLimit = limit === undefined ? 4294967295 : limit >>> 0;
-      // Make `global` and avoid `lastIndex` issues by working with a copy
-      var separatorCopy = new RegExp(separator.source, flags + 'g');
-      var separator2, match, lastIndex, lastLength, i;
-      // Doesn't need flags gy, but they don't hurt
-      if (!NPCG) separator2 = new RegExp('^' + separatorCopy.source + '$(?!\\s)', flags);
-      while (match = separatorCopy.exec(string)) {
-        // `separatorCopy.lastIndex` is not reliable cross-browser
-        lastIndex = match.index + match[0][LENGTH];
-        if (lastIndex > lastLastIndex) {
-          output.push(string.slice(lastLastIndex, match.index));
-          // Fix browsers whose `exec` methods don't consistently return `undefined` for NPCG
-          // eslint-disable-next-line no-loop-func
-          if (!NPCG && match[LENGTH] > 1) match[0].replace(separator2, function () {
-            for (i = 1; i < arguments[LENGTH] - 2; i++) if (arguments[i] === undefined) match[i] = undefined;
-          });
-          if (match[LENGTH] > 1 && match.index < string[LENGTH]) $push.apply(output, match.slice(1));
-          lastLength = match[0][LENGTH];
-          lastLastIndex = lastIndex;
-          if (output[LENGTH] >= splitLimit) break;
-        }
-        if (separatorCopy[LAST_INDEX] === match.index) separatorCopy[LAST_INDEX]++; // Avoid an infinite loop
-      }
-      if (lastLastIndex === string[LENGTH]) {
-        if (lastLength || !separatorCopy.test('')) output.push('');
-      } else output.push(string.slice(lastLastIndex));
-      return output[LENGTH] > splitLimit ? output.slice(0, splitLimit) : output;
-    };
-  // Chakra, V8
-  } else if ('0'[$SPLIT](undefined, 0)[LENGTH]) {
-    $split = function (separator, limit) {
-      return separator === undefined && limit === 0 ? [] : _split.call(this, separator, limit);
-    };
-  }
-  // 21.1.3.17 String.prototype.split(separator, limit)
-  return [function split(separator, limit) {
-    var O = defined(this);
-    var fn = separator == undefined ? undefined : separator[SPLIT];
-    return fn !== undefined ? fn.call(separator, O, limit) : $split.call(String(O), separator, limit);
-  }, $split];
-});
-
-
-/***/ }),
-/* 152 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// @@search logic
-__webpack_require__(70)('search', 1, function (defined, SEARCH, $search) {
-  // 21.1.3.15 String.prototype.search(regexp)
-  return [function search(regexp) {
-    'use strict';
-    var O = defined(this);
-    var fn = regexp == undefined ? undefined : regexp[SEARCH];
-    return fn !== undefined ? fn.call(regexp, O) : new RegExp(regexp)[SEARCH](String(O));
-  }, $search];
-});
-
-
-/***/ }),
-/* 153 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var ctx = __webpack_require__(32);
-var $export = __webpack_require__(3);
-var toObject = __webpack_require__(33);
-var call = __webpack_require__(105);
-var isArrayIter = __webpack_require__(106);
-var toLength = __webpack_require__(25);
-var createProperty = __webpack_require__(87);
-var getIterFn = __webpack_require__(107);
-
-$export($export.S + $export.F * !__webpack_require__(81)(function (iter) { Array.from(iter); }), 'Array', {
-  // 22.1.2.1 Array.from(arrayLike, mapfn = undefined, thisArg = undefined)
-  from: function from(arrayLike /* , mapfn = undefined, thisArg = undefined */) {
-    var O = toObject(arrayLike);
-    var C = typeof this == 'function' ? this : Array;
-    var aLen = arguments.length;
-    var mapfn = aLen > 1 ? arguments[1] : undefined;
-    var mapping = mapfn !== undefined;
-    var index = 0;
-    var iterFn = getIterFn(O);
-    var length, result, step, iterator;
-    if (mapping) mapfn = ctx(mapfn, aLen > 2 ? arguments[2] : undefined, 2);
-    // if object isn't iterable or it's array with default iterator - use simple case
-    if (iterFn != undefined && !(C == Array && isArrayIter(iterFn))) {
-      for (iterator = iterFn.call(O), result = new C(); !(step = iterator.next()).done; index++) {
-        createProperty(result, index, mapping ? call(iterator, mapfn, [step.value, index], true) : step.value);
-      }
-    } else {
-      length = toLength(O.length);
-      for (result = new C(length); length > index; index++) {
-        createProperty(result, index, mapping ? mapfn(O[index], index) : O[index]);
-      }
-    }
-    result.length = index;
-    return result;
-  }
-});
-
-
-/***/ }),
-/* 154 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var $export = __webpack_require__(3);
-var createProperty = __webpack_require__(87);
-
-// WebKit Array.of isn't generic
-$export($export.S + $export.F * __webpack_require__(23)(function () {
-  function F() { /* empty */ }
-  return !(Array.of.call(F) instanceof F);
-}), 'Array', {
-  // 22.1.2.3 Array.of( ...items)
-  of: function of(/* ...args */) {
-    var index = 0;
-    var aLen = arguments.length;
-    var result = new (typeof this == 'function' ? this : Array)(aLen);
-    while (aLen > index) createProperty(result, index, arguments[index++]);
-    result.length = aLen;
-    return result;
-  }
-});
-
-
-/***/ }),
-/* 155 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
-var $export = __webpack_require__(3);
-
-$export($export.P, 'Array', { copyWithin: __webpack_require__(344) });
-
-__webpack_require__(47)('copyWithin');
-
-
-/***/ }),
-/* 156 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// 22.1.3.8 Array.prototype.find(predicate, thisArg = undefined)
-var $export = __webpack_require__(3);
-var $find = __webpack_require__(68)(5);
-var KEY = 'find';
-var forced = true;
-// Shouldn't skip holes
-if (KEY in []) Array(1)[KEY](function () { forced = false; });
-$export($export.P + $export.F * forced, 'Array', {
-  find: function find(callbackfn /* , that = undefined */) {
-    return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
-  }
-});
-__webpack_require__(47)(KEY);
-
-
-/***/ }),
-/* 157 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// 22.1.3.9 Array.prototype.findIndex(predicate, thisArg = undefined)
-var $export = __webpack_require__(3);
-var $find = __webpack_require__(68)(6);
-var KEY = 'findIndex';
-var forced = true;
-// Shouldn't skip holes
-if (KEY in []) Array(1)[KEY](function () { forced = false; });
-$export($export.P + $export.F * forced, 'Array', {
-  findIndex: function findIndex(callbackfn /* , that = undefined */) {
-    return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
-  }
-});
-__webpack_require__(47)(KEY);
-
-
-/***/ }),
-/* 158 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
-var $export = __webpack_require__(3);
-
-$export($export.P, 'Array', { fill: __webpack_require__(345) });
-
-__webpack_require__(47)('fill');
-
-
-/***/ }),
-/* 159 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 20.1.2.2 Number.isFinite(number)
-var $export = __webpack_require__(3);
-var _isFinite = __webpack_require__(15).isFinite;
-
-$export($export.S, 'Number', {
-  isFinite: function isFinite(it) {
-    return typeof it == 'number' && _isFinite(it);
-  }
-});
-
-
-/***/ }),
-/* 160 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 20.1.2.3 Number.isInteger(number)
-var $export = __webpack_require__(3);
-
-$export($export.S, 'Number', { isInteger: __webpack_require__(161) });
-
-
-/***/ }),
-/* 161 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 20.1.2.3 Number.isInteger(number)
-var isObject = __webpack_require__(9);
-var floor = Math.floor;
-module.exports = function isInteger(it) {
-  return !isObject(it) && isFinite(it) && floor(it) === it;
-};
-
-
-/***/ }),
-/* 162 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 20.1.2.5 Number.isSafeInteger(number)
-var $export = __webpack_require__(3);
-var isInteger = __webpack_require__(161);
-var abs = Math.abs;
-
-$export($export.S, 'Number', {
-  isSafeInteger: function isSafeInteger(number) {
-    return isInteger(number) && abs(number) <= 0x1fffffffffffff;
-  }
-});
-
-
-/***/ }),
-/* 163 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 20.1.2.4 Number.isNaN(number)
-var $export = __webpack_require__(3);
-
-$export($export.S, 'Number', {
-  isNaN: function isNaN(number) {
-    // eslint-disable-next-line no-self-compare
-    return number != number;
-  }
-});
-
-
-/***/ }),
-/* 164 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 20.1.2.1 Number.EPSILON
-var $export = __webpack_require__(3);
-
-$export($export.S, 'Number', { EPSILON: Math.pow(2, -52) });
-
-
-/***/ }),
-/* 165 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 20.1.2.10 Number.MIN_SAFE_INTEGER
-var $export = __webpack_require__(3);
-
-$export($export.S, 'Number', { MIN_SAFE_INTEGER: -0x1fffffffffffff });
-
-
-/***/ }),
-/* 166 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 20.1.2.6 Number.MAX_SAFE_INTEGER
-var $export = __webpack_require__(3);
-
-$export($export.S, 'Number', { MAX_SAFE_INTEGER: 0x1fffffffffffff });
-
-
-/***/ }),
-/* 167 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// https://github.com/tc39/Array.prototype.includes
-var $export = __webpack_require__(3);
-var $includes = __webpack_require__(103)(true);
-
-$export($export.P, 'Array', {
-  includes: function includes(el /* , fromIndex = 0 */) {
-    return $includes(this, el, arguments.length > 1 ? arguments[1] : undefined);
-  }
-});
-
-__webpack_require__(47)('includes');
-
-
-/***/ }),
-/* 168 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// https://github.com/tc39/proposal-object-values-entries
-var $export = __webpack_require__(3);
-var $values = __webpack_require__(169)(false);
-
-$export($export.S, 'Object', {
-  values: function values(it) {
-    return $values(it);
-  }
-});
-
-
-/***/ }),
-/* 169 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var getKeys = __webpack_require__(37);
-var toIObject = __webpack_require__(24);
-var isEnum = __webpack_require__(55).f;
-module.exports = function (isEntries) {
-  return function (it) {
-    var O = toIObject(it);
-    var keys = getKeys(O);
-    var length = keys.length;
-    var i = 0;
-    var result = [];
-    var key;
-    while (length > i) if (isEnum.call(O, key = keys[i++])) {
-      result.push(isEntries ? [key, O[key]] : O[key]);
-    } return result;
-  };
-};
-
-
-/***/ }),
-/* 170 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// https://github.com/tc39/proposal-object-values-entries
-var $export = __webpack_require__(3);
-var $entries = __webpack_require__(169)(true);
-
-$export($export.S, 'Object', {
-  entries: function entries(it) {
-    return $entries(it);
-  }
-});
-
-
-/***/ }),
-/* 171 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// https://github.com/tc39/proposal-object-getownpropertydescriptors
-var $export = __webpack_require__(3);
-var ownKeys = __webpack_require__(346);
-var toIObject = __webpack_require__(24);
-var gOPD = __webpack_require__(67);
-var createProperty = __webpack_require__(87);
-
-$export($export.S, 'Object', {
-  getOwnPropertyDescriptors: function getOwnPropertyDescriptors(object) {
-    var O = toIObject(object);
-    var getDesc = gOPD.f;
-    var keys = ownKeys(O);
-    var result = {};
-    var i = 0;
-    var key, desc;
-    while (keys.length > i) {
-      desc = getDesc(O, key = keys[i++]);
-      if (desc !== undefined) createProperty(result, key, desc);
-    }
-    return result;
-  }
-});
-
-
-/***/ }),
-/* 172 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// https://github.com/tc39/proposal-string-pad-start-end
-var $export = __webpack_require__(3);
-var $pad = __webpack_require__(173);
-var userAgent = __webpack_require__(83);
-
-// https://github.com/zloirock/core-js/issues/280
-$export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAgent), 'String', {
-  padStart: function padStart(maxLength /* , fillString = ' ' */) {
-    return $pad(this, maxLength, arguments.length > 1 ? arguments[1] : undefined, true);
-  }
-});
-
-
-/***/ }),
-/* 173 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// https://github.com/tc39/proposal-string-pad-start-end
-var toLength = __webpack_require__(25);
-var repeat = __webpack_require__(143);
-var defined = __webpack_require__(38);
-
-module.exports = function (that, maxLength, fillString, left) {
-  var S = String(defined(that));
-  var stringLength = S.length;
-  var fillStr = fillString === undefined ? ' ' : String(fillString);
-  var intMaxLength = toLength(maxLength);
-  if (intMaxLength <= stringLength || fillStr == '') return S;
-  var fillLen = intMaxLength - stringLength;
-  var stringFiller = repeat.call(fillStr, Math.ceil(fillLen / fillStr.length));
-  if (stringFiller.length > fillLen) stringFiller = stringFiller.slice(0, fillLen);
-  return left ? stringFiller + S : S + stringFiller;
-};
-
-
-/***/ }),
-/* 174 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// https://github.com/tc39/proposal-string-pad-start-end
-var $export = __webpack_require__(3);
-var $pad = __webpack_require__(173);
-var userAgent = __webpack_require__(83);
-
-// https://github.com/zloirock/core-js/issues/280
-$export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAgent), 'String', {
-  padEnd: function padEnd(maxLength /* , fillString = ' ' */) {
-    return $pad(this, maxLength, arguments.length > 1 ? arguments[1] : undefined, false);
-  }
-});
-
-
-/***/ }),
-/* 175 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var $export = __webpack_require__(3);
-var $task = __webpack_require__(82);
-$export($export.G + $export.B, {
-  setImmediate: $task.set,
-  clearImmediate: $task.clear
-});
-
-
-/***/ }),
-/* 176 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var $iterators = __webpack_require__(88);
-var getKeys = __webpack_require__(37);
-var redefine = __webpack_require__(30);
-var global = __webpack_require__(15);
-var hide = __webpack_require__(31);
-var Iterators = __webpack_require__(53);
-var wks = __webpack_require__(12);
-var ITERATOR = wks('iterator');
-var TO_STRING_TAG = wks('toStringTag');
-var ArrayValues = Iterators.Array;
-
-var DOMIterables = {
-  CSSRuleList: true, // TODO: Not spec compliant, should be false.
-  CSSStyleDeclaration: false,
-  CSSValueList: false,
-  ClientRectList: false,
-  DOMRectList: false,
-  DOMStringList: false,
-  DOMTokenList: true,
-  DataTransferItemList: false,
-  FileList: false,
-  HTMLAllCollection: false,
-  HTMLCollection: false,
-  HTMLFormElement: false,
-  HTMLSelectElement: false,
-  MediaList: true, // TODO: Not spec compliant, should be false.
-  MimeTypeArray: false,
-  NamedNodeMap: false,
-  NodeList: true,
-  PaintRequestList: false,
-  Plugin: false,
-  PluginArray: false,
-  SVGLengthList: false,
-  SVGNumberList: false,
-  SVGPathSegList: false,
-  SVGPointList: false,
-  SVGStringList: false,
-  SVGTransformList: false,
-  SourceBufferList: false,
-  StyleSheetList: true, // TODO: Not spec compliant, should be false.
-  TextTrackCueList: false,
-  TextTrackList: false,
-  TouchList: false
-};
-
-for (var collections = getKeys(DOMIterables), i = 0; i < collections.length; i++) {
-  var NAME = collections[i];
-  var explicit = DOMIterables[NAME];
-  var Collection = global[NAME];
-  var proto = Collection && Collection.prototype;
-  var key;
-  if (proto) {
-    if (!proto[ITERATOR]) hide(proto, ITERATOR, ArrayValues);
-    if (!proto[TO_STRING_TAG]) hide(proto, TO_STRING_TAG, NAME);
-    Iterators[NAME] = ArrayValues;
-    if (explicit) for (key in $iterators) if (!proto[key]) redefine(proto, key, $iterators[key], true);
-  }
-}
-
-
-/***/ }),
-/* 177 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var privatePool = new WeakMap();
-
-/**
- * Calculates indexes of columns to render OR columns that are visible.
- * To redo the calculation, you need to create a new calculator.
- *
- * @class ViewportColumnsCalculator
- */
-
-var ViewportColumnsCalculator = function () {
-  _createClass(ViewportColumnsCalculator, null, [{
-    key: 'DEFAULT_WIDTH',
-
-    /**
-     * Default column width
-     *
-     * @type {Number}
-     */
-    get: function get() {
-      return 50;
-    }
-
-    /**
-     * @param {Number} viewportWidth Width of the viewport
-     * @param {Number} scrollOffset Current horizontal scroll position of the viewport
-     * @param {Number} totalColumns Total number of rows
-     * @param {Function} columnWidthFn Function that returns the width of the column at a given index (in px)
-     * @param {Function} overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
-     * @param {Boolean} onlyFullyVisible if `true`, only startRow and endRow will be indexes of rows that are fully in viewport
-     * @param {Boolean} stretchH
-     * @param {Function} [stretchingColumnWidthFn] Function that returns the new width of the stretched column.
-     */
-
-  }]);
-
-  function ViewportColumnsCalculator(viewportWidth, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH) {
-    var stretchingColumnWidthFn = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : function (width) {
-      return width;
-    };
-
-    _classCallCheck(this, ViewportColumnsCalculator);
-
-    privatePool.set(this, {
-      viewportWidth: viewportWidth,
-      scrollOffset: scrollOffset,
-      totalColumns: totalColumns,
-      columnWidthFn: columnWidthFn,
-      overrideFn: overrideFn,
-      onlyFullyVisible: onlyFullyVisible,
-      stretchingColumnWidthFn: stretchingColumnWidthFn
-    });
-
-    /**
-     * Number of rendered/visible columns
-     *
-     * @type {Number}
-     */
-    this.count = 0;
-
-    /**
-     * Index of the first rendered/visible column (can be overwritten using overrideFn)
-     *
-     * @type {Number|null}
-     */
-    this.startColumn = null;
-
-    /**
-     * Index of the last rendered/visible column (can be overwritten using overrideFn)
-     *
-     * @type {null}
-     */
-    this.endColumn = null;
-
-    /**
-     * Position of the first rendered/visible column (in px)
-     *
-     * @type {Number|null}
-     */
-    this.startPosition = null;
-
-    this.stretchAllRatio = 0;
-    this.stretchLastWidth = 0;
-    this.stretch = stretchH;
-    this.totalTargetWidth = 0;
-    this.needVerifyLastColumnWidth = true;
-    this.stretchAllColumnsWidth = [];
-
-    this.calculate();
-  }
-
-  /**
-   * Calculates viewport
-   */
-
-
-  _createClass(ViewportColumnsCalculator, [{
-    key: 'calculate',
-    value: function calculate() {
-      var sum = 0;
-      var needReverse = true;
-      var startPositions = [];
-      var columnWidth = void 0;
-
-      var priv = privatePool.get(this);
-      var onlyFullyVisible = priv.onlyFullyVisible;
-      var overrideFn = priv.overrideFn;
-      var scrollOffset = priv.scrollOffset;
-      var totalColumns = priv.totalColumns;
-      var viewportWidth = priv.viewportWidth;
-
-      for (var i = 0; i < totalColumns; i++) {
-        columnWidth = this._getColumnWidth(i);
-
-        if (sum <= scrollOffset && !onlyFullyVisible) {
-          this.startColumn = i;
-        }
-
-        // +1 pixel for row header width compensation for horizontal scroll > 0
-        var compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
-
-        if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + compensatedViewportWidth) {
-          if (this.startColumn == null) {
-            this.startColumn = i;
-          }
-          this.endColumn = i;
-        }
-        startPositions.push(sum);
-        sum += columnWidth;
-
-        if (!onlyFullyVisible) {
-          this.endColumn = i;
-        }
-        if (sum >= scrollOffset + viewportWidth) {
-          needReverse = false;
-          break;
-        }
-      }
-
-      if (this.endColumn === totalColumns - 1 && needReverse) {
-        this.startColumn = this.endColumn;
-
-        while (this.startColumn > 0) {
-          var viewportSum = startPositions[this.endColumn] + columnWidth - startPositions[this.startColumn - 1];
-
-          if (viewportSum <= viewportWidth || !onlyFullyVisible) {
-            this.startColumn--;
-          }
-          if (viewportSum > viewportWidth) {
-            break;
-          }
-        }
-      }
-
-      if (this.startColumn !== null && overrideFn) {
-        overrideFn(this);
-      }
-      this.startPosition = startPositions[this.startColumn];
-
-      if (this.startPosition == void 0) {
-        this.startPosition = null;
-      }
-      if (this.startColumn !== null) {
-        this.count = this.endColumn - this.startColumn + 1;
-      }
-    }
-
-    /**
-     * Recalculate columns stretching.
-     *
-     * @param {Number} totalWidth
-     */
-
-  }, {
-    key: 'refreshStretching',
-    value: function refreshStretching(totalWidth) {
-      if (this.stretch === 'none') {
-        return;
-      }
-      this.totalTargetWidth = totalWidth;
-
-      var priv = privatePool.get(this);
-      var totalColumns = priv.totalColumns;
-      var sumAll = 0;
-
-      for (var i = 0; i < totalColumns; i++) {
-        var columnWidth = this._getColumnWidth(i);
-        var permanentColumnWidth = priv.stretchingColumnWidthFn(void 0, i);
-
-        if (typeof permanentColumnWidth === 'number') {
-          totalWidth -= permanentColumnWidth;
-        } else {
-          sumAll += columnWidth;
-        }
-      }
-      var remainingSize = totalWidth - sumAll;
-
-      if (this.stretch === 'all' && remainingSize > 0) {
-        this.stretchAllRatio = totalWidth / sumAll;
-        this.stretchAllColumnsWidth = [];
-        this.needVerifyLastColumnWidth = true;
-      } else if (this.stretch === 'last' && totalWidth !== Infinity) {
-        var _columnWidth = this._getColumnWidth(totalColumns - 1);
-        var lastColumnWidth = remainingSize + _columnWidth;
-
-        this.stretchLastWidth = lastColumnWidth >= 0 ? lastColumnWidth : _columnWidth;
-      }
-    }
-
-    /**
-     * Get stretched column width based on stretchH (all or last) setting passed in handsontable instance.
-     *
-     * @param {Number} column
-     * @param {Number} baseWidth
-     * @returns {Number|null}
-     */
-
-  }, {
-    key: 'getStretchedColumnWidth',
-    value: function getStretchedColumnWidth(column, baseWidth) {
-      var result = null;
-
-      if (this.stretch === 'all' && this.stretchAllRatio !== 0) {
-        result = this._getStretchedAllColumnWidth(column, baseWidth);
-      } else if (this.stretch === 'last' && this.stretchLastWidth !== 0) {
-        result = this._getStretchedLastColumnWidth(column);
-      }
-
-      return result;
-    }
-
-    /**
-     * @param {Number} column
-     * @param {Number} baseWidth
-     * @returns {Number}
-     * @private
-     */
-
-  }, {
-    key: '_getStretchedAllColumnWidth',
-    value: function _getStretchedAllColumnWidth(column, baseWidth) {
-      var sumRatioWidth = 0;
-      var priv = privatePool.get(this);
-      var totalColumns = priv.totalColumns;
-
-      if (!this.stretchAllColumnsWidth[column]) {
-        var stretchedWidth = Math.round(baseWidth * this.stretchAllRatio);
-        var newStretchedWidth = priv.stretchingColumnWidthFn(stretchedWidth, column);
-
-        if (newStretchedWidth === void 0) {
-          this.stretchAllColumnsWidth[column] = stretchedWidth;
-        } else {
-          this.stretchAllColumnsWidth[column] = isNaN(newStretchedWidth) ? this._getColumnWidth(column) : newStretchedWidth;
-        }
-      }
-
-      if (this.stretchAllColumnsWidth.length === totalColumns && this.needVerifyLastColumnWidth) {
-        this.needVerifyLastColumnWidth = false;
-
-        for (var i = 0; i < this.stretchAllColumnsWidth.length; i++) {
-          sumRatioWidth += this.stretchAllColumnsWidth[i];
-        }
-        if (sumRatioWidth !== this.totalTargetWidth) {
-          this.stretchAllColumnsWidth[this.stretchAllColumnsWidth.length - 1] += this.totalTargetWidth - sumRatioWidth;
-        }
-      }
-
-      return this.stretchAllColumnsWidth[column];
-    }
-
-    /**
-     * @param {Number} column
-     * @returns {Number|null}
-     * @private
-     */
-
-  }, {
-    key: '_getStretchedLastColumnWidth',
-    value: function _getStretchedLastColumnWidth(column) {
-      var priv = privatePool.get(this);
-      var totalColumns = priv.totalColumns;
-
-      if (column === totalColumns - 1) {
-        return this.stretchLastWidth;
-      }
-
-      return null;
-    }
-
-    /**
-     * @param {Number} column Column index.
-     * @returns {Number}
-     * @private
-     */
-
-  }, {
-    key: '_getColumnWidth',
-    value: function _getColumnWidth(column) {
-      var width = privatePool.get(this).columnWidthFn(column);
-
-      if (width === void 0) {
-        width = ViewportColumnsCalculator.DEFAULT_WIDTH;
-      }
-
-      return width;
-    }
-  }]);
-
-  return ViewportColumnsCalculator;
-}();
-
-exports.default = ViewportColumnsCalculator;
-
-/***/ }),
-/* 178 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var privatePool = new WeakMap();
-
-/**
- * Calculates indexes of rows to render OR rows that are visible.
- * To redo the calculation, you need to create a new calculator.
- *
- * @class ViewportRowsCalculator
- */
-
-var ViewportRowsCalculator = function () {
-  _createClass(ViewportRowsCalculator, null, [{
-    key: "DEFAULT_HEIGHT",
-
-    /**
-     * Default row height
-     *
-     * @type {Number}
-     */
-    get: function get() {
-      return 23;
-    }
-
-    /**
-     * @param {Number} viewportHeight Height of the viewport
-     * @param {Number} scrollOffset Current vertical scroll position of the viewport
-     * @param {Number} totalRows Total number of rows
-     * @param {Function} rowHeightFn Function that returns the height of the row at a given index (in px)
-     * @param {Function} overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
-     * @param {Boolean} onlyFullyVisible if `true`, only startRow and endRow will be indexes of rows that are fully in viewport
-     * @param {Number} horizontalScrollbarHeight
-     */
-
-  }]);
-
-  function ViewportRowsCalculator(viewportHeight, scrollOffset, totalRows, rowHeightFn, overrideFn, onlyFullyVisible, horizontalScrollbarHeight) {
-    _classCallCheck(this, ViewportRowsCalculator);
-
-    privatePool.set(this, {
-      viewportHeight: viewportHeight,
-      scrollOffset: scrollOffset,
-      totalRows: totalRows,
-      rowHeightFn: rowHeightFn,
-      overrideFn: overrideFn,
-      onlyFullyVisible: onlyFullyVisible,
-      horizontalScrollbarHeight: horizontalScrollbarHeight
-    });
-
-    /**
-     * Number of rendered/visible rows
-     *
-     * @type {Number}
-     */
-    this.count = 0;
-
-    /**
-     * Index of the first rendered/visible row (can be overwritten using overrideFn)
-     *
-     * @type {Number|null}
-     */
-    this.startRow = null;
-
-    /**
-     * Index of the last rendered/visible row (can be overwritten using overrideFn)
-     *
-     * @type {null}
-     */
-    this.endRow = null;
-
-    /**
-     * Position of the first rendered/visible row (in px)
-     *
-     * @type {Number|null}
-     */
-    this.startPosition = null;
-
-    this.calculate();
-  }
-
-  /**
-   * Calculates viewport
-   */
-
-
-  _createClass(ViewportRowsCalculator, [{
-    key: "calculate",
-    value: function calculate() {
-      var sum = 0;
-      var needReverse = true;
-      var startPositions = [];
-
-      var priv = privatePool.get(this);
-      var onlyFullyVisible = priv.onlyFullyVisible;
-      var overrideFn = priv.overrideFn;
-      var rowHeightFn = priv.rowHeightFn;
-      var scrollOffset = priv.scrollOffset;
-      var totalRows = priv.totalRows;
-      var viewportHeight = priv.viewportHeight;
-      var horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
-      var rowHeight = void 0;
-
-      // Calculate the number (start and end index) of rows needed
-      for (var i = 0; i < totalRows; i++) {
-        rowHeight = rowHeightFn(i);
-
-        if (rowHeight === undefined) {
-          rowHeight = ViewportRowsCalculator.DEFAULT_HEIGHT;
-        }
-        if (sum <= scrollOffset && !onlyFullyVisible) {
-          this.startRow = i;
-        }
-
-        // the row is within the "visible range"
-        if (sum >= scrollOffset && sum + rowHeight <= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
-          if (this.startRow === null) {
-            this.startRow = i;
-          }
-          this.endRow = i;
-        }
-        startPositions.push(sum);
-        sum += rowHeight;
-
-        if (!onlyFullyVisible) {
-          this.endRow = i;
-        }
-        if (sum >= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
-          needReverse = false;
-          break;
-        }
-      }
-
-      // If the estimation has reached the last row and there is still some space available in the viewport,
-      // we need to render in reverse in order to fill the whole viewport with rows
-      if (this.endRow === totalRows - 1 && needReverse) {
-        this.startRow = this.endRow;
-
-        while (this.startRow > 0) {
-          // rowHeight is the height of the last row
-          var viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1];
-
-          if (viewportSum <= viewportHeight - horizontalScrollbarHeight || !onlyFullyVisible) {
-            this.startRow--;
-          }
-          if (viewportSum >= viewportHeight - horizontalScrollbarHeight) {
-            break;
-          }
-        }
-      }
-
-      if (this.startRow !== null && overrideFn) {
-        overrideFn(this);
-      }
-      this.startPosition = startPositions[this.startRow];
-
-      if (this.startPosition == void 0) {
-        this.startPosition = null;
-      }
-      if (this.startRow !== null) {
-        this.count = this.endRow - this.startRow + 1;
-      }
-    }
-  }]);
-
-  return ViewportRowsCalculator;
-}();
-
-exports.default = ViewportRowsCalculator;
 
 /***/ }),
 /* 179 */
@@ -23584,9 +23648,9 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _string = __webpack_require__(36);
+var _string = __webpack_require__(33);
 
 var _event = __webpack_require__(301);
 
@@ -23749,50 +23813,50 @@ var Walkontable = function () {
     }
 
     /**
-     * Scroll the viewport to a row at the given index in the data source
-     *
-     * @param {Number} row
-     * @returns {Walkontable}
-     */
-
-  }, {
-    key: 'scrollVertical',
-    value: function scrollVertical(row) {
-      this.wtOverlays.topOverlay.scrollTo(row);
-      this.getSetting('onScrollVertically');
-
-      return this;
-    }
-
-    /**
-     * Scroll the viewport to a column at the given index in the data source
-     *
-     * @param {Number} column
-     * @returns {Walkontable}
-     */
-
-  }, {
-    key: 'scrollHorizontal',
-    value: function scrollHorizontal(column) {
-      this.wtOverlays.leftOverlay.scrollTo(column);
-      this.getSetting('onScrollHorizontally');
-
-      return this;
-    }
-
-    /**
-     * Scrolls the viewport to a cell (rerenders if needed)
+     * Scrolls the viewport to a cell (rerenders if needed).
      *
      * @param {CellCoords} coords
-     * @returns {Walkontable}
+     * @param {Boolean} [snapToTop]
+     * @param {Boolean} [snapToRight]
+     * @param {Boolean} [snapToBottom]
+     * @param {Boolean} [snapToLeft]
+     * @returns {Boolean}
      */
 
   }, {
     key: 'scrollViewport',
-    value: function scrollViewport(coords) {
-      this.wtScroll.scrollViewport(coords);
+    value: function scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
+      return this.wtScroll.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
+    }
 
-      return this;
+    /**
+     * Scrolls the viewport to a column (rerenders if needed).
+     *
+     * @param {Number} column Visual column index.
+     * @param {Boolean} [snapToRight]
+     * @param {Boolean} [snapToLeft]
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: 'scrollViewportHorizontally',
+    value: function scrollViewportHorizontally(column, snapToRight, snapToLeft) {
+      return this.wtScroll.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+    }
+
+    /**
+     * Scrolls the viewport to a row (rerenders if needed).
+     *
+     * @param {Number} row Visual row index.
+     * @param {Boolean} [snapToTop]
+     * @param {Boolean} [snapToBottom]
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: 'scrollViewportVertically',
+    value: function scrollViewportVertically(row, snapToTop, snapToBottom) {
+      return this.wtScroll.scrollViewportVertically(row, snapToTop, snapToBottom);
     }
 
     /**
@@ -24635,9 +24699,9 @@ var _element = __webpack_require__(0);
 
 var _function = __webpack_require__(44);
 
-var _browser = __webpack_require__(27);
+var _browser = __webpack_require__(39);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
@@ -24718,7 +24782,9 @@ function Event(instance) {
   };
 
   var onMouseOver = function onMouseOver(event) {
-    var table, td, mainWOT;
+    var table = void 0;
+    var td = void 0;
+    var mainWOT = void 0;
 
     if (that.instance.hasSetting('onCellMouseOver')) {
       table = that.instance.wtTable.TABLE;
@@ -24836,7 +24902,7 @@ function Event(instance) {
     if (!that.instance.momentumScrolling) {
       that.instance.momentumScrolling = {};
     }
-    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', function (event) {
+    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', function () {
       clearTimeout(that.instance.momentumScrolling._timeout);
 
       if (!that.instance.momentumScrolling.ongoing) {
@@ -24904,17 +24970,17 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _unicode = __webpack_require__(21);
 
-var _browser = __webpack_require__(27);
+var _browser = __webpack_require__(39);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _base = __webpack_require__(35);
+var _base = __webpack_require__(41);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -25350,7 +25416,7 @@ var Overlays = function () {
 
   }, {
     key: 'syncScrollPositions',
-    value: function syncScrollPositions(event) {
+    value: function syncScrollPositions() {
       if (this.destroyed) {
         return;
       }
@@ -25368,14 +25434,16 @@ var Overlays = function () {
 
       if (this.horizontalScrolling) {
         topHolder.scrollLeft = scrollLeft;
+
+        var bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null;
+
+        if (bottomHolder) {
+          bottomHolder.scrollLeft = scrollLeft;
+        }
       }
 
       if (this.verticalScrolling) {
         leftHolder.scrollTop = scrollTop;
-
-        if (this.bottomOverlay.needFullRender) {
-          this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
-        }
       }
 
       this.refreshAll();
@@ -25559,7 +25627,7 @@ var Overlays = function () {
       var overlays = [this.topOverlay, this.leftOverlay, this.bottomOverlay, this.topLeftCornerOverlay, this.bottomLeftCornerOverlay];
       var result = null;
 
-      (0, _array.arrayEach)(overlays, function (elem, i) {
+      (0, _array.arrayEach)(overlays, function (elem) {
         if (!elem) {
           return;
         }
@@ -25591,7 +25659,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -25612,47 +25680,93 @@ var Scroll = function () {
   }
 
   /**
-   * Scrolls viewport to a cell by minimum number of cells
+   * Scrolls viewport to a cell.
    *
    * @param {CellCoords} coords
+   * @param {Boolean} [snapToTop]
+   * @param {Boolean} [snapToRight]
+   * @param {Boolean} [snapToBottom]
+   * @param {Boolean} [snapToLeft]
+   * @returns {Boolean}
    */
 
 
   _createClass(Scroll, [{
     key: 'scrollViewport',
-    value: function scrollViewport(coords) {
+    value: function scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
+      var scrolledHorizontally = this.scrollViewportHorizontally(coords.col, snapToRight, snapToLeft);
+      var scrolledVertically = this.scrollViewportVertically(coords.row, snapToTop, snapToBottom);
+
+      return scrolledHorizontally || scrolledVertically;
+    }
+
+    /**
+     * Scrolls viewport to a column.
+     *
+     * @param {Number} column Visual column index.
+     * @param {Boolean} [snapToRight]
+     * @param {Boolean} [snapToLeft]
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: 'scrollViewportHorizontally',
+    value: function scrollViewportHorizontally(column, snapToRight, snapToLeft) {
       if (!this.wot.drawn) {
-        return;
+        return false;
       }
 
       var _getVariables2 = this._getVariables(),
-          topOverlay = _getVariables2.topOverlay,
+          fixedColumnsLeft = _getVariables2.fixedColumnsLeft,
           leftOverlay = _getVariables2.leftOverlay,
-          totalRows = _getVariables2.totalRows,
-          totalColumns = _getVariables2.totalColumns,
-          fixedRowsTop = _getVariables2.fixedRowsTop,
-          fixedRowsBottom = _getVariables2.fixedRowsBottom,
-          fixedColumnsLeft = _getVariables2.fixedColumnsLeft;
+          totalColumns = _getVariables2.totalColumns;
 
-      if (coords.row < 0 || coords.row > Math.max(totalRows - 1, 0)) {
-        throw new Error('row ' + coords.row + ' does not exist');
+      var result = false;
+
+      if (column >= 0 && column <= Math.max(totalColumns - 1, 0)) {
+        if (column >= fixedColumnsLeft && (column < this.getFirstVisibleColumn() || snapToLeft)) {
+          result = leftOverlay.scrollTo(column);
+        } else if (column > this.getLastVisibleColumn() || snapToRight) {
+          result = leftOverlay.scrollTo(column, true);
+        }
       }
 
-      if (coords.col < 0 || coords.col > Math.max(totalColumns - 1, 0)) {
-        throw new Error('column ' + coords.col + ' does not exist');
+      return result;
+    }
+
+    /**
+     * Scrolls viewport to a row.
+     *
+     * @param {Number} row Visual row index.
+     * @param {Boolean} [snapToTop]
+     * @param {Boolean} [snapToBottom]
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: 'scrollViewportVertically',
+    value: function scrollViewportVertically(row, snapToTop, snapToBottom) {
+      if (!this.wot.drawn) {
+        return false;
       }
 
-      if (coords.row >= fixedRowsTop && coords.row < this.getFirstVisibleRow()) {
-        topOverlay.scrollTo(coords.row);
-      } else if (coords.row > this.getLastVisibleRow() && coords.row < totalRows - fixedRowsBottom) {
-        topOverlay.scrollTo(coords.row, true);
+      var _getVariables3 = this._getVariables(),
+          fixedRowsBottom = _getVariables3.fixedRowsBottom,
+          fixedRowsTop = _getVariables3.fixedRowsTop,
+          topOverlay = _getVariables3.topOverlay,
+          totalRows = _getVariables3.totalRows;
+
+      var result = false;
+
+      if (row >= 0 && row <= Math.max(totalRows - 1, 0)) {
+        if (row >= fixedRowsTop && (row < this.getFirstVisibleRow() || snapToTop)) {
+          result = topOverlay.scrollTo(row);
+        } else if (row > this.getLastVisibleRow() && row < totalRows - fixedRowsBottom || snapToBottom) {
+          result = topOverlay.scrollTo(row, true);
+        }
       }
 
-      if (coords.col >= fixedColumnsLeft && coords.col < this.getFirstVisibleColumn()) {
-        leftOverlay.scrollTo(coords.col);
-      } else if (coords.col > this.getLastVisibleColumn()) {
-        leftOverlay.scrollTo(coords.col, true);
-      }
+      return result;
     }
 
     /**
@@ -25664,12 +25778,12 @@ var Scroll = function () {
   }, {
     key: 'getFirstVisibleRow',
     value: function getFirstVisibleRow() {
-      var _getVariables3 = this._getVariables(),
-          topOverlay = _getVariables3.topOverlay,
-          wtTable = _getVariables3.wtTable,
-          wtViewport = _getVariables3.wtViewport,
-          totalRows = _getVariables3.totalRows,
-          fixedRowsTop = _getVariables3.fixedRowsTop;
+      var _getVariables4 = this._getVariables(),
+          topOverlay = _getVariables4.topOverlay,
+          wtTable = _getVariables4.wtTable,
+          wtViewport = _getVariables4.wtViewport,
+          totalRows = _getVariables4.totalRows,
+          fixedRowsTop = _getVariables4.fixedRowsTop;
 
       var firstVisibleRow = wtTable.getFirstVisibleRow();
 
@@ -25710,11 +25824,11 @@ var Scroll = function () {
   }, {
     key: 'getLastVisibleRow',
     value: function getLastVisibleRow() {
-      var _getVariables4 = this._getVariables(),
-          topOverlay = _getVariables4.topOverlay,
-          wtTable = _getVariables4.wtTable,
-          wtViewport = _getVariables4.wtViewport,
-          totalRows = _getVariables4.totalRows;
+      var _getVariables5 = this._getVariables(),
+          topOverlay = _getVariables5.topOverlay,
+          wtTable = _getVariables5.wtTable,
+          wtViewport = _getVariables5.wtViewport,
+          totalRows = _getVariables5.totalRows;
 
       var lastVisibleRow = wtTable.getLastVisibleRow();
 
@@ -25752,12 +25866,11 @@ var Scroll = function () {
   }, {
     key: 'getFirstVisibleColumn',
     value: function getFirstVisibleColumn() {
-      var _getVariables5 = this._getVariables(),
-          leftOverlay = _getVariables5.leftOverlay,
-          wtTable = _getVariables5.wtTable,
-          wtViewport = _getVariables5.wtViewport,
-          totalColumns = _getVariables5.totalColumns,
-          fixedColumnsLeft = _getVariables5.fixedColumnsLeft;
+      var _getVariables6 = this._getVariables(),
+          leftOverlay = _getVariables6.leftOverlay,
+          wtTable = _getVariables6.wtTable,
+          wtViewport = _getVariables6.wtViewport,
+          totalColumns = _getVariables6.totalColumns;
 
       var firstVisibleColumn = wtTable.getFirstVisibleColumn();
 
@@ -25796,11 +25909,11 @@ var Scroll = function () {
   }, {
     key: 'getLastVisibleColumn',
     value: function getLastVisibleColumn() {
-      var _getVariables6 = this._getVariables(),
-          leftOverlay = _getVariables6.leftOverlay,
-          wtTable = _getVariables6.wtTable,
-          wtViewport = _getVariables6.wtViewport,
-          totalColumns = _getVariables6.totalColumns;
+      var _getVariables7 = this._getVariables(),
+          leftOverlay = _getVariables7.leftOverlay,
+          wtTable = _getVariables7.wtTable,
+          wtViewport = _getVariables7.wtViewport,
+          totalColumns = _getVariables7.totalColumns;
 
       var lastVisibleColumn = wtTable.getLastVisibleColumn();
 
@@ -25882,7 +25995,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -25947,10 +26060,10 @@ var Settings = function () {
       },
 
       // columnWidth: 50,
-      columnWidth: function columnWidth(col) {
+      columnWidth: function columnWidth() {
         // return undefined means use default size for the rendered cell content
       },
-      rowHeight: function rowHeight(row) {
+      rowHeight: function rowHeight() {
         // return undefined means use default size for the rendered cell content
       },
 
@@ -26107,10 +26220,6 @@ var _coords = __webpack_require__(57);
 
 var _coords2 = _interopRequireDefault(_coords);
 
-var _range = __webpack_require__(89);
-
-var _range2 = _interopRequireDefault(_range);
-
 var _column = __webpack_require__(179);
 
 var _column2 = _interopRequireDefault(_column);
@@ -26123,7 +26232,7 @@ var _tableRenderer = __webpack_require__(306);
 
 var _tableRenderer2 = _interopRequireDefault(_tableRenderer);
 
-var _base = __webpack_require__(35);
+var _base = __webpack_require__(41);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -26758,7 +26867,7 @@ var Table = function () {
   }, {
     key: 'allRowsInViewport',
     value: function allRowsInViewport() {
-      return this.wot.getSetting('totalRows') == this.getVisibleRowsCount();
+      return this.wot.getSetting('totalRows') === this.getVisibleRowsCount();
     }
 
     /**
@@ -26800,7 +26909,7 @@ var Table = function () {
   }, {
     key: 'allColumnsInViewport',
     value: function allColumnsInViewport() {
-      return this.wot.getSetting('totalColumns') == this.getVisibleColumnsCount();
+      return this.wot.getSetting('totalColumns') === this.getVisibleColumnsCount();
     }
   }, {
     key: 'getColumnWidth',
@@ -26898,7 +27007,7 @@ var _console = __webpack_require__(58);
 
 var _templateLiteralTag = __webpack_require__(43);
 
-var _base = __webpack_require__(35);
+var _base = __webpack_require__(41);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -27081,7 +27190,6 @@ var TableRenderer = function () {
   }, {
     key: 'renderRows',
     value: function renderRows(totalRows, rowsToRender, columnsToRender) {
-      var lastTD = void 0;
       var TR = void 0;
       var visibleRowIndex = 0;
       var sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
@@ -27102,8 +27210,8 @@ var TableRenderer = function () {
         this.renderRowHeaders(sourceRowIndex, TR);
         // Add and/or remove TDs to TR to match the desired number
         this.adjustColumns(TR, columnsToRender + this.rowHeaderCount);
-
-        lastTD = this.renderCells(sourceRowIndex, TR, columnsToRender);
+        // Render cells
+        this.renderCells(sourceRowIndex, TR, columnsToRender);
 
         if (!isWorkingOnClone ||
         // Necessary to refresh oversized row heights after editing cell in overlays
@@ -27165,7 +27273,6 @@ var TableRenderer = function () {
       var sourceRowIndex = void 0;
       var currentTr = void 0;
       var rowHeader = void 0;
-      var totalRows = this.instance.getSetting('totalRows');
 
       if (expectedTableHeight === actualTableHeight && !this.instance.getSetting('fixedRowsBottom')) {
         // If the actual table height equals rowCount * default single row height, no row is oversized -> no need to iterate over them
@@ -27303,7 +27410,7 @@ var TableRenderer = function () {
           TD = TD.nextSibling; // http://jsperf.com/nextsibling-vs-indexed-childnodes
         }
         // If the number of headers has been reduced, we need to replace excess TH with TD
-        if (TD.nodeName == 'TH') {
+        if (TD.nodeName === 'TH') {
           TD = replaceThWithTd(TD, TR);
         }
         if (!(0, _element.hasClass)(TD, 'hide')) {
@@ -27434,7 +27541,7 @@ var TableRenderer = function () {
         if (!TH) {
           TH = document.createElement('TH');
           TR.appendChild(TH);
-        } else if (TH.nodeName == 'TD') {
+        } else if (TH.nodeName === 'TD') {
           TH = replaceTdWithTh(TH, TR);
         }
         this.renderRowHeader(row, visibleColIndex, TH);
@@ -27641,17 +27748,17 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _viewportColumns = __webpack_require__(177);
+var _viewportColumns = __webpack_require__(176);
 
 var _viewportColumns2 = _interopRequireDefault(_viewportColumns);
 
-var _viewportRows = __webpack_require__(178);
+var _viewportRows = __webpack_require__(177);
 
 var _viewportRows2 = _interopRequireDefault(_viewportRows);
 
@@ -27744,7 +27851,7 @@ var Viewport = function () {
       if (trimmingContainer !== window) {
         overflow = (0, _element.getStyle)(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
 
-        if (overflow == 'scroll' || overflow == 'hidden' || overflow == 'auto') {
+        if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
           // this is used in `scroll.html`
           // TODO test me
           return Math.max(width, trimmingContainer.clientWidth);
@@ -28200,21 +28307,17 @@ var _element = __webpack_require__(0);
 
 var _event = __webpack_require__(13);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _browser = __webpack_require__(27);
+var _browser = __webpack_require__(39);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _coords = __webpack_require__(57);
 
 var _coords2 = _interopRequireDefault(_coords);
-
-var _base = __webpack_require__(35);
-
-var _base2 = _interopRequireDefault(_base);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -28339,23 +28442,23 @@ var Border = function () {
       // Hide border to prevents selection jumping when fragmentSelection is enabled.
       parentElement.style.display = 'none';
 
-      function isOutside(event) {
-        if (event.clientY < Math.floor(bounds.top)) {
+      function isOutside(mouseEvent) {
+        if (mouseEvent.clientY < Math.floor(bounds.top)) {
           return true;
         }
-        if (event.clientY > Math.ceil(bounds.top + bounds.height)) {
+        if (mouseEvent.clientY > Math.ceil(bounds.top + bounds.height)) {
           return true;
         }
-        if (event.clientX < Math.floor(bounds.left)) {
+        if (mouseEvent.clientX < Math.floor(bounds.left)) {
           return true;
         }
-        if (event.clientX > Math.ceil(bounds.left + bounds.width)) {
+        if (mouseEvent.clientX > Math.ceil(bounds.left + bounds.width)) {
           return true;
         }
       }
 
-      function handler(event) {
-        if (isOutside(event)) {
+      function handler(handlerEvent) {
+        if (isOutside(handlerEvent)) {
           _this.eventManager.removeEventListener(document.body, 'mousemove', handler);
           parentElement.style.display = 'block';
         }
@@ -28419,12 +28522,15 @@ var Border = function () {
       }
       this.disappear();
 
-      if (!this.wot.wtTable.bordersHolder) {
-        this.wot.wtTable.bordersHolder = document.createElement('div');
-        this.wot.wtTable.bordersHolder.className = 'htBorders';
-        this.wot.wtTable.spreader.appendChild(this.wot.wtTable.bordersHolder);
+      var bordersHolder = this.wot.wtTable.bordersHolder;
+
+      if (!bordersHolder) {
+        bordersHolder = document.createElement('div');
+        bordersHolder.className = 'htBorders';
+        this.wot.wtTable.bordersHolder = bordersHolder;
+        this.wot.wtTable.spreader.appendChild(bordersHolder);
       }
-      this.wot.wtTable.bordersHolder.insertBefore(this.main, this.wot.wtTable.bordersHolder.firstChild);
+      bordersHolder.appendChild(this.main);
     }
 
     /**
@@ -28495,7 +28601,7 @@ var Border = function () {
       var areaSelection = this.wot.selections.createOrGetArea();
 
       if (areaSelection.cellRange) {
-        if (row != areaSelection.cellRange.to.row || col != areaSelection.cellRange.to.col) {
+        if (row !== areaSelection.cellRange.to.row || col !== areaSelection.cellRange.to.col) {
           return true;
         }
       }
@@ -28538,7 +28644,7 @@ var Border = function () {
         this.selectionHandles.styles.bottomRightHitArea.display = 'none';
       }
 
-      if (row == this.wot.wtSettings.getSetting('fixedRowsTop') || col == this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
+      if (row === this.wot.wtSettings.getSetting('fixedRowsTop') || col === this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
         this.selectionHandles.styles.topLeft.zIndex = '9999';
         this.selectionHandles.styles.topLeftHitArea.zIndex = '9999';
       } else {
@@ -28973,9 +29079,9 @@ var _unicode = __webpack_require__(21);
 
 var _mixed = __webpack_require__(11);
 
-var _string = __webpack_require__(36);
+var _string = __webpack_require__(33);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _element = __webpack_require__(0);
 
@@ -28994,7 +29100,11 @@ var AutocompleteEditor = _handsontableEditor2.default.prototype.extend();
  * @dependencies HandsontableEditor
  */
 AutocompleteEditor.prototype.init = function () {
-  _handsontableEditor2.default.prototype.init.apply(this, arguments);
+  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
+  _handsontableEditor2.default.prototype.init.apply(this, args);
   this.query = null;
   this.strippedChoices = [];
   this.rawChoices = [];
@@ -29017,7 +29127,11 @@ AutocompleteEditor.prototype.getValue = function () {
 };
 
 AutocompleteEditor.prototype.createElements = function () {
-  _handsontableEditor2.default.prototype.createElements.apply(this, arguments);
+  for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    args[_key2] = arguments[_key2];
+  }
+
+  _handsontableEditor2.default.prototype.createElements.apply(this, args);
 
   (0, _element.addClass)(this.htContainer, 'autocompleteEditor');
   (0, _element.addClass)(this.htContainer, window.navigator.platform.indexOf('Mac') === -1 ? '' : 'htMacScroll');
@@ -29050,13 +29164,23 @@ function onBeforeKeyDown(event) {
 
 AutocompleteEditor.prototype.prepare = function () {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
-  _handsontableEditor2.default.prototype.prepare.apply(this, arguments);
+
+  for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+    args[_key3] = arguments[_key3];
+  }
+
+  _handsontableEditor2.default.prototype.prepare.apply(this, args);
 };
 
 AutocompleteEditor.prototype.open = function () {
   // Ugly fix for handsontable which grab window object for autocomplete scroll listener instead table element.
   this.TEXTAREA_PARENT.style.overflow = 'auto';
-  _handsontableEditor2.default.prototype.open.apply(this, arguments);
+
+  for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+    args[_key4] = arguments[_key4];
+  }
+
+  _handsontableEditor2.default.prototype.open.apply(this, args);
   this.TEXTAREA_PARENT.style.overflow = '';
 
   var choicesListHot = this.htEditor.getInstance();
@@ -29069,7 +29193,7 @@ AutocompleteEditor.prototype.open = function () {
   choicesListHot.updateSettings({
     colWidths: trimDropdown ? [(0, _element.outerWidth)(this.TEXTAREA) - 2] : void 0,
     width: trimDropdown ? (0, _element.outerWidth)(this.TEXTAREA) + (0, _element.getScrollbarWidth)() + 2 : void 0,
-    afterRenderer: function afterRenderer(TD, row, col, prop, value, cellProperties) {
+    afterRenderer: function afterRenderer(TD, row, col, prop, value) {
       var _this$cellProperties = _this.cellProperties,
           filteringCaseSensitive = _this$cellProperties.filteringCaseSensitive,
           allowHtml = _this$cellProperties.allowHtml;
@@ -29121,7 +29245,7 @@ AutocompleteEditor.prototype.queryChoices = function (query) {
   this.query = query;
   var source = this.cellProperties.source;
 
-  if (typeof source == 'function') {
+  if (typeof source === 'function') {
     source.call(this.cellProperties, query, function (choices) {
       _this3.rawChoices = choices;
       _this3.updateChoicesList(_this3.stripValuesIfNeeded(choices));
@@ -29281,7 +29405,12 @@ AutocompleteEditor.prototype.finishEditing = function (restoreOriginalValue) {
   if (!restoreOriginalValue) {
     this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
   }
-  _handsontableEditor2.default.prototype.finishEditing.apply(this, arguments);
+
+  for (var _len5 = arguments.length, args = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+    args[_key5 - 1] = arguments[_key5];
+  }
+
+  _handsontableEditor2.default.prototype.finishEditing.apply(this, [restoreOriginalValue].concat(args));
 };
 
 AutocompleteEditor.prototype.highlightBestMatchingChoice = function (index) {
@@ -29409,8 +29538,12 @@ AutocompleteEditor.prototype.allowKeyEventPropagation = function (keyCode) {
   return allowed;
 };
 
-AutocompleteEditor.prototype.discardEditor = function (result) {
-  _handsontableEditor2.default.prototype.discardEditor.apply(this, arguments);
+AutocompleteEditor.prototype.discardEditor = function () {
+  for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+    args[_key6] = arguments[_key6];
+  }
+
+  _handsontableEditor2.default.prototype.discardEditor.apply(this, args);
 
   this.instance.view.render();
 };
@@ -29428,7 +29561,7 @@ exports.__esModule = true;
 
 var _unicode = __webpack_require__(21);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _element = __webpack_require__(0);
 
@@ -29449,7 +29582,11 @@ var HandsontableEditor = _textEditor2.default.prototype.extend();
  * @dependencies TextEditor
  */
 HandsontableEditor.prototype.createElements = function () {
-  _textEditor2.default.prototype.createElements.apply(this, arguments);
+  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
+  _textEditor2.default.prototype.createElements.apply(this, args);
 
   var DIV = document.createElement('DIV');
   DIV.className = 'handsontableEditor';
@@ -29460,7 +29597,11 @@ HandsontableEditor.prototype.createElements = function () {
 };
 
 HandsontableEditor.prototype.prepare = function (td, row, col, prop, value, cellProperties) {
-  _textEditor2.default.prototype.prepare.apply(this, arguments);
+  for (var _len2 = arguments.length, args = Array(_len2 > 6 ? _len2 - 6 : 0), _key2 = 6; _key2 < _len2; _key2++) {
+    args[_key2 - 6] = arguments[_key2];
+  }
+
+  _textEditor2.default.prototype.prepare.apply(this, [td, row, col, prop, value, cellProperties].concat(args));
 
   var parent = this;
   var options = {
@@ -29477,11 +29618,11 @@ HandsontableEditor.prototype.prepare = function (td, row, col, prop, value, cell
     autoWrapCol: false,
     autoWrapRow: false,
     afterOnCellMouseDown: function afterOnCellMouseDown(_, coords) {
-      var value = this.getSourceData(coords.row, coords.col);
+      var sourceValue = this.getSourceData(coords.row, coords.col);
 
       // if the value is undefined then it means we don't want to set the value
-      if (value !== void 0) {
-        parent.setValue(value);
+      if (sourceValue !== void 0) {
+        parent.setValue(sourceValue);
       }
       parent.instance.destroyEditor();
     }
@@ -29501,22 +29642,22 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
 
   var innerHOT = editor.htEditor.getInstance();
 
-  var rowToSelect;
-  var selectedRow;
+  var rowToSelect = void 0;
+  var selectedRow = void 0;
 
-  if (event.keyCode == _unicode.KEY_CODES.ARROW_DOWN) {
+  if (event.keyCode === _unicode.KEY_CODES.ARROW_DOWN) {
     if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
       rowToSelect = 0;
     } else if (innerHOT.getSelectedLast()) {
       if (innerHOT.flipped) {
         rowToSelect = innerHOT.getSelectedLast()[0] + 1;
       } else if (!innerHOT.flipped) {
-        selectedRow = innerHOT.getSelectedLast()[0];
         var lastRow = innerHOT.countRows() - 1;
+        selectedRow = innerHOT.getSelectedLast()[0];
         rowToSelect = Math.min(lastRow, selectedRow + 1);
       }
     }
-  } else if (event.keyCode == _unicode.KEY_CODES.ARROW_UP) {
+  } else if (event.keyCode === _unicode.KEY_CODES.ARROW_UP) {
     if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
       rowToSelect = innerHOT.countRows() - 1;
     } else if (innerHOT.getSelectedLast()) {
@@ -29549,11 +29690,20 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
 HandsontableEditor.prototype.open = function () {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 
-  _textEditor2.default.prototype.open.apply(this, arguments);
+  for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+    args[_key3] = arguments[_key3];
+  }
+
+  _textEditor2.default.prototype.open.apply(this, args);
 
   if (this.htEditor) {
     this.htEditor.destroy();
   }
+
+  if (this.htContainer.style.display === 'none') {
+    this.htContainer.style.display = '';
+  }
+
   // Construct and initialise a new Handsontable
   this.htEditor = new this.instance.constructor(this.htContainer, this.htOptions);
   this.htEditor.init();
@@ -29571,23 +29721,37 @@ HandsontableEditor.prototype.open = function () {
 HandsontableEditor.prototype.close = function () {
   this.htEditor.rootElement.style.display = 'none';
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-  _textEditor2.default.prototype.close.apply(this, arguments);
+
+  for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+    args[_key4] = arguments[_key4];
+  }
+
+  _textEditor2.default.prototype.close.apply(this, args);
 };
 
 HandsontableEditor.prototype.focus = function () {
-  _textEditor2.default.prototype.focus.apply(this, arguments);
+  for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+    args[_key5] = arguments[_key5];
+  }
+
+  _textEditor2.default.prototype.focus.apply(this, args);
 };
 
-HandsontableEditor.prototype.beginEditing = function (initialValue) {
+HandsontableEditor.prototype.beginEditing = function () {
   var onBeginEditing = this.instance.getSettings().onBeginEditing;
 
   if (onBeginEditing && onBeginEditing() === false) {
     return;
   }
-  _textEditor2.default.prototype.beginEditing.apply(this, arguments);
+
+  for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+    args[_key6] = arguments[_key6];
+  }
+
+  _textEditor2.default.prototype.beginEditing.apply(this, args);
 };
 
-HandsontableEditor.prototype.finishEditing = function (isCancelled, ctrlDown) {
+HandsontableEditor.prototype.finishEditing = function () {
   if (this.htEditor && this.htEditor.isListening()) {
     // if focus is still in the HOT editor
     this.instance.listen(); // return the focus to the parent HOT instance
@@ -29602,7 +29766,11 @@ HandsontableEditor.prototype.finishEditing = function (isCancelled, ctrlDown) {
     }
   }
 
-  return _textEditor2.default.prototype.finishEditing.apply(this, arguments);
+  for (var _len7 = arguments.length, args = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+    args[_key7] = arguments[_key7];
+  }
+
+  return _textEditor2.default.prototype.finishEditing.apply(this, args);
 };
 
 HandsontableEditor.prototype.assignHooks = function () {
@@ -29836,7 +30004,6 @@ function mouseDown(_ref) {
   var currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
   var selectedCorner = selection.isSelectedByCorner();
   var selectedRow = selection.isSelectedByRowHeader();
-  var selectedColumn = selection.isSelectedByColumnHeader();
 
   if (isShiftKey && currentSelection) {
     if (coords.row >= 0 && coords.col >= 0 && !controller.cells) {
@@ -29962,11 +30129,11 @@ var _createClass = function () { function defineProperties(target, props) { for 
 exports.registerIdentity = registerIdentity;
 exports.getTranslator = getTranslator;
 
-var _core = __webpack_require__(91);
+var _core = __webpack_require__(90);
 
 var _core2 = _interopRequireDefault(_core);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -30178,7 +30345,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _mixed = __webpack_require__(11);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 /**
  * @alias Options
@@ -31211,7 +31378,10 @@ DefaultSettings.prototype = {
    * ```
    */
   isEmptyRow: function isEmptyRow(row) {
-    var col, colLen, value, meta;
+    var col = void 0;
+    var colLen = void 0;
+    var value = void 0;
+    var meta = void 0;
 
     for (col = 0, colLen = this.countCols(); col < colLen; col++) {
       value = this.getDataAtCell(row, col);
@@ -31246,9 +31416,9 @@ DefaultSettings.prototype = {
    * ```
    */
   isEmptyCol: function isEmptyCol(col) {
-    var row;
-    var rowLen;
-    var value;
+    var row = void 0;
+    var rowLen = void 0;
+    var value = void 0;
 
     for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
       value = this.getDataAtCell(row, col);
@@ -32930,11 +33100,11 @@ exports.default = DefaultSettings;
 exports.__esModule = true;
 exports.getTranslatedPhrase = getTranslatedPhrase;
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _dictionariesManager = __webpack_require__(71);
 
-var _phraseFormatters = __webpack_require__(393);
+var _phraseFormatters = __webpack_require__(392);
 
 var _mixed = __webpack_require__(11);
 
@@ -33008,7 +33178,7 @@ exports.warnUserAboutLanguageRegistration = warnUserAboutLanguageRegistration;
 
 var _mixed = __webpack_require__(11);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _console = __webpack_require__(58);
 
@@ -33122,13 +33292,11 @@ function warnUserAboutLanguageRegistration(languageCode) {
 exports.__esModule = true;
 exports.stopObserving = exports.startObserving = exports.isPressedCtrlKey = exports.isPressed = exports._resetState = exports._getRefCount = undefined;
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _unicode = __webpack_require__(21);
-
-var _array = __webpack_require__(1);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -33201,8 +33369,12 @@ function isPressed(keyCodes) {
  * @return {Boolean}
  */
 function isPressedCtrlKey() {
-  return Array.from(pressedKeys.values()).some(function (_keyCode) {
+  var values = Array.from(pressedKeys.values());
+
+  return values.some(function (_keyCode) {
     return (0, _unicode.isCtrlMetaKey)(_keyCode);
+  }) && values.every(function (_keyCode) {
+    return !(0, _unicode.isPrintableChar)(_keyCode);
   });
 }
 
@@ -33236,7 +33408,7 @@ var _highlight = __webpack_require__(322);
 
 var _highlight2 = _interopRequireDefault(_highlight);
 
-var _selection = __webpack_require__(402);
+var _selection = __webpack_require__(401);
 
 var _selection2 = _interopRequireDefault(_selection);
 
@@ -33264,9 +33436,9 @@ exports.CUSTOM_SELECTION = exports.HEADER_TYPE = exports.FILL_TYPE = exports.CEL
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _types = __webpack_require__(395);
+var _types = __webpack_require__(394);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -33606,9 +33778,9 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 var _mixed = __webpack_require__(11);
 
@@ -33776,20 +33948,21 @@ var SamplesGenerator = function () {
     value: function generateSample(type, range, specifierValue) {
       var _this2 = this;
 
+      if (type !== 'row' && type !== 'col') {
+        throw new Error('Unsupported sample type');
+      }
+
       var samples = new Map();
+      var computedKey = type === 'row' ? 'col' : 'row';
       var sampledValues = [];
-      var length = void 0;
 
       (0, _number.rangeEach)(range.from, range.to, function (index) {
-        var value = void 0;
+        var _ref = type === 'row' ? _this2.dataFactory(specifierValue, index) : _this2.dataFactory(index, specifierValue),
+            value = _ref.value,
+            bundleCountSeed = _ref.bundleCountSeed;
 
-        if (type === 'row') {
-          value = _this2.dataFactory(specifierValue, index);
-        } else if (type === 'col') {
-          value = _this2.dataFactory(index, specifierValue);
-        } else {
-          throw new Error('Unsupported sample type');
-        }
+        var hasCustomBundleSeed = bundleCountSeed > 0;
+        var length = void 0;
 
         if ((0, _object.isObject)(value)) {
           length = Object.keys(value).length;
@@ -33797,6 +33970,10 @@ var SamplesGenerator = function () {
           length = value.length;
         } else {
           length = (0, _mixed.stringify)(value).length;
+        }
+
+        if (hasCustomBundleSeed) {
+          length += bundleCountSeed;
         }
 
         if (!samples.has(length)) {
@@ -33810,9 +33987,7 @@ var SamplesGenerator = function () {
         if (sample.needed) {
           var duplicate = sampledValues.indexOf(value) > -1;
 
-          if (!duplicate || _this2.allowDuplicates) {
-            var computedKey = type === 'row' ? 'col' : 'row';
-
+          if (!duplicate || _this2.allowDuplicates || hasCustomBundleSeed) {
             sample.strings.push(_defineProperty({ value: value }, computedKey, index));
             sampledValues.push(value);
             sample.needed--;
@@ -33840,7 +34015,7 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -34311,624 +34486,21 @@ function applySpanProperties(TD, mergedCellInfo, row, col) {
 "use strict";
 
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-/*!
- * https://github.com/Starcounter-Jack/JSON-Patch
- * json-patch-duplex.js version: 0.5.7
- * (c) 2013 Joachim Wester
- * MIT license
- */
-var __extends = undefined && undefined.__extends || function (d, b) {
-    for (var p in b) {
-        if (b.hasOwnProperty(p)) d[p] = b[p];
-    }function __() {
-        this.constructor = d;
-    }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var OriginalError = Error;
-var jsonpatch;
-(function (jsonpatch) {
-    var _objectKeys = function _objectKeys(obj) {
-        if (_isArray(obj)) {
-            var keys = new Array(obj.length);
-            for (var k = 0; k < keys.length; k++) {
-                keys[k] = "" + k;
-            }
-            return keys;
-        }
-        if (Object.keys) {
-            return Object.keys(obj);
-        }
-        var keys = [];
-        for (var i in obj) {
-            if (obj.hasOwnProperty(i)) {
-                keys.push(i);
-            }
-        }
-        return keys;
-    };
-    function _equals(a, b) {
-        switch (typeof a === 'undefined' ? 'undefined' : _typeof(a)) {
-            case 'undefined': //backward compatibility, but really I think we should return false
-            case 'boolean':
-            case 'string':
-            case 'number':
-                return a === b;
-            case 'object':
-                if (a === null) return b === null;
-                if (_isArray(a)) {
-                    if (!_isArray(b) || a.length !== b.length) return false;
-                    for (var i = 0, l = a.length; i < l; i++) {
-                        if (!_equals(a[i], b[i])) return false;
-                    }return true;
-                }
-                var bKeys = _objectKeys(b);
-                var bLength = bKeys.length;
-                if (_objectKeys(a).length !== bLength) return false;
-                for (var i = 0; i < bLength; i++) {
-                    if (!_equals(a[i], b[i])) return false;
-                }return true;
-            default:
-                return false;
-        }
-    }
-    /* We use a Javascript hash to store each
-     function. Each hash entry (property) uses
-     the operation identifiers specified in rfc6902.
-     In this way, we can map each patch operation
-     to its dedicated function in efficient way.
-     */
-    /* The operations applicable to an object */
-    var objOps = {
-        add: function add(obj, key) {
-            obj[key] = this.value;
-            return true;
-        },
-        remove: function remove(obj, key) {
-            delete obj[key];
-            return true;
-        },
-        replace: function replace(obj, key) {
-            obj[key] = this.value;
-            return true;
-        },
-        move: function move(obj, key, tree) {
-            var temp = { op: "_get", path: this.from };
-            apply(tree, [temp]);
-            apply(tree, [{ op: "remove", path: this.from }]);
-            apply(tree, [{ op: "add", path: this.path, value: temp.value }]);
-            return true;
-        },
-        copy: function copy(obj, key, tree) {
-            var temp = { op: "_get", path: this.from };
-            apply(tree, [temp]);
-            apply(tree, [{ op: "add", path: this.path, value: temp.value }]);
-            return true;
-        },
-        test: function test(obj, key) {
-            return _equals(obj[key], this.value);
-        },
-        _get: function _get(obj, key) {
-            this.value = obj[key];
-        }
-    };
-    /* The operations applicable to an array. Many are the same as for the object */
-    var arrOps = {
-        add: function add(arr, i) {
-            arr.splice(i, 0, this.value);
-            return true;
-        },
-        remove: function remove(arr, i) {
-            arr.splice(i, 1);
-            return true;
-        },
-        replace: function replace(arr, i) {
-            arr[i] = this.value;
-            return true;
-        },
-        move: objOps.move,
-        copy: objOps.copy,
-        test: objOps.test,
-        _get: objOps._get
-    };
-    /* The operations applicable to object root. Many are the same as for the object */
-    var rootOps = {
-        add: function add(obj) {
-            rootOps.remove.call(this, obj);
-            for (var key in this.value) {
-                if (this.value.hasOwnProperty(key)) {
-                    obj[key] = this.value[key];
-                }
-            }
-            return true;
-        },
-        remove: function remove(obj) {
-            for (var key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    objOps.remove.call(this, obj, key);
-                }
-            }
-            return true;
-        },
-        replace: function replace(obj) {
-            apply(obj, [{ op: "remove", path: this.path }]);
-            apply(obj, [{ op: "add", path: this.path, value: this.value }]);
-            return true;
-        },
-        move: objOps.move,
-        copy: objOps.copy,
-        test: function test(obj) {
-            return JSON.stringify(obj) === JSON.stringify(this.value);
-        },
-        _get: function _get(obj) {
-            this.value = obj;
-        }
-    };
-    var observeOps = {
-        add: function add(patches, path) {
-            var patch = {
-                op: "add",
-                path: path + escapePathComponent(this.name),
-                value: this.object[this.name] };
-            patches.push(patch);
-        },
-        'delete': function _delete(patches, path) {
-            var patch = {
-                op: "remove",
-                path: path + escapePathComponent(this.name)
-            };
-            patches.push(patch);
-        },
-        update: function update(patches, path) {
-            var patch = {
-                op: "replace",
-                path: path + escapePathComponent(this.name),
-                value: this.object[this.name]
-            };
-            patches.push(patch);
-        }
-    };
-    function escapePathComponent(str) {
-        if (str.indexOf('/') === -1 && str.indexOf('~') === -1) return str;
-        return str.replace(/~/g, '~0').replace(/\//g, '~1');
-    }
-    function _getPathRecursive(root, obj) {
-        var found;
-        for (var key in root) {
-            if (root.hasOwnProperty(key)) {
-                if (root[key] === obj) {
-                    return escapePathComponent(key) + '/';
-                } else if (_typeof(root[key]) === 'object') {
-                    found = _getPathRecursive(root[key], obj);
-                    if (found != '') {
-                        return escapePathComponent(key) + '/' + found;
-                    }
-                }
-            }
-        }
-        return '';
-    }
-    function getPath(root, obj) {
-        if (root === obj) {
-            return '/';
-        }
-        var path = _getPathRecursive(root, obj);
-        if (path === '') {
-            throw new OriginalError("Object not found in root");
-        }
-        return '/' + path;
-    }
-    var beforeDict = [];
-    var Mirror = function () {
-        function Mirror(obj) {
-            this.observers = [];
-            this.obj = obj;
-        }
-        return Mirror;
-    }();
-    var ObserverInfo = function () {
-        function ObserverInfo(callback, observer) {
-            this.callback = callback;
-            this.observer = observer;
-        }
-        return ObserverInfo;
-    }();
-    function getMirror(obj) {
-        for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-            if (beforeDict[i].obj === obj) {
-                return beforeDict[i];
-            }
-        }
-    }
-    function getObserverFromMirror(mirror, callback) {
-        for (var j = 0, jlen = mirror.observers.length; j < jlen; j++) {
-            if (mirror.observers[j].callback === callback) {
-                return mirror.observers[j].observer;
-            }
-        }
-    }
-    function removeObserverFromMirror(mirror, observer) {
-        for (var j = 0, jlen = mirror.observers.length; j < jlen; j++) {
-            if (mirror.observers[j].observer === observer) {
-                mirror.observers.splice(j, 1);
-                return;
-            }
-        }
-    }
-    function unobserve(root, observer) {
-        observer.unobserve();
-    }
-    jsonpatch.unobserve = unobserve;
-    function deepClone(obj) {
-        if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === "object") {
-            return JSON.parse(JSON.stringify(obj)); //Faster than ES5 clone - http://jsperf.com/deep-cloning-of-objects/5
-        } else {
-            return obj; //no need to clone primitives
-        }
-    }
-    function observe(obj, callback) {
-        var patches = [];
-        var root = obj;
-        var observer;
-        var mirror = getMirror(obj);
-        if (!mirror) {
-            mirror = new Mirror(obj);
-            beforeDict.push(mirror);
-        } else {
-            observer = getObserverFromMirror(mirror, callback);
-        }
-        if (observer) {
-            return observer;
-        }
-        observer = {};
-        mirror.value = deepClone(obj);
-        if (callback) {
-            observer.callback = callback;
-            observer.next = null;
-            var intervals = this.intervals || [100, 1000, 10000, 60000];
-            if (intervals.push === void 0) {
-                throw new OriginalError("jsonpatch.intervals must be an array");
-            }
-            var currentInterval = 0;
-            var dirtyCheck = function dirtyCheck() {
-                generate(observer);
-            };
-            var fastCheck = function fastCheck() {
-                clearTimeout(observer.next);
-                observer.next = setTimeout(function () {
-                    dirtyCheck();
-                    currentInterval = 0;
-                    observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
-                }, 0);
-            };
-            var slowCheck = function slowCheck() {
-                dirtyCheck();
-                if (currentInterval == intervals.length) currentInterval = intervals.length - 1;
-                observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
-            };
-            if (typeof window !== 'undefined') {
-                if (window.addEventListener) {
-                    window.addEventListener('mousedown', fastCheck);
-                    window.addEventListener('mouseup', fastCheck);
-                    window.addEventListener('keydown', fastCheck);
-                } else {
-                    document.documentElement.attachEvent('onmousedown', fastCheck);
-                    document.documentElement.attachEvent('onmouseup', fastCheck);
-                    document.documentElement.attachEvent('onkeydown', fastCheck);
-                }
-            }
-            observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
-        }
-        observer.patches = patches;
-        observer.object = obj;
-        observer.unobserve = function () {
-            generate(observer);
-            clearTimeout(observer.next);
-            removeObserverFromMirror(mirror, observer);
-            if (typeof window !== 'undefined') {
-                if (window.removeEventListener) {
-                    window.removeEventListener('mousedown', fastCheck);
-                    window.removeEventListener('mouseup', fastCheck);
-                    window.removeEventListener('keydown', fastCheck);
-                } else {
-                    document.documentElement.detachEvent('onmousedown', fastCheck);
-                    document.documentElement.detachEvent('onmouseup', fastCheck);
-                    document.documentElement.detachEvent('onkeydown', fastCheck);
-                }
-            }
-        };
-        mirror.observers.push(new ObserverInfo(callback, observer));
-        return observer;
-    }
-    jsonpatch.observe = observe;
-    function generate(observer) {
-        var mirror;
-        for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-            if (beforeDict[i].obj === observer.object) {
-                mirror = beforeDict[i];
-                break;
-            }
-        }
-        _generate(mirror.value, observer.object, observer.patches, "");
-        if (observer.patches.length) {
-            apply(mirror.value, observer.patches);
-        }
-        var temp = observer.patches;
-        if (temp.length > 0) {
-            observer.patches = [];
-            if (observer.callback) {
-                observer.callback(temp);
-            }
-        }
-        return temp;
-    }
-    jsonpatch.generate = generate;
-    // Dirty check if obj is different from mirror, generate patches and update mirror
-    function _generate(mirror, obj, patches, path) {
-        var newKeys = _objectKeys(obj);
-        var oldKeys = _objectKeys(mirror);
-        var changed = false;
-        var deleted = false;
-        //if ever "move" operation is implemented here, make sure this test runs OK: "should not generate the same patch twice (move)"
-        for (var t = oldKeys.length - 1; t >= 0; t--) {
-            var key = oldKeys[t];
-            var oldVal = mirror[key];
-            if (obj.hasOwnProperty(key)) {
-                var newVal = obj[key];
-                if ((typeof oldVal === 'undefined' ? 'undefined' : _typeof(oldVal)) == "object" && oldVal != null && (typeof newVal === 'undefined' ? 'undefined' : _typeof(newVal)) == "object" && newVal != null) {
-                    _generate(oldVal, newVal, patches, path + "/" + escapePathComponent(key));
-                } else {
-                    if (oldVal != newVal) {
-                        changed = true;
-                        patches.push({ op: "replace", path: path + "/" + escapePathComponent(key), value: deepClone(newVal) });
-                    }
-                }
-            } else {
-                patches.push({ op: "remove", path: path + "/" + escapePathComponent(key) });
-                deleted = true; // property has been deleted
-            }
-        }
-        if (!deleted && newKeys.length == oldKeys.length) {
-            return;
-        }
-        for (var t = 0; t < newKeys.length; t++) {
-            var key = newKeys[t];
-            if (!mirror.hasOwnProperty(key)) {
-                patches.push({ op: "add", path: path + "/" + escapePathComponent(key), value: deepClone(obj[key]) });
-            }
-        }
-    }
-    var _isArray;
-    if (Array.isArray) {
-        _isArray = Array.isArray;
-    } else {
-        _isArray = function _isArray(obj) {
-            return obj.push && typeof obj.length === 'number';
-        };
-    }
-    //3x faster than cached /^\d+$/.test(str)
-    function isInteger(str) {
-        var i = 0;
-        var len = str.length;
-        var charCode;
-        while (i < len) {
-            charCode = str.charCodeAt(i);
-            if (charCode >= 48 && charCode <= 57) {
-                i++;
-                continue;
-            }
-            return false;
-        }
-        return true;
-    }
-    /// Apply a json-patch operation on an object tree
-    function apply(tree, patches, validate) {
-        var result = false,
-            p = 0,
-            plen = patches.length,
-            patch,
-            key;
-        while (p < plen) {
-            patch = patches[p];
-            p++;
-            // Find the object
-            var path = patch.path || "";
-            var keys = path.split('/');
-            var obj = tree;
-            var t = 1; //skip empty element - http://jsperf.com/to-shift-or-not-to-shift
-            var len = keys.length;
-            var existingPathFragment = undefined;
-            while (true) {
-                key = keys[t];
-                if (validate) {
-                    if (existingPathFragment === undefined) {
-                        if (obj[key] === undefined) {
-                            existingPathFragment = keys.slice(0, t).join('/');
-                        } else if (t == len - 1) {
-                            existingPathFragment = patch.path;
-                        }
-                        if (existingPathFragment !== undefined) {
-                            this.validator(patch, p - 1, tree, existingPathFragment);
-                        }
-                    }
-                }
-                t++;
-                if (key === undefined) {
-                    if (t >= len) {
-                        result = rootOps[patch.op].call(patch, obj, key, tree); // Apply patch
-                        break;
-                    }
-                }
-                if (_isArray(obj)) {
-                    if (key === '-') {
-                        key = obj.length;
-                    } else {
-                        if (validate && !isInteger(key)) {
-                            throw new JsonPatchError("Expected an unsigned base-10 integer value, making the new referenced value the array element with the zero-based index", "OPERATION_PATH_ILLEGAL_ARRAY_INDEX", p - 1, patch.path, patch);
-                        }
-                        key = parseInt(key, 10);
-                    }
-                    if (t >= len) {
-                        if (validate && patch.op === "add" && key > obj.length) {
-                            throw new JsonPatchError("The specified index MUST NOT be greater than the number of elements in the array", "OPERATION_VALUE_OUT_OF_BOUNDS", p - 1, patch.path, patch);
-                        }
-                        result = arrOps[patch.op].call(patch, obj, key, tree); // Apply patch
-                        break;
-                    }
-                } else {
-                    if (key && key.indexOf('~') != -1) key = key.replace(/~1/g, '/').replace(/~0/g, '~'); // escape chars
-                    if (t >= len) {
-                        result = objOps[patch.op].call(patch, obj, key, tree); // Apply patch
-                        break;
-                    }
-                }
-                obj = obj[key];
-            }
-        }
-        return result;
-    }
-    jsonpatch.apply = apply;
-    function compare(tree1, tree2) {
-        var patches = [];
-        _generate(tree1, tree2, patches, '');
-        return patches;
-    }
-    jsonpatch.compare = compare;
-    var JsonPatchError = function (_super) {
-        __extends(JsonPatchError, _super);
-        function JsonPatchError(message, name, index, operation, tree) {
-            _super.call(this, message);
-            this.message = message;
-            this.name = name;
-            this.index = index;
-            this.operation = operation;
-            this.tree = tree;
-        }
-        return JsonPatchError;
-    }(OriginalError);
-    jsonpatch.JsonPatchError = JsonPatchError;
-    jsonpatch.Error = JsonPatchError;
-    /**
-     * Recursively checks whether an object has any undefined values inside.
-     */
-    function hasUndefined(obj) {
-        if (obj === undefined) {
-            return true;
-        }
-        if (typeof obj == "array" || (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) == "object") {
-            for (var i in obj) {
-                if (hasUndefined(obj[i])) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-    /**
-     * Validates a single operation. Called from `jsonpatch.validate`. Throws `JsonPatchError` in case of an error.
-     * @param {object} operation - operation object (patch)
-     * @param {number} index - index of operation in the sequence
-     * @param {object} [tree] - object where the operation is supposed to be applied
-     * @param {string} [existingPathFragment] - comes along with `tree`
-     */
-    function validator(operation, index, tree, existingPathFragment) {
-        if ((typeof operation === 'undefined' ? 'undefined' : _typeof(operation)) !== 'object' || operation === null || _isArray(operation)) {
-            throw new JsonPatchError('Operation is not an object', 'OPERATION_NOT_AN_OBJECT', index, operation, tree);
-        } else if (!objOps[operation.op]) {
-            throw new JsonPatchError('Operation `op` property is not one of operations defined in RFC-6902', 'OPERATION_OP_INVALID', index, operation, tree);
-        } else if (typeof operation.path !== 'string') {
-            throw new JsonPatchError('Operation `path` property is not a string', 'OPERATION_PATH_INVALID', index, operation, tree);
-        } else if ((operation.op === 'move' || operation.op === 'copy') && typeof operation.from !== 'string') {
-            throw new JsonPatchError('Operation `from` property is not present (applicable in `move` and `copy` operations)', 'OPERATION_FROM_REQUIRED', index, operation, tree);
-        } else if ((operation.op === 'add' || operation.op === 'replace' || operation.op === 'test') && operation.value === undefined) {
-            throw new JsonPatchError('Operation `value` property is not present (applicable in `add`, `replace` and `test` operations)', 'OPERATION_VALUE_REQUIRED', index, operation, tree);
-        } else if ((operation.op === 'add' || operation.op === 'replace' || operation.op === 'test') && hasUndefined(operation.value)) {
-            throw new JsonPatchError('Operation `value` property is not present (applicable in `add`, `replace` and `test` operations)', 'OPERATION_VALUE_CANNOT_CONTAIN_UNDEFINED', index, operation, tree);
-        } else if (tree) {
-            if (operation.op == "add") {
-                var pathLen = operation.path.split("/").length;
-                var existingPathLen = existingPathFragment.split("/").length;
-                if (pathLen !== existingPathLen + 1 && pathLen !== existingPathLen) {
-                    throw new JsonPatchError('Cannot perform an `add` operation at the desired path', 'OPERATION_PATH_CANNOT_ADD', index, operation, tree);
-                }
-            } else if (operation.op === 'replace' || operation.op === 'remove' || operation.op === '_get') {
-                if (operation.path !== existingPathFragment) {
-                    throw new JsonPatchError('Cannot perform the operation at a path that does not exist', 'OPERATION_PATH_UNRESOLVABLE', index, operation, tree);
-                }
-            } else if (operation.op === 'move' || operation.op === 'copy') {
-                var existingValue = { op: "_get", path: operation.from, value: undefined };
-                var error = jsonpatch.validate([existingValue], tree);
-                if (error && error.name === 'OPERATION_PATH_UNRESOLVABLE') {
-                    throw new JsonPatchError('Cannot perform the operation from a path that does not exist', 'OPERATION_FROM_UNRESOLVABLE', index, operation, tree);
-                }
-            }
-        }
-    }
-    jsonpatch.validator = validator;
-    /**
-     * Validates a sequence of operations. If `tree` parameter is provided, the sequence is additionally validated against the object tree.
-     * If error is encountered, returns a JsonPatchError object
-     * @param sequence
-     * @param tree
-     * @returns {JsonPatchError|undefined}
-     */
-    function validate(sequence, tree) {
-        try {
-            if (!_isArray(sequence)) {
-                throw new JsonPatchError('Patch sequence must be an array', 'SEQUENCE_NOT_AN_ARRAY');
-            }
-            if (tree) {
-                tree = JSON.parse(JSON.stringify(tree)); //clone tree so that we can safely try applying operations
-                apply.call(this, tree, sequence, true);
-            } else {
-                for (var i = 0; i < sequence.length; i++) {
-                    this.validator(sequence[i], i);
-                }
-            }
-        } catch (e) {
-            if (e instanceof JsonPatchError) {
-                return e;
-            } else {
-                throw e;
-            }
-        }
-    }
-    jsonpatch.validate = validate;
-})(jsonpatch || (jsonpatch = {}));
-if (true) {
-    exports.apply = jsonpatch.apply;
-    exports.observe = jsonpatch.observe;
-    exports.unobserve = jsonpatch.unobserve;
-    exports.generate = jsonpatch.generate;
-    exports.compare = jsonpatch.compare;
-    exports.validate = jsonpatch.validate;
-    exports.validator = jsonpatch.validator;
-    exports.JsonPatchError = jsonpatch.JsonPatchError;
-    exports.Error = jsonpatch.Error;
-}
-
-/***/ }),
-/* 328 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
 exports.__esModule = true;
 
-__webpack_require__(99);
+__webpack_require__(98);
+
+__webpack_require__(113);
 
 __webpack_require__(114);
 
-__webpack_require__(115);
+__webpack_require__(118);
 
 __webpack_require__(119);
 
-__webpack_require__(120);
+__webpack_require__(121);
 
-__webpack_require__(122);
+__webpack_require__(124);
 
 __webpack_require__(125);
 
@@ -34964,9 +34536,9 @@ __webpack_require__(140);
 
 __webpack_require__(141);
 
-__webpack_require__(142);
+__webpack_require__(143);
 
-__webpack_require__(144);
+__webpack_require__(145);
 
 __webpack_require__(146);
 
@@ -34992,13 +34564,13 @@ __webpack_require__(156);
 
 __webpack_require__(157);
 
-__webpack_require__(158);
-
 __webpack_require__(88);
+
+__webpack_require__(158);
 
 __webpack_require__(159);
 
-__webpack_require__(160);
+__webpack_require__(161);
 
 __webpack_require__(162);
 
@@ -35012,43 +34584,41 @@ __webpack_require__(166);
 
 __webpack_require__(167);
 
-__webpack_require__(168);
+__webpack_require__(169);
 
 __webpack_require__(170);
 
 __webpack_require__(171);
 
-__webpack_require__(172);
+__webpack_require__(173);
 
 __webpack_require__(174);
 
 __webpack_require__(175);
 
-__webpack_require__(176);
+__webpack_require__(346);
 
 __webpack_require__(347);
 
 __webpack_require__(348);
 
-__webpack_require__(349);
-
 var _editors = __webpack_require__(17);
 
 var _renderers = __webpack_require__(14);
 
-var _validators = __webpack_require__(28);
+var _validators = __webpack_require__(34);
 
-var _cellTypes = __webpack_require__(90);
+var _cellTypes = __webpack_require__(89);
 
-var _core = __webpack_require__(91);
+var _core = __webpack_require__(90);
 
 var _core2 = _interopRequireDefault(_core);
 
-var _jquery = __webpack_require__(405);
+var _jquery = __webpack_require__(404);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
@@ -35056,19 +34626,19 @@ var _pluginHooks = __webpack_require__(16);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _ghostTable = __webpack_require__(94);
+var _ghostTable = __webpack_require__(93);
 
 var _ghostTable2 = _interopRequireDefault(_ghostTable);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var arrayHelpers = _interopRequireWildcard(_array);
 
-var _browser = __webpack_require__(27);
+var _browser = __webpack_require__(39);
 
 var browserHelpers = _interopRequireWildcard(_browser);
 
-var _data = __webpack_require__(93);
+var _data = __webpack_require__(92);
 
 var dataHelpers = _interopRequireWildcard(_data);
 
@@ -35076,7 +34646,7 @@ var _date = __webpack_require__(312);
 
 var dateHelpers = _interopRequireWildcard(_date);
 
-var _feature = __webpack_require__(41);
+var _feature = __webpack_require__(40);
 
 var featureHelpers = _interopRequireWildcard(_feature);
 
@@ -35088,19 +34658,19 @@ var _mixed = __webpack_require__(11);
 
 var mixedHelpers = _interopRequireWildcard(_mixed);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 var numberHelpers = _interopRequireWildcard(_number);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var objectHelpers = _interopRequireWildcard(_object);
 
-var _setting = __webpack_require__(92);
+var _setting = __webpack_require__(91);
 
 var settingHelpers = _interopRequireWildcard(_setting);
 
-var _string = __webpack_require__(36);
+var _string = __webpack_require__(33);
 
 var stringHelpers = _interopRequireWildcard(_string);
 
@@ -35116,7 +34686,7 @@ var _event = __webpack_require__(13);
 
 var domEventHelpers = _interopRequireWildcard(_event);
 
-var _index = __webpack_require__(406);
+var _index = __webpack_require__(405);
 
 var plugins = _interopRequireWildcard(_index);
 
@@ -35155,9 +34725,9 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '05/07/2018 08:24:58';
+Handsontable.buildDate = '16/08/2018 12:19:04';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '5.0.0';
+Handsontable.version = '5.0.1';
 
 var baseVersion = '';
 
@@ -35271,12 +34841,12 @@ Handsontable.languages.getTranslatedPhrase = function () {
 exports.default = Handsontable;
 
 /***/ }),
-/* 329 */
+/* 328 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var dP = __webpack_require__(20);
 var anObject = __webpack_require__(18);
-var getKeys = __webpack_require__(37);
+var getKeys = __webpack_require__(35);
 
 module.exports = __webpack_require__(22) ? Object.defineProperties : function defineProperties(O, Properties) {
   anObject(O);
@@ -35290,7 +34860,7 @@ module.exports = __webpack_require__(22) ? Object.defineProperties : function de
 
 
 /***/ }),
-/* 330 */
+/* 329 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35301,7 +34871,7 @@ var setToStringTag = __webpack_require__(54);
 var IteratorPrototype = {};
 
 // 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
-__webpack_require__(31)(IteratorPrototype, __webpack_require__(12)('iterator'), function () { return this; });
+__webpack_require__(29)(IteratorPrototype, __webpack_require__(12)('iterator'), function () { return this; });
 
 module.exports = function (Constructor, NAME, next) {
   Constructor.prototype = create(IteratorPrototype, { next: descriptor(1, next) });
@@ -35310,11 +34880,11 @@ module.exports = function (Constructor, NAME, next) {
 
 
 /***/ }),
-/* 331 */
+/* 330 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(9);
-var setPrototypeOf = __webpack_require__(113).set;
+var setPrototypeOf = __webpack_require__(112).set;
 module.exports = function (that, target, C) {
   var S = target.constructor;
   var P;
@@ -35325,11 +34895,11 @@ module.exports = function (that, target, C) {
 
 
 /***/ }),
-/* 332 */
+/* 331 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 9.4.2.3 ArraySpeciesCreate(originalArray, length)
-var speciesConstructor = __webpack_require__(333);
+var speciesConstructor = __webpack_require__(332);
 
 module.exports = function (original, length) {
   return new (speciesConstructor(original))(length);
@@ -35337,11 +34907,11 @@ module.exports = function (original, length) {
 
 
 /***/ }),
-/* 333 */
+/* 332 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(9);
-var isArray = __webpack_require__(116);
+var isArray = __webpack_require__(115);
 var SPECIES = __webpack_require__(12)('species');
 
 module.exports = function (original) {
@@ -35359,7 +34929,7 @@ module.exports = function (original) {
 
 
 /***/ }),
-/* 334 */
+/* 333 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.3.20 SpeciesConstructor(O, defaultConstructor)
@@ -35374,7 +34944,7 @@ module.exports = function (O, D) {
 
 
 /***/ }),
-/* 335 */
+/* 334 */
 /***/ (function(module, exports) {
 
 // fast apply, http://jsperf.lnkit.com/fast-apply/5
@@ -35396,7 +34966,7 @@ module.exports = function (fn, args, that) {
 
 
 /***/ }),
-/* 336 */
+/* 335 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(15);
@@ -35471,7 +35041,7 @@ module.exports = function () {
 
 
 /***/ }),
-/* 337 */
+/* 336 */
 /***/ (function(module, exports) {
 
 module.exports = function (exec) {
@@ -35484,12 +35054,12 @@ module.exports = function (exec) {
 
 
 /***/ }),
-/* 338 */
+/* 337 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var anObject = __webpack_require__(18);
 var isObject = __webpack_require__(9);
-var newPromiseCapability = __webpack_require__(121);
+var newPromiseCapability = __webpack_require__(120);
 
 module.exports = function (C, x) {
   anObject(C);
@@ -35502,13 +35072,13 @@ module.exports = function (C, x) {
 
 
 /***/ }),
-/* 339 */
+/* 338 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(15);
-var core = __webpack_require__(39);
+var core = __webpack_require__(37);
 var LIBRARY = __webpack_require__(50);
-var wksExt = __webpack_require__(123);
+var wksExt = __webpack_require__(122);
 var defineProperty = __webpack_require__(20).f;
 module.exports = function (name) {
   var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
@@ -35517,11 +35087,11 @@ module.exports = function (name) {
 
 
 /***/ }),
-/* 340 */
+/* 339 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // all enumerable object keys, includes symbols
-var getKeys = __webpack_require__(37);
+var getKeys = __webpack_require__(35);
 var gOPS = __webpack_require__(69);
 var pIE = __webpack_require__(55);
 module.exports = function (it) {
@@ -35538,7 +35108,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 341 */
+/* 340 */
 /***/ (function(module, exports) {
 
 // 7.2.9 SameValue(x, y)
@@ -35549,11 +35119,11 @@ module.exports = Object.is || function is(x, y) {
 
 
 /***/ }),
-/* 342 */
+/* 341 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var toInteger = __webpack_require__(60);
-var defined = __webpack_require__(38);
+var defined = __webpack_require__(36);
 // true  -> String#at
 // false -> String#codePointAt
 module.exports = function (TO_STRING) {
@@ -35572,7 +35142,7 @@ module.exports = function (TO_STRING) {
 
 
 /***/ }),
-/* 343 */
+/* 342 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35592,13 +35162,13 @@ module.exports = function () {
 
 
 /***/ }),
-/* 344 */
+/* 343 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 // 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
 
-var toObject = __webpack_require__(33);
+var toObject = __webpack_require__(31);
 var toAbsoluteIndex = __webpack_require__(61);
 var toLength = __webpack_require__(25);
 
@@ -35625,13 +35195,13 @@ module.exports = [].copyWithin || function copyWithin(target /* = 0 */, start /*
 
 
 /***/ }),
-/* 345 */
+/* 344 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 // 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
 
-var toObject = __webpack_require__(33);
+var toObject = __webpack_require__(31);
 var toAbsoluteIndex = __webpack_require__(61);
 var toLength = __webpack_require__(25);
 module.exports = function fill(value /* , start = 0, end = @length */) {
@@ -35647,7 +35217,7 @@ module.exports = function fill(value /* , start = 0, end = @length */) {
 
 
 /***/ }),
-/* 346 */
+/* 345 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // all object keys, includes non-enumerable and symbols
@@ -35663,6 +35233,12 @@ module.exports = Reflect && Reflect.ownKeys || function ownKeys(it) {
 
 
 /***/ }),
+/* 346 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
 /* 347 */
 /***/ (function(module, exports) {
 
@@ -35676,12 +35252,6 @@ module.exports = Reflect && Reflect.ownKeys || function ownKeys(it) {
 
 /***/ }),
 /* 349 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 350 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35691,7 +35261,7 @@ exports.__esModule = true;
 
 var _element = __webpack_require__(0);
 
-var _base = __webpack_require__(35);
+var _base = __webpack_require__(41);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -35736,7 +35306,7 @@ _base2.default.registerOverlay(_base2.default.CLONE_DEBUG, DebugOverlay);
 exports.default = DebugOverlay;
 
 /***/ }),
-/* 351 */
+/* 350 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -35764,7 +35334,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 352 */
+/* 351 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -36021,10 +35591,10 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 352;
+webpackContext.id = 351;
 
 /***/ }),
-/* 353 */
+/* 352 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36036,7 +35606,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _base = __webpack_require__(35);
+var _base = __webpack_require__(41);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -36067,7 +35637,7 @@ var LeftOverlay = function (_Overlay) {
   }
 
   /**
-   * Checks if overlay should be fully rendered
+   * Checks if overlay should be fully rendered.
    *
    * @returns {Boolean}
    */
@@ -36080,7 +35650,7 @@ var LeftOverlay = function (_Overlay) {
     }
 
     /**
-     * Updates the left overlay position
+     * Updates the left overlay position.
      */
 
   }, {
@@ -36118,28 +35688,34 @@ var LeftOverlay = function (_Overlay) {
         (0, _element.resetCssTransform)(overlayRoot);
       }
       this.adjustHeaderBordersPosition(headerPosition);
-
       this.adjustElementsSize();
     }
 
     /**
-     * Sets the main overlay's horizontal scroll position
+     * Sets the main overlay's horizontal scroll position.
      *
      * @param {Number} pos
+     * @returns {Boolean}
      */
 
   }, {
     key: 'setScrollPosition',
     value: function setScrollPosition(pos) {
-      if (this.mainTableScrollableElement === window) {
+      var result = false;
+
+      if (this.mainTableScrollableElement === window && window.scrollX !== pos) {
         window.scrollTo(pos, (0, _element.getWindowScrollTop)());
-      } else {
+        result = true;
+      } else if (this.mainTableScrollableElement.scrollLeft !== pos) {
         this.mainTableScrollableElement.scrollLeft = pos;
+        result = true;
       }
+
+      return result;
     }
 
     /**
-     * Triggers onScroll hook callback
+     * Triggers onScroll hook callback.
      */
 
   }, {
@@ -36149,11 +35725,11 @@ var LeftOverlay = function (_Overlay) {
     }
 
     /**
-     * Calculates total sum cells width
+     * Calculates total sum cells width.
      *
-     * @param {Number} from Column index which calculates started from
-     * @param {Number} to Column index where calculation is finished
-     * @returns {Number} Width sum
+     * @param {Number} from Column index which calculates started from.
+     * @param {Number} to Column index where calculation is finished.
+     * @returns {Number} Width sum.
      */
 
   }, {
@@ -36224,7 +35800,7 @@ var LeftOverlay = function (_Overlay) {
     }
 
     /**
-     * Adjust overlay root childs size
+     * Adjust overlay root childs size.
      */
 
   }, {
@@ -36242,7 +35818,7 @@ var LeftOverlay = function (_Overlay) {
     }
 
     /**
-     * Adjust the overlay dimensions and position
+     * Adjust the overlay dimensions and position.
      */
 
   }, {
@@ -36268,7 +35844,7 @@ var LeftOverlay = function (_Overlay) {
     }
 
     /**
-     * Synchronize calculated top position to an element
+     * Synchronize calculated top position to an element.
      */
 
   }, {
@@ -36282,10 +35858,11 @@ var LeftOverlay = function (_Overlay) {
     }
 
     /**
-     * Scrolls horizontally to a column at the left edge of the viewport
+     * Scrolls horizontally to a column at the left edge of the viewport.
      *
-     * @param sourceCol {Number} Column index which you want to scroll to
-     * @param [beyondRendered=false] {Boolean} if `true`, scrolls according to the bottom edge (top edge is by default)
+     * @param {Number} sourceCol  Column index which you want to scroll to.
+     * @param {Boolean} [beyondRendered]  if `true`, scrolls according to the bottom edge (top edge is by default).
+     * @returns {Boolean}
      */
 
   }, {
@@ -36305,13 +35882,14 @@ var LeftOverlay = function (_Overlay) {
       } else {
         newX += this.sumCellSizes(this.wot.getSetting('fixedColumnsLeft'), sourceCol);
       }
+
       newX += scrollbarCompensation;
 
-      this.setScrollPosition(newX);
+      return this.setScrollPosition(newX);
     }
 
     /**
-     * Gets table parent left position
+     * Gets table parent left position.
      *
      * @returns {Number}
      */
@@ -36330,9 +35908,9 @@ var LeftOverlay = function (_Overlay) {
     }
 
     /**
-     * Gets the main overlay's horizontal scroll position
+     * Gets the main overlay's horizontal scroll position.
      *
-     * @returns {Number} Main table's vertical scroll position
+     * @returns {Number} Main table's vertical scroll position.
      */
 
   }, {
@@ -36342,9 +35920,9 @@ var LeftOverlay = function (_Overlay) {
     }
 
     /**
-     * Adds css classes to hide the header border's header (cell-selection border hiding issue)
+     * Adds css classes to hide the header border's header (cell-selection border hiding issue).
      *
-     * @param {Number} position Header X position if trimming container is window or scroll top if not
+     * @param {Number} position Header X position if trimming container is window or scroll top if not.
      */
 
   }, {
@@ -36386,7 +35964,7 @@ _base2.default.registerOverlay(_base2.default.CLONE_LEFT, LeftOverlay);
 exports.default = LeftOverlay;
 
 /***/ }),
-/* 354 */
+/* 353 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36398,9 +35976,9 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _base = __webpack_require__(35);
+var _base = __webpack_require__(41);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -36431,7 +36009,7 @@ var TopOverlay = function (_Overlay) {
   }
 
   /**
-   * Checks if overlay should be fully rendered
+   * Checks if overlay should be fully rendered.
    *
    * @returns {Boolean}
    */
@@ -36444,7 +36022,7 @@ var TopOverlay = function (_Overlay) {
     }
 
     /**
-     * Updates the top overlay position
+     * Updates the top overlay position.
      */
 
   }, {
@@ -36483,28 +36061,34 @@ var TopOverlay = function (_Overlay) {
       }
 
       this.adjustHeaderBordersPosition(headerPosition);
-
       this.adjustElementsSize();
     }
 
     /**
-     * Sets the main overlay's vertical scroll position
+     * Sets the main overlay's vertical scroll position.
      *
      * @param {Number} pos
+     * @returns {Boolean}
      */
 
   }, {
     key: 'setScrollPosition',
     value: function setScrollPosition(pos) {
-      if (this.mainTableScrollableElement === window) {
+      var result = false;
+
+      if (this.mainTableScrollableElement === window && window.scrollY !== pos) {
         window.scrollTo((0, _element.getWindowScrollLeft)(), pos);
-      } else {
+        result = true;
+      } else if (this.mainTableScrollableElement.scrollTop !== pos) {
         this.mainTableScrollableElement.scrollTop = pos;
+        result = true;
       }
+
+      return result;
     }
 
     /**
-     * Triggers onScroll hook callback
+     * Triggers onScroll hook callback.
      */
 
   }, {
@@ -36514,11 +36098,11 @@ var TopOverlay = function (_Overlay) {
     }
 
     /**
-     * Calculates total sum cells height
+     * Calculates total sum cells height.
      *
-     * @param {Number} from Row index which calculates started from
-     * @param {Number} to Row index where calculation is finished
-     * @returns {Number} Height sum
+     * @param {Number} from Row index which calculates started from.
+     * @param {Number} to Row index where calculation is finished.
+     * @returns {Number} Height sum.
      */
 
   }, {
@@ -36591,7 +36175,7 @@ var TopOverlay = function (_Overlay) {
     }
 
     /**
-     * Adjust overlay root childs size
+     * Adjust overlay root childs size.
      */
 
   }, {
@@ -36609,7 +36193,7 @@ var TopOverlay = function (_Overlay) {
     }
 
     /**
-     * Adjust the overlay dimensions and position
+     * Adjust the overlay dimensions and position.
      */
 
   }, {
@@ -36636,7 +36220,7 @@ var TopOverlay = function (_Overlay) {
     }
 
     /**
-     * Synchronize calculated left position to an element
+     * Synchronize calculated left position to an element.
      */
 
   }, {
@@ -36650,10 +36234,11 @@ var TopOverlay = function (_Overlay) {
     }
 
     /**
-     * Scrolls vertically to a row
+     * Scrolls vertically to a row.
      *
-     * @param sourceRow {Number} Row index which you want to scroll to
-     * @param [bottomEdge=false] {Boolean} if `true`, scrolls according to the bottom edge (top edge is by default)
+     * @param {Number} sourceRow Row index which you want to scroll to.
+     * @param {Boolean} [bottomEdge] if `true`, scrolls according to the bottom edge (top edge is by default).
+     * @returns {Boolean}
      */
 
   }, {
@@ -36670,7 +36255,6 @@ var TopOverlay = function (_Overlay) {
 
       if (bottomEdge) {
         var fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
-        var fixedRowsTop = this.wot.getSetting('fixedRowsTop');
         var totalRows = this.wot.getSetting('totalRows');
 
         newY += this.sumCellSizes(0, sourceRow + 1);
@@ -36682,11 +36266,11 @@ var TopOverlay = function (_Overlay) {
       }
       newY += scrollbarCompensation;
 
-      this.setScrollPosition(newY);
+      return this.setScrollPosition(newY);
     }
 
     /**
-     * Gets table parent top position
+     * Gets table parent top position.
      *
      * @returns {Number}
      */
@@ -36701,9 +36285,9 @@ var TopOverlay = function (_Overlay) {
     }
 
     /**
-     * Gets the main overlay's vertical scroll position
+     * Gets the main overlay's vertical scroll position.
      *
-     * @returns {Number} Main table's vertical scroll position
+     * @returns {Number} Main table's vertical scroll position.
      */
 
   }, {
@@ -36713,9 +36297,9 @@ var TopOverlay = function (_Overlay) {
     }
 
     /**
-     * Redraw borders of selection
+     * Redraw borders of selection.
      *
-     * @param {WalkontableSelection} selection Selection for redraw
+     * @param {WalkontableSelection} selection Selection for redraw.
      */
 
   }, {
@@ -36731,7 +36315,7 @@ var TopOverlay = function (_Overlay) {
     }
 
     /**
-     * Redrawing borders of all selections
+     * Redrawing borders of all selections.
      */
 
   }, {
@@ -36752,9 +36336,9 @@ var TopOverlay = function (_Overlay) {
     }
 
     /**
-     * Adds css classes to hide the header border's header (cell-selection border hiding issue)
+     * Adds css classes to hide the header border's header (cell-selection border hiding issue).
      *
-     * @param {Number} position Header Y position if trimming container is window or scroll top if not
+     * @param {Number} position Header Y position if trimming container is window or scroll top if not.
      */
 
   }, {
@@ -36808,7 +36392,7 @@ _base2.default.registerOverlay(_base2.default.CLONE_TOP, TopOverlay);
 exports.default = TopOverlay;
 
 /***/ }),
-/* 355 */
+/* 354 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36820,7 +36404,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _base = __webpack_require__(35);
+var _base = __webpack_require__(41);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -36918,7 +36502,7 @@ _base2.default.registerOverlay(_base2.default.CLONE_TOP_LEFT_CORNER, TopLeftCorn
 exports.default = TopLeftCornerOverlay;
 
 /***/ }),
-/* 356 */
+/* 355 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36942,7 +36526,7 @@ var _coords = __webpack_require__(57);
 
 var _coords2 = _interopRequireDefault(_coords);
 
-var _range = __webpack_require__(89);
+var _range = __webpack_require__(178);
 
 var _range2 = _interopRequireDefault(_range);
 
@@ -37260,7 +36844,7 @@ var Selection = function () {
 exports.default = Selection;
 
 /***/ }),
-/* 357 */
+/* 356 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -37443,7 +37027,7 @@ if (true) {
 }
 
 /***/ }),
-/* 358 */
+/* 357 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -37525,7 +37109,7 @@ var CheckboxEditor = function (_BaseEditor) {
 exports.default = CheckboxEditor;
 
 /***/ }),
-/* 359 */
+/* 358 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -37541,17 +37125,17 @@ var _moment = __webpack_require__(42);
 
 var _moment2 = _interopRequireDefault(_moment);
 
-var _pikaday = __webpack_require__(360);
+var _pikaday = __webpack_require__(359);
 
 var _pikaday2 = _interopRequireDefault(_pikaday);
 
-__webpack_require__(361);
+__webpack_require__(360);
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
@@ -37858,7 +37442,7 @@ var DateEditor = function (_TextEditor) {
 exports.default = DateEditor;
 
 /***/ }),
-/* 360 */
+/* 359 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*!
@@ -39057,13 +38641,13 @@ exports.default = DateEditor;
 
 
 /***/ }),
-/* 361 */
+/* 360 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 362 */
+/* 361 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39118,7 +38702,7 @@ var DropdownEditor = function (_AutocompleteEditor) {
   return DropdownEditor;
 }(_autocompleteEditor2.default);
 
-_pluginHooks2.default.getSingleton().add('beforeValidate', function (value, row, col, source) {
+_pluginHooks2.default.getSingleton().add('beforeValidate', function (value, row, col) {
   var cellMeta = this.getCellMeta(row, this.propToCol(col));
 
   if (cellMeta.editor === DropdownEditor) {
@@ -39132,7 +38716,7 @@ _pluginHooks2.default.getSingleton().add('beforeValidate', function (value, row,
 exports.default = DropdownEditor;
 
 /***/ }),
-/* 363 */
+/* 362 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39172,7 +38756,7 @@ var NumericEditor = function (_TextEditor) {
 exports.default = NumericEditor;
 
 /***/ }),
-/* 364 */
+/* 363 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39236,7 +38820,7 @@ var PasswordEditor = function (_TextEditor) {
 exports.default = PasswordEditor;
 
 /***/ }),
-/* 365 */
+/* 364 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39291,12 +38875,16 @@ SelectEditor.prototype.registerHooks = function () {
 };
 
 SelectEditor.prototype.prepare = function () {
-  _baseEditor2.default.prototype.prepare.apply(this, arguments);
+  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
+  _baseEditor2.default.prototype.prepare.apply(this, args);
 
   var selectOptions = this.cellProperties.selectOptions;
-  var options;
+  var options = void 0;
 
-  if (typeof selectOptions == 'function') {
+  if (typeof selectOptions === 'function') {
     options = this.prepareOptions(selectOptions(this.row, this.col, this.prop));
   } else {
     options = this.prepareOptions(selectOptions);
@@ -39321,7 +38909,7 @@ SelectEditor.prototype.prepareOptions = function (optionsToPrepare) {
     for (var i = 0, len = optionsToPrepare.length; i < len; i++) {
       preparedOptions[optionsToPrepare[i]] = optionsToPrepare[i];
     }
-  } else if ((typeof optionsToPrepare === 'undefined' ? 'undefined' : _typeof(optionsToPrepare)) == 'object') {
+  } else if ((typeof optionsToPrepare === 'undefined' ? 'undefined' : _typeof(optionsToPrepare)) === 'object') {
     preparedOptions = optionsToPrepare;
   }
 
@@ -39339,10 +38927,11 @@ SelectEditor.prototype.setValue = function (value) {
 var onBeforeKeyDown = function onBeforeKeyDown(event) {
   var instance = this;
   var editor = instance.getActiveEditor();
+  var previousOptionIndex = editor.select.selectedIndex - 1;
+  var nextOptionIndex = editor.select.selectedIndex + 1;
 
   switch (event.keyCode) {
     case _unicode.KEY_CODES.ARROW_UP:
-      var previousOptionIndex = editor.select.selectedIndex - 1;
       if (previousOptionIndex >= 0) {
         editor.select[previousOptionIndex].selected = true;
       }
@@ -39352,7 +38941,6 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       break;
 
     case _unicode.KEY_CODES.ARROW_DOWN:
-      var nextOptionIndex = editor.select.selectedIndex + 1;
       if (nextOptionIndex <= editor.select.length - 1) {
         editor.select[nextOptionIndex].selected = true;
       }
@@ -39360,6 +38948,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       (0, _event.stopImmediatePropagation)(event);
       event.preventDefault();
       break;
+
     default:
       break;
   }
@@ -39402,19 +38991,15 @@ SelectEditor.prototype.refreshDimensions = function () {
 
     return;
   }
-  var width = (0, _element.outerWidth)(this.TD) + 1,
-      height = (0, _element.outerHeight)(this.TD) + 1,
-      currentOffset = (0, _element.offset)(this.TD),
-      containerOffset = (0, _element.offset)(this.instance.rootElement),
-      scrollableContainer = (0, _element.getScrollableElement)(this.TD),
-      editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
-      editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
-      editorSection = this.checkEditorSection(),
-      cssTransformOffset;
-
-  var settings = this.instance.getSettings();
-  var rowHeadersCount = settings.rowHeaders ? 1 : 0;
-  var colHeadersCount = settings.colHeaders ? 1 : 0;
+  var currentOffset = (0, _element.offset)(this.TD);
+  var containerOffset = (0, _element.offset)(this.instance.rootElement);
+  var scrollableContainer = (0, _element.getScrollableElement)(this.TD);
+  var editorSection = this.checkEditorSection();
+  var width = (0, _element.outerWidth)(this.TD) + 1;
+  var height = (0, _element.outerHeight)(this.TD) + 1;
+  var editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0);
+  var editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
+  var cssTransformOffset = void 0;
 
   switch (editorSection) {
     case 'top':
@@ -39445,7 +39030,7 @@ SelectEditor.prototype.refreshDimensions = function () {
 
   var selectStyle = this.select.style;
 
-  if (cssTransformOffset && cssTransformOffset != -1) {
+  if (cssTransformOffset && cssTransformOffset !== -1) {
     selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
   } else {
     (0, _element.resetCssTransform)(this.select);
@@ -39467,8 +39052,8 @@ SelectEditor.prototype.refreshDimensions = function () {
 };
 
 SelectEditor.prototype.getEditedCell = function () {
-  var editorSection = this.checkEditorSection(),
-      editedCell;
+  var editorSection = this.checkEditorSection();
+  var editedCell = void 0;
 
   switch (editorSection) {
     case 'top':
@@ -39498,13 +39083,13 @@ SelectEditor.prototype.getEditedCell = function () {
       break;
   }
 
-  return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
+  return editedCell !== -1 && editedCell !== -2 ? editedCell : void 0;
 };
 
 exports.default = SelectEditor;
 
 /***/ }),
-/* 366 */
+/* 365 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39552,7 +39137,7 @@ function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = cellDecorator;
 
 /***/ }),
-/* 367 */
+/* 366 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39562,7 +39147,7 @@ exports.__esModule = true;
 
 var _element = __webpack_require__(0);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
@@ -39581,12 +39166,6 @@ clonableARROW.className = 'htAutocompleteArrow';
 // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
 clonableARROW.appendChild(document.createTextNode(String.fromCharCode(9660)));
 
-var wrapTdContentWithWrapper = function wrapTdContentWithWrapper(TD, WRAPPER) {
-  WRAPPER.innerHTML = TD.innerHTML;
-  (0, _element.empty)(TD);
-  TD.appendChild(WRAPPER);
-};
-
 /**
  * Autocomplete renderer
  *
@@ -39601,14 +39180,14 @@ var wrapTdContentWithWrapper = function wrapTdContentWithWrapper(TD, WRAPPER) {
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
 function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  var WRAPPER = clonableWRAPPER.cloneNode(true); // this is faster than createElement
+  var rendererType = cellProperties.allowHtml ? 'html' : 'text';
   var ARROW = clonableARROW.cloneNode(true); // this is faster than createElement
 
-  if (cellProperties.allowHtml) {
-    (0, _index.getRenderer)('html').apply(this, arguments);
-  } else {
-    (0, _index.getRenderer)('text').apply(this, arguments);
+  for (var _len = arguments.length, args = Array(_len > 7 ? _len - 7 : 0), _key = 7; _key < _len; _key++) {
+    args[_key - 7] = arguments[_key];
   }
+
+  (0, _index.getRenderer)(rendererType).apply(this, [instance, TD, row, col, prop, value, cellProperties].concat(args));
 
   if (!TD.firstChild) {
     // http://jsperf.com/empty-node-if-needed
@@ -39642,7 +39221,7 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
 exports.default = autocompleteRenderer;
 
 /***/ }),
-/* 368 */
+/* 367 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39652,9 +39231,9 @@ exports.__esModule = true;
 
 var _element = __webpack_require__(0);
 
-var _string = __webpack_require__(36);
+var _string = __webpack_require__(33);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
@@ -39685,9 +39264,13 @@ var BAD_VALUE_CLASS = 'htBadValue';
  * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
 function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  (0, _index.getRenderer)('base').apply(this, arguments);
+  for (var _len = arguments.length, args = Array(_len > 7 ? _len - 7 : 0), _key = 7; _key < _len; _key++) {
+    args[_key - 7] = arguments[_key];
+  }
 
-  var eventManager = registerEvents(instance);
+  (0, _index.getRenderer)('base').apply(this, [instance, TD, row, col, prop, value, cellProperties].concat(args));
+  registerEvents(instance);
+
   var input = createInput();
   var labelOptions = cellProperties.label;
   var badValue = false;
@@ -39796,36 +39379,36 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
     var changes = [];
 
-    for (var _row = startRow; _row <= endRow; _row += 1) {
-      for (var _col = startColumn; _col <= endColumn; _col += 1) {
-        var _cellProperties = instance.getCellMeta(_row, _col);
+    for (var visualRow = startRow; visualRow <= endRow; visualRow += 1) {
+      for (var visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
+        var cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
 
-        if (_cellProperties.type !== 'checkbox') {
+        if (cachedCellProperties.type !== 'checkbox') {
           return;
         }
 
         /* eslint-disable no-continue */
-        if (_cellProperties.readOnly === true) {
+        if (cachedCellProperties.readOnly === true) {
           continue;
         }
 
-        if (typeof _cellProperties.checkedTemplate === 'undefined') {
-          _cellProperties.checkedTemplate = true;
+        if (typeof cachedCellProperties.checkedTemplate === 'undefined') {
+          cachedCellProperties.checkedTemplate = true;
         }
-        if (typeof _cellProperties.uncheckedTemplate === 'undefined') {
-          _cellProperties.uncheckedTemplate = false;
+        if (typeof cachedCellProperties.uncheckedTemplate === 'undefined') {
+          cachedCellProperties.uncheckedTemplate = false;
         }
 
-        var dataAtCell = instance.getDataAtCell(_row, _col);
+        var dataAtCell = instance.getDataAtCell(visualRow, visualColumn);
 
         if (uncheckCheckbox === false) {
-          if ([_cellProperties.checkedTemplate, _cellProperties.checkedTemplate.toString()].includes(dataAtCell)) {
-            changes.push([_row, _col, _cellProperties.uncheckedTemplate]);
-          } else if ([_cellProperties.uncheckedTemplate, _cellProperties.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) {
-            changes.push([_row, _col, _cellProperties.checkedTemplate]);
+          if ([cachedCellProperties.checkedTemplate, cachedCellProperties.checkedTemplate.toString()].includes(dataAtCell)) {
+            changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
+          } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) {
+            changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate]);
           }
         } else {
-          changes.push([_row, _col, _cellProperties.uncheckedTemplate]);
+          changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
         }
       }
     }
@@ -39850,23 +39433,23 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     var topLeft = selRange.getTopLeftCorner();
     var bottomRight = selRange.getBottomRightCorner();
 
-    for (var _row2 = topLeft.row; _row2 <= bottomRight.row; _row2++) {
-      for (var _col2 = topLeft.col; _col2 <= bottomRight.col; _col2++) {
-        var _cellProperties2 = instance.getCellMeta(_row2, _col2);
+    for (var visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
+      for (var visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
+        var cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
 
-        if (_cellProperties2.type !== 'checkbox') {
+        if (cachedCellProperties.type !== 'checkbox') {
           return;
         }
 
-        var cell = instance.getCell(_row2, _col2);
+        var cell = instance.getCell(visualRow, visualColumn);
 
         if (cell == null) {
 
-          callback(_row2, _col2, _cellProperties2);
+          callback(visualRow, visualColumn, cachedCellProperties);
         } else {
           var checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
-          if (checkboxes.length > 0 && !_cellProperties2.readOnly) {
+          if (checkboxes.length > 0 && !cachedCellProperties.readOnly) {
             callback(checkboxes);
           }
         }
@@ -40011,7 +39594,7 @@ function isCheckboxInput(element) {
 exports.default = checkboxRenderer;
 
 /***/ }),
-/* 369 */
+/* 368 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40034,8 +39617,12 @@ var _index = __webpack_require__(14);
  * @param value
  * @param cellProperties
  */
-function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  (0, _index.getRenderer)('base').apply(this, arguments);
+function htmlRenderer(instance, TD, row, col, prop, value) {
+  for (var _len = arguments.length, args = Array(_len > 6 ? _len - 6 : 0), _key = 6; _key < _len; _key++) {
+    args[_key - 6] = arguments[_key];
+  }
+
+  (0, _index.getRenderer)('base').apply(this, [instance, TD, row, col, prop, value].concat(args));
 
   if (value === null || value === void 0) {
     value = '';
@@ -40047,7 +39634,7 @@ function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = htmlRenderer;
 
 /***/ }),
-/* 370 */
+/* 369 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40061,7 +39648,7 @@ var _numbro2 = _interopRequireDefault(_numbro);
 
 var _index = __webpack_require__(14);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -40117,7 +39704,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = numericRenderer;
 
 /***/ }),
-/* 371 */
+/* 370 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40129,7 +39716,7 @@ var _element = __webpack_require__(0);
 
 var _index = __webpack_require__(14);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 /**
  * @private
@@ -40143,7 +39730,11 @@ var _number = __webpack_require__(5);
  * @param cellProperties
  */
 function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  (0, _index.getRenderer)('text').apply(this, arguments);
+  for (var _len = arguments.length, args = Array(_len > 7 ? _len - 7 : 0), _key = 7; _key < _len; _key++) {
+    args[_key - 7] = arguments[_key];
+  }
+
+  (0, _index.getRenderer)('text').apply(this, [instance, TD, row, col, prop, value, cellProperties].concat(args));
 
   value = TD.innerHTML;
 
@@ -40161,7 +39752,7 @@ function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = passwordRenderer;
 
 /***/ }),
-/* 372 */
+/* 371 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40189,7 +39780,11 @@ var _index = __webpack_require__(14);
  * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
 function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  (0, _index.getRenderer)('base').apply(this, arguments);
+  for (var _len = arguments.length, args = Array(_len > 7 ? _len - 7 : 0), _key = 7; _key < _len; _key++) {
+    args[_key - 7] = arguments[_key];
+  }
+
+  (0, _index.getRenderer)('base').apply(this, [instance, TD, row, col, prop, value, cellProperties].concat(args));
 
   if (!value && cellProperties.placeholder) {
     value = cellProperties.placeholder;
@@ -40218,7 +39813,7 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = textRenderer;
 
 /***/ }),
-/* 373 */
+/* 372 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40280,7 +39875,7 @@ function process(value, callback) {
 }
 
 /***/ }),
-/* 374 */
+/* 373 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40371,7 +39966,7 @@ function correctFormat(value, dateFormat) {
 };
 
 /***/ }),
-/* 375 */
+/* 374 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40401,7 +39996,7 @@ function numericValidator(value, callback) {
 };
 
 /***/ }),
-/* 376 */
+/* 375 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40480,7 +40075,7 @@ function timeValidator(value, callback) {
 };
 
 /***/ }),
-/* 377 */
+/* 376 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40492,7 +40087,7 @@ var _editors = __webpack_require__(17);
 
 var _renderers = __webpack_require__(14);
 
-var _validators = __webpack_require__(28);
+var _validators = __webpack_require__(34);
 
 var CELL_TYPE = 'autocomplete';
 
@@ -40503,7 +40098,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 378 */
+/* 377 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40523,6 +40118,30 @@ exports.default = {
 };
 
 /***/ }),
+/* 378 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _editors = __webpack_require__(17);
+
+var _renderers = __webpack_require__(14);
+
+var _validators = __webpack_require__(34);
+
+var CELL_TYPE = 'date';
+
+exports.default = {
+  editor: (0, _editors.getEditor)(CELL_TYPE),
+  // displays small gray arrow on right side of the cell
+  renderer: (0, _renderers.getRenderer)('autocomplete'),
+  validator: (0, _validators.getValidator)(CELL_TYPE)
+};
+
+/***/ }),
 /* 379 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -40535,31 +40154,7 @@ var _editors = __webpack_require__(17);
 
 var _renderers = __webpack_require__(14);
 
-var _validators = __webpack_require__(28);
-
-var CELL_TYPE = 'date';
-
-exports.default = {
-  editor: (0, _editors.getEditor)(CELL_TYPE),
-  // displays small gray arrow on right side of the cell
-  renderer: (0, _renderers.getRenderer)('autocomplete'),
-  validator: (0, _validators.getValidator)(CELL_TYPE)
-};
-
-/***/ }),
-/* 380 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _editors = __webpack_require__(17);
-
-var _renderers = __webpack_require__(14);
-
-var _validators = __webpack_require__(28);
+var _validators = __webpack_require__(34);
 
 var CELL_TYPE = 'dropdown';
 
@@ -40571,7 +40166,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 381 */
+/* 380 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40592,6 +40187,30 @@ exports.default = {
 };
 
 /***/ }),
+/* 381 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _editors = __webpack_require__(17);
+
+var _renderers = __webpack_require__(14);
+
+var _validators = __webpack_require__(34);
+
+var CELL_TYPE = 'numeric';
+
+exports.default = {
+  editor: (0, _editors.getEditor)(CELL_TYPE),
+  renderer: (0, _renderers.getRenderer)(CELL_TYPE),
+  validator: (0, _validators.getValidator)(CELL_TYPE),
+  dataType: 'number'
+};
+
+/***/ }),
 /* 382 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -40604,15 +40223,12 @@ var _editors = __webpack_require__(17);
 
 var _renderers = __webpack_require__(14);
 
-var _validators = __webpack_require__(28);
-
-var CELL_TYPE = 'numeric';
+var CELL_TYPE = 'password';
 
 exports.default = {
   editor: (0, _editors.getEditor)(CELL_TYPE),
   renderer: (0, _renderers.getRenderer)(CELL_TYPE),
-  validator: (0, _validators.getValidator)(CELL_TYPE),
-  dataType: 'number'
+  copyable: false
 };
 
 /***/ }),
@@ -40628,14 +40244,11 @@ var _editors = __webpack_require__(17);
 
 var _renderers = __webpack_require__(14);
 
-var _validators = __webpack_require__(28);
-
-var CELL_TYPE = 'password';
+var CELL_TYPE = 'text';
 
 exports.default = {
   editor: (0, _editors.getEditor)(CELL_TYPE),
-  renderer: (0, _renderers.getRenderer)(CELL_TYPE),
-  copyable: false
+  renderer: (0, _renderers.getRenderer)(CELL_TYPE)
 };
 
 /***/ }),
@@ -40647,33 +40260,11 @@ exports.default = {
 
 exports.__esModule = true;
 
-var _browser = __webpack_require__(27);
-
 var _editors = __webpack_require__(17);
 
 var _renderers = __webpack_require__(14);
 
-var CELL_TYPE = 'text';
-
-exports.default = {
-  editor: (0, _editors.getEditor)(CELL_TYPE),
-  renderer: (0, _renderers.getRenderer)(CELL_TYPE)
-};
-
-/***/ }),
-/* 385 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _editors = __webpack_require__(17);
-
-var _renderers = __webpack_require__(14);
-
-var _validators = __webpack_require__(28);
+var _validators = __webpack_require__(34);
 
 var CELL_TYPE = 'time';
 
@@ -40685,7 +40276,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 386 */
+/* 385 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40699,27 +40290,23 @@ var _SheetClip = __webpack_require__(313);
 
 var _SheetClip2 = _interopRequireDefault(_SheetClip);
 
-var _data = __webpack_require__(93);
+var _data = __webpack_require__(92);
 
-var _setting = __webpack_require__(92);
+var _setting = __webpack_require__(91);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _interval = __webpack_require__(387);
+var _interval = __webpack_require__(386);
 
 var _interval2 = _interopRequireDefault(_interval);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
-var _multiMap = __webpack_require__(388);
+var _multiMap = __webpack_require__(387);
 
 var _multiMap2 = _interopRequireDefault(_multiMap);
-
-var _pluginHooks = __webpack_require__(16);
-
-var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -40779,13 +40366,14 @@ DataMap.prototype.recursiveDuckSchema = function (object) {
  * @returns {Number}
  */
 DataMap.prototype.recursiveDuckColumns = function (schema, lastCol, parent) {
-  var prop, i;
+  var prop = void 0;
+
   if (typeof lastCol === 'undefined') {
     lastCol = 0;
     parent = '';
   }
   if ((typeof schema === 'undefined' ? 'undefined' : _typeof(schema)) === 'object' && !Array.isArray(schema)) {
-    for (i in schema) {
+    for (var i in schema) {
       if ((0, _object.hasOwnProperty)(schema, i)) {
         if (schema[i] === null) {
           prop = parent + i;
@@ -40868,7 +40456,7 @@ DataMap.prototype.colToProp = function (col) {
  * @returns {*}
  */
 DataMap.prototype.propToCol = function (prop) {
-  var col;
+  var col = void 0;
 
   if (typeof this.propToColCache.get(prop) === 'undefined') {
     col = prop;
@@ -40979,11 +40567,11 @@ DataMap.prototype.createCol = function (index, amount, source) {
   if (!this.instance.isColumnModificationAllowed()) {
     throw new Error('Cannot create new column. When data source in an object, ' + 'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' + 'If you want to be able to add new columns, you have to use array datasource.');
   }
-  var rlen = this.instance.countSourceRows(),
-      data = this.dataSource,
-      constructor,
-      numberOfCreatedCols = 0,
-      currentIndex;
+  var rlen = this.instance.countSourceRows();
+  var data = this.dataSource;
+  var constructor = void 0;
+  var numberOfCreatedCols = 0;
+  var currentIndex = void 0;
 
   if (!amount) {
     amount = 1;
@@ -41014,8 +40602,8 @@ DataMap.prototype.createCol = function (index, amount, source) {
       // Add new column constructor
       this.priv.columnSettings.push(constructor);
     } else {
-      for (var _r = 0; _r < rlen; _r++) {
-        data[_r].splice(currentIndex, 0, null);
+      for (var _row = 0; _row < rlen; _row++) {
+        data[_row].splice(currentIndex, 0, null);
       }
       // Add new column constructor at given index
       this.priv.columnSettings.splice(currentIndex, 0, constructor);
@@ -41121,9 +40709,9 @@ DataMap.prototype.removeCol = function (index, amount, source) {
       data[r].splice(logicColumns[0], amount);
     }
   } else {
-    for (var _r2 = 0, _rlen = this.instance.countSourceRows(); _r2 < _rlen; _r2++) {
+    for (var _r = 0, _rlen = this.instance.countSourceRows(); _r < _rlen; _r++) {
       for (var _c = 0; _c < removedColumnsCount; _c++) {
-        data[_r2].splice(descendingLogicColumns[_c], 1);
+        data[_r].splice(descendingLogicColumns[_c], 1);
       }
     }
 
@@ -41143,14 +40731,17 @@ DataMap.prototype.removeCol = function (index, amount, source) {
  * @param {Number} col Physical index of column in which do you want to do splice
  * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+ * @param {Array} [elements]
  * @returns {Array} Returns removed portion of columns
  */
-DataMap.prototype.spliceCol = function (col, index, amount /* , elements... */) {
-  var elements = arguments.length >= 4 ? [].slice.call(arguments, 3) : [];
-
+DataMap.prototype.spliceCol = function (col, index, amount) {
   var colData = this.instance.getDataAtCol(col);
   var removed = colData.slice(index, index + amount);
   var after = colData.slice(index + amount);
+
+  for (var _len = arguments.length, elements = Array(_len > 3 ? _len - 3 : 0), _key = 3; _key < _len; _key++) {
+    elements[_key - 3] = arguments[_key];
+  }
 
   (0, _array.extendArray)(elements, after);
   var i = 0;
@@ -41170,14 +40761,17 @@ DataMap.prototype.spliceCol = function (col, index, amount /* , elements... */) 
  * @param {Number} row Physical index of row in which do you want to do splice
  * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
+ * @param {Array} [elements]
  * @returns {Array} Returns removed portion of rows
  */
-DataMap.prototype.spliceRow = function (row, index, amount /* , elements... */) {
-  var elements = arguments.length >= 4 ? [].slice.call(arguments, 3) : [];
-
+DataMap.prototype.spliceRow = function (row, index, amount) {
   var rowData = this.instance.getSourceDataAtRow(row);
   var removed = rowData.slice(index, index + amount);
   var after = rowData.slice(index + amount);
+
+  for (var _len2 = arguments.length, elements = Array(_len2 > 3 ? _len2 - 3 : 0), _key2 = 3; _key2 < _len2; _key2++) {
+    elements[_key2 - 3] = arguments[_key2];
+  }
 
   (0, _array.extendArray)(elements, after);
   var i = 0;
@@ -41217,8 +40811,8 @@ DataMap.prototype.filterData = function (index, amount) {
   var continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, physicalRows);
 
   if (continueSplicing !== false) {
-    var newData = this.dataSource.filter(function (row, index) {
-      return physicalRows.indexOf(index) == -1;
+    var newData = this.dataSource.filter(function (row, rowIndex) {
+      return physicalRows.indexOf(rowIndex) === -1;
     });
 
     return newData;
@@ -41371,10 +40965,10 @@ DataMap.prototype.set = function (row, prop, value, source) {
  */
 DataMap.prototype.visualRowsToPhysical = function (index, amount) {
   var totalRows = this.instance.countSourceRows();
-  var physicRow = (totalRows + index) % totalRows;
   var logicRows = [];
+  var physicRow = (totalRows + index) % totalRows;
   var rowsToRemove = amount;
-  var row;
+  var row = void 0;
 
   while (physicRow < totalRows && rowsToRemove) {
     row = this.instance.runHooks('modifyRow', physicRow);
@@ -41508,12 +41102,12 @@ DataMap.prototype.getAll = function () {
  * @returns {Array}
  */
 DataMap.prototype.getRange = function (start, end, destination) {
-  var r,
-      rlen,
-      c,
-      clen,
-      output = [],
-      row;
+  var output = [];
+  var r = void 0;
+  var rlen = void 0;
+  var c = void 0;
+  var clen = void 0;
+  var row = void 0;
 
   var maxRows = this.instance.getSettings().maxRows;
   var maxCols = this.instance.getSettings().maxCols;
@@ -41600,7 +41194,7 @@ DataMap.prototype.destroy = function () {
 exports.default = DataMap;
 
 /***/ }),
-/* 387 */
+/* 386 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -41612,7 +41206,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 exports.parseDelay = parseDelay;
 
-var _feature = __webpack_require__(41);
+var _feature = __webpack_require__(40);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -41749,7 +41343,7 @@ function parseDelay(delay) {
 }
 
 /***/ }),
-/* 388 */
+/* 387 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -41792,11 +41386,11 @@ function MultiMap() {
   };
 
   function canBeAnArrayMapKey(obj) {
-    return obj !== null && !isNaNSymbol(obj) && (typeof obj == 'string' || typeof obj == 'number');
+    return obj !== null && !isNaNSymbol(obj) && (typeof obj === 'string' || typeof obj === 'number');
   }
 
   function canBeAWeakMapKey(obj) {
-    return obj !== null && ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) == 'object' || typeof obj == 'function');
+    return obj !== null && ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object' || typeof obj === 'function');
   }
 
   function isNaNSymbol(obj) {
@@ -41808,7 +41402,7 @@ function MultiMap() {
 exports.default = MultiMap;
 
 /***/ }),
-/* 389 */
+/* 388 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -41824,7 +41418,7 @@ var _event = __webpack_require__(13);
 
 var _editors = __webpack_require__(17);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
@@ -41833,11 +41427,11 @@ var _baseEditor = __webpack_require__(56);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function EditorManager(instance, priv, selection) {
-  var _this = this,
-      destroyed = false,
-      lock = false,
-      eventManager,
-      activeEditor;
+  var _this = this;
+  var destroyed = false;
+  var lock = false;
+  var eventManager = void 0;
+  var activeEditor = void 0;
 
   eventManager = new _eventManager2.default(instance);
 
@@ -42152,7 +41746,13 @@ function EditorManager(instance, priv, selection) {
       return;
     }
 
-    var row, col, prop, td, originalValue, cellProperties, editorClass;
+    var row = void 0;
+    var col = void 0;
+    var prop = void 0;
+    var td = void 0;
+    var originalValue = void 0;
+    var cellProperties = void 0;
+    var editorClass = void 0;
 
     if (activeEditor && activeEditor.isWaiting()) {
       this.closeEditor(false, false, function (dataSaved) {
@@ -42281,7 +41881,7 @@ EditorManager.getInstance = function (hotInstance, hotSettings, selection, datam
 exports.default = EditorManager;
 
 /***/ }),
-/* 390 */
+/* 389 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42293,7 +41893,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _element = __webpack_require__(0);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
@@ -42372,7 +41972,7 @@ function TableView(instance) {
     }
   });
 
-  var isMouseDown;
+  var isMouseDown = void 0;
   this.isMouseDown = function () {
     return isMouseDown;
   };
@@ -42406,9 +42006,9 @@ function TableView(instance) {
 
   this.eventManager.addEventListener(document.documentElement, 'mousedown', function (event) {
     var originalTarget = event.target;
-    var next = event.target;
     var eventX = event.x || event.clientX;
     var eventY = event.y || event.clientY;
+    var next = event.target;
 
     if (isMouseDown || !instance.rootElement) {
       return; // it must have been started in a cell
@@ -42845,12 +42445,41 @@ TableView.prototype.getCellAtCoords = function (coords, topmost) {
 };
 
 /**
- * Scroll viewport to selection.
+ * Scroll viewport to a cell.
  *
  * @param {CellCoords} coords
+ * @param {Boolean} [snapToTop]
+ * @param {Boolean} [snapToRight]
+ * @param {Boolean} [snapToBottom]
+ * @param {Boolean} [snapToLeft]
+ * @returns {Boolean}
  */
-TableView.prototype.scrollViewport = function (coords) {
-  this.wt.scrollViewport(coords);
+TableView.prototype.scrollViewport = function (coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
+  return this.wt.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
+};
+
+/**
+ * Scroll viewport to a column.
+ *
+ * @param {Number} column Visual column index.
+ * @param {Boolean} [snapToLeft]
+ * @param {Boolean} [snapToRight]
+ * @returns {Boolean}
+ */
+TableView.prototype.scrollViewportHorizontally = function (column, snapToRight, snapToLeft) {
+  return this.wt.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+};
+
+/**
+ * Scroll viewport to a row.
+ *
+ * @param {Number} row Visual row index.
+ * @param {Boolean} [snapToTop]
+ * @param {Boolean} [snapToBottom]
+ * @returns {Boolean}
+ */
+TableView.prototype.scrollViewportVertically = function (row, snapToTop, snapToBottom) {
+  return this.wt.scrollViewportVertically(row, snapToTop, snapToBottom);
 };
 
 /**
@@ -42982,7 +42611,7 @@ TableView.prototype.destroy = function () {
 exports.default = TableView;
 
 /***/ }),
-/* 391 */
+/* 390 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42992,11 +42621,11 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -43245,7 +42874,7 @@ var DataSource = function () {
 exports.default = DataSource;
 
 /***/ }),
-/* 392 */
+/* 391 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43277,7 +42906,7 @@ var dictionary = (_dictionary = {
 exports.default = dictionary;
 
 /***/ }),
-/* 393 */
+/* 392 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43288,11 +42917,11 @@ exports.getPhraseFormatters = exports.registerPhraseFormatter = undefined;
 exports.register = register;
 exports.getAll = getAll;
 
-var _staticRegister2 = __webpack_require__(40);
+var _staticRegister2 = __webpack_require__(38);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _pluralize = __webpack_require__(394);
+var _pluralize = __webpack_require__(393);
 
 var _pluralize2 = _interopRequireDefault(_pluralize);
 
@@ -43330,7 +42959,7 @@ exports.getPhraseFormatters = getAll;
 register('pluralize', _pluralize2.default);
 
 /***/ }),
-/* 394 */
+/* 393 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43357,7 +42986,7 @@ function pluralize(phrasePropositions, pluralForm) {
 };
 
 /***/ }),
-/* 395 */
+/* 394 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43366,31 +42995,31 @@ function pluralize(phrasePropositions, pluralForm) {
 exports.__esModule = true;
 exports.createHighlight = undefined;
 
-var _staticRegister2 = __webpack_require__(40);
+var _staticRegister2 = __webpack_require__(38);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _activeHeader = __webpack_require__(396);
+var _activeHeader = __webpack_require__(395);
 
 var _activeHeader2 = _interopRequireDefault(_activeHeader);
 
-var _area = __webpack_require__(397);
+var _area = __webpack_require__(396);
 
 var _area2 = _interopRequireDefault(_area);
 
-var _cell = __webpack_require__(398);
+var _cell = __webpack_require__(397);
 
 var _cell2 = _interopRequireDefault(_cell);
 
-var _customSelection = __webpack_require__(399);
+var _customSelection = __webpack_require__(398);
 
 var _customSelection2 = _interopRequireDefault(_customSelection);
 
-var _fill = __webpack_require__(400);
+var _fill = __webpack_require__(399);
 
 var _fill2 = _interopRequireDefault(_fill);
 
-var _header = __webpack_require__(401);
+var _header = __webpack_require__(400);
 
 var _header2 = _interopRequireDefault(_header);
 
@@ -43415,7 +43044,7 @@ function createHighlight(highlightType, options) {
 exports.createHighlight = createHighlight;
 
 /***/ }),
-/* 396 */
+/* 395 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43441,7 +43070,7 @@ function createHighlight(_ref) {
 exports.default = createHighlight;
 
 /***/ }),
-/* 397 */
+/* 396 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43477,7 +43106,7 @@ function createHighlight(_ref) {
 exports.default = createHighlight;
 
 /***/ }),
-/* 398 */
+/* 397 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43511,7 +43140,7 @@ function createHighlight(_ref) {
 exports.default = createHighlight;
 
 /***/ }),
-/* 399 */
+/* 398 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43539,7 +43168,7 @@ function createHighlight(_ref) {
 exports.default = createHighlight;
 
 /***/ }),
-/* 400 */
+/* 399 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43570,7 +43199,7 @@ function createHighlight() {
 exports.default = createHighlight;
 
 /***/ }),
-/* 401 */
+/* 400 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43604,7 +43233,7 @@ function createHighlight(_ref) {
 exports.default = createHighlight;
 
 /***/ }),
-/* 402 */
+/* 401 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43622,7 +43251,7 @@ var _highlight = __webpack_require__(322);
 
 var _highlight2 = _interopRequireDefault(_highlight);
 
-var _range = __webpack_require__(403);
+var _range = __webpack_require__(402);
 
 var _range2 = _interopRequireDefault(_range);
 
@@ -43630,17 +43259,17 @@ var _src = __webpack_require__(4);
 
 var _keyStateObserver = __webpack_require__(320);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _mixed = __webpack_require__(11);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _localHooks = __webpack_require__(48);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
-var _transformation = __webpack_require__(404);
+var _transformation = __webpack_require__(403);
 
 var _transformation2 = _interopRequireDefault(_transformation);
 
@@ -44350,7 +43979,7 @@ var Selection = function () {
 exports.default = Selection;
 
 /***/ }),
-/* 403 */
+/* 402 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44528,7 +44157,7 @@ var SelectionRange = function () {
 exports.default = SelectionRange;
 
 /***/ }),
-/* 404 */
+/* 403 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44540,7 +44169,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _src = __webpack_require__(4);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _localHooks = __webpack_require__(48);
 
@@ -44610,11 +44239,11 @@ var Transformation = function () {
           totalRows = this.options.countRows();
         } else if (autoWrapCol) {
           delta.row = 1 - totalRows;
-          delta.col = highlightCoords.col + delta.col == totalCols - 1 ? 1 - totalCols : 1;
+          delta.col = highlightCoords.col + delta.col === totalCols - 1 ? 1 - totalCols : 1;
         }
       } else if (autoWrapCol && highlightCoords.row + delta.row < 0 && highlightCoords.col + delta.col >= 0) {
         delta.row = totalRows - 1;
-        delta.col = highlightCoords.col + delta.col == 0 ? totalCols - 1 : -1;
+        delta.col = highlightCoords.col + delta.col === 0 ? totalCols - 1 : -1;
       }
 
       if (highlightCoords.col + delta.col > totalCols - 1) {
@@ -44622,11 +44251,11 @@ var Transformation = function () {
           this.runLocalHooks('insertColRequire', totalCols);
           totalCols = this.options.countCols();
         } else if (autoWrapRow) {
-          delta.row = highlightCoords.row + delta.row == totalRows - 1 ? 1 - totalRows : 1;
+          delta.row = highlightCoords.row + delta.row === totalRows - 1 ? 1 - totalRows : 1;
           delta.col = 1 - totalCols;
         }
       } else if (autoWrapRow && highlightCoords.col + delta.col < 0 && highlightCoords.row + delta.row >= 0) {
-        delta.row = highlightCoords.row + delta.row == 0 ? totalRows - 1 : -1;
+        delta.row = highlightCoords.row + delta.row === 0 ? totalRows - 1 : -1;
         delta.col = totalCols - 1;
       }
 
@@ -44705,7 +44334,7 @@ var Transformation = function () {
 exports.default = Transformation;
 
 /***/ }),
-/* 405 */
+/* 404 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44739,19 +44368,18 @@ function jQueryWrapper(Handsontable) {
       return $this;
     }
 
-    // Action case
-    var args = [];
     var output = void 0;
 
-    if (arguments.length > 1) {
-      for (var i = 1, ilen = arguments.length; i < ilen; i++) {
-        args.push(arguments[i]);
-      }
-    }
-
+    // Action case
     if (instance) {
       if (typeof instance[action] !== 'undefined') {
-        output = instance[action].apply(instance, args);
+        var _instance$action;
+
+        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments[_key];
+        }
+
+        output = (_instance$action = instance[action]).call.apply(_instance$action, [instance].concat(args));
 
         if (action === 'destroy') {
           $this.removeData();
@@ -44766,7 +44394,7 @@ function jQueryWrapper(Handsontable) {
 };
 
 /***/ }),
-/* 406 */
+/* 405 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44775,75 +44403,75 @@ function jQueryWrapper(Handsontable) {
 exports.__esModule = true;
 exports.Base = exports.UndoRedo = exports.TouchScroll = exports.Search = exports.PersistentState = exports.ObserveChanges = exports.MultipleSelectionHandles = exports.MergeCells = exports.ManualRowResize = exports.ManualRowMove = exports.ManualColumnResize = exports.ManualColumnMove = exports.ManualColumnFreeze = exports.DragToScroll = exports.CustomBorders = exports.CopyPaste = exports.ContextMenu = exports.Comments = exports.ColumnSorting = exports.AutoRowSize = exports.AutoFill = exports.AutoColumnSize = undefined;
 
-var _persistentState = __webpack_require__(407);
+var _persistentState = __webpack_require__(406);
 
 var _persistentState2 = _interopRequireDefault(_persistentState);
 
-var _autoColumnSize = __webpack_require__(409);
+var _autoColumnSize = __webpack_require__(408);
 
 var _autoColumnSize2 = _interopRequireDefault(_autoColumnSize);
 
-var _autofill = __webpack_require__(410);
+var _autofill = __webpack_require__(409);
 
 var _autofill2 = _interopRequireDefault(_autofill);
 
-var _autoRowSize = __webpack_require__(412);
+var _autoRowSize = __webpack_require__(411);
 
 var _autoRowSize2 = _interopRequireDefault(_autoRowSize);
 
-var _columnSorting = __webpack_require__(413);
+var _columnSorting = __webpack_require__(412);
 
 var _columnSorting2 = _interopRequireDefault(_columnSorting);
 
-var _comments = __webpack_require__(420);
+var _comments = __webpack_require__(419);
 
 var _comments2 = _interopRequireDefault(_comments);
 
-var _contextMenu = __webpack_require__(424);
+var _contextMenu = __webpack_require__(423);
 
 var _contextMenu2 = _interopRequireDefault(_contextMenu);
 
-var _copyPaste = __webpack_require__(441);
+var _copyPaste = __webpack_require__(440);
 
 var _copyPaste2 = _interopRequireDefault(_copyPaste);
 
-var _customBorders = __webpack_require__(448);
+var _customBorders = __webpack_require__(447);
 
 var _customBorders2 = _interopRequireDefault(_customBorders);
 
-var _dragToScroll = __webpack_require__(455);
+var _dragToScroll = __webpack_require__(454);
 
 var _dragToScroll2 = _interopRequireDefault(_dragToScroll);
 
-var _manualColumnFreeze = __webpack_require__(456);
+var _manualColumnFreeze = __webpack_require__(455);
 
 var _manualColumnFreeze2 = _interopRequireDefault(_manualColumnFreeze);
 
-var _manualColumnMove = __webpack_require__(460);
+var _manualColumnMove = __webpack_require__(459);
 
 var _manualColumnMove2 = _interopRequireDefault(_manualColumnMove);
 
-var _manualColumnResize = __webpack_require__(465);
+var _manualColumnResize = __webpack_require__(464);
 
 var _manualColumnResize2 = _interopRequireDefault(_manualColumnResize);
 
-var _manualRowMove = __webpack_require__(466);
+var _manualRowMove = __webpack_require__(465);
 
 var _manualRowMove2 = _interopRequireDefault(_manualRowMove);
 
-var _manualRowResize = __webpack_require__(471);
+var _manualRowResize = __webpack_require__(470);
 
 var _manualRowResize2 = _interopRequireDefault(_manualRowResize);
 
-var _mergeCells = __webpack_require__(472);
+var _mergeCells = __webpack_require__(471);
 
 var _mergeCells2 = _interopRequireDefault(_mergeCells);
 
-var _multipleSelectionHandles = __webpack_require__(478);
+var _multipleSelectionHandles = __webpack_require__(477);
 
 var _multipleSelectionHandles2 = _interopRequireDefault(_multipleSelectionHandles);
 
-var _observeChanges = __webpack_require__(479);
+var _observeChanges = __webpack_require__(478);
 
 var _observeChanges2 = _interopRequireDefault(_observeChanges);
 
@@ -44889,7 +44517,7 @@ exports.UndoRedo = _undoRedo2.default;
 exports.Base = _base2.default;
 
 /***/ }),
-/* 407 */
+/* 406 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44907,7 +44535,7 @@ var _base2 = _interopRequireDefault(_base);
 
 var _plugins = __webpack_require__(8);
 
-var _storage = __webpack_require__(408);
+var _storage = __webpack_require__(407);
 
 var _storage2 = _interopRequireDefault(_storage);
 
@@ -45092,7 +44720,7 @@ var PersistentState = function (_BasePlugin) {
 exports.default = PersistentState;
 
 /***/ }),
-/* 408 */
+/* 407 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45102,7 +44730,7 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -45244,7 +44872,7 @@ var Storage = function () {
 exports.default = Storage;
 
 /***/ }),
-/* 409 */
+/* 408 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45262,19 +44890,19 @@ var _base = __webpack_require__(10);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _feature = __webpack_require__(41);
+var _feature = __webpack_require__(40);
 
 var _element = __webpack_require__(0);
 
-var _ghostTable = __webpack_require__(94);
+var _ghostTable = __webpack_require__(93);
 
 var _ghostTable2 = _interopRequireDefault(_ghostTable);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 var _plugins = __webpack_require__(8);
 
@@ -45282,7 +44910,7 @@ var _samplesGenerator = __webpack_require__(323);
 
 var _samplesGenerator2 = _interopRequireDefault(_samplesGenerator);
 
-var _string = __webpack_require__(36);
+var _string = __webpack_require__(33);
 
 var _src = __webpack_require__(4);
 
@@ -45388,8 +45016,33 @@ var AutoColumnSize = function (_BasePlugin) {
      * @private
      * @type {SamplesGenerator}
      */
-    _this.samplesGenerator = new _samplesGenerator2.default(function (row, col) {
-      return _this.hot.getCellMeta(row, col).spanned ? '' : _this.hot.getDataAtCell(row, col);
+    _this.samplesGenerator = new _samplesGenerator2.default(function (row, column) {
+      var cellMeta = _this.hot.getCellMeta(row, column);
+      var cellValue = '';
+
+      if (!cellMeta.spanned) {
+        cellValue = _this.hot.getDataAtCell(row, column);
+      }
+
+      var bundleCountSeed = 0;
+
+      if (cellMeta.label) {
+        var _cellMeta$label = cellMeta.label,
+            labelValue = _cellMeta$label.value,
+            labelProperty = _cellMeta$label.property;
+
+        var labelText = '';
+
+        if (labelValue) {
+          labelText = typeof labelValue === 'function' ? labelValue(row, column, _this.hot.colToProp(column), cellValue) : labelValue;
+        } else if (labelProperty) {
+          labelText = _this.hot.getDataAtRowProp(row, labelProperty);
+        }
+
+        bundleCountSeed = labelText.length;
+      }
+
+      return { value: cellValue, bundleCountSeed: bundleCountSeed };
     });
     /**
      * `true` only if the first calculation was performed
@@ -45444,6 +45097,8 @@ var AutoColumnSize = function (_BasePlugin) {
       if (setting && setting.useHeaders != null) {
         this.ghostTable.setSetting('useHeaders', setting.useHeaders);
       }
+
+      this.setSamplingOptions();
 
       this.addHook('afterLoadData', function () {
         return _this2.onAfterLoadData();
@@ -45518,8 +45173,12 @@ var AutoColumnSize = function (_BasePlugin) {
         if (force || _this3.widths[col] === void 0 && !_this3.hot._getColWidthFromSettings(col)) {
           var samples = _this3.samplesGenerator.generateColumnSamples(col, rowRange);
 
-          samples.forEach(function (sample, col) {
-            return _this3.ghostTable.addColumn(col, sample);
+          (0, _array.arrayEach)(samples, function (_ref) {
+            var _ref2 = _slicedToArray(_ref, 2),
+                column = _ref2[0],
+                sample = _ref2[1];
+
+            return _this3.ghostTable.addColumn(column, sample);
           });
         }
       });
@@ -45858,10 +45517,9 @@ var AutoColumnSize = function (_BasePlugin) {
     value: function onBeforeChange(changes) {
       var _this7 = this;
 
-      var changedColumns = (0, _array.arrayMap)(changes, function (_ref) {
-        var _ref2 = _slicedToArray(_ref, 2),
-            row = _ref2[0],
-            column = _ref2[1];
+      var changedColumns = (0, _array.arrayMap)(changes, function (_ref3) {
+        var _ref4 = _slicedToArray(_ref3, 2),
+            column = _ref4[1];
 
         return _this7.hot.propToCol(column);
       });
@@ -45922,7 +45580,7 @@ var AutoColumnSize = function (_BasePlugin) {
 exports.default = AutoColumnSize;
 
 /***/ }),
-/* 410 */
+/* 409 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45944,7 +45602,7 @@ var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
 var _element = __webpack_require__(0);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
@@ -45952,7 +45610,7 @@ var _plugins = __webpack_require__(8);
 
 var _src = __webpack_require__(4);
 
-var _utils = __webpack_require__(411);
+var _utils = __webpack_require__(410);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -46076,7 +45734,7 @@ var Autofill = function (_BasePlugin) {
       this.addHook('afterOnCellCornerDblClick', function (event) {
         return _this2.onCellCornerDblClick(event);
       });
-      this.addHook('beforeOnCellMouseOver', function (event, coords, TD) {
+      this.addHook('beforeOnCellMouseOver', function (event, coords) {
         return _this2.onBeforeCellMouseOver(coords);
       });
 
@@ -46605,7 +46263,7 @@ var Autofill = function (_BasePlugin) {
 exports.default = Autofill;
 
 /***/ }),
-/* 411 */
+/* 410 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46617,7 +46275,7 @@ exports.getDeltas = getDeltas;
 exports.getDragDirectionAndRange = getDragDirectionAndRange;
 exports.getMappedFillHandleSetting = getMappedFillHandleSetting;
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _mixed = __webpack_require__(11);
 
@@ -46757,13 +46415,15 @@ function getMappedFillHandleSetting(fillHandle) {
 }
 
 /***/ }),
-/* 412 */
+/* 411 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 exports.__esModule = true;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
@@ -46773,19 +46433,19 @@ var _base = __webpack_require__(10);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _feature = __webpack_require__(41);
+var _feature = __webpack_require__(40);
 
 var _element = __webpack_require__(0);
 
-var _ghostTable = __webpack_require__(94);
+var _ghostTable = __webpack_require__(93);
 
 var _ghostTable2 = _interopRequireDefault(_ghostTable);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 var _plugins = __webpack_require__(8);
 
@@ -46793,7 +46453,7 @@ var _samplesGenerator = __webpack_require__(323);
 
 var _samplesGenerator2 = _interopRequireDefault(_samplesGenerator);
 
-var _string = __webpack_require__(36);
+var _string = __webpack_require__(33);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -46892,12 +46552,15 @@ var AutoRowSize = function (_BasePlugin) {
      * @type {SamplesGenerator}
      */
     _this.samplesGenerator = new _samplesGenerator2.default(function (row, col) {
+      var cellValue = void 0;
+
       if (row >= 0) {
-        return _this.hot.getDataAtCell(row, col);
+        cellValue = _this.hot.getDataAtCell(row, col);
       } else if (row === -1) {
-        return _this.hot.getColHeader(col);
+        cellValue = _this.hot.getColHeader(col);
       }
-      return null;
+
+      return { value: cellValue };
     });
     /**
      * `true` if only the first calculation was performed.
@@ -47026,8 +46689,12 @@ var AutoRowSize = function (_BasePlugin) {
         if (force || _this3.heights[row] === void 0) {
           var _samples = _this3.samplesGenerator.generateRowSamples(row, colRange);
 
-          _samples.forEach(function (sample, row) {
-            _this3.ghostTable.addRow(row, sample);
+          (0, _array.arrayEach)(_samples, function (_ref) {
+            var _ref2 = _slicedToArray(_ref, 2),
+                rowIndex = _ref2[0],
+                sample = _ref2[1];
+
+            return _this3.ghostTable.addRow(rowIndex, sample);
           });
         }
       });
@@ -47411,7 +47078,7 @@ var AutoRowSize = function (_BasePlugin) {
 exports.default = AutoRowSize;
 
 /***/ }),
-/* 413 */
+/* 412 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47425,7 +47092,7 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _mixed = __webpack_require__(11);
 
@@ -47437,7 +47104,7 @@ var _base2 = _interopRequireDefault(_base);
 
 var _plugins = __webpack_require__(8);
 
-var _mergeSort = __webpack_require__(417);
+var _mergeSort = __webpack_require__(416);
 
 var _mergeSort2 = _interopRequireDefault(_mergeSort);
 
@@ -47445,7 +47112,7 @@ var _pluginHooks = __webpack_require__(16);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _rowsMapper = __webpack_require__(419);
+var _rowsMapper = __webpack_require__(418);
 
 var _rowsMapper2 = _interopRequireDefault(_rowsMapper);
 
@@ -48050,7 +47717,7 @@ var ColumnSorting = function (_BasePlugin) {
 exports.default = ColumnSorting;
 
 /***/ }),
-/* 414 */
+/* 413 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48142,7 +47809,7 @@ function dateSort(sortOrder, columnMeta) {
 }
 
 /***/ }),
-/* 415 */
+/* 414 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48233,7 +47900,7 @@ function defaultSort(sortOrder, columnMeta) {
 }
 
 /***/ }),
-/* 416 */
+/* 415 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48303,7 +47970,7 @@ function numericSort(sortOrder, columnMeta) {
 }
 
 /***/ }),
-/* 417 */
+/* 416 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48312,7 +47979,7 @@ function numericSort(sortOrder, columnMeta) {
 exports.__esModule = true;
 exports.default = mergeSort;
 
-var _linkedList = __webpack_require__(418);
+var _linkedList = __webpack_require__(417);
 
 var _linkedList2 = _interopRequireDefault(_linkedList);
 
@@ -48428,7 +48095,7 @@ function merge(array, compareFunction, startIndex, middleIndex, endIndex) {
 };
 
 /***/ }),
-/* 418 */
+/* 417 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48739,7 +48406,7 @@ exports.NodeStructure = NodeStructure;
 exports.default = LinkedList;
 
 /***/ }),
-/* 419 */
+/* 418 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48749,13 +48416,13 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _arrayMapper = __webpack_require__(95);
+var _arrayMapper = __webpack_require__(94);
 
 var _arrayMapper2 = _interopRequireDefault(_arrayMapper);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -48817,7 +48484,7 @@ var RowsMapper = function () {
 exports.default = RowsMapper;
 
 /***/ }),
-/* 420 */
+/* 419 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48831,9 +48498,9 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
@@ -48845,13 +48512,13 @@ var _base = __webpack_require__(10);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _commentEditor = __webpack_require__(421);
+var _commentEditor = __webpack_require__(420);
 
 var _commentEditor2 = _interopRequireDefault(_commentEditor);
 
 var _utils = __webpack_require__(19);
 
-var _displaySwitch = __webpack_require__(422);
+var _displaySwitch = __webpack_require__(421);
 
 var _displaySwitch2 = _interopRequireDefault(_displaySwitch);
 
@@ -48859,7 +48526,7 @@ var _constants = __webpack_require__(7);
 
 var C = _interopRequireWildcard(_constants);
 
-__webpack_require__(423);
+__webpack_require__(422);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -49038,8 +48705,8 @@ var Comments = function (_BasePlugin) {
       this.addHook('afterScrollVertically', function () {
         return _this2.hide();
       });
-      this.addHook('afterBeginEditing', function (args) {
-        return _this2.onAfterBeginEditing(args);
+      this.addHook('afterBeginEditing', function () {
+        return _this2.onAfterBeginEditing();
       });
 
       this.displaySwitch.addLocalHook('hide', function () {
@@ -49095,11 +48762,11 @@ var Comments = function (_BasePlugin) {
       this.eventManager.addEventListener(document, 'mousedown', function (event) {
         return _this3.onMouseDown(event);
       });
-      this.eventManager.addEventListener(document, 'mouseup', function (event) {
-        return _this3.onMouseUp(event);
+      this.eventManager.addEventListener(document, 'mouseup', function () {
+        return _this3.onMouseUp();
       });
-      this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', function (event) {
-        return _this3.onEditorBlur(event);
+      this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', function () {
+        return _this3.onEditorBlur();
       });
       this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', function (event) {
         return _this3.onEditorMouseDown(event);
@@ -49515,12 +49182,11 @@ var Comments = function (_BasePlugin) {
      * `mouseup` event callback.
      *
      * @private
-     * @param {MouseEvent} event The `mouseup` event.
      */
 
   }, {
     key: 'onMouseUp',
-    value: function onMouseUp(event) {
+    value: function onMouseUp() {
       this.mouseDown = false;
     }
 
@@ -49544,12 +49210,11 @@ var Comments = function (_BasePlugin) {
      * `blur` event callback for the comment editor.
      *
      * @private
-     * @param {Event} event The `blur` event.
      */
 
   }, {
     key: 'onEditorBlur',
-    value: function onEditorBlur(event) {
+    value: function onEditorBlur() {
       this.setComment();
     }
 
@@ -49765,13 +49430,11 @@ var Comments = function (_BasePlugin) {
      * `afterBeginEditing` hook callback.
      *
      * @private
-     * @param {Number} row Visual row index of the currently edited cell.
-     * @param {Number} column Visual column index of the currently edited cell.
      */
 
   }, {
     key: 'onAfterBeginEditing',
-    value: function onAfterBeginEditing(row, column) {
+    value: function onAfterBeginEditing() {
       this.hide();
     }
 
@@ -49802,7 +49465,7 @@ var Comments = function (_BasePlugin) {
 exports.default = Comments;
 
 /***/ }),
-/* 421 */
+/* 420 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50060,7 +49723,7 @@ var CommentEditor = function () {
 exports.default = CommentEditor;
 
 /***/ }),
-/* 422 */
+/* 421 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50072,7 +49735,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _function = __webpack_require__(44);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _localHooks = __webpack_require__(48);
 
@@ -50203,13 +49866,13 @@ var DisplaySwitch = function () {
 exports.default = DisplaySwitch;
 
 /***/ }),
-/* 423 */
+/* 422 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 424 */
+/* 423 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50229,21 +49892,21 @@ var _pluginHooks = __webpack_require__(16);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _commandExecutor = __webpack_require__(425);
+var _commandExecutor2 = __webpack_require__(424);
 
-var _commandExecutor2 = _interopRequireDefault(_commandExecutor);
+var _commandExecutor3 = _interopRequireDefault(_commandExecutor2);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _itemsFactory = __webpack_require__(426);
+var _itemsFactory = __webpack_require__(425);
 
 var _itemsFactory2 = _interopRequireDefault(_itemsFactory);
 
-var _menu = __webpack_require__(438);
+var _menu = __webpack_require__(437);
 
 var _menu2 = _interopRequireDefault(_menu);
 
@@ -50253,9 +49916,9 @@ var _event = __webpack_require__(13);
 
 var _element = __webpack_require__(0);
 
-var _predefinedItems = __webpack_require__(97);
+var _predefinedItems = __webpack_require__(96);
 
-__webpack_require__(440);
+__webpack_require__(439);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -50342,7 +50005,7 @@ var ContextMenu = function (_BasePlugin) {
      * @private
      * @type {CommandExecutor}
      */
-    _this.commandExecutor = new _commandExecutor2.default(_this.hot);
+    _this.commandExecutor = new _commandExecutor3.default(_this.hot);
     /**
      * Instance of {@link ItemsFactory}.
      *
@@ -50552,12 +50215,14 @@ var ContextMenu = function (_BasePlugin) {
 
   }, {
     key: 'executeCommand',
-    value: function executeCommand() {
-      for (var _len2 = arguments.length, params = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        params[_key2] = arguments[_key2];
+    value: function executeCommand(commandName) {
+      var _commandExecutor;
+
+      for (var _len2 = arguments.length, params = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        params[_key2 - 1] = arguments[_key2];
       }
 
-      this.commandExecutor.execute.apply(this.commandExecutor, params);
+      (_commandExecutor = this.commandExecutor).execute.apply(_commandExecutor, [commandName].concat(params));
     }
 
     /**
@@ -50662,7 +50327,7 @@ ContextMenu.SEPARATOR = {
 exports.default = ContextMenu;
 
 /***/ }),
-/* 425 */
+/* 424 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50672,9 +50337,9 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -50751,7 +50416,7 @@ var CommandExecutor = function () {
       if (command.disabled === true) {
         return;
       }
-      if (typeof command.disabled == 'function' && command.disabled.call(this.hot) === true) {
+      if (typeof command.disabled === 'function' && command.disabled.call(this.hot) === true) {
         return;
       }
       if ((0, _object.hasOwnProperty)(command, 'submenu')) {
@@ -50794,7 +50459,7 @@ function findSubCommand(subCommandName, subCommands) {
 exports.default = CommandExecutor;
 
 /***/ }),
-/* 426 */
+/* 425 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50804,11 +50469,11 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _predefinedItems = __webpack_require__(97);
+var _predefinedItems = __webpack_require__(96);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -50832,20 +50497,20 @@ var ItemsFactory = function () {
   /**
    * Set predefined items.
    *
-   * @param {Array} predefinedItems Array of predefined items.
+   * @param {Array} predefinedItemsCollection Array of predefined items.
    */
 
 
   _createClass(ItemsFactory, [{
     key: 'setPredefinedItems',
-    value: function setPredefinedItems(predefinedItems) {
+    value: function setPredefinedItems(predefinedItemsCollection) {
       var _this = this;
 
       var items = {};
 
       this.defaultOrderPattern.length = 0;
 
-      (0, _object.objectEach)(predefinedItems, function (value, key) {
+      (0, _object.objectEach)(predefinedItemsCollection, function (value, key) {
         var menuItemKey = '';
 
         if (value.name === _predefinedItems.SEPARATOR) {
@@ -50942,7 +50607,7 @@ function _getItems() {
 exports.default = ItemsFactory;
 
 /***/ }),
-/* 427 */
+/* 426 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50954,7 +50619,7 @@ exports.default = alignmentItem;
 
 var _utils = __webpack_require__(19);
 
-var _separator = __webpack_require__(96);
+var _separator = __webpack_require__(95);
 
 var _constants = __webpack_require__(7);
 
@@ -51035,7 +50700,7 @@ function alignmentItem() {
 
           return label;
         },
-        callback: function callback(key, selection) {
+        callback: function callback() {
           var _this4 = this;
 
           var selectedRange = this.getSelectedRange();
@@ -51262,7 +50927,7 @@ function alignmentItem() {
 }
 
 /***/ }),
-/* 428 */
+/* 427 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51305,11 +50970,10 @@ function clearColumnItem() {
         return true;
       }
 
-      var _selected$ = _slicedToArray(selected[0], 4),
+      var _selected$ = _slicedToArray(selected[0], 3),
           startRow = _selected$[0],
           startColumn = _selected$[1],
-          endRow = _selected$[2],
-          endColumn = _selected$[3];
+          endRow = _selected$[2];
 
       var entireRowSelection = [startRow, 0, endRow, this.countCols() - 1];
       var rowSelected = entireRowSelection.join(',') === selected.join(',');
@@ -51320,7 +50984,7 @@ function clearColumnItem() {
 }
 
 /***/ }),
-/* 429 */
+/* 428 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51364,11 +51028,10 @@ function columnLeftItem() {
         return true;
       }
 
-      var _selected$ = _slicedToArray(selected[0], 4),
+      var _selected$ = _slicedToArray(selected[0], 3),
           startRow = _selected$[0],
           startColumn = _selected$[1],
-          endRow = _selected$[2],
-          endColumn = _selected$[3];
+          endRow = _selected$[2];
 
       var entireRowSelection = [startRow, 0, endRow, this.countCols() - 1];
       var rowSelected = entireRowSelection.join(',') === selected.join(',');
@@ -51383,7 +51046,7 @@ function columnLeftItem() {
 }
 
 /***/ }),
-/* 430 */
+/* 429 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51427,11 +51090,10 @@ function columnRightItem() {
         return true;
       }
 
-      var _selected$ = _slicedToArray(selected[0], 4),
+      var _selected$ = _slicedToArray(selected[0], 3),
           startRow = _selected$[0],
           startColumn = _selected$[1],
-          endRow = _selected$[2],
-          endColumn = _selected$[3];
+          endRow = _selected$[2];
 
       var entireRowSelection = [startRow, 0, endRow, this.countCols() - 1];
       var rowSelected = entireRowSelection.join(',') === selected.join(',');
@@ -51446,7 +51108,7 @@ function columnRightItem() {
 }
 
 /***/ }),
-/* 431 */
+/* 430 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51458,7 +51120,7 @@ exports.default = readOnlyItem;
 
 var _utils = __webpack_require__(19);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _constants = __webpack_require__(7);
 
@@ -51508,7 +51170,7 @@ function readOnlyItem() {
 }
 
 /***/ }),
-/* 432 */
+/* 431 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51542,7 +51204,7 @@ function redoItem() {
 }
 
 /***/ }),
-/* 433 */
+/* 432 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51556,8 +51218,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 exports.default = removeColumnItem;
 
 var _utils = __webpack_require__(19);
-
-var _array = __webpack_require__(1);
 
 var _utils2 = __webpack_require__(72);
 
@@ -51612,7 +51272,7 @@ function removeColumnItem() {
 }
 
 /***/ }),
-/* 434 */
+/* 433 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51626,8 +51286,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 exports.default = removeRowItem;
 
 var _utils = __webpack_require__(19);
-
-var _array = __webpack_require__(1);
 
 var _utils2 = __webpack_require__(72);
 
@@ -51682,7 +51340,7 @@ function removeRowItem() {
 }
 
 /***/ }),
-/* 435 */
+/* 434 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51729,7 +51387,7 @@ function rowAboveItem() {
 }
 
 /***/ }),
-/* 436 */
+/* 435 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51776,7 +51434,7 @@ function rowBelowItem() {
 }
 
 /***/ }),
-/* 437 */
+/* 436 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51810,7 +51468,7 @@ function undoItem() {
 }
 
 /***/ }),
-/* 438 */
+/* 437 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51820,23 +51478,23 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _core = __webpack_require__(91);
+var _core = __webpack_require__(90);
 
 var _core2 = _interopRequireDefault(_core);
 
 var _element = __webpack_require__(0);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _cursor = __webpack_require__(439);
+var _cursor = __webpack_require__(438);
 
 var _cursor2 = _interopRequireDefault(_cursor);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _mixed = __webpack_require__(11);
 
@@ -51850,7 +51508,7 @@ var _localHooks = __webpack_require__(48);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
-var _predefinedItems = __webpack_require__(97);
+var _predefinedItems = __webpack_require__(96);
 
 var _event = __webpack_require__(13);
 
@@ -52009,7 +51667,7 @@ var Menu = function () {
         beforeKeyDown: function beforeKeyDown(event) {
           return _this2.onBeforeKeyDown(event);
         },
-        afterOnCellMouseOver: function afterOnCellMouseOver(event, coords, TD) {
+        afterOnCellMouseOver: function afterOnCellMouseOver(event, coords) {
           if (_this2.isAllSubMenusClosed()) {
             delayedOpenSubMenu(coords.row);
           } else {
@@ -52400,17 +52058,17 @@ var Menu = function () {
       var item = hot.getSourceDataAtRow(row);
       var wrapper = document.createElement('div');
 
-      var isSubMenu = function isSubMenu(item) {
-        return (0, _object.hasOwnProperty)(item, 'submenu');
+      var isSubMenu = function isSubMenu(itemToTest) {
+        return (0, _object.hasOwnProperty)(itemToTest, 'submenu');
       };
-      var itemIsSeparator = function itemIsSeparator(item) {
-        return new RegExp(_predefinedItems.SEPARATOR, 'i').test(item.name);
+      var itemIsSeparator = function itemIsSeparator(itemToTest) {
+        return new RegExp(_predefinedItems.SEPARATOR, 'i').test(itemToTest.name);
       };
-      var itemIsDisabled = function itemIsDisabled(item) {
-        return item.disabled === true || typeof item.disabled == 'function' && item.disabled.call(_this4.hot) === true;
+      var itemIsDisabled = function itemIsDisabled(itemToTest) {
+        return itemToTest.disabled === true || typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(_this4.hot) === true;
       };
-      var itemIsSelectionDisabled = function itemIsSelectionDisabled(item) {
-        return item.disableSelection;
+      var itemIsSelectionDisabled = function itemIsSelectionDisabled(itemToTest) {
+        return itemToTest.disableSelection;
       };
 
       if (typeof value === 'function') {
@@ -52699,7 +52357,7 @@ var Menu = function () {
 exports.default = Menu;
 
 /***/ }),
-/* 439 */
+/* 438 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52849,13 +52507,13 @@ var Cursor = function () {
 exports.default = Cursor;
 
 /***/ }),
-/* 440 */
+/* 439 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 441 */
+/* 440 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52885,27 +52543,27 @@ var _src = __webpack_require__(4);
 
 var _element = __webpack_require__(0);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 var _plugins = __webpack_require__(8);
 
-var _copy = __webpack_require__(442);
+var _copy = __webpack_require__(441);
 
 var _copy2 = _interopRequireDefault(_copy);
 
-var _cut = __webpack_require__(443);
+var _cut = __webpack_require__(442);
 
 var _cut2 = _interopRequireDefault(_cut);
 
-var _pasteEvent = __webpack_require__(444);
+var _pasteEvent = __webpack_require__(443);
 
 var _pasteEvent2 = _interopRequireDefault(_pasteEvent);
 
-var _focusableElement = __webpack_require__(446);
+var _focusableElement = __webpack_require__(445);
 
-__webpack_require__(447);
+__webpack_require__(446);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -53507,7 +53165,7 @@ var CopyPaste = function (_BasePlugin) {
 exports.default = CopyPaste;
 
 /***/ }),
-/* 442 */
+/* 441 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53546,7 +53204,7 @@ function copyItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 443 */
+/* 442 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53585,7 +53243,7 @@ function cutItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 444 */
+/* 443 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53593,7 +53251,7 @@ function cutItem(copyPastePlugin) {
 
 exports.__esModule = true;
 
-var _clipboardData = __webpack_require__(445);
+var _clipboardData = __webpack_require__(444);
 
 var _clipboardData2 = _interopRequireDefault(_clipboardData);
 
@@ -53610,7 +53268,7 @@ var PasteEvent = function PasteEvent() {
 exports.default = PasteEvent;
 
 /***/ }),
-/* 445 */
+/* 444 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53647,7 +53305,7 @@ var ClipboardData = function () {
 exports.default = ClipboardData;
 
 /***/ }),
-/* 446 */
+/* 445 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53658,7 +53316,7 @@ exports.destroyElement = exports.deactivateElement = exports.createElement = und
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
@@ -53666,7 +53324,7 @@ var _localHooks = __webpack_require__(48);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -53841,7 +53499,7 @@ var secondaryElement = void 0;
  *
  * @return {HTMLElement}
  */
-function createOrGetSecondaryElement(subject) {
+function createOrGetSecondaryElement() {
   if (secondaryElement) {
 
     if (!secondaryElement.parentElement) {
@@ -53871,13 +53529,13 @@ exports.deactivateElement = deactivateElement;
 exports.destroyElement = destroyElement;
 
 /***/ }),
-/* 447 */
+/* 446 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 448 */
+/* 447 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53897,11 +53555,11 @@ var _base2 = _interopRequireDefault(_base);
 
 var _plugins = __webpack_require__(8);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _src = __webpack_require__(4);
 
@@ -53909,7 +53567,7 @@ var _constants = __webpack_require__(7);
 
 var C = _interopRequireWildcard(_constants);
 
-var _contextMenuItem = __webpack_require__(449);
+var _contextMenuItem = __webpack_require__(448);
 
 var _utils = __webpack_require__(49);
 
@@ -54778,7 +54436,7 @@ var CustomBorders = function (_BasePlugin) {
 exports.default = CustomBorders;
 
 /***/ }),
-/* 449 */
+/* 448 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54787,23 +54445,23 @@ exports.default = CustomBorders;
 exports.__esModule = true;
 exports.top = exports.right = exports.noBorders = exports.left = exports.bottom = undefined;
 
-var _bottom = __webpack_require__(450);
+var _bottom = __webpack_require__(449);
 
 var _bottom2 = _interopRequireDefault(_bottom);
 
-var _left = __webpack_require__(451);
+var _left = __webpack_require__(450);
 
 var _left2 = _interopRequireDefault(_left);
 
-var _noBorders = __webpack_require__(452);
+var _noBorders = __webpack_require__(451);
 
 var _noBorders2 = _interopRequireDefault(_noBorders);
 
-var _right = __webpack_require__(453);
+var _right = __webpack_require__(452);
 
 var _right2 = _interopRequireDefault(_right);
 
-var _top = __webpack_require__(454);
+var _top = __webpack_require__(453);
 
 var _top2 = _interopRequireDefault(_top);
 
@@ -54816,7 +54474,7 @@ exports.right = _right2.default;
 exports.top = _top2.default;
 
 /***/ }),
-/* 450 */
+/* 449 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54852,7 +54510,7 @@ function bottom(customBordersPlugin) {
 }
 
 /***/ }),
-/* 451 */
+/* 450 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54889,7 +54547,7 @@ function left(customBordersPlugin) {
 }
 
 /***/ }),
-/* 452 */
+/* 451 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54922,7 +54580,7 @@ function noBorders(customBordersPlugin) {
 }
 
 /***/ }),
-/* 453 */
+/* 452 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54958,7 +54616,7 @@ function right(customBordersPlugin) {
 }
 
 /***/ }),
-/* 454 */
+/* 453 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54995,7 +54653,7 @@ function top(customBordersPlugin) {
 }
 
 /***/ }),
-/* 455 */
+/* 454 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55011,7 +54669,7 @@ var _base = __webpack_require__(10);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
@@ -55304,7 +54962,7 @@ var DragToScroll = function (_BasePlugin) {
 exports.default = DragToScroll;
 
 /***/ }),
-/* 456 */
+/* 455 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55322,17 +54980,17 @@ var _base2 = _interopRequireDefault(_base);
 
 var _plugins = __webpack_require__(8);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _freezeColumn = __webpack_require__(457);
+var _freezeColumn = __webpack_require__(456);
 
 var _freezeColumn2 = _interopRequireDefault(_freezeColumn);
 
-var _unfreezeColumn = __webpack_require__(458);
+var _unfreezeColumn = __webpack_require__(457);
 
 var _unfreezeColumn2 = _interopRequireDefault(_unfreezeColumn);
 
-__webpack_require__(459);
+__webpack_require__(458);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -55610,7 +55268,7 @@ var ManualColumnFreeze = function (_BasePlugin) {
         var disallowMoving = target < frozenLen;
 
         if (!disallowMoving) {
-          (0, _array.arrayEach)(rows, function (value, index, array) {
+          (0, _array.arrayEach)(rows, function (value) {
             if (value < frozenLen) {
               disallowMoving = true;
               return false;
@@ -55647,7 +55305,7 @@ var ManualColumnFreeze = function (_BasePlugin) {
 exports.default = ManualColumnFreeze;
 
 /***/ }),
-/* 457 */
+/* 456 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55698,7 +55356,7 @@ function freezeColumnItem(manualColumnFreezePlugin) {
 }
 
 /***/ }),
-/* 458 */
+/* 457 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55749,13 +55407,13 @@ function unfreezeColumnItem(manualColumnFreezePlugin) {
 }
 
 /***/ }),
-/* 459 */
+/* 458 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 460 */
+/* 459 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55775,33 +55433,31 @@ var _pluginHooks = __webpack_require__(16);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _element = __webpack_require__(0);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _plugins = __webpack_require__(8);
 
-var _columnsMapper = __webpack_require__(461);
+var _columnsMapper = __webpack_require__(460);
 
 var _columnsMapper2 = _interopRequireDefault(_columnsMapper);
 
-var _backlight = __webpack_require__(462);
+var _backlight = __webpack_require__(461);
 
 var _backlight2 = _interopRequireDefault(_backlight);
 
-var _guideline = __webpack_require__(463);
+var _guideline = __webpack_require__(462);
 
 var _guideline2 = _interopRequireDefault(_guideline);
 
-var _src = __webpack_require__(4);
-
-__webpack_require__(464);
+__webpack_require__(463);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -56236,19 +55892,19 @@ var ManualColumnMove = function (_BasePlugin) {
         // unfortunately first column is bigger than rest
         tdOffsetLeft += priv.target.TD.offsetWidth;
 
-        if (priv.target.col > lastVisible) {
+        if (priv.target.col > lastVisible && lastVisible < priv.countCols) {
           this.hot.scrollViewportTo(void 0, lastVisible + 1, void 0, true);
         }
       } else {
         // elsewhere on table
         priv.target.col = priv.coordsColumn;
 
-        if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+        if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns && firstVisible > 0) {
           this.hot.scrollViewportTo(void 0, firstVisible - 1);
         }
       }
 
-      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns && firstVisible > 0) {
         this.hot.scrollViewportTo(void 0, firstVisible - 1);
       }
 
@@ -56667,7 +56323,7 @@ var ManualColumnMove = function (_BasePlugin) {
 exports.default = ManualColumnMove;
 
 /***/ }),
-/* 461 */
+/* 460 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56677,15 +56333,15 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _arrayMapper = __webpack_require__(95);
+var _arrayMapper = __webpack_require__(94);
 
 var _arrayMapper2 = _interopRequireDefault(_arrayMapper);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -56774,7 +56430,7 @@ var ColumnsMapper = function () {
 exports.default = ColumnsMapper;
 
 /***/ }),
-/* 462 */
+/* 461 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56835,7 +56491,7 @@ var BacklightUI = function (_BaseUI) {
 exports.default = BacklightUI;
 
 /***/ }),
-/* 463 */
+/* 462 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56896,13 +56552,13 @@ var GuidelineUI = function (_BaseUI) {
 exports.default = GuidelineUI;
 
 /***/ }),
-/* 464 */
+/* 463 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 465 */
+/* 464 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56920,15 +56576,15 @@ var _base2 = _interopRequireDefault(_base);
 
 var _element = __webpack_require__(0);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _event = __webpack_require__(13);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 var _plugins = __webpack_require__(8);
 
@@ -57023,7 +56679,7 @@ var ManualColumnResize = function (_BasePlugin) {
         return _this2.onBeforeColumnResize(currentColumn, newSize, isDoubleClick);
       });
 
-      if (typeof loadedManualColumnWidths != 'undefined') {
+      if (typeof loadedManualColumnWidths !== 'undefined') {
         this.manualColumnWidths = loadedManualColumnWidths;
       } else if (Array.isArray(initialColumnWidth)) {
         this.manualColumnWidths = initialColumnWidth;
@@ -57225,7 +56881,7 @@ var ManualColumnResize = function (_BasePlugin) {
   }, {
     key: 'checkIfColumnHeader',
     value: function checkIfColumnHeader(element) {
-      if (element != this.hot.rootElement) {
+      if (element !== this.hot.rootElement) {
         var parent = element.parentNode;
 
         if (parent.tagName === 'THEAD') {
@@ -57249,8 +56905,8 @@ var ManualColumnResize = function (_BasePlugin) {
   }, {
     key: 'getTHFromTargetElement',
     value: function getTHFromTargetElement(element) {
-      if (element.tagName != 'TABLE') {
-        if (element.tagName == 'TH') {
+      if (element.tagName !== 'TABLE') {
+        if (element.tagName === 'TH') {
           return element;
         }
         return this.getTHFromTargetElement(element.parentNode);
@@ -57403,7 +57059,6 @@ var ManualColumnResize = function (_BasePlugin) {
      * 'mouseup' event callback - apply the column resizing.
      *
      * @private
-     * @param {MouseEvent} event
      *
      * @fires Hooks#beforeColumnResize
      * @fires Hooks#afterColumnResize
@@ -57411,7 +57066,7 @@ var ManualColumnResize = function (_BasePlugin) {
 
   }, {
     key: 'onMouseUp',
-    value: function onMouseUp(event) {
+    value: function onMouseUp() {
       var _this7 = this;
 
       var render = function render() {
@@ -57435,7 +57090,7 @@ var ManualColumnResize = function (_BasePlugin) {
         this.hideHandleAndGuide();
         this.pressed = false;
 
-        if (this.newSize != this.startWidth) {
+        if (this.newSize !== this.startWidth) {
           var selectedColsLength = this.selectedCols.length;
 
           if (selectedColsLength > 1) {
@@ -57474,8 +57129,8 @@ var ManualColumnResize = function (_BasePlugin) {
       this.eventManager.addEventListener(window, 'mousemove', function (e) {
         return _this8.onMouseMove(e);
       });
-      this.eventManager.addEventListener(window, 'mouseup', function (e) {
-        return _this8.onMouseUp(e);
+      this.eventManager.addEventListener(window, 'mouseup', function () {
+        return _this8.onMouseUp();
       });
     }
 
@@ -57583,7 +57238,7 @@ var ManualColumnResize = function (_BasePlugin) {
 exports.default = ManualColumnResize;
 
 /***/ }),
-/* 466 */
+/* 465 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57603,31 +57258,31 @@ var _pluginHooks = __webpack_require__(16);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _element = __webpack_require__(0);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _plugins = __webpack_require__(8);
 
-var _rowsMapper = __webpack_require__(467);
+var _rowsMapper = __webpack_require__(466);
 
 var _rowsMapper2 = _interopRequireDefault(_rowsMapper);
 
-var _backlight = __webpack_require__(468);
+var _backlight = __webpack_require__(467);
 
 var _backlight2 = _interopRequireDefault(_backlight);
 
-var _guideline = __webpack_require__(469);
+var _guideline = __webpack_require__(468);
 
 var _guideline2 = _interopRequireDefault(_guideline);
 
-__webpack_require__(470);
+__webpack_require__(469);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -58522,7 +58177,7 @@ var ManualRowMove = function (_BasePlugin) {
 exports.default = ManualRowMove;
 
 /***/ }),
-/* 467 */
+/* 466 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58532,15 +58187,15 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _arrayMapper = __webpack_require__(95);
+var _arrayMapper = __webpack_require__(94);
 
 var _arrayMapper2 = _interopRequireDefault(_arrayMapper);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -58629,7 +58284,7 @@ var RowsMapper = function () {
 exports.default = RowsMapper;
 
 /***/ }),
-/* 468 */
+/* 467 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58690,7 +58345,7 @@ var BacklightUI = function (_BaseUI) {
 exports.default = BacklightUI;
 
 /***/ }),
-/* 469 */
+/* 468 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58751,13 +58406,13 @@ var GuidelineUI = function (_BaseUI) {
 exports.default = GuidelineUI;
 
 /***/ }),
-/* 470 */
+/* 469 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 471 */
+/* 470 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58775,15 +58430,15 @@ var _base2 = _interopRequireDefault(_base);
 
 var _element = __webpack_require__(0);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _event = __webpack_require__(13);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 var _plugins = __webpack_require__(8);
 
@@ -58869,7 +58524,7 @@ var ManualRowResize = function (_BasePlugin) {
       var initialRowHeights = this.hot.getSettings().manualRowResize;
       var loadedManualRowHeights = this.loadManualRowHeights();
 
-      if (typeof loadedManualRowHeights != 'undefined') {
+      if (typeof loadedManualRowHeights !== 'undefined') {
         this.manualRowHeights = loadedManualRowHeights;
       } else if (Array.isArray(initialRowHeights)) {
         this.manualRowHeights = initialRowHeights;
@@ -59070,7 +58725,7 @@ var ManualRowResize = function (_BasePlugin) {
   }, {
     key: 'checkIfRowHeader',
     value: function checkIfRowHeader(element) {
-      if (element != this.hot.rootElement) {
+      if (element !== this.hot.rootElement) {
         var parent = element.parentNode;
 
         if (parent.tagName === 'TBODY') {
@@ -59094,8 +58749,8 @@ var ManualRowResize = function (_BasePlugin) {
   }, {
     key: 'getTHFromTargetElement',
     value: function getTHFromTargetElement(element) {
-      if (element.tagName != 'TABLE') {
-        if (element.tagName == 'TH') {
+      if (element.tagName !== 'TABLE') {
+        if (element.tagName === 'TH') {
           return element;
         }
         return this.getTHFromTargetElement(element.parentNode);
@@ -59235,14 +58890,14 @@ var ManualRowResize = function (_BasePlugin) {
      * 'mouseup' event callback - apply the row resizing.
      *
      * @private
-     * @param {MouseEvent} event
+     *
      * @fires Hooks#beforeRowResize
      * @fires Hooks#afterRowResize
      */
 
   }, {
     key: 'onMouseUp',
-    value: function onMouseUp(event) {
+    value: function onMouseUp() {
       var _this7 = this;
 
       var render = function render() {
@@ -59265,7 +58920,7 @@ var ManualRowResize = function (_BasePlugin) {
         this.hideHandleAndGuide();
         this.pressed = false;
 
-        if (this.newSize != this.startHeight) {
+        if (this.newSize !== this.startHeight) {
           var selectedRowsLength = this.selectedRows.length;
 
           if (selectedRowsLength > 1) {
@@ -59304,8 +58959,8 @@ var ManualRowResize = function (_BasePlugin) {
       this.eventManager.addEventListener(window, 'mousemove', function (e) {
         return _this8.onMouseMove(e);
       });
-      this.eventManager.addEventListener(window, 'mouseup', function (e) {
-        return _this8.onMouseUp(e);
+      this.eventManager.addEventListener(window, 'mouseup', function () {
+        return _this8.onMouseUp();
       });
     }
 
@@ -59367,7 +59022,7 @@ var ManualRowResize = function (_BasePlugin) {
 exports.default = ManualRowResize;
 
 /***/ }),
-/* 472 */
+/* 471 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59395,37 +59050,37 @@ var _event = __webpack_require__(13);
 
 var _src = __webpack_require__(4);
 
-var _cellsCollection = __webpack_require__(473);
+var _cellsCollection = __webpack_require__(472);
 
 var _cellsCollection2 = _interopRequireDefault(_cellsCollection);
 
-var _cellCoords = __webpack_require__(98);
+var _cellCoords = __webpack_require__(97);
 
 var _cellCoords2 = _interopRequireDefault(_cellCoords);
 
-var _autofill = __webpack_require__(474);
+var _autofill = __webpack_require__(473);
 
 var _autofill2 = _interopRequireDefault(_autofill);
 
-var _selection = __webpack_require__(475);
+var _selection = __webpack_require__(474);
 
 var _selection2 = _interopRequireDefault(_selection);
 
-var _toggleMerge = __webpack_require__(476);
+var _toggleMerge = __webpack_require__(475);
 
 var _toggleMerge2 = _interopRequireDefault(_toggleMerge);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _console = __webpack_require__(58);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 var _utils = __webpack_require__(326);
 
-__webpack_require__(477);
+__webpack_require__(476);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -60608,7 +60263,7 @@ var MergeCells = function (_BasePlugin) {
 exports.default = MergeCells;
 
 /***/ }),
-/* 473 */
+/* 472 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60620,17 +60275,17 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _templateObject = _taggedTemplateLiteral(['The merged cell declared at [', ', ', '], overlaps with the other declared merged \n    cell. The overlapping merged cell was not added to the table, please fix your setup.'], ['The merged cell declared at [', ', ', '], overlaps with the other declared merged \n    cell. The overlapping merged cell was not added to the table, please fix your setup.']);
 
-var _cellCoords = __webpack_require__(98);
+var _cellCoords = __webpack_require__(97);
 
 var _cellCoords2 = _interopRequireDefault(_cellCoords);
 
 var _index = __webpack_require__(4);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 var _console = __webpack_require__(58);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _utils = __webpack_require__(326);
 
@@ -60993,7 +60648,7 @@ var MergedCellsCollection = function () {
 exports.default = MergedCellsCollection;
 
 /***/ }),
-/* 474 */
+/* 473 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -61005,11 +60660,11 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _src = __webpack_require__(4);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -61500,7 +61155,7 @@ var AutofillCalculations = function () {
 exports.default = AutofillCalculations;
 
 /***/ }),
-/* 475 */
+/* 474 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -61733,7 +61388,7 @@ var SelectionCalculations = function () {
 exports.default = SelectionCalculations;
 
 /***/ }),
-/* 476 */
+/* 475 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -61746,7 +61401,7 @@ var _constants = __webpack_require__(7);
 
 var C = _interopRequireWildcard(_constants);
 
-var _cellCoords = __webpack_require__(98);
+var _cellCoords = __webpack_require__(97);
 
 var _cellCoords2 = _interopRequireDefault(_cellCoords);
 
@@ -61795,13 +61450,13 @@ function toggleMergeItem(plugin) {
 }
 
 /***/ }),
-/* 477 */
+/* 476 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 478 */
+/* 477 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -61813,19 +61468,15 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _pluginHooks = __webpack_require__(16);
-
-var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
-
 var _element = __webpack_require__(0);
 
-var _browser = __webpack_require__(27);
+var _browser = __webpack_require__(39);
 
 var _base = __webpack_require__(10);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _eventManager = __webpack_require__(6);
+var _eventManager = __webpack_require__(5);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
@@ -61924,11 +61575,11 @@ var MultipleSelectionHandles = function (_BasePlugin) {
 
         var entryPosition = _this.dragged.indexOf(query);
 
-        if (entryPosition == -1) {
+        if (entryPosition === -1) {
           return false;
         } else if (entryPosition === 0) {
           _this.dragged = _this.dragged.slice(0, 1);
-        } else if (entryPosition == 1) {
+        } else if (entryPosition === 1) {
           _this.dragged = _this.dragged.slice(-1);
         }
       }
@@ -62004,10 +61655,10 @@ var MultipleSelectionHandles = function (_BasePlugin) {
           return;
         }
 
-        if (endTarget.nodeName == 'TD' || endTarget.nodeName == 'TH') {
+        if (endTarget.nodeName === 'TD' || endTarget.nodeName === 'TH') {
           targetCoords = _this.hot.getCoords(endTarget);
 
-          if (targetCoords.col == -1) {
+          if (targetCoords.col === -1) {
             targetCoords.col = 0;
           }
 
@@ -62016,7 +61667,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
           rangeHeight = selectedRange.getHeight();
           rangeDirection = selectedRange.getDirection();
 
-          if (rangeWidth == 1 && rangeHeight == 1) {
+          if (rangeWidth === 1 && rangeHeight === 1) {
             _this.hot.selection.setRangeEnd(targetCoords);
           }
 
@@ -62037,10 +61688,10 @@ var MultipleSelectionHandles = function (_BasePlugin) {
   }, {
     key: 'getCurrentRangeCoords',
     value: function getCurrentRangeCoords(selectedRange, currentTouch, touchStartDirection, currentDirection, draggedHandle) {
-      var topLeftCorner = selectedRange.getTopLeftCorner(),
-          bottomRightCorner = selectedRange.getBottomRightCorner(),
-          bottomLeftCorner = selectedRange.getBottomLeftCorner(),
-          topRightCorner = selectedRange.getTopRightCorner();
+      var topLeftCorner = selectedRange.getTopLeftCorner();
+      var bottomRightCorner = selectedRange.getBottomRightCorner();
+      var bottomLeftCorner = selectedRange.getBottomLeftCorner();
+      var topRightCorner = selectedRange.getTopRightCorner();
 
       var newCoords = {
         start: null,
@@ -62052,7 +61703,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
           switch (currentDirection) {
             case 'NE-SW':
             case 'NW-SE':
-              if (draggedHandle == 'topLeft') {
+              if (draggedHandle === 'topLeft') {
                 newCoords = {
                   start: new _src.CellCoords(currentTouch.row, selectedRange.highlight.col),
                   end: new _src.CellCoords(bottomLeftCorner.row, currentTouch.col)
@@ -62065,7 +61716,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
               }
               break;
             case 'SE-NW':
-              if (draggedHandle == 'bottomRight') {
+              if (draggedHandle === 'bottomRight') {
                 newCoords = {
                   start: new _src.CellCoords(bottomRightCorner.row, currentTouch.col),
                   end: new _src.CellCoords(currentTouch.row, topLeftCorner.col)
@@ -62079,7 +61730,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
         case 'NW-SE':
           switch (currentDirection) {
             case 'NE-SW':
-              if (draggedHandle == 'topLeft') {
+              if (draggedHandle === 'topLeft') {
                 newCoords = {
                   start: currentTouch,
                   end: bottomLeftCorner
@@ -62089,7 +61740,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
               }
               break;
             case 'NW-SE':
-              if (draggedHandle == 'topLeft') {
+              if (draggedHandle === 'topLeft') {
                 newCoords = {
                   start: currentTouch,
                   end: bottomRightCorner
@@ -62099,7 +61750,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
               }
               break;
             case 'SE-NW':
-              if (draggedHandle == 'topLeft') {
+              if (draggedHandle === 'topLeft') {
                 newCoords = {
                   start: currentTouch,
                   end: topLeftCorner
@@ -62109,7 +61760,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
               }
               break;
             case 'SW-NE':
-              if (draggedHandle == 'topLeft') {
+              if (draggedHandle === 'topLeft') {
                 newCoords = {
                   start: currentTouch,
                   end: topRightCorner
@@ -62125,7 +61776,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
         case 'SW-NE':
           switch (currentDirection) {
             case 'NW-SE':
-              if (draggedHandle == 'bottomRight') {
+              if (draggedHandle === 'bottomRight') {
                 newCoords = {
                   start: new _src.CellCoords(currentTouch.row, topLeftCorner.col),
                   end: new _src.CellCoords(bottomLeftCorner.row, currentTouch.col)
@@ -62141,7 +61792,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
             //
             //  break;
             case 'SW-NE':
-              if (draggedHandle == 'topLeft') {
+              if (draggedHandle === 'topLeft') {
                 newCoords = {
                   start: new _src.CellCoords(selectedRange.highlight.row, currentTouch.col),
                   end: new _src.CellCoords(currentTouch.row, bottomRightCorner.col)
@@ -62154,12 +61805,12 @@ var MultipleSelectionHandles = function (_BasePlugin) {
               }
               break;
             case 'SE-NW':
-              if (draggedHandle == 'bottomRight') {
+              if (draggedHandle === 'bottomRight') {
                 newCoords = {
                   start: new _src.CellCoords(currentTouch.row, topRightCorner.col),
                   end: new _src.CellCoords(topLeftCorner.row, currentTouch.col)
                 };
-              } else if (draggedHandle == 'topLeft') {
+              } else if (draggedHandle === 'topLeft') {
                 newCoords = {
                   start: bottomLeftCorner,
                   end: currentTouch
@@ -62175,12 +61826,12 @@ var MultipleSelectionHandles = function (_BasePlugin) {
             case 'NW-SE':
             case 'NE-SW':
             case 'SW-NE':
-              if (draggedHandle == 'topLeft') {
+              if (draggedHandle === 'topLeft') {
                 newCoords.end = currentTouch;
               }
               break;
             case 'SE-NW':
-              if (draggedHandle == 'topLeft') {
+              if (draggedHandle === 'topLeft') {
                 newCoords.end = currentTouch;
               } else {
                 newCoords = {
@@ -62221,7 +61872,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
 exports.default = MultipleSelectionHandles;
 
 /***/ }),
-/* 479 */
+/* 478 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -62237,15 +61888,11 @@ var _base = __webpack_require__(10);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _jsonPatchDuplex = __webpack_require__(327);
-
-var _jsonPatchDuplex2 = _interopRequireDefault(_jsonPatchDuplex);
-
-var _dataObserver = __webpack_require__(480);
+var _dataObserver = __webpack_require__(479);
 
 var _dataObserver2 = _interopRequireDefault(_dataObserver);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _plugins = __webpack_require__(8);
 
@@ -62508,7 +62155,7 @@ exports.default = ObserveChanges;
 (0, _plugins.registerPlugin)('observeChanges', ObserveChanges);
 
 /***/ }),
-/* 480 */
+/* 479 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -62518,7 +62165,7 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _jsonPatchDuplex = __webpack_require__(327);
+var _jsonPatchDuplex = __webpack_require__(480);
 
 var _jsonPatchDuplex2 = _interopRequireDefault(_jsonPatchDuplex);
 
@@ -62526,7 +62173,7 @@ var _localHooks = __webpack_require__(48);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _utils = __webpack_require__(481);
 
@@ -62652,6 +62299,611 @@ var DataObserver = function () {
 exports.default = DataObserver;
 
 /***/ }),
+/* 480 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+/*!
+ * https://github.com/Starcounter-Jack/JSON-Patch
+ * json-patch-duplex.js version: 0.5.7
+ * (c) 2013 Joachim Wester
+ * MIT license
+ */
+var __extends = undefined && undefined.__extends || function (d, b) {
+    for (var p in b) {
+        if (b.hasOwnProperty(p)) d[p] = b[p];
+    }function __() {
+        this.constructor = d;
+    }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var OriginalError = Error;
+var jsonpatch;
+(function (jsonpatch) {
+    var _objectKeys = function _objectKeys(obj) {
+        if (_isArray(obj)) {
+            var keys = new Array(obj.length);
+            for (var k = 0; k < keys.length; k++) {
+                keys[k] = "" + k;
+            }
+            return keys;
+        }
+        if (Object.keys) {
+            return Object.keys(obj);
+        }
+        var keys = [];
+        for (var i in obj) {
+            if (obj.hasOwnProperty(i)) {
+                keys.push(i);
+            }
+        }
+        return keys;
+    };
+    function _equals(a, b) {
+        switch (typeof a === 'undefined' ? 'undefined' : _typeof(a)) {
+            case 'undefined': //backward compatibility, but really I think we should return false
+            case 'boolean':
+            case 'string':
+            case 'number':
+                return a === b;
+            case 'object':
+                if (a === null) return b === null;
+                if (_isArray(a)) {
+                    if (!_isArray(b) || a.length !== b.length) return false;
+                    for (var i = 0, l = a.length; i < l; i++) {
+                        if (!_equals(a[i], b[i])) return false;
+                    }return true;
+                }
+                var bKeys = _objectKeys(b);
+                var bLength = bKeys.length;
+                if (_objectKeys(a).length !== bLength) return false;
+                for (var i = 0; i < bLength; i++) {
+                    if (!_equals(a[i], b[i])) return false;
+                }return true;
+            default:
+                return false;
+        }
+    }
+    /* We use a Javascript hash to store each
+     function. Each hash entry (property) uses
+     the operation identifiers specified in rfc6902.
+     In this way, we can map each patch operation
+     to its dedicated function in efficient way.
+     */
+    /* The operations applicable to an object */
+    var objOps = {
+        add: function add(obj, key) {
+            obj[key] = this.value;
+            return true;
+        },
+        remove: function remove(obj, key) {
+            delete obj[key];
+            return true;
+        },
+        replace: function replace(obj, key) {
+            obj[key] = this.value;
+            return true;
+        },
+        move: function move(obj, key, tree) {
+            var temp = { op: "_get", path: this.from };
+            apply(tree, [temp]);
+            apply(tree, [{ op: "remove", path: this.from }]);
+            apply(tree, [{ op: "add", path: this.path, value: temp.value }]);
+            return true;
+        },
+        copy: function copy(obj, key, tree) {
+            var temp = { op: "_get", path: this.from };
+            apply(tree, [temp]);
+            apply(tree, [{ op: "add", path: this.path, value: temp.value }]);
+            return true;
+        },
+        test: function test(obj, key) {
+            return _equals(obj[key], this.value);
+        },
+        _get: function _get(obj, key) {
+            this.value = obj[key];
+        }
+    };
+    /* The operations applicable to an array. Many are the same as for the object */
+    var arrOps = {
+        add: function add(arr, i) {
+            arr.splice(i, 0, this.value);
+            return true;
+        },
+        remove: function remove(arr, i) {
+            arr.splice(i, 1);
+            return true;
+        },
+        replace: function replace(arr, i) {
+            arr[i] = this.value;
+            return true;
+        },
+        move: objOps.move,
+        copy: objOps.copy,
+        test: objOps.test,
+        _get: objOps._get
+    };
+    /* The operations applicable to object root. Many are the same as for the object */
+    var rootOps = {
+        add: function add(obj) {
+            rootOps.remove.call(this, obj);
+            for (var key in this.value) {
+                if (this.value.hasOwnProperty(key)) {
+                    obj[key] = this.value[key];
+                }
+            }
+            return true;
+        },
+        remove: function remove(obj) {
+            for (var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    objOps.remove.call(this, obj, key);
+                }
+            }
+            return true;
+        },
+        replace: function replace(obj) {
+            apply(obj, [{ op: "remove", path: this.path }]);
+            apply(obj, [{ op: "add", path: this.path, value: this.value }]);
+            return true;
+        },
+        move: objOps.move,
+        copy: objOps.copy,
+        test: function test(obj) {
+            return JSON.stringify(obj) === JSON.stringify(this.value);
+        },
+        _get: function _get(obj) {
+            this.value = obj;
+        }
+    };
+    var observeOps = {
+        add: function add(patches, path) {
+            var patch = {
+                op: "add",
+                path: path + escapePathComponent(this.name),
+                value: this.object[this.name] };
+            patches.push(patch);
+        },
+        'delete': function _delete(patches, path) {
+            var patch = {
+                op: "remove",
+                path: path + escapePathComponent(this.name)
+            };
+            patches.push(patch);
+        },
+        update: function update(patches, path) {
+            var patch = {
+                op: "replace",
+                path: path + escapePathComponent(this.name),
+                value: this.object[this.name]
+            };
+            patches.push(patch);
+        }
+    };
+    function escapePathComponent(str) {
+        if (str.indexOf('/') === -1 && str.indexOf('~') === -1) return str;
+        return str.replace(/~/g, '~0').replace(/\//g, '~1');
+    }
+    function _getPathRecursive(root, obj) {
+        var found;
+        for (var key in root) {
+            if (root.hasOwnProperty(key)) {
+                if (root[key] === obj) {
+                    return escapePathComponent(key) + '/';
+                } else if (_typeof(root[key]) === 'object') {
+                    found = _getPathRecursive(root[key], obj);
+                    if (found != '') {
+                        return escapePathComponent(key) + '/' + found;
+                    }
+                }
+            }
+        }
+        return '';
+    }
+    function getPath(root, obj) {
+        if (root === obj) {
+            return '/';
+        }
+        var path = _getPathRecursive(root, obj);
+        if (path === '') {
+            throw new OriginalError("Object not found in root");
+        }
+        return '/' + path;
+    }
+    var beforeDict = [];
+    var Mirror = function () {
+        function Mirror(obj) {
+            this.observers = [];
+            this.obj = obj;
+        }
+        return Mirror;
+    }();
+    var ObserverInfo = function () {
+        function ObserverInfo(callback, observer) {
+            this.callback = callback;
+            this.observer = observer;
+        }
+        return ObserverInfo;
+    }();
+    function getMirror(obj) {
+        for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
+            if (beforeDict[i].obj === obj) {
+                return beforeDict[i];
+            }
+        }
+    }
+    function getObserverFromMirror(mirror, callback) {
+        for (var j = 0, jlen = mirror.observers.length; j < jlen; j++) {
+            if (mirror.observers[j].callback === callback) {
+                return mirror.observers[j].observer;
+            }
+        }
+    }
+    function removeObserverFromMirror(mirror, observer) {
+        for (var j = 0, jlen = mirror.observers.length; j < jlen; j++) {
+            if (mirror.observers[j].observer === observer) {
+                mirror.observers.splice(j, 1);
+                return;
+            }
+        }
+    }
+    function unobserve(root, observer) {
+        observer.unobserve();
+    }
+    jsonpatch.unobserve = unobserve;
+    function deepClone(obj) {
+        if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === "object") {
+            return JSON.parse(JSON.stringify(obj)); //Faster than ES5 clone - http://jsperf.com/deep-cloning-of-objects/5
+        } else {
+            return obj; //no need to clone primitives
+        }
+    }
+    function observe(obj, callback) {
+        var patches = [];
+        var root = obj;
+        var observer;
+        var mirror = getMirror(obj);
+        if (!mirror) {
+            mirror = new Mirror(obj);
+            beforeDict.push(mirror);
+        } else {
+            observer = getObserverFromMirror(mirror, callback);
+        }
+        if (observer) {
+            return observer;
+        }
+        observer = {};
+        mirror.value = deepClone(obj);
+        if (callback) {
+            observer.callback = callback;
+            observer.next = null;
+            var intervals = this.intervals || [100, 1000, 10000, 60000];
+            if (intervals.push === void 0) {
+                throw new OriginalError("jsonpatch.intervals must be an array");
+            }
+            var currentInterval = 0;
+            var dirtyCheck = function dirtyCheck() {
+                generate(observer);
+            };
+            var fastCheck = function fastCheck() {
+                clearTimeout(observer.next);
+                observer.next = setTimeout(function () {
+                    dirtyCheck();
+                    currentInterval = 0;
+                    observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+                }, 0);
+            };
+            var slowCheck = function slowCheck() {
+                dirtyCheck();
+                if (currentInterval == intervals.length) currentInterval = intervals.length - 1;
+                observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+            };
+            if (typeof window !== 'undefined') {
+                if (window.addEventListener) {
+                    window.addEventListener('mousedown', fastCheck);
+                    window.addEventListener('mouseup', fastCheck);
+                    window.addEventListener('keydown', fastCheck);
+                } else {
+                    document.documentElement.attachEvent('onmousedown', fastCheck);
+                    document.documentElement.attachEvent('onmouseup', fastCheck);
+                    document.documentElement.attachEvent('onkeydown', fastCheck);
+                }
+            }
+            observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+        }
+        observer.patches = patches;
+        observer.object = obj;
+        observer.unobserve = function () {
+            generate(observer);
+            clearTimeout(observer.next);
+            removeObserverFromMirror(mirror, observer);
+            if (typeof window !== 'undefined') {
+                if (window.removeEventListener) {
+                    window.removeEventListener('mousedown', fastCheck);
+                    window.removeEventListener('mouseup', fastCheck);
+                    window.removeEventListener('keydown', fastCheck);
+                } else {
+                    document.documentElement.detachEvent('onmousedown', fastCheck);
+                    document.documentElement.detachEvent('onmouseup', fastCheck);
+                    document.documentElement.detachEvent('onkeydown', fastCheck);
+                }
+            }
+        };
+        mirror.observers.push(new ObserverInfo(callback, observer));
+        return observer;
+    }
+    jsonpatch.observe = observe;
+    function generate(observer) {
+        var mirror;
+        for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
+            if (beforeDict[i].obj === observer.object) {
+                mirror = beforeDict[i];
+                break;
+            }
+        }
+        _generate(mirror.value, observer.object, observer.patches, "");
+        if (observer.patches.length) {
+            apply(mirror.value, observer.patches);
+        }
+        var temp = observer.patches;
+        if (temp.length > 0) {
+            observer.patches = [];
+            if (observer.callback) {
+                observer.callback(temp);
+            }
+        }
+        return temp;
+    }
+    jsonpatch.generate = generate;
+    // Dirty check if obj is different from mirror, generate patches and update mirror
+    function _generate(mirror, obj, patches, path) {
+        var newKeys = _objectKeys(obj);
+        var oldKeys = _objectKeys(mirror);
+        var changed = false;
+        var deleted = false;
+        //if ever "move" operation is implemented here, make sure this test runs OK: "should not generate the same patch twice (move)"
+        for (var t = oldKeys.length - 1; t >= 0; t--) {
+            var key = oldKeys[t];
+            var oldVal = mirror[key];
+            if (obj.hasOwnProperty(key)) {
+                var newVal = obj[key];
+                if ((typeof oldVal === 'undefined' ? 'undefined' : _typeof(oldVal)) == "object" && oldVal != null && (typeof newVal === 'undefined' ? 'undefined' : _typeof(newVal)) == "object" && newVal != null) {
+                    _generate(oldVal, newVal, patches, path + "/" + escapePathComponent(key));
+                } else {
+                    if (oldVal != newVal) {
+                        changed = true;
+                        patches.push({ op: "replace", path: path + "/" + escapePathComponent(key), value: deepClone(newVal) });
+                    }
+                }
+            } else {
+                patches.push({ op: "remove", path: path + "/" + escapePathComponent(key) });
+                deleted = true; // property has been deleted
+            }
+        }
+        if (!deleted && newKeys.length == oldKeys.length) {
+            return;
+        }
+        for (var t = 0; t < newKeys.length; t++) {
+            var key = newKeys[t];
+            if (!mirror.hasOwnProperty(key)) {
+                patches.push({ op: "add", path: path + "/" + escapePathComponent(key), value: deepClone(obj[key]) });
+            }
+        }
+    }
+    var _isArray;
+    if (Array.isArray) {
+        _isArray = Array.isArray;
+    } else {
+        _isArray = function _isArray(obj) {
+            return obj.push && typeof obj.length === 'number';
+        };
+    }
+    //3x faster than cached /^\d+$/.test(str)
+    function isInteger(str) {
+        var i = 0;
+        var len = str.length;
+        var charCode;
+        while (i < len) {
+            charCode = str.charCodeAt(i);
+            if (charCode >= 48 && charCode <= 57) {
+                i++;
+                continue;
+            }
+            return false;
+        }
+        return true;
+    }
+    /// Apply a json-patch operation on an object tree
+    function apply(tree, patches, validate) {
+        var result = false,
+            p = 0,
+            plen = patches.length,
+            patch,
+            key;
+        while (p < plen) {
+            patch = patches[p];
+            p++;
+            // Find the object
+            var path = patch.path || "";
+            var keys = path.split('/');
+            var obj = tree;
+            var t = 1; //skip empty element - http://jsperf.com/to-shift-or-not-to-shift
+            var len = keys.length;
+            var existingPathFragment = undefined;
+            while (true) {
+                key = keys[t];
+                if (validate) {
+                    if (existingPathFragment === undefined) {
+                        if (obj[key] === undefined) {
+                            existingPathFragment = keys.slice(0, t).join('/');
+                        } else if (t == len - 1) {
+                            existingPathFragment = patch.path;
+                        }
+                        if (existingPathFragment !== undefined) {
+                            this.validator(patch, p - 1, tree, existingPathFragment);
+                        }
+                    }
+                }
+                t++;
+                if (key === undefined) {
+                    if (t >= len) {
+                        result = rootOps[patch.op].call(patch, obj, key, tree); // Apply patch
+                        break;
+                    }
+                }
+                if (_isArray(obj)) {
+                    if (key === '-') {
+                        key = obj.length;
+                    } else {
+                        if (validate && !isInteger(key)) {
+                            throw new JsonPatchError("Expected an unsigned base-10 integer value, making the new referenced value the array element with the zero-based index", "OPERATION_PATH_ILLEGAL_ARRAY_INDEX", p - 1, patch.path, patch);
+                        }
+                        key = parseInt(key, 10);
+                    }
+                    if (t >= len) {
+                        if (validate && patch.op === "add" && key > obj.length) {
+                            throw new JsonPatchError("The specified index MUST NOT be greater than the number of elements in the array", "OPERATION_VALUE_OUT_OF_BOUNDS", p - 1, patch.path, patch);
+                        }
+                        result = arrOps[patch.op].call(patch, obj, key, tree); // Apply patch
+                        break;
+                    }
+                } else {
+                    if (key && key.indexOf('~') != -1) key = key.replace(/~1/g, '/').replace(/~0/g, '~'); // escape chars
+                    if (t >= len) {
+                        result = objOps[patch.op].call(patch, obj, key, tree); // Apply patch
+                        break;
+                    }
+                }
+                obj = obj[key];
+            }
+        }
+        return result;
+    }
+    jsonpatch.apply = apply;
+    function compare(tree1, tree2) {
+        var patches = [];
+        _generate(tree1, tree2, patches, '');
+        return patches;
+    }
+    jsonpatch.compare = compare;
+    var JsonPatchError = function (_super) {
+        __extends(JsonPatchError, _super);
+        function JsonPatchError(message, name, index, operation, tree) {
+            _super.call(this, message);
+            this.message = message;
+            this.name = name;
+            this.index = index;
+            this.operation = operation;
+            this.tree = tree;
+        }
+        return JsonPatchError;
+    }(OriginalError);
+    jsonpatch.JsonPatchError = JsonPatchError;
+    jsonpatch.Error = JsonPatchError;
+    /**
+     * Recursively checks whether an object has any undefined values inside.
+     */
+    function hasUndefined(obj) {
+        if (obj === undefined) {
+            return true;
+        }
+        if (typeof obj == "array" || (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) == "object") {
+            for (var i in obj) {
+                if (hasUndefined(obj[i])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * Validates a single operation. Called from `jsonpatch.validate`. Throws `JsonPatchError` in case of an error.
+     * @param {object} operation - operation object (patch)
+     * @param {number} index - index of operation in the sequence
+     * @param {object} [tree] - object where the operation is supposed to be applied
+     * @param {string} [existingPathFragment] - comes along with `tree`
+     */
+    function validator(operation, index, tree, existingPathFragment) {
+        if ((typeof operation === 'undefined' ? 'undefined' : _typeof(operation)) !== 'object' || operation === null || _isArray(operation)) {
+            throw new JsonPatchError('Operation is not an object', 'OPERATION_NOT_AN_OBJECT', index, operation, tree);
+        } else if (!objOps[operation.op]) {
+            throw new JsonPatchError('Operation `op` property is not one of operations defined in RFC-6902', 'OPERATION_OP_INVALID', index, operation, tree);
+        } else if (typeof operation.path !== 'string') {
+            throw new JsonPatchError('Operation `path` property is not a string', 'OPERATION_PATH_INVALID', index, operation, tree);
+        } else if ((operation.op === 'move' || operation.op === 'copy') && typeof operation.from !== 'string') {
+            throw new JsonPatchError('Operation `from` property is not present (applicable in `move` and `copy` operations)', 'OPERATION_FROM_REQUIRED', index, operation, tree);
+        } else if ((operation.op === 'add' || operation.op === 'replace' || operation.op === 'test') && operation.value === undefined) {
+            throw new JsonPatchError('Operation `value` property is not present (applicable in `add`, `replace` and `test` operations)', 'OPERATION_VALUE_REQUIRED', index, operation, tree);
+        } else if ((operation.op === 'add' || operation.op === 'replace' || operation.op === 'test') && hasUndefined(operation.value)) {
+            throw new JsonPatchError('Operation `value` property is not present (applicable in `add`, `replace` and `test` operations)', 'OPERATION_VALUE_CANNOT_CONTAIN_UNDEFINED', index, operation, tree);
+        } else if (tree) {
+            if (operation.op == "add") {
+                var pathLen = operation.path.split("/").length;
+                var existingPathLen = existingPathFragment.split("/").length;
+                if (pathLen !== existingPathLen + 1 && pathLen !== existingPathLen) {
+                    throw new JsonPatchError('Cannot perform an `add` operation at the desired path', 'OPERATION_PATH_CANNOT_ADD', index, operation, tree);
+                }
+            } else if (operation.op === 'replace' || operation.op === 'remove' || operation.op === '_get') {
+                if (operation.path !== existingPathFragment) {
+                    throw new JsonPatchError('Cannot perform the operation at a path that does not exist', 'OPERATION_PATH_UNRESOLVABLE', index, operation, tree);
+                }
+            } else if (operation.op === 'move' || operation.op === 'copy') {
+                var existingValue = { op: "_get", path: operation.from, value: undefined };
+                var error = jsonpatch.validate([existingValue], tree);
+                if (error && error.name === 'OPERATION_PATH_UNRESOLVABLE') {
+                    throw new JsonPatchError('Cannot perform the operation from a path that does not exist', 'OPERATION_FROM_UNRESOLVABLE', index, operation, tree);
+                }
+            }
+        }
+    }
+    jsonpatch.validator = validator;
+    /**
+     * Validates a sequence of operations. If `tree` parameter is provided, the sequence is additionally validated against the object tree.
+     * If error is encountered, returns a JsonPatchError object
+     * @param sequence
+     * @param tree
+     * @returns {JsonPatchError|undefined}
+     */
+    function validate(sequence, tree) {
+        try {
+            if (!_isArray(sequence)) {
+                throw new JsonPatchError('Patch sequence must be an array', 'SEQUENCE_NOT_AN_ARRAY');
+            }
+            if (tree) {
+                tree = JSON.parse(JSON.stringify(tree)); //clone tree so that we can safely try applying operations
+                apply.call(this, tree, sequence, true);
+            } else {
+                for (var i = 0; i < sequence.length; i++) {
+                    this.validator(sequence[i], i);
+                }
+            }
+        } catch (e) {
+            if (e instanceof JsonPatchError) {
+                return e;
+            } else {
+                throw e;
+            }
+        }
+    }
+    jsonpatch.validate = validate;
+})(jsonpatch || (jsonpatch = {}));
+if (true) {
+    exports.apply = jsonpatch.apply;
+    exports.observe = jsonpatch.observe;
+    exports.unobserve = jsonpatch.unobserve;
+    exports.generate = jsonpatch.generate;
+    exports.compare = jsonpatch.compare;
+    exports.validate = jsonpatch.validate;
+    exports.validator = jsonpatch.validator;
+    exports.JsonPatchError = jsonpatch.JsonPatchError;
+    exports.Error = jsonpatch.Error;
+}
+
+/***/ }),
 /* 481 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -62665,7 +62917,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 exports.cleanPatches = cleanPatches;
 exports.parsePath = parsePath;
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 /**
  * Clean and extend patches from jsonpatch observer.
@@ -62762,9 +63014,9 @@ var _base2 = _interopRequireDefault(_base);
 
 var _plugins = __webpack_require__(8);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
 var _mixed = __webpack_require__(11);
 
@@ -63146,7 +63398,7 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 
 var _element = __webpack_require__(0);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _base = __webpack_require__(10);
 
@@ -63154,7 +63406,7 @@ var _base2 = _interopRequireDefault(_base);
 
 var _plugins = __webpack_require__(8);
 
-var _feature = __webpack_require__(41);
+var _feature = __webpack_require__(40);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -63408,11 +63660,11 @@ var _pluginHooks = __webpack_require__(16);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _number = __webpack_require__(5);
+var _number = __webpack_require__(6);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _event = __webpack_require__(13);
 
@@ -64060,7 +64312,7 @@ UndoRedo.RowMoveAction.prototype.redo = function (instance, redoneCallback) {
 
 function init() {
   var instance = this;
-  var pluginEnabled = typeof instance.getSettings().undo == 'undefined' || instance.getSettings().undo;
+  var pluginEnabled = typeof instance.getSettings().undo === 'undefined' || instance.getSettings().undo;
 
   if (pluginEnabled) {
     if (!instance.undoRedo) {

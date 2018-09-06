@@ -1,7 +1,7 @@
 import staticRegister from './../utils/staticRegister';
-import {hasEditor, registerEditor} from './../editors';
-import {hasRenderer, registerRenderer} from './../renderers';
-import {hasValidator, registerValidator} from './../validators';
+import { registerEditor } from './../editors';
+import { registerRenderer } from './../renderers';
+import { registerValidator } from './../validators';
 
 import autocompleteCellType from './autocompleteType';
 import checkboxCellType from './checkboxType';
@@ -53,7 +53,7 @@ function _getItem(name) {
  * @param {Object} type An object with contains keys (eq: `editor`, `renderer`, `validator`) which describes specified behaviour of the cell.
  */
 function _register(name, type) {
-  const {editor, renderer, validator} = type;
+  const { editor, renderer, validator } = type;
 
   if (editor) {
     registerEditor(name, editor);

@@ -3,8 +3,8 @@ import RowsMapper from 'handsontable/plugins/manualRowMove/rowsMapper';
 describe('manualRowMove', () => {
   describe('rowsMapper', () => {
     it('should set manualRowMove plugin while constructing', () => {
-      var manualRowMoveMock = {};
-      var mapper = new RowsMapper(manualRowMoveMock);
+      const manualRowMoveMock = {};
+      const mapper = new RowsMapper(manualRowMoveMock);
 
       expect(mapper.manualRowMove).toBe(manualRowMoveMock);
     });
@@ -14,17 +14,17 @@ describe('manualRowMove', () => {
     });
 
     it('should destroy array after calling destroy method', () => {
-      var mapper = new RowsMapper();
+      const mapper = new RowsMapper();
 
       expect(mapper._arrayMap).toEqual([]);
 
       mapper.destroy();
 
-      expect(mapper._arrayMap).toBe(null); ;
+      expect(mapper._arrayMap).toBe(null);
     });
 
     it('should create map with pairs index->value', () => {
-      var mapper = new RowsMapper();
+      const mapper = new RowsMapper();
       mapper.createMap(6);
 
       expect(mapper._arrayMap[0]).toBe(0);
@@ -36,7 +36,7 @@ describe('manualRowMove', () => {
     });
 
     it('should change order after move action', () => {
-      var mapper = new RowsMapper();
+      const mapper = new RowsMapper();
       mapper.createMap(6);
 
       mapper.moveRow(1, 0);
@@ -51,7 +51,7 @@ describe('manualRowMove', () => {
     });
 
     it('should clean from null values', () => {
-      var mapper = new RowsMapper();
+      const mapper = new RowsMapper();
       mapper.createMap(6);
 
       mapper.moveRow(1, 6);

@@ -1,4 +1,4 @@
-import {Selection} from './../../../3rdparty/walkontable/src';
+import { Selection } from './../../../3rdparty/walkontable/src';
 
 /**
  * Creates the new instance of Selection, responsible for highlighting cells which are covered by fill handle

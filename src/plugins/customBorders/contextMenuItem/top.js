@@ -1,12 +1,12 @@
 import * as C from './../../../i18n/constants';
-import {checkSelectionBorders, markSelected} from './../utils';
+import { checkSelectionBorders, markSelected } from './../utils';
 
 export default function top(customBordersPlugin) {
   return {
     key: 'borders:top',
     name() {
       let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_TOP);
-      let hasBorder = checkSelectionBorders(this, 'top');
+      const hasBorder = checkSelectionBorders(this, 'top');
       if (hasBorder) {
         label = markSelected(label);
       }
@@ -14,7 +14,7 @@ export default function top(customBordersPlugin) {
       return label;
     },
     callback(key, selected) {
-      let hasBorder = checkSelectionBorders(this, 'top');
+      const hasBorder = checkSelectionBorders(this, 'top');
       customBordersPlugin.prepareBorder(selected, 'top', hasBorder);
     }
   };

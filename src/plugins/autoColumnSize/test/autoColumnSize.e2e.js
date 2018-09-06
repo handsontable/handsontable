@@ -1,5 +1,5 @@
 describe('AutoColumnSize', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,33 +12,33 @@ describe('AutoColumnSize', () => {
     }
   });
 
-  var arrayOfObjects = function() {
+  const arrayOfObjects = function() {
     return [
-      {id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one', nestedData: [{id: 1000}]}
+      { id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one', nestedData: [{ id: 1000 }] }
     ];
   };
 
-  it('should apply auto size by default', function() {
+  it('should apply auto size by default', () => {
     handsontable({
       data: arrayOfObjects()
     });
 
-    var width0 = colWidth(this.$container, 0);
-    var width1 = colWidth(this.$container, 1);
-    var width2 = colWidth(this.$container, 2);
+    const width0 = colWidth(spec().$container, 0);
+    const width1 = colWidth(spec().$container, 1);
+    const width2 = colWidth(spec().$container, 2);
 
     expect(width0).toBeLessThan(width1);
     expect(width1).toBeLessThan(width2);
   });
 
-  it('should update column width after update value in cell (array of objects)', async () => {
+  it('should update column width after update value in cell (array of objects)', async() => {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       columns: [
-        {data: 'id'},
-        {data: 'name'},
-        {data: 'lastName'},
+        { data: 'id' },
+        { data: 'name' },
+        { data: 'lastName' },
       ]
     });
 
@@ -56,70 +56,70 @@ describe('AutoColumnSize', () => {
     expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
   });
 
-  it('should correctly detect column widths with colHeaders', function() {
+  it('should correctly detect column widths with colHeaders', () => {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       colHeaders: ['Identifier Longer text'],
       columns: [
-        {data: 'id'},
-        {data: 'name'},
+        { data: 'id' },
+        { data: 'name' },
       ]
     });
 
-    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
   });
 
-  it('should correctly detect column widths after update colHeaders when headers were passed as an array', function() {
+  it('should correctly detect column widths after update colHeaders when headers were passed as an array', () => {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       colHeaders: true,
       columns: [
-        {data: 'id'},
-        {data: 'name'},
+        { data: 'id' },
+        { data: 'name' },
       ]
     });
 
-    expect([50, 51, 53]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([50, 51, 53]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
 
-    updateSettings({colHeaders: ['Identifier Longer text', 'Identifier Longer and longer text']});
+    updateSettings({ colHeaders: ['Identifier Longer text', 'Identifier Longer and longer text'] });
 
-    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
-    expect([226, 235, 263, 270]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
+    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect([226, 235, 263, 270]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
   });
 
-  it('should correctly detect column widths after update colHeaders when headers were passed as a string', function() {
+  it('should correctly detect column widths after update colHeaders when headers were passed as a string', () => {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       colHeaders: true,
       columns: [
-        {data: 'id'},
-        {data: 'name'},
+        { data: 'id' },
+        { data: 'name' },
       ]
     });
 
-    expect([50, 51, 53]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([50, 51, 53]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
 
-    updateSettings({colHeaders: 'Identifier Longer text'});
+    updateSettings({ colHeaders: 'Identifier Longer text' });
 
-    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
-    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
+    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
   });
 
-  it('should correctly detect column widths after update colHeaders when headers were passed as a function', function() {
+  it('should correctly detect column widths after update colHeaders when headers were passed as a function', () => {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       colHeaders: true,
       columns: [
-        {data: 'id'},
-        {data: 'name'},
+        { data: 'id' },
+        { data: 'name' },
       ]
     });
 
-    expect([50, 51, 53]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([50, 51, 53]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
 
     updateSettings({
       colHeaders(index) {
@@ -127,61 +127,61 @@ describe('AutoColumnSize', () => {
       },
     });
 
-    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
-    expect([226, 235, 263, 270]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
+    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect([226, 235, 263, 270]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
   });
 
-  it('should correctly detect column width with colHeaders and the useHeaders option set to false (not taking the header widths into calculation)', function() {
+  it('should correctly detect column width with colHeaders and the useHeaders option set to false (not taking the header widths into calculation)', () => {
     handsontable({
       data: [
-        {id: 'ab'}
+        { id: 'ab' }
       ],
       autoColumnSize: {
         useHeaders: false
       },
       colHeaders: ['Identifier'],
       columns: [
-        {data: 'id'}
+        { data: 'id' }
       ]
     });
 
-    expect(colWidth(this.$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 0)).toBe(50);
   });
 
-  it('should correctly detect column width with columns.title', function() {
+  it('should correctly detect column width with columns.title', () => {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       columns: [
-        {data: 'id', title: 'Identifier'}
+        { data: 'id', title: 'Identifier' }
       ]
     });
 
-    expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
   });
 
-  it('should correctly detect column widths after update columns.title', function() {
+  it('should correctly detect column widths after update columns.title', () => {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       columns: [
-        {data: 'id', title: 'Identifier'}
+        { data: 'id', title: 'Identifier' }
       ]
     });
 
     updateSettings({
       columns: [
-        {data: 'id', title: 'Identifier with longer text'},
+        { data: 'id', title: 'Identifier with longer text' },
       ],
     });
 
-    expect([174, 182, 183, 208, 213]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect([174, 182, 183, 208, 213]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
   });
 
   // https://github.com/handsontable/handsontable/issues/2684
-  it('should correctly detect column width when table is hidden on init (display: none)', async () => {
+  it('should correctly detect column width when table is hidden on init (display: none)', async() => {
     spec().$container.css('display', 'none');
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       colHeaders: ['Identifier', 'First Name']
@@ -195,14 +195,49 @@ describe('AutoColumnSize', () => {
     expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
   });
 
-  it('should keep last columns width unchanged if all rows was removed', async () => {
-    var hot = handsontable({
+  it('should not wrap the cell values when the whole column has values with the same length', () => {
+    handsontable({
+      data: [
+        {
+          units: 'EUR / USD'
+        },
+        {
+          units: 'JPY / USD'
+        },
+        {
+          units: 'GBP / USD'
+        },
+        {
+          units: 'MXN / USD'
+        },
+        {
+          units: 'ARS / USD'
+        }
+      ],
+      autoColumnSize: {
+        samplingRatio: 5,
+      },
+      columns: [
+        { data: 'units' },
+      ]
+    });
+
+    expect([93]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect(rowHeight(spec().$container, 0)).toBe(24);
+    expect(rowHeight(spec().$container, 1)).toBe(23);
+    expect(rowHeight(spec().$container, 2)).toBe(23);
+    expect(rowHeight(spec().$container, 3)).toBe(23);
+    expect(rowHeight(spec().$container, 4)).toBe(23);
+  });
+
+  it('should keep last columns width unchanged if all rows was removed', async() => {
+    const hot = handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       columns: [
-        {data: 'id', title: 'Identifier'},
-        {data: 'name', title: 'Name'},
-        {data: 'lastName', title: 'Last Name'},
+        { data: 'id', title: 'Identifier' },
+        { data: 'name', title: 'Name' },
+        { data: 'lastName', title: 'Last Name' },
       ]
     });
 
@@ -218,14 +253,14 @@ describe('AutoColumnSize', () => {
     expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
   });
 
-  it('should be possible to disable plugin using updateSettings', function() {
+  it('should be possible to disable plugin using updateSettings', () => {
     handsontable({
       data: arrayOfObjects()
     });
 
-    var width0 = colWidth(this.$container, 0);
-    var width1 = colWidth(this.$container, 1);
-    var width2 = colWidth(this.$container, 2);
+    let width0 = colWidth(spec().$container, 0);
+    let width1 = colWidth(spec().$container, 1);
+    let width2 = colWidth(spec().$container, 2);
 
     expect(width0).toBeLessThan(width1);
     expect(width1).toBeLessThan(width2);
@@ -234,38 +269,38 @@ describe('AutoColumnSize', () => {
       autoColumnSize: false
     });
 
-    width0 = colWidth(this.$container, 0);
-    width1 = colWidth(this.$container, 1);
-    width2 = colWidth(this.$container, 2);
+    width0 = colWidth(spec().$container, 0);
+    width1 = colWidth(spec().$container, 1);
+    width2 = colWidth(spec().$container, 2);
 
     expect(width0).toEqual(width1);
     expect(width0).toEqual(width2);
     expect(width1).toEqual(width2);
   });
 
-  it('should apply disabling/enabling plugin using updateSettings, only to a particular HOT instance', function() {
-    this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
+  it('should apply disabling/enabling plugin using updateSettings, only to a particular HOT instance', () => {
+    spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
     handsontable({
       data: arrayOfObjects()
     });
 
-    this.$container2.handsontable({
+    spec().$container2.handsontable({
       data: arrayOfObjects()
     });
 
-    var widths = {
+    const widths = {
       1: [],
       2: []
     };
 
-    widths[1][0] = colWidth(this.$container, 0);
-    widths[1][1] = colWidth(this.$container, 1);
-    widths[1][2] = colWidth(this.$container, 2);
+    widths[1][0] = colWidth(spec().$container, 0);
+    widths[1][1] = colWidth(spec().$container, 1);
+    widths[1][2] = colWidth(spec().$container, 2);
 
-    widths[2][0] = colWidth(this.$container2, 0);
-    widths[2][1] = colWidth(this.$container2, 1);
-    widths[2][2] = colWidth(this.$container2, 2);
+    widths[2][0] = colWidth(spec().$container2, 0);
+    widths[2][1] = colWidth(spec().$container2, 1);
+    widths[2][2] = colWidth(spec().$container2, 2);
 
     expect(widths[1][0]).toBeLessThan(widths[1][1]);
     expect(widths[1][1]).toBeLessThan(widths[1][2]);
@@ -277,13 +312,13 @@ describe('AutoColumnSize', () => {
       autoColumnSize: false
     });
 
-    widths[1][0] = colWidth(this.$container, 0);
-    widths[1][1] = colWidth(this.$container, 1);
-    widths[1][2] = colWidth(this.$container, 2);
+    widths[1][0] = colWidth(spec().$container, 0);
+    widths[1][1] = colWidth(spec().$container, 1);
+    widths[1][2] = colWidth(spec().$container, 2);
 
-    widths[2][0] = colWidth(this.$container2, 0);
-    widths[2][1] = colWidth(this.$container2, 1);
-    widths[2][2] = colWidth(this.$container2, 2);
+    widths[2][0] = colWidth(spec().$container2, 0);
+    widths[2][1] = colWidth(spec().$container2, 1);
+    widths[2][2] = colWidth(spec().$container2, 2);
 
     expect(widths[1][0]).toEqual(widths[1][1]);
     expect(widths[1][0]).toEqual(widths[1][2]);
@@ -292,19 +327,19 @@ describe('AutoColumnSize', () => {
     expect(widths[2][0]).toBeLessThan(widths[2][1]);
     expect(widths[2][1]).toBeLessThan(widths[2][2]);
 
-    this.$container2.handsontable('destroy');
-    this.$container2.remove();
+    spec().$container2.handsontable('destroy');
+    spec().$container2.remove();
   });
 
-  it('should be possible to enable plugin using updateSettings', function() {
+  it('should be possible to enable plugin using updateSettings', () => {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: false
     });
 
-    var width0 = colWidth(this.$container, 0);
-    var width1 = colWidth(this.$container, 1);
-    var width2 = colWidth(this.$container, 2);
+    let width0 = colWidth(spec().$container, 0);
+    let width1 = colWidth(spec().$container, 1);
+    let width2 = colWidth(spec().$container, 2);
 
     expect(width0).toEqual(width1);
     expect(width0).toEqual(width2);
@@ -314,24 +349,24 @@ describe('AutoColumnSize', () => {
       autoColumnSize: true
     });
 
-    width0 = colWidth(this.$container, 0);
-    width1 = colWidth(this.$container, 1);
-    width2 = colWidth(this.$container, 2);
+    width0 = colWidth(spec().$container, 0);
+    width1 = colWidth(spec().$container, 1);
+    width2 = colWidth(spec().$container, 2);
 
     expect(width0).toBeLessThan(width1);
     expect(width1).toBeLessThan(width2);
   });
 
   it('should consider CSS style of each instance separately', () => {
-    var $style = $('<style>.big .htCore td {font-size: 40px; line-height: 1.1;}</style>').appendTo('head');
-    var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
+    const $style = $('<style>.big .htCore td {font-size: 40px; line-height: 1.1;}</style>').appendTo('head');
+    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
       data: arrayOfObjects()
     });
-    var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
+    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
       data: arrayOfObjects()
     });
-    var hot1 = $container1.handsontable('getInstance');
-    var hot2 = $container2.handsontable('getInstance');
+    const hot1 = $container1.handsontable('getInstance');
+    const hot2 = $container2.handsontable('getInstance');
 
     expect(colWidth($container1, 0)).toEqual(colWidth($container2, 0));
 
@@ -351,19 +386,19 @@ describe('AutoColumnSize', () => {
     $container2.remove();
   });
 
-  it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', function() {
-    var $style = $('<style>.htCore.big-table td {font-size: 32px}</style>').appendTo('head');
+  it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', () => {
+    const $style = $('<style>.htCore.big-table td {font-size: 32px}</style>').appendTo('head');
 
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true
     });
 
-    var width = colWidth(this.$container, 0);
+    const width = colWidth(spec().$container, 0);
 
-    this.$container.find('table').addClass('big-table');
+    spec().$container.find('table').addClass('big-table');
     render();
-    expect(colWidth(this.$container, 0)).toBeGreaterThan(width);
+    expect(colWidth(spec().$container, 0)).toBeGreaterThan(width);
 
     $style.remove();
   });
@@ -376,7 +411,7 @@ describe('AutoColumnSize', () => {
     expect(document.querySelector('.htAutoSize')).toBe(null);
   });
 
-  it('should not trigger autoColumnSize when column width is defined (through colWidths)', function() {
+  it('should not trigger autoColumnSize when column width is defined (through colWidths)', () => {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -388,18 +423,18 @@ describe('AutoColumnSize', () => {
 
     setDataAtCell(0, 0, 'LongLongLongLong');
 
-    expect(colWidth(this.$container, 0)).toBe(70);
+    expect(colWidth(spec().$container, 0)).toBe(70);
   });
 
-  it('should not trigger autoColumnSize when column width is defined (through columns.width)', function() {
+  it('should not trigger autoColumnSize when column width is defined (through columns.width)', () => {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       colWidth: 77,
       columns: [
-        {width: 70},
-        {width: 70},
-        {width: 70}
+        { width: 70 },
+        { width: 70 },
+        { width: 70 }
       ],
       width: 500,
       height: 100,
@@ -408,43 +443,43 @@ describe('AutoColumnSize', () => {
 
     setDataAtCell(0, 0, 'LongLongLongLong');
 
-    expect(colWidth(this.$container, 0)).toBe(70);
+    expect(colWidth(spec().$container, 0)).toBe(70);
   });
 
-  it('should consider renderer that uses conditional formatting for specific row & column index', function() {
-    var data = arrayOfObjects();
-    data.push({id: '2', name: 'Rocket Man', lastName: 'In a tin can'});
+  it('should consider renderer that uses conditional formatting for specific row & column index', () => {
+    const data = arrayOfObjects();
+    data.push({ id: '2', name: 'Rocket Man', lastName: 'In a tin can' });
     handsontable({
       data,
       columns: [
-        {data: 'id'},
-        {data: 'name'}
+        { data: 'id' },
+        { data: 'name' }
       ],
       autoColumnSize: true,
-      renderer(instance, td, row, col, prop, value, cellProperties) {
+      renderer(instance, td, row, col, ...args) {
         // taken from demo/renderers.html
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
+        Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, ...args]);
         if (row === 1 && col === 0) {
           td.style.padding = '100px';
         }
       }
     });
 
-    expect(colWidth(this.$container, 0)).toBeGreaterThan(colWidth(this.$container, 1));
+    expect(colWidth(spec().$container, 0)).toBeGreaterThan(colWidth(spec().$container, 1));
   });
 
   it('should\'t serialize value if it is array (nested data sources)', () => {
-    var spy = jasmine.createSpy('renderer');
+    const spy = jasmine.createSpy('renderer');
 
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       columns: [
-        {data: 'nestedData'}
+        { data: 'nestedData' }
       ],
       renderer: spy
     });
 
-    expect(spy.calls.mostRecent().args[5]).toEqual([{id: 1000}]);
+    expect(spy.calls.mostRecent().args[5]).toEqual([{ id: 1000 }]);
   });
 });

@@ -1,5 +1,5 @@
-import {debounce} from '../../helpers/function';
-import {mixin} from '../../helpers/object';
+import { debounce } from '../../helpers/function';
+import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 
 const DEFAULT_DISPLAY_DELAY = 250;
@@ -57,7 +57,7 @@ class DisplaySwitch {
   show(range) {
     this.wasLastActionShow = true;
     this.showDebounced(range);
-  };
+  }
 
   /**
    * Cancel hiding comment.

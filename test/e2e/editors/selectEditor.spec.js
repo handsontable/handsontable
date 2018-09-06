@@ -1,6 +1,6 @@
 describe('SelectEditor', () => {
 
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -24,7 +24,7 @@ describe('SelectEditor', () => {
 
     selectCell(0, 0);
 
-    var editor = $('.htSelectEditor');
+    const editor = $('.htSelectEditor');
 
     expect(editor.length).toEqual(1);
     expect(editor.is('select')).toBe(true);
@@ -37,17 +37,17 @@ describe('SelectEditor', () => {
   });
 
   it('should display and correctly reposition select editor while scrolling', (done) => {
-    var hot = handsontable({
+    const hot = handsontable({
       width: 200,
       height: 200,
       data: Handsontable.helper.createSpreadsheetData(100, 100),
       columns: [
         {
           editor: 'select'
-        }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {editor: 'select'}
+        }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, { editor: 'select' }
       ]
     });
-    var mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view.wt.wtTable.holder;
 
     selectCell(0, 0);
     keyDown('enter');
@@ -55,7 +55,7 @@ describe('SelectEditor', () => {
 
     mainHolder.scrollTop = 10;
     mainHolder.scrollLeft = 20;
-    var editor = $('.htSelectEditor');
+    const editor = $('.htSelectEditor');
 
     setTimeout(() => {
       expect(editor.css('top')).toEqual('-10px');
@@ -65,7 +65,7 @@ describe('SelectEditor', () => {
   });
 
   it('should populate select with given options (array)', () => {
-    var options = [
+    const options = [
       'Misubishi', 'Chevrolet', 'Lamborgini'
     ];
 
@@ -80,11 +80,11 @@ describe('SelectEditor', () => {
 
     selectCell(0, 0);
 
-    var editor = $('.htSelectEditor');
+    const editor = $('.htSelectEditor');
 
     keyDown('enter');
 
-    var $options = editor.find('option');
+    const $options = editor.find('option');
 
     expect($options.length).toEqual(options.length);
     expect($options.eq(0).val()).toMatch(options[0]);
@@ -96,7 +96,7 @@ describe('SelectEditor', () => {
   });
 
   it('should populate select with given options (object)', () => {
-    var options = {
+    const options = {
       mit: 'Misubishi',
       che: 'Chevrolet',
       lam: 'Lamborgini'
@@ -113,11 +113,11 @@ describe('SelectEditor', () => {
 
     selectCell(0, 0);
 
-    var editor = $('.htSelectEditor');
+    const editor = $('.htSelectEditor');
 
     keyDown('enter');
 
-    var $options = editor.find('option');
+    const $options = editor.find('option');
 
     expect($options.eq(0).val()).toMatch('mit');
     expect($options.eq(0).html()).toMatch(options.mit);
@@ -128,7 +128,7 @@ describe('SelectEditor', () => {
   });
 
   it('should populate select with given options (function:array)', () => {
-    var options = function() {
+    const options = function() {
       return [
         'Misubishi', 'Chevrolet', 'Lamborgini'
       ];
@@ -145,11 +145,11 @@ describe('SelectEditor', () => {
 
     selectCell(0, 0);
 
-    var editor = $('.htSelectEditor');
+    const editor = $('.htSelectEditor');
 
     keyDown('enter');
 
-    var $options = editor.find('option');
+    const $options = editor.find('option');
 
     expect($options.length).toEqual(options().length);
     expect($options.eq(0).val()).toMatch(options()[0]);
@@ -161,7 +161,7 @@ describe('SelectEditor', () => {
   });
 
   it('should populate select with given options (function:object)', () => {
-    var options = function() {
+    const options = function() {
       return {
         mit: 'Misubishi',
         che: 'Chevrolet',
@@ -180,11 +180,11 @@ describe('SelectEditor', () => {
 
     selectCell(0, 0);
 
-    var editor = $('.htSelectEditor');
+    const editor = $('.htSelectEditor');
 
     keyDown('enter');
 
-    var $options = editor.find('option');
+    const $options = editor.find('option');
 
     expect($options.eq(0).val()).toMatch('mit');
     expect($options.eq(0).html()).toMatch(options().mit);
@@ -195,7 +195,7 @@ describe('SelectEditor', () => {
   });
 
   it('should mark option matching cell value as selected', () => {
-    var options = [
+    const options = [
       'Misubishi', 'Chevrolet', 'Lamborgini'
     ];
 
@@ -215,7 +215,7 @@ describe('SelectEditor', () => {
 
     selectCell(0, 0);
 
-    var editor = $('.htSelectEditor');
+    const editor = $('.htSelectEditor');
 
     keyDown('enter');
 
@@ -240,7 +240,7 @@ describe('SelectEditor', () => {
 
   it('should not prevent the default event action when select is clicked', () => {
 
-    var options = function() {
+    const options = function() {
       return [
         'Misubishi', 'Chevrolet', 'Lamborgini'
       ];
@@ -257,26 +257,25 @@ describe('SelectEditor', () => {
 
     selectCell(0, 0);
 
-    var editor = $('.htSelectEditor');
+    const editor = $('.htSelectEditor');
 
     keyDown('enter');
-    var select = editor.find('select');
 
-    var selectMouseDownListener = jasmine.createSpy('selectMouseDownListener');
+    const selectMouseDownListener = jasmine.createSpy('selectMouseDownListener');
     $('body').on('mousedown', selectMouseDownListener);
 
     editor.mousedown();
 
     expect(selectMouseDownListener.calls.count()).toEqual(1);
 
-    var event = selectMouseDownListener.calls.argsFor(0)[0];
+    const event = selectMouseDownListener.calls.argsFor(0)[0];
 
     expect(event).toBeDefined();
     expect(event.isDefaultPrevented()).toBe(false);
   });
 
   describe('IME support', () => {
-    it('should focus editable element (from copyPaste plugin) after selecting the cell', async () => {
+    it('should focus editable element (from copyPaste plugin) after selecting the cell', async() => {
       handsontable({
         editor: false,
       });

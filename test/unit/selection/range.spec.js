@@ -1,5 +1,5 @@
 import SelectionRange from 'handsontable/selection/range';
-import {CellCoords, CellRange} from 'walkontable';
+import { CellCoords, CellRange } from 'walkontable';
 
 describe('SelectionRange', () => {
   let selectionRange;
@@ -43,8 +43,8 @@ describe('SelectionRange', () => {
 
       expect(selectionRange.ranges.length).toBe(1);
       expect(selectionRange.ranges[0].toObject()).toEqual({
-        from: {col: 2, row: 1},
-        to: {col: 2, row: 1},
+        from: { col: 2, row: 1 },
+        to: { col: 2, row: 1 },
       });
     });
   });
@@ -57,16 +57,16 @@ describe('SelectionRange', () => {
 
       expect(selectionRange.ranges.length).toBe(3);
       expect(selectionRange.ranges[0].toObject()).toEqual({
-        from: {col: 0, row: 0},
-        to: {col: 0, row: 0},
+        from: { col: 0, row: 0 },
+        to: { col: 0, row: 0 },
       });
       expect(selectionRange.ranges[1].toObject()).toEqual({
-        from: {col: 0, row: 0},
-        to: {col: 0, row: 0},
+        from: { col: 0, row: 0 },
+        to: { col: 0, row: 0 },
       });
       expect(selectionRange.ranges[2].toObject()).toEqual({
-        from: {col: 2, row: 1},
-        to: {col: 2, row: 1},
+        from: { col: 2, row: 1 },
+        to: { col: 2, row: 1 },
       });
     });
   });
@@ -84,8 +84,8 @@ describe('SelectionRange', () => {
       );
 
       expect(selectionRange.current().toObject()).toEqual({
-        from: {col: 2, row: 1},
-        to: {col: 2, row: 1},
+        from: { col: 2, row: 1 },
+        to: { col: 2, row: 1 },
       });
     });
   });
@@ -103,8 +103,8 @@ describe('SelectionRange', () => {
       );
 
       expect(selectionRange.previous().toObject()).toEqual({
-        from: {col: 0, row: 0},
-        to: {col: 0, row: 0},
+        from: { col: 0, row: 0 },
+        to: { col: 0, row: 0 },
       });
     });
   });
@@ -168,16 +168,16 @@ describe('SelectionRange', () => {
       );
 
       expect(selectionRange.peekByIndex().toObject()).toEqual({
-        from: {col: 2, row: 1},
-        to: {col: 2, row: 1},
+        from: { col: 2, row: 1 },
+        to: { col: 2, row: 1 },
       });
       expect(selectionRange.peekByIndex(-1).toObject()).toEqual({
-        from: {col: 0, row: 0},
-        to: {col: 0, row: 0},
+        from: { col: 0, row: 0 },
+        to: { col: 0, row: 0 },
       });
       expect(selectionRange.peekByIndex(-2).toObject()).toEqual({
-        from: {col: 4, row: 4},
-        to: {col: 4, row: 4},
+        from: { col: 4, row: 4 },
+        to: { col: 4, row: 4 },
       });
       expect(selectionRange.peekByIndex(-4)).not.toBeDefined();
       expect(selectionRange.peekByIndex(-5)).not.toBeDefined();
@@ -197,16 +197,16 @@ describe('SelectionRange', () => {
 
     expect(ranges.length).toBe(3);
     expect(ranges[0].toObject()).toEqual({
-      from: {col: 4, row: 4},
-      to: {col: 4, row: 4},
+      from: { col: 4, row: 4 },
+      to: { col: 4, row: 4 },
     });
     expect(ranges[1].toObject()).toEqual({
-      from: {col: 0, row: 0},
-      to: {col: 0, row: 0},
+      from: { col: 0, row: 0 },
+      to: { col: 0, row: 0 },
     });
     expect(ranges[2].toObject()).toEqual({
-      from: {col: 2, row: 1},
-      to: {col: 2, row: 1},
+      from: { col: 2, row: 1 },
+      to: { col: 2, row: 1 },
     });
   });
 });

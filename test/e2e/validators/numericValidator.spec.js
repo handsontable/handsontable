@@ -1,5 +1,5 @@
 describe('numericValidator', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,30 +12,30 @@ describe('numericValidator', () => {
     }
   });
 
-  var arrayOfObjects = function() {
+  const arrayOfObjects = function() {
     return [
-      {id: 1, name: 'Ted', lastName: 'Right'},
-      {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'},
-      {id: 4, name: 'Sid', lastName: 'Strong'},
-      {id: 5, name: 'Jane', lastName: 'Neat'},
-      {id: 6, name: 'Chuck', lastName: 'Jackson'},
-      {id: 7, name: 'Meg', lastName: 'Jansen'},
-      {id: 8, name: 'Rob', lastName: 'Norris'},
-      {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'}
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' },
+      { id: 4, name: 'Sid', lastName: 'Strong' },
+      { id: 5, name: 'Jane', lastName: 'Neat' },
+      { id: 6, name: 'Chuck', lastName: 'Jackson' },
+      { id: 7, name: 'Meg', lastName: 'Jansen' },
+      { id: 8, name: 'Rob', lastName: 'Norris' },
+      { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+      { id: 10, name: 'Eve', lastName: 'Branson' }
     ];
   };
 
   it('should validate an empty string (default behavior)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -49,14 +49,14 @@ describe('numericValidator', () => {
   });
 
   it('should not validate non numeric string', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -70,14 +70,14 @@ describe('numericValidator', () => {
   });
 
   it('should validate numeric string', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -91,14 +91,14 @@ describe('numericValidator', () => {
   });
 
   it('should validate signed numeric string', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -113,14 +113,14 @@ describe('numericValidator', () => {
 
   describe('allowEmpty', () => {
     it('should not validate an empty string when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'id', type: 'numeric', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'id', type: 'numeric', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -134,14 +134,14 @@ describe('numericValidator', () => {
     });
 
     it('should not validate `null` when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'id', type: 'numeric', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'id', type: 'numeric', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -155,14 +155,14 @@ describe('numericValidator', () => {
     });
 
     it('should not validate `undefined` when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'id', type: 'numeric', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'id', type: 'numeric', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -176,14 +176,14 @@ describe('numericValidator', () => {
     });
 
     it('should validate 0 when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'id', type: 'numeric', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'id', type: 'numeric', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -197,16 +197,16 @@ describe('numericValidator', () => {
     });
 
     it('should add / remove `htInvalid` class properly when validating non-numeric data', (done) => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: [
-          {id: 1, name: 'Ted', salary: 10000},
-          {id: 2, name: 'Frank', salary: '5300'},
-          {id: 3, name: 'Joan', salary: 'non-numeric value'}
+          { id: 1, name: 'Ted', salary: 10000 },
+          { id: 2, name: 'Frank', salary: '5300' },
+          { id: 3, name: 'Joan', salary: 'non-numeric value' }
         ],
         columns: [
-          {data: 'id'},
-          {data: 'name'},
-          {data: 'salary', type: 'numeric', allowInvalid: false}
+          { data: 'id' },
+          { data: 'name' },
+          { data: 'salary', type: 'numeric', allowInvalid: false }
         ]
       });
 

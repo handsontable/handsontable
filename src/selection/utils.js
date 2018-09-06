@@ -1,6 +1,6 @@
-import {CellRange} from './../3rdparty/walkontable/src';
-import {arrayEach, arrayReduce, arrayMap} from './../helpers/array';
-import {isUndefined} from './../helpers/mixed';
+import { CellRange } from './../3rdparty/walkontable/src';
+import { arrayEach, arrayReduce } from './../helpers/array';
+import { isUndefined } from './../helpers/mixed';
 
 export const SELECTION_TYPE_UNRECOGNIZED = 0;
 export const SELECTION_TYPE_EMPTY = 1;
@@ -68,7 +68,7 @@ export function detectSelectionType(selectionRanges, _callSymbol = rootCall) {
  *                                       defined as props should be normalized to the numeric values.
  * @returns {Number[]} Returns normalized data about selected range as an array (`[rowStart, columnStart, rowEnd, columnEnd]`).
  */
-export function normalizeSelectionFactory(type, {keepDirection = false, propToCol} = {}) {
+export function normalizeSelectionFactory(type, { keepDirection = false, propToCol } = {}) {
   if (!SELECTION_TYPES.includes(type)) {
     throw new Error('Unsupported selection ranges schema type was provided.');
   }
@@ -150,7 +150,7 @@ export function transformSelectionToColumnDistance(selectionRanges) {
   const orderedIndexes = Array.from(unorderedIndexes).sort((a, b) => a - b);
   const normalizedColumnRanges = arrayReduce(orderedIndexes, (acc, visualColumnIndex, index, array) => {
     if (index !== 0 && visualColumnIndex === array[index - 1] + 1) {
-      acc[acc.length - 1][1]++;
+      acc[acc.length - 1][1] += 1;
 
     } else {
       acc.push([visualColumnIndex, 1]);
@@ -200,7 +200,7 @@ export function transformSelectionToRowDistance(selectionRanges) {
   const orderedIndexes = Array.from(unorderedIndexes).sort((a, b) => a - b);
   const normalizedRowRanges = arrayReduce(orderedIndexes, (acc, rowIndex, index, array) => {
     if (index !== 0 && rowIndex === array[index - 1] + 1) {
-      acc[acc.length - 1][1]++;
+      acc[acc.length - 1][1] += 1;
 
     } else {
       acc.push([rowIndex, 1]);
@@ -222,4 +222,4 @@ export function transformSelectionToRowDistance(selectionRanges) {
  */
 export function isValidCoord(coord, maxTableItemsCount = Infinity) {
   return typeof coord === 'number' && coord >= 0 && coord < maxTableItemsCount;
-};
+}

@@ -9,7 +9,7 @@
  * @returns {Date} The proper Date object.
  */
 export function getNormalizedDate(dateString) {
-  let nativeDate = new Date(dateString);
+  const nativeDate = new Date(dateString);
 
   // NaN if dateString is not in ISO format
   if (!isNaN(new Date(`${dateString}T00:00`).getDate())) {

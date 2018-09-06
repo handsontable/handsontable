@@ -1,5 +1,5 @@
 describe('Core_getDataAt*', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('Core_getDataAt*', () => {
     }
   });
 
-  var arrayOfArrays = function() {
+  const arrayOfArrays = function() {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
@@ -21,7 +21,7 @@ describe('Core_getDataAt*', () => {
     ];
   };
 
-  var arrayOfObjects = function() {
+  const arrayOfObjects = function() {
     return [
       {
         'id.a.b.c': 1,
@@ -75,7 +75,7 @@ describe('Core_getDataAt*', () => {
 
   describe('`modifyData` hook', () => {
     it('should be fired with specified arguments on every `set`, `get` operation (array of arrays)', () => {
-      var spy = jasmine.createSpy();
+      const spy = jasmine.createSpy();
 
       handsontable({
         data: arrayOfArrays(),
@@ -100,7 +100,7 @@ describe('Core_getDataAt*', () => {
     });
 
     it('should be fired with specified arguments on every `set`, `get` operation (array of objects)', () => {
-      var spy = jasmine.createSpy();
+      const spy = jasmine.createSpy();
 
       handsontable({
         data: arrayOfObjects(),

@@ -1,7 +1,7 @@
-import {KEY_CODES} from './../helpers/unicode';
-import {extend} from './../helpers/object';
-import {setCaretPosition} from './../helpers/dom/element';
-import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
+import { KEY_CODES } from './../helpers/unicode';
+import { extend } from './../helpers/object';
+import { setCaretPosition } from './../helpers/dom/element';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
 import TextEditor from './textEditor';
 
 const HandsontableEditor = TextEditor.prototype.extend();
@@ -12,10 +12,10 @@ const HandsontableEditor = TextEditor.prototype.extend();
  * @class HandsontableEditor
  * @dependencies TextEditor
  */
-HandsontableEditor.prototype.createElements = function() {
-  TextEditor.prototype.createElements.apply(this, arguments);
+HandsontableEditor.prototype.createElements = function(...args) {
+  TextEditor.prototype.createElements.apply(this, args);
 
-  var DIV = document.createElement('DIV');
+  const DIV = document.createElement('DIV');
   DIV.className = 'handsontableEditor';
   this.TEXTAREA_PARENT.appendChild(DIV);
 
@@ -23,11 +23,11 @@ HandsontableEditor.prototype.createElements = function() {
   this.assignHooks();
 };
 
-HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellProperties) {
-  TextEditor.prototype.prepare.apply(this, arguments);
+HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellProperties, ...args) {
+  TextEditor.prototype.prepare.apply(this, [td, row, col, prop, value, cellProperties, ...args]);
 
-  var parent = this;
-  var options = {
+  const parent = this;
+  const options = {
     startRows: 0,
     startCols: 0,
     minRows: 0,
@@ -41,11 +41,11 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
     autoWrapCol: false,
     autoWrapRow: false,
     afterOnCellMouseDown(_, coords) {
-      var value = this.getSourceData(coords.row, coords.col);
+      const sourceValue = this.getSourceData(coords.row, coords.col);
 
       // if the value is undefined then it means we don't want to set the value
-      if (value !== void 0) {
-        parent.setValue(value);
+      if (sourceValue !== void 0) {
+        parent.setValue(sourceValue);
       }
       parent.instance.destroyEditor();
     }
@@ -57,30 +57,30 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
   this.htOptions = options;
 };
 
-var onBeforeKeyDown = function(event) {
+const onBeforeKeyDown = function(event) {
   if (isImmediatePropagationStopped(event)) {
     return;
   }
-  var editor = this.getActiveEditor();
+  const editor = this.getActiveEditor();
 
-  var innerHOT = editor.htEditor.getInstance();
+  const innerHOT = editor.htEditor.getInstance();
 
-  var rowToSelect;
-  var selectedRow;
+  let rowToSelect;
+  let selectedRow;
 
-  if (event.keyCode == KEY_CODES.ARROW_DOWN) {
+  if (event.keyCode === KEY_CODES.ARROW_DOWN) {
     if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
       rowToSelect = 0;
     } else if (innerHOT.getSelectedLast()) {
       if (innerHOT.flipped) {
         rowToSelect = innerHOT.getSelectedLast()[0] + 1;
       } else if (!innerHOT.flipped) {
+        const lastRow = innerHOT.countRows() - 1;
         selectedRow = innerHOT.getSelectedLast()[0];
-        var lastRow = innerHOT.countRows() - 1;
         rowToSelect = Math.min(lastRow, selectedRow + 1);
       }
     }
-  } else if (event.keyCode == KEY_CODES.ARROW_UP) {
+  } else if (event.keyCode === KEY_CODES.ARROW_UP) {
     if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
       rowToSelect = innerHOT.countRows() - 1;
 
@@ -111,14 +111,19 @@ var onBeforeKeyDown = function(event) {
   }
 };
 
-HandsontableEditor.prototype.open = function() {
+HandsontableEditor.prototype.open = function(...args) {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 
-  TextEditor.prototype.open.apply(this, arguments);
+  TextEditor.prototype.open.apply(this, args);
 
   if (this.htEditor) {
     this.htEditor.destroy();
   }
+
+  if (this.htContainer.style.display === 'none') {
+    this.htContainer.style.display = '';
+  }
+
   // Construct and initialise a new Handsontable
   this.htEditor = new this.instance.constructor(this.htContainer, this.htOptions);
   this.htEditor.init();
@@ -133,39 +138,39 @@ HandsontableEditor.prototype.open = function() {
   setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
 };
 
-HandsontableEditor.prototype.close = function() {
+HandsontableEditor.prototype.close = function(...args) {
   this.htEditor.rootElement.style.display = 'none';
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-  TextEditor.prototype.close.apply(this, arguments);
+  TextEditor.prototype.close.apply(this, args);
 };
 
-HandsontableEditor.prototype.focus = function() {
-  TextEditor.prototype.focus.apply(this, arguments);
+HandsontableEditor.prototype.focus = function(...args) {
+  TextEditor.prototype.focus.apply(this, args);
 };
 
-HandsontableEditor.prototype.beginEditing = function(initialValue) {
-  var onBeginEditing = this.instance.getSettings().onBeginEditing;
+HandsontableEditor.prototype.beginEditing = function(...args) {
+  const onBeginEditing = this.instance.getSettings().onBeginEditing;
 
   if (onBeginEditing && onBeginEditing() === false) {
     return;
   }
-  TextEditor.prototype.beginEditing.apply(this, arguments);
+  TextEditor.prototype.beginEditing.apply(this, args);
 };
 
-HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
+HandsontableEditor.prototype.finishEditing = function(...args) {
   if (this.htEditor && this.htEditor.isListening()) { // if focus is still in the HOT editor
     this.instance.listen(); // return the focus to the parent HOT instance
   }
 
   if (this.htEditor && this.htEditor.getSelectedLast()) {
-    var value = this.htEditor.getInstance().getValue();
+    const value = this.htEditor.getInstance().getValue();
 
     if (value !== void 0) { // if the value is undefined then it means we don't want to set the value
       this.setValue(value);
     }
   }
 
-  return TextEditor.prototype.finishEditing.apply(this, arguments);
+  return TextEditor.prototype.finishEditing.apply(this, args);
 };
 
 HandsontableEditor.prototype.assignHooks = function() {

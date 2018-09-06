@@ -17,28 +17,29 @@ const STRICT_FORMATS = [
  * @param {Function} callback - Callback called with validation result
  */
 export default function timeValidator(value, callback) {
+  const timeFormat = this.timeFormat || 'h:mm:ss a';
   let valid = true;
-  let timeFormat = this.timeFormat || 'h:mm:ss a';
+  let valueToValidate = value;
 
-  if (value === null) {
-    value = '';
+  if (valueToValidate === null) {
+    valueToValidate = '';
   }
 
-  value = /^\d{3,}$/.test(value) ? parseInt(value, 10) : value;
+  valueToValidate = /^\d{3,}$/.test(valueToValidate) ? parseInt(valueToValidate, 10) : valueToValidate;
 
-  let twoDigitValue = /^\d{1,2}$/.test(value);
+  const twoDigitValue = /^\d{1,2}$/.test(valueToValidate);
 
   if (twoDigitValue) {
-    value += ':00';
+    valueToValidate += ':00';
   }
 
-  let date = moment(value, STRICT_FORMATS, true).isValid() ? moment(value) : moment(value, timeFormat);
+  const date = moment(valueToValidate, STRICT_FORMATS, true).isValid() ? moment(valueToValidate) : moment(valueToValidate, timeFormat);
   let isValidTime = date.isValid();
 
   // is it in the specified format
-  let isValidFormat = moment(value, timeFormat, true).isValid() && !twoDigitValue;
+  let isValidFormat = moment(valueToValidate, timeFormat, true).isValid() && !twoDigitValue;
 
-  if (this.allowEmpty && value === '') {
+  if (this.allowEmpty && valueToValidate === '') {
     isValidTime = true;
     isValidFormat = true;
   }
@@ -50,9 +51,9 @@ export default function timeValidator(value, callback) {
   }
   if (isValidTime && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
-      let correctedValue = date.format(timeFormat);
-      let row = this.instance.runHooks('unmodifyRow', this.row);
-      let column = this.instance.runHooks('unmodifyCol', this.col);
+      const correctedValue = date.format(timeFormat);
+      const row = this.instance.runHooks('unmodifyRow', this.row);
+      const column = this.instance.runHooks('unmodifyCol', this.col);
 
       this.instance.setDataAtCell(row, column, correctedValue, 'timeValidator');
       valid = true;
@@ -62,4 +63,4 @@ export default function timeValidator(value, callback) {
   }
 
   callback(valid);
-};
+}

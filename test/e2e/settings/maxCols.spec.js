@@ -64,11 +64,11 @@ describe('settings', () => {
         it('should show data properly when `maxCols` is set to value > 0', () => {
           handsontable({
             columns: [
-              {type: 'text'},
-              {type: 'text'},
-              {type: 'text'},
-              {type: 'text'},
-              {type: 'text'},
+              { type: 'text' },
+              { type: 'text' },
+              { type: 'text' },
+              { type: 'text' },
+              { type: 'text' },
             ],
             minRows: 10,
             maxCols: 2
@@ -200,11 +200,11 @@ describe('settings', () => {
         it('should show data properly when `maxCols` is updated to value > 0', () => {
           handsontable({
             columns: [
-              {type: 'text'},
-              {type: 'text'},
-              {type: 'text'},
-              {type: 'text'},
-              {type: 'text'},
+              { type: 'text' },
+              { type: 'text' },
+              { type: 'text' },
+              { type: 'text' },
+              { type: 'text' },
             ],
             minRows: 10
           });

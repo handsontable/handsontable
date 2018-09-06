@@ -1,5 +1,5 @@
 describe('Core_onKeyDown', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -117,7 +117,7 @@ describe('Core_onKeyDown', () => {
     });
 
     it('should finish editing and advance to lower cell when enter is pressed (with sync validator)', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         validator(val, cb) {
@@ -143,7 +143,7 @@ describe('Core_onKeyDown', () => {
     });
 
     it('should finish editing and advance to lower cell when enter is pressed (with async validator)', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         validator(val, cb) {
@@ -258,7 +258,7 @@ describe('Core_onKeyDown', () => {
     });
 
     it('should finish editing and advance to lower cell when enter is pressed (with sync validator)', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         validator(val, cb) {
@@ -284,7 +284,7 @@ describe('Core_onKeyDown', () => {
     });
 
     it('should finish editing and advance to lower cell when enter is pressed (with async validator)', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         validator(val, cb) {

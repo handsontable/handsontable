@@ -2,7 +2,7 @@ import Hooks from 'handsontable/pluginHooks';
 
 describe('PluginHooks', () => {
   it('should create global empty bucket on construct', () => {
-    var hooks = new Hooks();
+    const hooks = new Hooks();
 
     expect(hooks.globalBucket).toBeDefined();
     expect(hooks.globalBucket.afterInit).toEqual([]);
@@ -11,8 +11,8 @@ describe('PluginHooks', () => {
   });
 
   it('should create empty object (bucket) on createEmptyBucket call', () => {
-    var hooks = new Hooks();
-    var bucket = hooks.createEmptyBucket();
+    const hooks = new Hooks();
+    const bucket = hooks.createEmptyBucket();
 
     expect(bucket.afterInit).toEqual([]);
     expect(bucket.beforeInit).toEqual([]);
@@ -21,28 +21,28 @@ describe('PluginHooks', () => {
   });
 
   it('should create and get local bucket when context is passed', () => {
-    var hooks = new Hooks();
-    var context = {};
-    var bucket = hooks.getBucket(context);
+    const hooks = new Hooks();
+    const context = {};
+    const bucket = hooks.getBucket(context);
 
     expect(context.pluginHookBucket).toBeDefined();
     expect(context.pluginHookBucket).toBe(bucket);
   });
 
   it('should get global bucket when context is empty', () => {
-    var hooks = new Hooks();
-    var bucket = hooks.getBucket();
+    const hooks = new Hooks();
+    const bucket = hooks.getBucket();
 
     expect(bucket).toBe(hooks.globalBucket);
   });
 
   it('should add hooks as array', () => {
-    var hooks = new Hooks();
-    var fn1 = function() {};
-    var fn2 = function() {};
-    var fn3 = function() {};
-    var context = {};
-    var bucket = {};
+    const hooks = new Hooks();
+    const fn1 = function() {};
+    const fn2 = function() {};
+    const fn3 = function() {};
+    const context = {};
+    const bucket = {};
 
     spyOn(hooks, 'getBucket').and.returnValue(bucket);
     spyOn(hooks, 'register');
@@ -50,9 +50,9 @@ describe('PluginHooks', () => {
     hooks.add('test', [fn1, fn2, fn3, fn3, fn3], context);
 
     expect(hooks.getBucket.calls.count()).toBe(5);
-    expect(hooks.getBucket.calls.mostRecent()).toEqual({object: hooks, args: [{}], returnValue: bucket});
+    expect(hooks.getBucket.calls.mostRecent()).toEqual({ object: hooks, args: [{}], returnValue: bucket });
     expect(hooks.register.calls.count()).toBe(1);
-    expect(hooks.register.calls.mostRecent()).toEqual({object: hooks, args: ['test'], returnValue: void 0});
+    expect(hooks.register.calls.mostRecent()).toEqual({ object: hooks, args: ['test'], returnValue: void 0 });
 
     expect(bucket.test.length).toBe(3);
     expect(bucket.test[0]).toBe(fn1);
@@ -61,11 +61,11 @@ describe('PluginHooks', () => {
   });
 
   it('should add hook as function', () => {
-    var hooks = new Hooks();
-    var fn1 = function() {};
-    var fn2 = function() {};
-    var context = {};
-    var bucket = {test: []};
+    const hooks = new Hooks();
+    const fn1 = function() {};
+    const fn2 = function() {};
+    const context = {};
+    const bucket = { test: [] };
 
     spyOn(hooks, 'getBucket').and.returnValue(bucket);
     spyOn(hooks, 'register');
@@ -86,12 +86,11 @@ describe('PluginHooks', () => {
   });
 
   it('should add hook once as array', () => {
-    var hooks = new Hooks();
-    var fn1 = function() {};
-    var fn2 = function() {};
-    var fn3 = function() {};
-    var context = {};
-    var bucket = {};
+    const hooks = new Hooks();
+    const fn1 = function() {};
+    const fn2 = function() {};
+    const fn3 = function() {};
+    const context = {};
 
     spyOn(hooks, 'add');
 
@@ -101,15 +100,14 @@ describe('PluginHooks', () => {
     expect(fn2.runOnce).toBe(true);
     expect(fn3.runOnce).toBe(true);
     expect(hooks.add.calls.count()).toBe(5);
-    expect(hooks.add.calls.mostRecent()).toEqual({object: hooks, args: ['test', fn3, context], returnValue: void 0});
+    expect(hooks.add.calls.mostRecent()).toEqual({ object: hooks, args: ['test', fn3, context], returnValue: void 0 });
   });
 
   it('should add hook once as function', () => {
-    var hooks = new Hooks();
-    var fn1 = function() {};
-    var fn2 = function() {};
-    var context = {};
-    var bucket = {};
+    const hooks = new Hooks();
+    const fn1 = function() {};
+    const fn2 = function() {};
+    const context = {};
 
     spyOn(hooks, 'add');
 
@@ -128,13 +126,12 @@ describe('PluginHooks', () => {
   });
 
   it('should remove hook', () => {
-    var hooks = new Hooks();
-    var fn1 = function() {};
-    var fn2 = function() {};
-    var fn3 = function() {};
-    var context = {};
-    var bucket = {test: [fn1, fn2]};
-    var result;
+    const hooks = new Hooks();
+    const fn1 = function() {};
+    const fn2 = function() {};
+    const fn3 = function() {};
+    const bucket = { test: [fn1, fn2] };
+    let result;
 
     spyOn(hooks, 'getBucket').and.returnValue(bucket);
 
@@ -156,13 +153,13 @@ describe('PluginHooks', () => {
   });
 
   it('should run hook', () => {
-    var hooks = new Hooks();
-    var fn1 = jasmine.createSpy('fn1').and.returnValue('Foo');
-    var fn2 = jasmine.createSpy('fn2').and.returnValue('Bar');
-    var fn3 = jasmine.createSpy('fn3');
-    var context = {};
-    var bucket = {test: [fn1, fn2]};
-    var result;
+    const hooks = new Hooks();
+    const fn1 = jasmine.createSpy('fn1').and.returnValue('Foo');
+    const fn2 = jasmine.createSpy('fn2').and.returnValue('Bar');
+    const fn3 = jasmine.createSpy('fn3');
+    const context = {};
+    const bucket = { test: [fn1, fn2] };
+    let result;
 
     hooks.globalBucket.test = [fn3];
 
@@ -192,17 +189,16 @@ describe('PluginHooks', () => {
   });
 
   it('should run hooks added as once', () => {
-    var hooks = new Hooks();
-    var fn1 = jasmine.createSpy('fn1').and.returnValue('Foo');
-    var fn2 = jasmine.createSpy('fn2').and.returnValue('Bar');
-    var fn3 = jasmine.createSpy('fn3');
-    var context = {pluginHookBucket: {test: [fn1, fn2]}};
-    var result;
+    const hooks = new Hooks();
+    const fn1 = jasmine.createSpy('fn1').and.returnValue('Foo');
+    const fn2 = jasmine.createSpy('fn2').and.returnValue('Bar');
+    const fn3 = jasmine.createSpy('fn3');
+    const context = { pluginHookBucket: { test: [fn1, fn2] } };
 
     fn1.runOnce = true;
     fn2.runOnce = true;
     fn3.runOnce = true;
-    hooks.globalBucket = {test: [fn3]};
+    hooks.globalBucket = { test: [fn3] };
 
     hooks.run(context, 'test');
     hooks.run(context, 'test');
@@ -214,12 +210,12 @@ describe('PluginHooks', () => {
   });
 
   it('should destroy hooks', () => {
-    var hooks = new Hooks();
-    var fn1 = jasmine.createSpy('fn1').and.returnValue('Foo');
-    var fn2 = jasmine.createSpy('fn2').and.returnValue('Bar');
-    var fn3 = jasmine.createSpy('fn3');
-    var context = {};
-    var bucket = {test: [fn1, fn2, fn3], test2: [fn3]};
+    const hooks = new Hooks();
+    const fn1 = jasmine.createSpy('fn1').and.returnValue('Foo');
+    const fn2 = jasmine.createSpy('fn2').and.returnValue('Bar');
+    const fn3 = jasmine.createSpy('fn3');
+    const context = {};
+    const bucket = { test: [fn1, fn2, fn3], test2: [fn3] };
 
     spyOn(hooks, 'getBucket').and.returnValue(bucket);
 
@@ -231,7 +227,7 @@ describe('PluginHooks', () => {
   });
 
   it('should register hook', () => {
-    var hooks = new Hooks();
+    const hooks = new Hooks();
 
     spyOn(hooks, 'isRegistered').and.returnValue(false);
 
@@ -248,7 +244,7 @@ describe('PluginHooks', () => {
   });
 
   it('should deregister hook', () => {
-    var hooks = new Hooks();
+    const hooks = new Hooks();
 
     spyOn(hooks, 'isRegistered').and.returnValue(false);
     hooks.register('test');
@@ -266,7 +262,7 @@ describe('PluginHooks', () => {
   });
 
   it('should returns `true` if hooks is registered', () => {
-    var hooks = new Hooks();
+    const hooks = new Hooks();
 
     hooks.register('test');
 
@@ -275,14 +271,14 @@ describe('PluginHooks', () => {
   });
 
   it('should returns array of registered hooks', () => {
-    var hooks = new Hooks();
+    const hooks = new Hooks();
 
     expect(hooks.getRegistered().length).toBeGreaterThan(0);
   });
 
   it('should returns `true` if at least one listener was added to the hook', () => {
-    var hooks = new Hooks();
-    var context = {};
+    const hooks = new Hooks();
+    const context = {};
 
     expect(hooks.has('beforeInit', context)).toBe(false);
 

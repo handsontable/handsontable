@@ -1,5 +1,5 @@
 describe('TextRenderer', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -56,12 +56,12 @@ describe('TextRenderer', () => {
   });
 
   it('should add class name `htDimmed` to a read only cell', () => {
-    var DIV = document.createElement('DIV');
-    var instance = new Handsontable.Core(DIV, {});
+    const DIV = document.createElement('DIV');
+    const instance = new Handsontable.Core(DIV, {});
 
-    var TD = document.createElement('TD');
+    const TD = document.createElement('TD');
     TD.className = 'someClass';
-    Handsontable.renderers.TextRenderer(instance, TD, 0, 0, 0, '', {readOnly: true, readOnlyCellClassName: 'htDimmed'});
+    Handsontable.renderers.TextRenderer(instance, TD, 0, 0, 0, '', { readOnly: true, readOnlyCellClassName: 'htDimmed' });
     expect(TD.className).toEqual('someClass htDimmed');
 
     instance.destroy();

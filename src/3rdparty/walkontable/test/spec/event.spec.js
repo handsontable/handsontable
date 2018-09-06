@@ -1,6 +1,6 @@
 describe('WalkontableEvent', () => {
   let $table;
-  let debug = false;
+  const debug = false;
 
   beforeEach(() => {
     $table = $('<table></table>'); // create a table that is not attached to document
@@ -235,7 +235,7 @@ describe('WalkontableEvent', () => {
   });
 
   it('should not call `onCellMouseDown` callback when clicked on the focusable element (column headers)', () => {
-    const opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map((value) => `<option value="${value}">${value}</option>`).join('');
+    const opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(value => `<option value="${value}">${value}</option>`).join('');
     let called = false;
     const wt = new Walkontable.Core({
       table: $table[0],
@@ -260,7 +260,7 @@ describe('WalkontableEvent', () => {
   });
 
   it('should not call `onCellMouseDown` callback when clicked on the focusable element (cell renderer)', () => {
-    const opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map((value) => `<option value="${value}">${value}</option>`).join('');
+    const opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(value => `<option value="${value}">${value}</option>`).join('');
     let called = false;
     const wt = new Walkontable.Core({
       table: $table[0],
@@ -536,7 +536,7 @@ describe('WalkontableEvent', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       onDraw() {
-        count++;
+        count += 1;
       }
     });
 
