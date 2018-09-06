@@ -6,6 +6,9 @@
  * @param {*} value - Value of edited cell
  * @param {*} callback - Callback called with validation result
  */
+
+import {isNumeric} from './../helpers/number';
+
 export default function numericValidator(value, callback) {
   if (value == null) {
     value = '';
@@ -17,6 +20,6 @@ export default function numericValidator(value, callback) {
     callback(false);
 
   } else {
-    callback(/^\s*[+-]?\s*(?:(?:\d+(?:\.\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/i.test(value));
+    callback(isNumeric(value));
   }
 };
