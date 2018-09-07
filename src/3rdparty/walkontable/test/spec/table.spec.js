@@ -1,11 +1,11 @@
 describe('WalkontableTable', () => {
-  var $table,
-    $container,
-    $wrapper,
-    debug = false;
+  let $table;
+  let $container;
+  let $wrapper;
+  const debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden', position: 'relative'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden', position: 'relative' });
     $wrapper.width(100).height(201);
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
@@ -24,7 +24,7 @@ describe('WalkontableTable', () => {
   });
 
   it('should create as many rows as fits in height', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -37,7 +37,7 @@ describe('WalkontableTable', () => {
   it('should create as many rows as in `totalRows` if it is smaller than `height`', function() {
     this.data.splice(5, this.data.length - 5);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -48,7 +48,7 @@ describe('WalkontableTable', () => {
   });
 
   it('first row should have as many columns as in THEAD', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -62,7 +62,7 @@ describe('WalkontableTable', () => {
   });
 
   it('should put a blank cell in the corner if both rowHeaders and colHeaders are set', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -90,7 +90,7 @@ describe('WalkontableTable', () => {
   });
 
   it('getCell should only return cells from rendered rows', function() {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -105,7 +105,7 @@ describe('WalkontableTable', () => {
   });
 
   it('getCoords should return coords of TD', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -113,7 +113,7 @@ describe('WalkontableTable', () => {
     });
     wt.draw();
 
-    var $td2 = $table.find('tbody tr:eq(1) td:eq(1)');
+    const $td2 = $table.find('tbody tr:eq(1) td:eq(1)');
     expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
   });
 
@@ -125,7 +125,7 @@ describe('WalkontableTable', () => {
       return i + 1;
     }
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -136,12 +136,12 @@ describe('WalkontableTable', () => {
     });
     wt.draw();
 
-    var $td2 = $table.find('tbody tr:eq(1) td:eq(1)');
+    const $td2 = $table.find('tbody tr:eq(1) td:eq(1)');
     expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
   });
 
   it('getStretchedColumnWidth should return valid column width when stretchH is set as \'all\'', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -161,7 +161,7 @@ describe('WalkontableTable', () => {
   });
 
   it('getStretchedColumnWidth should return valid column width when stretchH is set as \'last\'', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -181,13 +181,13 @@ describe('WalkontableTable', () => {
   });
 
   it('should use custom cell renderer if provided', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
-        var cellData = getData(row, column);
+        const cellData = getData(row, column);
 
         if (cellData === void 0) {
           TD.innerHTML = '';
@@ -205,7 +205,7 @@ describe('WalkontableTable', () => {
   it('should remove rows if they were removed in data source', function() {
     this.data.splice(8, this.data.length - 8); // second param is required by IE8
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -220,7 +220,7 @@ describe('WalkontableTable', () => {
   });
 
   it('should render as much columns as the container width allows, if width is null', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -240,7 +240,7 @@ describe('WalkontableTable', () => {
   });
 
   it('should render as much columns as the container width allows, if width is null (with row header)', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -266,7 +266,7 @@ describe('WalkontableTable', () => {
 
     $wrapper.width(600);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -292,7 +292,7 @@ describe('WalkontableTable', () => {
 
     $wrapper.width(600);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -316,7 +316,7 @@ describe('WalkontableTable', () => {
 
     $wrapper.width(600);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -341,7 +341,7 @@ describe('WalkontableTable', () => {
 
     $wrapper.width(600);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -363,7 +363,7 @@ describe('WalkontableTable', () => {
   });
 
   it('should render a cell that is outside of the viewport horizontally', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -376,97 +376,93 @@ describe('WalkontableTable', () => {
   });
 
   it('should not render a cell when fastDraw == true', () => {
-    var
-      count = 0,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        cellRenderer(row, column, TD) {
-          count++;
-          return wt.wtSettings.defaults.cellRenderer(row, column, TD);
-        }
-      });
+    let count = 0;
+    const wt = new Walkontable.Core({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      cellRenderer(row, column, TD) {
+        count += 1;
+        return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+      }
+    });
     wt.draw();
-    var oldCount = count;
+    const oldCount = count;
     wt.draw(true);
     expect(count).toBe(oldCount);
   });
 
   it('should not ignore fastDraw == true when grid was scrolled by amount of rows that doesn\'t exceed endRow', () => {
-    var
-      count = 0,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        cellRenderer(row, column, TD) {
-          count++;
-          return wt.wtSettings.defaults.cellRenderer(row, column, TD);
-        },
-        viewportRowCalculatorOverride(calc) {
-          calc.endRow += 10;
-        }
-      });
+    let count = 0;
+    const wt = new Walkontable.Core({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      cellRenderer(row, column, TD) {
+        count += 1;
+        return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+      },
+      viewportRowCalculatorOverride(calc) {
+        calc.endRow += 10;
+      }
+    });
     wt.draw();
-    var oldCount = count;
+    const oldCount = count;
 
-    wt.scrollVertical(8);
+    wt.scrollViewportVertically(8);
     wt.draw(true);
     expect(count).not.toBeGreaterThan(oldCount);
   });
 
   it('should ignore fastDraw == true when grid was scrolled by amount of rows that exceeds endRow', () => {
-    var
-      count = 0,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        cellRenderer(row, column, TD) {
-          count++;
-          return wt.wtSettings.defaults.cellRenderer(row, column, TD);
-        },
-        viewportRowCalculatorOverride(calc) {
-          calc.endRow += 10;
-        }
-      });
+    let count = 0;
+    const wt = new Walkontable.Core({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      cellRenderer(row, column, TD) {
+        count += 1;
+        return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+      },
+      viewportRowCalculatorOverride(calc) {
+        calc.endRow += 10;
+      }
+    });
     wt.draw();
-    var oldCount = count;
+    const oldCount = count;
 
-    wt.scrollVertical(10);
+    wt.scrollViewportVertically(10);
     wt.draw(true);
     expect(count).not.toBeGreaterThan(oldCount);
 
-    wt.scrollVertical(11);
+    wt.scrollViewportVertically(getTotalRows() - 1);
     wt.draw(true);
     expect(count).toBeGreaterThan(oldCount);
   });
 
   it('should not ignore fastDraw == true when grid was scrolled by amount of columns that doesn\'t exceed endColumn', () => {
     createDataArray(50, 50);
-    var
-      count = 0,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        cellRenderer(row, column, TD) {
-          count++;
-          return wt.wtSettings.defaults.cellRenderer(row, column, TD);
-        },
-        viewportColumnCalculatorOverride(calc) {
-          calc.endColumn += 10;
-        }
-      });
+    let count = 0;
+    const wt = new Walkontable.Core({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      cellRenderer(row, column, TD) {
+        count += 1;
+        return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+      },
+      viewportColumnCalculatorOverride(calc) {
+        calc.endColumn += 10;
+      }
+    });
     wt.draw();
-    var oldCount = count;
+    const oldCount = count;
 
-    wt.scrollHorizontal(8);
+    wt.scrollViewportHorizontally(8);
     wt.draw(true);
 
     expect(count).not.toBeGreaterThan(oldCount);
@@ -474,30 +470,29 @@ describe('WalkontableTable', () => {
 
   it('should ignore fastDraw == true when grid was scrolled by amount of columns that exceeds endColumn', () => {
     createDataArray(50, 50);
-    var
-      count = 0,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        cellRenderer(row, column, TD) {
-          count++;
+    let count = 0;
+    const wt = new Walkontable.Core({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      cellRenderer(row, column, TD) {
+        count += 1;
 
-          return wt.wtSettings.defaults.cellRenderer(row, column, TD);
-        },
-        viewportColumnCalculatorOverride(calc) {
-          calc.endColumn += 10;
-        }
-      });
+        return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+      },
+      viewportColumnCalculatorOverride(calc) {
+        calc.endColumn += 10;
+      }
+    });
     wt.draw();
-    var oldCount = count;
+    const oldCount = count;
 
-    wt.scrollHorizontal(10);
+    wt.scrollViewportHorizontally(10);
     wt.draw(true);
     expect(count).not.toBeGreaterThan(oldCount);
 
-    wt.scrollHorizontal(11);
+    wt.scrollViewportHorizontally(11);
     wt.draw(true);
     expect(count).toBeGreaterThan(oldCount);
   });
@@ -507,16 +502,15 @@ describe('WalkontableTable', () => {
       createDataArray(50, 50);
       $wrapper.width(500).height(400);
 
-      var count = 0,
-        wt = new Walkontable.Core({
-          table: $table[0],
-          data: getData,
-          totalRows: getTotalRows,
-          totalColumns: getTotalColumns,
-          columnWidth: 70,
-          fixedColumnsLeft: 2,
-          columnHeaders: [function(col, TH) {}]
-        });
+      const wt = new Walkontable.Core({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnWidth: 70,
+        fixedColumnsLeft: 2,
+        columnHeaders: [function() {}]
+      });
       wt.draw();
 
       expect($('.ht_clone_top_left_corner thead tr th').eq(0).css('border-left-width')).toBe('1px');
@@ -532,7 +526,7 @@ describe('WalkontableTable', () => {
 
       $wrapper.width(185).height(175);
 
-      var wt = new Walkontable.Core({
+      const wt = new Walkontable.Core({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
@@ -548,14 +542,14 @@ describe('WalkontableTable', () => {
 
       $wrapper.width(185).height(185);
 
-      var wt = new Walkontable.Core({
+      const wt = new Walkontable.Core({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
       wt.draw();
-      wt.scrollVertical(7);
+      wt.scrollViewportVertically(7);
       wt.draw();
 
       expect(wt.wtTable.isLastRowFullyVisible()).toEqual(true);
@@ -568,7 +562,7 @@ describe('WalkontableTable', () => {
 
       $wrapper.width(209).height(185);
 
-      var wt = new Walkontable.Core({
+      const wt = new Walkontable.Core({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
@@ -584,7 +578,7 @@ describe('WalkontableTable', () => {
 
       $wrapper.width(180).height(185);
 
-      var wt = new Walkontable.Core({
+      const wt = new Walkontable.Core({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,

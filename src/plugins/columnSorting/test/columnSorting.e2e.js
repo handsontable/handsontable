@@ -4,11 +4,12 @@ describe('ColumnSorting', () => {
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
 
-    this.sortByClickOnColumnHeader = function(columnIndex) {
-      const element = this.$container.find(`th span.columnSorting:eq(${columnIndex})`);
+    this.sortByClickOnColumnHeader = (columnIndex) => {
+      const hot = this.$container.data('handsontable');
+      const $element = $(hot.view.wt.wtTable.getColumnHeader(columnIndex)).find('.columnSorting');
 
-      element.simulate('mousedown');
-      element.simulate('mouseup');
+      $element.simulate('mousedown');
+      $element.simulate('mouseup');
     };
   });
 
@@ -21,16 +22,16 @@ describe('ColumnSorting', () => {
 
   const arrayOfObjects = function() {
     return [
-      {id: 1, name: 'Ted', lastName: 'Right'},
-      {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'},
-      {id: 4, name: 'Sid', lastName: 'Strong'},
-      {id: 5, name: 'Jane', lastName: 'Neat'},
-      {id: 6, name: 'Chuck', lastName: 'Jackson'},
-      {id: 7, name: 'Meg', lastName: 'Jansen'},
-      {id: 8, name: 'Rob', lastName: 'Norris'},
-      {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'}
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' },
+      { id: 4, name: 'Sid', lastName: 'Strong' },
+      { id: 5, name: 'Jane', lastName: 'Neat' },
+      { id: 6, name: 'Chuck', lastName: 'Jackson' },
+      { id: 7, name: 'Meg', lastName: 'Jansen' },
+      { id: 8, name: 'Rob', lastName: 'Norris' },
+      { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+      { id: 10, name: 'Eve', lastName: 'Branson' }
     ];
   };
 
@@ -61,7 +62,7 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
-  it('should display indicator properly after changing sorted column sequence', function () {
+  it('should display indicator properly after changing sorted column sequence', function() {
     const modification = (column) => {
       if (column === 0) {
         return 1;
@@ -88,13 +89,13 @@ describe('ColumnSorting', () => {
     getPlugin('ColumnSorting').sort(0, 'asc');
 
     // changing column sequence: 0 <-> 1
-    updateSettings({modifyCol: modification, unmodifyCol: modification});
+    updateSettings({ modifyCol: modification, unmodifyCol: modification });
 
     const sortedColumn = this.$container.find('th span.columnSorting')[1];
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
   });
 
-  it('should render a correct number of TD elements after sorting', async () => {
+  it('should render a correct number of TD elements after sorting', async() => {
     handsontable({
       data: [
         ['1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'],
@@ -173,7 +174,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
     } catch (e) {
-      errors++;
+      errors += 1;
     }
 
     expect(errors).toBe(0);
@@ -429,7 +430,7 @@ describe('ColumnSorting', () => {
 
   it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
     'option is enabled and `column` property of `columnSorting` option is set (data type: default)', function() {
-    let hot = handsontable({
+    handsontable({
       data: [
         [6, 'Frank Honest'],
         [null, 'Ted Right'],
@@ -470,7 +471,7 @@ describe('ColumnSorting', () => {
       this.$container.remove();
     }
 
-    hot = handsontable({
+    handsontable({
       data: [
         [6, 'Frank Honest'],
         [null, 'Ted Right'],
@@ -509,7 +510,7 @@ describe('ColumnSorting', () => {
 
   it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
     'option is enabled and `column` property of `columnSorting` option is set (data type: numeric)', function() {
-    let hot = handsontable({
+    handsontable({
       data: [
         [6, 'Frank Honest'],
         [null, 'Ted Right'],
@@ -556,7 +557,7 @@ describe('ColumnSorting', () => {
       this.$container.remove();
     }
 
-    hot = handsontable({
+    handsontable({
       data: [
         [6, 'Frank Honest'],
         [null, 'Ted Right'],
@@ -676,7 +677,7 @@ describe('ColumnSorting', () => {
   describe('data type: date', () => {
     it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
       'option is enabled and `column` property of `columnSorting` option is set', function() {
-      let hot = handsontable({
+      handsontable({
         data: [
           ['Citroen1', 'C4 Coupe', null],
           ['Mercedes1', 'A 160', '12/01/2008'],
@@ -725,7 +726,7 @@ describe('ColumnSorting', () => {
         this.$container.remove();
       }
 
-      hot = handsontable({
+      handsontable({
         data: [
           ['Citroen1', 'C4 Coupe', null],
           ['Mercedes1', 'A 160', '12/01/2008'],
@@ -1162,10 +1163,10 @@ describe('ColumnSorting', () => {
 
   it('should NOT sort spare rows', () => {
     const myData = [
-      {a: 'aaa', b: 2, c: 3},
-      {a: 'z', b: 11, c: -4},
-      {a: 'dddd', b: 13, c: 13},
-      {a: 'bbbb', b: 10, c: 11}
+      { a: 'aaa', b: 2, c: 3 },
+      { a: 'z', b: 11, c: -4 },
+      { a: 'dddd', b: 13, c: 13 },
+      { a: 'bbbb', b: 10, c: 11 }
     ];
 
     function customIsEmptyRow(row) {
@@ -1178,11 +1179,11 @@ describe('ColumnSorting', () => {
       rowHeaders: true,
       colHeaders: ['A', 'B', 'C'],
       columns: [
-        {data: 'a', type: 'text'},
-        {data: 'b', type: 'text'},
-        {data: 'c', type: 'text'}
+        { data: 'a', type: 'text' },
+        { data: 'b', type: 'text' },
+        { data: 'c', type: 'text' }
       ],
-      dataSchema: {isNew: true, a: false}, // default for a to avoid #bad value#
+      dataSchema: { isNew: true, a: false }, // default for a to avoid #bad value#
       columnSorting: true,
       minSpareRows: 3,
       isEmptyRow: customIsEmptyRow
@@ -1385,14 +1386,14 @@ describe('ColumnSorting', () => {
     const afterColumnSortHandler = jasmine.createSpy('afterColumnSortHandler');
     const afterRenderSpy = jasmine.createSpy('afterRender');
 
-    addHook('afterColumnSort', function() {
+    addHook('afterColumnSort', (...args) => {
       expect(rendered).toBe('desc');
-      afterColumnSortHandler.apply(afterColumnSortHandler, arguments);
+      afterColumnSortHandler.apply(afterColumnSortHandler, args);
     });
 
-    addHook('afterRender', function() {
+    addHook('afterRender', (...args) => {
       rendered = true;
-      afterRenderSpy.apply(afterRenderSpy, arguments);
+      afterRenderSpy.apply(afterRenderSpy, args);
     });
 
     const sortColumn = 0;
@@ -1614,7 +1615,6 @@ describe('ColumnSorting', () => {
 
     this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
     this.$container2.handsontable();
-    const hot2 = this.$container2.handsontable('getInstance');
 
     selectCell(0, 1);
     keyDown('enter');
@@ -1971,7 +1971,7 @@ describe('ColumnSorting', () => {
       columns: [
         {},
         {},
-        {sortIndicator: true}
+        { sortIndicator: true }
       ]
     });
 
@@ -2010,7 +2010,6 @@ describe('ColumnSorting', () => {
 
     // ascending
     let sortedColumn = this.$container.find('th span.columnSorting')[1];
-    let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort(1);

@@ -1,4 +1,4 @@
-import {getWindowScrollTop, getWindowScrollLeft} from './element';
+import { getWindowScrollTop, getWindowScrollLeft } from './element';
 
 /**
  * Prevent other listeners of the same event from being called.

@@ -1,5 +1,5 @@
 describe('Core_navigation', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -229,8 +229,8 @@ describe('Core_navigation', () => {
 
       selectCell(0, 0);
 
-      for (var row = 0, rlen = countRows(); row < rlen; row++) {
-        for (var col = 0, clen = countCols(); col < clen; col++) {
+      for (let row = 0, rlen = countRows(); row < rlen; row++) {
+        for (let col = 0, clen = countCols(); col < clen; col++) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
           keyDown('arrow_right');
         }
@@ -248,8 +248,8 @@ describe('Core_navigation', () => {
 
       selectCell(4, 4);
 
-      for (var row = countRows() - 1; row >= 0; row--) {
-        for (var col = countCols() - 1; col >= 0; col--) {
+      for (let row = countRows() - 1; row >= 0; row--) {
+        for (let col = countCols() - 1; col >= 0; col--) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
           keyDown('arrow_left');
         }
@@ -267,8 +267,8 @@ describe('Core_navigation', () => {
 
       selectCell(0, 0);
 
-      for (var col = 0, clen = countCols(); col < clen; col++) {
-        for (var row = 0, rlen = countRows(); row < rlen; row++) {
+      for (let col = 0, clen = countCols(); col < clen; col++) {
+        for (let row = 0, rlen = countRows(); row < rlen; row++) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
           keyDown('arrow_down');
         }
@@ -286,8 +286,8 @@ describe('Core_navigation', () => {
 
       selectCell(4, 4);
 
-      for (var col = countCols() - 1; col >= 0; col--) {
-        for (var row = countRows() - 1; row >= 0; row--) {
+      for (let col = countCols() - 1; col >= 0; col--) {
+        for (let row = countRows() - 1; row >= 0; row--) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
           keyDown('arrow_up');
         }

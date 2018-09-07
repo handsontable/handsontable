@@ -8,7 +8,7 @@ describe('Feature helper', () => {
   //
   describe('getComparisonFunction', () => {
     it('should correct equals strings', () => {
-      var comparisonFunction = getComparisonFunction();
+      const comparisonFunction = getComparisonFunction();
 
       expect(comparisonFunction('a', 'b')).toBe(-1);
       expect(comparisonFunction('b', 'a')).toBe(1);

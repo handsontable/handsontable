@@ -7,17 +7,17 @@ import {
   isChildOf,
   removeClass,
 } from './../../helpers/dom/element';
-import {arrayEach, arrayFilter, arrayReduce} from './../../helpers/array';
+import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
 import Cursor from './cursor';
 import EventManager from './../../eventManager';
-import {mixin, hasOwnProperty} from './../../helpers/object';
-import {isUndefined, isDefined} from './../../helpers/mixed';
-import {debounce, isFunction} from './../../helpers/function';
-import {filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection} from './utils';
-import {KEY_CODES} from './../../helpers/unicode';
+import { mixin, hasOwnProperty } from './../../helpers/object';
+import { isUndefined, isDefined } from './../../helpers/mixed';
+import { debounce, isFunction } from './../../helpers/function';
+import { filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection } from './utils';
+import { KEY_CODES } from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
-import {SEPARATOR} from './predefinedItems';
-import {stopImmediatePropagation} from './../../helpers/dom/event';
+import { SEPARATOR } from './predefinedItems';
+import { stopImmediatePropagation } from './../../helpers/dom/event';
 
 const MIN_WIDTH = 215;
 
@@ -62,7 +62,7 @@ class Menu {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mousedown', (event) => this.onDocumentMouseDown(event));
+    this.eventManager.addEventListener(document.documentElement, 'mousedown', event => this.onDocumentMouseDown(event));
   }
 
   /**
@@ -105,14 +105,14 @@ class Menu {
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
 
-    const delayedOpenSubMenu = debounce((row) => this.openSubMenu(row), 300);
+    const delayedOpenSubMenu = debounce(row => this.openSubMenu(row), 300);
     const minWidthOfMenu = this.options.minWidth || MIN_WIDTH;
 
-    let filteredItems = arrayFilter(this.menuItems, (item) => isItemHidden(item, this.hot));
+    let filteredItems = arrayFilter(this.menuItems, item => isItemHidden(item, this.hot));
 
     filteredItems = filterSeparators(filteredItems, SEPARATOR);
 
-    let settings = {
+    const settings = {
       data: filteredItems,
       colHeaders: false,
       autoColumnSize: true,
@@ -133,15 +133,15 @@ class Menu {
       renderAllRows: true,
       fragmentSelection: 'cell',
       disableVisualSelection: 'area',
-      beforeKeyDown: (event) => this.onBeforeKeyDown(event),
-      afterOnCellMouseOver: (event, coords, TD) => {
+      beforeKeyDown: event => this.onBeforeKeyDown(event),
+      afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
         } else {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: (row) => (filteredItems[row].name === SEPARATOR ? 1 : 23)
+      rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23)
     };
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
@@ -190,15 +190,15 @@ class Menu {
     if (!this.hotMenu) {
       return false;
     }
-    let cell = this.hotMenu.getCell(row, 0);
+    const cell = this.hotMenu.getCell(row, 0);
 
     this.closeAllSubMenus();
 
     if (!cell || !hasSubMenu(cell)) {
       return false;
     }
-    let dataItem = this.hotMenu.getSourceDataAtRow(row);
-    let subMenu = new Menu(this.hot, {
+    const dataItem = this.hotMenu.getSourceDataAtRow(row);
+    const subMenu = new Menu(this.hot, {
       parent: this,
       name: dataItem.name,
       className: this.options.className,
@@ -218,8 +218,8 @@ class Menu {
    * @param {Number} row Row index.
    */
   closeSubMenu(row) {
-    let dataItem = this.hotMenu.getSourceDataAtRow(row);
-    let menus = this.hotSubMenus[dataItem.key];
+    const dataItem = this.hotMenu.getSourceDataAtRow(row);
+    const menus = this.hotSubMenus[dataItem.key];
 
     if (menus) {
       menus.destroy();
@@ -380,7 +380,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    let left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth() + 4;
+    const left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth() + 4;
 
     this.container.style.left = `${left}px`;
   }
@@ -389,7 +389,7 @@ class Menu {
    * Select first cell in opened menu.
    */
   selectFirstCell() {
-    let cell = this.hotMenu.getCell(0, 0);
+    const cell = this.hotMenu.getCell(0, 0);
 
     if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
       this.selectNextCell(0, 0);
@@ -402,8 +402,8 @@ class Menu {
    * Select last cell in opened menu.
    */
   selectLastCell() {
-    let lastRow = this.hotMenu.countRows() - 1;
-    let cell = this.hotMenu.getCell(lastRow, 0);
+    const lastRow = this.hotMenu.countRows() - 1;
+    const cell = this.hotMenu.getCell(lastRow, 0);
 
     if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
       this.selectPrevCell(lastRow, 0);
@@ -419,8 +419,8 @@ class Menu {
    * @param {Number} col Column index.
    */
   selectNextCell(row, col) {
-    let nextRow = row + 1;
-    let cell = nextRow < this.hotMenu.countRows() ? this.hotMenu.getCell(nextRow, col) : null;
+    const nextRow = row + 1;
+    const cell = nextRow < this.hotMenu.countRows() ? this.hotMenu.getCell(nextRow, col) : null;
 
     if (!cell) {
       return;
@@ -439,8 +439,8 @@ class Menu {
    * @param {Number} col Column index.
    */
   selectPrevCell(row, col) {
-    let prevRow = row - 1;
-    let cell = prevRow >= 0 ? this.hotMenu.getCell(prevRow, col) : null;
+    const prevRow = row - 1;
+    const cell = prevRow >= 0 ? this.hotMenu.getCell(prevRow, col) : null;
 
     if (!cell) {
       return;
@@ -458,16 +458,17 @@ class Menu {
    * @private
    */
   menuItemRenderer(hot, TD, row, col, prop, value) {
-    let item = hot.getSourceDataAtRow(row);
-    let wrapper = document.createElement('div');
+    const item = hot.getSourceDataAtRow(row);
+    const wrapper = document.createElement('div');
 
-    let isSubMenu = (item) => hasOwnProperty(item, 'submenu');
-    let itemIsSeparator = (item) => new RegExp(SEPARATOR, 'i').test(item.name);
-    let itemIsDisabled = (item) => item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(this.hot) === true);
-    let itemIsSelectionDisabled = (item) => item.disableSelection;
+    const isSubMenu = itemToTest => hasOwnProperty(itemToTest, 'submenu');
+    const itemIsSeparator = itemToTest => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
+    const itemIsDisabled = itemToTest => itemToTest.disabled === true || (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
+    const itemIsSelectionDisabled = itemToTest => itemToTest.disableSelection;
+    let itemValue = value;
 
-    if (typeof value === 'function') {
-      value = value.call(this.hot);
+    if (typeof itemValue === 'function') {
+      itemValue = itemValue.call(this.hot);
     }
     empty(TD);
     addClass(wrapper, 'htItemWrapper');
@@ -478,10 +479,10 @@ class Menu {
 
     } else if (typeof item.renderer === 'function') {
       addClass(TD, 'htCustomMenuRenderer');
-      TD.appendChild(item.renderer(hot, wrapper, row, col, prop, value));
+      TD.appendChild(item.renderer(hot, wrapper, row, col, prop, itemValue));
 
     } else {
-      fastInnerHTML(wrapper, value);
+      fastInnerHTML(wrapper, itemValue);
     }
     if (itemIsDisabled(item)) {
       addClass(TD, 'htDisabled');
@@ -519,24 +520,25 @@ class Menu {
    * @returns {HTMLElement}
    */
   createContainer(name = null) {
+    let className = name;
     let container;
 
-    if (name) {
-      if (isFunction(name)) {
-        name = name.call(this.hot);
+    if (className) {
+      if (isFunction(className)) {
+        className = className.call(this.hot);
 
-        if (name === null || isUndefined(name)) {
-          name = '';
+        if (className === null || isUndefined(className)) {
+          className = '';
 
         } else {
-          name = name.toString();
+          className = className.toString();
         }
       }
 
-      name = name.replace(/[^A-z0-9]/g, '_');
-      name = `${this.options.className}Sub_${name}`;
+      className = className.replace(/[^A-z0-9]/g, '_');
+      className = `${this.options.className}Sub_${className}`;
 
-      container = document.querySelector(`.${this.options.className}.${name}`);
+      container = document.querySelector(`.${this.options.className}.${className}`);
 
     } else {
       container = document.querySelector(`.${this.options.className}`);
@@ -547,8 +549,8 @@ class Menu {
 
       addClass(container, `htMenu ${this.options.className}`);
 
-      if (name) {
-        addClass(container, name);
+      if (className) {
+        addClass(container, className);
       }
       document.getElementsByTagName('body')[0].appendChild(container);
     }
@@ -583,7 +585,7 @@ class Menu {
    * @param {Event} event
    */
   onBeforeKeyDown(event) {
-    let selection = this.hotMenu.getSelectedLast();
+    const selection = this.hotMenu.getSelectedLast();
     let stopEvent = false;
     this.keyEvent = true;
 
@@ -624,7 +626,7 @@ class Menu {
 
       case KEY_CODES.ARROW_RIGHT:
         if (selection) {
-          let menu = this.openSubMenu(selection[0]);
+          const menu = this.openSubMenu(selection[0]);
 
           if (menu) {
             menu.selectFirstCell();
@@ -664,9 +666,9 @@ class Menu {
     const data = this.hotMenu.getSettings().data;
     const hiderStyle = this.hotMenu.view.wt.wtTable.hider.style;
     const holderStyle = this.hotMenu.view.wt.wtTable.holder.style;
-    let currentHiderWidth = parseInt(hiderStyle.width, 10);
+    const currentHiderWidth = parseInt(hiderStyle.width, 10);
 
-    let realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
+    const realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
 
     holderStyle.width = `${currentHiderWidth + 22}px`;
     holderStyle.height = `${realHeight + 4}px`;

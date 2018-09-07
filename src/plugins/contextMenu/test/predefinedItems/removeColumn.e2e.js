@@ -1,20 +1,20 @@
-describe('ContextMenu', function () {
-  var id = 'testContainer';
+describe('ContextMenu', () => {
+  const id = 'testContainer';
 
-  beforeEach(function () {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+  beforeEach(function() {
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  describe('remove columns', function() {
-    it('should execute action when single cell is selected', async function() {
-      var hot = handsontable({
+  describe('remove columns', () => {
+    it('should execute action when single cell is selected', () => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         contextMenu: true,
       });
@@ -32,8 +32,8 @@ describe('ContextMenu', function () {
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'D1', 'E1']);
     });
 
-    it('should execute action when range of the cells are selected', async function() {
-      var hot = handsontable({
+    it('should execute action when range of the cells are selected', () => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         contextMenu: true,
       });
@@ -51,8 +51,8 @@ describe('ContextMenu', function () {
       expect(getDataAtRow(0)).toEqual(['A1', 'B1']);
     });
 
-    it('should execute action when multiple cells are selected', async function() {
-      var hot = handsontable({
+    it('should execute action when multiple cells are selected', () => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(8, 5),
         contextMenu: true,
       });

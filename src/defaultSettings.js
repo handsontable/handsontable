@@ -1,5 +1,5 @@
-import {isDefined} from './helpers/mixed';
-import {isObjectEqual} from './helpers/object';
+import { isDefined } from './helpers/mixed';
+import { isObjectEqual } from './helpers/object';
 
 /**
  * @alias Options
@@ -814,7 +814,7 @@ DefaultSettings.prototype = {
    * },
    * ```
    */
-  enterMoves: {row: 1, col: 0},
+  enterMoves: { row: 1, col: 0 },
 
   /**
    * Defines the cursor movement after <kbd>TAB</kbd> is pressed (<kbd>SHIFT</kbd> + <kbd>TAB</kbd> uses a negative vector). Can
@@ -835,7 +835,7 @@ DefaultSettings.prototype = {
    * },
    * ```
    */
-  tabMoves: {row: 0, col: 1},
+  tabMoves: { row: 0, col: 1 },
 
   /**
    * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
@@ -1032,10 +1032,10 @@ DefaultSettings.prototype = {
    * ```
    */
   isEmptyRow(row) {
-    var col,
-      colLen,
-      value,
-      meta;
+    let col;
+    let colLen;
+    let value;
+    let meta;
 
     for (col = 0, colLen = this.countCols(); col < colLen; col++) {
       value = this.getDataAtCell(row, col);
@@ -1069,9 +1069,9 @@ DefaultSettings.prototype = {
    * ```
    */
   isEmptyCol(col) {
-    var row;
-    var rowLen;
-    var value;
+    let row;
+    let rowLen;
+    let value;
 
     for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
       value = this.getDataAtCell(row, col);

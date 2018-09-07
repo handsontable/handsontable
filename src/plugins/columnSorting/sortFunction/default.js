@@ -1,5 +1,5 @@
-import {isEmpty} from '../../../helpers/mixed';
-import {DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
+import { isEmpty } from '../../../helpers/mixed';
+import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../utils';
 
 /**
  * Default sorting algorithm.
@@ -10,8 +10,11 @@ import {DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
  */
 export default function defaultSort(sortOrder, columnMeta) {
   // We are sorting array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
-  return function ([, value], [, nextValue]) {
+  return function([, firstValue], [, secondValue]) {
     const sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
+
+    let value = firstValue;
+    let nextValue = secondValue;
 
     if (typeof value === 'string') {
       value = value.toLowerCase();

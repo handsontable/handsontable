@@ -621,7 +621,7 @@ declare namespace Handsontable {
       firstCalculation: boolean;
       ghostTable: GhostTable;
       inProgress: boolean;
-      sampleGenerator: SamplesGenerator;
+      samplesGenerator: SamplesGenerator;
       widths: any[];
 
       calculateAllColumnsWidth(rowRange?: number | object): void;

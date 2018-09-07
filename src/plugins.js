@@ -2,8 +2,8 @@
  * Utility to register plugins and common namespace for keeping reference to all plugins classes
  */
 import Hooks from './pluginHooks';
-import {objectEach} from './helpers/object';
-import {toUpperCaseFirst} from './helpers/string';
+import { objectEach } from './helpers/object';
+import { toUpperCaseFirst } from './helpers/string';
 
 const registeredPlugins = new WeakMap();
 
@@ -14,25 +14,24 @@ const registeredPlugins = new WeakMap();
  * @param {Function} PluginClass
  */
 function registerPlugin(pluginName, PluginClass) {
-  pluginName = toUpperCaseFirst(pluginName);
+  const correctedPluginName = toUpperCaseFirst(pluginName);
 
   Hooks.getSingleton().add('construct', function() {
-    let holder;
-
     if (!registeredPlugins.has(this)) {
       registeredPlugins.set(this, {});
     }
-    holder = registeredPlugins.get(this);
 
-    if (!holder[pluginName]) {
-      holder[pluginName] = new PluginClass(this);
+    const holder = registeredPlugins.get(this);
+
+    if (!holder[correctedPluginName]) {
+      holder[correctedPluginName] = new PluginClass(this);
     }
   });
   Hooks.getSingleton().add('afterDestroy', function() {
     if (registeredPlugins.has(this)) {
-      let pluginsHolder = registeredPlugins.get(this);
+      const pluginsHolder = registeredPlugins.get(this);
 
-      objectEach(pluginsHolder, (plugin) => plugin.destroy());
+      objectEach(pluginsHolder, plugin => plugin.destroy());
       registeredPlugins.delete(this);
     }
   });
@@ -44,10 +43,10 @@ function registerPlugin(pluginName, PluginClass) {
  * @returns {Function} pluginClass Returns plugin instance if exists or `undefined` if not exists.
  */
 function getPlugin(instance, pluginName) {
-  if (typeof pluginName != 'string') {
+  if (typeof pluginName !== 'string') {
     throw Error('Only strings can be passed as "plugin" parameter');
   }
-  let _pluginName = toUpperCaseFirst(pluginName);
+  const _pluginName = toUpperCaseFirst(pluginName);
 
   if (!registeredPlugins.has(instance) || !registeredPlugins.get(instance)[_pluginName]) {
     return void 0;
@@ -87,4 +86,4 @@ function getPluginName(hotInstance, plugin) {
   return pluginName;
 }
 
-export {registerPlugin, getPlugin, getRegistredPluginNames, getPluginName};
+export { registerPlugin, getPlugin, getRegistredPluginNames, getPluginName };

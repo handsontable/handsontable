@@ -1,5 +1,5 @@
 describe('Core.colToProp', () => {
-  let id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,7 @@ describe('Core.colToProp', () => {
   });
 
   it('should return the property name for the provided column number', () => {
-    const hot = handsontable({
+    handsontable({
       data: [{
         id: 1,
         firstName: 'Tobias',
@@ -27,7 +27,7 @@ describe('Core.colToProp', () => {
   });
 
   it('it should return the provided property name, when the user passes a property name as a column number', () => {
-    const hot = handsontable({
+    handsontable({
       data: [{
         id: 1,
         sort: true,

@@ -1,4 +1,4 @@
-import {inherit} from './object';
+import { inherit } from './object';
 /* eslint-disable import/prefer-default-export */
 /**
  * Factory for columns constructors.
@@ -8,7 +8,7 @@ import {inherit} from './object';
  * @return {Object} ColumnSettings
  */
 export function columnFactory(GridSettings, conflictList) {
-  function ColumnSettings() {};
+  function ColumnSettings() {}
 
   inherit(ColumnSettings, GridSettings);
 

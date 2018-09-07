@@ -1,11 +1,11 @@
 describe('WalkontableCore', () => {
-  var $table,
-    $container,
-    $wrapper,
-    debug = false;
+  let $table;
+  let $container;
+  let $wrapper;
+  const debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden' });
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
     $wrapper.append($container);
@@ -23,14 +23,14 @@ describe('WalkontableCore', () => {
   });
 
   it('first row should have the same text as in data source', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
     wt.draw();
-    var TDs = $table.find('tbody tr:first td');
+    const TDs = $table.find('tbody tr:first td');
     expect(TDs[0].innerHTML).toBe('0');
     expect(TDs[1].innerHTML).toBe('a');
   });
@@ -38,7 +38,7 @@ describe('WalkontableCore', () => {
   it('should bootstrap table if empty TABLE is given', () => {
     $wrapper.width(200).height(200);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -55,7 +55,7 @@ describe('WalkontableCore', () => {
     $table = $('<table><thead><tr><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead></table>');
     $table.appendTo('body');
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -73,7 +73,7 @@ describe('WalkontableCore', () => {
   it('should figure out how many columns to display if width param given', () => {
     $wrapper.width(100);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -85,7 +85,7 @@ describe('WalkontableCore', () => {
 
   it('should not render table that is removed from DOM', () => {
     $wrapper.remove();
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -97,10 +97,10 @@ describe('WalkontableCore', () => {
   });
 
   it('should not render table that is `display: none`', () => {
-    var $div = $('<div style="display: none"></div>').appendTo('body');
+    const $div = $('<div style="display: none"></div>').appendTo('body');
     $div.append($table);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -116,7 +116,7 @@ describe('WalkontableCore', () => {
   it('should render empty table (limited height)', () => {
     createDataArray(0, 5);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -132,7 +132,7 @@ describe('WalkontableCore', () => {
   it('should render empty table (unlimited height)', () => {
     createDataArray(0, 5);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -148,7 +148,7 @@ describe('WalkontableCore', () => {
   it('should render empty then filled table (limited height)', () => {
     createDataArray(0, 5);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -165,7 +165,7 @@ describe('WalkontableCore', () => {
   it('should render empty then filled table (unlimited height)', () => {
     createDataArray(0, 5);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -182,7 +182,7 @@ describe('WalkontableCore', () => {
   it('should render table with rows but no columns', () => {
     createDataArray(5, 0);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,

@@ -1,4 +1,4 @@
-import {addClass} from './../../../../helpers/dom/element';
+import { addClass } from './../../../../helpers/dom/element';
 import Overlay from './_base';
 
 /**

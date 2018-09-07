@@ -22,7 +22,7 @@ describe('CopyPaste', () => {
     setData(type, value) {
       this.data = value;
     }
-  };
+  }
 
   function getClipboardEvent() {
     const event = {};
@@ -59,7 +59,7 @@ describe('CopyPaste', () => {
     });
   });
 
-  it('should reuse focusable element by borrowing an element from cell editor', async () => {
+  it('should reuse focusable element by borrowing an element from cell editor', async() => {
     handsontable();
     selectCell(0, 0);
 
@@ -90,7 +90,7 @@ describe('CopyPaste', () => {
       }
     });
 
-    it('should disable copyPaste only in particular table', function() {
+    it('should disable copyPaste only in particular table', () => {
       const hot1 = handsontable();
       const hot2 = spec().$container2.handsontable({ copyPaste: false }).handsontable('getInstance');
 
@@ -98,14 +98,14 @@ describe('CopyPaste', () => {
       expect(hot2.getPlugin('CopyPaste').focusableElement).toBeUndefined();
     });
 
-    it('should not create HandsontableCopyPaste element until the table will be selected', function() {
+    it('should not create HandsontableCopyPaste element until the table will be selected', () => {
       handsontable();
       spec().$container2.handsontable();
 
       expect($('#HandsontableCopyPaste').length).toBe(0);
     });
 
-    it('should use focusable element from cell editor of the lastly selected table', async () => {
+    it('should use focusable element from cell editor of the lastly selected table', async() => {
       const hot1 = handsontable();
       const hot2 = spec().$container2.handsontable().handsontable('getInstance');
 
@@ -118,9 +118,9 @@ describe('CopyPaste', () => {
       expect(document.activeElement).toBe(hot2.getActiveEditor().TEXTAREA);
     });
 
-    it('should destroy HandsontableCopyPaste element as long as at least one table has copyPaste enabled', function() {
-      const hot1 = handsontable({editor: false});
-      const hot2 = spec().$container2.handsontable({editor: false}).handsontable('getInstance');
+    it('should destroy HandsontableCopyPaste element as long as at least one table has copyPaste enabled', () => {
+      const hot1 = handsontable({ editor: false });
+      const hot2 = spec().$container2.handsontable({ editor: false }).handsontable('getInstance');
 
       hot1.selectCell(0, 0);
       hot2.selectCell(0, 0);
@@ -136,7 +136,7 @@ describe('CopyPaste', () => {
       expect($('#HandsontableCopyPaste').length).toBe(0);
     });
 
-    it('should not touch focusable element borrowed from cell editors', function() {
+    it('should not touch focusable element borrowed from cell editors', () => {
       const hot1 = handsontable();
       const hot2 = spec().$container2.handsontable().handsontable('getInstance');
 
@@ -167,7 +167,7 @@ describe('CopyPaste', () => {
 
       selectCell(0, 0);
 
-      $(document.activeElement).simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.A, ctrlKey: true});
+      $(document.activeElement).simulate('keydown', { keyCode: Handsontable.helper.KEY_CODES.A, ctrlKey: true });
 
       setTimeout(() => {
         expect(getSelected()).toEqual([[0, 0, 1, 1]]);
@@ -300,9 +300,9 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent);
 
       expect(beforeCopySpy.calls.count()).toEqual(1);
-      expect(beforeCopySpy).toHaveBeenCalledWith([['A1']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+      expect(beforeCopySpy).toHaveBeenCalledWith([['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
       expect(afterCopySpy.calls.count()).toEqual(1);
-      expect(afterCopySpy).toHaveBeenCalledWith([['A1']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+      expect(afterCopySpy).toHaveBeenCalledWith([['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
     });
 
     it('should be possible to block copying', () => {
@@ -394,9 +394,9 @@ describe('CopyPaste', () => {
       plugin.onCut(cutEvent);
 
       expect(beforeCutSpy.calls.count()).toEqual(1);
-      expect(beforeCutSpy).toHaveBeenCalledWith([['A1']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+      expect(beforeCutSpy).toHaveBeenCalledWith([['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
       expect(afterCutSpy.calls.count()).toEqual(1);
-      expect(afterCutSpy).toHaveBeenCalledWith([['A1']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+      expect(afterCutSpy).toHaveBeenCalledWith([['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
     });
 
     it('should be possible to block cutting out', () => {
@@ -419,7 +419,7 @@ describe('CopyPaste', () => {
   });
 
   describe('paste', () => {
-    it('should not create new rows or columns when allowInsertRow and allowInsertColumn equal false', async () => {
+    it('should not create new rows or columns when allowInsertRow and allowInsertColumn equal false', async() => {
       handsontable({
         data: arrayOfArrays(),
         copyPaste: {
@@ -434,12 +434,12 @@ describe('CopyPaste', () => {
 
       await sleep(60);
 
-      let expected = arrayOfArrays();
+      const expected = arrayOfArrays();
       expected[3][4] = 'Kia';
       expect(getData()).toEqual(expected);
     });
 
-    it('should shift data down instead of overwrite when paste (when allowInsertRow = false)', async () => {
+    it('should shift data down instead of overwrite when paste (when allowInsertRow = false)', async() => {
       handsontable({
         data: arrayOfArrays(),
         copyPaste: {
@@ -457,7 +457,7 @@ describe('CopyPaste', () => {
       expect(getData(0, 0, 2, 4)).toEqual([['', 'Kia', 'Nissan', 'Toyota', 'Honda'], ['Kia', 'Nissan', 'Toyota', 12, 13], ['2008', 10, 11, 14, 13]]);
     });
 
-    it('should shift data down instead of overwrite when paste (minSpareRows > 0)', async () => {
+    it('should shift data down instead of overwrite when paste (minSpareRows > 0)', async() => {
       handsontable({
         data: arrayOfArrays(),
         copyPaste: {
@@ -475,7 +475,7 @@ describe('CopyPaste', () => {
       expect(getData(0, 0, 2, 4)).toEqual([['', 'Kia', 'Nissan', 'Toyota', 'Honda'], ['Kia', 'Nissan', 'Toyota', 12, 13], ['2008', 10, 11, 14, 13]]);
     });
 
-    it('should shift right insert instead of overwrite when paste', async () => {
+    it('should shift right insert instead of overwrite when paste', async() => {
       handsontable({
         data: arrayOfArrays(),
         copyPaste: {
@@ -512,7 +512,7 @@ describe('CopyPaste', () => {
       }, 60);
     });
 
-    it('should not throw an error when changes are null in `once` hook', async () => {
+    it('should not throw an error when changes are null in `once` hook', async() => {
       let errors = 0;
 
       try {
@@ -531,7 +531,7 @@ describe('CopyPaste', () => {
         triggerPaste('Kia\tNissan\tToyota');
 
       } catch (e) {
-        errors++;
+        errors += 1;
       }
 
       await sleep(60);
@@ -574,7 +574,7 @@ describe('CopyPaste', () => {
       }, 300);
     });
 
-    it('should not paste any data, if no cell is selected (select/deselect cell using mouse)', async () => {
+    it('should not paste any data, if no cell is selected (select/deselect cell using mouse)', async() => {
       const copiedData = 'foo';
 
       handsontable({
@@ -603,7 +603,7 @@ describe('CopyPaste', () => {
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
     });
 
-    it('should call beforePaste and afterPaste during pasting operation', async () => {
+    it('should call beforePaste and afterPaste during pasting operation', async() => {
       const beforePasteSpy = jasmine.createSpy('beforePaste');
       const afterPasteSpy = jasmine.createSpy('afterPaste');
 
@@ -620,13 +620,13 @@ describe('CopyPaste', () => {
       await sleep(60);
 
       expect(beforePasteSpy.calls.count()).toEqual(1);
-      expect(beforePasteSpy).toHaveBeenCalledWith([['Kia']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+      expect(beforePasteSpy).toHaveBeenCalledWith([['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
 
       expect(afterPasteSpy.calls.count()).toEqual(1);
-      expect(afterPasteSpy).toHaveBeenCalledWith([['Kia']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+      expect(afterPasteSpy).toHaveBeenCalledWith([['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
     });
 
-    it('should be possible to block pasting', async () => {
+    it('should be possible to block pasting', async() => {
       const afterPasteSpy = jasmine.createSpy('afterPaste');
 
       handsontable({
@@ -646,7 +646,7 @@ describe('CopyPaste', () => {
       expect(afterPasteSpy.calls.count()).toEqual(0);
     });
 
-    it('should be possible modification of changes', async () => {
+    it('should be possible modification of changes', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         beforePaste(changes) {

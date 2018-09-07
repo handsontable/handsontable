@@ -1,5 +1,5 @@
 describe('BaseEditor', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
@@ -14,7 +14,7 @@ describe('BaseEditor', () => {
 
   describe('ctrl + enter when editor is active', () => {
     it('should populate value from the currently active cell to every cell in the selected range', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(6, 6)
       });
 
@@ -86,7 +86,7 @@ describe('BaseEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should not throw an error when composition is started in multiple instances environment', async () => {
+    it('should not throw an error when composition is started in multiple instances environment', async() => {
       const errorSpy = jasmine.createSpyObj('error', ['test']);
       const prevError = window.onerror;
 

@@ -15,22 +15,22 @@ describe('Object helper', () => {
   describe('isObjectEqual', () => {
     it('should returns true on equal objects', () => {
       expect(isObjectEqual({}, {})).toBe(true);
-      expect(isObjectEqual({test: 1}, {test: 1})).toBe(true);
-      expect(isObjectEqual({test: {test2: [{}]}}, {test: {test2: [{}]}})).toBe(true);
+      expect(isObjectEqual({ test: 1 }, { test: 1 })).toBe(true);
+      expect(isObjectEqual({ test: { test2: [{}] } }, { test: { test2: [{}] } })).toBe(true);
 
       expect(isObjectEqual([], [])).toBe(true);
       expect(isObjectEqual([33], [33])).toBe(true);
-      expect(isObjectEqual([{test: 1}], [{test: 1}])).toBe(true);
+      expect(isObjectEqual([{ test: 1 }], [{ test: 1 }])).toBe(true);
     });
 
     it('should returns false for not equal objects', () => {
       expect(isObjectEqual({}, [])).toBe(false);
 
-      expect(isObjectEqual({test: 2}, {test: 1})).toBe(false);
-      expect(isObjectEqual({test: {test3: [{}]}}, {test: {test2: [{}]}})).toBe(false);
+      expect(isObjectEqual({ test: 2 }, { test: 1 })).toBe(false);
+      expect(isObjectEqual({ test: { test3: [{}] } }, { test: { test2: [{}] } })).toBe(false);
 
       expect(isObjectEqual([12], [33])).toBe(false);
-      expect(isObjectEqual([{test: 3}], [{test: 1}])).toBe(false);
+      expect(isObjectEqual([{ test: 3 }], [{ test: 1 }])).toBe(false);
     });
   });
 
@@ -40,18 +40,18 @@ describe('Object helper', () => {
   describe('duckSchema', () => {
     it('should returns valid schema object', () => {
       expect(duckSchema({})).toEqual({});
-      expect(duckSchema({test: 1})).toEqual({test: null});
-      expect(duckSchema({test: 'foo'})).toEqual({test: null});
-      expect(duckSchema({test: undefined})).toEqual({test: null});
-      expect(duckSchema({test: null})).toEqual({test: null});
-      expect(duckSchema({test: []})).toEqual({test: []});
-      expect(duckSchema({test: [1, 2, 3]})).toEqual({test: []});
+      expect(duckSchema({ test: 1 })).toEqual({ test: null });
+      expect(duckSchema({ test: 'foo' })).toEqual({ test: null });
+      expect(duckSchema({ test: undefined })).toEqual({ test: null });
+      expect(duckSchema({ test: null })).toEqual({ test: null });
+      expect(duckSchema({ test: [] })).toEqual({ test: [] });
+      expect(duckSchema({ test: [1, 2, 3] })).toEqual({ test: [] });
     });
 
     it('should returns valid schema object (deeply)', () => {
-      expect(duckSchema({test: {a: {b: 11}}})).toEqual({test: {a: {b: null}}});
-      expect(duckSchema({test: {a: {b: []}}})).toEqual({test: {a: {b: []}}});
-      expect(duckSchema({test: {a: {b: [{q: 1, w: 2}]}}})).toEqual({test: {a: {b: [{q: null, w: null}]}}});
+      expect(duckSchema({ test: { a: { b: 11 } } })).toEqual({ test: { a: { b: null } } });
+      expect(duckSchema({ test: { a: { b: [] } } })).toEqual({ test: { a: { b: [] } } });
+      expect(duckSchema({ test: { a: { b: [{ q: 1, w: 2 }] } } })).toEqual({ test: { a: { b: [{ q: null, w: null }] } } });
     });
   });
 
@@ -60,8 +60,8 @@ describe('Object helper', () => {
   //
   describe('mixin', () => {
     it('should mix base object from one object', () => {
-      var Base = function() {};
-      var MixinFoo = {
+      const Base = function() {};
+      const MixinFoo = {
         local: 'value',
         myFunction() {
           return this.local;
@@ -73,7 +73,7 @@ describe('Object helper', () => {
 
       mixin(Base, MixinFoo);
 
-      var instance = new Base();
+      const instance = new Base();
 
       expect(instance.myFunction()).toBe('value');
       expect(instance.local).toBe('value');
@@ -83,7 +83,7 @@ describe('Object helper', () => {
       expect(instance.myFunction()).toBe(123);
       expect(instance.local).toBe(123);
 
-      var initialObject = {a: 1};
+      const initialObject = { a: 1 };
       instance.mySetterFunction(initialObject);
 
       expect(instance.myFunction()).toBe(initialObject);
@@ -91,8 +91,8 @@ describe('Object helper', () => {
     });
 
     it('should mix base object from multiple objects', () => {
-      var Base = function() {};
-      var MixinFoo = {
+      const Base = function() {};
+      const MixinFoo = {
         local: 'value',
         myFunction() {
           return this.local;
@@ -101,10 +101,10 @@ describe('Object helper', () => {
           this.local = value;
         }
       };
-      var MixinBar = {
-        test: {zzz: 2}
+      const MixinBar = {
+        test: { zzz: 2 }
       };
-      var MixinBaz = {
+      const MixinBaz = {
         getTest() {
           return this.test;
         }
@@ -112,7 +112,7 @@ describe('Object helper', () => {
 
       mixin(Base, MixinFoo, MixinBar, MixinBaz);
 
-      var instance = new Base();
+      const instance = new Base();
 
       expect(instance.myFunction()).toBe('value');
       expect(instance.local).toBe('value');
@@ -124,9 +124,9 @@ describe('Object helper', () => {
     });
 
     it('mixed object should not interfere with properties from another mixed objects', () => {
-      var Base = function() {};
-      var Base1 = function() {};
-      var MixinFoo = {
+      const Base = function() {};
+      const Base1 = function() {};
+      const MixinFoo = {
         local: {},
         myFunction() {
           this.local.test = 1;
@@ -138,8 +138,8 @@ describe('Object helper', () => {
       mixin(Base, MixinFoo);
       mixin(Base1, MixinFoo);
 
-      var instance = new Base();
-      var instance1 = new Base1();
+      const instance = new Base();
+      const instance1 = new Base1();
 
       instance.myFunction();
 
@@ -153,9 +153,9 @@ describe('Object helper', () => {
   //
   describe('clone', () => {
     it('should returns cloned object', () => {
-      var function1 = function() {};
-      var object1 = {};
-      var object2 = {
+      const function1 = function() {};
+      const object1 = {};
+      const object2 = {
         foo: false,
         und: void 0,
         bar: 0,
@@ -177,12 +177,12 @@ describe('Object helper', () => {
   //
   describe('deepExtend', () => {
     it('should extend an object with all the properties of another object (recursively)', () => {
-      var baseObject = {
+      const baseObject = {
         test: 'one',
         anotherTest: ['one, two']
       };
-      var date = new Date();
-      var partial = {
+      const date = new Date();
+      const partial = {
         prop1: 'prop1',
         prop2: 34,
         prop3: [
@@ -225,7 +225,7 @@ describe('Object helper', () => {
   //
   describe('deepObjectSize', () => {
     it('should return false if a variable is not an object', () => {
-      var toCount = [
+      const toCount = [
         1,
         2,
         3
@@ -235,7 +235,7 @@ describe('Object helper', () => {
     });
 
     it('should return an object keys length (recursively and only these keys, which contain value)', () => {
-      var toCount = {
+      const toCount = {
         prop1: 1,
         prop2: 2,
         prop3: {
@@ -259,7 +259,7 @@ describe('Object helper', () => {
   //
   describe('createObjectPropListener', () => {
     it('should returns object listener and listen default property', () => {
-      var propListener = createObjectPropListener('foo');
+      const propListener = createObjectPropListener('foo');
 
       expect(propListener.isTouched()).toBe(false);
       expect(propListener.value).toBe('foo');
@@ -277,7 +277,7 @@ describe('Object helper', () => {
     });
 
     it('should returns object listener and listen defined by user property', () => {
-      var propListener = createObjectPropListener('foo', 'me');
+      const propListener = createObjectPropListener('foo', 'me');
 
       expect(propListener.isTouched()).toBe(false);
       expect(propListener.me).toBe('foo');
@@ -296,7 +296,7 @@ describe('Object helper', () => {
     });
 
     it('should detect change value to undefined', () => {
-      var propListener = createObjectPropListener('foo');
+      const propListener = createObjectPropListener('foo');
 
       propListener.value = void 0;
 

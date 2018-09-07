@@ -1,4 +1,4 @@
-import {requestAnimationFrame, cancelAnimationFrame} from './../helpers/feature';
+import { requestAnimationFrame, cancelAnimationFrame } from './../helpers/feature';
 
 /**
  * @class Interval
@@ -103,10 +103,18 @@ class Interval {
 
 export default Interval;
 
+/**
+ * Convert delay from string format to milliseconds.
+ *
+ * @param {Number|String} delay
+ * @returns {Number}
+ */
 export function parseDelay(delay) {
-  if (typeof delay === 'string' && /fps$/.test(delay)) {
-    delay = 1000 / parseInt(delay.replace('fps', '') || 0, 10);
+  let result = delay;
+
+  if (typeof result === 'string' && /fps$/.test(result)) {
+    result = 1000 / parseInt(result.replace('fps', '') || 0, 10);
   }
 
-  return delay;
+  return result;
 }

@@ -1,4 +1,4 @@
-import {addClass, hasClass} from './../../../helpers/dom/element';
+import { addClass, hasClass } from './../../../helpers/dom/element';
 import Border from './border';
 import CellCoords from './cell/coords';
 import CellRange from './cell/range';
@@ -127,15 +127,17 @@ class Selection {
     const TD = wotInstance.wtTable.getCell(new CellCoords(sourceRow, sourceColumn));
 
     if (typeof TD === 'object') {
-      if (markIntersections) {
-        className = this.classNameGenerator(TD);
+      let cellClassName = className;
 
-        if (!this.classNames.includes(className)) {
-          this.classNames.push(className);
+      if (markIntersections) {
+        cellClassName = this.classNameGenerator(TD);
+
+        if (!this.classNames.includes(cellClassName)) {
+          this.classNames.push(cellClassName);
         }
       }
 
-      addClass(TD, className);
+      addClass(TD, cellClassName);
     }
 
     return this;
@@ -259,7 +261,7 @@ class Selection {
           }
         }
 
-        let additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceCol, corners, this.settings.layerLevel);
+        const additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceCol, corners, this.settings.layerLevel);
 
         if (typeof additionalSelectionClass === 'string') {
           this.addClassAtCoords(wotInstance, sourceRow, sourceCol, additionalSelectionClass);

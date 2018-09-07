@@ -1,6 +1,6 @@
 import moment from 'moment';
-import {getNormalizedDate} from '../helpers/date';
-import {getEditorInstance} from '../editors';
+import { getNormalizedDate } from '../helpers/date';
+import { getEditorInstance } from '../editors';
 
 /**
  * Date cell validator
@@ -12,17 +12,18 @@ import {getEditorInstance} from '../editors';
  * @param {Function} callback - Callback called with validation result
  */
 export default function dateValidator(value, callback) {
-  let valid = true;
   const dateEditor = getEditorInstance('date', this.instance);
+  let valueToValidate = value;
+  let valid = true;
 
-  if (value == null) {
-    value = '';
+  if (valueToValidate === null || valueToValidate === void 0) {
+    valueToValidate = '';
   }
-  let isValidDate = moment(new Date(value)).isValid() || moment(value, dateEditor.defaultDateFormat).isValid();
+  let isValidDate = moment(new Date(valueToValidate)).isValid() || moment(valueToValidate, dateEditor.defaultDateFormat).isValid();
   // is it in the specified format
-  let isValidFormat = moment(value, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
+  let isValidFormat = moment(valueToValidate, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
 
-  if (this.allowEmpty && value === '') {
+  if (this.allowEmpty && valueToValidate === '') {
     isValidDate = true;
     isValidFormat = true;
   }
@@ -35,9 +36,9 @@ export default function dateValidator(value, callback) {
 
   if (isValidDate && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
-      let correctedValue = correctFormat(value, this.dateFormat);
-      let row = this.instance.runHooks('unmodifyRow', this.row);
-      let column = this.instance.runHooks('unmodifyCol', this.col);
+      const correctedValue = correctFormat(valueToValidate, this.dateFormat);
+      const row = this.instance.runHooks('unmodifyRow', this.row);
+      const column = this.instance.runHooks('unmodifyCol', this.col);
 
       this.instance.setDataAtCell(row, column, correctedValue, 'dateValidator');
       valid = true;
@@ -47,7 +48,7 @@ export default function dateValidator(value, callback) {
   }
 
   callback(valid);
-};
+}
 
 /**
  * Format the given string using moment.js' format feature
@@ -57,9 +58,9 @@ export default function dateValidator(value, callback) {
  * @returns {String}
  */
 export function correctFormat(value, dateFormat) {
-  let dateFromDate = moment(getNormalizedDate(value));
-  let dateFromMoment = moment(value, dateFormat);
-  let isAlphanumeric = value.search(/[A-z]/g) > -1;
+  const dateFromDate = moment(getNormalizedDate(value));
+  const dateFromMoment = moment(value, dateFormat);
+  const isAlphanumeric = value.search(/[A-z]/g) > -1;
   let date;
 
   if ((dateFromDate.isValid() && dateFromDate.format('x') === dateFromMoment.format('x')) ||
@@ -72,4 +73,4 @@ export function correctFormat(value, dateFormat) {
   }
 
   return date.format(dateFormat);
-};
+}

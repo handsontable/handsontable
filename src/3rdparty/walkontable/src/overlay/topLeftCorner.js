@@ -39,17 +39,17 @@ class TopLeftCornerOverlay extends Overlay {
       // removed from DOM
       return;
     }
-    let overlayRoot = this.clone.wtTable.holder.parentNode;
-    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    let tableWidth = outerWidth(this.clone.wtTable.TABLE);
-    let preventOverflow = this.wot.getSetting('preventOverflow');
+    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer === window) {
-      let box = this.wot.wtTable.hider.getBoundingClientRect();
-      let top = Math.ceil(box.top);
-      let left = Math.ceil(box.left);
-      let bottom = Math.ceil(box.bottom);
-      let right = Math.ceil(box.right);
+      const box = this.wot.wtTable.hider.getBoundingClientRect();
+      const top = Math.ceil(box.top);
+      const left = Math.ceil(box.left);
+      const bottom = Math.ceil(box.bottom);
+      const right = Math.ceil(box.right);
       let finalLeft = '0';
       let finalTop = '0';
 
