@@ -297,10 +297,12 @@ class CopyPaste extends BasePlugin {
    *
    * @param {String} [value] Value to paste.
    */
-  paste(value = '') {
+  paste(text = '', html = '') {
     const pasteData = new PasteEvent();
 
-    pasteData.clipboardData.setData('text/plain', value);
+    pasteData.clipboardData.setData('text/plain', text);
+    pasteData.clipboardData.setData('text/html', html);
+    this.focusableElement.focus();
     this.onPaste(pasteData);
   }
 
@@ -524,7 +526,6 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
-    this.setCopyableText();
     this.focusableElement.focus();
   }
 
