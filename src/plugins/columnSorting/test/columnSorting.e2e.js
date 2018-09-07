@@ -6,10 +6,11 @@ describe('ColumnSorting', () => {
 
     this.sortByClickOnColumnHeader = (columnIndex) => {
       const hot = this.$container.data('handsontable');
-      const $element = $(hot.view.wt.wtTable.getColumnHeader(columnIndex)).find('.columnSorting');
+      const $columnHeader = $(hot.view.wt.wtTable.getColumnHeader(columnIndex));
+      const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
-      $element.simulate('mousedown');
-      $element.simulate('mouseup');
+      $spanInsideHeader.simulate('mousedown');
+      $spanInsideHeader.simulate('mouseup');
     };
   });
 
