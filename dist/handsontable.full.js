@@ -21,7 +21,7 @@
  * UNINTERRUPTED OR ERROR FREE.
  * 
  * Version: 5.0.2
- * Release date: 12/09/2018 (built at 05/09/2018 12:20:25)
+ * Release date: 12/09/2018 (built at 11/09/2018 10:18:31)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -48746,8 +48746,6 @@ function onBeforeKeyDown(event) {
 }
 
 AutocompleteEditor.prototype.prepare = function () {
-  this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
-
   for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
     args[_key3] = arguments[_key3];
   }
@@ -48756,6 +48754,7 @@ AutocompleteEditor.prototype.prepare = function () {
 };
 
 AutocompleteEditor.prototype.open = function () {
+  this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   // Ugly fix for handsontable which grab window object for autocomplete scroll listener instead table element.
   this.TEXTAREA_PARENT.style.overflow = 'auto';
 
@@ -56827,7 +56826,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '05/09/2018 12:20:25';
+Handsontable.buildDate = '11/09/2018 10:18:31';
 Handsontable.packageName = 'handsontable-pro';
 Handsontable.version = '5.0.2';
 
