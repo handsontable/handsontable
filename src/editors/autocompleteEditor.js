@@ -78,11 +78,11 @@ function onBeforeKeyDown(event) {
 }
 
 AutocompleteEditor.prototype.prepare = function(...args) {
-  this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   HandsontableEditor.prototype.prepare.apply(this, args);
 };
 
 AutocompleteEditor.prototype.open = function(...args) {
+  this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   // Ugly fix for handsontable which grab window object for autocomplete scroll listener instead table element.
   this.TEXTAREA_PARENT.style.overflow = 'auto';
   HandsontableEditor.prototype.open.apply(this, args);
