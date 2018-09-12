@@ -1,8 +1,8 @@
 import Menu from 'handsontable/plugins/contextMenu/menu';
-import {clone, extend} from 'handsontable/helpers/object';
-import {arrayEach} from 'handsontable/helpers/array';
+import { clone, extend } from 'handsontable/helpers/object';
+import { arrayEach } from 'handsontable/helpers/array';
 import * as C from 'handsontable/i18n/constants';
-import {SEPARATOR} from 'handsontable/plugins/contextMenu/predefinedItems';
+import { SEPARATOR } from 'handsontable/plugins/contextMenu/predefinedItems';
 import BaseUI from './_base';
 
 const privatePool = new WeakMap();
@@ -43,7 +43,7 @@ class SelectUI extends BaseUI {
    * Register all necessary hooks.
    */
   registerHooks() {
-    this.addLocalHook('click', (event) => this.onClick(event));
+    this.addLocalHook('click', () => this.onClick());
   }
 
   /**
@@ -97,9 +97,9 @@ class SelectUI extends BaseUI {
     priv.captionElement = caption.element;
     priv.dropdown = dropdown;
 
-    arrayEach([caption, dropdown], (element) => this._element.appendChild(element.element));
+    arrayEach([caption, dropdown], element => this._element.appendChild(element.element));
 
-    this.menu.addLocalHook('select', (command) => this.onMenuSelect(command));
+    this.menu.addLocalHook('select', command => this.onMenuSelect(command));
     this.menu.addLocalHook('afterClose', () => this.onMenuClosed());
     this.update();
   }
@@ -129,7 +129,7 @@ class SelectUI extends BaseUI {
    * Open select dropdown menu with available options.
    */
   openOptions() {
-    let rect = this.element.getBoundingClientRect();
+    const rect = this.element.getBoundingClientRect();
 
     if (this.menu) {
       this.menu.open();
@@ -179,9 +179,8 @@ class SelectUI extends BaseUI {
    * On element click listener.
    *
    * @private
-   * @param {Event} event DOM Event
    */
-  onClick(event) {
+  onClick() {
     this.openOptions();
   }
 
@@ -193,7 +192,7 @@ class SelectUI extends BaseUI {
       this.menu.destroy();
       this.menu = null;
     }
-    const {caption, dropdown} = privatePool.get(this);
+    const { caption, dropdown } = privatePool.get(this);
 
     if (caption) {
       caption.destroy();

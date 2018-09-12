@@ -1,10 +1,10 @@
-import {arrayEach, arrayMap, arrayFilter} from 'handsontable/helpers/array';
-import {mixin, objectEach} from 'handsontable/helpers/object';
-import {curry, debounce} from 'handsontable/helpers/function';
+import { arrayEach, arrayMap, arrayFilter } from 'handsontable/helpers/array';
+import { mixin, objectEach } from 'handsontable/helpers/object';
+import { curry } from 'handsontable/helpers/function';
 import localHooks from 'handsontable/mixins/localHooks';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
-import {createArrayAssertion} from './utils';
+import { createArrayAssertion } from './utils';
 
 /**
  * Class which is designed for observing changes in condition collection. When condition is changed by user at specified
@@ -17,7 +17,7 @@ import {createArrayAssertion} from './utils';
  * @pro
  */
 class ConditionUpdateObserver {
-  constructor(conditionCollection, columnDataFactory = (column) => []) {
+  constructor(conditionCollection, columnDataFactory = () => []) {
     /**
      * Reference to the instance of {@link ConditionCollection}.
      *
@@ -57,9 +57,9 @@ class ConditionUpdateObserver {
      */
     this.latestOrderStack = [];
 
-    this.conditionCollection.addLocalHook('beforeRemove', (column) => this._onConditionBeforeModify(column));
-    this.conditionCollection.addLocalHook('afterAdd', (column) => this.updateStatesAtColumn(column));
-    this.conditionCollection.addLocalHook('afterClear', (column) => this.updateStatesAtColumn(column));
+    this.conditionCollection.addLocalHook('beforeRemove', column => this._onConditionBeforeModify(column));
+    this.conditionCollection.addLocalHook('afterAdd', column => this.updateStatesAtColumn(column));
+    this.conditionCollection.addLocalHook('afterClear', column => this.updateStatesAtColumn(column));
     this.conditionCollection.addLocalHook('beforeClean', () => this._onConditionBeforeClean());
     this.conditionCollection.addLocalHook('afterClean', () => this._onConditionAfterClean());
   }
@@ -111,7 +111,7 @@ class ConditionUpdateObserver {
 
       return;
     }
-    let allConditions = this.conditionCollection.exportAllConditions();
+    const allConditions = this.conditionCollection.exportAllConditions();
     let editedColumnPosition = this.conditionCollection.orderStack.indexOf(column);
 
     if (editedColumnPosition === -1) {
@@ -119,42 +119,41 @@ class ConditionUpdateObserver {
     }
 
     // Collection of all conditions defined before currently edited `column` (without edited one)
-    let conditionsBefore = allConditions.slice(0, editedColumnPosition);
+    const conditionsBefore = allConditions.slice(0, editedColumnPosition);
     // Collection of all conditions defined after currently edited `column` (without edited one)
-    let conditionsAfter = allConditions.slice(editedColumnPosition);
+    const conditionsAfter = allConditions.slice(editedColumnPosition);
 
     // Make sure that conditionAfter doesn't contain edited column conditions
     if (conditionsAfter.length && conditionsAfter[0].column === column) {
       conditionsAfter.shift();
     }
 
-    let visibleDataFactory = curry((conditionsBefore, column, conditionsStack = []) => {
-      let splitConditionCollection = new ConditionCollection();
-
-      conditionsBefore = [].concat(conditionsBefore, conditionsStack);
+    const visibleDataFactory = curry((curriedConditionsBefore, curriedColumn, conditionsStack = []) => {
+      const splitConditionCollection = new ConditionCollection();
+      const curriedConditionsBeforeArray = [].concat(curriedConditionsBefore, conditionsStack);
 
       // Create new condition collection to determine what rows should be visible in "filter by value" box in the next conditions in the chain
-      splitConditionCollection.importAllConditions(conditionsBefore);
+      splitConditionCollection.importAllConditions(curriedConditionsBeforeArray);
 
-      const allRows = this.columnDataFactory(column);
+      const allRows = this.columnDataFactory(curriedColumn);
       let visibleRows;
 
       if (splitConditionCollection.isEmpty()) {
         visibleRows = allRows;
       } else {
-        visibleRows = (new DataFilter(splitConditionCollection, (column) => this.columnDataFactory(column))).filter();
+        visibleRows = (new DataFilter(splitConditionCollection, columnData => this.columnDataFactory(columnData))).filter();
       }
-      visibleRows = arrayMap(visibleRows, (rowData) => rowData.meta.visualRow);
+      visibleRows = arrayMap(visibleRows, rowData => rowData.meta.visualRow);
 
       const visibleRowsAssertion = createArrayAssertion(visibleRows);
 
-      return arrayFilter(allRows, (rowData) => visibleRowsAssertion(rowData.meta.visualRow));
+      return arrayFilter(allRows, rowData => visibleRowsAssertion(rowData.meta.visualRow));
     })(conditionsBefore);
 
-    let editedConditions = [].concat(this.conditionCollection.getConditions(column));
+    const editedConditions = [].concat(this.conditionCollection.getConditions(column));
 
     this.runLocalHooks('update', {
-      editedConditionStack: {column, conditions: editedConditions},
+      editedConditionStack: { column, conditions: editedConditions },
       dependentConditionStacks: conditionsAfter,
       filteredRowsFactory: visibleDataFactory,
       conditionArgsChange

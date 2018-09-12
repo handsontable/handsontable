@@ -1,5 +1,5 @@
-import {arrayEach} from 'handsontable/helpers/array';
-import {mixin} from 'handsontable/helpers/object';
+import { arrayEach } from 'handsontable/helpers/array';
+import { mixin } from 'handsontable/helpers/object';
 import localHooks from 'handsontable/mixins/localHooks';
 import stateSaver from 'handsontable/mixins/stateSaver';
 
@@ -28,7 +28,7 @@ class BaseComponent {
    * Reset elements to their initial state.
    */
   reset() {
-    arrayEach(this.elements, (ui) => ui.reset());
+    arrayEach(this.elements, ui => ui.reset());
   }
 
   /**
@@ -59,7 +59,7 @@ class BaseComponent {
    */
   destroy() {
     this.clearLocalHooks();
-    arrayEach(this.elements, (ui) => ui.destroy());
+    arrayEach(this.elements, ui => ui.destroy());
     this.elements = null;
     this.hot = null;
   }

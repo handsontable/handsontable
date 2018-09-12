@@ -1,8 +1,7 @@
 import BasePlugin from 'handsontable/plugins/_base';
-import {objectEach, extend, clone} from 'handsontable/helpers/object';
-import {registerPlugin} from 'handsontable/plugins';
+import { registerPlugin } from 'handsontable/plugins';
 import DataProvider from './dataProvider';
-import typeFactory, {EXPORT_TYPES} from './typeFactory';
+import typeFactory, { EXPORT_TYPES } from './typeFactory';
 
 /**
  * @plugin ExportFile
@@ -111,7 +110,7 @@ class ExportFile extends BasePlugin {
       a.dispatchEvent(new MouseEvent('click'));
       document.body.removeChild(a);
 
-      setTimeout(function() {
+      setTimeout(() => {
         URL.revokeObjectURL(url);
       }, 100);
 

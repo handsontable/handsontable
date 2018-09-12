@@ -1,7 +1,7 @@
 import BasePlugin from 'handsontable/plugins/_base';
-import {arrayEach} from 'handsontable/helpers/array';
-import {rangeEach} from 'handsontable/helpers/number';
-import {registerPlugin} from 'handsontable/plugins';
+import { arrayEach } from 'handsontable/helpers/array';
+import { rangeEach } from 'handsontable/helpers/number';
+import { registerPlugin } from 'handsontable/plugins';
 import RowsMapper from './rowsMapper';
 
 /**
@@ -90,7 +90,7 @@ class TrimRows extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    let settings = this.hot.getSettings().trimRows;
+    const settings = this.hot.getSettings().trimRows;
 
     if (Array.isArray(settings)) {
       this.trimmedRows = settings;
@@ -102,8 +102,8 @@ class TrimRows extends BasePlugin {
     this.addHook('beforeCreateRow', (index, amount, source) => this.onBeforeCreateRow(index, amount, source));
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
-    this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
-    this.addHook('afterLoadData', (firstRun) => this.onAfterLoadData(firstRun));
+    this.addHook('afterRemoveRow', () => this.onAfterRemoveRow());
+    this.addHook('afterLoadData', firstRun => this.onAfterLoadData(firstRun));
 
     super.enablePlugin();
   }
@@ -141,10 +141,10 @@ class TrimRows extends BasePlugin {
    */
   trimRows(rows) {
     arrayEach(rows, (row) => {
-      row = parseInt(row, 10);
+      const physicalRow = parseInt(row, 10);
 
-      if (!this.isTrimmed(row)) {
-        this.trimmedRows.push(row);
+      if (!this.isTrimmed(physicalRow)) {
+        this.trimmedRows.push(physicalRow);
       }
     });
 
@@ -171,10 +171,10 @@ class TrimRows extends BasePlugin {
    */
   untrimRows(rows) {
     arrayEach(rows, (row) => {
-      row = parseInt(row, 10);
+      const physicalRow = parseInt(row, 10);
 
-      if (this.isTrimmed(row)) {
-        this.trimmedRows.splice(this.trimmedRows.indexOf(row), 1);
+      if (this.isTrimmed(physicalRow)) {
+        this.trimmedRows.splice(this.trimmedRows.indexOf(physicalRow), 1);
       }
     });
 
@@ -217,11 +217,13 @@ class TrimRows extends BasePlugin {
    * @returns {Number|null}
    */
   onModifyRow(row, source) {
+    let physicalRow = row;
+
     if (source !== this.pluginName) {
-      row = this.rowsMapper.getValueByIndex(row);
+      physicalRow = this.rowsMapper.getValueByIndex(physicalRow);
     }
 
-    return row;
+    return physicalRow;
   }
 
   /**
@@ -233,11 +235,13 @@ class TrimRows extends BasePlugin {
    * @returns {Number|null}
    */
   onUnmodifyRow(row, source) {
+    let visualRow = row;
+
     if (source !== this.pluginName) {
-      row = this.rowsMapper.getIndexByValue(row);
+      visualRow = this.rowsMapper.getIndexByValue(visualRow);
     }
 
-    return row;
+    return visualRow;
   }
 
   /**
@@ -287,10 +291,8 @@ class TrimRows extends BasePlugin {
    * On after remove row listener.
    *
    * @private
-   * @param {Number} index Visual row index.
-   * @param {Number} amount Defines how many rows removed.
    */
-  onAfterRemoveRow(index, amount) {
+  onAfterRemoveRow() {
     this.rowsMapper.unshiftItems(this.removedRows);
   }
 

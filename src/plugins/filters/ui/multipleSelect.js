@@ -1,14 +1,14 @@
-import {addClass} from 'handsontable/helpers/dom/element';
-import {clone, extend} from 'handsontable/helpers/object';
-import {arrayFilter, arrayMap, arrayEach} from 'handsontable/helpers/array';
-import {isKey} from 'handsontable/helpers/unicode';
-import {partial} from 'handsontable/helpers/function';
+import { addClass } from 'handsontable/helpers/dom/element';
+import { clone, extend } from 'handsontable/helpers/object';
+import { arrayFilter, arrayMap, arrayEach } from 'handsontable/helpers/array';
+import { isKey } from 'handsontable/helpers/unicode';
+import { partial } from 'handsontable/helpers/function';
 import * as C from 'handsontable/i18n/constants';
-import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
+import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
 import BaseUI from './_base';
 import InputUI from './input';
 import LinkUI from './link';
-import {createArrayAssertion} from './../utils';
+import { createArrayAssertion } from './../utils';
 
 const privatePool = new WeakMap();
 
@@ -75,10 +75,10 @@ class MultipleSelectUI extends BaseUI {
    * Register all necessary hooks.
    */
   registerHooks() {
-    this.searchInput.addLocalHook('keydown', (event) => this.onInputKeyDown(event));
-    this.searchInput.addLocalHook('input', (event) => this.onInput(event));
-    this.selectAllUI.addLocalHook('click', (event) => this.onSelectAllClick(event));
-    this.clearAllUI.addLocalHook('click', (event) => this.onClearAllClick(event));
+    this.searchInput.addLocalHook('keydown', event => this.onInputKeyDown(event));
+    this.searchInput.addLocalHook('input', event => this.onInput(event));
+    this.selectAllUI.addLocalHook('click', event => this.onSelectAllClick(event));
+    this.clearAllUI.addLocalHook('click', event => this.onClearAllClick(event));
   }
 
   /**
@@ -137,7 +137,7 @@ class MultipleSelectUI extends BaseUI {
     this._element.appendChild(selectionControl.element);
     this._element.appendChild(itemsBoxWrapper);
 
-    let hotInitializer = (wrapper) => {
+    const hotInitializer = (wrapper) => {
       if (!this._element) {
         return;
       }
@@ -150,7 +150,7 @@ class MultipleSelectUI extends BaseUI {
       this.itemsBox = new this.hot.constructor(wrapper, {
         data: this.items,
         columns: [
-          {data: 'checked', type: 'checkbox', label: {property: 'visualValue', position: 'after'}}
+          { data: 'checked', type: 'checkbox', label: { property: 'visualValue', position: 'after' } }
         ],
         beforeRenderer: (TD, row, col, prop, value, cellProperties) => {
           TD.title = cellProperties.instance.getDataAtRowProp(row, cellProperties.label.property);
@@ -162,8 +162,8 @@ class MultipleSelectUI extends BaseUI {
         disableVisualSelection: 'area',
         fillHandle: false,
         fragmentSelection: 'cell',
-        tabMoves: {row: 1, col: 0},
-        beforeKeyDown: (event) => this.onItemsBoxBeforeKeyDown(event)
+        tabMoves: { row: 1, col: 0 },
+        beforeKeyDown: event => this.onItemsBoxBeforeKeyDown(event)
       });
       this.itemsBox.init();
     };
@@ -218,13 +218,13 @@ class MultipleSelectUI extends BaseUI {
    * @param {Event} event DOM event.
    */
   onInput(event) {
-    let value = event.target.value.toLowerCase();
+    const value = event.target.value.toLowerCase();
     let filteredItems;
 
     if (value === '') {
       filteredItems = [...this.items];
     } else {
-      filteredItems = arrayFilter(this.items, (item) => (item.value + '').toLowerCase().indexOf(value) >= 0);
+      filteredItems = arrayFilter(this.items, item => (`${item.value}`).toLowerCase().indexOf(value) >= 0);
     }
     this.itemsBox.loadData(filteredItems);
   }
@@ -323,7 +323,7 @@ function valueToItems(availableItems, selectedValue) {
  * @returns {Array}
  */
 function itemsToValue(availableItems) {
-  let items = [];
+  const items = [];
 
   arrayEach(availableItems, (item) => {
     if (item.checked) {

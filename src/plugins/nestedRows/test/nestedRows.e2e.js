@@ -1,8 +1,8 @@
-describe('NestedRows', function() {
-  var id = 'testContainer';
+describe('NestedRows', () => {
+  const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,9 +12,9 @@ describe('NestedRows', function() {
     }
   });
 
-  describe('Displaying a nested structure', function() {
-    it('should display as many rows as there are overall elements in a nested structure', function() {
-      var hot = handsontable({
+  describe('Displaying a nested structure', () => {
+    it('should display as many rows as there are overall elements in a nested structure', () => {
+      const hot = handsontable({
         data: getDataForNestedRows(),
         nestedRows: true
       });
@@ -22,13 +22,13 @@ describe('NestedRows', function() {
       expect(hot.countRows()).toEqual(12);
     });
 
-    it('should display all nested structure elements in correct order (parent, its children, its children children, next parent etc)', function() {
-      var hot = handsontable({
+    it('should display all nested structure elements in correct order (parent, its children, its children children, next parent etc)', () => {
+      const hot = handsontable({
         data: getDataForNestedRows(),
         nestedRows: true
       });
 
-      var dataInOrder = [
+      const dataInOrder = [
         ['a0', 'b0'],
         ['a0-a0', 'b0-b0'],
         ['a0-a1', 'b0-b1'],
@@ -46,8 +46,8 @@ describe('NestedRows', function() {
       expect(hot.getData()).toEqual(dataInOrder);
     });
 
-    it('should display the right amount of entries with the `manualRowMove` plugin enabled', function() {
-      var hot = handsontable({
+    it('should display the right amount of entries with the `manualRowMove` plugin enabled', () => {
+      const hot = handsontable({
         data: getDataForNestedRows(),
         nestedRows: true,
         manualRowMove: true

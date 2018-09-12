@@ -1,10 +1,10 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/notContains';
-import {dateRowFactory} from './../helpers/utils';
+import { condition } from 'handsontable-pro/plugins/filters/condition/notContains';
+import { dateRowFactory } from './../helpers/utils';
 
-describe('Filters condition (`not_contains`)', function() {
+describe('Filters condition (`not_contains`)', () => {
 
-  it('should filter matching values', function() {
-    var data = dateRowFactory();
+  it('should filter matching values', () => {
+    const data = dateRowFactory();
 
     expect(condition(data('tom'), ['ome'])).toBe(true);
     expect(condition(data('tom'), ['mt'])).toBe(true);
@@ -21,8 +21,8 @@ describe('Filters condition (`not_contains`)', function() {
     expect(condition(data(true), ['e '])).toBe(true);
   });
 
-  it('should filter not matching values', function() {
-    var data = dateRowFactory();
+  it('should filter not matching values', () => {
+    const data = dateRowFactory();
 
     expect(condition(data('tom'), [''])).toBe(false);
     expect(condition(data('tom'), ['t'])).toBe(false);

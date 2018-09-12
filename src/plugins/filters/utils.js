@@ -1,5 +1,5 @@
-import {getComparisonFunction} from 'handsontable/helpers/feature';
-import {arrayUnique, arrayEach} from 'handsontable/helpers/array';
+import { getComparisonFunction } from 'handsontable/helpers/feature';
+import { arrayUnique, arrayEach } from 'handsontable/helpers/array';
 
 const sortCompare = getComparisonFunction();
 
@@ -26,11 +26,13 @@ export function sortComparison(a, b) {
  * @returns {*}
  */
 export function toVisualValue(value, defaultEmptyValue) {
-  if (value === '') {
-    value = `(${defaultEmptyValue})`;
+  let visualValue = value;
+
+  if (visualValue === '') {
+    visualValue = `(${defaultEmptyValue})`;
   }
 
-  return value;
+  return visualValue;
 }
 
 const SUPPORT_SET_CONSTRUCTOR = new Set([1]).has(1);
@@ -43,18 +45,20 @@ const SUPPORT_FAST_DEDUPE = SUPPORT_SET_CONSTRUCTOR && typeof Array.from === 'fu
  * @returns {Function}
  */
 export function createArrayAssertion(initialData) {
+  let dataset = initialData;
+
   if (SUPPORT_SET_CONSTRUCTOR) {
-    initialData = new Set(initialData);
+    dataset = new Set(dataset);
   }
 
   return function(value) {
     let result;
 
     if (SUPPORT_SET_CONSTRUCTOR) {
-      result = initialData.has(value);
+      result = dataset.has(value);
     } else {
       /* eslint-disable no-bitwise */
-      result = !!~initialData.indexOf(value);
+      result = !!~dataset.indexOf(value);
     }
 
     return result;
@@ -68,7 +72,7 @@ export function createArrayAssertion(initialData) {
  * @returns {String}
  */
 export function toEmptyString(value) {
-  return value == null ? '' : value;
+  return value === null || value === void 0 ? '' : value;
 }
 
 /**
@@ -78,12 +82,14 @@ export function toEmptyString(value) {
  * @returns {Array}
  */
 export function unifyColumnValues(values) {
+  let unifiedValues = values;
+
   if (SUPPORT_FAST_DEDUPE) {
-    values = Array.from(new Set(values));
+    unifiedValues = Array.from(new Set(unifiedValues));
   } else {
-    values = arrayUnique(values);
+    unifiedValues = arrayUnique(unifiedValues);
   }
-  values = values.sort(function(a, b) {
+  unifiedValues = unifiedValues.sort((a, b) => {
     if (typeof a === 'number' && typeof b === 'number') {
       return a - b;
     }
@@ -95,7 +101,7 @@ export function unifyColumnValues(values) {
     return a > b ? 1 : -1;
   });
 
-  return values;
+  return unifiedValues;
 }
 
 /**
@@ -123,7 +129,7 @@ export function intersectValues(base, selected, defaultEmptyValue, callback) {
       checked = true;
     }
 
-    const item = {checked, value, visualValue: toVisualValue(value, defaultEmptyValue)};
+    const item = { checked, value, visualValue: toVisualValue(value, defaultEmptyValue) };
 
     if (callback) {
       callback(item);

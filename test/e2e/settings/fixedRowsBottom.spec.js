@@ -1,20 +1,20 @@
-describe('settings', function () {
-  describe('fixedRowsBottom', function () {
-    var id = 'testContainer';
+describe('settings', () => {
+  describe('fixedRowsBottom', () => {
+    const id = 'testContainer';
 
-    beforeEach(function () {
-      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    beforeEach(function() {
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    afterEach(function () {
+    afterEach(function() {
       if (this.$container) {
         destroy();
         this.$container.remove();
       }
     });
 
-    describe('defined in constructor', function () {
-      it('should show rows headers', function () {
+    describe('defined in constructor', () => {
+      it('should show rows headers', () => {
         handsontable({
           fixedRowsBottom: 3
         });
@@ -22,7 +22,7 @@ describe('settings', function () {
         expect(getBottomClone().find('tbody tr').length).toEqual(3);
       });
 
-      it('should show rows headers when headers are enabled', function () {
+      it('should show rows headers when headers are enabled', () => {
         handsontable({
           rowHeaders: true,
           colHeaders: true,
@@ -35,8 +35,8 @@ describe('settings', function () {
       });
     });
 
-    describe('defined in updateSettings', function () {
-      it('should increase fixed rows', function () {
+    describe('defined in updateSettings', () => {
+      it('should increase fixed rows', () => {
         handsontable({
           fixedRowsBottom: 2
         });
@@ -48,7 +48,7 @@ describe('settings', function () {
         expect(getBottomClone().find('tbody tr').length).toEqual(4);
       });
 
-      it('should decrease fixed rows', function () {
+      it('should decrease fixed rows', () => {
         handsontable({
           fixedRowsBottom: 4
         });
@@ -60,7 +60,7 @@ describe('settings', function () {
         expect(getBottomClone().find('tbody tr').length).toEqual(2);
       });
 
-      it('should create fixed rows when they are disabled eariler', function () {
+      it('should create fixed rows when they are disabled eariler', () => {
         handsontable({
           fixedRowsBottom: 0
         });
@@ -72,7 +72,7 @@ describe('settings', function () {
         expect(getBottomClone().find('tbody tr').length).toEqual(2);
       });
 
-      it('should disable fixed rows', function () {
+      it('should disable fixed rows', () => {
         handsontable({
           fixedRowsBottom: 2
         });
@@ -85,14 +85,14 @@ describe('settings', function () {
         expect(getLeftClone().height()).toBe(0);
       });
 
-      it('should not throw errors while scrolling vertically when fixed rows was set', async () => {
-        var spy = jasmine.createSpyObj('error', ['test']);
-        var prevError = window.onerror;
+      it('should not throw errors while scrolling vertically when fixed rows was set', async() => {
+        const spy = jasmine.createSpyObj('error', ['test']);
+        const prevError = window.onerror;
 
-        window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+        window.onerror = function() {
           spy.test();
         };
-        var hot = handsontable({
+        const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(50, 50),
           width: 200,
           height: 200,
@@ -114,8 +114,8 @@ describe('settings', function () {
       });
     });
 
-    it('should synchronize scroll with master table', async () => {
-      const hot = handsontable({
+    it('should synchronize scroll with master table', async() => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 50),
         width: 200,
         height: 200,

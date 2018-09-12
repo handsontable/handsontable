@@ -1,11 +1,11 @@
 describe('i18n', () => {
   const id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -83,7 +83,7 @@ describe('i18n', () => {
           $contextMenuItems.eq(1).simulate('mousedown');
           $('.htUIButton.htUIButtonOK input').simulate('click');
 
-          hot.updateSettings({language: POLISH_LANGUAGE_CODE});
+          hot.updateSettings({ language: POLISH_LANGUAGE_CODE });
 
           dropdownMenu(0);
 
@@ -106,7 +106,7 @@ describe('i18n', () => {
           $contextMenuItems.eq(1).simulate('mousedown');
           $('.htUIButton.htUIButtonOK input').simulate('click');
 
-          hot.updateSettings({language: POLISH_LANGUAGE_CODE});
+          hot.updateSettings({ language: POLISH_LANGUAGE_CODE });
 
           dropdownMenu(0);
 
@@ -148,7 +148,7 @@ describe('i18n', () => {
         // creating DOM elements
         dropdownMenu(0);
 
-        hot.updateSettings({language: POLISH_LANGUAGE_CODE});
+        hot.updateSettings({ language: POLISH_LANGUAGE_CODE });
 
         dropdownMenu(0);
 
@@ -186,7 +186,7 @@ describe('i18n', () => {
         // creating DOM elements
         dropdownMenu(0);
 
-        hot.updateSettings({language: POLISH_LANGUAGE_CODE});
+        hot.updateSettings({ language: POLISH_LANGUAGE_CODE });
 
         dropdownMenu(0);
 
@@ -224,7 +224,7 @@ describe('i18n', () => {
         // creating DOM elements
         dropdownMenu(0);
 
-        hot.updateSettings({language: POLISH_LANGUAGE_CODE});
+        hot.updateSettings({ language: POLISH_LANGUAGE_CODE });
 
         dropdownMenu(0);
 
@@ -262,7 +262,7 @@ describe('i18n', () => {
         // creating DOM elements
         dropdownMenu(0);
 
-        hot.updateSettings({language: POLISH_LANGUAGE_CODE});
+        hot.updateSettings({ language: POLISH_LANGUAGE_CODE });
 
         dropdownMenu(0);
 
@@ -306,7 +306,7 @@ describe('i18n', () => {
         // creating DOM elements
         dropdownMenu(1);
 
-        hot.updateSettings({language: POLISH_LANGUAGE_CODE});
+        hot.updateSettings({ language: POLISH_LANGUAGE_CODE });
 
         dropdownMenu(1);
 
@@ -399,7 +399,6 @@ describe('i18n', () => {
 
           const rowHeader1 = $('.ht_clone_left tr:eq(1) th:eq(0)');
           const rowHeader2 = $('.ht_clone_left tr:eq(2) th:eq(0)');
-
 
           rowHeader2.simulate('mousedown');
           rowHeader2.simulate('mouseup');
@@ -554,7 +553,7 @@ describe('i18n', () => {
           rowHeader1.simulate('mousedown');
           rowHeader1.simulate('mouseup');
 
-          rowHeader2.simulate('mousedown', {shiftKey: true});
+          rowHeader2.simulate('mousedown', { shiftKey: true });
           rowHeader2.simulate('mouseup');
 
           contextMenu();
@@ -582,7 +581,7 @@ describe('i18n', () => {
           rowHeader2.simulate('mousedown');
           rowHeader2.simulate('mouseup');
 
-          rowHeader1.simulate('mousedown', {shiftKey: true});
+          rowHeader1.simulate('mousedown', { shiftKey: true });
           rowHeader1.simulate('mouseup');
 
           contextMenu();
@@ -656,7 +655,6 @@ describe('i18n', () => {
 
           const $columnHeader1 = $('.ht_clone_top tr:eq(0) th:eq(1)');
           const $columnHeader2 = $('.ht_clone_top tr:eq(0) th:eq(2)');
-
 
           $columnHeader2.simulate('mousedown');
           $columnHeader2.simulate('mouseup');
@@ -812,7 +810,7 @@ describe('i18n', () => {
           $columnHeader1.simulate('mousedown');
           $columnHeader1.simulate('mouseup');
 
-          $columnHeader2.simulate('mousedown', {shiftKey: true});
+          $columnHeader2.simulate('mousedown', { shiftKey: true });
           $columnHeader2.simulate('mouseup');
 
           contextMenu();
@@ -840,7 +838,7 @@ describe('i18n', () => {
           $columnHeader2.simulate('mousedown');
           $columnHeader2.simulate('mouseup');
 
-          $columnHeader1.simulate('mousedown', {shiftKey: true});
+          $columnHeader1.simulate('mousedown', { shiftKey: true });
           $columnHeader1.simulate('mouseup');
 
           contextMenu();

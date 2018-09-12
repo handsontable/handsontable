@@ -1,5 +1,5 @@
-import {arrayEach} from 'handsontable/helpers/array';
-import {cellCoordFactory, isFormulaExpression} from './../utils';
+import { arrayEach } from 'handsontable/helpers/array';
+import { cellCoordFactory, isFormulaExpression } from './../utils';
 import CellValue from './../cell/value';
 import ExpressionModifier from './../expressionModifier';
 
@@ -22,14 +22,14 @@ export const OPERATION_NAME = 'remove_row';
  *                                       operation so it doesn't modify formulas if undo action is triggered.
  */
 export function operate(start, amount, modifyFormula = true) {
-  amount = -amount;
+  const rowsAmount = -amount;
 
-  const {matrix, dataProvider, sheet} = this;
-  const translate = [amount, 0];
-  const indexOffset = Math.abs(amount) - 1;
+  const { matrix, dataProvider, sheet } = this;
+  const translate = [rowsAmount, 0];
+  const indexOffset = Math.abs(rowsAmount) - 1;
 
-  let removedCellRef = matrix.removeCellRefsAtRange({row: start}, {row: start + indexOffset});
-  let toRemove = [];
+  const removedCellRef = matrix.removeCellRefsAtRange({ row: start }, { row: start + indexOffset });
+  const toRemove = [];
 
   arrayEach(matrix.data, (cell) => {
     arrayEach(removedCellRef, (cellRef) => {
@@ -59,7 +59,7 @@ export function operate(start, amount, modifyFormula = true) {
   });
 
   arrayEach(matrix.data, (cell) => {
-    const {row: origRow, column: origColumn} = cell;
+    const { row: origRow, column: origColumn } = cell;
 
     if (cell.row >= start) {
       cell.translateTo(...translate);
@@ -67,7 +67,7 @@ export function operate(start, amount, modifyFormula = true) {
     }
 
     if (modifyFormula) {
-      const {row, column} = cell;
+      const { row, column } = cell;
       const value = dataProvider.getSourceDataAtCell(row, column);
 
       if (isFormulaExpression(value)) {
@@ -75,7 +75,7 @@ export function operate(start, amount, modifyFormula = true) {
         const expModifier = new ExpressionModifier(value);
 
         expModifier.useCustomModifier(customTranslateModifier);
-        expModifier.translate({row: amount}, startCoord({row: origRow, column: origColumn}));
+        expModifier.translate({ row: rowsAmount }, startCoord({ row: origRow, column: origColumn }));
 
         dataProvider.updateSourceData(row, column, expModifier.toString());
       }
@@ -84,7 +84,7 @@ export function operate(start, amount, modifyFormula = true) {
 }
 
 function customTranslateModifier(cell, axis, delta, startFromIndex) {
-  const {start, end, type} = cell;
+  const { start, end, type } = cell;
   const startIndex = start[axis].index;
   const endIndex = end[axis].index;
   const indexOffset = Math.abs(delta) - 1;

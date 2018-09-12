@@ -1,10 +1,10 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/equal';
-import {dateRowFactory} from './../helpers/utils';
+import { condition } from 'handsontable-pro/plugins/filters/condition/equal';
+import { dateRowFactory } from './../helpers/utils';
 
-describe('Filters condition (`eq`)', function() {
+describe('Filters condition (`eq`)', () => {
 
-  it('should filter matching values', function() {
-    var data = dateRowFactory();
+  it('should filter matching values', () => {
+    const data = dateRowFactory();
 
     expect(condition(data('tom'), ['tom'])).toBe(true);
     expect(condition(data('2015-10-10'), ['2015-10-10'])).toBe(true);
@@ -22,8 +22,8 @@ describe('Filters condition (`eq`)', function() {
     expect(condition(data(null), [void 0])).toBe(true);
   });
 
-  it('should filter not matching values', function() {
-    var data = dateRowFactory();
+  it('should filter not matching values', () => {
+    const data = dateRowFactory();
 
     expect(condition(data('tom'), ['o'])).toBe(false);
     expect(condition(data('tom'), ['m'])).toBe(false);

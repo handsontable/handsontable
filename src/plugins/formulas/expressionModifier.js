@@ -1,8 +1,8 @@
-import {toLabel, extractLabel, error, ERROR_REF} from 'hot-formula-parser';
-import {arrayEach, arrayFilter} from 'handsontable/helpers/array';
-import {mixin} from 'handsontable/helpers/object';
+import { toLabel, extractLabel, error, ERROR_REF } from 'hot-formula-parser';
+import { arrayEach, arrayFilter } from 'handsontable/helpers/array';
+import { mixin } from 'handsontable/helpers/object';
 import localHooks from 'handsontable/mixins/localHooks';
-import {toUpperCaseFormula} from './utils';
+import { toUpperCaseFormula } from './utils';
 
 const BARE_CELL_STRICT_REGEX = /^\$?[A-Z]+\$?\d+$/;
 const BARE_CELL_REGEX = /\$?[A-Z]+\$?\d+/;
@@ -90,12 +90,12 @@ class ExpressionModifier {
    * @param {Object} [startFrom] Coordinates which translation will be applied from.
    * @returns {ExpressionModifier}
    */
-  translate({row: deltaRow, column: deltaColumn}, startFrom = {}) {
+  translate({ row: deltaRow, column: deltaColumn }, startFrom = {}) {
     arrayEach(this.cells, (cell) => {
-      if (deltaRow != null) {
+      if (deltaRow !== null && deltaRow !== void 0) {
         this._translateCell(cell, 'row', deltaRow, startFrom.row);
       }
-      if (deltaColumn != null) {
+      if (deltaColumn !== null && deltaColumn !== void 0) {
         this._translateCell(cell, 'column', deltaColumn, startFrom.column);
       }
     });
@@ -134,7 +134,7 @@ class ExpressionModifier {
     });
 
     if (!expression.startsWith('=')) {
-      expression = '=' + expression;
+      expression = `=${expression}`;
     }
 
     return expression;
@@ -150,9 +150,9 @@ class ExpressionModifier {
    * @private
    */
   _translateCell(cell, axis, delta, startFromIndex) {
-    const {start, end} = cell;
-    let startIndex = start[axis].index;
-    let endIndex = end[axis].index;
+    const { start, end } = cell;
+    const startIndex = start[axis].index;
+    const endIndex = end[axis].index;
 
     let deltaStart = delta;
     let deltaEnd = delta;
@@ -199,14 +199,14 @@ class ExpressionModifier {
       return;
     }
     arrayEach(matches, (coord) => {
-      coord = coord.match(BARE_CELL_REGEX);
+      const cellCoords = coord.match(BARE_CELL_REGEX);
 
-      if (!coord) {
+      if (!cellCoords) {
         return;
       }
-      const [row, column] = extractLabel(coord[0]);
+      const [row, column] = extractLabel(cellCoords[0]);
 
-      this.cells.push(this._createCell({row, column}, {row, column}, coord[0]));
+      this.cells.push(this._createCell({ row, column }, { row, column }, cellCoords[0]));
     });
   }
 
@@ -246,7 +246,7 @@ class ExpressionModifier {
    * @private
    */
   _searchCell(label) {
-    const [cell] = arrayFilter(this.cells, (cell) => cell.origLabel === label);
+    const [cell] = arrayFilter(this.cells, cellMeta => cellMeta.origLabel === label);
 
     return cell || null;
   }
@@ -267,14 +267,14 @@ class ExpressionModifier {
       origLabel: label,
       type: label.indexOf(':') === -1 ? 'cell' : 'range',
       refError: false,
-      toLabel: function() {
-        let label = toLabel(this.start.row, this.start.column);
+      toLabel() {
+        let newLabel = toLabel(this.start.row, this.start.column);
 
         if (this.type === 'range') {
-          label += ':' + toLabel(this.end.row, this.end.column);
+          newLabel += `:${toLabel(this.end.row, this.end.column)}`;
         }
 
-        return label;
+        return newLabel;
       }
     };
   }

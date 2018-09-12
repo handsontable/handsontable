@@ -1,8 +1,8 @@
-describe('NestedHeaders', function() {
+describe('NestedHeaders', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,13 +12,13 @@ describe('NestedHeaders', function() {
     }
   });
 
-  describe('initialization', function() {
-    it('should be possible to disable the plugin using the disablePlugin method', function() {
+  describe('initialization', () => {
+    it('should be possible to disable the plugin using the disablePlugin method', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['a', {label: 'b', colspan: 3}, 'c', 'd'],
+          ['a', { label: 'b', colspan: 3 }, 'c', 'd'],
           ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         ]
       });
@@ -33,12 +33,12 @@ describe('NestedHeaders', function() {
       expect($('TH[colspan=3]').size()).toEqual(0);
     });
 
-    it('should be possible to re-enable the plugin using the enablePlugin method', function() {
+    it('should be possible to re-enable the plugin using the enablePlugin method', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['a', {label: 'b', colspan: 3}, 'c', 'd'],
+          ['a', { label: 'b', colspan: 3 }, 'c', 'd'],
           ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         ]
       });
@@ -53,7 +53,7 @@ describe('NestedHeaders', function() {
       expect($('TH[colspan=3]').size()).toBeGreaterThan(0);
     });
 
-    it('should be possible to initialize the plugin using the updateSettings method', function() {
+    it('should be possible to initialize the plugin using the updateSettings method', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true
@@ -63,7 +63,7 @@ describe('NestedHeaders', function() {
 
       hot.updateSettings({
         nestedHeaders: [
-          ['a', {label: 'b', colspan: 3}, 'c', 'd'],
+          ['a', { label: 'b', colspan: 3 }, 'c', 'd'],
           ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         ]
       });
@@ -73,8 +73,8 @@ describe('NestedHeaders', function() {
 
   });
 
-  describe('Basic functionality:', function() {
-    it('should add as many header levels as the \'colHeaders\' property suggests', function() {
+  describe('Basic functionality:', () => {
+    it('should add as many header levels as the \'colHeaders\' property suggests', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -87,12 +87,12 @@ describe('NestedHeaders', function() {
       expect(hot.view.wt.wtTable.THEAD.querySelectorAll('tr').length).toEqual(2);
     });
 
-    it('should adjust headers widths', function() {
+    it('should adjust headers widths', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['a', {label: 'b', colspan: 2}, 'c', 'd'],
+          ['a', { label: 'b', colspan: 2 }, 'c', 'd'],
           ['a', 'Long column header', 'c', 'd']
         ]
       });
@@ -104,13 +104,13 @@ describe('NestedHeaders', function() {
     });
   });
 
-  describe('The \'colspan\' property', function() {
-    it('should create nested headers, when using the \'colspan\' property', function() {
+  describe('The \'colspan\' property', () => {
+    it('should create nested headers, when using the \'colspan\' property', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['a', {label: 'b', colspan: 2}, 'c', 'd'],
+          ['a', { label: 'b', colspan: 2 }, 'c', 'd'],
           ['a', 'b', 'c', 'd', 'e']
         ]
       });
@@ -127,13 +127,13 @@ describe('NestedHeaders', function() {
 
     });
 
-    it('should allow creating a more complex nested setup', function() {
+    it('should allow creating a more complex nested setup', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['a', {label: 'b', colspan: 4}, 'c', 'd'],
-          ['a', {label: 'b', colspan: 2}, {label: 'c', colspan: 2}, 'd', 'e']
+          ['a', { label: 'b', colspan: 4 }, 'c', 'd'],
+          ['a', { label: 'b', colspan: 2 }, { label: 'c', colspan: 2 }, 'd', 'e']
         ]
       });
 
@@ -154,7 +154,7 @@ describe('NestedHeaders', function() {
       expect(secondLevel[3].getAttribute('colspan')).toEqual(null);
     });
 
-    it('should render the setup properly after the table being scrolled', function() {
+    it('should render the setup properly after the table being scrolled', () => {
       function generateComplexSetup(rows, cols, obj) {
         const data = [];
 
@@ -165,28 +165,28 @@ describe('NestedHeaders', function() {
             }
 
             if (!obj) {
-              data[i][j] = i + '_' + j;
+              data[i][j] = `${i}_${j}`;
               /* eslint-disable no-continue */
               continue;
             }
 
             if (i === 0 && j % 2 !== 0) {
               data[i][j] = {
-                label: i + '_' + j,
+                label: `${i}_${j}`,
                 colspan: 8
               };
             } else if (i === 1 && (j % 3 === 1 || j % 3 === 2)) {
               data[i][j] = {
-                label: i + '_' + j,
+                label: `${i}_${j}`,
                 colspan: 4
               };
             } else if (i === 2 && (j % 5 === 1 || j % 5 === 2 || j % 5 === 3 || j % 5 === 4)) {
               data[i][j] = {
-                label: i + '_' + j,
+                label: `${i}_${j}`,
                 colspan: 2
               };
             } else {
-              data[i][j] = i + '_' + j;
+              data[i][j] = `${i}_${j}`;
             }
 
           }
@@ -260,15 +260,15 @@ describe('NestedHeaders', function() {
 
   });
 
-  describe('Selection:', function() {
+  describe('Selection:', () => {
     it('should select every column under the extended header', function() {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['A', {label: 'B', colspan: 8}, 'C'],
-          ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
-          ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });
@@ -441,9 +441,9 @@ describe('NestedHeaders', function() {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['A', {label: 'B', colspan: 8}, 'C'],
-          ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
-          ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });
@@ -470,13 +470,13 @@ describe('NestedHeaders', function() {
     });
 
     it('should highlight only last line of headers on cell selection', function() {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['A', {label: 'B', colspan: 8}, 'C'],
-          ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
-          ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });
@@ -492,13 +492,13 @@ describe('NestedHeaders', function() {
     });
 
     it('should highlight every header which was in selection on headers selection', function() {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['A', {label: 'B', colspan: 8}, 'C'],
-          ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
-          ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });
@@ -518,13 +518,13 @@ describe('NestedHeaders', function() {
     });
 
     it('should add selection borders in the expected positions, when selecting multi-columned headers', function() {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 10),
         colHeaders: true,
         nestedHeaders: [
-          ['A', {label: 'B', colspan: 8}, 'C'],
-          ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
-          ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });

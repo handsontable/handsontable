@@ -39,8 +39,8 @@ export function toUpperCaseFormula(expression) {
   const strings = expression.match(PATTERN) || [];
   let index = -1;
 
-  return expression.toUpperCase().replace(PATTERN, function() {
-    ++index;
+  return expression.toUpperCase().replace(PATTERN, () => {
+    index += 1;
 
     return strings[index];
   });

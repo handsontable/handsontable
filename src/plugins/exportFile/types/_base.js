@@ -1,5 +1,5 @@
-import {extend, clone} from 'handsontable/helpers/object';
-import {substitute} from 'handsontable/helpers/string';
+import { extend, clone } from 'handsontable/helpers/object';
+import { substitute } from 'handsontable/helpers/string';
 
 /**
  * @plugin ExportFile
@@ -50,7 +50,7 @@ class BaseType {
    */
   _mergeOptions(options) {
     let _options = clone(this.constructor.DEFAULT_OPTIONS);
-    let date = new Date();
+    const date = new Date();
 
     _options = extend(clone(BaseType.DEFAULT_OPTIONS), _options);
     _options = extend(_options, options);

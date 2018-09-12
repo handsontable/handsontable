@@ -1,7 +1,7 @@
-import {rangeEach} from 'handsontable/helpers/number';
-import {objectEach, extend, hasOwnProperty} from 'handsontable/helpers/object';
-import {arrayEach} from 'handsontable/helpers/array';
-import {getTranslator} from 'handsontable/utils/recordTranslator';
+import { rangeEach } from 'handsontable/helpers/number';
+import { objectEach, hasOwnProperty } from 'handsontable/helpers/object';
+import { arrayEach } from 'handsontable/helpers/array';
+import { getTranslator } from 'handsontable/utils/recordTranslator';
 
 /**
  * Class responsible for making data operations.
@@ -84,18 +84,18 @@ class DataManager {
   cacheNode(node, level, parent) {
     if (!this.cache.levels[level]) {
       this.cache.levels[level] = [];
-      this.cache.levelCount++;
+      this.cache.levelCount += 1;
     }
     this.cache.levels[level].push(node);
     this.cache.rows.push(node);
     this.cache.nodeInfo.set(node, {
-      parent: parent,
+      parent,
       row: this.cache.rows.length - 1,
-      level: level
+      level
     });
 
     if (this.hasChildren(node)) {
-      arrayEach(node.__children, (elem, i) => {
+      arrayEach(node.__children, (elem) => {
         this.cacheNode(elem, level + 1, node);
       });
     }
@@ -107,7 +107,7 @@ class DataManager {
    * @param {Number} row Row index.
    */
   getDataObject(row) {
-    return row == null ? null : this.cache.rows[row];
+    return row === null || row === void 0 ? null : this.cache.rows[row];
   }
 
   /**
@@ -122,43 +122,46 @@ class DataManager {
    */
   readTreeNodes(parent, readCount, neededIndex, neededObject) {
     let rootLevel = false;
+    let readedNodesCount = readCount;
 
-    if (isNaN(readCount) && readCount.end) {
-      return readCount;
+    if (isNaN(readedNodesCount) && readedNodesCount.end) {
+      return readedNodesCount;
     }
 
-    if (!parent) {
-      parent = {
+    let parentObj = parent;
+
+    if (!parentObj) {
+      parentObj = {
         __children: this.data
       };
       rootLevel = true;
-      readCount--;
+      readedNodesCount -= 1;
     }
 
-    if (neededIndex != null && readCount === neededIndex) {
-      return {result: parent, end: true};
+    if (neededIndex !== null && neededIndex !== void 0 && readedNodesCount === neededIndex) {
+      return { result: parentObj, end: true };
     }
 
-    if (neededObject != null && parent === neededObject) {
-      return {result: readCount, end: true};
+    if (neededObject !== null && neededObject !== void 0 && parentObj === neededObject) {
+      return { result: readedNodesCount, end: true };
     }
 
-    readCount++;
+    readedNodesCount += 1;
 
-    if (parent.__children) {
-      arrayEach(parent.__children, (val, i) => {
+    if (parentObj.__children) {
+      arrayEach(parentObj.__children, (val) => {
 
-        this.parentReference.set(val, rootLevel ? null : parent);
+        this.parentReference.set(val, rootLevel ? null : parentObj);
 
-        readCount = this.readTreeNodes(val, readCount, neededIndex, neededObject);
+        readedNodesCount = this.readTreeNodes(val, readedNodesCount, neededIndex, neededObject);
 
-        if (isNaN(readCount) && readCount.end) {
+        if (isNaN(readedNodesCount) && readedNodesCount.end) {
           return false;
         }
       });
     }
 
-    return readCount;
+    return readedNodesCount;
   }
 
   /**
@@ -167,7 +170,7 @@ class DataManager {
    * @private
    */
   updateParentReference() {
-    this.readTreeNodes({__children: this.data}, 0, this.hot.countRows());
+    this.readTreeNodes({ __children: this.data }, 0, this.hot.countRows());
   }
 
   /**
@@ -177,7 +180,7 @@ class DataManager {
    * @returns {*}
    */
   mockParent() {
-    let fakeParent = this.mockNode();
+    const fakeParent = this.mockNode();
 
     fakeParent.__children = this.data;
 
@@ -191,7 +194,7 @@ class DataManager {
    * @returns {{}}
    */
   mockNode() {
-    let fakeNode = {};
+    const fakeNode = {};
 
     objectEach(this.data[0], (val, key) => {
       fakeNode[key] = null;
@@ -207,7 +210,7 @@ class DataManager {
    * @returns {Number} Row index.
    */
   getRowIndex(rowObj) {
-    return rowObj == null ? null : this.cache.nodeInfo.get(rowObj).row;
+    return rowObj === null || rowObj === void 0 ? null : this.cache.nodeInfo.get(rowObj).row;
   }
 
   /**
@@ -225,9 +228,9 @@ class DataManager {
       rowObj = this.getDataObject(row);
     }
 
-    let parent = this.getRowParent(row);
+    const parent = this.getRowParent(row);
 
-    if (parent == null) {
+    if (parent === null || parent === void 0) {
       return this.data.indexOf(rowObj);
     }
 
@@ -238,7 +241,7 @@ class DataManager {
    * Count all rows (including all parents and children).
    */
   countAllRows() {
-    let rootNodeMock = {
+    const rootNodeMock = {
       __children: this.data
     };
 
@@ -253,17 +256,18 @@ class DataManager {
    */
   countChildren(parent) {
     let rowCount = 0;
+    let parentNode = parent;
 
-    if (!isNaN(parent)) {
-      parent = this.getDataObject(parent);
+    if (!isNaN(parentNode)) {
+      parentNode = this.getDataObject(parentNode);
     }
 
-    if (!parent || !parent.__children) {
+    if (!parentNode || !parentNode.__children) {
       return 0;
     }
 
-    arrayEach(parent.__children, (elem, i) => {
-      rowCount++;
+    arrayEach(parentNode.__children, (elem) => {
+      rowCount += 1;
       if (elem.__children) {
         rowCount += this.countChildren(elem);
       }
@@ -329,7 +333,7 @@ class DataManager {
    * @returns {Number} Row level.
    */
   getRowObjectLevel(rowObject) {
-    return rowObject == null ? null : this.cache.nodeInfo.get(rowObject).level;
+    return rowObject === null || rowObject === void 0 ? null : this.cache.nodeInfo.get(rowObject).level;
   }
 
   /**
@@ -339,19 +343,23 @@ class DataManager {
    * @returns {Boolean}
    */
   hasChildren(row) {
-    if (!isNaN(row)) {
-      row = this.getDataObject(row);
+    let rowObj = row;
+
+    if (!isNaN(rowObj)) {
+      rowObj = this.getDataObject(rowObj);
     }
 
-    return !!(row.__children && row.__children.length);
+    return !!(rowObj.__children && rowObj.__children.length);
   }
 
   isParent(row) {
-    if (!isNaN(row)) {
-      row = this.getDataObject(row);
+    let rowObj = row;
+
+    if (!isNaN(rowObj)) {
+      rowObj = this.getDataObject(rowObj);
     }
 
-    return !!(hasOwnProperty(row, '__children'));
+    return !!(hasOwnProperty(rowObj, '__children'));
   }
 
   /**
@@ -361,7 +369,8 @@ class DataManager {
    * @param {Object} [element] The element to add as a child.
    */
   addChild(parent, element) {
-    this.hot.runHooks('beforeAddChild', parent, element);
+    let childElement = element;
+    this.hot.runHooks('beforeAddChild', parent, childElement);
 
     let parentIndex = null;
     if (parent) {
@@ -378,18 +387,18 @@ class DataManager {
       functionalParent.__children = [];
     }
 
-    if (!element) {
-      element = this.mockNode();
+    if (!childElement) {
+      childElement = this.mockNode();
     }
 
-    functionalParent.__children.push(element);
+    functionalParent.__children.push(childElement);
 
     this.rewriteCache();
 
-    const newRowIndex = this.getRowIndex(element);
+    const newRowIndex = this.getRowIndex(childElement);
 
     this.hot.runHooks('afterCreateRow', newRowIndex, 1);
-    this.hot.runHooks('afterAddChild', parent, element);
+    this.hot.runHooks('afterAddChild', parent, childElement);
   }
 
   /**
@@ -401,7 +410,8 @@ class DataManager {
    * @param {Number} [globalIndex] Global index of the inserted row.
    */
   addChildAtIndex(parent, index, element, globalIndex) {
-    this.hot.runHooks('beforeAddChild', parent, element, index);
+    let childElement = element;
+    this.hot.runHooks('beforeAddChild', parent, childElement, index);
     this.hot.runHooks('beforeCreateRow', globalIndex + 1, 1);
     let functionalParent = parent;
 
@@ -413,16 +423,16 @@ class DataManager {
       functionalParent.__children = [];
     }
 
-    if (!element) {
-      element = this.mockNode();
+    if (!childElement) {
+      childElement = this.mockNode();
     }
 
-    functionalParent.__children.splice(index, null, element);
+    functionalParent.__children.splice(index, null, childElement);
 
     this.rewriteCache();
 
     this.hot.runHooks('afterCreateRow', globalIndex + 1, 1);
-    this.hot.runHooks('afterAddChild', parent, element, index);
+    this.hot.runHooks('afterAddChild', parent, childElement, index);
   }
 
   /**
@@ -456,11 +466,11 @@ class DataManager {
    */
   detachFromParent(elements, forceRender = true) {
     let element = null;
-    let rowObjects = [];
+    const rowObjects = [];
 
     if (Array.isArray(elements)) {
       rangeEach(elements[0], elements[2], (i) => {
-        let translatedIndex = this.translateTrimmedRow(i);
+        const translatedIndex = this.translateTrimmedRow(i);
         rowObjects.push(this.getDataObject(translatedIndex));
       });
 
@@ -482,7 +492,7 @@ class DataManager {
 
     this.hot.runHooks('beforeDetachChild', parent, element);
 
-    if (indexWithinParent != null) {
+    if (indexWithinParent !== null && indexWithinParent !== void 0) {
       this.hot.runHooks('beforeRemoveRow', childRowIndex, 1, [childRowIndex], this.plugin.pluginName);
 
       parent.__children.splice(indexWithinParent, 1);
@@ -526,11 +536,11 @@ class DataManager {
   filterData(index, amount, logicRows) {
     const elementsToRemove = [];
 
-    arrayEach(logicRows, (elem, ind) => {
+    arrayEach(logicRows, (elem) => {
       elementsToRemove.push(this.getDataObject(elem));
     });
 
-    arrayEach(elementsToRemove, (elem, ind) => {
+    arrayEach(elementsToRemove, (elem) => {
       const indexWithinParent = this.getRowIndexWithinParent(elem);
       const tempParent = this.getRowParent(elem);
 
@@ -553,13 +563,13 @@ class DataManager {
    * @param {Object} element Row to add.
    */
   spliceData(index, amount, element) {
-    index = this.translateTrimmedRow(index);
+    const elementIndex = this.translateTrimmedRow(index);
 
-    if (index == null) {
+    if (elementIndex === null || elementIndex === void 0) {
       return;
     }
 
-    let previousElement = this.getDataObject(index - 1);
+    const previousElement = this.getDataObject(elementIndex - 1);
     let newRowParent = null;
     let indexWithinParent = null;
 
@@ -568,8 +578,8 @@ class DataManager {
       indexWithinParent = 0;
 
     } else {
-      newRowParent = this.getRowParent(index);
-      indexWithinParent = this.getRowIndexWithinParent(index);
+      newRowParent = this.getRowParent(elementIndex);
+      indexWithinParent = this.getRowIndexWithinParent(elementIndex);
     }
 
     if (newRowParent) {
@@ -596,18 +606,18 @@ class DataManager {
    * @param {Number} toIndex Index of the destination.
    */
   moveRow(fromIndex, toIndex) {
-    let targetIsParent = this.isParent(toIndex);
+    const targetIsParent = this.isParent(toIndex);
 
-    let fromParent = this.getRowParent(fromIndex);
-    let indexInFromParent = this.getRowIndexWithinParent(fromIndex);
+    const fromParent = this.getRowParent(fromIndex);
+    const indexInFromParent = this.getRowIndexWithinParent(fromIndex);
 
     let toParent = this.getRowParent(toIndex);
 
-    if (toParent == null) {
+    if (toParent === null || toParent === void 0) {
       toParent = this.getRowParent(toIndex - 1);
     }
 
-    if (toParent == null) {
+    if (toParent === null || toParent === void 0) {
       toParent = this.getDataObject(toIndex - 1);
     }
 
@@ -619,10 +629,10 @@ class DataManager {
       toParent.__children = [];
     }
 
-    let previousToTargetParent = this.getRowParent(toIndex - 1);
-    let indexInToParent = targetIsParent ? this.countChildren(previousToTargetParent) : this.getRowIndexWithinParent(toIndex);
+    const previousToTargetParent = this.getRowParent(toIndex - 1);
+    const indexInToParent = targetIsParent ? this.countChildren(previousToTargetParent) : this.getRowIndexWithinParent(toIndex);
 
-    let elemToMove = fromParent.__children.slice(indexInFromParent, indexInFromParent + 1);
+    const elemToMove = fromParent.__children.slice(indexInFromParent, indexInFromParent + 1);
 
     fromParent.__children.splice(indexInFromParent, 1);
     toParent.__children.splice(indexInToParent, 0, elemToMove[0]);

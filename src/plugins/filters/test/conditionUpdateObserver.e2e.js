@@ -1,28 +1,28 @@
-describe('ConditionUpdateObserver', function() {
+describe('ConditionUpdateObserver', () => {
   const id = 'testContainer';
 
   function getConditionUpdateObserver() {
-    return handsontable({filters: true}).getPlugin('filters').conditionUpdateObserver;
+    return handsontable({ filters: true }).getPlugin('filters').conditionUpdateObserver;
   }
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should be initialized and accessible from the plugin', function() {
+  it('should be initialized and accessible from the plugin', () => {
     const conditionObserver = getConditionUpdateObserver();
 
     expect(conditionObserver).toBeDefined();
   });
 
-  it('should create properties and setup default values to them', function() {
+  it('should create properties and setup default values to them', () => {
     const conditionObserver = getConditionUpdateObserver();
 
     expect(conditionObserver.conditionCollection).toBeDefined();
@@ -33,17 +33,17 @@ describe('ConditionUpdateObserver', function() {
     expect(conditionObserver.latestOrderStack).toEqual([]);
   });
 
-  it('should fire `update` hook on every modified condition', function() {
+  it('should fire `update` hook on every modified condition', () => {
     const conditionObserver = getConditionUpdateObserver();
     const updateSpy = jasmine.createSpy('update');
 
     conditionObserver.addLocalHook('update', updateSpy);
 
-    conditionObserver.conditionCollection.addCondition(0, {name: 'gt', args: [2]});
+    conditionObserver.conditionCollection.addCondition(0, { name: 'gt', args: [2] });
     conditionObserver.conditionCollection.removeConditions(2);
-    conditionObserver.conditionCollection.addCondition(1, {name: 'contains', args: ['b']});
-    conditionObserver.conditionCollection.addCondition(2, {name: 'begins_with', args: ['c']});
-    conditionObserver.conditionCollection.addCondition(2, {name: 'ends_with', args: ['d']});
+    conditionObserver.conditionCollection.addCondition(1, { name: 'contains', args: ['b'] });
+    conditionObserver.conditionCollection.addCondition(2, { name: 'begins_with', args: ['c'] });
+    conditionObserver.conditionCollection.addCondition(2, { name: 'ends_with', args: ['d'] });
     conditionObserver.conditionCollection.clean();
 
     // add 'gt'
@@ -75,19 +75,19 @@ describe('ConditionUpdateObserver', function() {
     expect(updateSpy.calls.argsFor(7)[0].editedConditionStack.column).toBe(2);
   });
 
-  describe('groupChanges', function() {
-    it('should fire `update` hook only once on `flush` method call when groupChanges is enabled', function() {
+  describe('groupChanges', () => {
+    it('should fire `update` hook only once on `flush` method call when groupChanges is enabled', () => {
       const conditionObserver = getConditionUpdateObserver();
       const updateSpy = jasmine.createSpy('update');
 
       conditionObserver.addLocalHook('update', updateSpy);
 
       conditionObserver.groupChanges();
-      conditionObserver.conditionCollection.addCondition(0, {name: 'gt', args: [2]});
+      conditionObserver.conditionCollection.addCondition(0, { name: 'gt', args: [2] });
       conditionObserver.conditionCollection.removeConditions(2);
-      conditionObserver.conditionCollection.addCondition(1, {name: 'contains', args: ['b']});
-      conditionObserver.conditionCollection.addCondition(2, {name: 'begins_with', args: ['c']});
-      conditionObserver.conditionCollection.addCondition(2, {name: 'ends_with', args: ['d']});
+      conditionObserver.conditionCollection.addCondition(1, { name: 'contains', args: ['b'] });
+      conditionObserver.conditionCollection.addCondition(2, { name: 'begins_with', args: ['c'] });
+      conditionObserver.conditionCollection.addCondition(2, { name: 'ends_with', args: ['d'] });
 
       expect(updateSpy).not.toHaveBeenCalled();
 
@@ -113,8 +113,8 @@ describe('ConditionUpdateObserver', function() {
     });
   });
 
-  describe('destroy', function() {
-    it('should nullable all properties', function() {
+  describe('destroy', () => {
+    it('should nullable all properties', () => {
       const conditionObserver = getConditionUpdateObserver();
 
       conditionObserver.conditionCollection = {};

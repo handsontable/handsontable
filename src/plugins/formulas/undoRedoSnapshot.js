@@ -1,5 +1,4 @@
-import {arrayEach} from 'handsontable/helpers/array';
-import {rangeEach} from 'handsontable/helpers/number';
+import { arrayEach } from 'handsontable/helpers/array';
 import Stack from 'handsontable/utils/dataStructures/stack';
 import CellValue from './cell/value';
 
@@ -33,35 +32,35 @@ class UndoRedoSnapshot {
    * @param {Number} amount Amount of items to operate.
    */
   save(axis, index, amount) {
-    const {matrix, dataProvider} = this.sheet;
+    const { matrix, dataProvider } = this.sheet;
     const changes = [];
 
     arrayEach(matrix.data, (cellValue) => {
-      const {row, column} = cellValue;
+      const { row, column } = cellValue;
 
       if (cellValue[axis] < index || cellValue[axis] > index + (amount - 1)) {
         const value = dataProvider.getSourceDataAtCell(row, column);
 
-        changes.push({row, column, value});
+        changes.push({ row, column, value });
       }
     });
 
-    this.stack.push({axis, index, amount, changes});
+    this.stack.push({ axis, index, amount, changes });
   }
 
   /**
    * Restore state to the previous one.
    */
   restore() {
-    const {matrix, dataProvider} = this.sheet;
-    const {axis, index, amount, changes} = this.stack.pop();
+    const { matrix, dataProvider } = this.sheet;
+    const { axis, index, amount, changes } = this.stack.pop();
 
     if (changes) {
       arrayEach(changes, (change) => {
         if (change[axis] > index + (amount - 1)) {
           change[axis] -= amount;
         }
-        const {row, column, value} = change;
+        const { row, column, value } = change;
         const rawValue = dataProvider.getSourceDataAtCell(row, column);
 
         if (rawValue !== value) {

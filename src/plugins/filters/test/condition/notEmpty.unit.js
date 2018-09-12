@@ -1,10 +1,10 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/notEmpty';
-import {dateRowFactory} from './../helpers/utils';
+import { condition } from 'handsontable-pro/plugins/filters/condition/notEmpty';
+import { dateRowFactory } from './../helpers/utils';
 
-describe('Filters condition (`not_empty`)', function() {
+describe('Filters condition (`not_empty`)', () => {
 
-  it('should filter matching values', function() {
-    var data = dateRowFactory();
+  it('should filter matching values', () => {
+    const data = dateRowFactory();
 
     expect(condition(data('tom'), [])).toBe(true);
     expect(condition(data(1), [])).toBe(true);
@@ -15,8 +15,8 @@ describe('Filters condition (`not_empty`)', function() {
     expect(condition(data([]), [])).toBe(true);
   });
 
-  it('should filter not matching values', function() {
-    var data = dateRowFactory();
+  it('should filter not matching values', () => {
+    const data = dateRowFactory();
 
     expect(condition(data(''), [])).toBe(false);
     expect(condition(data(null), [])).toBe(false);

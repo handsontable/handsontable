@@ -1,4 +1,4 @@
-import {clone, extend} from 'handsontable/helpers/object';
+import { clone, extend } from 'handsontable/helpers/object';
 import BaseUI from './_base';
 
 const privatePool = new WeakMap();
@@ -28,10 +28,10 @@ class RadioInputUI extends BaseUI {
    */
   build() {
     super.build();
-    let priv = privatePool.get(this);
+    const priv = privatePool.get(this);
     priv.input = this._element.firstChild;
 
-    let label = document.createElement('label');
+    const label = document.createElement('label');
     label.textContent = this.translateIfPossible(this.options.label.textContent);
     label.htmlFor = this.translateIfPossible(this.options.label.htmlFor);
     priv.label = label;

@@ -1,5 +1,5 @@
-import {arrayEach, arrayMap} from 'handsontable/helpers/array';
-import {stringify} from 'handsontable/helpers/mixed';
+import { arrayEach, arrayMap } from 'handsontable/helpers/array';
+import { stringify } from 'handsontable/helpers/mixed';
 import BaseType from './_base.js';
 
 const CHAR_CARRIAGE_RETURN = String.fromCharCode(13);
@@ -36,12 +36,12 @@ class Csv extends BaseType {
     const data = this.dataProvider.getData();
     let columnHeaders = this.dataProvider.getColumnHeaders();
     const hasColumnHeaders = columnHeaders.length > 0;
-    let rowHeaders = this.dataProvider.getRowHeaders();
+    const rowHeaders = this.dataProvider.getRowHeaders();
     const hasRowHeaders = rowHeaders.length > 0;
     let result = options.bom ? String.fromCharCode(0xFEFF) : '';
 
     if (hasColumnHeaders) {
-      columnHeaders = arrayMap(columnHeaders, (value) => this._escapeCell(value, true));
+      columnHeaders = arrayMap(columnHeaders, value => this._escapeCell(value, true));
 
       if (hasRowHeaders) {
         result += options.columnDelimiter;
@@ -57,7 +57,7 @@ class Csv extends BaseType {
       if (hasRowHeaders) {
         result += this._escapeCell(rowHeaders[index]) + options.columnDelimiter;
       }
-      result += value.map((value) => this._escapeCell(value)).join(options.columnDelimiter);
+      result += value.map(cellValue => this._escapeCell(cellValue)).join(options.columnDelimiter);
     });
 
     return result;
@@ -71,19 +71,19 @@ class Csv extends BaseType {
    * @return {String}
    */
   _escapeCell(value, force = false) {
-    value = stringify(value);
+    let escapedValue = stringify(value);
 
-    if (value !== '' && (force ||
-        value.indexOf(CHAR_CARRIAGE_RETURN) >= 0 ||
-        value.indexOf(CHAR_DOUBLE_QUOTES) >= 0 ||
-        value.indexOf(CHAR_LINE_FEED) >= 0 ||
-        value.indexOf(this.options.columnDelimiter) >= 0)) {
+    if (escapedValue !== '' && (force ||
+      escapedValue.indexOf(CHAR_CARRIAGE_RETURN) >= 0 ||
+      escapedValue.indexOf(CHAR_DOUBLE_QUOTES) >= 0 ||
+      escapedValue.indexOf(CHAR_LINE_FEED) >= 0 ||
+      escapedValue.indexOf(this.options.columnDelimiter) >= 0)) {
 
-      value = value.replace(new RegExp('"', 'g'), '""');
-      value = `"${value}"`;
+      escapedValue = escapedValue.replace(new RegExp('"', 'g'), '""');
+      escapedValue = `"${escapedValue}"`;
     }
 
-    return value;
+    return escapedValue;
   }
 }
 

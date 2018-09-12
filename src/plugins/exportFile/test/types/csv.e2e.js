@@ -3,7 +3,7 @@ describe('exportFile CSV type', () => {
 
   function data(x, y) {
     return Handsontable.helper.createSpreadsheetData(x, y);
-  };
+  }
 
   function countLines(str) {
     const lines = str.split('\r\n');
@@ -47,9 +47,9 @@ describe('exportFile CSV type', () => {
         }
       ],
       columns: [
-        {data: 'id'},
-        {data: 'name'},
-        {data: 'desc'},
+        { data: 'id' },
+        { data: 'name' },
+        { data: 'desc' },
       ]
     });
 
@@ -114,7 +114,7 @@ describe('exportFile CSV type', () => {
         rowHeaders: true
       });
 
-      const csv = getPlugin('exportFile')._createTypeFormatter('csv', {bom: false}).export();
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { bom: false }).export();
 
       expect('A1,B1\r\nA2,B2').toBe(csv);
     });
@@ -141,7 +141,7 @@ describe('exportFile CSV type', () => {
         rowHeaders: true
       });
 
-      const csv = getPlugin('exportFile')._createTypeFormatter('csv', {columnDelimiter: ';'}).export();
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { columnDelimiter: ';' }).export();
 
       expect('\ufeffA1;B1\r\nA2;B2').toBe(csv);
     });
@@ -168,7 +168,7 @@ describe('exportFile CSV type', () => {
         rowHeaders: true
       });
 
-      const csv = getPlugin('exportFile')._createTypeFormatter('csv', {rowDelimiter: '\n'}).export();
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { rowDelimiter: '\n' }).export();
 
       expect('\ufeffA1,B1\nA2,B2').toBe(csv);
     });
@@ -195,7 +195,7 @@ describe('exportFile CSV type', () => {
         rowHeaders: true
       });
 
-      const csv = getPlugin('exportFile')._createTypeFormatter('csv', {columnHeaders: true}).export();
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { columnHeaders: true }).export();
 
       expect('\ufeff"A","B"\r\nA1,B1\r\nA2,B2').toBe(csv);
     });
@@ -222,7 +222,7 @@ describe('exportFile CSV type', () => {
         rowHeaders: true
       });
 
-      const csv = getPlugin('exportFile')._createTypeFormatter('csv', {rowHeaders: true}).export();
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { rowHeaders: true }).export();
 
       expect('\ufeff1,A1,B1\r\n2,A2,B2').toBe(csv);
     });
@@ -257,7 +257,7 @@ describe('exportFile CSV type', () => {
         },
       });
 
-      const csv = getPlugin('exportFile')._createTypeFormatter('csv', {exportHiddenRows: true}).export();
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { exportHiddenRows: true }).export();
 
       expect('\ufeffA1,B1\r\nA2,B2\r\nA3,B3\r\nA4,B4\r\nA5,B5').toBe(csv);
     });
@@ -292,7 +292,7 @@ describe('exportFile CSV type', () => {
         },
       });
 
-      const csv = getPlugin('exportFile')._createTypeFormatter('csv', {exportHiddenColumns: true}).export();
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { exportHiddenColumns: true }).export();
 
       expect('\ufeffA1,B1,C1,D1,E1\r\nA2,B2,C2,D2,E2').toBe(csv);
     });
@@ -319,7 +319,7 @@ describe('exportFile CSV type', () => {
         rowHeaders: true,
       });
 
-      const csv = getPlugin('exportFile')._createTypeFormatter('csv', {range: [1, 1, 3, 2]}).export();
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { range: [1, 1, 3, 2] }).export();
 
       expect('\ufeffB2,C2\r\nB3,C3\r\nB4,C4').toBe(csv);
     });
@@ -332,7 +332,7 @@ describe('exportFile CSV type', () => {
         rowHeaders: true,
       });
 
-      const csv = getPlugin('exportFile')._createTypeFormatter('csv', {range: [1, 0, 1, 2]}).export();
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { range: [1, 0, 1, 2] }).export();
 
       expect('\ufeffA2,B2,C2').toBe(csv);
     });
@@ -345,7 +345,7 @@ describe('exportFile CSV type', () => {
         rowHeaders: true,
       });
 
-      const csv = getPlugin('exportFile')._createTypeFormatter('csv', {range: [0, 1, 4, 1]}).export();
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { range: [0, 1, 4, 1] }).export();
 
       expect('\ufeffB1\r\nB2\r\nB3\r\nB4\r\nB5').toBe(csv);
     });
@@ -358,7 +358,7 @@ describe('exportFile CSV type', () => {
         rowHeaders: true,
       });
 
-      const csv = getPlugin('exportFile')._createTypeFormatter('csv', {range: [4, 3, 40, 15]}).export();
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { range: [4, 3, 40, 15] }).export();
 
       expect('\ufeffD5,E5').toBe(csv);
     });
@@ -399,11 +399,11 @@ describe('exportFile CSV type', () => {
 
     it('should escape value if it includes char defined in `columnDelimiter` option', () => {
       handsontable();
-      let csv = getPlugin('exportFile')._createTypeFormatter('csv', {columnDelimiter: ','});
+      let csv = getPlugin('exportFile')._createTypeFormatter('csv', { columnDelimiter: ',' });
 
       expect(csv._escapeCell('12,4')).toBe('"12,4"');
 
-      csv = getPlugin('exportFile')._createTypeFormatter('csv', {columnDelimiter: ';'});
+      csv = getPlugin('exportFile')._createTypeFormatter('csv', { columnDelimiter: ';' });
 
       expect(csv._escapeCell('12;4')).toBe('"12;4"');
     });

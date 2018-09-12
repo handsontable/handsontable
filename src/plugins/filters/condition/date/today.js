@@ -1,11 +1,11 @@
 import moment from 'moment';
 import * as C from 'handsontable/i18n/constants';
-import {registerCondition} from './../../conditionRegisterer';
+import { registerCondition } from './../../conditionRegisterer';
 
 export const CONDITION_NAME = 'date_today';
 
 export function condition(dataRow) {
-  let date = moment(dataRow.value, dataRow.meta.dateFormat);
+  const date = moment(dataRow.value, dataRow.meta.dateFormat);
 
   if (!date.isValid()) {
     return false;

@@ -1,26 +1,29 @@
 import * as C from 'handsontable/i18n/constants';
-import {registerCondition, getCondition} from './../conditionRegisterer';
-import {CONDITION_NAME as CONDITION_DATE_AFTER} from './date/after';
-import {CONDITION_NAME as CONDITION_DATE_BEFORE} from './date/before';
+import { registerCondition, getCondition } from './../conditionRegisterer';
+import { CONDITION_NAME as CONDITION_DATE_AFTER } from './date/after';
+import { CONDITION_NAME as CONDITION_DATE_BEFORE } from './date/before';
 
 export const CONDITION_NAME = 'between';
 
-export function condition(dataRow, [from, to] = inputValues) {
-  if (dataRow.meta.type === 'numeric') {
-    let _from = parseFloat(from, 10);
-    let _to = parseFloat(to, 10);
+export function condition(dataRow, [from, to]) {
+  let fromValue = from;
+  let toValue = to;
 
-    from = Math.min(_from, _to);
-    to = Math.max(_from, _to);
+  if (dataRow.meta.type === 'numeric') {
+    const _from = parseFloat(fromValue, 10);
+    const _to = parseFloat(toValue, 10);
+
+    fromValue = Math.min(_from, _to);
+    toValue = Math.max(_from, _to);
 
   } else if (dataRow.meta.type === 'date') {
-    let dateBefore = getCondition(CONDITION_DATE_BEFORE, [to]);
-    let dateAfter = getCondition(CONDITION_DATE_AFTER, [from]);
+    const dateBefore = getCondition(CONDITION_DATE_BEFORE, [toValue]);
+    const dateAfter = getCondition(CONDITION_DATE_AFTER, [fromValue]);
 
     return dateBefore(dataRow) && dateAfter(dataRow);
   }
 
-  return dataRow.value >= from && dataRow.value <= to;
+  return dataRow.value >= fromValue && dataRow.value <= toValue;
 }
 
 registerCondition(CONDITION_NAME, condition, {

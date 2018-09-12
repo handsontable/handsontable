@@ -1,11 +1,11 @@
-import {addClass} from 'handsontable/helpers/dom/element';
-import {arrayEach} from 'handsontable/helpers/array';
-import {toSingleLine} from 'handsontable/helpers/templateLiteralTag';
+import { addClass } from 'handsontable/helpers/dom/element';
+import { arrayEach } from 'handsontable/helpers/array';
+import { toSingleLine } from 'handsontable/helpers/templateLiteralTag';
 import BaseComponent from './_base';
-import {getOperationName} from '../logicalOperationRegisterer';
-import {OPERATION_ID as OPERATION_AND} from '../logicalOperations/conjunction';
-import {OPERATION_ID as OPERATION_OR} from '../logicalOperations/disjunction';
-import {OPERATION_ID as OPERATION_OR_THEN_VARIABLE} from '../logicalOperations/disjunctionWithExtraCondition';
+import { getOperationName } from '../logicalOperationRegisterer';
+import { OPERATION_ID as OPERATION_AND } from '../logicalOperations/conjunction';
+import { OPERATION_ID as OPERATION_OR } from '../logicalOperations/disjunction';
+import { OPERATION_ID as OPERATION_OR_THEN_VARIABLE } from '../logicalOperations/disjunctionWithExtraCondition';
 import RadioInputUI from './../ui/radioInput';
 
 const SELECTED_AT_START_ELEMENT_INDEX = 0;
@@ -36,10 +36,10 @@ class OperatorsComponent extends BaseComponent {
       isCommand: false,
       disableSelection: true,
       hidden: () => this.isHidden(),
-      renderer: (hot, wrapper, row, col, prop, value) => {
+      renderer: (hot, wrapper) => {
         addClass(wrapper.parentNode, 'htFiltersMenuOperators');
 
-        arrayEach(this.elements, (ui) => wrapper.appendChild(ui.element));
+        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
 
         return wrapper;
       }
@@ -66,7 +66,7 @@ class OperatorsComponent extends BaseComponent {
         id: operation
       });
 
-      radioInput.addLocalHook('change', (event) => this.onRadioInputChange(event));
+      radioInput.addLocalHook('change', event => this.onRadioInputChange(event));
       this.elements.push(radioInput);
     });
   }
@@ -92,7 +92,7 @@ class OperatorsComponent extends BaseComponent {
    * @returns {String}
    */
   getActiveOperationId() {
-    const operationElement = this.elements.find((element) => element instanceof RadioInputUI && element.isChecked());
+    const operationElement = this.elements.find(element => element instanceof RadioInputUI && element.isChecked());
 
     if (operationElement) {
       return operationElement.getValue();
@@ -131,11 +131,13 @@ class OperatorsComponent extends BaseComponent {
    * @param column Physical column index.
    */
   updateState(operationId = OPERATION_AND, column) {
-    if (operationId === OPERATION_OR_THEN_VARIABLE) {
-      operationId = OPERATION_OR;
+    let selectedOperationId = operationId;
+
+    if (selectedOperationId === OPERATION_OR_THEN_VARIABLE) {
+      selectedOperationId = OPERATION_OR;
     }
 
-    this.setCachedState(column, operationId);
+    this.setCachedState(column, selectedOperationId);
   }
 
   /**

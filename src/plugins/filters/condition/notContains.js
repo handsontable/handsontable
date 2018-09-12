@@ -1,6 +1,6 @@
 import * as C from 'handsontable/i18n/constants';
-import {registerCondition, getCondition} from './../conditionRegisterer';
-import {CONDITION_NAME as CONDITION_CONTAINS} from './contains';
+import { registerCondition, getCondition } from './../conditionRegisterer';
+import { CONDITION_NAME as CONDITION_CONTAINS } from './contains';
 
 export const CONDITION_NAME = 'not_contains';
 

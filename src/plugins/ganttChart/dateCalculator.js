@@ -1,7 +1,7 @@
-import {arrayEach} from 'handsontable/helpers/array';
-import {objectEach} from 'handsontable/helpers/object';
-import {warn} from 'handsontable/helpers/console';
-import {getMixedMonthObject, getMixedMonthName, parseDate, DEC_LENGTH, WEEK_LENGTH} from './utils';
+import { arrayEach } from 'handsontable/helpers/array';
+import { objectEach } from 'handsontable/helpers/object';
+import { warn } from 'handsontable/helpers/console';
+import { getMixedMonthObject, getMixedMonthName, parseDate, DEC_LENGTH, WEEK_LENGTH } from './utils';
 
 /**
  * This class handles the date-related calculations for the GanttChart plugin.
@@ -9,7 +9,7 @@ import {getMixedMonthObject, getMixedMonthName, parseDate, DEC_LENGTH, WEEK_LENG
  * @plugin GanttChart
  */
 class DateCalculator {
-  constructor({year, allowSplitWeeks = true, hideDaysBeforeFullWeeks = false, hideDaysAfterFullWeeks = false}) {
+  constructor({ year, allowSplitWeeks = true, hideDaysBeforeFullWeeks = false, hideDaysAfterFullWeeks = false }) {
     /**
      * Year to base calculations on.
      *
@@ -143,15 +143,15 @@ class DateCalculator {
    * @returns {Number|Boolean}
    */
   dateToColumn(date) {
-    date = parseDate(date);
+    const convertedDate = parseDate(date);
 
-    if (!date) {
+    if (!convertedDate) {
       return false;
     }
 
-    const month = date.getMonth();
-    const day = date.getDate() - 1;
-    const year = date.getFullYear();
+    const month = convertedDate.getMonth();
+    const day = convertedDate.getDate() - 1;
+    const year = convertedDate.getFullYear();
 
     return this.getWeekColumn(day, month, year);
   }
@@ -167,7 +167,7 @@ class DateCalculator {
    */
   getWeekColumn(dayIndex, monthIndex, year = this.getYear()) {
     let resultColumn = null;
-    let monthCacheArray = this.getMonthCacheArray(monthIndex, year);
+    const monthCacheArray = this.getMonthCacheArray(monthIndex, year);
 
     arrayEach(monthCacheArray, (monthCache) => {
       objectEach(monthCache, (column, index) => {
@@ -207,7 +207,7 @@ class DateCalculator {
         const monthObject = monthList[i];
 
         if (Object.keys(month).length > 1) {
-          fullMonthCount++;
+          fullMonthCount += 1;
         }
 
         if (fullMonthCount === monthIndex) {
@@ -272,28 +272,28 @@ class DateCalculator {
    * @returns {Array|Boolean} Returns null, if an invalid date was provided or an array of results ( [1,0] => is on the beginning of the week, [0,1] => is on the end of the week).
    */
   isOnTheEdgeOfWeek(date) {
-    date = parseDate(date);
+    const convertedDate = parseDate(date);
 
-    if (!date) {
+    if (!convertedDate) {
       return null;
     }
 
-    let month = date.getMonth();
-    let day = date.getDate() - 1;
-    let year = date.getFullYear();
-    let monthCacheArray = this.getMonthCacheArray(month, year);
+    const month = convertedDate.getMonth();
+    const day = convertedDate.getDate() - 1;
+    const year = convertedDate.getFullYear();
+    const monthCacheArray = this.getMonthCacheArray(month, year);
     let isOnTheEdgeOfWeek = false;
 
     arrayEach(monthCacheArray, (monthCache) => {
       objectEach(monthCache, (column) => {
 
         if (!this.allowSplitWeeks && column.length !== 7) {
-          if (day === 0 || day === new Date(date.getYear(), date.getMonth() + 1, 0).getDate() - 1) {
+          if (day === 0 || day === new Date(convertedDate.getYear(), convertedDate.getMonth() + 1, 0).getDate() - 1) {
             return true;
           }
         }
 
-        let indexOfDay = column.indexOf(day + 1);
+        const indexOfDay = column.indexOf(day + 1);
 
         if (indexOfDay === 0) {
           isOnTheEdgeOfWeek = [1, 0];
@@ -486,7 +486,7 @@ class DateCalculator {
       }
 
     } else {
-      let previousMonthDaysCount = monthNumber - 1 >= 0 ? this.countMonthDays(monthNumber) : 31;
+      const previousMonthDaysCount = monthNumber - 1 >= 0 ? this.countMonthDays(monthNumber) : 31;
 
       for (let dayIndex = start; dayIndex <= previousMonthDaysCount; dayIndex++) {
         this.daysInColumns[year][monthNumber][columnNumber].push(dayIndex);
@@ -506,8 +506,8 @@ class DateCalculator {
    * @returns {Boolean}
    */
   isValidRangeBarData(startDate, endDate) {
-    let startDateParsed = parseDate(startDate);
-    let endDateParsed = parseDate(endDate);
+    const startDateParsed = parseDate(startDate);
+    const endDateParsed = parseDate(endDate);
 
     return startDateParsed && endDateParsed && startDateParsed.getTime() <= endDateParsed.getTime();
   }
@@ -520,18 +520,18 @@ class DateCalculator {
    */
   calculateMonthData(year = this.year) {
     return [
-      {name: 'January', days: 31},
-      {name: 'February', days: new Date(year, 2, 0).getDate()},
-      {name: 'March', days: 31},
-      {name: 'April', days: 30},
-      {name: 'May', days: 31},
-      {name: 'June', days: 30},
-      {name: 'July', days: 31},
-      {name: 'August', days: 31},
-      {name: 'September', days: 30},
-      {name: 'October', days: 31},
-      {name: 'November', days: 30},
-      {name: 'December', days: 31}
+      { name: 'January', days: 31 },
+      { name: 'February', days: new Date(year, 2, 0).getDate() },
+      { name: 'March', days: 31 },
+      { name: 'April', days: 30 },
+      { name: 'May', days: 31 },
+      { name: 'June', days: 30 },
+      { name: 'July', days: 31 },
+      { name: 'August', days: 31 },
+      { name: 'September', days: 30 },
+      { name: 'October', days: 31 },
+      { name: 'November', days: 30 },
+      { name: 'December', days: 31 }
     ].slice(0);
   }
 
@@ -589,14 +589,14 @@ class DateCalculator {
     }
 
     arrayEach(monthList, (currentMonth, monthIndex) => {
-      let firstMonthDay = new Date(year, monthIndex, 1).getDay();
+      const firstMonthDay = new Date(year, monthIndex, 1).getDay();
       let mixedMonthsAdded = 0;
 
       currentMonth.daysBeforeFullWeeks = (7 - firstMonthDay + weekOffset) % 7;
 
       if (!this.allowSplitWeeks && currentMonth.daysBeforeFullWeeks) {
         mixedMonthToAdd.push(getMixedMonthObject(getMixedMonthName(monthIndex, monthList), monthIndex));
-        mixedMonthsAdded++;
+        mixedMonthsAdded += 1;
       }
 
       currentMonth.fullWeeks = Math.floor((currentMonth.days - currentMonth.daysBeforeFullWeeks) / 7);
@@ -605,7 +605,7 @@ class DateCalculator {
       if (!this.allowSplitWeeks) {
         if (monthIndex === monthList.length - 1 && currentMonth.daysAfterFullWeeks) {
           mixedMonthToAdd.push(getMixedMonthObject(getMixedMonthName(monthIndex, monthList), null));
-          mixedMonthsAdded++;
+          mixedMonthsAdded += 1;
         }
 
         weekSectionCount += currentMonth.fullWeeks + mixedMonthsAdded;

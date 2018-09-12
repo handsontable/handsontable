@@ -1,16 +1,16 @@
 /* eslint-disable import/prefer-default-export */
-var currentSpec;
+let currentSpec;
 
 export function spec() {
   return currentSpec;
-};
+}
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
 
 beforeEach(function() {
   currentSpec = this;
 
-  var matchers = {
+  const matchers = {
     toBeInArray() {
       return {
         compare(actual, expected) {
@@ -22,7 +22,7 @@ beforeEach(function() {
     },
     toBeFunction() {
       return {
-        compare(actual, expected) {
+        compare(actual) {
           return {
             pass: typeof actual === 'function'
           };
@@ -32,13 +32,13 @@ beforeEach(function() {
     toBeAroundValue() {
       return {
         compare(actual, expected, diff) {
-          diff = diff || 1;
+          const margin = diff || 1;
 
-          var pass = actual >= expected - diff && actual <= expected + diff;
-          var message = `Expected ${actual} to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+          const pass = actual >= expected - margin && actual <= expected + margin;
+          let message = `Expected ${actual} to be around ${expected} (between ${expected - margin} and ${expected + margin})`;
 
           if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - margin} and ${expected + margin})`;
           }
 
           return {
@@ -52,7 +52,7 @@ beforeEach(function() {
 
   jasmine.addMatchers(matchers);
 
-  if (document.activeElement && document.activeElement != document.body) {
+  if (document.activeElement && document.activeElement !== document.body) {
     document.activeElement.blur();
   } else if (!document.activeElement) { // IE
     document.body.focus();

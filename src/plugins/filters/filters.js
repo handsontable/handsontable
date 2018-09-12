@@ -1,12 +1,12 @@
 import BasePlugin from 'handsontable/plugins/_base';
-import {arrayEach, arrayMap} from 'handsontable/helpers/array';
-import {toSingleLine} from 'handsontable/helpers/templateLiteralTag';
-import {warn} from 'handsontable/helpers/console';
-import {rangeEach} from 'handsontable/helpers/number';
+import { arrayEach, arrayMap } from 'handsontable/helpers/array';
+import { toSingleLine } from 'handsontable/helpers/templateLiteralTag';
+import { warn } from 'handsontable/helpers/console';
+import { rangeEach } from 'handsontable/helpers/number';
 import EventManager from 'handsontable/eventManager';
-import {addClass, removeClass, closest} from 'handsontable/helpers/dom/element';
-import {registerPlugin} from 'handsontable/plugins';
-import {SEPARATOR} from 'handsontable/plugins/contextMenu/predefinedItems';
+import { addClass, removeClass, closest } from 'handsontable/helpers/dom/element';
+import { registerPlugin } from 'handsontable/plugins';
+import { SEPARATOR } from 'handsontable/plugins/contextMenu/predefinedItems';
 import * as constants from 'handsontable/i18n/constants';
 import ConditionComponent from './component/condition';
 import OperatorsComponent from './component/operators';
@@ -15,8 +15,8 @@ import ActionBarComponent from './component/actionBar';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
-import {createArrayAssertion, toEmptyString, unifyColumnValues} from './utils';
-import {CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERATION_OR_THEN_VARIABLE} from './constants';
+import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
+import { CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERATION_OR_THEN_VARIABLE } from './constants';
 
 import './filters.css';
 
@@ -134,10 +134,10 @@ class Filters extends BasePlugin {
     this.trimRowsPlugin = this.hot.getPlugin('trimRows');
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
-    let addConfirmationHooks = (component) => {
+    const addConfirmationHooks = (component) => {
       component.addLocalHook('accept', () => this.onActionBarSubmit('accept'));
       component.addLocalHook('cancel', () => this.onActionBarSubmit('cancel'));
-      component.addLocalHook('change', (command) => this.onComponentChange(component, command));
+      component.addLocalHook('change', command => this.onComponentChange(component, command));
 
       return component;
     };
@@ -146,32 +146,32 @@ class Filters extends BasePlugin {
     const filterValueLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_VALUE)}:`;
 
     if (!this.components.get('filter_by_condition')) {
-      const conditionComponent = new ConditionComponent(this.hot, {id: 'filter_by_condition', name: filterByConditionLabel, addSeparator: false});
+      const conditionComponent = new ConditionComponent(this.hot, { id: 'filter_by_condition', name: filterByConditionLabel, addSeparator: false });
       conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
 
       this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
     }
     if (!this.components.get('filter_operators')) {
-      this.components.set('filter_operators', new OperatorsComponent(this.hot, {id: 'filter_operators', name: 'Operators'}));
+      this.components.set('filter_operators', new OperatorsComponent(this.hot, { id: 'filter_operators', name: 'Operators' }));
     }
     if (!this.components.get('filter_by_condition2')) {
-      const conditionComponent = new ConditionComponent(this.hot, {id: 'filter_by_condition2', name: '', addSeparator: true});
+      const conditionComponent = new ConditionComponent(this.hot, { id: 'filter_by_condition2', name: '', addSeparator: true });
       conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
 
       this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));
     }
     if (!this.components.get('filter_by_value')) {
-      this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {id: 'filter_by_value', name: filterValueLabel})));
+      this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, { id: 'filter_by_value', name: filterValueLabel })));
     }
     if (!this.components.get('filter_action_bar')) {
-      this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, {id: 'filter_action_bar', name: 'Action bar'})));
+      this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, { id: 'filter_action_bar', name: 'Action bar' })));
     }
     if (!this.conditionCollection) {
       this.conditionCollection = new ConditionCollection();
     }
     if (!this.conditionUpdateObserver) {
-      this.conditionUpdateObserver = new ConditionUpdateObserver(this.conditionCollection, (column) => this.getDataMapAtColumn(column));
-      this.conditionUpdateObserver.addLocalHook('update', (conditionState) => this.updateComponents(conditionState));
+      this.conditionUpdateObserver = new ConditionUpdateObserver(this.conditionCollection, column => this.getDataMapAtColumn(column));
+      this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
     }
 
     this.components.forEach((component) => {
@@ -179,11 +179,11 @@ class Filters extends BasePlugin {
     });
 
     this.registerEvents();
-    this.addHook('beforeDropdownMenuSetItems', (items) => this.onBeforeDropdownMenuSetItems(items));
-    this.addHook('afterDropdownMenuDefaultOptions', (defaultOptions) => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
+    this.addHook('beforeDropdownMenuSetItems', items => this.onBeforeDropdownMenuSetItems(items));
+    this.addHook('afterDropdownMenuDefaultOptions', defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
     this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
-    this.addHook('afterChange', (changes, source) => this.onAfterChange(changes));
+    this.addHook('afterChange', changes => this.onAfterChange(changes));
 
     // force to enable dependent plugins
     this.hot.getSettings().trimRows = true;
@@ -204,7 +204,7 @@ class Filters extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'click', (event) => this.onTableClick(event));
+    this.eventManager.addEventListener(this.hot.rootElement, 'click', event => this.onTableClick(event));
   }
 
   /**
@@ -295,7 +295,7 @@ class Filters extends BasePlugin {
   addCondition(column, name, args, operationId = OPERATION_AND) {
     const physicalColumn = this.t.toPhysicalColumn(column);
 
-    this.conditionCollection.addCondition(physicalColumn, {command: {key: name}, args}, operationId);
+    this.conditionCollection.addCondition(physicalColumn, { command: { key: name }, args }, operationId);
   }
 
   /**
@@ -333,8 +333,8 @@ class Filters extends BasePlugin {
    * @fires Hooks#afterFilter
    */
   filter() {
-    let dataFilter = this._createDataFilter();
-    let needToFilter = !this.conditionCollection.isEmpty();
+    const dataFilter = this._createDataFilter();
+    const needToFilter = !this.conditionCollection.isEmpty();
     let visibleVisualRows = [];
 
     const conditions = this.conditionCollection.exportAllConditions();
@@ -342,11 +342,11 @@ class Filters extends BasePlugin {
 
     if (allowFiltering !== false) {
       if (needToFilter) {
-        let trimmedRows = [];
+        const trimmedRows = [];
 
         this.trimRowsPlugin.trimmedRows.length = 0;
 
-        visibleVisualRows = arrayMap(dataFilter.filter(), (rowData) => rowData.meta.visualRow);
+        visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
 
         const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
 
@@ -389,7 +389,7 @@ class Filters extends BasePlugin {
    * @private
    */
   clearColumnSelection() {
-    let [row, col] = this.hot.getSelectedLast() || [];
+    const [row, col] = this.hot.getSelectedLast() || [];
 
     if (row !== void 0 && col !== void 0) {
       this.hot.selectCell(row, col);
@@ -407,10 +407,10 @@ class Filters extends BasePlugin {
     const data = [];
 
     arrayEach(this.hot.getSourceDataAtCol(visualIndex), (value, rowIndex) => {
-      let {row, col, visualCol, visualRow, type, instance, dateFormat} = this.hot.getCellMeta(rowIndex, visualIndex);
+      const { row, col, visualCol, visualRow, type, instance, dateFormat } = this.hot.getCellMeta(rowIndex, visualIndex);
 
       data.push({
-        meta: {row, col, visualCol, visualRow, type, instance, dateFormat},
+        meta: { row, col, visualCol, visualRow, type, instance, dateFormat },
         value: toEmptyString(value),
       });
     });
@@ -498,7 +498,7 @@ class Filters extends BasePlugin {
    * @param {Array} items DropdownMenu items created based on predefined items and settings provided by user.
    */
   onBeforeDropdownMenuSetItems(items) {
-    const menuKeys = arrayMap(items, (item) => item.key);
+    const menuKeys = arrayMap(items, item => item.key);
 
     this.components.forEach((component) => {
       component[menuKeys.indexOf(component.getMenuItemDescriptor().key) === -1 ? 'hide' : 'show']();
@@ -514,7 +514,7 @@ class Filters extends BasePlugin {
    * @param {Object} defaultOptions ContextMenu default item options.
    */
   onAfterDropdownMenuDefaultOptions(defaultOptions) {
-    defaultOptions.items.push({name: SEPARATOR});
+    defaultOptions.items.push({ name: SEPARATOR });
 
     this.components.forEach((component) => {
       defaultOptions.items.push(component.getMenuItemDescriptor());
@@ -661,7 +661,7 @@ class Filters extends BasePlugin {
    * @param {Event} event DOM Event.
    */
   onTableClick(event) {
-    let th = closest(event.target, 'TH');
+    const th = closest(event.target, 'TH');
 
     if (th) {
       const visualIndex = this.hot.getCoords(th).col;
@@ -699,7 +699,7 @@ class Filters extends BasePlugin {
    * @returns {DataFilter}
    */
   _createDataFilter(conditionCollection = this.conditionCollection) {
-    return new DataFilter(conditionCollection, (column) => this.getDataMapAtColumn(column));
+    return new DataFilter(conditionCollection, column => this.getDataMapAtColumn(column));
   }
 
   /**
@@ -715,8 +715,8 @@ class Filters extends BasePlugin {
 
     const conditions = conditionsState.editedConditionStack.conditions;
     const column = conditionsState.editedConditionStack.column;
-    const conditionsByValue = conditions.filter((condition) => condition.name === CONDITION_BY_VALUE);
-    const conditionsWithoutByValue = conditions.filter((condition) => condition.name !== CONDITION_BY_VALUE);
+    const conditionsByValue = conditions.filter(condition => condition.name === CONDITION_BY_VALUE);
+    const conditionsWithoutByValue = conditions.filter(condition => condition.name !== CONDITION_BY_VALUE);
     const operationType = this.conditionCollection.columnTypes[column];
 
     if (conditionsByValue.length === 2 || conditionsWithoutByValue.length === 3) {
@@ -752,7 +752,6 @@ class Filters extends BasePlugin {
       this.removeIndexesFromHiddenRowsCache(column, indexes);
     }
   }
-
 
   /**
    * Removes specific rows from `hiddenRows` cache for particular column.
@@ -830,7 +829,7 @@ class Filters extends BasePlugin {
         this.hiddenRowsCache.set(index, this.getIndexesOfComponents(this.components.get('filter_operators'), this.components.get('filter_by_condition2')));
       }
 
-      this.dropdownMenuPlugin.menu.hotMenu.updateSettings({hiddenRows: {rows: this.hiddenRowsCache.get(index)}});
+      this.dropdownMenuPlugin.menu.hotMenu.updateSettings({ hiddenRows: { rows: this.hiddenRowsCache.get(index) } });
     });
   }
 

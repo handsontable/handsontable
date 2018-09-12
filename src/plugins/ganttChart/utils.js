@@ -137,19 +137,21 @@ export function setEndDate(rangeBar, value) {
  * @returns {Date|null} Parsed Date object or null, if not a valid date string.
  */
 export function parseDate(date) {
-  if (date === null) {
+  let newDate = date;
+
+  if (newDate === null) {
     return null;
   }
 
-  if (!(date instanceof Date)) {
-    date = new Date(date);
+  if (!(newDate instanceof Date)) {
+    newDate = new Date(newDate);
 
-    if (date.toString() === 'Invalid Date') {
+    if (newDate.toString() === 'Invalid Date') {
       return null;
     }
   }
 
-  return date;
+  return newDate;
 }
 
 /**
@@ -159,7 +161,7 @@ export function parseDate(date) {
  * @returns {Number|null} The year from the provided date.
  */
 export function getDateYear(date) {
-  date = parseDate(date);
+  const newDate = parseDate(date);
 
-  return date ? date.getFullYear() : null;
+  return newDate ? newDate.getFullYear() : null;
 }

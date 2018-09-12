@@ -1,14 +1,14 @@
 import ConditionCollection from 'handsontable-pro/plugins/filters/conditionCollection';
-import {conditions} from 'handsontable-pro/plugins/filters/conditionRegisterer';
-import {OPERATION_AND, OPERATION_OR} from 'handsontable-pro/plugins/filters/constants';
-import {operations} from 'handsontable-pro/plugins/filters/logicalOperationRegisterer';
+import { conditions } from 'handsontable-pro/plugins/filters/conditionRegisterer';
+import { OPERATION_AND, OPERATION_OR } from 'handsontable-pro/plugins/filters/constants';
+import { operations } from 'handsontable-pro/plugins/filters/logicalOperationRegisterer';
 
-describe('ConditionCollection', function() {
-  it('should be initialized and accessible from the plugin', function() {
+describe('ConditionCollection', () => {
+  it('should be initialized and accessible from the plugin', () => {
     expect(ConditionCollection).toBeDefined();
   });
 
-  it('should create empty bucket for conditions, columnTypes and empty orderStack', function() {
+  it('should create empty bucket for conditions, columnTypes and empty orderStack', () => {
     const conditionCollection = new ConditionCollection();
 
     expect(conditionCollection.conditions).toEqual(jasmine.any(Object));
@@ -17,8 +17,8 @@ describe('ConditionCollection', function() {
     expect(conditionCollection.columnTypes).toEqual(jasmine.any(Object));
   });
 
-  describe('isEmpty', function() {
-    it('should return `true` when order stack is equal to 0', function() {
+  describe('isEmpty', () => {
+    it('should return `true` when order stack is equal to 0', () => {
       const conditionCollection = new ConditionCollection();
 
       expect(conditionCollection.isEmpty()).toBe(true);
@@ -29,8 +29,8 @@ describe('ConditionCollection', function() {
     });
   });
 
-  describe('isMatch', function() {
-    it('should check is value is matched to the conditions at specified column index', function() {
+  describe('isMatch', () => {
+    it('should check is value is matched to the conditions at specified column index', () => {
       const conditionCollection = new ConditionCollection();
       conditionCollection.columnTypes = { 3: OPERATION_AND };
       const conditionMock = {};
@@ -45,7 +45,7 @@ describe('ConditionCollection', function() {
       expect(result).toBe(true);
     });
 
-    it('should check is value is matched to the conditions for all columns', function() {
+    it('should check is value is matched to the conditions for all columns', () => {
       const conditionCollection = new ConditionCollection();
       conditionCollection.columnTypes = { 3: OPERATION_AND, 13: OPERATION_AND };
       const conditionMock = {};
@@ -65,7 +65,7 @@ describe('ConditionCollection', function() {
       expect(result).toBe(true);
     });
 
-    it('should break checking value when current condition is not matched to the rules', function() {
+    it('should break checking value when current condition is not matched to the rules', () => {
       const conditionCollection = new ConditionCollection();
       conditionCollection.columnTypes = { 3: OPERATION_AND, 13: OPERATION_AND };
       const conditionMock = {};
@@ -86,8 +86,8 @@ describe('ConditionCollection', function() {
     });
   });
 
-  describe('isMatchInConditions', function() {
-    it('should returns `true` if passed conditions is empty', function() {
+  describe('isMatchInConditions', () => {
+    it('should returns `true` if passed conditions is empty', () => {
       const conditionCollection = new ConditionCollection();
 
       const result = conditionCollection.isMatchInConditions([], 'foo');
@@ -95,11 +95,11 @@ describe('ConditionCollection', function() {
       expect(result).toBe(true);
     });
 
-    describe('OPERATION_AND', function () {
-      it('should check if array of conditions is matched to the value', function () {
+    describe('OPERATION_AND', () => {
+      it('should check if array of conditions is matched to the value', () => {
         const conditionCollection = new ConditionCollection();
-        const conditionMock = {func: () => true};
-        const conditionMock2 = {func: () => true};
+        const conditionMock = { func: () => true };
+        const conditionMock2 = { func: () => true };
 
         spyOn(conditionMock, 'func').and.callThrough();
         spyOn(conditionMock2, 'func').and.callThrough();
@@ -113,10 +113,10 @@ describe('ConditionCollection', function() {
         expect(result).toBe(true);
       });
 
-      it('should break checking value when condition is not matched to the value', function () {
+      it('should break checking value when condition is not matched to the value', () => {
         const conditionCollection = new ConditionCollection();
-        const conditionMock = {func: () => false};
-        const conditionMock2 = {func: () => true};
+        const conditionMock = { func: () => false };
+        const conditionMock2 = { func: () => true };
 
         spyOn(conditionMock, 'func').and.callThrough();
         spyOn(conditionMock2, 'func').and.callThrough();
@@ -130,11 +130,11 @@ describe('ConditionCollection', function() {
       });
     });
 
-    describe('OPERATION_OR', function () {
-      it('should check if one of conditions is matched to the value #1', function () {
+    describe('OPERATION_OR', () => {
+      it('should check if one of conditions is matched to the value #1', () => {
         const conditionCollection = new ConditionCollection();
-        const conditionMock = {func: () => false};
-        const conditionMock2 = {func: () => true};
+        const conditionMock = { func: () => false };
+        const conditionMock2 = { func: () => true };
 
         spyOn(conditionMock, 'func').and.callThrough();
         spyOn(conditionMock2, 'func').and.callThrough();
@@ -148,10 +148,10 @@ describe('ConditionCollection', function() {
         expect(result).toBe(true);
       });
 
-      it('should check if one of conditions is matched to the value #2', function () {
+      it('should check if one of conditions is matched to the value #2', () => {
         const conditionCollection = new ConditionCollection();
-        const conditionMock = {func: () => false};
-        const conditionMock2 = {func: () => false};
+        const conditionMock = { func: () => false };
+        const conditionMock2 = { func: () => false };
 
         spyOn(conditionMock, 'func').and.callThrough();
         spyOn(conditionMock2, 'func').and.callThrough();
@@ -165,11 +165,11 @@ describe('ConditionCollection', function() {
         expect(result).toBe(false);
       });
 
-      it('should break checking value when condition is matched to the value', function () {
+      it('should break checking value when condition is matched to the value', () => {
         const conditionCollection = new ConditionCollection();
-        const conditionMock = {func: () => false};
-        const conditionMock2 = {func: () => true};
-        const conditionMock3 = {func: () => false};
+        const conditionMock = { func: () => false };
+        const conditionMock2 = { func: () => true };
+        const conditionMock3 = { func: () => false };
 
         spyOn(conditionMock, 'func').and.callThrough();
         spyOn(conditionMock2, 'func').and.callThrough();
@@ -183,7 +183,7 @@ describe('ConditionCollection', function() {
     });
   });
 
-  describe('addCondition', function() {
+  describe('addCondition', () => {
     beforeEach(() => {
       conditions.eq = {
         condition: () => {},
@@ -200,9 +200,9 @@ describe('ConditionCollection', function() {
       delete conditions.contains;
     });
 
-    it('should trigger `beforeAdd` and `afterAdd` hook on adding condition', function() {
+    it('should trigger `beforeAdd` and `afterAdd` hook on adding condition', () => {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {args: [], command: {key: 'eq'}};
+      const conditionMock = { args: [], command: { key: 'eq' } };
       const hookBeforeSpy = jasmine.createSpy('hookBefore');
       const hookAfterSpy = jasmine.createSpy('hookAfter');
 
@@ -214,9 +214,9 @@ describe('ConditionCollection', function() {
       expect(hookAfterSpy).toHaveBeenCalledWith(3);
     });
 
-    it('should add column index to the orderStack without duplicate values', function() {
+    it('should add column index to the orderStack without duplicate values', () => {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {args: [], command: {key: 'eq'}};
+      const conditionMock = { args: [], command: { key: 'eq' } };
 
       conditionCollection.addCondition(3, conditionMock);
       conditionCollection.addCondition(3, conditionMock);
@@ -225,9 +225,9 @@ describe('ConditionCollection', function() {
       expect(conditionCollection.orderStack).toEqual([3]);
     });
 
-    it('should add condition to the collection at specified column index.', function() {
+    it('should add condition to the collection at specified column index.', () => {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {args: [1], command: {key: 'eq'}};
+      const conditionMock = { args: [1], command: { key: 'eq' } };
 
       conditionCollection.addCondition(3, conditionMock);
 
@@ -237,11 +237,11 @@ describe('ConditionCollection', function() {
       expect(conditionCollection.conditions[OPERATION_AND]['3'][0].func instanceof Function).toBe(true);
     });
 
-    it('should allow to add few condition under the same name and column index #160', function() {
+    it('should allow to add few condition under the same name and column index #160', () => {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {args: ['A'], command: {key: 'contains'}};
-      const conditionMock2 = {args: ['B'], command: {key: 'contains'}};
-      const conditionMock3 = {args: ['C'], command: {key: 'contains'}};
+      const conditionMock = { args: ['A'], command: { key: 'contains' } };
+      const conditionMock2 = { args: ['B'], command: { key: 'contains' } };
+      const conditionMock3 = { args: ['C'], command: { key: 'contains' } };
 
       conditionCollection.addCondition(3, conditionMock);
       conditionCollection.addCondition(3, conditionMock2);
@@ -251,46 +251,46 @@ describe('ConditionCollection', function() {
     });
 
     it('should allow to add few condition under the same column index ' +
-      'only when they are related to the same operation (throw exception otherwise) #160', function() {
+      'only when they are related to the same operation (throw exception otherwise) #160', () => {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {args: ['A'], command: {key: 'contains'}};
-      const conditionMock2 = {args: ['B'], command: {key: 'contains'}};
-      const conditionMock3 = {args: ['C'], command: {key: 'contains'}};
+      const conditionMock = { args: ['A'], command: { key: 'contains' } };
+      const conditionMock2 = { args: ['B'], command: { key: 'contains' } };
+      const conditionMock3 = { args: ['C'], command: { key: 'contains' } };
 
       conditionCollection.addCondition(3, conditionMock, OPERATION_AND);
       conditionCollection.addCondition(3, conditionMock2, OPERATION_AND);
-      expect(function () {
+      expect(() => {
         conditionCollection.addCondition(3, conditionMock3, OPERATION_OR);
       }).toThrow(/has been already applied/);
     });
 
     it('should allow to add conditions only when they are related to the known operation ' +
-      '(throw exception otherwise) #174', function() {
+      '(throw exception otherwise) #174', () => {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {args: ['A'], command: {key: 'contains'}};
+      const conditionMock = { args: ['A'], command: { key: 'contains' } };
 
-      expect(function () {
+      expect(() => {
         conditionCollection.addCondition(3, conditionMock, 'unknownOperation');
       }).toThrow(/Unexpected operation/);
     });
   });
 
-  describe('exportAllConditions', function() {
-    it('should return an empty array when no conditions was added', function() {
+  describe('exportAllConditions', () => {
+    it('should return an empty array when no conditions was added', () => {
       const conditionCollection = new ConditionCollection();
 
       conditionCollection.orderStack = [];
 
-      const conditions = conditionCollection.exportAllConditions();
+      const exportedConditions = conditionCollection.exportAllConditions();
 
-      expect(conditions.length).toBe(0);
+      expect(exportedConditions.length).toBe(0);
     });
 
-    it('should return conditions as an array of objects for all column in the same order as it was added', function() {
+    it('should return conditions as an array of objects for all column in the same order as it was added', () => {
       const conditionCollection = new ConditionCollection();
-      const conditionMock = {name: 'begins_with', args: ['c']};
-      const conditionMock1 = {name: 'date_tomorrow', args: []};
-      const conditionMock2 = {name: 'eq', args: ['z']};
+      const conditionMock = { name: 'begins_with', args: ['c'] };
+      const conditionMock1 = { name: 'date_tomorrow', args: [] };
+      const conditionMock2 = { name: 'eq', args: ['z'] };
 
       conditionCollection.orderStack = [6, 1, 3];
       conditionCollection.columnTypes = { 1: OPERATION_AND, 3: OPERATION_AND, 6: OPERATION_AND };
@@ -298,23 +298,23 @@ describe('ConditionCollection', function() {
       conditionCollection.conditions[OPERATION_AND]['6'] = [conditionMock1];
       conditionCollection.conditions[OPERATION_AND]['1'] = [conditionMock2];
 
-      const conditions = conditionCollection.exportAllConditions();
+      const exportedConditions = conditionCollection.exportAllConditions();
 
-      expect(conditions.length).toBe(3);
-      expect(conditions[0].column).toBe(6);
-      expect(conditions[0].conditions[0].name).toBe('date_tomorrow');
-      expect(conditions[0].conditions[0].args).toEqual([]);
-      expect(conditions[1].column).toBe(1);
-      expect(conditions[1].conditions[0].name).toBe('eq');
-      expect(conditions[1].conditions[0].args).toEqual(['z']);
-      expect(conditions[2].column).toBe(3);
-      expect(conditions[2].conditions[0].name).toBe('begins_with');
-      expect(conditions[2].conditions[0].args).toEqual(['c']);
+      expect(exportedConditions.length).toBe(3);
+      expect(exportedConditions[0].column).toBe(6);
+      expect(exportedConditions[0].conditions[0].name).toBe('date_tomorrow');
+      expect(exportedConditions[0].conditions[0].args).toEqual([]);
+      expect(exportedConditions[1].column).toBe(1);
+      expect(exportedConditions[1].conditions[0].name).toBe('eq');
+      expect(exportedConditions[1].conditions[0].args).toEqual(['z']);
+      expect(exportedConditions[2].column).toBe(3);
+      expect(exportedConditions[2].conditions[0].name).toBe('begins_with');
+      expect(exportedConditions[2].conditions[0].args).toEqual(['c']);
     });
   });
 
-  describe('getConditions', function() {
-    it('should return conditions at specified index otherwise should return empty array', function() {
+  describe('getConditions', () => {
+    it('should return conditions at specified index otherwise should return empty array', () => {
       const conditionCollection = new ConditionCollection();
       conditionCollection.columnTypes = { 3: OPERATION_AND };
       const conditionMock = {};
@@ -326,8 +326,8 @@ describe('ConditionCollection', function() {
     });
   });
 
-  describe('removeConditions', function() {
-    it('should trigger `beforeRemove` and `afterRemove` hook on removing conditions', function() {
+  describe('removeConditions', () => {
+    it('should trigger `beforeRemove` and `afterRemove` hook on removing conditions', () => {
       const conditionCollection = new ConditionCollection();
       const conditionMock = {};
 
@@ -345,7 +345,7 @@ describe('ConditionCollection', function() {
       expect(hookAfterSpy).toHaveBeenCalledWith(3);
     });
 
-    it('should remove condition from collection and column index from orderStack', function() {
+    it('should remove condition from collection and column index from orderStack', () => {
       const conditionCollection = new ConditionCollection();
       const conditionMock = {};
 
@@ -360,10 +360,9 @@ describe('ConditionCollection', function() {
     });
   });
 
-  describe('clearConditions', function() {
-    it('should trigger `beforeClear` and `afterClear` hook on clearing conditions', function() {
+  describe('clearConditions', () => {
+    it('should trigger `beforeClear` and `afterClear` hook on clearing conditions', () => {
       const conditionCollection = new ConditionCollection();
-      const conditionsMock = [{}, {}];
 
       const hookBeforeSpy = jasmine.createSpy('hookBefore');
       const hookAfterSpy = jasmine.createSpy('hookAfter');
@@ -376,7 +375,7 @@ describe('ConditionCollection', function() {
       expect(hookAfterSpy).toHaveBeenCalledWith(3);
     });
 
-    it('should clear all conditions at specified column index', function() {
+    it('should clear all conditions at specified column index', () => {
       const conditionCollection = new ConditionCollection();
       const conditionsMock = [{}, {}];
 
@@ -389,8 +388,8 @@ describe('ConditionCollection', function() {
     });
   });
 
-  describe('hasConditions', function() {
-    it('should return `true` if at specified column index condition were found', function() {
+  describe('hasConditions', () => {
+    it('should return `true` if at specified column index condition were found', () => {
       const conditionCollection = new ConditionCollection();
       conditionCollection.columnTypes = { 3: OPERATION_AND };
       const conditionsMock = [{}, {}];
@@ -401,7 +400,7 @@ describe('ConditionCollection', function() {
       expect(result).toBe(true);
     });
 
-    it('should return `false` if at specified column index no conditions were found', function() {
+    it('should return `false` if at specified column index no conditions were found', () => {
       const conditionCollection = new ConditionCollection();
       const conditionsMock = [];
 
@@ -411,10 +410,10 @@ describe('ConditionCollection', function() {
       expect(result).toBe(false);
     });
 
-    it('should return `true` if at specified column index condition were found under its name', function() {
+    it('should return `true` if at specified column index condition were found under its name', () => {
       const conditionCollection = new ConditionCollection();
       conditionCollection.columnTypes = { 3: OPERATION_AND };
-      const conditionsMock = [{name: 'lte'}, {name: 'eq'}];
+      const conditionsMock = [{ name: 'lte' }, { name: 'eq' }];
 
       spyOn(conditionCollection, 'getConditions').and.returnValue(conditionsMock);
 
@@ -422,10 +421,10 @@ describe('ConditionCollection', function() {
       expect(result).toBe(true);
     });
 
-    it('should return `false` if at specified column index no conditions were found under its name', function() {
+    it('should return `false` if at specified column index no conditions were found under its name', () => {
       const conditionCollection = new ConditionCollection();
       conditionCollection.columnTypes = { 3: OPERATION_AND };
-      const conditionsMock = [{name: 'lte'}, {name: 'eq'}];
+      const conditionsMock = [{ name: 'lte' }, { name: 'eq' }];
 
       spyOn(conditionCollection, 'getConditions').and.returnValue(conditionsMock);
 
@@ -436,11 +435,11 @@ describe('ConditionCollection', function() {
     });
   });
 
-  describe('clean', function() {
-    it('should trigger `beforeClean` and `afterClean` hook on cleaning conditions', function() {
+  describe('clean', () => {
+    it('should trigger `beforeClean` and `afterClean` hook on cleaning conditions', () => {
       const conditionCollection = new ConditionCollection();
 
-      conditionCollection.conditions = {0: []};
+      conditionCollection.conditions = { 0: [] };
       conditionCollection.conditions = [1, 2, 3, 4];
 
       const hookBeforeSpy = jasmine.createSpy('hookBefore');
@@ -454,10 +453,10 @@ describe('ConditionCollection', function() {
       expect(hookAfterSpy).toHaveBeenCalled();
     });
 
-    it('should clear condition collection and orderStack', function() {
+    it('should clear condition collection and orderStack', () => {
       const conditionCollection = new ConditionCollection();
 
-      conditionCollection.conditions = {0: []};
+      conditionCollection.conditions = { 0: [] };
       conditionCollection.conditions = [1, 2, 3, 4];
 
       conditionCollection.clean();
@@ -468,12 +467,12 @@ describe('ConditionCollection', function() {
     });
   });
 
-  describe('destroy', function() {
-    it('should nullable all properties', function() {
+  describe('destroy', () => {
+    it('should nullable all properties', () => {
       const conditionCollection = new ConditionCollection();
 
-      conditionCollection.conditions[OPERATION_AND] = {0: [], 2: []};
-      conditionCollection.conditions[OPERATION_OR] = {3: [], 4: []};
+      conditionCollection.conditions[OPERATION_AND] = { 0: [], 2: [] };
+      conditionCollection.conditions[OPERATION_OR] = { 3: [], 4: [] };
       conditionCollection.orderStack = [1, 2, 3, 4];
 
       conditionCollection.destroy();

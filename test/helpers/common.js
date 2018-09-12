@@ -1,23 +1,102 @@
+/* eslint-disable no-console */
 export function sleep(delay = 100) {
   return Promise.resolve({
-    then: function(resolve) {
+    then(resolve) {
       setTimeout(resolve, delay);
     }
   });
-};
+}
+
+/**
+ * Calls a method in current Handsontable instance, returns its output
+ * @param method
+ * @return {Function}
+ */
+export function handsontableMethodFactory(method) {
+  return function(...args) {
+    let instance;
+    try {
+      instance = spec().$container.handsontable('getInstance');
+    } catch (err) {
+      console.error(err);
+    }
+
+    if (instance) {
+      if (method === 'destroy') {
+        spec().$container.removeData();
+      }
+    } else {
+      if (method === 'destroy') {
+        return; // we can forgive this... maybe it was destroyed in the test
+      }
+      throw new Error('Something wrong with the test spec: Handsontable instance not found');
+    }
+
+    return instance[method](...args);
+  };
+}
+
+export const addHook = handsontableMethodFactory('addHook');
+export const alter = handsontableMethodFactory('alter');
+export const colToProp = handsontableMethodFactory('colToProp');
+export const countCols = handsontableMethodFactory('countCols');
+export const countRows = handsontableMethodFactory('countRows');
+export const deselectCell = handsontableMethodFactory('deselectCell');
+export const destroy = handsontableMethodFactory('destroy');
+export const destroyEditor = handsontableMethodFactory('destroyEditor');
+export const getActiveEditor = handsontableMethodFactory('getActiveEditor');
+export const getCell = handsontableMethodFactory('getCell');
+export const getCellEditor = handsontableMethodFactory('getCellEditor');
+export const getCellMeta = handsontableMethodFactory('getCellMeta');
+export const getCellMetaAtRow = handsontableMethodFactory('getCellMetaAtRow');
+export const getCellRenderer = handsontableMethodFactory('getCellRenderer');
+export const getCellsMeta = handsontableMethodFactory('getCellsMeta');
+export const getCellValidator = handsontableMethodFactory('getCellValidator');
+export const getColHeader = handsontableMethodFactory('getColHeader');
+export const getCopyableData = handsontableMethodFactory('getCopyableData');
+export const getCopyableText = handsontableMethodFactory('getCopyableText');
+export const getData = handsontableMethodFactory('getData');
+export const getDataAtCell = handsontableMethodFactory('getDataAtCell');
+export const getDataAtCol = handsontableMethodFactory('getDataAtCol');
+export const getDataAtRow = handsontableMethodFactory('getDataAtRow');
+export const getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
+export const getDataType = handsontableMethodFactory('getDataType');
+export const getInstance = handsontableMethodFactory('getInstance');
+export const getPlugin = handsontableMethodFactory('getPlugin');
+export const getRowHeader = handsontableMethodFactory('getRowHeader');
+export const getSelected = handsontableMethodFactory('getSelected');
+export const getSourceData = handsontableMethodFactory('getSourceData');
+export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray');
+export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
+export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
+export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
+export const getValue = handsontableMethodFactory('getValue');
+export const loadData = handsontableMethodFactory('loadData');
+export const populateFromArray = handsontableMethodFactory('populateFromArray');
+export const propToCol = handsontableMethodFactory('propToCol');
+export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
+export const render = handsontableMethodFactory('render');
+export const selectCell = handsontableMethodFactory('selectCell');
+export const setCellMeta = handsontableMethodFactory('setCellMeta');
+export const setDataAtCell = handsontableMethodFactory('setDataAtCell');
+export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
+export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
+export const spliceCol = handsontableMethodFactory('spliceCol');
+export const spliceRow = handsontableMethodFactory('spliceRow');
+export const updateSettings = handsontableMethodFactory('updateSettings');
 
 export function hot() {
   return spec().$container.data('handsontable');
-};
+}
 
 export function handsontable(options) {
-  var currentSpec = spec();
+  const currentSpec = spec();
 
   currentSpec.$container.handsontable(options);
   currentSpec.$container[0].focus(); // otherwise TextEditor tests do not pass in IE8
 
   return currentSpec.$container.data('handsontable');
-};
+}
 
 /**
  * As for v. 0.11 the only scrolling method is native scroll, which creates copies of main htCore table inside of the container.
@@ -31,112 +110,113 @@ export function handsontable(options) {
 
 export function getMaster() {
   return spec().$container.find('.ht_master');
-};
+}
 
 export function getHtCore() {
   return spec().$container.find('.htCore').first();
-};
+}
 
 export function getTopClone() {
   return spec().$container.find('.ht_clone_top');
-};
+}
 
 export function getTopLeftClone() {
   return spec().$container.find('.ht_clone_top_left_corner');
-};
+}
 // for compatybility
 // var getCornerClone = getTopLeftClone;
 
 export function getLeftClone() {
   return spec().$container.find('.ht_clone_left');
-};
+}
 
 export function getBottomClone() {
   return spec().$container.find('.ht_clone_bottom');
-};
+}
 
 export function getBottomLeftClone() {
   return spec().$container.find('.ht_clone_bottom_left_corner');
-};
+}
 
 // Rename me to countTD
 export function countCells() {
   return getHtCore().find('tbody td').length;
-};
+}
 
 export function isEditorVisible() {
   return !!(keyProxy().is(':visible') && keyProxy().parent().is(':visible') && !keyProxy().parent().is('.htHidden'));
-};
+}
 
 export function isFillHandleVisible() {
   return !!spec().$container.find('.wtBorder.corner:visible').length;
-};
+}
 
 export function getCorrespondingOverlay(cell, container) {
-  var overlay = $(cell).parents('.handsontable');
+  const overlay = $(cell).parents('.handsontable');
 
-  if (overlay[0] == container[0]) {
+  if (overlay[0] === container[0]) {
     return $('.ht_master');
   }
 
   return $(overlay[0]);
-};
+}
 
 /**
  * Shows context menu
  */
 export function contextMenu(cell) {
-  var hot = spec().$container.data('handsontable');
-  var selected = hot.getSelectedLast();
+  const hotInstance = spec().$container.data('handsontable');
+  let clickedCell = cell;
+  let selected = hotInstance.getSelectedLast();
 
   if (!selected) {
-    hot.selectCell(0, 0);
-    selected = hot.getSelectedLast();
+    hotInstance.selectCell(0, 0);
+    selected = hotInstance.getSelectedLast();
   }
-  if (!cell) {
-    cell = getCell(selected[0], selected[1]);
+  if (!clickedCell) {
+    clickedCell = getCell(selected[0], selected[1]);
   }
-  var cellOffset = $(cell).offset();
+  const cellOffset = $(clickedCell).offset();
 
-  $(cell).simulate('contextmenu', {
+  $(clickedCell).simulate('contextmenu', {
     clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
     clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(),
   });
-};
+}
 
 export function closeContextMenu() {
   $(document).simulate('mousedown');
   //  $(document).trigger('mousedown');
-};
+}
 
 /**
  * Shows dropdown menu
  */
 export function dropdownMenu(columnIndex) {
-  var hot = spec().$container.data('handsontable');
-  var th = hot.view.wt.wtTable.getColumnHeader(columnIndex || 0);
-  var button = th.querySelector('.changeType');
+  const hotInstance = spec().$container.data('handsontable');
+  const th = hotInstance.view.wt.wtTable.getColumnHeader(columnIndex || 0);
+  const button = th.querySelector('.changeType');
 
   if (button) {
     $(button).simulate('mousedown');
     $(button).simulate('click');
   }
-};
+}
 
 export function closeDropdownMenu() {
   $(document).simulate('mousedown');
-};
+}
 
 export function dropdownMenuRootElement() {
-  var plugin = hot().getPlugin('dropdownMenu');
-  var root;
+  const plugin = hot().getPlugin('dropdownMenu');
+  let root;
 
   if (plugin && plugin.menu) {
     root = plugin.menu.container;
   }
 
   return root;
-};
+}
 
 /**
  * Returns a function that triggers a mouse event
@@ -145,15 +225,17 @@ export function dropdownMenuRootElement() {
  */
 export function handsontableMouseTriggerFactory(type, button) {
   return function(element) {
-    if (!(element instanceof jQuery)) {
-      element = $(element);
+    let handsontableElement = element;
+
+    if (!(handsontableElement instanceof jQuery)) {
+      handsontableElement = $(handsontableElement);
     }
-    var ev = $.Event(type);
+    const ev = $.Event(type);
     ev.which = button || 1; // left click by default
 
-    element.simulate(type, ev);
+    handsontableElement.simulate(type, ev);
   };
-};
+}
 
 export const mouseDown = handsontableMouseTriggerFactory('mousedown');
 export const mouseMove = handsontableMouseTriggerFactory('mousemove');
@@ -165,7 +247,7 @@ export function mouseDoubleClick(element) {
   mouseUp(element);
   mouseDown(element);
   mouseUp(element);
-};
+}
 
 export const mouseRightDown = handsontableMouseTriggerFactory('mousedown', 3);
 export const mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
@@ -177,21 +259,22 @@ export const mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
  */
 export function handsontableKeyTriggerFactory(type) {
   return function(key, extend) {
-    var ev = {}; // $.Event(type);
+    const ev = {}; // $.Event(type);
+    let keyToTrigger = key;
 
-    if (typeof key === 'string') {
-      if (key.indexOf('shift+') > -1) {
-        key = key.substring(6);
+    if (typeof keyToTrigger === 'string') {
+      if (keyToTrigger.indexOf('shift+') > -1) {
+        keyToTrigger = keyToTrigger.substring(6);
         ev.shiftKey = true;
       }
 
-      if (key.indexOf('ctrl+') > -1) {
-        key = key.substring(5);
+      if (keyToTrigger.indexOf('ctrl+') > -1) {
+        keyToTrigger = keyToTrigger.substring(5);
         ev.ctrlKey = true;
         ev.metaKey = true;
       }
 
-      switch (key) {
+      switch (keyToTrigger) {
         case 'tab':
           ev.keyCode = 9;
           break;
@@ -257,16 +340,16 @@ export function handsontableKeyTriggerFactory(type) {
           break;
 
         default:
-          throw new Error(`Unrecognised key name: ${key}`);
+          throw new Error(`Unrecognised key name: ${keyToTrigger}`);
       }
-    } else if (typeof key === 'number') {
-      ev.keyCode = key;
+    } else if (typeof keyToTrigger === 'number') {
+      ev.keyCode = keyToTrigger;
     }
     //    ev.originalEvent = {}; //needed as long Handsontable searches for event.originalEvent
     $.extend(ev, extend);
     $(document.activeElement).simulate(type, ev);
   };
-};
+}
 
 export const keyDown = handsontableKeyTriggerFactory('keydown');
 export const keyUp = handsontableKeyTriggerFactory('keyup');
@@ -285,7 +368,7 @@ export function keyDownUp(key, extend) {
   if (typeof key === 'string' && key.indexOf('shift+') > -1) {
     keyUp('shift');
   }
-};
+}
 
 /**
  * Returns current value of the keyboard proxy textarea
@@ -293,10 +376,10 @@ export function keyDownUp(key, extend) {
  */
 export function keyProxy() {
   return spec().$container.find('textarea.handsontableInput');
-};
+}
 
 export function serveImmediatePropagation(event) {
-  if (event != null && event.isImmediatePropagationEnabled == null) {
+  if (event !== null && event.isImmediatePropagationEnabled === null) {
     event.stopImmediatePropagation = function() {
       this.isImmediatePropagationEnabled = false;
       this.cancelBubble = true;
@@ -308,121 +391,43 @@ export function serveImmediatePropagation(event) {
   }
 
   return event;
-};
+}
 
 export function autocompleteEditor() {
   return spec().$container.find('.handsontableInput');
-};
+}
 
 /**
  * Sets text cursor inside keyboard proxy
  */
 export function setCaretPosition(pos) {
-  var el = keyProxy()[0];
+  const el = keyProxy()[0];
 
   if (el.setSelectionRange) {
     el.focus();
     el.setSelectionRange(pos, pos);
   } else if (el.createTextRange) {
-    var range = el.createTextRange();
+    const range = el.createTextRange();
     range.collapse(true);
     range.moveEnd('character', pos);
     range.moveStart('character', pos);
     range.select();
   }
-};
+}
 
 /**
  * Returns autocomplete instance
  */
 export function autocomplete() {
   return spec().$container.find('.autocompleteEditor');
-};
+}
 
 /**
  * Triggers paste string on current selection
  */
 export function triggerPaste(str) {
   spec().$container.data('handsontable').copyPaste.triggerPaste(null, str);
-};
-
-/**
- * Calls a method in current Handsontable instance, returns its output
- * @param method
- * @return {Function}
- */
-export function handsontableMethodFactory(method) {
-  return function() {
-    var instance;
-    try {
-      instance = spec().$container.handsontable('getInstance');
-    } catch (err) {
-      console.error(err);
-    }
-
-    if (instance) {
-      if (method === 'destroy') {
-        spec().$container.removeData();
-      }
-    } else {
-      if (method === 'destroy') {
-        return; // we can forgive this... maybe it was destroyed in the test
-      }
-      throw new Error('Something wrong with the test spec: Handsontable instance not found');
-    }
-
-    return instance[method](...arguments);
-  };
-};
-
-export const addHook = handsontableMethodFactory('addHook');
-export const alter = handsontableMethodFactory('alter');
-export const colToProp = handsontableMethodFactory('colToProp');
-export const countCols = handsontableMethodFactory('countCols');
-export const countRows = handsontableMethodFactory('countRows');
-export const deselectCell = handsontableMethodFactory('deselectCell');
-export const destroy = handsontableMethodFactory('destroy');
-export const destroyEditor = handsontableMethodFactory('destroyEditor');
-export const getActiveEditor = handsontableMethodFactory('getActiveEditor');
-export const getCell = handsontableMethodFactory('getCell');
-export const getCellEditor = handsontableMethodFactory('getCellEditor');
-export const getCellMeta = handsontableMethodFactory('getCellMeta');
-export const getCellMetaAtRow = handsontableMethodFactory('getCellMetaAtRow');
-export const getCellRenderer = handsontableMethodFactory('getCellRenderer');
-export const getCellsMeta = handsontableMethodFactory('getCellsMeta');
-export const getCellValidator = handsontableMethodFactory('getCellValidator');
-export const getColHeader = handsontableMethodFactory('getColHeader');
-export const getCopyableData = handsontableMethodFactory('getCopyableData');
-export const getCopyableText = handsontableMethodFactory('getCopyableText');
-export const getData = handsontableMethodFactory('getData');
-export const getDataAtCell = handsontableMethodFactory('getDataAtCell');
-export const getDataAtCol = handsontableMethodFactory('getDataAtCol');
-export const getDataAtRow = handsontableMethodFactory('getDataAtRow');
-export const getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
-export const getDataType = handsontableMethodFactory('getDataType');
-export const getInstance = handsontableMethodFactory('getInstance');
-export const getPlugin = handsontableMethodFactory('getPlugin');
-export const getRowHeader = handsontableMethodFactory('getRowHeader');
-export const getSelected = handsontableMethodFactory('getSelected');
-export const getSourceData = handsontableMethodFactory('getSourceData');
-export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray');
-export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
-export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
-export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
-export const getValue = handsontableMethodFactory('getValue');
-export const loadData = handsontableMethodFactory('loadData');
-export const populateFromArray = handsontableMethodFactory('populateFromArray');
-export const propToCol = handsontableMethodFactory('propToCol');
-export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
-export const render = handsontableMethodFactory('render');
-export const selectCell = handsontableMethodFactory('selectCell');
-export const setCellMeta = handsontableMethodFactory('setCellMeta');
-export const setDataAtCell = handsontableMethodFactory('setDataAtCell');
-export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
-export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
-export const spliceCol = handsontableMethodFactory('spliceCol');
-export const spliceRow = handsontableMethodFactory('spliceRow');
-export const updateSettings = handsontableMethodFactory('updateSettings');
+}
 
 /**
  * Returns column width for HOT container
@@ -431,8 +436,8 @@ export const updateSettings = handsontableMethodFactory('updateSettings');
  * @returns {Number}
  */
 export function colWidth($elem, col) {
-  var TR = $elem[0].querySelector('TBODY TR');
-  var cell;
+  const TR = $elem[0].querySelector('TBODY TR');
+  let cell;
 
   if (TR) {
     cell = TR.querySelectorAll('TD')[col];
@@ -454,7 +459,7 @@ export function colWidth($elem, col) {
  * @returns {Number}
  */
 export function rowHeight($elem, row) {
-  var TD;
+  let TD;
 
   if (row >= 0) {
     TD = $elem[0].querySelector(`tbody tr:nth-child(${row + 1}) td`);
@@ -496,18 +501,17 @@ export function getRenderedContent(trIndex, tdIndex) {
  * @returns {Array}
  */
 export function createNumericData(rowCount, colCount) {
-  rowCount = typeof rowCount === 'number' ? rowCount : 100;
-  colCount = typeof colCount === 'number' ? colCount : 4;
+  const rowMax = typeof rowCount === 'number' ? rowCount : 100;
+  const columnMax = typeof colCount === 'number' ? colCount : 4;
 
-  var
-    rows = [],
-    i,
-    j;
+  const rows = [];
+  let i;
+  let j;
 
-  for (i = 0; i < rowCount; i++) {
-    var row = [];
+  for (i = 0; i < rowMax; i++) {
+    const row = [];
 
-    for (j = 0; j < colCount; j++) {
+    for (j = 0; j < columnMax; j++) {
       row.push((i + 1));
     }
     rows.push(row);
@@ -524,9 +528,9 @@ export function createNumericData(rowCount, colCount) {
  * @constructor
  */
 export function Model(opts) {
-  var obj = {};
+  const obj = {};
 
-  var _data = $.extend({
+  const _data = $.extend({
     id: undefined,
     name: undefined,
     address: undefined
@@ -567,20 +571,20 @@ export function createAccessorForProperty(name) {
 }
 
 export function resizeColumn(displayedColumnIndex, width) {
-  var $container = spec().$container;
-  var $th = $container.find(`thead tr:eq(0) th:eq(${displayedColumnIndex})`);
+  const $container = spec().$container;
+  const $th = $container.find(`thead tr:eq(0) th:eq(${displayedColumnIndex})`);
 
   $th.simulate('mouseover');
 
-  var $resizer = $container.find('.manualColumnResizer');
-  var resizerPosition = $resizer.position();
+  const $resizer = $container.find('.manualColumnResizer');
+  const resizerPosition = $resizer.position();
 
   $resizer.simulate('mousedown', {
     clientX: resizerPosition.left,
   });
 
-  var delta = width - $th.width() - 2;
-  var newPosition = resizerPosition.left + delta;
+  const delta = width - $th.width() - 2;
+  const newPosition = resizerPosition.left + delta;
   $resizer.simulate('mousemove', {
     clientX: newPosition
   });
@@ -589,19 +593,19 @@ export function resizeColumn(displayedColumnIndex, width) {
 }
 
 export function resizeRow(displayedRowIndex, height) {
-  var $container = spec().$container;
-  var $th = $container.find(`tbody tr:eq(${displayedRowIndex}) th:eq(0)`);
+  const $container = spec().$container;
+  const $th = $container.find(`tbody tr:eq(${displayedRowIndex}) th:eq(0)`);
 
   $th.simulate('mouseover');
 
-  var $resizer = $container.find('.manualRowResizer');
-  var resizerPosition = $resizer.position();
+  const $resizer = $container.find('.manualRowResizer');
+  const resizerPosition = $resizer.position();
 
   $resizer.simulate('mousedown', {
     clientY: resizerPosition.top
   });
 
-  var delta = height - $th.height() - 2;
+  let delta = height - $th.height() - 2;
 
   if (delta < 0) {
     delta = 0;
@@ -615,14 +619,13 @@ export function resizeRow(displayedRowIndex, height) {
 }
 
 export function moveSecondDisplayedRowBeforeFirstRow(container, secondDisplayedRowIndex) {
-  var
-    $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first(),
-    $rowHeaders = container.find('tbody tr th'),
-    $firstRowHeader = $rowHeaders.eq(secondDisplayedRowIndex - 1),
-    $secondRowHeader = $rowHeaders.eq(secondDisplayedRowIndex);
+  const $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
+  const $rowHeaders = container.find('tbody tr th');
+  const $firstRowHeader = $rowHeaders.eq(secondDisplayedRowIndex - 1);
+  const $secondRowHeader = $rowHeaders.eq(secondDisplayedRowIndex);
 
   $secondRowHeader.simulate('mouseover');
-  var $manualRowMover = $mainContainer.find('.manualRowMover');
+  const $manualRowMover = $mainContainer.find('.manualRowMover');
 
   if ($manualRowMover.length) {
     $manualRowMover.simulate('mousedown', {
@@ -639,14 +642,13 @@ export function moveSecondDisplayedRowBeforeFirstRow(container, secondDisplayedR
 }
 
 export function moveFirstDisplayedRowAfterSecondRow(container, firstDisplayedRowIndex) {
-  var
-    $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first(),
-    $rowHeaders = container.find('tbody tr th'),
-    $firstRowHeader = $rowHeaders.eq(firstDisplayedRowIndex),
-    $secondRowHeader = $rowHeaders.eq(firstDisplayedRowIndex + 1);
+  const $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
+  const $rowHeaders = container.find('tbody tr th');
+  const $firstRowHeader = $rowHeaders.eq(firstDisplayedRowIndex);
+  const $secondRowHeader = $rowHeaders.eq(firstDisplayedRowIndex + 1);
 
   $secondRowHeader.simulate('mouseover');
-  var $manualRowMover = $mainContainer.find('.manualRowMover');
+  const $manualRowMover = $mainContainer.find('.manualRowMover');
 
   if ($manualRowMover.length) {
     $manualRowMover.simulate('mousedown', {
@@ -663,14 +665,14 @@ export function moveFirstDisplayedRowAfterSecondRow(container, firstDisplayedRow
 }
 
 export function swapDisplayedColumns(container, from, to) {
-  var $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
-  var $colHeaders = container.find('thead tr:eq(0) th');
-  var $to = $colHeaders.eq(to);
-  var $from = $colHeaders.eq(from);
+  const $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
+  const $colHeaders = container.find('thead tr:eq(0) th');
+  const $to = $colHeaders.eq(to);
+  const $from = $colHeaders.eq(from);
 
   // Enter the second column header
   $from.simulate('mouseover');
-  var $manualColumnMover = $mainContainer.find('.manualColumnMover');
+  const $manualColumnMover = $mainContainer.find('.manualColumnMover');
 
   // Grab the second column
   $manualColumnMover.simulate('mousedown', {
@@ -689,20 +691,17 @@ export function swapDisplayedColumns(container, from, to) {
 }
 
 export function triggerTouchEvent(type, target, pageX, pageY) {
-  var e = document.createEvent('TouchEvent');
-  var targetCoords = target.getBoundingClientRect();
-  var touches;
-  var targetTouches;
-  var changedTouches;
+  const e = document.createEvent('TouchEvent');
+  const targetCoords = target.getBoundingClientRect();
+  const targetPageX = pageX || parseInt(targetCoords.left + 3, 10);
+  const targetPageY = pageY || parseInt(targetCoords.top + 3, 10);
+  let touches;
+  let targetTouches;
+  let changedTouches;
 
-  if (!pageX && !pageY) {
-    pageX = parseInt(targetCoords.left + 3, 10);
-    pageY = parseInt(targetCoords.top + 3, 10);
-  }
+  const touch = document.createTouch(window, target, 0, targetPageX, targetPageY, targetPageX, targetPageY);
 
-  var touch = document.createTouch(window, target, 0, pageX, pageY, pageX, pageY);
-
-  if (type == 'touchend') {
+  if (type === 'touchend') {
     touches = document.createTouchList();
     targetTouches = document.createTouchList();
     changedTouches = document.createTouchList(touch);
@@ -714,4 +713,4 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
 
   e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false, touches, targetTouches, changedTouches, 1, 0);
   target.dispatchEvent(e);
-};
+}

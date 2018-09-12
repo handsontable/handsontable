@@ -1,8 +1,8 @@
-describe('NestedRows Data Manager', function() {
-  var id = 'testContainer';
+describe('NestedRows Data Manager', () => {
+  const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,16 +12,16 @@ describe('NestedRows Data Manager', function() {
     }
   });
 
-  describe('API', function() {
-    describe('getDataObject', function() {
-      it('should return the data source object corresponding to the provided visual row number', function() {
-        var hot = handsontable({
+  describe('API', () => {
+    describe('getDataObject', () => {
+      it('should return the data source object corresponding to the provided visual row number', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
-        var sourceData = hot.getSourceData();
+        const plugin = hot.getPlugin('nestedRows');
+        const sourceData = hot.getSourceData();
 
         expect(plugin.dataManager.getDataObject(-5)).not.toBeDefined();
         expect(plugin.dataManager.getDataObject(0)).toEqual(sourceData[0]);
@@ -33,15 +33,15 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('getRowIndex', function() {
-      it('should return a visual row index for the provided source data row object', function() {
-        var hot = handsontable({
+    describe('getRowIndex', () => {
+      it('should return a visual row index for the provided source data row object', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
-        var sourceData = hot.getSourceData();
+        const plugin = hot.getPlugin('nestedRows');
+        const sourceData = hot.getSourceData();
 
         expect(plugin.dataManager.getRowIndex(sourceData[0])).toEqual(0);
         expect(plugin.dataManager.getRowIndex(sourceData[0].__children[1])).toEqual(2);
@@ -52,14 +52,14 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('getRowIndexWithinParent', function() {
-      it('should return an index of the provided source data row object withing its parent', function() {
-        var hot = handsontable({
+    describe('getRowIndexWithinParent', () => {
+      it('should return an index of the provided source data row object withing its parent', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
+        const plugin = hot.getPlugin('nestedRows');
 
         expect(plugin.dataManager.getRowIndexWithinParent(-5)).toEqual(-1);
         expect(plugin.dataManager.getRowIndexWithinParent(0)).toEqual(0);
@@ -72,28 +72,28 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('countAllRows', function() {
-      it('should return a number of all row objects within the data set', function() {
-        var hot = handsontable({
+    describe('countAllRows', () => {
+      it('should return a number of all row objects within the data set', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
+        const plugin = hot.getPlugin('nestedRows');
 
         expect(plugin.dataManager.countAllRows()).toEqual(12);
 
       });
     });
 
-    describe('countChildren', function() {
-      it('should return a number of children (and children\'s children) of the row provided as an index', function() {
-        var hot = handsontable({
+    describe('countChildren', () => {
+      it('should return a number of children (and children\'s children) of the row provided as an index', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
+        const plugin = hot.getPlugin('nestedRows');
 
         expect(plugin.dataManager.countChildren(-5)).toEqual(0);
         expect(plugin.dataManager.countChildren(0)).toEqual(5);
@@ -105,14 +105,14 @@ describe('NestedRows Data Manager', function() {
 
       });
 
-      it('should return a number of children (and children\'s children) of the row provided as a row object from the data source', function() {
-        var hot = handsontable({
+      it('should return a number of children (and children\'s children) of the row provided as a row object from the data source', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
-        var sourceData = hot.getSourceData();
+        const plugin = hot.getPlugin('nestedRows');
+        const sourceData = hot.getSourceData();
 
         expect(plugin.dataManager.countChildren(sourceData[0])).toEqual(5);
         expect(plugin.dataManager.countChildren(sourceData[0].__children[1])).toEqual(2);
@@ -123,15 +123,15 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('getRowParent', function() {
-      it('should return a row object from the data source, being the parent node for the provided row index', function() {
-        var hot = handsontable({
+    describe('getRowParent', () => {
+      it('should return a row object from the data source, being the parent node for the provided row index', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
-        var sourceData = hot.getSourceData();
+        const plugin = hot.getPlugin('nestedRows');
+        const sourceData = hot.getSourceData();
 
         expect(plugin.dataManager.getRowParent(-5)).toEqual(null);
         expect(plugin.dataManager.getRowParent(0)).toEqual(null);
@@ -143,14 +143,14 @@ describe('NestedRows Data Manager', function() {
 
       });
 
-      it('should return a row object from the data source, being the parent node for the provided row object', function() {
-        var hot = handsontable({
+      it('should return a row object from the data source, being the parent node for the provided row object', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
-        var sourceData = hot.getSourceData();
+        const plugin = hot.getPlugin('nestedRows');
+        const sourceData = hot.getSourceData();
 
         expect(plugin.dataManager.getRowParent(sourceData[0])).toEqual(null);
         expect(plugin.dataManager.getRowParent(sourceData[0].__children[1])).toEqual(sourceData[0]);
@@ -161,14 +161,14 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('getRowLevel', function() {
-      it('should return the nesting level of the row, provided as an index', function() {
-        var hot = handsontable({
+    describe('getRowLevel', () => {
+      it('should return the nesting level of the row, provided as an index', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
+        const plugin = hot.getPlugin('nestedRows');
 
         expect(plugin.dataManager.getRowLevel(-5)).toEqual(null);
         expect(plugin.dataManager.getRowLevel(0)).toEqual(0);
@@ -180,14 +180,14 @@ describe('NestedRows Data Manager', function() {
 
       });
 
-      it('should return a row object from the data source, being the parent node for the provided row object', function() {
-        var hot = handsontable({
+      it('should return a row object from the data source, being the parent node for the provided row object', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
-        var sourceData = hot.getSourceData();
+        const plugin = hot.getPlugin('nestedRows');
+        const sourceData = hot.getSourceData();
 
         expect(plugin.dataManager.getRowLevel(sourceData[0])).toEqual(0);
         expect(plugin.dataManager.getRowLevel(sourceData[0].__children[1])).toEqual(1);
@@ -198,15 +198,14 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('hasChildren', function() {
-      it('should return whether the element at the provided row index has children', function() {
-        var hot = handsontable({
+    describe('hasChildren', () => {
+      it('should return whether the element at the provided row index has children', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
-        var sourceData = hot.getSourceData();
+        const plugin = hot.getPlugin('nestedRows');
 
         expect(plugin.dataManager.hasChildren(0)).toEqual(true);
         expect(plugin.dataManager.hasChildren(1)).toEqual(false);
@@ -223,16 +222,16 @@ describe('NestedRows Data Manager', function() {
       });
     });
 
-    describe('addChild', function() {
-      it('should add an empty child to the provided parent, when the second method arguments is not declared', function() {
-        var hot = handsontable({
+    describe('addChild', () => {
+      it('should add an empty child to the provided parent, when the second method arguments is not declared', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
-        var sourceData = hot.getSourceData();
-        var parentElement = sourceData[0].__children[1];
+        const plugin = hot.getPlugin('nestedRows');
+        const sourceData = hot.getSourceData();
+        const parentElement = sourceData[0].__children[1];
 
         expect(plugin.dataManager.countChildren(2)).toEqual(2);
 
@@ -246,16 +245,16 @@ describe('NestedRows Data Manager', function() {
         expect(parentElement.__children[1].a).toEqual(null);
       });
 
-      it('should add a provided row element as a child to the provided parent', function() {
-        var hot = handsontable({
+      it('should add a provided row element as a child to the provided parent', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
-        var sourceData = hot.getSourceData();
-        var parentElement = sourceData[0].__children[1];
-        var newElement = {
+        const plugin = hot.getPlugin('nestedRows');
+        const sourceData = hot.getSourceData();
+        const parentElement = sourceData[0].__children[1];
+        const newElement = {
           a: 'test-a',
           b: 'test-b'
         };
@@ -275,18 +274,18 @@ describe('NestedRows Data Manager', function() {
 
     });
 
-    describe('detachFromParent', function() {
-      it('should detach a child node from it\'s parent and re-attach it to the parent of it\'s parent', function() {
-        var hot = handsontable({
+    describe('detachFromParent', () => {
+      it('should detach a child node from it\'s parent and re-attach it to the parent of it\'s parent', () => {
+        const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true
         });
 
-        var plugin = hot.getPlugin('nestedRows');
-        var sourceData = hot.getSourceData();
-        var parentElement = sourceData[0].__children[1];
-        var grandparent = plugin.dataManager.getRowParent(parentElement) || sourceData;
-        var child = parentElement.__children[0];
+        const plugin = hot.getPlugin('nestedRows');
+        const sourceData = hot.getSourceData();
+        let parentElement = sourceData[0].__children[1];
+        let grandparent = plugin.dataManager.getRowParent(parentElement) || sourceData;
+        let child = parentElement.__children[0];
 
         expect(parentElement.__children.length).toEqual(1);
         expect(grandparent.__children ? grandparent.__children.length : sourceData.length).toEqual(3);

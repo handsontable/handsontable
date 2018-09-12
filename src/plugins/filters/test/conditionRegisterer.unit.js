@@ -1,7 +1,7 @@
-import {conditions, getCondition, getConditionDescriptor, registerCondition} from 'handsontable-pro/plugins/filters/conditionRegisterer';
+import { conditions, getCondition, getConditionDescriptor, registerCondition } from 'handsontable-pro/plugins/filters/conditionRegisterer';
 
-describe('registerCondition', function() {
-  it('should register condition function under its name', function() {
+describe('registerCondition', () => {
+  it('should register condition function under its name', () => {
     const conditionMock = function() {};
 
     expect(conditions.my_condition).not.toBeDefined();
@@ -11,7 +11,7 @@ describe('registerCondition', function() {
     expect(conditions.my_condition.condition).toBe(conditionMock);
   });
 
-  it('should overwrite condition under the same name', function() {
+  it('should overwrite condition under the same name', () => {
     const conditionMockOrg = function() {};
     const conditionMock = function() {};
 
@@ -23,7 +23,7 @@ describe('registerCondition', function() {
     expect(conditions.my_condition.condition).toBe(conditionMock);
   });
 
-  it('should register condition function with descriptor object', function() {
+  it('should register condition function with descriptor object', () => {
     const conditionMock = function() {};
 
     registerCondition('my_condition', conditionMock, {
@@ -36,13 +36,13 @@ describe('registerCondition', function() {
   });
 });
 
-describe('getCondition', function() {
-  afterEach(function () {
+describe('getCondition', () => {
+  afterEach(() => {
     conditions.my_condition = null;
   });
 
-  it('should return condition as a closure', function() {
-    const conditionMock = {condition: function() {}, descriptor: {}};
+  it('should return condition as a closure', () => {
+    const conditionMock = { condition() {}, descriptor: {} };
 
     conditions.my_condition = conditionMock;
 
@@ -51,21 +51,21 @@ describe('getCondition', function() {
     expect(condition instanceof Function).toBe(true);
   });
 
-  it('should throw exception if condition not exists', function() {
-    expect(function() {
+  it('should throw exception if condition not exists', () => {
+    expect(() => {
       getCondition('my_condition');
     }).toThrow();
   });
 
-  it('should return `true`', function() {
+  it('should return `true`', () => {
     const conditionMock = jasmine.createSpy();
     const dataRow = {
-      meta: {instance: {}},
+      meta: { instance: {} },
       value: 'foo',
     };
 
     conditionMock.and.returnValue(true);
-    conditions.my_condition = {condition: conditionMock, descriptor: {}};
+    conditions.my_condition = { condition: conditionMock, descriptor: {} };
 
     const condition = getCondition('my_condition', 'baz')(dataRow);
 
@@ -74,9 +74,9 @@ describe('getCondition', function() {
   });
 });
 
-describe('getConditionDescriptor', function() {
-  it('should return condition as a closure', function() {
-    conditions.my_condition = {condition: function() {}, descriptor: {foo: 'bar'}};
+describe('getConditionDescriptor', () => {
+  it('should return condition as a closure', () => {
+    conditions.my_condition = { condition() {}, descriptor: { foo: 'bar' } };
 
     const descriptor = getConditionDescriptor('my_condition');
 
@@ -84,8 +84,8 @@ describe('getConditionDescriptor', function() {
     expect(descriptor.condition).toBeUndefined();
   });
 
-  it('should throw exception if condition not exists', function() {
-    expect(function() {
+  it('should throw exception if condition not exists', () => {
+    expect(() => {
       getConditionDescriptor('my_condition_foo');
     }).toThrow();
   });

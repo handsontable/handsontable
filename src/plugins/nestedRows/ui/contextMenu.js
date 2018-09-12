@@ -1,5 +1,5 @@
-import {rangeEach} from 'handsontable/helpers/number';
-import {arrayEach} from 'handsontable/helpers/array';
+import { rangeEach } from 'handsontable/helpers/number';
+import { arrayEach } from 'handsontable/helpers/array';
 import * as C from 'handsontable/i18n/constants';
 import BaseUI from './_base';
 
@@ -62,15 +62,12 @@ class ContextMenuUI extends BaseUI {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD);
         },
         callback: () => {
-          const translatedRowIndex = this.dataManager.translateTrimmedRow(this.hot.getSelectedLast()[0]);
-          const element = this.dataManager.getDataObject(translatedRowIndex);
-
           this.dataManager.detachFromParent(this.hot.getSelectedLast());
         },
         disabled: () => {
           const selected = this.hot.getSelectedLast();
           const translatedRowIndex = this.dataManager.translateTrimmedRow(selected[0]);
-          let parent = this.dataManager.getRowParent(translatedRowIndex);
+          const parent = this.dataManager.getRowParent(translatedRowIndex);
 
           return !parent || !selected || selected[0] < 0 || this.hot.selection.isSelectedByColumnHeader() || this.hot.countRows() >= this.hot.getSettings().maxRows;
         }
@@ -90,9 +87,7 @@ class ContextMenuUI extends BaseUI {
       }
     });
 
-    defaultOptions = this.modifyRowInsertingOptions(defaultOptions);
-
-    return defaultOptions;
+    return this.modifyRowInsertingOptions(defaultOptions);
   }
 
   /**
@@ -103,12 +98,13 @@ class ContextMenuUI extends BaseUI {
    * @returns {*}
    */
   modifyRowInsertingOptions(defaultOptions) {
-    let priv = privatePool.get(this);
+    const priv = privatePool.get(this);
 
     rangeEach(0, defaultOptions.items.length - 1, (i) => {
+      const option = priv[defaultOptions.items[i].key];
 
-      if (priv[defaultOptions.items[i].key] != null) {
-        defaultOptions.items[i].callback = priv[defaultOptions.items[i].key];
+      if (option !== null && option !== void 0) {
+        defaultOptions.items[i].callback = option;
       }
     });
 

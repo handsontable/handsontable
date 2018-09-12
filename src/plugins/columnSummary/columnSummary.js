@@ -1,7 +1,6 @@
 import BasePlugin from 'handsontable/plugins/_base.js';
-import {deepClone, objectEach, hasOwnProperty} from 'handsontable/helpers/object';
-import {arrayEach} from 'handsontable/helpers/array';
-import {registerPlugin, getPlugin} from 'handsontable/plugins.js';
+import { objectEach } from 'handsontable/helpers/object';
+import { registerPlugin } from 'handsontable/plugins.js';
 import Endpoints from './endpoints';
 
 /**
@@ -11,7 +10,7 @@ import Endpoints from './endpoints';
  * @description
  * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
  * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
- *
+ *s
  * @example
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -140,11 +139,9 @@ class ColumnSummary extends BasePlugin {
   calculateSum(endpoint) {
     let sum = 0;
 
-    for (let r in endpoint.ranges) {
-      if (hasOwnProperty(endpoint.ranges, r)) {
-        sum += this.getPartialSum(endpoint.ranges[r], endpoint.sourceColumn);
-      }
-    }
+    objectEach(endpoint.ranges, (range) => {
+      sum += this.getPartialSum(range, endpoint.sourceColumn);
+    });
 
     return sum;
   }
@@ -165,17 +162,17 @@ class ColumnSummary extends BasePlugin {
 
     do {
       cellValue = this.getCellValue(i, col) || 0;
-      let decimalPlaces = (((cellValue + '').split('.')[1] || []).length) || 1;
+      const decimalPlaces = (((`${cellValue}`).split('.')[1] || []).length) || 1;
       if (decimalPlaces > biggestDecimalPlacesCount) {
         biggestDecimalPlacesCount = decimalPlaces;
       }
 
       sum += cellValue || 0;
-      i--;
+      i -= 1;
     } while (i >= rowRange[0]);
 
     // Workaround for e.g. 802.2 + 1.1 = 803.3000000000001
-    return Math.round(sum * Math.pow(10, biggestDecimalPlacesCount)) / Math.pow(10, biggestDecimalPlacesCount);
+    return Math.round(sum * (10 ** biggestDecimalPlacesCount)) / (10 ** biggestDecimalPlacesCount);
   }
 
   /**
@@ -189,29 +186,26 @@ class ColumnSummary extends BasePlugin {
   calculateMinMax(endpoint, type) {
     let result = null;
 
-    for (let r in endpoint.ranges) {
-      if (hasOwnProperty(endpoint.ranges, r)) {
-        let partialResult = this.getPartialMinMax(endpoint.ranges[r], endpoint.sourceColumn, type);
+    objectEach(endpoint.ranges, (range) => {
+      const partialResult = this.getPartialMinMax(range, endpoint.sourceColumn, type);
 
-        if (result === null && partialResult !== null) {
-          result = partialResult;
-        }
+      if (result === null && partialResult !== null) {
+        result = partialResult;
+      }
 
-        if (partialResult !== null) {
-          switch (type) {
-            case 'min':
-              result = Math.min(result, partialResult);
-              break;
-            case 'max':
-              result = Math.max(result, partialResult);
-              break;
-            default:
-              break;
-          }
-
+      if (partialResult !== null) {
+        switch (type) {
+          case 'min':
+            result = Math.min(result, partialResult);
+            break;
+          case 'max':
+            result = Math.max(result, partialResult);
+            break;
+          default:
+            break;
         }
       }
-    }
+    });
 
     return result === null ? 'Not enough data' : result;
   }
@@ -249,7 +243,7 @@ class ColumnSummary extends BasePlugin {
 
       }
 
-      i--;
+      i -= 1;
     } while (i >= rowRange[0]);
 
     return result;
@@ -272,10 +266,10 @@ class ColumnSummary extends BasePlugin {
       cellValue = this.getCellValue(i, col);
 
       if (!cellValue) {
-        counter++;
+        counter += 1;
       }
 
-      i--;
+      i -= 1;
     } while (i >= rowRange[0]);
 
     return counter;
@@ -290,17 +284,15 @@ class ColumnSummary extends BasePlugin {
    */
   countEntries(endpoint) {
     let result = 0;
-    let ranges = endpoint.ranges;
+    const ranges = endpoint.ranges;
 
-    for (let r in ranges) {
-      if (hasOwnProperty(ranges, r)) {
-        let partial = ranges[r][1] === void 0 ? 1 : ranges[r][1] - ranges[r][0] + 1;
-        let emptyCount = this.countEmpty(ranges[r], endpoint.sourceColumn);
+    objectEach(ranges, (range) => {
+      const partial = range[1] === void 0 ? 1 : range[1] - range[0] + 1;
+      const emptyCount = this.countEmpty(range, endpoint.sourceColumn);
 
-        result += partial;
-        result -= emptyCount;
-      }
-    }
+      result += partial;
+      result -= emptyCount;
+    });
 
     return result;
   }
@@ -313,8 +305,8 @@ class ColumnSummary extends BasePlugin {
    * @returns {Number} Avarage value.
    */
   calculateAverage(endpoint) {
-    let sum = this.calculateSum(endpoint);
-    let entriesCount = this.countEntries(endpoint);
+    const sum = this.calculateSum(endpoint);
+    const entriesCount = this.countEntries(endpoint);
 
     return sum / entriesCount;
   }
@@ -328,11 +320,11 @@ class ColumnSummary extends BasePlugin {
    * @returns {String} The cell value.
    */
   getCellValue(row, col) {
-    let visualRowIndex = this.endpoints.getVisualRowIndex(row);
-    let visualColumnIndex = this.endpoints.getVisualColumnIndex(col);
+    const visualRowIndex = this.endpoints.getVisualRowIndex(row);
+    const visualColumnIndex = this.endpoints.getVisualColumnIndex(col);
 
     let cellValue = this.hot.getSourceDataAtCell(row, col);
-    let cellClassName = this.hot.getCellMeta(visualRowIndex, visualColumnIndex).className || '';
+    const cellClassName = this.hot.getCellMeta(visualRowIndex, visualColumnIndex).className || '';
 
     if (cellClassName.indexOf('columnSummaryResult') > -1) {
       return null;
@@ -383,9 +375,8 @@ class ColumnSummary extends BasePlugin {
    *
    * @private
    * @param {Array} rows Array of logical rows to be moved.
-   * @param {Number} target Index of the destination row.
    */
-  onBeforeRowMove(rows, target) {
+  onBeforeRowMove(rows) {
     this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);
   }
 

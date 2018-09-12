@@ -1,7 +1,7 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/byValue';
-import {dateRowFactory} from './../helpers/utils';
+import { condition } from 'handsontable-pro/plugins/filters/condition/byValue';
+import { dateRowFactory } from './../helpers/utils';
 
-describe('Filters condition (`by_value`)', function() {
+describe('Filters condition (`by_value`)', () => {
 
   function assertion(items) {
     return function(value) {
@@ -9,8 +9,8 @@ describe('Filters condition (`by_value`)', function() {
     };
   }
 
-  it('should filter matching values', function() {
-    var data = dateRowFactory();
+  it('should filter matching values', () => {
+    const data = dateRowFactory();
 
     expect(condition(data(4), [assertion([4])])).toBe(true);
     expect(condition(data(4), [assertion([4, 4])])).toBe(true);
@@ -24,8 +24,8 @@ describe('Filters condition (`by_value`)', function() {
     expect(condition(data(void 0), [assertion([-9, void 0, -1])])).toBe(true);
   });
 
-  it('should filter not matching values', function() {
-    var data = dateRowFactory();
+  it('should filter not matching values', () => {
+    const data = dateRowFactory();
 
     expect(condition(data(null), [assertion([-9, '', -1])])).toBe(false);
     expect(condition(data(void 0), [assertion([-9, '', -1])])).toBe(false);

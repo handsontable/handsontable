@@ -1,10 +1,10 @@
-import {arrayEach, arrayMap, arrayFilter} from 'handsontable/helpers/array';
-import {objectEach, mixin} from 'handsontable/helpers/object';
-import {toSingleLine} from 'handsontable/helpers/templateLiteralTag';
+import { arrayEach, arrayMap, arrayFilter } from 'handsontable/helpers/array';
+import { objectEach, mixin } from 'handsontable/helpers/object';
+import { toSingleLine } from 'handsontable/helpers/templateLiteralTag';
 import localHooks from 'handsontable/mixins/localHooks';
-import {getCondition} from './conditionRegisterer';
-import {OPERATION_ID as OPERATION_AND} from './logicalOperations/conjunction';
-import {operations, getOperationFunc} from './logicalOperationRegisterer';
+import { getCondition } from './conditionRegisterer';
+import { OPERATION_ID as OPERATION_AND } from './logicalOperations/conjunction';
+import { operations, getOperationFunc } from './logicalOperationRegisterer';
 
 /**
  * @class ConditionCollection
@@ -102,8 +102,8 @@ class ConditionCollection {
    * @fires ConditionCollection#afterAdd
    */
   addCondition(column, conditionDefinition, operation = OPERATION_AND) {
-    let args = arrayMap(conditionDefinition.args, (v) => (typeof v === 'string' ? v.toLowerCase() : v));
-    let name = conditionDefinition.name || conditionDefinition.command.key;
+    const args = arrayMap(conditionDefinition.args, v => (typeof v === 'string' ? v.toLowerCase() : v));
+    const name = conditionDefinition.name || conditionDefinition.command.key;
 
     this.runLocalHooks('beforeAdd', column);
 
@@ -123,7 +123,7 @@ class ConditionCollection {
 
     } else {
       if (!this.conditions[operation]) {
-        throw new Error('Unexpected operation named `' + operation + '`. Possible ones are `disjunction` and `conjunction`.');
+        throw new Error(`Unexpected operation named \`${operation}\`. Possible ones are \`disjunction\` and \`conjunction\`.`);
       }
 
       this.columnTypes[column] = operation;
@@ -165,10 +165,10 @@ class ConditionCollection {
    * @returns {Array}
    */
   exportAllConditions() {
-    let result = [];
+    const result = [];
 
     arrayEach(this.orderStack, (column) => {
-      const conditions = arrayMap(this.getConditions(column), ({name, args} = condition) => ({name, args}));
+      const conditions = arrayMap(this.getConditions(column), ({ name, args }) => ({ name, args }));
       const operation = this.columnTypes[column];
 
       result.push({
@@ -190,7 +190,7 @@ class ConditionCollection {
     arrayEach(conditions, (stack) => {
       this.orderStack.push(stack.column);
 
-      arrayEach(stack.conditions, (condition) => this.addCondition(stack.column, condition));
+      arrayEach(stack.conditions, condition => this.addCondition(stack.column, condition));
     });
   }
 
@@ -241,10 +241,10 @@ class ConditionCollection {
       return false;
     }
 
-    let conditions = this.getConditions(column);
+    const conditions = this.getConditions(column);
 
     if (name) {
-      result = arrayFilter(conditions, (condition) => condition.name === name).length > 0;
+      result = arrayFilter(conditions, condition => condition.name === name).length > 0;
     } else {
       result = conditions.length > 0;
     }

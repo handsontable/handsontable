@@ -1,8 +1,8 @@
-import {isFormulaExpression, isFormulaExpressionEscaped, unescapeFormulaExpression, toUpperCaseFormula} from 'handsontable-pro/plugins/formulas/utils';
+import { isFormulaExpression, isFormulaExpressionEscaped, unescapeFormulaExpression, toUpperCaseFormula } from 'handsontable-pro/plugins/formulas/utils';
 
-describe('Formulas utils', function() {
-  describe('isFormulaExpression', function() {
-    it('should correctly detect formula expression', function() {
+describe('Formulas utils', () => {
+  describe('isFormulaExpression', () => {
+    it('should correctly detect formula expression', () => {
       expect(isFormulaExpression()).toBe(false);
       expect(isFormulaExpression('')).toBe(false);
       expect(isFormulaExpression('=')).toBe(false);
@@ -16,15 +16,15 @@ describe('Formulas utils', function() {
     });
   });
 
-  describe('toUpperCaseFormula', function() {
-    it('should correctly upper case formula expression', function() {
-      expect(function() {
+  describe('toUpperCaseFormula', () => {
+    it('should correctly upper case formula expression', () => {
+      expect(() => {
         toUpperCaseFormula();
       }).toThrow();
-      expect(function() {
+      expect(() => {
         toUpperCaseFormula(null);
       }).toThrow();
-      expect(function() {
+      expect(() => {
         toUpperCaseFormula(12345);
       }).toThrow();
       expect(toUpperCaseFormula('12345')).toBe('12345');
@@ -40,8 +40,8 @@ describe('Formulas utils', function() {
     });
   });
 
-  describe('isFormulaExpressionEscaped', function() {
-    it('should correctly detect escaped formula expressions', function() {
+  describe('isFormulaExpressionEscaped', () => {
+    it('should correctly detect escaped formula expressions', () => {
       expect(isFormulaExpressionEscaped('12345')).toBe(false);
       expect(isFormulaExpressionEscaped('=12345')).toBe(false);
       expect(isFormulaExpressionEscaped('\'=12345')).toBe(true);
@@ -51,8 +51,8 @@ describe('Formulas utils', function() {
     });
   });
 
-  describe('unescapeFormulaExpression', function() {
-    it('should correctly detect escaped formula expressions', function() {
+  describe('unescapeFormulaExpression', () => {
+    it('should correctly detect escaped formula expressions', () => {
       expect(unescapeFormulaExpression('12345')).toBe('12345');
       expect(unescapeFormulaExpression('=12345')).toBe('=12345');
       expect(unescapeFormulaExpression('\'=12345')).toBe('=12345');

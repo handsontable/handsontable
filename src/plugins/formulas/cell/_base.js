@@ -1,5 +1,5 @@
-import {isObject} from 'handsontable/helpers/object';
-import {toLabel} from 'hot-formula-parser';
+import { isObject } from 'handsontable/helpers/object';
+import { toLabel } from 'hot-formula-parser';
 
 /**
  * @class BaseCell
@@ -19,21 +19,21 @@ class BaseCell {
 
     // TODO: Change syntax to es6 after upgrade tests to newer version of phantom and jasmine.
     Object.defineProperty(this, 'row', {
-      get: function() {
+      get() {
         return this.rowOffset + this._row;
       },
-      set: function(row) {
-        this._row = row;
+      set(rowIndex) {
+        this._row = rowIndex;
       },
       enumerable: true,
       configurable: true
     });
     Object.defineProperty(this, 'column', {
-      get: function() {
+      get() {
         return this.columnOffset + this._column;
       },
-      set: function(column) {
-        this._column = column;
+      set(columnIndex) {
+        this._column = columnIndex;
       },
       enumerable: true,
       configurable: true
@@ -68,8 +68,8 @@ class BaseCell {
    */
   toString() {
     return toLabel(
-      {index: this.row, isAbsolute: this.rowAbsolute},
-      {index: this.column, isAbsolute: this.columnAbsolute}
+      { index: this.row, isAbsolute: this.rowAbsolute },
+      { index: this.column, isAbsolute: this.columnAbsolute }
     );
   }
 }

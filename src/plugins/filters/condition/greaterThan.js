@@ -1,14 +1,16 @@
 import * as C from 'handsontable/i18n/constants';
-import {registerCondition} from './../conditionRegisterer';
+import { registerCondition } from './../conditionRegisterer';
 
 export const CONDITION_NAME = 'gt';
 
-export function condition(dataRow, [value] = inputValues) {
+export function condition(dataRow, [value]) {
+  let conditionValue = value;
+
   if (dataRow.meta.type === 'numeric') {
-    value = parseFloat(value, 10);
+    conditionValue = parseFloat(conditionValue, 10);
   }
 
-  return dataRow.value > value;
+  return dataRow.value > conditionValue;
 }
 
 registerCondition(CONDITION_NAME, condition, {

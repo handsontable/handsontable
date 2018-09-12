@@ -1,13 +1,13 @@
-describe('ColumnSummarySpec', function() {
-  var id = 'testContainer';
-  var columnSummaryFunction = function() {
+describe('ColumnSummarySpec', () => {
+  const id = 'testContainer';
+  const columnSummaryFunction = function() {
     // We're assuming there are two levels, and the upper level has the summary results, while its children contain the calculation data.
-    var endpoints = [];
-    var nestedRowsPlugin = this.hot.getPlugin('nestedRows');
-    var getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(nestedRowsPlugin.dataManager);
-    var nestedRowsCache = null;
-    var tempEndpoint = null;
-    var resultColumn = 1;
+    const endpoints = [];
+    const nestedRowsPlugin = this.hot.getPlugin('nestedRows');
+    const getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(nestedRowsPlugin.dataManager);
+    let nestedRowsCache = null;
+    let tempEndpoint = null;
+    const resultColumn = 1;
 
     if (nestedRowsPlugin.isEnabled()) {
       nestedRowsCache = this.hot.getPlugin('nestedRows').dataManager.cache;
@@ -15,7 +15,7 @@ describe('ColumnSummarySpec', function() {
       return;
     }
 
-    for (var i = 0; i < nestedRowsCache.levels[0].length; i++) {
+    for (let i = 0; i < nestedRowsCache.levels[0].length; i++) {
       tempEndpoint = {};
 
       if (!nestedRowsCache.levels[0][i].__children || nestedRowsCache.levels[0][i].__children.length === 0) {
@@ -38,12 +38,11 @@ describe('ColumnSummarySpec', function() {
       tempEndpoint = null;
     }
 
-
     return endpoints;
   };
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -53,13 +52,10 @@ describe('ColumnSummarySpec', function() {
     }
   });
 
-  describe('parseSettings', function() {
-    it('should parse the settings from the Handsontable instance', function() {
-      var customFunction = function() {
-        var hi = null;
-      };
-
-      var hot = handsontable({
+  describe('parseSettings', () => {
+    it('should parse the settings from the Handsontable instance', () => {
+      const customFunction = function() {};
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(15, 15),
         height: 200,
         width: 200,
@@ -73,7 +69,7 @@ describe('ColumnSummarySpec', function() {
               [0, 4], [6], [8, 9]
             ],
             type: 'custom',
-            customFunction: customFunction,
+            customFunction,
             forceNumeric: true,
             suppressDataTypeErrors: true,
             readOnly: true
@@ -90,8 +86,8 @@ describe('ColumnSummarySpec', function() {
         ]
       });
 
-      var plugin = hot.getPlugin('ColumnSummary');
-      var endpoints = [
+      const plugin = hot.getPlugin('ColumnSummary');
+      const endpoints = [
         plugin.endpoints.getEndpoint(0),
         plugin.endpoints.getEndpoint(1)
       ];
@@ -119,9 +115,9 @@ describe('ColumnSummarySpec', function() {
     });
   });
 
-  describe('calculateSum', function () {
-    it('should calculate sum  of values from the provided range', function () {
-      var hot = handsontable({
+  describe('calculateSum', () => {
+    it('should calculate sum  of values from the provided range', () => {
+      handsontable({
         data: createNumericData(15, 15),
         height: 200,
         width: 200,
@@ -142,9 +138,9 @@ describe('ColumnSummarySpec', function() {
     });
   });
 
-  describe('calculateMinMax', function () {
-    it('should calculate the minimum from the provided range', function () {
-      var hot = handsontable({
+  describe('calculateMinMax', () => {
+    it('should calculate the minimum from the provided range', () => {
+      handsontable({
         data: createNumericData(15, 15),
         height: 200,
         width: 200,
@@ -164,8 +160,8 @@ describe('ColumnSummarySpec', function() {
       expect(getDataAtCell(14, 0)).toEqual(6);
     });
 
-    it('should calculate the minimum from the provided range', function () {
-      var hot = handsontable({
+    it('should calculate the minimum from the provided range', () => {
+      handsontable({
         data: createNumericData(15, 15),
         height: 200,
         width: 200,
@@ -187,9 +183,9 @@ describe('ColumnSummarySpec', function() {
 
   });
 
-  describe('countEntries', function () {
-    it('should count non-empty entries from the provided range', function () {
-      var hot = handsontable({
+  describe('countEntries', () => {
+    it('should count non-empty entries from the provided range', () => {
+      handsontable({
         data: createNumericData(15, 15),
         height: 200,
         width: 200,
@@ -210,9 +206,9 @@ describe('ColumnSummarySpec', function() {
     });
   });
 
-  describe('calculateAverage', function () {
-    it('should get average value from entries in the provided range', function () {
-      var hot = handsontable({
+  describe('calculateAverage', () => {
+    it('should get average value from entries in the provided range', () => {
+      handsontable({
         data: createNumericData(15, 15),
         height: 200,
         width: 200,
@@ -233,9 +229,9 @@ describe('ColumnSummarySpec', function() {
     });
   });
 
-  describe('customFunction', function () {
-    it('should apply a custom function to the entries in the provided range', function () {
-      var hot = handsontable({
+  describe('customFunction', () => {
+    it('should apply a custom function to the entries in the provided range', () => {
+      handsontable({
         data: createNumericData(15, 15),
         height: 200,
         width: 200,
@@ -249,38 +245,36 @@ describe('ColumnSummarySpec', function() {
               [0, 13]
             ],
             type: 'custom',
-            customFunction: function(endpoint) {
-              var hotInstance = this.hot;
-              var counter = 0;
+            customFunction(endpoint) {
+              const hotInstance = this.hot;
 
               // helper function
               function checkRange(rowRange) {
-                var i = rowRange[1] || rowRange[0];
-                var counter = 0;
+                let i = rowRange[1] || rowRange[0];
+                let counter = 0;
 
                 do {
 
                   if (hotInstance.getCellMeta(i, endpoint.sourceColumn).extraProperty === true) {
-                    counter++;
+                    counter += 1;
                   }
 
-                  i--;
+                  i -= 1;
                 } while (i >= rowRange[0]);
                 return counter;
               }
 
+              let counter = 0;
               // go through all declared ranges
-              for (var r in endpoint.ranges) {
-                if (Object.prototype.hasOwnProperty.call(endpoint.ranges, r)) {
-                  counter += checkRange(endpoint.ranges[r]);
-                }
-              }
+              Handsontable.helper.objectEach(endpoint.ranges, (range) => {
+                counter += checkRange(range);
+              });
 
               return counter;
             }
           }
         ],
-        afterInit: function() {
+        afterInit() {
           // set the extra property to certain cells
           this.setCellMeta(4, 4, 'extraProperty', true);
           this.setCellMeta(6, 4, 'extraProperty', true);
@@ -298,9 +292,9 @@ describe('ColumnSummarySpec', function() {
     });
   });
 
-  describe('complex setups', function() {
-    it('should properly calculate values when many endpoints are declared', function() {
-      var hot = handsontable({
+  describe('complex setups', () => {
+    it('should properly calculate values when many endpoints are declared', () => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -344,13 +338,13 @@ describe('ColumnSummarySpec', function() {
       expect(getDataAtCell(0, 1)).toEqual(820);
     });
 
-    it('should accept endpoints configuration provided as a function', function() {
-      var hot = handsontable({
+    it('should accept endpoints configuration provided as a function', () => {
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
-        columnSummary: function() {
-          var config = [];
+        columnSummary() {
+          const config = [];
 
           config.push({
             destinationColumn: 1,
@@ -362,7 +356,7 @@ describe('ColumnSummarySpec', function() {
         }
       });
 
-      var plugin = hot.getPlugin('columnSummary');
+      const plugin = hot.getPlugin('columnSummary');
       expect(plugin.endpoints.getEndpoint(0).destinationRow).toEqual(parseInt(hot.countRows() / 2, 10));
       expect(hot.getDataAtCell(parseInt(hot.countRows() / 2, 10), 1)).toEqual(820);
 
@@ -373,9 +367,9 @@ describe('ColumnSummarySpec', function() {
     });
   });
 
-  describe('structure alteration', function() {
-    it('should shift the endpoint coordinates when a new row was added above an endpoint', function() {
-      var hot = handsontable({
+  describe('structure alteration', () => {
+    it('should shift the endpoint coordinates when a new row was added above an endpoint', () => {
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -399,8 +393,8 @@ describe('ColumnSummarySpec', function() {
       expect(getCellMeta(1, 0).readOnly).toEqual(true);
     });
 
-    it('should shift the endpoint coordinates when a new column was added on the left of an endpoint', function() {
-      var hot = handsontable({
+    it('should shift the endpoint coordinates when a new column was added on the left of an endpoint', () => {
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -424,8 +418,8 @@ describe('ColumnSummarySpec', function() {
       expect(getCellMeta(0, 1).readOnly).toEqual(true);
     });
 
-    it('should shift the endpoint coordinates when a row was removed above an endpoint', function() {
-      var hot = handsontable({
+    it('should shift the endpoint coordinates when a row was removed above an endpoint', () => {
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 520,
         rowHeaders: true,
@@ -450,8 +444,8 @@ describe('ColumnSummarySpec', function() {
       expect(getCellMeta(13, 0).readOnly).toEqual(true);
     });
 
-    it('should shift the endpoint coordinates when a column was removed on the left of an endpoint', function() {
-      var hot = handsontable({
+    it('should shift the endpoint coordinates when a column was removed on the left of an endpoint', () => {
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -475,8 +469,8 @@ describe('ColumnSummarySpec', function() {
       expect(getCellMeta(0, 2).readOnly).toEqual(true);
     });
 
-    it('should modify the calculation row range when a row was moved outside the range', function() {
-      var hot = handsontable({
+    it('should modify the calculation row range when a row was moved outside the range', () => {
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -497,8 +491,8 @@ describe('ColumnSummarySpec', function() {
       expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,2],[4,6]]');
     });
 
-    it('should modify the calculation row range when a row was moved into the range', function() {
-      var hot = handsontable({
+    it('should modify the calculation row range when a row was moved into the range', () => {
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -520,7 +514,7 @@ describe('ColumnSummarySpec', function() {
     });
 
     it('should shift the visual calculation result position when a row was moved outside the endpoint range', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -550,7 +544,7 @@ describe('ColumnSummarySpec', function() {
     });
 
     it('should shift the visual calculation result position when a row was moved inside the endpoint range', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -580,10 +574,10 @@ describe('ColumnSummarySpec', function() {
     });
   });
 
-  describe('compatibility with other plugins', function() {
-    describe('nestedRows', function() {
-      it('should work properly with the nestedRows plugin', function(done) {
-        var hot = handsontable({
+  describe('compatibility with other plugins', () => {
+    describe('nestedRows', () => {
+      it('should work properly with the nestedRows plugin', (done) => {
+        const hot = handsontable({
           data: getDataForColumnSummary(),
           height: 200,
           width: 200,
@@ -592,9 +586,9 @@ describe('ColumnSummarySpec', function() {
           columnSummary: columnSummaryFunction
         });
 
-        var nestedRowsPlugin = hot.getPlugin('nestedRows');
+        const nestedRowsPlugin = hot.getPlugin('nestedRows');
         function toggle(row) {
-          var rowIndex = parseInt(row, 10);
+          const rowIndex = parseInt(row, 10);
           if (isNaN(rowIndex)) {
             return false;
           }
@@ -608,7 +602,7 @@ describe('ColumnSummarySpec', function() {
           }
         }
 
-        setTimeout(function() {
+        setTimeout(() => {
           toggle(0);
 
           expect(getDataAtCell(0, 1)).toEqual(106);
@@ -625,7 +619,7 @@ describe('ColumnSummarySpec', function() {
     });
 
     it('should calculate the endpoints properly after moving rows between groups', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         data: getDataForColumnSummary(),
         height: 200,
         width: 200,
@@ -633,8 +627,6 @@ describe('ColumnSummarySpec', function() {
         nestedRows: true,
         columnSummary: columnSummaryFunction
       });
-
-      var nestedRowsPlugin = hot.getPlugin('nestedRows');
 
       expect(hot.getDataAtCell(0, 1)).toEqual(106);
       expect(hot.getDataAtCell(4, 1)).toEqual(3996);
@@ -649,21 +641,21 @@ describe('ColumnSummarySpec', function() {
       expect(this.$container.find('.htDimmed').size()).toEqual(3);
     });
   });
-  describe('maxRows options set', function() {
-    it('should apply summary operation only on rows which are < maxRows', function() {
-      var rows = 9;
-      var columns = 5;
+  describe('maxRows options set', () => {
+    it('should apply summary operation only on rows which are < maxRows', () => {
+      const rows = 9;
+      const columns = 5;
 
-      var summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
+      const summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
 
       handsontable({
         data: createNumericData(rows, columns),
         rowHeaders: true,
         colHeaders: summaryTypes,
         maxRows: 5,
-        columnSummary: function() {
-          var configArray = [];
-          for (var i = 0; i < columns; i++) {
+        columnSummary() {
+          const configArray = [];
+          for (let i = 0; i < columns; i++) {
             configArray.push({
               sourceColumn: i,
               destinationRow: 0,

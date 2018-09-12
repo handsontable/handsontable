@@ -1,5 +1,5 @@
-import {fastInnerHTML} from 'handsontable/helpers/dom/element';
-import {clone} from 'handsontable/helpers/object';
+import { fastInnerHTML } from 'handsontable/helpers/dom/element';
+import { clone } from 'handsontable/helpers/object';
 
 class GhostTable {
   constructor(plugin) {
@@ -34,8 +34,8 @@ class GhostTable {
     this.buildGhostTable(this.container);
     this.nestedHeaders.hot.rootElement.appendChild(this.container);
 
-    let columns = this.container.querySelectorAll('tr:last-of-type th');
-    let maxColumns = columns.length;
+    const columns = this.container.querySelectorAll('tr:last-of-type th');
+    const maxColumns = columns.length;
 
     for (let i = 0; i < maxColumns; i++) {
       this.widthsCache.push(columns[i].offsetWidth);
@@ -54,23 +54,23 @@ class GhostTable {
    * @param {HTMLElement} container
    */
   buildGhostTable(container) {
-    let d = document;
-    let fragment = d.createDocumentFragment();
-    let table = d.createElement('table');
+    const d = document;
+    const fragment = d.createDocumentFragment();
+    const table = d.createElement('table');
     let lastRowColspan = false;
-    let isDropdownEnabled = !!this.nestedHeaders.hot.getSettings().dropdownMenu;
-    let maxRows = this.nestedHeaders.colspanArray.length;
-    let maxCols = this.nestedHeaders.hot.countCols();
-    let lastRowIndex = maxRows - 1;
+    const isDropdownEnabled = !!this.nestedHeaders.hot.getSettings().dropdownMenu;
+    const maxRows = this.nestedHeaders.colspanArray.length;
+    const maxCols = this.nestedHeaders.hot.countCols();
+    const lastRowIndex = maxRows - 1;
 
     for (let row = 0; row < maxRows; row++) {
-      let tr = d.createElement('tr');
+      const tr = d.createElement('tr');
 
       lastRowColspan = false;
 
       for (let col = 0; col < maxCols; col++) {
-        let td = d.createElement('th');
-        let headerObj = clone(this.nestedHeaders.colspanArray[row][col]);
+        const td = d.createElement('th');
+        const headerObj = clone(this.nestedHeaders.colspanArray[row][col]);
 
         if (headerObj && !headerObj.hidden) {
           if (row === lastRowIndex) {
@@ -94,10 +94,10 @@ class GhostTable {
     // We have to be sure the last row contains only the single columns.
     if (lastRowColspan) {
       {
-        let tr = d.createElement('tr');
+        const tr = d.createElement('tr');
 
         for (let col = 0; col < maxCols; col++) {
-          let td = d.createElement('th');
+          const td = d.createElement('th');
           tr.appendChild(td);
         }
 

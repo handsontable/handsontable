@@ -1,20 +1,20 @@
-describe('BindRowsWithHeaders', function() {
-  var id = 'testContainer';
+describe('BindRowsWithHeaders', () => {
+  const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should call rowHeader function with correct index as argument (strict mode)', function() {
-    var callback = jasmine.createSpy();
-    var hot = handsontable({
+  it('should call rowHeader function with correct index as argument (strict mode)', () => {
+    const callback = jasmine.createSpy();
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 10),
       rowHeaders: callback,
       bindRowsWithHeaders: 'strict',
@@ -42,8 +42,8 @@ describe('BindRowsWithHeaders', function() {
     expect(callback.calls.argsFor(16)).toEqual([4]);
   });
 
-  it('should correct bind rows with headers after re-load data calling loadData method (strict mode)', async () => {
-    var hot = handsontable({
+  it('should correct bind rows with headers after re-load data calling loadData method (strict mode)', async() => {
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       rowHeaders: true,
       bindRowsWithHeaders: 'strict',
@@ -59,8 +59,8 @@ describe('BindRowsWithHeaders', function() {
     expect(getRowHeader()).toEqual([1, 2, 3, 4, 5]);
   });
 
-  it('should correct bind rows with headers when row was removed (strict mode)', function() {
-    var hot = handsontable({
+  it('should correct bind rows with headers when row was removed (strict mode)', () => {
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       rowHeaders: true,
       bindRowsWithHeaders: 'strict',
@@ -73,8 +73,8 @@ describe('BindRowsWithHeaders', function() {
     expect(getRowHeader()).toEqual([1, 6, 7, 8, 9, 10]);
   });
 
-  it('should correct bind rows with headers when row was inserted (strict mode)', function() {
-    var hot = handsontable({
+  it('should correct bind rows with headers when row was inserted (strict mode)', () => {
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 10),
       rowHeaders: true,
       bindRowsWithHeaders: 'strict',
@@ -87,8 +87,8 @@ describe('BindRowsWithHeaders', function() {
     expect(getRowHeader()).toEqual([1, 5, 6, 7, 8, 2, 3, 4]);
   });
 
-  it('should correct bind rows with headers when row was inserted and removed in mixed way (strict mode)', function() {
-    var hot = handsontable({
+  it('should correct bind rows with headers when row was inserted and removed in mixed way (strict mode)', () => {
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 10),
       rowHeaders: true,
       bindRowsWithHeaders: 'strict',
@@ -103,9 +103,9 @@ describe('BindRowsWithHeaders', function() {
     expect(getRowHeader()).toEqual([7, 8, 2, 9, 3, 4]);
   });
 
-  describe('column sorting', function() {
-    it('should correct bind rows with headers when row was removed after sorting (strict mode)', async () => {
-      var hot = handsontable({
+  describe('column sorting', () => {
+    it('should correct bind rows with headers when row was removed after sorting (strict mode)', async() => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         columnSorting: true,
         rowHeaders: true,
@@ -129,8 +129,8 @@ describe('BindRowsWithHeaders', function() {
       expect(getRowHeader()).toEqual([6, 7, 8, 9]);
     });
 
-    it('should correct bind rows with headers when row was inserted after sorting (strict mode)', async () => {
-      var hot = handsontable({
+    it('should correct bind rows with headers when row was inserted after sorting (strict mode)', async() => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         columnSorting: true,
         rowHeaders: true,
@@ -154,8 +154,8 @@ describe('BindRowsWithHeaders', function() {
       expect(getRowHeader()).toEqual([12, 13, 14, 15, 16, 1, 10, 2, 3, 11, 4, 5, 6, 7, 8, 9]);
     });
 
-    it('should correct bind rows with headers when row was inserted and removed in mixed way (strict mode)', async () => {
-      var hot = handsontable({
+    it('should correct bind rows with headers when row was inserted and removed in mixed way (strict mode)', async() => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         columnSorting: true,
         rowHeaders: true,

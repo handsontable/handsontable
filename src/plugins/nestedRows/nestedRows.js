@@ -1,8 +1,8 @@
 import BasePlugin from 'handsontable/plugins/_base';
-import {registerPlugin} from 'handsontable/plugins';
-import {rangeEach, rangeEachReverse} from 'handsontable/helpers/number';
-import {arrayEach} from 'handsontable/helpers/array';
-import {CellCoords} from 'handsontable/3rdparty/walkontable/src';
+import { registerPlugin } from 'handsontable/plugins';
+import { rangeEach } from 'handsontable/helpers/number';
+import { arrayEach } from 'handsontable/helpers/array';
+import { CellCoords } from 'handsontable/3rdparty/walkontable/src';
 import DataManager from './data/dataManager';
 import CollapsingUI from './ui/collapsing';
 import HeadersUI from './ui/headers';
@@ -178,11 +178,11 @@ class NestedRows extends BasePlugin {
     fromParent = this.dataManager.getRowParent(translatedStartIndexes[0]);
     toParent = this.dataManager.getRowParent(translatedTargetIndex);
 
-    if (toParent == null) {
+    if (toParent === null || toParent === void 0) {
       toParent = this.dataManager.getRowParent(translatedTargetIndex - 1);
     }
 
-    if (toParent == null) {
+    if (toParent === null || toParent === void 0) {
       toParent = this.dataManager.getDataObject(translatedTargetIndex - 1);
       priv.movedToFirstChild = true;
     }
@@ -211,7 +211,7 @@ class NestedRows extends BasePlugin {
       translatedStartIndexes.reverse();
 
       if (priv.movedToFirstChild !== true) {
-        translatedTargetIndex--;
+        translatedTargetIndex -= 1;
       }
     }
 
@@ -278,10 +278,10 @@ class NestedRows extends BasePlugin {
 
     } else if (priv.movedToCollapsed) {
       let parentObject = this.dataManager.getRowParent(translatedTargetIndex - 1);
-      if (parentObject == null) {
+      if (parentObject === null || parentObject === void 0) {
         parentObject = this.dataManager.getDataObject(translatedTargetIndex - 1);
       }
-      let parentIndex = this.dataManager.getRowIndex(parentObject);
+      const parentIndex = this.dataManager.getRowIndex(parentObject);
 
       startRow = parentIndex;
       endRow = startRow;
@@ -355,10 +355,9 @@ class NestedRows extends BasePlugin {
    * @private
    * @param {Number} index
    * @param {Number} amount
-   * @param {Array} logicRows
    * @returns {Boolean}
    */
-  onBeforeDataFilter(index, amount, logicRows) {
+  onBeforeDataFilter(index, amount) {
     const realLogicRows = [];
     const startIndex = this.dataManager.translateTrimmedRow(index);
     const priv = privatePool.get(this);
@@ -446,8 +445,8 @@ class NestedRows extends BasePlugin {
 
     rangeEach(index, index + amount - 1, (i) => {
       let isChild = false;
-      let translated = this.collapsingUI.translateTrimmedRow(i);
-      let currentDataObj = this.dataManager.getDataObject(translated);
+      const translated = this.collapsingUI.translateTrimmedRow(i);
+      const currentDataObj = this.dataManager.getDataObject(translated);
 
       if (this.dataManager.hasChildren(currentDataObj)) {
         lastParents.push(currentDataObj);
@@ -473,7 +472,7 @@ class NestedRows extends BasePlugin {
       });
 
       if (isChild) {
-        childrenCount--;
+        childrenCount -= 1;
       }
     });
 
@@ -484,10 +483,8 @@ class NestedRows extends BasePlugin {
    * `beforeAddChild` hook callback.
    *
    * @private
-   * @param {Object} parent Parent element.
-   * @param {Object} element New child element.
    */
-  onBeforeAddChild(parent, element) {
+  onBeforeAddChild() {
     this.collapsingUI.collapsedRowsStash.stash();
   }
 
@@ -509,10 +506,8 @@ class NestedRows extends BasePlugin {
    * `beforeDetachChild` hook callback.
    *
    * @private
-   * @param {Object} parent Parent element.
-   * @param {Object} element New child element.
    */
-  onBeforeDetachChild(parent, element) {
+  onBeforeDetachChild() {
     this.collapsingUI.collapsedRowsStash.stash();
   }
 
@@ -556,7 +551,7 @@ class NestedRows extends BasePlugin {
       this.bindRowsWithHeadersPlugin.bindStrategy.createMap(this.hot.countSourceRows());
     }
 
-    let deepestLevel = Math.max(...this.dataManager.cache.levels);
+    const deepestLevel = Math.max(...this.dataManager.cache.levels);
 
     if (deepestLevel > 0) {
       this.headersUI.updateRowHeaderWidth(deepestLevel);

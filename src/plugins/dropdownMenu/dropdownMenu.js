@@ -1,14 +1,13 @@
 import BasePlugin from 'handsontable/plugins/_base';
-import {arrayEach} from 'handsontable/helpers/array';
-import {objectEach} from 'handsontable/helpers/object';
+import { arrayEach } from 'handsontable/helpers/array';
 import CommandExecutor from 'handsontable/plugins/contextMenu/commandExecutor';
 import EventManager from 'handsontable/eventManager';
-import {getWindowScrollTop, getWindowScrollLeft, hasClass, closest} from 'handsontable/helpers/dom/element';
+import { hasClass } from 'handsontable/helpers/dom/element';
 import ItemsFactory from 'handsontable/plugins/contextMenu/itemsFactory';
 import Menu from 'handsontable/plugins/contextMenu/menu';
-import {registerPlugin} from 'handsontable/plugins';
+import { registerPlugin } from 'handsontable/plugins';
 import Hooks from 'handsontable/pluginHooks';
-import {stopPropagation} from 'handsontable/helpers/dom/event';
+import { stopPropagation } from 'handsontable/helpers/dom/event';
 import {
   COLUMN_LEFT,
   COLUMN_RIGHT,
@@ -145,7 +144,7 @@ class DropdownMenu extends BasePlugin {
     this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
 
     const settings = this.hot.getSettings().dropdownMenu;
-    let predefinedItems = {
+    const predefinedItems = {
       items: this.itemsFactory.getItems(settings)
     };
     this.registerEvents();
@@ -159,7 +158,7 @@ class DropdownMenu extends BasePlugin {
       this.hot.runHooks('afterDropdownMenuDefaultOptions', predefinedItems);
 
       this.itemsFactory.setPredefinedItems(predefinedItems.items);
-      let menuItems = this.itemsFactory.getItems(settings);
+      const menuItems = this.itemsFactory.getItems(settings);
 
       if (this.menu) {
         this.menu.destroy();
@@ -175,10 +174,10 @@ class DropdownMenu extends BasePlugin {
       this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
       this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
-      this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.apply(this, params));
+      this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
       // Register all commands. Predefined and added by user or by plugins
-      arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
+      arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
     });
   }
 
@@ -209,7 +208,7 @@ class DropdownMenu extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'click', (event) => this.onTableClick(event));
+    this.eventManager.addEventListener(this.hot.rootElement, 'click', event => this.onTableClick(event));
   }
 
   /**
@@ -276,8 +275,8 @@ class DropdownMenu extends BasePlugin {
    * @param {String} commandName Command name to execute.
    * @param {*} params
    */
-  executeCommand(...params) {
-    this.commandExecutor.execute.apply(this.commandExecutor, params);
+  executeCommand(commandName, ...params) {
+    this.commandExecutor.execute(commandName, ...params);
   }
 
   /**
@@ -306,7 +305,7 @@ class DropdownMenu extends BasePlugin {
     stopPropagation(event);
 
     if (hasClass(event.target, BUTTON_CLASS_NAME) && !this.menu.isOpened()) {
-      let rect = event.target.getBoundingClientRect();
+      const rect = event.target.getBoundingClientRect();
 
       this.open({
         left: rect.left,
@@ -326,19 +325,19 @@ class DropdownMenu extends BasePlugin {
    */
   onAfterGetColHeader(col, TH) {
     // Corner or a higher-level header
-    let headerRow = TH.parentNode;
+    const headerRow = TH.parentNode;
     if (!headerRow) {
       return;
     }
 
-    let headerRowList = headerRow.parentNode.childNodes;
-    let level = Array.prototype.indexOf.call(headerRowList, headerRow);
+    const headerRowList = headerRow.parentNode.childNodes;
+    const level = Array.prototype.indexOf.call(headerRowList, headerRow);
 
     if (col < 0 || level !== headerRowList.length - 1) {
       return;
     }
 
-    const existingButton = TH.querySelector('.' + BUTTON_CLASS_NAME);
+    const existingButton = TH.querySelector(`.${BUTTON_CLASS_NAME}`);
 
     // Plugin enabled and buttons already exists, return.
     if (this.enabled && existingButton) {
@@ -352,7 +351,7 @@ class DropdownMenu extends BasePlugin {
 
       return;
     }
-    let button = document.createElement('button');
+    const button = document.createElement('button');
 
     button.className = BUTTON_CLASS_NAME;
 

@@ -1,6 +1,4 @@
-import {arrayEach} from 'handsontable/helpers/array';
-import {extend, clone} from 'handsontable/helpers/object';
-import {rangeEach} from 'handsontable/helpers/number';
+import { rangeEach } from 'handsontable/helpers/number';
 
 // Waiting for jshint >=2.9.0 where they added support for destructing
 // jshint ignore: start
@@ -40,7 +38,7 @@ class DataProvider {
    * @returns {Array}
    */
   getData() {
-    const {startRow, startCol, endRow, endCol} = this._getDataRange();
+    const { startRow, startCol, endRow, endCol } = this._getDataRange();
     const options = this.options;
     const data = [];
 
@@ -69,10 +67,10 @@ class DataProvider {
    * @return {Array}
    */
   getRowHeaders() {
-    let headers = [];
+    const headers = [];
 
     if (this.options.rowHeaders) {
-      const {startRow, endRow} = this._getDataRange();
+      const { startRow, endRow } = this._getDataRange();
       const rowHeaders = this.hot.getRowHeader();
 
       rangeEach(startRow, endRow, (row) => {
@@ -92,10 +90,10 @@ class DataProvider {
    * @return {Array}
    */
   getColumnHeaders() {
-    let headers = [];
+    const headers = [];
 
     if (this.options.columnHeaders) {
-      const {startCol, endCol} = this._getDataRange();
+      const { startCol, endCol } = this._getDataRange();
       const colHeaders = this.hot.getColHeader();
 
       rangeEach(startCol, endCol, (column) => {
@@ -125,7 +123,7 @@ class DataProvider {
     endRow = Math.min(endRow, rows);
     endCol = Math.min(endCol, cols);
 
-    return {startRow, startCol, endRow, endCol};
+    return { startRow, startCol, endRow, endCol };
   }
 
   /**

@@ -1,10 +1,10 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/none';
-import {dateRowFactory} from './../helpers/utils';
+import { condition } from 'handsontable-pro/plugins/filters/condition/none';
+import { dateRowFactory } from './../helpers/utils';
 
-describe('Filters condition (`none`)', function() {
+describe('Filters condition (`none`)', () => {
 
-  it('should filter all values', function() {
-    var data = dateRowFactory();
+  it('should filter all values', () => {
+    const data = dateRowFactory();
 
     expect(condition(data(4))).toBe(true);
     expect(condition(data(3))).toBe(true);

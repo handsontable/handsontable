@@ -1,12 +1,11 @@
-import {Parser, ERROR_REF, error as isFormulaError} from 'hot-formula-parser';
-import {arrayEach, arrayMap} from 'handsontable/helpers/array';
-import {rangeEach} from 'handsontable/helpers/number';
+import { Parser, ERROR_REF, error as isFormulaError } from 'hot-formula-parser';
+import { arrayEach, arrayMap } from 'handsontable/helpers/array';
 import localHooks from 'handsontable/mixins/localHooks';
-import {getTranslator} from 'handsontable/utils/recordTranslator';
-import {objectEach, mixin} from 'handsontable/helpers/object';
+import { getTranslator } from 'handsontable/utils/recordTranslator';
+import { mixin } from 'handsontable/helpers/object';
 import CellValue from './cell/value';
 import CellReference from './cell/reference';
-import {isFormulaExpression, toUpperCaseFormula} from './utils';
+import { isFormulaExpression, toUpperCaseFormula } from './utils';
 import Matrix from './matrix';
 import AlterManager from './alterManager';
 
@@ -162,7 +161,7 @@ class Sheet {
   applyChanges(row, column, newValue) {
     // Remove formula description for old expression
     // TODO: Move this to recalculate()
-    this.matrix.remove({row, column});
+    this.matrix.remove({ row, column });
 
     // TODO: Move this to recalculate()
     if (isFormulaExpression(newValue)) {
@@ -189,7 +188,7 @@ class Sheet {
     cellValue.setState(CellValue.STATE_COMPUTING);
     this._processingCell = cellValue;
 
-    const {error, result} = this.parser.parse(toUpperCaseFormula(formula));
+    const { error, result } = this.parser.parse(toUpperCaseFormula(formula));
 
     if (isFormulaExpression(result)) {
       this.parseExpression(cellValue, result.substr(1));
@@ -223,7 +222,7 @@ class Sheet {
    * @returns {Array}
    */
   getCellDependencies(row, column) {
-    return this.matrix.getDependencies({row, column});
+    return this.matrix.getDependencies({ row, column });
   }
 
   /**
@@ -233,7 +232,7 @@ class Sheet {
    * @param {Object} cellCoords Cell coordinates.
    * @param {Function} done Function to call with valid cell value.
    */
-  _onCallCellValue({row, column}, done) {
+  _onCallCellValue({ row, column }, done) {
     const cell = new CellReference(row, column);
 
     if (!this.dataProvider.isInDataRange(cell.row, cell.column)) {
@@ -254,7 +253,7 @@ class Sheet {
     }
 
     if (isFormulaExpression(cellValue)) {
-      const {error, result} = this.parser.parse(cellValue.substr(1));
+      const { error, result } = this.parser.parse(cellValue.substr(1));
 
       if (error) {
         throw Error(error);
@@ -274,7 +273,7 @@ class Sheet {
    * @param {Object} endCell Cell coordinates (bottom-right corner coordinate).
    * @param {Function} done Function to call with valid cells values.
    */
-  _onCallRangeValue({row: startRow, column: startColumn}, {row: endRow, column: endColumn}, done) {
+  _onCallRangeValue({ row: startRow, column: startColumn }, { row: endRow, column: endColumn }, done) {
     const cellValues = this.dataProvider.getRawDataByRange(startRow.index, startColumn.index, endRow.index, endColumn.index);
 
     const mapRowData = (rowData, rowIndex) => arrayMap(rowData, (cellData, columnIndex) => {
@@ -289,25 +288,27 @@ class Sheet {
       this.matrix.registerCellRef(cell);
       this._processingCell.addPrecedent(cell);
 
-      if (isFormulaError(cellData)) {
+      let newCellData = cellData;
+
+      if (isFormulaError(newCellData)) {
         const computedCell = this.matrix.getCellAt(cell.row, cell.column);
 
         if (computedCell && computedCell.hasError()) {
-          throw Error(cellData);
+          throw Error(newCellData);
         }
       }
 
-      if (isFormulaExpression(cellData)) {
-        const {error, result} = this.parser.parse(cellData.substr(1));
+      if (isFormulaExpression(newCellData)) {
+        const { error, result } = this.parser.parse(newCellData.substr(1));
 
         if (error) {
           throw Error(error);
         }
 
-        cellData = result;
+        newCellData = result;
       }
 
-      return cellData;
+      return newCellData;
     });
 
     const calculatedCellValues = arrayMap(cellValues, (rowData, rowIndex) => mapRowData(rowData, rowIndex));

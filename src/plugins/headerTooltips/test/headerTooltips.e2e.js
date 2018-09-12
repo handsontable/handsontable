@@ -1,8 +1,8 @@
-describe('Header tooltips', function() {
-  var id = 'testContainer';
+describe('Header tooltips', () => {
+  const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,9 +12,9 @@ describe('Header tooltips', function() {
     }
   });
 
-  describe('initialization', function() {
-    it('should be initialized by HOT config', function() {
-      var hot = handsontable({
+  describe('initialization', () => {
+    it('should be initialized by HOT config', () => {
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         headerTooltips: {
@@ -26,17 +26,17 @@ describe('Header tooltips', function() {
         height: 300
       });
 
-      var headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+      const headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
 
-      for (var i = 0; i < headers.length; i++) {
-        var title = headers[i].getAttribute('title');
+      for (let i = 0; i < headers.length; i++) {
+        const title = headers[i].getAttribute('title');
         expect(headers[i].getAttribute('title')).not.toBe(null);
         expect(title).toEqual(headers[i].textContent);
       }
     });
 
-    it('should be initialized by the updateSettings method', function() {
-      var hot = handsontable({
+    it('should be initialized by the updateSettings method', () => {
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         width: 500,
@@ -51,17 +51,17 @@ describe('Header tooltips', function() {
         }
       });
 
-      var headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+      const headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
 
-      for (var i = 0; i < headers.length; i++) {
-        var title = headers[i].getAttribute('title');
+      for (let i = 0; i < headers.length; i++) {
+        const title = headers[i].getAttribute('title');
         expect(headers[i].getAttribute('title')).not.toBe(null);
         expect(title).toEqual(headers[i].textContent);
       }
     });
 
-    it('should be disabled by the disablePlugin method', function() {
-      var hot = handsontable({
+    it('should be disabled by the disablePlugin method', () => {
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         headerTooltips: {
@@ -75,16 +75,15 @@ describe('Header tooltips', function() {
 
       hot.getPlugin('headerTooltips').disablePlugin();
 
-      var headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+      const headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
 
-      for (var i = 0; i < headers.length; i++) {
-        var title = headers[i].getAttribute('title');
+      for (let i = 0; i < headers.length; i++) {
         expect(headers[i].getAttribute('title')).toBe(null);
       }
     });
 
-    it('should be re-enabled by the enablePlugin method', function() {
-      var hot = handsontable({
+    it('should be re-enabled by the enablePlugin method', () => {
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         headerTooltips: {
@@ -101,10 +100,10 @@ describe('Header tooltips', function() {
       hot.getPlugin('headerTooltips').enablePlugin();
       hot.render();
 
-      var headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+      const headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
 
-      for (var i = 0; i < headers.length; i++) {
-        var title = headers[i].getAttribute('title');
+      for (let i = 0; i < headers.length; i++) {
+        const title = headers[i].getAttribute('title');
         expect(headers[i].getAttribute('title')).not.toBe(null);
         expect(title).toEqual(headers[i].textContent);
       }
@@ -112,10 +111,9 @@ describe('Header tooltips', function() {
 
   });
 
-  describe('adding the title attribute', function() {
-
-    it('should add the "title" attribute to both rows and columns, if both "rows" and "columns" properties are set to "true"', function() {
-      var hot = handsontable({
+  describe('adding the title attribute', () => {
+    it('should add the "title" attribute to both rows and columns, if both "rows" and "columns" properties are set to "true"', () => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         headerTooltips: {
@@ -127,8 +125,8 @@ describe('Header tooltips', function() {
         height: 300
       });
 
-      var $colHeaders = $('thead th');
-      var $rowHeaders = $('tbody th');
+      const $colHeaders = $('thead th');
+      const $rowHeaders = $('tbody th');
 
       $colHeaders.each(function() {
         expect($(this).attr('title')).toEqual($(this).text());
@@ -139,8 +137,8 @@ describe('Header tooltips', function() {
       });
     });
 
-    it('should add the "title" attribute to only rows, of only "rows" property is set to "true"', function() {
-      var hot = handsontable({
+    it('should add the "title" attribute to only rows, of only "rows" property is set to "true"', () => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         headerTooltips: {
@@ -152,8 +150,8 @@ describe('Header tooltips', function() {
         height: 300
       });
 
-      var $colHeaders = $('thead th');
-      var $rowHeaders = $('tbody th');
+      const $colHeaders = $('thead th');
+      const $rowHeaders = $('tbody th');
 
       $colHeaders.each(function() {
         expect($(this).attr('title')).not.toBeDefined();
@@ -164,8 +162,8 @@ describe('Header tooltips', function() {
       });
     });
 
-    it('should add the "title" attribute to only columns, of only "columns" property is set to "true"', function() {
-      var hot = handsontable({
+    it('should add the "title" attribute to only columns, of only "columns" property is set to "true"', () => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         headerTooltips: {
@@ -177,8 +175,8 @@ describe('Header tooltips', function() {
         height: 300
       });
 
-      var $colHeaders = $('thead th');
-      var $rowHeaders = $('tbody th');
+      const $colHeaders = $('thead th');
+      const $rowHeaders = $('tbody th');
 
       $colHeaders.each(function() {
         expect($(this).attr('title')).toEqual($(this).text());
@@ -189,8 +187,8 @@ describe('Header tooltips', function() {
       });
     });
 
-    it('should add the "title" attribute only if the header content exceeds the header with, when onlyTrimmed property is set to true', function() {
-      var hot = handsontable({
+    it('should add the "title" attribute only if the header content exceeds the header with, when onlyTrimmed property is set to true', () => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: ['very long column header', 'B', 'very long column header', 'C'],
         rowHeaders: ['very long column header', '1', 'very long column header', '3'],

@@ -45,7 +45,6 @@ describe('DateCalculator', () => {
     });
   });
 
-
   describe('the `dateToColumn` method', () => {
     it('should return a column for a provided date (in string or Date format), when `allowSplitWeeks` is set to true (default)', () => {
       const plugin = new DateCalculator({
@@ -94,7 +93,6 @@ describe('DateCalculator', () => {
         year: 2017
       });
 
-
       // mock the day cache creation from the actual plugin:
       plugin.daysInColumns[2017] = stdCache;
 
@@ -106,7 +104,6 @@ describe('DateCalculator', () => {
       const plugin = new DateCalculator({
         year: 2018
       });
-
 
       // mock the day cache creation from the actual plugin:
       plugin.daysInColumns[2017] = stdCache;
@@ -309,18 +306,18 @@ describe('DateCalculator', () => {
         year: 2017
       });
       const expectedResult = [
-        {name: 'January', days: 31},
-        {name: 'February', days: 28},
-        {name: 'March', days: 31},
-        {name: 'April', days: 30},
-        {name: 'May', days: 31},
-        {name: 'June', days: 30},
-        {name: 'July', days: 31},
-        {name: 'August', days: 31},
-        {name: 'September', days: 30},
-        {name: 'October', days: 31},
-        {name: 'November', days: 30},
-        {name: 'December', days: 31}
+        { name: 'January', days: 31 },
+        { name: 'February', days: 28 },
+        { name: 'March', days: 31 },
+        { name: 'April', days: 30 },
+        { name: 'May', days: 31 },
+        { name: 'June', days: 30 },
+        { name: 'July', days: 31 },
+        { name: 'August', days: 31 },
+        { name: 'September', days: 30 },
+        { name: 'October', days: 31 },
+        { name: 'November', days: 30 },
+        { name: 'December', days: 31 }
       ];
 
       expect(plugin.calculateMonthData()).toEqual(expectedResult);
@@ -331,18 +328,18 @@ describe('DateCalculator', () => {
         year: 2020
       });
       const expectedResult = [
-        {name: 'January', days: 31},
-        {name: 'February', days: 28},
-        {name: 'March', days: 31},
-        {name: 'April', days: 30},
-        {name: 'May', days: 31},
-        {name: 'June', days: 30},
-        {name: 'July', days: 31},
-        {name: 'August', days: 31},
-        {name: 'September', days: 30},
-        {name: 'October', days: 31},
-        {name: 'November', days: 30},
-        {name: 'December', days: 31}
+        { name: 'January', days: 31 },
+        { name: 'February', days: 28 },
+        { name: 'March', days: 31 },
+        { name: 'April', days: 30 },
+        { name: 'May', days: 31 },
+        { name: 'June', days: 30 },
+        { name: 'July', days: 31 },
+        { name: 'August', days: 31 },
+        { name: 'September', days: 30 },
+        { name: 'October', days: 31 },
+        { name: 'November', days: 30 },
+        { name: 'December', days: 31 }
       ];
 
       expect(plugin.calculateMonthData(2017)).toEqual(expectedResult);
@@ -360,7 +357,7 @@ describe('DateCalculator', () => {
 
       plugin.calculateWeekStructure();
 
-      let monthList = plugin.monthListCache;
+      const monthList = plugin.monthListCache;
       expect(monthList[2017][0].name).toEqual('January');
       expect(monthList[2017][0].days).toEqual(31);
       expect(monthList[2017][0].daysBeforeFullWeeks).toEqual(1);
@@ -384,7 +381,7 @@ describe('DateCalculator', () => {
 
       plugin.calculateWeekStructure(2017);
 
-      let monthList = plugin.monthListCache;
+      const monthList = plugin.monthListCache;
       expect(monthList[2017][0].name).toEqual('January');
       expect(monthList[2017][0].days).toEqual(31);
       expect(monthList[2017][0].daysBeforeFullWeeks).toEqual(1);
@@ -408,7 +405,7 @@ describe('DateCalculator', () => {
 
       plugin.calculateWeekStructure();
 
-      let monthList = plugin.monthListCache;
+      const monthList = plugin.monthListCache;
       expect(monthList[2017][0].name).toEqual('Dec/Jan');
       expect(monthList[2017][0].days).toEqual(7);
       expect(monthList[2017][0].daysBeforeFullWeeks).toEqual(0);

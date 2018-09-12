@@ -1,14 +1,14 @@
-import {addClass} from 'handsontable/helpers/dom/element';
-import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
-import {arrayEach} from 'handsontable/helpers/array';
-import {isKey} from 'handsontable/helpers/unicode';
-import {clone} from 'handsontable/helpers/object';
+import { addClass } from 'handsontable/helpers/dom/element';
+import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
+import { arrayEach } from 'handsontable/helpers/array';
+import { isKey } from 'handsontable/helpers/unicode';
+import { clone } from 'handsontable/helpers/object';
 import * as C from 'handsontable/i18n/constants';
 import BaseComponent from './_base';
-import getOptionsList, {CONDITION_NONE} from './../constants';
+import getOptionsList, { CONDITION_NONE } from './../constants';
 import InputUI from './../ui/input';
 import SelectUI from './../ui/select';
-import {getConditionDescriptor} from './../conditionRegisterer';
+import { getConditionDescriptor } from './../conditionRegisterer';
 
 /**
  * @class ConditionComponent
@@ -23,8 +23,8 @@ class ConditionComponent extends BaseComponent {
     this.addSeparator = options.addSeparator;
 
     this.elements.push(new SelectUI(this.hot));
-    this.elements.push(new InputUI(this.hot, {placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_VALUE}));
-    this.elements.push(new InputUI(this.hot, {placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE}));
+    this.elements.push(new InputUI(this.hot, { placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_VALUE }));
+    this.elements.push(new InputUI(this.hot, { placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE }));
     this.registerHooks();
   }
 
@@ -34,11 +34,11 @@ class ConditionComponent extends BaseComponent {
    * @private
    */
   registerHooks() {
-    this.getSelectElement().addLocalHook('select', (command) => this.onConditionSelect(command));
+    this.getSelectElement().addLocalHook('select', command => this.onConditionSelect(command));
     this.getSelectElement().addLocalHook('afterClose', () => this.onSelectUIClosed());
 
     arrayEach(this.getInputElements(), (input) => {
-      input.addLocalHook('keydown', (event) => this.onInputKeyDown(event));
+      input.addLocalHook('keydown', event => this.onInputKeyDown(event));
     });
   }
 
@@ -63,7 +63,7 @@ class ConditionComponent extends BaseComponent {
           return false;
         }
 
-        let element = this.getInputElement(index);
+        const element = this.getInputElement(index);
 
         element.setValue(arg);
         element[copyOfCommand.inputsCount > index ? 'show' : 'hide']();
@@ -82,7 +82,7 @@ class ConditionComponent extends BaseComponent {
    */
   getState() {
     const command = this.getSelectElement().getValue() || getConditionDescriptor(CONDITION_NONE);
-    let args = [];
+    const args = [];
 
     arrayEach(this.getInputElements(), (element, index) => {
       if (command.inputsCount > index) {
@@ -104,7 +104,7 @@ class ConditionComponent extends BaseComponent {
    * @param column Physical column index.
    */
   updateState(condition, column) {
-    let command = condition ? getConditionDescriptor(condition.name) : getConditionDescriptor(CONDITION_NONE);
+    const command = condition ? getConditionDescriptor(condition.name) : getConditionDescriptor(CONDITION_NONE);
 
     this.setCachedState(column, {
       command,
@@ -112,7 +112,7 @@ class ConditionComponent extends BaseComponent {
     });
 
     if (!condition) {
-      arrayEach(this.getInputElements(), (element) => element.setValue(null));
+      arrayEach(this.getInputElements(), element => element.setValue(null));
     }
   }
 
@@ -122,7 +122,7 @@ class ConditionComponent extends BaseComponent {
    * @returns {SelectUI}
    */
   getSelectElement() {
-    return this.elements.filter((element) => element instanceof SelectUI)[0];
+    return this.elements.filter(element => element instanceof SelectUI)[0];
   }
 
   /**
@@ -141,7 +141,7 @@ class ConditionComponent extends BaseComponent {
    * @returns {Array}
    */
   getInputElements() {
-    return this.elements.filter((element) => element instanceof InputUI);
+    return this.elements.filter(element => element instanceof InputUI);
   }
 
   /**
@@ -163,14 +163,14 @@ class ConditionComponent extends BaseComponent {
           addClass(wrapper.parentNode, 'border');
         }
 
-        let label = document.createElement('div');
+        const label = document.createElement('div');
 
         addClass(label, 'htFiltersMenuLabel');
 
         label.textContent = value;
 
         wrapper.appendChild(label);
-        arrayEach(this.elements, (ui) => wrapper.appendChild(ui.element));
+        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
 
         return wrapper;
       }
@@ -183,10 +183,10 @@ class ConditionComponent extends BaseComponent {
   reset() {
     const lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
     const visualIndex = lastSelectedColumn && lastSelectedColumn.visualIndex;
-    const columnType = this.hot.getDataType.apply(this.hot, this.hot.getSelectedLast() || [0, visualIndex]);
+    const columnType = this.hot.getDataType(...(this.hot.getSelectedLast() || [0, visualIndex]));
     const items = getOptionsList(columnType);
 
-    arrayEach(this.getInputElements(), (element) => element.hide());
+    arrayEach(this.getInputElements(), element => element.hide());
     this.getSelectElement().setItems(items);
     super.reset();
     // Select element as default 'None'

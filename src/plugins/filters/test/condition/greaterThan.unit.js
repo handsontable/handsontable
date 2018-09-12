@@ -1,10 +1,9 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/greaterThan';
-import {dateRowFactory} from './../helpers/utils';
+import { condition } from 'handsontable-pro/plugins/filters/condition/greaterThan';
+import { dateRowFactory } from './../helpers/utils';
 
-describe('Filters condition (`gt`)', function() {
-
-  it('should filter matching values (numeric cell type)', function() {
-    var data = dateRowFactory({type: 'numeric'});
+describe('Filters condition (`gt`)', () => {
+  it('should filter matching values (numeric cell type)', () => {
+    const data = dateRowFactory({ type: 'numeric' });
 
     expect(condition(data(4), [3])).toBe(true);
     expect(condition(data(4), [2])).toBe(true);
@@ -12,9 +11,8 @@ describe('Filters condition (`gt`)', function() {
     expect(condition(data(-4), [-10])).toBe(true);
     expect(condition(data(-4), ['-5'])).toBe(true);
   });
-
-  it('should filter not matching values (numeric cell type)', function() {
-    var data = dateRowFactory({type: 'numeric'});
+  it('should filter not matching values (numeric cell type)', () => {
+    const data = dateRowFactory({ type: 'numeric' });
 
     expect(condition(data(4), [4])).toBe(false);
     expect(condition(data(4), [43])).toBe(false);
@@ -24,16 +22,16 @@ describe('Filters condition (`gt`)', function() {
     expect(condition(data(-4), [-3.11])).toBe(false);
   });
 
-  it('should filter matching values (text cell type)', function() {
-    var data = dateRowFactory({type: 'text'});
+  it('should filter matching values (text cell type)', () => {
+    const data = dateRowFactory({ type: 'text' });
 
     expect(condition(data('foo'), ['bar'])).toBe(true);
     expect(condition(data('4'), ['2'])).toBe(true);
     expect(condition(data(4), ['1.9'])).toBe(true);
   });
 
-  it('should filter not matching values (text cell type)', function() {
-    var data = dateRowFactory({type: 'text'});
+  it('should filter not matching values (text cell type)', () => {
+    const data = dateRowFactory({ type: 'text' });
 
     expect(condition(data('boo'), ['zar'])).toBe(false);
     expect(condition(data('4'), ['45'])).toBe(false);

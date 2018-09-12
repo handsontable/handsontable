@@ -1,10 +1,10 @@
 import BasePlugin from 'handsontable/plugins/_base';
-import {addClass, removeClass} from 'handsontable/helpers/dom/element';
-import {objectEach, clone, deepClone, extend} from 'handsontable/helpers/object';
-import {warn} from 'handsontable/helpers/console';
-import {createEmptySpreadsheetData} from 'handsontable/helpers/data';
-import {registerPlugin} from 'handsontable/plugins';
-import {getDateYear, getEndDate, getStartDate, parseDate} from './utils';
+import { addClass, removeClass } from 'handsontable/helpers/dom/element';
+import { objectEach, deepClone, extend } from 'handsontable/helpers/object';
+import { warn } from 'handsontable/helpers/console';
+import { createEmptySpreadsheetData } from 'handsontable/helpers/data';
+import { registerPlugin } from 'handsontable/plugins';
+import { getDateYear, parseDate } from './utils';
 import DateCalculator from './dateCalculator';
 import GanttChartDataFeed from './ganttChartDataFeed';
 
@@ -311,7 +311,7 @@ class GanttChart extends BasePlugin {
    */
   applyDataSource() {
     if (this.settings.dataSource) {
-      let source = this.settings.dataSource;
+      const source = this.settings.dataSource;
 
       if (source.instance) {
         this.loadData(source.instance, source.startDateColumn, source.endDateColumn, source.additionalData, source.asyncUpdates);
@@ -403,7 +403,7 @@ class GanttChart extends BasePlugin {
 
     this.initialSettings = deepClone(this.hot.getSettings());
 
-    let additionalSettings = {
+    const additionalSettings = {
       data: createEmptySpreadsheetData(1, this.overallWeekSectionCount),
       readOnly: true,
       renderer: (instance, TD, row, col, prop, value, cellProperties) =>
@@ -481,10 +481,10 @@ class GanttChart extends BasePlugin {
    * @param {Boolean} following `true` if the following week is needed.
    * @param {Boolean} previous `true` if the previous week is needed.
    */
-  getAdjacentWeekColumn(date, following = true, previous) {
-    date = parseDate(date);
-    let delta = previous === true ? -7 : 7;
-    let adjacentWeek = date.setDate(date.getDate() + delta);
+  getAdjacentWeekColumn(date, following, previous) {
+    const convertedDate = parseDate(date);
+    const delta = previous === true ? -7 : 7;
+    const adjacentWeek = convertedDate.setDate(convertedDate.getDate() + delta);
 
     return this.dateCalculator.dateToColumn(adjacentWeek);
   }
@@ -505,7 +505,7 @@ class GanttChart extends BasePlugin {
 
     let startDateColumn = this.dateCalculator.dateToColumn(startDate);
     let endDateColumn = this.dateCalculator.dateToColumn(endDate);
-    let year = getDateYear(startDate); // every range bar should not exceed the limits of one year
+    const year = getDateYear(startDate); // every range bar should not exceed the limits of one year
     let startMoved = false;
     let endMoved = false;
 
@@ -587,13 +587,13 @@ class GanttChart extends BasePlugin {
    */
   getRangeBarData(row, column) {
     const year = this.dateCalculator.getYear();
-    let rangeBarCoords = this.getRangeBarCoordinates(row);
+    const rangeBarCoords = this.getRangeBarCoordinates(row);
 
     if (!rangeBarCoords) {
       return false;
     }
 
-    let rangeBarData = this.rangeBars[year][rangeBarCoords[0]][rangeBarCoords[1]];
+    const rangeBarData = this.rangeBars[year][rangeBarCoords[0]][rangeBarCoords[1]];
 
     if (rangeBarData && row === rangeBarCoords[0] &&
       (column === rangeBarCoords[1] || column > rangeBarCoords[1] && column < rangeBarCoords[1] + rangeBarData.barLength)) {
@@ -627,15 +627,14 @@ class GanttChart extends BasePlugin {
    * @param {Number} row Row index.
    * @param {Number} startDateColumn Start column index.
    * @param {Number} endDateColumn End column index.
-   * @param {Object} additionalData Additional range data.
    */
-  renderRangeBar(row, startDateColumn, endDateColumn, additionalData) {
+  renderRangeBar(row, startDateColumn, endDateColumn) {
     const year = this.dateCalculator.getYear();
-    let currentBar = this.rangeBars[year][row][startDateColumn];
+    const currentBar = this.rangeBars[year][row][startDateColumn];
 
     for (let i = startDateColumn; i <= endDateColumn; i++) {
-      let cellMeta = this.hot.getCellMeta(row, i);
-      let newClassName = (cellMeta.className || '') + ' rangeBar';
+      const cellMeta = this.hot.getCellMeta(row, i);
+      let newClassName = `${cellMeta.className || ''} rangeBar`;
 
       if ((i === startDateColumn && currentBar.partialStart) || (i === endDateColumn && currentBar.partialEnd)) {
         newClassName += ' partial';
@@ -663,7 +662,7 @@ class GanttChart extends BasePlugin {
    * @param {Date|String} startDate Start date.
    */
   removeRangeBarByDate(row, startDate) {
-    let startDateColumn = this.dateCalculator.dateToColumn(startDate);
+    const startDateColumn = this.dateCalculator.dateToColumn(startDate);
 
     this.removeRangeBarByColumn(row, startDateColumn);
   }
@@ -676,7 +675,7 @@ class GanttChart extends BasePlugin {
    */
   removeRangeBarByColumn(row, startDateColumn) {
     const year = this.dateCalculator.getYear();
-    let rangeBar = this.rangeBars[year][row][startDateColumn];
+    const rangeBar = this.rangeBars[year][row][startDateColumn];
 
     if (!rangeBar) {
       return;
@@ -686,10 +685,10 @@ class GanttChart extends BasePlugin {
     this.rangeBars[year][row][startDateColumn] = null;
 
     objectEach(this.rangeList, (prop, i) => {
-      i = parseInt(i, 10);
+      const id = parseInt(i, 10);
 
       if (JSON.stringify(prop) === JSON.stringify([row, startDateColumn])) {
-        this.rangeList[i] = null;
+        this.rangeList[id] = null;
       }
     });
   }
@@ -715,7 +714,7 @@ class GanttChart extends BasePlugin {
    */
   unrenderRangeBar(row, startDateColumn, endDateColumn) {
     for (let i = startDateColumn; i <= endDateColumn; i++) {
-      let cellMeta = this.hot.getCellMeta(row, i);
+      const cellMeta = this.hot.getCellMeta(row, i);
 
       this.hot.setCellMeta(row, i, 'className', cellMeta.originalClassName);
       this.hot.setCellMeta(row, i, 'originalClassName', void 0);
@@ -740,8 +739,8 @@ class GanttChart extends BasePlugin {
    * @param {Object} cellProperties Current cell properties.
    */
   uniformBackgroundRenderer(instance, TD, row, col, prop, value, cellProperties) {
-    let rangeBarInfo = this.getRangeBarData(row, col);
-    let rangeBarCoords = this.getRangeBarCoordinates(row);
+    const rangeBarInfo = this.getRangeBarData(row, col);
+    const rangeBarCoords = this.getRangeBarCoordinates(row);
 
     TD.innerHTML = '';
 
@@ -751,8 +750,8 @@ class GanttChart extends BasePlugin {
 
     let titleValue = '';
 
-    objectEach(cellProperties.additionalData, (prop, i) => {
-      titleValue += i + ': ' + prop + '\n';
+    objectEach(cellProperties.additionalData, (cellMeta, i) => {
+      titleValue += `${i}: ${cellMeta}\n`;
     });
 
     titleValue = titleValue.replace(/\n$/, '');
@@ -787,11 +786,11 @@ class GanttChart extends BasePlugin {
     this.colorData = rows;
 
     objectEach(rows, (colors, i) => {
-      let barCoords = this.getRangeBarCoordinates(i);
+      const barCoords = this.getRangeBarCoordinates(i);
 
       if (barCoords) {
         this.updateRangeBarData(barCoords[0], barCoords[1], {
-          colors: colors
+          colors
         });
       }
     });
@@ -805,7 +804,7 @@ class GanttChart extends BasePlugin {
    * @param {Number} year New chart year.
    */
   setYear(year) {
-    let newSettings = extend(this.hot.getSettings().ganttChart, {
+    const newSettings = extend(this.hot.getSettings().ganttChart, {
       startYear: year
     });
 

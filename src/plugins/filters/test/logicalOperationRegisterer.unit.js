@@ -1,7 +1,7 @@
-import {operations, registerOperation, getOperationFunc} from 'handsontable-pro/plugins/filters/logicalOperationRegisterer';
+import { operations, registerOperation, getOperationFunc } from 'handsontable-pro/plugins/filters/logicalOperationRegisterer';
 
-describe('registerOperation', function() {
-  it('should register operation function under its name', function() {
+describe('registerOperation', () => {
+  it('should register operation function under its name', () => {
     const operationMock = function() {};
 
     expect(operations.xor).not.toBeDefined();
@@ -13,12 +13,12 @@ describe('registerOperation', function() {
   });
 });
 
-describe('getOperationFunc', function() {
-  afterEach(function () {
+describe('getOperationFunc', () => {
+  afterEach(() => {
     operations.xor = null;
   });
 
-  it('should return operation result function as a closure', function() {
+  it('should return operation result function as a closure', () => {
     const operationMock = () => true;
 
     operations.xor = { func: operationMock, name: 'XOR' };
@@ -28,19 +28,19 @@ describe('getOperationFunc', function() {
     expect(func instanceof Function).toBe(true);
   });
 
-  it('should throw exception if operation doesn\'t exists', function() {
-    expect(function() {
+  it('should throw exception if operation doesn\'t exists', () => {
+    expect(() => {
       getOperationFunc('xor');
     }).toThrow();
   });
 
-  it('should return `true`', function() {
+  it('should return `true`', () => {
     const operationMock = jasmine.createSpy();
     const conditionsMock = [{}, {}];
     const argsMock = 'hello world';
 
     operationMock.and.returnValue(true);
-    operations.xor = {func: operationMock, name: 'XOR'};
+    operations.xor = { func: operationMock, name: 'XOR' };
 
     const result = getOperationFunc('xor')(conditionsMock, argsMock);
 

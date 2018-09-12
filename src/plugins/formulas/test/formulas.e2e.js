@@ -1,19 +1,19 @@
-describe('Formulas general', function() {
-  var id = 'testContainer';
+describe('Formulas general', () => {
+  const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should calculate table (simple example)', function() {
-    var hot = handsontable({
+  it('should calculate table (simple example)', () => {
+    const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: true,
       width: 500,
@@ -27,8 +27,8 @@ describe('Formulas general', function() {
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, '\'=SUM(E5)']);
   });
 
-  it('should calculate table (advanced example)', function() {
-    var hot = handsontable({
+  it('should calculate table (advanced example)', () => {
+    const hot = handsontable({
       data: getDataAdvancedExampleFormulas(),
       formulas: true,
       width: 500,
@@ -54,8 +54,8 @@ describe('Formulas general', function() {
     expect(hot.getDataAtRow(16)).toEqual(['Marcin Kowalski', 'ken@syndex.pl', 'syndex.pl', '', '', '', '', '']);
   });
 
-  it('should not treat single equality sign (=) as a formula expression', function() {
-    var hot = handsontable({
+  it('should not treat single equality sign (=) as a formula expression', () => {
+    const hot = handsontable({
       data: [['=', '=3']],
       formulas: true,
       width: 500,
@@ -71,15 +71,14 @@ describe('Formulas general', function() {
     expect(hot.getDataAtCell(0, 1)).toBe('=');
   });
 
-
-  it('should calculate table with semicolon as separator of formula arguments', function() {
-    var data = getDataSimpleExampleFormulas();
+  it('should calculate table with semicolon as separator of formula arguments', () => {
+    const data = getDataSimpleExampleFormulas();
 
     data[2][4] = '=SUM(A4;2;3)';
     data[4][2] = '=SUM(B5;E3)';
 
-    var hot = handsontable({
-      data: data,
+    const hot = handsontable({
+      data,
       formulas: true,
       width: 500,
       height: 300
@@ -92,14 +91,14 @@ describe('Formulas general', function() {
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, '\'=SUM(E5)']);
   });
 
-  it('should recalculate table with formulas defined where the next cell is depend on the previous cell', function() {
-    var afterChange = jasmine.createSpy();
-    var hot = handsontable({
+  it('should recalculate table with formulas defined where the next cell is depend on the previous cell', () => {
+    const afterChange = jasmine.createSpy();
+    const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(0, 1, '=B5');
@@ -122,16 +121,16 @@ describe('Formulas general', function() {
     expect(hot.getDataAtRow(4)).toEqual([2012, 6043, 8059, '#DIV/0!', 12, 6043]);
   });
 
-  it('should throw error while parsing invalid cell coordinates syntax', function() {
-    var data = getDataSimpleExampleFormulas();
+  it('should throw error while parsing invalid cell coordinates syntax', () => {
+    const data = getDataSimpleExampleFormulas();
 
     data[0][0] = '=SUM($$A4;2;3)';
     data[0][1] = '=A$$$$$1';
     data[0][2] = '=A1$';
     data[0][3] = '=SUM(A2:D2$)';
 
-    var hot = handsontable({
-      data: data,
+    const hot = handsontable({
+      data,
       formulas: true,
       width: 500,
       height: 300
@@ -147,15 +146,15 @@ describe('Formulas general', function() {
     expect(hot.getDataAtRow(4)).toEqual([2012, '#ERROR!', '#ERROR!', '#DIV/0!', 12, '\'=SUM(E5)']);
   });
 
-  it('should return correct values according to plugin state updated by updateSettings()', function() {
-    var hot = handsontable({
+  it('should return correct values according to plugin state updated by updateSettings()', () => {
+    const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: true,
       width: 500,
       height: 300
     });
 
-    hot.updateSettings({formulas: false});
+    hot.updateSettings({ formulas: false });
 
     expect(hot.getDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
     expect(hot.getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
@@ -163,7 +162,7 @@ describe('Formulas general', function() {
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, '=Sum(a2:a5)', '=SUM(B5,E3)', '=A2/B2', 12, '\'=SUM(E5)']);
 
-    hot.updateSettings({formulas: true});
+    hot.updateSettings({ formulas: true });
 
     expect(hot.getDataAtRow(0)).toEqual([0, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 0]);
     expect(hot.getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
@@ -172,8 +171,8 @@ describe('Formulas general', function() {
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, '\'=SUM(E5)']);
   });
 
-  it('should return correct values according to plugin state updated by disablePlugin/enablePlugin methods', function() {
-    var hot = handsontable({
+  it('should return correct values according to plugin state updated by disablePlugin/enablePlugin methods', () => {
+    const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: true,
       width: 500,
@@ -199,14 +198,14 @@ describe('Formulas general', function() {
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, '\'=SUM(E5)']);
   });
 
-  it('should recalculate table after changing cell value (setDataAtCell)', function() {
-    var afterChange = jasmine.createSpy();
-    var hot = handsontable({
+  it('should recalculate table after changing cell value (setDataAtCell)', () => {
+    const afterChange = jasmine.createSpy();
+    const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(1, 1, 20);
@@ -219,14 +218,14 @@ describe('Formulas general', function() {
     expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, 20]], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  it('should recalculate table after changing cell value (by reference)', function() {
-    var afterChange = jasmine.createSpy();
-    var hot = handsontable({
+  it('should recalculate table after changing cell value (by reference)', () => {
+    const afterChange = jasmine.createSpy();
+    const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.getSourceData()[1][1] = 20;
@@ -240,14 +239,14 @@ describe('Formulas general', function() {
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 100.45, 12, '\'=SUM(E5)']);
   });
 
-  it('should recalculate table after changing cell value into formula expression written in lower case', function() {
-    var afterChange = jasmine.createSpy();
-    var hot = handsontable({
+  it('should recalculate table after changing cell value into formula expression written in lower case', () => {
+    const afterChange = jasmine.createSpy();
+    const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(1, 1, '=Sum(a2:A4)');
@@ -260,14 +259,14 @@ describe('Formulas general', function() {
     expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=Sum(a2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  it('should prevent recalculate table after changing cell value into escaped formula expression', function() {
-    var afterChange = jasmine.createSpy();
-    var hot = handsontable({
+  it('should prevent recalculate table after changing cell value into escaped formula expression', () => {
+    const afterChange = jasmine.createSpy();
+    const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(1, 1, '\'=SUM(A2:A4)');
@@ -280,14 +279,14 @@ describe('Formulas general', function() {
     expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '\'=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  it('should recalculate table after changing cell value from escaped formula expression into valid formula expression', function() {
-    var afterChange = jasmine.createSpy();
-    var hot = handsontable({
+  it('should recalculate table after changing cell value from escaped formula expression into valid formula expression', () => {
+    const afterChange = jasmine.createSpy();
+    const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(4, 5, hot.getDataAtCell(4, 5).substr(1));
@@ -300,14 +299,14 @@ describe('Formulas general', function() {
     expect(afterChange.calls.argsFor(1)).toEqual([[[4, 5, '\'=SUM(E5)', '=SUM(E5)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  it('should recalculate table after changing cell value from primitive value into formula expression', function() {
-    var afterChange = jasmine.createSpy();
-    var hot = handsontable({
+  it('should recalculate table after changing cell value from primitive value into formula expression', () => {
+    const afterChange = jasmine.createSpy();
+    const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(1, 1, '=SUM(A2:A4)');
@@ -320,14 +319,14 @@ describe('Formulas general', function() {
     expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  it('should recalculate table after changing cell value from formula expression into primitive value', function() {
-    var afterChange = jasmine.createSpy();
-    var hot = handsontable({
+  it('should recalculate table after changing cell value from formula expression into primitive value', () => {
+    const afterChange = jasmine.createSpy();
+    const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(4, 1, 15);
@@ -340,14 +339,14 @@ describe('Formulas general', function() {
     expect(afterChange.calls.argsFor(1)).toEqual([[[4, 1, '=Sum(a2:a5)', 15]], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  it('should recalculate table after changing cell value from formula expression into another formula expression', function() {
-    var afterChange = jasmine.createSpy();
-    var hot = handsontable({
+  it('should recalculate table after changing cell value from formula expression into another formula expression', () => {
+    const afterChange = jasmine.createSpy();
+    const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: true,
       width: 500,
       height: 300,
-      afterChange: afterChange,
+      afterChange,
     });
 
     hot.setDataAtCell(4, 1, '=SUM(A2:A4)');
@@ -360,8 +359,8 @@ describe('Formulas general', function() {
     expect(afterChange.calls.argsFor(1)).toEqual([[[4, 1, '=Sum(a2:a5)', '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  it('should correctly recalculate formulas when precedents cells are located out of table viewport', function() {
-    var hot = handsontable({
+  it('should correctly recalculate formulas when precedents cells are located out of table viewport', () => {
+    const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=B39']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -374,8 +373,8 @@ describe('Formulas general', function() {
     expect(hot.getDataAtCell(0, 1)).toBe('foo bar');
   });
 
-  it('should mark cell as #REF! (circular dependency)', function() {
-    var hot = handsontable({
+  it('should mark cell as #REF! (circular dependency)', () => {
+    const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=B1']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -386,8 +385,8 @@ describe('Formulas general', function() {
     expect(hot.getDataAtCell(0, 1)).toBe('#REF!');
   });
 
-  it('should mark cell as #REF! (out of data table range for columns)', function() {
-    var hot = handsontable({
+  it('should mark cell as #REF! (out of data table range for columns)', () => {
+    const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=K1']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -398,8 +397,8 @@ describe('Formulas general', function() {
     expect(hot.getDataAtCell(0, 1)).toBe('#REF!');
   });
 
-  it('should mark cell as #REF! (out of data table range for rows)', function() {
-    var hot = handsontable({
+  it('should mark cell as #REF! (out of data table range for rows)', () => {
+    const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=A1000']),
       columns: getColumnsForFormulas(),
       formulas: true,
@@ -410,8 +409,8 @@ describe('Formulas general', function() {
     expect(hot.getDataAtCell(0, 1)).toBe('#REF!');
   });
 
-  it('should recalculate external variables', function() {
-    var hot = handsontable({
+  it('should recalculate external variables', () => {
+    const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=TEST_1', '=TEST_1&TEST_2', '=SUM(999, TEST_2)', '=TEST_3']),
       columns: getColumnsForFormulas(),
       formulas: {
@@ -430,8 +429,8 @@ describe('Formulas general', function() {
     expect(hot.getDataAtCell(3, 1)).toBe('#NAME?');
   });
 
-  it('should recalculate external variables (via constructor)', function() {
-    var hot = handsontable({
+  it('should recalculate external variables (via constructor)', () => {
+    const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=TEST_1', '=TEST_1&TEST_2', '=SUM(999, TEST_2)', '=TEST_3']),
       columns: getColumnsForFormulas(),
       formulas: {
@@ -450,8 +449,8 @@ describe('Formulas general', function() {
     expect(hot.getDataAtCell(3, 1)).toBe('#NAME?');
   });
 
-  it('should recalculate external variables (via setVariable method)', function() {
-    var hot = handsontable({
+  it('should recalculate external variables (via setVariable method)', () => {
+    const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=TEST_1', '=TEST_1&TEST_2', '=SUM(999, TEST_2)', '=TEST_3']),
       columns: getColumnsForFormulas(),
       formulas: {
@@ -471,9 +470,9 @@ describe('Formulas general', function() {
     expect(hot.getDataAtCell(3, 1)).toBe('#NAME?');
   });
 
-  describe('alter table (insert row)', function() {
-    it('should recalculate table after added new empty rows', function() {
-      var hot = handsontable({
+  describe('alter table (insert row)', () => {
+    it('should recalculate table after added new empty rows', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -491,8 +490,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(6)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, '\'=SUM(E5)']);
     });
 
-    it('should recalculate table after changing values into newly added row', function() {
-      var hot = handsontable({
+    it('should recalculate table after changing values into newly added row', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -513,9 +512,9 @@ describe('Formulas general', function() {
     });
   });
 
-  describe('alter table (insert column)', function() {
-    it('should recalculate table after added new empty columns', function() {
-      var hot = handsontable({
+  describe('alter table (insert column)', () => {
+    it('should recalculate table after added new empty columns', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -532,8 +531,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(4)).toEqual([2012, null, null, 8042, 10058, '#DIV/0!', 12, '\'=SUM(E5)']);
     });
 
-    it('should recalculate table after changing values into newly added column', function() {
-      var hot = handsontable({
+    it('should recalculate table after changing values into newly added column', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -552,9 +551,9 @@ describe('Formulas general', function() {
     });
   });
 
-  describe('alter table (remove row)', function() {
-    it('should recalculate table after removed rows', function() {
-      var hot = handsontable({
+  describe('alter table (remove row)', () => {
+    it('should recalculate table after removed rows', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -569,8 +568,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(3)).toEqual([2012, 6033, 8049, '#REF!', 12, '\'=SUM(E5)']);
     });
 
-    it('should recalculate table and replace coordinates in formula expressions into #REF! value (removing 2 rows)', function() {
-      var hot = handsontable({
+    it('should recalculate table and replace coordinates in formula expressions into #REF! value (removing 2 rows)', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -587,8 +586,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(2)).toEqual([2012, 4023, '#REF!', '#REF!', 12, '\'=SUM(E5)']);
     });
 
-    it('should recalculate table and replace coordinates in formula expressions into #REF! value (removing first 4 rows)', function() {
-      var hot = handsontable({
+    it('should recalculate table and replace coordinates in formula expressions into #REF! value (removing first 4 rows)', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -601,8 +600,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(0)).toEqual([2012, 2012, '#REF!', '#REF!', 12, '\'=SUM(E5)']);
     });
 
-    it('should recalculate table and update formula expression after removing rows intersected on the bottom of cell range', function() {
-      var hot = handsontable({
+    it('should recalculate table and update formula expression after removing rows intersected on the bottom of cell range', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -624,8 +623,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(3)).toEqual([2012, 2009, '#REF!', '#DIV/0!', 12, '\'=SUM(E5)']);
     });
 
-    it('should recalculate table and update formula expression after removing rows intersected on the top of cell range', function() {
-      var hot = handsontable({
+    it('should recalculate table and update formula expression after removing rows intersected on the top of cell range', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -644,8 +643,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(2)).toEqual([2012, 4021, 6037, '#REF!', 12, '\'=SUM(E5)']);
     });
 
-    it('should recalculate table and update formula expression after removing rows contains whole cell range', function() {
-      var hot = handsontable({
+    it('should recalculate table and update formula expression after removing rows contains whole cell range', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -666,9 +665,9 @@ describe('Formulas general', function() {
     });
   });
 
-  describe('alter table (remove column)', function() {
-    it('should recalculate table after removed columns', function() {
-      var hot = handsontable({
+  describe('alter table (remove column)', () => {
+    it('should recalculate table after removed columns', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -689,8 +688,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(4)).toEqual([2012, '#REF!', '#REF!', 12, '\'=SUM(E5)']);
     });
 
-    it('should recalculate table and replace coordinates in formula expressions into #REF! value (removing 2 columns)', function() {
-      var hot = handsontable({
+    it('should recalculate table and replace coordinates in formula expressions into #REF! value (removing 2 columns)', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -711,8 +710,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(4)).toEqual([2012, '#REF!', 12, '\'=SUM(E5)']);
     });
 
-    it('should recalculate table and replace coordinates in formula expressions into #REF! value (removing first 4 columns)', function() {
-      var hot = handsontable({
+    it('should recalculate table and replace coordinates in formula expressions into #REF! value (removing first 4 columns)', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -733,8 +732,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(4)).toEqual([12, '\'=SUM(E5)']);
     });
 
-    it('should recalculate table and update formula expression after removing columns intersected on the right of cell range', function() {
-      var hot = handsontable({
+    it('should recalculate table and update formula expression after removing columns intersected on the right of cell range', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -757,8 +756,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(4)).toEqual([2012, 8042, '\'=SUM(E5)']);
     });
 
-    it('should recalculate table and update formula expression after removing columns intersected on the left of cell range', function() {
-      var hot = handsontable({
+    it('should recalculate table and update formula expression after removing columns intersected on the left of cell range', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -781,8 +780,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(4)).toEqual(['#REF!', 12, '\'=SUM(E5)']);
     });
 
-    it('should recalculate table and update formula expression after removing columns contains whole cell range', function() {
-      var hot = handsontable({
+    it('should recalculate table and update formula expression after removing columns contains whole cell range', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -806,9 +805,9 @@ describe('Formulas general', function() {
     });
   });
 
-  describe('alter table (mixed operations)', function() {
-    it('should recalculate table and replace coordinates in formula expressions', function() {
-      var hot = handsontable({
+  describe('alter table (mixed operations)', () => {
+    it('should recalculate table and replace coordinates in formula expressions', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -837,9 +836,9 @@ describe('Formulas general', function() {
     });
   });
 
-  describe('undo/redo', function() {
-    it('should restore previous edited formula expression and recalculate table after that', function() {
-      var hot = handsontable({
+  describe('undo/redo', () => {
+    it('should restore previous edited formula expression and recalculate table after that', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -858,8 +857,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtCell(0, 5)).toBe(8042);
     });
 
-    it('should restore previous state after alter table (mixed insert operations)', function() {
-      var hot = handsontable({
+    it('should restore previous state after alter table (mixed insert operations)', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -913,8 +912,8 @@ describe('Formulas general', function() {
       expect(hot.getSourceDataAtRow(4)).toEqual([2012, '=SUM(A2:A5)', '=SUM(B5,E3)', '=A2/B2', 12, '\'=SUM(E5)']);
     });
 
-    it('should redo into the next state after alter table (mixed insert operations)', function() {
-      var hot = handsontable({
+    it('should redo into the next state after alter table (mixed insert operations)', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -971,8 +970,8 @@ describe('Formulas general', function() {
       expect(hot.getSourceDataAtRow(7)).toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,H6)', null, null, '=A5/C5', 12, '\'=SUM(E5)']);
     });
 
-    it('should restore previous state after alter table (mixed remove operations)', function() {
-      var hot = handsontable({
+    it('should restore previous state after alter table (mixed remove operations)', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -1012,8 +1011,8 @@ describe('Formulas general', function() {
       expect(hot.getSourceDataAtRow(4)).toEqual([2012, '=Sum(a2:a5)', '=SUM(B5,E3)', '=A2/B2', 12, '\'=SUM(E5)']);
     });
 
-    it('should redo into the next state after alter table (mixed remove operations)', function() {
-      var hot = handsontable({
+    it('should redo into the next state after alter table (mixed remove operations)', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         width: 500,
@@ -1057,9 +1056,9 @@ describe('Formulas general', function() {
     });
   });
 
-  describe('column sorting', function() {
-    it('should recalculate all formulas and update theirs cell coordinates if needed', function() {
-      var hot = handsontable({
+  describe('column sorting', () => {
+    it('should recalculate all formulas and update theirs cell coordinates if needed', () => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         columnSorting: true,
@@ -1068,7 +1067,7 @@ describe('Formulas general', function() {
         height: 300
       });
 
-      hot.updateSettings({columnSorting: {column: 2, sortOrder: 'asc'}});
+      hot.updateSettings({ columnSorting: { column: 2, sortOrder: 'asc' } });
 
       // source data is not involved in the translation process
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
@@ -1083,7 +1082,7 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(3)).toEqual([2012, 8042, 10056, 502.75, 12, '\'=SUM(E5)']);
       expect(hot.getDataAtRow(4)).toEqual([5, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 2011]);
 
-      hot.updateSettings({columnSorting: {column: 5, sortOrder: 'desc'}});
+      hot.updateSettings({ columnSorting: { column: 5, sortOrder: 'desc' } });
 
       // source data is not involved in the translation process
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
@@ -1099,8 +1098,8 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(4)).toEqual([5, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 2012]);
     });
 
-    it('should recalculate formula after precedent cells value was changed', function(done) {
-      var hot = handsontable({
+    it('should recalculate formula after precedent cells value was changed', (done) => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         columnSorting: true,
@@ -1109,9 +1108,9 @@ describe('Formulas general', function() {
         height: 300
       });
 
-      hot.updateSettings({columnSorting: {column: 2, sortOrder: 'asc'}});
+      hot.updateSettings({ columnSorting: { column: 2, sortOrder: 'asc' } });
 
-      setTimeout(function () {
+      setTimeout(() => {
         hot.setDataAtCell(4, 0, '');
 
         expect(hot.getDataAtRow(0)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
@@ -1155,8 +1154,8 @@ describe('Formulas general', function() {
       }, 200);
     });
 
-    it('should corectly recalculate formulas after changing formula expression in sorted cell', function(done) {
-      var hot = handsontable({
+    it('should corectly recalculate formulas after changing formula expression in sorted cell', (done) => {
+      const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         columnSorting: true,
@@ -1165,9 +1164,9 @@ describe('Formulas general', function() {
         height: 300
       });
 
-      hot.updateSettings({columnSorting: {column: 2, sortOrder: 'asc'}});
+      hot.updateSettings({ columnSorting: { column: 2, sortOrder: 'asc' } });
 
-      setTimeout(function () {
+      setTimeout(() => {
         hot.setDataAtCell(3, 1, '=SUM(B1:B3)');
 
         expect(hot.getDataAtRow(0)).toEqual([2011, 4, 2517, 4822, 552, 6127]);

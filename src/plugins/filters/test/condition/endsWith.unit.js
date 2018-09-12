@@ -1,10 +1,10 @@
-import {condition, CONDITION_NAME} from 'handsontable-pro/plugins/filters/condition/endsWith';
-import {dateRowFactory} from './../helpers/utils';
+import { condition } from 'handsontable-pro/plugins/filters/condition/endsWith';
+import { dateRowFactory } from './../helpers/utils';
 
-describe('Filters condition (`ends_with`)', function() {
+describe('Filters condition (`ends_with`)', () => {
 
-  it('should filter matching values', function() {
-    var data = dateRowFactory();
+  it('should filter matching values', () => {
+    const data = dateRowFactory();
 
     expect(condition(data('tom'), [''])).toBe(true);
     expect(condition(data('tom'), ['m'])).toBe(true);
@@ -23,8 +23,8 @@ describe('Filters condition (`ends_with`)', function() {
     expect(condition(data(true), ['e'])).toBe(true);
   });
 
-  it('should filter not matching values', function() {
-    var data = dateRowFactory();
+  it('should filter not matching values', () => {
+    const data = dateRowFactory();
 
     expect(condition(data('tom'), ['o'])).toBe(false);
     expect(condition(data('tom'), ['m '])).toBe(false);

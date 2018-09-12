@@ -37,9 +37,9 @@ describe('exportFile', () => {
       formatter.export.and.returnValue('foo;bar');
       spyOn(plugin, '_createTypeFormatter').and.returnValue(formatter);
 
-      const result = plugin.exportAsString('csv', {columnHeaders: true});
+      const result = plugin.exportAsString('csv', { columnHeaders: true });
 
-      expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', {columnHeaders: true});
+      expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', { columnHeaders: true });
       expect(formatter.export).toHaveBeenCalled();
       expect(result).toBe('foo;bar');
     });
@@ -54,9 +54,9 @@ describe('exportFile', () => {
       spyOn(plugin, '_createTypeFormatter').and.returnValue(formatter);
       spyOn(plugin, '_createBlob').and.returnValue('blob');
 
-      const result = plugin.exportAsBlob('csv', {columnHeaders: true});
+      const result = plugin.exportAsBlob('csv', { columnHeaders: true });
 
-      expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', {columnHeaders: true});
+      expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', { columnHeaders: true });
       expect(plugin._createBlob).toHaveBeenCalledWith(formatter);
       expect(result).toBe('blob');
     });
@@ -64,10 +64,10 @@ describe('exportFile', () => {
 
   describe('`_createTypeFormatter` method', () => {
     it('should create formatter type object', () => {
-      var hot = handsontable();
-      var plugin = hot.getPlugin('exportFile');
+      const hot = handsontable();
+      const plugin = hot.getPlugin('exportFile');
 
-      var result = plugin._createTypeFormatter('csv');
+      const result = plugin._createTypeFormatter('csv');
 
       expect(result).toBeDefined();
       expect(result.options.fileExtension).toBeDefined('csv');
@@ -90,7 +90,7 @@ describe('exportFile', () => {
       const formatter = jasmine.createSpyObj('formatter', ['export']);
 
       formatter.export.and.returnValue('foo;bar');
-      formatter.options = {mimeType: 'foo', encoding: 'iso-8859-1'};
+      formatter.options = { mimeType: 'foo', encoding: 'iso-8859-1' };
 
       const result = plugin._createBlob(formatter);
 

@@ -1,7 +1,7 @@
-import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
-import {arrayEach} from 'handsontable/helpers/array';
-import {rangeEach} from 'handsontable/helpers/number';
-import {hasClass} from 'handsontable/helpers/dom/element';
+import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
+import { arrayEach } from 'handsontable/helpers/array';
+import { rangeEach } from 'handsontable/helpers/number';
+import { hasClass } from 'handsontable/helpers/dom/element';
 import BaseUI from './_base';
 import HeadersUI from './headers';
 
@@ -29,8 +29,8 @@ class CollapsingUI extends BaseUI {
         // Workaround for wrong indexes being set in the trimRows plugin
         this.expandMultipleChildren(this.lastCollapsedRows, false);
       },
-      shiftStash: (elementIndex, delta = 1) => {
-        elementIndex = this.translateTrimmedRow(elementIndex);
+      shiftStash: (index, delta = 1) => {
+        const elementIndex = this.translateTrimmedRow(index);
         arrayEach(this.lastCollapsedRows, (elem, i) => {
           if (elem > elementIndex - 1) {
             this.lastCollapsedRows[i] = elem + delta;
@@ -75,7 +75,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (this.dataManager.hasChildren(rowObject)) {
-      arrayEach(rowObject.__children, (elem, i) => {
+      arrayEach(rowObject.__children, (elem) => {
         rowsToCollapse.push(this.dataManager.getRowIndex(elem));
       });
     }
@@ -107,7 +107,7 @@ class CollapsingUI extends BaseUI {
   collapseMultipleChildren(rows, forceRender = true, doTrimming = true) {
     let rowsToTrim = [];
 
-    arrayEach(rows, (elem, i) => {
+    arrayEach(rows, (elem) => {
       rowsToTrim = rowsToTrim.concat(this.collapseChildren(elem, false, false));
     });
 
@@ -141,7 +141,7 @@ class CollapsingUI extends BaseUI {
   collapseRows(rowIndexes, recursive = true, doTrimming = false) {
     const rowsToTrim = [];
 
-    arrayEach(rowIndexes, (elem, i) => {
+    arrayEach(rowIndexes, (elem) => {
       rowsToTrim.push(elem);
       if (recursive) {
         this.collapseChildRows(elem, rowsToTrim);
@@ -160,14 +160,14 @@ class CollapsingUI extends BaseUI {
    *
    * @param {Number} parentIndex Index of the parent node.
    * @param {Array} [rowsToTrim = []] Array of rows to trim. Defaults to an empty array.
-   * @param {Boolean} [recursive = true] `true` if the collapsing process should be recursive.
+   * @param {Boolean} [recursive] `true` if the collapsing process should be recursive.
    * @param {Boolean} [doTrimming = false] `true` if rows should be trimmed.
    */
-  collapseChildRows(parentIndex, rowsToTrim = [], recursive = true, doTrimming = false) {
+  collapseChildRows(parentIndex, rowsToTrim = [], recursive, doTrimming = false) {
     if (this.dataManager.hasChildren(parentIndex)) {
       const parentObject = this.dataManager.getDataObject(parentIndex);
 
-      arrayEach(parentObject.__children, (elem, i) => {
+      arrayEach(parentObject.__children, (elem) => {
         const elemIndex = this.dataManager.getRowIndex(elem);
         rowsToTrim.push(elemIndex);
         this.collapseChildRows(elemIndex, rowsToTrim);
@@ -200,7 +200,7 @@ class CollapsingUI extends BaseUI {
   expandRows(rowIndexes, recursive = true, doTrimming = false) {
     const rowsToUntrim = [];
 
-    arrayEach(rowIndexes, (elem, i) => {
+    arrayEach(rowIndexes, (elem) => {
       rowsToUntrim.push(elem);
       if (recursive) {
         this.expandChildRows(elem, rowsToUntrim);
@@ -219,14 +219,14 @@ class CollapsingUI extends BaseUI {
    *
    * @param {Number} parentIndex Index of the parent row.
    * @param {Array} [rowsToUntrim = []] Array of the rows to be untrimmed.
-   * @param {Boolean} [recursive = true] `true` if it should expand the rows' children recursively.
+   * @param {Boolean} [recursive] `true` if it should expand the rows' children recursively.
    * @param {Boolean} [doTrimming = false] `true` if rows should be untrimmed.
    */
-  expandChildRows(parentIndex, rowsToUntrim = [], recursive = true, doTrimming = false) {
+  expandChildRows(parentIndex, rowsToUntrim = [], recursive, doTrimming = false) {
     if (this.dataManager.hasChildren(parentIndex)) {
       const parentObject = this.dataManager.getDataObject(parentIndex);
 
-      arrayEach(parentObject.__children, (elem, i) => {
+      arrayEach(parentObject.__children, (elem) => {
         if (!this.isAnyParentCollapsed(elem)) {
           const elemIndex = this.dataManager.getRowIndex(elem);
           rowsToUntrim.push(elemIndex);
@@ -264,7 +264,7 @@ class CollapsingUI extends BaseUI {
     this.collapsedRows.splice(this.collapsedRows.indexOf(rowIndex), 1);
 
     if (this.dataManager.hasChildren(rowObject)) {
-      arrayEach(rowObject.__children, (elem, i) => {
+      arrayEach(rowObject.__children, (elem) => {
         const childIndex = this.dataManager.getRowIndex(elem);
 
         rowsToExpand.push(childIndex);
@@ -294,7 +294,7 @@ class CollapsingUI extends BaseUI {
   expandMultipleChildren(rows, forceRender = true, doTrimming = true) {
     let rowsToUntrim = [];
 
-    arrayEach(rows, (elem, i) => {
+    arrayEach(rows, (elem) => {
       rowsToUntrim = rowsToUntrim.concat(this.expandChildren(elem, false, false));
     });
 
@@ -314,7 +314,7 @@ class CollapsingUI extends BaseUI {
     const sourceData = this.hot.getSourceData();
     const parentsToCollapse = [];
 
-    arrayEach(sourceData, (elem, i) => {
+    arrayEach(sourceData, (elem) => {
       if (this.dataManager.hasChildren(elem)) {
         parentsToCollapse.push(elem);
       }
@@ -332,7 +332,7 @@ class CollapsingUI extends BaseUI {
     const sourceData = this.hot.getSourceData();
     const parentsToExpand = [];
 
-    arrayEach(sourceData, (elem, i) => {
+    arrayEach(sourceData, (elem) => {
       if (this.dataManager.hasChildren(elem)) {
         parentsToExpand.push(elem);
       }
@@ -360,8 +360,8 @@ class CollapsingUI extends BaseUI {
     }
 
     if (this.dataManager.hasChildren(rowObj)) {
-      arrayEach(rowObj.__children, (elem, i) => {
-        let rowIndex = this.dataManager.getRowIndex(elem);
+      arrayEach(rowObj.__children, (elem) => {
+        const rowIndex = this.dataManager.getRowIndex(elem);
 
         if (!this.trimRowsPlugin.isTrimmed(rowIndex)) {
           allCollapsed = false;
@@ -385,7 +385,7 @@ class CollapsingUI extends BaseUI {
 
     while (parent !== null) {
       parent = this.dataManager.getRowParent(parent);
-      let parentIndex = this.dataManager.getRowIndex(parent);
+      const parentIndex = this.dataManager.getRowIndex(parent);
 
       if (this.collapsedRows.indexOf(parentIndex) > -1) {
         return true;
@@ -401,9 +401,8 @@ class CollapsingUI extends BaseUI {
    * @private
    * @param {MouseEvent} event `mousedown` event
    * @param {Object} coords Coordinates of the clicked cell/header.
-   * @param {HTMLElement} TD Clicked cell/header.
    */
-  toggleState(event, coords, TD) {
+  toggleState(event, coords) {
     if (coords.col >= 0) {
       return;
     }

@@ -1,7 +1,5 @@
-import {arrayMapper} from 'handsontable/mixins/arrayMapper';
-import {mixin} from 'handsontable/helpers/object';
-import {rangeEach} from 'handsontable/helpers/number';
-import {toUpperCaseFirst} from 'handsontable/helpers/string';
+import { rangeEach } from 'handsontable/helpers/number';
+import { toUpperCaseFirst } from 'handsontable/helpers/string';
 import * as strategies from './bindStrategies';
 
 /**
@@ -29,7 +27,7 @@ class BindStrategy {
    * @param name
    */
   setStrategy(name) {
-    let Strategy = strategies[toUpperCaseFirst(name)];
+    const Strategy = strategies[toUpperCaseFirst(name)];
 
     if (!Strategy) {
       throw new Error(`Bind strategy "${name}" does not exist.`);
@@ -43,8 +41,8 @@ class BindStrategy {
    * @param {Number} [length] Custom generated map length.
    */
   createMap(length) {
-    let strategy = this.strategy;
-    let originLength = length === void 0 ? strategy._arrayMap.length : length;
+    const strategy = this.strategy;
+    const originLength = length === void 0 ? strategy._arrayMap.length : length;
 
     strategy._arrayMap.length = 0;
 
@@ -59,7 +57,7 @@ class BindStrategy {
    * @param {*} params
    */
   createRow(...params) {
-    this.strategy.createRow.apply(this.strategy, params);
+    this.strategy.createRow(...params);
   }
 
   /**
@@ -68,7 +66,7 @@ class BindStrategy {
    * @param {*} params
    */
   removeRow(...params) {
-    this.strategy.removeRow.apply(this.strategy, params);
+    this.strategy.removeRow(...params);
   }
 
   /**
@@ -77,7 +75,7 @@ class BindStrategy {
    * @param {*} params
    */
   translate(...params) {
-    return this.strategy.getValueByIndex.apply(this.strategy, params);
+    return this.strategy.getValueByIndex(...params);
   }
 
   /**

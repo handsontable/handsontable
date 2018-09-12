@@ -2,7 +2,6 @@ import {
   getScrollbarWidth,
   outerHeight,
   outerWidth,
-  setOverlayPosition,
   resetCssTransform
 } from 'handsontable/helpers/dom/element';
 import Overlay from 'handsontable/3rdparty/walkontable/src/overlay/_base';
@@ -35,14 +34,14 @@ class BottomLeftCornerOverlay extends Overlay {
    */
   repositionOverlay() {
     let scrollbarWidth = getScrollbarWidth();
-    let cloneRoot = this.clone.wtTable.holder.parentNode;
+    const cloneRoot = this.clone.wtTable.holder.parentNode;
 
     if (this.wot.wtTable.holder.clientHeight === this.wot.wtTable.holder.offsetHeight) {
       scrollbarWidth = 0;
     }
 
     cloneRoot.style.top = '';
-    cloneRoot.style.bottom = scrollbarWidth + 'px';
+    cloneRoot.style.bottom = `${scrollbarWidth}px`;
   }
 
   /**
@@ -55,19 +54,19 @@ class BottomLeftCornerOverlay extends Overlay {
       // removed from DOM
       return;
     }
-    let overlayRoot = this.clone.wtTable.holder.parentNode;
-    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    let tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
 
     overlayRoot.style.top = '';
 
     if (this.trimmingContainer === window) {
-      let box = this.wot.wtTable.hider.getBoundingClientRect();
-      let bottom = Math.ceil(box.bottom);
-      let left = Math.ceil(box.left);
+      const box = this.wot.wtTable.hider.getBoundingClientRect();
+      const bottom = Math.ceil(box.bottom);
+      const left = Math.ceil(box.left);
       let finalLeft;
       let finalBottom;
-      let bodyHeight = document.body.offsetHeight;
+      const bodyHeight = document.body.offsetHeight;
 
       if (left < 0) {
         finalLeft = -left;
@@ -91,8 +90,8 @@ class BottomLeftCornerOverlay extends Overlay {
       resetCssTransform(overlayRoot);
       this.repositionOverlay();
     }
-    overlayRoot.style.height = (tableHeight === 0 ? tableHeight : tableHeight) + 'px';
-    overlayRoot.style.width = (tableWidth === 0 ? tableWidth : tableWidth) + 'px';
+    overlayRoot.style.height = `${tableHeight === 0 ? tableHeight : tableHeight}px`;
+    overlayRoot.style.width = `${tableWidth === 0 ? tableWidth : tableWidth}px`;
   }
 }
 

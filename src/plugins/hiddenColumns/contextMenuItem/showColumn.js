@@ -1,4 +1,4 @@
-import {rangeEach} from 'handsontable/helpers/number';
+import { rangeEach } from 'handsontable/helpers/number';
 import * as C from 'handsontable/i18n/constants';
 
 export default function showColumnItem(hiddenColumnsPlugin) {
@@ -37,9 +37,9 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN, pluralForm);
     },
     callback() {
-      let {from, to} = this.getSelectedRangeLast();
-      let start = Math.min(from.col, to.col);
-      let end = Math.max(from.col, to.col);
+      const { from, to } = this.getSelectedRangeLast();
+      const start = Math.min(from.col, to.col);
+      const end = Math.max(from.col, to.col);
 
       if (start === end) {
         if (beforeHiddenColumns.length === start) {
@@ -52,7 +52,7 @@ export default function showColumnItem(hiddenColumnsPlugin) {
         }
 
       } else {
-        rangeEach(start, end, (column) => hiddenColumnsPlugin.showColumn(column));
+        rangeEach(start, end, column => hiddenColumnsPlugin.showColumn(column));
       }
 
       this.render();
@@ -67,16 +67,16 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       beforeHiddenColumns.length = 0;
       afterHiddenColumns.length = 0;
 
-      let {from, to} = this.getSelectedRangeLast();
-      let start = Math.min(from.col, to.col);
-      let end = Math.max(from.col, to.col);
+      const { from, to } = this.getSelectedRangeLast();
+      const start = Math.min(from.col, to.col);
+      const end = Math.max(from.col, to.col);
       let hiddenInSelection = false;
 
       if (start === end) {
         let totalColumnLength = this.countSourceCols();
 
         rangeEach(0, totalColumnLength, (column) => {
-          let partedHiddenLength = beforeHiddenColumns.length + afterHiddenColumns.length;
+          const partedHiddenLength = beforeHiddenColumns.length + afterHiddenColumns.length;
 
           if (partedHiddenLength === hiddenColumnsPlugin.hiddenColumns.length) {
             return false;

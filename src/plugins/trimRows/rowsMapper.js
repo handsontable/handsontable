@@ -1,6 +1,6 @@
 import arrayMapper from 'handsontable/mixins/arrayMapper';
-import {mixin} from 'handsontable/helpers/object';
-import {rangeEach} from 'handsontable/helpers/number';
+import { mixin } from 'handsontable/helpers/object';
+import { rangeEach } from 'handsontable/helpers/number';
 
 /**
  * @class RowsMapper
@@ -24,13 +24,13 @@ class RowsMapper {
    */
   createMap(length) {
     let rowOffset = 0;
-    let originLength = length === void 0 ? this._arrayMap.length : length;
+    const originLength = length === void 0 ? this._arrayMap.length : length;
 
     this._arrayMap.length = 0;
 
     rangeEach(originLength - 1, (itemIndex) => {
       if (this.trimRows.isTrimmed(itemIndex)) {
-        rowOffset++;
+        rowOffset += 1;
       } else {
         this._arrayMap[itemIndex - rowOffset] = itemIndex;
       }

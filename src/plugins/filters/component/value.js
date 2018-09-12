@@ -1,13 +1,13 @@
-import {addClass} from 'handsontable/helpers/dom/element';
-import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
-import {arrayEach, arrayFilter, arrayMap} from 'handsontable/helpers/array';
-import {isKey} from 'handsontable/helpers/unicode';
+import { addClass } from 'handsontable/helpers/dom/element';
+import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
+import { arrayEach, arrayFilter, arrayMap } from 'handsontable/helpers/array';
+import { isKey } from 'handsontable/helpers/unicode';
 import * as C from 'handsontable/i18n/constants';
-import {unifyColumnValues, intersectValues, toEmptyString} from './../utils';
+import { unifyColumnValues, intersectValues, toEmptyString } from './../utils';
 import BaseComponent from './_base';
 import MultipleSelectUI from './../ui/multipleSelect';
-import {CONDITION_BY_VALUE, CONDITION_NONE} from './../constants';
-import {getConditionDescriptor} from './../conditionRegisterer';
+import { CONDITION_BY_VALUE, CONDITION_NONE } from './../constants';
+import { getConditionDescriptor } from './../conditionRegisterer';
 
 /**
  * @class ValueComponent
@@ -31,7 +31,7 @@ class ValueComponent extends BaseComponent {
    * @private
    */
   registerHooks() {
-    this.getMultipleSelectElement().addLocalHook('keydown', (event) => this.onInputKeyDown(event));
+    this.getMultipleSelectElement().addLocalHook('keydown', event => this.onInputKeyDown(event));
   }
 
   /**
@@ -60,7 +60,7 @@ class ValueComponent extends BaseComponent {
     const availableItems = select.getItems();
 
     return {
-      command: {key: select.isSelectedAllValues() || !availableItems.length ? CONDITION_NONE : CONDITION_BY_VALUE},
+      command: { key: select.isSelectedAllValues() || !availableItems.length ? CONDITION_NONE : CONDITION_BY_VALUE },
       args: [select.getValue()],
       itemsSnapshot: availableItems
     };
@@ -75,12 +75,12 @@ class ValueComponent extends BaseComponent {
    */
   updateState(stateInfo) {
     const updateColumnState = (column, conditions, conditionArgsChange, filteredRowsFactory, conditionsStack) => {
-      const [firstByValueCondition] = arrayFilter(conditions, (condition) => condition.name === CONDITION_BY_VALUE);
+      const [firstByValueCondition] = arrayFilter(conditions, condition => condition.name === CONDITION_BY_VALUE);
       const state = {};
       const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
 
       if (firstByValueCondition) {
-        let rowValues = arrayMap(filteredRowsFactory(column, conditionsStack), (row) => row.value);
+        let rowValues = arrayMap(filteredRowsFactory(column, conditionsStack), row => row.value);
 
         rowValues = unifyColumnValues(rowValues);
 
@@ -132,7 +132,7 @@ class ValueComponent extends BaseComponent {
    * @returns {MultipleSelectUI}
    */
   getMultipleSelectElement() {
-    return this.elements.filter((element) => element instanceof MultipleSelectUI)[0];
+    return this.elements.filter(element => element instanceof MultipleSelectUI)[0];
   }
 
   /**
@@ -150,13 +150,13 @@ class ValueComponent extends BaseComponent {
       renderer: (hot, wrapper, row, col, prop, value) => {
         addClass(wrapper.parentNode, 'htFiltersMenuValue');
 
-        let label = document.createElement('div');
+        const label = document.createElement('div');
 
         addClass(label, 'htFiltersMenuLabel');
         label.textContent = value;
 
         wrapper.appendChild(label);
-        arrayEach(this.elements, (ui) => wrapper.appendChild(ui.element));
+        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
 
         return wrapper;
       }
@@ -168,8 +168,8 @@ class ValueComponent extends BaseComponent {
    */
   reset() {
     const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
-    let values = unifyColumnValues(this._getColumnVisibleValues());
-    let items = intersectValues(values, values, defaultBlankCellValue);
+    const values = unifyColumnValues(this._getColumnVisibleValues());
+    const items = intersectValues(values, values, defaultBlankCellValue);
 
     this.getMultipleSelectElement().setItems(items);
     super.reset();
@@ -199,7 +199,7 @@ class ValueComponent extends BaseComponent {
     const lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
     const visualIndex = lastSelectedColumn && lastSelectedColumn.visualIndex;
 
-    return arrayMap(this.hot.getDataAtCol(visualIndex), (v) => toEmptyString(v));
+    return arrayMap(this.hot.getDataAtCol(visualIndex), v => toEmptyString(v));
   }
 }
 
