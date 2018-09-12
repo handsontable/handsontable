@@ -128,6 +128,7 @@ class CopyPaste extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
+    this.addHook('afterOnCellMouseUp', () => this.onAfterOnCellMouseUp());
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
 
     this.focusableElement = createElement();
@@ -421,7 +422,7 @@ class CopyPaste extends BasePlugin {
     if (event && typeof event.clipboardData !== 'undefined') {
       const textHTML = event.clipboardData.getData('text/html');
 
-      if (textHTML && /<table/.test(textHTML)) {
+      if (textHTML && /(<table)|(<TABLE)/.test(textHTML)) {
         pastedData = tableToArray(textHTML);
       } else {
         pastedData = event.clipboardData.getData('text/plain');
@@ -499,6 +500,25 @@ class CopyPaste extends BasePlugin {
       copyItem(this),
       cutItem(this)
     );
+  }
+
+  /**
+   * Force focus on focusableElement.
+   *
+   * @private
+   */
+  onAfterOnCellMouseUp() {
+    const editor = this.hot.getActiveEditor();
+    const editableElement = editor ? editor.TEXTAREA : void 0;
+
+    if (editableElement) {
+      this.focusableElement.setFocusableElement(editableElement);
+    } else {
+      this.focusableElement.useSecondaryElement();
+    }
+
+    this.focusableElement.focus();
+
   }
 
   /**
