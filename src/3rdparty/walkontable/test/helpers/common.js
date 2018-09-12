@@ -8,16 +8,16 @@ export function sleep(delay = 100) {
       }
     }
   });
-};
+}
+
+let currentSpec;
 
 export function spec() {
   return currentSpec;
-};
+}
 
-export function createDataArray(rows, cols) {
+export function createDataArray(rows = 100, cols = 4) {
   spec().data = [];
-  rows = typeof rows === 'number' ? rows : 100;
-  cols = typeof cols === 'number' ? cols : 4;
 
   for (let i = 0; i < rows; i++) {
     const row = [];
@@ -33,21 +33,19 @@ export function createDataArray(rows, cols) {
     }
     spec().data.push(row);
   }
-};
+}
 
 export function getData(row, col) {
   return spec().data[row][col];
-};
+}
 
 export function getTotalRows() {
   return spec().data.length;
-};
+}
 
 export function getTotalColumns() {
   return spec().data[0] ? spec().data[0].length : 0;
-};
-
-let currentSpec;
+}
 
 beforeEach(function() {
   currentSpec = this;
@@ -73,9 +71,7 @@ beforeEach(function() {
     },
     toBeAroundValue() {
       return {
-        compare(actual, expected, diff) {
-          diff = diff || 1;
-
+        compare(actual, expected, diff = 1) {
           const pass = actual >= expected - diff && actual <= expected + diff;
           let message = `Expected ${actual} to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
 
@@ -101,12 +97,15 @@ afterEach(() => {
 
 export function getTableWidth(elem) {
   return $(elem).outerWidth() || $(elem).find('tbody').outerWidth() || $(elem).find('thead').outerWidth(); // IE8 reports 0 as <table> offsetWidth
-};
+}
 
-export function range(from, to) {
+export function range(start, end) {
   if (!arguments.length) {
     return [];
   }
+
+  let from = start;
+  let to = end;
 
   if (arguments.length === 1) {
     to = from;
@@ -119,12 +118,13 @@ export function range(from, to) {
 
   const result = [];
 
-  while (to++ < from) {
+  while (to < from) {
+    to += 1;
     result.push(to);
   }
 
   return result;
-};
+}
 
 /**
  * Creates the selection controller necessary for the Walkontable to make selections typical for Handsontable such as
@@ -133,49 +133,49 @@ export function range(from, to) {
  * @param {Object} selections An object with custom selection instances.
  * @returns {Object} Selection controller.
  */
-export function createSelectionController({current, area, fill, custom} = {}) {
-  current = current || new Walkontable.Selection({
+export function createSelectionController({ current, area, fill, custom } = {}) {
+  const currentCtrl = current || new Walkontable.Selection({
     className: 'current',
     border: {
       width: 2,
       color: '#4b89ff',
     },
   });
-  area = area || new Walkontable.Selection({
+  const areaCtrl = area || new Walkontable.Selection({
     className: 'area',
     border: {
       width: 1,
       color: '#4b89ff',
     },
   });
-  fill = fill || new Walkontable.Selection({
+  const fillCtrl = fill || new Walkontable.Selection({
     className: 'fill',
     border: {
       width: 1,
       color: '#ff0000',
     },
   });
-  custom = custom || [];
+  const customCtrl = custom || [];
 
   return {
     getCell() {
-      return current;
+      return currentCtrl;
     },
     createOrGetArea() {
-      return area;
+      return areaCtrl;
     },
     getAreas() {
-      return [area];
+      return [areaCtrl];
     },
     getFill() {
-      return fill;
+      return fillCtrl;
     },
     [Symbol.iterator]() {
       return [
-        fill,
-        current,
-        area,
-        ...custom,
+        fillCtrl,
+        currentCtrl,
+        areaCtrl,
+        ...customCtrl,
       ][Symbol.iterator]();
     },
   };

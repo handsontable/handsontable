@@ -1,5 +1,5 @@
-import {arrayEach} from './helpers/array';
-import {objectEach} from './helpers/object';
+import { arrayEach } from './helpers/array';
+import { objectEach } from './helpers/object';
 
 /**
  * @description
@@ -1667,7 +1667,7 @@ const REGISTERED_HOOKS = [
 
 class Hooks {
   static getSingleton() {
-    return globalSingleton;
+    return getGlobalSingleton();
   }
 
   /**
@@ -1699,7 +1699,7 @@ class Hooks {
     const bucket = Object.create(null);
 
     // eslint-disable-next-line no-return-assign
-    arrayEach(REGISTERED_HOOKS, (hook) => (bucket[hook] = []));
+    arrayEach(REGISTERED_HOOKS, hook => (bucket[hook] = []));
 
     return bucket;
   }
@@ -1752,7 +1752,7 @@ class Hooks {
    */
   add(key, callback, context = null) {
     if (Array.isArray(callback)) {
-      arrayEach(callback, (c) => this.add(key, c, context));
+      arrayEach(callback, c => this.add(key, c, context));
 
     } else {
       const bucket = this.getBucket(context);
@@ -1802,7 +1802,7 @@ class Hooks {
    */
   once(key, callback, context = null) {
     if (Array.isArray(callback)) {
-      arrayEach(callback, (c) => this.once(key, c, context));
+      arrayEach(callback, c => this.once(key, c, context));
 
     } else {
       callback.runOnce = true;
@@ -1825,7 +1825,7 @@ class Hooks {
    * ```
    */
   remove(key, callback, context = null) {
-    let bucket = this.getBucket(context);
+    const bucket = this.getBucket(context);
 
     if (typeof bucket[key] !== 'undefined') {
       if (bucket[key].indexOf(callback) >= 0) {
@@ -1847,7 +1847,7 @@ class Hooks {
    * @returns {Boolean} `true` for success, `false` otherwise.
    */
   has(key, context = null) {
-    let bucket = this.getBucket(context);
+    const bucket = this.getBucket(context);
 
     return !!(bucket[key] !== void 0 && bucket[key].length);
   }
@@ -1875,49 +1875,57 @@ class Hooks {
   run(context, key, p1, p2, p3, p4, p5, p6) {
     {
       const globalHandlers = this.globalBucket[key];
-      let index = -1;
-      let length = globalHandlers ? globalHandlers.length : 0;
+      const length = globalHandlers ? globalHandlers.length : 0;
+      let index = 0;
 
       if (length) {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-        while (++index < length) {
+        while (index < length) {
           if (!globalHandlers[index] || globalHandlers[index].skip) {
+            index += 1;
             /* eslint-disable no-continue */
             continue;
           }
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-          let res = globalHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
+          const res = globalHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
+            // eslint-disable-next-line no-param-reassign
             p1 = res;
           }
           if (globalHandlers[index] && globalHandlers[index].runOnce) {
             this.remove(key, globalHandlers[index]);
           }
+
+          index += 1;
         }
       }
     }
     {
       const localHandlers = this.getBucket(context)[key];
-      let index = -1;
-      let length = localHandlers ? localHandlers.length : 0;
+      const length = localHandlers ? localHandlers.length : 0;
+      let index = 0;
 
       if (length) {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-        while (++index < length) {
+        while (index < length) {
           if (!localHandlers[index] || localHandlers[index].skip) {
+            index += 1;
             /* eslint-disable no-continue */
             continue;
           }
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-          let res = localHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
+          const res = localHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
+            // eslint-disable-next-line no-param-reassign
             p1 = res;
           }
           if (localHandlers[index] && localHandlers[index].runOnce) {
             this.remove(key, localHandlers[index], context);
           }
+
+          index += 1;
         }
       }
     }
@@ -2022,5 +2030,9 @@ class Hooks {
 }
 
 const globalSingleton = new Hooks();
+
+function getGlobalSingleton() {
+  return globalSingleton;
+}
 
 export default Hooks;

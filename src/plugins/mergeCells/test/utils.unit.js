@@ -1,4 +1,4 @@
-import {applySpanProperties} from '../utils';
+import { applySpanProperties } from '../utils';
 
 describe('MergeCells: DOM manipulation', () => {
   describe('applySpanProperties', () => {

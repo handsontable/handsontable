@@ -1,4 +1,4 @@
-import {arrayEach} from './array';
+import { arrayEach } from './array';
 
 /**
  * Generate schema for passed object.
@@ -117,7 +117,7 @@ export function deepClone(obj) {
  * @returns {Object}
  */
 export function clone(object) {
-  let result = {};
+  const result = {};
 
   objectEach(object, (value, key) => {
     result[key] = value;
@@ -148,15 +148,17 @@ export function mixin(Base, ...mixins) {
         Base.prototype[key] = value;
 
       } else {
-        let getter = function _getter(propertyName, initialValue) {
-          propertyName = `_${propertyName}`;
+        const getter = function _getter(property, initialValue) {
+          const propertyName = `_${property}`;
 
-          let initValue = (newValue) => {
-            if (Array.isArray(newValue) || isObject(newValue)) {
-              newValue = deepClone(newValue);
+          const initValue = (newValue) => {
+            let result = newValue;
+
+            if (Array.isArray(result) || isObject(result)) {
+              result = deepClone(result);
             }
 
-            return newValue;
+            return result;
           };
 
           return function() {
@@ -167,8 +169,8 @@ export function mixin(Base, ...mixins) {
             return this[propertyName];
           };
         };
-        let setter = function _setter(propertyName) {
-          propertyName = `_${propertyName}`;
+        const setter = function _setter(property) {
+          const propertyName = `_${property}`;
 
           return function(newValue) {
             this[propertyName] = newValue;
@@ -224,7 +226,8 @@ export function defineGetter(object, property, value, options) {
  * @returns {Object} Returns `object`.
  */
 export function objectEach(object, iteratee) {
-  for (let key in object) {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const key in object) {
     if (!object.hasOwnProperty || (object.hasOwnProperty && Object.prototype.hasOwnProperty.call(object, key))) {
       if (iteratee(object[key], key, object) === false) {
         break;
@@ -243,7 +246,7 @@ export function objectEach(object, iteratee) {
  * @returns {*}
  */
 export function getProperty(object, name) {
-  let names = name.split('.');
+  const names = name.split('.');
   let result = object;
 
   objectEach(names, (nameItem) => {
@@ -269,7 +272,7 @@ export function deepObjectSize(object) {
   if (!isObject(object)) {
     return 0;
   }
-  let recursObjLen = function(obj) {
+  const recursObjLen = function(obj) {
     let result = 0;
 
     if (isObject(obj)) {
@@ -277,7 +280,7 @@ export function deepObjectSize(object) {
         result += recursObjLen(key);
       });
     } else {
-      result++;
+      result += 1;
     }
 
     return result;

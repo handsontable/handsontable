@@ -4,8 +4,8 @@ import {
   isVisible,
   removeClass,
 } from './../../../helpers/dom/element';
-import {objectEach} from './../../../helpers/object';
-import {toUpperCaseFirst, randomString} from './../../../helpers/string';
+import { objectEach } from './../../../helpers/object';
+import { toUpperCaseFirst, randomString } from './../../../helpers/string';
 import Event from './event';
 import Overlays from './overlays';
 import Scroll from './scroll';
@@ -21,7 +21,7 @@ class Walkontable {
    * @param {Object} settings
    */
   constructor(settings) {
-    let originalHeaders = [];
+    const originalHeaders = [];
 
     // this is the namespace for global events
     this.guid = `wt_${randomString()}`;
@@ -98,10 +98,10 @@ class Walkontable {
       return this.wtTable.getCell(coords);
     }
 
-    let totalRows = this.wtSettings.getSetting('totalRows');
-    let fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
-    let fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
-    let fixedColumns = this.wtSettings.getSetting('fixedColumnsLeft');
+    const totalRows = this.wtSettings.getSetting('totalRows');
+    const fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
+    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
+    const fixedColumns = this.wtSettings.getSetting('fixedColumnsLeft');
 
     if (coords.row < fixedRowsTop && coords.col < fixedColumns) {
       return this.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell(coords);
@@ -213,12 +213,12 @@ class Walkontable {
    * Export settings as class names added to the parent element of the table.
    */
   exportSettingsAsClassNames() {
-    let toExport = {
+    const toExport = {
       rowHeaders: ['array'],
       columnHeaders: ['array']
     };
-    let allClassNames = [];
-    let newClassNames = [];
+    const allClassNames = [];
+    const newClassNames = [];
 
     objectEach(toExport, (optionType, key) => {
       if (optionType.indexOf('array') > -1 && this.getSetting(key).length) {

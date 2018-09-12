@@ -1,4 +1,4 @@
-import {arrayReduce} from './array';
+import { arrayReduce } from './array';
 
 /**
  * Checks if given variable is function.
@@ -19,13 +19,13 @@ export function isFunction(func) {
  */
 export function throttle(func, wait = 200) {
   let lastCalled = 0;
-  let result = {
+  const result = {
     lastCallThrottled: true
   };
   let lastTimer = null;
 
   function _throttle(...args) {
-    let stamp = Date.now();
+    const stamp = Date.now();
     let needCall = false;
 
     result.lastCallThrottled = true;
@@ -34,7 +34,7 @@ export function throttle(func, wait = 200) {
       lastCalled = stamp;
       needCall = true;
     }
-    let remaining = wait - (stamp - lastCalled);
+    const remaining = wait - (stamp - lastCalled);
 
     if (needCall) {
       result.lastCallThrottled = false;
@@ -75,7 +75,7 @@ export function throttleAfterHits(func, wait = 200, hits = 10) {
   }
   function _throttleAfterHits(...args) {
     if (remainHits) {
-      remainHits--;
+      remainHits -= 1;
 
       return func.apply(this, args);
     }

@@ -164,7 +164,7 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
       return;
     }
 
-    let value = this.getValue();
+    const value = this.getValue();
 
     if (this.instance.getSettings().trimWhitespace) {
       // We trim only string values

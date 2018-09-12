@@ -10,14 +10,14 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "browser": "dist/handsontable.js",
   "main": "commonjs/index.js",
   "module": "es/index.js",
   "jsnext:main": "es/index.js",
   "scripts": {
     "clean": "rimraf commonjs es coverage",
-    "lint": "eslint --rule \"no-restricted-globals: 0\" test && eslint --rule \"no-restricted-globals: 0\" --ext .unit.js --ext .e2e.js src/ && eslint --ignore-pattern \"src/plugins/**/test/**\" --ignore-pattern \"^languages/**\" src/",
+    "lint": "eslint src/ test/",
     "test": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable && npm run test:e2e && npm run test:production",
     "test:walkontable": "npm run build:walkontable && npm run test:walkontable.dump && npm run test:walkontable.puppeteer",
     "test:production": "npm run build:umd.min && npm run build:languages.min && npm run test:production.dump && npm run test:e2e.puppeteer",

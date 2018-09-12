@@ -53,6 +53,53 @@ describe('TextEditor', () => {
     expect(isEditorVisible()).toEqual(false);
   });
 
+  it('should create editor holder after cell selection', () => {
+    handsontable({
+      editor: 'text',
+    });
+
+    const container = spec().$container;
+
+    expect(container.find('.handsontableInputHolder').length).toBe(0);
+
+    selectCell(0, 0);
+
+    expect(container.find('.handsontableInputHolder').length).toBe(1);
+  });
+
+  it('should prepare editor with proper styles after selection', () => {
+    handsontable({
+      editor: 'text',
+    });
+
+    selectCell(0, 0);
+
+    const { left, position, top, zIndex } = spec().$container.find('.handsontableInputHolder').css(['left', 'position', 'top', 'zIndex']);
+
+    expect(left).toBe('-9999px');
+    expect(position).toBe('fixed');
+    expect(top).toBe('-9999px');
+    expect(zIndex).toBe('-1');
+  });
+
+  it('should change editor\'s CSS properties during switching to being visible', () => {
+    handsontable({
+      editor: 'text',
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    const cell = getCell(0, 0);
+    const [cellOffsetTop, cellOffsetLeft] = [cell.offsetTop, cell.offsetLeft];
+    const { left, position, top, zIndex } = spec().$container.find('.handsontableInputHolder').css(['left', 'position', 'top', 'zIndex']);
+
+    expect(parseInt(left, 10)).toBeAroundValue(cellOffsetLeft);
+    expect(position).toBe('absolute');
+    expect(parseInt(top, 10)).toBeAroundValue(cellOffsetTop);
+    expect(zIndex).not.toBe('-1');
+  });
+
   it('should render string in textarea', () => {
     handsontable();
     setDataAtCell(2, 2, 'string');
@@ -63,7 +110,21 @@ describe('TextEditor', () => {
     expect(keyProxy().val()).toEqual('string');
   });
 
-  it('should render textarea editor with tabindex=-1 attribute', async () => {
+  it('should render proper value after cell coords manipulation', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      modifyRow(row) { return row === 4 ? 0 : row + 1; },
+      modifyCol(column) { return column === 4 ? 0 : column + 1; },
+    });
+
+    selectCell(0, 0);
+    getActiveEditor().beginEditing();
+    getActiveEditor().refreshValue();
+
+    expect(getActiveEditor().originalValue).toEqual('B2');
+  });
+
+  it('should render textarea editor with tabindex=-1 attribute', async() => {
     const hot = handsontable();
 
     selectCell(0, 0);
@@ -174,7 +235,7 @@ describe('TextEditor', () => {
     }, 200);
   });
 
-  it('should hide editor when quick navigation by click scrollbar was triggered', async () => {
+  it('should hide editor when quick navigation by click scrollbar was triggered', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       rowHeaders: true,
@@ -534,13 +595,13 @@ describe('TextEditor', () => {
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
+      clicks += 1;
     }, 0);
 
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
+      clicks += 1;
     }, 100);
 
     setTimeout(() => {
@@ -717,7 +778,7 @@ describe('TextEditor', () => {
     expect(getCell(0, 0)).not.toBeNull();
     expect(getCell(19, 19)).toBeNull();
 
-    hot.view.scrollViewport({row: 19, col: 19});
+    hot.view.scrollViewport({ row: 19, col: 19 });
     hot.render();
 
     expect(getCell(0, 0)).toBeNull();
@@ -847,7 +908,7 @@ describe('TextEditor', () => {
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
 
-  it('should open editor at the same coordinates as the edited cell after the table had been scrolled (top)', async () => {
+  it('should open editor at the same coordinates as the edited cell after the table had been scrolled (top)', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       fixedColumnsLeft: 2,
@@ -876,7 +937,7 @@ describe('TextEditor', () => {
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
 
-  it('should open editor at the same coordinates as the edited cell after the table had been scrolled (left)', async () => {
+  it('should open editor at the same coordinates as the edited cell after the table had been scrolled (left)', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       fixedColumnsLeft: 2,
@@ -1071,7 +1132,7 @@ describe('TextEditor', () => {
   });
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality.
-  it('should not lose the focus on input element while inserting new characters (#839)', async () => {
+  it('should not lose the focus on input element while inserting new characters (#839)', async() => {
     let blured = false;
     const listener = () => {
       blured = true;
@@ -1110,7 +1171,7 @@ describe('TextEditor', () => {
     done();
   });
 
-  it('should keep editor open, focusable and with untouched value when allowInvalid is set as false', async () => {
+  it('should keep editor open, focusable and with untouched value when allowInvalid is set as false', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       allowInvalid: false,
@@ -1151,7 +1212,7 @@ describe('TextEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should focus editable element after selecting the cell', async () => {
+    it('should focus editable element after selecting the cell', async() => {
       handsontable({
         type: 'text',
       });
@@ -1162,7 +1223,7 @@ describe('TextEditor', () => {
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
 
-    it('editor size should change after composition started', async () => {
+    it('editor size should change after composition started', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 5),
         width: 400,

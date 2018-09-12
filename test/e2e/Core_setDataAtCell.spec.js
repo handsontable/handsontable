@@ -14,21 +14,21 @@ describe('Core_setDataAtCell', () => {
 
   const arrayOfNestedObjects = function() {
     return [
-      {id: 1,
+      { id: 1,
         name: {
           first: 'Ted',
           last: 'Right'
-        }},
-      {id: 2,
+        } },
+      { id: 2,
         name: {
           first: 'Frank',
           last: 'Honest'
-        }},
-      {id: 3,
+        } },
+      { id: 3,
         name: {
           first: 'Joan',
           last: 'Well'
-        }}
+        } }
     ];
   };
 
@@ -81,7 +81,7 @@ describe('Core_setDataAtCell', () => {
     }, 200);
   });
 
-  it('should paste not more rows than maxRows', async () => {
+  it('should paste not more rows than maxRows', async() => {
     handsontable({
       minSpareRows: 1,
       minRows: 5,
@@ -138,9 +138,9 @@ describe('Core_setDataAtCell', () => {
       data: arrayOfNestedObjects(),
       colHeaders: true,
       columns: [
-        {data: 'id'},
-        {data: 'name.last'},
-        {data: 'name.first'}
+        { data: 'id' },
+        { data: 'name.last' },
+        { data: 'name.first' }
       ],
       minSpareRows: 1,
     });
@@ -158,29 +158,29 @@ describe('Core_setDataAtCell', () => {
   it('should work with functional data source', () => {
     handsontable({
       data: [
-        model({id: 1, name: 'Ted Right', address: ''}),
-        model({id: 2, name: 'Frank Honest', address: ''}),
-        model({id: 3, name: 'Joan Well', address: ''})
+        model({ id: 1, name: 'Ted Right', address: '' }),
+        model({ id: 2, name: 'Frank Honest', address: '' }),
+        model({ id: 3, name: 'Joan Well', address: '' })
       ],
       dataSchema: model,
       startRows: 5,
       startCols: 3,
       colHeaders: ['ID', 'Name', 'Address'],
       columns: [
-        {data: property('id')},
-        {data: property('name')},
-        {data: property('address')}
+        { data: property('id') },
+        { data: property('name') },
+        { data: property('address') }
       ],
       minSpareRows: 1
     });
 
     function model(opts) {
-      const _pub = {},
-        _priv = $.extend({
-          id: undefined,
-          name: undefined,
-          address: undefined
-        }, opts);
+      const _pub = {};
+      const _priv = $.extend({
+        id: undefined,
+        name: undefined,
+        address: undefined
+      }, opts);
 
       _pub.attr = function(attr, val) {
         if (typeof val === 'undefined') {
@@ -263,7 +263,7 @@ describe('Core_setDataAtCell', () => {
     let _source;
 
     handsontable({
-      columns: [{data: 'name'}, {data: 'id'}],
+      columns: [{ data: 'name' }, { data: 'id' }],
       afterSetDataAtRowProp(changes, source) {
         _changes = changes;
         _source = source;
@@ -279,8 +279,8 @@ describe('Core_setDataAtCell', () => {
 
   it('should modify value on the fly using `afterSetDataAtRowProp` hook', () => {
     handsontable({
-      data: [{name: 'a', id: 1}, {name: 'b', id: 2}, {name: 'c', id: 3}],
-      columns: [{data: 'name'}, {data: 'id'}],
+      data: [{ name: 'a', id: 1 }, { name: 'b', id: 2 }, { name: 'c', id: 3 }],
+      columns: [{ data: 'name' }, { data: 'id' }],
       afterSetDataAtRowProp(changes) {
         if (changes[0][3] === 'foo bar') {
           changes[0][3] = 'bar';

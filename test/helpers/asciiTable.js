@@ -35,7 +35,7 @@ function getSelectionSymbolForCell(cell) {
   let areaLevel = new Array(7)
     .fill()
     .map((_, i, arr) => `area-${arr.length - i}`)
-    .find((className) => cell.classList.contains(className));
+    .find(className => cell.classList.contains(className));
 
   areaLevel = areaLevel ? parseInt(areaLevel.replace('area-', ''), 10) : areaLevel;
 

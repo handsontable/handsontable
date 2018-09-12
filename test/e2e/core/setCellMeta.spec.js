@@ -22,7 +22,7 @@ describe('Core.setCellMeta', () => {
       }
     });
 
-    let cellMeta = getCellMeta(0, 0);
+    const cellMeta = getCellMeta(0, 0);
 
     expect(cellMeta.className).not.toBeUndefined();
     expect(cellMeta.className).toEqual(className);
@@ -53,7 +53,7 @@ describe('Core.setCellMeta', () => {
       }
     });
 
-    let cellMeta = getCellMeta(100, 100);
+    const cellMeta = getCellMeta(100, 100);
 
     expect(cellMeta.className).not.toBeUndefined();
     expect(cellMeta.className).toEqual(className);
@@ -67,8 +67,8 @@ describe('Core.setCellMeta', () => {
 
     handsontable({
       cell: [
-        {row: 0, col: 0, className: classNames[0] },
-        {row: 1, col: 1, className: classNames[1] }
+        { row: 0, col: 0, className: classNames[0] },
+        { row: 1, col: 1, className: classNames[1] }
       ]
     });
 
@@ -84,8 +84,8 @@ describe('Core.setCellMeta', () => {
 
     handsontable({
       cell: [
-        {row: 0, col: 0, className: classNames[0] },
-        {row: 1, col: 1, className: classNames[1] }
+        { row: 0, col: 0, className: classNames[0] },
+        { row: 1, col: 1, className: classNames[1] }
       ]
     });
 
@@ -101,8 +101,8 @@ describe('Core.setCellMeta', () => {
 
     updateSettings({
       cell: [
-        {row: 0, col: 0, className: classNames[1] },
-        {row: 1, col: 1, className: classNames[0] }
+        { row: 0, col: 0, className: classNames[1] },
+        { row: 1, col: 1, className: classNames[0] }
       ]
     });
 

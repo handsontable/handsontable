@@ -30,7 +30,7 @@ describe('Core.getSourceDataAtCell', () => {
 
   it('should return cell value when provided data was an array of objects', () => {
     handsontable({
-      data: [{a: 1, b: 2, c: 3}, {a: 'a', b: 'b', c: 'c'}],
+      data: [{ a: 1, b: 2, c: 3 }, { a: 'a', b: 'b', c: 'c' }],
       copyable: true
     });
 
@@ -39,12 +39,12 @@ describe('Core.getSourceDataAtCell', () => {
 
   it('should return cell value when provided data was an array of objects (nested structure)', () => {
     handsontable({
-      data: [{a: 1, b: {a: 21, b: 22}, c: 3}, {a: 'a', b: {a: 'ba', b: 'bb'}, c: 'c'}],
+      data: [{ a: 1, b: { a: 21, b: 22 }, c: 3 }, { a: 'a', b: { a: 'ba', b: 'bb' }, c: 'c' }],
       columns: [
-        {data: 'a'},
-        {data: 'b.a'},
-        {data: 'b.b'},
-        {data: 'c'},
+        { data: 'a' },
+        { data: 'b.a' },
+        { data: 'b.b' },
+        { data: 'c' },
       ]
     });
 
@@ -54,17 +54,17 @@ describe('Core.getSourceDataAtCell', () => {
   it('should return cell value when data is provided by dataSchema', () => {
     handsontable({
       data: [
-        model({id: 1, name: 'Ted Right', address: ''}),
-        model({id: 2, name: 'Frank Honest', address: ''}),
-        model({id: 3, name: 'Joan Well', address: ''}),
-        model({id: 4, name: 'Gail Polite', address: ''}),
-        model({id: 5, name: 'Michael Fair', address: ''})
+        model({ id: 1, name: 'Ted Right', address: '' }),
+        model({ id: 2, name: 'Frank Honest', address: '' }),
+        model({ id: 3, name: 'Joan Well', address: '' }),
+        model({ id: 4, name: 'Gail Polite', address: '' }),
+        model({ id: 5, name: 'Michael Fair', address: '' })
       ],
       dataSchema: model,
       columns: [
-        {data: property('id')},
-        {data: property('name')},
-        {data: property('address')}
+        { data: property('id') },
+        { data: property('name') },
+        { data: property('address') }
       ]
     });
 
@@ -76,11 +76,9 @@ describe('Core.getSourceDataAtCell', () => {
         address: undefined
       };
 
-      for (let i in opts) {
-        if (Object.prototype.hasOwnProperty.call(opts, i)) {
-          _priv[i] = opts[i];
-        }
-      }
+      Handsontable.helper.objectEach(opts, (value, key) => {
+        _priv[key] = value;
+      });
 
       _pub.attr = function(attr, val) {
         if (typeof val === 'undefined') {

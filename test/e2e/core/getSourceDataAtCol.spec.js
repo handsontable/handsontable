@@ -15,17 +15,17 @@ describe('Core.getSourceDataAtCol', () => {
   it('should return col values when data is provided by dataSchema', () => {
     handsontable({
       data: [
-        model({id: 1, name: 'Ted Right', address: ''}),
-        model({id: 2, name: 'Frank Honest', address: ''}),
-        model({id: 3, name: 'Joan Well', address: ''}),
-        model({id: 4, name: 'Gail Polite', address: ''}),
-        model({id: 5, name: 'Michael Fair', address: ''})
+        model({ id: 1, name: 'Ted Right', address: '' }),
+        model({ id: 2, name: 'Frank Honest', address: '' }),
+        model({ id: 3, name: 'Joan Well', address: '' }),
+        model({ id: 4, name: 'Gail Polite', address: '' }),
+        model({ id: 5, name: 'Michael Fair', address: '' })
       ],
       dataSchema: model,
       columns: [
-        {data: property('id')},
-        {data: property('name')},
-        {data: property('address')}
+        { data: property('id') },
+        { data: property('name') },
+        { data: property('address') }
       ]
     });
 
@@ -37,11 +37,9 @@ describe('Core.getSourceDataAtCol', () => {
         address: undefined
       };
 
-      for (let i in opts) {
-        if (Object.prototype.hasOwnProperty.call(opts, i)) {
-          _priv[i] = opts[i];
-        }
-      }
+      Handsontable.helper.objectEach(opts, (value, key) => {
+        _priv[key] = value;
+      });
 
       _pub.attr = function(attr, val) {
         if (typeof val === 'undefined') {

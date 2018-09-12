@@ -2,10 +2,10 @@ describe('WalkontableTable', () => {
   let $table;
   let $container;
   let $wrapper;
-  let debug = false;
+  const debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden', position: 'relative'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden', position: 'relative' });
     $wrapper.width(100).height(201);
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
@@ -383,7 +383,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
-        count++;
+        count += 1;
         return wt.wtSettings.defaults.cellRenderer(row, column, TD);
       }
     });
@@ -401,7 +401,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
-        count++;
+        count += 1;
         return wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportRowCalculatorOverride(calc) {
@@ -424,7 +424,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
-        count++;
+        count += 1;
         return wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportRowCalculatorOverride(calc) {
@@ -452,7 +452,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
-        count++;
+        count += 1;
         return wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportColumnCalculatorOverride(calc) {
@@ -477,7 +477,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
-        count++;
+        count += 1;
 
         return wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },

@@ -323,6 +323,7 @@ describe('AutoFill', () => {
 
     document.body.removeChild($table[0]);
   });
+
   it('should fill cells below until the end of content in the neighbouring column with current cell\'s data', () => {
     handsontable({
       data: [
@@ -345,7 +346,6 @@ describe('AutoFill', () => {
 
     expect(getDataAtCell(2, 2)).toEqual(3);
     expect(getDataAtCell(3, 2)).toEqual(3);
-
   });
 
   it('should fill cells below until the end of content in the neighbouring column with the currently selected area\'s data', () => {
@@ -374,10 +374,30 @@ describe('AutoFill', () => {
     expect(getDataAtCell(3, 2)).toEqual(3);
     expect(getDataAtCell(2, 3)).toEqual(4);
     expect(getDataAtCell(3, 3)).toEqual(4);
-
   });
 
-  it('should add new row after dragging the handle to the last table row', async () => {
+  it('shouldn\'t fill cells left #5023', () => {
+    handsontable({
+      data: [
+        ['1', '2', '', '3', '4'],
+        ['1', '', '', '', ''],
+        ['1', '', '', '', ''],
+        ['', '', '', '', ''],
+        ['', '', '', '', '']
+      ]
+    });
+
+    selectCell(0, 3);
+    const fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
+    mouseDoubleClick(fillHandle);
+
+    expect(getDataAtCell(0, 3)).toEqual('3');
+    expect(getDataAtCell(0, 2)).toEqual('');
+    expect(getDataAtCell(0, 1)).toEqual('2');
+    expect(getDataAtCell(0, 0)).toEqual('1');
+  });
+
+  it('should add new row after dragging the handle to the last table row', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -404,7 +424,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(6);
   });
 
-  it('should add new row after dragging the handle to the last table row (autoInsertRow as true)', async () => {
+  it('should add new row after dragging the handle to the last table row (autoInsertRow as true)', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -433,7 +453,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(6);
   });
 
-  it('should add new row after dragging the handle to the last table row (autoInsertRow as true, vertical)', async () => {
+  it('should add new row after dragging the handle to the last table row (autoInsertRow as true, vertical)', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -463,7 +483,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(6);
   });
 
-  it('should not add new row after dragging the handle to the last table row (autoInsertRow as true, horizontal)', async () => {
+  it('should not add new row after dragging the handle to the last table row (autoInsertRow as true, horizontal)', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -495,7 +515,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(4);
   });
 
-  it('should not add new row after dragging the handle below the viewport when `autoInsertRow` is disabled', async () => {
+  it('should not add new row after dragging the handle below the viewport when `autoInsertRow` is disabled', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -533,7 +553,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(4);
   });
 
-  it('should not add new rows if the current number of rows reaches the maxRows setting', async () => {
+  it('should not add new rows if the current number of rows reaches the maxRows setting', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -565,7 +585,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(5);
   });
 
-  it('should add new row after dragging the handle below the viewport', async () => {
+  it('should add new row after dragging the handle below the viewport', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -626,7 +646,7 @@ describe('AutoFill', () => {
     try {
       spec().$container.find('thead tr:first-child th:eq(2)').simulate('mouseover').simulate('mouseup');
     } catch (err) {
-      errors++;
+      errors += 1;
     }
 
     expect(errors).toEqual(0);
@@ -645,7 +665,7 @@ describe('AutoFill', () => {
     try {
       spec().$container.find('tbody tr:nth(2) th:first-child').simulate('mouseover').simulate('mouseup');
     } catch (err) {
-      errors++;
+      errors += 1;
     }
 
     expect(errors).toEqual(0);
@@ -654,7 +674,7 @@ describe('AutoFill', () => {
     expect($('.fill').filter(function() { return $(this).css('display') !== 'none'; }).length).toEqual(0); // check if fill selection is refreshed
   });
 
-  it('should not add a new row if dragging from the last row upwards or sideways', async () => {
+  it('should not add a new row if dragging from the last row upwards or sideways', async() => {
     const mouseOverSpy = jasmine.createSpy('mouseOverSpy');
     const hot = handsontable({
       data: [
@@ -691,7 +711,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(4);
   });
 
-  it('should add new row after dragging the handle below the viewport', async () => {
+  it('should add new row after dragging the handle below the viewport', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -729,7 +749,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(6);
   });
 
-  it('should not add new row after dragging the handle below the viewport (direction is set to horizontal)', async () => {
+  it('should not add new row after dragging the handle below the viewport (direction is set to horizontal)', async() => {
     const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
@@ -837,7 +857,7 @@ describe('AutoFill', () => {
 
     describe('-> updating settings on 2. instance of Handsontable', () => {
       beforeAll(() => {
-        $container2.handsontable('updateSettings', {fillHandle: 'vertical'});
+        $container2.handsontable('updateSettings', { fillHandle: 'vertical' });
       });
 
       it('checking drag vertically on 2. instance of Handsontable - should change cell value', () => {

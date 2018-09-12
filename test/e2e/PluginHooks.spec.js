@@ -197,9 +197,9 @@ describe('PluginHooks', () => {
     const hot = handsontable();
     const str = 'a';
 
-    hot.addHookOnce('myHook', (value) => `${value}b`);
+    hot.addHookOnce('myHook', value => `${value}b`);
 
-    hot.addHookOnce('myHook', (value) => `${value}c`);
+    hot.addHookOnce('myHook', value => `${value}c`);
 
     expect(hot.runHooks('myHook', str)).toEqual('abc');
   });
@@ -207,14 +207,14 @@ describe('PluginHooks', () => {
   it('adding same hook twice should register it only once (without an error)', () => {
     let i = 0;
     const fn = function() {
-      i++;
+      i += 1;
     };
 
     const hot = handsontable({
       afterOnCellMouseOver: fn
     });
 
-    hot.getInstance().updateSettings({afterOnCellMouseOver: fn});
+    hot.getInstance().updateSettings({ afterOnCellMouseOver: fn });
     hot.runHooks('afterOnCellMouseOver');
 
     expect(i).toEqual(1);

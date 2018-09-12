@@ -14,4 +14,4 @@ export default function pluralize(phrasePropositions, pluralForm) {
   }
 
   return phrasePropositions;
-};
+}

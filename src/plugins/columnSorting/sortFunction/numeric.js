@@ -1,5 +1,5 @@
-import {isEmpty} from '../../../helpers/mixed';
-import {DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
+import { isEmpty } from '../../../helpers/mixed';
+import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../utils';
 
 /**
  * Numeric sorting algorithm.
@@ -10,7 +10,7 @@ import {DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
  */
 export default function numericSort(sortOrder, columnMeta) {
   // We are soring array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
-  return function ([, value], [, nextValue]) {
+  return function([, value], [, nextValue]) {
     const sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
     const parsedFirstValue = parseFloat(value);
     const parsedSecondValue = parseFloat(nextValue);

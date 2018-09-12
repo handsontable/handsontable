@@ -4,7 +4,7 @@ export function to2dArray(arr) {
 
   while (i < ilen) {
     arr[i] = [arr[i]];
-    i++;
+    i += 1;
   }
 }
 
@@ -14,7 +14,7 @@ export function extendArray(arr, extension) {
 
   while (i < ilen) {
     arr.push(extension[i]);
-    i++;
+    i += 1;
   }
 }
 
@@ -56,6 +56,7 @@ export function pivot(arr) {
 export function arrayReduce(array, iteratee, accumulator, initFromArray) {
   let index = -1;
   let iterable = array;
+  let result = accumulator;
 
   if (!Array.isArray(array)) {
     iterable = Array.from(array);
@@ -63,13 +64,18 @@ export function arrayReduce(array, iteratee, accumulator, initFromArray) {
   const length = iterable.length;
 
   if (initFromArray && length) {
-    accumulator = iterable[++index];
-  }
-  while (++index < length) {
-    accumulator = iteratee(accumulator, iterable[index], index, iterable);
+    index += 1;
+    result = iterable[index];
   }
 
-  return accumulator;
+  index += 1;
+
+  while (index < length) {
+    result = iteratee(result, iterable[index], index, iterable);
+    index += 1;
+  }
+
+  return result;
 }
 
 /**
@@ -83,7 +89,7 @@ export function arrayReduce(array, iteratee, accumulator, initFromArray) {
  * @returns {Array} Returns the new filtered array.
  */
 export function arrayFilter(array, predicate) {
-  let index = -1;
+  let index = 0;
   let iterable = array;
 
   if (!Array.isArray(array)) {
@@ -94,12 +100,15 @@ export function arrayFilter(array, predicate) {
   const result = [];
   let resIndex = -1;
 
-  while (++index < length) {
+  while (index < length) {
     const value = iterable[index];
 
     if (predicate(value, index, iterable)) {
-      result[++resIndex] = value;
+      resIndex += 1;
+      result[resIndex] = value;
     }
+
+    index += 1;
   }
 
   return result;
@@ -114,7 +123,7 @@ export function arrayFilter(array, predicate) {
  * @returns {Array} Returns the new filtered array.
  */
 export function arrayMap(array, iteratee) {
-  let index = -1;
+  let index = 0;
   let iterable = array;
 
   if (!Array.isArray(array)) {
@@ -125,10 +134,12 @@ export function arrayMap(array, iteratee) {
   const result = [];
   let resIndex = -1;
 
-  while (++index < length) {
+  while (index < length) {
     const value = iterable[index];
 
-    result[++resIndex] = iteratee(value, index, iterable);
+    resIndex += 1;
+    result[resIndex] = iteratee(value, index, iterable);
+    index += 1;
   }
 
   return result;
@@ -145,7 +156,7 @@ export function arrayMap(array, iteratee) {
  * @returns {Array} Returns `array`.
  */
 export function arrayEach(array, iteratee) {
-  let index = -1;
+  let index = 0;
   let iterable = array;
 
   if (!Array.isArray(array)) {
@@ -154,10 +165,12 @@ export function arrayEach(array, iteratee) {
 
   const length = iterable.length;
 
-  while (++index < length) {
+  while (index < length) {
     if (iteratee(iterable[index], index, iterable) === false) {
       break;
     }
+
+    index += 1;
   }
 
   return array;
@@ -226,7 +239,7 @@ export function arrayFlatten(array) {
  * @returns {Array}
  */
 export function arrayUnique(array) {
-  let unique = [];
+  const unique = [];
 
   arrayEach(array, (value) => {
     if (unique.indexOf(value) === -1) {

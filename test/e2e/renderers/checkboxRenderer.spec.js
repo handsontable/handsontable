@@ -16,7 +16,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -29,7 +29,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -55,7 +55,7 @@ describe('CheckboxRenderer', () => {
     expect($(getRenderedContent(2, 0)).prop('checked')).toBe(true);
   });
 
-  it('should select cell after checkbox click', async () => {
+  it('should select cell after checkbox click', async() => {
     const spy = jasmine.createSpyObj('error', ['test']);
     window.onerror = function() {
       spy.test();
@@ -65,7 +65,7 @@ describe('CheckboxRenderer', () => {
     const hot = handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -85,7 +85,7 @@ describe('CheckboxRenderer', () => {
     const hot = handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox', label: {position: 'before', value: 'Sure? '}}
+        { type: 'checkbox', label: { position: 'before', value: 'Sure? ' } }
       ]
     });
 
@@ -100,7 +100,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -115,7 +115,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
-        {type: 'checkbox', readOnly: true}
+        { type: 'checkbox', readOnly: true }
       ]
     });
 
@@ -128,7 +128,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -164,7 +164,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
-        {type: 'checkbox', readOnly: true}
+        { type: 'checkbox', readOnly: true }
       ]
     });
 
@@ -195,8 +195,8 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true, true], [false, false], [true, true]],
       columns: [
-        {type: 'checkbox'},
-        {type: 'checkbox', readOnly: true}
+        { type: 'checkbox' },
+        { type: 'checkbox', readOnly: true }
       ]
     });
 
@@ -266,7 +266,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -298,7 +298,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -331,7 +331,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [['true']],
       columns: [
-        {type: 'checkbox'},
+        { type: 'checkbox' },
       ]
     });
 
@@ -352,7 +352,7 @@ describe('CheckboxRenderer', () => {
         [true]
       ],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -372,7 +372,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -476,7 +476,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -510,7 +510,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -544,7 +544,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [['foo'], ['bar']],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -571,7 +571,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [['foo'], ['bar']],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -598,7 +598,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [['foo'], ['bar']],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -624,7 +624,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[false], [true], [true]],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ],
       onAfterChange
     });
@@ -641,7 +641,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[false], [true], [true]],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' }
       ]
     });
 
@@ -662,9 +662,9 @@ describe('CheckboxRenderer', () => {
 
   it('should add label on the beginning of a checkbox element', () => {
     handsontable({
-      data: [{checked: true, label: 'myLabel'}, {checked: false, label: 'myLabel'}],
+      data: [{ checked: true, label: 'myLabel' }, { checked: false, label: 'myLabel' }],
       columns: [
-        {type: 'checkbox', data: 'checked', label: {position: 'before', property: 'label'}}
+        { type: 'checkbox', data: 'checked', label: { position: 'before', property: 'label' } }
       ]
     });
 
@@ -682,9 +682,9 @@ describe('CheckboxRenderer', () => {
 
   it('should add label on the end of a checkbox element', () => {
     handsontable({
-      data: [{checked: true, label: 'myLabel'}, {checked: false, label: 'myLabel'}],
+      data: [{ checked: true, label: 'myLabel' }, { checked: false, label: 'myLabel' }],
       columns: [
-        {type: 'checkbox', data: 'checked', label: {position: 'after', property: 'label'}}
+        { type: 'checkbox', data: 'checked', label: { position: 'after', property: 'label' } }
       ]
     });
 
@@ -702,9 +702,9 @@ describe('CheckboxRenderer', () => {
 
   it('should not add label when value is incorrect (#bad-value)', () => {
     handsontable({
-      data: [{checked: 1, label: 'myLabel'}, {checked: 0, label: 'myLabel'}],
+      data: [{ checked: 1, label: 'myLabel' }, { checked: 0, label: 'myLabel' }],
       columns: [
-        {type: 'checkbox', data: 'checked', label: {position: 'after', property: 'label'}}
+        { type: 'checkbox', data: 'checked', label: { position: 'after', property: 'label' } }
       ]
     });
 
@@ -713,9 +713,9 @@ describe('CheckboxRenderer', () => {
 
   it('by default should add label on the end of a checkbox element', () => {
     handsontable({
-      data: [{checked: true, label: {test: 'Baz'}}, {checked: false, label: {test: 'Baz'}}],
+      data: [{ checked: true, label: { test: 'Baz' } }, { checked: false, label: { test: 'Baz' } }],
       columns: [
-        {type: 'checkbox', data: 'checked', label: {property: 'label.test'}}
+        { type: 'checkbox', data: 'checked', label: { property: 'label.test' } }
       ]
     });
 
@@ -724,9 +724,9 @@ describe('CheckboxRenderer', () => {
 
   it('should add label with text filled from `value` label setting (passed as string)', () => {
     handsontable({
-      data: [{checked: true}, {checked: false}],
+      data: [{ checked: true }, { checked: false }],
       columns: [
-        {type: 'checkbox', data: 'checked', label: {value: 'myLabel'}}
+        { type: 'checkbox', data: 'checked', label: { value: 'myLabel' } }
       ]
     });
 
@@ -740,9 +740,9 @@ describe('CheckboxRenderer', () => {
     handsontable({
       autoRowSize: false,
       autoColumnSize: false,
-      data: [{checked: true}, {checked: false}],
+      data: [{ checked: true }, { checked: false }],
       columns: [
-        {type: 'checkbox', data: 'checked', label: {value: labelFunction}}
+        { type: 'checkbox', data: 'checked', label: { value: labelFunction } }
       ]
     });
 

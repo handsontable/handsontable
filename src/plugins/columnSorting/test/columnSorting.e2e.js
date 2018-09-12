@@ -23,16 +23,16 @@ describe('ColumnSorting', () => {
 
   const arrayOfObjects = function() {
     return [
-      {id: 1, name: 'Ted', lastName: 'Right'},
-      {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'},
-      {id: 4, name: 'Sid', lastName: 'Strong'},
-      {id: 5, name: 'Jane', lastName: 'Neat'},
-      {id: 6, name: 'Chuck', lastName: 'Jackson'},
-      {id: 7, name: 'Meg', lastName: 'Jansen'},
-      {id: 8, name: 'Rob', lastName: 'Norris'},
-      {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'}
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' },
+      { id: 4, name: 'Sid', lastName: 'Strong' },
+      { id: 5, name: 'Jane', lastName: 'Neat' },
+      { id: 6, name: 'Chuck', lastName: 'Jackson' },
+      { id: 7, name: 'Meg', lastName: 'Jansen' },
+      { id: 8, name: 'Rob', lastName: 'Norris' },
+      { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+      { id: 10, name: 'Eve', lastName: 'Branson' }
     ];
   };
 
@@ -90,7 +90,7 @@ describe('ColumnSorting', () => {
     getPlugin('ColumnSorting').sort(0, 'asc');
 
     // changing column order: 0 <-> 1
-    updateSettings({modifyCol});
+    updateSettings({ modifyCol });
 
     const sortedColumn = spec().$container.find('th span.columnSorting')[1];
     const afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
@@ -98,7 +98,7 @@ describe('ColumnSorting', () => {
     expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
   });
 
-  it('should render a correct number of TD elements after sorting', async () => {
+  it('should render a correct number of TD elements after sorting', async() => {
     handsontable({
       data: [
         ['1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'],
@@ -177,7 +177,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
     } catch (e) {
-      errors++;
+      errors += 1;
     }
 
     expect(errors).toBe(0);
@@ -974,7 +974,7 @@ describe('ColumnSorting', () => {
     });
   });
 
-  it('should properly sort numeric data', async () => {
+  it('should properly sort numeric data', async() => {
     handsontable({
       data: [
         ['Mercedes', 'A 160', '01/14/2006', '6999.9999'],
@@ -1169,10 +1169,10 @@ describe('ColumnSorting', () => {
 
   it('should NOT sort spare rows', () => {
     const myData = [
-      {a: 'aaa', b: 2, c: 3},
-      {a: 'z', b: 11, c: -4},
-      {a: 'dddd', b: 13, c: 13},
-      {a: 'bbbb', b: 10, c: 11}
+      { a: 'aaa', b: 2, c: 3 },
+      { a: 'z', b: 11, c: -4 },
+      { a: 'dddd', b: 13, c: 13 },
+      { a: 'bbbb', b: 10, c: 11 }
     ];
 
     function customIsEmptyRow(row) {
@@ -1185,11 +1185,11 @@ describe('ColumnSorting', () => {
       rowHeaders: true,
       colHeaders: ['A', 'B', 'C'],
       columns: [
-        {data: 'a', type: 'text'},
-        {data: 'b', type: 'text'},
-        {data: 'c', type: 'text'}
+        { data: 'a', type: 'text' },
+        { data: 'b', type: 'text' },
+        { data: 'c', type: 'text' }
       ],
-      dataSchema: {isNew: true, a: false}, // default for a to avoid #bad value#
+      dataSchema: { isNew: true, a: false }, // default for a to avoid #bad value#
       columnSorting: true,
       minSpareRows: 3,
       isEmptyRow: customIsEmptyRow
@@ -1984,7 +1984,7 @@ describe('ColumnSorting', () => {
       columns: [
         {},
         {},
-        {sortIndicator: true}
+        { sortIndicator: true }
       ]
     });
 

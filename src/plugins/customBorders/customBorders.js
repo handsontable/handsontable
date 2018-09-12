@@ -112,7 +112,7 @@ class CustomBorders extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
+    this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
     this.addHook('afterInit', () => this.onAfterInit());
 
     super.enablePlugin();
@@ -199,7 +199,7 @@ class CustomBorders extends BasePlugin {
 
     const selectionType = detectSelectionType(selectionRanges);
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
-    let selectedBorders = [];
+    const selectedBorders = [];
 
     arrayEach(selectionRanges, (selection) => {
       const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
@@ -272,7 +272,7 @@ class CustomBorders extends BasePlugin {
     const hasCustomSelections = this.checkCustomSelections(border, cellRange, place);
 
     if (!hasCustomSelections) {
-      this.hot.selection.highlight.addCustomSelection({border, cellRange});
+      this.hot.selection.highlight.addCustomSelection({ border, cellRange });
       this.hot.view.wt.draw(true);
     }
   }
@@ -319,7 +319,7 @@ class CustomBorders extends BasePlugin {
 
     rangeEach(range.from.row, range.to.row, (rowIndex) => {
       rangeEach(range.from.col, range.to.col, (colIndex) => {
-        let border = createEmptyBorders(rowIndex, colIndex);
+        const border = createEmptyBorders(rowIndex, colIndex);
         let add = 0;
 
         if (rowIndex === range.from.row) {
@@ -436,7 +436,7 @@ class CustomBorders extends BasePlugin {
    * @param {Boolean} remove True when remove borders, and false when add borders.
    */
   prepareBorder(selected, place, remove) {
-    arrayEach(selected, ({start, end}) => {
+    arrayEach(selected, ({ start, end }) => {
       if (start.row === end.row && start.col === end.col) {
         if (place === 'noBorders') {
           this.removeAllBorders(start.row, start.col);
@@ -511,11 +511,13 @@ class CustomBorders extends BasePlugin {
     const values = Object.values(border);
 
     return arrayReduce(values, (accumulator, value) => {
+      let result = accumulator;
+
       if (value.hide) {
-        accumulator += 1;
+        result += 1;
       }
 
-      return accumulator;
+      return result;
     }, 0);
   }
 
@@ -526,7 +528,7 @@ class CustomBorders extends BasePlugin {
   * @param {String} borderId Border id name as string.
   */
   clearBordersFromSelectionSettings(borderId) {
-    const index = arrayMap(this.hot.selection.highlight.customSelections, (customSelection) => customSelection.settings.id).indexOf(borderId);
+    const index = arrayMap(this.hot.selection.highlight.customSelections, customSelection => customSelection.settings.id).indexOf(borderId);
 
     if (index > -1) {
       this.hot.selection.highlight.customSelections[index].clear();
@@ -568,7 +570,7 @@ class CustomBorders extends BasePlugin {
   * @param {String} borderId Border id name as string.
   */
   spliceBorder(borderId) {
-    const index = arrayMap(this.savedBorders, (border) => border.id).indexOf(borderId);
+    const index = arrayMap(this.savedBorders, border => border.id).indexOf(borderId);
 
     if (index > -1) {
       this.savedBorders.splice(index, 1);

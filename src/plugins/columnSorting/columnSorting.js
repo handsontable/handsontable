@@ -3,11 +3,11 @@ import {
   hasClass,
   removeClass,
 } from './../../helpers/dom/element';
-import {hasOwnProperty, isObject} from './../../helpers/object';
-import {isDefined, isUndefined} from './../../helpers/mixed';
-import {getSortFunctionForColumn} from './utils';
+import { hasOwnProperty, isObject } from './../../helpers/object';
+import { isDefined, isUndefined } from './../../helpers/mixed';
+import { getSortFunctionForColumn } from './utils';
 import BasePlugin from './../_base';
-import {registerPlugin} from './../../plugins';
+import { registerPlugin } from './../../plugins';
 import mergeSort from './../../utils/sortingAlgorithms/mergeSort';
 import Hooks from './../../pluginHooks';
 import RowsMapper from './rowsMapper';
@@ -214,7 +214,7 @@ class ColumnSorting extends BasePlugin {
    * @fires Hooks#columnSorting
    */
   saveSortingState() {
-    let sortingState = {};
+    const sortingState = {};
 
     if (isDefined(this.sortColumn)) {
       sortingState.sortColumn = this.sortColumn;
@@ -238,7 +238,7 @@ class ColumnSorting extends BasePlugin {
    * @fires Hooks#persistentStateLoad
    */
   loadSortingState() {
-    let storedState = {};
+    const storedState = {};
     this.hot.runHooks('persistentStateLoad', 'columnSorting', storedState);
 
     return storedState.value;
@@ -250,7 +250,7 @@ class ColumnSorting extends BasePlugin {
    * @private
    */
   enableObserveChangesPlugin() {
-    let _this = this;
+    const _this = this;
 
     this.hot._registerTimeout(
       setTimeout(() => {
@@ -289,7 +289,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (isUndefined(columnMeta.columnSorting.sortEmptyCells)) {
-      columnMeta.columnSorting = {sortEmptyCells: this.sortEmptyCells};
+      columnMeta.columnSorting = { sortEmptyCells: this.sortEmptyCells };
     }
 
     // Function `getDataAtCell` won't call the indices translation inside `onModifyRow` listener - we check the `blockPluginTranslation` flag
@@ -311,7 +311,7 @@ class ColumnSorting extends BasePlugin {
     this.blockPluginTranslation = false;
 
     // Save all indexes to arrayMapper, a completely new sequence is set by the plugin
-    this.rowsMapper._arrayMap = indexesWithData.map((indexWithData) => indexWithData[0]);
+    this.rowsMapper._arrayMap = indexesWithData.map(indexWithData => indexWithData[0]);
   }
 
   /**
@@ -354,12 +354,14 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Physical row index.
    */
   onModifyRow(row, source) {
+    let physicalRow = row;
+
     if (this.blockPluginTranslation === false && source !== this.pluginName) {
-      let rowInMapper = this.rowsMapper.getValueByIndex(row);
-      row = rowInMapper === null ? row : rowInMapper;
+      const rowInMapper = this.rowsMapper.getValueByIndex(physicalRow);
+      physicalRow = rowInMapper === null ? physicalRow : rowInMapper;
     }
 
-    return row;
+    return physicalRow;
   }
 
   /**
@@ -370,11 +372,13 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Visual row index.
    */
   onUnmodifyRow(row, source) {
+    let visualRow = row;
+
     if (this.blockPluginTranslation === false && source !== this.pluginName) {
-      row = this.rowsMapper.getIndexByValue(row);
+      visualRow = this.rowsMapper.getIndexByValue(visualRow);
     }
 
-    return row;
+    return visualRow;
   }
 
   /**
@@ -416,7 +420,7 @@ class ColumnSorting extends BasePlugin {
       }
     }
 
-    const notAddedThenClasses = removedClassess.filter((removedClass) => addedClasses.includes(removedClass) === false);
+    const notAddedThenClasses = removedClassess.filter(removedClass => addedClasses.includes(removedClass) === false);
 
     removeClass(headerLink, notAddedThenClasses);
     addClass(headerLink, addedClasses);
@@ -437,8 +441,8 @@ class ColumnSorting extends BasePlugin {
    * @private
    */
   sortBySettings() {
-    let sortingSettings = this.hot.getSettings().columnSorting;
-    let loadedSortingState = this.loadSortingState();
+    const sortingSettings = this.hot.getSettings().columnSorting;
+    const loadedSortingState = this.loadSortingState();
     let sortingColumn;
     let sortingOrder;
 

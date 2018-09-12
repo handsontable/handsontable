@@ -1,6 +1,6 @@
 // https://gist.github.com/paulirish/1579671
 let lastTime = 0;
-let vendors = ['ms', 'moz', 'webkit', 'o'];
+const vendors = ['ms', 'moz', 'webkit', 'o'];
 let _requestAnimationFrame = window.requestAnimationFrame;
 let _cancelAnimationFrame = window.cancelAnimationFrame;
 
@@ -11,9 +11,9 @@ for (let x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
 
 if (!_requestAnimationFrame) {
   _requestAnimationFrame = function(callback) {
-    let currTime = new Date().getTime();
-    let timeToCall = Math.max(0, 16 - (currTime - lastTime));
-    let id = window.setTimeout(() => {
+    const currTime = new Date().getTime();
+    const timeToCall = Math.max(0, 16 - (currTime - lastTime));
+    const id = window.setTimeout(() => {
       callback(currTime + timeToCall);
     }, timeToCall);
     lastTime = currTime + timeToCall;

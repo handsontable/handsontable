@@ -1,6 +1,6 @@
-import {fastInnerHTML} from './../helpers/dom/element';
-import {getRenderer} from './index';
-import {rangeEach} from './../helpers/number';
+import { fastInnerHTML } from './../helpers/dom/element';
+import { getRenderer } from './index';
+import { rangeEach } from './../helpers/number';
 
 /**
  * @private
@@ -16,9 +16,7 @@ import {rangeEach} from './../helpers/number';
 function passwordRenderer(instance, TD, row, col, prop, value, cellProperties, ...args) {
   getRenderer('text').apply(this, [instance, TD, row, col, prop, value, cellProperties, ...args]);
 
-  value = TD.innerHTML;
-
-  const hashLength = cellProperties.hashLength || value.length;
+  const hashLength = cellProperties.hashLength || TD.innerHTML.length;
   const hashSymbol = cellProperties.hashSymbol || '*';
 
   let hash = '';

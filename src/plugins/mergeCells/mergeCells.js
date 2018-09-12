@@ -1,18 +1,18 @@
 import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
-import {registerPlugin} from './../../plugins';
-import {stopImmediatePropagation} from './../../helpers/dom/event';
-import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
+import { registerPlugin } from './../../plugins';
+import { stopImmediatePropagation } from './../../helpers/dom/event';
+import { CellCoords, CellRange } from './../../3rdparty/walkontable/src';
 import MergedCellsCollection from './cellsCollection';
 import MergedCellCoords from './cellCoords';
 import AutofillCalculations from './calculations/autofill';
 import SelectionCalculations from './calculations/selection';
 import toggleMergeItem from './contextMenuItem/toggleMerge';
-import {arrayEach} from '../../helpers/array';
-import {clone} from '../../helpers/object';
-import {warn} from '../../helpers/console';
-import {rangeEach} from '../../helpers/number';
-import {applySpanProperties} from './utils';
+import { arrayEach } from '../../helpers/array';
+import { clone } from '../../helpers/object';
+import { warn } from '../../helpers/console';
+import { rangeEach } from '../../helpers/number';
+import { applySpanProperties } from './utils';
 import './mergeCells.css';
 
 Hooks.getSingleton().register('beforeMergeCells');
@@ -203,7 +203,7 @@ class MergeCells extends BasePlugin {
       });
 
       // remove 'empty' setting objects, caused by improper merge range declarations
-      populationArgumentsList = populationArgumentsList.filter((value) => value !== true);
+      populationArgumentsList = populationArgumentsList.filter(value => value !== true);
 
       const bulkPopulationData = this.getBulkCollectionData(populationArgumentsList);
 
@@ -244,8 +244,8 @@ class MergeCells extends BasePlugin {
    * @return {Array[]} Start and end coordinates of the merged cell range. (in a form of [rowIndex, columnIndex])
    */
   getBulkCollectionDataRange(populationArgumentsList) {
-    let start = [0, 0];
-    let end = [0, 0];
+    const start = [0, 0];
+    const end = [0, 0];
     let mergedCellRow = null;
     let mergedCellColumn = null;
     let mergedCellData = null;
@@ -297,7 +297,7 @@ class MergeCells extends BasePlugin {
 
     currentRange.setDirection('NW-SE');
 
-    const {from, to} = currentRange;
+    const { from, to } = currentRange;
 
     this.toggleMerge(currentRange);
     this.hot.selectCell(from.row, from.col, to.row, to.col, false);
@@ -315,7 +315,7 @@ class MergeCells extends BasePlugin {
 
     cellRange.setDirection('NW-SE');
 
-    const {from, to} = cellRange;
+    const { from, to } = cellRange;
 
     this.unmergeRange(cellRange, true);
     this.mergeRange(cellRange);
@@ -332,7 +332,7 @@ class MergeCells extends BasePlugin {
       return;
     }
 
-    const {from, to} = cellRange;
+    const { from, to } = cellRange;
 
     this.unmergeRange(cellRange, true);
     this.hot.selectCell(from.row, from.col, to.row, to.col, false);
@@ -388,7 +388,7 @@ class MergeCells extends BasePlugin {
 
     this.hot.setCellMeta(mergeParent.row, mergeParent.col, 'spanned', true);
 
-    let mergedCellAdded = this.mergedCellsCollection.add(mergeParent);
+    const mergedCellAdded = this.mergedCellsCollection.add(mergeParent);
 
     if (mergedCellAdded) {
       if (preventPopulation) {
@@ -530,8 +530,8 @@ class MergeCells extends BasePlugin {
    */
   onAfterIsMultipleSelection(isMultiple) {
     if (isMultiple) {
-      let mergedCells = this.mergedCellsCollection.mergedCells;
-      let selectionRange = this.hot.getSelectedRangeLast();
+      const mergedCells = this.mergedCellsCollection.mergedCells;
+      const selectionRange = this.hot.getSelectedRangeLast();
 
       for (let group = 0; group < mergedCells.length; group += 1) {
         if (selectionRange.highlight.row === mergedCells[group].row &&
@@ -560,17 +560,17 @@ class MergeCells extends BasePlugin {
       col: delta.col,
     };
     let nextPosition = null;
-    let currentPosition = new CellCoords(currentlySelectedRange.highlight.row, currentlySelectedRange.highlight.col);
-    let mergedParent = this.mergedCellsCollection.get(currentPosition.row, currentPosition.col);
+    const currentPosition = new CellCoords(currentlySelectedRange.highlight.row, currentlySelectedRange.highlight.col);
+    const mergedParent = this.mergedCellsCollection.get(currentPosition.row, currentPosition.col);
 
     if (!priv.lastDesiredCoords) {
       priv.lastDesiredCoords = new CellCoords(null, null);
     }
 
     if (mergedParent) { // only merge selected
-      let mergeTopLeft = new CellCoords(mergedParent.row, mergedParent.col);
-      let mergeBottomRight = new CellCoords(mergedParent.row + mergedParent.rowspan - 1, mergedParent.col + mergedParent.colspan - 1);
-      let mergeRange = new CellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
+      const mergeTopLeft = new CellCoords(mergedParent.row, mergedParent.col);
+      const mergeBottomRight = new CellCoords(mergedParent.row + mergedParent.rowspan - 1, mergedParent.col + mergedParent.colspan - 1);
+      const mergeRange = new CellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
 
       if (!mergeRange.includes(priv.lastDesiredCoords)) {
         priv.lastDesiredCoords = new CellCoords(null, null); // reset outdated version of lastDesiredCoords
@@ -596,7 +596,7 @@ class MergeCells extends BasePlugin {
 
     nextPosition = new CellCoords(currentlySelectedRange.highlight.row + newDelta.row, currentlySelectedRange.highlight.col + newDelta.col);
 
-    let nextParentIsMerged = this.mergedCellsCollection.get(nextPosition.row, nextPosition.col);
+    const nextParentIsMerged = this.mergedCellsCollection.get(nextPosition.row, nextPosition.col);
 
     if (nextParentIsMerged) { // skipping the invisible cells in the merge range
       priv.lastDesiredCoords = nextPosition;
@@ -621,9 +621,9 @@ class MergeCells extends BasePlugin {
    * @param {Object} delta The transformation delta.
    */
   onModifyTransformEnd(delta) {
-    let currentSelectionRange = this.hot.getSelectedRangeLast();
-    let newDelta = clone(delta);
-    let newSelectionRange = this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, delta);
+    const currentSelectionRange = this.hot.getSelectedRangeLast();
+    const newDelta = clone(delta);
+    const newSelectionRange = this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, delta);
     let tempDelta = clone(newDelta);
 
     const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(newSelectionRange, true);
@@ -683,7 +683,7 @@ class MergeCells extends BasePlugin {
    * @param {Number} col Column index.
    */
   onAfterRenderer(TD, row, col) {
-    let mergedCell = this.mergedCellsCollection.get(row, col);
+    const mergedCell = this.mergedCellsCollection.get(row, col);
 
     applySpanProperties(TD, mergedCell, row, col);
   }
@@ -696,7 +696,7 @@ class MergeCells extends BasePlugin {
    * @param {Object} coords Cell coords.
    */
   onBeforeSetRangeEnd(coords) {
-    let selRange = this.hot.getSelectedRangeLast();
+    const selRange = this.hot.getSelectedRangeLast();
     selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
     selRange.to = coords;
     let rangeExpanded = false;
@@ -709,8 +709,8 @@ class MergeCells extends BasePlugin {
       rangeExpanded = false;
 
       for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
-        let cellInfo = this.mergedCellsCollection.mergedCells[i];
-        let mergedCellRange = cellInfo.getRange();
+        const cellInfo = this.mergedCellsCollection.mergedCells[i];
+        const mergedCellRange = cellInfo.getRange();
 
         if (selRange.expandByRange(mergedCellRange)) {
           coords.row = selRange.to.row;
@@ -731,7 +731,7 @@ class MergeCells extends BasePlugin {
    * @param {Object} cellProperties The cell properties object.
    */
   onAfterGetCellMeta(row, col, cellProperties) {
-    let mergeParent = this.mergedCellsCollection.get(row, col);
+    const mergeParent = this.mergedCellsCollection.get(row, col);
 
     if (mergeParent && (mergeParent.row !== row || mergeParent.col !== col)) {
       cellProperties.copyable = false;
@@ -745,7 +745,7 @@ class MergeCells extends BasePlugin {
    * @param {Object} calc The row calculator object.
    */
   onAfterViewportRowCalculatorOverride(calc) {
-    let colCount = this.hot.countCols();
+    const colCount = this.hot.countCols();
     let mergeParent;
 
     rangeEach(0, colCount - 1, (c) => {
@@ -760,7 +760,7 @@ class MergeCells extends BasePlugin {
       mergeParent = this.mergedCellsCollection.get(calc.endRow, c);
 
       if (mergeParent) {
-        let mergeEnd = mergeParent.row + mergeParent.rowspan - 1;
+        const mergeEnd = mergeParent.row + mergeParent.rowspan - 1;
         if (mergeEnd > calc.endRow) {
           calc.endRow = mergeEnd;
           return this.onAfterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
@@ -778,7 +778,7 @@ class MergeCells extends BasePlugin {
    * @param {Object} calc The column calculator object.
    */
   onAfterViewportColumnCalculatorOverride(calc) {
-    let rowCount = this.hot.countRows();
+    const rowCount = this.hot.countRows();
     let mergeParent;
 
     rangeEach(0, rowCount - 1, (r) => {
@@ -792,7 +792,7 @@ class MergeCells extends BasePlugin {
       mergeParent = this.mergedCellsCollection.get(r, calc.endColumn);
 
       if (mergeParent) {
-        let mergeEnd = mergeParent.col + mergeParent.colspan - 1;
+        const mergeEnd = mergeParent.col + mergeParent.colspan - 1;
         if (mergeEnd > calc.endColumn) {
           calc.endColumn = mergeEnd;
           return this.onAfterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
@@ -814,24 +814,26 @@ class MergeCells extends BasePlugin {
   onModifyAutofillRange(drag, select) {
     this.autofillCalculations.correctSelectionAreaSize(select);
     const dragDirection = this.autofillCalculations.getDirection(select, drag);
+    let dragArea = drag;
 
-    if (this.autofillCalculations.dragAreaOverlapsCollections(select, drag, dragDirection)) {
-      drag = select;
-      return drag;
+    if (this.autofillCalculations.dragAreaOverlapsCollections(select, dragArea, dragDirection)) {
+      dragArea = select;
+
+      return dragArea;
     }
 
     const mergedCellsWithinSelectionArea = this.mergedCellsCollection.getWithinRange({
-      from: {row: select[0], col: select[1]},
-      to: {row: select[2], col: select[3]}
+      from: { row: select[0], col: select[1] },
+      to: { row: select[2], col: select[3] }
     });
 
     if (!mergedCellsWithinSelectionArea) {
-      return drag;
+      return dragArea;
     }
 
-    drag = this.autofillCalculations.snapDragArea(select, drag, dragDirection, mergedCellsWithinSelectionArea);
+    dragArea = this.autofillCalculations.snapDragArea(select, dragArea, dragDirection, mergedCellsWithinSelectionArea);
 
-    return drag;
+    return dragArea;
   }
 
   /**

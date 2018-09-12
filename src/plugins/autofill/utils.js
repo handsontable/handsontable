@@ -1,6 +1,6 @@
-import {isObject} from './../../helpers/object';
-import {isDefined} from './../../helpers/mixed';
-import {CellCoords} from './../../3rdparty/walkontable/src';
+import { isObject } from './../../helpers/object';
+import { isDefined } from './../../helpers/mixed';
+import { CellCoords } from './../../3rdparty/walkontable/src';
 
 export const DIRECTIONS = {
   horizontal: 'horizontal',
@@ -27,9 +27,9 @@ export function getDeltas(start, end, data, direction) {
     const arr = [];
 
     for (let col = 0; col <= diffCol; col++) {
-      let startValue = parseInt(data[0][col], 10);
-      let endValue = parseInt(data[rowsLength - 1][col], 10);
-      let delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rowsLength - 1) || 0;
+      const startValue = parseInt(data[0][col], 10);
+      const endValue = parseInt(data[rowsLength - 1][col], 10);
+      const delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rowsLength - 1) || 0;
 
       arr.push(delta);
     }
@@ -39,9 +39,9 @@ export function getDeltas(start, end, data, direction) {
 
   if (['right', 'left'].indexOf(direction) !== -1) {
     for (let row = 0; row <= diffRow; row++) {
-      let startValue = parseInt(data[row][0], 10);
-      let endValue = parseInt(data[row][columnsLength - 1], 10);
-      let delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (columnsLength - 1) || 0;
+      const startValue = parseInt(data[row][0], 10);
+      const endValue = parseInt(data[row][columnsLength - 1], 10);
+      const delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (columnsLength - 1) || 0;
 
       deltas.push([delta]);
     }
@@ -58,9 +58,9 @@ export function getDeltas(start, end, data, direction) {
  * @returns {{direction: String, start: CellCoords, end: CellCoords}}
  */
 export function getDragDirectionAndRange(startSelection, endSelection) {
-  let startOfDragCoords,
-    endOfDragCoords,
-    directionOfDrag;
+  let startOfDragCoords;
+  let endOfDragCoords;
+  let directionOfDrag;
 
   if (endSelection[0] === startSelection[0] && endSelection[1] < startSelection[1]) {
     directionOfDrag = 'left';

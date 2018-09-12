@@ -41,14 +41,14 @@ class LeftOverlay extends Overlay {
       // removed from DOM
       return;
     }
-    let overlayRoot = this.clone.wtTable.holder.parentNode;
+    const overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
-    let preventOverflow = this.wot.getSetting('preventOverflow');
+    const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer === window && (!preventOverflow || preventOverflow !== 'horizontal')) {
-      let box = this.wot.wtTable.hider.getBoundingClientRect();
-      let left = Math.ceil(box.left);
-      let right = Math.ceil(box.right);
+      const box = this.wot.wtTable.hider.getBoundingClientRect();
+      const left = Math.ceil(box.left);
+      const right = Math.ceil(box.right);
       let finalLeft;
       let finalTop;
 
@@ -109,12 +109,13 @@ class LeftOverlay extends Overlay {
    * @returns {Number} Width sum.
    */
   sumCellSizes(from, to) {
+    const defaultColumnWidth = this.wot.wtSettings.defaultColumnWidth;
+    let column = from;
     let sum = 0;
-    let defaultColumnWidth = this.wot.wtSettings.defaultColumnWidth;
 
-    while (from < to) {
-      sum += this.wot.wtTable.getStretchedColumnWidth(from) || defaultColumnWidth;
-      from++;
+    while (column < to) {
+      sum += this.wot.wtTable.getStretchedColumnWidth(column) || defaultColumnWidth;
+      column += 1;
     }
 
     return sum;
@@ -142,12 +143,11 @@ class LeftOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    let masterHolder = this.wot.wtTable.holder;
-    let scrollbarHeight = masterHolder.clientHeight === masterHolder.offsetHeight ? 0 : getScrollbarWidth();
-    let overlayRoot = this.clone.wtTable.holder.parentNode;
-    let overlayRootStyle = overlayRoot.style;
-    let preventOverflow = this.wot.getSetting('preventOverflow');
-    let tableWidth;
+    const masterHolder = this.wot.wtTable.holder;
+    const scrollbarHeight = masterHolder.clientHeight === masterHolder.offsetHeight ? 0 : getScrollbarWidth();
+    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const overlayRootStyle = overlayRoot.style;
+    const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer !== window || preventOverflow === 'vertical') {
       let height = this.wot.wtViewport.getWorkspaceHeight() - scrollbarHeight;
@@ -162,7 +162,7 @@ class LeftOverlay extends Overlay {
 
     this.clone.wtTable.holder.style.height = overlayRootStyle.height;
 
-    tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
     overlayRootStyle.width = `${tableWidth === 0 ? tableWidth : tableWidth + 4}px`;
   }
 
@@ -185,7 +185,7 @@ class LeftOverlay extends Overlay {
    * Adjust the overlay dimensions and position.
    */
   applyToDOM() {
-    let total = this.wot.getSetting('totalColumns');
+    const total = this.wot.getSetting('totalColumns');
 
     if (!this.areElementSizesAdjusted) {
       this.adjustElementsSize();
@@ -227,8 +227,8 @@ class LeftOverlay extends Overlay {
    */
   scrollTo(sourceCol, beyondRendered) {
     let newX = this.getTableParentOffset();
-    let sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
-    let mainHolder = sourceInstance.wtTable.holder;
+    const sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
+    const mainHolder = sourceInstance.wtTable.holder;
     let scrollbarCompensation = 0;
 
     if (beyondRendered && mainHolder.offsetWidth !== mainHolder.clientWidth) {
@@ -253,7 +253,7 @@ class LeftOverlay extends Overlay {
    * @returns {Number}
    */
   getTableParentOffset() {
-    let preventOverflow = this.wot.getSetting('preventOverflow');
+    const preventOverflow = this.wot.getSetting('preventOverflow');
     let offset = 0;
 
     if (!preventOverflow && this.trimmingContainer === window) {
@@ -293,7 +293,7 @@ class LeftOverlay extends Overlay {
       addClass(masterParent, 'innerBorderLeft');
 
     } else if (!fixedColumnsLeft && rowHeaders.length) {
-      let previousState = hasClass(masterParent, 'innerBorderLeft');
+      const previousState = hasClass(masterParent, 'innerBorderLeft');
 
       if (position) {
         addClass(masterParent, 'innerBorderLeft');
