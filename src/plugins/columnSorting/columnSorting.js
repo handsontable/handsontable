@@ -390,7 +390,7 @@ class ColumnSorting extends BasePlugin {
    */
   onAfterGetColHeader(column, TH) {
     if (column < 0 || !TH.parentNode) {
-      return false;
+      return;
     }
 
     const headerLink = TH.querySelector('.colHeader');
