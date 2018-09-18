@@ -482,4 +482,30 @@ describe('AutoColumnSize', () => {
 
     expect(spy.calls.mostRecent().args[5]).toEqual([{ id: 1000 }]);
   });
+
+  it('should not change width and widths after select/click cell', () => {
+    hot = handsontable({
+      data: [
+        ['Canceled'],
+        ['Processing'],
+        ['Processing'],
+        ['Created'],
+        ['Processing'],
+        ['Completed']
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    const cloneTopHider = spec().$container.find('.ht_clone_top .wtHider');
+    const plugin = hot.getPlugin('autoColumnSize');
+
+    expect(cloneTopHider.width()).toEqual(140);
+    expect(plugin.widths[0]).toEqual(90);
+
+    selectCell(0, 0);
+
+    expect(cloneTopHider.width()).toEqual(140);
+    expect(plugin.widths[0]).toEqual(90);
+  });
 });
