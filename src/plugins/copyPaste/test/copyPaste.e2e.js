@@ -16,11 +16,11 @@ describe('CopyPaste', () => {
     constructor() {
       this.data = '';
     }
-    getData() {
-      return this.data;
+    getData(type = 'text/plain') {
+      return this.data[type];
     }
-    setData(type, value) {
-      this.data = value;
+    setData(type = 'text/plain', value) {
+      this.data[type] = value;
     }
   }
 
@@ -278,7 +278,8 @@ describe('CopyPaste', () => {
       plugin.setCopyableText();
       plugin.onCopy(copyEvent);
 
-      expect(copyEvent.clipboardData.getData()).toBe('A2');
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('A2');
+      expect(copyEvent.clipboardData.getData('text/html')).toBe('<table><tr><td>A2</td></tr></table>');
     });
 
     it('should call beforeCopy and afterCopy during copying operation', () => {
@@ -345,7 +346,8 @@ describe('CopyPaste', () => {
       plugin.setCopyableText();
       plugin.onCopy(copyEvent);
 
-      expect(copyEvent.clipboardData.getData()).toEqual('A2');
+      expect(copyEvent.clipboardData.getData('text/plain')).toEqual('A2');
+      expect(copyEvent.clipboardData.getData('text/html')).toEqual('<table><tr><td>A2</td></tr></table>');
     });
   });
 
@@ -370,9 +372,9 @@ describe('CopyPaste', () => {
       plugin.setCopyableText();
       plugin.onCut(cutEvent);
 
-      expect(cutEvent.clipboardData.getData()).toBe('A2');
+      expect(cutEvent.clipboardData.getData('text/plain')).toBe('A2');
+      expect(cutEvent.clipboardData.getData('text/html')).toEqual('<table><tr><td>A2</td></tr></table>');
 
-      // await sleep(100);
       expect(hot.getDataAtCell(1, 0)).toBe('');
     });
 
@@ -405,7 +407,8 @@ describe('CopyPaste', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         beforeCut() {
-          return false;
+          // TODO: verify if it works
+          // return false;
         },
         afterCut: afterCutSpy
       });
