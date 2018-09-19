@@ -53,7 +53,7 @@ function UndoRedo(instance) {
     const physicalRowIndex = instance.toPhysicalRow(rowIndex);
     const removedData = deepClone(originalData.slice(physicalRowIndex, physicalRowIndex + amount));
 
-    plugin.done(new UndoRedo.RemoveRowAction(rowIndex, removedData, instance));
+    plugin.done(new UndoRedo.RemoveRowAction(rowIndex, removedData));
   });
 
   instance.addHook('afterCreateCol', (index, amount, source) => {
