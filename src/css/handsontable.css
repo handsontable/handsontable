@@ -272,11 +272,13 @@
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=");
 }
 
-.htGhostTable span.colHeader.columnSorting:not(.indicatorDisabled)::before {
+.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::after {
   content: '*';
   display: inline-block;
   position: relative;
-  padding-right: 14px; /* The multi-line header need more padding to not hide arrow */
+  /* The multi-line header and header with longer text need more padding to not hide arrow, 
+  we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
+  padding-right: 20px;
 }
 
 /* Selection */
