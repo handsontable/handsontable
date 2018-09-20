@@ -1790,6 +1790,7 @@ DefaultSettings.prototype = {
    *   * `false` = the table moves all empty cells to the end of the table
    * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
    *
+   * @pro
    * @type {Boolean|Object}
    * @default undefined
    *
