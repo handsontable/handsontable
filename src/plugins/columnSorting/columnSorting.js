@@ -798,7 +798,13 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (this.wasClickableHeaderClicked(event, coords.col)) {
-      // DIFF - MultiColumnSorting & ColumnSorting: removed selection of next column to sort.
+      if (isPressedCtrlKey()) {
+        this.hot.deselectCell();
+        this.hot.selectColumns(coords.col);
+
+        // DIFF - MultiColumnSorting & ColumnSorting: removed selection of next column to sort.
+      }
+
       this.sort(this.getColumnNextConfig(coords.col));
     }
   }
