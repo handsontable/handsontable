@@ -151,7 +151,7 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetLeft).toBe(150);
     });
 
-    xit('should not run moving ui if mousedown was fired on sorting element', () => {
+    it('should not run moving ui if mousedown was fired on sorting element', () => {
       handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
@@ -174,9 +174,9 @@ describe('manualColumnMove', () => {
       expect(displayProp).toEqual('none');
     });
 
-    xit('should run moving ui if mousedown was fired on sorting element when sort header action is not enabled', function() {
+    it('should run moving ui if mousedown was fired on sorting element when sort header action is not enabled', function() {
       handsontable({
-        data: singleColumnSortingData(),
+        data: arrayOfArrays.slice(),
         colHeaders: true,
         manualColumnMove: true,
         columnSorting: {
