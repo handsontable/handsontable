@@ -4,7 +4,7 @@ import {
 } from '../../helpers/dom/element';
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
-import { arrayMap, arrayEach, arrayFilter } from '../../helpers/array';
+import { arrayMap, arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import BasePlugin from '../_base';
 import { registerPlugin } from './../../plugins';
@@ -315,11 +315,11 @@ class ColumnSorting extends BasePlugin {
     const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
       ({ column: this.hot.toPhysicalColumn(visualColumn), ...restOfProperties });
 
-    // DIFF - MultiColumnSorting & ColumnSorting: extra `arrayFilter` method call.
-    if (this.areValidSortConfigs(arrayFilter(sortConfigs, (_, index) => index === 0))) {
+    // DIFF - MultiColumnSorting & ColumnSorting: extra `slice` method call.
+    if (this.areValidSortConfigs(sortConfigs.slice(0, 1))) {
 
-      // DIFF - MultiColumnSorting & ColumnSorting: extra `arrayFilter` method call.
-      this.columnStatesManager.setSortStates(arrayMap(arrayFilter(sortConfigs, (_, index) => index === 0),
+      // DIFF - MultiColumnSorting & ColumnSorting: extra `slice` method call.
+      this.columnStatesManager.setSortStates(arrayMap(sortConfigs.slice(0, 1),
         columnSortConfig => translateColumnToPhysical(columnSortConfig)));
 
     } else {
@@ -352,7 +352,6 @@ class ColumnSorting extends BasePlugin {
    *
    * @private
    * @fires Hooks#persistentStateSave
-   * @fires Hooks#columnSorting
    */
   saveAllSortSettings() {
     const allSortSettings = this.columnStatesManager.getAllColumnsProperties();

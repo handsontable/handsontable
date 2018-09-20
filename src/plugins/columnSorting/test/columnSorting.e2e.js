@@ -26,7 +26,7 @@ describe('ColumnSorting', () => {
     }
   });
 
-  const singleColumnSortingData = () => [
+  const arrayOfObjects = () => [
     { id: 1, name: 'Ted', lastName: 'Right' },
     { id: 2, name: 'Frank', lastName: 'Honest' },
     { id: 3, name: 'Joan', lastName: 'Well' },
@@ -39,7 +39,7 @@ describe('ColumnSorting', () => {
     { id: 10, name: 'Eve', lastName: 'Branson' }
   ];
 
-  const columnSortingData = () => [
+  const arrayOfArrays = () => [
     ['Mary', 'Brown', '01/14/2017', 6999.95, 'aa'],
     ['Henry', 'Jones', '12/01/2018', 8330, 'aaa'],
     ['Ann', 'Evans', '07/24/2021', 30500, null],
@@ -106,34 +106,18 @@ describe('ColumnSorting', () => {
 
   it('should clear the sort performed on the table by the `clearSort` method', () => {
     handsontable({
-      data: columnSortingData(),
-      columns: [
-        {},
-        {},
-        { type: 'date', dateFormat: 'MM/DD/YYYY' },
-        { type: 'numeric' },
-        {}
-      ],
+      data: arrayOfArrays(),
       columnSorting: {
-        initialConfig: [{
+        initialConfig: {
           column: 0,
           sortOrder: 'asc'
-        }, {
-          column: 1,
-          sortOrder: 'asc'
-        }, {
-          column: 2,
-          sortOrder: 'asc'
-        }, {
-          column: 3,
-          sortOrder: 'asc'
-        }]
+        }
       }
     });
 
     getPlugin('columnSorting').clearSort();
 
-    expect(getData()).toEqual(columnSortingData());
+    expect(getData()).toEqual(arrayOfArrays());
   });
 
   it('should return sorting state with visual column index under `column` key by the `getSortConfig` method', () => {
@@ -154,7 +138,7 @@ describe('ColumnSorting', () => {
     };
 
     handsontable({
-      data: columnSortingData(),
+      data: arrayOfArrays(),
       columns: [
         {},
         {},
@@ -199,7 +183,7 @@ describe('ColumnSorting', () => {
     };
 
     handsontable({
-      data: columnSortingData(),
+      data: arrayOfArrays(),
       columns: [
         {},
         {},
@@ -262,7 +246,7 @@ describe('ColumnSorting', () => {
 
   it('should clear indicator after disabling plugin', () => {
     handsontable({
-      data: singleColumnSortingData(),
+      data: arrayOfObjects(),
       colHeaders: true,
       columnSorting: {
         initialConfig: {
@@ -353,7 +337,7 @@ describe('ColumnSorting', () => {
 
     try {
       handsontable({
-        data: singleColumnSortingData(),
+        data: arrayOfObjects(),
         autoRowSize: true,
         columnSorting: true
       });
@@ -366,7 +350,7 @@ describe('ColumnSorting', () => {
 
   it('should sort numbers descending after 2 clicks on table header', () => {
     handsontable({
-      data: singleColumnSortingData(),
+      data: arrayOfObjects(),
       colHeaders: true,
       columnSorting: true
     });
@@ -2407,7 +2391,7 @@ describe('ColumnSorting', () => {
 
     it('should block action for specific configuration', () => {
       handsontable({
-        data: columnSortingData(),
+        data: arrayOfArrays(),
         columns: [
           { columnSorting: { headerAction: false } },
           {},
@@ -2432,7 +2416,7 @@ describe('ColumnSorting', () => {
 
     it('should not block action for specific configuration updated by `updateSettings`', () => {
       handsontable({
-        data: columnSortingData(),
+        data: arrayOfArrays(),
         columns: [
           { columnSorting: { headerAction: false } },
           {},
@@ -2463,7 +2447,7 @@ describe('ColumnSorting', () => {
 
     it('should block action for specific configuration updated by `updateSettings`', () => {
       handsontable({
-        data: columnSortingData(),
+        data: arrayOfArrays(),
         columns: [
           {},
           {},
