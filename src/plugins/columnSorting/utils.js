@@ -47,7 +47,7 @@ export function areValidSortStates(sortStates) {
  */
 export function getNextSortOrder(sortOrder) {
   if (sortOrder === DESC_SORT_STATE) {
-    return void 0;
+    return;
 
   } else if (sortOrder === ASC_SORT_STATE) {
     return DESC_SORT_STATE;

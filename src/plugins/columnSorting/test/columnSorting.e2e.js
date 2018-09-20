@@ -140,9 +140,6 @@ describe('ColumnSorting', () => {
     const predefinedSortQueue = [{
       column: 0,
       sortOrder: 'asc'
-    }, {
-      column: 1,
-      sortOrder: 'desc'
     }];
 
     const modification = (column) => {
@@ -172,7 +169,6 @@ describe('ColumnSorting', () => {
 
     expect(getPlugin('columnSorting').getSortConfig()).toEqual(predefinedSortQueue);
     expect(getPlugin('columnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
-    expect(getPlugin('columnSorting').getSortConfig(1)).toEqual({ column: 1, sortOrder: 'desc' });
 
     // changing column sequence: 0 <-> 1
     updateSettings({ modifyCol: modification, unmodifyCol: modification });
@@ -180,12 +176,8 @@ describe('ColumnSorting', () => {
     expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
       column: 1,
       sortOrder: 'asc'
-    }, {
-      column: 0,
-      sortOrder: 'desc'
     }]);
 
-    expect(getPlugin('columnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'desc' });
     expect(getPlugin('columnSorting').getSortConfig(1)).toEqual({ column: 1, sortOrder: 'asc' });
   });
 
@@ -193,9 +185,6 @@ describe('ColumnSorting', () => {
     const sortQueue = [{
       column: 0,
       sortOrder: 'asc'
-    }, {
-      column: 1,
-      sortOrder: 'desc'
     }];
 
     const modification = (column) => {
@@ -225,7 +214,6 @@ describe('ColumnSorting', () => {
 
     expect(getPlugin('columnSorting').getSortConfig()).toEqual(sortQueue);
     expect(getPlugin('columnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
-    expect(getPlugin('columnSorting').getSortConfig(1)).toEqual({ column: 1, sortOrder: 'desc' });
 
     // changing column sequence: 0 <-> 1
     updateSettings({ modifyCol: modification, unmodifyCol: modification });
@@ -233,12 +221,8 @@ describe('ColumnSorting', () => {
     expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
       column: 1,
       sortOrder: 'asc'
-    }, {
-      column: 0,
-      sortOrder: 'desc'
     }]);
 
-    expect(getPlugin('columnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'desc' });
     expect(getPlugin('columnSorting').getSortConfig(1)).toEqual({ column: 1, sortOrder: 'asc' });
   });
 

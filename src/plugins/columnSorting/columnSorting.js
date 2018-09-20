@@ -4,7 +4,7 @@ import {
 } from '../../helpers/dom/element';
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
-import { arrayMap, arrayEach } from '../../helpers/array';
+import { arrayMap, arrayEach, arrayFilter } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import BasePlugin from '../_base';
 import { registerPlugin } from './../../plugins';
@@ -315,11 +315,12 @@ class ColumnSorting extends BasePlugin {
     const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
       ({ column: this.hot.toPhysicalColumn(visualColumn), ...restOfProperties });
 
-    // DIFF - MultiColumnSorting & ColumnSorting: extra `shift` method call.
-    const sortConfig = sortConfigs.shift();
+    // DIFF - MultiColumnSorting & ColumnSorting: extra `arrayFilter` method call.
+    if (this.areValidSortConfigs(arrayFilter(sortConfigs, (_, index) => index === 0))) {
 
-    if (this.areValidSortConfigs([sortConfig])) {
-      this.columnStatesManager.setSortStates([translateColumnToPhysical(sortConfig)]);
+      // DIFF - MultiColumnSorting & ColumnSorting: extra `arrayFilter` method call.
+      this.columnStatesManager.setSortStates(arrayMap(arrayFilter(sortConfigs, (_, index) => index === 0),
+        columnSortConfig => translateColumnToPhysical(columnSortConfig)));
 
     } else {
       warnAboutNotValidatedConfig();

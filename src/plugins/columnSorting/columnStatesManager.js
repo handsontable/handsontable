@@ -77,7 +77,7 @@ export class ColumnStatesManager {
       headerAction: this.headerAction
     };
 
-    if (typeof this.compareFunctionFactory !== 'undefined') {
+    if (typeof this.compareFunctionFactory === 'function') {
       columnProperties.compareFunctionFactory = this.compareFunctionFactory;
     }
 
@@ -184,8 +184,6 @@ export class ColumnStatesManager {
     if (this.isColumnSorted(column)) {
       return deepClone(this.sortedColumnsStates[this.getIndexOfColumnInSortQueue(column)]);
     }
-
-    return void 0;
   }
 
   /**
