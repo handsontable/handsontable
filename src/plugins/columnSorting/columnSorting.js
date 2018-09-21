@@ -315,9 +315,7 @@ class ColumnSorting extends BasePlugin {
     const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
       ({ column: this.hot.toPhysicalColumn(visualColumn), ...restOfProperties });
 
-    // DIFF - MultiColumnSorting & ColumnSorting: extra `slice` method call.
-    if (this.areValidSortConfigs(sortConfigs.slice(0, 1))) {
-
+    if (this.areValidSortConfigs(sortConfigs)) {
       // DIFF - MultiColumnSorting & ColumnSorting: extra `slice` method call.
       this.columnStatesManager.setSortStates(arrayMap(sortConfigs.slice(0, 1),
         columnSortConfig => translateColumnToPhysical(columnSortConfig)));
