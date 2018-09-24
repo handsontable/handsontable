@@ -3,6 +3,7 @@ import Hooks from './../../pluginHooks';
 import SheetClip from './../../../lib/SheetClip/SheetClip';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
+import { getSelectionText } from './../../helpers/dom/element';
 import { registerPlugin } from './../../plugins';
 import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
@@ -128,7 +129,8 @@ class CopyPaste extends BasePlugin {
     this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
 
     this.addHook('afterOnCellMouseUp', () => this.onAfterOnCellMouseUp());
-    this.addHook('afterDocumentKeyDown', () => this.onAfterDocumentKeyDown());
+    this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
+    this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
 
     this.focusableElement = createElement();
     this.focusableElement
@@ -169,7 +171,6 @@ class CopyPaste extends BasePlugin {
     if (!selRange) {
       return;
     }
-
     const topLeft = selRange.getTopLeftCorner();
     const bottomRight = selRange.getBottomRightCorner();
     const startRow = topLeft.row;
@@ -543,8 +544,41 @@ class CopyPaste extends BasePlugin {
     this.focusableElement.focus();
   }
 
-  onAfterDocumentKeyDown() {
+  /**
+   * Force focus on focusableElement after end of the selection.
+   *
+   * @private
+   */
+  onAfterSelectionEnd() {
+    const { isFragmentSelectionEnabled } = privatePool.get(this);
+
+    if (this.isEditorOpened()) {
+      return;
+    }
+
+    this.getOrCreateFocusableElement();
+
+    if (isFragmentSelectionEnabled && this.focusableElement.getFocusableElement() !== document.activeElement && getSelectionText()) {
+      return;
+    }
+
+    this.setCopyableText();
+    this.focusableElement.focus();
+  }
+
+  /**
+   * `beforeKeyDown` listener to force focus of focusableElement.
+   *
+   * @private
+   */
+  onBeforeKeyDown() {
     if (!this.hot.isListening() || this.isEditorOpened()) {
+      return;
+    }
+    const activeElement = document.activeElement;
+    const activeEditor = this.hot.getActiveEditor();
+
+    if (!activeEditor || (activeElement !== this.focusableElement.mainElement && activeElement !== activeEditor.select)) {
       return;
     }
 

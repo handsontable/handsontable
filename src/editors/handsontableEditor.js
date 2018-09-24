@@ -34,6 +34,7 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
     minCols: 0,
     className: 'listbox',
     copyPaste: false,
+    // editor: false,
     autoColumnSize: false,
     autoRowSize: false,
     readOnly: true,

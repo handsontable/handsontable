@@ -15,7 +15,7 @@ export function arrayToTable(input) {
     }
 
     for (let column = 0; column < columnsLen; column += 1) {
-      tempElement.innerHTML = `${rowData[column]}`;
+      tempElement.innerHTML = `${rowData[column] || ''}`;
 
       columnsResult.push(`<td>${tempElement.innerHTML}</td>`);
     }
