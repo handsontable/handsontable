@@ -80,7 +80,7 @@ const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
  *   }
  * }]```
  *
- * @dependencies moment
+ * @dependencies ObserveChanges moment
  */
 class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
@@ -142,8 +142,12 @@ class ColumnSorting extends BasePlugin {
 
     warnIfPluginsHaveConflict(this.hot.getSettings().columnSorting);
 
-    this.addHook('afterTrimRow', () => this.removeSortAction());
-    this.addHook('afterUntrimRow', () => this.removeSortAction());
+    if (isUndefined(this.hot.getSettings().observeChanges)) {
+      this.enableObserveChangesPlugin();
+    }
+
+    this.addHook('afterTrimRow', () => this.sortByPresetSortStates());
+    this.addHook('afterUntrimRow', () => this.sortByPresetSortStates());
     this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
     this.addHook('unmodifyRow', (row, source) => this.onUnmodifyRow(row, source));
     this.addHook('afterGetColHeader', (column, TH) => this.onAfterGetColHeader(column, TH));
@@ -152,8 +156,6 @@ class ColumnSorting extends BasePlugin {
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
     this.addHook('afterInit', () => this.loadOrSortBySettings());
-    this.addHook('beforeChange', changes => this.onBeforeChange(changes));
-    this.addHook('afterRowMove', () => this.removeSortAction());
     this.addHook('afterLoadData', initialLoad => this.onAfterLoadData(initialLoad));
 
     // TODO: Workaround? It should be refactored / described.
@@ -185,7 +187,6 @@ class ColumnSorting extends BasePlugin {
     });
 
     this.rowsMapper.clearMap();
-    this.removeSortAction();
 
     super.disablePlugin();
   }
@@ -686,6 +687,22 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
+   * Enables the ObserveChanges plugin.
+   *
+   * @private
+   */
+  enableObserveChangesPlugin() {
+    const _this = this;
+
+    this.hot._registerTimeout(
+      setTimeout(() => {
+        _this.hot.updateSettings({
+          observeChanges: true
+        });
+      }, 0));
+  }
+
+  /**
    * Callback for the `afterLoadData` hook.
    *
    * @private
@@ -703,30 +720,6 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Callback for the `beforeChange` hook.
-   *
-   * @private
-   * @param {Array} changes Array of changes.
-   */
-  onBeforeChange(changes) {
-    if (changes === null) {
-      return;
-    }
-
-    // Clear sort only when any cell in already sorted column was changed.
-    arrayEach(changes, ([, prop, oldVal, newVal]) => {
-      const visualColumn = this.hot.propToCol(prop);
-      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-      if (this.columnStatesManager.isColumnSorted(physicalColumn) && oldVal !== newVal) {
-        this.removeSortAction();
-
-        return false;
-      }
-    });
-  }
-
-  /**
    * Callback for the `afterCreateRow` hook.
    *
    * @private
@@ -735,7 +728,6 @@ class ColumnSorting extends BasePlugin {
    */
   onAfterCreateRow(index, amount) {
     this.rowsMapper.shiftItems(index, amount);
-    this.removeSortAction();
   }
 
   /**
@@ -747,7 +739,6 @@ class ColumnSorting extends BasePlugin {
    */
   onAfterRemoveRow(removedRows, amount) {
     this.rowsMapper.unshiftItems(removedRows, amount);
-    this.removeSortAction();
   }
 
   /**
@@ -808,16 +799,6 @@ class ColumnSorting extends BasePlugin {
 
       this.sort(this.getColumnNextConfig(coords.col));
     }
-  }
-
-  /**
-   * Clear the sort action performed on the table WITHOUT changing the rows mapper indexes.
-   *
-   * @private
-   */
-  removeSortAction() {
-    this.columnStatesManager.setSortStates([]);
-    this.saveAllSortSettings();
   }
 
   /**
