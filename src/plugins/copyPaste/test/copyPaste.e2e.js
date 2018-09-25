@@ -264,6 +264,50 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('"A\nB"\tC');
       expect(copyEvent.clipboardData.getData('text/html')).toEqual('<table><tbody><tr><td>A<br>B</td><td>C</td></tr></tbody></table>');
     });
+
+    it('should be possible to copy special chars', () => {
+      handsontable({
+        data: [
+          ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~']
+        ],
+      });
+
+      const copyEvent = getClipboardEvent('copy');
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(0, 0, 0, 1);
+
+      plugin.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toEqual('!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~');
+      expect(copyEvent.clipboardData.getData('text/html')).toEqual([
+        '<table><tbody><tr><td>!@#$%^&amp;*()_+-={[</td>',
+        '<td>]};:\'"\\|,&lt;.&gt;/?~</td></tr></tbody></table>'
+      ].join(''));
+    });
+
+    it('should be possible to copy text in quotes', () => {
+      handsontable({
+        data: [
+          ['{"test": "value"}'],
+          ['{"test2": {"testtest": ""}}'],
+          ['{"test3": ""}'],
+        ],
+      });
+
+      const copyEvent = getClipboardEvent('copy');
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(0, 0, 2, 0);
+
+      plugin.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toEqual('{"test": "value"}\n{"test2": {"testtest": ""}}\n{"test3": ""}');
+      expect(copyEvent.clipboardData.getData('text/html')).toEqual([
+        '<table><tbody><tr><td>{"test": "value"}</td></tr><tr><td>{"test2": {"testtest": ""}}</td>',
+        '</tr><tr><td>{"test3": ""}</td></tr></tbody></table>'
+      ].join(''));
+    });
   });
 
   describe('cut', () => {
@@ -312,25 +356,6 @@ describe('CopyPaste', () => {
       expect(beforeCutSpy).toHaveBeenCalledWith([['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
       expect(afterCutSpy.calls.count()).toEqual(1);
       expect(afterCutSpy).toHaveBeenCalledWith([['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
-    });
-
-    it('should be possible to block cutting out', () => {
-      const afterCutSpy = jasmine.createSpy('afterCut');
-
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
-        beforeCut() {
-          // TODO: verify if it works
-          // return false;
-        },
-        afterCut: afterCutSpy
-      });
-
-      selectCell(0, 0);
-      keyDown('ctrl');
-      keyDown('ctrl+x');
-
-      expect(afterCutSpy.calls.count()).toEqual(0);
     });
   });
 
@@ -578,6 +603,76 @@ describe('CopyPaste', () => {
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('Toyota');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
+    });
+
+    it('should be possible to paste copied data from the same instance', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+      });
+
+      expect(getDataAtCell(3, 1, 3, 1)).toEqual('B4');
+
+      const copyEvent = getClipboardEvent('copy');
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(0, 0, 1, 4);
+
+      plugin.onCopy(copyEvent);
+
+      selectCell(4, 1);
+
+      plugin.onPaste(copyEvent);
+
+      expect(getDataAtCell(4, 1)).toEqual('A1');
+      expect(countCols()).toEqual(6);
+      expect(countRows()).toEqual(6);
+    });
+
+    it('should properly paste empty cells', async() => {
+      handsontable({
+        data: [
+          ['A', ''],
+          ['B', ''],
+          ['C', ''],
+          ['D', ''],
+        ],
+      });
+
+      const copyEvent = getClipboardEvent('copy');
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(0, 1, 2, 1);
+
+      plugin.onCopy(copyEvent);
+
+      selectCell(2, 0);
+
+      plugin.onPaste(copyEvent);
+
+      expect(getDataAtCol(0)).toEqual(['A', 'B', '', '', '']);
+    });
+
+    it('should properly paste data with special chars', async() => {
+      handsontable({
+        data: [
+          ['{""""}', ''],
+          ['{""""}{""""}', ''],
+          ['{""""}{""""}{""""}', ''],
+        ],
+      });
+
+      const copyEvent = getClipboardEvent('copy');
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(0, 0, 2, 0);
+
+      plugin.onCopy(copyEvent);
+
+      selectCell(0, 1);
+
+      plugin.onPaste(copyEvent);
+
+      expect(getDataAtCol(1)).toEqual(['{""""}', '{""""}{""""}', '{""""}{""""}{""""}']);
     });
   });
 });
