@@ -15,7 +15,7 @@ export function arrayToTable(input) {
     }
 
     for (let column = 0; column < columnsLen; column += 1) {
-      tempElement.innerHTML = `${rowData[column] || ''}`;
+      tempElement.innerText = `${rowData[column] || ''}`;
 
       columnsResult.push(`<td>${tempElement.innerHTML}</td>`);
     }
@@ -50,7 +50,7 @@ function htmlTableToArray(table) {
 
     for (let column = 0; column < cellsLen; column += 1) {
       const cell = cells[column];
-      const cellText = cell.innerHTML;
+      const cellText = cell.innerText;
       newRow.push(cellText);
     }
 
