@@ -295,7 +295,7 @@ class ColumnSorting extends BasePlugin {
    * @example
    * ```js
    * beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
-   *   const columnSortPlugin = this.getPlugin('multiColumnSorting');
+   *   const columnSortPlugin = this.getPlugin('columnSorting');
    *
    *   columnSortPlugin.setSortConfig(destinationSortConfigs);
    *
