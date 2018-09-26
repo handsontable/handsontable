@@ -1,3 +1,8 @@
+/**
+ * Converts javascript array into HTMLTable.
+ *
+ * @param {Array} input Input array which will be converted to HTMLTable
+ */
 export function arrayToTable(input) {
   const inputLen = input.length;
   const result = ['<table>'];
@@ -34,33 +39,20 @@ export function arrayToTable(input) {
   return result.join('');
 }
 
+/**
+ * Helper to verify if DOM element is an HTMLTable element.
+ *
+ * @param {Element} element Node element to verify if it's an HTMLTable.
+ */
 function isHTMLTable(element) {
   return (element && element.nodeName || '').toLowerCase() === 'table';
 }
 
-function htmlTableToArray(table) {
-  const rows = table.rows;
-  const rowsLen = rows && rows.length;
-  const tempArray = [];
-
-  for (let row = 0; row < rowsLen; row += 1) {
-    const cells = rows[row].cells;
-    const cellsLen = cells.length;
-    const newRow = [];
-
-    for (let column = 0; column < cellsLen; column += 1) {
-      const cell = cells[column];
-      const cellText = cell.innerText;
-
-      newRow.push(cellText);
-    }
-
-    tempArray.push(newRow);
-  }
-
-  return tempArray;
-}
-
+/**
+ * Converts HTMLTable or string into array.
+ *
+ * @param {Element|String} element Node element or string, which should contain `<table>...</table>`.
+ */
 export function tableToArray(element) {
   const result = [];
   let checkElement = element;
@@ -72,7 +64,26 @@ export function tableToArray(element) {
   }
 
   if (checkElement && isHTMLTable(checkElement)) {
-    result.push(...htmlTableToArray(checkElement));
+    const rows = checkElement.rows;
+    const rowsLen = rows && rows.length;
+    const tempArray = [];
+
+    for (let row = 0; row < rowsLen; row += 1) {
+      const cells = rows[row].cells;
+      const cellsLen = cells.length;
+      const newRow = [];
+
+      for (let column = 0; column < cellsLen; column += 1) {
+        const cell = cells[column];
+        const cellText = cell.innerText;
+
+        newRow.push(cellText);
+      }
+
+      tempArray.push(newRow);
+    }
+
+    result.push(...tempArray);
   }
 
   return result;

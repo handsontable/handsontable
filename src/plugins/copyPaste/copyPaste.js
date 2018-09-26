@@ -349,6 +349,7 @@ class CopyPaste extends BasePlugin {
    * @private
    * @param {Array} inputArray
    * @param {Array} selection
+   * @returns {Array} Range coordinates after populate data
    */
   populateValues(inputArray, selection = this.hot.getSelectedLast()) {
     if (!inputArray.length) {
