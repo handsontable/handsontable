@@ -57,6 +57,26 @@ export function getNextSortOrder(sortOrder) {
 }
 
 /**
+ * Get multiple sorted column configs from sort configs with different data types.
+ *
+ * @param {undefined|Object|Array} sortConfig Single column sort configuration or full sort configuration (for all sorted columns).
+ * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains
+ * sort order (`asc` for ascending, `desc` for descending).
+ * @returns {Array}
+ */
+export function getFullSortConfiguration(sortConfig) {
+  if (isUndefined(sortConfig)) {
+    return [];
+  }
+
+  if (Array.isArray(sortConfig)) {
+    return sortConfig;
+  }
+
+  return [sortConfig];
+}
+
+/**
  * Warn users about problems when using `columnSorting` and `columnSorting` plugins simultaneously.
  *
  * @param {undefined|Boolean|Object} columnSortingSettings

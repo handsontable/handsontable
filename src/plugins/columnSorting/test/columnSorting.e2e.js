@@ -194,7 +194,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    getPlugin('columnSorting').setSortConfigs(sortQueue);
+    getPlugin('columnSorting').setSortConfig(sortQueue);
 
     expect(getPlugin('columnSorting').getSortConfig()).toEqual(sortQueue);
     expect(getPlugin('columnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
