@@ -2252,6 +2252,7 @@ describe('ColumnSorting', () => {
 
   describe('Sorting configuration validation', () => {
     describe('should not change internal state of sorting when wrong configuration was provided', () => {
+      // DIFF - MultiColumnSorting & ColumnSorting: change in initial sort config.
       it('when too low column index was passed to the initial config', () => {
         const warnSpy = spyOn(console, 'warn');
 
@@ -2260,13 +2261,10 @@ describe('ColumnSorting', () => {
           colHeaders: true,
           columnSorting: {
             indicator: true,
-            initialConfig: [{
-              column: 0,
-              sortOrder: 'asc'
-            }, {
+            initialConfig: {
               column: -1,
               sortOrder: 'asc'
-            }]
+            }
           }
         });
 
@@ -2274,6 +2272,7 @@ describe('ColumnSorting', () => {
         expect(warnSpy).toHaveBeenCalled();
       });
 
+      // DIFF - MultiColumnSorting & ColumnSorting: change in initial sort config.
       it('when too high column index was passed to the initial config', () => {
         const warnSpy = spyOn(console, 'warn');
 
@@ -2282,13 +2281,10 @@ describe('ColumnSorting', () => {
           colHeaders: true,
           columnSorting: {
             indicator: true,
-            initialConfig: [{
-              column: 0,
-              sortOrder: 'asc'
-            }, {
+            initialConfig: {
               column: 100,
               sortOrder: 'asc'
-            }]
+            }
           }
         });
 
@@ -2296,6 +2292,7 @@ describe('ColumnSorting', () => {
         expect(warnSpy).toHaveBeenCalled();
       });
 
+      // DIFF - MultiColumnSorting & ColumnSorting: change in initial sort config.
       it('when not proper sort order was passed to the initial config', () => {
         const warnSpy = spyOn(console, 'warn');
 
@@ -2304,13 +2301,10 @@ describe('ColumnSorting', () => {
           colHeaders: true,
           columnSorting: {
             indicator: true,
-            initialConfig: [{
-              column: 0,
-              sortOrder: 'asc'
-            }, {
+            initialConfig: {
               column: 1,
               sortOrder: 'unknown'
-            }]
+            }
           }
         });
 
@@ -2318,6 +2312,7 @@ describe('ColumnSorting', () => {
         expect(warnSpy).toHaveBeenCalled();
       });
 
+      // DIFF - MultiColumnSorting & ColumnSorting: change in initial sort config.
       it('when missed sort order was passed to the initial config', () => {
         const warnSpy = spyOn(console, 'warn');
 
@@ -2326,12 +2321,9 @@ describe('ColumnSorting', () => {
           colHeaders: true,
           columnSorting: {
             indicator: true,
-            initialConfig: [{
-              column: 0,
-              sortOrder: 'asc'
-            }, {
+            initialConfig: {
               column: 1
-            }]
+            }
           }
         });
 
@@ -2339,6 +2331,7 @@ describe('ColumnSorting', () => {
         expect(warnSpy).toHaveBeenCalled();
       });
 
+      // DIFF - MultiColumnSorting & ColumnSorting: change in initial sort config.
       it('when missed column index was passed to the initial config', () => {
         const warnSpy = spyOn(console, 'warn');
 
@@ -2347,12 +2340,9 @@ describe('ColumnSorting', () => {
           colHeaders: true,
           columnSorting: {
             indicator: true,
-            initialConfig: [{
-              column: 0,
-              sortOrder: 'asc'
-            }, {
+            initialConfig: {
               sortOrder: 'desc'
-            }]
+            }
           }
         });
 
@@ -2360,27 +2350,7 @@ describe('ColumnSorting', () => {
         expect(warnSpy).toHaveBeenCalled();
       });
 
-      it('when the same column index was passed twice to the initial config', () => {
-        const warnSpy = spyOn(console, 'warn');
-
-        handsontable({
-          data: createSpreadsheetData(10, 10),
-          colHeaders: true,
-          columnSorting: {
-            indicator: true,
-            initialConfig: [{
-              column: 0,
-              sortOrder: 'asc'
-            }, {
-              column: 0,
-              sortOrder: 'desc'
-            }]
-          }
-        });
-
-        expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
-        expect(warnSpy).toHaveBeenCalled();
-      });
+      // DIFF - MultiColumnSorting & ColumnSorting: removed test named: "when the same column index was passed twice to the initial config".
     });
   });
 

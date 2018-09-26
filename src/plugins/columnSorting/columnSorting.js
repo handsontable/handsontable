@@ -290,7 +290,7 @@ class ColumnSorting extends BasePlugin {
 
   /**
    * @description
-   * Warn: Useful mainly for providing server side sort implementation (see in the example below). It doesn't sort the table. It just sets sort configuration for all sorted columns.
+   * Warn: Useful mainly for providing server side sort implementation (see in the example below). It doesn't sort the data set. It just sets sort configuration for all sorted columns.
    *
    * @example
    * ```js
