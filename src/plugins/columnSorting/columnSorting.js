@@ -35,7 +35,6 @@ const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 
 /**
  * @plugin ColumnSorting
- * @pro
  *
  * @description
  * This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the
@@ -215,7 +214,8 @@ class ColumnSorting extends BasePlugin {
     const currentSortConfig = this.getSortConfig();
 
     // We always pass to hook configs defined as an array to `beforeColumnSort` and `afterColumnSort` hooks.
-    const destinationSortConfigs = getFullSortConfiguration(sortConfig);
+    // DIFF - MultiColumnSorting & ColumnSorting: extra `slice` method call.
+    const destinationSortConfigs = getFullSortConfiguration(sortConfig).slice(0, 1);
 
     const sortPossible = this.areValidSortConfigs(destinationSortConfigs);
     const allowSort = this.hot.runHooks('beforeColumnSort', currentSortConfig, destinationSortConfigs, sortPossible);
@@ -290,7 +290,7 @@ class ColumnSorting extends BasePlugin {
 
   /**
    * @description
-   * Set sort configuration for all sorted columns. May be useful for providing server side sort implementation (see in the example below).
+   * Set sort configuration for all sorted columns. Useful only for providing server side sort implementation (see in the example below).
    *
    * @example
    * ```js
