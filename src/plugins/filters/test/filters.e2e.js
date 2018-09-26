@@ -154,8 +154,7 @@ describe('Filters', () => {
 
   it('should warn user by log at console when amount of conditions at specific column exceed the capability of ' +
     'a dropdown menu (`dropdownMenu` plugin is enabled)', () => {
-    console.warn = jasmine.createSpy('warn');
-
+    const warnSpy = spyOn(console, 'warn');
     const hot = handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -172,12 +171,12 @@ describe('Filters', () => {
     plugin.addCondition(0, 'contains', ['o']);
     plugin.filter();
 
-    expect(console.warn).toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalled();
   });
 
   it('should not warn user by log at console when amount of conditions at specific column not exceed the capability of ' +
     'a dropdown menu (`dropdownMenu` plugin is enabled)', () => {
-    console.warn = jasmine.createSpy('warn');
+    const warnSpy = spyOn(console, 'warn');
 
     const hot = handsontable({
       data: getDataForFilters(),
@@ -198,12 +197,12 @@ describe('Filters', () => {
     plugin.addCondition(1, 'contains', ['o']);
     plugin.filter();
 
-    expect(console.warn).not.toHaveBeenCalled();
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
   it('should not warn user by log at console when amount of conditions at specific column exceed the capability of ' +
     'a dropdown menu (`dropdownMenu` plugin is disabled)', () => {
-    console.warn = jasmine.createSpy('warn');
+    const warnSpy = spyOn(console, 'warn');
 
     const hot = handsontable({
       data: getDataForFilters(),
@@ -220,7 +219,7 @@ describe('Filters', () => {
     plugin.addCondition(0, 'contains', ['o']);
     plugin.filter();
 
-    expect(console.warn).not.toHaveBeenCalled();
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
   describe('Simple filtering (one column)', () => {

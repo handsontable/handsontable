@@ -351,10 +351,11 @@ describe('TrimRows', () => {
       handsontable({
         data: getMultilineData(5, 10),
         columnSorting: {
-          column: 0,
-          sortOrder: 'desc'
+          initialConfig: {
+            column: 0,
+            sortOrder: 'desc'
+          }
         },
-        sortIndicator: true,
         trimRows: [1],
         width: 500,
         height: 300
@@ -371,10 +372,11 @@ describe('TrimRows', () => {
         data: getMultilineData(5, 10),
         colHeaders: true,
         columnSorting: {
-          column: 0,
-          sortOrder: 'desc'
+          initialConfig: {
+            column: 0,
+            sortOrder: 'desc'
+          }
         },
-        sortIndicator: true,
         trimRows: [1],
         width: 500,
         height: 300
@@ -400,10 +402,11 @@ describe('TrimRows', () => {
         data: getMultilineData(5, 10),
         colHeaders: true,
         columnSorting: {
-          column: 0,
-          sortOrder: 'desc'
+          initialConfig: {
+            column: 0,
+            sortOrder: 'desc'
+          }
         },
-        sortIndicator: true,
         trimRows: [1],
         width: 500,
         height: 300

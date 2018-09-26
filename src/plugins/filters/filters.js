@@ -265,7 +265,7 @@ class Filters extends BasePlugin {
    *   filter: true
    * });
    *
-   * // access to hiddenRows plugin instance
+   * // access to filters plugin instance
    * const filtersPlugin = hot.getPlugin('filters');
    *
    * // add filter "Greater than" 95 to column at index 1

@@ -46,14 +46,14 @@ describe('GanttChart', () => {
     });
 
     it('should throw a warning if colHeaders property is not defined for the ganttChart-enabled instance', () => {
-      console.warn = jasmine.createSpy('warn');
+      const warnSpy = spyOn(console, 'warn');
 
       handsontable({
         ganttChart: true,
         height: 250
       });
 
-      expect(console.warn).toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalled();
     });
   });
 
