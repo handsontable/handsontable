@@ -173,5 +173,25 @@ describe('manualColumnMove', () => {
       const displayProp = $backlight.currentStyle ? $backlight.currentStyle.display : getComputedStyle($backlight, null).display;
       expect(displayProp).toEqual('none');
     });
+
+    it('should run moving ui if mousedown was fired on sorting element when sort header action is not enabled', function() {
+      handsontable({
+        data: arrayOfArrays.slice(),
+        colHeaders: true,
+        manualColumnMove: true,
+        columnSorting: {
+          headerAction: false
+        }
+      });
+
+      const $headerTH = this.$container.find('thead tr:eq(0) th:eq(6)');
+      const $summaryElement = $headerTH.find('.columnSorting');
+
+      $summaryElement.simulate('mousedown');
+
+      const $backlight = this.$container.find('.ht__manualColumnMove--backlight');
+
+      expect($backlight.length).toBe(0);
+    });
   });
 });

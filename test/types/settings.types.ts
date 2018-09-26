@@ -81,6 +81,7 @@ const hotSettings: Handsontable.GridSettings = {
   minRows: 123,
   minSpareCols: 123,
   minSpareRows: 123,
+  multiColumnSorting: {},
   selectionMode: 'single',
   nestedHeaders: [],
   noWordWrapClassName: 'foo',

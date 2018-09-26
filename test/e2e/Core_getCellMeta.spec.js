@@ -176,8 +176,10 @@ describe('Core_getCellMeta', () => {
     // Column sorting changes the order of displayed rows while keeping table data unchanged
     updateSettings({
       columnSorting: {
-        column: 0,
-        sortOrder: 'asc'
+        initialConfig: {
+          column: 0,
+          sortOrder: 'asc'
+        }
       }
     });
 

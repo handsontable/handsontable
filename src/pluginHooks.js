@@ -563,7 +563,7 @@ const REGISTERED_HOOKS = [
    * Fired after calling the `updateSettings` method.
    *
    * @event Hooks#afterUpdateSettings
-   * @param {Object} settings New settings object.
+   * @param {Object} newSettings New settings object.
    */
   'afterUpdateSettings',
 
@@ -1007,30 +1007,24 @@ const REGISTERED_HOOKS = [
   'persistentStateSave',
 
   /**
-   * Fired by {@link ColumnSorting} plugin before sorting the column. If you return `false` value then sorting
+   * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugin before sorting the column. If you return `false` value then sorting
    * will be not applied by the Handsontable (useful for server-side sorting).
    *
-   * This hook is fired when {@link Options#columnSorting} option is enabled.
+   * This hook is fired when {@link Options#columnSorting} or {@link Options#multiColumnSorting} option is enabled.
    *
    * @event Hooks#beforeColumnSort
-   * @param {Number} column Sorted visual column index.
-   * @param {Boolean} order Soring order where:
-   *  * `asc` means ascending order
-   *  * `desc` means descending order
-   *  * `none` means original order
+   * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
+   * @param {Array} destinationSortConfigs Destination sort configuration (for all sorted columns).
    */
   'beforeColumnSort',
 
   /**
-   * Fired by {@link ColumnSorting} plugin after sorting the column. This hook is fired when {@link Options#columnSorting}
-   * option is enabled.
+   * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugin after sorting the column. This hook is fired when {@link Options#columnSorting}
+   * or {@link Options#multiColumnSorting} option is enabled.
    *
    * @event Hooks#afterColumnSort
-   * @param {Number} column Sorted visual column index.
-   * @param {String} order Soring order where:
-   *  * `'asc'` means ascending order
-   *  * `'desc'` means descending order
-   *  * `'none'` means original order
+   * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
+   * @param {Array} destinationSortConfigs Destination sort configuration (for all sorted columns).
    */
   'afterColumnSort',
 
