@@ -34,7 +34,7 @@ export function arrayToTable(input) {
   return result.join('');
 }
 
-export function isHTMLTable(element) {
+function isHTMLTable(element) {
   return (element && element.nodeName || '').toLowerCase() === 'table';
 }
 
@@ -51,6 +51,7 @@ function htmlTableToArray(table) {
     for (let column = 0; column < cellsLen; column += 1) {
       const cell = cells[column];
       const cellText = cell.innerText;
+
       newRow.push(cellText);
     }
 
@@ -67,7 +68,6 @@ export function tableToArray(element) {
   if (typeof checkElement === 'string') {
     const tempElem = document.createElement('div');
     tempElem.innerHTML = checkElement.replace(/\n/g, '');
-
     checkElement = tempElem.querySelector('table');
   }
 
