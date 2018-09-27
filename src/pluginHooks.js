@@ -1007,7 +1007,7 @@ const REGISTERED_HOOKS = [
   'persistentStateSave',
 
   /**
-   * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugin before sorting the column. If you return `false` value then sorting
+   * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
    * will be not applied by the Handsontable (useful for server-side sorting).
    *
    * This hook is fired when {@link Options#columnSorting} or {@link Options#multiColumnSorting} option is enabled.
@@ -1019,7 +1019,7 @@ const REGISTERED_HOOKS = [
   'beforeColumnSort',
 
   /**
-   * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugin after sorting the column. This hook is fired when {@link Options#columnSorting}
+   * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins after sorting the column. This hook is fired when {@link Options#columnSorting}
    * or {@link Options#multiColumnSorting} option is enabled.
    *
    * @event Hooks#afterColumnSort
