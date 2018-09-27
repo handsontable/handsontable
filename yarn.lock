@@ -1892,8 +1892,8 @@ ecstatic@^3.2.0:
     url-join "^2.0.5"
 
 electron-to-chromium@^1.2.7, electron-to-chromium@^1.3.47:
-  version "1.3.70"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.70.tgz#ded377256d92d81b4257d36c65aa890274afcfd2"
+  version "1.3.71"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.71.tgz#baecb282e8b27247bbfcf2f3e0254d6fe9a76789"
 
 elliptic@^6.0.0:
   version "6.4.1"
@@ -2638,9 +2638,9 @@ handlebars@^4.0.3:
   optionalDependencies:
     uglify-js "^3.1.4"
 
-"handsontable@github:handsontable/handsontable#develop":
-  version "5.0.2"
-  resolved "https://codeload.github.com/handsontable/handsontable/tar.gz/5ee45d595af2b3351f12e4d533b785c9594949f5"
+handsontable@6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/handsontable/-/handsontable-6.0.0.tgz#e6773dd5b19f17af016f0d0e2ab983c1c39a8382"
   dependencies:
     moment "2.20.1"
     numbro "^2.0.6"
@@ -5222,7 +5222,7 @@ safe-regex@^1.1.0:
 
 sane@~1.5.0:
   version "1.5.0"
-  resolved "https://registry.yarnpkg.com/sane/-/sane-1.5.0.tgz#a4adeae764d048621ecb27d5f9ecf513101939f3"
+  resolved "http://registry.npmjs.org/sane/-/sane-1.5.0.tgz#a4adeae764d048621ecb27d5f9ecf513101939f3"
   dependencies:
     anymatch "^1.3.0"
     exec-sh "^0.2.0"
@@ -6174,8 +6174,8 @@ yargs@~3.10.0:
     window-size "0.1.0"
 
 yarn@^1.5.1:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/yarn/-/yarn-1.10.0.tgz#f7d81802586fa8b3b4bf3ac6fb493fbc6c29845c"
+  version "1.10.1"
+  resolved "https://registry.yarnpkg.com/yarn/-/yarn-1.10.1.tgz#b792ba28f050ae94cd7e719dbca80639d70da76f"
 
 yauzl@2.4.1:
   version "2.4.1"

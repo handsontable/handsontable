@@ -20,8 +20,8 @@
  * RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
  * UNINTERRUPTED OR ERROR FREE.
  * 
- * Version: 5.0.2
- * Release date: 12/09/2018 (built at 12/09/2018 12:36:00)
+ * Version: 6.0.0
+ * Release date: 27/09/2018 (built at 27/09/2018 11:19:02)
  */
 /**
  * Fix for bootstrap styles
@@ -323,23 +323,52 @@
   position: relative;
 }
 
-.handsontable .columnSorting:hover {
+.handsontable .columnSorting.sortAction:hover {
   text-decoration: underline;
   cursor: pointer;
 }
 
-.handsontable .columnSorting.ascending::after {
-  content: '\25B2';
-  color: #5f5f5f;
-  position: absolute;
-  right: -15px;
+.handsontable span.colHeader {
+  display: inline-block;
+  line-height: 1.1;
 }
 
-.handsontable .columnSorting.descending::after {
-  content: '\25BC';
-  color: #5f5f5f;
+/* Arrow position */
+.handsontable span.colHeader.columnSorting::before {
+  /* Centering start */
+  top: 50%;
+  margin-top: -6px; /* One extra pixel for purpose of proper positioning of sorting arrow, when `font-size` set to default */
+  /* Centering end */
+
+  padding-left: 8px; /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
   position: absolute;
-  right: -15px;
+  right: -9px;
+
+  content: '';
+  height: 10px;
+  width: 5px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position-x: right;
+}
+
+.handsontable span.colHeader.columnSorting.ascending::before {
+  /* arrow up; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFNJREFUeAHtzjkSgCAUBNHPgsoy97+ulGXRqJE5L+xkxoYt2UdsLb5bqFINz+aLuuLn5rIu2RkO3fZpWENimNgiw6iBYRTPMLJjGFxQZ1hxxb/xBI1qC8k39CdKAAAAAElFTkSuQmCC");
+}
+
+.handsontable span.colHeader.columnSorting.descending::before {
+  /* arrow down; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=");
+}
+
+.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::after {
+  content: '*';
+  display: inline-block;
+  position: relative;
+  /* The multi-line header and header with longer text need more padding to not hide arrow, 
+  we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
+  padding-right: 20px;
 }
 
 /* Selection */
@@ -1719,6 +1748,66 @@ textarea#HandsontableCopyPaste {
 }
 .handsontable.ganttChart td.rangeBar.area.partial {
   background: #A1D8AD;
+}
+/* Column's number position */
+.handsontable span.colHeader.columnSorting::after {
+  /* Centering start */
+  top: 50%;
+  margin-top: -2px; /* Two extra pixels (-2 instead of -4) for purpose of proper positioning of numeric indicators, when `font-size` set to default */
+  /* Centering end */
+
+  position: absolute;
+  right: -15px;
+  padding-left: 5px; ; /* For purpose of continuous mouse over experience, when moving between the `::before` and the `::after` elements */
+
+  font-size: 8px;
+  height: 8px;
+  line-height: 1.1;
+  text-decoration: underline; /* Workaround for IE9 - IE11 */
+}
+
+/* Workaround for IE9 - IE11, https://stackoverflow.com/a/21902566, https://stackoverflow.com/a/32120247 */
+.handsontable span.colHeader.columnSorting::after {
+  text-decoration: none;
+}
+
+/* We support up to 7 numeric indicators, describing order of column in sorted columns queue */
+.handsontable span.colHeader.columnSorting[class^="sort-"]::after,
+.handsontable span.colHeader.columnSorting[class*=" sort-"]::after {
+  content: "+"
+}
+
+.handsontable span.colHeader.columnSorting.sort-1::after {
+  content: '1';
+}
+
+.handsontable span.colHeader.columnSorting.sort-2::after {
+  content: '2';
+}
+
+.handsontable span.colHeader.columnSorting.sort-3::after {
+  content: '3';
+}
+
+.handsontable span.colHeader.columnSorting.sort-4::after {
+  content: '4';
+}
+
+.handsontable span.colHeader.columnSorting.sort-5::after {
+  content: '5';
+}
+
+.handsontable span.colHeader.columnSorting.sort-6::after {
+  content: '6';
+}
+
+.handsontable span.colHeader.columnSorting.sort-7::after {
+  content: '7';
+}
+
+/* Drop-down menu widens header by 5 pixels, sort sequence numbers won't overlap the icon; mainly for the IE9+ */
+.htGhostTable th div button.changeType + span.colHeader.columnSorting:not(.indicatorDisabled) {
+  padding-right: 5px;
 }
 .handsontable thead th.hiddenHeader:not(:first-of-type) {
   display: none;
