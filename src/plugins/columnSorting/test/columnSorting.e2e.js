@@ -2594,7 +2594,7 @@ describe('ColumnSorting', () => {
 
       alter('insert_col', 2, 5);
 
-      expect(getHtCore().find('tbody tr').length).toBeLessThan(7);
+      expect(getHtCore().find('tbody tr:eq(0) td').length).toEqual(7);
     });
   });
 });
