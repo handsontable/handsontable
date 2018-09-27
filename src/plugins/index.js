@@ -7,6 +7,7 @@ import Filters from './filters/filters';
 import Formulas from './formulas/formulas';
 import GanttChart from './ganttChart/ganttChart';
 import HeaderTooltips from './headerTooltips/headerTooltips';
+import MultiColumnSorting from './multiColumnSorting/multiColumnSorting';
 import NestedHeaders from './nestedHeaders/nestedHeaders';
 import NestedRows from './nestedRows/nestedRows';
 // HiddenColumns must be initialized after NestedHeaders. Bug releated with wrong listeners order attached to 'modifyColWidth' hook.
@@ -26,6 +27,7 @@ export {
   HeaderTooltips,
   HiddenColumns,
   HiddenRows,
+  MultiColumnSorting,
   NestedHeaders,
   NestedRows,
   TrimRows,

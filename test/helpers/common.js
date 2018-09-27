@@ -714,3 +714,7 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
   e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false, touches, targetTouches, changedTouches, 1, 0);
   target.dispatchEvent(e);
 }
+
+export function createSpreadsheetData(...args) {
+  return Handsontable.helper.createSpreadsheetData(...args);
+}
