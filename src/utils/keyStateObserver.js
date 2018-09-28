@@ -1,9 +1,11 @@
 import EventManager from '../eventManager';
-import { isCtrlMetaKey, isKey, isPrintableChar } from '../helpers/unicode';
+import { KEY_CODES, isCtrlMetaKey, isKey } from '../helpers/unicode';
 
 const eventManager = new EventManager();
 const pressedKeys = new Set();
 let refCount = 0;
+
+window.pressedKeys = pressedKeys;
 
 /**
  * Begins observing keyboard keys states.
@@ -11,8 +13,10 @@ let refCount = 0;
 function startObserving() {
   if (refCount === 0) {
     eventManager.addEventListener(document, 'keydown', (event) => {
-      if (!pressedKeys.has(event.keyCode)) {
+      if (!pressedKeys.has(event.keyCode) && !isReservedShortcut(event.keyCode)) {
         pressedKeys.add(event.keyCode);
+      } else if (isReservedShortcut(event.keyCode)) {
+        clearMetaKeys()
       }
     });
     eventManager.addEventListener(document, 'keyup', (event) => {
@@ -70,7 +74,27 @@ function isPressed(keyCodes) {
 function isPressedCtrlKey() {
   const values = Array.from(pressedKeys.values());
 
-  return values.some(_keyCode => isCtrlMetaKey(_keyCode)) && values.every(_keyCode => !isPrintableChar(_keyCode));
+  return values.some(_keyCode => isCtrlMetaKey(_keyCode));
+}
+
+/**
+ * Checks if keys combination is an reserved one.
+ *
+ * @param {String} keyCode The key code of the keybord event.
+ * @return {Boolean}
+ */
+function isReservedShortcut(keyCode) {
+  const { A: KEY_A, C: KEY_C, F: KEY_F, V: KEY_V, X: KEY_X } = KEY_CODES;
+
+  return isPressedCtrlKey() && [KEY_A, KEY_C, KEY_F, KEY_V, KEY_X].includes(keyCode);
+}
+
+function clearMetaKeys() {
+  pressedKeys.forEach((keyCode) => {
+    if (isCtrlMetaKey(keyCode)) {
+      pressedKeys.delete(keyCode);
+    }
+  })
 }
 
 /**
