@@ -2579,4 +2579,22 @@ describe('ColumnSorting', () => {
       expect(htCoreWidthAtStart).toBe(newHtCoreWidth);
     });
   });
+
+  // TODO: Remove tests when workaround will be removed.
+  describe('workaround regression check', () => {
+    it('should add new columns properly when the `columnSorting` plugin is enabled (inheriting of non-primitive cell meta values)', () => {
+      spec().$container[0].style.width = 'auto';
+      spec().$container[0].style.height = 'auto';
+
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        columnSorting: true
+      });
+
+      alter('insert_col', 2, 5);
+
+      expect(getHtCore().find('tbody tr:eq(0) td').length).toEqual(7);
+    });
+  });
 });
