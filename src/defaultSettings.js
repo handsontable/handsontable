@@ -735,7 +735,6 @@ DefaultSettings.prototype = {
   /**
    * Allows to specify the number of fixed (or *frozen*) rows at the bottom of the table.
    *
-   * @pro
    * @type {Number}
    * @default 0
    *
