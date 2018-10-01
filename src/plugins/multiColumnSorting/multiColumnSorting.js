@@ -161,6 +161,8 @@ class MultiColumnSorting extends BasePlugin {
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
     this.addHook('afterInit', () => this.loadOrSortBySettings());
     this.addHook('afterLoadData', initialLoad => this.onAfterLoadData(initialLoad));
+    this.addHook('afterCreateCol', () => this.onAfterCreateCol());
+    this.addHook('afterRemoveCol', () => this.onAfterRemoveCol());
 
     // TODO: Workaround? It should be refactored / described.
     if (this.hot.view) {
@@ -310,7 +312,7 @@ class MultiColumnSorting extends BasePlugin {
    *
    *   // const newData = ... // Calculated data set, ie. from an AJAX call.
    *
-   *   this.loadData(newData);
+   *   // this.loadData(newData); // Load new data set.
    *
    *   return false; // The blockade for the default sort action.
    * }```
@@ -582,6 +584,65 @@ class MultiColumnSorting extends BasePlugin {
   }
 
   /**
+   * Load saved settings or sort by predefined plugin configuration.
+   *
+   * @private
+   */
+  loadOrSortBySettings() {
+    this.columnMetaCache.clear();
+
+    const storedAllSortSettings = this.getAllSavedSortSettings();
+
+    if (isObject(storedAllSortSettings)) {
+      this.sortBySettings(storedAllSortSettings);
+
+    } else {
+      const allSortSettings = this.hot.getSettings().multiColumnSorting;
+
+      this.sortBySettings(allSortSettings);
+    }
+  }
+
+  /**
+   * Sort the table by provided configuration.
+   *
+   * @private
+   * @param {Object} allSortSettings All sort config settings. Object may contain `initialConfig`, `indicator`,
+   * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties.
+   */
+  sortBySettings(allSortSettings) {
+    if (isObject(allSortSettings)) {
+      this.columnStatesManager.updateAllColumnsProperties(allSortSettings);
+
+      const initialConfig = allSortSettings.initialConfig;
+
+      if (Array.isArray(initialConfig) || isObject(initialConfig)) {
+        this.sort(initialConfig);
+      }
+
+    } else {
+      // Extra render for headers. Their width may change.
+      this.hot.render();
+    }
+  }
+
+  /**
+   * Enables the ObserveChanges plugin.
+   *
+   * @private
+   */
+  enableObserveChangesPlugin() {
+    const _this = this;
+
+    this.hot._registerTimeout(
+      setTimeout(() => {
+        _this.hot.updateSettings({
+          observeChanges: true
+        });
+      }, 0));
+  }
+
+  /**
    * Callback for `modifyRow` hook. Translates visual row index to the sorted row index.
    *
    * @private
@@ -655,64 +716,6 @@ class MultiColumnSorting extends BasePlugin {
   }
 
   /**
-   * Load saved settings or sort by predefined plugin configuration.
-   *
-   * @private
-   */
-  loadOrSortBySettings() {
-    this.columnMetaCache.clear();
-
-    const storedAllSortSettings = this.getAllSavedSortSettings();
-
-    if (isObject(storedAllSortSettings)) {
-      this.sortBySettings(storedAllSortSettings);
-
-    } else {
-      const allSortSettings = this.hot.getSettings().multiColumnSorting;
-
-      this.sortBySettings(allSortSettings);
-    }
-  }
-
-  /**
-   * Sort the table by provided configuration.
-   *
-   * @private
-   * @param {Object} allSortSettings All sort config settings. Object may contain `initialConfig`, `indicator`,
-   * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties.
-   */
-  sortBySettings(allSortSettings) {
-    if (isObject(allSortSettings)) {
-      this.columnStatesManager.updateAllColumnsProperties(allSortSettings);
-
-      const initialConfig = allSortSettings.initialConfig;
-
-      if (Array.isArray(initialConfig) || isObject(initialConfig)) {
-        this.sort(initialConfig);
-      }
-
-    } else {
-      // Extra render for headers. Their width may change.
-      this.hot.render();
-    }
-  }
-
-  /**
-   * Enables the ObserveChanges plugin.
-   *
-   * @private
-   */
-  enableObserveChangesPlugin() {
-    const _this = this;
-    this.hot._registerTimeout(
-      setTimeout(() => {
-        _this.hot.updateSettings({
-          observeChanges: true
-        });
-      }, 0));
-  }
-
-  /**
    * Callback for the `afterLoadData` hook.
    *
    * @private
@@ -749,6 +752,28 @@ class MultiColumnSorting extends BasePlugin {
    */
   onAfterRemoveRow(removedRows, amount) {
     this.rowsMapper.unshiftItems(removedRows, amount);
+  }
+
+  // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. We clear the cache after action which reorganize sequence of columns.
+  // TODO: Remove test named: "should add new columns properly when the `columnSorting` plugin is enabled (inheriting of non-primitive cell meta values)".
+  /**
+   * Callback for the `afterCreateCol` hook.
+   *
+   * @private
+   */
+  onAfterCreateCol() {
+    this.columnMetaCache.clear();
+  }
+
+  // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. We clear the cache after action which reorganize sequence of columns.
+  // TODO: Remove test named: "should add new columns properly when the `columnSorting` plugin is enabled (inheriting of non-primitive cell meta values)".
+  /**
+   * Callback for the `afterRemoveCol` hook.
+   *
+   * @private
+   */
+  onAfterRemoveCol() {
+    this.columnMetaCache.clear();
   }
 
   /**
