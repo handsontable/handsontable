@@ -492,6 +492,9 @@ class ColumnSorting extends BasePlugin {
   // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. Instead of getting properties from
   // column meta we call this function.
   getFirstCellSettings(column) {
+    // TODO: Remove test named: "should not break the dataset when inserted new row" (#5431).
+    const actualBlockTranslationFlag = this.blockPluginTranslation;
+
     this.blockPluginTranslation = true;
 
     if (this.columnMetaCache.size === 0) {
@@ -502,7 +505,7 @@ class ColumnSorting extends BasePlugin {
 
     const cellMeta = this.hot.getCellMeta(0, column);
 
-    this.blockPluginTranslation = false;
+    this.blockPluginTranslation = actualBlockTranslationFlag;
 
     const cellMetaCopy = Object.create(cellMeta);
     cellMetaCopy.columnSorting = this.columnMetaCache.get(this.hot.toPhysicalColumn(column));

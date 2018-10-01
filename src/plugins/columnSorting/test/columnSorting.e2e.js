@@ -2599,6 +2599,23 @@ describe('ColumnSorting', () => {
 
   // TODO: Remove tests when workaround will be removed.
   describe('workaround regression check', () => {
+    it('should not break the dataset when inserted new row', () => {
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        columnSorting: true
+      });
+
+      alter('insert_row', 2);
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        [null, null, null],
+        ['A3', 'B3', 'C3']
+      ]);
+    });
+
     it('should add new columns properly when the `columnSorting` plugin is enabled (inheriting of non-primitive cell meta values)', () => {
       spec().$container[0].style.width = 'auto';
       spec().$container[0].style.height = 'auto';
