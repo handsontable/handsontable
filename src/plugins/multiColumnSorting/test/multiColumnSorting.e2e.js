@@ -332,6 +332,23 @@ describe('MultiColumnSorting', () => {
     ]);
   });
 
+  it('should not throw an exception when clicked on the top-left corner', async() => {
+    const onErrorSpy = spyOn(window, 'onerror');
+
+    handsontable({
+      colHeaders: true,
+      rowHeaders: true,
+      data: arrayOfObjects(),
+      multiColumnSorting: true
+    });
+
+    $('.ht_clone_top_left_corner .htCore span').simulate('mousedown');
+    $('.ht_clone_top_left_corner .htCore span').simulate('click');
+    $('.ht_clone_top_left_corner .htCore span').simulate('mouseup');
+
+    expect(onErrorSpy).not.toHaveBeenCalled();
+  });
+
   it('should not throw error when trying run handsontable with columnSorting and autoRowSize in the same time.', () => {
     let errors = 0;
 
