@@ -2598,7 +2598,7 @@ describe('ColumnSorting', () => {
         ['A3', 'B3', 'C3']
       ]);
     });
-    
+
     it('should add new columns properly when the `columnSorting` plugin is enabled (inheriting of non-primitive cell meta values)', () => {
       spec().$container[0].style.width = 'auto';
       spec().$container[0].style.height = 'auto';
