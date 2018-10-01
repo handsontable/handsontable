@@ -2900,4 +2900,24 @@ describe('MultiColumnSorting', () => {
       expect(htCoreWidthAtStart).toBe(newHtCoreWidth);
     });
   });
+
+  // TODO: Remove tests when workaround will be removed.
+  describe('workaround regression check', () => {
+    it('should not break the dataset when inserted new row', () => {
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        multiColumnSorting: true
+      });
+
+      alter('insert_row', 2);
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        [null, null, null],
+        ['A3', 'B3', 'C3']
+      ]);
+    });
+  });
 });
