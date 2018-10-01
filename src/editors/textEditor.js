@@ -110,12 +110,6 @@ const onBeforeKeyDown = function onBeforeKeyDown(event) {
     return;
   }
 
-  if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
-    // when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
-    stopImmediatePropagation(event);
-    return;
-  }
-
   switch (event.keyCode) {
     case KEY_CODES.ARROW_RIGHT:
       if (that.isInFullEditMode()) {
@@ -125,6 +119,7 @@ const onBeforeKeyDown = function onBeforeKeyDown(event) {
         }
       }
       break;
+
     case KEY_CODES.ARROW_LEFT:
       if (that.isInFullEditMode()) {
         if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
@@ -133,6 +128,7 @@ const onBeforeKeyDown = function onBeforeKeyDown(event) {
         }
       }
       break;
+
     case KEY_CODES.ARROW_UP:
     case KEY_CODES.ARROW_DOWN:
       if (that.isInFullEditMode()) {
@@ -164,14 +160,6 @@ const onBeforeKeyDown = function onBeforeKeyDown(event) {
       event.preventDefault(); // don't add newline to field
       break;
     }
-    case KEY_CODES.A:
-    case KEY_CODES.X:
-    case KEY_CODES.C:
-    case KEY_CODES.V:
-      if (ctrlDown) {
-        stopImmediatePropagation(event); // CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
-      }
-      break;
 
     case KEY_CODES.BACKSPACE:
     case KEY_CODES.DELETE:
@@ -179,6 +167,7 @@ const onBeforeKeyDown = function onBeforeKeyDown(event) {
     case KEY_CODES.END:
       stopImmediatePropagation(event); // backspace, delete, home, end should only work locally when cell is edited (not in table context)
       break;
+
     default:
       break;
   }
