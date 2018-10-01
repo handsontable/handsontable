@@ -991,6 +991,37 @@ describe('TextEditor', () => {
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
 
+  it('should open editor at the same backgroundColor as the edited cell', async() => {
+    handsontable({
+      data: [
+        ['', 5, 12, 13]
+      ],
+      renderer(instance, td, row, col, prop, value) {
+        if (!value || value === '') {
+          td.style.background = '#EEE';
+        }
+      }
+    });
+
+    mouseDoubleClick(getCell(0, 0));
+
+    await sleep(100);
+
+    expect($('.handsontableInput')[0].style.backgroundColor).toEqual('rgb(238, 238, 238)');
+
+    mouseDoubleClick(getCell(0, 1));
+
+    await sleep(100);
+
+    expect($('.handsontableInput')[0].style.backgroundColor).toEqual('');
+
+    mouseDoubleClick(getCell(0, 2));
+
+    await sleep(100);
+
+    expect($('.handsontableInput')[0].style.backgroundColor).toEqual('');
+  });
+
   it('should display editor with the proper size, when the edited column is beyond the tables container', () => {
     spec().$container.css('overflow', '');
     const hot = handsontable({

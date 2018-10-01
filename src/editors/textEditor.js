@@ -381,11 +381,11 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
 
   this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
   this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
-  this.TEXTAREA.style.backgroundColor = backgroundColor || getComputedStyle(this.TEXTAREA).backgroundColor;
+  this.TEXTAREA.style.backgroundColor = backgroundColor;
 
   this.autoResize.init(this.TEXTAREA, {
     minHeight: Math.min(height, maxHeight),
-    maxHeight, // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+    maxHeight, // TEXTAREA should never be higher than visible part of the viewport (should not cover the scrollbar)
     minWidth: Math.min(width, maxWidth),
     maxWidth // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
   }, true);
