@@ -791,7 +791,7 @@ class ColumnSorting extends BasePlugin {
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     // Click below the level of column headers
-    if (coords.row >= 0) {
+    if (coords.row >= 0 || coords.col < 0) {
       return;
     }
 
@@ -809,7 +809,7 @@ class ColumnSorting extends BasePlugin {
    */
   onAfterOnCellMouseDown(event, coords) {
     // Click below the level of column headers
-    if (coords.row >= 0) {
+    if (coords.row >= 0 || coords.col < 0) {
       return;
     }
 
