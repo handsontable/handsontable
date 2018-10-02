@@ -20,8 +20,8 @@
  * RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
  * UNINTERRUPTED OR ERROR FREE.
  * 
- * Version: 6.0.0
- * Release date: 27/09/2018 (built at 27/09/2018 11:19:02)
+ * Version: 6.0.1
+ * Release date: 02/10/2018 (built at 02/10/2018 09:35:38)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -2555,7 +2555,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment2.default)('27/09/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment2.default)('02/10/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       var keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
@@ -4458,7 +4458,7 @@ var REGISTERED_HOOKS = [
 'persistentStateSave',
 
 /**
- * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugin before sorting the column. If you return `false` value then sorting
+ * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
  * will be not applied by the Handsontable (useful for server-side sorting).
  *
  * This hook is fired when {@link Options#columnSorting} or {@link Options#multiColumnSorting} option is enabled.
@@ -4470,7 +4470,7 @@ var REGISTERED_HOOKS = [
 'beforeColumnSort',
 
 /**
- * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugin after sorting the column. This hook is fired when {@link Options#columnSorting}
+ * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins after sorting the column. This hook is fired when {@link Options#columnSorting}
  * or {@link Options#multiColumnSorting} option is enabled.
  *
  * @event Hooks#afterColumnSort
@@ -5608,9 +5608,15 @@ var KEY_CODES = exports.KEY_CODES = {
   F11: 122,
   F12: 123,
   A: 65,
-  X: 88,
   C: 67,
-  V: 86
+  D: 68,
+  F: 70,
+  L: 76,
+  O: 79,
+  P: 80,
+  S: 83,
+  V: 86,
+  X: 88
 };
 
 /**
@@ -9525,12 +9531,6 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
     return;
   }
 
-  if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
-    // when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
-    (0, _event.stopImmediatePropagation)(event);
-    return;
-  }
-
   switch (event.keyCode) {
     case _unicode.KEY_CODES.ARROW_RIGHT:
       if (that.isInFullEditMode()) {
@@ -9539,6 +9539,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
         }
       }
       break;
+
     case _unicode.KEY_CODES.ARROW_LEFT:
       if (that.isInFullEditMode()) {
         if (!that.isWaiting() && !that.allowKeyEventPropagation || !that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode)) {
@@ -9546,6 +9547,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
         }
       }
       break;
+
     case _unicode.KEY_CODES.ARROW_UP:
     case _unicode.KEY_CODES.ARROW_DOWN:
       if (that.isInFullEditMode()) {
@@ -9577,14 +9579,6 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
         event.preventDefault(); // don't add newline to field
         break;
       }
-    case _unicode.KEY_CODES.A:
-    case _unicode.KEY_CODES.X:
-    case _unicode.KEY_CODES.C:
-    case _unicode.KEY_CODES.V:
-      if (ctrlDown) {
-        (0, _event.stopImmediatePropagation)(event); // CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
-      }
-      break;
 
     case _unicode.KEY_CODES.BACKSPACE:
     case _unicode.KEY_CODES.DELETE:
@@ -9592,6 +9586,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
     case _unicode.KEY_CODES.END:
       (0, _event.stopImmediatePropagation)(event); // backspace, delete, home, end should only work locally when cell is edited (not in table context)
       break;
+
     default:
       break;
   }
@@ -9804,11 +9799,11 @@ TextEditor.prototype.refreshDimensions = function () {
 
   this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
   this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
-  this.TEXTAREA.style.backgroundColor = backgroundColor || (0, _element.getComputedStyle)(this.TEXTAREA).backgroundColor;
+  this.TEXTAREA.style.backgroundColor = backgroundColor;
 
   this.autoResize.init(this.TEXTAREA, {
     minHeight: Math.min(height, maxHeight),
-    maxHeight: maxHeight, // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+    maxHeight: maxHeight, // TEXTAREA should never be higher than visible part of the viewport (should not cover the scrollbar)
     minWidth: Math.min(width, maxWidth),
     maxWidth: maxWidth // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
   }, true);
@@ -11447,6 +11442,9 @@ function startObserving() {
         pressedKeys.clear();
       }
     });
+    eventManager.addEventListener(window, 'blur', function () {
+      pressedKeys.clear();
+    });
   }
 
   refCount += 1;
@@ -11496,8 +11494,6 @@ function isPressedCtrlKey() {
 
   return values.some(function (_keyCode) {
     return (0, _unicode.isCtrlMetaKey)(_keyCode);
-  }) && values.every(function (_keyCode) {
-    return !(0, _unicode.isPrintableChar)(_keyCode);
   });
 }
 
@@ -34304,7 +34300,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /* eslint-enable no-unused-vars */
 
-_handsontable2.default.baseVersion = '6.0.0';
+_handsontable2.default.baseVersion = 'handsontable/handsontable#release/6.0.1';
 
 /* eslint-disable no-unused-vars */
 exports.default = _handsontable2.default;
@@ -34947,11 +34943,11 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '27/09/2018 11:19:02';
+Handsontable.buildDate = '02/10/2018 09:35:38';
 Handsontable.packageName = 'handsontable-pro';
-Handsontable.version = '6.0.0';
+Handsontable.version = '6.0.1';
 
-var baseVersion = '6.0.0';
+var baseVersion = 'handsontable/handsontable#release/6.0.1';
 
 if (baseVersion) {
   Handsontable.baseVersion = baseVersion;
@@ -45670,6 +45666,12 @@ var ColumnSorting = function (_BasePlugin) {
       this.addHook('afterLoadData', function (initialLoad) {
         return _this3.onAfterLoadData(initialLoad);
       });
+      this.addHook('afterCreateCol', function () {
+        return _this3.onAfterCreateCol();
+      });
+      this.addHook('afterRemoveCol', function () {
+        return _this3.onAfterRemoveCol();
+      });
 
       // TODO: Workaround? It should be refactored / described.
       if (this.hot.view) {
@@ -45847,7 +45849,7 @@ var ColumnSorting = function (_BasePlugin) {
      *
      *   // const newData = ... // Calculated data set, ie. from an AJAX call.
      *
-     *   this.loadData(newData);
+     *   // this.loadData(newData); // Load new data set.
      *
      *   return false; // The blockade for the default sort action.
      * }```
@@ -46080,6 +46082,9 @@ var ColumnSorting = function (_BasePlugin) {
     value: function getFirstCellSettings(column) {
       var _this9 = this;
 
+      // TODO: Remove test named: "should not break the dataset when inserted new row" (#5431).
+      var actualBlockTranslationFlag = this.blockPluginTranslation;
+
       this.blockPluginTranslation = true;
 
       if (this.columnMetaCache.size === 0) {
@@ -46092,7 +46097,7 @@ var ColumnSorting = function (_BasePlugin) {
 
       var cellMeta = this.hot.getCellMeta(0, column);
 
-      this.blockPluginTranslation = false;
+      this.blockPluginTranslation = actualBlockTranslationFlag;
 
       var cellMetaCopy = Object.create(cellMeta);
       cellMetaCopy.columnSorting = this.columnMetaCache.get(this.hot.toPhysicalColumn(column));
@@ -46174,6 +46179,71 @@ var ColumnSorting = function (_BasePlugin) {
       this.rowsMapper._arrayMap = (0, _array.arrayMap)(indexesWithData, function (indexWithData) {
         return indexWithData[0];
       });
+    }
+
+    /**
+     * Load saved settings or sort by predefined plugin configuration.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'loadOrSortBySettings',
+    value: function loadOrSortBySettings() {
+      this.columnMetaCache.clear();
+
+      var storedAllSortSettings = this.getAllSavedSortSettings();
+
+      if ((0, _object.isObject)(storedAllSortSettings)) {
+        this.sortBySettings(storedAllSortSettings);
+      } else {
+        var allSortSettings = this.hot.getSettings().columnSorting;
+
+        this.sortBySettings(allSortSettings);
+      }
+    }
+
+    /**
+     * Sort the table by provided configuration.
+     *
+     * @private
+     * @param {Object} allSortSettings All sort config settings. Object may contain `initialConfig`, `indicator`,
+     * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties.
+     */
+
+  }, {
+    key: 'sortBySettings',
+    value: function sortBySettings(allSortSettings) {
+      if ((0, _object.isObject)(allSortSettings)) {
+        this.columnStatesManager.updateAllColumnsProperties(allSortSettings);
+
+        var initialConfig = allSortSettings.initialConfig;
+
+        if (Array.isArray(initialConfig) || (0, _object.isObject)(initialConfig)) {
+          this.sort(initialConfig);
+        }
+      } else {
+        // Extra render for headers. Their width may change.
+        this.hot.render();
+      }
+    }
+
+    /**
+     * Enables the ObserveChanges plugin.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'enableObserveChangesPlugin',
+    value: function enableObserveChangesPlugin() {
+      var _this = this;
+
+      this.hot._registerTimeout(setTimeout(function () {
+        _this.hot.updateSettings({
+          observeChanges: true
+        });
+      }, 0));
     }
 
     /**
@@ -46262,71 +46332,6 @@ var ColumnSorting = function (_BasePlugin) {
     }
 
     /**
-     * Load saved settings or sort by predefined plugin configuration.
-     *
-     * @private
-     */
-
-  }, {
-    key: 'loadOrSortBySettings',
-    value: function loadOrSortBySettings() {
-      this.columnMetaCache.clear();
-
-      var storedAllSortSettings = this.getAllSavedSortSettings();
-
-      if ((0, _object.isObject)(storedAllSortSettings)) {
-        this.sortBySettings(storedAllSortSettings);
-      } else {
-        var allSortSettings = this.hot.getSettings().columnSorting;
-
-        this.sortBySettings(allSortSettings);
-      }
-    }
-
-    /**
-     * Sort the table by provided configuration.
-     *
-     * @private
-     * @param {Object} allSortSettings All sort config settings. Object may contain `initialConfig`, `indicator`,
-     * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties.
-     */
-
-  }, {
-    key: 'sortBySettings',
-    value: function sortBySettings(allSortSettings) {
-      if ((0, _object.isObject)(allSortSettings)) {
-        this.columnStatesManager.updateAllColumnsProperties(allSortSettings);
-
-        var initialConfig = allSortSettings.initialConfig;
-
-        if (Array.isArray(initialConfig) || (0, _object.isObject)(initialConfig)) {
-          this.sort(initialConfig);
-        }
-      } else {
-        // Extra render for headers. Their width may change.
-        this.hot.render();
-      }
-    }
-
-    /**
-     * Enables the ObserveChanges plugin.
-     *
-     * @private
-     */
-
-  }, {
-    key: 'enableObserveChangesPlugin',
-    value: function enableObserveChangesPlugin() {
-      var _this = this;
-
-      this.hot._registerTimeout(setTimeout(function () {
-        _this.hot.updateSettings({
-          observeChanges: true
-        });
-      }, 0));
-    }
-
-    /**
      * Callback for the `afterLoadData` hook.
      *
      * @private
@@ -46374,6 +46379,34 @@ var ColumnSorting = function (_BasePlugin) {
       this.rowsMapper.unshiftItems(removedRows, amount);
     }
 
+    // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. We clear the cache after action which reorganize sequence of columns.
+    // TODO: Remove test named: "should add new columns properly when the `columnSorting` plugin is enabled (inheriting of non-primitive cell meta values)".
+    /**
+     * Callback for the `afterCreateCol` hook.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'onAfterCreateCol',
+    value: function onAfterCreateCol() {
+      this.columnMetaCache.clear();
+    }
+
+    // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. We clear the cache after action which reorganize sequence of columns.
+    // TODO: Remove test named: "should add new columns properly when the `columnSorting` plugin is enabled (inheriting of non-primitive cell meta values)".
+    /**
+     * Callback for the `afterRemoveCol` hook.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'onAfterRemoveCol',
+    value: function onAfterRemoveCol() {
+      this.columnMetaCache.clear();
+    }
+
     /**
      * Indicates if clickable header was clicked.
      *
@@ -46406,7 +46439,7 @@ var ColumnSorting = function (_BasePlugin) {
     key: 'onBeforeOnCellMouseDown',
     value: function onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
       // Click below the level of column headers
-      if (coords.row >= 0) {
+      if (coords.row >= 0 || coords.col < 0) {
         return;
       }
 
@@ -46427,7 +46460,7 @@ var ColumnSorting = function (_BasePlugin) {
     key: 'onAfterOnCellMouseDown',
     value: function onAfterOnCellMouseDown(event, coords) {
       // Click below the level of column headers
-      if (coords.row >= 0) {
+      if (coords.row >= 0 || coords.col < 0) {
         return;
       }
 
@@ -75598,6 +75631,12 @@ var MultiColumnSorting = function (_BasePlugin) {
       this.addHook('afterLoadData', function (initialLoad) {
         return _this3.onAfterLoadData(initialLoad);
       });
+      this.addHook('afterCreateCol', function () {
+        return _this3.onAfterCreateCol();
+      });
+      this.addHook('afterRemoveCol', function () {
+        return _this3.onAfterRemoveCol();
+      });
 
       // TODO: Workaround? It should be refactored / described.
       if (this.hot.view) {
@@ -75780,7 +75819,7 @@ var MultiColumnSorting = function (_BasePlugin) {
      *
      *   // const newData = ... // Calculated data set, ie. from an AJAX call.
      *
-     *   this.loadData(newData);
+     *   // this.loadData(newData); // Load new data set.
      *
      *   return false; // The blockade for the default sort action.
      * }```
@@ -76012,6 +76051,9 @@ var MultiColumnSorting = function (_BasePlugin) {
     value: function getFirstCellSettings(column) {
       var _this9 = this;
 
+      // TODO: Remove test named: "should not break the dataset when inserted new row" (#142).
+      var actualBlockTranslationFlag = this.blockPluginTranslation;
+
       this.blockPluginTranslation = true;
 
       if (this.columnMetaCache.size === 0) {
@@ -76024,7 +76066,7 @@ var MultiColumnSorting = function (_BasePlugin) {
 
       var cellMeta = this.hot.getCellMeta(0, column);
 
-      this.blockPluginTranslation = false;
+      this.blockPluginTranslation = actualBlockTranslationFlag;
 
       var cellMetaCopy = Object.create(cellMeta);
       cellMetaCopy.multiColumnSorting = this.columnMetaCache.get(this.hot.toPhysicalColumn(column));
@@ -76106,6 +76148,71 @@ var MultiColumnSorting = function (_BasePlugin) {
       this.rowsMapper._arrayMap = (0, _array.arrayMap)(indexesWithData, function (indexWithData) {
         return indexWithData[0];
       });
+    }
+
+    /**
+     * Load saved settings or sort by predefined plugin configuration.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'loadOrSortBySettings',
+    value: function loadOrSortBySettings() {
+      this.columnMetaCache.clear();
+
+      var storedAllSortSettings = this.getAllSavedSortSettings();
+
+      if ((0, _object.isObject)(storedAllSortSettings)) {
+        this.sortBySettings(storedAllSortSettings);
+      } else {
+        var allSortSettings = this.hot.getSettings().multiColumnSorting;
+
+        this.sortBySettings(allSortSettings);
+      }
+    }
+
+    /**
+     * Sort the table by provided configuration.
+     *
+     * @private
+     * @param {Object} allSortSettings All sort config settings. Object may contain `initialConfig`, `indicator`,
+     * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties.
+     */
+
+  }, {
+    key: 'sortBySettings',
+    value: function sortBySettings(allSortSettings) {
+      if ((0, _object.isObject)(allSortSettings)) {
+        this.columnStatesManager.updateAllColumnsProperties(allSortSettings);
+
+        var initialConfig = allSortSettings.initialConfig;
+
+        if (Array.isArray(initialConfig) || (0, _object.isObject)(initialConfig)) {
+          this.sort(initialConfig);
+        }
+      } else {
+        // Extra render for headers. Their width may change.
+        this.hot.render();
+      }
+    }
+
+    /**
+     * Enables the ObserveChanges plugin.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'enableObserveChangesPlugin',
+    value: function enableObserveChangesPlugin() {
+      var _this = this;
+
+      this.hot._registerTimeout(setTimeout(function () {
+        _this.hot.updateSettings({
+          observeChanges: true
+        });
+      }, 0));
     }
 
     /**
@@ -76194,70 +76301,6 @@ var MultiColumnSorting = function (_BasePlugin) {
     }
 
     /**
-     * Load saved settings or sort by predefined plugin configuration.
-     *
-     * @private
-     */
-
-  }, {
-    key: 'loadOrSortBySettings',
-    value: function loadOrSortBySettings() {
-      this.columnMetaCache.clear();
-
-      var storedAllSortSettings = this.getAllSavedSortSettings();
-
-      if ((0, _object.isObject)(storedAllSortSettings)) {
-        this.sortBySettings(storedAllSortSettings);
-      } else {
-        var allSortSettings = this.hot.getSettings().multiColumnSorting;
-
-        this.sortBySettings(allSortSettings);
-      }
-    }
-
-    /**
-     * Sort the table by provided configuration.
-     *
-     * @private
-     * @param {Object} allSortSettings All sort config settings. Object may contain `initialConfig`, `indicator`,
-     * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties.
-     */
-
-  }, {
-    key: 'sortBySettings',
-    value: function sortBySettings(allSortSettings) {
-      if ((0, _object.isObject)(allSortSettings)) {
-        this.columnStatesManager.updateAllColumnsProperties(allSortSettings);
-
-        var initialConfig = allSortSettings.initialConfig;
-
-        if (Array.isArray(initialConfig) || (0, _object.isObject)(initialConfig)) {
-          this.sort(initialConfig);
-        }
-      } else {
-        // Extra render for headers. Their width may change.
-        this.hot.render();
-      }
-    }
-
-    /**
-     * Enables the ObserveChanges plugin.
-     *
-     * @private
-     */
-
-  }, {
-    key: 'enableObserveChangesPlugin',
-    value: function enableObserveChangesPlugin() {
-      var _this = this;
-      this.hot._registerTimeout(setTimeout(function () {
-        _this.hot.updateSettings({
-          observeChanges: true
-        });
-      }, 0));
-    }
-
-    /**
      * Callback for the `afterLoadData` hook.
      *
      * @private
@@ -76305,6 +76348,34 @@ var MultiColumnSorting = function (_BasePlugin) {
       this.rowsMapper.unshiftItems(removedRows, amount);
     }
 
+    // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. We clear the cache after action which reorganize sequence of columns.
+    // TODO: Remove test named: "should add new columns properly when the `columnSorting` plugin is enabled (inheriting of non-primitive cell meta values)".
+    /**
+     * Callback for the `afterCreateCol` hook.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'onAfterCreateCol',
+    value: function onAfterCreateCol() {
+      this.columnMetaCache.clear();
+    }
+
+    // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. We clear the cache after action which reorganize sequence of columns.
+    // TODO: Remove test named: "should add new columns properly when the `columnSorting` plugin is enabled (inheriting of non-primitive cell meta values)".
+    /**
+     * Callback for the `afterRemoveCol` hook.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'onAfterRemoveCol',
+    value: function onAfterRemoveCol() {
+      this.columnMetaCache.clear();
+    }
+
     /**
      * Indicates if clickable header was clicked.
      *
@@ -76337,7 +76408,7 @@ var MultiColumnSorting = function (_BasePlugin) {
     key: 'onBeforeOnCellMouseDown',
     value: function onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
       // Click below the level of column headers
-      if (coords.row >= 0) {
+      if (coords.row >= 0 || coords.col < 0) {
         return;
       }
 
@@ -76358,7 +76429,7 @@ var MultiColumnSorting = function (_BasePlugin) {
     key: 'onAfterOnCellMouseDown',
     value: function onAfterOnCellMouseDown(event, coords) {
       // Click below the level of column headers
-      if (coords.row >= 0) {
+      if (coords.row >= 0 || coords.col < 0) {
         return;
       }
 
