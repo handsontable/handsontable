@@ -157,6 +157,8 @@ class ColumnSorting extends BasePlugin {
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
     this.addHook('afterInit', () => this.loadOrSortBySettings());
     this.addHook('afterLoadData', initialLoad => this.onAfterLoadData(initialLoad));
+    this.addHook('afterCreateCol', () => this.onAfterCreateCol());
+    this.addHook('afterRemoveCol', () => this.onAfterRemoveCol());
 
     // TODO: Workaround? It should be refactored / described.
     if (this.hot.view) {
@@ -301,7 +303,7 @@ class ColumnSorting extends BasePlugin {
    *
    *   // const newData = ... // Calculated data set, ie. from an AJAX call.
    *
-   *   this.loadData(newData);
+   *   // this.loadData(newData); // Load new data set.
    *
    *   return false; // The blockade for the default sort action.
    * }```
@@ -490,6 +492,9 @@ class ColumnSorting extends BasePlugin {
   // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. Instead of getting properties from
   // column meta we call this function.
   getFirstCellSettings(column) {
+    // TODO: Remove test named: "should not break the dataset when inserted new row" (#5431).
+    const actualBlockTranslationFlag = this.blockPluginTranslation;
+
     this.blockPluginTranslation = true;
 
     if (this.columnMetaCache.size === 0) {
@@ -500,7 +505,7 @@ class ColumnSorting extends BasePlugin {
 
     const cellMeta = this.hot.getCellMeta(0, column);
 
-    this.blockPluginTranslation = false;
+    this.blockPluginTranslation = actualBlockTranslationFlag;
 
     const cellMetaCopy = Object.create(cellMeta);
     cellMetaCopy.columnSorting = this.columnMetaCache.get(this.hot.toPhysicalColumn(column));
@@ -568,6 +573,65 @@ class ColumnSorting extends BasePlugin {
 
     // Save all indexes to arrayMapper, a completely new sequence is set by the plugin
     this.rowsMapper._arrayMap = arrayMap(indexesWithData, indexWithData => indexWithData[0]);
+  }
+
+  /**
+   * Load saved settings or sort by predefined plugin configuration.
+   *
+   * @private
+   */
+  loadOrSortBySettings() {
+    this.columnMetaCache.clear();
+
+    const storedAllSortSettings = this.getAllSavedSortSettings();
+
+    if (isObject(storedAllSortSettings)) {
+      this.sortBySettings(storedAllSortSettings);
+
+    } else {
+      const allSortSettings = this.hot.getSettings().columnSorting;
+
+      this.sortBySettings(allSortSettings);
+    }
+  }
+
+  /**
+   * Sort the table by provided configuration.
+   *
+   * @private
+   * @param {Object} allSortSettings All sort config settings. Object may contain `initialConfig`, `indicator`,
+   * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties.
+   */
+  sortBySettings(allSortSettings) {
+    if (isObject(allSortSettings)) {
+      this.columnStatesManager.updateAllColumnsProperties(allSortSettings);
+
+      const initialConfig = allSortSettings.initialConfig;
+
+      if (Array.isArray(initialConfig) || isObject(initialConfig)) {
+        this.sort(initialConfig);
+      }
+
+    } else {
+      // Extra render for headers. Their width may change.
+      this.hot.render();
+    }
+  }
+
+  /**
+   * Enables the ObserveChanges plugin.
+   *
+   * @private
+   */
+  enableObserveChangesPlugin() {
+    const _this = this;
+
+    this.hot._registerTimeout(
+      setTimeout(() => {
+        _this.hot.updateSettings({
+          observeChanges: true
+        });
+      }, 0));
   }
 
   /**
@@ -644,65 +708,6 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Load saved settings or sort by predefined plugin configuration.
-   *
-   * @private
-   */
-  loadOrSortBySettings() {
-    this.columnMetaCache.clear();
-
-    const storedAllSortSettings = this.getAllSavedSortSettings();
-
-    if (isObject(storedAllSortSettings)) {
-      this.sortBySettings(storedAllSortSettings);
-
-    } else {
-      const allSortSettings = this.hot.getSettings().columnSorting;
-
-      this.sortBySettings(allSortSettings);
-    }
-  }
-
-  /**
-   * Sort the table by provided configuration.
-   *
-   * @private
-   * @param {Object} allSortSettings All sort config settings. Object may contain `initialConfig`, `indicator`,
-   * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties.
-   */
-  sortBySettings(allSortSettings) {
-    if (isObject(allSortSettings)) {
-      this.columnStatesManager.updateAllColumnsProperties(allSortSettings);
-
-      const initialConfig = allSortSettings.initialConfig;
-
-      if (Array.isArray(initialConfig) || isObject(initialConfig)) {
-        this.sort(initialConfig);
-      }
-
-    } else {
-      // Extra render for headers. Their width may change.
-      this.hot.render();
-    }
-  }
-
-  /**
-   * Enables the ObserveChanges plugin.
-   *
-   * @private
-   */
-  enableObserveChangesPlugin() {
-    const _this = this;
-
-    this.hot._registerTimeout(
-      setTimeout(() => {
-        _this.hot.updateSettings({
-          observeChanges: true
-        });
-      }, 0));
-  }
-
-  /**
    * Callback for the `afterLoadData` hook.
    *
    * @private
@@ -741,6 +746,28 @@ class ColumnSorting extends BasePlugin {
     this.rowsMapper.unshiftItems(removedRows, amount);
   }
 
+  // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. We clear the cache after action which reorganize sequence of columns.
+  // TODO: Remove test named: "should add new columns properly when the `columnSorting` plugin is enabled (inheriting of non-primitive cell meta values)".
+  /**
+   * Callback for the `afterCreateCol` hook.
+   *
+   * @private
+   */
+  onAfterCreateCol() {
+    this.columnMetaCache.clear();
+  }
+
+  // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. We clear the cache after action which reorganize sequence of columns.
+  // TODO: Remove test named: "should add new columns properly when the `columnSorting` plugin is enabled (inheriting of non-primitive cell meta values)".
+  /**
+   * Callback for the `afterRemoveCol` hook.
+   *
+   * @private
+   */
+  onAfterRemoveCol() {
+    this.columnMetaCache.clear();
+  }
+
   /**
    * Indicates if clickable header was clicked.
    *
@@ -767,7 +794,7 @@ class ColumnSorting extends BasePlugin {
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     // Click below the level of column headers
-    if (coords.row >= 0) {
+    if (coords.row >= 0 || coords.col < 0) {
       return;
     }
 
@@ -785,7 +812,7 @@ class ColumnSorting extends BasePlugin {
    */
   onAfterOnCellMouseDown(event, coords) {
     // Click below the level of column headers
-    if (coords.row >= 0) {
+    if (coords.row >= 0 || coords.col < 0) {
       return;
     }
 

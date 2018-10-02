@@ -1,5 +1,5 @@
 import EventManager from '../eventManager';
-import { isCtrlMetaKey, isKey, isPrintableChar } from '../helpers/unicode';
+import { isCtrlMetaKey, isKey } from '../helpers/unicode';
 
 const eventManager = new EventManager();
 const pressedKeys = new Set();
@@ -24,6 +24,9 @@ function startObserving() {
       if (document.hidden) {
         pressedKeys.clear();
       }
+    });
+    eventManager.addEventListener(window, 'blur', () => {
+      pressedKeys.clear();
     });
   }
 
@@ -70,7 +73,7 @@ function isPressed(keyCodes) {
 function isPressedCtrlKey() {
   const values = Array.from(pressedKeys.values());
 
-  return values.some(_keyCode => isCtrlMetaKey(_keyCode)) && values.every(_keyCode => !isPrintableChar(_keyCode));
+  return values.some(_keyCode => isCtrlMetaKey(_keyCode));
 }
 
 /**

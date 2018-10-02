@@ -332,6 +332,23 @@ describe('ColumnSorting', () => {
     ]);
   });
 
+  it('should not throw an exception when clicked on the top-left corner', async() => {
+    const onErrorSpy = spyOn(window, 'onerror');
+
+    handsontable({
+      colHeaders: true,
+      rowHeaders: true,
+      data: arrayOfObjects(),
+      columnSorting: true
+    });
+
+    $('.ht_clone_top_left_corner .htCore span').simulate('mousedown');
+    $('.ht_clone_top_left_corner .htCore span').simulate('click');
+    $('.ht_clone_top_left_corner .htCore span').simulate('mouseup');
+
+    expect(onErrorSpy).not.toHaveBeenCalled();
+  });
+
   it('should not throw error when trying run handsontable with columnSorting and autoRowSize in the same time.', () => {
     let errors = 0;
 
@@ -2577,6 +2594,41 @@ describe('ColumnSorting', () => {
       expect(headerWidthAtStart).toBe(newHeaderWidth);
       expect(wtHiderWidthAtStart).toBe(newWtHiderWidth);
       expect(htCoreWidthAtStart).toBe(newHtCoreWidth);
+    });
+  });
+
+  // TODO: Remove tests when workaround will be removed.
+  describe('workaround regression check', () => {
+    it('should not break the dataset when inserted new row', () => {
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        columnSorting: true
+      });
+
+      alter('insert_row', 2);
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        [null, null, null],
+        ['A3', 'B3', 'C3']
+      ]);
+    });
+
+    it('should add new columns properly when the `columnSorting` plugin is enabled (inheriting of non-primitive cell meta values)', () => {
+      spec().$container[0].style.width = 'auto';
+      spec().$container[0].style.height = 'auto';
+
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        columnSorting: true
+      });
+
+      alter('insert_col', 2, 5);
+
+      expect(getHtCore().find('tbody tr:eq(0) td').length).toEqual(7);
     });
   });
 });

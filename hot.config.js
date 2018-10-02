@@ -8,5 +8,5 @@ module.exports = {
   HOT_PACKAGE_TYPE: 'ce',
   HOT_PACKAGE_NAME: packageBody.name,
   HOT_BUILD_DATE: moment().format('DD/MM/YYYY HH:mm:ss'),
-  HOT_RELEASE_DATE: '27/09/2018',
+  HOT_RELEASE_DATE: '02/10/2018',
 };
