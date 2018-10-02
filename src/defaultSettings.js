@@ -1773,7 +1773,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Multi-column sorting](https://docs.handsontable.com/demo-sorting-data.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+   * Turns on [Multi-column sorting](https://docs.handsontable.com/pro/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
    * * `initialConfig` - Array containing objects, every with predefined keys:
    *   * `column` - sorted column
    *   * `sortOrder` - order in which column will be sorted
