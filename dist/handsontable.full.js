@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 6.0.1
- * Release date: 02/10/2018 (built at 02/10/2018 09:16:58)
+ * Release date: 02/10/2018 (built at 02/10/2018 11:27:26)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -33109,7 +33109,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Multi-column sorting](https://docs.handsontable.com/demo-sorting-data.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+   * Turns on [Multi-column sorting](https://docs.handsontable.com/pro/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
    * * `initialConfig` - Array containing objects, every with predefined keys:
    *   * `column` - sorted column
    *   * `sortOrder` - order in which column will be sorted
@@ -35789,7 +35789,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '02/10/2018 09:16:58';
+Handsontable.buildDate = '02/10/2018 11:27:26';
 Handsontable.packageName = 'handsontable';
 Handsontable.version = '6.0.1';
 
