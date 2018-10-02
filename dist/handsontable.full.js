@@ -21,7 +21,7 @@
  * UNINTERRUPTED OR ERROR FREE.
  * 
  * Version: 6.0.1
- * Release date: 02/10/2018 (built at 02/10/2018 09:35:38)
+ * Release date: 02/10/2018 (built at 02/10/2018 13:01:10)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -52501,7 +52501,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Multi-column sorting](https://docs.handsontable.com/demo-sorting-data.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+   * Turns on [Multi-column sorting](https://docs.handsontable.com/pro/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
    * * `initialConfig` - Array containing objects, every with predefined keys:
    *   * `column` - sorted column
    *   * `sortOrder` - order in which column will be sorted
@@ -56766,7 +56766,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /* eslint-enable no-unused-vars */
 
-_handsontable2.default.baseVersion = 'handsontable/handsontable#release/6.0.1';
+_handsontable2.default.baseVersion = '6.0.1';
 
 /* eslint-disable no-unused-vars */
 exports.default = _handsontable2.default;
@@ -57409,11 +57409,11 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '02/10/2018 09:35:38';
+Handsontable.buildDate = '02/10/2018 13:01:10';
 Handsontable.packageName = 'handsontable-pro';
 Handsontable.version = '6.0.1';
 
-var baseVersion = 'handsontable/handsontable#release/6.0.1';
+var baseVersion = '6.0.1';
 
 if (baseVersion) {
   Handsontable.baseVersion = baseVersion;

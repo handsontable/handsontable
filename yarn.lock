@@ -2537,7 +2537,7 @@ get-caller-file@^1.0.1:
 
 get-stream@^3.0.0:
   version "3.0.0"
-  resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-3.0.0.tgz#8e943d1358dc37555054ecbe2edb05aa174ede14"
+  resolved "http://registry.npmjs.org/get-stream/-/get-stream-3.0.0.tgz#8e943d1358dc37555054ecbe2edb05aa174ede14"
 
 get-value@^2.0.3, get-value@^2.0.6:
   version "2.0.6"
@@ -2638,9 +2638,9 @@ handlebars@^4.0.3:
   optionalDependencies:
     uglify-js "^3.1.4"
 
-handsontable@handsontable/handsontable#release/6.0.1:
+handsontable@6.0.1:
   version "6.0.1"
-  resolved "https://codeload.github.com/handsontable/handsontable/tar.gz/c8d7b18dbae6504b69b4ae2d01979d76ee43a017"
+  resolved "https://registry.yarnpkg.com/handsontable/-/handsontable-6.0.1.tgz#93f07d895b42335e2882044a79bca96003a2cab2"
   dependencies:
     moment "2.20.1"
     numbro "^2.0.6"
