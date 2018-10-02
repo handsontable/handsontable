@@ -942,7 +942,7 @@ describe('ColumnSorting', () => {
   });
 
   describe('data type: time', () => {
-    it('should properly rewrite time into correct format after sort', (done) => {
+    it('should properly rewrite time into correct format after sort', async() => {
       handsontable({
         data: [
           ['0:00:01 am'],
@@ -967,10 +967,9 @@ describe('ColumnSorting', () => {
 
       setDataAtCell(0, 0, '19:55', 'edit');
 
-      setTimeout(() => {
-        expect(getDataAtCell(0, 0)).toEqual('7:55:00 pm');
-        done();
-      }, 250);
+      await 500;
+
+      expect(getDataAtCell(0, 0)).toEqual('7:55:00 pm');
     });
   });
 

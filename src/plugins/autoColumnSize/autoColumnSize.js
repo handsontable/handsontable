@@ -266,7 +266,7 @@ class AutoColumnSize extends BasePlugin {
     if (this.firstCalculation && this.getSyncCalculationLimit()) {
       this.calculateColumnsWidth({ from: 0, to: this.getSyncCalculationLimit() }, rowRange);
       this.firstCalculation = false;
-      current = this.getSyncCalculationLimit() + 1;
+      current = this.getSyncCalculationLimit();
     }
     // async
     if (current < length) {
