@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 5.0.2
- * Release date: 12/09/2018 (built at 11/09/2018 09:55:19)
+ * Version: 6.0.1
+ * Release date: 02/10/2018 (built at 02/10/2018 11:27:26)
  */
 /**
  * Fix for bootstrap styles
@@ -326,23 +326,52 @@
   position: relative;
 }
 
-.handsontable .columnSorting:hover {
+.handsontable .columnSorting.sortAction:hover {
   text-decoration: underline;
   cursor: pointer;
 }
 
-.handsontable .columnSorting.ascending::after {
-  content: '\25B2';
-  color: #5f5f5f;
-  position: absolute;
-  right: -15px;
+.handsontable span.colHeader {
+  display: inline-block;
+  line-height: 1.1;
 }
 
-.handsontable .columnSorting.descending::after {
-  content: '\25BC';
-  color: #5f5f5f;
+/* Arrow position */
+.handsontable span.colHeader.columnSorting::before {
+  /* Centering start */
+  top: 50%;
+  margin-top: -6px; /* One extra pixel for purpose of proper positioning of sorting arrow, when `font-size` set to default */
+  /* Centering end */
+
+  padding-left: 8px; /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
   position: absolute;
-  right: -15px;
+  right: -9px;
+
+  content: '';
+  height: 10px;
+  width: 5px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position-x: right;
+}
+
+.handsontable span.colHeader.columnSorting.ascending::before {
+  /* arrow up; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFNJREFUeAHtzjkSgCAUBNHPgsoy97+ulGXRqJE5L+xkxoYt2UdsLb5bqFINz+aLuuLn5rIu2RkO3fZpWENimNgiw6iBYRTPMLJjGFxQZ1hxxb/xBI1qC8k39CdKAAAAAElFTkSuQmCC");
+}
+
+.handsontable span.colHeader.columnSorting.descending::before {
+  /* arrow down; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=");
+}
+
+.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::after {
+  content: '*';
+  display: inline-block;
+  position: relative;
+  /* The multi-line header and header with longer text need more padding to not hide arrow, 
+  we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
+  padding-right: 20px;
 }
 
 /* Selection */

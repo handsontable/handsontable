@@ -129,6 +129,7 @@ describe('keyStateObserver', () => {
 
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 91 }));
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 70 }));
+      window.dispatchEvent(new FocusEvent('blur'));
 
       expect(isPressedCtrlKey()).toBe(false);
     });
@@ -140,6 +141,7 @@ describe('keyStateObserver', () => {
 
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 93 }));
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 70 }));
+      window.dispatchEvent(new FocusEvent('blur'));
 
       expect(isPressedCtrlKey()).toBe(false);
     });
@@ -151,6 +153,7 @@ describe('keyStateObserver', () => {
 
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 224 }));
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 70 }));
+      window.dispatchEvent(new FocusEvent('blur'));
 
       expect(isPressedCtrlKey()).toBe(false);
     });
@@ -162,6 +165,7 @@ describe('keyStateObserver', () => {
 
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 17 }));
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 70 }));
+      window.dispatchEvent(new FocusEvent('blur'));
 
       expect(isPressedCtrlKey()).toBe(false);
     });
@@ -173,6 +177,7 @@ describe('keyStateObserver', () => {
 
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 91 }));
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 68 }));
+      window.dispatchEvent(new FocusEvent('blur'));
 
       expect(isPressedCtrlKey()).toBe(false);
     });
@@ -184,6 +189,7 @@ describe('keyStateObserver', () => {
 
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 93 }));
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 68 }));
+      window.dispatchEvent(new FocusEvent('blur'));
 
       expect(isPressedCtrlKey()).toBe(false);
     });
@@ -195,6 +201,7 @@ describe('keyStateObserver', () => {
 
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 224 }));
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 68 }));
+      window.dispatchEvent(new FocusEvent('blur'));
 
       expect(isPressedCtrlKey()).toBe(false);
     });
@@ -206,6 +213,7 @@ describe('keyStateObserver', () => {
 
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 17 }));
       document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 68 }));
+      window.dispatchEvent(new FocusEvent('blur'));
 
       expect(isPressedCtrlKey()).toBe(false);
     });
