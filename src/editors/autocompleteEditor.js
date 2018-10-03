@@ -15,42 +15,6 @@ import {
 } from './../helpers/dom/element';
 import HandsontableEditor from './handsontableEditor';
 
-const AutocompleteEditor = HandsontableEditor.prototype.extend();
-
-/**
- * @private
- * @editor AutocompleteEditor
- * @class AutocompleteEditor
- * @dependencies HandsontableEditor
- */
-AutocompleteEditor.prototype.init = function(...args) {
-  HandsontableEditor.prototype.init.apply(this, args);
-  this.query = null;
-  this.strippedChoices = [];
-  this.rawChoices = [];
-};
-
-AutocompleteEditor.prototype.getValue = function() {
-  const selectedValue = this.rawChoices.find((value) => {
-    const strippedValue = this.stripValueIfNeeded(value);
-
-    return strippedValue === this.TEXTAREA.value;
-  });
-
-  if (isDefined(selectedValue)) {
-    return selectedValue;
-  }
-
-  return this.TEXTAREA.value;
-};
-
-AutocompleteEditor.prototype.createElements = function(...args) {
-  HandsontableEditor.prototype.createElements.apply(this, args);
-
-  addClass(this.htContainer, 'autocompleteEditor');
-  addClass(this.htContainer, window.navigator.platform.indexOf('Mac') === -1 ? '' : 'htMacScroll');
-};
-
 let skipOne = false;
 function onBeforeKeyDown(event) {
   skipOne = false;
@@ -77,247 +41,329 @@ function onBeforeKeyDown(event) {
   }
 }
 
-AutocompleteEditor.prototype.prepare = function(...args) {
-  HandsontableEditor.prototype.prepare.apply(this, args);
-};
+export default class AutocompleteEditor extends HandsontableEditor {
 
-AutocompleteEditor.prototype.open = function(...args) {
-  this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
-  // Ugly fix for handsontable which grab window object for autocomplete scroll listener instead table element.
-  this.TEXTAREA_PARENT.style.overflow = 'auto';
-  HandsontableEditor.prototype.open.apply(this, args);
-  this.TEXTAREA_PARENT.style.overflow = '';
-
-  const choicesListHot = this.htEditor.getInstance();
-  const _this = this;
-  const trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
-
-  this.showEditableElement();
-  this.focus();
-
-  choicesListHot.updateSettings({
-    colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
-    width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
-    afterRenderer(TD, row, col, prop, value) {
-      const { filteringCaseSensitive, allowHtml } = _this.cellProperties;
-      let cellValue = stringify(value);
-      let indexOfMatch;
-      let match;
-
-      if (cellValue && !allowHtml) {
-        indexOfMatch = filteringCaseSensitive === true ? cellValue.indexOf(this.query) : cellValue.toLowerCase().indexOf(_this.query.toLowerCase());
-
-        if (indexOfMatch !== -1) {
-          match = cellValue.substr(indexOfMatch, _this.query.length);
-          cellValue = cellValue.replace(match, `<strong>${match}</strong>`);
-        }
-      }
-      TD.innerHTML = cellValue;
-    },
-    autoColumnSize: true,
-    modifyColWidth(width, col) {
-      // workaround for <strong> text overlapping the dropdown, not really accurate
-      const autoWidths = this.getPlugin('autoColumnSize').widths;
-      let columnWidth = width;
-
-      if (autoWidths[col]) {
-        columnWidth = autoWidths[col];
-      }
-
-      return trimDropdown ? columnWidth : columnWidth + 15;
-    }
-  });
-
-  // Add additional space for autocomplete holder
-  this.htEditor.view.wt.wtTable.holder.parentNode.style['padding-right'] = `${getScrollbarWidth() + 2}px`;
-
-  if (skipOne) {
-    skipOne = false;
+  /**
+   * @private
+   * @editor AutocompleteEditor
+   * @dependencies HandsontableEditor
+   */
+  init(...args) {
+    super.init(...args);
+    this.query = null;
+    this.strippedChoices = [];
+    this.rawChoices = [];
   }
 
-  _this.instance._registerTimeout(() => {
-    _this.queryChoices(_this.TEXTAREA.value);
-  });
-};
+  getValue() {
+    const selectedValue = this.rawChoices.find((value) => {
+      const strippedValue = this.stripValueIfNeeded(value);
 
-AutocompleteEditor.prototype.queryChoices = function(query) {
-  this.query = query;
-  const source = this.cellProperties.source;
-
-  if (typeof source === 'function') {
-    source.call(this.cellProperties, query, (choices) => {
-      this.rawChoices = choices;
-      this.updateChoicesList(this.stripValuesIfNeeded(choices));
+      return strippedValue === this.TEXTAREA.value;
     });
 
-  } else if (Array.isArray(source)) {
-    this.rawChoices = source;
-    this.updateChoicesList(this.stripValuesIfNeeded(source));
-
-  } else {
-    this.updateChoicesList([]);
-  }
-};
-
-AutocompleteEditor.prototype.updateChoicesList = function(choicesList) {
-  const pos = getCaretPosition(this.TEXTAREA);
-  const endPos = getSelectionEndPosition(this.TEXTAREA);
-  const sortByRelevanceSetting = this.cellProperties.sortByRelevance;
-  const filterSetting = this.cellProperties.filter;
-  let orderByRelevance = null;
-  let highlightIndex = null;
-  let choices = choicesList;
-
-  if (sortByRelevanceSetting) {
-    orderByRelevance = AutocompleteEditor.sortByRelevance(
-      this.stripValueIfNeeded(this.getValue()),
-      choices,
-      this.cellProperties.filteringCaseSensitive
-    );
-  }
-  const orderByRelevanceLength = Array.isArray(orderByRelevance) ? orderByRelevance.length : 0;
-
-  if (filterSetting === false) {
-    if (orderByRelevanceLength) {
-      highlightIndex = orderByRelevance[0];
+    if (isDefined(selectedValue)) {
+      return selectedValue;
     }
-  } else {
-    const sorted = [];
 
-    for (let i = 0, choicesCount = choices.length; i < choicesCount; i++) {
-      if (sortByRelevanceSetting && orderByRelevanceLength <= i) {
-        break;
+    return this.TEXTAREA.value;
+  }
+
+  createElements(...args) {
+    super.createElements(...args);
+
+    addClass(this.htContainer, 'autocompleteEditor');
+    addClass(this.htContainer, window.navigator.platform.indexOf('Mac') === -1 ? '' : 'htMacScroll');
+  }
+
+  prepare(...args) {
+    super.prepare(...args);
+  }
+
+  open(...args) {
+    this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
+    // Ugly fix for handsontable which grab window object for autocomplete scroll listener instead table element.
+    this.TEXTAREA_PARENT.style.overflow = 'auto';
+    super.open(...args);
+    this.TEXTAREA_PARENT.style.overflow = '';
+
+    const choicesListHot = this.htEditor.getInstance();
+    const _this = this;
+    const trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
+
+    this.showEditableElement();
+    this.focus();
+
+    choicesListHot.updateSettings({
+      colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
+      width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
+      afterRenderer(TD, row, col, prop, value) {
+        const { filteringCaseSensitive, allowHtml } = _this.cellProperties;
+        let cellValue = stringify(value);
+        let indexOfMatch;
+        let match;
+
+        if (cellValue && !allowHtml) {
+          indexOfMatch = filteringCaseSensitive === true ? cellValue.indexOf(this.query) : cellValue.toLowerCase().indexOf(_this.query.toLowerCase());
+
+          if (indexOfMatch !== -1) {
+            match = cellValue.substr(indexOfMatch, _this.query.length);
+            cellValue = cellValue.replace(match, `<strong>${match}</strong>`);
+          }
+        }
+        TD.innerHTML = cellValue;
+      },
+      autoColumnSize: true,
+      modifyColWidth(width, col) {
+        // workaround for <strong> text overlapping the dropdown, not really accurate
+        const autoWidths = this.getPlugin('autoColumnSize').widths;
+        let columnWidth = width;
+
+        if (autoWidths[col]) {
+          columnWidth = autoWidths[col];
+        }
+
+        return trimDropdown ? columnWidth : columnWidth + 15;
       }
+    });
+
+    // Add additional space for autocomplete holder
+    this.htEditor.view.wt.wtTable.holder.parentNode.style['padding-right'] = `${getScrollbarWidth() + 2}px`;
+
+    if (skipOne) {
+      skipOne = false;
+    }
+
+    _this.instance._registerTimeout(() => {
+      _this.queryChoices(_this.TEXTAREA.value);
+    });
+  }
+
+  queryChoices(query) {
+    this.query = query;
+    const source = this.cellProperties.source;
+
+    if (typeof source === 'function') {
+      source.call(this.cellProperties, query, (choices) => {
+        this.rawChoices = choices;
+        this.updateChoicesList(this.stripValuesIfNeeded(choices));
+      });
+
+    } else if (Array.isArray(source)) {
+      this.rawChoices = source;
+      this.updateChoicesList(this.stripValuesIfNeeded(source));
+
+    } else {
+      this.updateChoicesList([]);
+    }
+  }
+
+  updateChoicesList(choicesList) {
+    const pos = getCaretPosition(this.TEXTAREA);
+    const endPos = getSelectionEndPosition(this.TEXTAREA);
+    const sortByRelevanceSetting = this.cellProperties.sortByRelevance;
+    const filterSetting = this.cellProperties.filter;
+    let orderByRelevance = null;
+    let highlightIndex = null;
+    let choices = choicesList;
+
+    if (sortByRelevanceSetting) {
+      orderByRelevance = AutocompleteEditor.sortByRelevance(
+        this.stripValueIfNeeded(this.getValue()),
+        choices,
+        this.cellProperties.filteringCaseSensitive
+      );
+    }
+    const orderByRelevanceLength = Array.isArray(orderByRelevance) ? orderByRelevance.length : 0;
+
+    if (filterSetting === false) {
       if (orderByRelevanceLength) {
-        sorted.push(choices[orderByRelevance[i]]);
-      } else {
-        sorted.push(choices[i]);
+        highlightIndex = orderByRelevance[0];
       }
+    } else {
+      const sorted = [];
+
+      for (let i = 0, choicesCount = choices.length; i < choicesCount; i++) {
+        if (sortByRelevanceSetting && orderByRelevanceLength <= i) {
+          break;
+        }
+        if (orderByRelevanceLength) {
+          sorted.push(choices[orderByRelevance[i]]);
+        } else {
+          sorted.push(choices[i]);
+        }
+      }
+
+      highlightIndex = 0;
+      choices = sorted;
     }
 
-    highlightIndex = 0;
-    choices = sorted;
-  }
+    this.strippedChoices = choices;
+    this.htEditor.loadData(pivot([choices]));
 
-  this.strippedChoices = choices;
-  this.htEditor.loadData(pivot([choices]));
+    this.updateDropdownHeight();
 
-  this.updateDropdownHeight();
+    this.flipDropdownIfNeeded();
 
-  this.flipDropdownIfNeeded();
-
-  if (this.cellProperties.strict === true) {
-    this.highlightBestMatchingChoice(highlightIndex);
-  }
-
-  this.instance.listen(false);
-
-  setCaretPosition(this.TEXTAREA, pos, (pos === endPos ? void 0 : endPos));
-};
-
-AutocompleteEditor.prototype.flipDropdownIfNeeded = function() {
-  const textareaOffset = offset(this.TEXTAREA);
-  const textareaHeight = outerHeight(this.TEXTAREA);
-  const dropdownHeight = this.getDropdownHeight();
-  const trimmingContainer = getTrimmingContainer(this.instance.view.wt.wtTable.TABLE);
-  const trimmingContainerScrollTop = trimmingContainer.scrollTop;
-  const headersHeight = outerHeight(this.instance.view.wt.wtTable.THEAD);
-  let containerOffset = {
-    row: 0,
-    col: 0
-  };
-
-  if (trimmingContainer !== window) {
-    containerOffset = offset(trimmingContainer);
-  }
-
-  const spaceAbove = textareaOffset.top - containerOffset.top - headersHeight + trimmingContainerScrollTop;
-  const spaceBelow = trimmingContainer.scrollHeight - spaceAbove - headersHeight - textareaHeight;
-  const flipNeeded = dropdownHeight > spaceBelow && spaceAbove > spaceBelow;
-
-  if (flipNeeded) {
-    this.flipDropdown(dropdownHeight);
-  } else {
-    this.unflipDropdown();
-  }
-
-  this.limitDropdownIfNeeded(flipNeeded ? spaceAbove : spaceBelow, dropdownHeight);
-
-  return flipNeeded;
-};
-
-AutocompleteEditor.prototype.limitDropdownIfNeeded = function(spaceAvailable, dropdownHeight) {
-  if (dropdownHeight > spaceAvailable) {
-    let tempHeight = 0;
-    let i = 0;
-    let lastRowHeight = 0;
-    let height = null;
-
-    do {
-      lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.wtSettings.settings.defaultRowHeight;
-      tempHeight += lastRowHeight;
-      i += 1;
-    } while (tempHeight < spaceAvailable);
-
-    height = tempHeight - lastRowHeight;
-
-    if (this.htEditor.flipped) {
-      this.htEditor.rootElement.style.top = `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
+    if (this.cellProperties.strict === true) {
+      this.highlightBestMatchingChoice(highlightIndex);
     }
 
-    this.setDropdownHeight(tempHeight - lastRowHeight);
-  }
-};
+    this.instance.listen(false);
 
-AutocompleteEditor.prototype.flipDropdown = function(dropdownHeight) {
-  const dropdownStyle = this.htEditor.rootElement.style;
-
-  dropdownStyle.position = 'absolute';
-  dropdownStyle.top = `${-dropdownHeight}px`;
-
-  this.htEditor.flipped = true;
-};
-
-AutocompleteEditor.prototype.unflipDropdown = function() {
-  const dropdownStyle = this.htEditor.rootElement.style;
-
-  if (dropdownStyle.position === 'absolute') {
-    dropdownStyle.position = '';
-    dropdownStyle.top = '';
+    setCaretPosition(this.TEXTAREA, pos, (pos === endPos ? void 0 : endPos));
   }
 
-  this.htEditor.flipped = void 0;
-};
+  flipDropdownIfNeeded() {
+    const textareaOffset = offset(this.TEXTAREA);
+    const textareaHeight = outerHeight(this.TEXTAREA);
+    const dropdownHeight = this.getDropdownHeight();
+    const trimmingContainer = getTrimmingContainer(this.instance.view.wt.wtTable.TABLE);
+    const trimmingContainerScrollTop = trimmingContainer.scrollTop;
+    const headersHeight = outerHeight(this.instance.view.wt.wtTable.THEAD);
+    let containerOffset = {
+      row: 0,
+      col: 0
+    };
 
-AutocompleteEditor.prototype.updateDropdownHeight = function() {
-  const currentDropdownWidth = this.htEditor.getColWidth(0) + getScrollbarWidth() + 2;
-  const trimDropdown = this.cellProperties.trimDropdown;
+    if (trimmingContainer !== window) {
+      containerOffset = offset(trimmingContainer);
+    }
 
-  this.htEditor.updateSettings({
-    height: this.getDropdownHeight(),
-    width: trimDropdown ? void 0 : currentDropdownWidth
-  });
+    const spaceAbove = textareaOffset.top - containerOffset.top - headersHeight + trimmingContainerScrollTop;
+    const spaceBelow = trimmingContainer.scrollHeight - spaceAbove - headersHeight - textareaHeight;
+    const flipNeeded = dropdownHeight > spaceBelow && spaceAbove > spaceBelow;
 
-  this.htEditor.view.wt.wtTable.alignOverlaysWithTrimmingContainer();
-};
+    if (flipNeeded) {
+      this.flipDropdown(dropdownHeight);
+    } else {
+      this.unflipDropdown();
+    }
 
-AutocompleteEditor.prototype.setDropdownHeight = function(height) {
-  this.htEditor.updateSettings({
-    height
-  });
-};
+    this.limitDropdownIfNeeded(flipNeeded ? spaceAbove : spaceBelow, dropdownHeight);
 
-AutocompleteEditor.prototype.finishEditing = function(restoreOriginalValue, ...args) {
-  HandsontableEditor.prototype.finishEditing.apply(this, [restoreOriginalValue, ...args]);
-};
-
-AutocompleteEditor.prototype.highlightBestMatchingChoice = function(index) {
-  if (typeof index === 'number') {
-    this.htEditor.selectCell(index, 0, void 0, void 0, void 0, false);
-  } else {
-    this.htEditor.deselectCell();
+    return flipNeeded;
   }
-};
+
+  limitDropdownIfNeeded(spaceAvailable, dropdownHeight) {
+    if (dropdownHeight > spaceAvailable) {
+      let tempHeight = 0;
+      let i = 0;
+      let lastRowHeight = 0;
+      let height = null;
+
+      do {
+        lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.wtSettings.settings.defaultRowHeight;
+        tempHeight += lastRowHeight;
+        i += 1;
+      } while (tempHeight < spaceAvailable);
+
+      height = tempHeight - lastRowHeight;
+
+      if (this.htEditor.flipped) {
+        this.htEditor.rootElement.style.top = `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
+      }
+
+      this.setDropdownHeight(tempHeight - lastRowHeight);
+    }
+  }
+
+  flipDropdown(dropdownHeight) {
+    const dropdownStyle = this.htEditor.rootElement.style;
+
+    dropdownStyle.position = 'absolute';
+    dropdownStyle.top = `${-dropdownHeight}px`;
+
+    this.htEditor.flipped = true;
+  }
+
+  unflipDropdown() {
+    const dropdownStyle = this.htEditor.rootElement.style;
+
+    if (dropdownStyle.position === 'absolute') {
+      dropdownStyle.position = '';
+      dropdownStyle.top = '';
+    }
+
+    this.htEditor.flipped = void 0;
+  }
+
+  updateDropdownHeight() {
+    const currentDropdownWidth = this.htEditor.getColWidth(0) + getScrollbarWidth() + 2;
+    const trimDropdown = this.cellProperties.trimDropdown;
+
+    this.htEditor.updateSettings({
+      height: this.getDropdownHeight(),
+      width: trimDropdown ? void 0 : currentDropdownWidth
+    });
+
+    this.htEditor.view.wt.wtTable.alignOverlaysWithTrimmingContainer();
+  }
+
+  setDropdownHeight(height) {
+    this.htEditor.updateSettings({
+      height
+    });
+  }
+
+  finishEditing(restoreOriginalValue, ...args) {
+    super.finishEditing(restoreOriginalValue, ...args);
+  }
+
+  highlightBestMatchingChoice(index) {
+    if (typeof index === 'number') {
+      this.htEditor.selectCell(index, 0, void 0, void 0, void 0, false);
+    } else {
+      this.htEditor.deselectCell();
+    }
+  }
+
+  getDropdownHeight() {
+    const firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
+    const visibleRows = this.cellProperties.visibleRows;
+
+    return this.strippedChoices.length >= visibleRows ? (visibleRows * firstRowHeight) : (this.strippedChoices.length * firstRowHeight) + 8;
+  }
+
+  stripValueIfNeeded(value) {
+    return this.stripValuesIfNeeded([value])[0];
+  }
+
+  stripValuesIfNeeded(values) {
+    const { allowHtml } = this.cellProperties;
+
+    const stringifiedValues = arrayMap(values, value => stringify(value));
+    const strippedValues = arrayMap(stringifiedValues, value => (allowHtml ? value : stripTags(value)));
+
+    return strippedValues;
+  }
+
+  allowKeyEventPropagation(keyCode) {
+    const selectedRange = this.htEditor.getSelectedRangeLast();
+    const selected = { row: selectedRange ? selectedRange.from.row : -1 };
+    let allowed = false;
+
+    if (keyCode === KEY_CODES.ARROW_DOWN && selected.row > 0 && selected.row < this.htEditor.countRows() - 1) {
+      allowed = true;
+    }
+    if (keyCode === KEY_CODES.ARROW_UP && selected.row > -1) {
+      allowed = true;
+    }
+
+    return allowed;
+  }
+
+  close(...args) {
+    this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+    super.close(...args);
+  }
+
+  discardEditor(...args) {
+    super.discardEditor(...args);
+
+    this.instance.view.render();
+  }
+}
 
 /**
  * Filters and sorts by relevance
@@ -394,51 +440,3 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
 
   return result;
 };
-
-AutocompleteEditor.prototype.getDropdownHeight = function() {
-  const firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
-  const visibleRows = this.cellProperties.visibleRows;
-
-  return this.strippedChoices.length >= visibleRows ? (visibleRows * firstRowHeight) : (this.strippedChoices.length * firstRowHeight) + 8;
-};
-
-AutocompleteEditor.prototype.stripValueIfNeeded = function(value) {
-  return this.stripValuesIfNeeded([value])[0];
-};
-
-AutocompleteEditor.prototype.stripValuesIfNeeded = function(values) {
-  const { allowHtml } = this.cellProperties;
-
-  const stringifiedValues = arrayMap(values, value => stringify(value));
-  const strippedValues = arrayMap(stringifiedValues, value => (allowHtml ? value : stripTags(value)));
-
-  return strippedValues;
-};
-
-AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
-  const selectedRange = this.htEditor.getSelectedRangeLast();
-  const selected = { row: selectedRange ? selectedRange.from.row : -1 };
-  let allowed = false;
-
-  if (keyCode === KEY_CODES.ARROW_DOWN && selected.row > 0 && selected.row < this.htEditor.countRows() - 1) {
-    allowed = true;
-  }
-  if (keyCode === KEY_CODES.ARROW_UP && selected.row > -1) {
-    allowed = true;
-  }
-
-  return allowed;
-};
-
-AutocompleteEditor.prototype.close = function(...args) {
-  this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-  HandsontableEditor.prototype.close.apply(this, args);
-};
-
-AutocompleteEditor.prototype.discardEditor = function(...args) {
-  HandsontableEditor.prototype.discardEditor.apply(this, args);
-
-  this.instance.view.render();
-};
-
-export default AutocompleteEditor;
