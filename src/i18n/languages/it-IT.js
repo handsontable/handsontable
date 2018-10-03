@@ -51,7 +51,7 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_CUT]: 'Taglia',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Inserisci riga figlia',
-  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Scollega da riga padre',
+  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Scollega da riga madre',
 
   [C.CONTEXTMENU_ITEMS_HIDE_COLUMN]: ['Nascondi colonna', 'Nascondi colonne'],
   [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: ['Mostra colonna', 'Mostra colonne'],
