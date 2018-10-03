@@ -3341,19 +3341,17 @@ describe('ContextMenu', () => {
 
       const cmInstance = getPlugin('contextMenu').menu.hotMenu;
 
-      expect(1).toEqual(1);
-
       cmInstance.selectCell(3, 0);
 
-      expect(window.scrollX).toEqual(beginningScrollX);
+      expect(window.scrollX).toBe(beginningScrollX);
 
       cmInstance.selectCell(4, 0);
 
-      expect(window.scrollX).toEqual(beginningScrollX);
+      expect(window.scrollX).toBe(beginningScrollX);
 
       cmInstance.selectCell(6, 0);
 
-      expect(window.scrollX).toEqual(beginningScrollX);
+      expect(window.scrollX).toBe(beginningScrollX);
     });
   });
 
