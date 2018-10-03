@@ -183,7 +183,7 @@ describe('UndoRedo', () => {
           expect(getDataAtCell(2, 0)).toEqual('A3');
           expect(getDataAtCell(2, 1)).toEqual('B3');
 
-          getPlugin('ColumnSorting').sort(0, 'desc');
+          getPlugin('ColumnSorting').sort({ column: 0, sortOrder: 'desc' });
 
           expect(countRows()).toEqual(3);
           expect(getDataAtCell(0, 0)).toEqual('A3');
