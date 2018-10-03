@@ -16,11 +16,11 @@ export default class BaseEditor {
   constructor(instance) {
     this.instance = instance;
     this.state = EditorState.VIRGIN;
-  
+
     this._opened = false;
     this._fullEditMode = false;
     this._closeCallback = null;
-  
+
     this.init();
   }
 
@@ -60,17 +60,17 @@ export default class BaseEditor {
   }
 
   extend() {
-    return class Editor extends BaseEditor { }
+    return class Editor extends BaseEditor { };
   }
 
   saveValue(value, ctrlDown) {
     let selection;
     let tmp;
-  
+
     // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
     if (ctrlDown) {
       selection = this.instance.getSelectedLast();
-  
+
       if (selection[0] > selection[2]) {
         tmp = selection[0];
         selection[0] = selection[2];
@@ -84,7 +84,7 @@ export default class BaseEditor {
     } else {
       selection = [this.row, this.col, null, null];
     }
-  
+
     this.instance.populateFromArray(selection[0], selection[1], value, selection[2], selection[3], 'edit');
   }
 
@@ -94,63 +94,63 @@ export default class BaseEditor {
     }
     this.instance.view.scrollViewport(new CellCoords(this.row, this.col));
     this.state = EditorState.EDITING;
-  
+
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
     // otherwise IME (editor for Asia users) doesn't work.
     if (this.isInFullEditMode()) {
       const stringifiedInitialValue = typeof newInitialValue === 'string' ? newInitialValue : stringify(this.originalValue);
-  
+
       this.setValue(stringifiedInitialValue);
     }
-  
+
     this.open(event);
     this._opened = true;
     this.focus();
-  
+
     // only rerender the selections (FillHandle should disappear when beginediting is triggered)
     this.instance.view.render();
-  
+
     this.instance.runHooks('afterBeginEditing', this.row, this.col);
   }
 
   finishEditing(restoreOriginalValue, ctrlDown, callback) {
     let val;
-  
+
     if (callback) {
       const previousCloseCallback = this._closeCallback;
-  
+
       this._closeCallback = (result) => {
         if (previousCloseCallback) {
           previousCloseCallback(result);
         }
-  
+
         callback(result);
         this.instance.view.render();
       };
     }
-  
+
     if (this.isWaiting()) {
       return;
     }
-  
+
     if (this.state === EditorState.VIRGIN) {
       this.instance._registerTimeout(() => {
         this._fireCallbacks(true);
       });
-  
+
       return;
     }
-  
+
     if (this.state === EditorState.EDITING) {
       if (restoreOriginalValue) {
         this.cancelChanges();
         this.instance.view.render();
-  
+
         return;
       }
-  
+
       const value = this.getValue();
-  
+
       if (this.instance.getSettings().trimWhitespace) {
         // We trim only string values
         val = [
@@ -161,10 +161,10 @@ export default class BaseEditor {
           [value]
         ];
       }
-  
+
       this.state = EditorState.WAITING;
       this.saveValue(val, ctrlDown);
-  
+
       if (this.instance.getCellValidator(this.cellProperties)) {
         this.instance.addHookOnce('postAfterValidate', (result) => {
           this.state = EditorState.FINISHED;
@@ -186,14 +186,14 @@ export default class BaseEditor {
     if (this.state !== EditorState.FINISHED) {
       return;
     }
-  
+
     // validator was defined and failed
     if (result === false && this.cellProperties.allowInvalid !== true) {
       this.instance.selectCell(this.row, this.col);
       this.focus();
       this.state = EditorState.EDITING;
       this._fireCallbacks(false);
-  
+
     } else {
       this.close();
       this._opened = false;
@@ -231,7 +231,7 @@ export default class BaseEditor {
   checkEditorSection() {
     const totalRows = this.instance.countRows();
     let section = '';
-  
+
     if (this.row < this.instance.getSettings().fixedRowsTop) {
       if (this.col < this.instance.getSettings().fixedColumnsLeft) {
         section = 'top-left-corner';
@@ -247,7 +247,7 @@ export default class BaseEditor {
     } else if (this.col < this.instance.getSettings().fixedColumnsLeft) {
       section = 'left';
     }
-  
+
     return section;
   }
 }
