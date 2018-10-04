@@ -147,7 +147,6 @@ class CopyPaste extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
     this.getOrCreateFocusableElement();
-    // this.focusableElement.focus();
 
     super.updatePlugin();
   }
