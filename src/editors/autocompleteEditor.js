@@ -41,7 +41,7 @@ function onBeforeKeyDown(event) {
   }
 }
 
-export default class AutocompleteEditor extends HandsontableEditor {
+class AutocompleteEditor extends HandsontableEditor {
 
   /**
    * @private
@@ -440,3 +440,5 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
 
   return result;
 };
+
+export default AutocompleteEditor;
