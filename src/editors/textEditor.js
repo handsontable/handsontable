@@ -298,8 +298,8 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
 
   const currentOffset = offset(this.TD);
   const containerOffset = offset(this.instance.rootElement);
-  const scrollableContainerTop = this.instance.view.wt.wtOverlays.topOverlay.mainTableScrollableElement;
-  const scrollableContainerLeft = this.instance.view.wt.wtOverlays.leftOverlay.mainTableScrollableElement;
+  const scrollableContainerTop = this.instance.view.wt.wtOverlays.topOverlay.holder;
+  const scrollableContainerLeft = this.instance.view.wt.wtOverlays.leftOverlay.holder;
   const totalRowsCount = this.instance.countRows();
   const containerScrollTop = scrollableContainerTop !== window ? scrollableContainerTop.scrollTop : 0;
   const containerScrollLeft = scrollableContainerLeft !== window ? scrollableContainerLeft.scrollLeft : 0;

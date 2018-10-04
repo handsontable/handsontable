@@ -892,6 +892,7 @@ describe('TextEditor', () => {
       fixedRowsTop: 2,
       rowHeaders: true,
       colHeaders: true,
+      height: 500,
     });
 
     const $holder = $(hot.view.wt.wtTable.holder);
@@ -921,10 +922,10 @@ describe('TextEditor', () => {
     expect($(getCell(4, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
 
     // non-fixed
-    selectCell(4, 4);
+    selectCell(10, 6);
     keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
-    expect($(getCell(4, 4, true)).offset().left).toEqual($inputHolder.offset().left + 1);
-    expect($(getCell(4, 4, true)).offset().top).toEqual($inputHolder.offset().top + 1);
+    expect($(getCell(10, 6, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(10, 6, true)).offset().top).toEqual($inputHolder.offset().top + 1);
   });
 
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (corner)', () => {
