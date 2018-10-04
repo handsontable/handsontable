@@ -173,7 +173,7 @@ class TextEditor extends BaseEditor {
     }
 
     this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME).
-    super.beginEditing.apply(...args);
+    super.beginEditing(...args);
   }
 
   open() {
