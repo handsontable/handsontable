@@ -298,13 +298,11 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
 
   const currentOffset = offset(this.TD);
   const containerOffset = offset(this.instance.rootElement);
-  const scrollableContainer = this.instance.view.wt.wtOverlays.topOverlay.mainTableScrollableElement;
+  const scrollableContainerTop = this.instance.view.wt.wtOverlays.topOverlay.mainTableScrollableElement;
+  const scrollableContainerLeft = this.instance.view.wt.wtOverlays.leftOverlay.mainTableScrollableElement;
   const totalRowsCount = this.instance.countRows();
-  const containerScrollTop = scrollableContainer !== window ?
-    scrollableContainer.scrollTop : 0;
-  const containerScrollLeft = scrollableContainer !== window ?
-    scrollableContainer.scrollLeft : 0;
-
+  const containerScrollTop = scrollableContainerTop !== window ? scrollableContainerTop.scrollTop : 0;
+  const containerScrollLeft = scrollableContainerLeft !== window ? scrollableContainerLeft.scrollLeft : 0;
   const editorSection = this.checkEditorSection();
 
   const scrollTop = ['', 'left'].includes(editorSection) ? containerScrollTop : 0;
@@ -371,8 +369,8 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
   const cellLeftOffset = this.TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
 
   const width = innerWidth(this.TD) - 8;
-  const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
-  const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
+  const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
+  const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
   const maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
   const height = this.TD.scrollHeight + 1;
   const maxHeight = Math.max(this.instance.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
