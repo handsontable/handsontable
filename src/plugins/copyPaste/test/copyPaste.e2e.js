@@ -81,6 +81,14 @@ describe('CopyPaste', () => {
     expect($('#HandsontableCopyPaste').length).toEqual(1);
   });
 
+  it('should keep focusable element if updateSettings occurred after the end of the selection', () => {
+    handsontable();
+    selectCell(0, 0, 2, 2);
+    updateSettings({});
+
+    expect(getPlugin('CopyPaste').focusableElement.mainElement).not.toBe(null);
+  });
+
   describe('working with multiple tables', () => {
     beforeEach(function() {
       this.$container2 = $(`<div id="${id}2"></div>`).appendTo('body');
