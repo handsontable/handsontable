@@ -12,7 +12,7 @@ export const EditorState = {
  * @util
  * @class BaseEditor
  */
-export default class BaseEditor {
+class BaseEditor {
   constructor(instance) {
     this.instance = instance;
     this.state = EditorState.VIRGIN;
@@ -251,3 +251,5 @@ export default class BaseEditor {
     return section;
   }
 }
+
+export default BaseEditor;
