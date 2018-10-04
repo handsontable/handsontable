@@ -168,10 +168,9 @@ describe('UndoRedo', () => {
         });
 
         it('should undo removal of single row after column sorting', () => {
-          const HOT = handsontable({
+          handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 2),
             colHeaders: true,
-            contextMenu: true,
             columnSorting: true
           });
 
@@ -201,7 +200,7 @@ describe('UndoRedo', () => {
           expect(getDataAtCell(1, 0)).toEqual('A1');
           expect(getDataAtCell(1, 1)).toEqual('B1');
 
-          HOT.undo();
+          undo();
 
           expect(countRows()).toEqual(3);
           expect(getDataAtCell(0, 0)).toEqual('A3');
