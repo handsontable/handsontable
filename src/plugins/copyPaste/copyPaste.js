@@ -293,6 +293,7 @@ class CopyPaste extends BasePlugin {
     if (!selRange) {
       return;
     }
+
     const topLeft = selRange.getTopLeftCorner();
     const bottomRight = selRange.getBottomRightCorner();
     const startRow = topLeft.row;
