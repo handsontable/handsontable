@@ -337,6 +337,20 @@ const REGISTERED_HOOKS = [
   'afterOnCellMouseDown',
 
   /**
+   * Fired after clicking on a cell or row/column header. In case the row/column header was clicked, the coordinate
+   * indexes are negative.
+   *
+   * For example clicking on the row header of cell (0, 0) results with `afterOnCellMouseUp` called
+   * with coordinates `{row: 0, col: -1}`.
+   *
+   * @event Hooks#afterOnCellMouseUp
+   * @param {Event} event `mouseup` event object.
+   * @param {CellCoords} coords Coordinates object containing the visual row and visual column indexes of the clicked cell.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
+   */
+  'afterOnCellMouseUp',
+
+  /**
    * Fired after clicking right mouse button on a cell or row/column header.
    *
    * For example clicking on the row header of cell (0, 0) results with `afterOnCellContextMenu` called
@@ -744,6 +758,18 @@ const REGISTERED_HOOKS = [
    *                            object allows or disallows changing the selection for the particular axies.
    */
   'beforeOnCellMouseDown',
+
+  /**
+   * Fired after the user clicked a cell.
+   *
+   * @event Hooks#beforeOnCellMouseUp
+   * @param {Event} event The `mouseup` event object.
+   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
+   * @param {HTMLTableCellElement} TD TD element.
+   * @param {Object} controller An object with keys `row`, `column` and `cells` which contains boolean values. This
+   *                            object allows or disallows changing the selection for the particular axies.
+   */
+  'beforeOnCellMouseUp',
 
   /**
    * Fired after the user clicked a cell, but before all the calculations related with it.
