@@ -157,7 +157,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     // Warn just from one plugin.
-    if (this.pluginKey === PLUGIN_KEY && this.hot.getSettings()[PLUGIN_KEY] && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY] ) {
+    if (this.pluginKey === PLUGIN_KEY && this.hot.getSettings()[PLUGIN_KEY] && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY]) {
       warnAboutPluginsConflict();
     }
 
