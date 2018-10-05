@@ -30,7 +30,7 @@ Hooks.getSingleton().register('afterColumnSort');
 
 const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
-export const PLUGIN_KEY = 'columnSorting';
+const PLUGIN_KEY = 'columnSorting';
 
 // DIFF - MultiColumnSorting & ColumnSorting: changed configuration documentation.
 
