@@ -1,6 +1,7 @@
 import { isUndefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
 import { warn } from '../../helpers/console';
+import { PLUGIN_KEY as COLUMN_SORTING_PLUGIN_KEY } from './columnSorting';
 
 export const ASC_SORT_STATE = 'asc';
 export const DESC_SORT_STATE = 'desc';
@@ -79,11 +80,12 @@ export function getFullSortConfiguration(sortConfig) {
 /**
  * Warn users about problems when using `columnSorting` and `columnSorting` plugins simultaneously.
  *
- * @param {undefined|Boolean|Object} columnSortingSettings
+ * @param {String} pluginKey Main settings key designed for the `ColumnSorting` plugin.
+ * @param {undefined|Boolean|Object} multiColumnSortingSettings
  */
-export function warnIfPluginsHaveConflict(columnSortingSettings) {
-  if (columnSortingSettings) {
-    // DIFF - MultiColumnSorting & ColumnSorting: Warn will be called from the MultiColumnSorting plugin.
+export function warnIfPluginsHaveConflict(pluginKey, multiColumnSortingSettings) {
+  if (pluginKey === COLUMN_SORTING_PLUGIN_KEY && multiColumnSortingSettings) {
+    warn('Plugins `columnSorting` and `multiColumnSorting` should not be enabled simultaneously.');
   }
 }
 

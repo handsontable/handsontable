@@ -30,7 +30,7 @@ Hooks.getSingleton().register('afterColumnSort');
 
 const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
-const PLUGIN_KEY = 'columnSorting';
+export const PLUGIN_KEY = 'columnSorting';
 
 // DIFF - MultiColumnSorting & ColumnSorting: changed configuration documentation.
 
@@ -155,7 +155,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    warnIfPluginsHaveConflict(this.hot.getSettings()[this.pluginKey]);
+    warnIfPluginsHaveConflict(this.pluginKey, this.hot.getSettings().multiColumnSorting);
 
     if (isUndefined(this.hot.getSettings().observeChanges)) {
       this.enableObserveChangesPlugin();
