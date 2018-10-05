@@ -12,7 +12,8 @@ export default function numericSort(sortOrder, columnMeta) {
   return function(value, nextValue) {
     const parsedFirstValue = parseFloat(value);
     const parsedSecondValue = parseFloat(nextValue);
-    const { sortEmptyCells } = columnMeta.columnSorting;
+    const activePluginSettings = columnMeta.multiColumnSorting || columnMeta.columnSorting;
+    const { sortEmptyCells } = activePluginSettings;
 
     // Watch out when changing this part of code! Check below returns 0 (as expected) when comparing empty string, null, undefined
     if (parsedFirstValue === parsedSecondValue || (isNaN(parsedFirstValue) && isNaN(parsedSecondValue))) {
