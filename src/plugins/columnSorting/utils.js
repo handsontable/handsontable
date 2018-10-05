@@ -78,16 +78,9 @@ export function getFullSortConfiguration(sortConfig) {
 
 /**
  * Warn users about problems when using `columnSorting` and `columnSorting` plugins simultaneously.
- *
- * @param {String} pluginKey Main settings key designed for the `ColumnSorting` plugin.
- * @param {undefined|Boolean|Object} multiColumnSortingSettings
  */
-export function warnIfPluginsHaveConflict(pluginKey, multiColumnSortingSettings) {
-  const COLUMN_SORTING_PLUGIN_KEY = 'columnSorting';
-
-  if (pluginKey === COLUMN_SORTING_PLUGIN_KEY && multiColumnSortingSettings) {
-    warn('Plugins `columnSorting` and `multiColumnSorting` should not be enabled simultaneously.');
-  }
+export function warnAboutPluginsConflict() {
+  warn('Plugins `columnSorting` and `multiColumnSorting` should not be enabled simultaneously.');
 }
 
 /**

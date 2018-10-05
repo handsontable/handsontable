@@ -6,9 +6,8 @@ const HEADER_CLASS_ASC_SORT = 'ascending';
 const HEADER_CLASS_DESC_SORT = 'descending';
 const HEADER_CLASS_INDICATOR_DISABLED = 'indicatorDisabled';
 // DIFF - MultiColumnSorting & ColumnSorting: removed CSS class definition related to the number indicators.
-
-export const HEADER_SORT_CLASS = 'columnSorting';
-export const HEADER_ACTION_CLASS = 'sortAction';
+const HEADER_SORT_CLASS = 'columnSorting';
+const HEADER_ACTION_CLASS = 'sortAction';
 
 const orderToCssClass = new Map([
   [ASC_SORT_STATE, HEADER_CLASS_ASC_SORT],

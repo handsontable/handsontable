@@ -17,7 +17,7 @@ import {
   getNextSortOrder,
   areValidSortStates,
   getFullSortConfiguration,
-  warnIfPluginsHaveConflict,
+  warnAboutPluginsConflict,
   warnAboutNotValidatedConfig,
   getHeaderSpanElement,
   isFirstLevelColumnHeader
@@ -31,6 +31,7 @@ Hooks.getSingleton().register('afterColumnSort');
 const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const PLUGIN_KEY = 'columnSorting';
+const CONFLICTED_PLUGIN_KEY = 'multiColumnSorting';
 
 // DIFF - MultiColumnSorting & ColumnSorting: changed configuration documentation.
 
@@ -155,7 +156,10 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    warnIfPluginsHaveConflict(this.pluginKey, this.hot.getSettings().multiColumnSorting);
+    // Warn just from one plugin.
+    if (this.pluginKey === PLUGIN_KEY && this.hot.getSettings()[PLUGIN_KEY] && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY] ) {
+      warnAboutPluginsConflict();
+    }
 
     if (isUndefined(this.hot.getSettings().observeChanges)) {
       this.enableObserveChangesPlugin();
@@ -231,8 +235,13 @@ class ColumnSorting extends BasePlugin {
     const currentSortConfig = this.getSortConfig();
 
     // We always pass to hook configs defined as an array to `beforeColumnSort` and `afterColumnSort` hooks.
+    let destinationSortConfigs = getFullSortConfiguration(sortConfig);
+
     // DIFF - MultiColumnSorting & ColumnSorting: extra `slice` method call.
-    const destinationSortConfigs = getFullSortConfiguration(sortConfig).slice(0, 1);
+    // The MultiColumnSorting class inherit from the ColumnSorting class.
+    if (this.pluginKey === PLUGIN_KEY) {
+      destinationSortConfigs = destinationSortConfigs.slice(0, 1);
+    }
 
     const sortPossible = this.areValidSortConfigs(destinationSortConfigs);
     const allowSort = this.hot.runHooks('beforeColumnSort', currentSortConfig, destinationSortConfigs, sortPossible);
@@ -328,8 +337,13 @@ class ColumnSorting extends BasePlugin {
    * sort order (`asc` for ascending, `desc` for descending).
    */
   setSortConfig(sortConfig) {
+    let destinationSortConfigs = getFullSortConfiguration(sortConfig).slice(0, 1);
+
     // DIFF - MultiColumnSorting & ColumnSorting: extra `slice` method call.
-    const destinationSortConfigs = getFullSortConfiguration(sortConfig).slice(0, 1);
+    // The MultiColumnSorting class inherit from the ColumnSorting class.
+    if (this.pluginKey === PLUGIN_KEY) {
+      destinationSortConfigs = destinationSortConfigs.slice(0, 1);
+    }
 
     if (this.areValidSortConfigs(destinationSortConfigs)) {
       const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
@@ -713,7 +727,10 @@ class ColumnSorting extends BasePlugin {
   onUpdateSettings(newSettings) {
     super.onUpdateSettings();
 
-    warnIfPluginsHaveConflict(newSettings[this.pluginKey]);
+    // Warn just from one plugin.
+    if (this.pluginKey === PLUGIN_KEY && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY] && this.hot.getSettings()[PLUGIN_KEY]) {
+      warnAboutPluginsConflict();
+    }
 
     this.columnMetaCache.clear();
 
