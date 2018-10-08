@@ -1,7 +1,8 @@
-import {isUndefined, isDefined} from './../helpers/mixed';
-import {objectEach} from './../helpers/object';
-import {toSingleLine} from './../helpers/templateLiteralTag';
-import {DEFAULT_LANGUAGE_CODE, hasLanguageDictionary} from './dictionariesManager';
+import { isUndefined, isDefined } from './../helpers/mixed';
+import { objectEach } from './../helpers/object';
+import { error } from './../helpers/console';
+import { toSingleLine } from './../helpers/templateLiteralTag';
+import { DEFAULT_LANGUAGE_CODE, hasLanguageDictionary } from './dictionariesManager';
 
 /**
  * Perform shallow extend of a target object with only this extension's properties which doesn't exist in the target.
@@ -36,11 +37,13 @@ export function extendNotExistingKeys(target, extension) {
  */
 export function createCellHeadersRange(firstRowIndex, nextRowIndex, fromValue = firstRowIndex, toValue = nextRowIndex) {
   // Will swap `fromValue` with `toValue` if it's necessary.
+  let [from, to] = [fromValue, toValue];
+
   if (firstRowIndex > nextRowIndex) {
-    [fromValue, toValue] = [toValue, fromValue];
+    [from, to] = [to, from];
   }
 
-  return `${fromValue}-${toValue}`;
+  return `${from}-${to}`;
 }
 
 /**
@@ -64,11 +67,11 @@ export function normalizeLanguageCode(languageCode) {
 /**
  * Set proper start language code. User may set language code which is not proper.
  *
- * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @param {Object} settings Settings object.
+ * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @returns {String}
  */
-export function applyLanguageSetting(languageCode, settings) {
+export function applyLanguageSetting(settings, languageCode) {
   const normalizedLanguageCode = normalizeLanguageCode(languageCode);
 
   if (hasLanguageDictionary(normalizedLanguageCode)) {
@@ -89,7 +92,7 @@ export function applyLanguageSetting(languageCode, settings) {
  */
 export function warnUserAboutLanguageRegistration(languageCode) {
   if (isDefined(languageCode)) {
-    console.error(toSingleLine`Language with code "${languageCode}" was not found. You should register particular language 
+    error(toSingleLine`Language with code "${languageCode}" was not found. You should register particular language 
     before using it. Read more about this issue at: https://docs.handsontable.com/i18n/missing-language-code.`);
   }
 }

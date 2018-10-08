@@ -1,6 +1,6 @@
 import numbro from 'numbro';
-import {getRenderer} from './index';
-import {isNumeric} from './../helpers/number';
+import { getRenderer } from './index';
+import { isNumeric } from './../helpers/number';
 
 /**
  * Numeric cell renderer
@@ -17,18 +17,27 @@ import {isNumeric} from './../helpers/number';
  * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
 function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  if (isNumeric(value)) {
+  let newValue = value;
+
+  if (isNumeric(newValue)) {
     const numericFormat = cellProperties.numericFormat;
-    const cellCulture = numericFormat && numericFormat.culture;
+    const cellCulture = numericFormat && numericFormat.culture || '-';
     const cellFormatPattern = numericFormat && numericFormat.pattern;
     const className = cellProperties.className || '';
-    let classArr = className.length ? className.split(' ') : [];
+    const classArr = className.length ? className.split(' ') : [];
 
-    if (typeof cellCulture !== 'undefined') {
-      numbro.culture(cellCulture);
+    if (typeof cellCulture !== 'undefined' && !numbro.languages()[cellCulture]) {
+      const shortTag = cellCulture.replace('-', '');
+      const langData = numbro.allLanguages ? numbro.allLanguages[cellCulture] : numbro[shortTag];
+
+      if (langData) {
+        numbro.registerLanguage(langData);
+      }
     }
 
-    value = numbro(value).format(cellFormatPattern || '0');
+    numbro.setLanguage(cellCulture);
+
+    newValue = numbro(newValue).format(cellFormatPattern || '0');
 
     if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 &&
       classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
@@ -42,7 +51,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
     cellProperties.className = classArr.join(' ');
   }
 
-  getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
+  getRenderer('text')(instance, TD, row, col, prop, newValue, cellProperties);
 }
 
 export default numericRenderer;

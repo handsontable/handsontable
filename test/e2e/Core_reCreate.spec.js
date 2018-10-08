@@ -1,5 +1,5 @@
 describe('Core_reCreate', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,7 @@ describe('Core_reCreate', () => {
   });
 
   it('should correctly re-render corner header when there is multiline content', () => {
-    var settings = {
+    const settings = {
       rowHeaders: true,
       colHeaders(col) {
         return `Column<br>${col}`;
@@ -24,6 +24,6 @@ describe('Core_reCreate', () => {
     handsontable(settings);
 
     expect(getTopLeftClone().width()).toBe(54);
-    expect(getTopLeftClone().height()).toBe(51);
+    expect(getTopLeftClone().height()).toBe(45);
   });
 });

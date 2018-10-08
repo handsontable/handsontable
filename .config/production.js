@@ -50,6 +50,7 @@ module.exports.create = function create(envArgs) {
       new ExtractTextPlugin(PACKAGE_FILENAME + (isFullBuild ? '.full' : '') + '.min.css'),
       new OptimizeCssAssetsPlugin({
         assetNameRegExp: isFullBuild ? /\.full\.min\.css$/ : /\.min\.css$/,
+        cssProcessorOptions: { zindex: false },
       })
     );
 
@@ -66,7 +67,7 @@ module.exports.create = function create(envArgs) {
             from: {glob: 'node_modules/numbro/@(LICENSE-Numeraljs|LICENSE)'}, to: 'numbro', flatten: true
           },
           {
-            from: {glob: 'node_modules/numbro/dist/@(numbro.js|languages.js)'}, to: 'numbro', flatten: true
+            from: {glob: 'node_modules/numbro/dist/@(numbro.js|languages.min.js)'}, to: 'numbro', flatten: true
           },
           {
             from: {glob: 'node_modules/numbro/dist/languages/*.js'}, to: 'numbro/languages', flatten: true

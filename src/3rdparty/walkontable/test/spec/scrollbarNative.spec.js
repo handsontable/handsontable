@@ -1,11 +1,11 @@
 describe('WalkontableScrollbarNative', () => {
-  var $table,
-    $container,
-    $wrapper,
-    debug = false;
+  let $table;
+  let $container;
+  let $wrapper;
+  const debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden' });
     $wrapper.width(100).height(200);
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
@@ -25,7 +25,7 @@ describe('WalkontableScrollbarNative', () => {
   it('initial render should be no different than the redraw (vertical)', () => {
     createDataArray(100, 1);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -33,7 +33,7 @@ describe('WalkontableScrollbarNative', () => {
     });
     wt.draw();
 
-    var tds = $table.find('td').length;
+    const tds = $table.find('td').length;
     wt.draw();
 
     expect($table.find('td').length).toEqual(tds);
@@ -42,7 +42,7 @@ describe('WalkontableScrollbarNative', () => {
   it('initial render should be no different than the redraw (horizontal)', () => {
     createDataArray(1, 50);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -50,7 +50,7 @@ describe('WalkontableScrollbarNative', () => {
     });
     wt.draw();
 
-    var tds = $table.find('td').length;
+    const tds = $table.find('td').length;
     wt.draw();
 
     expect($table.find('td').length).toEqual(tds);
@@ -59,7 +59,7 @@ describe('WalkontableScrollbarNative', () => {
   it('scrolling 50px down should render 2 more rows', () => {
     createDataArray(20, 4);
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -67,7 +67,7 @@ describe('WalkontableScrollbarNative', () => {
     });
     wt.draw();
 
-    var lastRenderedRow = wt.wtTable.getLastRenderedRow();
+    const lastRenderedRow = wt.wtTable.getLastRenderedRow();
 
     $(wt.wtTable.holder).scrollTop(50);
     wt.draw();
@@ -82,7 +82,7 @@ describe('WalkontableScrollbarNative', () => {
     $wrapper.addClass('testOverflowHidden');
 
     createDataArray(20, 4);
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,

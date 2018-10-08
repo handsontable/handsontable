@@ -1,26 +1,23 @@
-import {CellCoords} from './3rdparty/walkontable/src';
-import {KEY_CODES, isMetaKey, isCtrlKey} from './helpers/unicode';
-import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './helpers/dom/event';
-import {getEditorInstance} from './editors';
+import { CellCoords } from './3rdparty/walkontable/src';
+import { KEY_CODES, isMetaKey, isCtrlMetaKey } from './helpers/unicode';
+import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
+import { getEditorInstance } from './editors';
 import EventManager from './eventManager';
-import {EditorState} from './editors/_baseEditor';
+import { EditorState } from './editors/_baseEditor';
 
 function EditorManager(instance, priv, selection) {
-  var _this = this,
-    destroyed = false,
-    eventManager,
-    activeEditor;
-
-  eventManager = new EventManager(instance);
+  const _this = this;
+  const eventManager = new EventManager(instance);
+  let destroyed = false;
+  let lock = false;
+  let activeEditor;
 
   function moveSelectionAfterEnter(shiftKey) {
-    selection.setSelectedHeaders(false, false, false);
-    var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
+    const enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
 
     if (shiftKey) {
       // move selection up
       selection.transformStart(-enterMoves.row, -enterMoves.col);
-
     } else {
       // move selection down (add a new row if needed)
       selection.transformStart(enterMoves.row, enterMoves.col, true);
@@ -29,13 +26,8 @@ function EditorManager(instance, priv, selection) {
 
   function moveSelectionUp(shiftKey) {
     if (shiftKey) {
-      if (selection.selectedHeader.cols) {
-        selection.setSelectedHeaders(selection.selectedHeader.rows, false, false);
-      }
       selection.transformEnd(-1, 0);
-
     } else {
-      selection.setSelectedHeaders(false, false, false);
       selection.transformStart(-1, 0);
     }
   }
@@ -45,7 +37,6 @@ function EditorManager(instance, priv, selection) {
       // expanding selection down with shift
       selection.transformEnd(1, 0);
     } else {
-      selection.setSelectedHeaders(false, false, false);
       selection.transformStart(1, 0);
     }
   }
@@ -54,34 +45,27 @@ function EditorManager(instance, priv, selection) {
     if (shiftKey) {
       selection.transformEnd(0, 1);
     } else {
-      selection.setSelectedHeaders(false, false, false);
       selection.transformStart(0, 1);
     }
   }
 
   function moveSelectionLeft(shiftKey) {
     if (shiftKey) {
-      if (selection.selectedHeader.rows) {
-        selection.setSelectedHeaders(false, selection.selectedHeader.cols, false);
-      }
       selection.transformEnd(0, -1);
-
     } else {
-      selection.setSelectedHeaders(false, false, false);
       selection.transformStart(0, -1);
     }
   }
 
   function onKeyDown(event) {
-    var ctrlDown,
-      rangeModifier;
-
     if (!instance.isListening()) {
       return;
     }
     instance.runHooks('beforeKeyDown', event);
 
-    if (destroyed) {
+    // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
+    // character is entering (using IME editor). It is fired mainly on linux (ubuntu) with installed ibus-pinyin package.
+    if (destroyed || event.keyCode === 229) {
       return;
     }
     if (isImmediatePropagationStopped(event)) {
@@ -93,21 +77,22 @@ function EditorManager(instance, priv, selection) {
       return;
     }
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+    const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (activeEditor && !activeEditor.isWaiting()) {
-      if (!isMetaKey(event.keyCode) && !isCtrlKey(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
+      if (!isMetaKey(event.keyCode) && !isCtrlMetaKey(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
         _this.openEditor('', event);
 
         return;
       }
     }
-    rangeModifier = event.shiftKey ? selection.setRangeEnd : selection.setRangeStart;
+    const rangeModifier = event.shiftKey ? selection.setRangeEnd : selection.setRangeStart;
+    let tabMoves;
 
     switch (event.keyCode) {
       case KEY_CODES.A:
         if (!_this.isEditorOpened() && ctrlDown) {
-          selection.selectAll();
+          instance.selectAll();
 
           event.preventDefault();
           stopPropagation(event);
@@ -158,8 +143,7 @@ function EditorManager(instance, priv, selection) {
         break;
 
       case KEY_CODES.TAB:
-        selection.setSelectedHeaders(false, false, false);
-        var tabMoves = typeof priv.settings.tabMoves === 'function' ? priv.settings.tabMoves(event) : priv.settings.tabMoves;
+        tabMoves = typeof priv.settings.tabMoves === 'function' ? priv.settings.tabMoves(event) : priv.settings.tabMoves;
 
         if (event.shiftKey) {
           // move selection left
@@ -174,18 +158,18 @@ function EditorManager(instance, priv, selection) {
 
       case KEY_CODES.BACKSPACE:
       case KEY_CODES.DELETE:
-        selection.empty(event);
+        instance.emptySelectedCells();
         _this.prepareEditor();
         event.preventDefault();
         break;
 
       case KEY_CODES.F2:
         /* F2 */
-        _this.openEditor(null, event);
-
         if (activeEditor) {
           activeEditor.enableFullEditMode();
         }
+        _this.openEditor(null, event);
+
         event.preventDefault(); // prevent Opera from opening 'Go to Page dialog'
         break;
 
@@ -199,11 +183,11 @@ function EditorManager(instance, priv, selection) {
           moveSelectionAfterEnter(event.shiftKey);
 
         } else if (instance.getSettings().enterBeginsEditing) {
-          _this.openEditor(null, event);
-
           if (activeEditor) {
             activeEditor.enableFullEditMode();
           }
+          _this.openEditor(null, event);
+
         } else {
           moveSelectionAfterEnter(event.shiftKey);
         }
@@ -214,41 +198,39 @@ function EditorManager(instance, priv, selection) {
       case KEY_CODES.ESCAPE:
         if (_this.isEditorOpened()) {
           _this.closeEditorAndRestoreOriginalValue(ctrlDown);
+
+          activeEditor.focus();
         }
         event.preventDefault();
         break;
 
       case KEY_CODES.HOME:
-        selection.setSelectedHeaders(false, false, false);
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier(new CellCoords(0, priv.selRange.from.col));
+          rangeModifier.call(selection, new CellCoords(0, selection.selectedRange.current().from.col));
         } else {
-          rangeModifier(new CellCoords(priv.selRange.from.row, 0));
+          rangeModifier.call(selection, new CellCoords(selection.selectedRange.current().from.row, 0));
         }
         event.preventDefault(); // don't scroll the window
         stopPropagation(event);
         break;
 
       case KEY_CODES.END:
-        selection.setSelectedHeaders(false, false, false);
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier(new CellCoords(instance.countRows() - 1, priv.selRange.from.col));
+          rangeModifier.call(selection, new CellCoords(instance.countRows() - 1, selection.selectedRange.current().from.col));
         } else {
-          rangeModifier(new CellCoords(priv.selRange.from.row, instance.countCols() - 1));
+          rangeModifier.call(selection, new CellCoords(selection.selectedRange.current().from.row, instance.countCols() - 1));
         }
         event.preventDefault(); // don't scroll the window
         stopPropagation(event);
         break;
 
       case KEY_CODES.PAGE_UP:
-        selection.setSelectedHeaders(false, false, false);
         selection.transformStart(-instance.countVisibleRows(), 0);
         event.preventDefault(); // don't page up the window
         stopPropagation(event);
         break;
 
       case KEY_CODES.PAGE_DOWN:
-        selection.setSelectedHeaders(false, false, false);
         selection.transformStart(instance.countVisibleRows(), 0);
         event.preventDefault(); // don't page down the window
         stopPropagation(event);
@@ -267,22 +249,46 @@ function EditorManager(instance, priv, selection) {
       }
     });
 
+    // Open editor when text composition is started (IME editor)
+    eventManager.addEventListener(document.documentElement, 'compositionstart', (event) => {
+      if (!destroyed && activeEditor && !activeEditor.isOpened() && instance.isListening()) {
+        _this.openEditor('', event);
+      }
+    });
+
     function onDblClick(event, coords, elem) {
       // may be TD or TH
-      if (elem.nodeName == 'TD') {
-        _this.openEditor();
-
+      if (elem.nodeName === 'TD') {
         if (activeEditor) {
           activeEditor.enableFullEditMode();
         }
+        _this.openEditor(null, event);
       }
     }
     instance.view.wt.update('onCellDblClick', onDblClick);
-
-    instance.addHook('afterDestroy', () => {
-      destroyed = true;
-    });
   }
+
+  /**
+  * Lock the editor from being prepared and closed. Locking the editor prevents its closing and
+  * reinitialized after selecting the new cell. This feature is necessary for a mobile editor.
+  *
+  * @function lockEditor
+  * @memberof! Handsontable.EditorManager#
+   */
+  this.lockEditor = function() {
+    lock = true;
+  };
+
+  /**
+  * Unlock the editor from being prepared and closed. This method restores the original behavior of
+  * the editors where for every new selection its instances are closed.
+  *
+  * @function unlockEditor
+  * @memberof! Handsontable.EditorManager#
+   */
+  this.unlockEditor = function() {
+    lock = false;
+  };
 
   /**
    * Destroy current editor, if exists.
@@ -292,7 +298,9 @@ function EditorManager(instance, priv, selection) {
    * @param {Boolean} revertOriginal
    */
   this.destroyEditor = function(revertOriginal) {
-    this.closeEditor(revertOriginal);
+    if (!lock) {
+      this.closeEditor(revertOriginal);
+    }
   };
 
   /**
@@ -313,13 +321,9 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    */
   this.prepareEditor = function() {
-    var row,
-      col,
-      prop,
-      td,
-      originalValue,
-      cellProperties,
-      editorClass;
+    if (lock) {
+      return;
+    }
 
     if (activeEditor && activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved) => {
@@ -330,14 +334,14 @@ function EditorManager(instance, priv, selection) {
 
       return;
     }
-    row = priv.selRange.highlight.row;
-    col = priv.selRange.highlight.col;
-    prop = instance.colToProp(col);
-    td = instance.getCell(row, col);
 
-    originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), col);
-    cellProperties = instance.getCellMeta(row, col);
-    editorClass = instance.getCellEditor(cellProperties);
+    const row = instance.selection.selectedRange.current().highlight.row;
+    const col = instance.selection.selectedRange.current().highlight.col;
+    const prop = instance.colToProp(col);
+    const td = instance.getCell(row, col);
+    const originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), col);
+    const cellProperties = instance.getCellMeta(row, col);
+    const editorClass = instance.getCellEditor(cellProperties);
 
     if (editorClass) {
       activeEditor = getEditorInstance(editorClass, instance);
@@ -364,18 +368,23 @@ function EditorManager(instance, priv, selection) {
    *
    * @function openEditor
    * @memberof! Handsontable.EditorManager#
-   * @param {String} initialValue
+   * @param {null|String} newInitialValue new value from which editor will start if handled property it's not the `null`.
    * @param {DOMEvent} event
    */
-  this.openEditor = function(initialValue, event) {
-    if (activeEditor && !activeEditor.cellProperties.readOnly) {
-      activeEditor.beginEditing(initialValue, event);
-    } else if (activeEditor && activeEditor.cellProperties.readOnly) {
+  this.openEditor = function(newInitialValue, event) {
+    if (!activeEditor) {
+      return;
+    }
 
+    const readOnly = activeEditor.cellProperties.readOnly;
+
+    if (readOnly) {
       // move the selection after opening the editor with ENTER key
       if (event && event.keyCode === KEY_CODES.ENTER) {
         moveSelectionAfterEnter();
       }
+    } else {
+      activeEditor.beginEditing(newInitialValue, event);
     }
   };
 
@@ -419,7 +428,27 @@ function EditorManager(instance, priv, selection) {
     return this.closeEditor(true, ctrlDown);
   };
 
+  /**
+   * Destroy the instance.
+   */
+  this.destroy = function() {
+    destroyed = true;
+  };
+
   init();
 }
+
+const instances = new WeakMap();
+
+EditorManager.getInstance = function(hotInstance, hotSettings, selection, datamap) {
+  let editorManager = instances.get(hotInstance);
+
+  if (!editorManager) {
+    editorManager = new EditorManager(hotInstance, hotSettings, selection, datamap);
+    instances.set(hotInstance, editorManager);
+  }
+
+  return editorManager;
+};
 
 export default EditorManager;

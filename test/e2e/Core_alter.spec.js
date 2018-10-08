@@ -1,5 +1,5 @@
 describe('Core_alter', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,36 +12,36 @@ describe('Core_alter', () => {
     }
   });
 
-  var arrayOfNestedObjects = function() {
+  const arrayOfNestedObjects = function() {
     return [
-      {id: 1,
+      { id: 1,
         name: {
           first: 'Ted',
           last: 'Right'
         },
         address: 'Street Name',
         zip: '80410',
-        city: 'City Name'},
-      {id: 2,
+        city: 'City Name' },
+      { id: 2,
         name: {
           first: 'Frank',
           last: 'Honest'
         },
         address: 'Street Name',
         zip: '80410',
-        city: 'City Name'},
-      {id: 3,
+        city: 'City Name' },
+      { id: 3,
         name: {
           first: 'Joan',
           last: 'Well'
         },
         address: 'Street Name',
         zip: '80410',
-        city: 'City Name'}
+        city: 'City Name' }
     ];
   };
 
-  var arrayOfArrays = function() {
+  const arrayOfArrays = function() {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
@@ -51,13 +51,95 @@ describe('Core_alter', () => {
   };
 
   describe('remove row', () => {
+    describe('multiple items at once', () => {
+      it('should remove rows when index groups are passed in ascending order', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(15, 5),
+        });
+        // [[rowVisualIndex, amountRowsToRemove] ...]
+        alter('remove_row', [[1, 3], [5, 1], [7, 3], [11, 2]]);
+        // It remove rows as follow:
+        //     1--------3      5-1     7---------3       11-----2
+        // A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
+        //
+        // Result: A1, A5, A7, A11, A14, A15
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A5', 'A7', 'A11', 'A14', 'A15']);
+        expect(getData().length).toBe(6);
+      });
+
+      it('should remove rows when index groups are passed in descending order', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(15, 5),
+        });
+        // [[rowVisualIndex, amountRowsToRemove] ...]
+        alter('remove_row', [[11, 2], [7, 3], [5, 1], [1, 3]]);
+        // It remove rows as follow:
+        //     1--------3      5-1     7---------3       11-----2
+        // A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
+        //
+        // Result: A1, A5, A7, A11, A14, A15
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A5', 'A7', 'A11', 'A14', 'A15']);
+        expect(getData().length).toBe(6);
+      });
+
+      it('should remove rows when index groups are passed as intersecting values', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(15, 5),
+        });
+        // [[rowVisualIndex, amountRowsToRemove] ...]
+        alter('remove_row', [[1, 3], [4, 2], [5, 5], [11, 1]]);
+        // It remove rows as follow:
+        //     1---------------------------------9       11-1
+        // A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
+        //
+        // Result: A1, A11, A13, A14, A15
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A11', 'A13', 'A14', 'A15']);
+        expect(getData().length).toBe(5);
+      });
+
+      it('should remove rows when index groups are passed as intersecting values (the second scenario)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(15, 5),
+        });
+        // [[rowVisualIndex, amountRowsToRemove] ...]
+        alter('remove_row', [[1, 3], [2, 1], [5, 2]]);
+        // It remove columns as follow:
+        //     1--------3      5----2
+        // A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
+        //
+        // Result: A1, A5, A8, A9, A10, A11, A12, A13, A14, A15
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A5', 'A8', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14', 'A15']);
+        expect(getData().length).toBe(10);
+      });
+
+      it('should remove rows when index groups are passed as intersecting values (placed randomly)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(15, 5),
+        });
+        // [[rowVisualIndex, amountRowsToRemove] ...]
+        alter('remove_row', [[4, 2], [11, 1], [5, 5], [1, 3]]);
+        // It remove rows as follow:
+        //     1---------------------------------9       11-1
+        // A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
+        //
+        // Result: A1, A11, A13, A14, A15
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A11', 'A13', 'A14', 'A15']);
+        expect(getData().length).toBe(5);
+      });
+    });
+
     it('should remove row', () => {
       handsontable({
         minRows: 5,
         data: arrayOfNestedObjects(),
         columns: [
-          {data: 'id'},
-          {data: 'name.first'}
+          { data: 'id' },
+          { data: 'name.first' }
         ]
       });
       alter('remove_row', 1);
@@ -66,14 +148,29 @@ describe('Core_alter', () => {
       expect(getData().length).toEqual(5); // new row should be added by keepEmptyRows
     });
 
-    it('should fire beforeRemoveRow event before removing row', () => {
-      var onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
-
-      var hot = handsontable({
+    it('should not remove row if amount is zero', () => {
+      handsontable({
         data: arrayOfNestedObjects(),
         columns: [
-          {data: 'id'},
-          {data: 'name.first'}
+          { data: 'id' },
+          { data: 'name.first' }
+        ],
+      });
+      const countedRows = countRows();
+
+      alter('remove_row', 1, 0);
+
+      expect(countRows()).toBe(countedRows);
+    });
+
+    it('should fire beforeRemoveRow event before removing row', () => {
+      const onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
+
+      handsontable({
+        data: arrayOfNestedObjects(),
+        columns: [
+          { data: 'id' },
+          { data: 'name.first' }
         ],
         beforeRemoveRow: onBeforeRemoveRow,
       });
@@ -83,15 +180,15 @@ describe('Core_alter', () => {
     });
 
     it('should not remove row if removing has been canceled by beforeRemoveRow event handler', () => {
-      var onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
+      const onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
 
       onBeforeRemoveRow.and.callFake(() => false);
 
-      var hot = handsontable({
+      handsontable({
         data: arrayOfNestedObjects(),
         columns: [
-          {data: 'id'},
-          {data: 'name.first'}
+          { data: 'id' },
+          { data: 'name.first' }
         ],
         beforeRemoveRow: onBeforeRemoveRow
       });
@@ -127,7 +224,7 @@ describe('Core_alter', () => {
       expect(countCols()).toEqual(4);
     });
 
-    it('should remove one row if amount parameter is empty', function() {
+    it('should remove one row if amount parameter is empty', () => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -140,11 +237,11 @@ describe('Core_alter', () => {
       alter('remove_row', 1);
 
       expect(countRows()).toEqual(4);
-      expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual('a1');
-      expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual('c2');
+      expect(spec().$container.find('tr:eq(0) td:eq(0)').html()).toEqual('a1');
+      expect(spec().$container.find('tr:eq(1) td:eq(1)').html()).toEqual('c2');
     });
 
-    it('should remove as many rows as given in the amount parameter', function() {
+    it('should remove as many rows as given in the amount parameter', () => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -157,8 +254,8 @@ describe('Core_alter', () => {
       alter('remove_row', 1, 3);
 
       expect(countRows()).toEqual(2);
-      expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual('a1');
-      expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual('e2');
+      expect(spec().$container.find('tr:eq(0) td:eq(0)').html()).toEqual('a1');
+      expect(spec().$container.find('tr:eq(1) td:eq(1)').html()).toEqual('e2');
     });
 
     it('should not remove more rows that exist', () => {
@@ -259,15 +356,15 @@ describe('Core_alter', () => {
     });
 
     it('should fire callback on remove row', () => {
-      var outputBefore;
-      var outputAfter;
+      let outputBefore;
+      let outputAfter;
 
       handsontable({
         minRows: 5,
         data: arrayOfNestedObjects(),
         columns: [
-          {data: 'id'},
-          {data: 'name.first'}
+          { data: 'id' },
+          { data: 'name.first' }
         ],
         beforeRemoveRow(index, amount, removedRows, source) {
           outputBefore = [index, amount, removedRows, source];
@@ -283,7 +380,7 @@ describe('Core_alter', () => {
     });
 
     it('should decrement the number of fixed rows, if a fix row is removed', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         startCols: 1,
         startRows: 3,
         fixedRowsTop: 4
@@ -296,7 +393,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new row layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 3,
         startRows: 4
       });
@@ -308,7 +405,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new rows (>1) layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 3,
         startRows: 4
       });
@@ -321,7 +418,100 @@ describe('Core_alter', () => {
   });
 
   describe('remove column', () => {
-    it('should remove one column if amount parameter is empty', function() {
+    describe('multiple items at once', () => {
+      it('should remove columns when index groups are passed in ascending order', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 15),
+        });
+        // [[columnVisualIndex, amountColumnsToRemove] ...]
+        alter('remove_col', [[1, 3], [5, 1], [7, 3], [11, 2]]);
+        // It remove columns as follow:
+        //     1--------3      5-1     7--------3      11---2
+        // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
+        //
+        // Result: A1, E1, G1, K1, N1, O1
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'E1', 'G1', 'K1', 'N1', 'O1']);
+        expect(getData()[0].length).toBe(6);
+      });
+
+      it('should remove columns when index groups are passed in descending order', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 15),
+        });
+        // [[columnVisualIndex, amountColumnsToRemove] ...]
+        alter('remove_col', [[11, 2], [7, 3], [5, 1], [1, 3]]);
+        // It remove columns as follow:
+        //     1--------3      5-1     7--------3      11---2
+        // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
+        //
+        // Result: A1, E1, G1, K1, N1, O1
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'E1', 'G1', 'K1', 'N1', 'O1']);
+        expect(getData()[0].length).toBe(6);
+      });
+
+      it('should remove columns when index groups are passed as intersecting values', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 15),
+        });
+        // [[columnVisualIndex, amountColumnsToRemove] ...]
+        alter('remove_col', [[1, 3], [4, 2], [5, 5], [11, 1]]);
+        // It remove columns as follow:
+        //     1--------------------------------9     11-1
+        // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
+        //
+        // Result: A1, K1, M1, N1, O1
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'K1', 'M1', 'N1', 'O1']);
+        expect(getData()[0].length).toBe(5);
+      });
+
+      it('should remove columns when index groups are passed as intersecting values (the second scenario)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 15),
+        });
+        // [[columnVisualIndex, amountColumnsToRemove] ...]
+        alter('remove_col', [[1, 3], [2, 1], [5, 2]]);
+        // It remove columns as follow:
+        //     1--------3      5----2
+        // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
+        //
+        // Result: A1, E1, H1
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'E1', 'H1', 'I1', 'J1', 'K1', 'L1', 'M1', 'N1', 'O1']);
+        expect(getData()[0].length).toBe(10);
+      });
+
+      it('should remove columns when index groups are passed as intersecting values (placed randomly)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 15),
+        });
+        // [[columnVisualIndex, amountColumnsToRemove] ...]
+        alter('remove_col', [[4, 2], [11, 1], [5, 5], [1, 3]]);
+        // It remove columns as follow:
+        //     1--------------------------------9     11-1
+        // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
+        //
+        // Result: A1, K1, M1, N1, O1
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'K1', 'M1', 'N1', 'O1']);
+        expect(getData()[0].length).toBe(5);
+      });
+    });
+
+    it('should not remove column if amount is zero', () => {
+      handsontable({
+        data: arrayOfArrays(),
+      });
+      const countedColumns = countCols();
+
+      alter('remove_col', 1, 0);
+
+      expect(countCols()).toBe(countedColumns);
+    });
+
+    it('should remove one column if amount parameter is empty', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -331,11 +521,11 @@ describe('Core_alter', () => {
       alter('remove_col', 1);
 
       expect(countCols()).toEqual(7);
-      expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual('a');
-      expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual('c');
+      expect(spec().$container.find('tr:eq(0) td:eq(0)').html()).toEqual('a');
+      expect(spec().$container.find('tr:eq(1) td:eq(1)').html()).toEqual('c');
     });
 
-    it('should remove as many columns as given in the amount parameter', function() {
+    it('should remove as many columns as given in the amount parameter', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -345,11 +535,11 @@ describe('Core_alter', () => {
       alter('remove_col', 1, 3);
 
       expect(countCols()).toEqual(5);
-      expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual('a');
-      expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual('e');
+      expect(spec().$container.find('tr:eq(0) td:eq(0)').html()).toEqual('a');
+      expect(spec().$container.find('tr:eq(1) td:eq(1)').html()).toEqual('e');
     });
 
-    it('should not remove more columns that exist', function() {
+    it('should not remove more columns that exist', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -359,10 +549,10 @@ describe('Core_alter', () => {
       alter('remove_col', 6, 3);
 
       expect(countCols()).toEqual(6);
-      expect(this.$container.find('tr:eq(1) td:last').html()).toEqual('f');
+      expect(spec().$container.find('tr:eq(1) td:last').html()).toEqual('f');
     });
 
-    it('should remove one column from end if no parameters are given', function() {
+    it('should remove one column from end if no parameters are given', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -372,10 +562,10 @@ describe('Core_alter', () => {
       alter('remove_col');
 
       expect(countCols()).toEqual(7);
-      expect(this.$container.find('tr:eq(1) td:last').html()).toEqual('g');
+      expect(spec().$container.find('tr:eq(1) td:last').html()).toEqual('g');
     });
 
-    it('should remove amount of columns from end if index parameter is not given', function() {
+    it('should remove amount of columns from end if index parameter is not given', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -385,13 +575,13 @@ describe('Core_alter', () => {
       alter('remove_col', null, 3);
 
       expect(countCols()).toEqual(5);
-      expect(this.$container.find('tr:eq(1) td:last').html()).toEqual('e');
+      expect(spec().$container.find('tr:eq(1) td:last').html()).toEqual('e');
     });
 
     it('should fire beforeRemoveCol event before removing col', () => {
-      var onBeforeRemoveCol = jasmine.createSpy('onBeforeRemoveCol');
+      const onBeforeRemoveCol = jasmine.createSpy('onBeforeRemoveCol');
 
-      var hot = handsontable({
+      handsontable({
         beforeRemoveCol: onBeforeRemoveCol
       });
       alter('remove_col');
@@ -400,11 +590,11 @@ describe('Core_alter', () => {
     });
 
     it('should not remove column if removing has been canceled by beforeRemoveCol event handler', () => {
-      var onBeforeRemoveCol = jasmine.createSpy('onBeforeRemoveCol');
+      const onBeforeRemoveCol = jasmine.createSpy('onBeforeRemoveCol');
 
       onBeforeRemoveCol.and.callFake(() => false);
 
-      var hot = handsontable({
+      handsontable({
         beforeRemoveCol: onBeforeRemoveCol
       });
 
@@ -416,8 +606,8 @@ describe('Core_alter', () => {
     });
 
     it('should fire callback on remove col', () => {
-      var outputBefore;
-      var outputAfter;
+      let outputBefore;
+      let outputAfter;
 
       handsontable({
         minRows: 5,
@@ -451,8 +641,8 @@ describe('Core_alter', () => {
       expect(getCellMeta(0, 1).someValue).toEqual([0, 2]);
     });
 
-    it('should remove column when not all rows are visible in the viewport', function() {
-      this.$container.css({
+    it('should remove column when not all rows are visible in the viewport', () => {
+      spec().$container.css({
         height: '100',
         overflow: 'auto'
       });
@@ -511,7 +701,7 @@ describe('Core_alter', () => {
     });
 
     it('should decrement the number of fixed columns, if a fix column is removed', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         startCols: 1,
         startRows: 3,
         fixedColumnsLeft: 4
@@ -524,7 +714,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new column layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 4,
         startRows: 3
       });
@@ -536,7 +726,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new columns (>1) layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 4,
         startRows: 3
       });
@@ -549,7 +739,7 @@ describe('Core_alter', () => {
   });
 
   describe('insert row', () => {
-    it('should insert row at given index', function() {
+    it('should insert row at given index', () => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -562,7 +752,44 @@ describe('Core_alter', () => {
       alter('insert_row', 1);
 
       expect(countRows()).toEqual(6);
-      expect(this.$container.find('tr:eq(2) td:eq(0)').html()).toEqual('b1');
+      expect(spec().$container.find('tr:eq(2) td:eq(0)').html()).toEqual('b1');
+    });
+
+    it('should fire the beforeCreateRow hook before creating a row', () => {
+      const onBeforeCreateRow = jasmine.createSpy('beforeCreateRow');
+
+      handsontable({
+        data: arrayOfNestedObjects(),
+        columns: [
+          { data: 'id' },
+          { data: 'name.first' }
+        ],
+        beforeCreateRow: onBeforeCreateRow,
+      });
+      alter('insert_row', 2, 1, 'customSource');
+
+      expect(onBeforeCreateRow).toHaveBeenCalledWith(2, 1, 'customSource', void 0, void 0, void 0);
+    });
+
+    it('should not create row if removing has been canceled by beforeCreateRow hook handler', () => {
+      const beforeCreateRow = jasmine.createSpy('beforeCreateRow');
+
+      beforeCreateRow.and.callFake(() => false);
+
+      handsontable({
+        data: arrayOfNestedObjects(),
+        columns: [
+          { data: 'id' },
+          { data: 'name.first' }
+        ],
+        beforeCreateRow
+      });
+
+      expect(countRows()).toEqual(3);
+
+      alter('insert_row');
+
+      expect(countRows()).toEqual(3);
     });
 
     it('should insert row at the end if index is not given', () => {
@@ -584,8 +811,8 @@ describe('Core_alter', () => {
     });
 
     it('should not change cellMeta after executing `insert row` without parameters (#3581, #3989, #2114)', () => {
-      var greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
+      const greenRenderer = function(instance, td, ...args) {
+        Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
         td.style.backgroundColor = 'green';
       };
 
@@ -597,12 +824,12 @@ describe('Core_alter', () => {
           [3, 'd', true]
         ],
         cell: [
-          {row: 0, col: 0, renderer: greenRenderer, type: 'text', readOnly: true}
+          { row: 0, col: 0, renderer: greenRenderer, type: 'text', readOnly: true }
         ],
         columns: [
-          {type: 'numeric'},
-          {type: 'text'},
-          {type: 'checkbox'}
+          { type: 'numeric' },
+          { type: 'text' },
+          { type: 'checkbox' }
         ]
       });
 
@@ -624,12 +851,12 @@ describe('Core_alter', () => {
           [3, 'd', true]
         ],
         cell: [
-          {row: 0, col: 0, type: 'text'}
+          { row: 0, col: 0, type: 'text' }
         ],
         columns: [
-          {type: 'numeric'},
-          {type: 'text'},
-          {type: 'checkbox'}
+          { type: 'numeric' },
+          { type: 'text' },
+          { type: 'checkbox' }
         ]
       });
 
@@ -644,7 +871,7 @@ describe('Core_alter', () => {
       expect(getDataAtCell(4, 2)).toEqual(null);
     });
 
-    it('should insert the amount of rows at given index', function() {
+    it('should insert the amount of rows at given index', () => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -658,9 +885,9 @@ describe('Core_alter', () => {
 
       expect(countRows()).toEqual(8);
 
-      expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual('');
+      expect(spec().$container.find('tr:eq(1) td:eq(0)').html()).toEqual('');
 
-      expect(this.$container.find('tr:eq(4) td:eq(0)').html()).toEqual('b1');
+      expect(spec().$container.find('tr:eq(4) td:eq(0)').html()).toEqual('b1');
     });
 
     it('should insert the amount of rows at the end if index is not given', () => {
@@ -695,7 +922,7 @@ describe('Core_alter', () => {
       expect(countRows()).toEqual(7);
     });
 
-    it('when amount parameter is used, should not insert more rows than allowed by maxRows', function() {
+    it('when amount parameter is used, should not insert more rows than allowed by maxRows', () => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -709,11 +936,11 @@ describe('Core_alter', () => {
       alter('insert_row', 1, 10);
 
       expect(countRows()).toEqual(10);
-      expect(this.$container.find('tr:eq(6) td:eq(0)').html()).toEqual('b1');
+      expect(spec().$container.find('tr:eq(6) td:eq(0)').html()).toEqual('b1');
     });
 
     it('should not add more source rows than defined in maxRows when trimming rows using the modifyRow hook', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 4),
         modifyRow(row) {
           return [8, 9].indexOf(row) > -1 ? null : row;
@@ -730,15 +957,15 @@ describe('Core_alter', () => {
     });
 
     it('should fire callback on create row', () => {
-      var outputBefore;
-      var outputAfter;
+      let outputBefore;
+      let outputAfter;
 
       handsontable({
         minRows: 5,
         data: arrayOfNestedObjects(),
         columns: [
-          {data: 'id'},
-          {data: 'name.first'}
+          { data: 'id' },
+          { data: 'name.first' }
         ],
         beforeCreateRow(index, amount, source) {
           outputBefore = [index, amount, source];
@@ -766,13 +993,15 @@ describe('Core_alter', () => {
       selectCell(2, 2);
       alter('insert_row', 2);
 
-      var selected = getSelected();
-      expect(selected[0]).toEqual(3);
-      expect(selected[2]).toEqual(3);
+      const selected = getSelected();
+
+      expect(selected[0][0]).toBe(3);
+      expect(selected[0][2]).toBe(3);
+      expect(selected.length).toBe(1);
     });
 
     it('should shift the cell meta according to the new row layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 4,
         startRows: 3
       });
@@ -784,7 +1013,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new rows (>1) layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 4,
         startRows: 3
       });
@@ -797,7 +1026,7 @@ describe('Core_alter', () => {
   });
 
   describe('insert column', () => {
-    it('should insert column at given index', function() {
+    it('should insert column at given index', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -807,10 +1036,10 @@ describe('Core_alter', () => {
       alter('insert_col', 1);
 
       expect(countCols()).toEqual(9);
-      expect(this.$container.find('tr:eq(1) td:eq(2)').html()).toEqual('b');
+      expect(spec().$container.find('tr:eq(1) td:eq(2)').html()).toEqual('b');
     });
 
-    it('should insert column at the end if index is not given', function() {
+    it('should insert column at the end if index is not given', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -820,10 +1049,10 @@ describe('Core_alter', () => {
       alter('insert_col');
 
       expect(countCols()).toEqual(9);
-      expect(this.$container.find('tr:eq(1) td:eq(7)').html()).toEqual('h');
+      expect(spec().$container.find('tr:eq(1) td:eq(7)').html()).toEqual('h');
     });
 
-    it('should insert the amount of columns at given index', function() {
+    it('should insert the amount of columns at given index', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -833,10 +1062,10 @@ describe('Core_alter', () => {
       alter('insert_col', 1, 3);
 
       expect(countCols()).toEqual(11);
-      expect(this.$container.find('tr:eq(1) td:eq(4)').html()).toEqual('b');
+      expect(spec().$container.find('tr:eq(1) td:eq(4)').html()).toEqual('b');
     });
 
-    it('should insert the amount of columns at the end if index is not given', function() {
+    it('should insert the amount of columns at the end if index is not given', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -846,11 +1075,11 @@ describe('Core_alter', () => {
       alter('insert_col', null, 3);
 
       expect(countCols()).toEqual(11);
-      expect(this.$container.find('tr:eq(1) td:eq(7)').html()).toEqual('h');
+      expect(spec().$container.find('tr:eq(1) td:eq(7)').html()).toEqual('h');
 
-      expect(this.$container.find('tr:eq(1) td:eq(8)').html()).toEqual('');
-      expect(this.$container.find('tr:eq(1) td:eq(9)').html()).toEqual('');
-      expect(this.$container.find('tr:eq(1) td:eq(10)').html()).toEqual('');
+      expect(spec().$container.find('tr:eq(1) td:eq(8)').html()).toEqual('');
+      expect(spec().$container.find('tr:eq(1) td:eq(9)').html()).toEqual('');
+      expect(spec().$container.find('tr:eq(1) td:eq(10)').html()).toEqual('');
     });
 
     it('should insert not more cols than maxCols', () => {
@@ -865,7 +1094,7 @@ describe('Core_alter', () => {
       expect(countCols()).toEqual(7);
     });
 
-    it('should not insert more columns than allowed by maxCols, when amount parameter is used', function() {
+    it('should not insert more columns than allowed by maxCols, when amount parameter is used', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -876,14 +1105,14 @@ describe('Core_alter', () => {
       alter('insert_col', 1, 10);
 
       expect(countCols()).toEqual(10);
-      expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual('');
-      expect(this.$container.find('tr:eq(1) td:eq(2)').html()).toEqual('');
-      expect(this.$container.find('tr:eq(1) td:eq(3)').html()).toEqual('b');
+      expect(spec().$container.find('tr:eq(1) td:eq(1)').html()).toEqual('');
+      expect(spec().$container.find('tr:eq(1) td:eq(2)').html()).toEqual('');
+      expect(spec().$container.find('tr:eq(1) td:eq(3)').html()).toEqual('b');
     });
 
     it('should fire callback on create col', () => {
-      var outputBefore;
-      var outputAfter;
+      let outputBefore;
+      let outputAfter;
 
       handsontable({
         minRows: 5,
@@ -941,12 +1170,12 @@ describe('Core_alter', () => {
 
     });
 
-    it('should stretch the table after adding another column (if stretching is set to \'all\')', function() {
-      this.$container.css({
+    it('should stretch the table after adding another column (if stretching is set to \'all\')', () => {
+      spec().$container.css({
         width: 500,
       });
 
-      var hot = handsontable({
+      const hot = handsontable({
         startCols: 5,
         startRows: 10,
         stretchH: 'all'
@@ -960,7 +1189,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new column layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 4,
         startRows: 3
       });
@@ -972,7 +1201,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new columns (>1) layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 4,
         startRows: 3
       });

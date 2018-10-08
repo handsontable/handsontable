@@ -3,31 +3,46 @@ import {
   empty,
   fastInnerHTML,
   fastInnerText,
-  getComputedStyle,
   getScrollbarWidth,
   hasClass,
   isChildOf,
   isInput,
   isOutsideInput
 } from './helpers/dom/element';
-import {isChrome, isSafari} from './helpers/browser';
 import EventManager from './eventManager';
-import {stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick} from './helpers/dom/event';
-import Walkontable, {CellCoords, Selection} from './3rdparty/walkontable/src';
+import { stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
+import Walkontable from './3rdparty/walkontable/src';
+import { handleMouseEvent } from './selection/mouseEventHandler';
+
+/**
+ * Cross-platform helper to clear text selection.
+ */
+const clearTextSelection = function() {
+  // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
+  if (window.getSelection) {
+    if (window.getSelection().empty) { // Chrome
+      window.getSelection().empty();
+    } else if (window.getSelection().removeAllRanges) { // Firefox
+      window.getSelection().removeAllRanges();
+    }
+  } else if (document.selection) { // IE?
+    document.selection.empty();
+  }
+};
 
 /**
  * Handsontable TableView constructor
  * @param {Object} instance
  */
 function TableView(instance) {
-  var that = this;
+  const that = this;
 
   this.eventManager = new EventManager(instance);
   this.instance = instance;
   this.settings = instance.getSettings();
   this.selectionMouseDown = false;
 
-  var originalStyle = instance.rootElement.getAttribute('style');
+  const originalStyle = instance.rootElement.getAttribute('style');
 
   if (originalStyle) {
     instance.rootElement.setAttribute('data-originalstyle', originalStyle); // needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
@@ -35,7 +50,7 @@ function TableView(instance) {
 
   addClass(instance.rootElement, 'handsontable');
 
-  var table = document.createElement('TABLE');
+  const table = document.createElement('TABLE');
   addClass(table, 'htCore');
 
   if (instance.getSettings().tableClassName) {
@@ -50,7 +65,7 @@ function TableView(instance) {
 
   instance.container.insertBefore(table, instance.container.firstChild);
 
-  this.eventManager.addEventListener(instance.rootElement, 'mousedown', function(event) {
+  this.eventManager.addEventListener(instance.rootElement, 'mousedown', (event) => {
     this.selectionMouseDown = true;
 
     if (!that.isTextSelectionAllowed(event.target)) {
@@ -59,44 +74,61 @@ function TableView(instance) {
       window.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
     }
   });
-  this.eventManager.addEventListener(instance.rootElement, 'mouseup', function(event) {
+  this.eventManager.addEventListener(instance.rootElement, 'mouseup', () => {
     this.selectionMouseDown = false;
   });
-  this.eventManager.addEventListener(instance.rootElement, 'mousemove', function(event) {
+  this.eventManager.addEventListener(instance.rootElement, 'mousemove', (event) => {
     if (this.selectionMouseDown && !that.isTextSelectionAllowed(event.target)) {
-      clearTextSelection();
+      // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breakes the IME editor.
+      if (this.settings.fragmentSelection) {
+        clearTextSelection();
+      }
       event.preventDefault();
     }
   });
 
-  this.eventManager.addEventListener(document.documentElement, 'keyup', function(event) {
+  this.eventManager.addEventListener(document.documentElement, 'keyup', (event) => {
     if (instance.selection.isInProgress() && !event.shiftKey) {
       instance.selection.finish();
     }
   });
 
-  var isMouseDown;
+  let isMouseDown;
   this.isMouseDown = function() {
     return isMouseDown;
   };
 
-  this.eventManager.addEventListener(document.documentElement, 'mouseup', function(event) {
-    if (instance.selection.isInProgress() && event.which === 1) { // is left mouse button
+  this.eventManager.addEventListener(document.documentElement, 'mouseup', (event) => {
+    if (instance.selection.isInProgress() && isLeftClick(event)) { // is left mouse button
       instance.selection.finish();
     }
 
     isMouseDown = false;
 
-    if (isOutsideInput(document.activeElement) || !instance.selection.isSelected()) {
+    if (isOutsideInput(document.activeElement) || (!instance.selection.isSelected() && !isRightClick(event))) {
       instance.unlisten();
     }
   });
 
-  this.eventManager.addEventListener(document.documentElement, 'mousedown', function(event) {
-    var originalTarget = event.target;
-    var next = event.target;
-    var eventX = event.x || event.clientX;
-    var eventY = event.y || event.clientY;
+  this.eventManager.addEventListener(document.documentElement, 'contextmenu', (event) => {
+    if (instance.selection.isInProgress() && isRightClick(event)) {
+      instance.selection.finish();
+
+      isMouseDown = false;
+    }
+  });
+
+  this.eventManager.addEventListener(document.documentElement, 'touchend', () => {
+    if (instance.selection.isInProgress()) {
+      instance.selection.finish();
+    }
+  });
+
+  this.eventManager.addEventListener(document.documentElement, 'mousedown', (event) => {
+    const originalTarget = event.target;
+    const eventX = event.x || event.clientX;
+    const eventY = event.y || event.clientY;
+    let next = event.target;
 
     if (isMouseDown || !instance.rootElement) {
       return; // it must have been started in a cell
@@ -104,7 +136,7 @@ function TableView(instance) {
 
     // immediate click on "holder" means click on the right side of vertical scrollbar
     if (next === instance.view.wt.wtTable.holder) {
-      var scrollbarWidth = getScrollbarWidth();
+      const scrollbarWidth = getScrollbarWidth();
 
       if (document.elementFromPoint(eventX + scrollbarWidth, eventY) !== instance.view.wt.wtTable.holder ||
         document.elementFromPoint(eventX, eventY + scrollbarWidth) !== instance.view.wt.wtTable.holder) {
@@ -129,18 +161,18 @@ function TableView(instance) {
 
     // function did not return until here, we have an outside click!
 
-    var outsideClickDeselects = typeof that.settings.outsideClickDeselects === 'function' ?
+    const outsideClickDeselects = typeof that.settings.outsideClickDeselects === 'function' ?
       that.settings.outsideClickDeselects(originalTarget) :
       that.settings.outsideClickDeselects;
 
     if (outsideClickDeselects) {
       instance.deselectCell();
     } else {
-      instance.destroyEditor();
+      instance.destroyEditor(false, false);
     }
   });
 
-  this.eventManager.addEventListener(table, 'selectstart', function(event) {
+  this.eventManager.addEventListener(table, 'selectstart', (event) => {
     if (that.settings.fragmentSelection || isInput(event.target)) {
       return;
     }
@@ -149,127 +181,53 @@ function TableView(instance) {
     event.preventDefault();
   });
 
-  var clearTextSelection = function() {
-    // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
-    if (window.getSelection) {
-      if (window.getSelection().empty) { // Chrome
-        window.getSelection().empty();
-      } else if (window.getSelection().removeAllRanges) { // Firefox
-        window.getSelection().removeAllRanges();
-      }
-    } else if (document.selection) { // IE?
-      document.selection.empty();
-    }
-  };
-
-  var selections = [
-    new Selection({
-      className: 'current',
-      border: {
-        width: 2,
-        color: '#5292F7',
-        // style: 'solid', // not used
-        cornerVisible: function() {
-          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
-        },
-        multipleSelectionHandlesVisible: function() {
-          return !that.isCellEdited() && !instance.selection.isMultiple();
-        },
-      },
-    }),
-    new Selection({
-      className: 'area',
-      border: {
-        width: 1,
-        color: '#89AFF9',
-        // style: 'solid', // not used
-        cornerVisible: function() {
-          return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
-        },
-        multipleSelectionHandlesVisible: function() {
-          return !that.isCellEdited() && instance.selection.isMultiple();
-        },
-      },
-    }),
-    new Selection({
-      className: 'highlight',
-      highlightHeaderClassName: that.settings.currentHeaderClassName,
-      highlightRowClassName: that.settings.currentRowClassName,
-      highlightColumnClassName: that.settings.currentColClassName,
-    }),
-    new Selection({
-      className: 'fill',
-      border: {
-        width: 1,
-        color: 'red',
-        // style: 'solid' // not used
-      },
-    }),
-  ];
-  selections.current = selections[0];
-  selections.area = selections[1];
-  selections.highlight = selections[2];
-  selections.fill = selections[3];
-
-  var walkontableConfig = {
-    debug: function() {
-      return that.settings.debug;
-    },
+  const walkontableConfig = {
+    debug: () => that.settings.debug,
     externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
-    table: table,
+    table,
     preventOverflow: () => this.settings.preventOverflow,
-    stretchH: function() {
-      return that.settings.stretchH;
-    },
+    stretchH: () => that.settings.stretchH,
     data: instance.getDataAtCell,
     totalRows: () => instance.countRows(),
     totalColumns: () => instance.countCols(),
-    fixedColumnsLeft: function() {
-      return that.settings.fixedColumnsLeft;
-    },
-    fixedRowsTop: function() {
-      return that.settings.fixedRowsTop;
-    },
-    fixedRowsBottom: function() {
-      return that.settings.fixedRowsBottom;
-    },
-    minSpareRows: function() {
-      return that.settings.minSpareRows;
-    },
+    fixedColumnsLeft: () => that.settings.fixedColumnsLeft,
+    fixedRowsTop: () => that.settings.fixedRowsTop,
+    fixedRowsBottom: () => that.settings.fixedRowsBottom,
+    minSpareRows: () => that.settings.minSpareRows,
     renderAllRows: that.settings.renderAllRows,
-    rowHeaders: function() {
-      let headerRenderers = [];
+    rowHeaders: () => {
+      const headerRenderers = [];
 
       if (instance.hasRowHeaders()) {
-        headerRenderers.push(function(row, TH) {
-          that.appendRowHeader(row, TH);
-        });
+        headerRenderers.push((row, TH) => that.appendRowHeader(row, TH));
       }
+
       instance.runHooks('afterGetRowHeaderRenderers', headerRenderers);
 
       return headerRenderers;
     },
-    columnHeaders: function() {
-      let headerRenderers = [];
+    columnHeaders: () => {
+      const headerRenderers = [];
 
       if (instance.hasColHeaders()) {
-        headerRenderers.push(function(column, TH) {
+        headerRenderers.push((column, TH) => {
           that.appendColHeader(column, TH);
         });
       }
+
       instance.runHooks('afterGetColumnHeaderRenderers', headerRenderers);
 
       return headerRenderers;
     },
     columnWidth: instance.getColWidth,
     rowHeight: instance.getRowHeight,
-    cellRenderer: function(row, col, TD) {
+    cellRenderer(row, col, TD) {
       const cellProperties = that.instance.getCellMeta(row, col);
       const prop = that.instance.colToProp(col);
       let value = that.instance.getDataAtRowProp(row, prop);
 
       if (that.instance.hasHook('beforeValueRender')) {
-        value = that.instance.runHooks('beforeValueRender', value);
+        value = that.instance.runHooks('beforeValueRender', value, cellProperties);
       }
 
       that.instance.runHooks('beforeRenderer', TD, row, col, prop, value, cellProperties);
@@ -277,15 +235,13 @@ function TableView(instance) {
       that.instance.runHooks('afterRenderer', TD, row, col, prop, value, cellProperties);
 
     },
-    selections: selections,
-    hideBorderOnMouseDownOver: function() {
-      return that.settings.fragmentSelection;
-    },
-    onCellMouseDown: function(event, coords, TD, wt) {
-      let blockCalculations = {
+    selections: that.instance.selection.highlight,
+    hideBorderOnMouseDownOver: () => that.settings.fragmentSelection,
+    onCellMouseDown: (event, coords, TD, wt) => {
+      const blockCalculations = {
         row: false,
         column: false,
-        cells: false
+        cell: false
       };
 
       instance.listen();
@@ -299,100 +255,34 @@ function TableView(instance) {
         return;
       }
 
-      let actualSelection = instance.getSelectedRange();
-      let selection = instance.selection;
-      let selectedHeader = selection.selectedHeader;
-
-      if (event.shiftKey && actualSelection) {
-        if (coords.row >= 0 && coords.col >= 0 && !blockCalculations.cells) {
-          selection.setSelectedHeaders(false, false);
-          selection.setRangeEnd(coords);
-
-        } else if ((selectedHeader.cols || selectedHeader.rows) && coords.row >= 0 && coords.col >= 0 && !blockCalculations.cells) {
-          selection.setSelectedHeaders(false, false);
-          selection.setRangeEnd(new CellCoords(coords.row, coords.col));
-
-        } else if (selectedHeader.cols && coords.row < 0 && !blockCalculations.column) {
-          selection.setRangeEnd(new CellCoords(actualSelection.to.row, coords.col));
-
-        } else if (selectedHeader.rows && coords.col < 0 && !blockCalculations.row) {
-          selection.setRangeEnd(new CellCoords(coords.row, actualSelection.to.col));
-
-        } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.col < 0) ||
-                   (selectedHeader.cols && coords.col < 0)) && !blockCalculations.row) {
-          selection.setSelectedHeaders(true, false);
-          selection.setRangeStartOnly(new CellCoords(actualSelection.from.row, 0));
-          selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1));
-
-        } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.row < 0) ||
-                   (selectedHeader.rows && coords.row < 0)) && !blockCalculations.column) {
-          selection.setSelectedHeaders(false, true);
-          selection.setRangeStartOnly(new CellCoords(0, actualSelection.from.col));
-          selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col));
-        }
-      } else {
-        let doNewSelection = true;
-
-        if (actualSelection) {
-          let {from, to} = actualSelection;
-          let coordsNotInSelection = !selection.inInSelection(coords);
-
-          if (coords.row < 0 && selectedHeader.cols) {
-            let start = Math.min(from.col, to.col);
-            let end = Math.max(from.col, to.col);
-
-            doNewSelection = (coords.col < start || coords.col > end);
-
-          } else if (coords.col < 0 && selectedHeader.rows) {
-            let start = Math.min(from.row, to.row);
-            let end = Math.max(from.row, to.row);
-
-            doNewSelection = (coords.row < start || coords.row > end);
-
-          } else {
-            doNewSelection = coordsNotInSelection;
-          }
-        }
-
-        const rightClick = isRightClick(event);
-        const leftClick = isLeftClick(event) || event.type === 'touchstart';
-
-        // clicked row header and when some column was selected
-        if (coords.row < 0 && coords.col >= 0 && !blockCalculations.column) {
-          selection.setSelectedHeaders(false, true);
-
-          if (leftClick || (rightClick && doNewSelection)) {
-            selection.setRangeStartOnly(new CellCoords(0, coords.col));
-            selection.setRangeEnd(new CellCoords(Math.max(instance.countRows() - 1, 0), coords.col), false);
-          }
-
-        // clicked column header and when some row was selected
-        } else if (coords.col < 0 && coords.row >= 0 && !blockCalculations.row) {
-          selection.setSelectedHeaders(true, false);
-
-          if (leftClick || (rightClick && doNewSelection)) {
-            selection.setRangeStartOnly(new CellCoords(coords.row, 0));
-            selection.setRangeEnd(new CellCoords(coords.row, Math.max(instance.countCols() - 1, 0)), false);
-          }
-
-        } else if (coords.col >= 0 && coords.row >= 0 && !blockCalculations.cells) {
-          if (leftClick || (rightClick && doNewSelection)) {
-            selection.setSelectedHeaders(false, false);
-            selection.setRangeStart(coords);
-          }
-        } else if (coords.col < 0 && coords.row < 0) {
-          coords.row = 0;
-          coords.col = 0;
-
-          selection.setSelectedHeaders(false, false, true);
-          selection.setRangeStart(coords);
-        }
-      }
+      handleMouseEvent(event, {
+        coords,
+        selection: instance.selection,
+        controller: blockCalculations,
+      });
 
       instance.runHooks('afterOnCellMouseDown', event, coords, TD);
       that.activeWt = that.wt;
     },
-    onCellMouseOut: function(event, coords, TD, wt) {
+    onCellContextMenu: (event, coords, TD, wt) => {
+      that.activeWt = wt;
+      isMouseDown = false;
+
+      if (instance.selection.isInProgress()) {
+        instance.selection.finish();
+      }
+
+      instance.runHooks('beforeOnCellContextMenu', event, coords, TD);
+
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
+
+      instance.runHooks('afterOnCellContextMenu', event, coords, TD);
+
+      that.activeWt = that.wt;
+    },
+    onCellMouseOut: (event, coords, TD, wt) => {
       that.activeWt = wt;
       instance.runHooks('beforeOnCellMouseOut', event, coords, TD);
 
@@ -403,92 +293,76 @@ function TableView(instance) {
       instance.runHooks('afterOnCellMouseOut', event, coords, TD);
       that.activeWt = that.wt;
     },
-    onCellMouseOver: function(event, coords, TD, wt) {
-      let blockCalculations = {
+    onCellMouseOver: (event, coords, TD, wt) => {
+      const blockCalculations = {
         row: false,
         column: false,
         cell: false
       };
 
       that.activeWt = wt;
+
       instance.runHooks('beforeOnCellMouseOver', event, coords, TD, blockCalculations);
 
       if (isImmediatePropagationStopped(event)) {
         return;
       }
 
-      if (event.button === 0 && isMouseDown) {
-        if (coords.row >= 0 && coords.col >= 0) { // is not a header
-          if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
-            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col), false);
-
-          } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
-            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1), false);
-
-          } else if (!blockCalculations.cell) {
-            instance.selection.setRangeEnd(coords);
-          }
-        } else {
-          /* eslint-disable no-lonely-if */
-          if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
-            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col), false);
-
-          } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
-            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1), false);
-
-          } else if (!blockCalculations.cell) {
-            instance.selection.setRangeEnd(coords);
-          }
-        }
+      if (isMouseDown) {
+        handleMouseEvent(event, {
+          coords,
+          selection: instance.selection,
+          controller: blockCalculations,
+        });
       }
 
       instance.runHooks('afterOnCellMouseOver', event, coords, TD);
       that.activeWt = that.wt;
     },
-    onCellMouseUp: function(event, coords, TD, wt) {
+    onCellMouseUp: (event, coords, TD, wt) => {
       that.activeWt = wt;
       instance.runHooks('beforeOnCellMouseUp', event, coords, TD);
 
       instance.runHooks('afterOnCellMouseUp', event, coords, TD);
       that.activeWt = that.wt;
     },
-    onCellCornerMouseDown: function(event) {
+    onCellCornerMouseDown(event) {
       event.preventDefault();
       instance.runHooks('afterOnCellCornerMouseDown', event);
     },
-    onCellCornerDblClick: function(event) {
+    onCellCornerDblClick(event) {
       event.preventDefault();
       instance.runHooks('afterOnCellCornerDblClick', event);
     },
-    beforeDraw: function(force, skipRender) {
+    beforeDraw(force, skipRender) {
       that.beforeRender(force, skipRender);
     },
-    onDraw: function(force) {
+    onDraw(force) {
       that.onDraw(force);
     },
-    onScrollVertically: function() {
+    onScrollVertically() {
       instance.runHooks('afterScrollVertically');
     },
-    onScrollHorizontally: function() {
+    onScrollHorizontally() {
       instance.runHooks('afterScrollHorizontally');
     },
-    onBeforeDrawBorders: function(corners, borderClassName) {
+    onBeforeRemoveCellClassNames: () => instance.runHooks('beforeRemoveCellClassNames'),
+    onAfterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => instance.runHooks('afterDrawSelection',
+      currentRow, currentColumn, cornersOfSelection, layerLevel),
+    onBeforeDrawBorders(corners, borderClassName) {
       instance.runHooks('beforeDrawBorders', corners, borderClassName);
     },
-    onBeforeTouchScroll: function() {
+    onBeforeTouchScroll() {
       instance.runHooks('beforeTouchScroll');
     },
-    onAfterMomentumScroll: function() {
+    onAfterMomentumScroll() {
       instance.runHooks('afterMomentumScroll');
     },
-    onBeforeStretchingColumnWidth: function(stretchedWidth, column) {
-      return instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column);
-    },
-    onModifyRowHeaderWidth: function(rowHeaderWidth) {
-      return instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth);
-    },
-    viewportRowCalculatorOverride: function(calc) {
-      let rows = instance.countRows();
+    onBeforeStretchingColumnWidth: (stretchedWidth, column) => instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column),
+    onModifyRowHeaderWidth: rowHeaderWidth => instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
+    onModifyGetCellCoords: (row, column, topmost) => instance.runHooks('modifyGetCellCoords', row, column, topmost),
+    viewportRowCalculatorOverride(calc) {
+      const rows = instance.countRows();
       let viewportOffset = that.settings.viewportRowRenderingOffset;
 
       if (viewportOffset === 'auto' && that.settings.fixedRowsTop) {
@@ -499,16 +373,16 @@ function TableView(instance) {
         calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
       }
       if (viewportOffset === 'auto') {
-        let center = calc.startRow + calc.endRow - calc.startRow;
-        let offset = Math.ceil(center / rows * 12);
+        const center = calc.startRow + calc.endRow - calc.startRow;
+        const offset = Math.ceil(center / rows * 12);
 
         calc.startRow = Math.max(calc.startRow - offset, 0);
         calc.endRow = Math.min(calc.endRow + offset, rows - 1);
       }
       instance.runHooks('afterViewportRowCalculatorOverride', calc);
     },
-    viewportColumnCalculatorOverride: function(calc) {
-      let cols = instance.countCols();
+    viewportColumnCalculatorOverride(calc) {
+      const cols = instance.countCols();
       let viewportOffset = that.settings.viewportColumnRenderingOffset;
 
       if (viewportOffset === 'auto' && that.settings.fixedColumnsLeft) {
@@ -519,18 +393,16 @@ function TableView(instance) {
         calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
       }
       if (viewportOffset === 'auto') {
-        let center = calc.startColumn + calc.endColumn - calc.startColumn;
-        let offset = Math.ceil(center / cols * 12);
+        const center = calc.startColumn + calc.endColumn - calc.startColumn;
+        const offset = Math.ceil(center / cols * 12);
 
         calc.startRow = Math.max(calc.startColumn - offset, 0);
         calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
       }
       instance.runHooks('afterViewportColumnCalculatorOverride', calc);
     },
-    rowHeaderWidth: function() {
-      return that.settings.rowHeaderWidth;
-    },
-    columnHeaderHeight: function() {
+    rowHeaderWidth: () => that.settings.rowHeaderWidth,
+    columnHeaderHeight() {
       const columnHeaderHeight = instance.runHooks('modifyColumnHeaderHeight');
       return that.settings.columnHeaderHeight || columnHeaderHeight;
     }
@@ -541,48 +413,21 @@ function TableView(instance) {
   this.wt = new Walkontable(walkontableConfig);
   this.activeWt = this.wt;
 
-  if (!isChrome() && !isSafari()) {
-    this.eventManager.addEventListener(instance.rootElement, 'wheel', (event) => {
-      event.preventDefault();
-
-      const lineHeight = parseInt(getComputedStyle(document.body)['font-size'], 10);
-      const holder = that.wt.wtOverlays.scrollableElement;
-
-      let deltaY = event.wheelDeltaY || event.deltaY;
-      let deltaX = event.wheelDeltaX || event.deltaX;
-
-      switch (event.deltaMode) {
-        case 0:
-          holder.scrollLeft += deltaX;
-          holder.scrollTop += deltaY;
-          break;
-
-        case 1:
-          holder.scrollLeft += deltaX * lineHeight;
-          holder.scrollTop += deltaY * lineHeight;
-          break;
-
-        default:
-          break;
-      }
-    });
-  }
-
-  this.eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', function(event) {
+  this.eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', (event) => {
     // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
     if (event.target === that.wt.wtTable.spreader && event.which === 3) {
       stopPropagation(event);
     }
   });
 
-  this.eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', function(event) {
+  this.eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', (event) => {
     // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
     if (event.target === that.wt.wtTable.spreader && event.which === 3) {
       stopPropagation(event);
     }
   });
 
-  this.eventManager.addEventListener(document.documentElement, 'click', function() {
+  this.eventManager.addEventListener(document.documentElement, 'click', () => {
     if (that.settings.observeDOMVisibility) {
       if (that.wt.drawInterrupted) {
         that.instance.forceFullRender = true;
@@ -596,7 +441,7 @@ TableView.prototype.isTextSelectionAllowed = function(el) {
   if (isInput(el)) {
     return true;
   }
-  let isChildOfTableBody = isChildOf(el, this.instance.view.wt.wtTable.spreader);
+  const isChildOfTableBody = isChildOf(el, this.instance.view.wt.wtTable.spreader);
 
   if (this.settings.fragmentSelection === true && isChildOfTableBody) {
     return true;
@@ -617,13 +462,13 @@ TableView.prototype.isTextSelectionAllowed = function(el) {
  * @returns {Boolean}
  */
 TableView.prototype.isSelectedOnlyCell = function() {
-  var [row, col, rowEnd, colEnd] = this.instance.getSelected() || [];
+  const [row, col, rowEnd, colEnd] = this.instance.getSelectedLast() || [];
 
   return row !== void 0 && row === rowEnd && col === colEnd;
 };
 
 TableView.prototype.isCellEdited = function() {
-  var activeEditor = this.instance.getActiveEditor();
+  const activeEditor = this.instance.getActiveEditor();
 
   return activeEditor && activeEditor.isOpened();
 };
@@ -655,7 +500,7 @@ TableView.prototype.render = function() {
  * @param {Boolean} topmost
  */
 TableView.prototype.getCellAtCoords = function(coords, topmost) {
-  var td = this.wt.getCell(coords, topmost);
+  const td = this.wt.getCell(coords, topmost);
 
   if (td < 0) { // there was an exit code (cell is out of bounds)
     return null;
@@ -665,12 +510,41 @@ TableView.prototype.getCellAtCoords = function(coords, topmost) {
 };
 
 /**
- * Scroll viewport to selection.
+ * Scroll viewport to a cell.
  *
  * @param {CellCoords} coords
+ * @param {Boolean} [snapToTop]
+ * @param {Boolean} [snapToRight]
+ * @param {Boolean} [snapToBottom]
+ * @param {Boolean} [snapToLeft]
+ * @returns {Boolean}
  */
-TableView.prototype.scrollViewport = function(coords) {
-  this.wt.scrollViewport(coords);
+TableView.prototype.scrollViewport = function(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
+  return this.wt.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
+};
+
+/**
+ * Scroll viewport to a column.
+ *
+ * @param {Number} column Visual column index.
+ * @param {Boolean} [snapToLeft]
+ * @param {Boolean} [snapToRight]
+ * @returns {Boolean}
+ */
+TableView.prototype.scrollViewportHorizontally = function(column, snapToRight, snapToLeft) {
+  return this.wt.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+};
+
+/**
+ * Scroll viewport to a row.
+ *
+ * @param {Number} row Visual row index.
+ * @param {Boolean} [snapToTop]
+ * @param {Boolean} [snapToBottom]
+ * @returns {Boolean}
+ */
+TableView.prototype.scrollViewportVertically = function(row, snapToTop, snapToBottom) {
+  return this.wt.scrollViewportVertically(row, snapToTop, snapToBottom);
 };
 
 /**
@@ -680,7 +554,7 @@ TableView.prototype.scrollViewport = function(coords) {
  */
 TableView.prototype.appendRowHeader = function(row, TH) {
   if (TH.firstChild) {
-    let container = TH.firstChild;
+    const container = TH.firstChild;
 
     if (!hasClass(container, 'relative')) {
       empty(TH);
@@ -691,8 +565,8 @@ TableView.prototype.appendRowHeader = function(row, TH) {
     this.updateCellHeader(container.querySelector('.rowHeader'), row, this.instance.getRowHeader);
 
   } else {
-    let div = document.createElement('div');
-    let span = document.createElement('span');
+    const div = document.createElement('div');
+    const span = document.createElement('span');
 
     div.className = 'relative';
     span.className = 'rowHeader';
@@ -712,7 +586,7 @@ TableView.prototype.appendRowHeader = function(row, TH) {
  */
 TableView.prototype.appendColHeader = function(col, TH) {
   if (TH.firstChild) {
-    let container = TH.firstChild;
+    const container = TH.firstChild;
 
     if (hasClass(container, 'relative')) {
       this.updateCellHeader(container.querySelector('.colHeader'), col, this.instance.getColHeader);
@@ -722,8 +596,8 @@ TableView.prototype.appendColHeader = function(col, TH) {
     }
 
   } else {
-    var div = document.createElement('div');
-    let span = document.createElement('span');
+    const div = document.createElement('div');
+    const span = document.createElement('span');
 
     div.className = 'relative';
     span.className = 'colHeader';
@@ -746,7 +620,7 @@ TableView.prototype.appendColHeader = function(col, TH) {
  */
 TableView.prototype.updateCellHeader = function(element, index, content) {
   let renderedIndex = index;
-  let parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
+  const parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
 
   // prevent wrong calculations from SampleGenerator
   if (element.parentNode) {
@@ -775,8 +649,8 @@ TableView.prototype.updateCellHeader = function(element, index, content) {
  * @return {Number}
  */
 TableView.prototype.maximumVisibleElementWidth = function(leftOffset) {
-  var workspaceWidth = this.wt.wtViewport.getWorkspaceWidth();
-  var maxWidth = workspaceWidth - leftOffset;
+  const workspaceWidth = this.wt.wtViewport.getWorkspaceWidth();
+  const maxWidth = workspaceWidth - leftOffset;
   return maxWidth > 0 ? maxWidth : 0;
 };
 
@@ -788,8 +662,8 @@ TableView.prototype.maximumVisibleElementWidth = function(leftOffset) {
  * @return {Number}
  */
 TableView.prototype.maximumVisibleElementHeight = function(topOffset) {
-  var workspaceHeight = this.wt.wtViewport.getWorkspaceHeight();
-  var maxHeight = workspaceHeight - topOffset;
+  const workspaceHeight = this.wt.wtViewport.getWorkspaceHeight();
+  const maxHeight = workspaceHeight - topOffset;
   return maxHeight > 0 ? maxHeight : 0;
 };
 

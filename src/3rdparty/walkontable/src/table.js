@@ -9,9 +9,8 @@ import {
   overlayContainsElement,
   closest
 } from './../../../helpers/dom/element';
-import {isFunction} from './../../../helpers/function';
+import { isFunction } from './../../../helpers/function';
 import CellCoords from './cell/coords';
-import CellRange from './cell/range';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 import TableRenderer from './tableRenderer';
@@ -168,7 +167,7 @@ class Table {
       this.holder.parentNode.style.position = 'relative';
 
       if (trimmingElement === window) {
-        let preventOverflow = this.wot.getSetting('preventOverflow');
+        const preventOverflow = this.wot.getSetting('preventOverflow');
 
         if (!preventOverflow) {
           this.holder.style.overflow = 'visible';
@@ -193,15 +192,16 @@ class Table {
    * @returns {Table}
    */
   draw(fastDraw) {
-    const {wtOverlays, wtViewport} = this.wot;
-    let totalRows = this.instance.getSetting('totalRows');
-    let rowHeaders = this.wot.getSetting('rowHeaders').length;
-    let columnHeaders = this.wot.getSetting('columnHeaders').length;
+    const { wtOverlays, wtViewport } = this.wot;
+    const totalRows = this.instance.getSetting('totalRows');
+    const rowHeaders = this.wot.getSetting('rowHeaders').length;
+    const columnHeaders = this.wot.getSetting('columnHeaders').length;
     let syncScroll = false;
+    let runFastDraw = fastDraw;
 
     if (!this.isWorkingOnClone()) {
       this.holderOffset = offset(this.holder);
-      fastDraw = wtViewport.createRenderCalculators(fastDraw);
+      runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
       if (rowHeaders && !this.wot.getSetting('fixedColumnsLeft')) {
         const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
@@ -210,7 +210,7 @@ class Table {
         this.correctHeaderWidth = leftScrollPos > 0;
 
         if (previousState !== this.correctHeaderWidth) {
-          fastDraw = false;
+          runFastDraw = false;
         }
       }
     }
@@ -219,7 +219,7 @@ class Table {
       syncScroll = wtOverlays.prepareOverlays();
     }
 
-    if (fastDraw) {
+    if (runFastDraw) {
       if (!this.isWorkingOnClone()) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
         wtViewport.createVisibleCalculators();
@@ -261,7 +261,7 @@ class Table {
       this.alignOverlaysWithTrimmingContainer();
       this._doDraw(); // creates calculator after draw
     }
-    this.refreshSelections(fastDraw);
+    this.refreshSelections(runFastDraw);
 
     if (!this.isWorkingOnClone()) {
       wtOverlays.topOverlay.resetFixedPosition();
@@ -302,31 +302,65 @@ class Table {
     }
   }
 
+  /**
+   * Refresh the table selection by re-rendering Selection instances connected with that instance.
+   *
+   * @param {Boolean} fastDraw If fast drawing is enabled than additionally className clearing is applied.
+   */
   refreshSelections(fastDraw) {
     if (!this.wot.selections) {
       return;
     }
-    let len = this.wot.selections.length;
+    const highlights = Array.from(this.wot.selections);
+    const len = highlights.length;
 
     if (fastDraw) {
+      const classesToRemove = [];
+
       for (let i = 0; i < len; i++) {
-        // there was no rerender, so we need to remove classNames by ourselves
-        if (this.wot.selections[i].settings.className) {
-          this.removeClassFromCells(this.wot.selections[i].settings.className);
+        const {
+          highlightHeaderClassName,
+          highlightRowClassName,
+          highlightColumnClassName,
+        } = highlights[i].settings;
+        const classNames = highlights[i].classNames;
+        const classNamesLength = classNames.length;
+
+        for (let j = 0; j < classNamesLength; j++) {
+          if (!classesToRemove.includes(classNames[j])) {
+            classesToRemove.push(classNames[j]);
+          }
         }
-        if (this.wot.selections[i].settings.highlightHeaderClassName) {
-          this.removeClassFromCells(this.wot.selections[i].settings.highlightHeaderClassName);
+
+        if (highlightHeaderClassName && !classesToRemove.includes(highlightHeaderClassName)) {
+          classesToRemove.push(highlightHeaderClassName);
         }
-        if (this.wot.selections[i].settings.highlightRowClassName) {
-          this.removeClassFromCells(this.wot.selections[i].settings.highlightRowClassName);
+        if (highlightRowClassName && !classesToRemove.includes(highlightRowClassName)) {
+          classesToRemove.push(highlightRowClassName);
         }
-        if (this.wot.selections[i].settings.highlightColumnClassName) {
-          this.removeClassFromCells(this.wot.selections[i].settings.highlightColumnClassName);
+        if (highlightColumnClassName && !classesToRemove.includes(highlightColumnClassName)) {
+          classesToRemove.push(highlightColumnClassName);
         }
       }
+
+      const additionalClassesToRemove = this.wot.getSetting('onBeforeRemoveCellClassNames');
+
+      if (Array.isArray(additionalClassesToRemove)) {
+        for (let i = 0; i < additionalClassesToRemove.length; i++) {
+          classesToRemove.push(additionalClassesToRemove[i]);
+        }
+      }
+
+      const classesToRemoveLength = classesToRemove.length;
+
+      for (let i = 0; i < classesToRemoveLength; i++) {
+        // there was no rerender, so we need to remove classNames by ourselves
+        this.removeClassFromCells(classesToRemove[i]);
+      }
     }
+
     for (let i = 0; i < len; i++) {
-      this.wot.selections[i].draw(this.wot, fastDraw);
+      highlights[i].draw(this.wot, fastDraw);
     }
   }
 
@@ -339,19 +373,27 @@ class Table {
    *  -2 row after viewport
    */
   getCell(coords) {
-    if (this.isRowBeforeRenderedRows(coords.row)) {
+    let row = coords.row;
+    let column = coords.col;
+    const hookResult = this.wot.getSetting('onModifyGetCellCoords', row, column);
+
+    if (hookResult && Array.isArray(hookResult)) {
+      [row, column] = hookResult;
+    }
+
+    if (this.isRowBeforeRenderedRows(row)) {
       // row before rendered rows
       return -1;
 
-    } else if (this.isRowAfterRenderedRows(coords.row)) {
+    } else if (this.isRowAfterRenderedRows(row)) {
       // row after rendered rows
       return -2;
     }
 
-    const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(coords.row)];
+    const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
 
     if (TR) {
-      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
+      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
     }
   }
 
@@ -394,20 +436,22 @@ class Table {
    * @returns {CellCoords|null} The coordinates of the provided TD element (or the closest TD element) or null, if the provided element is not applicable.
    */
   getCoords(TD) {
-    if (TD.nodeName !== 'TD' && TD.nodeName !== 'TH') {
-      TD = closest(TD, ['TD', 'TH']);
+    let cellElement = TD;
+
+    if (cellElement.nodeName !== 'TD' && cellElement.nodeName !== 'TH') {
+      cellElement = closest(cellElement, ['TD', 'TH']);
     }
 
-    if (TD === null) {
+    if (cellElement === null) {
       return null;
     }
 
-    const TR = TD.parentNode;
+    const TR = cellElement.parentNode;
     const CONTAINER = TR.parentNode;
     let row = index(TR);
-    let col = TD.cellIndex;
+    let col = cellElement.cellIndex;
 
-    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(Overlay.CLONE_TOP, TD)) {
+    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, cellElement) || overlayContainsElement(Overlay.CLONE_TOP, cellElement)) {
       if (CONTAINER.nodeName === 'THEAD') {
         row -= CONTAINER.childNodes.length;
       }
@@ -419,7 +463,7 @@ class Table {
       row = this.rowFilter.renderedToSource(row);
     }
 
-    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(Overlay.CLONE_LEFT, TD)) {
+    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, cellElement) || overlayContainsElement(Overlay.CLONE_LEFT, cellElement)) {
       col = this.columnFilter.offsettedTH(col);
 
     } else {
@@ -504,7 +548,7 @@ class Table {
 
   getRenderedColumnsCount() {
     let columnsCount = this.wot.wtViewport.columnsRenderCalculator.count;
-    let totalColumns = this.wot.getSetting('totalColumns');
+    const totalColumns = this.wot.getSetting('totalColumns');
 
     if (this.wot.isOverlayName(Overlay.CLONE_DEBUG)) {
       columnsCount = totalColumns;
@@ -521,7 +565,7 @@ class Table {
 
   getRenderedRowsCount() {
     let rowsCount = this.wot.wtViewport.rowsRenderCalculator.count;
-    let totalRows = this.wot.getSetting('totalRows');
+    const totalRows = this.wot.getSetting('totalRows');
 
     if (this.wot.isOverlayName(Overlay.CLONE_DEBUG)) {
       rowsCount = totalRows;
@@ -543,7 +587,7 @@ class Table {
   }
 
   allRowsInViewport() {
-    return this.wot.getSetting('totalRows') == this.getVisibleRowsCount();
+    return this.wot.getSetting('totalRows') === this.getVisibleRowsCount();
   }
 
   /**
@@ -554,7 +598,7 @@ class Table {
    */
   getRowHeight(sourceRow) {
     let height = this.wot.wtSettings.settings.rowHeight(sourceRow);
-    let oversizedHeight = this.wot.wtViewport.oversizedRows[sourceRow];
+    const oversizedHeight = this.wot.wtViewport.oversizedRows[sourceRow];
 
     if (oversizedHeight !== void 0) {
       height = height === void 0 ? oversizedHeight : Math.max(height, oversizedHeight);
@@ -565,7 +609,7 @@ class Table {
 
   getColumnHeaderHeight(level) {
     let height = this.wot.wtSettings.settings.defaultRowHeight;
-    let oversizedHeight = this.wot.wtViewport.oversizedColumnHeaders[level];
+    const oversizedHeight = this.wot.wtViewport.oversizedColumnHeaders[level];
 
     if (oversizedHeight !== void 0) {
       height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
@@ -579,7 +623,7 @@ class Table {
   }
 
   allColumnsInViewport() {
-    return this.wot.getSetting('totalColumns') == this.getVisibleColumnsCount();
+    return this.wot.getSetting('totalColumns') === this.getVisibleColumnsCount();
   }
 
   getColumnWidth(sourceColumn) {
@@ -596,12 +640,12 @@ class Table {
   }
 
   getStretchedColumnWidth(sourceColumn) {
-    let columnWidth = this.getColumnWidth(sourceColumn);
-    let width = columnWidth == null ? this.instance.wtSettings.settings.defaultColumnWidth : columnWidth;
-    let calculator = this.wot.wtViewport.columnsRenderCalculator;
+    const columnWidth = this.getColumnWidth(sourceColumn);
+    let width = (columnWidth === null || columnWidth === void 0) ? this.instance.wtSettings.settings.defaultColumnWidth : columnWidth;
+    const calculator = this.wot.wtViewport.columnsRenderCalculator;
 
     if (calculator) {
-      let stretchedWidth = calculator.getStretchedColumnWidth(sourceColumn, width);
+      const stretchedWidth = calculator.getStretchedColumnWidth(sourceColumn, width);
 
       if (stretchedWidth) {
         width = stretchedWidth;
@@ -635,14 +679,16 @@ class Table {
    * @private
    */
   _correctRowHeaderWidth(width) {
+    let rowHeaderWidth = width;
+
     if (typeof width !== 'number') {
-      width = this.wot.getSetting('defaultColumnWidth');
+      rowHeaderWidth = this.wot.getSetting('defaultColumnWidth');
     }
     if (this.correctHeaderWidth) {
-      width++;
+      rowHeaderWidth += 1;
     }
 
-    return width;
+    return rowHeaderWidth;
   }
 }
 

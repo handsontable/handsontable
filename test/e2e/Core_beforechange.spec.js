@@ -1,5 +1,5 @@
 describe('Core_beforechange', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,8 +12,8 @@ describe('Core_beforechange', () => {
     }
   });
 
-  it('this.rootElement should point to handsontable rootElement', function() {
-    var output = null;
+  it('this.rootElement should point to handsontable rootElement', () => {
+    let output = null;
 
     handsontable({
       beforeChange() {
@@ -22,11 +22,11 @@ describe('Core_beforechange', () => {
     });
     setDataAtCell(0, 0, 'test');
 
-    expect(output).toEqual(this.$container[0]);
+    expect(output).toEqual(spec().$container[0]);
   });
 
   it('should remove change from stack', () => {
-    var output = null;
+    let output = null;
 
     handsontable({
       data: [['a', 'b'], ['c', 'd']],
@@ -46,12 +46,9 @@ describe('Core_beforechange', () => {
   });
 
   it('should drop all changes when beforeChange return false', () => {
-    var fired = false;
-
     handsontable({
       data: [['a', 'b'], ['c', 'd']],
-      beforeChange(changes) {
-        fired = true;
+      beforeChange() {
         return false;
       }
     });
@@ -64,7 +61,7 @@ describe('Core_beforechange', () => {
 
   function beforechangeOnKeyFactory(keyCode) {
     return function() {
-      var called = false;
+      let called = false;
 
       handsontable({
         beforeChange(changes) {

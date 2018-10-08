@@ -1,8 +1,7 @@
 import BasePlugin from './../_base';
-import jsonpatch from './../../../lib/jsonpatch/json-patch-duplex';
 import DataObserver from './dataObserver';
-import {arrayEach} from './../../helpers/array';
-import {registerPlugin} from './../../plugins';
+import { arrayEach } from './../../helpers/array';
+import { registerPlugin } from './../../plugins';
 
 // Handsontable.hooks.register('afterChangesObserved');
 
@@ -10,17 +9,13 @@ import {registerPlugin} from './../../plugins';
  * @plugin ObserveChanges
  *
  * @description
- * This plugin allows to observe data source changes.
- *
- * By default, the plugin is declared as `undefined`, which makes it disabled.
- * Enabling this plugin switches the table into one-way data binding where changes are applied into the data source (outside from the table)
- * will be automatically reflected in the table.
+ * This plugin allows to observe data source changes. By default, the plugin is declared as `undefined`, which makes it
+ * disabled. Enabling this plugin switches the table into one-way data binding where changes are applied into the data
+ * source (outside from the table) will be automatically reflected in the table.
  *
  * ```js
- * ...
  * // as a boolean
  * observeChanges: true,
- * ...
  * ```
  *
  * To configure this plugin see {@link Options#observeChanges}.
@@ -31,13 +26,15 @@ class ObserveChanges extends BasePlugin {
     /**
      * Instance of {@link DataObserver}.
      *
+     * @private
      * @type {DataObserver}
      */
     this.observer = null;
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ObserveChanges#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -46,7 +43,7 @@ class ObserveChanges extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -57,19 +54,19 @@ class ObserveChanges extends BasePlugin {
       this._exposePublicApi();
     }
 
-    this.observer.addLocalHook('change', (patches) => this.onDataChange(patches));
+    this.observer.addLocalHook('change', patches => this.onDataChange(patches));
     this.addHook('afterCreateRow', () => this.onAfterTableAlter());
     this.addHook('afterRemoveRow', () => this.onAfterTableAlter());
     this.addHook('afterCreateCol', () => this.onAfterTableAlter());
     this.addHook('afterRemoveCol', () => this.onAfterTableAlter());
     this.addHook('afterChange', (changes, source) => this.onAfterTableAlter(source));
-    this.addHook('afterLoadData', (firstRun) => this.onAfterLoadData(firstRun));
+    this.addHook('afterLoadData', firstRun => this.onAfterLoadData(firstRun));
 
     super.enablePlugin();
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     if (this.observer) {
@@ -106,7 +103,7 @@ class ObserveChanges extends BasePlugin {
           }
         },
         replace: (patch) => {
-          this.hot.runHooks('afterChange', [patch.row, patch.col, null, patch.value], sourceName);
+          this.hot.runHooks('afterChange', [[patch.row, patch.col, null, patch.value]], sourceName);
         },
       };
 
@@ -147,7 +144,7 @@ class ObserveChanges extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     if (this.observer) {
@@ -171,7 +168,7 @@ class ObserveChanges extends BasePlugin {
   }
 
   /**
-   * Delete all previously exposed methods.
+   * Deletes all previously exposed methods.
    *
    * @private
    */

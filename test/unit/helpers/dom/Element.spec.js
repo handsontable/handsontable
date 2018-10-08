@@ -1,4 +1,11 @@
-import {isInput, closestDown, getParent, hasClass} from 'handsontable/helpers/dom/element';
+import {
+  addClass,
+  closestDown,
+  getParent,
+  hasClass,
+  isInput,
+  removeClass,
+} from 'handsontable/helpers/dom/element';
 
 describe('DomElement helper', () => {
   //
@@ -12,7 +19,7 @@ describe('DomElement helper', () => {
     });
 
     it('should return true for contentEditable elements', () => {
-      var div = document.createElement('div');
+      const div = document.createElement('div');
 
       div.contentEditable = 'true';
 
@@ -24,24 +31,24 @@ describe('DomElement helper', () => {
   // Handsontable.helper.closestDown
   //
   describe('closestDown', () => {
-    var test1 = '<div class="wrapper1"><table><tbody><tr><td class="test1">test1</td></tr></tbody></table></div>';
-    var test2 = `<div class="wrapper2"><table><tbody><tr><td class="test2">test2${test1}</td></tr></tbody></table></div>`;
+    const test1 = '<div class="wrapper1"><table><tbody><tr><td class="test1">test1</td></tr></tbody></table></div>';
+    const test2 = `<div class="wrapper2"><table><tbody><tr><td class="test2">test2${test1}</td></tr></tbody></table></div>`;
 
     it('should return last TD element (starting from last child element)', () => {
-      var wrapper = document.createElement('div');
+      const wrapper = document.createElement('div');
 
       wrapper.innerHTML = test2;
-      var td1 = wrapper.querySelector('.test1');
-      var td2 = wrapper.querySelector('.test2');
+      const td1 = wrapper.querySelector('.test1');
+      const td2 = wrapper.querySelector('.test2');
 
       expect(closestDown(td1, ['TD'])).toBe(td2);
     });
 
     it('should return proper value depends on passed `until` element', () => {
-      var td = document.createElement('td');
+      const td = document.createElement('td');
 
       td.innerHTML = test2;
-      var wrapper2 = td.querySelector('.wrapper2');
+      const wrapper2 = td.querySelector('.wrapper2');
 
       expect(closestDown(wrapper2, ['TD'])).toBe(td);
       expect(closestDown(wrapper2, ['TD'], wrapper2.firstChild)).toBe(null);
@@ -52,7 +59,7 @@ describe('DomElement helper', () => {
   // Handsontable.helper.getParent
   //
   describe('getParent', () => {
-    var element = null;
+    let element = null;
 
     beforeEach(() => {
       element = document.createElement('div');
@@ -95,7 +102,7 @@ describe('DomElement helper', () => {
       element = null;
     });
 
-    it('should not throw error when checked element has not classList property', () => {
+    it('should not throw an error when checked the element has not classList property', () => {
       expect(() => { hasClass(document, 'test2'); }).not.toThrow();
     });
 
@@ -105,6 +112,152 @@ describe('DomElement helper', () => {
 
     it('should return false if element has not className', () => {
       expect(hasClass(element, 'test2')).toBeFalsy();
+    });
+
+    it('should not touch the DOM element when the passed argument is empty', () => {
+      const elementMock = {
+        classList: {
+          contains: jasmine.createSpy('classList'),
+        }
+      };
+      hasClass(elementMock);
+
+      expect(elementMock.classList.contains).not.toHaveBeenCalled();
+
+      elementMock.classList.contains.calls.reset();
+      hasClass(elementMock, '');
+
+      expect(elementMock.classList.contains).not.toHaveBeenCalled();
+
+      elementMock.classList.contains.calls.reset();
+      hasClass(elementMock, []);
+
+      expect(elementMock.classList.contains).not.toHaveBeenCalled();
+
+      elementMock.classList.contains.calls.reset();
+      hasClass(elementMock, ['']);
+
+      expect(elementMock.classList.contains).not.toHaveBeenCalled();
+    });
+  });
+
+  /**
+   * Handsontable.helper.addClass
+   */
+  describe('addClass', () => {
+    let element = null;
+
+    beforeEach(() => {
+      element = document.createElement('div');
+      element.className = 'test1';
+    });
+
+    afterEach(() => {
+      element = null;
+    });
+
+    it('should add CSS class without removing old one', () => {
+      addClass(element, 'test2');
+
+      expect(element.className).toBe('test1 test2');
+    });
+
+    it('should add multiple CSS classes without removing old one (delimited by an empty space)', () => {
+      addClass(element, 'test2 test4 test3');
+
+      expect(element.className).toBe('test1 test2 test4 test3');
+    });
+
+    it('should add multiple CSS classes without removing old one (passed as an array)', () => {
+      addClass(element, ['test2', 'test4', 'test3']);
+
+      expect(element.className).toBe('test1 test2 test4 test3');
+    });
+
+    it('should not touch the DOM element when the passed argument is empty', () => {
+      const elementMock = {
+        classList: {
+          add: jasmine.createSpy('classList'),
+        }
+      };
+      addClass(elementMock);
+
+      expect(elementMock.classList.add).not.toHaveBeenCalled();
+
+      elementMock.classList.add.calls.reset();
+      addClass(elementMock, '');
+
+      expect(elementMock.classList.add).not.toHaveBeenCalled();
+
+      elementMock.classList.add.calls.reset();
+      addClass(elementMock, []);
+
+      expect(elementMock.classList.add).not.toHaveBeenCalled();
+
+      elementMock.classList.add.calls.reset();
+      addClass(elementMock, ['']);
+
+      expect(elementMock.classList.add).not.toHaveBeenCalled();
+    });
+  });
+
+  /**
+   * Handsontable.helper.removeClass
+   */
+  describe('removeClass', () => {
+    let element = null;
+
+    beforeEach(() => {
+      element = document.createElement('div');
+      element.className = 'test1 test3';
+    });
+
+    afterEach(() => {
+      element = null;
+    });
+
+    it('should remove CSS class without removing rest CSS classes', () => {
+      removeClass(element, 'test1');
+
+      expect(element.className).toBe('test3');
+    });
+
+    it('should remove multiple CSS classes (delimited by an empty space)', () => {
+      removeClass(element, 'test2 test3 test1');
+
+      expect(element.className).toBe('');
+    });
+
+    it('should remove CSS multiple classes (passed as an array)', () => {
+      removeClass(element, ['test2', 'test3', 'test1']);
+
+      expect(element.className).toBe('');
+    });
+
+    it('should not touch the DOM element when the passed argument is empty', () => {
+      const elementMock = {
+        classList: {
+          remove: jasmine.createSpy('classList'),
+        }
+      };
+      removeClass(elementMock);
+
+      expect(elementMock.classList.remove).not.toHaveBeenCalled();
+
+      elementMock.classList.remove.calls.reset();
+      removeClass(elementMock, '');
+
+      expect(elementMock.classList.remove).not.toHaveBeenCalled();
+
+      elementMock.classList.remove.calls.reset();
+      removeClass(elementMock, []);
+
+      expect(elementMock.classList.remove).not.toHaveBeenCalled();
+
+      elementMock.classList.remove.calls.reset();
+      removeClass(elementMock, ['']);
+
+      expect(elementMock.classList.remove).not.toHaveBeenCalled();
     });
   });
 });

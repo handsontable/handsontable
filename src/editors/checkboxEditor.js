@@ -1,5 +1,5 @@
 import BaseEditor from './_baseEditor';
-import {hasClass} from './../helpers/dom/element';
+import { hasClass } from './../helpers/dom/element';
 
 /**
  * @private
@@ -8,9 +8,12 @@ import {hasClass} from './../helpers/dom/element';
  */
 class CheckboxEditor extends BaseEditor {
   beginEditing(initialValue, event) {
-    // editorManager return double click event as undefined
-    if (event === void 0) {
-      let checkbox = this.TD.querySelector('input[type="checkbox"]');
+    // Just some events connected with checkbox editor are delegated here. Some `keydown` events like `enter` and `space` key press
+    // are handled inside `checkboxRenderer`. Some events come here from `editorManager`. Below `if` statement was created by author
+    // for purpose of handling only `doubleclick` event which may be done on a cell with checkbox.
+
+    if (event && event.type === 'mouseup') {
+      const checkbox = this.TD.querySelector('input[type="checkbox"]');
 
       if (!hasClass(checkbox, 'htBadValue')) {
         checkbox.click();

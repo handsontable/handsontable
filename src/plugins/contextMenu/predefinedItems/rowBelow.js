@@ -1,4 +1,4 @@
-import {getValidSelection} from './../utils';
+import { getValidSelection } from './../utils';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'row_below';
@@ -9,14 +9,19 @@ export default function rowBelowItem() {
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_BELOW);
     },
+    callback(key, normalizedSelection) {
+      const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
 
-    callback(key, selection) {
-      this.alter('insert_row', selection.end.row + 1, 1, 'ContextMenu.rowBelow');
+      this.alter('insert_row', latestSelection.end.row + 1, 1, 'ContextMenu.rowBelow');
     },
     disabled() {
-      let selected = getValidSelection(this);
+      const selected = getValidSelection(this);
 
-      return !selected || this.selection.selectedHeader.cols || this.countRows() >= this.getSettings().maxRows;
+      if (!selected) {
+        return true;
+      }
+
+      return this.selection.isSelectedByColumnHeader() || this.countRows() >= this.getSettings().maxRows;
     },
     hidden() {
       return !this.getSettings().allowInsertRow;

@@ -6,7 +6,7 @@ import {
   applyLanguageSetting
 } from 'handsontable/i18n/utils';
 
-import {DEFAULT_LANGUAGE_CODE, registerLanguageDictionary} from 'handsontable/i18n/dictionariesManager';
+import { DEFAULT_LANGUAGE_CODE, registerLanguageDictionary } from 'handsontable/i18n/dictionariesManager';
 import plPL from 'handsontable/i18n/languages/pl-PL';
 
 describe('i18n helpers', () => {
@@ -17,7 +17,7 @@ describe('i18n helpers', () => {
         lorem: 'ipsum'
       };
 
-      const extension = {anotherKey: true};
+      const extension = { anotherKey: true };
 
       extendNotExistingKeys(extendedOject, extension);
 
@@ -30,7 +30,7 @@ describe('i18n helpers', () => {
         lorem: 'ipsum'
       };
 
-      const extension = {hello: 'kitty'};
+      const extension = { hello: 'kitty' };
 
       extendNotExistingKeys(extendedOject, extension);
 
@@ -43,7 +43,7 @@ describe('i18n helpers', () => {
         lorem: 'ipsum'
       };
 
-      const extension = {anotherKey: true};
+      const extension = { anotherKey: true };
 
       const newReference = extendNotExistingKeys(extendedOject, extension);
 
@@ -102,7 +102,7 @@ describe('i18n helpers', () => {
     it('should set `language` key of settings object when handling existing language', () => {
       const settings = {};
 
-      applyLanguageSetting(plPL.languageCode, settings);
+      applyLanguageSetting(settings, plPL.languageCode);
 
       expect(settings.language).toEqual(plPL.languageCode);
     });
@@ -111,7 +111,7 @@ describe('i18n helpers', () => {
       spyOn(console, 'error');
       const settings = {};
 
-      applyLanguageSetting('aa-BB', settings);
+      applyLanguageSetting(settings, 'aa-BB');
 
       expect(settings.language).toEqual(DEFAULT_LANGUAGE_CODE);
     });
@@ -120,7 +120,7 @@ describe('i18n helpers', () => {
       const spy = spyOn(console, 'error');
       const settings = {};
 
-      applyLanguageSetting('aa-BB', settings);
+      applyLanguageSetting(settings, 'aa-BB');
 
       expect(spy).toHaveBeenCalled();
     });

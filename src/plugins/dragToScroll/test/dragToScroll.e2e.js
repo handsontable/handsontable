@@ -1,4 +1,17 @@
 describe('DragToScroll', () => {
+  const id = 'testContainer';
+
+  beforeEach(function() {
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+  });
+
+  afterEach(function() {
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+  });
+
   function createBoundaries() {
     return {
       top: 100,
@@ -9,11 +22,17 @@ describe('DragToScroll', () => {
       right: 1000
     };
   }
-  var dragToScroll = new Handsontable.plugins.DragToScroll();
-
-  dragToScroll.setBoundaries(createBoundaries());
 
   it('exact top, exact left should be in boundaries', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      dragToScroll: true
+    });
+
+    const dragToScroll = hot.getPlugin('dragToScroll');
+
+    dragToScroll.setBoundaries(createBoundaries());
+
     dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(0);
       expect(scrollY).toEqual(0);
@@ -23,6 +42,15 @@ describe('DragToScroll', () => {
   });
 
   it('exact bottom, exact right should be in boundaries', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      dragToScroll: true
+    });
+
+    const dragToScroll = hot.getPlugin('dragToScroll');
+
+    dragToScroll.setBoundaries(createBoundaries());
+
     dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(0);
       expect(scrollY).toEqual(0);
@@ -32,6 +60,15 @@ describe('DragToScroll', () => {
   });
 
   it('less than top, less than left should be out in "top" direction', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      dragToScroll: true
+    });
+
+    const dragToScroll = hot.getPlugin('dragToScroll');
+
+    dragToScroll.setBoundaries(createBoundaries());
+
     dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(-1);
       expect(scrollY).toEqual(-1);
@@ -41,6 +78,15 @@ describe('DragToScroll', () => {
   });
 
   it('exact top, less than left should be out in "left" direction', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      dragToScroll: true
+    });
+
+    const dragToScroll = hot.getPlugin('dragToScroll');
+
+    dragToScroll.setBoundaries(createBoundaries());
+
     dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(-1);
       expect(scrollY).toEqual(0);
@@ -50,6 +96,15 @@ describe('DragToScroll', () => {
   });
 
   it('less than top, more than right should be out in "top" direction', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      dragToScroll: true
+    });
+
+    const dragToScroll = hot.getPlugin('dragToScroll');
+
+    dragToScroll.setBoundaries(createBoundaries());
+
     dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(1);
       expect(scrollY).toEqual(-1);
@@ -59,6 +114,15 @@ describe('DragToScroll', () => {
   });
 
   it('more than bottom, more than right should be out in "bottom" direction', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      dragToScroll: true
+    });
+
+    const dragToScroll = hot.getPlugin('dragToScroll');
+
+    dragToScroll.setBoundaries(createBoundaries());
+
     dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(1);
       expect(scrollY).toEqual(1);
@@ -68,6 +132,15 @@ describe('DragToScroll', () => {
   });
 
   it('exact bottom, more than right should be out in "right" direction', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      dragToScroll: true
+    });
+
+    const dragToScroll = hot.getPlugin('dragToScroll');
+
+    dragToScroll.setBoundaries(createBoundaries());
+
     dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(1);
       expect(scrollY).toEqual(0);
@@ -77,6 +150,15 @@ describe('DragToScroll', () => {
   });
 
   it('more than bottom, less than left should be out in "bottom" direction', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      dragToScroll: true
+    });
+
+    const dragToScroll = hot.getPlugin('dragToScroll');
+
+    dragToScroll.setBoundaries(createBoundaries());
+
     dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(-1);
       expect(scrollY).toEqual(1);

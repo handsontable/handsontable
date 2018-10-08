@@ -1,5 +1,5 @@
 describe('Core_listen', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,13 +13,13 @@ describe('Core_listen', () => {
   });
 
   it('should listen to changes when cell is selected', () => {
-    var hot = handsontable();
+    const hot = handsontable();
     hot.selectCell(0, 0);
     expect(hot.isListening()).toEqual(true);
   });
 
   it('should\'t listen to changes when cell is selected via `selectCell` when `changeListener` argument is `false`', () => {
-    var hot = handsontable();
+    const hot = handsontable();
 
     hot.unlisten();
 
@@ -31,7 +31,7 @@ describe('Core_listen', () => {
   });
 
   it('should unlisten changes', () => {
-    var hot = handsontable();
+    const hot = handsontable();
     hot.selectCell(0, 0);
     expect(hot.isListening()).toEqual(true);
     hot.unlisten();
@@ -39,7 +39,7 @@ describe('Core_listen', () => {
   });
 
   it('should listen to changes, when called after unlisten', () => {
-    var hot = handsontable();
+    const hot = handsontable();
     hot.selectCell(0, 0);
     hot.unlisten();
     hot.listen();
@@ -47,8 +47,8 @@ describe('Core_listen', () => {
   });
 
   it('should change focus on active element, when listen without arguments was called', () => {
-    let hot = handsontable();
-    let input = document.createElement('input');
+    const hot = handsontable();
+    const input = document.createElement('input');
 
     document.body.appendChild(input);
 
@@ -64,8 +64,8 @@ describe('Core_listen', () => {
   });
 
   it('should not change focus on active element, when listen with first argument as `false` was called', () => {
-    let hot = handsontable();
-    let input = document.createElement('input');
+    const hot = handsontable();
+    const input = document.createElement('input');
 
     document.body.appendChild(input);
 
@@ -80,9 +80,9 @@ describe('Core_listen', () => {
   });
 
   it('when second instance is created, first should unlisten automatically', () => {
-    var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
+    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
     $container1.handsontable('selectCell', 0, 0);
-    var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
+    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
     $container2.handsontable('selectCell', 0, 0);
 
     expect($container1.handsontable('isListening')).toEqual(false);
@@ -95,9 +95,9 @@ describe('Core_listen', () => {
   });
 
   it('when listen is called on first instance, second should unlisten automatically', () => {
-    var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
+    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
     $container1.handsontable('selectCell', 0, 0);
-    var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
+    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
     $container2.handsontable('selectCell', 0, 0);
 
     $container1.handsontable('listen');
@@ -112,7 +112,7 @@ describe('Core_listen', () => {
 
   describe('hooks', () => {
     it('should call `afterListen` after set listen on instance', () => {
-      var afterListenCallback = jasmine.createSpy('afterListenCallback');
+      const afterListenCallback = jasmine.createSpy('afterListenCallback');
 
       handsontable({
         afterListen: afterListenCallback
@@ -126,7 +126,7 @@ describe('Core_listen', () => {
     });
 
     it('should call `afterUnlisten` after unset listen on instance', () => {
-      var afterUnlistenCallback = jasmine.createSpy('afterListenCallback');
+      const afterUnlistenCallback = jasmine.createSpy('afterListenCallback');
 
       handsontable({
         afterUnlisten: afterUnlistenCallback

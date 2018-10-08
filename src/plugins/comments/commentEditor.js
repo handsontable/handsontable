@@ -1,4 +1,4 @@
-import {addClass} from './../../helpers/dom/element';
+import { addClass } from './../../helpers/dom/element';
 
 /**
  * Comment editor for the Comments plugin.
@@ -110,8 +110,9 @@ class CommentEditor {
    * @param {String} [value] The value to use.
    */
   setValue(value = '') {
-    value = value || '';
-    this.getInputElement().value = value;
+    const comment = value || '';
+
+    this.getInputElement().value = comment;
   }
 
   /**
@@ -145,19 +146,17 @@ class CommentEditor {
    * @returns {HTMLElement}
    */
   createEditor() {
+    const editor = document.createElement('div');
+    const textArea = document.createElement('textarea');
     let container = document.querySelector(`.${CommentEditor.CLASS_EDITOR_CONTAINER}`);
-    let editor;
-    let textArea;
 
     if (!container) {
       container = document.createElement('div');
       addClass(container, CommentEditor.CLASS_EDITOR_CONTAINER);
       document.body.appendChild(container);
     }
-    editor = document.createElement('div');
-    addClass(editor, CommentEditor.CLASS_EDITOR);
 
-    textArea = document.createElement('textarea');
+    addClass(editor, CommentEditor.CLASS_EDITOR);
     addClass(textArea, CommentEditor.CLASS_INPUT);
 
     editor.appendChild(textArea);

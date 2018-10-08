@@ -15,8 +15,8 @@ describe('Function helper', () => {
   //
   describe('throttle', () => {
     it('should returns new function with applied throttling functionality', (done) => {
-      var spy = jasmine.createSpy();
-      var throttled = throttle(spy, 200);
+      const spy = jasmine.createSpy();
+      const throttled = throttle(spy, 200);
 
       throttled();
       throttled();
@@ -55,8 +55,8 @@ describe('Function helper', () => {
   //
   describe('throttleAfterHits', () => {
     it('should returns new function with applied throttling functionality', (done) => {
-      var spy = jasmine.createSpy();
-      var throttled = throttleAfterHits(spy, 200, 5);
+      const spy = jasmine.createSpy();
+      const throttled = throttleAfterHits(spy, 200, 5);
 
       throttled();
       throttled();
@@ -94,8 +94,8 @@ describe('Function helper', () => {
   //
   describe('debounce', () => {
     it('should returns new function with applied debouncing functionality', (done) => {
-      var spy = jasmine.createSpy();
-      var debounced = debounce(spy, 200);
+      const spy = jasmine.createSpy();
+      const debounced = debounce(spy, 200);
 
       debounced();
       debounced();
@@ -133,16 +133,16 @@ describe('Function helper', () => {
   //
   describe('pipe', () => {
     it('should returns new function with piped all passed functions', () => {
-      var spy1 = jasmine.createSpyObj('spy', ['test1', 'test2', 'test3', 'test4']);
+      const spy1 = jasmine.createSpyObj('spy', ['test1', 'test2', 'test3', 'test4']);
 
-      spy1.test1.and.callFake((a) => a + 1);
-      spy1.test2.and.callFake((a) => a + 1);
-      spy1.test3.and.callFake((a) => a + 1);
-      spy1.test4.and.callFake((a) => a + 1);
+      spy1.test1.and.callFake(a => a + 1);
+      spy1.test2.and.callFake(a => a + 1);
+      spy1.test3.and.callFake(a => a + 1);
+      spy1.test4.and.callFake(a => a + 1);
 
-      var piped = pipe(spy1.test1, spy1.test2, spy1.test3, spy1.test4);
+      const piped = pipe(spy1.test1, spy1.test2, spy1.test3, spy1.test4);
 
-      var result = piped(1, 2, 'foo');
+      const result = piped(1, 2, 'foo');
 
       expect(spy1.test1).toHaveBeenCalledWith(1, 2, 'foo');
       expect(spy1.test2).toHaveBeenCalledWith(2);
@@ -157,11 +157,11 @@ describe('Function helper', () => {
   //
   describe('partial', () => {
     it('should returns new function with cached arguments', () => {
-      var spy1 = jasmine.createSpyObj('spy', ['test1', 'test2', 'test3', 'test4']);
+      const spy1 = jasmine.createSpyObj('spy', ['test1', 'test2', 'test3', 'test4']);
 
       spy1.test1.and.callFake((a, b, c) => (a + b) + c);
 
-      var partialized = partial(spy1.test1, 1, 2);
+      let partialized = partial(spy1.test1, 1, 2);
 
       expect(partialized('foo')).toBe('3foo');
 
@@ -180,9 +180,9 @@ describe('Function helper', () => {
   //
   describe('curry', () => {
     it('should returns new function with cached arguments (collecting arguments from the left to the right)', () => {
-      var fn = (a, b, c) => (a + b) + c;
+      const fn = (a, b, c) => (a + b) + c;
 
-      var curried = curry(fn);
+      const curried = curry(fn);
 
       expect(curried(1, 2, 'foo')).toBe('3foo');
       expect(curried(1)(2)('foo')).toBe('3foo');
@@ -195,9 +195,9 @@ describe('Function helper', () => {
   //
   describe('curryRight', () => {
     it('should returns new function with cached arguments (collecting arguments from the right to the left)', () => {
-      var fn = (a, b, c) => (a + b) + c;
+      const fn = (a, b, c) => (a + b) + c;
 
-      var curried = curryRight(fn);
+      const curried = curryRight(fn);
 
       expect(curried('foo', 2, 1)).toBe('3foo');
       expect(curried(1, 2, 'foo')).toBe('foo21');
@@ -211,9 +211,9 @@ describe('Function helper', () => {
   //
   describe('isFunction', () => {
     it('should correctly detect function', () => {
-      var toCheck = [
+      const toCheck = [
         function() {},
-        {id() {}},
+        { id() {} },
         1,
         'text',
         /^\d+$/,

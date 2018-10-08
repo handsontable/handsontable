@@ -1,6 +1,6 @@
 import BasePlugin from './../_base';
-import {registerPlugin} from './../../plugins';
-import {arrayEach} from './../../helpers/array';
+import { registerPlugin } from './../../plugins';
+import { arrayEach } from './../../helpers/array';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 
@@ -8,8 +8,14 @@ import './manualColumnFreeze.css';
 
 const privatePool = new WeakMap();
 /**
- * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu.
- * You can turn it on by setting a `manualColumnFreeze` property to `true`.
+ * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu or using API.
+ * You can turn it on by setting a {@link Options#manualColumnFreeze} property to `true`.
+ *
+ * @example
+ * ```js
+ * // Enables the plugin
+ * manualColumnFreeze: true,
+ * ```
  *
  * @plugin ManualColumnFreeze
  * @dependencies ManualColumnMove
@@ -25,17 +31,22 @@ class ManualColumnFreeze extends BasePlugin {
     /**
      * Original column positions
      *
+     * @private
      * @type {Array}
      */
     this.frozenColumnsBasePositions = [];
     /**
      * Reference to the `ManualColumnMove` plugin.
+     *
+     * @private
+     * @type {ManualColumnMove}
      */
     this.manualColumnMovePlugin = void 0;
   }
 
   /**
-   * Check if the plugin is enabled in the Handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ManualColumnFreeze#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -44,14 +55,14 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options) => this.addContextMenuEntry(options));
+    this.addHook('afterContextMenuDefaultOptions', options => this.addContextMenuEntry(options));
     this.addHook('afterInit', () => this.onAfterInit());
     this.addHook('beforeColumnMove', (rows, target) => this.onBeforeColumnMove(rows, target));
 
@@ -59,10 +70,10 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    let priv = privatePool.get(this);
+    const priv = privatePool.get(this);
 
     priv.afterFirstUse = false;
     priv.moveByFreeze = false;
@@ -71,7 +82,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -81,13 +92,13 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Freeze the given column (add it to fixed columns).
+   * Freezes the given column (add it to fixed columns).
    *
    * @param {Number} column Visual column index.
    */
   freezeColumn(column) {
-    let priv = privatePool.get(this);
-    let settings = this.hot.getSettings();
+    const priv = privatePool.get(this);
+    const settings = this.hot.getSettings();
 
     if (!priv.afterFirstUse) {
       priv.afterFirstUse = true;
@@ -103,18 +114,19 @@ class ManualColumnFreeze extends BasePlugin {
       this.frozenColumnsBasePositions[settings.fixedColumnsLeft] = column;
     }
 
-    this.getMovePlugin().moveColumn(column, settings.fixedColumnsLeft++);
+    this.getMovePlugin().moveColumn(column, settings.fixedColumnsLeft);
 
+    settings.fixedColumnsLeft += 1;
   }
 
   /**
-   * Unfreeze the given column (remove it from fixed columns and bring to it's previous position).
+   * Unfreezes the given column (remove it from fixed columns and bring to it's previous position).
    *
    * @param {Number} column Visual column index.
    */
   unfreezeColumn(column) {
-    let priv = privatePool.get(this);
-    let settings = this.hot.getSettings();
+    const priv = privatePool.get(this);
+    const settings = this.hot.getSettings();
 
     if (!priv.afterFirstUse) {
       priv.afterFirstUse = true;
@@ -124,16 +136,16 @@ class ManualColumnFreeze extends BasePlugin {
       return; // not fixed
     }
 
-    let returnCol = this.getBestColumnReturnPosition(column);
+    const returnCol = this.getBestColumnReturnPosition(column);
 
     priv.moveByFreeze = true;
-    settings.fixedColumnsLeft--;
+    settings.fixedColumnsLeft -= 1;
 
     this.getMovePlugin().moveColumn(column, returnCol + 1);
   }
 
   /**
-   * Get the reference to the ManualColumnMove plugin.
+   * Gets the reference to the ManualColumnMove plugin.
    *
    * @private
    * @returns {Object}
@@ -153,17 +165,17 @@ class ManualColumnFreeze extends BasePlugin {
    * @param {Number} column Visual column index.
    */
   getBestColumnReturnPosition(column) {
-    let movePlugin = this.getMovePlugin();
-    let settings = this.hot.getSettings();
+    const movePlugin = this.getMovePlugin();
+    const settings = this.hot.getSettings();
     let i = settings.fixedColumnsLeft;
     let j = movePlugin.columnsMapper.getValueByIndex(i);
     let initialCol;
 
-    if (this.frozenColumnsBasePositions[column] == null) {
+    if (this.frozenColumnsBasePositions[column] === null || this.frozenColumnsBasePositions[column] === void 0) {
       initialCol = movePlugin.columnsMapper.getValueByIndex(column);
 
-      while (j < initialCol) {
-        i++;
+      while (j !== null && j <= initialCol) {
+        i += 1;
         j = movePlugin.columnsMapper.getValueByIndex(i);
       }
 
@@ -171,8 +183,8 @@ class ManualColumnFreeze extends BasePlugin {
       initialCol = this.frozenColumnsBasePositions[column];
       this.frozenColumnsBasePositions[column] = void 0;
 
-      while (j <= initialCol) {
-        i++;
+      while (j !== null && j <= initialCol) {
+        i += 1;
         j = movePlugin.columnsMapper.getValueByIndex(i);
       }
       i = j;
@@ -180,22 +192,23 @@ class ManualColumnFreeze extends BasePlugin {
 
     return i - 1;
   }
+
   /**
-   * Add the manualColumnFreeze context menu entries.
+   * Adds the manualColumnFreeze context menu entries.
    *
    * @private
    * @param {Object} options Context menu options.
    */
   addContextMenuEntry(options) {
     options.items.push(
-      {name: '---------'},
+      { name: '---------' },
       freezeColumnItem(this),
       unfreezeColumnItem(this)
     );
   }
 
   /**
-   * Enabling `manualColumnMove` plugin on `afterInit` hook.
+   * Enables `manualColumnMove` plugin on `afterInit` hook.
    *
    * @private
    */
@@ -206,21 +219,21 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Prevent moving the rows from/to fixed area.
+   * Prevents moving the rows from/to fixed area.
    *
    * @private
    * @param {Array} rows
    * @param {Number} target
    */
   onBeforeColumnMove(rows, target) {
-    let priv = privatePool.get(this);
+    const priv = privatePool.get(this);
 
     if (priv.afterFirstUse && !priv.moveByFreeze) {
-      let frozenLen = this.hot.getSettings().fixedColumnsLeft;
+      const frozenLen = this.hot.getSettings().fixedColumnsLeft;
       let disallowMoving = target < frozenLen;
 
       if (!disallowMoving) {
-        arrayEach(rows, (value, index, array) => {
+        arrayEach(rows, (value) => {
           if (value < frozenLen) {
             disallowMoving = true;
             return false;
@@ -239,7 +252,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     super.destroy();

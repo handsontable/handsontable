@@ -27,10 +27,9 @@ const defaultCompareFunction = function(a, b) {
 
   } else if (firstValue < secondValue) {
     return -1;
-
   }
-  return 1;
 
+  return 1;
 };
 
 /**
@@ -66,7 +65,7 @@ export default function mergeSort(array, compareFunction = defaultCompareFunctio
  * @param {Number} endIndex end - 1 is the end of the second array.
  * @returns {Array} The array with sorted subarray.
  */
-export function merge(array, compareFunction, startIndex, middleIndex, endIndex) {
+function merge(array, compareFunction, startIndex, middleIndex, endIndex) {
   const leftElements = new LinkedList();
   const rightElements = new LinkedList();
   const leftSize = middleIndex - startIndex;
@@ -107,4 +106,4 @@ export function merge(array, compareFunction, startIndex, middleIndex, endIndex)
   }
 
   return array;
-};
+}

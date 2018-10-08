@@ -27,15 +27,16 @@ module.exports.create = function create(envArgs) {
         externalCssFiles: [
           'lib/normalize.css',
           '../dist/handsontable.full.min.css',
+          'helpers/common.css',
         ],
         externalJsFiles: [
-          '../test/lib/phantom-reporter.js',
+          'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
           'lib/lodash.underscore.js',
           'lib/backbone.js',
           '../dist/handsontable.full.min.js',
-          '../dist/numbro/languages.js',
+          '../node_modules/numbro/dist/languages.min.js',
           '../dist/languages/all.min.js',
         ],
       })
