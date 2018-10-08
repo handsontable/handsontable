@@ -126,9 +126,12 @@ export function handsontable(options) {
  *
  * @returns {jqObject} reference to the original htCore
  */
-
 export function getHtCore() {
   return spec().$container.find('.htCore').first();
+}
+
+export function getMaster() {
+  return spec().$container.find('.ht_master');
 }
 
 export function getTopClone() {
