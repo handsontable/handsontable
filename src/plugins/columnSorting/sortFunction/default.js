@@ -6,12 +6,12 @@ import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../compara
  *
  * @param {String} sortOrder Sort order (`asc` for ascending, `desc` for descending).
  * @param {Object} columnMeta Column meta object.
+ * @param {Object} columnPluginSettings Plugin settings for the column.
  * @returns {Function} The compare function.
  */
-export default function defaultSort(sortOrder, columnMeta) {
+export default function defaultSort(sortOrder, columnMeta, columnPluginSettings) {
   return function(value, nextValue) {
-    const activePluginSettings = columnMeta.multiColumnSorting || columnMeta.columnSorting;
-    const { sortEmptyCells } = activePluginSettings;
+    const { sortEmptyCells } = columnPluginSettings;
 
     if (typeof value === 'string') {
       value = value.toLowerCase();

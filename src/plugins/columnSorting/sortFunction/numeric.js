@@ -6,14 +6,14 @@ import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../compara
  *
  * @param {String} sortOrder Sort order (`asc` for ascending, `desc` for descending).
  * @param {Object} columnMeta Column meta object.
+ * @param {Object} columnPluginSettings Plugin settings for the column.
  * @returns {Function} The compare function.
  */
-export default function numericSort(sortOrder, columnMeta) {
+export default function numericSort(sortOrder, columnMeta, columnPluginSettings) {
   return function(value, nextValue) {
     const parsedFirstValue = parseFloat(value);
     const parsedSecondValue = parseFloat(nextValue);
-    const activePluginSettings = columnMeta.multiColumnSorting || columnMeta.columnSorting;
-    const { sortEmptyCells } = activePluginSettings;
+    const { sortEmptyCells } = columnPluginSettings;
 
     // Watch out when changing this part of code! Check below returns 0 (as expected) when comparing empty string, null, undefined
     if (parsedFirstValue === parsedSecondValue || (isNaN(parsedFirstValue) && isNaN(parsedSecondValue))) {

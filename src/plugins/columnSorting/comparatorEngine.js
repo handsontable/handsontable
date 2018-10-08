@@ -7,17 +7,15 @@ export const FIRST_BEFORE_SECOND = -1;
 export const FIRST_AFTER_SECOND = 1;
 
 /**
- * Gets sort function for the particular column basing on its column meta.
+ * Gets sort function for the particular column basing on it's plugin settings.
  *
- * @param {Array} columnMeta Column meta object.
+ * @param {Object} columnMeta Column meta object.
+ * @param {Object} columnPluginSettings Plugin settings for the column.
  * @returns {Function}
  */
-export function getCompareFunctionFactory(columnMeta) {
-  const activePluginSettings = columnMeta.multiColumnSorting || columnMeta.columnSorting;
-  const columnSettings = activePluginSettings;
-
-  if (columnSettings.compareFunctionFactory) {
-    return columnSettings.compareFunctionFactory;
+export function getCompareFunctionFactory(columnMeta, columnPluginSettings) {
+  if (columnPluginSettings.compareFunctionFactory) {
+    return columnPluginSettings.compareFunctionFactory;
 
   } else if (columnMeta.type === 'date') {
     return dateSort;
@@ -48,8 +46,8 @@ export function mainSortComparator(sortingOrders, columnMetas) {
       const columnMeta = columnMetas[column];
       const value = values[column];
       const nextValue = nextValues[column];
-      const compareFunctionFactory = getCompareFunctionFactory(columnMeta);
-      const compareResult = compareFunctionFactory(sortingOrder, columnMeta)(value, nextValue);
+      const compareFunctionFactory = getCompareFunctionFactory(columnMeta, columnMeta.columnSorting);
+      const compareResult = compareFunctionFactory(sortingOrder, columnMeta, columnMeta.columnSorting)(value, nextValue);
 
       // DIFF - MultiColumnSorting & ColumnSorting: removed iteration through next sorted columns.
 
