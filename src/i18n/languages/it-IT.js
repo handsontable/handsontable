@@ -95,7 +95,7 @@ const dictionary = {
 
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Cerca',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Valore',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Secondo valore'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Sostituisci con'
 };
 
 export default dictionary;
