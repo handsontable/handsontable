@@ -1324,6 +1324,36 @@ describe('Core_validate', () => {
     }, 200);
   });
 
+  it('should not attempt to remove the htInvalid class if the validated cell is no longer rendered', (done) => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(20, 2),
+      columnSorting: {
+        column: 0,
+        sortOrder: 'desc'
+      },
+      allowInvalid: false,
+      validator(value, callback) {
+        setTimeout(() => {
+          callback(value.length === 2);
+        }, 100);
+      },
+      height: 40
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    document.activeElement.value = 'Ted';
+
+    selectCell(19, 0);
+
+    setTimeout(() => {
+      const $cell = $(getCell(0, 0));
+      expect($cell.hasClass('htInvalid')).toEqual(false);
+      done();
+    }, 200);
+  });
+
   it('should close the editor and save the new value if validation fails and allowInvalid is set to "true"', (done) => {
     let validationResult;
 
