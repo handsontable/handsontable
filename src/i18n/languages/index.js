@@ -5,6 +5,7 @@ import deDE from './de-DE';
 import enUS from './en-US';
 import esMX from './es-MX';
 import frFR from './fr-FR';
+import itIT from './it-IT';
 import jaJP from './ja-JP';
 import nbNO from './nb-NO';
 import nlNL from './nl-NL';
@@ -20,6 +21,7 @@ export {
   enUS,
   esMX,
   frFR,
+  itIT,
   jaJP,
   nbNO,
   nlNL,
