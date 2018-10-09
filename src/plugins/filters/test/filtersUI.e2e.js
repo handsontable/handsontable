@@ -3491,6 +3491,35 @@ describe('Filters UI', () => {
       expect(nextWidth).toBeLessThan(firstWidth);
     });
 
+    it('should display proper width of htUIMultipleSelectHot container #151', async() => {
+      handsontable({
+        data: [
+          [3, 'D'],
+          [2, 'C'],
+          [1, 'B'],
+          [0, 'A this is very looooong text should expand the drop-down menu'],
+          [3, 'f'],
+          [2, '6'],
+          [1, '!'],
+          [0, 'A this']
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        dropdownMenu: true,
+        filters: true
+      });
+
+      dropdownMenu(0);
+
+      await sleep(300);
+
+      const $multipleSelect = $('.htUIMultipleSelectHot');
+      const wtHolderWidth = $multipleSelect.find('.wtHolder').width();
+      const wtHiderWidth = $multipleSelect.find('.wtHider').width();
+
+      expect(wtHiderWidth).toBeLessThan(wtHolderWidth);
+    });
+
     it('should not expand the drop-down menu after selecting longer value inside the conditional select', async() => {
       handsontable({
         colHeaders: true,

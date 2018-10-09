@@ -1,4 +1,4 @@
-import { addClass } from 'handsontable/helpers/dom/element';
+import { addClass, getScrollbarWidth } from 'handsontable/helpers/dom/element';
 import { clone, extend } from 'handsontable/helpers/object';
 import { arrayFilter, arrayMap, arrayEach } from 'handsontable/helpers/array';
 import { isKey } from 'handsontable/helpers/unicode';
@@ -157,7 +157,8 @@ class MultipleSelectUI extends BaseUI {
         },
         autoWrapCol: true,
         height: 110,
-        stretchH: 'last',
+        // Workaround for #151.
+        colWidths: () => this.itemsBox.container.scrollWidth - getScrollbarWidth(),
         copyPaste: false,
         disableVisualSelection: 'area',
         fillHandle: false,
