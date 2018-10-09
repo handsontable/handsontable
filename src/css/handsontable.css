@@ -2,7 +2,7 @@
   position: relative;
 }
 
-.handsontable .hide{
+.handsontable .hide {
   display: none;
 }
 
@@ -25,6 +25,10 @@
   position: relative;
   width: 0; /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
   height: auto;
+}
+
+.active {
+  z-index: 104;
 }
 
 .handsontable table,
@@ -161,6 +165,7 @@
 .handsontable th.active {
   background-color: #CCC;
 }
+
 .handsontable thead th .relative {
   padding: 2px 4px;
 }
@@ -415,7 +420,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 104;
+  z-index: 100;
 }
 
 .htSelectEditor {
@@ -580,7 +585,8 @@ CheckboxRenderer
   background: #eee;
 }
 
-.ht_clone_top {
+.ht_clone_top,
+.ht_clone_bottom {
   z-index: 101;
 }
 

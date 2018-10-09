@@ -192,6 +192,7 @@ TextEditor.prototype.close = function() {
   }
 
   this.hideEditableElement();
+
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
 };
 
