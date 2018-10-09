@@ -78,13 +78,9 @@ export function getFullSortConfiguration(sortConfig) {
 
 /**
  * Warn users about problems when using `columnSorting` and `columnSorting` plugins simultaneously.
- *
- * @param {undefined|Boolean|Object} columnSortingSettings
  */
-export function warnIfPluginsHaveConflict(columnSortingSettings) {
-  if (columnSortingSettings) {
-    // DIFF - MultiColumnSorting & ColumnSorting: Warn will be called from the MultiColumnSorting plugin.
-  }
+export function warnAboutPluginsConflict() {
+  warn('Plugins `columnSorting` and `multiColumnSorting` should not be enabled simultaneously.');
 }
 
 /**

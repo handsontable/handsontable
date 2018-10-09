@@ -12,8 +12,9 @@ export const FIRST_AFTER_SECOND = 1;
  * @param {Array} columnMeta Column meta object.
  * @returns {Function}
  */
-function getCompareFunctionFactory(columnMeta) {
-  const columnSettings = columnMeta.columnSorting;
+export function getCompareFunctionFactory(columnMeta) {
+  const activePluginSettings = columnMeta.multiColumnSorting || columnMeta.columnSorting;
+  const columnSettings = activePluginSettings;
 
   if (columnSettings.compareFunctionFactory) {
     return columnSettings.compareFunctionFactory;

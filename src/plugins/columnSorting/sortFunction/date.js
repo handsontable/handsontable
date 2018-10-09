@@ -11,7 +11,8 @@ import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../compara
  */
 export default function dateSort(sortOrder, columnMeta) {
   return function(value, nextValue) {
-    const { sortEmptyCells } = columnMeta.columnSorting;
+    const activePluginSettings = columnMeta.multiColumnSorting || columnMeta.columnSorting;
+    const { sortEmptyCells } = activePluginSettings;
 
     if (value === nextValue) {
       return DO_NOT_SWAP;
