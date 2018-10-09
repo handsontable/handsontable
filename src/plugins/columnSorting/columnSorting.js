@@ -17,7 +17,6 @@ import {
   getNextSortOrder,
   areValidSortStates,
   getFullSortConfiguration,
-  warnAboutPluginsConflict,
   warnAboutNotValidatedConfig,
   getHeaderSpanElement,
   isFirstLevelColumnHeader
@@ -31,7 +30,6 @@ Hooks.getSingleton().register('afterColumnSort');
 const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const PLUGIN_KEY = 'columnSorting';
-const CONFLICTED_PLUGIN_KEY = 'multiColumnSorting';
 
 // DIFF - MultiColumnSorting & ColumnSorting: changed configuration documentation.
 
@@ -154,11 +152,6 @@ class ColumnSorting extends BasePlugin {
   enablePlugin() {
     if (this.enabled) {
       return;
-    }
-
-    // Warn just from one plugin.
-    if (this.pluginKey === PLUGIN_KEY && this.hot.getSettings()[PLUGIN_KEY] && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY]) {
-      warnAboutPluginsConflict();
     }
 
     if (isUndefined(this.hot.getSettings().observeChanges)) {
@@ -726,11 +719,6 @@ class ColumnSorting extends BasePlugin {
    */
   onUpdateSettings(newSettings) {
     super.onUpdateSettings();
-
-    // Warn just from one plugin.
-    if (this.pluginKey === PLUGIN_KEY && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY] && this.hot.getSettings()[PLUGIN_KEY]) {
-      warnAboutPluginsConflict();
-    }
 
     this.columnMetaCache.clear();
 
