@@ -1062,7 +1062,6 @@ describe('Formulas general', () => {
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         columnSorting: true,
-        sortIndicator: true,
         width: 500,
         height: 300
       });
@@ -1103,7 +1102,6 @@ describe('Formulas general', () => {
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         columnSorting: true,
-        sortIndicator: true,
         width: 500,
         height: 300
       });
@@ -1159,7 +1157,6 @@ describe('Formulas general', () => {
         data: getDataSimpleExampleFormulas(),
         formulas: true,
         columnSorting: true,
-        sortIndicator: true,
         width: 500,
         height: 300
       });
