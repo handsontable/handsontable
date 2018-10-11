@@ -271,17 +271,20 @@ describe('TrimRows', () => {
   describe('copy-paste functionality', () => {
     class DataTransferObject {
       constructor() {
-        this.data = '';
+        this.data = {
+          'text/plain': '',
+          'text/html': ''
+        };
       }
-      getData() {
-        return this.data;
+      getData(type) {
+        return this.data[type];
       }
       setData(type, value) {
-        this.data = value;
+        this.data[type] = value;
       }
     }
 
-    function getClipboardEvent() {
+    function getClipboardEventMock() {
       const event = {};
       event.clipboardData = new DataTransferObject();
       event.preventDefault = () => {};
@@ -296,7 +299,7 @@ describe('TrimRows', () => {
         height: 300
       });
 
-      const copyEvent = getClipboardEvent('copy');
+      const copyEvent = getClipboardEventMock('copy');
       const plugin = hot.getPlugin('CopyPaste');
 
       selectCell(0, 0, 4, 9);
@@ -305,7 +308,7 @@ describe('TrimRows', () => {
       plugin.onCopy(copyEvent);
 
       /* eslint-disable no-tabs */
-      expect(copyEvent.clipboardData.getData()).toEqual('A1	B1	"C1\n' +
+      expect(copyEvent.clipboardData.getData('text/plain')).toEqual('A1	B1	"C1\n' +
         'line"	D1	E1	F1	G1	H1	I1	J1\n' +
         'A3	B3	C3	D3	E3	F3	G3	H3	I3	J3\n' +
         'A4	B4	C4	D4	E4	F4	G4	H4	I4	J4\n' +

@@ -415,7 +415,8 @@ class GanttChart extends BasePlugin {
         this.weekHeadersArray.slice()
       ],
       collapsibleColumns: this.hot.getSettings().collapsibleColumns ? this.hot.getSettings().collapsibleColumns : true,
-      columnSorting: false
+      columnSorting: false,
+      copyPaste: false
     };
 
     this.internalUpdateSettings = true;
