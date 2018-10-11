@@ -484,7 +484,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should not change width and widths after select/click cell', () => {
-    hot = handsontable({
+    const hot = handsontable({
       data: [
         ['Canceled'],
         ['Processing'],
