@@ -21,7 +21,7 @@
  * UNINTERRUPTED OR ERROR FREE.
  * 
  * Version: 6.1.0
- * Release date: 17/10/2018 (built at 11/10/2018 10:26:26)
+ * Release date: 17/10/2018 (built at 11/10/2018 14:20:08)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -34978,7 +34978,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '11/10/2018 10:26:26';
+Handsontable.buildDate = '11/10/2018 14:20:08';
 Handsontable.packageName = 'handsontable-pro';
 Handsontable.version = '6.1.0';
 
@@ -75969,7 +75969,8 @@ var GanttChart = function (_BasePlugin) {
         hiddenColumns: this.hot.getSettings().hiddenColumns ? this.hot.getSettings().hiddenColumns : true,
         nestedHeaders: [this.monthHeadersArray.slice(), this.weekHeadersArray.slice()],
         collapsibleColumns: this.hot.getSettings().collapsibleColumns ? this.hot.getSettings().collapsibleColumns : true,
-        columnSorting: false
+        columnSorting: false,
+        copyPaste: false
       };
 
       this.internalUpdateSettings = true;
