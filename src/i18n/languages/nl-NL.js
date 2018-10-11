@@ -3,7 +3,7 @@
  * Authors: Tomas Rapkauskas, Anton Brouwer
  * Last updated: Jun 07, 2018
  *
- * Description: Definition file for Dutch - Netherlands language-country.
+ * Description: Definition file for Dutch - The Netherlands language-country.
  */
 import * as C from '../constants';
 
