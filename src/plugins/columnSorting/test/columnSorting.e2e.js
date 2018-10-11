@@ -967,7 +967,7 @@ describe('ColumnSorting', () => {
 
       setDataAtCell(0, 0, '19:55', 'edit');
 
-      await 500;
+      await sleep(500);
 
       expect(getDataAtCell(0, 0)).toEqual('7:55:00 pm');
     });
