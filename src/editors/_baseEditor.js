@@ -60,7 +60,7 @@ class BaseEditor {
   }
 
   extend() {
-    return class Editor extends BaseEditor { };
+    return (class Editor extends this.constructor {});
   }
 
   saveValue(value, ctrlDown) {
