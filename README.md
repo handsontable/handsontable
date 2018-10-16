@@ -93,7 +93,7 @@ var hot = new Handsontable(container, {
 - Gantt Chart (beta)
 - Non-contiguous selection
 
-[See a comparison table](//docs.handsontable.com/pro/tutorial-features.html)
+[See a comparison table](//handsontable.com/docs/tutorial-features.html)
 
 <br/>
 
@@ -107,9 +107,9 @@ var hot = new Handsontable(container, {
 <br/>
 
 ### Resources
-- [API Reference](//docs.handsontable.com/pro/Core.html)
-- [Compatibility](//docs.handsontable.com/pro/tutorial-compatibility.html)
-- [Change log](//docs.handsontable.com/pro/tutorial-release-notes.html)
+- [API Reference](//handsontable.com/docs/Core.html)
+- [Compatibility](//handsontable.com/docs/tutorial-compatibility.html)
+- [Change log](//handsontable.com/docs/tutorial-release-notes.html)
 - [Roadmap](//trello.com/b/PztR4hpj)
 - [Newsroom](//twitter.com/handsontable)
 
