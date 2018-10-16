@@ -112,7 +112,7 @@ var hot = new Handsontable(container, {
 - Internationalization
 - Non-contiguous selection
 
-[See a comparison table](//docs.handsontable.com/tutorial-features.html)
+[See a comparison table](//handsontable.com/docs/tutorial-features.html)
 
 <br/>
 
@@ -126,8 +126,8 @@ var hot = new Handsontable(container, {
 <br/>
 
 ### Resources
-- [API Reference](//docs.handsontable.com/Core.html)
-- [Compatibility](//docs.handsontable.com/tutorial-compatibility.html)
+- [API Reference](//handsontable.com/docs/Core.html)
+- [Compatibility](//handsontable.com/docs/tutorial-compatibility.html)
 - [Change log](//github.com/handsontable/handsontable/releases)
 - [Roadmap](//trello.com/b/PztR4hpj)
 - [Newsroom](//twitter.com/handsontable)
