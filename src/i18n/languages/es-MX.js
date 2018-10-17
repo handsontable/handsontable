@@ -81,8 +81,8 @@ const dictionary = {
 
   [C.FILTERS_VALUES_BLANK_CELLS]: 'Celdas vacías',
 
-  [C.FILTERS_DIVS_FILTER_BY_CONDITION]: 'Filtar por condición',
-  [C.FILTERS_DIVS_FILTER_BY_VALUE]: 'Filtar por valor',
+  [C.FILTERS_DIVS_FILTER_BY_CONDITION]: 'Filtrar por condición',
+  [C.FILTERS_DIVS_FILTER_BY_VALUE]: 'Filtrar por valor',
 
   [C.FILTERS_LABELS_CONJUNCTION]: 'Y',
   [C.FILTERS_LABELS_DISJUNCTION]: 'O',
