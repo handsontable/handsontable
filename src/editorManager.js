@@ -178,6 +178,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened()) {
 
           if (activeEditor && activeEditor.state !== EditorState.WAITING) {
+            console.log(activeEditor);
             _this.closeEditorAndSaveChanges(ctrlDown);
           }
           moveSelectionAfterEnter(event.shiftKey);
@@ -196,6 +197,7 @@ function EditorManager(instance, priv, selection) {
         break;
 
       case KEY_CODES.ESCAPE:
+      console.log(activeEditor);
         if (_this.isEditorOpened()) {
           _this.closeEditorAndRestoreOriginalValue(ctrlDown);
 
