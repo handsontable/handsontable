@@ -4,11 +4,14 @@
 
 <br/>
 
-[**Handsontable Pro**](//handsontable.com) is a JavaScript/HTML5 UI Spreadsheet component for web apps. It easily integrates with any data source and comes with premium features like Filtering, Nested Headers, Dropdown Menu, Collapsing Columns and Export to File.  It is available for [Vue](//github.com/handsontable/vue-handsontable-official), [React](//github.com/handsontable/react-handsontable), [Angular](//github.com/handsontable/angular-handsontable) and [Polymer](//github.com/handsontable/hot-table).
+[**Handsontable Pro**](//handsontable.com) is a premium JavaScript/HTML5 data grid component with spreadsheet look & feel. It easily integrates with any data source and comes with premium features like Filtering, Nested Headers, Dropdown Menu, Collapsing Columns, Multiple Column Sorting and Export to File.  It is available for [Vue](//github.com/handsontable/vue-handsontable-official), [React](//github.com/handsontable/react-handsontable), [Angular](//github.com/handsontable/angular-handsontable) and [Polymer](//github.com/handsontable/hot-table).
 
 **This is a commercial, paid software available for evaluation purposes only. To use it in a production environment you need to purchase a license and pass a valid [license key](#license-key) in the configuration object.**
 
 <br/>
+
+[![Build status](https://travis-ci.org/handsontable/handsontable-pro.png?branch=master)](//travis-ci.org/handsontable/handsontable-pro)
+[![npm](https://img.shields.io/npm/dt/handsontable-pro.svg)](//npmjs.com/package/handsontable-pro)
 
 ## Table of contents
 
@@ -78,6 +81,7 @@ var hot = new Handsontable(container, {
 - Dropdown menu
 - Nested headers
 - Collapsing columns
+- Multiple Column Sorting
 - Hiding rows
 - Hiding columns
 - Trimming rows

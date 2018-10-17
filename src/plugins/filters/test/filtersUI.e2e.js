@@ -2379,7 +2379,6 @@ describe('Filters UI', () => {
         dropdownMenu: true,
         filters: true,
         columnSorting: true,
-        sortIndicator: true,
         width: 500,
         height: 300
       });
@@ -2428,7 +2427,6 @@ describe('Filters UI', () => {
         dropdownMenu: true,
         filters: true,
         columnSorting: true,
-        sortIndicator: true,
         width: 500,
         height: 300
       });
@@ -2500,7 +2498,6 @@ describe('Filters UI', () => {
         dropdownMenu: true,
         filters: true,
         columnSorting: true,
-        sortIndicator: true,
         width: 500,
         height: 300
       });
@@ -2564,6 +2561,198 @@ describe('Filters UI', () => {
       }, 1200);
     });
   });
+
+  describe('Multi-column sorting', () => {
+    it('should filter values when sorting is applied', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        multiColumnSorting: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(0);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // gt
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+
+      await sleep(200);
+
+      // Greater than 12
+      document.activeElement.value = '12';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      // sort
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
+
+      dropdownMenu(2);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // begins_with
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+
+      await sleep(200);
+
+      // Begins with 'b'
+      document.activeElement.value = 'b';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      await sleep(10);
+
+      expect(getData().length).toEqual(3);
+      expect(getData()[0][0]).toBe(24);
+      expect(getData()[1][0]).toBe(17);
+      expect(getData()[2][0]).toBe(14);
+    });
+
+    it('should correctly remove rows from filtered values when sorting is applied', (done) => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        multiColumnSorting: true,
+        width: 500,
+        height: 300
+      });
+
+      setTimeout(() => {
+        dropdownMenu(0);
+        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+        // gt
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      }, 300);
+
+      setTimeout(() => {
+        // Greater than 12
+
+        $(conditionSelectRootElements().first).next().find('input')[0].focus();
+
+        document.activeElement.value = '12';
+        $(document.activeElement).simulate('keyup');
+        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+        // sort
+        getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
+        getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
+        getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
+        alter('remove_row', 1, 5);
+
+        dropdownMenu(2);
+        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+        // ends_with
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown');
+      }, 600);
+
+      setTimeout(() => {
+        // Ends with 'e'
+
+        $(conditionSelectRootElements().first).next().find('input')[0].focus();
+
+        document.activeElement.value = 'e';
+        $(document.activeElement).simulate('keyup');
+        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+        expect(getData().length).toEqual(7);
+        expect(getDataAtCol(0).join()).toBe('24,16,23,32,26,28,21');
+
+        alter('remove_row', 1, 5);
+
+        expect(getData().length).toEqual(2);
+        expect(getDataAtCol(0).join()).toBe('24,21');
+
+        dropdownMenu(0);
+        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+        // none
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(1) td')).simulate('mousedown');
+      }, 900);
+
+      setTimeout(() => {
+        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+        expect(getData().length).toEqual(5);
+        expect(getDataAtCol(0).join()).toBe('24,10,1,6,21');
+        done();
+      }, 1200);
+    });
+
+    it('should correctly insert rows into filtered values when sorting is applied', (done) => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        multiColumnSorting: true,
+        width: 500,
+        height: 300
+      });
+
+      setTimeout(() => {
+        dropdownMenu(0);
+        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+        // gt
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      }, 300);
+
+      setTimeout(() => {
+        // Greater than 12
+
+        $(conditionSelectRootElements().first).next().find('input')[0].focus();
+
+        document.activeElement.value = '12';
+        $(document.activeElement).simulate('keyup');
+        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+        // sort
+        getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
+        getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
+        getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
+        alter('insert_row', 1, 5);
+
+        dropdownMenu(2);
+        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+        // ends_with
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown');
+      }, 600);
+
+      setTimeout(() => {
+        // Ends with 'e'
+
+        $(conditionSelectRootElements().first).next().find('input')[0].focus();
+
+        document.activeElement.value = 'e';
+        $(document.activeElement).simulate('keyup');
+        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+        expect(getData().length).toBe(9);
+        expect(getDataAtCol(0).join()).toBe('24,17,14,16,23,32,26,28,21');
+
+        alter('insert_row', 1, 1);
+
+        expect(getData().length).toBe(10);
+        expect(getDataAtCol(0).join()).toBe('24,,17,14,16,23,32,26,28,21');
+
+        dropdownMenu(0);
+        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+        // is empty
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(3) td')).simulate('mousedown');
+      }, 900);
+
+      setTimeout(() => {
+        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+        expect(getData().length).toBe(0);
+        done();
+      }, 1200);
+    });
+  });
+
   describe('should display components inside filters dropdownMenu properly', () => {
     it('should not display extra condition element at start', () => {
       handsontable({
@@ -3300,6 +3489,35 @@ describe('Filters UI', () => {
       const nextWidth = $conditionalMenu.find('.wtHider').width();
 
       expect(nextWidth).toBeLessThan(firstWidth);
+    });
+
+    it('should display proper width of htUIMultipleSelectHot container #151', async() => {
+      handsontable({
+        data: [
+          [3, 'D'],
+          [2, 'C'],
+          [1, 'B'],
+          [0, 'A this is very looooong text should expand the drop-down menu'],
+          [3, 'f'],
+          [2, '6'],
+          [1, '!'],
+          [0, 'A this']
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        dropdownMenu: true,
+        filters: true
+      });
+
+      dropdownMenu(0);
+
+      await sleep(300);
+
+      const $multipleSelect = $('.htUIMultipleSelectHot');
+      const wtHolderWidth = $multipleSelect.find('.wtHolder').width();
+      const wtHiderWidth = $multipleSelect.find('.wtHider').width();
+
+      expect(wtHiderWidth).toBeLessThan(wtHolderWidth);
     });
 
     it('should not expand the drop-down menu after selecting longer value inside the conditional select', async() => {
