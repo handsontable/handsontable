@@ -87,7 +87,6 @@ class DateEditor extends TextEditor {
    * @param {Object} cellProperties Object with cell properties ({@see Core#getCellMeta})
    */
   prepare(row, col, prop, td, originalValue, cellProperties) {
-    this._opened = false;
     super.prepare(row, col, prop, td, originalValue, cellProperties);
   }
 
