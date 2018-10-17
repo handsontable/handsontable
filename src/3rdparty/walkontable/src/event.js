@@ -122,10 +122,13 @@ function Event(instance) {
     if (event.button !== 2) { // if not right mouse button
       const cell = that.parentCell(event.realTarget);
 
+      if (cell.TD && that.instance.hasSetting('onCellMouseUp')) {
+        that.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, that.instance);
+      }
+
       if (cell.TD === dblClickOrigin[0] && cell.TD === dblClickOrigin[1]) {
         if (hasClass(event.realTarget, 'corner')) {
           that.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, that.instance);
-
         } else {
           that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, that.instance);
         }
@@ -134,16 +137,13 @@ function Event(instance) {
         dblClickOrigin[1] = null;
 
       } else if (cell.TD === dblClickOrigin[0]) {
-        that.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, that.instance);
-
         dblClickOrigin[1] = cell.TD;
+
         clearTimeout(that.dblClickTimeout[1]);
+
         that.dblClickTimeout[1] = setTimeout(() => {
           dblClickOrigin[1] = null;
         }, 500);
-
-      } else if (cell.TD && that.instance.hasSetting('onCellMouseUp')) {
-        that.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, that.instance);
       }
     }
   };
