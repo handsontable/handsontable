@@ -1505,6 +1505,86 @@ const REGISTERED_HOOKS = [
   'skipLengthCache',
 
   /**
+   * Fired by {@link HiddenRows} plugin before marking the rows as hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
+   * Returning `false` in the callback will prevent the hiding action from completing.
+   *
+   * @pro
+   * @event Hooks#beforeHideRows
+   * @param {Array} rows Array of row indexes about to be marked as hidden.
+   * @returns {undefined|Boolean} If the callback returns `false`, the hiding action will not be completed.
+   */
+  'beforeHideRows',
+
+  /**
+   * Fired by {@link HiddenRows} plugin after marking the rows as hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
+   *
+   * @pro
+   * @event Hooks#afterHideRows
+   * @param {Array} rows Array of row indexes marked as hidden.
+   */
+  'afterHideRows',
+
+  /**
+   * Fired by {@link HiddenRows} plugin before marking the rows as not hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
+   * Returning `false` in the callback will prevent the row revealing action from completing.
+   *
+   * @pro
+   * @event Hooks#beforeUnhideRows
+   * @param {Array} rows Array of row indexes about to be marked as not hidden.
+   * @returns {undefined|Boolean} If the callback returns `false`, the revealing action will not be completed.
+   */
+  'beforeUnhideRows',
+
+  /**
+   * Fired by {@link HiddenRows} plugin after marking the rows as not hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
+   *
+   * @pro
+   * @event Hooks#afterUnhideRows
+   * @param {Array} rows Array of row indexes marked as not hidden.
+   */
+  'afterUnhideRows',
+
+  /**
+   * Fired by {@link HiddenColumns} plugin before marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
+   * Returning `false` in the callback will prevent the hiding action from completing.
+   *
+   * @pro
+   * @event Hooks#beforeHideColumns
+   * @param {Array} columns Array of column indexes about to be marked as hidden.
+   * @returns {undefined|Boolean} If the callback returns `false`, the hiding action will not be completed.
+   */
+  'beforeHideColumns',
+
+  /**
+   * Fired by {@link HiddenColumns} plugin after marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
+   *
+   * @pro
+   * @event Hooks#afterHideColumns
+   * @param {Array} columns Array of column indexes marked as hidden.
+   */
+  'afterHideColumns',
+
+  /**
+   * Fired by {@link HiddenColumns} plugin before marking the columns as not hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
+   * Returning `false` in the callback will prevent the column revealing action from completing.
+   *
+   * @pro
+   * @event Hooks#beforeUnhideColumns
+   * @param {Array} columns Array of column indexes about to be marked as not hidden.
+   * @returns {undefined|Boolean} If the callback returns `false`, the revealing action will not be completed.
+   */
+  'beforeUnhideColumns',
+
+  /**
+   * Fired by {@link HiddenColumns} plugin after marking the columns as not hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
+   *
+   * @pro
+   * @event Hooks#afterUnhideColumns
+   * @param {Array} columns Array of column indexes marked as not hidden.
+   */
+  'afterUnhideColumns',
+
+  /**
    * Fired by {@link TrimRows} plugin after trimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
    * @pro
