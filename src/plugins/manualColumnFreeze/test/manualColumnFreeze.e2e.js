@@ -161,7 +161,7 @@ describe('manualColumnFreeze', () => {
 
     });
 
-    it('should unfix the desired column (and revert it to it\'s original position) after clicking the \'unfreeze column\' context menu entry', async () => {
+    it('should unfix the desired column (and revert it to it\'s original position) after clicking the \'unfreeze column\' context menu entry', async() => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,

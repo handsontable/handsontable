@@ -1,6 +1,6 @@
 // https://gist.github.com/paulirish/1579671
 let lastTime = 0;
-let vendors = ['ms', 'moz', 'webkit', 'o'];
+const vendors = ['ms', 'moz', 'webkit', 'o'];
 let _requestAnimationFrame = window.requestAnimationFrame;
 let _cancelAnimationFrame = window.cancelAnimationFrame;
 
@@ -11,9 +11,9 @@ for (let x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
 
 if (!_requestAnimationFrame) {
   _requestAnimationFrame = function(callback) {
-    let currTime = new Date().getTime();
-    let timeToCall = Math.max(0, 16 - (currTime - lastTime));
-    let id = window.setTimeout(() => {
+    const currTime = new Date().getTime();
+    const timeToCall = Math.max(0, 16 - (currTime - lastTime));
+    const id = window.setTimeout(() => {
       callback(currTime + timeToCall);
     }, timeToCall);
     lastTime = currTime + timeToCall;
@@ -57,25 +57,25 @@ export function isTouchSupported() {
  * @returns {Boolean}
  */
 export function isWebComponentSupportedNatively() {
-  var test = document.createElement('div');
+  const test = document.createElement('div');
 
   return !!(test.createShadowRoot && test.createShadowRoot.toString().match(/\[native code\]/));
 }
 
-var _hasCaptionProblem;
+let _hasCaptionProblem;
 
 function detectCaptionProblem() {
-  var TABLE = document.createElement('TABLE');
+  const TABLE = document.createElement('TABLE');
   TABLE.style.borderSpacing = 0;
   TABLE.style.borderWidth = 0;
   TABLE.style.padding = 0;
-  var TBODY = document.createElement('TBODY');
+  const TBODY = document.createElement('TBODY');
   TABLE.appendChild(TBODY);
   TBODY.appendChild(document.createElement('TR'));
   TBODY.firstChild.appendChild(document.createElement('TD'));
   TBODY.firstChild.firstChild.innerHTML = '<tr><td>t<br>t</td></tr>';
 
-  var CAPTION = document.createElement('CAPTION');
+  const CAPTION = document.createElement('CAPTION');
   CAPTION.innerHTML = 'c<br>c<br>c<br>c';
   CAPTION.style.padding = 0;
   CAPTION.style.margin = 0;

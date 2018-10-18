@@ -1,7 +1,7 @@
-import {toSingleLine} from 'handsontable/helpers/templateLiteralTag';
+import { toSingleLine } from 'handsontable/helpers/templateLiteralTag';
 
 describe('Helpers for template literals', () => {
-  describe('toSingleLine', function () {
+  describe('toSingleLine', () => {
     it('should strip two line string (string with whitespace at end of first line and indention at second one)', () => {
       const text = toSingleLine`Hello world 
         Hello world`;

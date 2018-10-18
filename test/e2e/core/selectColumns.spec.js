@@ -346,7 +346,7 @@ describe('Core.selectColumns', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectColumns(1, 1);
+    const wasSelected = selectColumns(1, 1);
 
     expect(getSelected()).toEqual([[0, 1, 5, 1]]);
     expect(wasSelected).toBe(true);
@@ -357,7 +357,7 @@ describe('Core.selectColumns', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectColumns(1, 'prop1');
+    const wasSelected = selectColumns(1, 'prop1');
 
     expect(getSelected()).toEqual([[0, 1, 5, 1]]);
     expect(wasSelected).toBe(true);
@@ -368,7 +368,7 @@ describe('Core.selectColumns', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectColumns(2, 1);
+    const wasSelected = selectColumns(2, 1);
 
     expect(getSelected()).toEqual([[0, 2, 5, 1]]);
     expect(wasSelected).toBe(true);
@@ -379,7 +379,7 @@ describe('Core.selectColumns', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectColumns('prop2', 'prop1');
+    const wasSelected = selectColumns('prop2', 'prop1');
 
     expect(getSelected()).toEqual([[0, 2, 5, 1]]);
     expect(wasSelected).toBe(true);

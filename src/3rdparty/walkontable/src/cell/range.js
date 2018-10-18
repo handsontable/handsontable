@@ -105,7 +105,7 @@ class CellRange {
    * @returns {Boolean}
    */
   includes(cellCoords) {
-    const {row, col} = cellCoords;
+    const { row, col } = cellCoords;
     const topLeft = this.getTopLeftCorner();
     const bottomRight = this.getBottomRightCorner();
 
@@ -234,8 +234,8 @@ class CellRange {
     const resultBottomRow = Math.max(bottomRight.row, expandingBottomRight.row);
     const resultBottomCol = Math.max(bottomRight.col, expandingBottomRight.col);
 
-    let finalFrom = new CellCoords(resultTopRow, resultTopCol);
-    let finalTo = new CellCoords(resultBottomRow, resultBottomCol);
+    const finalFrom = new CellCoords(resultTopRow, resultTopCol);
+    const finalTo = new CellCoords(resultBottomRow, resultBottomCol);
 
     this.from = finalFrom;
     this.to = finalTo;
@@ -484,16 +484,16 @@ class CellRange {
     };
     const result = [];
 
-    if (thisBorders.top == rangeBorders.top) {
+    if (thisBorders.top === rangeBorders.top) {
       result.push('top');
     }
-    if (thisBorders.right == rangeBorders.right) {
+    if (thisBorders.right === rangeBorders.right) {
       result.push('right');
     }
-    if (thisBorders.bottom == rangeBorders.bottom) {
+    if (thisBorders.bottom === rangeBorders.bottom) {
       result.push('bottom');
     }
-    if (thisBorders.left == rangeBorders.left) {
+    if (thisBorders.left === rangeBorders.left) {
       result.push('left');
     }
 
@@ -506,9 +506,9 @@ class CellRange {
    * @returns {Array}
    */
   getInner() {
-    let topLeft = this.getTopLeftCorner();
-    let bottomRight = this.getBottomRightCorner();
-    let out = [];
+    const topLeft = this.getTopLeftCorner();
+    const bottomRight = this.getBottomRightCorner();
+    const out = [];
 
     for (let r = topLeft.row; r <= bottomRight.row; r++) {
       for (let c = topLeft.col; c <= bottomRight.col; c++) {
@@ -526,9 +526,9 @@ class CellRange {
    * @returns {Array}
    */
   getAll() {
-    let topLeft = this.getTopLeftCorner();
-    let bottomRight = this.getBottomRightCorner();
-    let out = [];
+    const topLeft = this.getTopLeftCorner();
+    const bottomRight = this.getBottomRightCorner();
+    const out = [];
 
     for (let r = topLeft.row; r <= bottomRight.row; r++) {
       for (let c = topLeft.col; c <= bottomRight.col; c++) {
@@ -554,12 +554,12 @@ class CellRange {
    * @param callback {Function}
    */
   forAll(callback) {
-    let topLeft = this.getTopLeftCorner();
-    let bottomRight = this.getBottomRightCorner();
+    const topLeft = this.getTopLeftCorner();
+    const bottomRight = this.getBottomRightCorner();
 
     for (let r = topLeft.row; r <= bottomRight.row; r++) {
       for (let c = topLeft.col; c <= bottomRight.col; c++) {
-        let breakIteration = callback(r, c);
+        const breakIteration = callback(r, c);
 
         if (breakIteration === false) {
           return;

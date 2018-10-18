@@ -1,11 +1,11 @@
 describe('columnHeaders option', () => {
-  var $table,
-    $container,
-    $wrapper,
-    debug = false;
+  let $table;
+  let $container;
+  let $wrapper;
+  const debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden', position: 'relative'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden', position: 'relative' });
     $wrapper.width(500).height(201);
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
@@ -23,7 +23,7 @@ describe('columnHeaders option', () => {
   });
 
   it('should not add class `htColumnHeaders` when column headers are disabled', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -35,7 +35,7 @@ describe('columnHeaders option', () => {
   });
 
   it('should add class `htColumnHeaders` when column headers are enabled', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -50,7 +50,7 @@ describe('columnHeaders option', () => {
   });
 
   it('should create table with column headers', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -73,8 +73,8 @@ describe('columnHeaders option', () => {
   });
 
   it('should create column headers with correct height when th has css `white-space: normal`', () => {
-    var style = $('<style>.handsontable thead th {white-space: normal;}</style>').appendTo('head');
-    var wt = new Walkontable.Core({
+    const style = $('<style>.handsontable thead th {white-space: normal;}</style>').appendTo('head');
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -91,7 +91,7 @@ describe('columnHeaders option', () => {
   });
 
   it('should create column headers with correct height when th has css `white-space: pre-line` (default)', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -107,8 +107,8 @@ describe('columnHeaders option', () => {
   });
 
   it('should generate column headers from function', () => {
-    var headers = ['Description', 2012, 2013, 2014];
-    var wt = new Walkontable.Core({
+    const headers = ['Description', 2012, 2013, 2014];
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -119,7 +119,7 @@ describe('columnHeaders option', () => {
     });
     wt.draw();
 
-    var visibleHeaders = headers.slice(0, wt.wtTable.getLastRenderedColumn() + 1); // headers for rendered columns only
+    const visibleHeaders = headers.slice(0, wt.wtTable.getLastRenderedColumn() + 1); // headers for rendered columns only
 
     expect($table.find('thead tr:first th').length).toBe(visibleHeaders.length);
     expect($table.find('thead tr:first th').text()).toEqual(visibleHeaders.join(''));

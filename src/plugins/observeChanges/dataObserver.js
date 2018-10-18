@@ -1,7 +1,7 @@
 import jsonpatch from './../../../lib/jsonpatch/json-patch-duplex';
 import localHooks from '../../mixins/localHooks';
-import {mixin} from '../../helpers/object';
-import {cleanPatches} from './utils';
+import { mixin } from '../../helpers/object';
+import { cleanPatches } from './utils';
 
 /**
  * @class DataObserver
@@ -42,7 +42,7 @@ class DataObserver {
       jsonpatch.unobserve(this.observedData, this.observer);
     }
     this.observedData = observedData;
-    this.observer = jsonpatch.observe(this.observedData, (patches) => this.onChange(patches));
+    this.observer = jsonpatch.observe(this.observedData, patches => this.onChange(patches));
   }
 
   /**

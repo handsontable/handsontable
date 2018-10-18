@@ -1,5 +1,5 @@
 function MultiMap() {
-  var map = {
+  const map = {
     arrayMap: [],
     weakMap: new WeakMap(),
   };
@@ -33,11 +33,11 @@ function MultiMap() {
   };
 
   function canBeAnArrayMapKey(obj) {
-    return obj !== null && !isNaNSymbol(obj) && (typeof obj == 'string' || typeof obj == 'number');
+    return obj !== null && !isNaNSymbol(obj) && (typeof obj === 'string' || typeof obj === 'number');
   }
 
   function canBeAWeakMapKey(obj) {
-    return obj !== null && (typeof obj == 'object' || typeof obj == 'function');
+    return obj !== null && (typeof obj === 'object' || typeof obj === 'function');
   }
 
   function isNaNSymbol(obj) {

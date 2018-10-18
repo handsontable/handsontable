@@ -1,5 +1,4 @@
-import {arrayEach} from './../helpers/array';
-import {defineGetter} from './../helpers/object';
+import { defineGetter } from './../helpers/object';
 
 const MIXIN_NAME = 'stateSaver';
 const STATE_PREFIX = 'state_';

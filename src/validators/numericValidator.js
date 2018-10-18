@@ -7,16 +7,18 @@
  * @param {*} callback - Callback called with validation result
  */
 export default function numericValidator(value, callback) {
-  if (value == null) {
-    value = '';
+  let valueToValidate = value;
+
+  if (valueToValidate === null || valueToValidate === void 0) {
+    valueToValidate = '';
   }
-  if (this.allowEmpty && value === '') {
+  if (this.allowEmpty && valueToValidate === '') {
     callback(true);
 
-  } else if (value === '') {
+  } else if (valueToValidate === '') {
     callback(false);
 
   } else {
-    callback(/^-?\d*(\.|,)?\d*$/.test(value));
+    callback(/^-?\d*(\.|,)?\d*$/.test(valueToValidate));
   }
-};
+}

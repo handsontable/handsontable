@@ -5,7 +5,7 @@ export default function jQueryWrapper(Handsontable) {
     return;
   }
 
-  jQuery.fn.handsontable = function(action) {
+  jQuery.fn.handsontable = function(action, ...args) {
     const $this = this.first(); // Use only first element from list
     let instance = $this.data('handsontable');
 
@@ -25,29 +25,22 @@ export default function jQueryWrapper(Handsontable) {
       return $this;
     }
 
-    // Action case
-    const args = [];
     let output;
 
-    if (arguments.length > 1) {
-      for (let i = 1, ilen = arguments.length; i < ilen; i++) {
-        args.push(arguments[i]);
-      }
-    }
-
+    // Action case
     if (instance) {
       if (typeof instance[action] !== 'undefined') {
-        output = instance[action].apply(instance, args);
+        output = instance[action].call(instance, ...args);
 
         if (action === 'destroy') {
           $this.removeData();
         }
 
       } else {
-        throw new Error('Handsontable do not provide action: ' + action);
+        throw new Error(`Handsontable do not provide action: ${action}`);
       }
     }
 
     return output;
   };
-};
+}

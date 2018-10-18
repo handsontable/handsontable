@@ -1,6 +1,6 @@
 describe('settings', () => {
   describe('renderer', () => {
-    var id = 'testContainer';
+    const id = 'testContainer';
 
     beforeEach(function() {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -15,7 +15,7 @@ describe('settings', () => {
 
     describe('defined in constructor', () => {
       it('should use text renderer by default', () => {
-        var originalTextRenderer = Handsontable.cellTypes.text.renderer;
+        const originalTextRenderer = Handsontable.cellTypes.text.renderer;
 
         spyOn(Handsontable.cellTypes.text, 'renderer');
         Handsontable.renderers.registerRenderer('text', Handsontable.cellTypes.text.renderer);
@@ -27,11 +27,11 @@ describe('settings', () => {
       });
 
       it('should use renderer from predefined string', () => {
-        var originalTextRenderer = Handsontable.renderers.TextRenderer;
+        const originalTextRenderer = Handsontable.renderers.TextRenderer;
         spyOn(Handsontable.renderers, 'TextRenderer');
         Handsontable.renderers.registerRenderer('text', Handsontable.renderers.TextRenderer);
 
-        var originalCheckboxRenderer = Handsontable.renderers.CheckboxRenderer;
+        const originalCheckboxRenderer = Handsontable.renderers.CheckboxRenderer;
         spyOn(Handsontable.renderers, 'CheckboxRenderer');
         Handsontable.renderers.registerRenderer('checkbox', Handsontable.renderers.CheckboxRenderer);
 
@@ -50,18 +50,18 @@ describe('settings', () => {
       });
 
       it('should use renderer from predefined string when columns is a function', () => {
-        var originalTextRenderer = Handsontable.renderers.TextRenderer;
+        const originalTextRenderer = Handsontable.renderers.TextRenderer;
 
         spyOn(Handsontable.renderers, 'TextRenderer');
         Handsontable.renderers.registerRenderer('text', Handsontable.renderers.TextRenderer);
 
-        var originalCheckboxRenderer = Handsontable.renderers.CheckboxRenderer;
+        const originalCheckboxRenderer = Handsontable.renderers.CheckboxRenderer;
         spyOn(Handsontable.renderers, 'CheckboxRenderer');
         Handsontable.renderers.registerRenderer('checkbox', Handsontable.renderers.CheckboxRenderer);
 
         handsontable({
           columns(column) {
-            return column === 0 ? {renderer: 'checkbox'} : null;
+            return column === 0 ? { renderer: 'checkbox' } : null;
           }
         });
         expect(Handsontable.renderers.TextRenderer).not.toHaveBeenCalled();
@@ -72,7 +72,7 @@ describe('settings', () => {
       });
 
       it('should use renderer from custom function', () => {
-        var called = false;
+        let called = false;
 
         function myRenderer() {
           called = true;
@@ -90,7 +90,7 @@ describe('settings', () => {
       });
 
       it('should use renderer from custom function when columns is a function', () => {
-        var called = false;
+        let called = false;
 
         function myRenderer() {
           called = true;
@@ -98,7 +98,7 @@ describe('settings', () => {
 
         handsontable({
           columns(column) {
-            return column === 0 ? {renderer: myRenderer} : null;
+            return column === 0 ? { renderer: myRenderer } : null;
           }
         });
 
@@ -106,7 +106,7 @@ describe('settings', () => {
       });
 
       it('should use renderer from custom string', () => {
-        var myRenderer = jasmine.createSpy('myRenderer');
+        const myRenderer = jasmine.createSpy('myRenderer');
 
         Handsontable.renderers.registerRenderer('myRenderer', myRenderer);
 
@@ -122,13 +122,13 @@ describe('settings', () => {
       });
 
       it('should use renderer from custom string when columns is a function', () => {
-        var myRenderer = jasmine.createSpy('myRenderer');
+        const myRenderer = jasmine.createSpy('myRenderer');
 
         Handsontable.renderers.registerRenderer('myRenderer', myRenderer);
 
         handsontable({
           columns(column) {
-            return column === 0 ? {renderer: 'myRenderer'} : null;
+            return column === 0 ? { renderer: 'myRenderer' } : null;
           }
         });
 
@@ -137,8 +137,8 @@ describe('settings', () => {
     });
 
     it('should call renderer with cellProperties.row, cellProperties.col matching row and col arguments', () => {
-      var rendererSpy = jasmine.createSpy('rendererSpy').and.callThrough();
-      var cellPropertiesCache = [];
+      const rendererSpy = jasmine.createSpy('rendererSpy').and.callThrough();
+      const cellPropertiesCache = [];
 
       rendererSpy.and.callFake((instance, TD, row, col, prop, value, cellProperties) => {
         cellPropertiesCache.push({
@@ -151,11 +151,11 @@ describe('settings', () => {
         renderer: rendererSpy
       });
 
-      for (var i = 0, len = rendererSpy.calls.count(); i < len; i++) {
-        var args = rendererSpy.calls.argsFor(i);
-        var row = args[2];
-        var col = args[3];
-        var cellProperties = cellPropertiesCache[i];
+      for (let i = 0, len = rendererSpy.calls.count(); i < len; i++) {
+        const args = rendererSpy.calls.argsFor(i);
+        const row = args[2];
+        const col = args[3];
+        const cellProperties = cellPropertiesCache[i];
 
         expect(row).toEqual(cellProperties.row);
         expect(col).toEqual(cellProperties.col);
@@ -163,8 +163,8 @@ describe('settings', () => {
     });
 
     it('should call cells function before passing cellProperties to renderer', () => {
-      var rendererSpy = jasmine.createSpy('rendererSpy').and.callThrough();
-      var cellPropertiesCache = [];
+      const rendererSpy = jasmine.createSpy('rendererSpy').and.callThrough();
+      const cellPropertiesCache = [];
 
       rendererSpy.and.callFake((instance, TD, row, col, prop, value, cellProperties) => {
         cellPropertiesCache.push({
@@ -183,11 +183,11 @@ describe('settings', () => {
         }
       });
 
-      for (var i = 0, len = rendererSpy.calls.count(); i < len; i++) {
-        var args = rendererSpy.calls.argsFor(i);
-        var row = args[2];
-        var col = args[3];
-        var cellProperties = cellPropertiesCache[i];
+      for (let i = 0, len = rendererSpy.calls.count(); i < len; i++) {
+        const args = rendererSpy.calls.argsFor(i);
+        const row = args[2];
+        const col = args[3];
+        const cellProperties = cellPropertiesCache[i];
 
         expect(row).toEqual(cellProperties.cellsRow);
         expect(col).toEqual(cellProperties.cellsCol);

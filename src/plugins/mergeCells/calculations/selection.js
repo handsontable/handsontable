@@ -1,4 +1,4 @@
-import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
+import { CellCoords, CellRange } from './../../../3rdparty/walkontable/src';
 
 /**
  * Class responsible for all of the Selection-related operations on merged cells.
@@ -121,13 +121,13 @@ class SelectionCalculations {
       currentColumn >= startColumn &&
       currentColumn <= endColumn) {
 
-      let isMergedCellParent = this.plugin.mergedCellsCollection.isMergedParent(currentRow, currentColumn);
+      const isMergedCellParent = this.plugin.mergedCellsCollection.isMergedParent(currentRow, currentColumn);
 
       if (!isMergedCellParent) {
         return;
       }
 
-      let mergedCell = this.plugin.mergedCellsCollection.get(currentRow, currentColumn);
+      const mergedCell = this.plugin.mergedCellsCollection.get(currentRow, currentColumn);
 
       if (!mergedCell) {
         return;
@@ -163,7 +163,7 @@ class SelectionCalculations {
     }
 
     for (let i = 0; i < mergedCellIndividualCoords.length; i += 1) {
-      let insideSelections = [];
+      const insideSelections = [];
 
       for (let s = 0; s < selectionRangesArray.length; s += 1) {
         insideSelections[s] = selectionRangesArray[s].includes(mergedCellIndividualCoords[i]);

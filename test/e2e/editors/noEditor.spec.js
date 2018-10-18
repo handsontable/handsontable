@@ -1,5 +1,5 @@
 describe('noEditor', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
@@ -13,49 +13,37 @@ describe('noEditor', () => {
   });
 
   it('shouldn\'t begin editing when enterBeginsEditing equals true', () => {
-    var
-      selection;
-
     handsontable({
       enterBeginsEditing: true,
       editor: false
     });
     selectCell(2, 2);
     keyDown('enter');
-    selection = getSelected();
 
-    expect(selection).toEqual([[2, 2, 2, 2]]);
+    expect(getSelected()).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(false);
   });
 
   it('shouldn\'t move down after editing', () => {
-    var
-      selection;
-
     handsontable({
       editor: false
     });
     selectCell(2, 2);
     keyDown('enter');
     keyDown('enter');
-    selection = getSelected();
 
-    expect(selection).toEqual([[2, 2, 2, 2]]);
+    expect(getSelected()).toEqual([[2, 2, 2, 2]]);
   });
 
   it('shouldn\'t move down when enterBeginsEditing equals false', () => {
-    var
-      selection;
-
     handsontable({
       enterBeginsEditing: false,
       editor: false
     });
     selectCell(2, 2);
     keyDown('enter');
-    selection = getSelected();
 
-    expect(selection).toEqual([[3, 2, 3, 2]]);
+    expect(getSelected()).toEqual([[3, 2, 3, 2]]);
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -109,13 +97,13 @@ describe('noEditor', () => {
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
+      clicks += 1;
     }, 0);
 
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
+      clicks += 1;
     }, 100);
 
     setTimeout(() => {
@@ -126,7 +114,7 @@ describe('noEditor', () => {
     }, 200);
   });
 
-  it('should not open editor after pressing a printable character', function() {
+  it('should not open editor after pressing a printable character', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       editor: false
@@ -135,12 +123,12 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    this.$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0)});
+    spec().$container.simulate('keydown', { keyCode: 'a'.charCodeAt(0) });
 
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should not open editor after pressing a printable character with shift key', function() {
+  it('should not open editor after pressing a printable character with shift key', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       editor: false
@@ -149,7 +137,7 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    this.$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0), shiftKey: true});
+    spec().$container.simulate('keydown', { keyCode: 'a'.charCodeAt(0), shiftKey: true });
 
     expect(isEditorVisible()).toBe(false);
   });
@@ -168,7 +156,7 @@ describe('noEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should focus editable element (from copyPaste plugin) after selecting the cell', async () => {
+    it('should focus editable element (from copyPaste plugin) after selecting the cell', async() => {
       handsontable({
         editor: false,
       });

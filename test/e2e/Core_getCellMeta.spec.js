@@ -1,5 +1,5 @@
 describe('Core_getCellMeta', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -31,11 +31,11 @@ describe('Core_getCellMeta', () => {
   });
 
   it('should not allow manual editing of a read only cell', () => {
-    var allCellsReadOnly = false;
+    let allCellsReadOnly = false;
 
     handsontable({
       cells() {
-        return {readOnly: allCellsReadOnly};
+        return { readOnly: allCellsReadOnly };
       }
     });
     allCellsReadOnly = true;
@@ -47,11 +47,11 @@ describe('Core_getCellMeta', () => {
   });
 
   it('should allow manual editing of cell that is no longer read only', () => {
-    var allCellsReadOnly = true;
+    let allCellsReadOnly = true;
 
     handsontable({
       cells() {
-        return {readOnly: allCellsReadOnly};
+        return { readOnly: allCellsReadOnly };
       }
     });
     allCellsReadOnly = false;
@@ -66,7 +66,7 @@ describe('Core_getCellMeta', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       cells() {
-        return {readOnly: true};
+        return { readOnly: true };
       }
     });
 
@@ -81,9 +81,9 @@ describe('Core_getCellMeta', () => {
     handsontable({
       cells() {
         return {
-          renderer(instance, td, row, col, prop, value, cellProperties) {
+          renderer(instance, td, ...args) {
             // taken from demo/renderers.html
-            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
             $(td).css({
               background: 'yellow'
             });
@@ -110,9 +110,9 @@ describe('Core_getCellMeta', () => {
         if (row === 2 && col === 2) {
           return {
             type: 'checkbox',
-            renderer(instance, td, row, col, prop, value, cellProperties) {
+            renderer(instance, td, ...args) {
               // taken from demo/renderers.html
-              Handsontable.renderers.TextRenderer.apply(this, arguments);
+              Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
 
               td.style.backgroundColor = 'yellow';
             }
@@ -126,35 +126,35 @@ describe('Core_getCellMeta', () => {
   });
 
   it('this in cells should point to cellProperties', () => {
-    var called = 0,
-      _row,
-      _this;
+    let called = 0;
+    let _row;
+    let _this;
 
     handsontable({
-      cells(row, col, prop) {
-        called++;
+      cells(row) {
+        called += 1;
         _row = row;
         _this = this;
       }
     });
 
-    var HOT = getInstance();
+    const HOT = getInstance();
 
     expect(called).toBeGreaterThan(0);
     expect(_this.row).toEqual(_row);
     expect(_this.instance).toBe(HOT);
   });
 
-  it('should get proper cellProperties when order of displayed rows is different than order of stored data', function() {
-    var hot = handsontable({
+  it('should get proper cellProperties when order of displayed rows is different than order of stored data', () => {
+    handsontable({
       data: [
         ['C'],
         ['A'],
         ['B']
       ],
       minSpareRows: 1,
-      cells(row, col, prop) {
-        var cellProperties = {};
+      cells(row, col) {
+        const cellProperties = {};
 
         if (getSourceData()[row][col] === 'A') {
           cellProperties.readOnly = true;
@@ -164,31 +164,33 @@ describe('Core_getCellMeta', () => {
       }
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(false);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C');
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(true);
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A');
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(true);
 
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('B');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('B');
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
     // Column sorting changes the order of displayed rows while keeping table data unchanged
     updateSettings({
       columnSorting: {
-        column: 0,
-        sortOrder: 'asc'
+        initialConfig: {
+          column: 0,
+          sortOrder: 'asc'
+        }
       }
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(true);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A');
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(true);
 
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('B');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(false);
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('B');
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('C');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('C');
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
   });
 
   it('should call `beforeGetCellMeta` plugin hook with visual indexes as parameters', () => {
@@ -196,7 +198,7 @@ describe('Core_getCellMeta', () => {
     let colInsideHook;
 
     const hot = handsontable({
-      beforeGetCellMeta: function (row, col) {
+      beforeGetCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },
@@ -219,7 +221,7 @@ describe('Core_getCellMeta', () => {
     let colInsideHook;
 
     const hot = handsontable({
-      afterGetCellMeta: function (row, col) {
+      afterGetCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },

@@ -1,6 +1,5 @@
 import EventManager from '../eventManager';
-import {isCtrlMetaKey, isKey} from '../helpers/unicode';
-import {arrayEach, arrayReduce} from '../helpers/array';
+import { isCtrlMetaKey, isKey } from '../helpers/unicode';
 
 const eventManager = new EventManager();
 const pressedKeys = new Set();
@@ -25,6 +24,9 @@ function startObserving() {
       if (document.hidden) {
         pressedKeys.clear();
       }
+    });
+    eventManager.addEventListener(window, 'blur', () => {
+      pressedKeys.clear();
     });
   }
 
@@ -60,7 +62,7 @@ function _resetState() {
  * @return {Boolean}
  */
 function isPressed(keyCodes) {
-  return Array.from(pressedKeys.values()).some((_keyCode) => isKey(_keyCode, keyCodes));
+  return Array.from(pressedKeys.values()).some(_keyCode => isKey(_keyCode, keyCodes));
 }
 
 /**
@@ -69,7 +71,9 @@ function isPressed(keyCodes) {
  * @return {Boolean}
  */
 function isPressedCtrlKey() {
-  return Array.from(pressedKeys.values()).some((_keyCode) => isCtrlMetaKey(_keyCode));
+  const values = Array.from(pressedKeys.values());
+
+  return values.some(_keyCode => isCtrlMetaKey(_keyCode));
 }
 
 /**

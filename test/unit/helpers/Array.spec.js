@@ -35,7 +35,7 @@ describe('Array helper', () => {
     it('should call callback with proper arguments for input data passed as an array', () => {
       const cb = jasmine.createSpy('cb');
 
-      cb.and.callFake((value) => true);
+      cb.and.callFake(() => true);
 
       arrayEach([4, 5, 2, 15], cb);
 
@@ -49,7 +49,7 @@ describe('Array helper', () => {
     it('should call callback with proper arguments for input data passed as an object with implemented iterator protocol', () => {
       const cb = jasmine.createSpy('cb');
 
-      cb.and.callFake((value) => true);
+      cb.and.callFake(() => true);
 
       arrayEach(iterableObject, cb);
 
@@ -63,7 +63,7 @@ describe('Array helper', () => {
     it('should break the loop on first invocation when the callback returns `false`', () => {
       const cb = jasmine.createSpy('cb');
 
-      cb.and.callFake((value) => false);
+      cb.and.callFake(() => false);
 
       arrayEach([4, 5, 2, 15], cb);
 
@@ -74,7 +74,7 @@ describe('Array helper', () => {
     it('should break the loop on when callback returns `false`', () => {
       const cb = jasmine.createSpy('cb');
 
-      cb.and.callFake((value) => value !== 2);
+      cb.and.callFake(value => value !== 2);
 
       arrayEach([4, 5, 2, 15], cb);
 
@@ -92,7 +92,7 @@ describe('Array helper', () => {
     it('should call callback with proper arguments for input data passed as an array', () => {
       const cb = jasmine.createSpy('cb');
 
-      cb.and.callFake((value) => true);
+      cb.and.callFake(() => true);
 
       arrayFilter([4, 5, 2, 15], cb);
 
@@ -106,7 +106,7 @@ describe('Array helper', () => {
     it('should call callback with proper arguments for input data passed as an object with implemented iterator protocol', () => {
       const cb = jasmine.createSpy('cb');
 
-      cb.and.callFake((value) => true);
+      cb.and.callFake(() => true);
 
       arrayFilter(iterableObject, cb);
 
@@ -121,7 +121,7 @@ describe('Array helper', () => {
       const cb = jasmine.createSpy('cb');
       const data = [4, 5, 2, 15];
 
-      cb.and.callFake((value) => value % 2);
+      cb.and.callFake(value => value % 2);
 
       arrayFilter(data, cb);
 
@@ -147,14 +147,14 @@ describe('Array helper', () => {
   //
   describe('arrayMap', () => {
     it('should returns the mapped array', () => {
-      expect(arrayMap([1], (a) => a + 1)).toEqual([2]);
+      expect(arrayMap([1], a => a + 1)).toEqual([2]);
       expect(arrayMap([1, 2, 3], () => '')).toEqual(['', '', '']);
     });
 
     it('should call callback with proper arguments for input data passed as an array', () => {
       const cb = jasmine.createSpy('cb');
 
-      cb.and.callFake((value) => value);
+      cb.and.callFake(value => value);
 
       arrayMap([4, 5, 2, 15], cb);
 
@@ -168,7 +168,7 @@ describe('Array helper', () => {
     it('should call callback with proper arguments for input data passed as an object with implemented iterator protocol', () => {
       const cb = jasmine.createSpy('cb');
 
-      cb.and.callFake((value) => value);
+      cb.and.callFake(value => value);
 
       arrayMap(iterableObject, cb);
 

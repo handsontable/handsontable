@@ -1,8 +1,8 @@
 describe('WalkontableBorder', () => {
-  var $table,
-    $container,
-    $wrapper,
-    debug = false;
+  let $table;
+  let $container;
+  let $wrapper;
+  const debug = false;
 
   beforeEach(() => {
     $container = $('<div></div>');
@@ -28,21 +28,20 @@ describe('WalkontableBorder', () => {
       data: getData,
       totalRows: 5,
       totalColumns: 5,
-      selections: [
-        new Walkontable.Selection({
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
           border: {
             width: 1,
             color: 'red'
           }
         })
-      ],
-      onCellMouseDown(event, coords, TD) {
+      }),
+      onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
         wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
-    shimSelectionProperties(wt);
     wt.draw();
 
     const $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
@@ -90,21 +89,20 @@ describe('WalkontableBorder', () => {
       data: getData,
       totalRows: 5,
       totalColumns: 1,
-      selections: [
-        new Walkontable.Selection({
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
           border: {
             width: 1,
             color: 'red'
           }
         })
-      ],
-      onCellMouseDown(event, coords, TD) {
+      }),
+      onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
         wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
-    shimSelectionProperties(wt);
     wt.draw();
 
     const $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
@@ -135,21 +133,20 @@ describe('WalkontableBorder', () => {
       data: getData,
       totalRows: 5,
       totalColumns: 2,
-      selections: [
-        new Walkontable.Selection({
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
           border: {
             width: 1,
             color: 'red'
           }
         })
-      ],
-      onCellMouseDown(event, coords, TD) {
+      }),
+      onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
         wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
-    shimSelectionProperties(wt);
     wt.draw();
 
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
@@ -181,8 +178,8 @@ describe('WalkontableBorder', () => {
       data: getData,
       totalRows: 5,
       totalColumns: 5,
-      selections: [
-        new Walkontable.Selection({
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
           border: {
             width: 2,
             color: 'green',
@@ -191,15 +188,14 @@ describe('WalkontableBorder', () => {
             }
           }
         }),
-        new Walkontable.Selection({})
-      ],
-      onCellMouseDown(event, coords, TD) {
+        area: new Walkontable.Selection({}),
+      }),
+      onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
         wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
-    shimSelectionProperties(wt);
     wt.draw();
 
     const $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
@@ -229,22 +225,20 @@ describe('WalkontableBorder', () => {
       totalColumns: 5,
       fixedColumnsLeft: 2,
       fixedRowsTop: 2,
-      selections: [
-        new Walkontable.Selection({
-          className: 'current'
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
+          className: 'current',
         }),
-        new Walkontable.Selection({
+        area: new Walkontable.Selection({
           className: 'area',
           border: {
             cornerVisible() {
               return true;
             }
           }
-        })
-      ],
+        }),
+      }),
     });
-
-    shimSelectionProperties(wt);
 
     wt.selections.createOrGetArea().add(new Walkontable.CellCoords(0, 0));
     wt.selections.createOrGetArea().add(new Walkontable.CellCoords(2, 2));
@@ -266,8 +260,8 @@ describe('WalkontableBorder', () => {
       data: getData,
       totalRows: 5,
       totalColumns: 4,
-      selections: [
-        new Walkontable.Selection({
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
           border: {
             width: 2,
             color: 'green',
@@ -276,15 +270,14 @@ describe('WalkontableBorder', () => {
             }
           }
         }),
-        new Walkontable.Selection({})
-      ],
-      onCellMouseDown(event, coords, TD) {
+        area: new Walkontable.Selection({}),
+      }),
+      onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
         wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
-    shimSelectionProperties(wt);
     wt.draw();
 
     const $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
@@ -329,8 +322,8 @@ describe('WalkontableBorder', () => {
       data: getData,
       totalRows: 5,
       totalColumns: 1,
-      selections: [
-        new Walkontable.Selection({
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
           border: {
             width: 2,
             color: 'green',
@@ -339,16 +332,15 @@ describe('WalkontableBorder', () => {
             }
           }
         }),
-        new Walkontable.Selection({})
-      ],
-      onCellMouseDown(event, coords, TD) {
+        area: new Walkontable.Selection({}),
+      }),
+      onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
         wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
 
-    shimSelectionProperties(wt);
     wt.draw();
 
     const $td = $table.find('tbody tr:last-of-type td:last-of-type');
@@ -380,8 +372,8 @@ describe('WalkontableBorder', () => {
       data: getData,
       totalRows: 1,
       totalColumns: 1,
-      selections: [
-        new Walkontable.Selection({
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
           border: {
             width: 2,
             color: 'green',
@@ -390,16 +382,15 @@ describe('WalkontableBorder', () => {
             }
           }
         }),
-        new Walkontable.Selection({})
-      ],
-      onCellMouseDown(event, coords, TD) {
+        area: new Walkontable.Selection({}),
+      }),
+      onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
         wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
 
-    shimSelectionProperties(wt);
     wt.draw();
 
     const $td = $table.find('tbody tr:last-of-type td:last-of-type');

@@ -1,5 +1,5 @@
-import {getWindowScrollLeft, getWindowScrollTop} from './../../helpers/dom/element';
-import {pageX, pageY} from './../../helpers/dom/event';
+import { getWindowScrollLeft, getWindowScrollTop } from './../../helpers/dom/element';
+import { pageX, pageY } from './../../helpers/dom/event';
 
 /**
  * Helper class for checking if element will fit at the desired side of cursor.
@@ -9,14 +9,14 @@ import {pageX, pageY} from './../../helpers/dom/event';
  */
 class Cursor {
   constructor(object) {
-    let windowScrollTop = getWindowScrollTop();
-    let windowScrollLeft = getWindowScrollLeft();
-    let top,
-      topRelative;
-    let left,
-      leftRelative;
-    let cellHeight,
-      cellWidth;
+    const windowScrollTop = getWindowScrollTop();
+    const windowScrollLeft = getWindowScrollLeft();
+    let top;
+    let topRelative;
+    let left;
+    let leftRelative;
+    let cellHeight;
+    let cellWidth;
 
     this.type = this.getSourceType(object);
 

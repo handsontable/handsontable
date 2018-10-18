@@ -17,7 +17,7 @@ describe('MergeCells-Autofill calculations', () => {
         }
       });
 
-      let area = [0, 0, 0, 0];
+      const area = [0, 0, 0, 0];
       instance.correctSelectionAreaSize(area);
 
       expect(area).toEqual([0, 0, 2, 2]);
@@ -47,7 +47,7 @@ describe('MergeCells-Autofill calculations', () => {
       let baseArea = [5, 4, 6, 5];
       let dragArea = [4, 4, 6, 5];
       let dragDirection = 'up';
-      let foundMergedCells = [new MergedCellCoords(5, 4, 2, 2)];
+      const foundMergedCells = [new MergedCellCoords(5, 4, 2, 2)];
 
       expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[3,4,6,5]');
 
@@ -103,7 +103,7 @@ describe('MergeCells-Autofill calculations', () => {
     it('Should get the \'length\' of the drag area.', () => {
       const instance = new AutofillCalculations({});
 
-      let baseArea = [5, 4, 6, 5];
+      const baseArea = [5, 4, 6, 5];
       let dragArea = [5, 4, 10, 5];
       let direction = 'down';
       expect(instance.getAutofillSize(baseArea, dragArea, direction)).toEqual(4);
@@ -126,10 +126,10 @@ describe('MergeCells-Autofill calculations', () => {
     it('Should get the to-be-farthest merged cell in the newly filled area.', () => {
       const instance = new AutofillCalculations({});
 
-      let baseArea = [3, 3, 10, 11];
+      const baseArea = [3, 3, 10, 11];
       let dragArea = [3, 3, 13, 11];
       let direction = 'down';
-      let mergedCellArray = [new MergedCellCoords(5, 4, 2, 2), new MergedCellCoords(8, 8, 2, 3)];
+      const mergedCellArray = [new MergedCellCoords(5, 4, 2, 2), new MergedCellCoords(8, 8, 2, 3)];
 
       expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray)).toEqual(mergedCellArray[0]);
 
@@ -185,7 +185,7 @@ describe('MergeCells-Autofill calculations', () => {
         countRows: () => 100,
       };
       const instance = new AutofillCalculations({
-        mergedCellsCollection: new MergedCellsCollection({hot: hotMock}),
+        mergedCellsCollection: new MergedCellsCollection({ hot: hotMock }),
         hot: hotMock
       });
 
@@ -249,8 +249,8 @@ describe('MergeCells-Autofill calculations', () => {
         [10, 8, '[10, 8]', null]];
 
       expect(JSON.stringify(instance.getRangeFromChanges(changes))).toEqual(JSON.stringify({
-        from: {row: 7, column: 4},
-        to: {row: 10, column: 8}
+        from: { row: 7, column: 4 },
+        to: { row: 10, column: 8 }
       }));
     });
   });

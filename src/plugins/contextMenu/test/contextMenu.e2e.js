@@ -1,18 +1,18 @@
 describe('ContextMenu', () => {
   const id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should update context menu items by calling `updateSettings` method', async () => {
+  it('should update context menu items by calling `updateSettings` method', async() => {
     handsontable({
       contextMenu: ['row_above', 'row_below', '---------', 'remove_row'],
       height: 100
@@ -57,7 +57,7 @@ describe('ContextMenu', () => {
         items: {
           remove_col: true,
           hsep1: '---------',
-          custom: {name: 'My custom item'},
+          custom: { name: 'My custom item' },
         }
       }
     });
@@ -80,7 +80,7 @@ describe('ContextMenu', () => {
   });
 
   describe('menu width', () => {
-    it('should display the menu with the minimum width', async () => {
+    it('should display the menu with the minimum width', async() => {
       handsontable({
         contextMenu: {
           items: {
@@ -103,7 +103,7 @@ describe('ContextMenu', () => {
       expect($menu.find('.wtHider').width()).toEqual(215);
     });
 
-    it('should expand menu when one of items is wider then default width of the menu', async () => {
+    it('should expand menu when one of items is wider then default width of the menu', async() => {
       handsontable({
         contextMenu: {
           items: {
@@ -126,7 +126,7 @@ describe('ContextMenu', () => {
       expect($menu.find('.wtHider').width()).toBeGreaterThan(215);
     });
 
-    it('should display a submenu with the minimum width', async () => {
+    it('should display a submenu with the minimum width', async() => {
       handsontable({
         contextMenu: {
           items: {
@@ -249,7 +249,7 @@ describe('ContextMenu', () => {
       const hot = handsontable({
         data: [],
         colHeaders: ['Year', 'Kia'],
-        columns: [{data: 0}, {data: 1}],
+        columns: [{ data: 0 }, { data: 1 }],
         contextMenu: true,
         height: 100
       });
@@ -353,7 +353,7 @@ describe('ContextMenu', () => {
   });
 
   describe('menu closing', () => {
-    it('should close menu after click', function () {
+    it('should close menu after click', () => {
       handsontable({
         contextMenu: true,
         height: 100
@@ -363,7 +363,7 @@ describe('ContextMenu', () => {
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
-      mouseDown(this.$container);
+      mouseDown(spec().$container);
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -413,7 +413,7 @@ describe('ContextMenu', () => {
       expect(getPlugin('contextMenu').isEnabled()).toBe(false);
     });
 
-    it('should reenable menu', async () => {
+    it('should reenable menu', async() => {
       handsontable({
         contextMenu: true,
         height: 100
@@ -481,7 +481,7 @@ describe('ContextMenu', () => {
     });
 
     it('should work properly (remove row) after destroy and new init', () => {
-      const test = function () {
+      const test = function() {
         handsontable({
           startRows: 5,
           contextMenu: ['remove_row'],
@@ -597,7 +597,7 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.length).toEqual(0);
     });
 
-    it('should open subMenu with delay', async () => {
+    it('should open subMenu with delay', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -637,7 +637,7 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.length).toEqual(0);
     });
 
-    it('should not throw error when opening multi-level menu with name declared as `function` #4550', async () => {
+    it('should not throw error when opening multi-level menu with name declared as `function` #4550', async() => {
       const spy = spyOn(window, 'onerror');
 
       handsontable({
@@ -650,7 +650,7 @@ describe('ContextMenu', () => {
               },
               submenu: {
                 items: [
-                  {key: 'alignment:left', name: 'Align to LEFT'}
+                  { key: 'alignment:left', name: 'Align to LEFT' }
                 ]
               }
             }
@@ -669,7 +669,7 @@ describe('ContextMenu', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('should not throw error when opening multi-level menu with name declared as `function` which return value not castable to string', async () => {
+    it('should not throw error when opening multi-level menu with name declared as `function` which return value not castable to string', async() => {
       const spy = spyOn(window, 'onerror');
 
       handsontable({
@@ -682,7 +682,7 @@ describe('ContextMenu', () => {
               },
               submenu: {
                 items: [
-                  {key: 'alignment:left', name: 'Align to LEFT'}
+                  { key: 'alignment:left', name: 'Align to LEFT' }
                 ]
               }
             },
@@ -692,7 +692,7 @@ describe('ContextMenu', () => {
               },
               submenu: {
                 items: [
-                  {key: 'custom1:test', name: 'Test1'}
+                  { key: 'custom1:test', name: 'Test1' }
                 ]
               }
             },
@@ -702,7 +702,7 @@ describe('ContextMenu', () => {
               },
               submenu: {
                 items: [
-                  {key: 'custom2:test', name: 'Test2'}
+                  { key: 'custom2:test', name: 'Test2' }
                 ]
               }
             }
@@ -756,7 +756,7 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
     });
 
-    it('should open subMenu on the right of main menu if there\'s free space', async () => {
+    it('should open subMenu on the right of main menu if there\'s free space', async() => {
       handsontable({
         data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -781,7 +781,7 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
     });
 
-    it('should open subMenu on the left-bottom of main menu if there\'s free space', async () => {
+    it('should open subMenu on the left-bottom of main menu if there\'s free space', async() => {
       handsontable({
         data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -808,7 +808,7 @@ describe('ContextMenu', () => {
       expect(parseInt(contextSubMenu.offset().left, 10)).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
     });
 
-    it('should open subMenu on the right-bottom of main menu if there\'s free space', async () => {
+    it('should open subMenu on the right-bottom of main menu if there\'s free space', async() => {
       handsontable({
         data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -836,7 +836,7 @@ describe('ContextMenu', () => {
       expect(parseInt(contextSubMenu.offset().left, 10)).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
     });
 
-    it('should open subMenu on the left-top of main menu if there\'s no free space on bottom', async () => {
+    it('should open subMenu on the left-top of main menu if there\'s no free space on bottom', async() => {
       handsontable({
         data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -862,7 +862,7 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
     });
 
-    it('should open subMenu on the right-top of main menu if there\'s no free space on bottom', async () => {
+    it('should open subMenu on the right-top of main menu if there\'s no free space on bottom', async() => {
       handsontable({
         data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -939,7 +939,7 @@ describe('ContextMenu', () => {
         .find('tbody')
         .find('th')
         .eq(0)
-        .simulate('mousedown', {which: 3});
+        .simulate('mousedown', { which: 3 });
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -962,7 +962,7 @@ describe('ContextMenu', () => {
 
       const header = $('.ht_clone_top .htCore').find('thead').find('th').eq(2);
 
-      header.simulate('mousedown', {which: 3});
+      header.simulate('mousedown', { which: 3 });
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -987,7 +987,7 @@ describe('ContextMenu', () => {
         .find('thead')
         .find('th')
         .eq(0)
-        .simulate('mousedown', {which: 3});
+        .simulate('mousedown', { which: 3 });
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1044,7 +1044,7 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', {which: 3});
+      cell.simulate('mousedown', { which: 3 });
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')
@@ -1183,7 +1183,7 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', {which: 3});
+      cell.simulate('mousedown', { which: 3 });
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')
@@ -1267,7 +1267,7 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', {which: 3});
+      cell.simulate('mousedown', { which: 3 });
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')
@@ -1350,7 +1350,7 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', {which: 3});
+      cell.simulate('mousedown', { which: 3 });
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')
@@ -1977,7 +1977,7 @@ describe('ContextMenu', () => {
       expect($menu.find('tbody td:eq(4)').hasClass('htDisabled')).toBe(false);
     });
 
-    it('should disable Remove col in context menu when rows are selected by headers', function() {
+    it('should disable Remove col in context menu when rows are selected by headers', () => {
       handsontable({
         contextMenu: ['remove_col', 'remove_row'],
         height: 100,
@@ -1985,7 +1985,7 @@ describe('ContextMenu', () => {
         rowHeaders: true
       });
 
-      const $rowsHeaders = this.$container.find('.ht_clone_left tr th');
+      const $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
 
       $rowsHeaders.eq(1).simulate('mousedown');
       $rowsHeaders.eq(2).simulate('mouseover');
@@ -2318,7 +2318,7 @@ describe('ContextMenu', () => {
         keyDownUp('arrow_down');
         keyDownUp('arrow_down');
 
-        let scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
+        const scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
 
         expect(scrollHeight).not.toBe(0);
       });
@@ -2878,7 +2878,7 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it('should close sub-menu and parent menu in proper order when user hits ESC twice', async () => {
+    it('should close sub-menu and parent menu in proper order when user hits ESC twice', async() => {
       handsontable({
         contextMenu: true,
         height: 100
@@ -2916,7 +2916,7 @@ describe('ContextMenu', () => {
       window.scrollTo(0, 0);
       $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').simulate('mouseenter');
 
-      let scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
+      const scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
 
       expect(scrollHeight).toBe(0);
     });
@@ -2949,7 +2949,7 @@ describe('ContextMenu', () => {
         .eq(0)
         .simulate('mousedown');
 
-      let scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
+      const scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
 
       expect(scrollHeight).toBe(0);
     });
@@ -3070,11 +3070,11 @@ describe('ContextMenu', () => {
   });
 
   describe('working with multiple tables', () => {
-    beforeEach(function () {
+    beforeEach(function() {
       this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
     });
 
-    afterEach(function () {
+    afterEach(function() {
       if (this.$container2) {
         this.$container2.handsontable('destroy');
         this.$container2.remove();
@@ -3191,7 +3191,7 @@ describe('ContextMenu', () => {
   });
 
   describe('context menu with disabled `allowInvalid`', () => {
-    it('should not close invalid cell', async () => {
+    it('should not close invalid cell', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         contextMenu: true,
@@ -3341,24 +3341,22 @@ describe('ContextMenu', () => {
 
       const cmInstance = getPlugin('contextMenu').menu.hotMenu;
 
-      expect(1).toEqual(1);
-
       cmInstance.selectCell(3, 0);
 
-      expect(window.scrollX).toEqual(beginningScrollX);
+      expect(window.scrollX).toBe(beginningScrollX);
 
       cmInstance.selectCell(4, 0);
 
-      expect(window.scrollX).toEqual(beginningScrollX);
+      expect(window.scrollX).toBe(beginningScrollX);
 
       cmInstance.selectCell(6, 0);
 
-      expect(window.scrollX).toEqual(beginningScrollX);
+      expect(window.scrollX).toBe(beginningScrollX);
     });
   });
 
   describe('afterContextMenuDefaultOptions hook', () => {
-    it('should call afterContextMenuDefaultOptions hook with context menu options as the first param', async () => {
+    it('should call afterContextMenuDefaultOptions hook with context menu options as the first param', async() => {
       const cb = jasmine.createSpy();
 
       cb.and.callFake((options) => {
@@ -3390,6 +3388,8 @@ describe('ContextMenu', () => {
 
   describe('beforeContextMenuSetItems hook', () => {
     it('should add new menu item even when item is excluded from plugin settings', () => {
+      let hot;
+
       Handsontable.hooks.add('beforeContextMenuSetItems', function(options) {
         if (this === hot || !hot) {
           options.push({
@@ -3399,7 +3399,7 @@ describe('ContextMenu', () => {
         }
       });
 
-      const hot = handsontable({
+      hot = handsontable({
         contextMenu: ['make_read_only'],
         height: 100
       });
@@ -3417,14 +3417,15 @@ describe('ContextMenu', () => {
 
     it('should be called only with items selected in plugin settings', () => {
       let keys = [];
+      let hot;
 
       Handsontable.hooks.add('beforeContextMenuSetItems', function(items) {
         if (this === hot || !hot) {
-          keys = items.map((v) => v.key);
+          keys = items.map(v => v.key);
         }
       });
 
-      const hot = handsontable({
+      hot = handsontable({
         contextMenu: ['make_read_only', 'col_left'],
         height: 100
       });

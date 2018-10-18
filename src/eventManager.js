@@ -1,7 +1,7 @@
-import {polymerWrap, closest} from './helpers/dom/element';
-import {hasOwnProperty} from './helpers/object';
-import {isWebComponentSupportedNatively} from './helpers/feature';
-import {stopImmediatePropagation as _stopImmediatePropagation} from './helpers/dom/event';
+import { polymerWrap, closest } from './helpers/dom/element';
+import { hasOwnProperty } from './helpers/object';
+import { isWebComponentSupportedNatively } from './helpers/feature';
+import { stopImmediatePropagation as _stopImmediatePropagation } from './helpers/dom/event';
 
 /**
  * Counter which tracks unregistered listeners (useful for detecting memory leaks).
@@ -38,13 +38,12 @@ class EventManager {
    * @returns {Function} Returns function which you can easily call to remove that event
    */
   addEventListener(element, eventName, callback) {
-    let context = this.context;
+    const context = this.context;
 
     function callbackProxy(event) {
-      event = extendEvent(context, event);
-
-      callback.call(this, event);
+      callback.call(this, extendEvent(context, event));
     }
+
     this.context.eventListeners.push({
       element,
       event: eventName,
@@ -57,7 +56,8 @@ class EventManager {
     } else {
       element.attachEvent(`on${eventName}`, callbackProxy);
     }
-    listenersCounter++;
+
+    listenersCounter += 1;
 
     return () => {
       this.removeEventListener(element, eventName, callback);
@@ -75,11 +75,12 @@ class EventManager {
     let len = this.context.eventListeners.length;
     let tmpEvent;
 
-    while (len--) {
+    while (len) {
+      len -= 1;
       tmpEvent = this.context.eventListeners[len];
 
-      if (tmpEvent.event == eventName && tmpEvent.element == element) {
-        if (callback && callback != tmpEvent.callback) {
+      if (tmpEvent.event === eventName && tmpEvent.element === element) {
+        if (callback && callback !== tmpEvent.callback) {
           /* eslint-disable no-continue */
           continue;
         }
@@ -90,7 +91,7 @@ class EventManager {
         } else {
           tmpEvent.element.detachEvent(`on${tmpEvent.event}`, tmpEvent.callbackProxy);
         }
-        listenersCounter--;
+        listenersCounter -= 1;
       }
     }
   }
@@ -107,8 +108,9 @@ class EventManager {
     }
     let len = this.context.eventListeners.length;
 
-    while (len--) {
-      let event = this.context.eventListeners[len];
+    while (len) {
+      len -= 1;
+      const event = this.context.eventListeners[len];
 
       if (event) {
         this.removeEventListener(event.element, event.event, event.callback);
@@ -138,7 +140,7 @@ class EventManager {
    * @param {String} eventName Event name.
    */
   fireEvent(element, eventName) {
-    let options = {
+    const options = {
       bubbles: true,
       cancelable: (eventName !== 'mousemove'),
       view: window,
@@ -154,7 +156,7 @@ class EventManager {
       button: 0,
       relatedTarget: undefined,
     };
-    var event;
+    let event;
 
     if (document.createEvent) {
       event = document.createEvent('MouseEvents');
@@ -183,18 +185,18 @@ class EventManager {
  * @returns {*}
  */
 function extendEvent(context, event) {
-  let componentName = 'HOT-TABLE';
+  const componentName = 'HOT-TABLE';
   let isHotTableSpotted;
   let fromElement;
   let realTarget;
   let target;
   let len;
-  let nativeStopImmediatePropagation;
 
   event.isTargetWebComponent = false;
   event.realTarget = event.target;
 
-  nativeStopImmediatePropagation = event.stopImmediatePropagation;
+  const nativeStopImmediatePropagation = event.stopImmediatePropagation;
+
   event.stopImmediatePropagation = function() {
     nativeStopImmediatePropagation.apply(this);
     _stopImmediatePropagation(this);
@@ -203,10 +205,13 @@ function extendEvent(context, event) {
   if (!EventManager.isHotTableEnv) {
     return event;
   }
+  // eslint-disable-next-line no-param-reassign
   event = polymerWrap(event);
   len = event.path ? event.path.length : 0;
 
-  while (len--) {
+  while (len) {
+    len -= 1;
+
     if (event.path[len].nodeName === componentName) {
       isHotTableSpotted = true;
 
@@ -265,4 +270,4 @@ export default EventManager;
 
 export function getListenersCounter() {
   return listenersCounter;
-};
+}

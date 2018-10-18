@@ -7,7 +7,7 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN);
     },
     callback(key, selected) {
-      const [{start: {col: selectedColumn}}] = selected;
+      const [{ start: { col: selectedColumn } }] = selected;
 
       manualColumnFreezePlugin.unfreezeColumn(selectedColumn);
 
@@ -15,7 +15,7 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin) {
       this.view.wt.wtOverlays.adjustElementsSize(true);
     },
     hidden() {
-      let selection = this.getSelectedRange();
+      const selection = this.getSelectedRange();
       let hide = false;
 
       if (selection === void 0) {

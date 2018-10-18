@@ -1,11 +1,11 @@
 import Core from './../core';
-import {isObject} from './../helpers/object';
+import { isObject } from './../helpers/object';
 
 /**
  * @class RecordTranslator
  * @util
  */
-class RecordTranslator {
+export class RecordTranslator {
   constructor(hot) {
     this.hot = hot;
   }
@@ -97,31 +97,50 @@ class RecordTranslator {
   }
 }
 
-export {RecordTranslator};
-
 const identities = new WeakMap();
 const translatorSingletons = new WeakMap();
 
+/**
+ * Allows to register custom identity manually.
+ *
+ * @param {*} identity
+ * @param {*} hot
+ */
 export function registerIdentity(identity, hot) {
   identities.set(identity, hot);
 }
 
+/**
+ * Returns a cached instance of RecordTranslator or create the new one for given identity.
+ *
+ * @param {*} identity
+ * @returns {RecordTranslator}
+ */
 export function getTranslator(identity) {
+  const instance = identity instanceof Core ? identity : getIdentity(identity);
   let singleton;
 
-  if (!(identity instanceof Core)) {
-    if (!identities.has(identity)) {
-      throw Error('Record translator was not registered for this object identity');
-    }
-    identity = identities.get(identity);
-  }
-  if (translatorSingletons.has(identity)) {
-    singleton = translatorSingletons.get(identity);
+  if (translatorSingletons.has(instance)) {
+    singleton = translatorSingletons.get(instance);
 
   } else {
-    singleton = new RecordTranslator(identity);
-    translatorSingletons.set(identity, singleton);
+    singleton = new RecordTranslator(instance);
+    translatorSingletons.set(instance, singleton);
   }
 
   return singleton;
+}
+
+/**
+ * Returns mapped identity.
+ *
+ * @param {*} identity
+ * @returns {*}
+ */
+export function getIdentity(identity) {
+  if (!identities.has(identity)) {
+    throw Error('Record translator was not registered for this object identity');
+  }
+
+  return identities.get(identity);
 }

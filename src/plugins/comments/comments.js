@@ -8,13 +8,13 @@ import {
   outerHeight,
   getScrollableElement
 } from './../../helpers/dom/element';
-import {deepClone, deepExtend, isObject} from './../../helpers/object';
+import { deepClone, deepExtend, isObject } from './../../helpers/object';
 import EventManager from './../../eventManager';
-import {CellCoords} from './../../3rdparty/walkontable/src';
-import {registerPlugin, getPlugin} from './../../plugins';
+import { CellCoords } from './../../3rdparty/walkontable/src';
+import { registerPlugin } from './../../plugins';
 import BasePlugin from './../_base';
 import CommentEditor from './commentEditor';
-import {checkSelectionConsistency, markLabelAsSelected} from './../contextMenu/utils';
+import { checkSelectionConsistency, markLabelAsSelected } from './../contextMenu/utils';
 import DisplaySwitch from './displaySwitch';
 import * as C from './../../i18n/constants';
 
@@ -157,11 +157,11 @@ class Comments extends BasePlugin {
       this.displaySwitch = new DisplaySwitch(this.getDisplayDelaySetting());
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
+    this.addHook('afterContextMenuDefaultOptions', options => this.addToContextMenu(options));
     this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
     this.addHook('afterScrollHorizontally', () => this.hide());
     this.addHook('afterScrollVertically', () => this.hide());
-    this.addHook('afterBeginEditing', (args) => this.onAfterBeginEditing(args));
+    this.addHook('afterBeginEditing', () => this.onAfterBeginEditing());
 
     this.displaySwitch.addLocalHook('hide', () => this.hide());
     this.displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
@@ -195,12 +195,12 @@ class Comments extends BasePlugin {
    * @private
    */
   registerListeners() {
-    this.eventManager.addEventListener(document, 'mouseover', (event) => this.onMouseOver(event));
-    this.eventManager.addEventListener(document, 'mousedown', (event) => this.onMouseDown(event));
-    this.eventManager.addEventListener(document, 'mouseup', (event) => this.onMouseUp(event));
-    this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', (event) => this.onEditorBlur(event));
-    this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', (event) => this.onEditorMouseDown(event));
-    this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', (event) => this.onEditorMouseUp(event));
+    this.eventManager.addEventListener(document, 'mouseover', event => this.onMouseOver(event));
+    this.eventManager.addEventListener(document, 'mousedown', event => this.onMouseDown(event));
+    this.eventManager.addEventListener(document, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', () => this.onEditorBlur());
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', event => this.onEditorMouseDown(event));
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', event => this.onEditorMouseUp(event));
   }
 
   /**
@@ -255,16 +255,16 @@ class Comments extends BasePlugin {
     const editorValue = this.editor.getValue();
     let comment = '';
 
-    if (value != null) {
+    if (value !== null && value !== void 0) {
       comment = value;
-    } else if (editorValue != null) {
+    } else if (editorValue !== null && editorValue !== void 0) {
       comment = editorValue;
     }
 
-    let row = this.range.from.row;
-    let col = this.range.from.col;
+    const row = this.range.from.row;
+    const col = this.range.from.col;
 
-    this.updateCommentMeta(row, col, {[META_COMMENT_VALUE]: comment});
+    this.updateCommentMeta(row, col, { [META_COMMENT_VALUE]: comment });
     this.hot.render();
   }
 
@@ -347,7 +347,7 @@ class Comments extends BasePlugin {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
-    let meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
+    const meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
 
     this.refreshEditor(true);
     this.editor.setValue(meta[META_COMMENT] ? meta[META_COMMENT][META_COMMENT_VALUE] : null || '');
@@ -396,8 +396,8 @@ class Comments extends BasePlugin {
     const TD = this.hot.view.wt.wtTable.getCell(this.range.from);
     const row = this.range.from.row;
     const column = this.range.from.col;
-    let cellOffset = offset(TD);
-    let lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
+    const cellOffset = offset(TD);
+    const lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
     let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
     let cellLeftOffset = cellOffset.left;
 
@@ -409,8 +409,8 @@ class Comments extends BasePlugin {
       cellLeftOffset -= this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
     }
 
-    let x = cellLeftOffset + lastColWidth;
-    let y = cellTopOffset;
+    const x = cellLeftOffset + lastColWidth;
+    const y = cellTopOffset;
 
     const commentStyle = this.getCommentMeta(row, column, META_STYLE);
     const readOnly = this.getCommentMeta(row, column, META_READONLY);
@@ -439,7 +439,7 @@ class Comments extends BasePlugin {
       return false;
     }
     let hasComment = false;
-    let cell = selected.from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
+    const cell = selected.from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
 
     if (this.getCommentMeta(cell.row, cell.col, META_COMMENT_VALUE)) {
       hasComment = true;
@@ -548,9 +548,8 @@ class Comments extends BasePlugin {
    * `mouseup` event callback.
    *
    * @private
-   * @param {MouseEvent} event The `mouseup` event.
    */
-  onMouseUp(event) {
+  onMouseUp() {
     this.mouseDown = false;
   }
 
@@ -571,9 +570,8 @@ class Comments extends BasePlugin {
    * `blur` event callback for the comment editor.
    *
    * @private
-   * @param {Event} event The `blur` event.
    */
-  onEditorBlur(event) {
+  onEditorBlur() {
     this.setComment();
   }
 
@@ -620,7 +618,7 @@ class Comments extends BasePlugin {
    */
   onContextMenuAddComment() {
     this.displaySwitch.cancelHiding();
-    let coords = this.hot.getSelectedRangeLast();
+    const coords = this.hot.getSelectedRangeLast();
 
     this.contextMenuEvent = true;
     this.setRange({
@@ -641,9 +639,9 @@ class Comments extends BasePlugin {
    * @private
    */
   onContextMenuRemoveComment() {
-    this.contextMenuEvent = true;
+    const { from, to } = this.hot.getSelectedRangeLast();
 
-    let {from, to} = this.hot.getSelectedRangeLast();
+    this.contextMenuEvent = true;
 
     for (let i = from.row; i <= to.row; i++) {
       for (let j = from.col; j <= to.col; j++) {
@@ -660,15 +658,15 @@ class Comments extends BasePlugin {
    * @private
    */
   onContextMenuMakeReadOnly() {
-    this.contextMenuEvent = true;
+    const { from, to } = this.hot.getSelectedRangeLast();
 
-    let {from, to} = this.hot.getSelectedRangeLast();
+    this.contextMenuEvent = true;
 
     for (let i = from.row; i <= to.row; i++) {
       for (let j = from.col; j <= to.col; j++) {
-        let currentState = !!this.getCommentMeta(i, j, META_READONLY);
+        const currentState = !!this.getCommentMeta(i, j, META_READONLY);
 
-        this.updateCommentMeta(i, j, {[META_READONLY]: !currentState});
+        this.updateCommentMeta(i, j, { [META_READONLY]: !currentState });
       }
     }
   }
@@ -710,7 +708,7 @@ class Comments extends BasePlugin {
         key: 'commentsReadOnly',
         name() {
           let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
-          let hasProperty = checkSelectionConsistency(this.getSelectedRangeLast(), (row, col) => {
+          const hasProperty = checkSelectionConsistency(this.getSelectedRangeLast(), (row, col) => {
             let readOnlyProperty = this.getCellMeta(row, col)[META_COMMENT];
             if (readOnlyProperty) {
               readOnlyProperty = readOnlyProperty[META_READONLY];
@@ -753,10 +751,8 @@ class Comments extends BasePlugin {
    * `afterBeginEditing` hook callback.
    *
    * @private
-   * @param {Number} row Visual row index of the currently edited cell.
-   * @param {Number} column Visual column index of the currently edited cell.
    */
-  onAfterBeginEditing(row, column) {
+  onAfterBeginEditing() {
     this.hide();
   }
 

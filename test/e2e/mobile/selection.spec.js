@@ -12,7 +12,7 @@ describe('Selection', () => {
     }
   });
 
-  it('should show selection handles', async function() {
+  it('should show selection handles', () => {
     const hot = handsontable({
       width: 400,
       height: 400
@@ -20,14 +20,14 @@ describe('Selection', () => {
 
     hot.selectCell(1, 1);
 
-    const topLeftSelectionHandle = this.$container.find('.ht_master .htBorders div:last-child .topLeftSelectionHandle')[0];
-    const bottomRightSelectionHandle = this.$container.find('.ht_master .htBorders div:last-child .bottomRightSelectionHandle')[0];
+    const topLeftSelectionHandle = spec().$container.find('.ht_master .htBorders div:last-child .topLeftSelectionHandle')[0];
+    const bottomRightSelectionHandle = spec().$container.find('.ht_master .htBorders div:last-child .bottomRightSelectionHandle')[0];
 
     expect(topLeftSelectionHandle.style.display).toEqual('block');
     expect(bottomRightSelectionHandle.style.display).toEqual('block');
   });
 
-  it('should show both selection handles after drag & drop', async function() {
+  it('should show both selection handles after drag & drop', async() => {
     const hot = handsontable({
       width: 400,
       height: 400
@@ -37,13 +37,13 @@ describe('Selection', () => {
 
     await sleep(100);
 
-    this.$container.find('.wtBorder.current.corner').simulate('mousedown');
-    this.$container.find('tbody tr:eq(1) td:eq(2)').simulate('mouseover').simulate('mouseup');
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(1) td:eq(2)').simulate('mouseover').simulate('mouseup');
 
     await sleep(100);
 
-    const topLeftSelectionHandle = this.$container.find('.ht_master .htBorders div:first-child .topLeftSelectionHandle')[0];
-    const bottomRightSelectionHandle = this.$container.find('.ht_master .htBorders div:first-child .bottomRightSelectionHandle')[0];
+    const topLeftSelectionHandle = spec().$container.find('.ht_master .htBorders div:first-child .topLeftSelectionHandle')[0];
+    const bottomRightSelectionHandle = spec().$container.find('.ht_master .htBorders div:first-child .bottomRightSelectionHandle')[0];
 
     expect(topLeftSelectionHandle.style.display).toEqual('block');
     expect(bottomRightSelectionHandle.style.display).toEqual('block');

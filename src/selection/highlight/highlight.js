@@ -1,5 +1,5 @@
-import {createHighlight} from './types';
-import {arrayEach, arrayFilter} from './../../helpers/array';
+import { createHighlight } from './types';
+import { arrayEach } from './../../helpers/array';
 
 export const ACTIVE_HEADER_TYPE = 'active-header';
 export const AREA_TYPE = 'area';
@@ -93,18 +93,15 @@ class Highlight {
    * @return {Boolean}
    */
   isEnabledFor(highlightType) {
-    let disableHighlight = this.options.disableHighlight;
-
     // Legacy compatibility.
-    if (highlightType === 'current') {
-      highlightType = CELL_TYPE;
-    }
+    const type = highlightType === 'current' ? CELL_TYPE : highlightType;
+    let disableHighlight = this.options.disableHighlight;
 
     if (typeof disableHighlight === 'string') {
       disableHighlight = [disableHighlight];
     }
 
-    return disableHighlight === false || Array.isArray(disableHighlight) && !disableHighlight.includes(highlightType);
+    return disableHighlight === false || Array.isArray(disableHighlight) && !disableHighlight.includes(type);
   }
 
   /**
@@ -150,7 +147,7 @@ class Highlight {
     if (this.areas.has(layerLevel)) {
       area = this.areas.get(layerLevel);
     } else {
-      area = createHighlight(AREA_TYPE, {layerLevel, ...this.options});
+      area = createHighlight(AREA_TYPE, { layerLevel, ...this.options });
 
       this.areas.set(layerLevel, area);
     }
@@ -180,7 +177,7 @@ class Highlight {
     if (this.headers.has(layerLevel)) {
       header = this.headers.get(layerLevel);
     } else {
-      header = createHighlight(HEADER_TYPE, {...this.options});
+      header = createHighlight(HEADER_TYPE, { ...this.options });
 
       this.headers.set(layerLevel, header);
     }
@@ -210,7 +207,7 @@ class Highlight {
     if (this.activeHeaders.has(layerLevel)) {
       header = this.activeHeaders.get(layerLevel);
     } else {
-      header = createHighlight(ACTIVE_HEADER_TYPE, {...this.options});
+      header = createHighlight(ACTIVE_HEADER_TYPE, { ...this.options });
 
       this.activeHeaders.set(layerLevel, header);
     }
@@ -242,7 +239,7 @@ class Highlight {
    * @param {Object} options
    */
   addCustomSelection(options) {
-    this.customSelections.push(createHighlight(CUSTOM_SELECTION, {...options}));
+    this.customSelections.push(createHighlight(CUSTOM_SELECTION, { ...options }));
   }
 
   /**
@@ -252,9 +249,9 @@ class Highlight {
     this.cell.clear();
     this.fill.clear();
 
-    arrayEach(this.areas.values(), (highlight) => void highlight.clear());
-    arrayEach(this.headers.values(), (highlight) => void highlight.clear());
-    arrayEach(this.activeHeaders.values(), (highlight) => void highlight.clear());
+    arrayEach(this.areas.values(), highlight => void highlight.clear());
+    arrayEach(this.headers.values(), highlight => void highlight.clear());
+    arrayEach(this.activeHeaders.values(), highlight => void highlight.clear());
   }
 
   /**

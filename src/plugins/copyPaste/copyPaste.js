@@ -1,15 +1,15 @@
-import BasePlugin from './../_base.js';
+import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
 import SheetClip from './../../../lib/SheetClip/SheetClip';
-import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
-import {getSelectionText} from './../../helpers/dom/element';
-import {arrayEach} from './../../helpers/array';
-import {rangeEach} from './../../helpers/number';
-import {registerPlugin} from './../../plugins';
+import { arrayEach } from './../../helpers/array';
+import { rangeEach } from './../../helpers/number';
+import { getSelectionText } from './../../helpers/dom/element';
+import { registerPlugin } from './../../plugins';
 import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
-import {createElement, destroyElement} from './focusableElement';
+import { createElement, destroyElement } from './focusableElement';
+import { arrayToTable, tableToArray } from './utils';
 
 import './copyPaste.css';
 
@@ -126,14 +126,16 @@ class CopyPaste extends BasePlugin {
       this.columnsLimit = settings.copyPaste.columnsLimit || this.columnsLimit;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
+    this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
+    this.addHook('afterOnCellMouseUp', () => this.onAfterOnCellMouseUp());
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
+    this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
 
     this.focusableElement = createElement();
     this.focusableElement
-      .addLocalHook('copy', (event) => this.onCopy(event))
-      .addLocalHook('cut', (event) => this.onCut(event))
-      .addLocalHook('paste', (event) => this.onPaste(event));
+      .addLocalHook('copy', event => this.onCopy(event))
+      .addLocalHook('cut', event => this.onCut(event))
+      .addLocalHook('paste', event => this.onPaste(event));
 
     super.enablePlugin();
   }
@@ -144,6 +146,7 @@ class CopyPaste extends BasePlugin {
   updatePlugin() {
     this.disablePlugin();
     this.enablePlugin();
+    this.getOrCreateFocusableElement();
 
     super.updatePlugin();
   }
@@ -160,37 +163,25 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Prepares copyable text from the cells selection in the invisible textarea.
+   * Copies the selected cell into the clipboard.
    */
-  setCopyableText() {
-    const selRange = this.hot.getSelectedRangeLast();
+  copy() {
+    const priv = privatePool.get(this);
+    priv.isTriggeredByCopy = true;
 
-    if (!selRange) {
-      return;
-    }
-    const topLeft = selRange.getTopLeftCorner();
-    const bottomRight = selRange.getBottomRightCorner();
-    const startRow = topLeft.row;
-    const startCol = topLeft.col;
-    const endRow = bottomRight.row;
-    const endCol = bottomRight.col;
-    const finalEndRow = Math.min(endRow, startRow + this.rowsLimit - 1);
-    const finalEndCol = Math.min(endCol, startCol + this.columnsLimit - 1);
+    this.getOrCreateFocusableElement();
+    document.execCommand('copy');
+  }
 
-    this.copyableRanges.length = 0;
+  /**
+   * Cuts the selected cell into the clipboard.
+   */
+  cut() {
+    const priv = privatePool.get(this);
+    priv.isTriggeredByCut = true;
 
-    this.copyableRanges.push({
-      startRow,
-      startCol,
-      endRow: finalEndRow,
-      endCol: finalEndCol
-    });
-
-    this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
-
-    if (endRow !== finalEndRow || endCol !== finalEndCol) {
-      this.hot.runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, this.rowsLimit, this.columnsLimit);
-    }
+    this.getOrCreateFocusableElement();
+    document.execCommand('cut');
   }
 
   /**
@@ -200,9 +191,9 @@ class CopyPaste extends BasePlugin {
    * @returns {String} Returns string which will be copied into clipboard.
    */
   getRangedCopyableData(ranges) {
-    let dataSet = [];
-    let copyableRows = [];
-    let copyableColumns = [];
+    const dataSet = [];
+    const copyableRows = [];
+    const copyableColumns = [];
 
     // Count all copyable rows and columns
     arrayEach(ranges, (range) => {
@@ -219,7 +210,7 @@ class CopyPaste extends BasePlugin {
     });
     // Concat all rows and columns data defined in ranges into one copyable string
     arrayEach(copyableRows, (row) => {
-      let rowSet = [];
+      const rowSet = [];
 
       arrayEach(copyableColumns, (column) => {
         rowSet.push(this.hot.getCopyableData(row, column));
@@ -257,7 +248,7 @@ class CopyPaste extends BasePlugin {
     });
     // Concat all rows and columns data defined in ranges into one copyable string
     arrayEach(copyableRows, (row) => {
-      let rowSet = [];
+      const rowSet = [];
 
       arrayEach(copyableColumns, (column) => {
         rowSet.push(this.hot.getCopyableData(row, column));
@@ -270,37 +261,129 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Copies the selected cell into the clipboard.
-   */
-  copy() {
-    const priv = privatePool.get(this);
-
-    priv.isTriggeredByCopy = true;
-    this.focusableElement.focus();
-    document.execCommand('copy');
-  }
-
-  /**
-   * Cuts the selected cell into the clipboard.
-   */
-  cut() {
-    const priv = privatePool.get(this);
-
-    priv.isTriggeredByCut = true;
-    this.focusableElement.focus();
-    document.execCommand('cut');
-  }
-
-  /**
    * Simulates the paste action.
    *
    * @param {String} [value] Value to paste.
    */
-  paste(value = '') {
+  paste(pastableText = '', pastableHtml = pastableText) {
+    if (!pastableText && !pastableHtml) {
+      return;
+    }
+
     const pasteData = new PasteEvent();
 
-    pasteData.clipboardData.setData('text/plain', value);
+    if (pastableText) {
+      pasteData.clipboardData.setData('text/plain', pastableText);
+    }
+    if (pastableHtml) {
+      pasteData.clipboardData.setData('text/html', pastableHtml);
+    }
+
+    this.getOrCreateFocusableElement();
     this.onPaste(pasteData);
+  }
+
+  /**
+   * Prepares copyable text from the cells selection in the invisible textarea.
+   */
+  setCopyableText() {
+    const selRange = this.hot.getSelectedRangeLast();
+
+    if (!selRange) {
+      return;
+    }
+
+    const topLeft = selRange.getTopLeftCorner();
+    const bottomRight = selRange.getBottomRightCorner();
+    const startRow = topLeft.row;
+    const startCol = topLeft.col;
+    const endRow = bottomRight.row;
+    const endCol = bottomRight.col;
+    const finalEndRow = Math.min(endRow, startRow + this.rowsLimit - 1);
+    const finalEndCol = Math.min(endCol, startCol + this.columnsLimit - 1);
+
+    this.copyableRanges.length = 0;
+
+    this.copyableRanges.push({
+      startRow,
+      startCol,
+      endRow: finalEndRow,
+      endCol: finalEndCol
+    });
+
+    this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
+
+    if (endRow !== finalEndRow || endCol !== finalEndCol) {
+      this.hot.runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, this.rowsLimit, this.columnsLimit);
+    }
+  }
+
+  /**
+   * Force focus on editable element.
+   *
+   * @private
+   */
+  getOrCreateFocusableElement() {
+    const editor = this.hot.getActiveEditor();
+    const editableElement = editor ? editor.TEXTAREA : void 0;
+
+    if (editableElement) {
+      this.focusableElement.setFocusableElement(editableElement);
+    } else {
+      this.focusableElement.useSecondaryElement();
+    }
+  }
+
+  /**
+   * Verifies if editor exists and is open.
+   *
+   * @private
+   */
+  isEditorOpened() {
+    const editor = this.hot.getActiveEditor();
+
+    return editor && editor.isOpened();
+  }
+
+  /**
+   * Prepares new values to populate them into datasource.
+   *
+   * @private
+   * @param {Array} inputArray
+   * @param {Array} selection
+   * @returns {Array} Range coordinates after populate data
+   */
+  populateValues(inputArray, selection = this.hot.getSelectedLast()) {
+    if (!inputArray.length) {
+      return;
+    }
+
+    const newValuesMaxRow = inputArray.length - 1;
+    const newValuesMaxColumn = inputArray[0].length - 1;
+
+    const startRow = Math.min(selection[0], selection[2]);
+    const endRow = Math.max(selection[0], selection[2], newValuesMaxRow + startRow);
+    const startColumn = Math.min(selection[1], selection[3]);
+    const endColumn = Math.max(selection[1], selection[3], newValuesMaxColumn + startColumn);
+    const newValues = [];
+
+    for (let row = startRow, valuesRow = 0; row <= endRow; row += 1) {
+      const newRow = [];
+
+      for (let column = startColumn, valuesColumn = 0; column <= endColumn; column += 1) {
+        newRow.push(inputArray[valuesRow][valuesColumn]);
+
+        valuesColumn = valuesColumn === newValuesMaxColumn ? 0 : valuesColumn += 1;
+      }
+
+      newValues.push(newRow);
+
+      valuesRow = valuesRow === newValuesMaxRow ? 0 : valuesRow += 1;
+    }
+
+    this.hot.populateFromArray(startRow, startColumn, newValues, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
+
+    return [startRow, startColumn, endRow, endColumn];
   }
 
   /**
@@ -312,31 +395,27 @@ class CopyPaste extends BasePlugin {
   onCopy(event) {
     const priv = privatePool.get(this);
 
-    if (!this.hot.isListening() && !priv.isTriggeredByCopy) {
-      return;
-    }
-
-    const editor = this.hot.getActiveEditor();
-
-    if (editor && editor.isOpened()) {
+    if ((!this.hot.isListening() && !priv.isTriggeredByCopy) || this.isEditorOpened()) {
       return;
     }
 
     this.setCopyableText();
     priv.isTriggeredByCopy = false;
 
-    let rangedData = this.getRangedData(this.copyableRanges);
-    let allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
-    let value = '';
+    const rangedData = this.getRangedData(this.copyableRanges);
+    const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
 
     if (allowCopying) {
-      value = SheetClip.stringify(rangedData);
+      const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        event.clipboardData.setData('text/plain', value);
+        const textHTML = arrayToTable(rangedData);
+
+        event.clipboardData.setData('text/plain', textPlain);
+        event.clipboardData.setData('text/html', textHTML);
 
       } else if (typeof ClipboardEvent === 'undefined') {
-        window.clipboardData.setData('Text', value);
+        window.clipboardData.setData('Text', textPlain);
       }
 
       this.hot.runHooks('afterCopy', rangedData, this.copyableRanges);
@@ -354,31 +433,27 @@ class CopyPaste extends BasePlugin {
   onCut(event) {
     const priv = privatePool.get(this);
 
-    if (!this.hot.isListening() && !priv.isTriggeredByCut) {
-      return;
-    }
-
-    const editor = this.hot.getActiveEditor();
-
-    if (editor && editor.isOpened()) {
+    if ((!this.hot.isListening() && !priv.isTriggeredByCut) || this.isEditorOpened()) {
       return;
     }
 
     this.setCopyableText();
     priv.isTriggeredByCut = false;
 
-    let rangedData = this.getRangedData(this.copyableRanges);
-    let allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
-    let value;
+    const rangedData = this.getRangedData(this.copyableRanges);
+    const allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
 
     if (allowCuttingOut) {
-      value = SheetClip.stringify(rangedData);
+      const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        event.clipboardData.setData('text/plain', value);
+        const textHTML = arrayToTable(rangedData);
+
+        event.clipboardData.setData('text/plain', textPlain);
+        event.clipboardData.setData('text/html', textHTML);
 
       } else if (typeof ClipboardEvent === 'undefined') {
-        window.clipboardData.setData('Text', value);
+        window.clipboardData.setData('Text', textPlain);
       }
 
       this.hot.emptySelectedCells();
@@ -395,13 +470,7 @@ class CopyPaste extends BasePlugin {
    * @private
    */
   onPaste(event) {
-    if (!this.hot.isListening()) {
-      return;
-    }
-
-    const editor = this.hot.getActiveEditor();
-
-    if (editor && editor.isOpened()) {
+    if (!this.hot.isListening() || this.isEditorOpened()) {
       return;
     }
 
@@ -409,67 +478,40 @@ class CopyPaste extends BasePlugin {
       event.preventDefault();
     }
 
-    let inputArray;
     let pastedData;
 
     if (event && typeof event.clipboardData !== 'undefined') {
-      pastedData = event.clipboardData.getData('text/plain');
+      const textHTML = event.clipboardData.getData('text/html');
+
+      if (textHTML && /(<table)|(<TABLE)/.test(textHTML)) {
+        pastedData = tableToArray(textHTML);
+      } else {
+        pastedData = event.clipboardData.getData('text/plain');
+      }
 
     } else if (typeof ClipboardEvent === 'undefined' && typeof window.clipboardData !== 'undefined') {
       pastedData = window.clipboardData.getData('Text');
     }
 
-    inputArray = SheetClip.parse(pastedData);
+    const inputArray = typeof pastedData !== 'string' ? pastedData : SheetClip.parse(pastedData);
 
     if (inputArray.length === 0) {
       return;
     }
 
-    let allowPasting = !!this.hot.runHooks('beforePaste', inputArray, this.copyableRanges);
-
-    if (!allowPasting) {
+    if (this.hot.runHooks('beforePaste', inputArray, this.copyableRanges) === false) {
       return;
     }
 
-    let selected = this.hot.getSelectedLast();
-    let coordsFrom = new CellCoords(selected[0], selected[1]);
-    let coordsTo = new CellCoords(selected[2], selected[3]);
-    let cellRange = new CellRange(coordsFrom, coordsFrom, coordsTo);
-    let topLeftCorner = cellRange.getTopLeftCorner();
-    let bottomRightCorner = cellRange.getBottomRightCorner();
-    let areaStart = topLeftCorner;
-    let areaEnd = new CellCoords(
-      Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
-      Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
+    const [startRow, startColumn, endRow, endColumn] = this.populateValues(inputArray);
 
-    let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
-    let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
+    this.hot.selectCell(
+      startRow,
+      startColumn,
+      Math.min(this.hot.countRows() - 1, endRow),
+      Math.min(this.hot.countCols() - 1, endColumn),
+    );
 
-    this.hot.addHookOnce('afterChange', (changes) => {
-      let changesLength = changes ? changes.length : 0;
-
-      if (changesLength) {
-        let offset = {row: 0, col: 0};
-        let highestColumnIndex = -1;
-
-        arrayEach(changes, (change, index) => {
-          let nextChange = changesLength > index + 1 ? changes[index + 1] : null;
-
-          if (nextChange) {
-            if (!isSelRowAreaCoverInputValue) {
-              offset.row += Math.max(nextChange[0] - change[0] - 1, 0);
-            }
-            if (!isSelColAreaCoverInputValue && change[1] > highestColumnIndex) {
-              highestColumnIndex = change[1];
-              offset.col += Math.max(nextChange[1] - change[1] - 1, 0);
-            }
-          }
-        });
-        this.hot.selectCell(areaStart.row, areaStart.col, areaEnd.row + offset.row, areaEnd.col + offset.col);
-      }
-    });
-
-    this.hot.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', this.pasteMode);
     this.hot.runHooks('afterPaste', inputArray, this.copyableRanges);
   }
 
@@ -490,31 +532,58 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * We have to keep focus on textarea element, to make possible use of the browser tools (copy, cut, paste).
+   * Force focus on focusableElement.
+   *
+   * @private
+   */
+  onAfterOnCellMouseUp() {
+    if (!this.hot.isListening() || this.isEditorOpened()) {
+      return;
+    }
+
+    this.getOrCreateFocusableElement();
+    this.focusableElement.focus();
+  }
+
+  /**
+   * Force focus on focusableElement after end of the selection.
    *
    * @private
    */
   onAfterSelectionEnd() {
-    const {isFragmentSelectionEnabled} = privatePool.get(this);
-    const editor = this.hot.getActiveEditor();
+    const { isFragmentSelectionEnabled } = privatePool.get(this);
 
-    if (editor && editor.isOpened()) {
+    if (this.isEditorOpened()) {
       return;
     }
 
-    const editableElement = editor ? editor.TEXTAREA : void 0;
-
-    if (editableElement) {
-      this.focusableElement.setFocusableElement(editableElement);
-    } else {
-      this.focusableElement.useSecondaryElement();
-    }
+    this.getOrCreateFocusableElement();
 
     if (isFragmentSelectionEnabled && this.focusableElement.getFocusableElement() !== document.activeElement && getSelectionText()) {
       return;
     }
 
     this.setCopyableText();
+    this.focusableElement.focus();
+  }
+
+  /**
+   * `beforeKeyDown` listener to force focus of focusableElement.
+   *
+   * @private
+   */
+  onBeforeKeyDown() {
+    if (!this.hot.isListening() || this.isEditorOpened()) {
+      return;
+    }
+    const activeElement = document.activeElement;
+    const activeEditor = this.hot.getActiveEditor();
+
+    if (!activeEditor || (activeElement !== this.focusableElement.getFocusableElement() && activeElement !== activeEditor.select)) {
+      return;
+    }
+
+    this.getOrCreateFocusableElement();
     this.focusableElement.focus();
   }
 

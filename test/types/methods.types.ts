@@ -117,6 +117,7 @@ const manualColumnMove: Handsontable.plugins.ManualColumnMove = hot.getPlugin('m
 const manualRowMove: Handsontable.plugins.ManualRowMove = hot.getPlugin('manualRowMove');
 const manualRowResize: Handsontable.plugins.ManualRowResize = hot.getPlugin('manualRowResize');
 const mergeCells: Handsontable.plugins.MergeCells = hot.getPlugin('mergeCells');
+const multiColumnSorting: Handsontable.plugins.MultiColumnSorting = hot.getPlugin('multiColumnSorting');
 const nestedHeaders: Handsontable.plugins.NestedHeaders = hot.getPlugin('nestedHeaders');
 const observeChanges: Handsontable.plugins.ObserveChanges = hot.getPlugin('observeChanges');
 const search: Handsontable.plugins.Search = hot.getPlugin('search');
@@ -124,3 +125,5 @@ const trimeRows: Handsontable.plugins.TrimRows = hot.getPlugin('trimRows');
 const formulas: Handsontable.plugins.Formulas = hot.getPlugin('formulas');
 const ganttChart: Handsontable.plugins.GanttChart = hot.getPlugin('ganttChart');
 const nestedRows: Handsontable.plugins.NestedRows = hot.getPlugin('nestedRows');
+
+autoColumnSize.samplesGenerator.setSampleCount(5);

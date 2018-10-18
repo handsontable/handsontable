@@ -1,4 +1,4 @@
-import {createElement, destroyElement} from './../focusableElement';
+import { createElement, destroyElement } from './../focusableElement';
 
 describe('CopyPaste', () => {
   describe('focusableElement', () => {

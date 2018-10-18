@@ -9,55 +9,55 @@ import {
 describe('Mixed helper', () => {
   describe('stringify', () => {
     it('should convert properly `null` to `string`', () => {
-      var toConvert = null;
+      const toConvert = null;
 
       expect(stringify(toConvert)).toBe('');
     });
 
     it('should convert properly `boolean` to `string`', () => {
-      var toConvert = true;
+      const toConvert = true;
 
       expect(stringify(toConvert)).toBe('true');
     });
 
     it('should convert properly `number` to `string`', () => {
-      var toConvert = 1;
+      const toConvert = 1;
 
       expect(stringify(toConvert)).toBe('1');
     });
 
     it('should convert properly `string` to `string`', () => {
-      var toConvert = '2';
+      const toConvert = '2';
 
       expect(stringify(toConvert)).toBe('2');
     });
 
     it('should convert properly `object` to `string`', () => {
-      var toConvert = {id: null};
+      const toConvert = { id: null };
 
       expect(stringify(toConvert)).toBe('[object Object]');
     });
 
     it('should convert properly `array` to `string`', () => {
-      var toConvert = ['One', 'Two', 3];
+      const toConvert = ['One', 'Two', 3];
 
       expect(stringify(toConvert)).toBe('One,Two,3');
     });
 
     it('should convert properly `RegExp` to `string`', () => {
-      var toConvert = /^\d$/;
+      const toConvert = /^\d$/;
 
       expect(stringify(toConvert)).toBe('/^\\d$/');
     });
 
     it('should convert properly `function` to `string`', () => {
-      var toConvert = function() {};
+      const toConvert = function() {};
 
       expect(stringify(toConvert)).toMatch(/function/i);
     });
 
     it('should convert properly `undefined` to `string`', () => {
-      var toConvert;
+      let toConvert;
 
       expect(stringify(toConvert)).toBe('');
     });
@@ -65,13 +65,13 @@ describe('Mixed helper', () => {
 
   describe('isDefined', () => {
     it('should return true when a variable is defined', () => {
-      var toCheck = [];
+      const toCheck = [];
 
       expect(isDefined(toCheck)).toBeTruthy();
     });
 
     it('should return false when a variable is not defined', () => {
-      var toCheck;
+      let toCheck;
 
       expect(isDefined(toCheck)).toBeFalsy();
     });
@@ -79,13 +79,13 @@ describe('Mixed helper', () => {
 
   describe('isUndefined', () => {
     it('should check if a variable is defined', () => {
-      var toCheck;
+      let toCheck;
 
       expect(isUndefined(toCheck)).toBeTruthy();
     });
 
     it('should return false when a variable is not defined', () => {
-      var toCheck = [];
+      const toCheck = [];
 
       expect(isUndefined(toCheck)).toBeFalsy();
     });
@@ -115,7 +115,7 @@ describe('Mixed helper', () => {
       expect(isRegExp(0)).toBeFalsy();
       expect(isRegExp(1)).toBeFalsy();
       expect(isRegExp('foo')).toBeFalsy();
-      expect(isRegExp({a: /\d+/})).toBeFalsy();
+      expect(isRegExp({ a: /\d+/ })).toBeFalsy();
 
       expect(isRegExp(/\d+/)).toBeTruthy();
       expect(isRegExp(new RegExp('d+'))).toBeTruthy();

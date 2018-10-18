@@ -1,5 +1,5 @@
-import {isIE8, isIE9, isSafari} from '../browser';
-import {hasCaptionProblem} from '../feature';
+import { isIE8, isIE9, isSafari } from '../browser';
+import { hasCaptionProblem } from '../feature';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -11,19 +11,20 @@ import {hasCaptionProblem} from '../feature';
 export function getParent(element, level = 0) {
   let iteration = -1;
   let parent = null;
+  let elementToCheck = element;
 
-  while (element != null) {
+  while (elementToCheck !== null) {
     if (iteration === level) {
-      parent = element;
+      parent = elementToCheck;
       break;
     }
 
-    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      element = element.host;
+    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = elementToCheck.host;
 
     } else {
-      iteration++;
-      element = element.parentNode;
+      iteration += 1;
+      elementToCheck = elementToCheck.parentNode;
     }
   }
 
@@ -40,15 +41,17 @@ export function getParent(element, level = 0) {
  * @returns {HTMLElement|null}
  */
 export function closest(element, nodes, until) {
-  while (element != null && element !== until) {
-    if (element.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
-      return element;
+  let elementToCheck = element;
+
+  while (elementToCheck !== null && elementToCheck !== until) {
+    if (elementToCheck.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(elementToCheck.nodeName) > -1 || nodes.indexOf(elementToCheck) > -1)) {
+      return elementToCheck;
     }
-    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      element = element.host;
+    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = elementToCheck.host;
 
     } else {
-      element = element.parentNode;
+      elementToCheck = elementToCheck.parentNode;
     }
   }
 
@@ -65,20 +68,21 @@ export function closest(element, nodes, until) {
  */
 export function closestDown(element, nodes, until) {
   const matched = [];
+  let elementToCheck = element;
 
-  while (element) {
-    element = closest(element, nodes, until);
+  while (elementToCheck) {
+    elementToCheck = closest(elementToCheck, nodes, until);
 
-    if (!element || (until && !until.contains(element))) {
+    if (!elementToCheck || (until && !until.contains(elementToCheck))) {
       break;
     }
-    matched.push(element);
+    matched.push(elementToCheck);
 
-    if (element.host && element.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      element = element.host;
+    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = elementToCheck.host;
 
     } else {
-      element = element.parentNode;
+      elementToCheck = elementToCheck.parentNode;
     }
   }
   const length = matched.length;
@@ -95,8 +99,8 @@ export function closestDown(element, nodes, until) {
  * @returns {Boolean}
  */
 export function isChildOf(child, parent) {
-  var node = child.parentNode;
-  var queriedParents = [];
+  let node = child.parentNode;
+  let queriedParents = [];
 
   if (typeof parent === 'string') {
     queriedParents = Array.prototype.slice.call(document.querySelectorAll(parent), 0);
@@ -104,7 +108,7 @@ export function isChildOf(child, parent) {
     queriedParents.push(parent);
   }
 
-  while (node != null) {
+  while (node !== null) {
     if (queriedParents.indexOf(node) > -1) {
       return true;
     }
@@ -121,17 +125,15 @@ export function isChildOf(child, parent) {
  * @returns {Boolean}
  */
 export function isChildOfWebComponentTable(element) {
-  var hotTableName = 'hot-table',
-    result = false,
-    parentNode;
+  const hotTableName = 'hot-table';
+  let result = false;
+  let parentNode = polymerWrap(element);
 
-  parentNode = polymerWrap(element);
-
-  function isHotTable(element) {
-    return element.nodeType === Node.ELEMENT_NODE && element.nodeName === hotTableName.toUpperCase();
+  function isHotTable(testElement) {
+    return testElement.nodeType === Node.ELEMENT_NODE && testElement.nodeName === hotTableName.toUpperCase();
   }
 
-  while (parentNode != null) {
+  while (parentNode !== null) {
     if (isHotTable(parentNode)) {
       result = true;
       break;
@@ -149,6 +151,8 @@ export function isChildOfWebComponentTable(element) {
   return result;
 }
 
+/* global Polymer wrap unwrap */
+
 /**
  * Wrap element into polymer/webcomponent container if exists
  *
@@ -156,7 +160,6 @@ export function isChildOfWebComponentTable(element) {
  * @returns {*}
  */
 export function polymerWrap(element) {
-  /* global Polymer */
   return typeof Polymer !== 'undefined' && typeof wrap === 'function' ? wrap(element) : element;
 }
 
@@ -167,7 +170,6 @@ export function polymerWrap(element) {
  * @returns {*}
  */
 export function polymerUnwrap(element) {
-  /* global Polymer */
   return typeof Polymer !== 'undefined' && typeof unwrap === 'function' ? unwrap(element) : element;
 }
 
@@ -181,12 +183,13 @@ export function polymerUnwrap(element) {
  * @return {Number}
  */
 export function index(element) {
-  var i = 0;
+  let i = 0;
+  let elementToCheck = element;
 
-  if (element.previousSibling) {
+  if (elementToCheck.previousSibling) {
     /* eslint-disable no-cond-assign */
-    while (element = element.previousSibling) {
-      ++i;
+    while (elementToCheck = elementToCheck.previousSibling) {
+      i += 1;
     }
   }
 
@@ -201,14 +204,14 @@ export function index(element) {
  * @returns {boolean}
  */
 export function overlayContainsElement(overlayType, element) {
-  let overlayElement = document.querySelector(`.ht_clone_${overlayType}`);
+  const overlayElement = document.querySelector(`.ht_clone_${overlayType}`);
   return overlayElement ? overlayElement.contains(element) : null;
 }
 
-var classListSupport = !!document.documentElement.classList;
-var _hasClass,
-  _addClass,
-  _removeClass;
+const classListSupport = !!document.documentElement.classList;
+let _hasClass;
+let _addClass;
+let _removeClass;
 
 function filterEmptyClassNames(classNames) {
   const result = [];
@@ -221,22 +224,22 @@ function filterEmptyClassNames(classNames) {
 
   while (classNames[len]) {
     result.push(classNames[len]);
-    len++;
+    len += 1;
   }
 
   return result;
 }
 
 if (classListSupport) {
-  var isSupportMultipleClassesArg = (function() {
-    var element = document.createElement('div');
+  const isSupportMultipleClassesArg = (function() {
+    const element = document.createElement('div');
 
     element.classList.add('test', 'test2');
 
     return element.classList.contains('test2');
   }());
 
-  _hasClass = function _hasClass(element, className) {
+  _hasClass = function(element, className) {
     if (element.classList === void 0 || typeof className !== 'string' || className === '') {
       return false;
     }
@@ -244,7 +247,9 @@ if (classListSupport) {
     return element.classList.contains(className);
   };
 
-  _addClass = function _addClass(element, className) {
+  _addClass = function(element, classes) {
+    let className = classes;
+
     if (typeof className === 'string') {
       className = className.split(' ');
     }
@@ -253,20 +258,22 @@ if (classListSupport) {
 
     if (className.length > 0) {
       if (isSupportMultipleClassesArg) {
-        element.classList.add.apply(element.classList, className);
+        element.classList.add(...className);
 
       } else {
         let len = 0;
 
         while (className && className[len]) {
           element.classList.add(className[len]);
-          len++;
+          len += 1;
         }
       }
     }
   };
 
-  _removeClass = function _removeClass(element, className) {
+  _removeClass = function(element, classes) {
+    let className = classes;
+
     if (typeof className === 'string') {
       className = className.split(' ');
     }
@@ -275,32 +282,33 @@ if (classListSupport) {
 
     if (className.length > 0) {
       if (isSupportMultipleClassesArg) {
-        element.classList.remove.apply(element.classList, className);
+        element.classList.remove(...className);
 
       } else {
         let len = 0;
 
         while (className && className[len]) {
           element.classList.remove(className[len]);
-          len++;
+          len += 1;
         }
       }
     }
   };
 
 } else {
-  var createClassNameRegExp = function createClassNameRegExp(className) {
+  const createClassNameRegExp = function(className) {
     return new RegExp(`(\\s|^)${className}(\\s|$)`);
   };
 
-  _hasClass = function _hasClass(element, className) {
+  _hasClass = function(element, className) {
     // http://snipplr.com/view/3561/addclass-removeclass-hasclass/
     return element.className !== void 0 && createClassNameRegExp(className).test(element.className);
   };
 
-  _addClass = function _addClass(element, className) {
-    var len = 0,
-      _className = element.className;
+  _addClass = function(element, classes) {
+    let len = 0;
+    let _className = element.className;
+    let className = classes;
 
     if (typeof className === 'string') {
       className = className.split(' ');
@@ -313,15 +321,16 @@ if (classListSupport) {
         if (!createClassNameRegExp(className[len]).test(_className)) {
           _className += ` ${className[len]}`;
         }
-        len++;
+        len += 1;
       }
     }
     element.className = _className;
   };
 
-  _removeClass = function _removeClass(element, className) {
-    var len = 0,
-      _className = element.className;
+  _removeClass = function(element, classes) {
+    let len = 0;
+    let _className = element.className;
+    let className = classes;
 
     if (typeof className === 'string') {
       className = className.split(' ');
@@ -329,7 +338,7 @@ if (classListSupport) {
     while (className && className[len]) {
       // String.prototype.trim is defined in polyfill.js
       _className = _className.replace(createClassNameRegExp(className[len]), ' ').trim();
-      len++;
+      len += 1;
     }
     if (element.className !== _className) {
       element.className = _className;
@@ -373,8 +382,8 @@ export function removeTextNodes(element, parent) {
     parent.removeChild(element); // bye text nodes!
 
   } else if (['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].indexOf(element.nodeName) > -1) {
-    var childs = element.childNodes;
-    for (var i = childs.length - 1; i >= 0; i--) {
+    const childs = element.childNodes;
+    for (let i = childs.length - 1; i >= 0; i--) {
       removeTextNodes(childs[i], element);
     }
   }
@@ -391,7 +400,7 @@ export function removeTextNodes(element, parent) {
  */
 //
 export function empty(element) {
-  var child;
+  let child;
   /* eslint-disable no-cond-assign */
   while (child = element.lastChild) {
     element.removeChild(child);
@@ -417,10 +426,10 @@ export function fastInnerHTML(element, content) {
  * @return {void}
  */
 
-var textContextSupport = !!document.createTextNode('test').textContent;
+const textContextSupport = !!document.createTextNode('test').textContent;
 
 export function fastInnerText(element, content) {
-  var child = element.firstChild;
+  const child = element.firstChild;
 
   if (child && child.nodeType === 3 && child.nextSibling === null) {
     // fast lane - replace existing text node
@@ -445,7 +454,7 @@ export function fastInnerText(element, content) {
  * @returns {boolean}
  */
 export function isVisible(elem) {
-  var next = elem;
+  let next = elem;
 
   while (polymerUnwrap(next) !== document.documentElement) { // until <html> reached
     if (next === null) { // parent detached from DOM
@@ -482,37 +491,36 @@ export function isVisible(elem) {
  * @return {Object} Returns object with `top` and `left` props
  */
 export function offset(elem) {
-  var offsetLeft,
-    offsetTop,
-    lastElem,
-    docElem,
-    box;
+  const docElem = document.documentElement;
+  let elementToCheck = elem;
+  let offsetLeft;
+  let offsetTop;
+  let lastElem;
+  let box;
 
-  docElem = document.documentElement;
-
-  if (hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
+  if (hasCaptionProblem() && elementToCheck.firstChild && elementToCheck.firstChild.nodeName === 'CAPTION') {
     // fixes problem with Firefox ignoring <caption> in TABLE offset (see also export outerHeight)
     // http://jsperf.com/offset-vs-getboundingclientrect/8
-    box = elem.getBoundingClientRect();
+    box = elementToCheck.getBoundingClientRect();
 
     return {
       top: box.top + (window.pageYOffset || docElem.scrollTop) - (docElem.clientTop || 0),
       left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0)
     };
   }
-  offsetLeft = elem.offsetLeft;
-  offsetTop = elem.offsetTop;
-  lastElem = elem;
+  offsetLeft = elementToCheck.offsetLeft;
+  offsetTop = elementToCheck.offsetTop;
+  lastElem = elementToCheck;
 
   /* eslint-disable no-cond-assign */
-  while (elem = elem.offsetParent) {
+  while (elementToCheck = elementToCheck.offsetParent) {
     // from my observation, document.body always has scrollLeft/scrollTop == 0
-    if (elem === document.body) {
+    if (elementToCheck === document.body) {
       break;
     }
-    offsetLeft += elem.offsetLeft;
-    offsetTop += elem.offsetTop;
-    lastElem = elem;
+    offsetLeft += elementToCheck.offsetLeft;
+    offsetTop += elementToCheck.offsetTop;
+    lastElem = elementToCheck;
   }
 
   // slow - http://jsperf.com/offset-vs-getboundingclientrect/6
@@ -534,7 +542,7 @@ export function offset(elem) {
  * @returns {Number}
  */
 export function getWindowScrollTop() {
-  var res = window.scrollY;
+  let res = window.scrollY;
 
   if (res === void 0) { // IE8-11
     res = document.documentElement.scrollTop;
@@ -549,7 +557,7 @@ export function getWindowScrollTop() {
  * @returns {Number}
  */
 export function getWindowScrollLeft() {
-  var res = window.scrollX;
+  let res = window.scrollX;
 
   if (res === void 0) { // IE8-11
     res = document.documentElement.scrollLeft;
@@ -592,22 +600,22 @@ export function getScrollLeft(element) {
  * @returns {HTMLElement} Element's scrollable parent
  */
 export function getScrollableElement(element) {
-  var el = element.parentNode,
-    props = ['auto', 'scroll'],
-    overflow,
-    overflowX,
-    overflowY,
-    computedStyle = '',
-    computedOverflow = '',
-    computedOverflowY = '',
-    computedOverflowX = '';
+  const props = ['auto', 'scroll'];
+  let el = element.parentNode;
+  let overflow;
+  let overflowX;
+  let overflowY;
+  let computedStyle = '';
+  let computedOverflow = '';
+  let computedOverflowY = '';
+  let computedOverflowX = '';
 
   while (el && el.style && document.body !== el) {
     overflow = el.style.overflow;
     overflowX = el.style.overflowX;
     overflowY = el.style.overflowY;
 
-    if (overflow == 'scroll' || overflowX == 'scroll' || overflowY == 'scroll') {
+    if (overflow === 'scroll' || overflowX === 'scroll' || overflowY === 'scroll') {
       return el;
 
     } else if (window.getComputedStyle) {
@@ -643,18 +651,21 @@ export function getScrollableElement(element) {
  * @returns {HTMLElement} Base element's trimming parent
  */
 export function getTrimmingContainer(base) {
-  var el = base.parentNode;
+  let el = base.parentNode;
 
   while (el && el.style && document.body !== el) {
     if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
       return el;
+    }
 
-    } else if (window.getComputedStyle) {
-      var computedStyle = window.getComputedStyle(el);
+    const computedStyle = getComputedStyle(el);
+    const allowedProperties = ['scroll', 'hidden', 'auto'];
+    const property = computedStyle.getPropertyValue('overflow');
+    const propertyY = computedStyle.getPropertyValue('overflow-y');
+    const propertyX = computedStyle.getPropertyValue('overflow-x');
 
-      if (computedStyle.getPropertyValue('overflow') !== 'visible' && computedStyle.getPropertyValue('overflow') !== '') {
-        return el;
-      }
+    if (allowedProperties.includes(property) || allowedProperties.includes(propertyY) || allowedProperties.includes(propertyX)) {
+      return el;
     }
 
     el = el.parentNode;
@@ -867,14 +878,14 @@ export function setCaretPosition(element, pos, endPos) {
     try {
       element.setSelectionRange(pos, endPos);
     } catch (err) {
-      var elementParent = element.parentNode;
-      var parentDisplayValue = elementParent.style.display;
+      const elementParent = element.parentNode;
+      const parentDisplayValue = elementParent.style.display;
       elementParent.style.display = 'block';
       element.setSelectionRange(pos, endPos);
       elementParent.style.display = parentDisplayValue;
     }
   } else if (element.createTextRange) { // IE8
-    var range = element.createTextRange();
+    const range = element.createTextRange();
     range.collapse(true);
     range.moveEnd('character', endPos);
     range.moveStart('character', pos);
@@ -886,11 +897,11 @@ var cachedScrollbarWidth;
 
 // http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 function walkontableCalculateScrollbarWidth() {
-  var inner = document.createElement('div');
+  const inner = document.createElement('div');
   inner.style.height = '200px';
   inner.style.width = '100%';
 
-  var outer = document.createElement('div');
+  const outer = document.createElement('div');
   outer.style.boxSizing = 'content-box';
   outer.style.height = '150px';
   outer.style.left = '0px';
@@ -902,9 +913,9 @@ function walkontableCalculateScrollbarWidth() {
   outer.appendChild(inner);
 
   (document.body || document.documentElement).appendChild(outer);
-  var w1 = inner.offsetWidth;
+  const w1 = inner.offsetWidth;
   outer.style.overflow = 'scroll';
-  var w2 = inner.offsetWidth;
+  let w2 = inner.offsetWidth;
   if (w1 == w2) {
     w2 = outer.clientWidth;
   }
@@ -962,7 +973,7 @@ export function setOverlayPosition(overlayElem, left, top) {
 }
 
 export function getCssTransform(element) {
-  var transform;
+  let transform;
 
   if (element.style.transform && (transform = element.style.transform) !== '') {
     return ['transform', transform];
@@ -991,7 +1002,7 @@ export function resetCssTransform(element) {
  * @returns {Boolean}
  */
 export function isInput(element) {
-  var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
+  const inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
 
   return element && (inputs.indexOf(element.nodeName) > -1 || element.contentEditable === 'true');
 }

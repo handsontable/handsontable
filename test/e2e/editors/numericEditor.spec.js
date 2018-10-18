@@ -14,26 +14,26 @@ describe('NumericEditor', () => {
 
   const arrayOfObjects = function() {
     return [
-      {id: 1, name: 'Ted', lastName: 'Right'},
-      {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'},
-      {id: 4, name: 'Sid', lastName: 'Strong'},
-      {id: 5, name: 'Jane', lastName: 'Neat'},
-      {id: 6, name: 'Chuck', lastName: 'Jackson'},
-      {id: 7, name: 'Meg', lastName: 'Jansen'},
-      {id: 8, name: 'Rob', lastName: 'Norris'},
-      {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'}
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' },
+      { id: 4, name: 'Sid', lastName: 'Strong' },
+      { id: 5, name: 'Jane', lastName: 'Neat' },
+      { id: 6, name: 'Chuck', lastName: 'Jackson' },
+      { id: 7, name: 'Meg', lastName: 'Jansen' },
+      { id: 8, name: 'Rob', lastName: 'Norris' },
+      { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+      { id: 10, name: 'Eve', lastName: 'Branson' }
     ];
   };
 
-  it('should convert "integer like" input value to number (object data source)', async () => {
+  it('should convert "integer like" input value to number (object data source)', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
     selectCell(2, 0);
@@ -49,14 +49,14 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(2, 0)).toEqual(999);
   });
 
-  it('should not convert formatted "float like" input value to number (object data source) #4706', async () => {
+  it('should not convert formatted "float like" input value to number (object data source) #4706', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'price_eur', type: 'numeric'},
-        {data: 'price_pln', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
-        {data: 'price_aud', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}}
+        { data: 'id' },
+        { data: 'price_eur', type: 'numeric' },
+        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
       ]
     });
 
@@ -122,13 +122,13 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(1, 3)).toEqual('400,000.5');
   });
 
-  it('should convert "float like" input value with dot as determiner to number (object data source)', async () => {
+  it('should convert "float like" input value with dot as determiner to number (object data source)', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'price'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'price' },
+        { data: 'lastName' }
       ]
     });
     selectCell(2, 0);
@@ -144,13 +144,13 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(2, 0)).toEqual(77.7);
   });
 
-  it('should convert "float like" input value with comma as determiner to number (object data source)', async () => {
+  it('should convert "float like" input value with comma as determiner to number (object data source)', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
     selectCell(2, 0);
@@ -166,13 +166,13 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(2, 0)).toEqual(77.7);
   });
 
-  it('should convert "float like" input without leading zero to a float', async () => {
+  it('should convert "float like" input without leading zero to a float', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
 
@@ -188,11 +188,11 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(2, 0)).toEqual(0.74);
   });
 
-  it('should apply changes to editor after validation', async () => {
+  it('should apply changes to editor after validation', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
+        { data: 'id', type: 'numeric' },
       ]
     });
 
@@ -204,13 +204,13 @@ describe('NumericEditor', () => {
     expect(getActiveEditor().originalValue).toEqual('');
   });
 
-  it('should not validate string input data containing numbers ', async () => {
+  it('should not validate string input data containing numbers ', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'price', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } },
+        { data: 'lastName' }
       ]
     });
 
@@ -292,13 +292,13 @@ describe('NumericEditor', () => {
   });
 
   it('should display a string in a format \'$X,XXX.XX\' when using language=en, appropriate format in column settings and \'XXXX.XX\' as ' +
-     'an input string', async () => {
+     'an input string', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
     selectCell(2, 0);
@@ -315,13 +315,13 @@ describe('NumericEditor', () => {
   });
 
   it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
-     'input string (that comes from manual input)', async () => {
+     'input string (that comes from manual input)', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00 $', culture: 'de-DE'}},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
     selectCell(2, 0);
@@ -338,15 +338,15 @@ describe('NumericEditor', () => {
   });
 
   it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX.XX\' as an ' +
-     'input string (that comes from paste)', async () => {
+     'input string (that comes from paste)', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00 $', culture: 'de-DE'}},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -364,25 +364,25 @@ describe('NumericEditor', () => {
   });
 
   it('should display a string in a format \'X XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
-     'input string and ignore not needed zeros at the end', async () => {
+     'input string and ignore not needed zeros at the end', async() => {
     handsontable({
       data: [
-        {id: 1, name: 'Ted', lastName: 'Right', money: 0},
-        {id: 2, name: 'Frank', lastName: 'Honest', money: 0},
-        {id: 3, name: 'Joan', lastName: 'Well', money: 0},
-        {id: 4, name: 'Sid', lastName: 'Strong', money: 0},
-        {id: 5, name: 'Jane', lastName: 'Neat', money: 0},
-        {id: 6, name: 'Chuck', lastName: 'Jackson', money: 0},
-        {id: 7, name: 'Meg', lastName: 'Jansen', money: 0},
-        {id: 8, name: 'Rob', lastName: 'Norris', money: 0},
-        {id: 9, name: 'Sean', lastName: 'O\'Hara', money: 0},
-        {id: 10, name: 'Eve', lastName: 'Branson', money: 0}
+        { id: 1, name: 'Ted', lastName: 'Right', money: 0 },
+        { id: 2, name: 'Frank', lastName: 'Honest', money: 0 },
+        { id: 3, name: 'Joan', lastName: 'Well', money: 0 },
+        { id: 4, name: 'Sid', lastName: 'Strong', money: 0 },
+        { id: 5, name: 'Jane', lastName: 'Neat', money: 0 },
+        { id: 6, name: 'Chuck', lastName: 'Jackson', money: 0 },
+        { id: 7, name: 'Meg', lastName: 'Jansen', money: 0 },
+        { id: 8, name: 'Rob', lastName: 'Norris', money: 0 },
+        { id: 9, name: 'Sean', lastName: 'O\'Hara', money: 0 },
+        { id: 10, name: 'Eve', lastName: 'Branson', money: 0 }
       ],
       columns: [
-        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00 $', culture: 'de-DE'}},
-        {data: 'name'},
-        {data: 'lastName'},
-        {data: 'money', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}}
+        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'name' },
+        { data: 'lastName' },
+        { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
       ]
     });
 
@@ -412,16 +412,16 @@ describe('NumericEditor', () => {
   });
 
   it('should display values as "float like" string with dot as determiner after pressing enter ' +
-    'and not change value after closing editor', async () => {
+    'and not change value after closing editor', async() => {
     handsontable({
       data: [
-        {id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5}
+        { id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5 }
       ],
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'price_eur', type: 'numeric'},
-        {data: 'price_pln', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
-        {data: 'price_aud', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}}
+        { data: 'id', type: 'numeric' },
+        { data: 'price_eur', type: 'numeric' },
+        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
       ]
     });
 
@@ -469,16 +469,16 @@ describe('NumericEditor', () => {
   });
 
   it('should display values as "float like" string with dot as determiner after double click ' +
-    'and not change value after closing editor', async () => {
+    'and not change value after closing editor', async() => {
     handsontable({
       data: [
-        {id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5}
+        { id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5 }
       ],
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'price_eur', type: 'numeric'},
-        {data: 'price_pln', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
-        {data: 'price_aud', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}}
+        { data: 'id', type: 'numeric' },
+        { data: 'price_eur', type: 'numeric' },
+        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
       ]
     });
 
@@ -522,13 +522,13 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(0, 3)).toEqual(1333.5);
   });
 
-  it('should mark text as invalid without removing when using `setDataAtCell`', async () => {
+  it('should mark text as invalid without removing when using `setDataAtCell`', async() => {
     const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
     });
 
@@ -540,7 +540,7 @@ describe('NumericEditor', () => {
     expect($(getCell(0, 0)).hasClass('htInvalid')).toBe(true);
   });
 
-  it('should allow custom validator', async () => {
+  it('should allow custom validator', async() => {
     handsontable({
       data: arrayOfObjects(),
       allowInvalid: false,
@@ -552,8 +552,8 @@ describe('NumericEditor', () => {
             cb(parseInt(val, 10) > 100);
           }
         },
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'name' },
+        { data: 'lastName' }
       ]
     });
     selectCell(2, 0);
@@ -577,7 +577,7 @@ describe('NumericEditor', () => {
   });
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
-  it('should not lose the focus on input element while inserting new characters (#839)', async () => {
+  it('should not lose the focus on input element while inserting new characters (#839)', async() => {
     let blured = false;
     const listener = () => {
       blured = true;
@@ -585,9 +585,9 @@ describe('NumericEditor', () => {
     const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00', culture: 'en-US'}},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00', culture: 'en-US' } },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
     });
 
@@ -612,8 +612,8 @@ describe('NumericEditor', () => {
   it('should not throw error on closing editor when column data is defined as \'length\'', () => {
     hot = handsontable({
       data: [
-        {length: 4},
-        {length: 5},
+        { length: 4 },
+        { length: 5 },
       ],
       columns: [
         {
@@ -652,16 +652,16 @@ describe('NumericEditor', () => {
       }, 100);
     };
 
-    it('Moving from numeric editor to text editor', function(done) {
+    it('Moving from numeric editor to text editor', (done) => {
       handsontable({
         data: [
-          {id: 1, name: 'Ted', lastName: 'Right', money: 0}
+          { id: 1, name: 'Ted', lastName: 'Right', money: 0 }
         ],
         columns: [
-          {data: 'id'},
-          {data: 'name'},
-          {data: 'lastName'},
-          {data: 'money', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}}
+          { data: 'id' },
+          { data: 'name' },
+          { data: 'lastName' },
+          { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
         ]
       });
 
@@ -670,21 +670,21 @@ describe('NumericEditor', () => {
         moveFromCol: 3,
         moveToRow: 0,
         moveToCol: 0,
-        $container: this.$container,
+        $container: spec().$container,
         doneFunc: done
       });
     });
 
-    it('Moving from text editor to numeric editor', function(done) {
+    it('Moving from text editor to numeric editor', (done) => {
       handsontable({
         data: [
-          {id: 1, name: 'Ted', lastName: 'Right', money: 0}
+          { id: 1, name: 'Ted', lastName: 'Right', money: 0 }
         ],
         columns: [
-          {data: 'id'},
-          {data: 'name'},
-          {data: 'lastName'},
-          {data: 'money', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}}
+          { data: 'id' },
+          { data: 'name' },
+          { data: 'lastName' },
+          { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
         ]
       });
 
@@ -693,16 +693,16 @@ describe('NumericEditor', () => {
         moveFromCol: 1,
         moveToRow: 0,
         moveToCol: 3,
-        $container: this.$container,
+        $container: spec().$container,
         doneFunc: done
       });
     });
   });
 
   describe('IME support', () => {
-    it('should focus editable element after selecting the cell', async () => {
+    it('should focus editable element after selecting the cell', async() => {
       handsontable({
-        type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}
+        type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' }
       });
       selectCell(0, 0, 0, 0, true, false);
 

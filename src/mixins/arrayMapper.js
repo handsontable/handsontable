@@ -1,6 +1,6 @@
-import {arrayReduce, arrayMap, arrayMax} from './../helpers/array';
-import {defineGetter} from './../helpers/object';
-import {rangeEach} from './../helpers/number';
+import { arrayReduce, arrayMap, arrayMax } from './../helpers/array';
+import { defineGetter } from './../helpers/object';
+import { rangeEach } from './../helpers/number';
 
 const MIXIN_NAME = 'arrayMapper';
 
@@ -48,8 +48,8 @@ const arrayMapper = {
    * @returns {Array} Returns added items.
    */
   insertItems(physicalIndex, amount = 1) {
-    let newIndex = arrayMax(this._arrayMap) + 1;
-    let addedItems = [];
+    const newIndex = arrayMax(this._arrayMap) + 1;
+    const addedItems = [];
 
     rangeEach(amount - 1, (count) => {
       addedItems.push(this._arrayMap.splice(physicalIndex + count, 0, newIndex + count));
@@ -69,7 +69,7 @@ const arrayMapper = {
     let removedItems = [];
 
     if (Array.isArray(physicalIndex)) {
-      let mapCopy = [].concat(this._arrayMap);
+      const mapCopy = [].concat(this._arrayMap);
 
       // Sort descending
       physicalIndex.sort((a, b) => b - a);
@@ -94,27 +94,30 @@ const arrayMapper = {
    * @param {Number} [amount=1] Defines how many items will be removed from an array (when index is passed as number).
    */
   unshiftItems(physicalIndex, amount = 1) {
-    let removedItems = this.removeItems(physicalIndex, amount);
+    const removedItems = this.removeItems(physicalIndex, amount);
 
     function countRowShift(logicalRow) {
       // Todo: compare perf between reduce vs sort->each->brake
       return arrayReduce(removedItems, (count, removedLogicalRow) => {
+        let result = count;
+
         if (logicalRow > removedLogicalRow) {
-          count++;
+          result += 1;
         }
 
-        return count;
+        return result;
       }, 0);
     }
 
-    this._arrayMap = arrayMap(this._arrayMap, (logicalRow, physicalRow) => {
-      let rowShift = countRowShift(logicalRow);
+    this._arrayMap = arrayMap(this._arrayMap, (logicalRow) => {
+      let logicalRowIndex = logicalRow;
+      const rowShift = countRowShift(logicalRowIndex);
 
       if (rowShift) {
-        logicalRow -= rowShift;
+        logicalRowIndex -= rowShift;
       }
 
-      return logicalRow;
+      return logicalRowIndex;
     });
   },
 
@@ -126,10 +129,13 @@ const arrayMapper = {
    */
   shiftItems(physicalIndex, amount = 1) {
     this._arrayMap = arrayMap(this._arrayMap, (row) => {
-      if (row >= physicalIndex) {
-        row += amount;
+      let physicalRowIndex = row;
+
+      if (physicalRowIndex >= physicalIndex) {
+        physicalRowIndex += amount;
       }
-      return row;
+
+      return physicalRowIndex;
     });
 
     rangeEach(amount - 1, (count) => {

@@ -1,4 +1,4 @@
-import {CellRange} from './../3rdparty/walkontable/src';
+import { CellRange } from './../3rdparty/walkontable/src';
 
 /**
  * The SelectionRange class is a simple CellRanges collection designed for easy manipulation of the multiple
@@ -78,7 +78,7 @@ class SelectionRange {
    * @returns {Boolean}
    */
   includes(coords) {
-    return this.ranges.some((cellRange) => cellRange.includes(coords));
+    return this.ranges.some(cellRange => cellRange.includes(coords));
   }
 
   /**

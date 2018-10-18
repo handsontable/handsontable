@@ -5,7 +5,7 @@ import {
   getScrollTop,
   offset,
 } from './../../../helpers/dom/element';
-import {rangeEach, rangeEachReverse} from './../../../helpers/number';
+import { rangeEach, rangeEachReverse } from './../../../helpers/number';
 
 /**
  * @class Scroll
@@ -22,46 +22,83 @@ class Scroll {
   }
 
   /**
-   * Scrolls viewport to a cell by minimum number of cells
+   * Scrolls viewport to a cell.
    *
    * @param {CellCoords} coords
+   * @param {Boolean} [snapToTop]
+   * @param {Boolean} [snapToRight]
+   * @param {Boolean} [snapToBottom]
+   * @param {Boolean} [snapToLeft]
+   * @returns {Boolean}
    */
-  scrollViewport(coords) {
+  scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
+    const scrolledHorizontally = this.scrollViewportHorizontally(coords.col, snapToRight, snapToLeft);
+    const scrolledVertically = this.scrollViewportVertically(coords.row, snapToTop, snapToBottom);
+
+    return scrolledHorizontally || scrolledVertically;
+  }
+
+  /**
+   * Scrolls viewport to a column.
+   *
+   * @param {Number} column Visual column index.
+   * @param {Boolean} [snapToRight]
+   * @param {Boolean} [snapToLeft]
+   * @returns {Boolean}
+   */
+  scrollViewportHorizontally(column, snapToRight, snapToLeft) {
     if (!this.wot.drawn) {
-      return;
+      return false;
     }
 
     const {
-      topOverlay,
-      leftOverlay,
-      totalRows,
-      totalColumns,
-      fixedRowsTop,
-      fixedRowsBottom,
       fixedColumnsLeft,
+      leftOverlay,
+      totalColumns,
     } = this._getVariables();
+    let result = false;
 
-    if (coords.row < 0 || coords.row > Math.max(totalRows - 1, 0)) {
-      throw new Error(`row ${coords.row} does not exist`);
+    if (column >= 0 && column <= Math.max(totalColumns - 1, 0)) {
+      if (column >= fixedColumnsLeft && (column < this.getFirstVisibleColumn() || snapToLeft)) {
+        result = leftOverlay.scrollTo(column);
+      } else if (column > this.getLastVisibleColumn() || snapToRight) {
+        result = leftOverlay.scrollTo(column, true);
+      }
     }
 
-    if (coords.col < 0 || coords.col > Math.max(totalColumns - 1, 0)) {
-      throw new Error(`column ${coords.col} does not exist`);
+    return result;
+  }
+
+  /**
+   * Scrolls viewport to a row.
+   *
+   * @param {Number} row Visual row index.
+   * @param {Boolean} [snapToTop]
+   * @param {Boolean} [snapToBottom]
+   * @returns {Boolean}
+   */
+  scrollViewportVertically(row, snapToTop, snapToBottom) {
+    if (!this.wot.drawn) {
+      return false;
     }
 
-    if (coords.row >= fixedRowsTop && coords.row < this.getFirstVisibleRow()) {
-      topOverlay.scrollTo(coords.row);
+    const {
+      fixedRowsBottom,
+      fixedRowsTop,
+      topOverlay,
+      totalRows,
+    } = this._getVariables();
+    let result = false;
 
-    } else if (coords.row > this.getLastVisibleRow() && coords.row < totalRows - fixedRowsBottom) {
-      topOverlay.scrollTo(coords.row, true);
+    if (row >= 0 && row <= Math.max(totalRows - 1, 0)) {
+      if (row >= fixedRowsTop && (row < this.getFirstVisibleRow() || snapToTop)) {
+        result = topOverlay.scrollTo(row);
+      } else if ((row > this.getLastVisibleRow() && row < totalRows - fixedRowsBottom) || snapToBottom) {
+        result = topOverlay.scrollTo(row, true);
+      }
     }
 
-    if (coords.col >= fixedColumnsLeft && coords.col < this.getFirstVisibleColumn()) {
-      leftOverlay.scrollTo(coords.col);
-
-    } else if (coords.col > this.getLastVisibleColumn()) {
-      leftOverlay.scrollTo(coords.col, true);
-    }
+    return result;
   }
 
   /**
@@ -159,7 +196,6 @@ class Scroll {
       wtTable,
       wtViewport,
       totalColumns,
-      fixedColumnsLeft,
     } = this._getVariables();
 
     let firstVisibleColumn = wtTable.getFirstVisibleColumn();

@@ -1,5 +1,5 @@
 describe('Performance', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   // this is a test suite to test if there are no redundant operations
 
@@ -15,14 +15,14 @@ describe('Performance', () => {
   });
 
   it('should call renderer once for one cell (fixed column width)', () => {
-    var count = 0;
+    let count = 0;
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       colWidths: 100,
       rowHeights: 23,
-      renderer() {
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
-        count++;
+      renderer(...args) {
+        Handsontable.renderers.TextRenderer.apply(this, args);
+        count += 1;
       }
     });
 
@@ -30,13 +30,13 @@ describe('Performance', () => {
   });
 
   it('should call renderer twice for one cell (auto column width)', () => {
-    var count = 0;
-    var hot = handsontable({
+    let count = 0;
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       rowHeights: 23,
-      renderer() {
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
-        count++;
+      renderer(...args) {
+        Handsontable.renderers.TextRenderer.apply(this, args);
+        count += 1;
       }
     });
 
@@ -44,13 +44,13 @@ describe('Performance', () => {
   });
 
   it('should call renderer twice for one cell (auto row height)', () => {
-    var count = 0;
-    var hot = handsontable({
+    let count = 0;
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       colWidths: 50,
-      renderer() {
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
-        count++;
+      renderer(...args) {
+        Handsontable.renderers.TextRenderer.apply(this, args);
+        count += 1;
       }
     });
 
@@ -58,14 +58,14 @@ describe('Performance', () => {
   });
 
   it('should call renderer triple times for one cell (auto row height, auto column width)', () => {
-    var count = 0;
-    var hot = handsontable({
+    let count = 0;
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       autoRowSize: true,
       autoColumnSize: true,
-      renderer() {
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
-        count++;
+      renderer(...args) {
+        Handsontable.renderers.TextRenderer.apply(this, args);
+        count += 1;
       }
     });
 
@@ -73,13 +73,13 @@ describe('Performance', () => {
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, without overlays)', () => {
-    var count = 0;
+    let count = 0;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       rowHeights: 23,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -87,13 +87,13 @@ describe('Performance', () => {
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, without overlays)', () => {
-    var count = 0;
+    let count = 0;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       colWidths: 50,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -101,14 +101,14 @@ describe('Performance', () => {
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with left overlay)', () => {
-    var count = 0;
+    let count = 0;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       colHeaders: true,
       rowHeights: 23,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -116,14 +116,14 @@ describe('Performance', () => {
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with left overlay)', () => {
-    var count = 0;
+    let count = 0;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       colHeaders: true,
       colWidths: 50,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -131,14 +131,14 @@ describe('Performance', () => {
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with top overlay)', () => {
-    var count = 0;
+    let count = 0;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       rowHeaders: true,
       rowHeights: 23,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -146,14 +146,14 @@ describe('Performance', () => {
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with top overlay)', () => {
-    var count = 0;
+    let count = 0;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       rowHeaders: true,
       colWidths: 50,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -161,7 +161,7 @@ describe('Performance', () => {
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with all overlays)', () => {
-    var count = 0;
+    let count = 0;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
@@ -169,7 +169,7 @@ describe('Performance', () => {
       rowHeaders: true,
       rowHeights: 23,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -177,7 +177,7 @@ describe('Performance', () => {
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with all overlays)', () => {
-    var count = 0;
+    let count = 0;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
@@ -185,7 +185,7 @@ describe('Performance', () => {
       rowHeaders: true,
       colWidths: 50,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -193,14 +193,14 @@ describe('Performance', () => {
   });
 
   it('should call renderer twice for each cell (auto column width)', () => {
-    var count = 0;
+    let count = 0;
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       rowHeights: 23,
       autoColumnSize: true,
-      renderer() {
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
-        count++;
+      renderer(...args) {
+        Handsontable.renderers.TextRenderer.apply(this, args);
+        count += 1;
       }
     });
 
@@ -208,14 +208,14 @@ describe('Performance', () => {
   });
 
   it('should call renderer twice for each cell (auto row height)', () => {
-    var count = 0;
+    let count = 0;
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       colWidths: 50,
       autoRowSize: true,
-      renderer() {
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
-        count++;
+      renderer(...args) {
+        Handsontable.renderers.TextRenderer.apply(this, args);
+        count += 1;
       }
     });
 
@@ -223,14 +223,14 @@ describe('Performance', () => {
   });
 
   it('should call renderer twice for each cell (auto row height, auto column width)', () => {
-    var count = 0;
+    let count = 0;
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       autoRowSize: true,
       autoColumnSize: true,
-      renderer() {
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
-        count++;
+      renderer(...args) {
+        Handsontable.renderers.TextRenderer.apply(this, args);
+        count += 1;
       }
     });
 

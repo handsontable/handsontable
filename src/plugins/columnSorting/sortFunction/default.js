@@ -1,17 +1,16 @@
-import {isEmpty} from '../../../helpers/mixed';
-import {DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
+import { isEmpty } from '../../../helpers/mixed';
+import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../comparatorEngine';
 
 /**
- * Default sorting algorithm.
+ * Default sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
- * @param {String} sortOrder Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
+ * @param {String} sortOrder Sort order (`asc` for ascending, `desc` for descending).
  * @param {Object} columnMeta Column meta object.
  * @returns {Function} The compare function.
  */
 export default function defaultSort(sortOrder, columnMeta) {
-  // We are soring array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
-  return function ([, value], [, nextValue]) {
-    const sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
+  return function(value, nextValue) {
+    const { sortEmptyCells } = columnMeta.columnSorting;
 
     if (typeof value === 'string') {
       value = value.toLowerCase();
@@ -27,7 +26,6 @@ export default function defaultSort(sortOrder, columnMeta) {
 
     if (isEmpty(value)) {
       if (isEmpty(nextValue)) {
-        // Two empty values
         return DO_NOT_SWAP;
       }
 

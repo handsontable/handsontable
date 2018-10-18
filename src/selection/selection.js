@@ -1,10 +1,10 @@
-import Highlight, {AREA_TYPE, HEADER_TYPE, CELL_TYPE} from './highlight/highlight';
+import Highlight, { AREA_TYPE, HEADER_TYPE, CELL_TYPE } from './highlight/highlight';
 import SelectionRange from './range';
-import {CellCoords} from './../3rdparty/walkontable/src';
-import {isPressedCtrlKey} from './../utils/keyStateObserver';
-import {createObjectPropListener, mixin} from './../helpers/object';
-import {isUndefined} from './../helpers/mixed';
-import {arrayEach} from './../helpers/array';
+import { CellCoords } from './../3rdparty/walkontable/src';
+import { isPressedCtrlKey } from './../utils/keyStateObserver';
+import { createObjectPropListener, mixin } from './../helpers/object';
+import { isUndefined } from './../helpers/mixed';
+import { arrayEach } from './../helpers/array';
 import localHooks from './../mixins/localHooks';
 import Transformation from './transformation';
 import {
@@ -14,7 +14,7 @@ import {
   SELECTION_TYPE_EMPTY,
   SELECTION_TYPE_UNRECOGNIZED,
 } from './utils';
-import {toSingleLine} from './../helpers/templateLiteralTag';
+import { toSingleLine } from './../helpers/templateLiteralTag';
 
 /**
  * @class Selection
@@ -227,9 +227,9 @@ class Selection {
     // If the next layer level is lower than previous then clear all area and header highlights. This is the
     // indication that the new selection is performing.
     if (layerLevel < this.highlight.layerLevel) {
-      arrayEach(this.highlight.getAreas(), (highlight) => void highlight.clear());
-      arrayEach(this.highlight.getHeaders(), (highlight) => void highlight.clear());
-      arrayEach(this.highlight.getActiveHeaders(), (highlight) => void highlight.clear());
+      arrayEach(this.highlight.getAreas(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getHeaders(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getActiveHeaders(), highlight => void highlight.clear());
     }
 
     this.highlight.useLayerLevel(layerLevel);
@@ -481,7 +481,7 @@ class Selection {
     }
 
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
-      propToCol: (prop) => this.tableProps.propToCol(prop),
+      propToCol: prop => this.tableProps.propToCol(prop),
       keepDirection: true,
     });
     const countRows = this.tableProps.countRows();
@@ -521,15 +521,15 @@ class Selection {
    * @returns {Boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectColumns(startColumn, endColumn = startColumn) {
-    startColumn = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
-    endColumn = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
+    const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
+    const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
 
     const countCols = this.tableProps.countCols();
-    const isValid = isValidCoord(startColumn, countCols) && isValidCoord(endColumn, countCols);
+    const isValid = isValidCoord(start, countCols) && isValidCoord(end, countCols);
 
     if (isValid) {
-      this.setRangeStartOnly(new CellCoords(-1, startColumn));
-      this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, endColumn));
+      this.setRangeStartOnly(new CellCoords(-1, start));
+      this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, end));
       this.finish();
     }
 

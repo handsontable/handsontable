@@ -1,5 +1,7 @@
-import {hasOwnProperty} from './../../helpers/object';
-import {arrayEach} from './../../helpers/array';
+import {
+  hasOwnProperty,
+  isObject } from './../../helpers/object';
+import { arrayEach } from './../../helpers/array';
 
 /**
  * Create separated id for borders for each cell.
@@ -72,19 +74,59 @@ export function extendDefaultBorder(defaultBorder, customBorder) {
   }
 
   if (hasOwnProperty(customBorder, 'top')) {
-    defaultBorder.top = customBorder.top;
+    if (customBorder.top) {
+      if (!isObject(customBorder.top)) {
+        customBorder.top = createDefaultCustomBorder();
+      }
+
+      defaultBorder.top = customBorder.top;
+
+    } else {
+      customBorder.top = createSingleEmptyBorder();
+      defaultBorder.top = customBorder.top;
+    }
   }
 
   if (hasOwnProperty(customBorder, 'right')) {
-    defaultBorder.right = customBorder.right;
+    if (customBorder.right) {
+      if (!isObject(customBorder.right)) {
+        customBorder.right = createDefaultCustomBorder();
+      }
+
+      defaultBorder.right = customBorder.right;
+
+    } else {
+      customBorder.right = createSingleEmptyBorder();
+      defaultBorder.right = customBorder.right;
+    }
   }
 
   if (hasOwnProperty(customBorder, 'bottom')) {
-    defaultBorder.bottom = customBorder.bottom;
+    if (customBorder.bottom) {
+      if (!isObject(customBorder.bottom)) {
+        customBorder.bottom = createDefaultCustomBorder();
+      }
+
+      defaultBorder.bottom = customBorder.bottom;
+
+    } else {
+      customBorder.bottom = createSingleEmptyBorder();
+      defaultBorder.bottom = customBorder.bottom;
+    }
   }
 
   if (hasOwnProperty(customBorder, 'left')) {
-    defaultBorder.left = customBorder.left;
+    if (customBorder.left) {
+      if (!isObject(customBorder.left)) {
+        customBorder.left = createDefaultCustomBorder();
+      }
+
+      defaultBorder.left = customBorder.left;
+
+    } else {
+      customBorder.left = createSingleEmptyBorder();
+      defaultBorder.left = customBorder.left;
+    }
   }
 
   return defaultBorder;
@@ -101,7 +143,7 @@ export function checkSelectionBorders(hot, direction) {
 
   arrayEach(hot.getSelectedRange(), (range) => {
     range.forAll((r, c) => {
-      let metaBorders = hot.getCellMeta(r, c).borders;
+      const metaBorders = hot.getCellMeta(r, c).borders;
 
       if (metaBorders) {
         if (direction) {

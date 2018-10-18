@@ -1,6 +1,6 @@
 describe('settings', () => {
   describe('editor', () => {
-    var id = 'testContainer';
+    const id = 'testContainer';
 
     beforeEach(function() {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -15,7 +15,7 @@ describe('settings', () => {
 
     describe('defined in constructor', () => {
       it('should use text editor by default', () => {
-        var textEditorPrototype = Handsontable.editors.TextEditor.prototype;
+        const textEditorPrototype = Handsontable.editors.TextEditor.prototype;
 
         spyOn(textEditorPrototype, 'init').and.callThrough();
         handsontable();
@@ -24,8 +24,8 @@ describe('settings', () => {
       });
 
       it('should use editor from predefined string', () => {
-        var textEditorPrototype = Handsontable.editors.TextEditor.prototype;
-        var checkboxEditorPrototype = Handsontable.editors.CheckboxEditor.prototype;
+        const textEditorPrototype = Handsontable.editors.TextEditor.prototype;
+        const checkboxEditorPrototype = Handsontable.editors.CheckboxEditor.prototype;
 
         spyOn(textEditorPrototype, 'init');
         spyOn(checkboxEditorPrototype, 'init');
@@ -42,14 +42,14 @@ describe('settings', () => {
       });
 
       it('should use editor from predefined string when columns is a function', () => {
-        var textEditorPrototype = Handsontable.editors.TextEditor.prototype;
-        var checkboxEditorPrototype = Handsontable.editors.CheckboxEditor.prototype;
+        const textEditorPrototype = Handsontable.editors.TextEditor.prototype;
+        const checkboxEditorPrototype = Handsontable.editors.CheckboxEditor.prototype;
 
         spyOn(textEditorPrototype, 'init');
         spyOn(checkboxEditorPrototype, 'init');
         handsontable({
           columns(column) {
-            return column === 0 ? {editor: 'checkbox'} : null;
+            return column === 0 ? { editor: 'checkbox' } : null;
           }
         });
         selectCell(0, 0);
@@ -58,7 +58,7 @@ describe('settings', () => {
       });
 
       it('should use editor class passed directly', () => {
-        var customEditor = jasmine.createSpy('customEditor');
+        const customEditor = jasmine.createSpy('customEditor');
 
         customEditor.and.callFake(function() {
           this.prepare = function() {};
@@ -78,7 +78,7 @@ describe('settings', () => {
       });
 
       it('should use editor class passed directly when columns is a function', () => {
-        var customEditor = jasmine.createSpy('customEditor');
+        const customEditor = jasmine.createSpy('customEditor');
 
         customEditor.and.callFake(function() {
           this.prepare = function() {};
@@ -87,7 +87,7 @@ describe('settings', () => {
 
         handsontable({
           columns(column) {
-            return column === 0 ? {editor: customEditor} : null;
+            return column === 0 ? { editor: customEditor } : null;
           }
         });
         selectCell(0, 0);
@@ -96,7 +96,7 @@ describe('settings', () => {
       });
 
       it('should use editor from custom string', () => {
-        var customEditor = jasmine.createSpy('customEditor');
+        const customEditor = jasmine.createSpy('customEditor');
         customEditor.and.callFake(function() {
           this.prepare = function() {};
           this.isOpened = function() {};
@@ -117,7 +117,7 @@ describe('settings', () => {
       });
 
       it('should use editor from custom string when columns is a function', () => {
-        var customEditor = jasmine.createSpy('customEditor');
+        const customEditor = jasmine.createSpy('customEditor');
 
         customEditor.and.callFake(function() {
           this.prepare = function() {};
@@ -128,7 +128,7 @@ describe('settings', () => {
 
         handsontable({
           columns(column) {
-            return column === 0 ? {editor: 'myEditor'} : null;
+            return column === 0 ? { editor: 'myEditor' } : null;
           },
         });
         selectCell(0, 0);

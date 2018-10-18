@@ -621,7 +621,7 @@ declare namespace Handsontable {
       firstCalculation: boolean;
       ghostTable: GhostTable;
       inProgress: boolean;
-      sampleGenerator: SamplesGenerator;
+      samplesGenerator: SamplesGenerator;
       widths: any[];
 
       calculateAllColumnsWidth(rowRange?: number | object): void;
@@ -694,23 +694,16 @@ declare namespace Handsontable {
       toggleCollapsibleSection(coords: object, action: string): void;
     }
 
-    type SortOrderType = 'asc' | 'desc' | 'none';
-
-    interface ColumnSortingRowsMapper extends arrayMapper {
-      columnSorting: ColumnSorting;
-
-      createMap(length?: number): void;
-      destroy(): void;
-    }
+    type SortOrderType = 'asc' | 'desc';
+    type ColumnSortConfig = { column: number, sortOrder: SortOrderType }
 
     interface ColumnSorting extends Base {
-      sortColumn: undefined | number;
-      sortEmptyCells: boolean;
-      sortOrder: SortOrderType;
+      clearSort(): void;
+      destroy(): void;
+      getSortConfig(column?: number): void | ColumnSortConfig | Array<ColumnSortConfig>
       isSorted(): boolean;
-      loadSortingState(): any;
-      saveSortingState(): void;
-      sort(column: number, order?: SortOrderType): void;
+      setSortConfigs(sortConfigs: Array<ColumnSortConfig>): void;
+      sort(sortConfig?: ColumnSortConfig): void;
     }
 
     interface ColumnSummary extends Base {
@@ -1095,6 +1088,18 @@ declare namespace Handsontable {
       createMap(length?: number): void;
       destroy(): void;
       moveColumn(from: number, to: number): void;
+    }
+
+    type MultiSortOrderType = 'asc' | 'desc';
+    type MultiColumnSortConfig = { column: number, sortOrder: MultiSortOrderType }
+
+    interface MultiColumnSorting extends Base {
+      clearSort(): void;
+      destroy(): void;
+      getSortConfig(column?: number): void | MultiColumnSortConfig | Array<MultiColumnSortConfig>
+      isSorted(): boolean;
+      setSortConfigs(sortConfigs: Array<MultiColumnSortConfig>): void;
+      sort(sortConfig?: MultiColumnSortConfig | Array<MultiColumnSortConfig>): void;
     }
 
     interface TrimRowsMapper extends arrayMapper {
@@ -1489,6 +1494,7 @@ declare namespace Handsontable {
     minRows?: number;
     minSpareCols?: number;
     minSpareRows?: number;
+    multiColumnSorting?: boolean | object;
     selectionMode?: 'single' | 'range' | 'multiple';
     nestedHeaders?: any[]; // pro
     noWordWrapClassName?: string;
@@ -1544,7 +1550,7 @@ declare namespace Handsontable {
     afterChangesObserved?: () => void;
     afterColumnMove?: (startColumn: number, endColumn: number) => void;
     afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
-    afterColumnSort?: (column: number, order: plugins.SortOrderType) => void;
+    afterColumnSort?: (currentSortConfig: object[], destinationSortConfigs: object[]) => void;
     afterContextMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterContextMenuHide?: (context: object) => void;
     beforeContextMenuShow?: (context: object) => void;
@@ -1612,7 +1618,7 @@ declare namespace Handsontable {
     beforeChangeRender?: (changes: any[], source: string) => void;
     beforeColumnMove?: (startColumn: number, endColumn: number) => void;
     beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
-    beforeColumnSort?: (column: number, order: plugins.SortOrderType) => void;
+    beforeColumnSort?: (currentSortConfig: object[], destinationSortConfigs: object[]) => void;
     beforeContextMenuSetItems?: (menuItems: any[]) => void;
     beforeCopy?: (data: any[], coords: any[]) => any;
     beforeCreateCol?: (index: number, amount: number, source?: string) => void;
@@ -1646,6 +1652,7 @@ declare namespace Handsontable {
     beforeValidate?: (value: any, row: number, prop: string | number, source?: string) => void;
     beforeValueRender?: (value: any, cellProperties: object) => void;
     construct?: () => void;
+    getRegistered?: () => string[];
     hiddenColumn?: (column: number) => void;
     hiddenRow?: (row: number) => void;
     init?: () => void;
@@ -1933,6 +1940,7 @@ declare namespace Handsontable {
     ManualRowMove: plugins.ManualRowMove,
     ManualRowResize: plugins.ManualRowResize;
     MergeCells: plugins.MergeCells;
+    MultiColumnSorting: plugins.MultiColumnSorting,
     MultipleSelectionHandles: plugins.MultipleSelectionHandles,
     NestedHeaders: plugins.NestedHeaders,
     NestedRows: plugins.NestedRows,
@@ -1970,6 +1978,7 @@ declare namespace Handsontable {
     manualRowMove: plugins.ManualRowMove,
     manualRowResize: plugins.ManualRowResize;
     mergeCells: plugins.MergeCells;
+    multiColumnSorting: plugins.MultiColumnSorting,
     multipleSelectionHandles: plugins.MultipleSelectionHandles,
     nestedHeaders: plugins.NestedHeaders,
     nestedRows: plugins.NestedRows,

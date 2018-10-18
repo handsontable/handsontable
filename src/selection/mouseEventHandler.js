@@ -1,5 +1,5 @@
-import {isRightClick, isLeftClick} from './../helpers/dom/event';
-import {CellCoords} from './../3rdparty/walkontable/src';
+import { isRightClick as isRightClickEvent, isLeftClick as isLeftClickEvent } from './../helpers/dom/event';
+import { CellCoords } from './../3rdparty/walkontable/src';
 
 /**
  * MouseDown handler.
@@ -13,11 +13,10 @@ import {CellCoords} from './../3rdparty/walkontable/src';
  * @param {Object} options.controller An object with keys `row`, `column`, `cell` which indicate what
  *                                    operation will be performed in later selection stages.
  */
-export function mouseDown({isShiftKey, isLeftClick, isRightClick, coords, selection, controller}) {
+export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selection, controller }) {
   const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
   const selectedCorner = selection.isSelectedByCorner();
   const selectedRow = selection.isSelectedByRowHeader();
-  const selectedColumn = selection.isSelectedByColumnHeader();
 
   if (isShiftKey && currentSelection) {
     if (coords.row >= 0 && coords.col >= 0 && !controller.cells) {
@@ -85,7 +84,7 @@ export function mouseDown({isShiftKey, isLeftClick, isRightClick, coords, select
  * @param {Object} options.controller An object with keys `row`, `column`, `cell` which indicate what
  *                                    operation will be performed in later selection stages.
  */
-export function mouseOver({isLeftClick, coords, selection, controller}) {
+export function mouseOver({ isLeftClick, coords, selection, controller }) {
   if (!isLeftClick) {
     return;
   }
@@ -122,13 +121,13 @@ const handlers = new Map([
  * @param {Object} options.controller An object with keys `row`, `column`, `cell` which indicate what
  *                                    operation will be performed in later selection stages.
  */
-export function handleMouseEvent(event, {coords, selection, controller}) {
+export function handleMouseEvent(event, { coords, selection, controller }) {
   handlers.get(event.type)({
     coords,
     selection,
     controller,
     isShiftKey: event.shiftKey,
-    isLeftClick: isLeftClick(event) || event.type === 'touchstart',
-    isRightClick: isRightClick(event),
+    isLeftClick: isLeftClickEvent(event) || event.type === 'touchstart',
+    isRightClick: isRightClickEvent(event),
   });
 }

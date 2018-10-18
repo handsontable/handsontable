@@ -10,12 +10,11 @@ import {
   outerHeight,
   outerWidth,
 } from './../../../helpers/dom/element';
-import {stopImmediatePropagation} from './../../../helpers/dom/event';
-import {hasOwnProperty} from './../../../helpers/object';
-import {isMobileBrowser} from './../../../helpers/browser';
+import { stopImmediatePropagation } from './../../../helpers/dom/event';
+import { objectEach } from './../../../helpers/object';
+import { isMobileBrowser } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import CellCoords from './cell/coords';
-import Overlay from './overlay/_base.js';
 
 /**
  *
@@ -68,7 +67,7 @@ class Border {
     this.eventManager.addEventListener(document.body, 'mouseup', () => this.onMouseUp());
 
     for (let c = 0, len = this.main.childNodes.length; c < len; c++) {
-      this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', (event) => this.onMouseEnter(event, this.main.childNodes[c]));
+      this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', event => this.onMouseEnter(event, this.main.childNodes[c]));
     }
   }
 
@@ -104,28 +103,28 @@ class Border {
     event.preventDefault();
     stopImmediatePropagation(event);
 
-    let _this = this;
-    let bounds = parentElement.getBoundingClientRect();
+    const _this = this;
+    const bounds = parentElement.getBoundingClientRect();
     // Hide border to prevents selection jumping when fragmentSelection is enabled.
     parentElement.style.display = 'none';
 
-    function isOutside(event) {
-      if (event.clientY < Math.floor(bounds.top)) {
+    function isOutside(mouseEvent) {
+      if (mouseEvent.clientY < Math.floor(bounds.top)) {
         return true;
       }
-      if (event.clientY > Math.ceil(bounds.top + bounds.height)) {
+      if (mouseEvent.clientY > Math.ceil(bounds.top + bounds.height)) {
         return true;
       }
-      if (event.clientX < Math.floor(bounds.left)) {
+      if (mouseEvent.clientX < Math.floor(bounds.left)) {
         return true;
       }
-      if (event.clientX > Math.ceil(bounds.left + bounds.width)) {
+      if (mouseEvent.clientX > Math.ceil(bounds.left + bounds.width)) {
         return true;
       }
     }
 
-    function handler(event) {
-      if (isOutside(event)) {
+    function handler(handlerEvent) {
+      if (isOutside(handlerEvent)) {
         _this.eventManager.removeEventListener(document.body, 'mousemove', handler);
         parentElement.style.display = 'block';
       }
@@ -142,15 +141,15 @@ class Border {
   createBorders(settings) {
     this.main = document.createElement('div');
 
-    let borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
+    const borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
     let style = this.main.style;
     style.position = 'absolute';
     style.top = 0;
     style.left = 0;
 
     for (let i = 0; i < 5; i++) {
-      let position = borderDivs[i];
-      let div = document.createElement('div');
+      const position = borderDivs[i];
+      const div = document.createElement('div');
 
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
 
@@ -190,12 +189,15 @@ class Border {
     }
     this.disappear();
 
-    if (!this.wot.wtTable.bordersHolder) {
-      this.wot.wtTable.bordersHolder = document.createElement('div');
-      this.wot.wtTable.bordersHolder.className = 'htBorders';
-      this.wot.wtTable.spreader.appendChild(this.wot.wtTable.bordersHolder);
+    let bordersHolder = this.wot.wtTable.bordersHolder;
+
+    if (!bordersHolder) {
+      bordersHolder = document.createElement('div');
+      bordersHolder.className = 'htBorders';
+      this.wot.wtTable.bordersHolder = bordersHolder;
+      this.wot.wtTable.spreader.appendChild(bordersHolder);
     }
-    this.wot.wtTable.bordersHolder.insertBefore(this.main, this.wot.wtTable.bordersHolder.firstChild);
+    bordersHolder.appendChild(this.main);
   }
 
   /**
@@ -208,8 +210,8 @@ class Border {
       bottomRight: document.createElement('DIV'),
       bottomRightHitArea: document.createElement('DIV')
     };
-    let width = 10;
-    let hitAreaWidth = 40;
+    const width = 10;
+    const hitAreaWidth = 40;
 
     this.selectionHandles.topLeft.className = 'topLeftSelectionHandle';
     this.selectionHandles.topLeftHitArea.className = 'topLeftSelectionHandle-HitArea';
@@ -223,21 +225,19 @@ class Border {
       bottomRightHitArea: this.selectionHandles.bottomRightHitArea.style
     };
 
-    let hitAreaStyle = {
+    const hitAreaStyle = {
       position: 'absolute',
       height: `${hitAreaWidth}px`,
       width: `${hitAreaWidth}px`,
       'border-radius': `${parseInt(hitAreaWidth / 1.5, 10)}px`,
     };
 
-    for (let prop in hitAreaStyle) {
-      if (hasOwnProperty(hitAreaStyle, prop)) {
-        this.selectionHandles.styles.bottomRightHitArea[prop] = hitAreaStyle[prop];
-        this.selectionHandles.styles.topLeftHitArea[prop] = hitAreaStyle[prop];
-      }
-    }
+    objectEach(hitAreaStyle, (value, key) => {
+      this.selectionHandles.styles.bottomRightHitArea[key] = value;
+      this.selectionHandles.styles.topLeftHitArea[key] = value;
+    });
 
-    let handleStyle = {
+    const handleStyle = {
       position: 'absolute',
       height: `${width}px`,
       width: `${width}px`,
@@ -246,12 +246,11 @@ class Border {
       border: '1px solid #4285c8'
     };
 
-    for (let prop in handleStyle) {
-      if (hasOwnProperty(handleStyle, prop)) {
-        this.selectionHandles.styles.bottomRight[prop] = handleStyle[prop];
-        this.selectionHandles.styles.topLeft[prop] = handleStyle[prop];
-      }
-    }
+    objectEach(handleStyle, (value, key) => {
+      this.selectionHandles.styles.bottomRight[key] = value;
+      this.selectionHandles.styles.topLeft[key] = value;
+    });
+
     this.main.appendChild(this.selectionHandles.topLeft);
     this.main.appendChild(this.selectionHandles.bottomRight);
     this.main.appendChild(this.selectionHandles.topLeftHitArea);
@@ -262,7 +261,7 @@ class Border {
     const areaSelection = this.wot.selections.createOrGetArea();
 
     if (areaSelection.cellRange) {
-      if (row != areaSelection.cellRange.to.row || col != areaSelection.cellRange.to.col) {
+      if (row !== areaSelection.cellRange.to.row || col !== areaSelection.cellRange.to.col) {
         return true;
       }
     }
@@ -271,8 +270,8 @@ class Border {
   }
 
   updateMultipleSelectionHandlesPosition(row, col, top, left, width, height) {
-    let handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10);
-    let hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
+    const handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10);
+    const hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
 
     this.selectionHandles.styles.topLeft.top = `${parseInt(top - handleWidth, 10)}px`;
     this.selectionHandles.styles.topLeft.left = `${parseInt(left - handleWidth, 10)}px`;
@@ -304,7 +303,7 @@ class Border {
       this.selectionHandles.styles.bottomRightHitArea.display = 'none';
     }
 
-    if (row == this.wot.wtSettings.getSetting('fixedRowsTop') || col == this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
+    if (row === this.wot.wtSettings.getSetting('fixedRowsTop') || col === this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
       this.selectionHandles.styles.topLeft.zIndex = '9999';
       this.selectionHandles.styles.topLeftHitArea.zIndex = '9999';
     } else {
@@ -331,7 +330,7 @@ class Border {
     const rowsCount = this.wot.wtTable.getRenderedRowsCount();
 
     for (let i = 0; i < rowsCount; i += 1) {
-      let s = this.wot.wtTable.rowFilter.renderedToSource(i);
+      const s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
         fromRow = s;
@@ -340,7 +339,7 @@ class Border {
     }
 
     for (let i = rowsCount - 1; i >= 0; i -= 1) {
-      let s = this.wot.wtTable.rowFilter.renderedToSource(i);
+      const s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
         toRow = s;
@@ -351,7 +350,7 @@ class Border {
     const columnsCount = this.wot.wtTable.getRenderedColumnsCount();
 
     for (let i = 0; i < columnsCount; i += 1) {
-      let s = this.wot.wtTable.columnFilter.renderedToSource(i);
+      const s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
         fromColumn = s;
@@ -360,7 +359,7 @@ class Border {
     }
 
     for (let i = columnsCount - 1; i >= 0; i -= 1) {
-      let s = this.wot.wtTable.columnFilter.renderedToSource(i);
+      const s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
         toColumn = s;
@@ -413,7 +412,7 @@ class Border {
       }
     }
 
-    let style = getComputedStyle(fromTD);
+    const style = getComputedStyle(fromTD);
 
     if (parseInt(style.borderTopWidth, 10) > 0) {
       top += 1;
@@ -597,8 +596,8 @@ class Border {
    * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
    */
   changeBorderStyle(borderElement, border) {
-    let style = this[borderElement].style;
-    let borderStyle = border[borderElement];
+    const style = this[borderElement].style;
+    const borderStyle = border[borderElement];
 
     if (!borderStyle || borderStyle.hide) {
       addClass(this[borderElement], 'hidden');
@@ -631,7 +630,7 @@ class Border {
       width: 1,
       color: '#000',
     };
-    let style = this[position].style;
+    const style = this[position].style;
 
     style.backgroundColor = defaultBorder.color;
     style.width = `${defaultBorder.width}px`;

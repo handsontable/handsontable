@@ -30,8 +30,8 @@ describe('MultiMap', () => {
   });
 
   it('should use plain object as key', function() {
-    var keyObj1 = {};
-    var keyObj2 = {};
+    const keyObj1 = {};
+    const keyObj2 = {};
 
     this.multiMap.set(keyObj1, 'bar');
 
@@ -40,8 +40,8 @@ describe('MultiMap', () => {
   });
 
   it('should use array as key', function() {
-    var keyArray1 = [];
-    var keyArray2 = [];
+    const keyArray1 = [];
+    const keyArray2 = [];
 
     this.multiMap.set(keyArray1, 'bar');
 
@@ -50,8 +50,8 @@ describe('MultiMap', () => {
   });
 
   it('should use regexp as key', function() {
-    var keyRegexp1 = /test/;
-    var keyRegexp2 = /test/;
+    const keyRegexp1 = /test/;
+    const keyRegexp2 = /test/;
 
     this.multiMap.set(keyRegexp1, 'bar');
 
@@ -60,7 +60,7 @@ describe('MultiMap', () => {
   });
 
   it('should not use boolean as key', () => {
-    var tryToSetBooleanKey = function() {
+    const tryToSetBooleanKey = function() {
       this.multiMap.set(false, 'bar');
     };
 
@@ -68,7 +68,7 @@ describe('MultiMap', () => {
   });
 
   it('should not set null as key', () => {
-    var tryToSetNullKey = function() {
+    const tryToSetNullKey = function() {
       this.multiMap.set(null, 'bar');
     };
 
@@ -76,7 +76,7 @@ describe('MultiMap', () => {
   });
 
   it('should not set undefined as key', () => {
-    var tryToSetUndefinedKey = function() {
+    const tryToSetUndefinedKey = function() {
       this.multiMap.set(undefined, 'bar');
     };
 
@@ -84,7 +84,7 @@ describe('MultiMap', () => {
   });
 
   it('should not set NaN as key', () => {
-    var tryToSetNaNKey = function() {
+    const tryToSetNaNKey = function() {
       this.multiMap.set(NaN, 'bar');
     };
 
