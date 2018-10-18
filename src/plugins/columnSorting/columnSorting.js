@@ -21,7 +21,7 @@ import {
   getHeaderSpanElement,
   isFirstLevelColumnHeader
 } from './utils';
-import { DomHelper } from './domHelper';
+import { getRemovedClasses, getAddedClasses } from './domHelper';
 import RowsMapper from './rowsMapper';
 
 Hooks.getSingleton().register('beforeColumnSort');
@@ -92,13 +92,6 @@ class ColumnSorting extends BasePlugin {
      * @type {ColumnStatesManager}
      */
     this.columnStatesManager = new ColumnStatesManager();
-    /**
-     * Instance of DOM helper.
-     *
-     * @private
-     * @type {DomHelper}
-     */
-    this.domHelper = new DomHelper(this.columnStatesManager);
     /**
      * Object containing visual row indexes mapped to data source indexes.
      *
@@ -191,7 +184,7 @@ class ColumnSorting extends BasePlugin {
         return;
       }
 
-      removeClass(headerSpanElement, this.domHelper.getRemovedClasses(headerSpanElement));
+      this.updateHeaderClasses(headerSpanElement, this.columnStatesManager);
     };
 
     // Changing header width and removing indicator.
@@ -706,8 +699,21 @@ class ColumnSorting extends BasePlugin {
     const showSortIndicator = pluginSettingsForColumn.indicator;
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
 
-    removeClass(headerSpanElement, this.domHelper.getRemovedClasses(headerSpanElement));
-    addClass(headerSpanElement, this.domHelper.getAddedClasses(physicalColumn, showSortIndicator, headerActionEnabled));
+    this.updateHeaderClasses(headerSpanElement, this.columnStatesManager, physicalColumn, showSortIndicator, headerActionEnabled);
+  }
+
+  /**
+   * Update header classes.
+   *
+   * @param {HTMLElement} headerSpanElement Header span element.
+   * @param {...*} options Extra options for helpers.
+   */
+  updateHeaderClasses(headerSpanElement, ...options) {
+    removeClass(headerSpanElement, getRemovedClasses(headerSpanElement));
+
+    if (this.enabled !== false) {
+      addClass(headerSpanElement, getAddedClasses(...options));
+    }
   }
 
   /**
@@ -853,7 +859,6 @@ class ColumnSorting extends BasePlugin {
    */
   destroy() {
     this.rowsMapper.destroy();
-    this.domHelper.destroy();
     this.columnStatesManager.destroy();
 
     super.destroy();
