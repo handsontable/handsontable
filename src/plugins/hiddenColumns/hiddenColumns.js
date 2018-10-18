@@ -4,10 +4,16 @@ import { rangeEach } from 'handsontable/helpers/number';
 import { arrayEach } from 'handsontable/helpers/array';
 import { registerPlugin } from 'handsontable/plugins';
 import { SEPARATOR } from 'handsontable/plugins/contextMenu/predefinedItems';
+import Hooks from 'handsontable/pluginHooks';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
 
 import './hiddenColumns.css';
+
+Hooks.getSingleton().register('beforeHideColumns');
+Hooks.getSingleton().register('afterHideColumns');
+Hooks.getSingleton().register('beforeUnhideColumns');
+Hooks.getSingleton().register('afterUnhideColumns');
 
 /**
  * @plugin HiddenColumns
@@ -159,6 +165,12 @@ class HiddenColumns extends BasePlugin {
    * @param {Number[]} columns Array of column indexes.
    */
   showColumns(columns) {
+    const breakUnhiding = this.hot.runHooks('beforeUnhideColumns', columns);
+
+    if (breakUnhiding === false) {
+      return;
+    }
+
     arrayEach(columns, (column) => {
       let columnIndex = parseInt(column, 10);
       columnIndex = this.getLogicalColumnIndex(columnIndex);
@@ -167,6 +179,8 @@ class HiddenColumns extends BasePlugin {
         this.hiddenColumns.splice(this.hiddenColumns.indexOf(columnIndex), 1);
       }
     });
+
+    this.hot.runHooks('afterUnhideColumns', columns);
   }
 
   /**
@@ -184,6 +198,12 @@ class HiddenColumns extends BasePlugin {
    * @param {Number[]} columns Array of column indexes.
    */
   hideColumns(columns) {
+    const breakHiding = this.hot.runHooks('beforeHideColumns', columns);
+
+    if (breakHiding === false) {
+      return;
+    }
+
     arrayEach(columns, (column) => {
       let columnIndex = parseInt(column, 10);
       columnIndex = this.getLogicalColumnIndex(columnIndex);
@@ -192,6 +212,8 @@ class HiddenColumns extends BasePlugin {
         this.hiddenColumns.push(columnIndex);
       }
     });
+
+    this.hot.runHooks('afterHideColumns', columns);
   }
 
   /**

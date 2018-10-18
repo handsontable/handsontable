@@ -3,10 +3,16 @@ import { addClass, removeClass } from 'handsontable/helpers/dom/element';
 import { rangeEach } from 'handsontable/helpers/number';
 import { arrayEach } from 'handsontable/helpers/array';
 import { registerPlugin } from 'handsontable/plugins';
+import Hooks from 'handsontable/pluginHooks';
 import hideRowItem from './contextMenuItem/hideRow';
 import showRowItem from './contextMenuItem/showRow';
 
 import './hiddenRows.css';
+
+Hooks.getSingleton().register('beforeHideRows');
+Hooks.getSingleton().register('afterHideRows');
+Hooks.getSingleton().register('beforeUnhideRows');
+Hooks.getSingleton().register('afterUnhideRows');
 
 /**
  * @plugin HiddenRows
@@ -159,6 +165,12 @@ class HiddenRows extends BasePlugin {
    * @param {Number[]} rows Array of row index.
    */
   showRows(rows) {
+    const breakUnhiding = this.hot.runHooks('beforeUnhideRows', rows);
+
+    if (breakUnhiding === false) {
+      return;
+    }
+
     arrayEach(rows, (row) => {
       let visualRow = parseInt(row, 10);
       visualRow = this.getLogicalRowIndex(visualRow);
@@ -167,6 +179,8 @@ class HiddenRows extends BasePlugin {
         this.hiddenRows.splice(this.hiddenRows.indexOf(visualRow), 1);
       }
     });
+
+    this.hot.runHooks('afterUnhideRows', rows);
   }
 
   /**
@@ -184,6 +198,12 @@ class HiddenRows extends BasePlugin {
    * @param {Number[]} rows Array of row index.
    */
   hideRows(rows) {
+    const breakHiding = this.hot.runHooks('beforeHideRows', rows);
+
+    if (breakHiding === false) {
+      return;
+    }
+
     arrayEach(rows, (row) => {
       let visualRow = parseInt(row, 10);
       visualRow = this.getLogicalRowIndex(visualRow);
@@ -192,6 +212,8 @@ class HiddenRows extends BasePlugin {
         this.hiddenRows.push(visualRow);
       }
     });
+
+    this.hot.runHooks('afterHideRows', rows);
   }
 
   /**
