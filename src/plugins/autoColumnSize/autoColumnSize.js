@@ -170,7 +170,6 @@ class AutoColumnSize extends BasePlugin {
     this.addHook('beforeRender', force => this.onBeforeRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
     this.addHook('afterInit', () => this.onAfterInit());
-    this.addHook('beforeOnCellMouseDown', (event, coords) => this.onBeforeOnCellMouseDown(event, coords));
     super.enablePlugin();
   }
 
@@ -267,7 +266,7 @@ class AutoColumnSize extends BasePlugin {
     if (this.firstCalculation && this.getSyncCalculationLimit()) {
       this.calculateColumnsWidth({ from: 0, to: this.getSyncCalculationLimit() }, rowRange);
       this.firstCalculation = false;
-      current = this.getSyncCalculationLimit() + 1;
+      current = this.getSyncCalculationLimit();
     }
     // async
     if (current < length) {
@@ -315,7 +314,7 @@ class AutoColumnSize extends BasePlugin {
   getSyncCalculationLimit() {
     /* eslint-disable no-bitwise */
     let limit = AutoColumnSize.SYNC_CALCULATION_LIMIT;
-    const colsLimit = this.hot.countCols() - 1;
+    const colsLimit = this.hot.countCols();
 
     if (isObject(this.hot.getSettings().autoColumnSize)) {
       limit = this.hot.getSettings().autoColumnSize.syncLimit;
@@ -512,17 +511,6 @@ class AutoColumnSize extends BasePlugin {
     }
 
     return newSize;
-  }
-
-  /**
-  * On before on cell mousedown listener.
-  *
-  * @private
-  */
-  onBeforeOnCellMouseDown(event, coords) {
-    const column = coords.col === -1 ? 0 : coords.col;
-
-    this.calculateColumnsWidth(column, void 0, true);
   }
 
   /**
