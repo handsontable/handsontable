@@ -184,7 +184,7 @@ class ColumnSorting extends BasePlugin {
         return;
       }
 
-      this.updateHeaderClasses(headerSpanElement, this.columnStatesManager);
+      this.updateHeaderClasses(headerSpanElement);
     };
 
     // Changing header width and removing indicator.
@@ -706,13 +706,13 @@ class ColumnSorting extends BasePlugin {
    * Update header classes.
    *
    * @param {HTMLElement} headerSpanElement Header span element.
-   * @param {...*} options Extra options for helpers.
+   * @param {...*} args Extra arguments for helpers.
    */
-  updateHeaderClasses(headerSpanElement, ...options) {
+  updateHeaderClasses(headerSpanElement, ...args) {
     removeClass(headerSpanElement, getRemovedClasses(headerSpanElement));
 
     if (this.enabled !== false) {
-      addClass(headerSpanElement, getAddedClasses(...options));
+      addClass(headerSpanElement, getAddedClasses(...args));
     }
   }
 
