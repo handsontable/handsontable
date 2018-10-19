@@ -515,7 +515,8 @@ describe('HiddenColumns', () => {
         expect(beforeHideColumnsHookCallback).toHaveBeenCalledWith([2], void 0, void 0, void 0, void 0, void 0);
       });
 
-      it('should fire the `beforeHideColumns` hook before hiding multiple columns, with a `columns` argument containing an array with all the columns to be hidden', () => {
+      it('should fire the `beforeHideColumns` hook before hiding multiple columns, with a `columns` argument ' +
+        'containing an array with all the columns to be hidden', () => {
         const beforeHideColumnsHookCallback = jasmine.createSpy('beforeHideColumnsHookCallback');
 
         handsontable({
@@ -569,6 +570,21 @@ describe('HiddenColumns', () => {
         getPlugin('hiddenColumns').hideColumns([2, 3, 4]);
 
         expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([2, 3, 4], void 0, void 0, void 0, void 0, void 0);
+      });
+
+      it('it should NOT fire the `afterHideColumns` hook, if the `beforeHideColumns` hook returned false', () => {
+        const afterHideColumnsHookCallback = jasmine.createSpy('afterHideColumnsHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          hiddenColumns: true,
+          beforeHideColumns: () => false,
+          afterHideColumns: afterHideColumnsHookCallback
+        });
+
+        getPlugin('hiddenColumns').hideColumns([2, 3, 4]);
+
+        expect(afterHideColumnsHookCallback).not.toHaveBeenCalled();
       });
     });
 
@@ -654,6 +670,21 @@ describe('HiddenColumns', () => {
         getPlugin('hiddenColumns').showColumns([2, 3, 4]);
 
         expect(afterUnhideColumnsHookCallback).toHaveBeenCalledWith([2, 3, 4], void 0, void 0, void 0, void 0, void 0);
+      });
+
+      it('it should NOT fire the `afterUnhideColumns` hook, if the `beforeUnhideColumns` hook returned false', () => {
+        const afterUnhideColumnsHookCallback = jasmine.createSpy('afterUnhideColumnsHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          hiddenColumns: true,
+          beforeUnhideColumns: () => false,
+          afterUnhideColumns: afterUnhideColumnsHookCallback
+        });
+
+        getPlugin('hiddenColumns').showColumns([2, 3, 4]);
+
+        expect(afterUnhideColumnsHookCallback).not.toHaveBeenCalled();
       });
     });
   });

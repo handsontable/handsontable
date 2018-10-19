@@ -664,6 +664,21 @@ describe('HiddenRows', () => {
 
         expect(afterHideRowsHookCallback).toHaveBeenCalledWith([2, 3, 4], void 0, void 0, void 0, void 0, void 0);
       });
+
+      it('it should NOT fire the `afterHideRows` hook, if the `beforeHideRows` hook returned false', () => {
+        const afterHideRowsHookCallback = jasmine.createSpy('afterHideRowsHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          hiddenColumns: true,
+          beforeHideRows: () => false,
+          afterHideRows: afterHideRowsHookCallback
+        });
+
+        getPlugin('hiddenRows').hideRows([2, 3, 4]);
+
+        expect(afterHideRowsHookCallback).not.toHaveBeenCalled();
+      });
     });
 
     describe('beforeUnhideRows', () => {
@@ -748,6 +763,21 @@ describe('HiddenRows', () => {
         getPlugin('hiddenRows').showRows([2, 3, 4]);
 
         expect(afterUnhideRowsHookCallback).toHaveBeenCalledWith([2, 3, 4], void 0, void 0, void 0, void 0, void 0);
+      });
+
+      it('it should NOT fire the `afterUnhideRows` hook, if the `beforeUnhideRows` hook returned false', () => {
+        const afterUnhideRowsHookCallback = jasmine.createSpy('afterUnhideRowsHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          hiddenColumns: true,
+          beforeUnhideRows: () => false,
+          afterUnhideRows: afterUnhideRowsHookCallback
+        });
+
+        getPlugin('hiddenRows').hideRows([2, 3, 4]);
+
+        expect(afterUnhideRowsHookCallback).not.toHaveBeenCalled();
       });
     });
   });
