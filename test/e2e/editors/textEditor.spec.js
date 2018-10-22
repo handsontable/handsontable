@@ -882,6 +882,51 @@ describe('TextEditor', () => {
     $(mainHolder).scrollTop(1000);
   });
 
+  it('should open editor at the same coordinates as the edited cell if preventOverflow is set as horizontal after the table had been scrolled', async() => {
+    spec().$container[0].style = 'width: 400px';
+
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(30, 30),
+      preventOverflow: 'horizontal',
+      fixedColumnsLeft: 2,
+      fixedRowsTop: 2,
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    const $holder = $(hot.view.wt.wtTable.holder);
+    $holder.scrollTop(100);
+    $holder.scrollLeft(100);
+
+    hot.render();
+
+    await sleep(50);
+    // corner
+    selectCell(1, 1);
+    keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
+    const $inputHolder = $('.handsontableInputHolder');
+    expect($(getCell(1, 1, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(1, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
+
+    // top
+    selectCell(1, 4);
+    keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
+    expect($(getCell(1, 4, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(1, 4, true)).offset().top).toEqual($inputHolder.offset().top + 1);
+
+    // left
+    selectCell(4, 1);
+    keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
+    expect($(getCell(4, 1, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(4, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
+
+    // non-fixed
+    selectCell(4, 4);
+    keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
+    expect($(getCell(4, 4, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(4, 4, true)).offset().top).toEqual($inputHolder.offset().top + 1);
+  });
+
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (corner)', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(16, 8),
@@ -989,6 +1034,37 @@ describe('TextEditor', () => {
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
+  });
+
+  it('should open editor at the same backgroundColor as the edited cell', async() => {
+    handsontable({
+      data: [
+        ['', 5, 12, 13]
+      ],
+      renderer(instance, td, row, col, prop, value) {
+        if (!value || value === '') {
+          td.style.background = '#EEE';
+        }
+      }
+    });
+
+    mouseDoubleClick(getCell(0, 0));
+
+    await sleep(100);
+
+    expect($('.handsontableInput')[0].style.backgroundColor).toEqual('rgb(238, 238, 238)');
+
+    mouseDoubleClick(getCell(0, 1));
+
+    await sleep(100);
+
+    expect($('.handsontableInput')[0].style.backgroundColor).toEqual('');
+
+    mouseDoubleClick(getCell(0, 2));
+
+    await sleep(100);
+
+    expect($('.handsontableInput')[0].style.backgroundColor).toEqual('');
   });
 
   it('should display editor with the proper size, when the edited column is beyond the tables container', () => {

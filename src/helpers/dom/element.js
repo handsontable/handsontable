@@ -656,13 +656,16 @@ export function getTrimmingContainer(base) {
   while (el && el.style && document.body !== el) {
     if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
       return el;
+    }
 
-    } else if (window.getComputedStyle) {
-      const computedStyle = window.getComputedStyle(el);
+    const computedStyle = getComputedStyle(el);
+    const allowedProperties = ['scroll', 'hidden', 'auto'];
+    const property = computedStyle.getPropertyValue('overflow');
+    const propertyY = computedStyle.getPropertyValue('overflow-y');
+    const propertyX = computedStyle.getPropertyValue('overflow-x');
 
-      if (computedStyle.getPropertyValue('overflow') !== 'visible' && computedStyle.getPropertyValue('overflow') !== '') {
-        return el;
-      }
+    if (allowedProperties.includes(property) || allowedProperties.includes(propertyY) || allowedProperties.includes(propertyX)) {
+      return el;
     }
 
     el = el.parentNode;

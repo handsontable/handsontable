@@ -110,12 +110,6 @@ const onBeforeKeyDown = function onBeforeKeyDown(event) {
     return;
   }
 
-  if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
-    // when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
-    stopImmediatePropagation(event);
-    return;
-  }
-
   switch (event.keyCode) {
     case KEY_CODES.ARROW_RIGHT:
       if (that.isInFullEditMode()) {
@@ -125,6 +119,7 @@ const onBeforeKeyDown = function onBeforeKeyDown(event) {
         }
       }
       break;
+
     case KEY_CODES.ARROW_LEFT:
       if (that.isInFullEditMode()) {
         if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
@@ -133,6 +128,7 @@ const onBeforeKeyDown = function onBeforeKeyDown(event) {
         }
       }
       break;
+
     case KEY_CODES.ARROW_UP:
     case KEY_CODES.ARROW_DOWN:
       if (that.isInFullEditMode()) {
@@ -164,14 +160,6 @@ const onBeforeKeyDown = function onBeforeKeyDown(event) {
       event.preventDefault(); // don't add newline to field
       break;
     }
-    case KEY_CODES.A:
-    case KEY_CODES.X:
-    case KEY_CODES.C:
-    case KEY_CODES.V:
-      if (ctrlDown) {
-        stopImmediatePropagation(event); // CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
-      }
-      break;
 
     case KEY_CODES.BACKSPACE:
     case KEY_CODES.DELETE:
@@ -179,6 +167,7 @@ const onBeforeKeyDown = function onBeforeKeyDown(event) {
     case KEY_CODES.END:
       stopImmediatePropagation(event); // backspace, delete, home, end should only work locally when cell is edited (not in table context)
       break;
+
     default:
       break;
   }
@@ -309,13 +298,11 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
 
   const currentOffset = offset(this.TD);
   const containerOffset = offset(this.instance.rootElement);
-  const scrollableContainer = this.instance.view.wt.wtOverlays.topOverlay.mainTableScrollableElement;
+  const scrollableContainerTop = this.instance.view.wt.wtOverlays.topOverlay.mainTableScrollableElement;
+  const scrollableContainerLeft = this.instance.view.wt.wtOverlays.leftOverlay.mainTableScrollableElement;
   const totalRowsCount = this.instance.countRows();
-  const containerScrollTop = scrollableContainer !== window ?
-    scrollableContainer.scrollTop : 0;
-  const containerScrollLeft = scrollableContainer !== window ?
-    scrollableContainer.scrollLeft : 0;
-
+  const containerScrollTop = scrollableContainerTop !== window ? scrollableContainerTop.scrollTop : 0;
+  const containerScrollLeft = scrollableContainerLeft !== window ? scrollableContainerLeft.scrollLeft : 0;
   const editorSection = this.checkEditorSection();
 
   const scrollTop = ['', 'left'].includes(editorSection) ? containerScrollTop : 0;
@@ -382,8 +369,8 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
   const cellLeftOffset = this.TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
 
   const width = innerWidth(this.TD) - 8;
-  const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
-  const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
+  const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
+  const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
   const maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
   const height = this.TD.scrollHeight + 1;
   const maxHeight = Math.max(this.instance.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
@@ -392,11 +379,11 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
 
   this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
   this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
-  this.TEXTAREA.style.backgroundColor = backgroundColor || getComputedStyle(this.TEXTAREA).backgroundColor;
+  this.TEXTAREA.style.backgroundColor = backgroundColor;
 
   this.autoResize.init(this.TEXTAREA, {
     minHeight: Math.min(height, maxHeight),
-    maxHeight, // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+    maxHeight, // TEXTAREA should never be higher than visible part of the viewport (should not cover the scrollbar)
     minWidth: Math.min(width, maxWidth),
     maxWidth // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
   }, true);

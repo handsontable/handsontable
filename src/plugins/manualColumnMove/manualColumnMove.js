@@ -474,7 +474,8 @@ class ManualColumnMove extends BasePlugin {
     const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
     const selection = this.hot.getSelectedRangeLast();
     const priv = privatePool.get(this);
-    const isSortingElement = event.realTarget.className.indexOf('columnSorting') > -1;
+    // This block action shouldn't be handled below.
+    const isSortingElement = event.realTarget.className.indexOf('sortAction') > -1;
 
     if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0 || isSortingElement) {
       priv.pressed = false;

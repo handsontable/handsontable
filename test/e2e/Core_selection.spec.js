@@ -462,6 +462,36 @@ describe('Core_selection', () => {
       `).toBeMatchToSelectionPattern();
   });
 
+  it('should select the entire column and row after column header and row header is clicked when cell editor is open', () => {
+    handsontable({
+      width: 200,
+      height: 100,
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    expect(getActiveEditor()).not.toBeUndefined();
+
+    keyDown('ctrl');
+    spec().$container.find('thead th:eq(3)').simulate('mousedown');
+    spec().$container.find('tr:eq(3) th:eq(0)').simulate('mousedown');
+
+    expect(`
+      |   ║ - : - : * : - : - |
+      |===:===:===:===:===:===|
+      | - ║ 0 :   : 0 :   :   |
+      | - ║   :   : 0 :   :   |
+      | * ║ A : 0 : 1 : 0 : 0 |
+      | - ║   :   : 0 :   :   |
+      | - ║   :   : 0 :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
   it('should not overwrite background color of the cells with custom CSS classes', () => {
     handsontable({
       width: 300,

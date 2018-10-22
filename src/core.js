@@ -921,7 +921,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 changes.splice(index, 1); // cancel the change
                 cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
                 const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
-                removeClass(cell, instance.getSettings().invalidCellClassName);
+                if (cell !== null) {
+                  removeClass(cell, instance.getSettings().invalidCellClassName);
+                }
                 // index -= 1;
               }
               waitingForValidator.removeValidatorFormQueue();
@@ -2713,7 +2715,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       const prop = translateVisualIndexToColumns(physicalColumn);
 
-      if (priv.settings.columns && isFunction(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
+      if (priv.settings.colHeaders === false) {
+        result = null;
+
+      } else if (priv.settings.columns && isFunction(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
         result = priv.settings.columns(prop).title;
 
       } else if (priv.settings.columns && priv.settings.columns[physicalColumn] && priv.settings.columns[physicalColumn].title) {
@@ -2727,7 +2732,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
         result = spreadsheetColumnLabel(baseCol); // see #1458
-
       }
     }
 
