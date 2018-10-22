@@ -170,6 +170,7 @@ class CopyPaste extends BasePlugin {
     priv.isTriggeredByCopy = true;
 
     this.getOrCreateFocusableElement();
+    this.focusableElement.focus();
     document.execCommand('copy');
   }
 
@@ -181,6 +182,7 @@ class CopyPaste extends BasePlugin {
     priv.isTriggeredByCut = true;
 
     this.getOrCreateFocusableElement();
+    this.focusableElement.focus();
     document.execCommand('cut');
   }
 
