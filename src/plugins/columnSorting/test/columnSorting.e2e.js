@@ -2489,39 +2489,6 @@ describe('ColumnSorting', () => {
       expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
     });
 
-    it('should change width of multi-line headers when plugin is enabled / disabled by `enablePlugin` and `disablePlugin` methods ' +
-      'and sort indicator is enabled', () => {
-      const hot = handsontable({
-        colHeaders: ['AAA<br>BB']
-      });
-
-      const headerWidthAtStart = spec().$container.find('th').eq(0).width();
-
-      getPlugin('columnSorting').enablePlugin();
-
-      let newHeaderWidth = spec().$container.find('th').eq(0).width();
-
-      expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
-
-      getPlugin('columnSorting').disablePlugin();
-
-      newHeaderWidth = spec().$container.find('th').eq(0).width();
-
-      expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
-
-      hot.render();
-
-      newHeaderWidth = spec().$container.find('th').eq(0).width();
-
-      expect(headerWidthAtStart).toBe(newHeaderWidth);
-
-      getPlugin('columnSorting').enablePlugin();
-
-      newHeaderWidth = spec().$container.find('th').eq(0).width();
-
-      expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
-    });
-
     it('should work properly also when `rowHeaders` option is set to `true`', () => {
       handsontable({
         colHeaders: ['AAA<br>BB'],
