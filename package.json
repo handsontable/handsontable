@@ -60,8 +60,7 @@
     "hot-formula-parser": "^2.3.1",
     "moment": "2.20.1",
     "numbro": "^2.0.6",
-    "pikaday": "1.5.1",
-    "yarn": "^1.5.1"
+    "pikaday": "1.5.1"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
