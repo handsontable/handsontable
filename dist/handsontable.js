@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 6.1.0
- * Release date: 17/10/2018 (built at 11/10/2018 09:49:29)
+ * Version: 6.1.1
+ * Release date: 23/10/2018 (built at 22/10/2018 12:07:26)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -2859,7 +2859,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment2.default)('17/10/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment2.default)('23/10/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       var keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
@@ -29802,9 +29802,9 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '11/10/2018 09:49:29';
+Handsontable.buildDate = '22/10/2018 12:07:26';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '6.1.0';
+Handsontable.version = '6.1.1';
 
 var baseVersion = '';
 
@@ -47664,6 +47664,7 @@ var CopyPaste = function (_BasePlugin) {
       priv.isTriggeredByCopy = true;
 
       this.getOrCreateFocusableElement();
+      this.focusableElement.focus();
       document.execCommand('copy');
     }
 
@@ -47678,6 +47679,7 @@ var CopyPaste = function (_BasePlugin) {
       priv.isTriggeredByCut = true;
 
       this.getOrCreateFocusableElement();
+      this.focusableElement.focus();
       document.execCommand('cut');
     }
 
