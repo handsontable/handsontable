@@ -20,8 +20,8 @@
  * RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
  * UNINTERRUPTED OR ERROR FREE.
  * 
- * Version: 6.1.0
- * Release date: 17/10/2018 (built at 17/10/2018 12:15:08)
+ * Version: 6.1.1
+ * Release date: 23/10/2018 (built at 23/10/2018 12:28:31)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -2559,7 +2559,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment2.default)('17/10/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment2.default)('23/10/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       var keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
@@ -34335,7 +34335,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /* eslint-enable no-unused-vars */
 
-_handsontable2.default.baseVersion = '6.1.0';
+_handsontable2.default.baseVersion = '6.1.1';
 
 /* eslint-disable no-unused-vars */
 exports.default = _handsontable2.default;
@@ -34978,11 +34978,11 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '17/10/2018 12:15:08';
+Handsontable.buildDate = '23/10/2018 12:28:31';
 Handsontable.packageName = 'handsontable-pro';
-Handsontable.version = '6.1.0';
+Handsontable.version = '6.1.1';
 
-var baseVersion = '6.1.0';
+var baseVersion = '6.1.1';
 
 if (baseVersion) {
   Handsontable.baseVersion = baseVersion;
@@ -51151,6 +51151,7 @@ var CopyPaste = function (_BasePlugin) {
       priv.isTriggeredByCopy = true;
 
       this.getOrCreateFocusableElement();
+      this.focusableElement.focus();
       document.execCommand('copy');
     }
 
@@ -51165,6 +51166,7 @@ var CopyPaste = function (_BasePlugin) {
       priv.isTriggeredByCut = true;
 
       this.getOrCreateFocusableElement();
+      this.focusableElement.focus();
       document.execCommand('cut');
     }
 
