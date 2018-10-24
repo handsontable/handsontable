@@ -606,7 +606,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').hideRow(2);
 
-        expect(beforeHideRowsHookCallback).toHaveBeenCalledWith([2], void 0, void 0, void 0, void 0, void 0);
+        expect(beforeHideRowsHookCallback).toHaveBeenCalledWith([2], true, void 0, void 0, void 0, void 0);
       });
 
       it('should fire the `beforeHideRows` hook before hiding multiple rows, with a `rows` argument containing an array with all the rows to be hidden', () => {
@@ -620,7 +620,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').hideRows([2, 3, 4]);
 
-        expect(beforeHideRowsHookCallback).toHaveBeenCalledWith([2, 3, 4], void 0, void 0, void 0, void 0, void 0);
+        expect(beforeHideRowsHookCallback).toHaveBeenCalledWith([2, 3, 4], true, void 0, void 0, void 0, void 0);
       });
 
       it('should be possible to cancel the hiding action by returning `false` from the `beforeHideRows` hook', () => {
@@ -633,6 +633,25 @@ describe('HiddenRows', () => {
         getPlugin('hiddenRows').hideRow(2);
 
         expect(getPlugin('hiddenRows').isHidden(2)).toBeFalsy();
+      });
+
+      it('should not perform hiding and return `false` as the second parameter of the `beforeHideRows` hook' +
+        ' if any of the provided rows is out of scope of the table', () => {
+        const beforeHideRowsHookCallback = jasmine.createSpy('beforeHideRowsHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          hiddenRows: true,
+          beforeHideRows: beforeHideRowsHookCallback
+        });
+
+        const plugin = getPlugin('hiddenRows');
+        plugin.hideRows([0, 5, 10, 15]);
+
+        expect(beforeHideRowsHookCallback).toHaveBeenCalledWith([0, 5, 10, 15], false, void 0, void 0, void 0, void 0);
+        expect(plugin.isHidden(0)).toBeFalsy();
+        expect(plugin.isHidden(5)).toBeFalsy();
+        expect(plugin.isHidden(10)).toBeFalsy();
       });
     });
 
@@ -648,7 +667,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').hideRow(2);
 
-        expect(afterHideRowsHookCallback).toHaveBeenCalledWith([2], void 0, void 0, void 0, void 0, void 0);
+        expect(afterHideRowsHookCallback).toHaveBeenCalledWith([2], true, void 0, void 0, void 0, void 0);
       });
 
       it('should fire the `afterHideRows` hook after hiding multiple rows, with a `rows` argument containing an array with all the hidden rows', () => {
@@ -662,7 +681,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').hideRows([2, 3, 4]);
 
-        expect(afterHideRowsHookCallback).toHaveBeenCalledWith([2, 3, 4], void 0, void 0, void 0, void 0, void 0);
+        expect(afterHideRowsHookCallback).toHaveBeenCalledWith([2, 3, 4], true, void 0, void 0, void 0, void 0);
       });
 
       it('it should NOT fire the `afterHideRows` hook, if the `beforeHideRows` hook returned false', () => {
@@ -678,6 +697,40 @@ describe('HiddenRows', () => {
         getPlugin('hiddenRows').hideRows([2, 3, 4]);
 
         expect(afterHideRowsHookCallback).not.toHaveBeenCalled();
+      });
+
+      it('should return `false` as the second parameter, if the hiding action did not change the state of the hiddenRows plugin', () => {
+        const afterHideRowsHookCallback = jasmine.createSpy('afterHideRowsHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          hiddenRows: {
+            rows: [0, 5]
+          },
+          afterHideRows: afterHideRowsHookCallback
+        });
+
+        const plugin = getPlugin('hiddenRows');
+        plugin.hideRows([0, 5]);
+
+        expect(afterHideRowsHookCallback).toHaveBeenCalledWith([0, 5], false, void 0, void 0, void 0, void 0);
+      });
+
+      it('should return `true` as the second parameter, if the hiding action changed the state of the hiddenRows plugin', () => {
+        const afterHideRowsHookCallback = jasmine.createSpy('afterHideRowsHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          hiddenRows: {
+            rows: [0, 5]
+          },
+          afterHideRows: afterHideRowsHookCallback
+        });
+
+        const plugin = getPlugin('hiddenRows');
+        plugin.hideRows([0, 5, 6]);
+
+        expect(afterHideRowsHookCallback).toHaveBeenCalledWith([0, 5, 6], true, void 0, void 0, void 0, void 0);
       });
     });
 
@@ -696,7 +749,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').showRow(2);
 
-        expect(beforeUnhideRowsHookCallback).toHaveBeenCalledWith([2], void 0, void 0, void 0, void 0, void 0);
+        expect(beforeUnhideRowsHookCallback).toHaveBeenCalledWith([2], true, void 0, void 0, void 0, void 0);
       });
 
       it('should fire the `beforeUnhideRows` hook before showing the multiple previously-hidden rows, with a `rows` ' +
@@ -713,7 +766,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').showRows([2, 3, 4]);
 
-        expect(beforeUnhideRowsHookCallback).toHaveBeenCalledWith([2, 3, 4], void 0, void 0, void 0, void 0, void 0);
+        expect(beforeUnhideRowsHookCallback).toHaveBeenCalledWith([2, 3, 4], true, void 0, void 0, void 0, void 0);
       });
 
       it('should be possible to cancel the un-hiding action by returning `false` from the `beforeUnhideRows` hook', () => {
@@ -728,6 +781,26 @@ describe('HiddenRows', () => {
         getPlugin('hiddenRows').showRow(2);
 
         expect(getPlugin('hiddenRows').isHidden(2)).toBeTruthy();
+      });
+
+      it('should not perform unhiding and return `false` as the second parameter of the `beforeUnhideRows` hook' +
+        ' if any of the provided rows is out of scope of the table', () => {
+        const beforeUnhideRowsHookCallback = jasmine.createSpy('beforeUnhideRowsHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          hiddenRows: {
+            rows: [0, 5]
+          },
+          beforeUnhideRows: beforeUnhideRowsHookCallback
+        });
+
+        const plugin = getPlugin('hiddenRows');
+        plugin.showRows([0, 5, 10, 15]);
+
+        expect(beforeUnhideRowsHookCallback).toHaveBeenCalledWith([0, 5, 10, 15], false, void 0, void 0, void 0, void 0);
+        expect(plugin.isHidden(0)).toBeTruthy();
+        expect(plugin.isHidden(5)).toBeTruthy();
       });
     });
 
@@ -746,7 +819,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').showRow(2);
 
-        expect(afterUnhideRowsHookCallback).toHaveBeenCalledWith([2], void 0, void 0, void 0, void 0, void 0);
+        expect(afterUnhideRowsHookCallback).toHaveBeenCalledWith([2], true, void 0, void 0, void 0, void 0);
       });
 
       it('should fire the `afterUnhideRows` hook after hiding multiple rows, with a `rows` argument containing an array with all the revealed rows', () => {
@@ -762,7 +835,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').showRows([2, 3, 4]);
 
-        expect(afterUnhideRowsHookCallback).toHaveBeenCalledWith([2, 3, 4], void 0, void 0, void 0, void 0, void 0);
+        expect(afterUnhideRowsHookCallback).toHaveBeenCalledWith([2, 3, 4], true, void 0, void 0, void 0, void 0);
       });
 
       it('it should NOT fire the `afterUnhideRows` hook, if the `beforeUnhideRows` hook returned false', () => {
@@ -778,6 +851,38 @@ describe('HiddenRows', () => {
         getPlugin('hiddenRows').hideRows([2, 3, 4]);
 
         expect(afterUnhideRowsHookCallback).not.toHaveBeenCalled();
+      });
+
+      it('should return `false` as the second parameter, if the unhiding action did not change the state of the hiddenRows plugin', () => {
+        const afterUnhideRowsHookCallback = jasmine.createSpy('afterUnhideRowsHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          hiddenRows: true,
+          afterUnhideRows: afterUnhideRowsHookCallback
+        });
+
+        const plugin = getPlugin('hiddenRows');
+        plugin.showRows([0, 5]);
+
+        expect(afterUnhideRowsHookCallback).toHaveBeenCalledWith([0, 5], false, void 0, void 0, void 0, void 0);
+      });
+
+      it('should return `true` as the second parameter, if the unhiding action changed the state of the hiddenRows plugin', () => {
+        const afterUnhideRowsHookCallback = jasmine.createSpy('afterUnhideRowsHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          hiddenRows: {
+            rows: [0, 5]
+          },
+          afterUnhideRows: afterUnhideRowsHookCallback
+        });
+
+        const plugin = getPlugin('hiddenRows');
+        plugin.showRows([0, 5, 6]);
+
+        expect(afterUnhideRowsHookCallback).toHaveBeenCalledWith([0, 5, 6], true, void 0, void 0, void 0, void 0);
       });
     });
   });

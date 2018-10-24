@@ -126,10 +126,11 @@ class HiddenRows extends BasePlugin {
     this.addHook('hiddenRow', row => this.isHidden(row));
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
+    this.addHook('init', () => this.onInit());
 
     // Dirty workaround - the section below runs only if the HOT instance is already prepared.
     if (this.hot.view) {
-      this.onAfterPluginsInitialized();
+      this.onInit();
     }
 
     super.enablePlugin();
@@ -142,7 +143,7 @@ class HiddenRows extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
-    this.onAfterPluginsInitialized();
+    this.onInit();
 
     super.updatePlugin();
   }
@@ -165,11 +166,14 @@ class HiddenRows extends BasePlugin {
    * @param {Number[]} rows Array of row index.
    */
   showRows(rows) {
-    const breakUnhiding = this.hot.runHooks('beforeUnhideRows', rows);
+    const validRows = this.validateRowsData(rows);
+    const breakUnhiding = this.hot.runHooks('beforeUnhideRows', rows, validRows);
 
-    if (breakUnhiding === false) {
+    if (breakUnhiding === false || !validRows) {
       return;
     }
+
+    let changedStates = 0;
 
     arrayEach(rows, (row) => {
       let visualRow = parseInt(row, 10);
@@ -177,10 +181,11 @@ class HiddenRows extends BasePlugin {
 
       if (this.isHidden(visualRow, true)) {
         this.hiddenRows.splice(this.hiddenRows.indexOf(visualRow), 1);
+        changedStates += 1;
       }
     });
 
-    this.hot.runHooks('afterUnhideRows', rows);
+    this.hot.runHooks('afterUnhideRows', rows, changedStates > 0);
   }
 
   /**
@@ -198,22 +203,26 @@ class HiddenRows extends BasePlugin {
    * @param {Number[]} rows Array of row index.
    */
   hideRows(rows) {
-    const breakHiding = this.hot.runHooks('beforeHideRows', rows);
+    const validRows = this.validateRowsData(rows);
+    const breakHiding = this.hot.runHooks('beforeHideRows', rows, validRows);
 
-    if (breakHiding === false) {
+    if (breakHiding === false || !validRows) {
       return;
     }
 
-    arrayEach(rows, (row) => {
-      let visualRow = parseInt(row, 10);
-      visualRow = this.getLogicalRowIndex(visualRow);
+    let changedStates = 0;
 
-      if (!this.isHidden(visualRow, true)) {
-        this.hiddenRows.push(visualRow);
+    arrayEach(rows, (row) => {
+      const visualRow = parseInt(row, 10);
+      const logicalRow = this.getLogicalRowIndex(visualRow);
+
+      if (!this.isHidden(logicalRow, true)) {
+        this.hiddenRows.push(logicalRow);
+        changedStates += 1;
       }
     });
 
-    this.hot.runHooks('afterHideRows', rows);
+    this.hot.runHooks('afterHideRows', rows, changedStates > 0);
   }
 
   /**
@@ -240,6 +249,17 @@ class HiddenRows extends BasePlugin {
     }
 
     return this.hiddenRows.indexOf(logicalRow) > -1;
+  }
+
+  /**
+   * Check whether all of the provided row indexes are within the bounds of the table.
+   *
+   * @param {Array} rows Array of row indexes.
+   */
+  validateRowsData(rows) {
+    const outOfBounds = rows.find(row => (row < 0 || row > this.hot.countRows() - 1));
+
+    return outOfBounds === void 0;
   }
 
   /**
@@ -593,7 +613,7 @@ class HiddenRows extends BasePlugin {
    *
    * @private
    */
-  onAfterPluginsInitialized() {
+  onInit() {
     const settings = this.hot.getSettings().hiddenRows;
 
     if (typeof settings === 'object') {
@@ -602,9 +622,11 @@ class HiddenRows extends BasePlugin {
       if (settings.copyPasteEnabled === void 0) {
         settings.copyPasteEnabled = true;
       }
+
       if (Array.isArray(settings.rows)) {
         this.hideRows(settings.rows);
       }
+
       if (!settings.copyPasteEnabled) {
         this.addHook('modifyCopyableRange', ranges => this.onModifyCopyableRange(ranges));
       }

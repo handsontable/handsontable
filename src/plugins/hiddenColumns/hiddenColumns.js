@@ -127,10 +127,11 @@ class HiddenColumns extends BasePlugin {
     this.addHook('beforeStretchingColumnWidth', (width, column) => this.onBeforeStretchingColumnWidth(width, column));
     this.addHook('afterCreateCol', (index, amount) => this.onAfterCreateCol(index, amount));
     this.addHook('afterRemoveCol', (index, amount) => this.onAfterRemoveCol(index, amount));
+    this.addHook('init', () => this.onInit());
 
     // Dirty workaround - the section below runs only if the HOT instance is already prepared.
     if (this.hot.view) {
-      this.onAfterPluginsInitialized();
+      this.onInit();
     }
 
     super.enablePlugin();
@@ -165,11 +166,14 @@ class HiddenColumns extends BasePlugin {
    * @param {Number[]} columns Array of column indexes.
    */
   showColumns(columns) {
-    const breakUnhiding = this.hot.runHooks('beforeUnhideColumns', columns);
+    const validColumns = this.validateColumnsData(columns);
+    const breakUnhiding = this.hot.runHooks('beforeUnhideColumns', columns, validColumns);
 
-    if (breakUnhiding === false) {
+    if (breakUnhiding === false || !validColumns) {
       return;
     }
+
+    let changedStates = 0;
 
     arrayEach(columns, (column) => {
       let columnIndex = parseInt(column, 10);
@@ -177,10 +181,11 @@ class HiddenColumns extends BasePlugin {
 
       if (this.isHidden(columnIndex, true)) {
         this.hiddenColumns.splice(this.hiddenColumns.indexOf(columnIndex), 1);
+        changedStates += 1;
       }
     });
 
-    this.hot.runHooks('afterUnhideColumns', columns);
+    this.hot.runHooks('afterUnhideColumns', columns, changedStates > 0);
   }
 
   /**
@@ -198,11 +203,14 @@ class HiddenColumns extends BasePlugin {
    * @param {Number[]} columns Array of column indexes.
    */
   hideColumns(columns) {
-    const breakHiding = this.hot.runHooks('beforeHideColumns', columns);
+    const validColumns = this.validateColumnsData(columns);
+    const breakHiding = this.hot.runHooks('beforeHideColumns', columns, validColumns);
 
-    if (breakHiding === false) {
+    if (breakHiding === false || !validColumns) {
       return;
     }
+
+    let changedStates = 0;
 
     arrayEach(columns, (column) => {
       let columnIndex = parseInt(column, 10);
@@ -210,10 +218,11 @@ class HiddenColumns extends BasePlugin {
 
       if (!this.isHidden(columnIndex, true)) {
         this.hiddenColumns.push(columnIndex);
+        changedStates += 1;
       }
     });
 
-    this.hot.runHooks('afterHideColumns', columns);
+    this.hot.runHooks('afterHideColumns', columns, changedStates > 0);
   }
 
   /**
@@ -240,6 +249,17 @@ class HiddenColumns extends BasePlugin {
     }
 
     return this.hiddenColumns.indexOf(columnIndex) > -1;
+  }
+
+  /**
+   * Check whether all of the provided column indexes are within the bounds of the table.
+   *
+   * @param {Array} columns Array of column indexes.
+   */
+  validateColumnsData(columns) {
+    const outOfBounds = columns.find(column => (column < 0 || column > this.hot.countCols() - 1));
+
+    return outOfBounds === void 0;
   }
 
   /**
@@ -593,7 +613,7 @@ class HiddenColumns extends BasePlugin {
    *
    * @private
    */
-  onAfterPluginsInitialized() {
+  onInit() {
     const settings = this.hot.getSettings().hiddenColumns;
 
     if (typeof settings === 'object') {
