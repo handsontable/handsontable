@@ -1511,6 +1511,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#beforeHideRows
    * @param {Array} rows Array of row indexes about to be marked as hidden.
+   * @param {Boolean} actionPossible `true`, if all of the row indexes from `rows` are withing the bounds of the table, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the hiding action will not be completed.
    */
   'beforeHideRows',
@@ -1521,6 +1522,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#afterHideRows
    * @param {Array} rows Array of row indexes marked as hidden.
+   * @param {Boolean} stateChanged `true`, if the action affected any non-hidden rows, `false` otherwise.
    */
   'afterHideRows',
 
@@ -1531,6 +1533,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#beforeUnhideRows
    * @param {Array} rows Array of row indexes about to be marked as not hidden.
+   * @param {Boolean} actionPossible `true`, if all of the row indexes from `rows` are withing the bounds of the table, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the revealing action will not be completed.
    */
   'beforeUnhideRows',
@@ -1541,6 +1544,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#afterUnhideRows
    * @param {Array} rows Array of row indexes marked as not hidden.
+   * @param {Boolean} stateChanged `true`, if the action affected any hidden rows, `false` otherwise.
    */
   'afterUnhideRows',
 
@@ -1551,6 +1555,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#beforeHideColumns
    * @param {Array} columns Array of column indexes about to be marked as hidden.
+   * @param {Boolean} actionPossible `true`, if all of the column indexes from `columns` are withing the bounds of the table, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the hiding action will not be completed.
    */
   'beforeHideColumns',
@@ -1561,6 +1566,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#afterHideColumns
    * @param {Array} columns Array of column indexes marked as hidden.
+   * @param {Boolean} stateChanged `true`, if the action affected any non-hidden columns, `false` otherwise.
    */
   'afterHideColumns',
 
@@ -1571,6 +1577,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#beforeUnhideColumns
    * @param {Array} columns Array of column indexes about to be marked as not hidden.
+   * @param {Boolean} actionPossible `true`, if all of the column indexes from `columns` are withing the bounds of the table, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the revealing action will not be completed.
    */
   'beforeUnhideColumns',
@@ -1581,6 +1588,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#afterUnhideColumns
    * @param {Array} columns Array of column indexes marked as not hidden.
+   * @param {Boolean} stateChanged `true`, if the action affected any hidden columns, `false` otherwise.
    */
   'afterUnhideColumns',
 
