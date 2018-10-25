@@ -11,18 +11,19 @@ import { registerPlugin } from './../../plugins';
 import mergeSort from '../../utils/sortingAlgorithms/mergeSort';
 import Hooks from '../../pluginHooks';
 import { isPressedCtrlKey } from '../../utils/keyStateObserver';
-import { mainSortComparator } from './comparatorEngine';
 import { ColumnStatesManager } from './columnStatesManager';
 import {
   getNextSortOrder,
   areValidSortStates,
-  getFullSortConfiguration,
   warnAboutNotValidatedConfig,
   getHeaderSpanElement,
   isFirstLevelColumnHeader
 } from './utils';
+import { sortConfigNormalizator } from './sortConfigNormalizator';
 import { getRemovedClasses, getAddedClasses } from './domHelper';
 import RowsMapper from './rowsMapper';
+import { mainSortComparator } from './mainSortComparator';
+import { registerMainSortComparator, getMainSortComparator, registerSortConfigNormalizator, getSortConfigNormalizator } from './sortingService';
 
 Hooks.getSingleton().register('beforeColumnSort');
 Hooks.getSingleton().register('afterColumnSort');
@@ -120,13 +121,9 @@ class ColumnSorting extends BasePlugin {
      * @type {String}
      */
     this.pluginKey = PLUGIN_KEY;
-    /**
-     * Main sort comparator which is passed to the sort function.
-     *
-     * @private
-     * @type {Function}
-     */
-    this.mainSortComparator = mainSortComparator;
+
+    registerMainSortComparator(mainSortComparator);
+    registerSortConfigNormalizator(sortConfigNormalizator);
   }
 
   /**
@@ -221,13 +218,7 @@ class ColumnSorting extends BasePlugin {
     const currentSortConfig = this.getSortConfig();
 
     // We always pass to hook configs defined as an array to `beforeColumnSort` and `afterColumnSort` hooks.
-    let destinationSortConfigs = getFullSortConfiguration(sortConfig);
-
-    // DIFF - MultiColumnSorting & ColumnSorting: extra `slice` method call.
-    // The MultiColumnSorting class inherit from the ColumnSorting class.
-    if (this.pluginKey === PLUGIN_KEY) {
-      destinationSortConfigs = destinationSortConfigs.slice(0, 1);
-    }
+    const destinationSortConfigs = getSortConfigNormalizator()(sortConfig);
 
     const sortPossible = this.areValidSortConfigs(destinationSortConfigs);
     const allowSort = this.hot.runHooks('beforeColumnSort', currentSortConfig, destinationSortConfigs, sortPossible);
@@ -323,13 +314,8 @@ class ColumnSorting extends BasePlugin {
    * sort order (`asc` for ascending, `desc` for descending).
    */
   setSortConfig(sortConfig) {
-    let destinationSortConfigs = getFullSortConfiguration(sortConfig).slice(0, 1);
-
-    // DIFF - MultiColumnSorting & ColumnSorting: extra `slice` method call.
-    // The MultiColumnSorting class inherit from the ColumnSorting class.
-    if (this.pluginKey === PLUGIN_KEY) {
-      destinationSortConfigs = destinationSortConfigs.slice(0, 1);
-    }
+    // We always set configs defined as an array.
+    const destinationSortConfigs = getSortConfigNormalizator()(sortConfig);
 
     if (this.areValidSortConfigs(destinationSortConfigs)) {
       const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
@@ -573,7 +559,7 @@ class ColumnSorting extends BasePlugin {
       indexesWithData.push([visualRowIndex].concat(getDataForSortedColumns(visualRowIndex)));
     }
 
-    mergeSort(indexesWithData, this.mainSortComparator(
+    mergeSort(indexesWithData, getMainSortComparator()(
       arrayMap(sortedColumnsList, physicalColumn => this.columnStatesManager.getSortOrderOfColumn(physicalColumn)),
       arrayMap(sortedColumnsList, physicalColumn => this.getFirstCellSettings(this.hot.toVisualColumn(physicalColumn)))
     ));
