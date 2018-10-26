@@ -479,18 +479,18 @@ describe('AutoRowSize', () => {
     expect(rowHeight(spec().$container, -1)).toBe(75);
   });
 
-  it('should properly count height', () => {
-    const hot = handsontable({
+  it('should properly count height', async() => {
+    handsontable({
       data: [['Tomek', 'Tomek\nTomek', 'Romek\nRomek']],
       rowHeaders: true,
       colHeaders: true,
       autoRowSize: true,
     });
-    // const cloneLeftHider = spec().$container.find('.ht_clone_left .wtHider')[0];
-    const $rowsHeaders = spec().$container.find('.ht_clone_left tbody tr th');
-    const plugin = hot.getPlugin('autoRowSize');
 
-    expect($rowsHeaders.height()).toEqual(42);
-    expect(plugin.heights[0]).toEqual(43);
+    await sleep(300);
+
+    const cloneLeft = spec().$container.find('.handsontable.ht_clone_left .wtHider');
+
+    expect(cloneLeft.height()).toEqual(70);
   });
 });
