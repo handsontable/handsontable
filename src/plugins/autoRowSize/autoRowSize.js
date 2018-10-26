@@ -233,7 +233,7 @@ class AutoRowSize extends BasePlugin {
     if (this.firstCalculation && this.getSyncCalculationLimit()) {
       this.calculateRowsHeight({ from: 0, to: this.getSyncCalculationLimit() }, colRange);
       this.firstCalculation = false;
-      current = this.getSyncCalculationLimit() + 1;
+      current = this.getSyncCalculationLimit();
     }
     // async
     if (current < length) {
@@ -282,7 +282,7 @@ class AutoRowSize extends BasePlugin {
   getSyncCalculationLimit() {
     /* eslint-disable no-bitwise */
     let limit = AutoRowSize.SYNC_CALCULATION_LIMIT;
-    const rowsLimit = this.hot.countRows() - 1;
+    const rowsLimit = this.hot.countRows();
 
     if (isObject(this.hot.getSettings().autoRowSize)) {
       limit = this.hot.getSettings().autoRowSize.syncLimit;
