@@ -1,6 +1,5 @@
 import { isUndefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
-import { warn } from '../../helpers/console';
 
 export const ASC_SORT_STATE = 'asc';
 export const DESC_SORT_STATE = 'desc';
@@ -54,13 +53,6 @@ export function getNextSortOrder(sortOrder) {
   }
 
   return ASC_SORT_STATE;
-}
-
-/**
- * Warn users about problems when using `columnSorting` and `columnSorting` plugins simultaneously.
- */
-export function warnAboutPluginsConflict() {
-  warn('Plugins `columnSorting` and `multiColumnSorting` should not be enabled simultaneously.');
 }
 
 /**
