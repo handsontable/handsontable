@@ -20,7 +20,7 @@ import {
   isFirstLevelColumnHeader
 } from './utils';
 import { sortConfigNormalizator } from './sortConfigNormalizator';
-import { getRemovedClasses, getAddedClasses } from './domHelper';
+import { getRemovedClasses, getAddedClasses } from './domHelpers';
 import RowsMapper from './rowsMapper';
 import { mainSortComparator } from './mainSortComparator';
 import { registerMainSortComparator, getMainSortComparator, registerSortConfigNormalizator, getSortConfigNormalizator } from './sortingService';
@@ -121,9 +121,6 @@ class ColumnSorting extends BasePlugin {
      * @type {String}
      */
     this.pluginKey = PLUGIN_KEY;
-
-    registerMainSortComparator(mainSortComparator);
-    registerSortConfigNormalizator(sortConfigNormalizator);
   }
 
   /**
@@ -218,7 +215,7 @@ class ColumnSorting extends BasePlugin {
     const currentSortConfig = this.getSortConfig();
 
     // We always pass to hook configs defined as an array to `beforeColumnSort` and `afterColumnSort` hooks.
-    const destinationSortConfigs = getSortConfigNormalizator()(sortConfig);
+    const destinationSortConfigs = getSortConfigNormalizator(this.constructor)(sortConfig);
 
     const sortPossible = this.areValidSortConfigs(destinationSortConfigs);
     const allowSort = this.hot.runHooks('beforeColumnSort', currentSortConfig, destinationSortConfigs, sortPossible);
@@ -315,7 +312,7 @@ class ColumnSorting extends BasePlugin {
    */
   setSortConfig(sortConfig) {
     // We always set configs defined as an array.
-    const destinationSortConfigs = getSortConfigNormalizator()(sortConfig);
+    const destinationSortConfigs = getSortConfigNormalizator(this.constructor)(sortConfig);
 
     if (this.areValidSortConfigs(destinationSortConfigs)) {
       const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
@@ -559,7 +556,7 @@ class ColumnSorting extends BasePlugin {
       indexesWithData.push([visualRowIndex].concat(getDataForSortedColumns(visualRowIndex)));
     }
 
-    mergeSort(indexesWithData, getMainSortComparator()(
+    mergeSort(indexesWithData, getMainSortComparator(this.constructor)(
       arrayMap(sortedColumnsList, physicalColumn => this.columnStatesManager.getSortOrderOfColumn(physicalColumn)),
       arrayMap(sortedColumnsList, physicalColumn => this.getFirstCellSettings(this.hot.toVisualColumn(physicalColumn)))
     ));
@@ -852,5 +849,7 @@ class ColumnSorting extends BasePlugin {
 }
 
 registerPlugin(PLUGIN_KEY, ColumnSorting);
+registerMainSortComparator(ColumnSorting, mainSortComparator);
+registerSortConfigNormalizator(ColumnSorting, sortConfigNormalizator);
 
 export default ColumnSorting;

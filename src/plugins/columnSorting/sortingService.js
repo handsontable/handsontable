@@ -17,8 +17,15 @@ const {
   hasItem: hasGloballyCompareFunctionFactory,
 } = staticRegister('sorting.compareFunctionFactory');
 
-let mainSortComparator;
-let sortConfigNormalizator;
+const {
+  register: registerGloballyMainSortComparator,
+  getItem: getGloballyMainSortComparator,
+} = staticRegister('sorting.mainSortComparator');
+
+const {
+  register: registerGloballySortConfigNormalizator,
+  getItem: getGloballySortConfigNormalizator,
+} = staticRegister('sorting.configNormalizator');
 
 /**
  * Register compare function factory.
@@ -54,8 +61,8 @@ export function getCompareFunctionFactory(columnMeta, columnPluginSettings) {
  *
  * @param {Function} normalizator Function which normalize sort config.
  */
-export function registerSortConfigNormalizator(normalizator) {
-  sortConfigNormalizator = normalizator;
+export function registerSortConfigNormalizator(instance, normalizator) {
+  registerGloballySortConfigNormalizator(instance, normalizator);
 }
 
 /**
@@ -63,8 +70,8 @@ export function registerSortConfigNormalizator(normalizator) {
  *
  * @returns {Function} Function which normalize sort config.
  */
-export function getSortConfigNormalizator() {
-  return sortConfigNormalizator;
+export function getSortConfigNormalizator(instance) {
+  return getGloballySortConfigNormalizator(instance);
 }
 
 /**
@@ -72,8 +79,8 @@ export function getSortConfigNormalizator() {
  *
  * @param {Function} comparator Function which compare sorted values.
  */
-export function registerMainSortComparator(comparator) {
-  mainSortComparator = comparator;
+export function registerMainSortComparator(instance, comparator) {
+  registerGloballyMainSortComparator(instance, comparator);
 }
 
 /**
@@ -81,8 +88,8 @@ export function registerMainSortComparator(comparator) {
  *
  * @returns {Function} Function which compare sorted values.
  */
-export function getMainSortComparator() {
-  return mainSortComparator;
+export function getMainSortComparator(instance) {
+  return getGloballyMainSortComparator(instance);
 }
 
 registerGloballyCompareFunctionFactory(NUMERIC_DATA_TYPE, numericSort);
