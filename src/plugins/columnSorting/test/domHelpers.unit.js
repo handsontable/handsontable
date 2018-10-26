@@ -51,21 +51,16 @@ describe('ColumnSorting DOM helpers', () => {
         expect(getAddedClasses(columnStatesManager, 1, true).includes('descending')).toBeTruthy();
         expect(getAddedClasses(columnStatesManager, 1, true).includes('indicatorDisabled')).toBeFalsy();
       });
-
-      // DIFF - MultiColumnSorting & ColumnSorting: removed test named: "multiple sorted columns".
     });
   });
 
   describe('getRemovedClasses', () => {
     it('should return all calculated classes', () => {
       const columnStatesManager = new ColumnStatesManager();
-
-      // DIFF - MultiColumnSorting & ColumnSorting: removed manipulation on CSS classes related to the number indicators.
       columnStatesManager.setSortStates([
         { column: 3, sortOrder: ASC_SORT_STATE },
       ]);
 
-      // DIFF - MultiColumnSorting & ColumnSorting: removed manipulation on CSS classes related to the number indicators.
       const htmlElementMock = { className: 'columnSorting sortAction' };
 
       expect(getRemovedClasses(htmlElementMock).length).toEqual(5);

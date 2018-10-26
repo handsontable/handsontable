@@ -5,7 +5,6 @@ import { ASC_SORT_STATE, DESC_SORT_STATE } from './utils';
 const HEADER_CLASS_ASC_SORT = 'ascending';
 const HEADER_CLASS_DESC_SORT = 'descending';
 const HEADER_CLASS_INDICATOR_DISABLED = 'indicatorDisabled';
-// DIFF - MultiColumnSorting & ColumnSorting: removed CSS class definition related to the number indicators.
 const HEADER_SORT_CLASS = 'columnSorting';
 const HEADER_ACTION_CLASS = 'sortAction';
 
@@ -36,8 +35,6 @@ export function getAddedClasses(columnStatesManager, column, showSortIndicator, 
     const columnOrder = columnStatesManager.getSortOrderOfColumn(column);
 
     cssClasses.push(orderToCssClass.get(columnOrder));
-
-    // DIFF - MultiColumnSorting & ColumnSorting: removed manipulation on CSS classes related to the number indicators.
   }
 
   return cssClasses;
@@ -49,7 +46,5 @@ export function getAddedClasses(columnStatesManager, column, showSortIndicator, 
  * @returns {Array} Array of CSS classes.
  */
 export function getRemovedClasses() {
-  // DIFF - MultiColumnSorting & ColumnSorting: removed manipulation on CSS classes related to the number indicators, removed function argument.
-
   return Array.from(orderToCssClass.values()).concat(HEADER_ACTION_CLASS, HEADER_CLASS_INDICATOR_DISABLED, HEADER_SORT_CLASS);
 }

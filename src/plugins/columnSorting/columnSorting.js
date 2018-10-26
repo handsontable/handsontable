@@ -31,7 +31,6 @@ const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const PLUGIN_KEY = 'columnSorting';
 
 // DIFF - MultiColumnSorting & ColumnSorting: changed configuration documentation.
-
 /**
  * @plugin ColumnSorting
  *
@@ -191,7 +190,6 @@ class ColumnSorting extends BasePlugin {
   }
 
   // DIFF - MultiColumnSorting & ColumnSorting: changed function documentation.
-
   /**
    * Sorts the table by chosen columns and orders.
    *
@@ -842,8 +840,6 @@ class ColumnSorting extends BasePlugin {
       if (isPressedCtrlKey()) {
         this.hot.deselectCell();
         this.hot.selectColumns(coords.col);
-
-        // DIFF - MultiColumnSorting & ColumnSorting: removed selection of next column to sort.
       }
 
       this.sort(this.getColumnNextConfig(coords.col));

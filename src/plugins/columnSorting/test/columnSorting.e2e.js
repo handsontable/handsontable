@@ -2303,7 +2303,6 @@ describe('ColumnSorting', () => {
 
       // DIFF - MultiColumnSorting & ColumnSorting: change in initial sort config.
       it('when not proper sort order was passed to the initial config', () => {
-
         handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
