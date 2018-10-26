@@ -1616,7 +1616,7 @@ declare namespace Handsontable {
     beforeCellAlignment?: (stateBefore: any, range: any, type: string, alignmentClass: string) => void;
     beforeChange?: (changes: [number, string | number, any, any][], source: string) => void;
     beforeChangeRender?: (changes: any[], source: string) => void;
-    beforeColumnMove?: (startColumn: number, endColumn: number) => void;
+    beforeColumnMove?: (columns: number[], target: number) => void;
     beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
     beforeColumnSort?: (currentSortConfig: object[], destinationSortConfigs: object[]) => void;
     beforeContextMenuSetItems?: (menuItems: any[]) => void;
@@ -1642,7 +1642,7 @@ declare namespace Handsontable {
     beforeRemoveRow?: (index: number, amount: number, logicalRows?: any[]) => void;
     beforeRender?: (isForced: boolean, skipRender: object) => void;
     beforeRenderer?: (TD: Element, row: number, col: number, prop: string | number, value: string, cellProperties: GridSettings) => void;
-    beforeRowMove?: (startRow: number, endRow: number) => void;
+    beforeRowMove?: (columns: number[], target: number) => void;
     beforeRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => any;
     beforeSetRangeEnd?: (coords: wot.CellCoords) => void;
     beforeSetRangeStart?: (coords: wot.CellCoords) => void;
