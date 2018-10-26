@@ -22,11 +22,6 @@ const {
   getItem: getGloballyMainSortComparator,
 } = staticRegister('sorting.mainSortComparator');
 
-const {
-  register: registerGloballySortConfigNormalizator,
-  getItem: getGloballySortConfigNormalizator,
-} = staticRegister('sorting.configNormalizator');
-
 /**
  * Register compare function factory.
  *
@@ -57,39 +52,23 @@ export function getCompareFunctionFactory(columnMeta, columnPluginSettings) {
 }
 
 /**
- * Register sort config normalizator.
- *
- * @param {Function} normalizator Function which normalize sort config.
- */
-export function registerSortConfigNormalizator(instance, normalizator) {
-  registerGloballySortConfigNormalizator(instance, normalizator);
-}
-
-/**
- * Get sort config normalizator.
- *
- * @returns {Function} Function which normalize sort config.
- */
-export function getSortConfigNormalizator(instance) {
-  return getGloballySortConfigNormalizator(instance);
-}
-
-/**
  * Register main sort comparator.
  *
+ * @param {String} id Comparator id.
  * @param {Function} comparator Function which compare sorted values.
  */
-export function registerMainSortComparator(instance, comparator) {
-  registerGloballyMainSortComparator(instance, comparator);
+export function registerMainSortComparator(id, comparator) {
+  registerGloballyMainSortComparator(id, comparator);
 }
 
 /**
  * Get main sort comparator.
  *
+ * @param {String} id Comparator id.
  * @returns {Function} Function which compare sorted values.
  */
-export function getMainSortComparator(instance) {
-  return getGloballyMainSortComparator(instance);
+export function getMainSortComparator(id) {
+  return getGloballyMainSortComparator(id);
 }
 
 registerGloballyCompareFunctionFactory(NUMERIC_DATA_TYPE, numericSort);

@@ -15,15 +15,13 @@ import { ColumnStatesManager } from './columnStatesManager';
 import {
   getNextSortOrder,
   areValidSortStates,
-  warnAboutNotValidatedConfig,
   getHeaderSpanElement,
   isFirstLevelColumnHeader
 } from './utils';
-import { sortConfigNormalizator } from './sortConfigNormalizator';
 import { getRemovedClasses, getAddedClasses } from './domHelpers';
 import RowsMapper from './rowsMapper';
 import { mainSortComparator } from './mainSortComparator';
-import { registerMainSortComparator, getMainSortComparator, registerSortConfigNormalizator, getSortConfigNormalizator } from './sortingService';
+import { registerMainSortComparator, getMainSortComparator } from './sortingService';
 
 Hooks.getSingleton().register('beforeColumnSort');
 Hooks.getSingleton().register('afterColumnSort');
@@ -214,15 +212,11 @@ class ColumnSorting extends BasePlugin {
   sort(sortConfig) {
     const currentSortConfig = this.getSortConfig();
 
-    // We always pass to hook configs defined as an array to `beforeColumnSort` and `afterColumnSort` hooks.
-    const destinationSortConfigs = getSortConfigNormalizator(this.constructor)(sortConfig);
+    // We always pass configs defined as an array to `beforeColumnSort` and `afterColumnSort` hooks.
+    const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig);
 
     const sortPossible = this.areValidSortConfigs(destinationSortConfigs);
     const allowSort = this.hot.runHooks('beforeColumnSort', currentSortConfig, destinationSortConfigs, sortPossible);
-
-    if (sortPossible === false) {
-      warnAboutNotValidatedConfig();
-    }
 
     if (allowSort === false) {
       return;
@@ -312,7 +306,7 @@ class ColumnSorting extends BasePlugin {
    */
   setSortConfig(sortConfig) {
     // We always set configs defined as an array.
-    const destinationSortConfigs = getSortConfigNormalizator(this.constructor)(sortConfig);
+    const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig);
 
     if (this.areValidSortConfigs(destinationSortConfigs)) {
       const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
@@ -320,10 +314,28 @@ class ColumnSorting extends BasePlugin {
       const internalSortStates = arrayMap(destinationSortConfigs, columnSortConfig => translateColumnToPhysical(columnSortConfig));
 
       this.columnStatesManager.setSortStates(internalSortStates);
-
-    } else {
-      warnAboutNotValidatedConfig();
     }
+  }
+
+  /**
+   * Get normalized sort configs.
+   *
+   * @private
+   * @param {undefined|Object|Array} sortConfig Single column sort configuration or full sort configuration (for all sorted columns).
+   * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains
+   * sort order (`asc` for ascending, `desc` for descending).
+   * @returns {Array}
+   */
+  getNormalizedSortConfigs(sortConfig) {
+    if (isUndefined(sortConfig)) {
+      return [];
+    }
+
+    if (Array.isArray(sortConfig)) {
+      return sortConfig.slice(0, 1);
+    }
+
+    return [sortConfig].slice(0, 1);
   }
 
   /**
@@ -556,7 +568,7 @@ class ColumnSorting extends BasePlugin {
       indexesWithData.push([visualRowIndex].concat(getDataForSortedColumns(visualRowIndex)));
     }
 
-    mergeSort(indexesWithData, getMainSortComparator(this.constructor)(
+    mergeSort(indexesWithData, getMainSortComparator(this.pluginKey)(
       arrayMap(sortedColumnsList, physicalColumn => this.columnStatesManager.getSortOrderOfColumn(physicalColumn)),
       arrayMap(sortedColumnsList, physicalColumn => this.getFirstCellSettings(this.hot.toVisualColumn(physicalColumn)))
     ));
@@ -688,6 +700,7 @@ class ColumnSorting extends BasePlugin {
   /**
    * Update header classes.
    *
+   * @private
    * @param {HTMLElement} headerSpanElement Header span element.
    * @param {...*} args Extra arguments for helpers.
    */
@@ -849,7 +862,6 @@ class ColumnSorting extends BasePlugin {
 }
 
 registerPlugin(PLUGIN_KEY, ColumnSorting);
-registerMainSortComparator(ColumnSorting, mainSortComparator);
-registerSortConfigNormalizator(ColumnSorting, sortConfigNormalizator);
+registerMainSortComparator(PLUGIN_KEY, mainSortComparator);
 
 export default ColumnSorting;

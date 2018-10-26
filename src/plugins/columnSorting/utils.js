@@ -64,13 +64,6 @@ export function warnAboutPluginsConflict() {
 }
 
 /**
- * Warn users about problems with validating sort config.
- */
-export function warnAboutNotValidatedConfig() {
-  warn('Sort configuration failed to validate properly.');
-}
-
-/**
  * Get `span` DOM element inside `th` DOM element.
  *
  * @param {Element} TH th HTML element.
