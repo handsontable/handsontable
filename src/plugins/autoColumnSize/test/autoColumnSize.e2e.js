@@ -483,8 +483,8 @@ describe('AutoColumnSize', () => {
     expect(spy.calls.mostRecent().args[5]).toEqual([{ id: 1000 }]);
   });
 
-  it('should not change width and widths after select/click cell', () => {
-    const hot = handsontable({
+  it('should not change width after select/click cell', async() => {
+    handsontable({
       data: [
         ['Canceled'],
         ['Processing'],
@@ -497,15 +497,16 @@ describe('AutoColumnSize', () => {
       rowHeaders: true,
     });
 
+    await sleep(300);
+
     const cloneTopHider = spec().$container.find('.ht_clone_top .wtHider');
-    const plugin = hot.getPlugin('autoColumnSize');
 
     expect(cloneTopHider.width()).toEqual(140);
-    expect(plugin.widths[0]).toEqual(90);
 
     selectCell(0, 0);
 
+    await sleep(300);
+
     expect(cloneTopHider.width()).toEqual(140);
-    expect(plugin.widths[0]).toEqual(90);
   });
 });
