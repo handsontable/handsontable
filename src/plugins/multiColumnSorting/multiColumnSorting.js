@@ -84,7 +84,7 @@ const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
  *   }
  * }]```
  *
- * @dependencies ObserveChanges moment
+ * @dependencies ObserveChanges
  */
 class MultiColumnSorting extends BasePlugin {
   constructor(hotInstance) {
