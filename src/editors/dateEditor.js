@@ -12,7 +12,7 @@ import TextEditor from './textEditor';
  * @private
  * @editor DateEditor
  * @class DateEditor
- * @dependencies TextEditor moment pikaday
+ * @dependencies TextEditor
  */
 class DateEditor extends TextEditor {
   /**

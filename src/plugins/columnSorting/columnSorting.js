@@ -80,7 +80,7 @@ const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
  *   }
  * }]```
  *
- * @dependencies ObserveChanges moment
+ * @dependencies ObserveChanges
  */
 class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
