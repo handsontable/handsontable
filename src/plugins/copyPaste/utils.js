@@ -1,3 +1,5 @@
+import { isNumeric } from './../../helpers/number';
+
 /**
  * Converts javascript array into HTMLTable.
  *
@@ -20,7 +22,7 @@ export function arrayToTable(input) {
     }
 
     for (let column = 0; column < columnsLen; column += 1) {
-      tempElement.innerText = `${rowData[column] || ''}`;
+      tempElement.innerText = `${rowData[column] || (isNumeric(rowData[column]) ? rowData[column] : '')}`;
 
       columnsResult.push(`<td>${tempElement.innerHTML}</td>`);
     }
