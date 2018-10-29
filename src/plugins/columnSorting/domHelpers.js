@@ -21,7 +21,7 @@ const orderToCssClass = new Map([
  * @param {Boolean} headerAction Indicates if header click to sort should be possible.
  * @returns {Array} Array of CSS classes.
  */
-export function getAddedClasses(columnStatesManager, column, showSortIndicator, headerAction) {
+export function getClassesToAdd(columnStatesManager, column, showSortIndicator, headerAction) {
   const cssClasses = [HEADER_SORT_CLASS];
 
   if (headerAction) {
@@ -45,6 +45,6 @@ export function getAddedClasses(columnStatesManager, column, showSortIndicator, 
  *
  * @returns {Array} Array of CSS classes.
  */
-export function getRemovedClasses() {
+export function getClassedToRemove() {
   return Array.from(orderToCssClass.values()).concat(HEADER_ACTION_CLASS, HEADER_CLASS_INDICATOR_DISABLED, HEADER_SORT_CLASS);
 }

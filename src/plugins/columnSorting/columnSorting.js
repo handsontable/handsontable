@@ -18,7 +18,7 @@ import {
   getHeaderSpanElement,
   isFirstLevelColumnHeader
 } from './utils';
-import { getRemovedClasses, getAddedClasses } from './domHelpers';
+import { getClassedToRemove, getClassesToAdd } from './domHelpers';
 import RowsMapper from './rowsMapper';
 import { mainSortComparator } from './mainSortComparator';
 import { registerMainSortComparator, getMainSortComparator } from './sortingService';
@@ -703,10 +703,10 @@ class ColumnSorting extends BasePlugin {
    * @param {...*} args Extra arguments for helpers.
    */
   updateHeaderClasses(headerSpanElement, ...args) {
-    removeClass(headerSpanElement, getRemovedClasses(headerSpanElement));
+    removeClass(headerSpanElement, getClassedToRemove(headerSpanElement));
 
     if (this.enabled !== false) {
-      addClass(headerSpanElement, getAddedClasses(...args));
+      addClass(headerSpanElement, getClassesToAdd(...args));
     }
   }
 
