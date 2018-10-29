@@ -1,4 +1,4 @@
-import numericSort from 'handsontable/plugins/columnSorting/sortFunction/numeric';
+import { numericSort } from 'handsontable/plugins/columnSorting/sortFunction/numeric';
 
 describe('numericSort', () => {
   it('numericSort comparing function shouldn\'t change order when comparing empty string, null and undefined', () => {

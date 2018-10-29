@@ -8,7 +8,6 @@ import { arrayMap } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import BasePlugin from '../_base';
 import { registerPlugin } from './../../plugins';
-import mergeSort from '../../utils/sortingAlgorithms/mergeSort';
 import Hooks from '../../pluginHooks';
 import { isPressedCtrlKey } from '../../utils/keyStateObserver';
 import { ColumnStatesManager } from './columnStatesManager';
@@ -20,15 +19,17 @@ import {
 } from './utils';
 import { getClassedToRemove, getClassesToAdd } from './domHelpers';
 import RowsMapper from './rowsMapper';
-import { mainSortComparator } from './mainSortComparator';
-import { registerMainSortComparator, getMainSortComparator } from './sortingService';
-
-Hooks.getSingleton().register('beforeColumnSort');
-Hooks.getSingleton().register('afterColumnSort');
+import { rootComparator } from './rootComparator';
+import { registerRootComparator, sort } from './sortService';
 
 const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const PLUGIN_KEY = 'columnSorting';
+
+registerRootComparator(PLUGIN_KEY, rootComparator);
+
+Hooks.getSingleton().register('beforeColumnSort');
+Hooks.getSingleton().register('afterColumnSort');
 
 // DIFF - MultiColumnSorting & ColumnSorting: changed configuration documentation.
 /**
@@ -566,10 +567,12 @@ class ColumnSorting extends BasePlugin {
       indexesWithData.push([visualRowIndex].concat(getDataForSortedColumns(visualRowIndex)));
     }
 
-    mergeSort(indexesWithData, getMainSortComparator(this.pluginKey)(
+    sort(
+      indexesWithData,
+      this.pluginKey,
       arrayMap(sortedColumnsList, physicalColumn => this.columnStatesManager.getSortOrderOfColumn(physicalColumn)),
       arrayMap(sortedColumnsList, physicalColumn => this.getFirstCellSettings(this.hot.toVisualColumn(physicalColumn)))
-    ));
+    );
 
     // Append spareRows
     for (let visualRowIndex = indexesWithData.length; visualRowIndex < numberOfRows; visualRowIndex += 1) {
@@ -858,6 +861,5 @@ class ColumnSorting extends BasePlugin {
 }
 
 registerPlugin(PLUGIN_KEY, ColumnSorting);
-registerMainSortComparator(PLUGIN_KEY, mainSortComparator);
 
 export default ColumnSorting;

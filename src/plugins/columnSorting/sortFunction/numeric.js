@@ -1,5 +1,7 @@
+/* eslint-disable import/prefer-default-export */
+
 import { isEmpty } from '../../../helpers/mixed';
-import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortingService';
+import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortService';
 
 /**
  * Numeric sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
@@ -9,7 +11,7 @@ import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sorting
  * @param {Object} columnPluginSettings Plugin settings for the column.
  * @returns {Function} The compare function.
  */
-export default function numericSort(sortOrder, columnMeta, columnPluginSettings) {
+export function numericSort(sortOrder, columnMeta, columnPluginSettings) {
   return function(value, nextValue) {
     const parsedFirstValue = parseFloat(value);
     const parsedSecondValue = parseFloat(nextValue);
@@ -48,3 +50,5 @@ export default function numericSort(sortOrder, columnMeta, columnPluginSettings)
     return DO_NOT_SWAP;
   };
 }
+
+export const COLUMN_DATA_TYPE = 'numeric';
