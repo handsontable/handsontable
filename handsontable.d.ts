@@ -697,7 +697,8 @@ declare namespace Handsontable {
     interface ColumnSorting extends Base {
       clearSort(): void;
       destroy(): void;
-      getSortConfig(column?: number): void | columnSorting.Config | Array<columnSorting.Config>
+      getSortConfig(column: number): void | columnSorting.Config
+      getSortConfig(): Array<columnSorting.Config>
       isSorted(): boolean;
       setSortConfig(sortConfig?: columnSorting.Config | Array<columnSorting.Config>): void;
       sort(sortConfig?: columnSorting.Config): void;
@@ -1090,7 +1091,8 @@ declare namespace Handsontable {
     interface MultiColumnSorting extends Base {
       clearSort(): void;
       destroy(): void;
-      getSortConfig(column?: number): void | columnSorting.Config | Array<columnSorting.Config>
+      getSortConfig(column: number): void | columnSorting.Config
+      getSortConfig(): Array<columnSorting.Config>
       isSorted(): boolean;
       setSortConfig(sortConfig?: columnSorting.Config | Array<columnSorting.Config>): void;
       sort(sortConfig?: columnSorting.Config | Array<columnSorting.Config>): void;
