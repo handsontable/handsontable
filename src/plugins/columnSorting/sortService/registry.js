@@ -1,6 +1,6 @@
-import { defaultSort, COLUMN_DATA_TYPE as DEFAULT_DATA_TYPE } from '../sortFunction/default';
-import { numericSort, COLUMN_DATA_TYPE as NUMERIC_DATA_TYPE } from '../sortFunction/numeric';
-import { dateSort, COLUMN_DATA_TYPE as DATE_DATA_TYPE } from '../sortFunction/date';
+import { compareFunctionFactory as defaultSort, COLUMN_DATA_TYPE as DEFAULT_DATA_TYPE } from '../sortFunction/default';
+import { compareFunctionFactory as numericSort, COLUMN_DATA_TYPE as NUMERIC_DATA_TYPE } from '../sortFunction/numeric';
+import { compareFunctionFactory as dateSort, COLUMN_DATA_TYPE as DATE_DATA_TYPE } from '../sortFunction/date';
 import staticRegister from '../../../utils/staticRegister';
 
 const {

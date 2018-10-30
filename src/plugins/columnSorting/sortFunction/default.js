@@ -11,7 +11,7 @@ import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortSer
  * @param {Object} columnPluginSettings Plugin settings for the column.
  * @returns {Function} The compare function.
  */
-export function defaultSort(sortOrder, columnMeta, columnPluginSettings) {
+export function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
   return function(value, nextValue) {
     const { sortEmptyCells } = columnPluginSettings;
 

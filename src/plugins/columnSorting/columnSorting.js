@@ -320,16 +320,12 @@ class ColumnSorting extends BasePlugin {
    * Get normalized sort configs.
    *
    * @private
-   * @param {undefined|Object|Array} sortConfig Single column sort configuration or full sort configuration (for all sorted columns).
+   * @param {Object|Array} [sortConfig=[]] Single column sort configuration or full sort configuration (for all sorted columns).
    * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains
    * sort order (`asc` for ascending, `desc` for descending).
    * @returns {Array}
    */
-  getNormalizedSortConfigs(sortConfig) {
-    if (isUndefined(sortConfig)) {
-      return [];
-    }
-
+  getNormalizedSortConfigs(sortConfig = []) {
     if (Array.isArray(sortConfig)) {
       return sortConfig.slice(0, 1);
     }
