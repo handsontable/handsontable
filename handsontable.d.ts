@@ -702,7 +702,7 @@ declare namespace Handsontable {
       destroy(): void;
       getSortConfig(column?: number): void | ColumnSortConfig | Array<ColumnSortConfig>
       isSorted(): boolean;
-      setSortConfigs(sortConfigs: Array<ColumnSortConfig>): void;
+      setSortConfig(sortConfig: void | ColumnSortConfig | Array<ColumnSortConfig>): void;
       sort(sortConfig?: ColumnSortConfig): void;
     }
 
@@ -1098,7 +1098,7 @@ declare namespace Handsontable {
       destroy(): void;
       getSortConfig(column?: number): void | MultiColumnSortConfig | Array<MultiColumnSortConfig>
       isSorted(): boolean;
-      setSortConfigs(sortConfigs: Array<MultiColumnSortConfig>): void;
+      setSortConfig(sortConfig: void | MultiColumnSortConfig | Array<MultiColumnSortConfig>): void;
       sort(sortConfig?: MultiColumnSortConfig | Array<MultiColumnSortConfig>): void;
     }
 
