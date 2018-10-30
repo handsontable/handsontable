@@ -1,4 +1,4 @@
-import { defaultSort } from 'handsontable/plugins/columnSorting/sortFunction/default';
+import { compareFunctionFactory as defaultSort } from 'handsontable/plugins/columnSorting/sortFunction/default';
 
 it('defaultSort comparing function shouldn\'t change order when comparing empty string, null and undefined', () => {
   expect(defaultSort('asc', {}, {})(null, null)).toEqual(0);
