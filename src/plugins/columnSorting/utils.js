@@ -1,6 +1,5 @@
 import { isUndefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
-import { warn } from '../../helpers/console';
 
 export const ASC_SORT_STATE = 'asc';
 export const DESC_SORT_STATE = 'desc';
@@ -54,44 +53,6 @@ export function getNextSortOrder(sortOrder) {
   }
 
   return ASC_SORT_STATE;
-}
-
-/**
- * Get multiple sorted column configs from sort configs with different data types.
- *
- * @param {undefined|Object|Array} sortConfig Single column sort configuration or full sort configuration (for all sorted columns).
- * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains
- * sort order (`asc` for ascending, `desc` for descending).
- * @returns {Array}
- */
-export function getFullSortConfiguration(sortConfig) {
-  if (isUndefined(sortConfig)) {
-    return [];
-  }
-
-  if (Array.isArray(sortConfig)) {
-    return sortConfig;
-  }
-
-  return [sortConfig];
-}
-
-/**
- * Warn users about problems when using `columnSorting` and `columnSorting` plugins simultaneously.
- *
- * @param {undefined|Boolean|Object} columnSortingSettings
- */
-export function warnIfPluginsHaveConflict(columnSortingSettings) {
-  if (columnSortingSettings) {
-    // DIFF - MultiColumnSorting & ColumnSorting: Warn will be called from the MultiColumnSorting plugin.
-  }
-}
-
-/**
- * Warn users about problems with validating sort config.
- */
-export function warnAboutNotValidatedConfig() {
-  warn('Sort configuration failed to validate properly.');
 }
 
 /**

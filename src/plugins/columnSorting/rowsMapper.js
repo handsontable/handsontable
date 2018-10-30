@@ -4,18 +4,8 @@ import { rangeEach } from '../../helpers/number';
 
 /**
  * @class RowsMapper
- * @plugin ColumnSorting
  */
 class RowsMapper {
-  constructor(columnSorting) {
-    /**
-     * Instance of ColumnSorting plugin.
-     *
-     * @type {ColumnSorting}
-     */
-    this.columnSorting = columnSorting;
-  }
-
   /**
    * Reset current map array and create new one.
    *
