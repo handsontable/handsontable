@@ -694,16 +694,14 @@ declare namespace Handsontable {
       toggleCollapsibleSection(coords: object, action: string): void;
     }
 
-    type SortOrderType = 'asc' | 'desc';
-    type ColumnSortConfig = { column: number, sortOrder: SortOrderType }
-
     interface ColumnSorting extends Base {
       clearSort(): void;
       destroy(): void;
-      getSortConfig(column?: number): void | ColumnSortConfig | Array<ColumnSortConfig>
+      getSortConfig(column: number): void | columnSorting.Config
+      getSortConfig(): Array<columnSorting.Config>
       isSorted(): boolean;
-      setSortConfig(sortConfig: void | ColumnSortConfig | Array<ColumnSortConfig>): void;
-      sort(sortConfig?: ColumnSortConfig): void;
+      setSortConfig(sortConfig?: columnSorting.Config | Array<columnSorting.Config>): void;
+      sort(sortConfig?: columnSorting.Config): void;
     }
 
     interface ColumnSummary extends Base {
@@ -1090,16 +1088,14 @@ declare namespace Handsontable {
       moveColumn(from: number, to: number): void;
     }
 
-    type MultiSortOrderType = 'asc' | 'desc';
-    type MultiColumnSortConfig = { column: number, sortOrder: MultiSortOrderType }
-
     interface MultiColumnSorting extends Base {
       clearSort(): void;
       destroy(): void;
-      getSortConfig(column?: number): void | MultiColumnSortConfig | Array<MultiColumnSortConfig>
+      getSortConfig(column: number): void | columnSorting.Config
+      getSortConfig(): Array<columnSorting.Config>
       isSorted(): boolean;
-      setSortConfig(sortConfig: void | MultiColumnSortConfig | Array<MultiColumnSortConfig>): void;
-      sort(sortConfig?: MultiColumnSortConfig | Array<MultiColumnSortConfig>): void;
+      setSortConfig(sortConfig?: columnSorting.Config | Array<columnSorting.Config>): void;
+      sort(sortConfig?: columnSorting.Config | Array<columnSorting.Config>): void;
     }
 
     interface TrimRowsMapper extends arrayMapper {
@@ -1437,7 +1433,7 @@ declare namespace Handsontable {
     collapsibleColumns?: boolean | any[]; // pro
     columnHeaderHeight?: number | any[];
     columns?: ((index?: number) => void) | any[];
-    columnSorting?: boolean | object;
+    columnSorting?: boolean | columnSorting.Settings;
     columnSummary?: object; // pro
     colWidths?: ((index?: number) => void) | number | string | any[];
     commentedCellClassName?: string;
@@ -1494,7 +1490,7 @@ declare namespace Handsontable {
     minRows?: number;
     minSpareCols?: number;
     minSpareRows?: number;
-    multiColumnSorting?: boolean | object;
+    multiColumnSorting?: boolean | multiColumnSorting.Settings;
     selectionMode?: 'single' | 'range' | 'multiple';
     nestedHeaders?: any[]; // pro
     noWordWrapClassName?: string;
@@ -1517,8 +1513,6 @@ declare namespace Handsontable {
     selectOptions?: any[];
     skipColumnOnPaste?: boolean;
     sortByRelevance?: boolean;
-    sortFunction?: () => void;
-    sortIndicator?: boolean;
     source?: any[] | (() => void);
     startCols?: number;
     startRows?: number;
@@ -2011,6 +2005,31 @@ declare namespace Handsontable {
     interface Settings {
       callback: (key: string, options: contextMenu.Options) => void;
       items: any;
+    }
+  }
+  
+  namespace columnSorting {
+    type SortOrderType = 'asc' | 'desc';
+    type Config = { column: number, sortOrder: SortOrderType }
+    
+    interface Settings {
+      initialConfig?: Config,
+      sortEmptyCells?: boolean,
+      indicator?: boolean,
+      headerAction?: boolean,
+      compareFunctionFactory?: ((sortOrder: SortOrderType, columnMeta: GridSettings) => 
+        (value: any, nextValue: any) => -1 | 0 | 1)
+    }
+  }
+
+  namespace multiColumnSorting {
+    interface Settings {
+      initialConfig?: columnSorting.Config | Array<columnSorting.Config>,
+      sortEmptyCells?: boolean,
+      indicator?: boolean,
+      headerAction?: boolean,
+      compareFunctionFactory?: ((sortOrder: columnSorting.SortOrderType, columnMeta: GridSettings) =>
+        (value: any, nextValue: any) => -1 | 0 | 1)
     }
   }
 }
