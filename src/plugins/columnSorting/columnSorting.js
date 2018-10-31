@@ -649,7 +649,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Physical row index.
    */
   onModifyRow(row, source) {
-    if (this.blockPluginTranslation === false && source !== this.pluginName) {
+    if (this.blockPluginTranslation === false && source !== this.pluginName && this.isSorted()) {
       const rowInMapper = this.rowsMapper.getValueByIndex(row);
       row = rowInMapper === null ? row : rowInMapper;
     }
@@ -665,7 +665,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Visual row index.
    */
   onUnmodifyRow(row, source) {
-    if (this.blockPluginTranslation === false && source !== this.pluginName) {
+    if (this.blockPluginTranslation === false && source !== this.pluginName && this.isSorted()) {
       row = this.rowsMapper.getIndexByValue(row);
     }
 
