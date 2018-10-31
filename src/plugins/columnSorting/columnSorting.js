@@ -15,7 +15,8 @@ import {
   getNextSortOrder,
   areValidSortStates,
   getHeaderSpanElement,
-  isFirstLevelColumnHeader
+  isFirstLevelColumnHeader,
+  wasHeaderClickedProperly
 } from './utils';
 import { getClassedToRemove, getClassesToAdd } from './domHelpers';
 import RowsMapper from './rowsMapper';
@@ -812,8 +813,7 @@ class ColumnSorting extends BasePlugin {
    * @param {Object} blockCalculations
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
-    // Click below the level of column headers
-    if (coords.row >= 0 || coords.col < 0) {
+    if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {
       return;
     }
 
@@ -830,8 +830,7 @@ class ColumnSorting extends BasePlugin {
    * @param {CellCoords} coords Visual coords of the selected cell.
    */
   onAfterOnCellMouseDown(event, coords) {
-    // Click below the level of column headers
-    if (coords.row >= 0 || coords.col < 0) {
+    if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {
       return;
     }
 

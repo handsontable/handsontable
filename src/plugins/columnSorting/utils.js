@@ -1,5 +1,6 @@
 import { isUndefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
+import { isRightClick } from '../../helpers/dom/event';
 
 export const ASC_SORT_STATE = 'asc';
 export const DESC_SORT_STATE = 'desc';
@@ -88,4 +89,16 @@ export function isFirstLevelColumnHeader(column, TH) {
   }
 
   return true;
+}
+
+/**
+ *  Get if header was clicked properly. Click on column header and NOT done by right click return `true`.
+ *
+ * @param {Number} row Visual row index.
+ * @param {Number} column Visual column index.
+ * @param {Event} clickEvent Click event.
+ * @returns {Boolean}
+ */
+export function wasHeaderClickedProperly(row, column, clickEvent) {
+  return row === -1 && column >= 0 && isRightClick(clickEvent) === false;
 }
