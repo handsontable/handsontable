@@ -170,7 +170,10 @@ class ConditionComponent extends BaseComponent {
         label.textContent = value;
 
         wrapper.appendChild(label);
-        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
+
+        if (!wrapper.parentNode.hasAttribute('ghost-table')) {
+          arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
+        }
 
         return wrapper;
       }

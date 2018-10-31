@@ -23,7 +23,7 @@ describe('Filters UI', () => {
   });
 
   describe('Conditional component', () => {
-    it('should display conditional filter component under dropdown menu', () => {
+    it('should display conditional filter component under dropdown menu', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -36,6 +36,16 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htFiltersMenuLabel').textContent).toBe('Filter by condition:');
+      expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htUISelect')).not.toBeNull();
+      expect(dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput').length).toBe(4);
+
+      await sleep(300);
+
+      // The filter components should be intact after some time. These expectations check whether the GhostTable
+      // does not steal the components' element while recalculating column width (PR #5555).
+      expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htFiltersMenuLabel').textContent).toBe('Filter by condition:');
+      expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htUISelect')).not.toBeNull();
+      expect(dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput').length).toBe(4);
     });
 
     it('should appear conditional options menu after UISelect element click', () => {
@@ -679,7 +689,7 @@ describe('Filters UI', () => {
   });
 
   describe('"by value" component', () => {
-    it('should appear under dropdown menu', () => {
+    it('should appear under dropdown menu', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -691,7 +701,15 @@ describe('Filters UI', () => {
 
       dropdownMenu(1);
 
-      expect(byValueMultipleSelect().element.parentNode.querySelector('.htFiltersMenuLabel').textContent).toBe('Filter by value:');
+      expect(dropdownMenuRootElement().querySelector('.htFiltersMenuValue .htFiltersMenuLabel').textContent).toBe('Filter by value:');
+      expect(dropdownMenuRootElement().querySelector('.htFiltersMenuValue .htUIMultipleSelect')).not.toBeNull();
+
+      await sleep(300);
+
+      // The filter components should be intact after some time. These expectations check whether the GhostTable
+      // does not steal the components' element while recalculating column width (PR #5555).
+      expect(dropdownMenuRootElement().querySelector('.htFiltersMenuValue .htFiltersMenuLabel').textContent).toBe('Filter by value:');
+      expect(dropdownMenuRootElement().querySelector('.htFiltersMenuValue .htUIMultipleSelect')).not.toBeNull();
     });
 
     it('should display empty values as "(Blank cells)"', () => {
@@ -1121,6 +1139,31 @@ describe('Filters UI', () => {
         dropdownMenu(2);
         expect($(byValueBoxRootElement()).find('tr:nth-child(1)').text()).toEqual('AAA City');
       });
+    });
+  });
+
+  describe('"action_bar" component', () => {
+    it('should appear under dropdown menu', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(1);
+
+      expect(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonOK input').value).toBe('OK');
+      expect(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonCancel input').value).toBe('Cancel');
+
+      await sleep(300);
+
+      // The filter components should be intact after some time. These expectations check whether the GhostTable
+      // does not steal the components' element while recalculating column width (PR #5555).
+      expect(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonOK input').value).toBe('OK');
+      expect(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonCancel input').value).toBe('Cancel');
     });
   });
 
