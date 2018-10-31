@@ -813,7 +813,7 @@ class ColumnSorting extends BasePlugin {
    * @param {Object} blockCalculations
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
-    if (wasHeaderClickedProperly(coords.row, coords.col, event.button) === false) {
+    if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {
       return;
     }
 
@@ -830,7 +830,7 @@ class ColumnSorting extends BasePlugin {
    * @param {CellCoords} coords Visual coords of the selected cell.
    */
   onAfterOnCellMouseDown(event, coords) {
-    if (wasHeaderClickedProperly(coords.row, coords.col, event.button) === false) {
+    if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {
       return;
     }
 

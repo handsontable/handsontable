@@ -1,5 +1,6 @@
 import { isUndefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
+import { isRightClick } from '../../helpers/dom/event';
 
 export const ASC_SORT_STATE = 'asc';
 export const DESC_SORT_STATE = 'desc';
@@ -95,9 +96,9 @@ export function isFirstLevelColumnHeader(column, TH) {
  *
  * @param {Number} row Visual row index.
  * @param {Number} column Visual column index.
- * @param {Number} buttonId Number representing which mouse button was pressed (according to the WC3 documentation). Number 2 represent right click in all supported browsers.
+ * @param  {Event} clickEvent Click event.
  * @returns {Boolean}
  */
-export function wasHeaderClickedProperly(row, column, characterCode) {
-  return row === -1 && column >= 0 && characterCode !== 2;
+export function wasHeaderClickedProperly(row, column, clickEvent) {
+  return row === -1 && column >= 0 && isRightClick(clickEvent);
 }
