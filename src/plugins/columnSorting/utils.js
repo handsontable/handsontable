@@ -89,3 +89,15 @@ export function isFirstLevelColumnHeader(column, TH) {
 
   return true;
 }
+
+/**
+ *  Get if header was clicked properly. Click on column header and NOT done by right click return `true`.
+ *
+ * @param {Number} row Visual row index.
+ * @param {Number} column Visual column index.
+ * @param {Number} buttonId Number representing which mouse button was pressed (according to the WC3 documentation). Number 2 represent right click in all supported browsers.
+ * @returns {Boolean}
+ */
+export function wasHeaderClickedProperly(row, column, characterCode) {
+  return row === -1 && column >= 0 && characterCode !== 2;
+}
