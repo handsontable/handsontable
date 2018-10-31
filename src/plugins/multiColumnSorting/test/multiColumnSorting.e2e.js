@@ -2703,6 +2703,23 @@ describe('MultiColumnSorting', () => {
       expect(getDataAtCol(0)).toEqual(['Mary', 'Henry', 'Ann', 'Robert', 'Ann', 'David', 'John', 'Mary', 'Robert']);
     });
 
+    it('should not sort table by right click', () => {
+      const hot = handsontable({
+        data: arrayOfArrays(),
+        colHeaders: true,
+        columnSorting: true
+      });
+
+      const $columnHeader = $(hot.view.wt.wtTable.getColumnHeader(0));
+      const $spanInsideHeader = $columnHeader.find('.columnSorting');
+
+      $spanInsideHeader.simulate('mousedown', { button: 2 });
+      $spanInsideHeader.simulate('click');
+      $spanInsideHeader.simulate('mouseup', { button: 2 });
+
+      expect(getData()).toEqual(arrayOfArrays());
+    });
+
     it('should not block action for specific configuration updated by `updateSettings`', () => {
       handsontable({
         data: arrayOfArrays(),

@@ -1,5 +1,6 @@
 import ColumnSorting from 'handsontable/plugins/columnSorting/columnSorting';
 import { registerRootComparator } from 'handsontable/plugins/columnSorting/sortService';
+import { wasHeaderClickedProperly } from 'handsontable/plugins/columnSorting/utils';
 import { registerPlugin } from 'handsontable/plugins';
 import { isPressedCtrlKey } from 'handsontable/utils/keyStateObserver';
 import { addClass, removeClass } from 'handsontable/helpers/dom/element';
@@ -247,8 +248,7 @@ class MultiColumnSorting extends ColumnSorting {
    * @param {CellCoords} coords Visual coords of the selected cell.
    */
   onAfterOnCellMouseDown(event, coords) {
-    // Click below the level of column headers
-    if (coords.row >= 0 || coords.col < 0) {
+    if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {
       return;
     }
 
