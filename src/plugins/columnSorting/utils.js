@@ -100,5 +100,5 @@ export function isFirstLevelColumnHeader(column, TH) {
  * @returns {Boolean}
  */
 export function wasHeaderClickedProperly(row, column, clickEvent) {
-  return row === -1 && column >= 0 && isRightClick(clickEvent);
+  return row === -1 && column >= 0 && isRightClick(clickEvent) === false;
 }
