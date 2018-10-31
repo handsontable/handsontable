@@ -2865,6 +2865,25 @@ describe('MultiColumnSorting', () => {
     });
   });
 
+  describe('index mappers', () => {
+    it('should not map indexes when already sorted column was set to not sorted', () => {
+      const hot = handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        multiColumnSorting: {
+          initialConfig: {
+            column: 0,
+            sortOrder: 'desc'
+          }
+        }
+      });
+
+      updateSettings({ multiColumnSorting: { initialConfig: [] } });
+
+      expect(hot.toVisualRow(0)).toEqual(0);
+    });
+  });
+
   // TODO: Remove tests when workaround will be removed.
   describe('workaround regression check', () => {
     it('should not break the dataset when inserted new row', () => {
