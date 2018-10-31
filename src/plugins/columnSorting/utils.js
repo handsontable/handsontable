@@ -96,7 +96,7 @@ export function isFirstLevelColumnHeader(column, TH) {
  *
  * @param {Number} row Visual row index.
  * @param {Number} column Visual column index.
- * @param  {Event} clickEvent Click event.
+ * @param {Event} clickEvent Click event.
  * @returns {Boolean}
  */
 export function wasHeaderClickedProperly(row, column, clickEvent) {
