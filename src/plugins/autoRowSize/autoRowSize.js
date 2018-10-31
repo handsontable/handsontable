@@ -229,11 +229,14 @@ class AutoRowSize extends BasePlugin {
         }
       }
     };
+
+    const syncLimit = this.getSyncCalculationLimit();
+
     // sync
-    if (this.firstCalculation && this.getSyncCalculationLimit()) {
-      this.calculateRowsHeight({ from: 0, to: this.getSyncCalculationLimit() }, colRange);
+    if (this.firstCalculation && syncLimit >= 0) {
+      this.calculateRowsHeight({ from: 0, to: syncLimit }, colRange);
       this.firstCalculation = false;
-      current = this.getSyncCalculationLimit();
+      current = syncLimit + 1;
     }
     // async
     if (current < length) {
@@ -282,7 +285,7 @@ class AutoRowSize extends BasePlugin {
   getSyncCalculationLimit() {
     /* eslint-disable no-bitwise */
     let limit = AutoRowSize.SYNC_CALCULATION_LIMIT;
-    const rowsLimit = this.hot.countRows();
+    const rowsLimit = this.hot.countRows() - 1;
 
     if (isObject(this.hot.getSettings().autoRowSize)) {
       limit = this.hot.getSettings().autoRowSize.syncLimit;
