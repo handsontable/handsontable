@@ -753,7 +753,7 @@ describe('Core_validate', () => {
     setDataAtCell(0, 0, 'test');
 
     await sleep(500);
-    
+
     // establishing that validation was called and the cell was set to invalid
     expect(onAfterValidate).toHaveBeenCalled();
     expect(getDataAtCell(0, 0)).toEqual('test');
