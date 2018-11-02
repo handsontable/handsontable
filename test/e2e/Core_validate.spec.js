@@ -705,7 +705,7 @@ describe('Core_validate', () => {
   });
 
   it('should not add class name `htInvalid` for cancelled changes - on edit', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
@@ -717,9 +717,7 @@ describe('Core_validate', () => {
         }
       },
       afterValidate: onAfterValidate,
-      beforeChange: function() {
-        return false;
-      }
+      beforeChange: () => false
     });
 
     setDataAtCell(0, 0, 'test');
@@ -737,8 +735,8 @@ describe('Core_validate', () => {
   });
 
   it('should not remove class name `htInvalid` for cancelled changes - on edit', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var allowChange = true;
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    let allowChange = true;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
@@ -750,9 +748,7 @@ describe('Core_validate', () => {
         }
       },
       afterValidate: onAfterValidate,
-      beforeChange: function() {
-        return allowChange;
-      }
+      beforeChange: () => allowChange
     });
 
     setDataAtCell(0, 0, 'test');
