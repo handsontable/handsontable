@@ -3387,7 +3387,7 @@ describe('ContextMenu', () => {
   });
 
   describe('beforeContextMenuSetItems hook', () => {
-    it('should add new menu item even when item is excluded from plugin settings', () => {
+    it('should add new menu item even when item is excluded from plugin settings', async() => {
       const hookListener = function(options) {
         options.push({
           key: 'test',
@@ -3404,6 +3404,8 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
+      await sleep(200);
+
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
@@ -3415,7 +3417,7 @@ describe('ContextMenu', () => {
       Handsontable.hooks.remove('beforeContextMenuSetItems', hookListener);
     });
 
-    it('should be called only with items selected in plugin settings', () => {
+    it('should be called only with items selected in plugin settings', async() => {
       let keys = [];
       const hookListener = function(items) {
         keys = items.map(v => v.key);
@@ -3429,6 +3431,8 @@ describe('ContextMenu', () => {
       });
 
       contextMenu();
+
+      await sleep(200);
 
       expect(keys).toEqual(['make_read_only', 'col_left']);
 
