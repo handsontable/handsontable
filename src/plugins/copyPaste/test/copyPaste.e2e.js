@@ -317,7 +317,7 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should be possible to copy 0 (only ones from falsy values)', () => {
+    it('should be possible to copy 0 and false', () => {
       handsontable({
         data: [
           [''],
@@ -337,7 +337,7 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('\n0\nfalse\n\n');
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
-        '<table><tbody><tr><td></td></tr><tr><td>0</td></tr><tr><td></td></tr>',
+        '<table><tbody><tr><td></td></tr><tr><td>0</td></tr><tr><td>false</td></tr>',
         '<tr><td></td></tr><tr><td></td></tr></tbody></table>'
       ].join(''));
     });
