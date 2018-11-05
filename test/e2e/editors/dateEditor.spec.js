@@ -230,7 +230,7 @@ describe('DateEditor', () => {
     expect($('.pika-single').is(':visible')).toBe(false);
   });
 
-  it('should enable to input any value in textarea', (done) => {
+  it('should enable to input any value in textarea', async() => {
     const hot = handsontable({
       data: getDates(),
       columns: [
@@ -255,10 +255,40 @@ describe('DateEditor', () => {
 
     editor.finishEditing();
 
-    setTimeout(() => {
-      expect(getDataAtCell(0, 0)).toEqual('foo');
-      done();
-    }, 30);
+    await sleep(30);
+
+    expect(getDataAtCell(0, 0)).toEqual('foo');
+  });
+
+  it('should not close editor when inserting wrong value and allowInvalid is set to false, (#5419)', async() => {
+    const hot = handsontable({
+      data: getDates(),
+      allowInvalid: false,
+      columns: [
+        {
+          type: 'date'
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+
+    const editor = hot.getActiveEditor();
+
+    editor.beginEditing();
+
+    expect(editor.isOpened()).toBe(true);
+
+    editor.TEXTAREA.value = 'foo';
+
+    expect(editor.getValue()).toEqual('foo');
+
+    editor.finishEditing();
+
+    await sleep(30);
+
+    expect(editor.isOpened()).toBe(true);
+    expect(editor.getValue()).toEqual('foo');
   });
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
@@ -298,7 +328,7 @@ describe('DateEditor', () => {
     hot.getActiveEditor().TEXTAREA.removeEventListener('blur', listener);
   });
 
-  it('should restore original when edited and pressed ESC ', (done) => {
+  it('should restore original when edited and pressed ESC ', async() => {
     const hot = handsontable({
       data: getDates(),
       columns: [
@@ -322,12 +352,11 @@ describe('DateEditor', () => {
 
     keyDownUp(Handsontable.helper.KEY_CODES.ESCAPE); // cancel editing
 
+    await sleep(30);
+
     editor.finishEditing();
 
-    setTimeout(() => {
-      expect(getDataAtCell(0, 0)).toEqual('01/14/2006');
-      done();
-    }, 30);
+    expect(getDataAtCell(0, 0)).toEqual('01/14/2006');
   });
 
   it('should display a calendar based on a current date, even if a date in a wrong format was entered previously', (done) => {
