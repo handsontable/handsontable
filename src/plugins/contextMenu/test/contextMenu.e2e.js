@@ -3397,7 +3397,7 @@ describe('ContextMenu', () => {
 
       Handsontable.hooks.add('beforeContextMenuSetItems', hookListener);
 
-      const hot = handsontable({
+      handsontable({
         contextMenu: ['make_read_only'],
         height: 100
       });
@@ -3423,7 +3423,7 @@ describe('ContextMenu', () => {
 
       Handsontable.hooks.add('beforeContextMenuSetItems', hookListener);
 
-      const hot = handsontable({
+      handsontable({
         contextMenu: ['make_read_only', 'col_left'],
         height: 100
       });
