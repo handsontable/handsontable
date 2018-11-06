@@ -3375,6 +3375,8 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
+      await sleep(200);
+
       const $menu = $('.htContextMenu .ht_master .htCore');
 
       expect($menu.find('tbody td').text()).toContain('My custom item');
