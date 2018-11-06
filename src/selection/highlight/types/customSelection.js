@@ -1,4 +1,4 @@
-import {Selection} from './../../../3rdparty/walkontable/src';
+import { Selection } from './../../../3rdparty/walkontable/src';
 
 /**
  * Creates the new instance of Selection responsible for highlighting currently selected cell. This type of selection
@@ -6,7 +6,7 @@ import {Selection} from './../../../3rdparty/walkontable/src';
  *
  * @return {Selection}
  */
-function createHighlight({border, cellRange}) {
+function createHighlight({ border, cellRange }) {
   const s = new Selection(border, cellRange);
 
   return s;

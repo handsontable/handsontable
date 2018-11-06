@@ -51,9 +51,7 @@ describe('Core_beforeKeyDown', () => {
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       beforeKeyDown(event) {
-        event = serveImmediatePropagation(event);
-
-        event.stopImmediatePropagation();
+        serveImmediatePropagation(event).stopImmediatePropagation();
       }
     });
     selectCell(0, 0);
@@ -90,7 +88,7 @@ describe('Core_beforeKeyDown', () => {
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       beforeKeyDown() {
-        called++;
+        called += 1;
       }
     });
     selectCell(0, 0);

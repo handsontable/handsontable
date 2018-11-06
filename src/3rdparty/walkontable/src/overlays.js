@@ -6,7 +6,7 @@ import { arrayEach } from './../../../helpers/array';
 import { isKey } from './../../../helpers/unicode';
 import { isChrome } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
-import Overlay from './overlay/_base.js';
+import Overlay from './overlay/_base';
 
 /**
  * @class Overlays
@@ -184,40 +184,40 @@ class Overlays {
     const topOverlayScrollable = this.topOverlay.mainTableScrollableElement;
     const leftOverlayScrollable = this.leftOverlay.mainTableScrollableElement;
 
-    let listenersToRegister = [];
-    listenersToRegister.push([document.documentElement, 'keydown', (event) => this.onKeyDown(event)]);
+    const listenersToRegister = [];
+    listenersToRegister.push([document.documentElement, 'keydown', event => this.onKeyDown(event)]);
     listenersToRegister.push([document.documentElement, 'keyup', () => this.onKeyUp()]);
     listenersToRegister.push([document, 'visibilitychange', () => this.onKeyUp()]);
-    listenersToRegister.push([topOverlayScrollable, 'scroll', (event) => this.onTableScroll(event)]);
+    listenersToRegister.push([topOverlayScrollable, 'scroll', event => this.onTableScroll(event)]);
 
     if (topOverlayScrollable !== leftOverlayScrollable) {
-      listenersToRegister.push([leftOverlayScrollable, 'scroll', (event) => this.onTableScroll(event)]);
+      listenersToRegister.push([leftOverlayScrollable, 'scroll', event => this.onTableScroll(event)]);
     }
 
     const isHighPixelRatio = window.devicePixelRatio && window.devicePixelRatio > 1;
 
     if (isHighPixelRatio || !isChrome()) {
-      listenersToRegister.push([this.instance.wtTable.wtRootElement.parentNode, 'wheel', (event) => this.onCloneWheel(event)]);
+      listenersToRegister.push([this.instance.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event)]);
 
     } else {
       if (this.topOverlay.needFullRender) {
-        listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
+        listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event)]);
       }
 
       if (this.bottomOverlay.needFullRender) {
-        listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
+        listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event)]);
       }
 
       if (this.leftOverlay.needFullRender) {
-        listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
+        listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event)]);
       }
 
       if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.needFullRender) {
-        listenersToRegister.push([this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
+        listenersToRegister.push([this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event)]);
       }
 
       if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.needFullRender) {
-        listenersToRegister.push([this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
+        listenersToRegister.push([this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event)]);
       }
     }
 
@@ -226,8 +226,8 @@ class Overlays {
       // eventManager.addEventListener(window, 'scroll', (event) => this.refreshAll(event));
       listenersToRegister.push([window, 'wheel', (event) => {
         let overlay;
-        let deltaY = event.wheelDeltaY || event.deltaY;
-        let deltaX = event.wheelDeltaX || event.deltaX;
+        const deltaY = event.wheelDeltaY || event.deltaY;
+        const deltaX = event.wheelDeltaX || event.deltaX;
 
         if (this.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
           overlay = 'top';
@@ -256,7 +256,7 @@ class Overlays {
     }
 
     while (listenersToRegister.length) {
-      let listener = listenersToRegister.pop();
+      const listener = listenersToRegister.pop();
       this.eventManager.addEventListener(listener[0], listener[1], listener[2]);
 
       this.registeredListeners.push(listener);
@@ -268,7 +268,7 @@ class Overlays {
    */
   deregisterListeners() {
     while (this.registeredListeners.length) {
-      let listener = this.registeredListeners.pop();
+      const listener = this.registeredListeners.pop();
       this.eventManager.removeEventListener(listener[0], listener[1], listener[2]);
     }
   }
@@ -417,7 +417,7 @@ class Overlays {
    */
   syncScrollWithMaster() {
     const master = this.topOverlay.mainTableScrollableElement;
-    const {scrollLeft, scrollTop} = master;
+    const { scrollLeft, scrollTop } = master;
 
     if (this.topOverlay.needFullRender) {
       this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
@@ -479,9 +479,9 @@ class Overlays {
    */
   refresh(fastDraw = false) {
     if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
-      let container = this.wot.wtTable.wtRootElement.parentNode || this.wot.wtTable.wtRootElement;
-      let width = container.clientWidth;
-      let height = container.clientHeight;
+      const container = this.wot.wtTable.wtRootElement.parentNode || this.wot.wtTable.wtRootElement;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
 
       if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
         this.spreaderLastSize.width = width;
@@ -516,11 +516,11 @@ class Overlays {
    * @param {Boolean} [force=false]
    */
   adjustElementsSize(force = false) {
-    let totalColumns = this.wot.getSetting('totalColumns');
-    let totalRows = this.wot.getSetting('totalRows');
-    let headerRowSize = this.wot.wtViewport.getRowHeaderWidth();
-    let headerColumnSize = this.wot.wtViewport.getColumnHeaderHeight();
-    let hiderStyle = this.wot.wtTable.hider.style;
+    const totalColumns = this.wot.getSetting('totalColumns');
+    const totalRows = this.wot.getSetting('totalRows');
+    const headerRowSize = this.wot.wtViewport.getRowHeaderWidth();
+    const headerColumnSize = this.wot.wtViewport.getColumnHeaderHeight();
+    const hiderStyle = this.wot.wtTable.hider.style;
 
     hiderStyle.width = `${headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)}px`;
     hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1}px`;
@@ -560,7 +560,7 @@ class Overlays {
       return null;
     }
 
-    let overlays = [
+    const overlays = [
       this.topOverlay,
       this.leftOverlay,
       this.bottomOverlay,

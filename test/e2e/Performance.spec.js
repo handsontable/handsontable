@@ -22,7 +22,7 @@ describe('Performance', () => {
       rowHeights: 23,
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
-        count++;
+        count += 1;
       }
     });
 
@@ -36,7 +36,7 @@ describe('Performance', () => {
       rowHeights: 23,
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
-        count++;
+        count += 1;
       }
     });
 
@@ -50,7 +50,7 @@ describe('Performance', () => {
       colWidths: 50,
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
-        count++;
+        count += 1;
       }
     });
 
@@ -65,7 +65,7 @@ describe('Performance', () => {
       autoColumnSize: true,
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
-        count++;
+        count += 1;
       }
     });
 
@@ -79,7 +79,7 @@ describe('Performance', () => {
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       rowHeights: 23,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -93,7 +93,7 @@ describe('Performance', () => {
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       colWidths: 50,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -108,7 +108,7 @@ describe('Performance', () => {
       colHeaders: true,
       rowHeights: 23,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -123,7 +123,7 @@ describe('Performance', () => {
       colHeaders: true,
       colWidths: 50,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -138,7 +138,7 @@ describe('Performance', () => {
       rowHeaders: true,
       rowHeights: 23,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -153,7 +153,7 @@ describe('Performance', () => {
       rowHeaders: true,
       colWidths: 50,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -169,7 +169,7 @@ describe('Performance', () => {
       rowHeaders: true,
       rowHeights: 23,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -185,7 +185,7 @@ describe('Performance', () => {
       rowHeaders: true,
       colWidths: 50,
       beforeGetCellMeta() {
-        count++;
+        count += 1;
       }
     });
 
@@ -200,7 +200,7 @@ describe('Performance', () => {
       autoColumnSize: true,
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
-        count++;
+        count += 1;
       }
     });
 
@@ -215,7 +215,7 @@ describe('Performance', () => {
       autoRowSize: true,
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
-        count++;
+        count += 1;
       }
     });
 
@@ -230,7 +230,7 @@ describe('Performance', () => {
       autoColumnSize: true,
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
-        count++;
+        count += 1;
       }
     });
 

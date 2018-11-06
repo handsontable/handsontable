@@ -1,8 +1,8 @@
 import BasePlugin from './../_base';
-import {registerPlugin} from './../../plugins';
-import {isObject} from './../../helpers/object';
-import {rangeEach} from './../../helpers/number';
-import {isUndefined} from './../../helpers/mixed';
+import { registerPlugin } from './../../plugins';
+import { isObject } from './../../helpers/object';
+import { rangeEach } from './../../helpers/number';
+import { isUndefined } from './../../helpers/mixed';
 
 const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
@@ -166,7 +166,7 @@ class Search extends BasePlugin {
     });
 
     return queryResult;
-  };
+  }
 
   /**
    * Gets the callback function.

@@ -1,7 +1,7 @@
 import BasePlugin from './../_base';
 import { arrayEach, arrayFilter, arrayReduce, arrayMap } from './../../helpers/array';
 import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
-import { isVisible} from './../../helpers/dom/element';
+import { isVisible } from './../../helpers/dom/element';
 import GhostTable from './../../utils/ghostTable';
 import { isObject, hasOwnProperty } from './../../helpers/object';
 import { valueAccordingPercent, rangeEach } from './../../helpers/number';
@@ -105,7 +105,7 @@ class AutoColumnSize extends BasePlugin {
       let bundleCountSeed = 0;
 
       if (cellMeta.label) {
-        const {value: labelValue, property: labelProperty} = cellMeta.label;
+        const { value: labelValue, property: labelProperty } = cellMeta.label;
         let labelText = '';
 
         if (labelValue) {
@@ -118,7 +118,7 @@ class AutoColumnSize extends BasePlugin {
         bundleCountSeed = labelText.length;
       }
 
-      return {value: cellValue, bundleCountSeed};
+      return { value: cellValue, bundleCountSeed };
     });
     /**
      * `true` only if the first calculation was performed
@@ -156,18 +156,17 @@ class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    let setting = this.hot.getSettings().autoColumnSize;
+    const setting = this.hot.getSettings().autoColumnSize;
 
-    if (setting && setting.useHeaders != null) {
+    if (setting && setting.useHeaders !== null && setting.useHeaders !== void 0) {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
 
     this.setSamplingOptions();
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
-    this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
-
-    this.addHook('beforeRender', (force) => this.onBeforeRender(force));
+    this.addHook('beforeChange', changes => this.onBeforeChange(changes));
+    this.addHook('beforeRender', force => this.onBeforeRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
     this.addHook('afterInit', () => this.onAfterInit());
     super.enablePlugin();
@@ -199,17 +198,13 @@ class AutoColumnSize extends BasePlugin {
    * @param {Number|Object} rowRange Row index or an object with `from` and `to` indexes as a range.
    * @param {Boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
-  calculateColumnsWidth(colRange = {from: 0, to: this.hot.countCols() - 1}, rowRange = {from: 0, to: this.hot.countRows() - 1}, force = false) {
-    if (typeof colRange === 'number') {
-      colRange = {from: colRange, to: colRange};
-    }
-    if (typeof rowRange === 'number') {
-      rowRange = {from: rowRange, to: rowRange};
-    }
+  calculateColumnsWidth(colRange = { from: 0, to: this.hot.countCols() - 1 }, rowRange = { from: 0, to: this.hot.countRows() - 1 }, force = false) {
+    const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
+    const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
 
-    rangeEach(colRange.from, colRange.to, (col) => {
+    rangeEach(columnsRange.from, columnsRange.to, (col) => {
       if (force || (this.widths[col] === void 0 && !this.hot._getColWidthFromSettings(col))) {
-        const samples = this.samplesGenerator.generateColumnSamples(col, rowRange);
+        const samples = this.samplesGenerator.generateColumnSamples(col, rowsRange);
 
         arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
       }
@@ -229,14 +224,14 @@ class AutoColumnSize extends BasePlugin {
    *
    * @param {Object|Number} rowRange Row index or an object with `from` and `to` properties which define row range.
    */
-  calculateAllColumnsWidth(rowRange = {from: 0, to: this.hot.countRows() - 1}) {
+  calculateAllColumnsWidth(rowRange = { from: 0, to: this.hot.countRows() - 1 }) {
     let current = 0;
-    let length = this.hot.countCols() - 1;
+    const length = this.hot.countCols() - 1;
     let timer = null;
 
     this.inProgress = true;
 
-    let loop = () => {
+    const loop = () => {
       // When hot was destroyed after calculating finished cancel frame
       if (!this.hot) {
         cancelAnimationFrame(timer);
@@ -266,11 +261,14 @@ class AutoColumnSize extends BasePlugin {
         }
       }
     };
+
+    const syncLimit = this.getSyncCalculationLimit();
+
     // sync
-    if (this.firstCalculation && this.getSyncCalculationLimit()) {
-      this.calculateColumnsWidth({from: 0, to: this.getSyncCalculationLimit()}, rowRange);
+    if (this.firstCalculation && syncLimit >= 0) {
+      this.calculateColumnsWidth({ from: 0, to: syncLimit }, rowRange);
       this.firstCalculation = false;
-      current = this.getSyncCalculationLimit() + 1;
+      current = syncLimit + 1;
     }
     // async
     if (current < length) {
@@ -286,9 +284,9 @@ class AutoColumnSize extends BasePlugin {
    * @private
    */
   setSamplingOptions() {
-    let setting = this.hot.getSettings().autoColumnSize;
-    let samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
-    let allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ? this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
+    const setting = this.hot.getSettings().autoColumnSize;
+    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
+    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ? this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -318,7 +316,7 @@ class AutoColumnSize extends BasePlugin {
   getSyncCalculationLimit() {
     /* eslint-disable no-bitwise */
     let limit = AutoColumnSize.SYNC_CALCULATION_LIMIT;
-    let colsLimit = this.hot.countCols() - 1;
+    const colsLimit = this.hot.countCols() - 1;
 
     if (isObject(this.hot.getSettings().autoColumnSize)) {
       limit = this.hot.getSettings().autoColumnSize.syncLimit;
@@ -400,7 +398,7 @@ class AutoColumnSize extends BasePlugin {
    */
   findColumnsWhereHeaderWasChanged() {
     const columnHeaders = this.hot.getColHeader();
-    const {cachedColumnHeaders} = privatePool.get(this);
+    const { cachedColumnHeaders } = privatePool.get(this);
 
     const changedColumns = arrayReduce(columnHeaders, (acc, columnTitle, physicalColumn) => {
       const cachedColumnsLength = cachedColumnHeaders.length;
@@ -442,7 +440,7 @@ class AutoColumnSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.widths, (item) => (item === void 0)).length;
+    return !!arrayFilter(this.widths, item => (item === void 0)).length;
   }
 
   /**
@@ -459,7 +457,7 @@ class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    this.calculateColumnsWidth({from: this.getFirstVisibleColumn(), to: this.getLastVisibleColumn()}, void 0, force);
+    this.calculateColumnsWidth({ from: this.getFirstVisibleColumn(), to: this.getLastVisibleColumn() }, void 0, force);
 
     if (this.isNeedRecalculate() && !this.inProgress) {
       this.calculateAllColumnsWidth();
@@ -506,12 +504,15 @@ class AutoColumnSize extends BasePlugin {
    * @returns {Number}
    */
   onBeforeColumnResize(col, size, isDblClick) {
+    let newSize = size;
+
     if (isDblClick) {
       this.calculateColumnsWidth(col, void 0, true);
-      size = this.getColumnWidth(col, void 0, false);
+
+      newSize = this.getColumnWidth(col, void 0, false);
     }
 
-    return size;
+    return newSize;
   }
 
   /**

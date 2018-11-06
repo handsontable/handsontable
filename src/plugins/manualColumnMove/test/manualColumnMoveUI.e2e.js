@@ -89,7 +89,7 @@ describe('manualColumnMove', () => {
     it('should set properly width for the backlight element when stretchH is enabled and column order was changed', () => {
       handsontable({
         data: [
-          {id: 1, flag: 'EUR', currencyCode: 'EUR', currency: 'Euro', level: 0.9033, units: 'EUR / USD', asOf: '08/19/2015', onedChng: 0.0026},
+          { id: 1, flag: 'EUR', currencyCode: 'EUR', currency: 'Euro', level: 0.9033, units: 'EUR / USD', asOf: '08/19/2015', onedChng: 0.0026 },
         ],
         width: 600,
         colHeaders: true,
@@ -124,7 +124,7 @@ describe('manualColumnMove', () => {
         colHeaders: true,
       });
 
-      let header = spec().$container.find('thead tr:eq(0) th:eq(2)');
+      const header = spec().$container.find('thead tr:eq(0) th:eq(2)');
 
       header.simulate('mousedown');
       header.simulate('mouseup');
@@ -142,7 +142,7 @@ describe('manualColumnMove', () => {
         colHeaders: true,
       });
 
-      let header = spec().$container.find('thead tr:eq(0) th:eq(2)');
+      const header = spec().$container.find('thead tr:eq(0) th:eq(2)');
 
       header.simulate('mousedown');
       header.simulate('mouseup');
@@ -172,6 +172,26 @@ describe('manualColumnMove', () => {
 
       const displayProp = $backlight.currentStyle ? $backlight.currentStyle.display : getComputedStyle($backlight, null).display;
       expect(displayProp).toEqual('none');
+    });
+
+    it('should run moving ui if mousedown was fired on sorting element when sort header action is not enabled', function() {
+      handsontable({
+        data: arrayOfArrays.slice(),
+        colHeaders: true,
+        manualColumnMove: true,
+        columnSorting: {
+          headerAction: false
+        }
+      });
+
+      const $headerTH = this.$container.find('thead tr:eq(0) th:eq(6)');
+      const $summaryElement = $headerTH.find('.columnSorting');
+
+      $summaryElement.simulate('mousedown');
+
+      const $backlight = this.$container.find('.ht__manualColumnMove--backlight');
+
+      expect($backlight.length).toBe(0);
     });
   });
 });

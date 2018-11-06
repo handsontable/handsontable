@@ -1,5 +1,5 @@
-import {getCellType} from './../cellTypes';
-import {hasOwnProperty} from './object';
+import { getCellType } from './../cellTypes';
+import { hasOwnProperty } from './object';
 
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
@@ -35,10 +35,10 @@ export function spreadsheetColumnIndex(label) {
 
   if (label) {
     for (let i = 0, j = label.length - 1; i < label.length; i += 1, j -= 1) {
-      result += Math.pow(COLUMN_LABEL_BASE_LENGTH, j) * (COLUMN_LABEL_BASE.indexOf(label[i]) + 1);
+      result += (COLUMN_LABEL_BASE_LENGTH ** j) * (COLUMN_LABEL_BASE.indexOf(label[i]) + 1);
     }
   }
-  --result;
+  result -= 1;
 
   return result;
 }
@@ -99,7 +99,7 @@ export function createSpreadsheetObjectData(rows = 100, colCount = 4) {
  * @returns {Array}
  */
 export function createEmptySpreadsheetData(rows, columns) {
-  let data = [];
+  const data = [];
   let row;
 
   for (let i = 0; i < rows; i++) {
@@ -125,7 +125,7 @@ export function translateRowsToColumns(input) {
     for (j = 0, jlen = input[i].length; j < jlen; j++) {
       if (j === olen) {
         output.push([]);
-        olen++;
+        olen += 1;
       }
       output[j].push(input[i][j]);
     }
@@ -152,8 +152,7 @@ export function translateRowsToColumns(input) {
  * @returns {Function}
  */
 export function cellMethodLookupFactory(methodName, allowUndefined) {
-
-  allowUndefined = typeof allowUndefined === 'undefined' ? true : allowUndefined;
+  const isUndefinedAllowed = typeof allowUndefined === 'undefined' ? true : allowUndefined;
 
   return function cellMethodLookup(row, col) {
     return (function getMethodFromProperties(properties) {
@@ -173,7 +172,7 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
 
         if (hasOwnProperty(type, methodName)) {
           return type[methodName]; // method defined in type.
-        } else if (allowUndefined) {
+        } else if (isUndefinedAllowed) {
           return; // method does not defined in type (eg. validator), returns undefined
         }
       }

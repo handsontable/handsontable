@@ -1,7 +1,7 @@
 import { addClass, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
-import { columnFactory} from './helpers/setting';
-import { isFunction} from './helpers/function';
-import { warn} from './helpers/console';
+import { columnFactory } from './helpers/setting';
+import { isFunction } from './helpers/function';
+import { warn } from './helpers/console';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser } from './helpers/browser';
 import DataMap from './dataMap';
@@ -14,7 +14,8 @@ import {
   isObjectEqual,
   deepObjectSize,
   hasOwnProperty,
-  createObjectPropListener
+  createObjectPropListener,
+  objectEach
 } from './helpers/object';
 import { arrayFlatten, arrayMap, arrayEach, arrayReduce } from './helpers/array';
 import { toSingleLine } from './helpers/templateLiteralTag';
@@ -26,9 +27,9 @@ import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
 import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
-import { getTranslator} from './utils/recordTranslator';
+import { getTranslator } from './utils/recordTranslator';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
-import {CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
+import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
 import { getCellType } from './cellTypes';
@@ -128,7 +129,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let selection = new Selection(priv.settings, {
     countCols: () => instance.countCols(),
     countRows: () => instance.countRows(),
-    propToCol: (prop) => datamap.propToCol(prop),
+    propToCol: prop => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
   });
 
@@ -156,7 +157,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.selection.addLocalHook('afterSetRangeEnd', (cellCoords) => {
     const preventScrolling = createObjectPropListener(false);
     const selectionRange = this.selection.getSelectedRange();
-    const {from, to} = selectionRange.current();
+    const { from, to } = selectionRange.current();
     const selectionLayerLevel = selectionRange.size() - 1;
 
     this.runHooks('afterSelection',
@@ -219,7 +220,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.selection.addLocalHook('afterSelectionFinished', (cellRanges) => {
     const selectionLayerLevel = cellRanges.length - 1;
-    const {from, to} = cellRanges[selectionLayerLevel];
+    const { from, to } = cellRanges[selectionLayerLevel];
 
     this.runHooks('afterSelectionEnd',
       from.row, from.col, to.row, to.col, selectionLayerLevel);
@@ -274,17 +275,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      *                             Alter actions such as "remove_row" and "remove_col" support array indexes in the
      *                             format `[[index, amount], [index, amount]...]` this can be used to remove
      *                             non-consecutive columns or rows in one call.
-     * @param {Number} amount Ammount rows or columns to remove.
+     * @param {Number} [amount=1] Ammount rows or columns to remove.
      * @param {String} [source] Optional. Source of hook runner.
      * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
-    alter(action, index, amount, source, keepEmptyRows) {
+    alter(action, index, amount = 1, source, keepEmptyRows) {
       let delta;
 
-      amount = amount || 1;
-
       function spliceWith(data, startIndex, count, toInject) {
-        let valueFactory = () => {
+        const valueFactory = () => {
           let result;
 
           if (toInject === 'array') {
@@ -296,7 +295,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
           return result;
         };
-        let spliceArgs = arrayMap(new Array(count), () => valueFactory());
+        const spliceArgs = arrayMap(new Array(count), () => valueFactory());
 
         spliceArgs.unshift(startIndex, 0);
         data.splice(...spliceArgs);
@@ -347,7 +346,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           if (instance.getSettings().maxRows === numberOfSourceRows) {
             return;
           }
-
+          // eslint-disable-next-line no-param-reassign
           index = (isDefined(index)) ? index : numberOfSourceRows;
 
           delta = datamap.createRow(index, amount, source);
@@ -400,6 +399,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
               if (Number.isInteger(groupIndex)) {
+                // eslint-disable-next-line no-param-reassign
                 groupIndex = Math.max(groupIndex - offset, 0);
               }
 
@@ -449,6 +449,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
               if (Number.isInteger(groupIndex)) {
+                // eslint-disable-next-line no-param-reassign
                 groupIndex = Math.max(groupIndex - offset, 0);
               }
 
@@ -503,7 +504,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     adjustRowsAndCols() {
       if (priv.settings.minRows) {
         // should I add empty rows to data source to meet minRows?
-        let rows = instance.countRows();
+        const rows = instance.countRows();
 
         if (rows < priv.settings.minRows) {
           for (let r = 0, minRows = priv.settings.minRows; r < minRows - rows; r++) {
@@ -543,8 +544,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
         }
       }
-      let rowCount = instance.countRows();
-      let colCount = instance.countCols();
+      const rowCount = instance.countRows();
+      const colCount = instance.countCols();
 
       if (rowCount === 0 || colCount === 0) {
         selection.deselect();
@@ -641,6 +642,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'shift_down' :
           repeatCol = end ? end.col - start.col + 1 : 0;
           repeatRow = end ? end.row - start.row + 1 : 0;
+          // eslint-disable-next-line no-param-reassign
           input = translateRowsToColumns(input);
           for (c = 0, clen = input.length, cmax = Math.max(clen, repeatCol); c < cmax; c++) {
             if (c < clen) {
@@ -679,7 +681,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           current.row = start.row;
           current.col = start.col;
 
-          let selected = { // selected range
+          const selected = { // selected range
             row: (end && start) ? (end.row - start.row + 1) : 1,
             col: (end && start) ? (end.col - start.col + 1) : 1
           };
@@ -688,8 +690,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           let pushData = true;
           let cellMeta;
 
-          let getInputValue = function getInputValue(row, col = null) {
-            let rowValue = input[row % input.length];
+          const getInputValue = function getInputValue(row, col = null) {
+            const rowValue = input[row % input.length];
 
             if (col !== null) {
               return rowValue[col % rowValue.length];
@@ -697,8 +699,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
             return rowValue;
           };
-          let rowInputLength = input.length;
-          let rowSelectionLength = end ? end.row - start.row + 1 : 0;
+          const rowInputLength = input.length;
+          const rowSelectionLength = end ? end.row - start.row + 1 : 0;
 
           if (end) {
             rlen = rowSelectionLength;
@@ -711,9 +713,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 (current.row >= priv.settings.maxRows)) {
               break;
             }
-            let visualRow = r - skippedRow;
-            let colInputLength = getInputValue(visualRow).length;
-            let colSelectionLength = end ? end.col - start.col + 1 : 0;
+            const visualRow = r - skippedRow;
+            const colInputLength = getInputValue(visualRow).length;
+            const colSelectionLength = end ? end.col - start.col + 1 : 0;
 
             if (end) {
               clen = colSelectionLength;
@@ -724,9 +726,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             cellMeta = instance.getCellMeta(current.row, current.col);
 
             if ((source === 'CopyPaste.paste' || source === 'Autofill.autofill') && cellMeta.skipRowOnPaste) {
-              skippedRow++;
-              current.row++;
-              rlen++;
+              skippedRow += 1;
+              current.row += 1;
+              rlen += 1;
               /* eslint-disable no-continue */
               continue;
             }
@@ -741,26 +743,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               cellMeta = instance.getCellMeta(current.row, current.col);
 
               if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipColumnOnPaste) {
-                skippedColumn++;
-                current.col++;
-                clen++;
+                skippedColumn += 1;
+                current.col += 1;
+                clen += 1;
                 continue;
               }
               if (cellMeta.readOnly) {
-                current.col++;
+                current.col += 1;
                 /* eslint-disable no-continue */
                 continue;
               }
-              let visualColumn = c - skippedColumn;
+              const visualColumn = c - skippedColumn;
               let value = getInputValue(visualRow, visualColumn);
-              let orgValue = instance.getDataAtCell(current.row, current.col);
-              let index = {
+              const orgValue = instance.getDataAtCell(current.row, current.col);
+              const index = {
                 row: visualRow,
                 col: visualColumn
               };
 
               if (source === 'Autofill.fill') {
-                let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
+                const result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
 
                 if (result) {
                   value = isUndefined(result.value) ? value : result.value;
@@ -771,8 +773,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                   pushData = false;
 
                 } else {
-                  let orgValueSchema = duckSchema(orgValue[0] || orgValue);
-                  let valueSchema = duckSchema(value[0] || value);
+                  const orgValueSchema = duckSchema(orgValue[0] || orgValue);
+                  const valueSchema = duckSchema(value[0] || value);
 
                   /* eslint-disable max-depth */
                   if (isObjectEqual(orgValueSchema, valueSchema)) {
@@ -789,9 +791,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 setData.push([current.row, current.col, value]);
               }
               pushData = true;
-              current.col++;
+              current.col += 1;
             }
-            current.row++;
+            current.row += 1;
           }
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
           break;
@@ -853,7 +855,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       validatorsInQueue: 0,
       valid: true,
       addValidatorToQueue() {
-        this.validatorsInQueue++;
+        this.validatorsInQueue += 1;
         resolved = false;
       },
       removeValidatorFormQueue() {
@@ -891,7 +893,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   function validateChanges(changes, source, callback) {
     const waitingForValidator = new ValidatorsQueue();
-    const isNumericData = (value) => value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
+    const isNumericData = value => value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
 
     waitingForValidator.onQueueEmpty = resolve;
 
@@ -919,8 +921,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 changes.splice(index, 1); // cancel the change
                 cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
                 const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
-                removeClass(cell, instance.getSettings().invalidCellClassName);
-                --index;
+                if (cell !== null) {
+                  removeClass(cell, instance.getSettings().invalidCellClassName);
+                }
+                // index -= 1;
               }
               waitingForValidator.removeValidatorFormQueue();
             };
@@ -970,14 +974,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         continue;
       }
 
-      if (changes[i][2] == null && changes[i][3] == null) {
+      if ((changes[i][2] === null || changes[i][2] === void 0)
+        && (changes[i][3] === null || changes[i][3] === void 0)) {
         /* eslint-disable no-continue */
         continue;
       }
 
       if (priv.settings.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
-          let numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
+          const numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
 
           if (numberOfCreatedRows === 0) {
             skipThisChange = true;
@@ -1009,7 +1014,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.view.wt.wtOverlays.adjustElementsSize();
     instance.runHooks('afterChange', changes, source || 'edit');
 
-    let activeEditor = instance.getActiveEditor();
+    const activeEditor = instance.getActiveEditor();
 
     if (activeEditor && isDefined(activeEditor.refreshValue)) {
       activeEditor.refreshValue();
@@ -1054,12 +1059,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (isFunction(validator)) {
-
+      // eslint-disable-next-line no-param-reassign
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
       // To provide consistent behaviour, validation should be always asynchronous
       instance._registerTimeout(setTimeout(() => {
         validator.call(cellProperties, value, (valid) => {
+          // eslint-disable-next-line no-param-reassign
           valid = instance.runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
           cellProperties.valid = valid;
 
@@ -1101,6 +1107,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.setDataAtCell = function(row, column, value, source) {
     const input = setDataInputToArray(row, column, value);
     const changes = [];
+    let changeSource = source;
     let i;
     let ilen;
     let prop;
@@ -1121,14 +1128,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ]);
     }
 
-    if (!source && typeof row === 'object') {
-      source = column;
+    if (!changeSource && typeof row === 'object') {
+      changeSource = column;
     }
 
-    instance.runHooks('afterSetDataAtCell', changes, source);
+    instance.runHooks('afterSetDataAtCell', changes, changeSource);
 
-    validateChanges(changes, source, () => {
-      applyChanges(changes, source);
+    validateChanges(changes, changeSource, () => {
+      applyChanges(changes, changeSource);
     });
   };
 
@@ -1147,6 +1154,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.setDataAtRowProp = function(row, prop, value, source) {
     const input = setDataInputToArray(row, prop, value);
     const changes = [];
+    let changeSource = source;
     let i;
     let ilen;
 
@@ -1159,14 +1167,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ]);
     }
 
-    if (!source && typeof row === 'object') {
-      source = prop;
+    if (!changeSource && typeof row === 'object') {
+      changeSource = prop;
     }
 
-    instance.runHooks('afterSetDataAtRowProp', changes, source);
+    instance.runHooks('afterSetDataAtRowProp', changes, changeSource);
 
-    validateChanges(changes, source, () => {
-      applyChanges(changes, source);
+    validateChanges(changes, changeSource, () => {
+      applyChanges(changes, changeSource);
     });
   };
 
@@ -1182,7 +1190,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.listen = function(modifyDocumentFocus = true) {
     if (modifyDocumentFocus) {
-      let invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
+      const invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
 
       if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
         document.activeElement.blur();
@@ -1255,12 +1263,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *                       Useful **only** when the type of handled cells is `numeric`.
    */
   this.populateFromArray = function(row, column, input, endRow, endCol, source, method, direction, deltas) {
-    let c;
-
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
       throw new Error('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
     }
-    c = typeof endRow === 'number' ? new CellCoords(endRow, endCol) : null;
+
+    const c = typeof endRow === 'number' ? new CellCoords(endRow, endCol) : null;
 
     return grid.populateFromArray(new CellCoords(row, column), input, c, source, method, direction, deltas);
   };
@@ -1308,7 +1315,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return arrayMap(selection.getSelectedRange(), ({from, to}) => [from.row, from.col, to.row, to.col]);
+      return arrayMap(selection.getSelectedRange(), ({ from, to }) => [from.row, from.col, to.row, to.col]);
     }
   };
 
@@ -1444,11 +1451,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (typeof data === 'object' && data !== null) {
       if (!(data.push && data.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it
         // when data is not an array, attempt to make a single-row array of it
+        // eslint-disable-next-line no-param-reassign
         data = [data];
       }
 
     } else if (data === null) {
       const dataSchema = datamap.getSchema();
+      // eslint-disable-next-line no-param-reassign
       data = [];
       let row;
       let r = 0;
@@ -1616,6 +1625,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
     }
 
+    // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
       if (i === 'data') {
         /* eslint-disable-next-line no-continue */
@@ -1693,18 +1703,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
         }
 
-        j++;
+        j += 1;
       }
     }
 
     if (isDefined(settings.cell)) {
-      for (let key in settings.cell) {
-        if (hasOwnProperty(settings.cell, key)) {
-          let cell = settings.cell[key];
-
-          instance.setCellMetaObject(cell.row, cell.col, cell);
-        }
-      }
+      objectEach(settings.cell, (cell) => {
+        instance.setCellMetaObject(cell.row, cell.col, cell);
+      });
     }
 
     instance.runHooks('afterCellMetaReset');
@@ -1729,7 +1735,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (init) {
-      let initialStyle = instance.rootElement.getAttribute('style');
+      const initialStyle = instance.rootElement.getAttribute('style');
 
       if (initialStyle) {
         instance.rootElement.setAttribute('data-initialstyle', instance.rootElement.getAttribute('style'));
@@ -1737,7 +1743,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (height === null) {
-      let initialStyle = instance.rootElement.getAttribute('data-initialstyle');
+      const initialStyle = instance.rootElement.getAttribute('data-initialstyle');
 
       if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
         instance.rootElement.setAttribute('style', initialStyle);
@@ -1821,7 +1827,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       type = getCellType(obj.type);
     }
 
-    for (let i in type) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const i in type) {
       if (hasOwnProperty(type, i) && !hasOwnProperty(obj, i)) {
         expandedType[i] = type[i];
       }
@@ -1953,7 +1960,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} row Physical row index.
    * @returns {Number} Returns visual row index.
    */
-  this.toVisualRow = (row) => recordTranslator.toVisualRow(row);
+  this.toVisualRow = row => recordTranslator.toVisualRow(row);
 
   /**
    * Translate physical column index into visual.
@@ -1966,7 +1973,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} column Physical column index.
    * @returns {Number} Returns visual column index.
    */
-  this.toVisualColumn = (column) => recordTranslator.toVisualColumn(column);
+  this.toVisualColumn = column => recordTranslator.toVisualColumn(column);
 
   /**
    * Translate visual row index into physical.
@@ -1979,7 +1986,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} row Visual row index.
    * @returns {Number} Returns physical row index.
    */
-  this.toPhysicalRow = (row) => recordTranslator.toPhysicalRow(row);
+  this.toPhysicalRow = row => recordTranslator.toPhysicalRow(row);
 
   /**
    * Translate visual column index into physical.
@@ -1992,7 +1999,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} column Visual column index.
    * @returns {Number} Returns physical column index.
    */
-  this.toPhysicalColumn = (column) => recordTranslator.toPhysicalColumn(column);
+  this.toPhysicalColumn = column => recordTranslator.toPhysicalColumn(column);
 
   /**
    * @description
@@ -2190,28 +2197,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {String} Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
    */
   this.getDataType = function(rowFrom, columnFrom, rowTo, columnTo) {
+    const coords = rowFrom === void 0 ? [0, 0, this.countRows(), this.countCols()] : [rowFrom, columnFrom, rowTo, columnTo];
+    const [rowStart, columnStart] = coords;
+    let [,, rowEnd, columnEnd] = coords;
     let previousType = null;
     let currentType = null;
 
-    if (rowFrom === void 0) {
-      rowFrom = 0;
-      rowTo = this.countRows();
-      columnFrom = 0;
-      columnTo = this.countCols();
+    if (rowEnd === void 0) {
+      rowEnd = rowStart;
     }
-    if (rowTo === void 0) {
-      rowTo = rowFrom;
-    }
-    if (columnTo === void 0) {
-      columnTo = columnFrom;
+    if (columnEnd === void 0) {
+      columnEnd = columnStart;
     }
     let type = 'mixed';
 
-    rangeEach(Math.min(rowFrom, rowTo), Math.max(rowFrom, rowTo), (row) => {
+    rangeEach(Math.min(rowStart, rowEnd), Math.max(rowStart, rowEnd), (row) => {
       let isTypeEqual = true;
 
-      rangeEach(Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo), (column) => {
-        let cellType = this.getCellMeta(row, column);
+      rangeEach(Math.min(columnStart, columnEnd), Math.max(columnStart, columnEnd), (column) => {
+        const cellType = this.getCellMeta(row, column);
 
         currentType = cellType.type;
 
@@ -2280,12 +2284,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.setCellMetaObject = function(row, column, prop) {
     if (typeof prop === 'object') {
-      for (let key in prop) {
-        if (hasOwnProperty(prop, key)) {
-          const value = prop[key];
-          this.setCellMeta(row, column, key, value);
-        }
-      }
+      objectEach(prop, (value, key) => {
+        this.setCellMeta(row, column, key, value);
+      });
     }
   };
 
@@ -2341,9 +2342,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getCellMeta = function(row, column) {
     const prop = datamap.colToProp(column);
-    let cellProperties;
-
-    let [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
+    const [potentialPhysicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
+    let physicalRow = potentialPhysicalRow;
 
     // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
     if (physicalRow === null) {
@@ -2361,7 +2361,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
     }
 
-    cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
+    const cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
 
     cellProperties.row = physicalRow;
     cellProperties.col = physicalColumn;
@@ -2577,14 +2577,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     while (i >= 0) {
       if (rows !== undefined && rows.indexOf(i) === -1) {
-        i--;
+        i -= 1;
         continue;
       }
       let j = instance.countCols() - 1;
 
       while (j >= 0) {
         if (columns !== undefined && columns.indexOf(j) === -1) {
-          j--;
+          j -= 1;
           continue;
         }
         waitingForValidator.addValidatorToQueue();
@@ -2598,9 +2598,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
-        j--;
+        j -= 1;
       }
-      i--;
+      i -= 1;
     }
     waitingForValidator.checkIfQueueIsEmpty();
   };
@@ -2616,24 +2616,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getRowHeader = function(row) {
     let rowHeader = priv.settings.rowHeaders;
+    let physicalRow = row;
 
-    if (row !== void 0) {
-      row = instance.runHooks('modifyRowHeader', row);
+    if (physicalRow !== void 0) {
+      physicalRow = instance.runHooks('modifyRowHeader', physicalRow);
     }
-    if (row === void 0) {
+    if (physicalRow === void 0) {
       rowHeader = [];
       rangeEach(instance.countRows() - 1, (i) => {
         rowHeader.push(instance.getRowHeader(i));
       });
 
-    } else if (Array.isArray(rowHeader) && rowHeader[row] !== void 0) {
-      rowHeader = rowHeader[row];
+    } else if (Array.isArray(rowHeader) && rowHeader[physicalRow] !== void 0) {
+      rowHeader = rowHeader[physicalRow];
 
     } else if (isFunction(rowHeader)) {
-      rowHeader = rowHeader(row);
+      rowHeader = rowHeader(physicalRow);
 
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
-      rowHeader = row + 1;
+      rowHeader = physicalRow + 1;
     }
 
     return rowHeader;
@@ -2681,14 +2682,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array|String|Number} The column header(s).
    */
   this.getColHeader = function(column) {
-    let columnsAsFunc = priv.settings.columns && isFunction(priv.settings.columns);
+    const columnsAsFunc = priv.settings.columns && isFunction(priv.settings.columns);
+    const columnIndex = instance.runHooks('modifyColHeader', column);
     let result = priv.settings.colHeaders;
 
-    column = instance.runHooks('modifyColHeader', column);
-
-    if (column === void 0) {
-      let out = [];
-      let ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
+    if (columnIndex === void 0) {
+      const out = [];
+      const ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
 
       for (let i = 0; i < ilen; i++) {
         out.push(instance.getColHeader(i));
@@ -2697,9 +2697,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       result = out;
 
     } else {
-      let translateVisualIndexToColumns = function(visualColumnIndex) {
-        let arr = [];
-        let columnsLen = instance.countSourceCols();
+      const translateVisualIndexToColumns = function(visualColumnIndex) {
+        const arr = [];
+        const columnsLen = instance.countSourceCols();
         let index = 0;
 
         for (; index < columnsLen; index++) {
@@ -2710,26 +2710,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         return arr[visualColumnIndex];
       };
-      let baseCol = column;
-      column = instance.runHooks('modifyCol', column);
+      const baseCol = columnIndex;
+      const physicalColumn = instance.runHooks('modifyCol', baseCol);
 
-      let prop = translateVisualIndexToColumns(column);
+      const prop = translateVisualIndexToColumns(physicalColumn);
 
-      if (priv.settings.columns && isFunction(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
+      if (priv.settings.colHeaders === false) {
+        result = null;
+
+      } else if (priv.settings.columns && isFunction(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
         result = priv.settings.columns(prop).title;
 
-      } else if (priv.settings.columns && priv.settings.columns[column] && priv.settings.columns[column].title) {
-        result = priv.settings.columns[column].title;
+      } else if (priv.settings.columns && priv.settings.columns[physicalColumn] && priv.settings.columns[physicalColumn].title) {
+        result = priv.settings.columns[physicalColumn].title;
 
-      } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[column] !== void 0) {
-        result = priv.settings.colHeaders[column];
+      } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[physicalColumn] !== void 0) {
+        result = priv.settings.colHeaders[physicalColumn];
 
       } else if (isFunction(priv.settings.colHeaders)) {
-        result = priv.settings.colHeaders(column);
+        result = priv.settings.colHeaders(physicalColumn);
 
       } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
         result = spreadsheetColumnLabel(baseCol); // see #1458
-
       }
     }
 
@@ -2856,7 +2858,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number} Total number of rows.
    */
   this.countSourceRows = function() {
-    let sourceLength = instance.runHooks('modifySourceLength');
+    const sourceLength = instance.runHooks('modifySourceLength');
     return sourceLength || (instance.getSourceData() ? instance.getSourceData().length : 0);
   };
 
@@ -2869,7 +2871,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countSourceCols = function() {
     let len = 0;
-    let obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
+    const obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
 
     if (isObject(obj)) {
       len = deepObjectSize(obj);
@@ -2913,7 +2915,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (priv.settings.columns) {
-      let columnsIsFunction = isFunction(priv.settings.columns);
+      const columnsIsFunction = isFunction(priv.settings.columns);
 
       if (columnsIsFunction) {
         if (instance.dataType === 'array') {
@@ -2921,7 +2923,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
           for (let i = 0; i < dataLen; i++) {
             if (priv.settings.columns(i)) {
-              columnLen++;
+              columnLen += 1;
             }
           }
 
@@ -3332,19 +3334,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.runHooks('afterDestroy');
     Hooks.getSingleton().destroy(instance);
 
-    for (let i in instance) {
-      if (hasOwnProperty(instance, i)) {
-        // replace instance methods with post mortem
-        if (isFunction(instance[i])) {
-          instance[i] = postMortem(i);
+    objectEach(instance, (property, key, obj) => {
+      // replace instance methods with post mortem
+      if (isFunction(property)) {
+        obj[key] = postMortem(key);
 
-        } else if (i !== 'guid') {
-          // replace instance properties with null (restores memory)
-          // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
-          instance[i] = null;
-        }
+      } else if (key !== 'guid') {
+        // replace instance properties with null (restores memory)
+        // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
+        obj[key] = null;
       }
-    }
+    });
+
     instance.isDestroyed = true;
 
     // replace private properties with null (restores memory)
@@ -3530,11 +3531,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    */
   this._registerTimeout = function(handle, delay = 0) {
-    if (typeof handle === 'function') {
-      handle = setTimeout(handle, delay);
+    let handleFunc = handle;
+
+    if (typeof handleFunc === 'function') {
+      handleFunc = setTimeout(handleFunc, delay);
     }
 
-    this.timeouts.push(handle);
+    this.timeouts.push(handleFunc);
   };
 
   /**
@@ -3588,4 +3591,4 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   Hooks.getSingleton().run(instance, 'construct');
-};
+}

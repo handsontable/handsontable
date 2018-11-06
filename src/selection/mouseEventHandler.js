@@ -13,7 +13,7 @@ import { CellCoords } from './../3rdparty/walkontable/src';
  * @param {Object} options.controller An object with keys `row`, `column`, `cell` which indicate what
  *                                    operation will be performed in later selection stages.
  */
-export function mouseDown({isShiftKey, isLeftClick, isRightClick, coords, selection, controller}) {
+export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selection, controller }) {
   const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
   const selectedCorner = selection.isSelectedByCorner();
   const selectedRow = selection.isSelectedByRowHeader();
@@ -84,7 +84,7 @@ export function mouseDown({isShiftKey, isLeftClick, isRightClick, coords, select
  * @param {Object} options.controller An object with keys `row`, `column`, `cell` which indicate what
  *                                    operation will be performed in later selection stages.
  */
-export function mouseOver({isLeftClick, coords, selection, controller}) {
+export function mouseOver({ isLeftClick, coords, selection, controller }) {
   if (!isLeftClick) {
     return;
   }
@@ -121,7 +121,7 @@ const handlers = new Map([
  * @param {Object} options.controller An object with keys `row`, `column`, `cell` which indicate what
  *                                    operation will be performed in later selection stages.
  */
-export function handleMouseEvent(event, {coords, selection, controller}) {
+export function handleMouseEvent(event, { coords, selection, controller }) {
   handlers.get(event.type)({
     coords,
     selection,

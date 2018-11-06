@@ -1,15 +1,15 @@
-import {generateASCIITable} from './asciiTable';
+import { generateASCIITable } from './asciiTable';
 
 /* eslint-disable import/prefer-default-export */
 let currentSpec;
 
 export function spec() {
   return currentSpec;
-};
+}
 
 function hot() {
   return spec().$container.data('handsontable');
-};
+}
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
 
@@ -73,13 +73,13 @@ beforeEach(function() {
     toBeAroundValue() {
       return {
         compare(actual, expected, diff) {
-          diff = diff || 1;
+          const margin = diff || 1;
 
-          const pass = actual >= expected - diff && actual <= expected + diff;
-          let message = `Expected ${actual} to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+          const pass = actual >= expected - margin && actual <= expected + margin;
+          let message = `Expected ${actual} to be around ${expected} (between ${expected - margin} and ${expected + margin})`;
 
           if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - margin} and ${expected + margin})`;
           }
 
           return {
@@ -184,7 +184,7 @@ beforeEach(function() {
           }
 
           const isListWithValues = Array.isArray(checkedArray) || checkedArray.length > 0;
-          const elementNotFulfillingCondition = checkedArray.find((element) => !conditionFunction(element));
+          const elementNotFulfillingCondition = checkedArray.find(element => !conditionFunction(element));
           const containsUndefined = isListWithValues && checkedArray.includes(undefined);
           const pass = isListWithValues && !containsUndefined && elementNotFulfillingCondition === undefined;
           let message;
@@ -265,16 +265,17 @@ beforeEach(function() {
           const patternParts = (actualPattern || '').split(/\n/);
           const redundantPadding = patternParts.reduce((padding, line) => {
             const trimmedLine = line.trim();
+            let nextPadding = padding;
 
             if (trimmedLine) {
               const currentPadding = line.search(/\S|$/);
 
-              if (currentPadding < padding) {
-                padding = currentPadding;
+              if (currentPadding < nextPadding) {
+                nextPadding = currentPadding;
               }
             }
 
-            return padding;
+            return nextPadding;
           }, Infinity);
 
           const normalizedPattern = patternParts.reduce((acc, line) => {

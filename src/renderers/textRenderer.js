@@ -1,6 +1,6 @@
-import {empty, fastInnerText} from './../helpers/dom/element';
-import {stringify} from './../helpers/mixed';
-import {getRenderer} from './index';
+import { empty, fastInnerText } from './../helpers/dom/element';
+import { stringify } from './../helpers/mixed';
+import { getRenderer } from './index';
 
 /**
  * Default text renderer
@@ -17,12 +17,13 @@ import {getRenderer} from './index';
  */
 function textRenderer(instance, TD, row, col, prop, value, cellProperties, ...args) {
   getRenderer('base').apply(this, [instance, TD, row, col, prop, value, cellProperties, ...args]);
+  let escaped = value;
 
-  if (!value && cellProperties.placeholder) {
-    value = cellProperties.placeholder;
+  if (!escaped && cellProperties.placeholder) {
+    escaped = cellProperties.placeholder;
   }
 
-  let escaped = stringify(value);
+  escaped = stringify(escaped);
 
   if (!instance.getSettings().trimWhitespace) {
     escaped = escaped.replace(/ /g, String.fromCharCode(160));

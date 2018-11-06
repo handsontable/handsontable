@@ -1,4 +1,4 @@
-import {arrayEach} from './array';
+import { arrayEach } from './array';
 
 export const KEY_CODES = {
   MOUSE_LEFT: 1,
@@ -41,9 +41,15 @@ export const KEY_CODES = {
   F11: 122,
   F12: 123,
   A: 65,
-  X: 88,
   C: 67,
-  V: 86
+  D: 68,
+  F: 70,
+  L: 76,
+  O: 79,
+  P: 80,
+  S: 83,
+  V: 86,
+  X: 88,
 };
 
 /**
@@ -137,7 +143,7 @@ export function isCtrlMetaKey(keyCode) {
  * @returns {Boolean}
  */
 export function isKey(keyCode, baseCode) {
-  let keys = baseCode.split('|');
+  const keys = baseCode.split('|');
   let result = false;
 
   arrayEach(keys, (key) => {

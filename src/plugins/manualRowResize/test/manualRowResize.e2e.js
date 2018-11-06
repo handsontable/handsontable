@@ -27,16 +27,16 @@ describe('manualRowResize', () => {
   it('should be enabled after specifying it in updateSettings config', () => {
     handsontable({
       data: [
-        {id: 1, name: 'Ted', lastName: 'Right'},
-        {id: 2, name: 'Frank', lastName: 'Honest'},
-        {id: 3, name: 'Joan', lastName: 'Well'},
-        {id: 4, name: 'Sid', lastName: 'Strong'},
-        {id: 5, name: 'Jane', lastName: 'Neat'}
+        { id: 1, name: 'Ted', lastName: 'Right' },
+        { id: 2, name: 'Frank', lastName: 'Honest' },
+        { id: 3, name: 'Joan', lastName: 'Well' },
+        { id: 4, name: 'Sid', lastName: 'Strong' },
+        { id: 5, name: 'Jane', lastName: 'Neat' }
       ],
       rowHeaders: true
     });
 
-    updateSettings({manualRowResize: true});
+    updateSettings({ manualRowResize: true });
 
     spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseover');
 
@@ -195,7 +195,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
   });
 
-  it('should trigger an afterRowResize after row size changes, after double click', async () => {
+  it('should trigger an afterRowResize after row size changes, after double click', async() => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -286,7 +286,7 @@ describe('manualRowResize', () => {
     expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
   });
 
-  it('should autosize selected rows after double click on handler', async () => {
+  it('should autosize selected rows after double click on handler', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(9, 9),
       rowHeaders: true,
@@ -306,9 +306,9 @@ describe('manualRowResize', () => {
 
     await sleep(600);
 
-    $resizer.simulate('mousedown', {clientY: resizerPosition.top});
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mouseup');
-    $resizer.simulate('mousedown', {clientY: resizerPosition.top});
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mouseup');
 
     await sleep(1000);
@@ -318,7 +318,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 3)).toBeAroundValue(24);
   });
 
-  it('should resize (expanding and narrowing) selected rows', async () => {
+  it('should resize (expanding and narrowing) selected rows', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       rowHeaders: true,
@@ -340,8 +340,8 @@ describe('manualRowResize', () => {
     const resizerPosition = $resizer.position();
 
     await sleep(600);
-    $resizer.simulate('mousedown', {clientY: resizerPosition.top});
-    $resizer.simulate('mousemove', {clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 80});
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+    $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 80 });
     $resizer.simulate('mouseup');
 
     expect($rowsHeaders.eq(1).height()).toEqual(80);
@@ -350,8 +350,8 @@ describe('manualRowResize', () => {
 
     await sleep(1200);
 
-    $resizer.simulate('mousedown', {clientY: resizerPosition.top});
-    $resizer.simulate('mousemove', {clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35});
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+    $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35 });
     $resizer.simulate('mouseup');
 
     expect($rowsHeaders.eq(1).height()).toEqual(35);
@@ -363,11 +363,11 @@ describe('manualRowResize', () => {
     it('should display the resize handle in the proper position and with a proper size', () => {
       handsontable({
         data: [
-          {id: 1, name: 'Ted', lastName: 'Right'},
-          {id: 2, name: 'Frank', lastName: 'Honest'},
-          {id: 3, name: 'Joan', lastName: 'Well'},
-          {id: 4, name: 'Sid', lastName: 'Strong'},
-          {id: 5, name: 'Jane', lastName: 'Neat'}
+          { id: 1, name: 'Ted', lastName: 'Right' },
+          { id: 2, name: 'Frank', lastName: 'Honest' },
+          { id: 3, name: 'Joan', lastName: 'Well' },
+          { id: 4, name: 'Sid', lastName: 'Strong' },
+          { id: 5, name: 'Jane', lastName: 'Neat' }
         ],
         rowHeaders: true,
         manualRowResize: true

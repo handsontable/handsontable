@@ -1,5 +1,5 @@
 import * as C from './../../../i18n/constants';
-import {checkSelectionBorders} from './../utils';
+import { checkSelectionBorders } from './../utils';
 
 export default function noBorders(customBordersPlugin) {
   return {

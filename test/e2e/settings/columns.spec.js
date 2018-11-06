@@ -11,16 +11,16 @@ describe('settings', () => {
     };
     const arrayOfObjects = function() {
       return [
-        {id: 1, name: 'Ted', lastName: 'Right', date: '01/01/2015'},
-        {id: 2, name: 'Frank', lastName: 'Honest', date: '01/01/15'},
-        {id: 3, name: 'Joan', lastName: 'Well', date: '41/01/2015'},
-        {id: 4, name: 'Sid', lastName: 'Strong', date: '01/51/2015'},
-        {id: 5, name: 'Jane', lastName: 'Neat', date: '01/01/2015'},
-        {id: 6, name: 'Chuck', lastName: 'Jackson', date: '01/01/15'},
-        {id: 7, name: 'Meg', lastName: 'Jansen', date: '41/01/2015'},
-        {id: 8, name: 'Rob', lastName: 'Norris', date: '01/51/2015'},
-        {id: 9, name: 'Sean', lastName: 'O\'Hara', date: '01/01/2015'},
-        {id: 10, name: 'Eve', lastName: 'Branson', date: '01/01/15'}
+        { id: 1, name: 'Ted', lastName: 'Right', date: '01/01/2015' },
+        { id: 2, name: 'Frank', lastName: 'Honest', date: '01/01/15' },
+        { id: 3, name: 'Joan', lastName: 'Well', date: '41/01/2015' },
+        { id: 4, name: 'Sid', lastName: 'Strong', date: '01/51/2015' },
+        { id: 5, name: 'Jane', lastName: 'Neat', date: '01/01/2015' },
+        { id: 6, name: 'Chuck', lastName: 'Jackson', date: '01/01/15' },
+        { id: 7, name: 'Meg', lastName: 'Jansen', date: '41/01/2015' },
+        { id: 8, name: 'Rob', lastName: 'Norris', date: '01/51/2015' },
+        { id: 9, name: 'Sean', lastName: 'O\'Hara', date: '01/01/2015' },
+        { id: 10, name: 'Eve', lastName: 'Branson', date: '01/01/15' }
       ];
     };
 
@@ -40,14 +40,14 @@ describe('settings', () => {
         const hot = handsontable({
           data: arrayOfArrays(),
           columns: [
-            {data: 0},
-            {data: 1},
-            {data: 2}
+            { data: 0 },
+            { data: 1 },
+            { data: 2 }
           ]
         });
 
         expect(() => {
-          hot.updateSettings({columns: []});
+          hot.updateSettings({ columns: [] });
         }).not.toThrow();
       });
 
@@ -55,14 +55,14 @@ describe('settings', () => {
         const hot = handsontable({
           data: arrayOfObjects(),
           columns: [
-            {data: 'id'},
-            {data: 'name'},
-            {data: 'lastName'}
+            { data: 'id' },
+            { data: 'name' },
+            { data: 'lastName' }
           ],
         });
 
         expect(() => {
-          hot.updateSettings({columns: []});
+          hot.updateSettings({ columns: [] });
         }).not.toThrow();
       });
     });
@@ -108,7 +108,7 @@ describe('settings', () => {
           const hot = handsontable({
             data: arrayOfArrays(),
             columns(column) {
-              return [1, 2].indexOf(column) > -1 ? {data: column + 1} : null;
+              return [1, 2].indexOf(column) > -1 ? { data: column + 1 } : null;
             }
           });
 
@@ -122,7 +122,7 @@ describe('settings', () => {
             columns(column) {
               const keys = ['id', 'name', 'lastName'];
 
-              return [1, 2].indexOf(column) > -1 ? {data: keys[column - 1]} : null;
+              return [1, 2].indexOf(column) > -1 ? { data: keys[column - 1] } : null;
             }
           });
 
@@ -136,12 +136,12 @@ describe('settings', () => {
           const hot = handsontable({
             data: arrayOfArrays(),
             columns(column) {
-              return [0, 1, 2].indexOf(column) > -1 ? {data: column} : null;
+              return [0, 1, 2].indexOf(column) > -1 ? { data: column } : null;
             }
           });
 
           expect(() => {
-            hot.updateSettings({columns() {}});
+            hot.updateSettings({ columns() {} });
           }).not.toThrow();
         });
 
@@ -151,12 +151,12 @@ describe('settings', () => {
             columns(column) {
               const keys = ['id', 'name', 'lasName'];
 
-              return [0, 1, 2].indexOf(column) > -1 ? {data: keys[column]} : null;
+              return [0, 1, 2].indexOf(column) > -1 ? { data: keys[column] } : null;
             }
           });
 
           expect(() => {
-            hot.updateSettings({columns() {}});
+            hot.updateSettings({ columns() {} });
           }).not.toThrow();
         });
       });
@@ -208,9 +208,9 @@ describe('settings', () => {
             data: arrayOfObjects(),
             columns(column) {
               const settings = [
-                {data: 'date', type: 'date'},
-                {data: 'name'},
-                {data: 'lastName'}
+                { data: 'date', type: 'date' },
+                { data: 'name' },
+                { data: 'lastName' }
               ];
               return [0, 1, 2].indexOf(column) > -1 ? settings[column] : null;
             },

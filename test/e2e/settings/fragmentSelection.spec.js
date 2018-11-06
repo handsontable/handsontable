@@ -48,25 +48,27 @@ describe('settings', () => {
      */
     function selectElementText(fromEl, siblings) {
       const doc = window.document;
+      let element = fromEl;
+      let numOfSiblings = siblings;
       let sel;
       let range;
 
       if (window.getSelection && doc.createRange) { // standards
         sel = window.getSelection();
         range = doc.createRange();
-        range.setStartBefore(fromEl, 0);
-        while (siblings > 1) {
-          fromEl = fromEl.nextSibling;
-          siblings--;
+        range.setStartBefore(element, 0);
+        while (numOfSiblings > 1) {
+          element = element.nextSibling;
+          numOfSiblings -= 1;
         }
-        range.setEndAfter(fromEl, 0);
+        range.setEndAfter(element, 0);
         sel.removeAllRanges();
         sel.addRange(range);
 
       } else if (doc.body.createTextRange) { // IE8
         range = doc.body.createTextRange();
-        range.moveToElementText(fromEl);
-        range.moveEnd('word', siblings + 1);
+        range.moveToElementText(element);
+        range.moveEnd('word', numOfSiblings + 1);
         range.select();
       }
     }
@@ -171,7 +173,7 @@ describe('settings', () => {
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: true
         });
-        updateSettings({fragmentSelection: false});
+        updateSettings({ fragmentSelection: false });
         selectElementText(spec().$container.find('tr:eq(0) td:eq(1)')[0], 3);
 
         mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));
@@ -187,7 +189,7 @@ describe('settings', () => {
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: false
         });
-        updateSettings({fragmentSelection: true});
+        updateSettings({ fragmentSelection: true });
         selectElementText(spec().$container.find('td')[1], 3);
 
         mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));

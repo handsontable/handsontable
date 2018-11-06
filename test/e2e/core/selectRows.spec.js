@@ -259,7 +259,7 @@ describe('Core.selectRows', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectRows(1, 1);
+    const wasSelected = selectRows(1, 1);
 
     expect(getSelected()).toEqual([[1, 0, 1, 3]]);
     expect(wasSelected).toBe(true);
@@ -270,7 +270,7 @@ describe('Core.selectRows', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
     });
 
-    let wasSelected = selectRows(2, 1);
+    const wasSelected = selectRows(2, 1);
 
     expect(getSelected()).toEqual([[2, 0, 1, 3]]);
     expect(wasSelected).toBe(true);

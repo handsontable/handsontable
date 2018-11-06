@@ -1,5 +1,5 @@
-import {arrayEach} from './../helpers/array';
-import {defineGetter} from './../helpers/object';
+import { arrayEach } from './../helpers/array';
+import { defineGetter } from './../helpers/object';
 
 const MIXIN_NAME = 'localHooks';
 
@@ -38,7 +38,7 @@ const localHooks = {
    */
   runLocalHooks(key, ...params) {
     if (this._localHooks[key]) {
-      arrayEach(this._localHooks[key], (callback) => callback.apply(this, params));
+      arrayEach(this._localHooks[key], callback => callback.apply(this, params));
     }
   },
 

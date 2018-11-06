@@ -15,22 +15,22 @@ describe('Object helper', () => {
   describe('isObjectEqual', () => {
     it('should returns true on equal objects', () => {
       expect(isObjectEqual({}, {})).toBe(true);
-      expect(isObjectEqual({test: 1}, {test: 1})).toBe(true);
-      expect(isObjectEqual({test: {test2: [{}]}}, {test: {test2: [{}]}})).toBe(true);
+      expect(isObjectEqual({ test: 1 }, { test: 1 })).toBe(true);
+      expect(isObjectEqual({ test: { test2: [{}] } }, { test: { test2: [{}] } })).toBe(true);
 
       expect(isObjectEqual([], [])).toBe(true);
       expect(isObjectEqual([33], [33])).toBe(true);
-      expect(isObjectEqual([{test: 1}], [{test: 1}])).toBe(true);
+      expect(isObjectEqual([{ test: 1 }], [{ test: 1 }])).toBe(true);
     });
 
     it('should returns false for not equal objects', () => {
       expect(isObjectEqual({}, [])).toBe(false);
 
-      expect(isObjectEqual({test: 2}, {test: 1})).toBe(false);
-      expect(isObjectEqual({test: {test3: [{}]}}, {test: {test2: [{}]}})).toBe(false);
+      expect(isObjectEqual({ test: 2 }, { test: 1 })).toBe(false);
+      expect(isObjectEqual({ test: { test3: [{}] } }, { test: { test2: [{}] } })).toBe(false);
 
       expect(isObjectEqual([12], [33])).toBe(false);
-      expect(isObjectEqual([{test: 3}], [{test: 1}])).toBe(false);
+      expect(isObjectEqual([{ test: 3 }], [{ test: 1 }])).toBe(false);
     });
   });
 
@@ -40,18 +40,18 @@ describe('Object helper', () => {
   describe('duckSchema', () => {
     it('should returns valid schema object', () => {
       expect(duckSchema({})).toEqual({});
-      expect(duckSchema({test: 1})).toEqual({test: null});
-      expect(duckSchema({test: 'foo'})).toEqual({test: null});
-      expect(duckSchema({test: undefined})).toEqual({test: null});
-      expect(duckSchema({test: null})).toEqual({test: null});
-      expect(duckSchema({test: []})).toEqual({test: []});
-      expect(duckSchema({test: [1, 2, 3]})).toEqual({test: []});
+      expect(duckSchema({ test: 1 })).toEqual({ test: null });
+      expect(duckSchema({ test: 'foo' })).toEqual({ test: null });
+      expect(duckSchema({ test: undefined })).toEqual({ test: null });
+      expect(duckSchema({ test: null })).toEqual({ test: null });
+      expect(duckSchema({ test: [] })).toEqual({ test: [] });
+      expect(duckSchema({ test: [1, 2, 3] })).toEqual({ test: [] });
     });
 
     it('should returns valid schema object (deeply)', () => {
-      expect(duckSchema({test: {a: {b: 11}}})).toEqual({test: {a: {b: null}}});
-      expect(duckSchema({test: {a: {b: []}}})).toEqual({test: {a: {b: []}}});
-      expect(duckSchema({test: {a: {b: [{q: 1, w: 2}]}}})).toEqual({test: {a: {b: [{q: null, w: null}]}}});
+      expect(duckSchema({ test: { a: { b: 11 } } })).toEqual({ test: { a: { b: null } } });
+      expect(duckSchema({ test: { a: { b: [] } } })).toEqual({ test: { a: { b: [] } } });
+      expect(duckSchema({ test: { a: { b: [{ q: 1, w: 2 }] } } })).toEqual({ test: { a: { b: [{ q: null, w: null }] } } });
     });
   });
 
@@ -83,7 +83,7 @@ describe('Object helper', () => {
       expect(instance.myFunction()).toBe(123);
       expect(instance.local).toBe(123);
 
-      const initialObject = {a: 1};
+      const initialObject = { a: 1 };
       instance.mySetterFunction(initialObject);
 
       expect(instance.myFunction()).toBe(initialObject);
@@ -102,7 +102,7 @@ describe('Object helper', () => {
         }
       };
       const MixinBar = {
-        test: {zzz: 2}
+        test: { zzz: 2 }
       };
       const MixinBaz = {
         getTest() {

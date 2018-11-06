@@ -1,11 +1,11 @@
 describe('ContextMenu', () => {
   const id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -13,7 +13,7 @@ describe('ContextMenu', () => {
   });
 
   describe('alignment', () => {
-    it('should align text left', async () => {
+    it('should align text left', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -35,7 +35,7 @@ describe('ContextMenu', () => {
       expect(getCell(0, 0).className).toContain('htLeft');
     });
 
-    it('should align text center', async () => {
+    it('should align text center', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -56,7 +56,7 @@ describe('ContextMenu', () => {
       expect(getCell(0, 0).className).toContain('htCenter');
     });
 
-    it('should align text right', async () => {
+    it('should align text right', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -77,7 +77,7 @@ describe('ContextMenu', () => {
       expect(getCell(0, 0).className).toContain('htRight');
     });
 
-    it('should justify text', async () => {
+    it('should justify text', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -100,7 +100,7 @@ describe('ContextMenu', () => {
       expect(getCell(0, 0).className).toContain('htJustify');
     });
 
-    it('should vertical align text top', async () => {
+    it('should vertical align text top', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -122,7 +122,7 @@ describe('ContextMenu', () => {
       expect(getCell(0, 0).className).toContain('htTop');
     });
 
-    it('should vertical align text middle', async () => {
+    it('should vertical align text middle', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -144,7 +144,7 @@ describe('ContextMenu', () => {
       expect(getCell(0, 0).className).toContain('htMiddle');
     });
 
-    it('should vertical align text bottom', async () => {
+    it('should vertical align text bottom', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -164,7 +164,7 @@ describe('ContextMenu', () => {
       expect(getCell(0, 0).className).toContain('htBottom');
     });
 
-    it('should trigger `afterSetCellMeta` callback after changing alignment by context menu', async () => {
+    it('should trigger `afterSetCellMeta` callback after changing alignment by context menu', async() => {
       const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),

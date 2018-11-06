@@ -1,7 +1,7 @@
 import {
   hasOwnProperty,
   isObject } from './../../helpers/object';
-import {arrayEach} from './../../helpers/array';
+import { arrayEach } from './../../helpers/array';
 
 /**
  * Create separated id for borders for each cell.
@@ -143,7 +143,7 @@ export function checkSelectionBorders(hot, direction) {
 
   arrayEach(hot.getSelectedRange(), (range) => {
     range.forAll((r, c) => {
-      let metaBorders = hot.getCellMeta(r, c).borders;
+      const metaBorders = hot.getCellMeta(r, c).borders;
 
       if (metaBorders) {
         if (direction) {

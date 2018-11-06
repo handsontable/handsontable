@@ -2,10 +2,10 @@ describe('Walkontable.Selection', () => {
   let $table;
   let $container;
   let $wrapper;
-  let debug = false;
+  const debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden' });
     $wrapper.width(100).height(200);
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
@@ -309,8 +309,8 @@ describe('Walkontable.Selection', () => {
     expect(getTableLeftClone().find('.highlightColumn').length).toEqual(0);
     expect(getTableLeftClone().find('.highlightRow').length).toEqual(2);
 
-    const $colHeaders = $table.find('thead tr:first-child th'),
-      $rowHeaders = $table.find('tbody tr th:first-child');
+    const $colHeaders = $table.find('thead tr:first-child th');
+    const $rowHeaders = $table.find('tbody tr th:first-child');
 
     expect($colHeaders.eq(2).hasClass('highlightColumn')).toBe(true);
     expect($colHeaders.eq(3).hasClass('highlightColumn')).toBe(true);

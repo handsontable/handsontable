@@ -71,7 +71,7 @@ describe('Core_render', () => {
         ['Joe Red']
       ],
       afterRender() {
-        counter++;
+        counter += 1;
       }
     });
     populateFromArray(0, 0, [['t', 'e', 's', 't']]);

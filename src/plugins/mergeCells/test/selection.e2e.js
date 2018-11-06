@@ -1,5 +1,5 @@
 describe('MergeCells Selection', () => {
-  let id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -16,7 +16,7 @@ describe('MergeCells Selection', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
-        {row: 0, col: 0, rowspan: 3, colspan: 3}
+        { row: 0, col: 0, rowspan: 3, colspan: 3 }
       ]
     });
 
@@ -36,7 +36,7 @@ describe('MergeCells Selection', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
-        {row: 0, col: 0, rowspan: 3, colspan: 3}
+        { row: 0, col: 0, rowspan: 3, colspan: 3 }
       ],
       rowHeaders: true
     });
@@ -62,7 +62,7 @@ describe('MergeCells Selection', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 6),
       mergeCells: [
-        {row: 0, col: 0, rowspan: 3, colspan: 3}
+        { row: 0, col: 0, rowspan: 3, colspan: 3 }
       ]
     });
 
@@ -90,7 +90,7 @@ describe('MergeCells Selection', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
-        {row: 0, col: 0, rowspan: 3, colspan: 3}
+        { row: 0, col: 0, rowspan: 3, colspan: 3 }
       ],
       rowHeaders: true,
       colHeaders: true
@@ -150,7 +150,7 @@ describe('MergeCells Selection', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
-        {row: 0, col: 0, rowspan: 3, colspan: 3}
+        { row: 0, col: 0, rowspan: 3, colspan: 3 }
       ],
       rowHeaders: true
     });

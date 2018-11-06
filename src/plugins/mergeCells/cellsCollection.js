@@ -1,10 +1,10 @@
 import MergedCellCoords from './cellCoords';
-import {CellCoords, CellRange} from '../../3rdparty/walkontable/src/index';
-import {rangeEach, rangeEachReverse} from '../../helpers/number';
-import {warn} from '../../helpers/console';
-import {arrayEach} from '../../helpers/array';
-import {applySpanProperties} from './utils';
-import {toSingleLine} from './../../helpers/templateLiteralTag';
+import { CellCoords, CellRange } from '../../3rdparty/walkontable/src/index';
+import { rangeEach, rangeEachReverse } from '../../helpers/number';
+import { warn } from '../../helpers/console';
+import { arrayEach } from '../../helpers/array';
+import { applySpanProperties } from './utils';
+import { toSingleLine } from './../../helpers/templateLiteralTag';
 
 /**
  * Defines a container object for the merged cells.
@@ -103,24 +103,25 @@ class MergedCellsCollection {
   getWithinRange(range, countPartials = false) {
     const mergedCells = this.mergedCells;
     const foundMergedCells = [];
+    let testedRange = range;
 
-    if (!range.includesRange) {
-      let from = new CellCoords(range.from.row, range.from.col);
-      let to = new CellCoords(range.to.row, range.to.col);
-      range = new CellRange(from, from, to);
+    if (!testedRange.includesRange) {
+      const from = new CellCoords(testedRange.from.row, testedRange.from.col);
+      const to = new CellCoords(testedRange.to.row, testedRange.to.col);
+      testedRange = new CellRange(from, from, to);
     }
 
     arrayEach(mergedCells, (mergedCell) => {
-      let mergedCellTopLeft = new CellCoords(mergedCell.row, mergedCell.col);
-      let mergedCellBottomRight = new CellCoords(mergedCell.row + mergedCell.rowspan - 1, mergedCell.col + mergedCell.colspan - 1);
-      let mergedCellRange = new CellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
+      const mergedCellTopLeft = new CellCoords(mergedCell.row, mergedCell.col);
+      const mergedCellBottomRight = new CellCoords(mergedCell.row + mergedCell.rowspan - 1, mergedCell.col + mergedCell.colspan - 1);
+      const mergedCellRange = new CellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
 
       if (countPartials) {
-        if (range.overlaps(mergedCellRange)) {
+        if (testedRange.overlaps(mergedCellRange)) {
           foundMergedCells.push(mergedCell);
         }
 
-      } else if (range.includesRange(mergedCellRange)) {
+      } else if (testedRange.includesRange(mergedCellRange)) {
         foundMergedCells.push(mergedCell);
       }
     });
@@ -235,7 +236,7 @@ class MergedCellsCollection {
     let result = false;
 
     arrayEach(this.mergedCells, (col) => {
-      let currentRange = new CellRange(null, new CellCoords(col.row, col.col), new CellCoords(col.row + col.rowspan - 1, col.col + col.colspan - 1));
+      const currentRange = new CellRange(null, new CellCoords(col.row, col.col), new CellCoords(col.row + col.rowspan - 1, col.col + col.colspan - 1));
 
       if (currentRange.overlaps(mergedCellRange)) {
         result = true;
@@ -306,7 +307,7 @@ class MergedCellsCollection {
     });
 
     rangeEachReverse(this.mergedCells.length - 1, 0, (i) => {
-      let currentMerge = this.mergedCells[i];
+      const currentMerge = this.mergedCells[i];
 
       if (currentMerge && currentMerge.removed) {
         this.mergedCells.splice(this.mergedCells.indexOf(currentMerge), 1);

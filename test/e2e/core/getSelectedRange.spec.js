@@ -17,17 +17,17 @@ describe('Core.getSelectedRange', () => {
     });
 
     const snapshot = [
-      {from: {row: 5, col: 4}, to: {row: 1, col: 1}},
-      {from: {row: 2, col: 2}, to: {row: 7, col: 2}},
-      {from: {row: 2, col: 4}, to: {row: 2, col: 4}},
-      {from: {row: 7, col: 6}, to: {row: 8, col: 7}},
+      { from: { row: 5, col: 4 }, to: { row: 1, col: 1 } },
+      { from: { row: 2, col: 2 }, to: { row: 7, col: 2 } },
+      { from: { row: 2, col: 4 }, to: { row: 2, col: 4 } },
+      { from: { row: 7, col: 6 }, to: { row: 8, col: 7 } },
     ];
 
     $(getCell(5, 4)).simulate('mousedown');
     $(getCell(1, 1)).simulate('mouseover');
     $(getCell(1, 1)).simulate('mouseup');
 
-    expect(getSelectedRange().map((cellRange) => cellRange.toObject())).toEqual([snapshot[0]]);
+    expect(getSelectedRange().map(cellRange => cellRange.toObject())).toEqual([snapshot[0]]);
 
     keyDown('ctrl');
 
@@ -35,19 +35,19 @@ describe('Core.getSelectedRange', () => {
     $(getCell(7, 2)).simulate('mouseover');
     $(getCell(7, 2)).simulate('mouseup');
 
-    expect(getSelectedRange().map((cellRange) => cellRange.toObject())).toEqual([snapshot[0], snapshot[1]]);
+    expect(getSelectedRange().map(cellRange => cellRange.toObject())).toEqual([snapshot[0], snapshot[1]]);
 
     $(getCell(2, 4)).simulate('mousedown');
     $(getCell(2, 4)).simulate('mouseover');
     $(getCell(2, 4)).simulate('mouseup');
 
-    expect(getSelectedRange().map((cellRange) => cellRange.toObject())).toEqual([snapshot[0], snapshot[1], snapshot[2]]);
+    expect(getSelectedRange().map(cellRange => cellRange.toObject())).toEqual([snapshot[0], snapshot[1], snapshot[2]]);
 
     $(getCell(7, 6)).simulate('mousedown');
     $(getCell(8, 7)).simulate('mouseover');
     $(getCell(8, 7)).simulate('mouseup');
 
-    const selectedRange = getSelectedRange().map((cellRange) => cellRange.toObject());
+    const selectedRange = getSelectedRange().map(cellRange => cellRange.toObject());
 
     expect(selectedRange).toEqual(snapshot);
   });

@@ -14,30 +14,30 @@ describe('Core_keepEmptyRows', () => {
 
   const arrayOfNestedObjects = function() {
     return [
-      {id: 1,
+      { id: 1,
         name: {
           first: 'Ted',
           last: 'Right'
         },
         address: 'Street Name',
         zip: '80410',
-        city: 'City Name'},
-      {id: 2,
+        city: 'City Name' },
+      { id: 2,
         name: {
           first: 'Frank',
           last: 'Honest'
         },
         address: 'Street Name',
         zip: '80410',
-        city: 'City Name'},
-      {id: 3,
+        city: 'City Name' },
+      { id: 3,
         name: {
           first: 'Joan',
           last: 'Well'
         },
         address: 'Street Name',
         zip: '80410',
-        city: 'City Name'}
+        city: 'City Name' }
     ];
   };
 
@@ -45,8 +45,8 @@ describe('Core_keepEmptyRows', () => {
     handsontable({
       data: arrayOfNestedObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'name.first'}
+        { data: 'id' },
+        { data: 'name.first' }
       ]
     });
 
@@ -80,12 +80,12 @@ describe('Core_keepEmptyRows', () => {
     handsontable({
       data: arrayOfNestedObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'name.first'},
-        {data: 'name.last'},
-        {data: 'address'},
-        {data: 'zip'},
-        {data: 'city'}
+        { data: 'id' },
+        { data: 'name.first' },
+        { data: 'name.last' },
+        { data: 'address' },
+        { data: 'zip' },
+        { data: 'city' }
       ]
     });
 
@@ -189,7 +189,7 @@ describe('Core_keepEmptyRows', () => {
 
   it('should create new row when last cell in last row is edited by autocomplete', (done) => {
     const data = [
-      {id: 1, color: 'orange' }
+      { id: 1, color: 'orange' }
     ];
 
     const syncSources = jasmine.createSpy('syncSources');
@@ -204,7 +204,7 @@ describe('Core_keepEmptyRows', () => {
       colHeaders: true,
       minSpareRows: 1,
       columns: [
-        {data: 'id', type: 'text'},
+        { data: 'id', type: 'text' },
         {
           data: 'color',
           editor: 'autocomplete',
@@ -227,7 +227,7 @@ describe('Core_keepEmptyRows', () => {
 
   it('should create new row when last cell in last row is edited by autocomplete when columns is a function', (done) => {
     const data = [
-      {id: 1, color: 'orange' }
+      { id: 1, color: 'orange' }
     ];
 
     const syncSources = jasmine.createSpy('syncSources');

@@ -2,10 +2,10 @@ describe('WalkontableScrollbar', () => {
   let $table;
   let $container;
   let $wrapper;
-  let debug = false;
+  const debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden' });
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
     $wrapper.append($container);

@@ -1,4 +1,4 @@
-import LinkedList, {NodeStructure} from 'handsontable/utils/dataStructures/linkedList';
+import LinkedList, { NodeStructure } from 'handsontable/utils/dataStructures/linkedList';
 /**
  * Refactored implementation of LinkedList tests by Github user Jakehp
  * (part of javascript-algorithms project - all project contributors at repository website)
@@ -164,7 +164,8 @@ describe('Linked List', () => {
     let pushedValue = 1;
 
     function callback(node) {
-      expect(node.data).toBe(pushedValue++);
+      expect(node.data).toBe(pushedValue);
+      pushedValue += 1;
     }
 
     linkedList.inorder(callback);
