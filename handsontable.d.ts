@@ -48,8 +48,8 @@ declare namespace _Handsontable {
     getSchema(): object;
     getSelected(): Array<[number, number, number, number]> | undefined;
     getSelectedLast(): number[] | undefined;
-    getSelectedRange(): Range[] | undefined;
-    getSelectedRangeLast(): Range | undefined;
+    getSelectedRange():  Handsontable.wot.CellRange[] | undefined;
+    getSelectedRangeLast(): Handsontable.wot.CellRange | undefined;
     getSettings(): Handsontable.DefaultSettings;
     getSourceData(r?: number, c?: number, r2?: number, c2?: number): any[];
     getSourceDataArray(r?: number, c?: number, r2?: number, c2?: number): any[];
@@ -1546,9 +1546,9 @@ declare namespace Handsontable {
     afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
     afterColumnSort?: (currentSortConfig: object[], destinationSortConfigs: object[]) => void;
     afterContextMenuDefaultOptions?: (predefinedItems: any[]) => void;
-    afterContextMenuHide?: (context: object) => void;
-    beforeContextMenuShow?: (context: object) => void;
-    afterContextMenuShow?: (context: object) => void;
+    afterContextMenuHide?: (context: Handsontable.plugins.ContextMenu) => void;
+    beforeContextMenuShow?: (context: Handsontable.plugins.ContextMenu) => void;
+    afterContextMenuShow?: (context: Handsontable.plugins.ContextMenu) => void;
     afterCopy?: (data: any[], coords: any[]) => void;
     afterCopyLimit?: (selectedRows: number, selectedColumnds: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
     afterCreateCol?: (index: number, amount: number) => void;
