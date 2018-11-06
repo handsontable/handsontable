@@ -7,6 +7,7 @@ import esMX from './es-MX';
 import frFR from './fr-FR';
 import itIT from './it-IT';
 import jaJP from './ja-JP';
+import lvLV from './lv-LV';
 import nbNO from './nb-NO';
 import nlNL from './nl-NL';
 import plPL from './pl-PL';
@@ -23,6 +24,7 @@ export {
   frFR,
   itIT,
   jaJP,
+  lvLV,
   nbNO,
   nlNL,
   plPL,
