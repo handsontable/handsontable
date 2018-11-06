@@ -3,7 +3,7 @@
  * Authors: Hwang, Gun-gu
  * Last updated: Aug 20, 2018
  *
- * Description: Definition file for Korean.
+ * Description: Definition file for Korean - Korea language-country.
  */
 import * as C from '../constants';
 
