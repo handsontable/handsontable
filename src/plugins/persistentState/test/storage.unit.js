@@ -72,7 +72,7 @@ describe('persistentState', () => {
 
       storage.reset(1);
 
-      expect(localStorage.getItem('example_1')).toBeUndefined();
+      expect(localStorage.getItem('example_1')).toBeNull();
     });
 
     it('should remove all data from savedKeys array when call resetAll method', () => {
