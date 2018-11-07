@@ -40,61 +40,73 @@ describe('BindRowsWithHeaders -> BindStrategy', () => {
   });
 
   it('should forward `createRow` method call to the strategy object', () => {
-    const strategyMock = jasmine.createSpyObj('strategy', ['createRow']);
+    const strategyMock = { createRow() {} };
+    const createRowSpy = jest.spyOn(strategyMock, 'createRow');
     const strategy = new BindStrategy();
 
-    strategy.strategy = strategyMock;
+    strategy.strategy = { createRow: createRowSpy };
     strategy.createRow(1, 1);
 
-    expect(strategy.strategy.createRow.calls.argsFor(0)).toEqual([1, 1]);
+    expect(createRowSpy).toHaveBeenCalledTimes(1);
+    expect(createRowSpy).toHaveBeenCalledWith(1, 1);
 
     strategy.createRow(3);
 
-    expect(strategyMock.createRow.calls.argsFor(1)).toEqual([3]);
+    expect(createRowSpy).toHaveBeenCalledTimes(2);
+    expect(createRowSpy).toHaveBeenCalledWith(3);
   });
 
   it('should forward `removeRow` method call to the strategy object', () => {
-    const strategyMock = jasmine.createSpyObj('strategy', ['removeRow']);
+    const strategyMock = { removeRow() {} };
+    const removeRowSpy = jest.spyOn(strategyMock, 'removeRow');
     const strategy = new BindStrategy();
 
-    strategy.strategy = strategyMock;
+    strategy.strategy = { removeRow: removeRowSpy };
     strategy.removeRow(1, 1);
 
-    expect(strategy.strategy.removeRow.calls.argsFor(0)).toEqual([1, 1]);
+    expect(removeRowSpy).toHaveBeenCalledTimes(1);
+    expect(removeRowSpy).toHaveBeenCalledWith(1, 1);
 
     strategy.removeRow(3);
 
-    expect(strategyMock.removeRow.calls.argsFor(1)).toEqual([3]);
+    expect(removeRowSpy).toHaveBeenCalledTimes(2);
+    expect(removeRowSpy).toHaveBeenCalledWith(3);
   });
 
   it('should forward `translate` method call to the strategy object', () => {
-    const strategyMock = jasmine.createSpyObj('strategy', ['getValueByIndex']);
+    const strategyMock = { getValueByIndex() {} };
+    const getValueByIndexSpy = jest.spyOn(strategyMock, 'getValueByIndex');
     const strategy = new BindStrategy();
 
-    strategy.strategy = strategyMock;
+    strategy.strategy = { getValueByIndex: getValueByIndexSpy };
     strategy.translate(1);
 
-    expect(strategyMock.getValueByIndex.calls.argsFor(0)).toEqual([1]);
+    expect(getValueByIndexSpy).toHaveBeenCalledTimes(1);
+    expect(getValueByIndexSpy).toHaveBeenCalledWith(1);
   });
 
   it('should forward `clearMap` method call to the strategy object', () => {
-    const strategyMock = jasmine.createSpyObj('strategy', ['clearMap']);
+    const strategyMock = { clearMap() {} };
+    const clearMapSpy = jest.spyOn(strategyMock, 'clearMap');
     const strategy = new BindStrategy();
 
-    strategy.strategy = strategyMock;
+    strategy.strategy = { clearMap: clearMapSpy };
     strategy.clearMap();
 
-    expect(strategyMock.clearMap).toHaveBeenCalled();
+    expect(clearMapSpy).toHaveBeenCalledTimes(1);
+    expect(clearMapSpy).toHaveBeenCalledWith();
   });
 
   it('should destroy object after call `destroy` method', () => {
-    const strategyMock = jasmine.createSpyObj('strategy', ['destroy']);
+    const strategyMock = { destroy() {} };
+    const destroySpy = jest.spyOn(strategyMock, 'destroy');
     const strategy = new BindStrategy();
 
-    strategy.strategy = strategyMock;
+    strategy.strategy = { destroy: destroySpy };
     strategy.destroy();
 
-    expect(strategyMock.destroy).toHaveBeenCalled();
+    expect(destroySpy).toHaveBeenCalledTimes(1);
+    expect(destroySpy).toHaveBeenCalledWith();
     expect(strategy.strategy).toBeNull();
   });
 });

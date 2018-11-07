@@ -1,15 +1,4 @@
-/* eslint-disable import/prefer-default-export */
-let currentSpec;
-
-export function spec() {
-  return currentSpec;
-}
-
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
-
-beforeEach(function() {
-  currentSpec = this;
-
+beforeEach(() => {
   const matchers = {
     toBeInArray() {
       return {
@@ -51,14 +40,4 @@ beforeEach(function() {
   };
 
   jasmine.addMatchers(matchers);
-
-  if (document.activeElement && document.activeElement !== document.body) {
-    document.activeElement.blur();
-  } else if (!document.activeElement) { // IE
-    document.body.focus();
-  }
-});
-
-afterEach(() => {
-  window.scrollTo(0, 0);
 });

@@ -138,7 +138,8 @@
             "core-js/*",
             "regenerator-runtime/runtime",
             "./common",
-            "./jasmine",
+            "./../bootstrap",
+            "./helpers/custom-matchers",
             "./MemoryLeakTest"
           ]
         }]

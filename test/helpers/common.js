@@ -85,6 +85,19 @@ export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
 export const updateSettings = handsontableMethodFactory('updateSettings');
 
+const specContext = {};
+
+beforeEach(function() {
+  specContext.spec = this;
+});
+afterEach(() => {
+  specContext.spec = null;
+});
+
+export function spec() {
+  return specContext.spec;
+}
+
 export function hot() {
   return spec().$container.data('handsontable');
 }

@@ -55,6 +55,7 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
     listStyle: 'flat',
     activity: true,
     isVerbose: false,
+    includeStackTrace: true,
   });
   let errorCount = 0;
 
