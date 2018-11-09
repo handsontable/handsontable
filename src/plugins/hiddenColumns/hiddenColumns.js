@@ -167,25 +167,27 @@ class HiddenColumns extends BasePlugin {
    */
   showColumns(columns) {
     const validColumns = this.validateColumnsData(columns);
-    const breakUnhiding = this.hot.runHooks('beforeUnhideColumns', columns, validColumns);
+    const continueUnhiding = this.hot.runHooks('beforeUnhideColumns', columns, validColumns);
 
-    if (breakUnhiding === false || !validColumns) {
+    if (continueUnhiding === false) {
       return;
     }
 
     let changedStates = 0;
 
-    arrayEach(columns, (column) => {
-      let columnIndex = parseInt(column, 10);
-      columnIndex = this.getLogicalColumnIndex(columnIndex);
+    if (validColumns) {
+      arrayEach(columns, (column) => {
+        let columnIndex = parseInt(column, 10);
+        columnIndex = this.getLogicalColumnIndex(columnIndex);
 
-      if (this.isHidden(columnIndex, true)) {
-        this.hiddenColumns.splice(this.hiddenColumns.indexOf(columnIndex), 1);
-        changedStates += 1;
-      }
-    });
+        if (this.isHidden(columnIndex, true)) {
+          this.hiddenColumns.splice(this.hiddenColumns.indexOf(columnIndex), 1);
+          changedStates += 1;
+        }
+      });
+    }
 
-    this.hot.runHooks('afterUnhideColumns', columns, changedStates > 0);
+    this.hot.runHooks('afterUnhideColumns', columns, validColumns, changedStates > 0);
   }
 
   /**
@@ -204,25 +206,27 @@ class HiddenColumns extends BasePlugin {
    */
   hideColumns(columns) {
     const validColumns = this.validateColumnsData(columns);
-    const breakHiding = this.hot.runHooks('beforeHideColumns', columns, validColumns);
+    const continueHiding = this.hot.runHooks('beforeHideColumns', columns, validColumns);
 
-    if (breakHiding === false || !validColumns) {
+    if (continueHiding === false) {
       return;
     }
 
     let changedStates = 0;
 
-    arrayEach(columns, (column) => {
-      let columnIndex = parseInt(column, 10);
-      columnIndex = this.getLogicalColumnIndex(columnIndex);
+    if (validColumns) {
+      arrayEach(columns, (column) => {
+        let columnIndex = parseInt(column, 10);
+        columnIndex = this.getLogicalColumnIndex(columnIndex);
 
-      if (!this.isHidden(columnIndex, true)) {
-        this.hiddenColumns.push(columnIndex);
-        changedStates += 1;
-      }
-    });
+        if (!this.isHidden(columnIndex, true)) {
+          this.hiddenColumns.push(columnIndex);
+          changedStates += 1;
+        }
+      });
+    }
 
-    this.hot.runHooks('afterHideColumns', columns, changedStates > 0);
+    this.hot.runHooks('afterHideColumns', columns, validColumns, changedStates > 0);
   }
 
   /**

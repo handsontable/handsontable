@@ -574,7 +574,7 @@ describe('HiddenColumns', () => {
 
         getPlugin('hiddenColumns').hideColumn(2);
 
-        expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([2], true, void 0, void 0, void 0, void 0);
+        expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([2], true, true, void 0, void 0, void 0);
       });
 
       it('should fire the `afterHideColumns` hook after hiding multiple columns, with a `columns` argument containing an array with all the hidden columns', () => {
@@ -588,7 +588,7 @@ describe('HiddenColumns', () => {
 
         getPlugin('hiddenColumns').hideColumns([2, 3, 4]);
 
-        expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([2, 3, 4], true, void 0, void 0, void 0, void 0);
+        expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([2, 3, 4], true, true, void 0, void 0, void 0);
       });
 
       it('it should NOT fire the `afterHideColumns` hook, if the `beforeHideColumns` hook returned false', () => {
@@ -606,7 +606,7 @@ describe('HiddenColumns', () => {
         expect(afterHideColumnsHookCallback).not.toHaveBeenCalled();
       });
 
-      it('should return `false` as the second parameter, if the hiding action did not change the state of the hiddenColumns plugin', () => {
+      it('should return `false` as the third parameter, if the hiding action did not change the state of the hiddenColumns plugin', () => {
         const afterHideColumnsHookCallback = jasmine.createSpy('afterHideColumnsHookCallback');
 
         handsontable({
@@ -620,10 +620,10 @@ describe('HiddenColumns', () => {
         const plugin = getPlugin('hiddenColumns');
         plugin.hideColumns([0, 5]);
 
-        expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([0, 5], false, void 0, void 0, void 0, void 0);
+        expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([0, 5], true, false, void 0, void 0, void 0);
       });
 
-      it('should return `true` as the second parameter, if the hiding action changed the state of the hiddenColumns plugin', () => {
+      it('should return `true` as the second and third parameter, if the hiding action changed the state of the hiddenColumns plugin', () => {
         const afterHideColumnsHookCallback = jasmine.createSpy('afterHideColumnsHookCallback');
 
         handsontable({
@@ -637,7 +637,26 @@ describe('HiddenColumns', () => {
         const plugin = getPlugin('hiddenColumns');
         plugin.hideColumns([0, 5, 6]);
 
-        expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([0, 5, 6], true, void 0, void 0, void 0, void 0);
+        expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([0, 5, 6], true, true, void 0, void 0, void 0);
+      });
+
+      it('should not perform hiding and return `false` as the second and third parameter of the `afterHideColumns` hook' +
+        ' if any of the provided columns is out of scope of the table', () => {
+        const afterHideColumnsHookCallback = jasmine.createSpy('afterHideColumnsHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          hiddenColumns: true,
+          afterHideColumns: afterHideColumnsHookCallback
+        });
+
+        const plugin = getPlugin('hiddenColumns');
+        plugin.hideColumns([0, 5, 10, 15]);
+
+        expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([0, 5, 10, 15], false, false, void 0, void 0, void 0);
+        expect(plugin.isHidden(0)).toBeFalsy();
+        expect(plugin.isHidden(5)).toBeFalsy();
+        expect(plugin.isHidden(10)).toBeFalsy();
       });
     });
 
@@ -726,7 +745,7 @@ describe('HiddenColumns', () => {
 
         getPlugin('hiddenColumns').showColumn(2);
 
-        expect(afterUnhideColumnsHookCallback).toHaveBeenCalledWith([2], true, void 0, void 0, void 0, void 0);
+        expect(afterUnhideColumnsHookCallback).toHaveBeenCalledWith([2], true, true, void 0, void 0, void 0);
       });
 
       it('should fire the `afterUnhideColumns` hook after hiding multiple columns, with a `columns` argument containing an array with all the revealed columns', () => {
@@ -742,7 +761,7 @@ describe('HiddenColumns', () => {
 
         getPlugin('hiddenColumns').showColumns([2, 3, 4]);
 
-        expect(afterUnhideColumnsHookCallback).toHaveBeenCalledWith([2, 3, 4], true, void 0, void 0, void 0, void 0);
+        expect(afterUnhideColumnsHookCallback).toHaveBeenCalledWith([2, 3, 4], true, true, void 0, void 0, void 0);
       });
 
       it('it should NOT fire the `afterUnhideColumns` hook, if the `beforeUnhideColumns` hook returned false', () => {
@@ -760,7 +779,7 @@ describe('HiddenColumns', () => {
         expect(afterUnhideColumnsHookCallback).not.toHaveBeenCalled();
       });
 
-      it('should return `false` as the second parameter, if the unhiding action did not change the state of the hiddenColumns plugin', () => {
+      it('should return `false` as the third parameter, if the unhiding action did not change the state of the hiddenColumns plugin', () => {
         const afterUnhideColumnsHookCallback = jasmine.createSpy('afterUnhideColumnsHookCallback');
 
         handsontable({
@@ -772,7 +791,7 @@ describe('HiddenColumns', () => {
         const plugin = getPlugin('hiddenColumns');
         plugin.showColumns([0, 5]);
 
-        expect(afterUnhideColumnsHookCallback).toHaveBeenCalledWith([0, 5], false, void 0, void 0, void 0, void 0);
+        expect(afterUnhideColumnsHookCallback).toHaveBeenCalledWith([0, 5], true, false, void 0, void 0, void 0);
       });
 
       it('should return `true` as the second parameter, if the unhiding action changed the state of the hiddenColumns plugin', () => {
@@ -789,9 +808,28 @@ describe('HiddenColumns', () => {
         const plugin = getPlugin('hiddenColumns');
         plugin.showColumns([0, 5, 6]);
 
-        expect(afterUnhideColumnsHookCallback).toHaveBeenCalledWith([0, 5, 6], true, void 0, void 0, void 0, void 0);
+        expect(afterUnhideColumnsHookCallback).toHaveBeenCalledWith([0, 5, 6], true, true, void 0, void 0, void 0);
+      });
+
+      it('should not perform hiding and return `false` as the second and third parameter of the `afterUnhideColumns` hook' +
+        ' if any of the provided columns is out of scope of the table', () => {
+        const afterUnhideColumnsHookCallback = jasmine.createSpy('afterUnhideColumnsHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 7),
+          hiddenColumns: {
+            columns: [0, 5]
+          },
+          afterUnhideColumns: afterUnhideColumnsHookCallback
+        });
+
+        const plugin = getPlugin('hiddenColumns');
+        plugin.showColumns([0, 5, 10]);
+
+        expect(afterUnhideColumnsHookCallback).toHaveBeenCalledWith([0, 5, 10], false, false, void 0, void 0, void 0);
+        expect(plugin.isHidden(0)).toBeTruthy();
+        expect(plugin.isHidden(5)).toBeTruthy();
       });
     });
   });
-
 });

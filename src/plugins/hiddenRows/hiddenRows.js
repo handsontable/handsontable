@@ -167,25 +167,27 @@ class HiddenRows extends BasePlugin {
    */
   showRows(rows) {
     const validRows = this.validateRowsData(rows);
-    const breakUnhiding = this.hot.runHooks('beforeUnhideRows', rows, validRows);
+    const continueUnhiding = this.hot.runHooks('beforeUnhideRows', rows, validRows);
 
-    if (breakUnhiding === false || !validRows) {
+    if (continueUnhiding === false) {
       return;
     }
 
     let changedStates = 0;
 
-    arrayEach(rows, (row) => {
-      let visualRow = parseInt(row, 10);
-      visualRow = this.getLogicalRowIndex(visualRow);
+    if (validRows) {
+      arrayEach(rows, (row) => {
+        let visualRow = parseInt(row, 10);
+        visualRow = this.getLogicalRowIndex(visualRow);
 
-      if (this.isHidden(visualRow, true)) {
-        this.hiddenRows.splice(this.hiddenRows.indexOf(visualRow), 1);
-        changedStates += 1;
-      }
-    });
+        if (this.isHidden(visualRow, true)) {
+          this.hiddenRows.splice(this.hiddenRows.indexOf(visualRow), 1);
+          changedStates += 1;
+        }
+      });
+    }
 
-    this.hot.runHooks('afterUnhideRows', rows, changedStates > 0);
+    this.hot.runHooks('afterUnhideRows', rows, validRows, changedStates > 0);
   }
 
   /**
@@ -204,25 +206,27 @@ class HiddenRows extends BasePlugin {
    */
   hideRows(rows) {
     const validRows = this.validateRowsData(rows);
-    const breakHiding = this.hot.runHooks('beforeHideRows', rows, validRows);
+    const continueHiding = this.hot.runHooks('beforeHideRows', rows, validRows);
 
-    if (breakHiding === false || !validRows) {
+    if (continueHiding === false) {
       return;
     }
 
     let changedStates = 0;
 
-    arrayEach(rows, (row) => {
-      const visualRow = parseInt(row, 10);
-      const logicalRow = this.getLogicalRowIndex(visualRow);
+    if (validRows) {
+      arrayEach(rows, (row) => {
+        const visualRow = parseInt(row, 10);
+        const logicalRow = this.getLogicalRowIndex(visualRow);
 
-      if (!this.isHidden(logicalRow, true)) {
-        this.hiddenRows.push(logicalRow);
-        changedStates += 1;
-      }
-    });
+        if (!this.isHidden(logicalRow, true)) {
+          this.hiddenRows.push(logicalRow);
+          changedStates += 1;
+        }
+      });
+    }
 
-    this.hot.runHooks('afterHideRows', rows, changedStates > 0);
+    this.hot.runHooks('afterHideRows', rows, validRows, changedStates > 0);
   }
 
   /**
