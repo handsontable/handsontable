@@ -1,7 +1,21 @@
-import jsonpatch from './../../../lib/jsonpatch/json-patch-duplex';
+import { observe, unobserve, generate } from 'fast-json-patch';
 import localHooks from '../../mixins/localHooks';
 import { mixin } from '../../helpers/object';
 import { cleanPatches } from './utils';
+
+const intervals = [100, 1000, 10000, 60000];
+
+let currentInterval = 0;
+
+const slowCheck = function(observer) {
+  generate(observer);
+
+  if (currentInterval === intervals.length) {
+    currentInterval = intervals.length - 1;
+  }
+
+  observer.next = setTimeout(() => slowCheck(observer), intervals[currentInterval += 1]);
+};
 
 /**
  * @class DataObserver
@@ -39,10 +53,12 @@ class DataObserver {
    */
   setObservedData(observedData) {
     if (this.observer) {
-      jsonpatch.unobserve(this.observedData, this.observer);
+      unobserve(this.observedData, this.observer);
     }
     this.observedData = observedData;
-    this.observer = jsonpatch.observe(this.observedData, patches => this.onChange(patches));
+    this.observer = observe(this.observedData, patches => this.onChange(patches));
+
+    this.observer.next = setTimeout(() => slowCheck(this.observer), intervals[currentInterval += 1]);
   }
 
   /**
@@ -82,7 +98,7 @@ class DataObserver {
    * Destroy observer instance.
    */
   destroy() {
-    jsonpatch.unobserve(this.observedData, this.observer);
+    unobserve(this.observedData, this.observer);
     this.observedData = null;
     this.observer = null;
   }

@@ -59,6 +59,7 @@
     "data-spreadsheet"
   ],
   "dependencies": {
+    "fast-json-patch": "^2.0.7",
     "moment": "2.20.1",
     "numbro": "^2.0.6",
     "pikaday": "1.5.1"
