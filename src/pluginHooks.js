@@ -1522,6 +1522,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#afterHideRows
    * @param {Array} rows Array of row indexes marked as hidden.
+   * @param {Boolean} hidingPossible `true`, if the row indexes provided in the `rows` parameter are valid, `false` otherwise.
    * @param {Boolean} stateChanged `true`, if the action affected any non-hidden rows, `false` otherwise.
    */
   'afterHideRows',
@@ -1544,6 +1545,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#afterUnhideRows
    * @param {Array} rows Array of row indexes marked as not hidden.
+   * @param {Boolean} unhidingPossible `true`, if the row indexes provided in the `rows` parameter are valid, `false` otherwise.
    * @param {Boolean} stateChanged `true`, if the action affected any hidden rows, `false` otherwise.
    */
   'afterUnhideRows',
@@ -1566,6 +1568,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#afterHideColumns
    * @param {Array} columns Array of column indexes marked as hidden.
+   * @param {Boolean} hidingPossible `true`, if the column indexes provided in the `columns` parameter are valid, `false` otherwise.
    * @param {Boolean} stateChanged `true`, if the action affected any non-hidden columns, `false` otherwise.
    */
   'afterHideColumns',
@@ -1588,6 +1591,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#afterUnhideColumns
    * @param {Array} columns Array of column indexes marked as not hidden.
+   * @param {Boolean} unhidingPossible `true`, if the column indexes provided in the `columns` parameter are valid, `false` otherwise.
    * @param {Boolean} stateChanged `true`, if the action affected any hidden columns, `false` otherwise.
    */
   'afterUnhideColumns',
