@@ -166,7 +166,7 @@ class HiddenRows extends BasePlugin {
    * @param {Number[]} rows Array of row index.
    */
   showRows(rows) {
-    const validRows = this.validateRowsData(rows);
+    const validRows = this.isRowDataValid(rows);
     const continueUnhiding = this.hot.runHooks('beforeUnhideRows', rows, validRows);
 
     if (continueUnhiding === false) {
@@ -205,7 +205,7 @@ class HiddenRows extends BasePlugin {
    * @param {Number[]} rows Array of row index.
    */
   hideRows(rows) {
-    const validRows = this.validateRowsData(rows);
+    const validRows = this.isRowDataValid(rows);
     const continueHiding = this.hot.runHooks('beforeHideRows', rows, validRows);
 
     if (continueHiding === false) {
@@ -260,7 +260,7 @@ class HiddenRows extends BasePlugin {
    *
    * @param {Array} rows Array of row indexes.
    */
-  validateRowsData(rows) {
+  isRowDataValid(rows) {
     const outOfBounds = rows.find(row => (row < 0 || row > this.hot.countRows() - 1));
 
     return outOfBounds === void 0;

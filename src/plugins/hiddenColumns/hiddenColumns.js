@@ -166,7 +166,7 @@ class HiddenColumns extends BasePlugin {
    * @param {Number[]} columns Array of column indexes.
    */
   showColumns(columns) {
-    const validColumns = this.validateColumnsData(columns);
+    const validColumns = this.isColumnDataValid(columns);
     const continueUnhiding = this.hot.runHooks('beforeUnhideColumns', columns, validColumns);
 
     if (continueUnhiding === false) {
@@ -205,7 +205,7 @@ class HiddenColumns extends BasePlugin {
    * @param {Number[]} columns Array of column indexes.
    */
   hideColumns(columns) {
-    const validColumns = this.validateColumnsData(columns);
+    const validColumns = this.isColumnDataValid(columns);
     const continueHiding = this.hot.runHooks('beforeHideColumns', columns, validColumns);
 
     if (continueHiding === false) {
@@ -260,7 +260,7 @@ class HiddenColumns extends BasePlugin {
    *
    * @param {Array} columns Array of column indexes.
    */
-  validateColumnsData(columns) {
+  isColumnDataValid(columns) {
     const outOfBounds = columns.find(column => (column < 0 || column > this.hot.countCols() - 1));
 
     return outOfBounds === void 0;
