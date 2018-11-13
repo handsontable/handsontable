@@ -75,7 +75,7 @@ const arrayMapper = {
       physicalIndex.sort((a, b) => b - a);
 
       for (let i = 0, length = physicalIndex.length; i < length; i++) {
-        const indextoRemove = physicalIndex[i];
+        const indexToRemove = physicalIndex[i];
         this._arrayMap.splice(indexToRemove, 1);
         removedItems.push(mapCopy[indexToRemove]);
       }
