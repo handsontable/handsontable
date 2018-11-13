@@ -7,7 +7,6 @@ import { getEditorInstance } from '../editors';
  *
  * @private
  * @validator DateValidator
- * @dependencies moment
  * @param {*} value - Value of edited cell
  * @param {Function} callback - Callback called with validation result
  */

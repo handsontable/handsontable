@@ -81,7 +81,7 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
   });
 
   try {
-    await page.goto(`http://0.0.0.0:${PORT}/${path}`);
+    await page.goto(`http://localhost:${PORT}/${path}`);
   } catch (error) {
     /* eslint-disable no-console */
     console.log(error);

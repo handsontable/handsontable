@@ -166,7 +166,6 @@ class AutoColumnSize extends BasePlugin {
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', changes => this.onBeforeChange(changes));
-
     this.addHook('beforeRender', force => this.onBeforeRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
     this.addHook('afterInit', () => this.onAfterInit());
@@ -262,11 +261,14 @@ class AutoColumnSize extends BasePlugin {
         }
       }
     };
+
+    const syncLimit = this.getSyncCalculationLimit();
+
     // sync
-    if (this.firstCalculation && this.getSyncCalculationLimit()) {
-      this.calculateColumnsWidth({ from: 0, to: this.getSyncCalculationLimit() }, rowRange);
+    if (this.firstCalculation && syncLimit >= 0) {
+      this.calculateColumnsWidth({ from: 0, to: syncLimit }, rowRange);
       this.firstCalculation = false;
-      current = this.getSyncCalculationLimit() + 1;
+      current = syncLimit + 1;
     }
     // async
     if (current < length) {

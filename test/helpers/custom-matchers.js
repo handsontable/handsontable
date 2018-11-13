@@ -1,18 +1,5 @@
 import { generateASCIITable } from './asciiTable';
 
-/* eslint-disable import/prefer-default-export */
-let currentSpec;
-
-export function spec() {
-  return currentSpec;
-}
-
-function hot() {
-  return spec().$container.data('handsontable');
-}
-
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
-
 // http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 const scrollbarWidth = (function calculateScrollbarWidth() {
   const inner = document.createElement('div');
@@ -49,7 +36,11 @@ const scrollbarWidth = (function calculateScrollbarWidth() {
 }());
 
 beforeEach(function() {
-  currentSpec = this;
+  const currentSpec = this;
+
+  function hot() {
+    return currentSpec.$container.data('handsontable');
+  }
 
   const matchers = {
     toBeInArray() {
@@ -301,15 +292,4 @@ beforeEach(function() {
   };
 
   jasmine.addMatchers(matchers);
-
-  if (document.activeElement && document.activeElement !== document.body) {
-    document.activeElement.blur();
-
-  } else if (!document.activeElement) { // IE
-    document.body.focus();
-  }
-});
-
-afterEach(() => {
-  window.scrollTo(0, 0);
 });
