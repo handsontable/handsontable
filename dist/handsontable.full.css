@@ -20,8 +20,8 @@
  * RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
  * UNINTERRUPTED OR ERROR FREE.
  * 
- * Version: 6.1.1
- * Release date: 23/10/2018 (built at 23/10/2018 12:28:31)
+ * Version: 6.2.0
+ * Release date: 14/11/2018 (built at 14/11/2018 12:28:46)
  */
 /**
  * Fix for bootstrap styles
@@ -1725,16 +1725,6 @@ textarea#HandsontableCopyPaste {
   display: none;
   position: absolute;
   z-index: 1070;
-}
-
-/*
-  AutoColumnSize will NOT count size of filter's value box and filter's selects. These elements should always fit
-  to another elements elbowing the table. Value box could scale, but we have two problems which were fixed by workaround:
-  - borders declared for the `table.htCore` are also counted by `offsetWidth` (however it could be fixed by not displaying them for GhostTable)
-  - MultipleSelectUI basing on Handsontable is built only once, so it's `wtHolder` width is counted only once.
-*/
-.htGhostTable .htUIMultipleSelectHot, .htGhostTable .htUISelect {
-  display: none;
 }
 
 .htFiltersConditionsMenu .ht_clone_top,
