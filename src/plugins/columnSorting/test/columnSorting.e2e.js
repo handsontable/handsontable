@@ -1030,7 +1030,7 @@ describe('ColumnSorting', () => {
   });
 
   describe('data type: time', () => {
-    it('should properly rewrite time into correct format after sort', (done) => {
+    it('should properly rewrite time into correct format after sort', async() => {
       handsontable({
         data: [
           ['0:00:01 am'],
@@ -1055,12 +1055,13 @@ describe('ColumnSorting', () => {
         }
       });
 
+      await sleep(100);
+
       setDataAtCell(0, 0, '19:55', 'edit');
 
-      setTimeout(() => {
-        expect(getDataAtCell(0, 0)).toEqual('7:55:00 pm');
-        done();
-      }, 250);
+      await sleep(100);
+
+      expect(getDataAtCell(0, 0)).toEqual('7:55:00 pm');
     });
   });
 
@@ -1500,7 +1501,6 @@ describe('ColumnSorting', () => {
   it('should fire hooks with proper hook argument when sorting is not possible', () => {
     const beforeColumnSortCallback = jasmine.createSpy('beforeColumnSort');
     const afterColumnSortCallback = jasmine.createSpy('afterColumnSort');
-    const warnSpy = spyOn(console, 'warn');
 
     handsontable({
       data: [[2], [4], [1], [3]],
@@ -1518,7 +1518,6 @@ describe('ColumnSorting', () => {
     // "After" hook always run! Team decision.
 
     expect(afterColumnSortCallback).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
-    expect(warnSpy).toHaveBeenCalled();
   });
 
   it('should insert row when plugin is enabled, but table hasn\'t been sorted', () => {
@@ -2271,8 +2270,6 @@ describe('ColumnSorting', () => {
     describe('should not change internal state of sorting when wrong configuration was provided', () => {
       // DIFF - MultiColumnSorting & ColumnSorting: change in initial sort config.
       it('when too low column index was passed to the initial config', () => {
-        const warnSpy = spyOn(console, 'warn');
-
         handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -2286,13 +2283,10 @@ describe('ColumnSorting', () => {
         });
 
         expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
-        expect(warnSpy).toHaveBeenCalled();
       });
 
       // DIFF - MultiColumnSorting & ColumnSorting: change in initial sort config.
       it('when too high column index was passed to the initial config', () => {
-        const warnSpy = spyOn(console, 'warn');
-
         handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -2306,13 +2300,10 @@ describe('ColumnSorting', () => {
         });
 
         expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
-        expect(warnSpy).toHaveBeenCalled();
       });
 
       // DIFF - MultiColumnSorting & ColumnSorting: change in initial sort config.
       it('when not proper sort order was passed to the initial config', () => {
-        const warnSpy = spyOn(console, 'warn');
-
         handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -2326,13 +2317,10 @@ describe('ColumnSorting', () => {
         });
 
         expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
-        expect(warnSpy).toHaveBeenCalled();
       });
 
       // DIFF - MultiColumnSorting & ColumnSorting: change in initial sort config.
       it('when missed sort order was passed to the initial config', () => {
-        const warnSpy = spyOn(console, 'warn');
-
         handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -2345,13 +2333,10 @@ describe('ColumnSorting', () => {
         });
 
         expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
-        expect(warnSpy).toHaveBeenCalled();
       });
 
       // DIFF - MultiColumnSorting & ColumnSorting: change in initial sort config.
       it('when missed column index was passed to the initial config', () => {
-        const warnSpy = spyOn(console, 'warn');
-
         handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -2364,7 +2349,6 @@ describe('ColumnSorting', () => {
         });
 
         expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
-        expect(warnSpy).toHaveBeenCalled();
       });
 
       // DIFF - MultiColumnSorting & ColumnSorting: removed test named: "when the same column index was passed twice to the initial config".
@@ -2399,6 +2383,23 @@ describe('ColumnSorting', () => {
       spec().sortByClickOnColumnHeader(0);
 
       expect(getDataAtCol(0)).toEqual(['Mary', 'Henry', 'Ann', 'Robert', 'Ann', 'David', 'John', 'Mary', 'Robert']);
+    });
+
+    it('should not sort table by right click', () => {
+      const hot = handsontable({
+        data: arrayOfArrays(),
+        colHeaders: true,
+        columnSorting: true
+      });
+
+      const $columnHeader = $(hot.view.wt.wtTable.getColumnHeader(0));
+      const $spanInsideHeader = $columnHeader.find('.columnSorting');
+
+      $spanInsideHeader.simulate('mousedown', { button: 2 });
+      $spanInsideHeader.simulate('click');
+      $spanInsideHeader.simulate('mouseup', { button: 2 });
+
+      expect(getData()).toEqual(arrayOfArrays());
     });
 
     it('should not block action for specific configuration updated by `updateSettings`', () => {
@@ -2489,39 +2490,6 @@ describe('ColumnSorting', () => {
       expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
     });
 
-    it('should change width of multi-line headers when plugin is enabled / disabled by `enablePlugin` and `disablePlugin` methods ' +
-      'and sort indicator is enabled', () => {
-      const hot = handsontable({
-        colHeaders: ['AAA<br>BB']
-      });
-
-      const headerWidthAtStart = spec().$container.find('th').eq(0).width();
-
-      getPlugin('columnSorting').enablePlugin();
-
-      let newHeaderWidth = spec().$container.find('th').eq(0).width();
-
-      expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
-
-      getPlugin('columnSorting').disablePlugin();
-
-      newHeaderWidth = spec().$container.find('th').eq(0).width();
-
-      expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
-
-      hot.render();
-
-      newHeaderWidth = spec().$container.find('th').eq(0).width();
-
-      expect(headerWidthAtStart).toBe(newHeaderWidth);
-
-      getPlugin('columnSorting').enablePlugin();
-
-      newHeaderWidth = spec().$container.find('th').eq(0).width();
-
-      expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
-    });
-
     it('should work properly also when `rowHeaders` option is set to `true`', () => {
       handsontable({
         colHeaders: ['AAA<br>BB'],
@@ -2594,6 +2562,25 @@ describe('ColumnSorting', () => {
       expect(headerWidthAtStart).toBe(newHeaderWidth);
       expect(wtHiderWidthAtStart).toBe(newWtHiderWidth);
       expect(htCoreWidthAtStart).toBe(newHtCoreWidth);
+    });
+  });
+
+  describe('index mappers', () => {
+    it('should not map indexes when already sorted column was set to not sorted', () => {
+      const hot = handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        columnSorting: {
+          initialConfig: {
+            column: 0,
+            sortOrder: 'desc'
+          }
+        }
+      });
+
+      updateSettings({ columnSorting: { initialConfig: [] } });
+
+      expect(hot.toVisualRow(0)).toEqual(0);
     });
   });
 

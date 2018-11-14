@@ -478,4 +478,19 @@ describe('AutoRowSize', () => {
 
     expect(rowHeight(spec().$container, -1)).toBe(75);
   });
+
+  it('should properly count height', async() => {
+    handsontable({
+      data: [['Tomek', 'Tomek\nTomek', 'Romek\nRomek']],
+      rowHeaders: true,
+      colHeaders: true,
+      autoRowSize: true,
+    });
+
+    await sleep(300);
+
+    const cloneLeft = spec().$container.find('.handsontable.ht_clone_left .wtHider');
+
+    expect(cloneLeft.height()).toEqual(70);
+  });
 });
