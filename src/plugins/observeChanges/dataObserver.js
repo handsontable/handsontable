@@ -3,18 +3,18 @@ import localHooks from '../../mixins/localHooks';
 import { mixin } from '../../helpers/object';
 import { cleanPatches } from './utils';
 
-const intervals = [100, 1000, 10000, 60000];
+const INTERVALS = [100, 1000, 10000, 60000];
 
 let currentInterval = 0;
 
-const slowCheck = function(observer) {
+const INTERVALS_CHECK = function(observer) {
   generate(observer);
 
-  if (currentInterval === intervals.length) {
-    currentInterval = intervals.length - 1;
+  if (currentInterval === INTERVALS.length) {
+    currentInterval = INTERVALS.length - 1;
   }
 
-  observer.next = setTimeout(() => slowCheck(observer), intervals[currentInterval += 1]);
+  observer.next = setTimeout(() => INTERVALS_CHECK(observer), INTERVALS[currentInterval += 1]);
 };
 
 /**
@@ -58,7 +58,7 @@ class DataObserver {
     this.observedData = observedData;
     this.observer = observe(this.observedData, patches => this.onChange(patches));
 
-    this.observer.next = setTimeout(() => slowCheck(this.observer), intervals[currentInterval += 1]);
+    this.observer.next = setTimeout(() => INTERVALS_CHECK(this.observer), INTERVALS[currentInterval += 1]);
   }
 
   /**
