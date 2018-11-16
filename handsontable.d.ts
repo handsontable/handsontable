@@ -1559,9 +1559,9 @@ declare namespace Handsontable {
     afterDetachChild?: (parent: object, element: object) => void;
     afterDocumentKeyDown?: (event: Event) => void;
     afterDropdownMenuDefaultOptions?: (predefinedItems: any[]) => void;
-    afterDropdownMenuHide?: (instance: any) => void;
-    beforeDropdownMenuShow?: (instance: any) => void;
-    afterDropdownMenuShow?: (instance: any) => void;
+    afterDropdownMenuHide?: (instance: Handsontable.plugins.DropdownMenu) => void;
+    beforeDropdownMenuShow?: (instance: Handsontable.plugins.DropdownMenu) => void;
+    afterDropdownMenuShow?: (instance: Handsontable.plugins.DropdownMenu) => void;
     afterFilter?: (formulasStack: any[]) => void;
     afterGetCellMeta?: (row: number, col: number, cellProperties: GridSettings) => void;
     afterGetColHeader?: (col: number, TH: Element) => void;
@@ -2007,17 +2007,17 @@ declare namespace Handsontable {
       items: any;
     }
   }
-  
+
   namespace columnSorting {
     type SortOrderType = 'asc' | 'desc';
     type Config = { column: number, sortOrder: SortOrderType }
-    
+
     interface Settings {
       initialConfig?: Config,
       sortEmptyCells?: boolean,
       indicator?: boolean,
       headerAction?: boolean,
-      compareFunctionFactory?: ((sortOrder: SortOrderType, columnMeta: GridSettings) => 
+      compareFunctionFactory?: ((sortOrder: SortOrderType, columnMeta: GridSettings) =>
         (value: any, nextValue: any) => -1 | 0 | 1)
     }
   }
