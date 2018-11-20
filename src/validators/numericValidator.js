@@ -7,7 +7,7 @@
  * @param {*} callback - Callback called with validation result
  */
 
-import {isNumeric} from './../helpers/number';
+import { isNumeric } from './../helpers/number';
 
 export default function numericValidator(value, callback) {
   let valueToValidate = value;
