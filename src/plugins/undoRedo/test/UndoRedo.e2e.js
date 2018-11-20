@@ -167,6 +167,50 @@ describe('UndoRedo', () => {
           expect(getDataAtCell(3, 1)).toEqual('B4');
         });
 
+        it('should undo removal of single row after column sorting', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(3, 2),
+            colHeaders: true,
+            columnSorting: true
+          });
+
+          expect(countRows()).toEqual(3);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
+
+          getPlugin('ColumnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+          expect(countRows()).toEqual(3);
+          expect(getDataAtCell(0, 0)).toEqual('A3');
+          expect(getDataAtCell(0, 1)).toEqual('B3');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A1');
+          expect(getDataAtCell(2, 1)).toEqual('B1');
+
+          alter('remove_row', 0);
+
+          expect(countRows()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A2');
+          expect(getDataAtCell(0, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toEqual('B1');
+
+          undo();
+
+          expect(countRows()).toEqual(3);
+          expect(getDataAtCell(0, 0)).toEqual('A3');
+          expect(getDataAtCell(0, 1)).toEqual('B3');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A1');
+          expect(getDataAtCell(2, 1)).toEqual('B1');
+        });
+
         it('should undo creation of a single column (colHeaders: undefined)', () => {
           const HOT = handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 3)
@@ -525,7 +569,7 @@ describe('UndoRedo', () => {
         });
 
         it('should undo removal of multiple columns (with a used manualColumnMove)', () => {
-          const HOT = handsontable({
+          handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 7),
             manualColumnMove: [3, 2, 0, 6, 1, 5, 4]
           });
@@ -748,8 +792,8 @@ describe('UndoRedo', () => {
           expect(getDataAtCell(3, 1)).toEqual('B4');
         });
 
-        it('should undo changes only for table where the change actually took place', function() {
-          this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
+        it('should undo changes only for table where the change actually took place', () => {
+          spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
           const hot1 = handsontable({
             data: [
@@ -759,7 +803,7 @@ describe('UndoRedo', () => {
             ]
           });
 
-          this.$container2.handsontable({
+          spec().$container2.handsontable({
             data: [
               ['A'],
               ['B'],
@@ -767,7 +811,7 @@ describe('UndoRedo', () => {
             ]
           });
 
-          const hot2 = this.$container2.handsontable('getInstance');
+          const hot2 = spec().$container2.handsontable('getInstance');
 
           hot1.setDataAtCell(0, 0, 4);
           expect(hot1.getDataAtCell(0, 0)).toEqual(4);
@@ -782,7 +826,7 @@ describe('UndoRedo', () => {
           expect(hot1.getDataAtCell(0, 0)).toEqual(1);
 
           hot2.destroy();
-          this.$container2.remove();
+          spec().$container2.remove();
         });
 
         it('should return the right amount after undo removal of single column', () => {
@@ -1361,8 +1405,8 @@ describe('UndoRedo', () => {
           expect(getDataAtCell(0, 1)).toEqual('B1');
         });
 
-        it('should redo changes only for table where the change actually took place', function() {
-          this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
+        it('should redo changes only for table where the change actually took place', () => {
+          spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
           const hot1 = handsontable({
             data: [
@@ -1372,7 +1416,7 @@ describe('UndoRedo', () => {
             ]
           });
 
-          this.$container2.handsontable({
+          spec().$container2.handsontable({
             data: [
               ['A'],
               ['B'],
@@ -1380,7 +1424,7 @@ describe('UndoRedo', () => {
             ]
           });
 
-          const hot2 = this.$container2.handsontable('getInstance');
+          const hot2 = spec().$container2.handsontable('getInstance');
 
           hot1.setDataAtCell(0, 0, 4);
           expect(hot1.getDataAtCell(0, 0)).toEqual(4);
@@ -1399,7 +1443,7 @@ describe('UndoRedo', () => {
           expect(hot2.getDataAtCell(0, 0)).toEqual('A');
 
           hot2.destroy();
-          this.$container2.remove();
+          spec().$container2.remove();
         });
       });
     });
@@ -1408,9 +1452,9 @@ describe('UndoRedo', () => {
 
       function createObjectData() {
         return [
-          {name: 'Timothy', surname: 'Dalton'},
-          {name: 'Sean', surname: 'Connery'},
-          {name: 'Roger', surname: 'Moore'}
+          { name: 'Timothy', surname: 'Dalton' },
+          { name: 'Sean', surname: 'Connery' },
+          { name: 'Roger', surname: 'Moore' }
         ];
       }
 
@@ -2386,20 +2430,19 @@ describe('UndoRedo', () => {
     });
 
     describe('Keyboard shortcuts', () => {
-      it('should undo single change after hitting CTRL+Z', function() {
+      it('should undo single change after hitting CTRL+Z', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(2, 2)
         });
-        const HOT = getInstance();
 
         selectCell(0, 0);
         setDataAtCell(0, 0, 'new value');
 
-        this.$container.simulate('keydown', {ctrlKey: true, keyCode: 'Z'.charCodeAt(0)});
+        spec().$container.simulate('keydown', { ctrlKey: true, keyCode: 'Z'.charCodeAt(0) });
         expect(getDataAtCell(0, 0)).toBe('A1');
       });
 
-      it('should redo single change after hitting CTRL+Y', function() {
+      it('should redo single change after hitting CTRL+Y', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(2, 2)
         });
@@ -2413,12 +2456,12 @@ describe('UndoRedo', () => {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        this.$container.simulate('keydown', {ctrlKey: true, keyCode: 'Y'.charCodeAt(0)});
+        spec().$container.simulate('keydown', { ctrlKey: true, keyCode: 'Y'.charCodeAt(0) });
 
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
 
-      it('should redo single change after hitting CTRL+SHIFT+Z', function() {
+      it('should redo single change after hitting CTRL+SHIFT+Z', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(2, 2)
         });
@@ -2432,7 +2475,7 @@ describe('UndoRedo', () => {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        this.$container.simulate('keydown', {ctrlKey: true, shiftKey: true, keyCode: 'Z'.charCodeAt(0)});
+        spec().$container.simulate('keydown', { ctrlKey: true, shiftKey: true, keyCode: 'Z'.charCodeAt(0) });
 
         expect(getDataAtCell(0, 0)).toBe('new value');
       });

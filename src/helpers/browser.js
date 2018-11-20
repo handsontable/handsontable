@@ -1,11 +1,11 @@
-import {objectEach} from './object';
+import { objectEach } from './object';
 
-const tester = (tester) => {
+const tester = (testerFunc) => {
   const result = {
     value: false,
   };
   result.test = (ua, vendor) => {
-    result.value = tester(ua, vendor);
+    result.value = testerFunc(ua, vendor);
   };
 
   return result;
@@ -13,16 +13,16 @@ const tester = (tester) => {
 
 const browsers = {
   chrome: tester((ua, vendor) => /Chrome/.test(ua) && /Google/.test(vendor)),
-  edge: tester((ua) => /Edge/.test(ua)),
-  ie: tester((ua) => /Trident/.test(ua)),
+  edge: tester(ua => /Edge/.test(ua)),
+  ie: tester(ua => /Trident/.test(ua)),
   ie8: tester(() => !(document.createTextNode('test').textContent)),
   ie9: tester(() => !!(document.documentMode)),
-  mobile: tester((ua) => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
+  mobile: tester(ua => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
 };
 
-export function setBrowserMeta({userAgent = navigator.userAgent, vendor = navigator.vendor} = {}) {
-  objectEach(browsers, ({test}) => void test(userAgent, vendor));
+export function setBrowserMeta({ userAgent = navigator.userAgent, vendor = navigator.vendor } = {}) {
+  objectEach(browsers, ({ test }) => void test(userAgent, vendor));
 }
 
 setBrowserMeta();

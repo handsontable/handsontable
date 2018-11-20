@@ -1,5 +1,5 @@
 describe('MergeCells Selection', () => {
-  let id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,10 +13,10 @@ describe('MergeCells Selection', () => {
   });
 
   it('should leave the partially selected merged cells white (or any initial color), when selecting entire columns or rows', () => {
-    const hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
-        {row: 0, col: 0, rowspan: 3, colspan: 3}
+        { row: 0, col: 0, rowspan: 3, colspan: 3 }
       ]
     });
 
@@ -33,10 +33,10 @@ describe('MergeCells Selection', () => {
 
   it('should leave the partially selected merged cells with their initial color, when selecting entire columns or rows ' +
     '(when the merged cells was previously fully selected)', () => {
-    const hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
-        {row: 0, col: 0, rowspan: 3, colspan: 3}
+        { row: 0, col: 0, rowspan: 3, colspan: 3 }
       ],
       rowHeaders: true
     });
@@ -59,10 +59,10 @@ describe('MergeCells Selection', () => {
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
     'selecting entire columns or rows', () => {
-    const hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 6),
       mergeCells: [
-        {row: 0, col: 0, rowspan: 3, colspan: 3}
+        { row: 0, col: 0, rowspan: 3, colspan: 3 }
       ]
     });
 
@@ -86,11 +86,11 @@ describe('MergeCells Selection', () => {
   });
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
-    'selecting entire columns or rows (using multiple selection layers)', function() {
-    const hot = handsontable({
+    'selecting entire columns or rows (using multiple selection layers)', () => {
+    handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
-        {row: 0, col: 0, rowspan: 3, colspan: 3}
+        { row: 0, col: 0, rowspan: 3, colspan: 3 }
       ],
       rowHeaders: true,
       colHeaders: true
@@ -110,10 +110,10 @@ describe('MergeCells Selection', () => {
       getCell(3, -1, true),
     ];
     const columnHeaders = [
-      this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)'),
-      this.$container.find('.ht_clone_top tr:eq(0) th:eq(2)'),
-      this.$container.find('.ht_clone_top tr:eq(0) th:eq(3)'),
-      this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)'),
+      spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'),
+      spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)'),
+      spec().$container.find('.ht_clone_top tr:eq(0) th:eq(3)'),
+      spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)'),
     ];
 
     deselectCell();
@@ -147,10 +147,10 @@ describe('MergeCells Selection', () => {
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
     'selecting entire columns or rows (when the merged cells was previously fully selected)', () => {
-    const hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
-        {row: 0, col: 0, rowspan: 3, colspan: 3}
+        { row: 0, col: 0, rowspan: 3, colspan: 3 }
       ],
       rowHeaders: true
     });

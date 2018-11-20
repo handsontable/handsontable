@@ -1,19 +1,12 @@
 describe('DropdownEditor', () => {
-  var id = 'testContainer';
-
-  var choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
-
-  var hot;
+  const id = 'testContainer';
+  const choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
   afterEach(function() {
-    if (hot) {
-      hot = null;
-    }
-
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -23,10 +16,10 @@ describe('DropdownEditor', () => {
   describe('open editor', () => {
     // see https://github.com/handsontable/handsontable/issues/3380
     it('should not throw error while selecting the next cell by hitting enter key', () => {
-      var spy = jasmine.createSpyObj('error', ['test']);
-      var prevError = window.onerror;
+      const spy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
 
-      window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+      window.onerror = function() {
         spy.test();
       };
       handsontable({
@@ -48,7 +41,7 @@ describe('DropdownEditor', () => {
   });
 
   describe('closing the editor', () => {
-    it('should not close editor on scrolling', async () => {
+    it('should not close editor on scrolling', async() => {
       const hot = handsontable({
         data: [
           ['', 'two', 'three'],
@@ -88,7 +81,7 @@ describe('DropdownEditor', () => {
   });
 
   it('should mark all invalid values as invalid, after pasting them into dropdown-type cells', (done) => {
-    hot = handsontable({
+    handsontable({
       data: [
         ['', 'two', 'three'],
         ['four', 'five', 'six']
@@ -113,7 +106,7 @@ describe('DropdownEditor', () => {
   });
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
-  it('should not lose the focus on input element while inserting new characters (#839)', async () => {
+  it('should not lose the focus on input element while inserting new characters (#839)', async() => {
     const focusListener = jasmine.createSpy('focus');
     const hot = handsontable({
       data: [
@@ -140,7 +133,7 @@ describe('DropdownEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should focus editable element after selecting the cell', async () => {
+    it('should focus editable element after selecting the cell', async() => {
       handsontable({
         columns: [
           {

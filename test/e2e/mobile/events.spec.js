@@ -1,10 +1,10 @@
 const id = 'testContainer';
 
-beforeEach(function () {
+beforeEach(function() {
   this.$container = $(`<div id="${id}"></div>`).appendTo('body');
 });
 
-afterEach(function () {
+afterEach(function() {
   if (this.$container) {
     destroy();
     this.$container.remove();
@@ -12,7 +12,7 @@ afterEach(function () {
 });
 
 describe('Events', () => {
-  it('should translate tap (`touchstart`) to `mousedown`', async () => {
+  it('should translate tap (`touchstart`) to `mousedown`', async() => {
     const afterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
 
     const hot = handsontable({
@@ -33,7 +33,7 @@ describe('Events', () => {
     expect(afterOnCellMouseDown).toHaveBeenCalled();
   });
 
-  it('should block default action related to link touch and translate from the touch to click on a cell', async () => {
+  it('should block default action related to link touch and translate from the touch to click on a cell', async() => {
     const hot = handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
       rowHeaders: true,
@@ -75,7 +75,7 @@ describe('Events', () => {
     expect(onCellMouseUp).toHaveBeenCalled();
   });
 
-  it('should trigger default action related to link touch and do not translate from the touch to click on a cell', async () => {
+  it('should trigger default action related to link touch and do not translate from the touch to click on a cell', async() => {
     const hot = handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
       rowHeaders: true,

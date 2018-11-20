@@ -1,7 +1,7 @@
 /**
  * Adds appropriate CSS class to table cell, based on cellProperties
  */
-import {addClass, removeClass} from './../helpers/dom/element';
+import { addClass, removeClass } from './../helpers/dom/element';
 
 function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
   const classesToAdd = [];

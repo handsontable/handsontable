@@ -1,5 +1,5 @@
 describe('Core_render', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,9 +12,9 @@ describe('Core_render', () => {
     }
   });
 
-  it('all cells should get green background', function() {
-    function greenCell(instance, td, row, col, prop, value, cellProperties) {
-      Handsontable.renderers.TextRenderer.apply(this, arguments);
+  it('all cells should get green background', () => {
+    function greenCell(instance, td, ...args) {
+      Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
       td.style.backgroundColor = 'green';
 
     }
@@ -35,14 +35,14 @@ describe('Core_render', () => {
       }
     });
 
-    var $tds = this.$container.find('.htCore tbody td');
+    const $tds = spec().$container.find('.htCore tbody td');
     $tds.each(function() {
       expect(this.style.backgroundColor).toEqual('green');
     });
   });
 
-  it('render should update border dimensions', function() {
-    var data = [
+  it('render should update border dimensions', () => {
+    const data = [
       ['a', 'b'],
       ['c', 'd']
     ];
@@ -59,19 +59,19 @@ describe('Core_render', () => {
     data[1][1] = 'dddddddddddddddddddd';
     render();
 
-    var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
-    expect(this.$container.find('.wtBorder.current').width()).toBeGreaterThan($td.width());
+    const $td = spec().$container.find('.htCore tbody tr:eq(1) td:eq(1)');
+    expect(spec().$container.find('.wtBorder.current').width()).toBeGreaterThan($td.width());
   });
 
   it('should not render table twice', () => {
-    var counter = 0;
+    let counter = 0;
 
     handsontable({
       data: [
         ['Joe Red']
       ],
       afterRender() {
-        counter++;
+        counter += 1;
       }
     });
     populateFromArray(0, 0, [['t', 'e', 's', 't']]);
@@ -79,8 +79,8 @@ describe('Core_render', () => {
     expect(counter).toEqual(2); // 1 from load and 1 from populateFromArray
   });
 
-  it('should run afterRenderer hook', function() {
-    var lastCellProperties;
+  it('should run afterRenderer hook', () => {
+    let lastCellProperties;
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
@@ -94,12 +94,12 @@ describe('Core_render', () => {
       }
     });
 
-    expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('Changed by plugin');
+    expect(spec().$container.find('td:eq(0)')[0].innerHTML).toEqual('Changed by plugin');
     expect(lastCellProperties.row).toEqual(1);
     expect(lastCellProperties.col).toEqual(4);
   });
 
-  it('should run beforeValueRender hook', function() {
+  it('should run beforeValueRender hook', () => {
     handsontable({
       data: [['A1', 'B1']],
       beforeValueRender(value, cellProperties) {
@@ -107,12 +107,12 @@ describe('Core_render', () => {
       }
     });
 
-    expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('Test');
-    expect(this.$container.find('td:eq(1)')[0].innerHTML).toEqual('B1');
+    expect(spec().$container.find('td:eq(0)')[0].innerHTML).toEqual('Test');
+    expect(spec().$container.find('td:eq(1)')[0].innerHTML).toEqual('B1');
   });
 
-  it('should run beforeRenderer hook', function() {
-    var lastCellProperties;
+  it('should run beforeRenderer hook', () => {
+    let lastCellProperties;
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
@@ -123,13 +123,13 @@ describe('Core_render', () => {
     });
 
     // Value is overwritten by text renderer
-    expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('1');
+    expect(spec().$container.find('td:eq(0)')[0].innerHTML).toEqual('1');
     expect(lastCellProperties.row).toEqual(1);
     expect(lastCellProperties.col).toEqual(4);
   });
 
   it('should reflect changes applied in beforeRenderer into afterRenderer', () => {
-    var afterRenderer = jasmine.createSpy();
+    const afterRenderer = jasmine.createSpy();
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],

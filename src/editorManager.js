@@ -1,18 +1,16 @@
-import {CellCoords} from './3rdparty/walkontable/src';
-import {KEY_CODES, isMetaKey, isCtrlMetaKey} from './helpers/unicode';
-import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './helpers/dom/event';
-import {getEditorInstance} from './editors';
+import { CellCoords } from './3rdparty/walkontable/src';
+import { KEY_CODES, isMetaKey, isCtrlMetaKey } from './helpers/unicode';
+import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
+import { getEditorInstance } from './editors';
 import EventManager from './eventManager';
-import {EditorState} from './editors/_baseEditor';
+import { EditorState } from './editors/_baseEditor';
 
 function EditorManager(instance, priv, selection) {
-  var _this = this,
-    destroyed = false,
-    lock = false,
-    eventManager,
-    activeEditor;
-
-  eventManager = new EventManager(instance);
+  const _this = this;
+  const eventManager = new EventManager(instance);
+  let destroyed = false;
+  let lock = false;
+  let activeEditor;
 
   function moveSelectionAfterEnter(shiftKey) {
     const enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
@@ -327,14 +325,6 @@ function EditorManager(instance, priv, selection) {
       return;
     }
 
-    var row,
-      col,
-      prop,
-      td,
-      originalValue,
-      cellProperties,
-      editorClass;
-
     if (activeEditor && activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved) => {
         if (dataSaved) {
@@ -344,14 +334,14 @@ function EditorManager(instance, priv, selection) {
 
       return;
     }
-    row = instance.selection.selectedRange.current().highlight.row;
-    col = instance.selection.selectedRange.current().highlight.col;
-    prop = instance.colToProp(col);
-    td = instance.getCell(row, col);
 
-    originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), col);
-    cellProperties = instance.getCellMeta(row, col);
-    editorClass = instance.getCellEditor(cellProperties);
+    const row = instance.selection.selectedRange.current().highlight.row;
+    const col = instance.selection.selectedRange.current().highlight.col;
+    const prop = instance.colToProp(col);
+    const td = instance.getCell(row, col);
+    const originalValue = instance.getSourceDataAtCell(instance.runHooks('modifyRow', row), col);
+    const cellProperties = instance.getCellMeta(row, col);
+    const editorClass = instance.getCellEditor(cellProperties);
 
     if (editorClass) {
       activeEditor = getEditorInstance(editorClass, instance);

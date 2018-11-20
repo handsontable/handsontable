@@ -1,5 +1,5 @@
 import BaseEditor from './_baseEditor';
-import {hasClass} from './../helpers/dom/element';
+import { hasClass } from './../helpers/dom/element';
 
 /**
  * @private
@@ -13,7 +13,7 @@ class CheckboxEditor extends BaseEditor {
     // for purpose of handling only `doubleclick` event which may be done on a cell with checkbox.
 
     if (event && event.type === 'mouseup') {
-      let checkbox = this.TD.querySelector('input[type="checkbox"]');
+      const checkbox = this.TD.querySelector('input[type="checkbox"]');
 
       if (!hasClass(checkbox, 'htBadValue')) {
         checkbox.click();

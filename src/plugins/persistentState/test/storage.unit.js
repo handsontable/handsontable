@@ -3,11 +3,11 @@ import Storage from 'handsontable/plugins/persistentState/storage';
 describe('persistentState', () => {
   describe('storage', () => {
     const localStorageMock = (() => {
-      let store = {};
+      const store = {};
 
       return {
         setItem: (key, value) => { store[key] = value.toString(); },
-        getItem: (key) => store[key],
+        getItem: key => store[key],
         removeItem: (key) => { delete store[key]; }
       };
     })();
@@ -72,7 +72,8 @@ describe('persistentState', () => {
 
       storage.reset(1);
 
-      expect(localStorage.getItem('example_1')).toBeUndefined();
+      /* eslint-disable no-eq-null */
+      expect(localStorage.getItem('example_1') == null).toBeTruthy();
     });
 
     it('should remove all data from savedKeys array when call resetAll method', () => {

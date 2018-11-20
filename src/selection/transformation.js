@@ -1,5 +1,5 @@
-import {CellCoords} from './../3rdparty/walkontable/src';
-import {mixin} from './../helpers/object';
+import { CellCoords } from './../3rdparty/walkontable/src';
+import { mixin } from './../helpers/object';
 import localHooks from './../mixins/localHooks';
 
 /**
@@ -57,11 +57,11 @@ class Transformation {
 
       } else if (autoWrapCol) {
         delta.row = 1 - totalRows;
-        delta.col = highlightCoords.col + delta.col == totalCols - 1 ? 1 - totalCols : 1;
+        delta.col = highlightCoords.col + delta.col === totalCols - 1 ? 1 - totalCols : 1;
       }
     } else if (autoWrapCol && highlightCoords.row + delta.row < 0 && highlightCoords.col + delta.col >= 0) {
       delta.row = totalRows - 1;
-      delta.col = highlightCoords.col + delta.col == 0 ? totalCols - 1 : -1;
+      delta.col = highlightCoords.col + delta.col === 0 ? totalCols - 1 : -1;
     }
 
     if (highlightCoords.col + delta.col > totalCols - 1) {
@@ -70,11 +70,11 @@ class Transformation {
         totalCols = this.options.countCols();
 
       } else if (autoWrapRow) {
-        delta.row = highlightCoords.row + delta.row == totalRows - 1 ? 1 - totalRows : 1;
+        delta.row = highlightCoords.row + delta.row === totalRows - 1 ? 1 - totalRows : 1;
         delta.col = 1 - totalCols;
       }
     } else if (autoWrapRow && highlightCoords.col + delta.col < 0 && highlightCoords.row + delta.row >= 0) {
-      delta.row = highlightCoords.row + delta.row == 0 ? totalRows - 1 : -1;
+      delta.row = highlightCoords.row + delta.row === 0 ? totalRows - 1 : -1;
       delta.col = totalCols - 1;
     }
 

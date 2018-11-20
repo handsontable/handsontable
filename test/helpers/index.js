@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unresolved */
 import window from 'window';
+import './../bootstrap';
 import * as common from './common';
-import * as jasmine from './jasmine';
 
 const exportToWindow = (helpersHolder) => {
   Object.keys(helpersHolder).forEach((key) => {
@@ -19,4 +19,3 @@ const exportToWindow = (helpersHolder) => {
 
 // Export all helpers to the window.
 exportToWindow(common);
-exportToWindow(jasmine);

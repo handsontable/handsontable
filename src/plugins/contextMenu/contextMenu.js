@@ -1,13 +1,13 @@
 import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
-import {arrayEach} from './../../helpers/array';
+import { arrayEach } from './../../helpers/array';
 import CommandExecutor from './commandExecutor';
 import EventManager from './../../eventManager';
 import ItemsFactory from './itemsFactory';
 import Menu from './menu';
-import {registerPlugin} from './../../plugins';
-import {stopPropagation, pageX, pageY} from './../../helpers/dom/event';
-import {getWindowScrollLeft, getWindowScrollTop, hasClass} from './../../helpers/dom/element';
+import { registerPlugin } from './../../plugins';
+import { stopPropagation, pageX, pageY } from './../../helpers/dom/event';
+import { getWindowScrollLeft, getWindowScrollTop, hasClass } from './../../helpers/dom/element';
 import {
   ROW_ABOVE,
   ROW_BELOW,
@@ -140,7 +140,7 @@ class ContextMenu extends BasePlugin {
     this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
 
     const settings = this.hot.getSettings().contextMenu;
-    let predefinedItems = {
+    const predefinedItems = {
       items: this.itemsFactory.getItems(settings)
     };
 
@@ -157,7 +157,7 @@ class ContextMenu extends BasePlugin {
       this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
 
       this.itemsFactory.setPredefinedItems(predefinedItems.items);
-      let menuItems = this.itemsFactory.getItems(settings);
+      const menuItems = this.itemsFactory.getItems(settings);
 
       this.menu = new Menu(this.hot, {
         className: 'htContextMenu',
@@ -172,10 +172,10 @@ class ContextMenu extends BasePlugin {
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
-      this.addHook('afterOnCellContextMenu', (event) => this.onAfterOnCellContextMenu(event));
+      this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
 
       // Register all commands. Predefined and added by user or by plugins
-      arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
+      arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
     };
 
     this.callOnPluginsReady(() => {
@@ -270,8 +270,8 @@ class ContextMenu extends BasePlugin {
    * @param {String} commandName The command name to be executed.
    * @param {...*} params
    */
-  executeCommand(...params) {
-    this.commandExecutor.execute.apply(this.commandExecutor, params);
+  executeCommand(commandName, ...params) {
+    this.commandExecutor.execute(commandName, ...params);
   }
 
   /**
@@ -281,15 +281,15 @@ class ContextMenu extends BasePlugin {
    * @param {Event} event
    */
   onAfterOnCellContextMenu(event) {
-    let settings = this.hot.getSettings();
-    let showRowHeaders = settings.rowHeaders;
-    let showColHeaders = settings.colHeaders;
+    const settings = this.hot.getSettings();
+    const showRowHeaders = settings.rowHeaders;
+    const showColHeaders = settings.colHeaders;
 
     function isValidElement(element) {
       return element.nodeName === 'TD' || element.parentNode.nodeName === 'TD';
     }
     // if event is from hot-table we must get web component element not element inside him
-    let element = event.realTarget;
+    const element = event.realTarget;
     this.close();
 
     if (hasClass(element, 'handsontableInput')) {

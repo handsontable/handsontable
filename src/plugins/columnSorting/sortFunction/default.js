@@ -1,17 +1,19 @@
-import {isEmpty} from '../../../helpers/mixed';
-import {DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
+/* eslint-disable import/prefer-default-export */
+
+import { isEmpty } from '../../../helpers/mixed';
+import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortService';
 
 /**
- * Default sorting algorithm.
+ * Default sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
- * @param {String} sortOrder Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
+ * @param {String} sortOrder Sort order (`asc` for ascending, `desc` for descending).
  * @param {Object} columnMeta Column meta object.
+ * @param {Object} columnPluginSettings Plugin settings for the column.
  * @returns {Function} The compare function.
  */
-export default function defaultSort(sortOrder, columnMeta) {
-  // We are soring array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
-  return function ([, value], [, nextValue]) {
-    const sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
+export function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
+  return function(value, nextValue) {
+    const { sortEmptyCells } = columnPluginSettings;
 
     if (typeof value === 'string') {
       value = value.toLowerCase();
@@ -27,7 +29,6 @@ export default function defaultSort(sortOrder, columnMeta) {
 
     if (isEmpty(value)) {
       if (isEmpty(nextValue)) {
-        // Two empty values
         return DO_NOT_SWAP;
       }
 
@@ -70,3 +71,5 @@ export default function defaultSort(sortOrder, columnMeta) {
     return DO_NOT_SWAP;
   };
 }
+
+export const COLUMN_DATA_TYPE = 'default';

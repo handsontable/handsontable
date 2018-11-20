@@ -1,4 +1,4 @@
-import {arrayEach} from './array';
+import { arrayEach } from './array';
 
 /**
  * Generate schema for passed object.
@@ -7,7 +7,7 @@ import {arrayEach} from './array';
  * @returns {Array|Object}
  */
 export function duckSchema(object) {
-  var schema;
+  let schema;
 
   if (Array.isArray(object)) {
     schema = [];
@@ -117,7 +117,7 @@ export function deepClone(obj) {
  * @returns {Object}
  */
 export function clone(object) {
-  let result = {};
+  const result = {};
 
   objectEach(object, (value, key) => {
     result[key] = value;
@@ -137,10 +137,10 @@ export function mixin(Base, ...mixins) {
   if (!Base.MIXINS) {
     Base.MIXINS = [];
   }
-  arrayEach(mixins, (mixin) => {
-    Base.MIXINS.push(mixin.MIXIN_NAME);
+  arrayEach(mixins, (mixinItem) => {
+    Base.MIXINS.push(mixinItem.MIXIN_NAME);
 
-    objectEach(mixin, (value, key) => {
+    objectEach(mixinItem, (value, key) => {
       if (Base.prototype[key] !== void 0) {
         throw new Error(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`);
       }
@@ -148,15 +148,17 @@ export function mixin(Base, ...mixins) {
         Base.prototype[key] = value;
 
       } else {
-        let getter = function _getter(propertyName, initialValue) {
-          propertyName = `_${propertyName}`;
+        const getter = function _getter(property, initialValue) {
+          const propertyName = `_${property}`;
 
-          let initValue = (value) => {
-            if (Array.isArray(value) || isObject(value)) {
-              value = deepClone(value);
+          const initValue = (newValue) => {
+            let result = newValue;
+
+            if (Array.isArray(result) || isObject(result)) {
+              result = deepClone(result);
             }
 
-            return value;
+            return result;
           };
 
           return function() {
@@ -167,11 +169,11 @@ export function mixin(Base, ...mixins) {
             return this[propertyName];
           };
         };
-        let setter = function _setter(propertyName) {
-          propertyName = `_${propertyName}`;
+        const setter = function _setter(property) {
+          const propertyName = `_${property}`;
 
-          return function(value) {
-            this[propertyName] = value;
+          return function(newValue) {
+            this[propertyName] = newValue;
           };
         };
         Object.defineProperty(Base.prototype, key, {
@@ -204,7 +206,7 @@ export function isObjectEqual(object1, object2) {
  * @returns {boolean}
  */
 export function isObject(obj) {
-  return Object.prototype.toString.call(obj) == '[object Object]';
+  return Object.prototype.toString.call(obj) === '[object Object]';
 }
 
 export function defineGetter(object, property, value, options) {
@@ -224,7 +226,8 @@ export function defineGetter(object, property, value, options) {
  * @returns {Object} Returns `object`.
  */
 export function objectEach(object, iteratee) {
-  for (let key in object) {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const key in object) {
     if (!object.hasOwnProperty || (object.hasOwnProperty && Object.prototype.hasOwnProperty.call(object, key))) {
       if (iteratee(object[key], key, object) === false) {
         break;
@@ -243,11 +246,11 @@ export function objectEach(object, iteratee) {
  * @returns {*}
  */
 export function getProperty(object, name) {
-  let names = name.split('.');
+  const names = name.split('.');
   let result = object;
 
-  objectEach(names, (name) => {
-    result = result[name];
+  objectEach(names, (nameItem) => {
+    result = result[nameItem];
 
     if (result === void 0) {
       result = void 0;
@@ -269,7 +272,7 @@ export function deepObjectSize(object) {
   if (!isObject(object)) {
     return 0;
   }
-  let recursObjLen = function(obj) {
+  const recursObjLen = function(obj) {
     let result = 0;
 
     if (isObject(obj)) {
@@ -277,7 +280,7 @@ export function deepObjectSize(object) {
         result += recursObjLen(key);
       });
     } else {
-      result++;
+      result += 1;
     }
 
     return result;

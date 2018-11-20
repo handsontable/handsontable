@@ -1238,9 +1238,9 @@ describe('Walkontable.CellRange', () => {
       const to = new Walkontable.CellCoords(2, 2);
       const range = new Walkontable.CellRange(from, from, to);
       let callCount = 0;
-      range.forAll((row, col) => {
-        callCount++;
-        if (callCount == 2) {
+      range.forAll(() => {
+        callCount += 1;
+        if (callCount === 2) {
           return false;
         }
       });

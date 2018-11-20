@@ -1,5 +1,5 @@
 import DisplaySwitch from 'handsontable/plugins/comments/displaySwitch';
-import {CellCoords} from 'handsontable/3rdparty/walkontable/src';
+import { CellCoords } from 'handsontable/3rdparty/walkontable/src';
 
 const DEFAULT_HIDE_DELAY = 250;
 
@@ -17,7 +17,7 @@ describe('Comments', () => {
     it('should call `showDebounced` function after triggering `show` function', () => {
       const displaySwitch = new DisplaySwitch(200);
       displaySwitch.showDebounced = jasmine.createSpy('showDebounced');
-      const range = {from: new CellCoords(0, 1)};
+      const range = { from: new CellCoords(0, 1) };
 
       displaySwitch.show(range);
 
@@ -27,7 +27,7 @@ describe('Comments', () => {
     it('should set `wasLastActionShow` variable to `true`', () => {
       const displaySwitch = new DisplaySwitch(200);
       displaySwitch.showDebounced = jasmine.createSpy('showDebounced');
-      const range = {from: new CellCoords(0, 1)};
+      const range = { from: new CellCoords(0, 1) };
 
       displaySwitch.show(range);
 
@@ -37,7 +37,7 @@ describe('Comments', () => {
     it('should trigger `show` local hook after calling `show` function', () => {
       const displaySwitch = new DisplaySwitch(700);
       const onShow = jasmine.createSpy('onShow');
-      const range = {from: new CellCoords(0, 1)};
+      const range = { from: new CellCoords(0, 1) };
 
       jest.useFakeTimers();
 
@@ -52,7 +52,7 @@ describe('Comments', () => {
     it('should not trigger `show` local hook after calling `show` function as not last one', () => {
       const displaySwitch = new DisplaySwitch(700);
       const onShow = jasmine.createSpy('onShow');
-      const range = {from: new CellCoords(0, 1)};
+      const range = { from: new CellCoords(0, 1) };
 
       jest.useFakeTimers();
 
@@ -104,7 +104,7 @@ describe('Comments', () => {
     it('should not trigger `hide` local hook after calling `hide` function as not last one', () => {
       const displaySwitch = new DisplaySwitch(700);
       const onHide = jasmine.createSpy('onHide');
-      const range = {from: new CellCoords(0, 1)};
+      const range = { from: new CellCoords(0, 1) };
 
       jest.useFakeTimers();
 
@@ -134,7 +134,7 @@ describe('Comments', () => {
   describe('DisplaySwitch.showDebounced', () => {
     it('should call `showDebounced` function after defined delay', () => {
       const displaySwitch = new DisplaySwitch(1000);
-      const range = {from: new CellCoords(0, 1)};
+      const range = { from: new CellCoords(0, 1) };
 
       jest.useFakeTimers();
 
@@ -148,7 +148,7 @@ describe('Comments', () => {
   describe('DisplaySwitch.updateDelay', () => {
     it('should update `showDebounced` function delay', () => {
       const displaySwitch = new DisplaySwitch(1000);
-      const range = {from: new CellCoords(0, 1)};
+      const range = { from: new CellCoords(0, 1) };
       const cachedShowDebounced = jasmine.createSpy('cachedShowDebounced');
       displaySwitch.showDebounced = cachedShowDebounced;
 
@@ -168,7 +168,7 @@ describe('Comments', () => {
   });
 
   describe('DisplaySwitch.cancelHiding', () => {
-    it('should not call function after delay', function () {
+    it('should not call function after delay', () => {
       const displaySwitch = new DisplaySwitch(700);
       const onHide = jasmine.createSpy('onHide');
 
@@ -184,7 +184,7 @@ describe('Comments', () => {
       expect(onHide).not.toHaveBeenCalled();
     });
 
-    it('should set timer value to `null`', function () {
+    it('should set timer value to `null`', () => {
       const displaySwitch = new DisplaySwitch(700);
       const onHide = jasmine.createSpy('onHide');
 

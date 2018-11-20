@@ -1,5 +1,5 @@
-import {arrayEach} from './helpers/array';
-import {objectEach} from './helpers/object';
+import { arrayEach } from './helpers/array';
+import { objectEach } from './helpers/object';
 
 /**
  * @description
@@ -337,6 +337,20 @@ const REGISTERED_HOOKS = [
   'afterOnCellMouseDown',
 
   /**
+   * Fired after clicking on a cell or row/column header. In case the row/column header was clicked, the coordinate
+   * indexes are negative.
+   *
+   * For example clicking on the row header of cell (0, 0) results with `afterOnCellMouseUp` called
+   * with coordinates `{row: 0, col: -1}`.
+   *
+   * @event Hooks#afterOnCellMouseUp
+   * @param {Event} event `mouseup` event object.
+   * @param {CellCoords} coords Coordinates object containing the visual row and visual column indexes of the clicked cell.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
+   */
+  'afterOnCellMouseUp',
+
+  /**
    * Fired after clicking right mouse button on a cell or row/column header.
    *
    * For example clicking on the row header of cell (0, 0) results with `afterOnCellContextMenu` called
@@ -563,7 +577,7 @@ const REGISTERED_HOOKS = [
    * Fired after calling the `updateSettings` method.
    *
    * @event Hooks#afterUpdateSettings
-   * @param {Object} settings New settings object.
+   * @param {Object} newSettings New settings object.
    */
   'afterUpdateSettings',
 
@@ -744,6 +758,18 @@ const REGISTERED_HOOKS = [
    *                            object allows or disallows changing the selection for the particular axies.
    */
   'beforeOnCellMouseDown',
+
+  /**
+   * Fired after the user clicked a cell.
+   *
+   * @event Hooks#beforeOnCellMouseUp
+   * @param {Event} event The `mouseup` event object.
+   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
+   * @param {HTMLTableCellElement} TD TD element.
+   * @param {Object} controller An object with keys `row`, `column` and `cells` which contains boolean values. This
+   *                            object allows or disallows changing the selection for the particular axies.
+   */
+  'beforeOnCellMouseUp',
 
   /**
    * Fired after the user clicked a cell, but before all the calculations related with it.
@@ -1007,30 +1033,24 @@ const REGISTERED_HOOKS = [
   'persistentStateSave',
 
   /**
-   * Fired by {@link ColumnSorting} plugin before sorting the column. If you return `false` value then sorting
+   * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
    * will be not applied by the Handsontable (useful for server-side sorting).
    *
-   * This hook is fired when {@link Options#columnSorting} option is enabled.
+   * This hook is fired when {@link Options#columnSorting} or {@link Options#multiColumnSorting} option is enabled.
    *
    * @event Hooks#beforeColumnSort
-   * @param {Number} column Sorted visual column index.
-   * @param {Boolean} order Soring order where:
-   *  * `asc` means ascending order
-   *  * `desc` means descending order
-   *  * `none` means original order
+   * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
+   * @param {Array} destinationSortConfigs Destination sort configuration (for all sorted columns).
    */
   'beforeColumnSort',
 
   /**
-   * Fired by {@link ColumnSorting} plugin after sorting the column. This hook is fired when {@link Options#columnSorting}
-   * option is enabled.
+   * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins after sorting the column. This hook is fired when {@link Options#columnSorting}
+   * or {@link Options#multiColumnSorting} option is enabled.
    *
    * @event Hooks#afterColumnSort
-   * @param {Number} column Sorted visual column index.
-   * @param {String} order Soring order where:
-   *  * `'asc'` means ascending order
-   *  * `'desc'` means descending order
-   *  * `'none'` means original order
+   * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
+   * @param {Array} destinationSortConfigs Destination sort configuration (for all sorted columns).
    */
   'afterColumnSort',
 
@@ -1667,7 +1687,7 @@ const REGISTERED_HOOKS = [
 
 class Hooks {
   static getSingleton() {
-    return globalSingleton;
+    return getGlobalSingleton();
   }
 
   /**
@@ -1699,7 +1719,7 @@ class Hooks {
     const bucket = Object.create(null);
 
     // eslint-disable-next-line no-return-assign
-    arrayEach(REGISTERED_HOOKS, (hook) => (bucket[hook] = []));
+    arrayEach(REGISTERED_HOOKS, hook => (bucket[hook] = []));
 
     return bucket;
   }
@@ -1752,7 +1772,7 @@ class Hooks {
    */
   add(key, callback, context = null) {
     if (Array.isArray(callback)) {
-      arrayEach(callback, (c) => this.add(key, c, context));
+      arrayEach(callback, c => this.add(key, c, context));
 
     } else {
       const bucket = this.getBucket(context);
@@ -1802,7 +1822,7 @@ class Hooks {
    */
   once(key, callback, context = null) {
     if (Array.isArray(callback)) {
-      arrayEach(callback, (c) => this.once(key, c, context));
+      arrayEach(callback, c => this.once(key, c, context));
 
     } else {
       callback.runOnce = true;
@@ -1825,7 +1845,7 @@ class Hooks {
    * ```
    */
   remove(key, callback, context = null) {
-    let bucket = this.getBucket(context);
+    const bucket = this.getBucket(context);
 
     if (typeof bucket[key] !== 'undefined') {
       if (bucket[key].indexOf(callback) >= 0) {
@@ -1847,7 +1867,7 @@ class Hooks {
    * @returns {Boolean} `true` for success, `false` otherwise.
    */
   has(key, context = null) {
-    let bucket = this.getBucket(context);
+    const bucket = this.getBucket(context);
 
     return !!(bucket[key] !== void 0 && bucket[key].length);
   }
@@ -1875,49 +1895,57 @@ class Hooks {
   run(context, key, p1, p2, p3, p4, p5, p6) {
     {
       const globalHandlers = this.globalBucket[key];
-      let index = -1;
-      let length = globalHandlers ? globalHandlers.length : 0;
+      const length = globalHandlers ? globalHandlers.length : 0;
+      let index = 0;
 
       if (length) {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-        while (++index < length) {
+        while (index < length) {
           if (!globalHandlers[index] || globalHandlers[index].skip) {
+            index += 1;
             /* eslint-disable no-continue */
             continue;
           }
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-          let res = globalHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
+          const res = globalHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
+            // eslint-disable-next-line no-param-reassign
             p1 = res;
           }
           if (globalHandlers[index] && globalHandlers[index].runOnce) {
             this.remove(key, globalHandlers[index]);
           }
+
+          index += 1;
         }
       }
     }
     {
       const localHandlers = this.getBucket(context)[key];
-      let index = -1;
-      let length = localHandlers ? localHandlers.length : 0;
+      const length = localHandlers ? localHandlers.length : 0;
+      let index = 0;
 
       if (length) {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-        while (++index < length) {
+        while (index < length) {
           if (!localHandlers[index] || localHandlers[index].skip) {
+            index += 1;
             /* eslint-disable no-continue */
             continue;
           }
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-          let res = localHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
+          const res = localHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
+            // eslint-disable-next-line no-param-reassign
             p1 = res;
           }
           if (localHandlers[index] && localHandlers[index].runOnce) {
             this.remove(key, localHandlers[index], context);
           }
+
+          index += 1;
         }
       }
     }
@@ -2022,5 +2050,9 @@ class Hooks {
 }
 
 const globalSingleton = new Hooks();
+
+function getGlobalSingleton() {
+  return globalSingleton;
+}
 
 export default Hooks;

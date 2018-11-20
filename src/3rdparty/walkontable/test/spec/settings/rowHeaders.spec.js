@@ -1,11 +1,11 @@
 describe('rowHeaders option', () => {
-  var $table,
-    $container,
-    $wrapper,
-    debug = false;
+  let $table;
+  let $container;
+  let $wrapper;
+  const debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden', position: 'relative'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden', position: 'relative' });
     $wrapper.width(500).height(201);
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
@@ -23,7 +23,7 @@ describe('rowHeaders option', () => {
   });
 
   it('should not add class `htRowHeader` when row headers are disabled', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -35,7 +35,7 @@ describe('rowHeaders option', () => {
   });
 
   it('should add class `htRowHeader` when row headers are enabled', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -50,7 +50,7 @@ describe('rowHeaders option', () => {
   });
 
   it('should create table row headers', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -73,7 +73,7 @@ describe('rowHeaders option', () => {
   });
 
   it('should generate headers from function', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -84,7 +84,7 @@ describe('rowHeaders option', () => {
     });
 
     wt.draw();
-    var potentialRowCount = 9;
+    const potentialRowCount = 9;
     expect($table.find('tbody td').length).toBe(potentialRowCount * wt.wtTable.getRenderedColumnsCount()); // displayed cells
     expect($table.find('tbody th').length).toBe(potentialRowCount); // 9*1=9 displayed row headers
     expect($table.find('tbody tr:first th').length).toBe(1); // only one th per row
@@ -92,7 +92,7 @@ describe('rowHeaders option', () => {
   });
 
   it('should add \'rowHeader\' class to row header column', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,

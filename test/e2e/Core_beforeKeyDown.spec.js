@@ -1,5 +1,5 @@
 describe('Core_beforeKeyDown', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,11 +13,11 @@ describe('Core_beforeKeyDown', () => {
   });
 
   it('should run beforeKeyDown hook', () => {
-    var called = false;
+    let called = false;
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
-      beforeKeyDown(event) {
+      beforeKeyDown() {
         called = true;
       }
     });
@@ -29,7 +29,7 @@ describe('Core_beforeKeyDown', () => {
   });
 
   it('should run afterDocumentKeyDown and beforeKeyDown hook', () => {
-    var called = [];
+    const called = [];
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
@@ -48,16 +48,10 @@ describe('Core_beforeKeyDown', () => {
   });
 
   it('should prevent hook from running default action', () => {
-    var called = false;
-
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       beforeKeyDown(event) {
-
-        event = serveImmediatePropagation(event);
-
-        event.stopImmediatePropagation();
-        called = true;
+        serveImmediatePropagation(event).stopImmediatePropagation();
       }
     });
     selectCell(0, 0);
@@ -69,8 +63,6 @@ describe('Core_beforeKeyDown', () => {
   });
 
   it('should overwrite default behavior of delete key, but not this of right arrow', () => {
-    var called = 0;
-
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       beforeKeyDown(event) {
@@ -78,8 +70,6 @@ describe('Core_beforeKeyDown', () => {
           event.stopImmediatePropagation();
           getInstance().alter('insert_row', 1, 1);
         }
-
-        called++;
       }
     });
 
@@ -93,12 +83,12 @@ describe('Core_beforeKeyDown', () => {
   });
 
   it('should run beforeKeyDown hook in cell editor handler', () => {
-    var called = 0;
+    let called = 0;
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
-      beforeKeyDown(event) {
-        called++;
+      beforeKeyDown() {
+        called += 1;
       }
     });
     selectCell(0, 0);

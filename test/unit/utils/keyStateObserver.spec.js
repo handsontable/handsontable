@@ -49,9 +49,9 @@ describe('keyStateObserver', () => {
       expect(isPressed('BACKSPACE')).toBe(false);
       expect(isPressedCtrlKey()).toBe(false);
 
-      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 13}));
-      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 8}));
-      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 91}));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 13 }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 8 }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 91 }));
 
       expect(isPressed('ENTER')).toBe(true);
       expect(isPressed('BACKSPACE')).toBe(true);
@@ -71,11 +71,11 @@ describe('keyStateObserver', () => {
 
       expect(isPressedCtrlKey()).toBe(false);
 
-      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 17}));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 17 }));
 
       expect(isPressedCtrlKey()).toBe(true);
 
-      document.dispatchEvent(new KeyboardEvent('keyup', {keyCode: 17}));
+      document.dispatchEvent(new KeyboardEvent('keyup', { keyCode: 17 }));
 
       expect(isPressedCtrlKey()).toBe(false);
     });
@@ -85,11 +85,11 @@ describe('keyStateObserver', () => {
 
       expect(isPressedCtrlKey()).toBe(false);
 
-      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 91}));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 91 }));
 
       expect(isPressedCtrlKey()).toBe(true);
 
-      document.dispatchEvent(new KeyboardEvent('keyup', {keyCode: 91}));
+      document.dispatchEvent(new KeyboardEvent('keyup', { keyCode: 91 }));
 
       expect(isPressedCtrlKey()).toBe(false);
     });
@@ -99,11 +99,11 @@ describe('keyStateObserver', () => {
 
       expect(isPressedCtrlKey()).toBe(false);
 
-      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 93}));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 93 }));
 
       expect(isPressedCtrlKey()).toBe(true);
 
-      document.dispatchEvent(new KeyboardEvent('keyup', {keyCode: 93}));
+      document.dispatchEvent(new KeyboardEvent('keyup', { keyCode: 93 }));
 
       expect(isPressedCtrlKey()).toBe(false);
     });
@@ -113,11 +113,107 @@ describe('keyStateObserver', () => {
 
       expect(isPressedCtrlKey()).toBe(false);
 
-      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 224}));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 224 }));
 
       expect(isPressedCtrlKey()).toBe(true);
 
-      document.dispatchEvent(new KeyboardEvent('keyup', {keyCode: 224}));
+      document.dispatchEvent(new KeyboardEvent('keyup', { keyCode: 224 }));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when left CMD key AND F is pressed', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 91 }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 70 }));
+      window.dispatchEvent(new FocusEvent('blur'));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when right CMD key AND F is pressed', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 93 }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 70 }));
+      window.dispatchEvent(new FocusEvent('blur'));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when CMD key AND F is pressed (macOS on FF)', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 224 }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 70 }));
+      window.dispatchEvent(new FocusEvent('blur'));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when CTRL key AND F is pressed', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 17 }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 70 }));
+      window.dispatchEvent(new FocusEvent('blur'));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when left CMD key AND D is pressed', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 91 }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 68 }));
+      window.dispatchEvent(new FocusEvent('blur'));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when right CMD key AND D is pressed', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 93 }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 68 }));
+      window.dispatchEvent(new FocusEvent('blur'));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when CMD key AND D is pressed (macOS on FF)', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 224 }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 68 }));
+      window.dispatchEvent(new FocusEvent('blur'));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when CTRL key AND D is pressed', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 17 }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 68 }));
+      window.dispatchEvent(new FocusEvent('blur'));
 
       expect(isPressedCtrlKey()).toBe(false);
     });
@@ -129,11 +225,11 @@ describe('keyStateObserver', () => {
 
       expect(isPressed('ENTER')).toBe(false);
 
-      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 13}));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 13 }));
 
       expect(isPressed('ENTER')).toBe(true);
 
-      document.dispatchEvent(new KeyboardEvent('keyup', {keyCode: 13}));
+      document.dispatchEvent(new KeyboardEvent('keyup', { keyCode: 13 }));
 
       expect(isPressed('ENTER')).toBe(false);
     });
@@ -143,16 +239,16 @@ describe('keyStateObserver', () => {
 
       expect(isPressed('ENTER|BACKSPACE')).toBe(false);
 
-      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 13}));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 13 }));
 
       expect(isPressed('ENTER|BACKSPACE')).toBe(true);
 
-      document.dispatchEvent(new KeyboardEvent('keyup', {keyCode: 13}));
-      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 8}));
+      document.dispatchEvent(new KeyboardEvent('keyup', { keyCode: 13 }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 8 }));
 
       expect(isPressed('ENTER|BACKSPACE')).toBe(true);
 
-      document.dispatchEvent(new KeyboardEvent('keyup', {keyCode: 8}));
+      document.dispatchEvent(new KeyboardEvent('keyup', { keyCode: 8 }));
     });
   });
 });

@@ -1,6 +1,7 @@
 import EventManager from './../../eventManager';
 import localHooks from './../../mixins/localHooks';
-import {mixin} from './../../helpers/object';
+import { mixin } from './../../helpers/object';
+import { isMobileBrowser } from './../../helpers/browser';
 
 /**
  * @class FocusableWrapper
@@ -70,7 +71,10 @@ class FocusableWrapper {
   focus() {
     // Add an empty space to texarea. It is necessary for safari to enable "copy" command from menu bar.
     this.mainElement.value = ' ';
-    this.mainElement.select();
+
+    if (!isMobileBrowser()) {
+      this.mainElement.select();
+    }
   }
 }
 
@@ -98,6 +102,52 @@ function createElement() {
  */
 function deactivateElement(wrapper) {
   wrapper.eventManager.clear();
+}
+
+const runLocalHooks = (eventName, subject) => event => subject.runLocalHooks(eventName, event);
+
+/**
+ * Register copy/cut/paste events and forward their actions to the subject local hooks system.
+ *
+ * @param {HTMLElement} element
+ * @param {FocusableWrapper} subject
+ */
+function forwardEventsToLocalHooks(eventManager, element, subject) {
+  eventManager.addEventListener(element, 'copy', runLocalHooks('copy', subject));
+  eventManager.addEventListener(element, 'cut', runLocalHooks('cut', subject));
+  eventManager.addEventListener(element, 'paste', runLocalHooks('paste', subject));
+}
+
+let secondaryElement;
+
+/**
+ * Create and attach newly created focusable element to the DOM.
+ *
+ * @return {HTMLElement}
+ */
+function createOrGetSecondaryElement() {
+  if (secondaryElement) {
+
+    if (!secondaryElement.parentElement) {
+      document.body.appendChild(secondaryElement);
+    }
+
+    return secondaryElement;
+  }
+
+  const element = document.createElement('textarea');
+
+  secondaryElement = element;
+  element.id = 'HandsontableCopyPaste';
+  element.className = 'copyPaste';
+  element.tabIndex = -1;
+  element.autocomplete = 'off';
+  element.wrap = 'hard';
+  element.value = ' ';
+
+  document.body.appendChild(element);
+
+  return element;
 }
 
 /**
@@ -128,50 +178,4 @@ function destroyElement(wrapper) {
   }
 }
 
-const runLocalHooks = (eventName, subject) => (event) => subject.runLocalHooks(eventName, event);
-
-/**
- * Register copy/cut/paste events and forward their actions to the subject local hooks system.
- *
- * @param {HTMLElement} element
- * @param {FocusableWrapper} subject
- */
-function forwardEventsToLocalHooks(eventManager, element, subject) {
-  eventManager.addEventListener(element, 'copy', runLocalHooks('copy', subject));
-  eventManager.addEventListener(element, 'cut', runLocalHooks('cut', subject));
-  eventManager.addEventListener(element, 'paste', runLocalHooks('paste', subject));
-}
-
-let secondaryElement;
-
-/**
- * Create and attach newly created focusable element to the DOM.
- *
- * @return {HTMLElement}
- */
-function createOrGetSecondaryElement(subject) {
-  if (secondaryElement) {
-
-    if (!secondaryElement.parentElement) {
-      document.body.appendChild(secondaryElement);
-    }
-
-    return secondaryElement;
-  }
-
-  const element = document.createElement('textarea');
-
-  secondaryElement = element;
-  element.id = 'HandsontableCopyPaste';
-  element.className = 'copyPaste';
-  element.tabIndex = -1;
-  element.autocomplete = 'off';
-  element.wrap = 'hard';
-  element.value = ' ';
-
-  document.body.appendChild(element);
-
-  return element;
-}
-
-export {createElement, deactivateElement, destroyElement};
+export { createElement, deactivateElement, destroyElement };

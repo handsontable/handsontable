@@ -3,13 +3,14 @@ import {
   isValidCoord,
   normalizeSelectionFactory,
   transformSelectionToColumnDistance,
-  transformSelectionToRowDistance,
+  // TODO: add tests for transformSelectionToRowDistance
+  // transformSelectionToRowDistance,
   SELECTION_TYPE_ARRAY,
   SELECTION_TYPE_EMPTY,
   SELECTION_TYPE_OBJECT,
   SELECTION_TYPE_UNRECOGNIZED,
 } from 'handsontable/selection/utils';
-import {CellRange, CellCoords} from 'walkontable';
+import { CellRange, CellCoords } from 'walkontable';
 
 describe('selection utils', () => {
   const coords = (row, column) => new CellCoords(row, column);
@@ -131,14 +132,14 @@ describe('selection utils', () => {
     });
 
     it('should create ARRAY normalizer function which keep origin coordinates direction', () => {
-      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY, {keepDirection: true});
+      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY, { keepDirection: true });
 
       expect(normalizer([1, 1, 2, 2])).toEqual([1, 1, 2, 2]);
       expect(normalizer([2, 2, 1, 1])).toEqual([2, 2, 1, 1]);
     });
 
     it('should create OBJECT normalizer function which keep origin coordinates direction', () => {
-      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_OBJECT, {keepDirection: true});
+      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_OBJECT, { keepDirection: true });
 
       expect(normalizer(range(1, 1))).toEqual([1, 1, 1, 1]);
       expect(normalizer(range(1, 1, 2, 2))).toEqual([2, 2, 1, 1]);
@@ -147,8 +148,8 @@ describe('selection utils', () => {
 
     it('should create ARRAY normalizer function which translates column string coordinates to visual indexes', () => {
       const propToColMap = new Map([['prop0', 9], ['prop1', 8], ['prop2', 7], ['prop3', 6]]);
-      const propToCol = (prop) => propToColMap.get(prop);
-      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY, {propToCol});
+      const propToCol = prop => propToColMap.get(prop);
+      const normalizer = normalizeSelectionFactory(SELECTION_TYPE_ARRAY, { propToCol });
 
       expect(normalizer([1, 1, 2, 2])).toEqual([1, 1, 2, 2]);
       expect(normalizer([1, 'prop1', 2, 3])).toEqual([1, 3, 2, 8]);
@@ -188,7 +189,7 @@ describe('selection utils', () => {
       expect(isValidCoord('0')).toBe(false);
       expect(isValidCoord('a')).toBe(false);
       expect(isValidCoord([1])).toBe(false);
-      expect(isValidCoord({foo: 1})).toBe(false);
+      expect(isValidCoord({ foo: 1 })).toBe(false);
     });
 
     it('should return `true` on valid coordinates', () => {

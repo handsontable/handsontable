@@ -2,8 +2,8 @@ import {
   getScrollableElement,
   getTrimmingContainer,
 } from './../../../../helpers/dom/element';
-import {defineGetter} from './../../../../helpers/object';
-import {arrayEach} from './../../../../helpers/array';
+import { defineGetter } from './../../../../helpers/object';
+import { arrayEach } from './../../../../helpers/array';
 import EventManager from './../../../../eventManager';
 import Walkontable from './../core';
 
@@ -198,8 +198,8 @@ class Overlay {
     if (Overlay.CLONE_TYPES.indexOf(direction) === -1) {
       throw new Error(`Clone type "${direction}" is not supported.`);
     }
-    let clone = document.createElement('DIV');
-    let clonedTable = document.createElement('TABLE');
+    const clone = document.createElement('DIV');
+    const clonedTable = document.createElement('TABLE');
 
     clone.className = `ht_clone_${direction} handsontable`;
     clone.style.position = 'absolute';
@@ -213,7 +213,7 @@ class Overlay {
     this.type = direction;
     this.wot.wtTable.wtRootElement.parentNode.appendChild(clone);
 
-    let preventOverflow = this.wot.getSetting('preventOverflow');
+    const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (preventOverflow === true ||
         preventOverflow === 'horizontal' && this.type === Overlay.CLONE_TOP ||
@@ -238,7 +238,7 @@ class Overlay {
    */
   refresh(fastDraw = false) {
     // When hot settings are changed we allow to refresh overlay once before blocking
-    var nextCycleRenderFlag = this.shouldBeRendered();
+    const nextCycleRenderFlag = this.shouldBeRendered();
 
     if (this.clone && (this.needFullRender || nextCycleRenderFlag)) {
       this.clone.draw(fastDraw);
@@ -255,9 +255,9 @@ class Overlay {
     }
     const holder = this.clone.wtTable.holder;
     const hider = this.clone.wtTable.hider;
-    let holderStyle = holder.style;
-    let hidderStyle = hider.style;
-    let rootStyle = holder.parentNode.style;
+    const holderStyle = holder.style;
+    const hidderStyle = hider.style;
+    const rootStyle = holder.parentNode.style;
 
     arrayEach([holderStyle, hidderStyle, rootStyle], (style) => {
       style.width = '';

@@ -4,11 +4,12 @@
 
 <br/>
 
-[**Handsontable Community Edition (CE)**](//handsontable.com) is an open source JavaScript/HTML5 UI Spreadsheet component for web apps. It easily integrates with any data source and comes with a variety of useful features like data binding, validation, sorting or powerful context menu. It is available for [Vue](//github.com/handsontable/vue-handsontable-official), [React](//github.com/handsontable/react-handsontable), [Angular](//github.com/handsontable/angular-handsontable) and [Polymer](//github.com/handsontable/hot-table).
+[**Handsontable Community Edition (CE)**](//handsontable.com) is an open source JavaScript/HTML5 data grid component with spreadsheet look & feel. It easily integrates with any data source and comes with a variety of useful features like data binding, validation, sorting or powerful context menu. It is available for [Vue](//github.com/handsontable/vue-handsontable-official), [React](//github.com/handsontable/react-handsontable), [Angular](//github.com/handsontable/angular-handsontable) and [Polymer](//github.com/handsontable/hot-table).
 
 If you are looking for an extended version, try out [Handsontable Pro](//github.com/handsontable/handsontable-pro).
 
 [![Build status](https://travis-ci.org/handsontable/handsontable.png?branch=master)](//travis-ci.org/handsontable/handsontable)
+[![npm](https://img.shields.io/npm/dt/handsontable.svg)](//npmjs.com/package/handsontable)
 [![npm](https://img.shields.io/npm/dm/handsontable.svg)](//npmjs.com/package/handsontable)
 [![npm](https://img.shields.io/github/contributors/handsontable/handsontable.svg)](//github.com/handsontable/handsontable/graphs/contributors)
 
@@ -17,7 +18,7 @@ If you are looking for an extended version, try out [Handsontable Pro](//github.
 
 **We are looking for Contributors who would like to help us with translations. [Learn more](https://github.com/handsontable/handsontable/issues/4696)**
 <br/>
-Most wanted languages: Danish, Italian, Korean, Portuguese, Spanish and Swedish.
+Most wanted languages: Danish, Portuguese, Spanish and Swedish.
 
 ---
 
@@ -111,7 +112,7 @@ var hot = new Handsontable(container, {
 - Internationalization
 - Non-contiguous selection
 
-[See a comparison table](//docs.handsontable.com/tutorial-features.html)
+[See a comparison table](//handsontable.com/docs/tutorial-features.html)
 
 <br/>
 
@@ -125,8 +126,8 @@ var hot = new Handsontable(container, {
 <br/>
 
 ### Resources
-- [API Reference](//docs.handsontable.com/Core.html)
-- [Compatibility](//docs.handsontable.com/tutorial-compatibility.html)
+- [API Reference](//handsontable.com/docs/Core.html)
+- [Compatibility](//handsontable.com/docs/tutorial-compatibility.html)
 - [Change log](//github.com/handsontable/handsontable/releases)
 - [Roadmap](//trello.com/b/PztR4hpj)
 - [Newsroom](//twitter.com/handsontable)

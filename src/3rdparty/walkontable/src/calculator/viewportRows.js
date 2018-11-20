@@ -73,23 +73,23 @@ class ViewportRowsCalculator {
   calculate() {
     let sum = 0;
     let needReverse = true;
-    let startPositions = [];
+    const startPositions = [];
 
-    let priv = privatePool.get(this);
-    let onlyFullyVisible = priv.onlyFullyVisible;
-    let overrideFn = priv.overrideFn;
-    let rowHeightFn = priv.rowHeightFn;
-    let scrollOffset = priv.scrollOffset;
-    let totalRows = priv.totalRows;
-    let viewportHeight = priv.viewportHeight;
-    let horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
+    const priv = privatePool.get(this);
+    const onlyFullyVisible = priv.onlyFullyVisible;
+    const overrideFn = priv.overrideFn;
+    const rowHeightFn = priv.rowHeightFn;
+    const scrollOffset = priv.scrollOffset;
+    const totalRows = priv.totalRows;
+    const viewportHeight = priv.viewportHeight;
+    const horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
     let rowHeight;
 
     // Calculate the number (start and end index) of rows needed
     for (let i = 0; i < totalRows; i++) {
       rowHeight = rowHeightFn(i);
 
-      if (rowHeight === undefined) {
+      if (isNaN(rowHeight)) {
         rowHeight = ViewportRowsCalculator.DEFAULT_HEIGHT;
       }
       if (sum <= scrollOffset && !onlyFullyVisible) {
@@ -122,10 +122,10 @@ class ViewportRowsCalculator {
 
       while (this.startRow > 0) {
         // rowHeight is the height of the last row
-        let viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1];
+        const viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1];
 
         if (viewportSum <= viewportHeight - horizontalScrollbarHeight || !onlyFullyVisible) {
-          this.startRow--;
+          this.startRow -= 1;
         }
         if (viewportSum >= viewportHeight - horizontalScrollbarHeight) {
           break;
@@ -138,7 +138,7 @@ class ViewportRowsCalculator {
     }
     this.startPosition = startPositions[this.startRow];
 
-    if (this.startPosition == void 0) {
+    if (this.startPosition === void 0) {
       this.startPosition = null;
     }
     if (this.startRow !== null) {

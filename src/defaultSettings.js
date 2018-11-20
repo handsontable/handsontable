@@ -1,5 +1,5 @@
-import {isDefined} from './helpers/mixed';
-import {isObjectEqual} from './helpers/object';
+import { isDefined } from './helpers/mixed';
+import { isObjectEqual } from './helpers/object';
 
 /**
  * @alias Options
@@ -735,7 +735,6 @@ DefaultSettings.prototype = {
   /**
    * Allows to specify the number of fixed (or *frozen*) rows at the bottom of the table.
    *
-   * @pro
    * @type {Number}
    * @default 0
    *
@@ -814,7 +813,7 @@ DefaultSettings.prototype = {
    * },
    * ```
    */
-  enterMoves: {row: 1, col: 0},
+  enterMoves: { row: 1, col: 0 },
 
   /**
    * Defines the cursor movement after <kbd>TAB</kbd> is pressed (<kbd>SHIFT</kbd> + <kbd>TAB</kbd> uses a negative vector). Can
@@ -835,7 +834,7 @@ DefaultSettings.prototype = {
    * },
    * ```
    */
-  tabMoves: {row: 0, col: 1},
+  tabMoves: { row: 0, col: 1 },
 
   /**
    * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
@@ -1032,10 +1031,10 @@ DefaultSettings.prototype = {
    * ```
    */
   isEmptyRow(row) {
-    var col,
-      colLen,
-      value,
-      meta;
+    let col;
+    let colLen;
+    let value;
+    let meta;
 
     for (col = 0, colLen = this.countCols(); col < colLen; col++) {
       value = this.getDataAtCell(row, col);
@@ -1069,9 +1068,9 @@ DefaultSettings.prototype = {
    * ```
    */
   isEmptyCol(col) {
-    var row;
-    var rowLen;
-    var value;
+    let row;
+    let rowLen;
+    let value;
 
     for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
       value = this.getDataAtCell(row, col);
@@ -1626,30 +1625,49 @@ DefaultSettings.prototype = {
   /**
    * @description
    * Turns on [Column sorting](https://docs.handsontable.com/demo-sorting-data.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
-   * * `column` - sorted column
-   * * `sortOrder` - order in which column will be sorted
-   *   * `'asc'` = ascending
-   *   * `'desc'` = descending
-   *   * `'none'` = original order
+   * * `initialConfig` - Object with predefined keys:
+   *   * `column` - sorted column
+   *   * `sortOrder` - order in which column will be sorted
+   *     * `'asc'` = ascending
+   *     * `'desc'` = descending
+   * * `indicator` - display status for sorting order indicator (an arrow icon in the column header, specifying the sorting order).
+   *   * `true` = show sort indicator for sorted columns
+   *   * `false` = don't show sort indicator for sorted columns
+   * * `headerAction` - allow to click on the headers to sort
+   *   * `true` = turn on possibility to click on the headers to sort
+   *   * `false` = turn off possibility to click on the headers to sort
    * * `sortEmptyCells` - how empty values should be handled
    *   * `true` = the table sorts empty cells
    *   * `false` = the table moves all empty cells to the end of the table
+   * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
    *
    * @type {Boolean|Object}
    * @default undefined
    *
    * @example
    * ```js
-   * // as a boolean
-   * columnSorting: true,
+   * // as boolean
+   * columnSorting: true
    *
-   * // as a object with initial order (sort ascending column at index 2)
+   * // as an object with initial sort config (sort ascending for column at index 1)
    * columnSorting: {
-   *   column: 2,
-   *   sortOrder: 'asc',
-   *   sortEmptyCells: true
-   * },
-   * ```
+   *   initialConfig: {
+   *     column: 1,
+   *     sortOrder: 'asc'
+   *   }
+   * }
+   *
+   * // as an object which define specific sorting options for all columns
+   * columnSorting: {
+   *   sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
+   *   indicator: true, // true = shows indicator for all columns, false = don't show indicator for columns
+   *   headerAction: false, // true = allow to click on the headers to sort, false = turn off possibility to click on the headers to sort
+   *   compareFunctionFactory: function(sortOrder, columnMeta) {
+   *     return function(value, nextValue) {
+   *       // Some value comparisons which will return -1, 0 or 1...
+   *     }
+   *   }
+   * }```
    */
   columnSorting: void 0,
 
@@ -1752,6 +1770,58 @@ DefaultSettings.prototype = {
    */
   mergeCells: false,
 
+  /**
+   * @description
+   * Turns on [Multi-column sorting](https://docs.handsontable.com/pro/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+   * * `initialConfig` - Array containing objects, every with predefined keys:
+   *   * `column` - sorted column
+   *   * `sortOrder` - order in which column will be sorted
+   *     * `'asc'` = ascending
+   *     * `'desc'` = descending
+   * * `indicator` - display status for sorting order indicator (an arrow icon in the column header, specifying the sorting order).
+   *   * `true` = show sort indicator for sorted columns
+   *   * `false` = don't show sort indicator for sorted columns
+   * * `headerAction` - allow to click on the headers to sort
+   *   * `true` = turn on possibility to click on the headers to sort
+   *   * `false` = turn off possibility to click on the headers to sort
+   * * `sortEmptyCells` - how empty values should be handled
+   *   * `true` = the table sorts empty cells
+   *   * `false` = the table moves all empty cells to the end of the table
+   * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
+   *
+   * @pro
+   * @type {Boolean|Object}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // as boolean
+   * multiColumnSorting: true
+   *
+   * // as an object with initial sort config (sort ascending for column at index 1 and then sort descending for column at index 0)
+   * multiColumnSorting: {
+   *   initialConfig: [{
+   *     column: 1,
+   *     sortOrder: 'asc'
+   *   }, {
+   *     column: 0,
+   *     sortOrder: 'desc'
+   *   }]
+   * }
+   *
+   * // as an object which define specific sorting options for all columns
+   * multiColumnSorting: {
+   *   sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
+   *   indicator: true, // true = shows indicator for all columns, false = don't show indicator for columns
+   *   headerAction: false, // true = allow to click on the headers to sort, false = turn off possibility to click on the headers to sort
+   *   compareFunctionFactory: function(sortOrder, columnMeta) {
+   *     return function(value, nextValue) {
+   *       // Some value comparisons which will return -1, 0 or 1...
+   *     }
+   *   }
+   * }```
+   */
+  multiColumnSorting: void 0,
   /**
    * @description
    * Number of rows to be rendered outside of the visible part of the table. By default, it's set to `'auto'`, which
@@ -1857,21 +1927,6 @@ DefaultSettings.prototype = {
    * ```
    */
   disableVisualSelection: false,
-
-  /**
-   * Set whether to display the current sorting order indicator (a triangle icon in the column header, specifying the sorting
-   * order).
-   *
-   * @type {Boolean}
-   * @default undefined
-   *
-   * @example
-   * ```js
-   * // show sort indicator for sorted columns
-   * sortIndicator: true,
-   * ```
-   */
-  sortIndicator: void 0,
 
   /**
    * Disables or enables {@link ManualColumnFreeze} plugin.
@@ -2612,32 +2667,6 @@ DefaultSettings.prototype = {
    * ```
    */
   observeChanges: void 0,
-
-  /**
-   * @description
-   * When passed to the `column` property, allows specifying a custom sorting function for the desired column.
-   *
-   * @type {Function}
-   * @default undefined
-   *
-   * @example
-   * ```js
-   * columns: [
-   *   {
-   *     sortFunction: function(sortOrder) {
-   *        return function(a, b) {
-   *          // sorting function body.
-   *          //
-   *          // Function parameters:
-   *          // sortOrder: If true, the order is ascending, if false - descending. undefined = original order
-   *          // a, b: Two compared elements. These are 2-element arrays, with the first element being the row index, the second - cell value.
-   *        }
-   *     }
-   *   }
-   * ],
-   * ```
-   */
-  sortFunction: void 0,
 
   /**
    * If defined as `true`, the Autocomplete's suggestion list would be sorted by relevance (the closer to the left the

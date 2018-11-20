@@ -1,8 +1,8 @@
-import {addClass, removeClass} from './../../helpers/dom/element';
-import {arrayEach} from './../../helpers/array';
+import { addClass, removeClass } from './../../helpers/dom/element';
+import { arrayEach } from './../../helpers/array';
 import BasePlugin from './../_base';
-import {registerPlugin} from './../../plugins';
-import {isTouchSupported} from './../../helpers/feature';
+import { registerPlugin } from './../../plugins';
+import { isTouchSupported } from './../../helpers/feature';
 
 /**
  * @private
@@ -100,7 +100,7 @@ class TouchScroll extends BasePlugin {
       return;
     }
 
-    const {topOverlay, bottomOverlay, leftOverlay, topLeftCornerOverlay, bottomLeftCornerOverlay} = this.hot.view.wt.wtOverlays;
+    const { topOverlay, bottomOverlay, leftOverlay, topLeftCornerOverlay, bottomLeftCornerOverlay } = this.hot.view.wt.wtOverlays;
 
     this.lockedCollection = true;
     this.scrollbars.length = 0;
