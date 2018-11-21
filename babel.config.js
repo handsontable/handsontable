@@ -4,7 +4,7 @@ module.exports = {
       '@babel/preset-env', {
         targets: {
           chrome: '41',
-          fiefox: '34',
+          firefox: '34',
           ie: '9',
           safari: '9',
           browsers: ['last 3 versions']
@@ -83,7 +83,7 @@ module.exports = {
           '@babel/preset-env', {
             targets: {
               chrome: '41',
-              fiefox: '34',
+              firefox: '34',
               ie: '9',
               safari: '9',
               browsers: ['last 3 versions']
