@@ -707,5 +707,20 @@ describe('CopyPaste', () => {
 
       expect(getDataAtCol(1)).toEqual(['{""""}', '{""""}{""""}', '{""""}{""""}{""""}']);
     });
+
+    it('should properly parse newline in text/plain on Windows', () => {
+      const afterChangeSpy = jasmine.createSpy('afterChange');
+
+      handsontable({
+        afterChange: afterChangeSpy,
+      });
+
+      selectCell(0, 0);
+
+      triggerPaste('Kia\r\nNissan\r\nToyota');
+
+      expect(afterChangeSpy)
+        .toHaveBeenCalledWith([[0, 0, null, 'Kia'], [1, 0, null, 'Nissan'], [2, 0, null, 'Toyota']], 'CopyPaste.paste', void 0, void 0, void 0, void 0);
+    });
   });
 });
