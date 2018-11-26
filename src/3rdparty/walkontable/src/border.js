@@ -13,6 +13,7 @@ import {
 import { stopImmediatePropagation } from './../../../helpers/dom/event';
 import { objectEach } from './../../../helpers/object';
 import { isMobileBrowser } from './../../../helpers/browser';
+import { toUpperCaseFirst } from './../../../helpers/string';
 import EventManager from './../../../eventManager';
 import CellCoords from './cell/coords';
 
@@ -160,6 +161,18 @@ class Border {
       style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
       style.height = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
       style.width = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
+
+      if (this.settings[position] && this.settings[position].style) {
+        const borderPosition = (position === 'right' || position === 'left') ? 'left' : 'top';
+        const borderStyle = `border${toUpperCaseFirst(borderPosition)}Style`;
+        const borderWidth = `border${toUpperCaseFirst(borderPosition)}Width`;
+        const borderColor = `border${toUpperCaseFirst(borderPosition)}Color`;
+
+        style[borderStyle] = this.settings[position].style;
+        style[borderWidth] = this.settings[position].style === 'double' ? style.medium : style.width;
+        style[borderColor] = style.backgroundColor;
+        style.backgroundColor = null;
+      }
 
       this.main.appendChild(div);
     }
