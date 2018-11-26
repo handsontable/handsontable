@@ -22,7 +22,7 @@ import { objectEach } from '../helpers/object';
  */
 class SelectEditor extends BaseEditor {
   /**
-   * Initialize editor instance, DOM Element and mount hooks.
+   * Initializes editor instance, DOM Element and mount hooks.
    */
   init() {
     this.select = document.createElement('SELECT');
@@ -32,6 +32,11 @@ class SelectEditor extends BaseEditor {
     this.registerHooks();
   }
 
+  /**
+   * Returns select's value.
+   *
+   * @returns {*}
+   */
   getValue() {
     return this.select.value;
   }
@@ -39,7 +44,7 @@ class SelectEditor extends BaseEditor {
   /**
    * Sets value in the select element.
    *
-   * @param {*} value New value to be set in
+   * @param {*} value A new select's value.
    */
   setValue(value) {
     this.select.value = value;
@@ -56,7 +61,7 @@ class SelectEditor extends BaseEditor {
   }
 
   /**
-   * Close the editor.
+   * Closes the editor.
    */
   close() {
     this._opened = false;
@@ -65,14 +70,14 @@ class SelectEditor extends BaseEditor {
   }
 
   /**
-   * Force focus on select element.
+   * Sets focus state on the select element.
    */
   focus() {
     this.select.focus();
   }
 
   /**
-   * Bind hooks used by the editor.
+   * Binds hooks to refresh editor's size after scrolling of the viewport or resizing of columns/rows.
    *
    * @private
    */
@@ -84,9 +89,7 @@ class SelectEditor extends BaseEditor {
   }
 
   /**
-   * 
-   *
-   * @private
+   * Prepares a list of available options.
    */
   prepare(...args) {
     super.prepare(...args);
@@ -112,8 +115,10 @@ class SelectEditor extends BaseEditor {
   }
 
   /**
-   * 
-   * @param {Array|Object} optionsToPrepare 
+   * Creates consistent list of available options.
+   *
+   * @param {Array|Object} optionsToPrepare
+   * @returns {Object}
    */
   prepareOptions(optionsToPrepare) {
     let preparedOptions = {};
@@ -130,6 +135,9 @@ class SelectEditor extends BaseEditor {
     return preparedOptions;
   }
 
+  /**
+   * Refreshes editor's value using source data.
+   */
   refreshValue() {
     const sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
     this.originalValue = sourceData;
@@ -138,6 +146,9 @@ class SelectEditor extends BaseEditor {
     this.refreshDimensions();
   }
 
+  /**
+   * Refreshes editor's size and position.
+   */
   refreshDimensions() {
     if (this.state !== EditorState.EDITING) {
       return;
@@ -213,6 +224,12 @@ class SelectEditor extends BaseEditor {
     selectStyle.margin = '0px';
   }
 
+  /**
+   * Gets HTMLTableCellElement of the edited cell if exist.
+   *
+   * @private
+   * @returns {HTMLTableCellElement|undefined}
+   */
   getEditedCell() {
     const editorSection = this.checkEditorSection();
     let editedCell;
@@ -248,16 +265,19 @@ class SelectEditor extends BaseEditor {
     return editedCell !== -1 && editedCell !== -2 ? editedCell : void 0;
   }
 
+  /**
+   * onBeforeKeyDown callback.
+   *
+   * @private
+   */
   onBeforeKeyDown() {
-    const instance = this;
-    const editor = instance.getActiveEditor();
-    const previousOptionIndex = editor.select.selectedIndex - 1;
-    const nextOptionIndex = editor.select.selectedIndex + 1;
+    const previousOptionIndex = this.select.selectedIndex - 1;
+    const nextOptionIndex = this.select.selectedIndex + 1;
 
     switch (event.keyCode) {
       case KEY_CODES.ARROW_UP:
         if (previousOptionIndex >= 0) {
-          editor.select[previousOptionIndex].selected = true;
+          this.select[previousOptionIndex].selected = true;
         }
 
         stopImmediatePropagation(event);
@@ -265,8 +285,8 @@ class SelectEditor extends BaseEditor {
         break;
 
       case KEY_CODES.ARROW_DOWN:
-        if (nextOptionIndex <= editor.select.length - 1) {
-          editor.select[nextOptionIndex].selected = true;
+        if (nextOptionIndex <= this.select.length - 1) {
+          this.select[nextOptionIndex].selected = true;
         }
 
         stopImmediatePropagation(event);
