@@ -15,42 +15,15 @@ import { KEY_CODES } from './../helpers/unicode';
 import BaseEditor, { EditorState } from './_baseEditor';
 import { objectEach } from '../helpers/object';
 
-const onBeforeKeyDown = function(event) {
-  const instance = this;
-  const editor = instance.getActiveEditor();
-  const previousOptionIndex = editor.select.selectedIndex - 1;
-  const nextOptionIndex = editor.select.selectedIndex + 1;
-
-  switch (event.keyCode) {
-    case KEY_CODES.ARROW_UP:
-      if (previousOptionIndex >= 0) {
-        editor.select[previousOptionIndex].selected = true;
-      }
-
-      stopImmediatePropagation(event);
-      event.preventDefault();
-      break;
-
-    case KEY_CODES.ARROW_DOWN:
-      if (nextOptionIndex <= editor.select.length - 1) {
-        editor.select[nextOptionIndex].selected = true;
-      }
-
-      stopImmediatePropagation(event);
-      event.preventDefault();
-      break;
-
-    default:
-      break;
-  }
-};
-
 /**
  * @private
  * @editor SelectEditor
  * @class SelectEditor
  */
 class SelectEditor extends BaseEditor {
+  /**
+   * Initialize editor instance, DOM Element and mount hooks.
+   */
   init() {
     this.select = document.createElement('SELECT');
     addClass(this.select, 'htSelectEditor');
@@ -59,6 +32,50 @@ class SelectEditor extends BaseEditor {
     this.registerHooks();
   }
 
+  getValue() {
+    return this.select.value;
+  }
+
+  /**
+   * Sets value in the select element.
+   *
+   * @param {*} value New value to be set in
+   */
+  setValue(value) {
+    this.select.value = value;
+  }
+
+  /**
+   * Opens the editor and adjust size.
+   */
+  open() {
+    this._opened = true;
+    this.refreshDimensions();
+    this.select.style.display = '';
+    this.instance.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
+  }
+
+  /**
+   * Close the editor.
+   */
+  close() {
+    this._opened = false;
+    this.select.style.display = 'none';
+    this.instance.removeHook('beforeKeyDown', () => this.onBeforeKeyDown());
+  }
+
+  /**
+   * Force focus on select element.
+   */
+  focus() {
+    this.select.focus();
+  }
+
+  /**
+   * Bind hooks used by the editor.
+   *
+   * @private
+   */
   registerHooks() {
     this.instance.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.instance.addHook('afterScrollVertically', () => this.refreshDimensions());
@@ -66,6 +83,11 @@ class SelectEditor extends BaseEditor {
     this.instance.addHook('afterRowResize', () => this.refreshDimensions());
   }
 
+  /**
+   * 
+   *
+   * @private
+   */
   prepare(...args) {
     super.prepare(...args);
 
@@ -83,11 +105,16 @@ class SelectEditor extends BaseEditor {
     objectEach(options, (value, key) => {
       const optionElement = document.createElement('OPTION');
       optionElement.value = key;
+
       fastInnerHTML(optionElement, value);
       this.select.appendChild(optionElement);
     });
   }
 
+  /**
+   * 
+   * @param {Array|Object} optionsToPrepare 
+   */
   prepareOptions(optionsToPrepare) {
     let preparedOptions = {};
 
@@ -95,37 +122,12 @@ class SelectEditor extends BaseEditor {
       for (let i = 0, len = optionsToPrepare.length; i < len; i++) {
         preparedOptions[optionsToPrepare[i]] = optionsToPrepare[i];
       }
+
     } else if (typeof optionsToPrepare === 'object') {
       preparedOptions = optionsToPrepare;
     }
 
     return preparedOptions;
-
-  }
-
-  getValue() {
-    return this.select.value;
-  }
-
-  setValue(value) {
-    this.select.value = value;
-  }
-
-  open() {
-    this._opened = true;
-    this.refreshDimensions();
-    this.select.style.display = '';
-    this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
-  }
-
-  close() {
-    this._opened = false;
-    this.select.style.display = 'none';
-    this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-  }
-
-  focus() {
-    this.select.focus();
   }
 
   refreshValue() {
@@ -140,6 +142,7 @@ class SelectEditor extends BaseEditor {
     if (this.state !== EditorState.EDITING) {
       return;
     }
+
     this.TD = this.getEditedCell();
 
     // TD is outside of the viewport.
@@ -148,6 +151,7 @@ class SelectEditor extends BaseEditor {
 
       return;
     }
+
     const currentOffset = offset(this.TD);
     const containerOffset = offset(this.instance.rootElement);
     const scrollableContainer = getScrollableElement(this.TD);
@@ -177,10 +181,10 @@ class SelectEditor extends BaseEditor {
       default:
         break;
     }
+
     if (this.instance.getSelectedLast()[0] === 0) {
       editTop += 1;
     }
-
     if (this.instance.getSelectedLast()[1] === 0) {
       editLeft += 1;
     }
@@ -192,6 +196,7 @@ class SelectEditor extends BaseEditor {
     } else {
       resetCssTransform(this.select);
     }
+
     const cellComputedStyle = getComputedStyle(this.TD);
 
     if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
@@ -241,6 +246,36 @@ class SelectEditor extends BaseEditor {
     }
 
     return editedCell !== -1 && editedCell !== -2 ? editedCell : void 0;
+  }
+
+  onBeforeKeyDown() {
+    const instance = this;
+    const editor = instance.getActiveEditor();
+    const previousOptionIndex = editor.select.selectedIndex - 1;
+    const nextOptionIndex = editor.select.selectedIndex + 1;
+
+    switch (event.keyCode) {
+      case KEY_CODES.ARROW_UP:
+        if (previousOptionIndex >= 0) {
+          editor.select[previousOptionIndex].selected = true;
+        }
+
+        stopImmediatePropagation(event);
+        event.preventDefault();
+        break;
+
+      case KEY_CODES.ARROW_DOWN:
+        if (nextOptionIndex <= editor.select.length - 1) {
+          editor.select[nextOptionIndex].selected = true;
+        }
+
+        stopImmediatePropagation(event);
+        event.preventDefault();
+        break;
+
+      default:
+        break;
+    }
   }
 }
 
