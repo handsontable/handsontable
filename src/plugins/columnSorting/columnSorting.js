@@ -735,6 +735,7 @@ class ColumnSorting extends BasePlugin {
    */
   onAfterLoadData(initialLoad) {
     this.rowsMapper.clearMap();
+    this.columnMetaCache.clear();
 
     if (initialLoad === true) {
       // TODO: Workaround? It should be refactored / described.
