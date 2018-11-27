@@ -1,4 +1,4 @@
-import * as Handsontable from 'handsontable';
+import Handsontable from 'handsontable';
 
 const copyPaste = Handsontable.plugins.CopyPaste;
 

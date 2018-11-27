@@ -2,7 +2,7 @@
 
 ## Full distribution (recommended)
 
-The full distribution allows you to use Handsontable by including just 2 files:
+The full distribution allows you to use Handsontable Community Edition by including just 2 files:
 ```html
 <script src="dist/handsontable.full.js"></script>
 <link rel="stylesheet" media="screen" href="dist/handsontable.full.css">
@@ -13,7 +13,19 @@ You can also use minified files:
 <link rel="stylesheet" media="screen" href="dist/handsontable.full.min.css">
 ```
 
-If you use a date picker or numeric cell types, you will also have to include Pikaday, moment.js and numbro.js.
+or if you want to use the commercial version of Handsontable:
+```html
+<script src="dist/handsontable-pro.full.js"></script>
+<link rel="stylesheet" media="screen" href="dist/handsontable-pro.full.css">
+```
+You can also use minified files:  
+```html
+<script src="dist/handsontable-pro.full.min.js"></script>
+<link rel="stylesheet" media="screen" href="dist/handsontable-pro.full.min.css">
+```
+
+If you use a date picker or numeric cell types, you will also have to include Pikaday, moment.js, and numbro.js. If you
+use Handsontable Pro, you will additionally have to include hot-formula-parser.js.
 
 **handsontable.full.js** and **handsontable.full.css** are compiled with ___all___ the needed dependencies (except language files - see below).
 
@@ -25,6 +37,8 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 <script src="https://cdn.jsdelivr.net/npm/pikaday@1.5.1/pikaday.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/moment@2.20.1/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/numbro@2/dist/numbro.min.js"></script>
+<!-- Required dependency only for Handsontable Pro (commercial version) -->
+<script src="https://cdn.jsdelivr.net/npm/hot-formula-parser@3.0.0/dist/formula-parser.min.js"></script>
 
 <!-- Handsontable bare files -->
 <script src="dist/handsontable.js"></script>
