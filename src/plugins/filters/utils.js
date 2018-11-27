@@ -1,5 +1,5 @@
-import { getComparisonFunction } from 'handsontable/helpers/feature';
-import { arrayUnique, arrayEach } from 'handsontable/helpers/array';
+import { getComparisonFunction } from '../../helpers/feature';
+import { arrayUnique, arrayEach } from '../../helpers/array';
 
 const sortCompare = getComparisonFunction();
 

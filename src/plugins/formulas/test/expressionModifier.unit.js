@@ -1,4 +1,4 @@
-import ExpressionModifier from 'handsontable-pro/plugins/formulas/expressionModifier';
+import ExpressionModifier from 'handsontable/plugins/formulas/expressionModifier';
 
 describe('Formulas expression modifier', () => {
   let modifier;

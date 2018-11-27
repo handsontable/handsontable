@@ -1,5 +1,5 @@
-import { mixin } from 'handsontable/helpers/object';
-import localHooks from 'handsontable/mixins/localHooks';
+import { mixin } from '../../helpers/object';
+import localHooks from '../../mixins/localHooks';
 
 import * as columnSorting from './alterOperation/columnSorting';
 import * as insertColumn from './alterOperation/insertColumn';

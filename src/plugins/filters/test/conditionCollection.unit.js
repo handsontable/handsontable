@@ -1,7 +1,7 @@
-import ConditionCollection from 'handsontable-pro/plugins/filters/conditionCollection';
-import { conditions } from 'handsontable-pro/plugins/filters/conditionRegisterer';
-import { OPERATION_AND, OPERATION_OR } from 'handsontable-pro/plugins/filters/constants';
-import { operations } from 'handsontable-pro/plugins/filters/logicalOperationRegisterer';
+import ConditionCollection from 'handsontable/plugins/filters/conditionCollection';
+import { conditions } from 'handsontable/plugins/filters/conditionRegisterer';
+import { OPERATION_AND, OPERATION_OR } from 'handsontable/plugins/filters/constants';
+import { operations } from 'handsontable/plugins/filters/logicalOperationRegisterer';
 
 describe('ConditionCollection', () => {
   it('should be initialized and accessible from the plugin', () => {

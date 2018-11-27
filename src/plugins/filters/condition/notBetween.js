@@ -1,5 +1,5 @@
-import * as C from 'handsontable/i18n/constants';
-import { registerCondition, getCondition } from './../conditionRegisterer';
+import * as C from '../../../i18n/constants';
+import { registerCondition, getCondition } from '../conditionRegisterer';
 import { CONDITION_NAME as CONDITION_BETWEEN } from './between';
 
 export const CONDITION_NAME = 'not_between';

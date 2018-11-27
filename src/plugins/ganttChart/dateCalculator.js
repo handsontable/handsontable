@@ -1,6 +1,6 @@
-import { arrayEach } from 'handsontable/helpers/array';
-import { objectEach } from 'handsontable/helpers/object';
-import { warn } from 'handsontable/helpers/console';
+import { arrayEach } from '../../helpers/array';
+import { objectEach } from '../../helpers/object';
+import { warn } from '../../helpers/console';
 import { getMixedMonthObject, getMixedMonthName, parseDate, DEC_LENGTH, WEEK_LENGTH } from './utils';
 
 /**

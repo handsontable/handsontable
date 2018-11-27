@@ -1,4 +1,4 @@
-import BindStrategy from 'handsontable-pro/plugins/bindRowsWithHeaders/bindStrategy';
+import BindStrategy from 'handsontable/plugins/bindRowsWithHeaders/bindStrategy';
 
 describe('BindRowsWithHeaders -> BindStrategy', () => {
   it('should throw error when used strategy is not exists', () => {

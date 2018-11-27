@@ -1,4 +1,4 @@
-import DataFilter from 'handsontable-pro/plugins/filters/dataFilter';
+import DataFilter from 'handsontable/plugins/filters/dataFilter';
 
 describe('DataFilter', () => {
   function columnDataMock(column) {

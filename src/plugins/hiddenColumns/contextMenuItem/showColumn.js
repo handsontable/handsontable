@@ -1,5 +1,5 @@
-import { rangeEach } from 'handsontable/helpers/number';
-import * as C from 'handsontable/i18n/constants';
+import { rangeEach } from '../../../helpers/number';
+import * as C from '../../../i18n/constants';
 
 export default function showColumnItem(hiddenColumnsPlugin) {
   const beforeHiddenColumns = [];

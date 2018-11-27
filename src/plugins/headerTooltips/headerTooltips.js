@@ -1,9 +1,9 @@
 import {
   outerWidth
-} from 'handsontable/helpers/dom/element.js';
-import { registerPlugin } from 'handsontable/plugins.js';
-import { rangeEach } from 'handsontable/helpers/number';
-import BasePlugin from 'handsontable/plugins/_base.js';
+} from '../../helpers/dom/element';
+import { registerPlugin } from '../../plugins';
+import { rangeEach } from '../../helpers/number';
+import BasePlugin from '../_base';
 
 /**
  * @plugin HeaderTooltips

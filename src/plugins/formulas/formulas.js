@@ -1,8 +1,8 @@
-import BasePlugin from 'handsontable/plugins/_base';
-import { arrayEach } from 'handsontable/helpers/array';
-import { isObject, objectEach } from 'handsontable/helpers/object';
-import EventManager from 'handsontable/eventManager';
-import { registerPlugin } from 'handsontable/plugins';
+import BasePlugin from '../_base';
+import { arrayEach } from '../../helpers/array';
+import { isObject, objectEach } from '../../helpers/object';
+import EventManager from '../../eventManager';
+import { registerPlugin } from '../../plugins';
 import { isFormulaExpression, toUpperCaseFormula, isFormulaExpressionEscaped, unescapeFormulaExpression } from './utils';
 import Sheet from './sheet';
 import DataProvider from './dataProvider';

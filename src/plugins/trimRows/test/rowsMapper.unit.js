@@ -1,4 +1,4 @@
-import RowsMapper from 'handsontable-pro/plugins/trimRows/rowsMapper';
+import RowsMapper from 'handsontable/plugins/trimRows/rowsMapper';
 
 describe('TrimRows -> RowsMapper', () => {
   it('should set trimRows plugin while constructing', () => {

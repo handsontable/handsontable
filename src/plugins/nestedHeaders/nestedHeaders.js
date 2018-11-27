@@ -3,15 +3,15 @@ import {
   removeClass,
   fastInnerHTML,
   empty,
-} from 'handsontable/helpers/dom/element';
-import { rangeEach } from 'handsontable/helpers/number';
-import { arrayEach } from 'handsontable/helpers/array';
-import { objectEach } from 'handsontable/helpers/object';
-import { toSingleLine } from 'handsontable/helpers/templateLiteralTag';
-import { warn } from 'handsontable/helpers/console';
-import { registerPlugin } from 'handsontable/plugins';
-import BasePlugin from 'handsontable/plugins/_base';
-import { CellCoords } from 'handsontable/3rdparty/walkontable/src';
+} from '../../helpers/dom/element';
+import { rangeEach } from '../../helpers/number';
+import { arrayEach } from '../../helpers/array';
+import { objectEach } from '../../helpers/object';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { warn } from '../../helpers/console';
+import { registerPlugin } from '../../plugins';
+import BasePlugin from '../_base';
+import { CellCoords } from '../../3rdparty/walkontable/src';
 import GhostTable from './utils/ghostTable';
 
 import './nestedHeaders.css';

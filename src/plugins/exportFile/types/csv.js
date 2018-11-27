@@ -1,6 +1,6 @@
-import { arrayEach, arrayMap } from 'handsontable/helpers/array';
-import { stringify } from 'handsontable/helpers/mixed';
-import BaseType from './_base.js';
+import { arrayEach, arrayMap } from '../../../helpers/array';
+import { stringify } from '../../../helpers/mixed';
+import BaseType from './_base';
 
 const CHAR_CARRIAGE_RETURN = String.fromCharCode(13);
 const CHAR_DOUBLE_QUOTES = String.fromCharCode(34);

@@ -1,13 +1,13 @@
-import { addClass } from 'handsontable/helpers/dom/element';
-import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
-import { arrayEach, arrayFilter, arrayMap } from 'handsontable/helpers/array';
-import { isKey } from 'handsontable/helpers/unicode';
-import * as C from 'handsontable/i18n/constants';
-import { unifyColumnValues, intersectValues, toEmptyString } from './../utils';
+import { addClass } from '../../../helpers/dom/element';
+import { stopImmediatePropagation } from '../../../helpers/dom/event';
+import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
+import { isKey } from '../../../helpers/unicode';
+import * as C from '../../../i18n/constants';
+import { unifyColumnValues, intersectValues, toEmptyString } from '../utils';
 import BaseComponent from './_base';
-import MultipleSelectUI from './../ui/multipleSelect';
-import { CONDITION_BY_VALUE, CONDITION_NONE } from './../constants';
-import { getConditionDescriptor } from './../conditionRegisterer';
+import MultipleSelectUI from '../ui/multipleSelect';
+import { CONDITION_BY_VALUE, CONDITION_NONE } from '../constants';
+import { getConditionDescriptor } from '../conditionRegisterer';
 
 /**
  * @class ValueComponent

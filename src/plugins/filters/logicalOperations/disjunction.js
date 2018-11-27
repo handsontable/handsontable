@@ -1,4 +1,4 @@
-import * as C from 'handsontable/i18n/constants';
+import * as C from '../../../i18n/constants';
 import { registerOperation } from '../logicalOperationRegisterer';
 
 export const OPERATION_ID = 'disjunction';

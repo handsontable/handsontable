@@ -1,8 +1,8 @@
-import BasePlugin from 'handsontable/plugins/_base';
-import { addClass, removeClass } from 'handsontable/helpers/dom/element';
-import { rangeEach } from 'handsontable/helpers/number';
-import { arrayEach } from 'handsontable/helpers/array';
-import { registerPlugin } from 'handsontable/plugins';
+import BasePlugin from '../_base';
+import { addClass, removeClass } from '../../helpers/dom/element';
+import { rangeEach } from '../../helpers/number';
+import { arrayEach } from '../../helpers/array';
+import { registerPlugin } from '../../plugins';
 import hideRowItem from './contextMenuItem/hideRow';
 import showRowItem from './contextMenuItem/showRow';
 

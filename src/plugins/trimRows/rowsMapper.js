@@ -1,6 +1,6 @@
-import arrayMapper from 'handsontable/mixins/arrayMapper';
-import { mixin } from 'handsontable/helpers/object';
-import { rangeEach } from 'handsontable/helpers/number';
+import arrayMapper from '../../mixins/arrayMapper';
+import { mixin } from '../../helpers/object';
+import { rangeEach } from '../../helpers/number';
 
 /**
  * @class RowsMapper

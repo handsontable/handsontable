@@ -1,6 +1,6 @@
 import { ColumnStatesManager } from 'handsontable/plugins/columnSorting/columnStatesManager';
 import { DESC_SORT_STATE, ASC_SORT_STATE } from 'handsontable/plugins/columnSorting/utils';
-import { getClassesToAdd, getClassedToRemove } from 'handsontable-pro/plugins/multiColumnSorting/domHelpers';
+import { getClassesToAdd, getClassedToRemove } from 'handsontable/plugins/multiColumnSorting/domHelpers';
 
 describe('MultiColumnSorting DOM helpers', () => {
   describe('getClassesToAdd', () => {

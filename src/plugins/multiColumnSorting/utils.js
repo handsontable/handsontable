@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 
-import { warn } from 'handsontable/helpers/console';
+import { warn } from '../../helpers/console';
 
 /**
  * Warn users about problems when using `columnSorting` and `multiColumnSorting` plugins simultaneously.

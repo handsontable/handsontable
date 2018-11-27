@@ -1409,7 +1409,6 @@ declare namespace Handsontable {
   }
 
   interface DefaultSettings extends GridSettings {}
-  interface DefaultSettings extends Hooks {}
 
   interface GridSettings extends Hooks {
     allowEmpty?: boolean;
@@ -2048,7 +2047,8 @@ declare class Handsontable extends _Handsontable.Core {
   static hooks: Handsontable.Hooks;
   static plugins: Handsontable.Plugins;
   static renderers: Handsontable.Renderers;
+  static Core: _Handsontable.Core;
+  static DefaultSettings: Handsontable.DefaultSettings;
 }
 
-export = Handsontable;
-export as namespace Handsontable;
+export default Handsontable;

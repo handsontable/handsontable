@@ -1,6 +1,6 @@
-import BasePlugin from 'handsontable/plugins/_base.js';
-import { objectEach } from 'handsontable/helpers/object';
-import { registerPlugin } from 'handsontable/plugins.js';
+import BasePlugin from '../_base';
+import { objectEach } from '../../helpers/object';
+import { registerPlugin } from '../../plugins';
 import Endpoints from './endpoints';
 
 /**

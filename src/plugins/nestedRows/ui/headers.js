@@ -1,6 +1,6 @@
-import { arrayEach } from 'handsontable/helpers/array';
-import { rangeEach } from 'handsontable/helpers/number';
-import { addClass } from 'handsontable/helpers/dom/element';
+import { arrayEach } from '../../../helpers/array';
+import { rangeEach } from '../../../helpers/number';
+import { addClass } from '../../../helpers/dom/element';
 import BaseUI from './_base';
 
 /**

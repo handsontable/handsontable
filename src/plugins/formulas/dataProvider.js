@@ -1,7 +1,7 @@
-import { arrayEach } from 'handsontable/helpers/array';
-import { rangeEach } from 'handsontable/helpers/number';
-import { hasOwnProperty } from 'handsontable/helpers/object';
-import { getTranslator } from 'handsontable/utils/recordTranslator';
+import { arrayEach } from '../../helpers/array';
+import { rangeEach } from '../../helpers/number';
+import { hasOwnProperty } from '../../helpers/object';
+import { getTranslator } from '../../utils/recordTranslator';
 
 /**
  * Data class provider responsible for providing a set of range data types, necessary for calculating formulas.

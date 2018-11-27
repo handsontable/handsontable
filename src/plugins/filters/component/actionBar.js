@@ -1,8 +1,8 @@
-import { addClass } from 'handsontable/helpers/dom/element';
-import { arrayEach } from 'handsontable/helpers/array';
-import * as C from 'handsontable/i18n/constants';
+import { addClass } from '../../../helpers/dom/element';
+import { arrayEach } from '../../../helpers/array';
+import * as C from '../../../i18n/constants';
 import BaseComponent from './_base';
-import InputUI from './../ui/input';
+import InputUI from '../ui/input';
 
 /**
  * @class ActionBarComponent

@@ -1,7 +1,7 @@
-import { arrayEach, arrayMap, arrayFilter } from 'handsontable/helpers/array';
-import { objectEach, mixin } from 'handsontable/helpers/object';
-import { toSingleLine } from 'handsontable/helpers/templateLiteralTag';
-import localHooks from 'handsontable/mixins/localHooks';
+import { arrayEach, arrayMap, arrayFilter } from '../../helpers/array';
+import { objectEach, mixin } from '../../helpers/object';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+import localHooks from '../../mixins/localHooks';
 import { getCondition } from './conditionRegisterer';
 import { OPERATION_ID as OPERATION_AND } from './logicalOperations/conjunction';
 import { operations, getOperationFunc } from './logicalOperationRegisterer';
@@ -115,9 +115,9 @@ class ConditionCollection {
 
     if (columnType) {
       if (columnType !== operation) {
-        throw Error(toSingleLine`The column of index ${column} has been already applied with a \`${columnType}\` 
-        filter operation. Use \`removeConditions\` to clear the current conditions and then add new ones. 
-        Mind that you cannot mix different types of operations (for instance, if you use \`conjunction\`, 
+        throw Error(toSingleLine`The column of index ${column} has been already applied with a \`${columnType}\`
+        filter operation. Use \`removeConditions\` to clear the current conditions and then add new ones.
+        Mind that you cannot mix different types of operations (for instance, if you use \`conjunction\`,
         use it consequently for a particular column).`);
       }
 

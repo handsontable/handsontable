@@ -1,5 +1,5 @@
-import { arrayEach } from 'handsontable/helpers/array';
-import Stack from 'handsontable/utils/dataStructures/stack';
+import { arrayEach } from '../../helpers/array';
+import Stack from '../../utils/dataStructures/stack';
 import CellValue from './cell/value';
 
 /**

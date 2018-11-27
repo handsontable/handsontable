@@ -1,6 +1,6 @@
-import { clone } from 'handsontable/helpers/object';
-import { arrayEach } from 'handsontable/helpers/array';
-import { SEPARATOR } from 'handsontable/plugins/contextMenu/predefinedItems';
+import { clone } from '../../helpers/object';
+import { arrayEach } from '../../helpers/array';
+import { SEPARATOR } from '../contextMenu/predefinedItems';
 import { getConditionDescriptor } from './conditionRegisterer';
 
 import { CONDITION_NAME as CONDITION_NONE } from './condition/none';

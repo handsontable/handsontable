@@ -1,7 +1,7 @@
 import { toLabel, extractLabel, error, ERROR_REF } from 'hot-formula-parser';
-import { arrayEach, arrayFilter } from 'handsontable/helpers/array';
-import { mixin } from 'handsontable/helpers/object';
-import localHooks from 'handsontable/mixins/localHooks';
+import { arrayEach, arrayFilter } from '../../helpers/array';
+import { mixin } from '../../helpers/object';
+import localHooks from '../../mixins/localHooks';
 import { toUpperCaseFormula } from './utils';
 
 const BARE_CELL_STRICT_REGEX = /^\$?[A-Z]+\$?\d+$/;

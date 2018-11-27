@@ -1,12 +1,13 @@
-import ColumnSorting from 'handsontable/plugins/columnSorting/columnSorting';
-import { registerRootComparator } from 'handsontable/plugins/columnSorting/sortService';
-import { wasHeaderClickedProperly } from 'handsontable/plugins/columnSorting/utils';
-import { registerPlugin } from 'handsontable/plugins';
-import { isPressedCtrlKey } from 'handsontable/utils/keyStateObserver';
-import { addClass, removeClass } from 'handsontable/helpers/dom/element';
+import ColumnSorting from '../columnSorting/columnSorting';
+import { registerRootComparator } from '../columnSorting/sortService';
+import { wasHeaderClickedProperly } from '../columnSorting/utils';
+import { registerPlugin } from '../../plugins';
+import { isPressedCtrlKey } from '../../utils/keyStateObserver';
+import { addClass, removeClass } from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';
 import { warnAboutPluginsConflict } from './utils';
 import { getClassesToAdd, getClassedToRemove } from './domHelpers';
+
 import './multiColumnSorting.css';
 
 const APPEND_COLUMN_CONFIG_STRATEGY = 'append';

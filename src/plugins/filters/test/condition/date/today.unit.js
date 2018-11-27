@@ -1,6 +1,6 @@
 import moment from 'moment';
-import { condition } from 'handsontable-pro/plugins/filters/condition/date/today';
-import { dateRowFactory } from './../../helpers/utils';
+import { condition } from 'handsontable/plugins/filters/condition/date/today';
+import { dateRowFactory } from '../../helpers/utils';
 
 describe('Filters condition (`date_today`)', () => {
   const format = 'DD/MM/YYYY';

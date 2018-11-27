@@ -1,5 +1,5 @@
-import * as C from 'handsontable/i18n/constants';
-import { registerCondition, getCondition } from './../conditionRegisterer';
+import * as C from '../../../i18n/constants';
+import { registerCondition, getCondition } from '../conditionRegisterer';
 import { CONDITION_NAME as CONDITION_DATE_AFTER } from './date/after';
 import { CONDITION_NAME as CONDITION_DATE_BEFORE } from './date/before';
 

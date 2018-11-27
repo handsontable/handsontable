@@ -1,7 +1,7 @@
-import { arrayEach } from 'handsontable/helpers/array';
-import { cellCoordFactory, isFormulaExpression } from './../utils';
-import CellValue from './../cell/value';
-import ExpressionModifier from './../expressionModifier';
+import { arrayEach } from '../../../helpers/array';
+import { cellCoordFactory, isFormulaExpression } from '../utils';
+import CellValue from '../cell/value';
+import ExpressionModifier from '../expressionModifier';
 
 /**
  * When "remove_column" is triggered the following operations must be performed:

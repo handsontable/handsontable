@@ -1,9 +1,9 @@
-import { clone, extend, mixin, objectEach } from 'handsontable/helpers/object';
-import localHooks from 'handsontable/mixins/localHooks';
-import EventManager from 'handsontable/eventManager';
-import { addClass } from 'handsontable/helpers/dom/element';
-import { arrayEach } from 'handsontable/helpers/array';
-import * as C from 'handsontable/i18n/constants';
+import { clone, extend, mixin, objectEach } from '../../../helpers/object';
+import localHooks from '../../../mixins/localHooks';
+import EventManager from '../../../eventManager';
+import { addClass } from '../../../helpers/dom/element';
+import { arrayEach } from '../../../helpers/array';
+import * as C from '../../../i18n/constants';
 
 const STATE_BUILT = 'built';
 const STATE_BUILDING = 'building';

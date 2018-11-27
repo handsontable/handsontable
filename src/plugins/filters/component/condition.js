@@ -1,14 +1,14 @@
-import { addClass } from 'handsontable/helpers/dom/element';
-import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
-import { arrayEach } from 'handsontable/helpers/array';
-import { isKey } from 'handsontable/helpers/unicode';
-import { clone } from 'handsontable/helpers/object';
-import * as C from 'handsontable/i18n/constants';
+import { addClass } from '../../../helpers/dom/element';
+import { stopImmediatePropagation } from '../../../helpers/dom/event';
+import { arrayEach } from '../../../helpers/array';
+import { isKey } from '../../../helpers/unicode';
+import { clone } from '../../../helpers/object';
+import * as C from '../../../i18n/constants';
 import BaseComponent from './_base';
-import getOptionsList, { CONDITION_NONE } from './../constants';
-import InputUI from './../ui/input';
-import SelectUI from './../ui/select';
-import { getConditionDescriptor } from './../conditionRegisterer';
+import getOptionsList, { CONDITION_NONE } from '../constants';
+import InputUI from '../ui/input';
+import SelectUI from '../ui/select';
+import { getConditionDescriptor } from '../conditionRegisterer';
 
 /**
  * @class ConditionComponent

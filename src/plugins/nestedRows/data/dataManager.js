@@ -1,7 +1,7 @@
-import { rangeEach } from 'handsontable/helpers/number';
-import { objectEach, hasOwnProperty } from 'handsontable/helpers/object';
-import { arrayEach } from 'handsontable/helpers/array';
-import { getTranslator } from 'handsontable/utils/recordTranslator';
+import { rangeEach } from '../../../helpers/number';
+import { objectEach, hasOwnProperty } from '../../../helpers/object';
+import { arrayEach } from '../../../helpers/array';
+import { getTranslator } from '../../../utils/recordTranslator';
 
 /**
  * Class responsible for making data operations.

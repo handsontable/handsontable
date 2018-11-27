@@ -1,16 +1,16 @@
-import { objectEach } from 'handsontable/helpers/object';
-import { arrayEach } from 'handsontable/helpers/array';
-import { rangeEach } from 'handsontable/helpers/number';
-import { warn } from 'handsontable/helpers/console';
+import { objectEach } from '../../helpers/object';
+import { arrayEach } from '../../helpers/array';
+import { rangeEach } from '../../helpers/number';
+import { warn } from '../../helpers/console';
 import {
   addClass,
   hasClass,
   fastInnerText
-} from 'handsontable/helpers/dom/element';
-import EventManager from 'handsontable/eventManager';
-import { registerPlugin } from 'handsontable/plugins';
-import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
-import BasePlugin from 'handsontable/plugins/_base';
+} from '../../helpers/dom/element';
+import EventManager from '../../eventManager';
+import { registerPlugin } from '../../plugins';
+import { stopImmediatePropagation } from '../../helpers/dom/event';
+import BasePlugin from '../_base';
 
 /**
  * @plugin CollapsibleColumns

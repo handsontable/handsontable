@@ -1,6 +1,6 @@
-import { rangeEach } from 'handsontable/helpers/number';
-import { arrayEach } from 'handsontable/helpers/array';
-import * as C from 'handsontable/i18n/constants';
+import { rangeEach } from '../../../helpers/number';
+import { arrayEach } from '../../../helpers/array';
+import * as C from '../../../i18n/constants';
 import BaseUI from './_base';
 
 const privatePool = new WeakMap();

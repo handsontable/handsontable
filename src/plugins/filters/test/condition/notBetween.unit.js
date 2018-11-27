@@ -1,5 +1,5 @@
-import { condition } from 'handsontable-pro/plugins/filters/condition/notBetween';
-import { dateRowFactory } from './../helpers/utils';
+import { condition } from 'handsontable/plugins/filters/condition/notBetween';
+import { dateRowFactory } from '../helpers/utils';
 
 describe('Filters condition (`not_between`)', () => {
   it('should filter matching values (numeric cell type)', () => {

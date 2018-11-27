@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * Config responsible for building Walkontable (bundled into `src/3rdparty/walkontable/dist/`):
  *  - walkontable.js

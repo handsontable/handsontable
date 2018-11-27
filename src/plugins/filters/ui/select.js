@@ -1,8 +1,8 @@
-import Menu from 'handsontable/plugins/contextMenu/menu';
-import { clone, extend } from 'handsontable/helpers/object';
-import { arrayEach } from 'handsontable/helpers/array';
-import * as C from 'handsontable/i18n/constants';
-import { SEPARATOR } from 'handsontable/plugins/contextMenu/predefinedItems';
+import Menu from '../../../plugins/contextMenu/menu';
+import { clone, extend } from '../../../helpers/object';
+import { arrayEach } from '../../../helpers/array';
+import * as C from '../../../i18n/constants';
+import { SEPARATOR } from '../../../plugins/contextMenu/predefinedItems';
 import BaseUI from './_base';
 
 const privatePool = new WeakMap();

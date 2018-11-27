@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 
-import { getCompareFunctionFactory, DO_NOT_SWAP } from 'handsontable/plugins/columnSorting/sortService';
+import { getCompareFunctionFactory, DO_NOT_SWAP } from '../columnSorting/sortService';
 
 /**
  * Sort comparator handled by conventional sort algorithm.

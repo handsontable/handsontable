@@ -1,14 +1,14 @@
-import { addClass, getScrollbarWidth } from 'handsontable/helpers/dom/element';
-import { clone, extend } from 'handsontable/helpers/object';
-import { arrayFilter, arrayMap, arrayEach } from 'handsontable/helpers/array';
-import { isKey } from 'handsontable/helpers/unicode';
-import { partial } from 'handsontable/helpers/function';
-import * as C from 'handsontable/i18n/constants';
-import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
+import { addClass, getScrollbarWidth } from '../../../helpers/dom/element';
+import { clone, extend } from '../../../helpers/object';
+import { arrayFilter, arrayMap, arrayEach } from '../../../helpers/array';
+import { isKey } from '../../../helpers/unicode';
+import { partial } from '../../../helpers/function';
+import * as C from '../../../i18n/constants';
+import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import BaseUI from './_base';
 import InputUI from './input';
 import LinkUI from './link';
-import { createArrayAssertion } from './../utils';
+import { createArrayAssertion } from '../utils';
 
 const privatePool = new WeakMap();
 

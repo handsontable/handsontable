@@ -1,6 +1,6 @@
-import BasePlugin from 'handsontable/plugins/_base';
-import { rangeEach } from 'handsontable/helpers/number';
-import { registerPlugin } from 'handsontable/plugins';
+import BasePlugin from '../../plugins/_base';
+import { rangeEach } from '../../helpers/number';
+import { registerPlugin } from '../../plugins';
 import BindStrategy from './bindStrategy';
 
 /**

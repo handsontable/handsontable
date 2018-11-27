@@ -1,5 +1,5 @@
-import BasePlugin from 'handsontable/plugins/_base';
-import { registerPlugin } from 'handsontable/plugins';
+import BasePlugin from '../_base';
+import { registerPlugin } from '../../plugins';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 

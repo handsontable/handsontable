@@ -1,13 +1,13 @@
-import BasePlugin from 'handsontable/plugins/_base';
-import { arrayEach } from 'handsontable/helpers/array';
-import CommandExecutor from 'handsontable/plugins/contextMenu/commandExecutor';
-import EventManager from 'handsontable/eventManager';
-import { hasClass } from 'handsontable/helpers/dom/element';
-import ItemsFactory from 'handsontable/plugins/contextMenu/itemsFactory';
-import Menu from 'handsontable/plugins/contextMenu/menu';
-import { registerPlugin } from 'handsontable/plugins';
-import Hooks from 'handsontable/pluginHooks';
-import { stopPropagation } from 'handsontable/helpers/dom/event';
+import BasePlugin from '../_base';
+import { arrayEach } from '../../helpers/array';
+import CommandExecutor from '../contextMenu/commandExecutor';
+import EventManager from '../../eventManager';
+import { hasClass } from '../../helpers/dom/element';
+import ItemsFactory from '../contextMenu/itemsFactory';
+import Menu from '../contextMenu/menu';
+import { registerPlugin } from '../../plugins';
+import Hooks from '../../pluginHooks';
+import { stopPropagation } from '../../helpers/dom/event';
 import {
   COLUMN_LEFT,
   COLUMN_RIGHT,
@@ -16,7 +16,7 @@ import {
   READ_ONLY,
   ALIGNMENT,
   SEPARATOR
-} from 'handsontable/plugins/contextMenu/predefinedItems';
+} from '../contextMenu/predefinedItems';
 
 import './dropdownMenu.css';
 

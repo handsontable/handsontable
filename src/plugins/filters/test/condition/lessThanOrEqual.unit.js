@@ -1,5 +1,5 @@
-import { condition } from 'handsontable-pro/plugins/filters/condition/lessThanOrEqual';
-import { dateRowFactory } from './../helpers/utils';
+import { condition } from 'handsontable/plugins/filters/condition/lessThanOrEqual';
+import { dateRowFactory } from '../helpers/utils';
 
 describe('Filters condition (`lte`)', () => {
   it('should filter matching values (numeric cell type)', () => {

@@ -1,6 +1,6 @@
-import { objectEach, clone } from 'handsontable/helpers/object';
-import { arrayEach } from 'handsontable/helpers/array';
-import { rangeEach } from 'handsontable/helpers/number';
+import { objectEach, clone } from '../../helpers/object';
+import { arrayEach } from '../../helpers/array';
+import { rangeEach } from '../../helpers/number';
 import { getAdditionalData, getEndDate, getStartDate, setEndDate, setStartDate } from './utils';
 
 /**

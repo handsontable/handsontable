@@ -7,14 +7,8 @@ _SpecRunner.html
 cars.sqlite
 dev.html
 webpack.config.js
-
 !dist/README.md
-!test/
+src/
+test/
 node_modules/
-
-# this directories are necessary for build PRO package
-#demo/
-#src/
-#lib/
-#test/
-#tasks/
+tmp/

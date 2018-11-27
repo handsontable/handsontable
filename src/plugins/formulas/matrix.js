@@ -1,4 +1,4 @@
-import { arrayEach, arrayFilter, arrayReduce } from 'handsontable/helpers/array';
+import { arrayEach, arrayFilter, arrayReduce } from '../../helpers/array';
 import CellValue from './cell/value';
 
 /**

@@ -1,4 +1,4 @@
-import { arrayEach } from 'handsontable/helpers/array';
+import { arrayEach } from '../../helpers/array';
 
 /**
  * @class DataFilter

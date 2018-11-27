@@ -1,5 +1,5 @@
-import arrayMapper from 'handsontable/mixins/arrayMapper';
-import { mixin } from 'handsontable/helpers/object';
+import arrayMapper from '../../../mixins/arrayMapper';
+import { mixin } from '../../../helpers/object';
 
 /**
  * @private

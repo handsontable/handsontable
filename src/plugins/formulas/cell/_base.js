@@ -1,5 +1,5 @@
-import { isObject } from 'handsontable/helpers/object';
 import { toLabel } from 'hot-formula-parser';
+import { isObject } from '../../../helpers/object';
 
 /**
  * @class BaseCell

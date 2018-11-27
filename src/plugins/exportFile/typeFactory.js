@@ -1,4 +1,4 @@
-import Csv from './types/csv.js';
+import Csv from './types/csv';
 
 export const TYPE_CSV = 'csv';
 export const TYPE_EXCEL = 'excel'; // TODO

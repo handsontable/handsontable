@@ -1,7 +1,7 @@
-import { arrayEach, arrayMap, arrayFilter } from 'handsontable/helpers/array';
-import { mixin, objectEach } from 'handsontable/helpers/object';
-import { curry } from 'handsontable/helpers/function';
-import localHooks from 'handsontable/mixins/localHooks';
+import { arrayEach, arrayMap, arrayFilter } from '../../helpers/array';
+import { mixin, objectEach } from '../../helpers/object';
+import { curry } from '../../helpers/function';
+import localHooks from '../../mixins/localHooks';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import { createArrayAssertion } from './utils';

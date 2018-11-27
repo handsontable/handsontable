@@ -1,7 +1,7 @@
-import { arrayEach } from 'handsontable/helpers/array';
-import { mixin } from 'handsontable/helpers/object';
-import localHooks from 'handsontable/mixins/localHooks';
-import stateSaver from 'handsontable/mixins/stateSaver';
+import { arrayEach } from '../../../helpers/array';
+import { mixin } from '../../../helpers/object';
+import localHooks from '../../../mixins/localHooks';
+import stateSaver from '../../../mixins/stateSaver';
 
 /**
  * @plugin Filters

@@ -1,5 +1,5 @@
-import { rangeEach } from 'handsontable/helpers/number';
-import { toUpperCaseFirst } from 'handsontable/helpers/string';
+import { rangeEach } from '../../helpers/number';
+import { toUpperCaseFirst } from '../../helpers/string';
 import * as strategies from './bindStrategies';
 
 /**

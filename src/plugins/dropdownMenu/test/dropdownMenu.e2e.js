@@ -625,25 +625,25 @@ describe('DropdownMenu', () => {
   });
 
   describe('beforeDropdownMenuSetItems hook', () => {
-    it('should add new menu item even when item is excluded from plugin settings', () => {
-      let hot;
+    it('should add new menu item even when item is excluded from plugin settings', async() => {
+      const hookListener = function(options) {
+        options.push({
+          key: 'test',
+          name: 'Test'
+        });
+      };
 
-      Handsontable.hooks.add('beforeDropdownMenuSetItems', function(options) {
-        if (this === hot || !hot) {
-          options.push({
-            key: 'test',
-            name: 'Test'
-          });
-        }
-      });
+      Handsontable.hooks.add('beforeDropdownMenuSetItems', hookListener);
 
-      hot = handsontable({
+      handsontable({
         colHeaders: true,
         dropdownMenu: ['make_read_only'],
         height: 100
       });
 
       dropdownMenu();
+
+      await sleep(200);
 
       const items = $('.htDropdownMenu tbody td');
       const actions = items.not('.htSeparator');
@@ -652,19 +652,19 @@ describe('DropdownMenu', () => {
         'Read only',
         'Test',
       ].join(''));
+
+      Handsontable.hooks.remove('beforeDropdownMenuSetItems', hookListener);
     });
 
-    it('should be called only with items selected in plugin settings', () => {
+    it('should be called only with items selected in plugin settings', async() => {
       let keys = [];
-      let hot;
+      const hookListener = function(items) {
+        keys = items.map(v => v.key);
+      };
 
-      Handsontable.hooks.add('beforeDropdownMenuSetItems', function(items) {
-        if (this === hot || !hot) {
-          keys = items.map(v => v.key);
-        }
-      });
+      Handsontable.hooks.add('beforeDropdownMenuSetItems', hookListener);
 
-      hot = handsontable({
+      handsontable({
         colHeaders: true,
         dropdownMenu: ['make_read_only', 'col_left'],
         height: 100
@@ -672,7 +672,11 @@ describe('DropdownMenu', () => {
 
       dropdownMenu();
 
+      await sleep(200);
+
       expect(keys).toEqual(['make_read_only', 'col_left']);
+
+      Handsontable.hooks.remove('beforeDropdownMenuSetItems', hookListener);
     });
   });
 

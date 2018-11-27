@@ -1,5 +1,5 @@
-import { condition } from 'handsontable-pro/plugins/filters/condition/none';
-import { dateRowFactory } from './../helpers/utils';
+import { condition } from 'handsontable/plugins/filters/condition/true';
+import { dateRowFactory } from '../helpers/utils';
 
 describe('Filters condition (`true`)', () => {
   it('should filter no values', () => {

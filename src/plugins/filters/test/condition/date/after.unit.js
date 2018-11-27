@@ -1,5 +1,5 @@
-import { condition } from 'handsontable-pro/plugins/filters/condition/date/after';
-import { dateRowFactory } from './../../helpers/utils';
+import { condition } from 'handsontable/plugins/filters/condition/date/after';
+import { dateRowFactory } from '../../helpers/utils';
 
 describe('Filters condition (`date_after`)', () => {
   it('should filter matching values', () => {
