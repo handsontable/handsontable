@@ -542,6 +542,8 @@ describe('WalkontableScroll', () => {
         onScrollHorizontally: scrollHorizontally,
       });
 
+      wt.wtOverlays.lastScrollX = window.scrollX;
+      wt.wtOverlays.lastScrollY = window.scrollY;
       wt.draw();
       wt.wtTable.holder.scrollTop = 400;
 
@@ -572,6 +574,8 @@ describe('WalkontableScroll', () => {
         onScrollHorizontally: scrollHorizontally,
       });
 
+      wt.wtOverlays.lastScrollX = window.scrollX;
+      wt.wtOverlays.lastScrollY = window.scrollY;
       wt.draw();
       wt.wtTable.holder.scrollLeft = 400;
 
