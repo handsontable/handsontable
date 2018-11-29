@@ -1,5 +1,7 @@
 import { CellCoords } from './../3rdparty/walkontable/src';
 import { stringify } from './../helpers/mixed';
+import { mixin } from './../helpers/object';
+import hooksRegisterer from './../mixins/hooksRegisterer';
 
 export const EditorState = {
   VIRGIN: 'STATE_VIRGIN', // before editing
@@ -14,6 +16,7 @@ export const EditorState = {
  */
 class BaseEditor {
   constructor(instance) {
+    this.hot = instance;
     this.instance = instance;
     this.state = EditorState.VIRGIN;
 
@@ -251,5 +254,7 @@ class BaseEditor {
     return section;
   }
 }
+
+mixin(BaseEditor, hooksRegisterer);
 
 export default BaseEditor;
