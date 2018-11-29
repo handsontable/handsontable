@@ -1,27 +1,27 @@
-import dateSort from 'handsontable/plugins/columnSorting/sortFunction/date';
+import { compareFunctionFactory as dateSort } from 'handsontable/plugins/columnSorting/sortFunction/date';
 
 it('dateSort comparing function shouldn\'t change order when comparing empty string, null and undefined', () => {
-  expect(dateSort('asc', { columnSorting: {} })(null, null)).toEqual(0);
-  expect(dateSort('desc', { columnSorting: {} })(null, null)).toEqual(0);
+  expect(dateSort('asc', {}, {})(null, null)).toEqual(0);
+  expect(dateSort('desc', {}, {})(null, null)).toEqual(0);
 
-  expect(dateSort('asc', { columnSorting: {} })('', '')).toEqual(0);
-  expect(dateSort('desc', { columnSorting: {} })('', '')).toEqual(0);
+  expect(dateSort('asc', {}, {})('', '')).toEqual(0);
+  expect(dateSort('desc', {}, {})('', '')).toEqual(0);
 
-  expect(dateSort('asc', { columnSorting: {} })(undefined, undefined)).toEqual(0);
-  expect(dateSort('desc', { columnSorting: {} })(undefined, undefined)).toEqual(0);
+  expect(dateSort('asc', {}, {})(undefined, undefined)).toEqual(0);
+  expect(dateSort('desc', {}, {})(undefined, undefined)).toEqual(0);
 
-  expect(dateSort('asc', { columnSorting: {} })('', null)).toEqual(0);
-  expect(dateSort('desc', { columnSorting: {} })('', null)).toEqual(0);
-  expect(dateSort('asc', { columnSorting: {} })(null, '')).toEqual(0);
-  expect(dateSort('desc', { columnSorting: {} })(null, '')).toEqual(0);
+  expect(dateSort('asc', {}, {})('', null)).toEqual(0);
+  expect(dateSort('desc', {}, {})('', null)).toEqual(0);
+  expect(dateSort('asc', {}, {})(null, '')).toEqual(0);
+  expect(dateSort('desc', {}, {})(null, '')).toEqual(0);
 
-  expect(dateSort('asc', { columnSorting: {} })('', undefined)).toEqual(0);
-  expect(dateSort('desc', { columnSorting: {} })('', undefined)).toEqual(0);
-  expect(dateSort('asc', { columnSorting: {} })(undefined, '')).toEqual(0);
-  expect(dateSort('desc', { columnSorting: {} })(undefined, '')).toEqual(0);
+  expect(dateSort('asc', {}, {})('', undefined)).toEqual(0);
+  expect(dateSort('desc', {}, {})('', undefined)).toEqual(0);
+  expect(dateSort('asc', {}, {})(undefined, '')).toEqual(0);
+  expect(dateSort('desc', {}, {})(undefined, '')).toEqual(0);
 
-  expect(dateSort('asc', { columnSorting: {} })(null, undefined)).toEqual(0);
-  expect(dateSort('desc', { columnSorting: {} })(null, undefined)).toEqual(0);
-  expect(dateSort('asc', { columnSorting: {} })(undefined, null)).toEqual(0);
-  expect(dateSort('desc', { columnSorting: {} })(undefined, null)).toEqual(0);
+  expect(dateSort('asc', {}, {})(null, undefined)).toEqual(0);
+  expect(dateSort('desc', {}, {})(null, undefined)).toEqual(0);
+  expect(dateSort('asc', {}, {})(undefined, null)).toEqual(0);
+  expect(dateSort('desc', {}, {})(undefined, null)).toEqual(0);
 });

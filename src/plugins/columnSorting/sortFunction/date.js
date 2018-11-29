@@ -1,17 +1,20 @@
+/* eslint-disable import/prefer-default-export */
+
 import moment from 'moment';
 import { isEmpty } from '../../../helpers/mixed';
-import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../comparatorEngine';
+import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortService';
 
 /**
  * Date sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
  * @param {String} sortOrder Sort order (`asc` for ascending, `desc` for descending).
  * @param {Object} columnMeta Column meta object.
+ * @param {Object} columnPluginSettings Plugin settings for the column.
  * @returns {Function} The compare function.
  */
-export default function dateSort(sortOrder, columnMeta) {
+export function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
   return function(value, nextValue) {
-    const { sortEmptyCells } = columnMeta.columnSorting;
+    const { sortEmptyCells } = columnPluginSettings;
 
     if (value === nextValue) {
       return DO_NOT_SWAP;
@@ -62,3 +65,5 @@ export default function dateSort(sortOrder, columnMeta) {
     return DO_NOT_SWAP;
   };
 }
+
+export const COLUMN_DATA_TYPE = 'date';

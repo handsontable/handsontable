@@ -1,4 +1,4 @@
-import 'babel-polyfill';
+import '@babel/polyfill/lib/noConflict';
 
 import './css/bootstrap.css';
 import './css/handsontable.css';

@@ -229,11 +229,14 @@ class AutoRowSize extends BasePlugin {
         }
       }
     };
+
+    const syncLimit = this.getSyncCalculationLimit();
+
     // sync
-    if (this.firstCalculation && this.getSyncCalculationLimit()) {
-      this.calculateRowsHeight({ from: 0, to: this.getSyncCalculationLimit() }, colRange);
+    if (this.firstCalculation && syncLimit >= 0) {
+      this.calculateRowsHeight({ from: 0, to: syncLimit }, colRange);
       this.firstCalculation = false;
-      current = this.getSyncCalculationLimit() + 1;
+      current = syncLimit + 1;
     }
     // async
     if (current < length) {

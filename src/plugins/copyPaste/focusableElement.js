@@ -1,6 +1,7 @@
 import EventManager from './../../eventManager';
 import localHooks from './../../mixins/localHooks';
 import { mixin } from './../../helpers/object';
+import { isMobileBrowser } from './../../helpers/browser';
 
 /**
  * @class FocusableWrapper
@@ -70,7 +71,10 @@ class FocusableWrapper {
   focus() {
     // Add an empty space to texarea. It is necessary for safari to enable "copy" command from menu bar.
     this.mainElement.value = ' ';
-    this.mainElement.select();
+
+    if (!isMobileBrowser()) {
+      this.mainElement.select();
+    }
   }
 }
 

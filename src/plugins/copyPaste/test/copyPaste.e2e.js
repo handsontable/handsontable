@@ -316,6 +316,31 @@ describe('CopyPaste', () => {
         '</tr><tr><td>{"test3": ""}</td></tr></tbody></table>'
       ].join(''));
     });
+
+    it('should be possible to copy 0 and false', () => {
+      handsontable({
+        data: [
+          [''],
+          [0],
+          [false],
+          [undefined],
+          [null],
+        ],
+      });
+
+      const copyEvent = getClipboardEvent('copy');
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(0, 0, 4, 0);
+
+      plugin.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toEqual('\n0\nfalse\n\n');
+      expect(copyEvent.clipboardData.getData('text/html')).toEqual([
+        '<table><tbody><tr><td></td></tr><tr><td>0</td></tr><tr><td>false</td></tr>',
+        '<tr><td></td></tr><tr><td></td></tr></tbody></table>'
+      ].join(''));
+    });
   });
 
   describe('cut', () => {
@@ -681,6 +706,21 @@ describe('CopyPaste', () => {
       plugin.onPaste(copyEvent);
 
       expect(getDataAtCol(1)).toEqual(['{""""}', '{""""}{""""}', '{""""}{""""}{""""}']);
+    });
+
+    it('should properly parse newline in text/plain on Windows', () => {
+      const afterChangeSpy = jasmine.createSpy('afterChange');
+
+      handsontable({
+        afterChange: afterChangeSpy,
+      });
+
+      selectCell(0, 0);
+
+      triggerPaste('Kia\r\nNissan\r\nToyota');
+
+      expect(afterChangeSpy)
+        .toHaveBeenCalledWith([[0, 0, null, 'Kia'], [1, 0, null, 'Nissan'], [2, 0, null, 'Toyota']], 'CopyPaste.paste', void 0, void 0, void 0, void 0);
     });
   });
 });

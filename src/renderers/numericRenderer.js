@@ -7,7 +7,6 @@ import { isNumeric } from './../helpers/number';
  *
  * @private
  * @renderer NumericRenderer
- * @dependencies numbro
  * @param {Object} instance Handsontable instance
  * @param {Element} TD Table cell where to render
  * @param {Number} row

@@ -167,6 +167,50 @@ describe('UndoRedo', () => {
           expect(getDataAtCell(3, 1)).toEqual('B4');
         });
 
+        it('should undo removal of single row after column sorting', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(3, 2),
+            colHeaders: true,
+            columnSorting: true
+          });
+
+          expect(countRows()).toEqual(3);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
+
+          getPlugin('ColumnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+          expect(countRows()).toEqual(3);
+          expect(getDataAtCell(0, 0)).toEqual('A3');
+          expect(getDataAtCell(0, 1)).toEqual('B3');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A1');
+          expect(getDataAtCell(2, 1)).toEqual('B1');
+
+          alter('remove_row', 0);
+
+          expect(countRows()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A2');
+          expect(getDataAtCell(0, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toEqual('B1');
+
+          undo();
+
+          expect(countRows()).toEqual(3);
+          expect(getDataAtCell(0, 0)).toEqual('A3');
+          expect(getDataAtCell(0, 1)).toEqual('B3');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A1');
+          expect(getDataAtCell(2, 1)).toEqual('B1');
+        });
+
         it('should undo creation of a single column (colHeaders: undefined)', () => {
           const HOT = handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 3)

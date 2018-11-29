@@ -10,6 +10,7 @@
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const webpack = require('webpack');
 const configFactory = require('./development');
 
@@ -31,21 +32,19 @@ module.exports.create = function create(envArgs) {
     });
 
     c.plugins.push(
-      new webpack.optimize.UglifyJsPlugin({
-        compressor: {
-          pure_getters: true,
-          unsafe: true,
-          unsafe_comps: true,
-          warnings: false,
-          screw_ie8: true,
-        },
-        mangle: {
-          screw_ie8: true,
-        },
-        output: {
-          comments: /^!|@preserve|@license|@cc_on/i,
-          screw_ie8: true,
-        },
+      new UglifyJSPlugin({
+        uglifyOptions: {
+          compressor: {
+            pure_getters: true,
+            unsafe: true,
+            unsafe_comps: true,
+            warnings: false,
+          },
+          mangle: true,
+          output: {
+            comments: /^!|@preserve|@license|@cc_on/i,
+          },
+        }
       }),
       new ExtractTextPlugin(PACKAGE_FILENAME + (isFullBuild ? '.full' : '') + '.min.css'),
       new OptimizeCssAssetsPlugin({

@@ -50,7 +50,8 @@ function UndoRedo(instance) {
 
     const originalData = plugin.instance.getSourceDataArray();
     const rowIndex = (originalData.length + index) % originalData.length;
-    const removedData = deepClone(originalData.slice(rowIndex, rowIndex + amount));
+    const physicalRowIndex = instance.toPhysicalRow(rowIndex);
+    const removedData = deepClone(originalData.slice(physicalRowIndex, physicalRowIndex + amount));
 
     plugin.done(new UndoRedo.RemoveRowAction(rowIndex, removedData));
   });
