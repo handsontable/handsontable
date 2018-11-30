@@ -10,7 +10,7 @@ import {
   isOutsideInput
 } from './helpers/dom/element';
 import EventManager from './eventManager';
-import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
+import { stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { destroyElement } from './plugins/copyPaste/focusableElement';
@@ -42,6 +42,7 @@ function TableView(instance) {
   this.instance = instance;
   this.settings = instance.getSettings();
   this.selectionMouseDown = false;
+  this.focusableElement = instance.getPlugin('copyPaste').focusableElement;
 
   const originalStyle = instance.rootElement.getAttribute('style');
 
@@ -183,15 +184,17 @@ function TableView(instance) {
   });
 
   this.eventManager.addEventListener(window, 'focus', (event) => {
-    const focusableElement = this.instance.getPlugin('copyPaste').focusableElement;
     const realTarget = event.realTarget;
 
     if (isOutsideInput(realTarget)) {
-      stopImmediatePropagation(event);
-      destroyElement(focusableElement);
-      focusableElement.mainElement = null;
-
-      realTarget.focus();
+      setTimeout(() => {
+        if (this.focusableElement && this.focusableElement.listenersCount.has(this.focusableElement.mainElement)) {
+          this.focusableElement.listenersCount.delete(this.focusableElement.mainElement);
+        }
+        destroyElement(this.focusableElement);
+        realTarget.focus();
+        event.preventDefault();
+      }, 110);
     }
   }, true);
 
