@@ -3336,6 +3336,8 @@ describe('ContextMenu', () => {
 
       const beginningScrollX = window.scrollX;
 
+      expect(typeof beginningScrollX).toBe('number');
+
       selectCell(2, 4);
       contextMenu();
 
