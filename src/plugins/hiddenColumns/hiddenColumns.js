@@ -261,9 +261,7 @@ class HiddenColumns extends BasePlugin {
    * @param {Array} columns Array of column indexes.
    */
   isColumnDataValid(columns) {
-    const outOfBounds = columns.find(column => (column < 0 || column > this.hot.countCols() - 1));
-
-    return outOfBounds === void 0;
+    return columns.every(column => (column >= 0 && column < this.hot.countCols()));
   }
 
   /**

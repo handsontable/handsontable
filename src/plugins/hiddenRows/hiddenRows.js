@@ -261,9 +261,7 @@ class HiddenRows extends BasePlugin {
    * @param {Array} rows Array of row indexes.
    */
   isRowDataValid(rows) {
-    const outOfBounds = rows.find(row => (row < 0 || row > this.hot.countRows() - 1));
-
-    return outOfBounds === void 0;
+    return rows.every(row => (row >= 0 && row < this.hot.countRows()));
   }
 
   /**
