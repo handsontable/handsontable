@@ -262,6 +262,11 @@ class BaseEditor {
     this.discardEditor();
   }
 
+  /**
+   * Verifies result of validation or closes editor if user's cancelled changes.
+   *
+   * @param {Boolean|undefined} result
+   */
   discardEditor(result) {
     if (this.state !== EditorState.FINISHED) {
       return;
