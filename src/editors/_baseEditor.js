@@ -16,17 +16,44 @@ export const EditorState = {
  */
 class BaseEditor {
   constructor(instance) {
+    /**
+     * A reference to the source instance of the Handsontable.
+     */
     this.hot = instance;
+    /**
+     * A reference to the source instance of the Handsontable.
+     * @deprecated
+     */
     this.instance = instance;
+    /**
+     * Editor's state.
+     */
     this.state = EditorState.VIRGIN;
 
+    /**
+     * Flag to store information about editor's opening status.
+     * @private
+     */
     this._opened = false;
+    /**
+     * Defines the editor's editing mode. When false, then an editor works in fast editing mode.
+     * @private
+     */
     this._fullEditMode = false;
+    /**
+     * Callback to call after closing editor.
+     */
     this._closeCallback = null;
 
     this.init();
   }
 
+  /**
+   * Fires callback after closing editor.
+   *
+   * @private
+   * @param {Boolean} result
+   */
   _fireCallbacks(result) {
     if (this._closeCallback) {
       this._closeCallback(result);
@@ -34,24 +61,49 @@ class BaseEditor {
     }
   }
 
+  /**
+   * Initializes an editor's intance.
+   */
   init() {}
 
+  /**
+   * Required method to get current value from editable element.
+   */
   getValue() {
     throw Error('Editor getValue() method unimplemented');
   }
 
+  /**
+   * Required method to set new value into editable element.
+   */
   setValue() {
     throw Error('Editor setValue() method unimplemented');
   }
 
+  /**
+   * Required method to open editor.
+   */
   open() {
     throw Error('Editor open() method unimplemented');
   }
 
+  /**
+   * Required method to close editor.
+   */
   close() {
     throw Error('Editor close() method unimplemented');
   }
 
+  /**
+   * Prepares editor's meta data.
+   *
+   * @param {Number} row
+   * @param {Number} col
+   * @param {Number|String} prop
+   * @param {HTMLTableCellElement} td
+   * @param {*} originalValue
+   * @param {Object} cellProperties
+   */
   prepare(row, col, prop, td, originalValue, cellProperties) {
     this.TD = td;
     this.row = row;
@@ -62,10 +114,19 @@ class BaseEditor {
     this.state = EditorState.VIRGIN;
   }
 
+  /**
+   * Fallback method to provide extendable editors in ES5.
+   */
   extend() {
     return (class Editor extends this.constructor {});
   }
 
+  /**
+   * Saves value from editor into data storage.
+   *
+   * @param {*} value
+   * @param {Boolean} ctrlDown If true, applies value to each cell in the last selected range.
+   */
   saveValue(value, ctrlDown) {
     let selection;
     let tmp;
@@ -91,6 +152,12 @@ class BaseEditor {
     this.instance.populateFromArray(selection[0], selection[1], value, selection[2], selection[3], 'edit');
   }
 
+  /**
+   * Begins editing on a highlighted cell and hides fillHandle corner if was present.
+   *
+   * @param {*} newInitialValue
+   * @param {*} event
+   */
   beginEditing(newInitialValue, event) {
     if (this.state !== EditorState.VIRGIN) {
       return;
@@ -116,6 +183,13 @@ class BaseEditor {
     this.instance.runHooks('afterBeginEditing', this.row, this.col);
   }
 
+  /**
+   * Finishes editing and start saving or restoring process for editing cell or last selected range.
+   *
+   * @param {Boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
+   * @param {Boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
+   * @param {Function} callback
+   */
   finishEditing(restoreOriginalValue, ctrlDown, callback) {
     let val;
 
@@ -180,6 +254,9 @@ class BaseEditor {
     }
   }
 
+  /**
+   * Finishes editing without singout saving value.
+   */
   cancelChanges() {
     this.state = EditorState.FINISHED;
     this.discardEditor();
@@ -223,14 +300,25 @@ class BaseEditor {
     return this._fullEditMode;
   }
 
+  /**
+   * Returns information whether the editor is open.
+   */
   isOpened() {
     return this._opened;
   }
 
+  /**
+   * Returns information whether the editor is waiting, eg.: for async validation.
+   */
   isWaiting() {
     return this.state === EditorState.WAITING;
   }
 
+  /**
+   * Returns name of the overlay, where ediotor is placed.
+   *
+   * @private
+   */
   checkEditorSection() {
     const totalRows = this.instance.countRows();
     let section = '';
