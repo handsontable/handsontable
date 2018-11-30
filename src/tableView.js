@@ -10,9 +10,10 @@ import {
   isOutsideInput
 } from './helpers/dom/element';
 import EventManager from './eventManager';
-import { stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
+import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
+import { destroyElement } from './plugins/copyPaste/focusableElement';
 
 /**
  * Cross-platform helper to clear text selection.
@@ -180,6 +181,19 @@ function TableView(instance) {
     // Prevent text from being selected when performing drag down.
     event.preventDefault();
   });
+
+  this.eventManager.addEventListener(window, 'focus', (event) => {
+    const focusableElement = this.instance.getPlugin('copyPaste').focusableElement;
+    const realTarget = event.realTarget;
+
+    if (isOutsideInput(realTarget)) {
+      stopImmediatePropagation(event);
+      destroyElement(focusableElement);
+      focusableElement.mainElement = null;
+
+      realTarget.focus();
+    }
+  }, true);
 
   const walkontableConfig = {
     debug: () => that.settings.debug,

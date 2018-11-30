@@ -35,9 +35,10 @@ class EventManager {
    * @param {Element} element Target element.
    * @param {String} eventName Event name.
    * @param {Function} callback Function which will be called after event occur.
+   * @param {Boolean} useCapture A Boolean indicating whether events of this type will be dispatched to the registered listener.
    * @returns {Function} Returns function which you can easily call to remove that event
    */
-  addEventListener(element, eventName, callback) {
+  addEventListener(element, eventName, callback, useCapture = false) {
     const context = this.context;
 
     function callbackProxy(event) {
@@ -52,7 +53,7 @@ class EventManager {
     });
 
     if (window.addEventListener) {
-      element.addEventListener(eventName, callbackProxy, false);
+      element.addEventListener(eventName, callbackProxy, useCapture);
     } else {
       element.attachEvent(`on${eventName}`, callbackProxy);
     }
@@ -60,7 +61,7 @@ class EventManager {
     listenersCounter += 1;
 
     return () => {
-      this.removeEventListener(element, eventName, callback);
+      this.removeEventListener(element, eventName, callback, useCapture);
     };
   }
 
@@ -70,8 +71,9 @@ class EventManager {
    * @param {Element} element Target element.
    * @param {String} eventName Event name.
    * @param {Function} callback Function to remove from the event target. It must be the same as during registration listener.
+   * @param {Boolean} useCapture A Boolean indicating whether events of this type will be dispatched to the registered listener.
    */
-  removeEventListener(element, eventName, callback) {
+  removeEventListener(element, eventName, callback, useCapture) {
     let len = this.context.eventListeners.length;
     let tmpEvent;
 
@@ -87,7 +89,7 @@ class EventManager {
         this.context.eventListeners.splice(len, 1);
 
         if (tmpEvent.element.removeEventListener) {
-          tmpEvent.element.removeEventListener(tmpEvent.event, tmpEvent.callbackProxy, false);
+          tmpEvent.element.removeEventListener(tmpEvent.event, tmpEvent.callbackProxy, useCapture);
         } else {
           tmpEvent.element.detachEvent(`on${tmpEvent.event}`, tmpEvent.callbackProxy);
         }
@@ -113,7 +115,7 @@ class EventManager {
       const event = this.context.eventListeners[len];
 
       if (event) {
-        this.removeEventListener(event.element, event.event, event.callback);
+        this.removeEventListener(event.element, event.event, event.callback, event.useCapture);
       }
     }
   }
