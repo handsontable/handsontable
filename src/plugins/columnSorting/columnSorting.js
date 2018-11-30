@@ -503,10 +503,8 @@ class ColumnSorting extends BasePlugin {
 
     this.blockPluginTranslation = true;
 
-    if (this.columnMetaCache.size === 0) {
-      const numberOfColumns = this.hot.countCols();
-
-      rangeEach(numberOfColumns, visualColumnIndex => this.setMergedPluginSettings(visualColumnIndex));
+    if (this.columnMetaCache.size === 0 || this.columnMetaCache.size < this.hot.countCols()) {
+      this.rebuildColumnMetaCache();
     }
 
     const cellMeta = this.hot.getCellMeta(0, column);
@@ -517,6 +515,17 @@ class ColumnSorting extends BasePlugin {
     cellMetaCopy[this.pluginKey] = this.columnMetaCache.get(this.hot.toPhysicalColumn(column));
 
     return cellMetaCopy;
+  }
+
+  /**
+   * Rebuild the column meta cache for all the columns.
+   *
+   * @private
+   */
+  rebuildColumnMetaCache() {
+    const numberOfColumns = this.hot.countCols();
+
+    rangeEach(numberOfColumns - 1, visualColumnIndex => this.setMergedPluginSettings(visualColumnIndex));
   }
 
   /**
