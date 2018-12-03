@@ -525,7 +525,12 @@ class ColumnSorting extends BasePlugin {
   rebuildColumnMetaCache() {
     const numberOfColumns = this.hot.countCols();
 
-    rangeEach(numberOfColumns - 1, visualColumnIndex => this.setMergedPluginSettings(visualColumnIndex));
+    if (numberOfColumns === 0) {
+      this.columnMetaCache.clear();
+
+    } else {
+      rangeEach(numberOfColumns - 1, visualColumnIndex => this.setMergedPluginSettings(visualColumnIndex));
+    }
   }
 
   /**
