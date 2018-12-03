@@ -31,6 +31,8 @@ const clearTextSelection = function() {
   }
 };
 
+const privatePool = new WeakMap();
+
 /**
  * Handsontable TableView constructor
  * @param {Object} instance
@@ -42,7 +44,10 @@ function TableView(instance) {
   this.instance = instance;
   this.settings = instance.getSettings();
   this.selectionMouseDown = false;
-  this.focusableElement = instance.getPlugin('copyPaste').focusableElement;
+
+  privatePool.set(this, {
+    focusableElement: instance.getPlugin('copyPaste').focusableElement
+  });
 
   const originalStyle = instance.rootElement.getAttribute('style');
 
@@ -101,14 +106,26 @@ function TableView(instance) {
   };
 
   this.eventManager.addEventListener(document.documentElement, 'mouseup', (event) => {
+    const realTarget = event.realTarget;
+
     if (instance.selection.isInProgress() && isLeftClick(event)) { // is left mouse button
       instance.selection.finish();
     }
 
     isMouseDown = false;
 
-    if (isOutsideInput(document.activeElement) || (!instance.selection.isSelected() && !isRightClick(event))) {
+    if (isOutsideInput(realTarget) || (!instance.selection.isSelected() && !isRightClick(event))) {
+      const priv = privatePool.get(this);
+
+      if (priv.focusableElement && priv.focusableElement.listenersCount.has(priv.focusableElement.mainElement)) {
+        priv.focusableElement.listenersCount.delete(priv.focusableElement.mainElement);
+      }
+
+      destroyElement(priv.focusableElement);
       instance.unlisten();
+
+      event.realTarget.focus();
+      event.preventDefault();
     }
   });
 
@@ -182,21 +199,6 @@ function TableView(instance) {
     // Prevent text from being selected when performing drag down.
     event.preventDefault();
   });
-
-  this.eventManager.addEventListener(window, 'focus', (event) => {
-    const realTarget = event.realTarget;
-
-    if (isOutsideInput(realTarget)) {
-      setTimeout(() => {
-        if (this.focusableElement && this.focusableElement.listenersCount.has(this.focusableElement.mainElement)) {
-          this.focusableElement.listenersCount.delete(this.focusableElement.mainElement);
-        }
-        destroyElement(this.focusableElement);
-        realTarget.focus();
-        event.preventDefault();
-      }, 110);
-    }
-  }, true);
 
   const walkontableConfig = {
     debug: () => that.settings.debug,
