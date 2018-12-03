@@ -124,7 +124,7 @@ function TableView(instance) {
       destroyElement(priv.focusableElement);
       instance.unlisten();
 
-      event.realTarget.focus();
+      realTarget.focus();
       event.preventDefault();
     }
   });
