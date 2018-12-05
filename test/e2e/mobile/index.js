@@ -1,4 +1,4 @@
-require('@babel/polyfill/lib/noConflict');
+require('@babel/polyfill');
 require('jasmine-co').install();
 
 let testPathRegExp = null;
