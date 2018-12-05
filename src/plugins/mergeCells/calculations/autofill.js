@@ -379,20 +379,23 @@ class AutofillCalculations {
     const columns = { min: null, max: null };
 
     arrayEach(changes, (change) => {
-      if (rows.min === null || change[0] < rows.min) {
-        rows.min = change[0];
+      const rowIndex = change[0];
+      const columnIndex = this.plugin.hot.propToCol(change[1]);
+
+      if (rows.min === null || rowIndex < rows.min) {
+        rows.min = rowIndex;
       }
 
-      if (rows.max === null || change[0] > rows.max) {
-        rows.max = change[0];
+      if (rows.max === null || rowIndex > rows.max) {
+        rows.max = rowIndex;
       }
 
-      if (columns.min === null || change[1] < columns.min) {
-        columns.min = change[1];
+      if (columns.min === null || columnIndex < columns.min) {
+        columns.min = columnIndex;
       }
 
-      if (columns.max === null || change[1] > columns.max) {
-        columns.max = change[1];
+      if (columns.max === null || columnIndex > columns.max) {
+        columns.max = columnIndex;
       }
     });
 
