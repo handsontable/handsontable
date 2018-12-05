@@ -266,6 +266,7 @@ describe('MergeCells-Autofill calculations', () => {
       };
 
       instance.recreateAfterDataPopulation(changes);
+
       expect(instance.mergedCellsCollection.mergedCells.length).toEqual(1);
       expect(JSON.stringify(instance.mergedCellsCollection.mergedCells[0])).toEqual(JSON.stringify({
         row: 2,

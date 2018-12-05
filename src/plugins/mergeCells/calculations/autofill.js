@@ -379,7 +379,8 @@ class AutofillCalculations {
     const columns = { min: null, max: null };
 
     arrayEach(changes, (change) => {
-      const [rowIndex, columnIndex] = change.map((el, i) => (i === 1 ? this.plugin.hot.propToCol(el) : el));
+      const rowIndex = change[0];
+      const columnIndex = this.plugin.hot.propToCol(change[1]);
 
       if (rows.min === null || rowIndex < rows.min) {
         rows.min = rowIndex;
