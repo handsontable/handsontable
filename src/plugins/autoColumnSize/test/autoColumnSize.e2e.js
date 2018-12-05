@@ -509,4 +509,18 @@ describe('AutoColumnSize', () => {
 
     expect(cloneTopHider.width()).toEqual(140);
   });
+
+  it('should not calculate any column widths, if there are no columns in the dataset', () => {
+    handsontable({
+      data: [[1, 2]],
+      colHeaders: true,
+    });
+
+    spyOn(getPlugin('autoColumnSize'), 'calculateColumnsWidth').and.callThrough();
+    const calculateColumnsWidth = getPlugin('autoColumnSize').calculateColumnsWidth;
+
+    loadData([[]]);
+
+    expect(calculateColumnsWidth).not.toHaveBeenCalled();
+  });
 });
