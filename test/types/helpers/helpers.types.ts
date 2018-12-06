@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable';
+import * as Handsontable from 'handsontable';
 
 const gridSettings: Handsontable.GridSettings = {
   valid: true,

@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Config responsible for building Walkontable test files (bundled into `src/3rdparty/walkontable/test/dist/`):
  *  - specs.entry.js

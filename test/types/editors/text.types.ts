@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable';
+import * as Handsontable from 'handsontable';
 
 class TextEditor extends Handsontable.editors.TextEditor {
   init() {

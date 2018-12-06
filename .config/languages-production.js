@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Config responsible for building minified Handsontable `dist/languages/` files.
  */

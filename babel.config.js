@@ -1,188 +1,174 @@
-const proFeatures = [
-  'src/plugins/bindRowsWithHeaders/',
-  'src/plugins/collapsibleColumns/',
-  'src/plugins/columnSummary/',
-  'src/plugins/dropdownMenu/',
-  'src/plugins/exportFile/',
-  'src/plugins/filters/',
-  'src/plugins/formulas/',
-  'src/plugins/ganttChart/',
-  'src/plugins/headerTooltips/',
-  'src/plugins/hiddenColumns/',
-  'src/plugins/hiddenRows/',
-  'src/plugins/multiColumnSorting/',
-  'src/plugins/nestedHeaders/',
-  'src/plugins/nestedRows/',
-  'src/plugins/trimRows/',
-];
-
-const allowedE2EModules = [
-  'window',
-  'jasmine-co',
-  'core-js/*',
-  'regenerator-runtime/runtime',
-  '@babel/runtime/*',
-  './common',
-  './../bootstrap',
-  './helpers/custom-matchers',
-  './asciiTable',
-  './MemoryLeakTest',
-  '../MemoryLeakTest',
-];
-
-const unwantedPolyfills = [
-  'es6.reflect.*',
-  'es6.math.*',
-  'es6.typed.*',
-  'es6.date.*',
-  'es6.regex.*',
-  'es6.array.sort',
-  'es6.array.species',
-  'es6.string.anchor',
-  'es6.string.big',
-  'es6.string.blink',
-  'es6.string.bold',
-  'es6.string.fixed',
-  'es6.string.fontcolor',
-  'es6.string.fontsize',
-  'es6.string.italics',
-  'es6.string.link',
-  'es6.string.small',
-  'es6.string.strike',
-  'es6.string.sub',
-  'es6.string.sup',
-  'es6.string.iterator',
-  'es6.function.has-instance',
-  'es7.object.define-getter',
-  'es7.object.define-setter',
-  'es7.object.lookup-getter',
-  'es7.object.lookup-setter',
-  'es7.symbol.async-iterator',
-  'web.timers',
-];
-
-const babelPreset = {
-  targets: {
-    chrome: '41',
-    firefox: '34',
-    ie: '9',
-    safari: '9'
-  },
-  exclude: unwantedPolyfills,
-  modules: false,
-  debug: false,
-  useBuiltIns: 'entry',
-};
-
 module.exports = {
   presets: [
-    ['@babel/preset-env', babelPreset]
+    [
+      '@babel/preset-env', {
+        targets: {
+          chrome: '41',
+          firefox: '34',
+          ie: '9',
+          safari: '9',
+          browsers: ['last 3 versions']
+        },
+        exclude: [
+          'transform-regenerator',
+          'es6.typed.array-buffer',
+          'es6.typed.data-view',
+          'es6.typed.int8-array',
+          'es6.typed.uint8-array',
+          'es6.typed.uint8-clamped-array',
+          'es6.typed.int16-array',
+          'es6.typed.uint16-array',
+          'es6.typed.int32-array',
+          'es6.typed.uint32-array',
+          'es6.typed.float32-array',
+          'es6.typed.float64-array',
+          'es6.reflect.apply',
+          'es6.reflect.construct',
+          'es6.reflect.define-property',
+          'es6.reflect.delete-property',
+          'es6.reflect.get',
+          'es6.reflect.get-own-property-descriptor',
+          'es6.reflect.get-prototype-of',
+          'es6.reflect.has',
+          'es6.reflect.is-extensible',
+          'es6.reflect.own-keys',
+          'es6.reflect.prevent-extensions',
+          'es6.reflect.set',
+          'es6.reflect.set-prototype-of',
+          'es6.math.acosh',
+          'es6.math.acosh',
+          'es6.math.asinh',
+          'es6.math.atanh',
+          'es6.math.cbrt',
+          'es6.math.clz32',
+          'es6.math.cosh',
+          'es6.math.expm1',
+          'es6.math.fround',
+          'es6.math.hypot',
+          'es6.math.imul',
+          'es6.math.log1p',
+          'es6.math.log10',
+          'es6.math.log2',
+          'es6.math.sign',
+          'es6.math.sinh',
+          'es6.math.tanh',
+          'es6.math.tanh',
+          'es6.math.trunc',
+          'web.timers'
+        ],
+        modules: false,
+        debug: false,
+        useBuiltIns: 'entry'
+      }]
   ],
   plugins: [
     ['@babel/plugin-proposal-object-rest-spread', {useBuiltIns: true}],
     ['transform-inline-environment-variables']
   ],
   env: {
-    // Environment for unit testing, source code and languages building via webpack (UMD).
     commonjs: {
       plugins: [
-        ['@babel/plugin-transform-runtime', {
-          'corejs': false,
-          'helpers': true,
-          'regenerator': true,
-          'useESModules': false,
-        }],
         ['@babel/plugin-transform-modules-commonjs', {loose: true}]
       ]
     },
-    ce_commonjs: {
-      plugins: [
-        ['@babel/plugin-transform-runtime', {
-          'corejs': false,
-          'helpers': true,
-          'regenerator': true,
-          'useESModules': false,
-        }],
-        ['@babel/plugin-transform-modules-commonjs', {loose: true}],
-        ['./.config/plugin/babel-ignore-pro-features.js']
-      ],
-      ignore: proFeatures
-    },
-    // Environment for transpiling files to be compatible with CommonJS.
     commonjs_dist: {
       plugins: [
         ['@babel/plugin-transform-modules-commonjs', {loose: true}],
         ['babel-plugin-transform-require-ignore', {extensions: ['.css']}]
-      ],
-      ignore: [
-        'src/plugins/**/test/**'
       ]
     },
-    ce_commonjs_dist: {
+    commonjs_e2e: {
+      presets: [
+        [
+          '@babel/preset-env', {
+            targets: {
+              chrome: '41',
+              firefox: '34',
+              ie: '9',
+              safari: '9',
+              browsers: ['last 3 versions']
+            },
+            exclude: [
+              'transform-regenerator',
+              'es6.typed.array-buffer',
+              'es6.typed.data-view',
+              'es6.typed.int8-array',
+              'es6.typed.uint8-array',
+              'es6.typed.uint8-clamped-array',
+              'es6.typed.int16-array',
+              'es6.typed.uint16-array',
+              'es6.typed.int32-array',
+              'es6.typed.uint32-array',
+              'es6.typed.float32-array',
+              'es6.typed.float64-array',
+              'es6.reflect.apply',
+              'es6.reflect.construct',
+              'es6.reflect.define-property',
+              'es6.reflect.delete-property',
+              'es6.reflect.get',
+              'es6.reflect.get-own-property-descriptor',
+              'es6.reflect.get-prototype-of',
+              'es6.reflect.has',
+              'es6.reflect.is-extensible',
+              'es6.reflect.own-keys',
+              'es6.reflect.prevent-extensions',
+              'es6.reflect.set',
+              'es6.reflect.set-prototype-of',
+              'es6.math.acosh',
+              'es6.math.acosh',
+              'es6.math.asinh',
+              'es6.math.atanh',
+              'es6.math.cbrt',
+              'es6.math.clz32',
+              'es6.math.cosh',
+              'es6.math.expm1',
+              'es6.math.fround',
+              'es6.math.hypot',
+              'es6.math.imul',
+              'es6.math.log1p',
+              'es6.math.log10',
+              'es6.math.log2',
+              'es6.math.sign',
+              'es6.math.sinh',
+              'es6.math.tanh',
+              'es6.math.tanh',
+              'es6.math.trunc',
+              'web.timers'
+            ],
+            modules: false,
+            debug: false,
+            useBuiltIns: 'entry'
+          }]
+      ],
       plugins: [
         ['@babel/plugin-transform-modules-commonjs', {loose: true}],
-        ['babel-plugin-transform-require-ignore', {extensions: ['.css']}],
-        ['./.config/plugin/babel-ignore-pro-features.js']
-      ],
-      ignore: proFeatures
+        [
+          'babel-plugin-forbidden-imports', {
+            allowedModules: [
+              '@babel/polyfill/*',
+              'window',
+              'jasmine-co',
+              'core-js/*',
+              'regenerator-runtime/runtime',
+              './common',
+              './../bootstrap',
+              './helpers/custom-matchers',
+              './asciiTable',
+              './MemoryLeakTest',
+              '../MemoryLeakTest'
+            ]
+          }]
+      ]
     },
-    // Environment for transpiling files to be compatible with ES Modules.
     es: {
       plugins: [
         ['babel-plugin-transform-require-ignore', {extensions: ['.css']}]
-      ],
-      ignore: [
-        'src/plugins/**/test/**'
-      ]
-    },
-    ce_es: {
-      plugins: [
-        ['babel-plugin-transform-require-ignore', {extensions: ['.css']}],
-        ["./.config/plugin/babel-ignore-pro-features.js"]
-      ],
-      ignore: proFeatures
-    },
-    // Environment for building E2E tests (UMD).
-    commonjs_e2e: {
-      plugins: [
-        ['@babel/plugin-transform-runtime', {
-          'corejs': false,
-          'helpers': true,
-          'regenerator': true,
-          'useESModules': false,
-        }],
-        ['@babel/plugin-transform-modules-commonjs', {loose: true}],
-        ['babel-plugin-forbidden-imports', {
-          allowedModules: allowedE2EModules
-        }]
-      ],
-      ignore: [
-        'src/plugins/**/test/**'
-      ]
-    },
-    ce_commonjs_e2e: {
-      plugins: [
-        ['@babel/plugin-transform-runtime', {
-          'corejs': false,
-          'helpers': true,
-          'regenerator': true,
-          'useESModules': false,
-        }],
-        ['@babel/plugin-transform-modules-commonjs', {loose: true}],
-        ['./.config/plugin/babel-ignore-pro-features.js'],
-        ['babel-plugin-forbidden-imports', {
-          allowedModules: allowedE2EModules
-        }]
-      ],
-      ignore: [
-        ...proFeatures,
-        'src/plugins/**/test/**'
       ]
     }
   },
 
   ignore: [
-    'src/3rdparty/walkontable/dist/',
-    'src/3rdparty/walkontable/test/dist/'
+    'src/3rdparty/walkontable/dist/*',
+    'src/3rdparty/walkontable/test/dist/*'
   ]
 };
