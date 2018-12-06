@@ -336,7 +336,7 @@ describe('Core_dataSchema', () => {
     const idAccessor = createAccessorForProperty('id');
     const nameAccessor = createAccessorForProperty('name');
 
-    const hot = handsontable({
+    hot = handsontable({
       data: [
         Model({
           id: 1,
@@ -370,7 +370,7 @@ describe('Core_dataSchema', () => {
     const idAccessor = createAccessorForProperty('id');
     const nameAccessor = createAccessorForProperty('name');
 
-    const hot = handsontable({
+    hot = handsontable({
       data: [
         Model({
           id: 1,

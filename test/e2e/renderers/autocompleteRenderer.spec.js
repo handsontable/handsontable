@@ -45,13 +45,13 @@ describe('AutocompleteRenderer', () => {
   });
 
   it('should open cell editor after clicking on arrow glyph, after the table has been destroyed and reinitialized (#1367)', () => {
-    handsontable({
+    let hot = handsontable({
       type: 'autocomplete'
     });
 
     destroy();
 
-    const hot = handsontable({
+    hot = handsontable({
       type: 'autocomplete'
     });
 

@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable';
+import * as Handsontable from 'handsontable';
 
 const elem = document.createElement('div');
 const hot = new Handsontable(elem, {});

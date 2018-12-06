@@ -610,7 +610,7 @@ describe('NumericEditor', () => {
   });
 
   it('should not throw error on closing editor when column data is defined as \'length\'', () => {
-    handsontable({
+    hot = handsontable({
       data: [
         { length: 4 },
         { length: 5 },

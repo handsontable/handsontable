@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable';
+import * as Handsontable from 'handsontable';
 
 class PasswordEditor extends Handsontable.editors.TextEditor {
   createElements() {
