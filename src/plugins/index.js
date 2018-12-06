@@ -1,3 +1,4 @@
+// Persistent has to be initialized as first module to have priority in listening hooks
 import PersistentState from './persistentState/persistentState';
 import AutoColumnSize from './autoColumnSize/autoColumnSize';
 import AutoFill from './autofill/autofill';
@@ -25,6 +26,7 @@ export {
   AutoColumnSize,
   AutoFill,
   AutoRowSize,
+  Base,
   ColumnSorting,
   Comments,
   ContextMenu,
@@ -43,5 +45,5 @@ export {
   Search,
   TouchScroll,
   UndoRedo,
-  Base,
 };
+export * from './pro-features';

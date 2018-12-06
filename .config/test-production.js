@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * Config responsible for building End-to-End test files (bundled into `test/dist/`). These tests testing `*.full.min.js` files:
  *  - e2e.entry.js
@@ -26,7 +24,7 @@ module.exports.create = function create(envArgs) {
         baseJasminePath: '../',
         externalCssFiles: [
           'lib/normalize.css',
-          '../dist/handsontable.full.min.css',
+          '../dist/handsontable-pro.full.min.css',
           'helpers/common.css',
         ],
         externalJsFiles: [
@@ -35,7 +33,7 @@ module.exports.create = function create(envArgs) {
           'lib/jquery.simulate.js',
           'lib/lodash.underscore.js',
           'lib/backbone.js',
-          '../dist/handsontable.full.min.js',
+          '../dist/handsontable-pro.full.min.js',
           '../node_modules/numbro/dist/languages.min.js',
           '../dist/languages/all.min.js',
         ],
