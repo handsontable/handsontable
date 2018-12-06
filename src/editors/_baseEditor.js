@@ -1,7 +1,7 @@
 import { CellCoords } from './../3rdparty/walkontable/src';
 import { stringify } from './../helpers/mixed';
 import { mixin } from './../helpers/object';
-import hooksRegisterer from './../mixins/hooksRegisterer';
+import hooksRefRegisterer from './../mixins/hooksRefRegisterer';
 
 export const EditorState = {
   VIRGIN: 'STATE_VIRGIN', // before editing
@@ -18,32 +18,79 @@ class BaseEditor {
   constructor(instance) {
     /**
      * A reference to the source instance of the Handsontable.
+     *
+     * @type {Handsontable}
      */
     this.hot = instance;
     /**
      * A reference to the source instance of the Handsontable.
      * @deprecated
+     *
+     * @type {Handsontable}
      */
     this.instance = instance;
     /**
      * Editor's state.
+     *
+     * @type {String}
      */
     this.state = EditorState.VIRGIN;
-
     /**
      * Flag to store information about editor's opening status.
      * @private
+     *
+     * @type {Boolean}
      */
     this._opened = false;
     /**
      * Defines the editor's editing mode. When false, then an editor works in fast editing mode.
      * @private
+     *
+     * @type {Boolean}
      */
     this._fullEditMode = false;
     /**
      * Callback to call after closing editor.
+     *
+     * @type {Function}
      */
     this._closeCallback = null;
+    /**
+     * Currently rendered cell's TD element.
+     *
+     * @type {HTMLTableCellElement}
+     */
+    this.TD = null;
+    /**
+     * Visual row index.
+     *
+     * @type {Number}
+     */
+    this.row = null;
+    /**
+     * Visual column index.
+     *
+     * @type {Number}
+     */
+    this.col = null;
+    /**
+     * Column property name or a column index, if datasource is an array of arrays.
+     *
+     * @type {Number|String}
+     */
+    this.prop = null;
+    /**
+     * Original cell's value.
+     *
+     * @type {*}
+     */
+    this.originalValue = null;
+    /**
+     * Object containing the cell's properties.
+     *
+     * @type {Object}
+     */
+    this.cellProperties = null;
 
     this.init();
   }
@@ -133,7 +180,7 @@ class BaseEditor {
 
     // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
     if (ctrlDown) {
-      selection = this.instance.getSelectedLast();
+      selection = this.hot.getSelectedLast();
 
       if (selection[0] > selection[2]) {
         tmp = selection[0];
@@ -149,7 +196,7 @@ class BaseEditor {
       selection = [this.row, this.col, null, null];
     }
 
-    this.instance.populateFromArray(selection[0], selection[1], value, selection[2], selection[3], 'edit');
+    this.hot.populateFromArray(selection[0], selection[1], value, selection[2], selection[3], 'edit');
   }
 
   /**
@@ -162,7 +209,7 @@ class BaseEditor {
     if (this.state !== EditorState.VIRGIN) {
       return;
     }
-    this.instance.view.scrollViewport(new CellCoords(this.row, this.col));
+    this.hot.view.scrollViewport(new CellCoords(this.row, this.col));
     this.state = EditorState.EDITING;
 
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
@@ -178,9 +225,9 @@ class BaseEditor {
     this.focus();
 
     // only rerender the selections (FillHandle should disappear when beginediting is triggered)
-    this.instance.view.render();
+    this.hot.view.render();
 
-    this.instance.runHooks('afterBeginEditing', this.row, this.col);
+    this.hot.runHooks('afterBeginEditing', this.row, this.col);
   }
 
   /**
@@ -202,7 +249,7 @@ class BaseEditor {
         }
 
         callback(result);
-        this.instance.view.render();
+        this.hot.view.render();
       };
     }
 
@@ -211,7 +258,7 @@ class BaseEditor {
     }
 
     if (this.state === EditorState.VIRGIN) {
-      this.instance._registerTimeout(() => {
+      this.hot._registerTimeout(() => {
         this._fireCallbacks(true);
       });
 
@@ -221,14 +268,14 @@ class BaseEditor {
     if (this.state === EditorState.EDITING) {
       if (restoreOriginalValue) {
         this.cancelChanges();
-        this.instance.view.render();
+        this.hot.view.render();
 
         return;
       }
 
       const value = this.getValue();
 
-      if (this.instance.getSettings().trimWhitespace) {
+      if (this.hot.getSettings().trimWhitespace) {
         // We trim only string values
         val = [
           [typeof value === 'string' ? String.prototype.trim.call(value || '') : value]
@@ -242,8 +289,8 @@ class BaseEditor {
       this.state = EditorState.WAITING;
       this.saveValue(val, ctrlDown);
 
-      if (this.instance.getCellValidator(this.cellProperties)) {
-        this.instance.addHookOnce('postAfterValidate', (result) => {
+      if (this.hot.getCellValidator(this.cellProperties)) {
+        this.hot.addHookOnce('postAfterValidate', (result) => {
           this.state = EditorState.FINISHED;
           this.discardEditor(result);
         });
@@ -274,7 +321,7 @@ class BaseEditor {
 
     // validator was defined and failed
     if (result === false && this.cellProperties.allowInvalid !== true) {
-      this.instance.selectCell(this.row, this.col);
+      this.hot.selectCell(this.row, this.col);
       this.focus();
       this.state = EditorState.EDITING;
       this._fireCallbacks(false);
@@ -325,22 +372,22 @@ class BaseEditor {
    * @private
    */
   checkEditorSection() {
-    const totalRows = this.instance.countRows();
+    const totalRows = this.hot.countRows();
     let section = '';
 
-    if (this.row < this.instance.getSettings().fixedRowsTop) {
-      if (this.col < this.instance.getSettings().fixedColumnsLeft) {
+    if (this.row < this.hot.getSettings().fixedRowsTop) {
+      if (this.col < this.hot.getSettings().fixedColumnsLeft) {
         section = 'top-left-corner';
       } else {
         section = 'top';
       }
-    } else if (this.instance.getSettings().fixedRowsBottom && this.row >= totalRows - this.instance.getSettings().fixedRowsBottom) {
-      if (this.col < this.instance.getSettings().fixedColumnsLeft) {
+    } else if (this.hot.getSettings().fixedRowsBottom && this.row >= totalRows - this.hot.getSettings().fixedRowsBottom) {
+      if (this.col < this.hot.getSettings().fixedColumnsLeft) {
         section = 'bottom-left-corner';
       } else {
         section = 'bottom';
       }
-    } else if (this.col < this.instance.getSettings().fixedColumnsLeft) {
+    } else if (this.col < this.hot.getSettings().fixedColumnsLeft) {
       section = 'left';
     }
 
@@ -348,6 +395,6 @@ class BaseEditor {
   }
 }
 
-mixin(BaseEditor, hooksRegisterer);
+mixin(BaseEditor, hooksRefRegisterer);
 
 export default BaseEditor;

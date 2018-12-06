@@ -1,14 +1,14 @@
 import { arrayEach } from './../helpers/array';
 import { defineGetter, objectEach } from './../helpers/object';
 
-const MIXIN_NAME = 'hooksRegisterer';
+const MIXIN_NAME = 'hooksRefRegisterer';
 
 /**
  * Mixin object to extend objects functionality for auto registering hooks in an Handsontable instance.
  *
  * @type {Object}
  */
-const hooksRegisterer = {
+const hooksRefRegisterer = {
   /**
    * Internal hooks storage.
    */
@@ -53,9 +53,9 @@ const hooksRegisterer = {
   },
 };
 
-defineGetter(hooksRegisterer, 'MIXIN_NAME', MIXIN_NAME, {
+defineGetter(hooksRefRegisterer, 'MIXIN_NAME', MIXIN_NAME, {
   writable: false,
   enumerable: false,
 });
 
-export default hooksRegisterer;
+export default hooksRefRegisterer;
