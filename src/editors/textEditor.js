@@ -12,6 +12,7 @@ import {
   hasHorizontalScrollbar
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
+import { isMobileBrowser } from './../helpers/browser';
 import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
 import { KEY_CODES } from './../helpers/unicode';
@@ -63,7 +64,7 @@ TextEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
     // be disabled (to make IME working).
     const restoreFocus = !fragmentSelection;
 
-    if (restoreFocus) {
+    if (restoreFocus && !isMobileBrowser()) {
       this.instance._registerImmediate(() => this.focus());
     }
   }
