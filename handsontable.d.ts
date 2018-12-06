@@ -56,7 +56,7 @@ declare namespace _Handsontable {
     getSourceDataAtCell(row: number, column: number): any;
     getSourceDataAtCol(column: number): any[];
     getSourceDataAtRow(row: number): any[] | object;
-    getTranslatedPhrase(dictionaryKey: string, extraArguments: any): string;
+    getTranslatedPhrase(dictionaryKey: string, extraArguments: any): string | null;
     getValue(): any;
     hasColHeaders(): boolean;
     hasHook(key: string): boolean;
