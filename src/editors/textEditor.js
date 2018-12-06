@@ -9,7 +9,8 @@ import {
   resetCssTransform,
   setCaretPosition,
   hasVerticalScrollbar,
-  hasHorizontalScrollbar
+  hasHorizontalScrollbar,
+  isInput
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
 import BaseEditor, { EditorState } from './_baseEditor';
@@ -64,7 +65,7 @@ TextEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
     const restoreFocus = !fragmentSelection;
 
     if (restoreFocus) {
-      this.instance._registerImmediate(() => this.focus());
+      this.instance._registerImmediate(() => this.focus(true));
     }
   }
 };
@@ -195,11 +196,23 @@ TextEditor.prototype.close = function() {
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-TextEditor.prototype.focus = function() {
+TextEditor.prototype.focus = function(safeFocus = false) {
   // For IME editor textarea element must be focused using ".select" method. Using ".focus" browser automatically scroll into
   // the focused element which is undesire effect.
-  this.TEXTAREA.select();
-  setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+  const focus = () => {
+    this.TEXTAREA.select();
+    setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+  };
+
+  if (safeFocus) {
+    const activeElement = document.activeElement;
+
+    if (!isInput(activeElement)) {
+      focus(true);
+    }
+  } else {
+    focus();
+  }
 };
 
 TextEditor.prototype.createElements = function() {
