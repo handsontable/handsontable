@@ -893,7 +893,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   function validateChanges(changes, source, callback) {
     const waitingForValidator = new ValidatorsQueue();
-    const isNumericData = value => value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
+    const isNumericData = value => value.length > 0 && /^\s*[+-.]?\s*(?:(?:\d+(?:(\.|,)\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/.test(value);
 
     waitingForValidator.onQueueEmpty = resolve;
 
@@ -921,7 +921,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 changes.splice(index, 1); // cancel the change
                 cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
                 const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
-                removeClass(cell, instance.getSettings().invalidCellClassName);
+                if (cell !== null) {
+                  removeClass(cell, instance.getSettings().invalidCellClassName);
+                }
                 // index -= 1;
               }
               waitingForValidator.removeValidatorFormQueue();

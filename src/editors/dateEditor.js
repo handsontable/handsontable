@@ -12,7 +12,7 @@ import TextEditor from './textEditor';
  * @private
  * @editor DateEditor
  * @class DateEditor
- * @dependencies TextEditor moment pikaday
+ * @dependencies TextEditor
  */
 class DateEditor extends TextEditor {
   /**
@@ -87,7 +87,6 @@ class DateEditor extends TextEditor {
    * @param {Object} cellProperties Object with cell properties ({@see Core#getCellMeta})
    */
   prepare(row, col, prop, td, originalValue, cellProperties) {
-    this._opened = false;
     super.prepare(row, col, prop, td, originalValue, cellProperties);
   }
 

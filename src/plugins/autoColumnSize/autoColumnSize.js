@@ -166,7 +166,6 @@ class AutoColumnSize extends BasePlugin {
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', changes => this.onBeforeChange(changes));
-
     this.addHook('beforeRender', force => this.onBeforeRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
     this.addHook('afterInit', () => this.onAfterInit());
@@ -262,11 +261,14 @@ class AutoColumnSize extends BasePlugin {
         }
       }
     };
+
+    const syncLimit = this.getSyncCalculationLimit();
+
     // sync
-    if (this.firstCalculation && this.getSyncCalculationLimit()) {
-      this.calculateColumnsWidth({ from: 0, to: this.getSyncCalculationLimit() }, rowRange);
+    if (this.firstCalculation && syncLimit >= 0) {
+      this.calculateColumnsWidth({ from: 0, to: syncLimit }, rowRange);
       this.firstCalculation = false;
-      current = this.getSyncCalculationLimit() + 1;
+      current = syncLimit + 1;
     }
     // async
     if (current < length) {
@@ -355,7 +357,7 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Gets the first visible column.
    *
-   * @returns {Number} Returns column index or -1 if table is not rendered.
+   * @returns {Number|null} Returns column index, -1 if table is not rendered or null if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn() {
     const wot = this.hot.view.wt;
@@ -449,13 +451,19 @@ class AutoColumnSize extends BasePlugin {
   onBeforeRender() {
     const force = this.hot.renderCall;
     const rowsCount = this.hot.countRows();
+    const firstVisibleColumn = this.getFirstVisibleColumn();
+    const lastVisibleColumn = this.getLastVisibleColumn();
+
+    if (firstVisibleColumn === null || lastVisibleColumn === null) {
+      return;
+    }
 
     // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
     if (!rowsCount) {
       return;
     }
 
-    this.calculateColumnsWidth({ from: this.getFirstVisibleColumn(), to: this.getLastVisibleColumn() }, void 0, force);
+    this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, void 0, force);
 
     if (this.isNeedRecalculate() && !this.inProgress) {
       this.calculateAllColumnsWidth();

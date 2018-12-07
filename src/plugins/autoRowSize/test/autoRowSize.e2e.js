@@ -478,4 +478,34 @@ describe('AutoRowSize', () => {
 
     expect(rowHeight(spec().$container, -1)).toBe(75);
   });
+
+  it('should properly count height', async() => {
+    handsontable({
+      data: [['Tomek', 'Tomek\nTomek', 'Romek\nRomek']],
+      rowHeaders: true,
+      colHeaders: true,
+      autoRowSize: true,
+    });
+
+    await sleep(300);
+
+    const cloneLeft = spec().$container.find('.handsontable.ht_clone_left .wtHider');
+
+    expect(cloneLeft.height()).toEqual(70);
+  });
+
+  it('should not calculate any row heights, if there are no rows in the dataset', () => {
+    handsontable({
+      data: [[1, 2]],
+      colHeaders: true,
+      autoRowSize: true,
+    });
+
+    spyOn(getPlugin('autoRowSize'), 'calculateRowsHeight').and.callThrough();
+    const calculateColumnsWidth = getPlugin('autoRowSize').calculateRowsHeight;
+
+    loadData([]);
+
+    expect(calculateColumnsWidth).not.toHaveBeenCalled();
+  });
 });

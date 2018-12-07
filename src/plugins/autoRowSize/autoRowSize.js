@@ -229,11 +229,14 @@ class AutoRowSize extends BasePlugin {
         }
       }
     };
+
+    const syncLimit = this.getSyncCalculationLimit();
+
     // sync
-    if (this.firstCalculation && this.getSyncCalculationLimit()) {
-      this.calculateRowsHeight({ from: 0, to: this.getSyncCalculationLimit() }, colRange);
+    if (this.firstCalculation && syncLimit >= 0) {
+      this.calculateRowsHeight({ from: 0, to: syncLimit }, colRange);
       this.firstCalculation = false;
-      current = this.getSyncCalculationLimit() + 1;
+      current = syncLimit + 1;
     }
     // async
     if (current < length) {
@@ -327,7 +330,7 @@ class AutoRowSize extends BasePlugin {
   /**
    * Get the first visible row.
    *
-   * @returns {Number} Returns row index or -1 if table is not rendered.
+   * @returns {Number|null} Returns row index, -1 if table is not rendered or null if there are no rows to base the the calculations on.
    */
   getFirstVisibleRow() {
     const wot = this.hot.view.wt;
@@ -398,8 +401,14 @@ class AutoRowSize extends BasePlugin {
   onBeforeRender() {
     const force = this.hot.renderCall;
     const fixedRowsBottom = this.hot.getSettings().fixedRowsBottom;
+    const firstVisibleRow = this.getFirstVisibleRow();
+    const lastVisibleRow = this.getLastVisibleRow();
 
-    this.calculateRowsHeight({ from: this.getFirstVisibleRow(), to: this.getLastVisibleRow() }, void 0, force);
+    if (firstVisibleRow === null || lastVisibleRow === null) {
+      return;
+    }
+
+    this.calculateRowsHeight({ from: firstVisibleRow, to: lastVisibleRow }, void 0, force);
 
     // Calculate rows height synchronously for bottom overlay
     if (fixedRowsBottom) {

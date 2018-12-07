@@ -104,6 +104,19 @@ export const spliceRow = handsontableMethodFactory('spliceRow');
 export const updateSettings = handsontableMethodFactory('updateSettings');
 export const undo = handsontableMethodFactory('undo');
 
+const specContext = {};
+
+beforeEach(function() {
+  specContext.spec = this;
+});
+afterEach(() => {
+  specContext.spec = null;
+});
+
+export function spec() {
+  return specContext.spec;
+}
+
 export function hot() {
   return spec().$container.data('handsontable');
 }
@@ -734,6 +747,7 @@ export function swapDisplayedColumns(container, from, to) {
 
 export function triggerTouchEvent(type, target, pageX, pageY) {
   const e = document.createEvent('TouchEvent');
+
   const targetCoords = target.getBoundingClientRect();
   const targetPageX = pageX || parseInt(targetCoords.left + 3, 10);
   const targetPageY = pageY || parseInt(targetCoords.top + 3, 10);

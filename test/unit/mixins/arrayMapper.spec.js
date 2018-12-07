@@ -35,6 +35,15 @@ describe('arrayMapper mixin', () => {
       expect(arrayMapper._arrayMap.length).toBe(7);
       expect(arrayMapper._arrayMap).toEqual([1, 5, 7, 8, 9, 0, 2]);
     });
+
+    it('should remove an array of item indices from _arrayMap and return removed items', () => {
+      arrayMapper._arrayMap = [1, 6, 3, 4, 5, 7, 8, 9, 0, 2];
+
+      arrayMapper.removeItems([1, 3, 4, 7]);
+
+      expect(arrayMapper._arrayMap.length).toBe(6);
+      expect(arrayMapper._arrayMap).toEqual([1, 3, 7, 8, 0, 2]);
+    });
   });
 
   describe('unshiftItems', () => {

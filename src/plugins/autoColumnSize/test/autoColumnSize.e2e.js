@@ -482,4 +482,45 @@ describe('AutoColumnSize', () => {
 
     expect(spy.calls.mostRecent().args[5]).toEqual([{ id: 1000 }]);
   });
+
+  it('should not change width after select/click cell', async() => {
+    handsontable({
+      data: [
+        ['Canceled'],
+        ['Processing'],
+        ['Processing'],
+        ['Created'],
+        ['Processing'],
+        ['Completed']
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    await sleep(300);
+
+    const cloneTopHider = spec().$container.find('.ht_clone_top .wtHider');
+
+    expect(cloneTopHider.width()).toEqual(140);
+
+    selectCell(0, 0);
+
+    await sleep(300);
+
+    expect(cloneTopHider.width()).toEqual(140);
+  });
+
+  it('should not calculate any column widths, if there are no columns in the dataset', () => {
+    handsontable({
+      data: [[1, 2]],
+      colHeaders: true,
+    });
+
+    spyOn(getPlugin('autoColumnSize'), 'calculateColumnsWidth').and.callThrough();
+    const calculateColumnsWidth = getPlugin('autoColumnSize').calculateColumnsWidth;
+
+    loadData([[]]);
+
+    expect(calculateColumnsWidth).not.toHaveBeenCalled();
+  });
 });

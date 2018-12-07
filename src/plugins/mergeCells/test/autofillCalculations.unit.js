@@ -183,6 +183,7 @@ describe('MergeCells-Autofill calculations', () => {
         },
         countCols: () => 100,
         countRows: () => 100,
+        propToCol: el => el
       };
       const instance = new AutofillCalculations({
         mergedCellsCollection: new MergedCellsCollection({ hot: hotMock }),
@@ -237,16 +238,76 @@ describe('MergeCells-Autofill calculations', () => {
         removed: false
       }));
     });
+
+    it('Should recreate the merged cells after the autofill process, when the dataset is an array of objects', () => {
+      const hotMock = {
+        render: () => {
+        },
+        countCols: () => 100,
+        countRows: () => 100,
+        propToCol: string => parseInt(string.replace('propFor', ''), 10)
+      };
+      const instance = new AutofillCalculations({
+        mergedCellsCollection: new MergedCellsCollection({ hot: hotMock }),
+        hot: hotMock
+      });
+
+      const changes = [
+        [2, 'propFor4', 'test', 'test'],
+        [2, 'propFor5', 'test', 'test'],
+        [2, 'propFor4', 'test', null],
+        [2, 'propFor5', 'test', null]
+      ];
+
+      instance.currentFillData = {
+        dragDirection: 'right',
+        foundMergedCells: [new MergedCellCoords(2, 2, 2, 2)],
+        cycleLength: 2
+      };
+
+      instance.recreateAfterDataPopulation(changes);
+
+      expect(instance.mergedCellsCollection.mergedCells.length).toEqual(1);
+      expect(JSON.stringify(instance.mergedCellsCollection.mergedCells[0])).toEqual(JSON.stringify({
+        row: 2,
+        col: 4,
+        rowspan: 2,
+        colspan: 2,
+        removed: false
+      }));
+    });
   });
 
   describe('getRangeFromChanges', () => {
     it('Should get the drag range from the changes made.', () => {
-      const instance = new AutofillCalculations({});
+      const instance = new AutofillCalculations({
+        hot: {
+          propToCol: el => el
+        }
+      });
       const changes = [[7, 4, '[7, 4]', '[3, 4]'], [7, 5, '[7, 5]', null], [7, 6, '[7, 6]', '[3, 6]'], [7, 7, '[7, 7]', '[3, 7]'],
         [7, 8, '[7, 8]', '[3, 8]'], [8, 4, '[8, 4]', null], [8, 5, '[8, 5]', null], [8, 6, '[8, 6]', '[4, 6]'], [8, 7, '[8, 7]', null],
         [8, 8, '[8, 8]', null], [9, 4, '[9, 4]', '[5, 4]'], [9, 5, '[9, 5]', '[5, 5]'], [9, 6, '[9, 6]', null], [9, 7, '[9, 7]', null],
         [9, 8, '[9, 8]', null], [10, 4, '[10, 4]', '[6, 4]'], [10, 5, '[10, 5]', '[6, 5]'], [10, 6, '[10, 6]', null], [10, 7, '[10, 7]', null],
         [10, 8, '[10, 8]', null]];
+
+      expect(JSON.stringify(instance.getRangeFromChanges(changes))).toEqual(JSON.stringify({
+        from: { row: 7, column: 4 },
+        to: { row: 10, column: 8 }
+      }));
+    });
+
+    it('Should get the drag range from the changes made, when the column indexes are set to properties', () => {
+      const instance = new AutofillCalculations({
+        hot: {
+          propToCol: string => parseInt(string.replace('propFor', ''), 10)
+        }
+      });
+      const changes = [[7, 'propFor4', '[7, 4]', '[3, 4]'], [7, 'propFor5', '[7, 5]', null], [7, 'propFor6', '[7, 6]', '[3, 6]'], [7, 'propFor7', '[7, 7]', '[3, 7]'],
+        [7, 'propFor8', '[7, 8]', '[3, 8]'], [8, 'propFor4', '[8, 4]', null], [8, 'propFor5', '[8, 5]', null], [8, 'propFor6', '[8, 6]', '[4, 6]'],
+        [8, 'propFor7', '[8, 7]', null], [8, 'propFor8', '[8, 8]', null], [9, 'propFor4', '[9, 4]', '[5, 4]'], [9, 'propFor5', '[9, 5]', '[5, 5]'],
+        [9, 'propFor6', '[9, 6]', null], [9, 'propFor7', '[9, 7]', null], [9, 'propFor8', '[9, 8]', null], [10, 'propFor4', '[10, 4]', '[6, 4]'],
+        [10, 'propFor5', '[10, 5]', '[6, 5]'], [10, 'propFor6', '[10, 6]', null], [10, 'propFor7', '[10, 7]', null], [10, 'propFor8', '[10, 8]', null]];
 
       expect(JSON.stringify(instance.getRangeFromChanges(changes))).toEqual(JSON.stringify({
         from: { row: 7, column: 4 },

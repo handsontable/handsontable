@@ -1,7 +1,10 @@
-'use strict';
-
 /**
- * Config responsible for building Handsontable `dist/` minified files:
+ * Config responsible for building Handsontable `dist/` minified files. Depends on HOT_FILENAME env it produces, either PRO files:
+ *  - handsontable-pro.min.js
+ *  - handsontable-pro.min.css
+ *  - handsontable-pro.full.min.js
+ *  - handsontable-pro.full.min.css
+ * or CE files:
  *  - handsontable.min.js
  *  - handsontable.min.css
  *  - handsontable.full.min.js
@@ -10,6 +13,7 @@
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const webpack = require('webpack');
 const configFactory = require('./development');
 
@@ -34,8 +38,6 @@ module.exports.create = function create(envArgs) {
       new webpack.optimize.UglifyJsPlugin({
         compressor: {
           pure_getters: true,
-          unsafe: true,
-          unsafe_comps: true,
           warnings: false,
           screw_ie8: true,
         },
@@ -57,6 +59,12 @@ module.exports.create = function create(envArgs) {
     if (isFullBuild) {
       c.plugins.push(
         new CopyWebpackPlugin([
+          { // hot-formula-parser
+            from: {glob: 'node_modules/hot-formula-parser/LICENSE'}, to: 'hot-formula-parser', flatten: true
+          },
+          {
+            from: {glob: 'node_modules/hot-formula-parser/dist/formula-parser.js'}, to: 'hot-formula-parser', flatten: true
+          },
           { // moment
             from: {glob: 'node_modules/moment/@(moment.js|LICENSE)'}, to: 'moment', flatten: true
           },
