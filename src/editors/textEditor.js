@@ -12,90 +12,10 @@ import {
   hasHorizontalScrollbar
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
-import { isMobileBrowser } from './../helpers/browser';
 import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
 import { KEY_CODES } from './../helpers/unicode';
 import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
-
-const onBeforeKeyDown = function onBeforeKeyDown(event) {
-  const instance = this;
-  const that = instance.getActiveEditor();
-
-  // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-  const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
-
-  // Process only events that have been fired in the editor
-  if (event.target !== that.TEXTAREA || isImmediatePropagationStopped(event)) {
-    return;
-  }
-
-  switch (event.keyCode) {
-    case KEY_CODES.ARROW_RIGHT:
-      if (that.isInFullEditMode()) {
-        if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
-            (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
-          stopImmediatePropagation(event);
-        }
-      }
-      break;
-
-    case KEY_CODES.ARROW_LEFT:
-      if (that.isInFullEditMode()) {
-        if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
-            (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
-          stopImmediatePropagation(event);
-        }
-      }
-      break;
-
-    case KEY_CODES.ARROW_UP:
-    case KEY_CODES.ARROW_DOWN:
-      if (that.isInFullEditMode()) {
-        if ((!that.isWaiting() && !that.allowKeyEventPropagation) ||
-            (!that.isWaiting() && that.allowKeyEventPropagation && !that.allowKeyEventPropagation(event.keyCode))) {
-          stopImmediatePropagation(event);
-        }
-      }
-      break;
-
-    case KEY_CODES.ENTER: {
-      const isMultipleSelection = this.selection.isMultiple();
-
-      if ((ctrlDown && !isMultipleSelection) || event.altKey) { // if ctrl+enter or alt+enter, add new line
-        if (that.isOpened()) {
-          const caretPosition = getCaretPosition(that.TEXTAREA);
-          const value = that.getValue();
-          const newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
-
-          that.setValue(newValue);
-
-          setCaretPosition(that.TEXTAREA, caretPosition + 1);
-
-        } else {
-          that.beginEditing(`${that.originalValue}\n`);
-        }
-        stopImmediatePropagation(event);
-      }
-      event.preventDefault(); // don't add newline to field
-      break;
-    }
-
-    case KEY_CODES.BACKSPACE:
-    case KEY_CODES.DELETE:
-    case KEY_CODES.HOME:
-    case KEY_CODES.END:
-      stopImmediatePropagation(event); // backspace, delete, home, end should only work locally when cell is edited (not in table context)
-      break;
-
-    default:
-      break;
-  }
-
-  if ([KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT].indexOf(event.keyCode) === -1) {
-    that.autoResize.resize(String.fromCharCode(event.keyCode));
-  }
-};
 
 /**
  * @private
@@ -105,16 +25,13 @@ const onBeforeKeyDown = function onBeforeKeyDown(event) {
  */
 class TextEditor extends BaseEditor {
   init() {
-    const that = this;
     this.createElements();
     this.eventManager = new EventManager(this);
     this.bindEvents();
     this.autoResize = autoResize();
     this.holderZIndex = -1;
 
-    this.instance.addHook('afterDestroy', () => {
-      that.destroy();
-    });
+    this.addHook('afterDestroy', () => this.destroy());
   }
 
   prepare(row, col, prop, td, originalValue, cellProperties, ...args) {
@@ -143,7 +60,7 @@ class TextEditor extends BaseEditor {
       const restoreFocus = !fragmentSelection;
 
       if (restoreFocus) {
-        this.instance._registerImmediate(() => this.focus());
+        this.hot._registerImmediate(() => this.focus());
       }
     }
   }
@@ -181,18 +98,18 @@ class TextEditor extends BaseEditor {
     this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
     this.showEditableElement();
 
-    this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
+    this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
   }
 
   close() {
     this.autoResize.unObserve();
 
     if (document.activeElement === this.TEXTAREA) {
-      this.instance.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
+      this.hot.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
     }
 
     this.hideEditableElement();
-    this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+    this.clearHooks();
   }
 
   focus() {
@@ -220,7 +137,7 @@ class TextEditor extends BaseEditor {
 
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
 
-    this.instance.rootElement.appendChild(this.TEXTAREA_PARENT);
+    this.hot.rootElement.appendChild(this.TEXTAREA_PARENT);
   }
 
   getEditedCell() {
@@ -229,42 +146,42 @@ class TextEditor extends BaseEditor {
 
     switch (editorSection) {
       case 'top':
-        editedCell = this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.getCell({
+        editedCell = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.getCell({
           row: this.row,
           col: this.col
         });
         this.holderZIndex = 101;
         break;
       case 'top-left-corner':
-        editedCell = this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
+        editedCell = this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
           row: this.row,
           col: this.col
         });
         this.holderZIndex = 103;
         break;
       case 'bottom-left-corner':
-        editedCell = this.instance.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell({
+        editedCell = this.hot.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell({
           row: this.row,
           col: this.col
         });
         this.holderZIndex = 103;
         break;
       case 'left':
-        editedCell = this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
+        editedCell = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
           row: this.row,
           col: this.col
         });
         this.holderZIndex = 102;
         break;
       case 'bottom':
-        editedCell = this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.getCell({
+        editedCell = this.hot.view.wt.wtOverlays.bottomOverlay.clone.wtTable.getCell({
           row: this.row,
           col: this.col
         });
         this.holderZIndex = 102;
         break;
       default:
-        editedCell = this.instance.getCell(this.row, this.col);
+        editedCell = this.hot.getCell(this.row, this.col);
         this.holderZIndex = -1;
         break;
     }
@@ -273,8 +190,8 @@ class TextEditor extends BaseEditor {
   }
 
   refreshValue() {
-    const physicalRow = this.instance.toPhysicalRow(this.row);
-    const sourceData = this.instance.getSourceDataAtCell(physicalRow, this.col);
+    const physicalRow = this.hot.toPhysicalRow(this.row);
+    const sourceData = this.hot.getSourceDataAtCell(physicalRow, this.col);
     this.originalValue = sourceData;
 
     this.setValue(sourceData);
@@ -297,10 +214,10 @@ class TextEditor extends BaseEditor {
     }
 
     const currentOffset = offset(this.TD);
-    const containerOffset = offset(this.instance.rootElement);
-    const scrollableContainerTop = this.instance.view.wt.wtOverlays.topOverlay.mainTableScrollableElement;
-    const scrollableContainerLeft = this.instance.view.wt.wtOverlays.leftOverlay.mainTableScrollableElement;
-    const totalRowsCount = this.instance.countRows();
+    const containerOffset = offset(this.hot.rootElement);
+    const scrollableContainerTop = this.hot.view.wt.wtOverlays.topOverlay.mainTableScrollableElement;
+    const scrollableContainerLeft = this.hot.view.wt.wtOverlays.leftOverlay.mainTableScrollableElement;
+    const totalRowsCount = this.hot.countRows();
     const containerScrollTop = scrollableContainerTop !== window ? scrollableContainerTop.scrollTop : 0;
     const containerScrollLeft = scrollableContainerLeft !== window ? scrollableContainerLeft.scrollLeft : 0;
     const editorSection = this.checkEditorSection();
@@ -311,8 +228,8 @@ class TextEditor extends BaseEditor {
     // If colHeaders is disabled, cells in the first row have border-top
     const editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
 
-    const settings = this.instance.getSettings();
-    const colHeadersCount = this.instance.hasColHeaders();
+    const settings = this.hot.getSettings();
+    const colHeadersCount = this.hot.hasColHeaders();
     const backgroundColor = this.TD.style.backgroundColor;
 
     let editTop = currentOffset.top - containerOffset.top - editTopModifier - scrollTop;
@@ -322,30 +239,30 @@ class TextEditor extends BaseEditor {
     // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
     switch (editorSection) {
       case 'top':
-        cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'left':
-        cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'top-left-corner':
-        cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'bottom-left-corner':
-        cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'bottom':
-        cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
         break;
       default:
         break;
     }
 
-    if (colHeadersCount && this.instance.getSelectedLast()[0] === 0 ||
-        (settings.fixedRowsBottom && this.instance.getSelectedLast()[0] === totalRowsCount - settings.fixedRowsBottom)) {
+    if (colHeadersCount && this.hot.getSelectedLast()[0] === 0 ||
+        (settings.fixedRowsBottom && this.hot.getSelectedLast()[0] === totalRowsCount - settings.fixedRowsBottom)) {
       editTop += 1;
     }
 
-    if (this.instance.getSelectedLast()[1] === 0) {
+    if (this.hot.getSelectedLast()[1] === 0) {
       editLeft += 1;
     }
 
@@ -359,10 +276,10 @@ class TextEditor extends BaseEditor {
     this.textareaParentStyle.left = `${editLeft}px`;
     this.showEditableElement();
 
-    const firstRowOffset = this.instance.view.wt.wtViewport.rowsRenderCalculator.startPosition;
-    const firstColumnOffset = this.instance.view.wt.wtViewport.columnsRenderCalculator.startPosition;
-    const horizontalScrollPosition = this.instance.view.wt.wtOverlays.leftOverlay.getScrollPosition();
-    const verticalScrollPosition = this.instance.view.wt.wtOverlays.topOverlay.getScrollPosition();
+    const firstRowOffset = this.hot.view.wt.wtViewport.rowsRenderCalculator.startPosition;
+    const firstColumnOffset = this.hot.view.wt.wtViewport.columnsRenderCalculator.startPosition;
+    const horizontalScrollPosition = this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
+    const verticalScrollPosition = this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
     const scrollbarWidth = getScrollbarWidth();
 
     const cellTopOffset = this.TD.offsetTop + firstRowOffset - verticalScrollPosition;
@@ -371,9 +288,9 @@ class TextEditor extends BaseEditor {
     const width = innerWidth(this.TD) - 8;
     const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
     const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
-    const maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
+    const maxWidth = this.hot.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
     const height = this.TD.scrollHeight + 1;
-    const maxHeight = Math.max(this.instance.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
+    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
 
     const cellComputedStyle = getComputedStyle(this.TD);
 
@@ -399,31 +316,108 @@ class TextEditor extends BaseEditor {
       stopPropagation(event);
     });
 
-    this.instance.addHook('afterScrollHorizontally', () => {
+    this.addHook('afterScrollHorizontally', () => {
       editor.refreshDimensions();
     });
 
-    this.instance.addHook('afterScrollVertically', () => {
+    this.addHook('afterScrollVertically', () => {
       editor.refreshDimensions();
     });
 
-    this.instance.addHook('afterColumnResize', () => {
-      editor.refreshDimensions();
-      editor.focus();
-    });
-
-    this.instance.addHook('afterRowResize', () => {
+    this.addHook('afterColumnResize', () => {
       editor.refreshDimensions();
       editor.focus();
     });
 
-    this.instance.addHook('afterDestroy', () => {
+    this.addHook('afterRowResize', () => {
+      editor.refreshDimensions();
+      editor.focus();
+    });
+
+    this.addHook('afterDestroy', () => {
       editor.eventManager.destroy();
     });
   }
 
+  onBeforeKeyDown(event) {
+    // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+    const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+
+    // Process only events that have been fired in the editor
+    if (event.target !== this.TEXTAREA || isImmediatePropagationStopped(event)) {
+      return;
+    }
+
+    switch (event.keyCode) {
+      case KEY_CODES.ARROW_RIGHT:
+        if (this.isInFullEditMode()) {
+          if ((!this.isWaiting() && !this.allowKeyEventPropagation) ||
+              (!this.isWaiting() && this.allowKeyEventPropagation && !this.allowKeyEventPropagation(event.keyCode))) {
+            stopImmediatePropagation(event);
+          }
+        }
+        break;
+
+      case KEY_CODES.ARROW_LEFT:
+        if (this.isInFullEditMode()) {
+          if ((!this.isWaiting() && !this.allowKeyEventPropagation) ||
+              (!this.isWaiting() && this.allowKeyEventPropagation && !this.allowKeyEventPropagation(event.keyCode))) {
+            stopImmediatePropagation(event);
+          }
+        }
+        break;
+
+      case KEY_CODES.ARROW_UP:
+      case KEY_CODES.ARROW_DOWN:
+        if (this.isInFullEditMode()) {
+          if ((!this.isWaiting() && !this.allowKeyEventPropagation) ||
+              (!this.isWaiting() && this.allowKeyEventPropagation && !this.allowKeyEventPropagation(event.keyCode))) {
+            stopImmediatePropagation(event);
+          }
+        }
+        break;
+
+      case KEY_CODES.ENTER: {
+        const isMultipleSelection = this.hot.selection.isMultiple();
+
+        if ((ctrlDown && !isMultipleSelection) || event.altKey) { // if ctrl+enter or alt+enter, add new line
+          if (this.isOpened()) {
+            const caretPosition = getCaretPosition(this.TEXTAREA);
+            const value = this.getValue();
+            const newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
+
+            this.setValue(newValue);
+
+            setCaretPosition(this.TEXTAREA, caretPosition + 1);
+
+          } else {
+            this.beginEditing(`${this.originalValue}\n`);
+          }
+          stopImmediatePropagation(event);
+        }
+        event.preventDefault(); // don't add newline to field
+        break;
+      }
+
+      case KEY_CODES.BACKSPACE:
+      case KEY_CODES.DELETE:
+      case KEY_CODES.HOME:
+      case KEY_CODES.END:
+        stopImmediatePropagation(event); // backspace, delete, home, end should only work locally when cell is edited (not in table context)
+        break;
+
+      default:
+        break;
+    }
+
+    if ([KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT].indexOf(event.keyCode) === -1) {
+      this.autoResize.resize(String.fromCharCode(event.keyCode));
+    }
+  }
+
   destroy() {
     this.eventManager.destroy();
+    this.clearHooks();
   }
 }
 
