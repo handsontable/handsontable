@@ -28,7 +28,8 @@ class SelectEditor extends BaseEditor {
     this.select = document.createElement('SELECT');
     addClass(this.select, 'htSelectEditor');
     this.select.style.display = 'none';
-    this.instance.rootElement.appendChild(this.select);
+
+    this.hot.rootElement.appendChild(this.select);
     this.registerHooks();
   }
 
@@ -51,13 +52,13 @@ class SelectEditor extends BaseEditor {
   }
 
   /**
-   * Opens the editor and adjust size.
+   * Opens the editor and adjust its size.
    */
   open() {
     this._opened = true;
     this.refreshDimensions();
     this.select.style.display = '';
-    this.instance.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
+    this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
   }
 
   /**
@@ -66,7 +67,7 @@ class SelectEditor extends BaseEditor {
   close() {
     this._opened = false;
     this.select.style.display = 'none';
-    this.instance.removeHook('beforeKeyDown', () => this.onBeforeKeyDown());
+    this.clearHooks();
   }
 
   /**
@@ -82,17 +83,24 @@ class SelectEditor extends BaseEditor {
    * @private
    */
   registerHooks() {
-    this.instance.addHook('afterScrollHorizontally', () => this.refreshDimensions());
-    this.instance.addHook('afterScrollVertically', () => this.refreshDimensions());
-    this.instance.addHook('afterColumnResize', () => this.refreshDimensions());
-    this.instance.addHook('afterRowResize', () => this.refreshDimensions());
+    this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
+    this.addHook('afterScrollVertically', () => this.refreshDimensions());
+    this.addHook('afterColumnResize', () => this.refreshDimensions());
+    this.addHook('afterRowResize', () => this.refreshDimensions());
   }
 
   /**
-   * Prepares a list of available options.
+   * Prepares editor's meta data and a list of available options.
+   *
+   * @param {Number} row
+   * @param {Number} col
+   * @param {Number|String} prop
+   * @param {HTMLTableCellElement} td
+   * @param {*} originalValue
+   * @param {Object} cellProperties
    */
-  prepare(...args) {
-    super.prepare(...args);
+  prepare(row, col, prop, td, originalValue, cellProperties) {
+    super.prepare(row, col, prop, td, originalValue, cellProperties);
 
     const selectOptions = this.cellProperties.selectOptions;
     let options;
@@ -117,6 +125,7 @@ class SelectEditor extends BaseEditor {
   /**
    * Creates consistent list of available options.
    *
+   * @private
    * @param {Array|Object} optionsToPrepare
    * @returns {Object}
    */
@@ -137,9 +146,11 @@ class SelectEditor extends BaseEditor {
 
   /**
    * Refreshes editor's value using source data.
+   *
+   * @private
    */
   refreshValue() {
-    const sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
+    const sourceData = this.hot.getSourceDataAtCell(this.row, this.prop);
     this.originalValue = sourceData;
 
     this.setValue(sourceData);
@@ -148,6 +159,8 @@ class SelectEditor extends BaseEditor {
 
   /**
    * Refreshes editor's size and position.
+   *
+   * @private
    */
   refreshDimensions() {
     if (this.state !== EditorState.EDITING) {
@@ -164,7 +177,7 @@ class SelectEditor extends BaseEditor {
     }
 
     const currentOffset = offset(this.TD);
-    const containerOffset = offset(this.instance.rootElement);
+    const containerOffset = offset(this.hot.rootElement);
     const scrollableContainer = getScrollableElement(this.TD);
     const editorSection = this.checkEditorSection();
     let width = outerWidth(this.TD) + 1;
@@ -175,28 +188,28 @@ class SelectEditor extends BaseEditor {
 
     switch (editorSection) {
       case 'top':
-        cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'left':
-        cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'top-left-corner':
-        cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'bottom-left-corner':
-        cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'bottom':
-        cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
         break;
       default:
         break;
     }
 
-    if (this.instance.getSelectedLast()[0] === 0) {
+    if (this.hot.getSelectedLast()[0] === 0) {
       editTop += 1;
     }
-    if (this.instance.getSelectedLast()[1] === 0) {
+    if (this.hot.getSelectedLast()[1] === 0) {
       editLeft += 1;
     }
 
@@ -236,28 +249,28 @@ class SelectEditor extends BaseEditor {
 
     switch (editorSection) {
       case 'top':
-        editedCell = this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.getCell({
+        editedCell = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.getCell({
           row: this.row,
           col: this.col
         });
         this.select.style.zIndex = 101;
         break;
       case 'corner':
-        editedCell = this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
+        editedCell = this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
           row: this.row,
           col: this.col
         });
         this.select.style.zIndex = 103;
         break;
       case 'left':
-        editedCell = this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
+        editedCell = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
           row: this.row,
           col: this.col
         });
         this.select.style.zIndex = 102;
         break;
       default:
-        editedCell = this.instance.getCell(this.row, this.col);
+        editedCell = this.hot.getCell(this.row, this.col);
         this.select.style.zIndex = '';
         break;
     }
