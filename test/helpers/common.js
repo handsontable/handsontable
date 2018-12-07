@@ -747,6 +747,7 @@ export function swapDisplayedColumns(container, from, to) {
 
 export function triggerTouchEvent(type, target, pageX, pageY) {
   const e = document.createEvent('TouchEvent');
+
   const targetCoords = target.getBoundingClientRect();
   const targetPageX = pageX || parseInt(targetCoords.left + 3, 10);
   const targetPageY = pageY || parseInt(targetCoords.top + 3, 10);

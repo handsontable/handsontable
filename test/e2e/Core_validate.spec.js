@@ -1630,7 +1630,7 @@ describe('Core_validate', () => {
   it('should not allow keyboard movement until cell is validated (move LEFT)', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       allowInvalid: false,
       columns: [

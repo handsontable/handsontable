@@ -9,6 +9,7 @@ test/MobileRunner.html
 test/dist/
 src/3rdparty/walkontable/test/dist/
 src/3rdparty/walkontable/dist/
+tmp/
 cars.sqlite
 dev*.html
 npm-debug.log

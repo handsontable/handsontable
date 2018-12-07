@@ -658,6 +658,24 @@ describe('ColumnSorting', () => {
     ]);
   });
 
+  it('should clear and generate a new column meta cache after calling `updateSettings` with a new set of data', async() => {
+    handsontable({
+      data: [['test']],
+      columnSorting: true,
+      colHeaders: true
+    });
+
+    const plugin = getPlugin('columnSorting');
+
+    expect(plugin.columnMetaCache.size).toEqual(1);
+
+    updateSettings({
+      data: [['first columns', 'second column', 'third column']]
+    });
+
+    expect(plugin.columnMetaCache.size).toEqual(3);
+  });
+
   describe('isSorted', () => {
     it('should return `false` when plugin is disabled', () => {
       handsontable();

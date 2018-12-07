@@ -19,3 +19,15 @@ const exportToWindow = (helpersHolder) => {
 
 // Export all helpers to the window.
 exportToWindow(common);
+
+// Include all js files within the "helper/" folder for all plugins. That files can export some additional
+// functions, helpers which provides a different dataset for different test cases.
+[
+  require.context('./../../src/plugins', true, /^\.\/.*\/helpers\/.*\.js$/),
+].forEach((req) => {
+  req.keys().forEach((key) => {
+    const helpers = req(key);
+
+    exportToWindow(helpers);
+  });
+});
