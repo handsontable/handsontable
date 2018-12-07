@@ -5,7 +5,7 @@ import {
   getParent,
 } from './../../../helpers/dom/element';
 import { partial } from './../../../helpers/function';
-import { isMobileBrowser } from './../../../helpers/browser';
+import { isTouchSupported } from './../../../helpers/feature';
 import EventManager from './../../../eventManager';
 
 /**
@@ -20,6 +20,20 @@ function Event(instance) {
 
   const dblClickOrigin = [null, null];
   this.dblClickTimeout = [null, null];
+
+  const selectedCellWasTouched = (touchTarget) => {
+    const cellUnderFinger = that.parentCell(touchTarget);
+    const coordsOfCellUnderFinger = cellUnderFinger.coords;
+
+    if (selectedCellBeforeTouchEnd && coordsOfCellUnderFinger) {
+      const [rowTouched, rowSelected] = [coordsOfCellUnderFinger.row, selectedCellBeforeTouchEnd.from.row];
+      const [colTouched, colSelected] = [coordsOfCellUnderFinger.col, selectedCellBeforeTouchEnd.from.col];
+
+      return rowTouched === rowSelected && colTouched === colSelected;
+    }
+
+    return false;
+  };
 
   const onMouseDown = function(event) {
     const activeElement = document.activeElement;
@@ -62,26 +76,6 @@ function Event(instance) {
         that.instance.getSetting('onCellContextMenu', event, cell.coords, cell.TD, that.instance);
       }
     }
-  };
-
-  const onTouchMove = function() {
-    that.instance.touchMoving = true;
-  };
-
-  const onTouchStart = function(event) {
-    eventManager.addEventListener(this, 'touchmove', onTouchMove);
-
-    // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
-    that.checkIfTouchMove = setTimeout(() => {
-      if (that.instance.touchMoving === true) {
-        that.instance.touchMoving = void 0;
-
-        eventManager.removeEventListener('touchmove', onTouchMove, false);
-      } else {
-        onMouseDown(event);
-      }
-
-    }, 30);
   };
 
   const onMouseOver = function(event) {
@@ -148,56 +142,42 @@ function Event(instance) {
     }
   };
 
-  const selectedCellWasTouched = (touchTarget) => {
-    const cellUnderFinger = that.parentCell(touchTarget);
-    const coordsOfCellUnderFinger = cellUnderFinger.coords;
-
-    if (selectedCellBeforeTouchEnd && coordsOfCellUnderFinger) {
-      const [rowTouched, rowSelected] = [coordsOfCellUnderFinger.row, selectedCellBeforeTouchEnd.from.row];
-      const [colTouched, colSelected] = [coordsOfCellUnderFinger.col, selectedCellBeforeTouchEnd.from.col];
-
-      return rowTouched === rowSelected && colTouched === colSelected;
-    }
-
-    return false;
+  const onTouchStart = function(event) {
+    onMouseDown(event);
   };
 
   const onTouchEnd = function(event) {
     const excludeTags = ['A', 'BUTTON', 'INPUT'];
     const target = event.target;
 
-    // touched link which was placed inside a cell (a cell with DOM `a` element) WILL NOT trigger the below function calls
-    // and as consequence will behave as standard (open the link).
-    if (selectedCellWasTouched(target) === false || excludeTags.includes(target.tagName) === false) {
+    // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
+    // we check if it should be canceled. Click is blocked in a situation when the element is rendered outside
+    // selected cells. This prevents accidentally page reloads while selecting adjacent cells.
+    if (selectedCellWasTouched(target) === false && excludeTags.includes(target.tagName)) {
       event.preventDefault();
-      onMouseUp(event);
     }
+    onMouseUp(event);
   };
 
-  eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
   eventManager.addEventListener(this.instance.wtTable.holder, 'contextmenu', onContextMenu);
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseout', onMouseOut);
-  eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
 
-  // check if full HOT instance, or detached WOT AND run on mobile device
-  if (this.instance.wtTable.holder.parentNode.parentNode && isMobileBrowser() && !that.instance.wtTable.isWorkingOnClone()) {
-    const classSelector = `.${this.instance.wtTable.holder.parentNode.className.split(' ').join('.')}`;
-
-    eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', (event) => {
+  if (isTouchSupported()) {
+    const onTouchStartProxy = function(event) {
       selectedCellBeforeTouchEnd = instance.selections.getCell().cellRange;
-
       that.instance.touchApplied = true;
-      if (isChildOf(event.target, classSelector)) {
-        onTouchStart.call(event.target, event);
-      }
-    });
-    eventManager.addEventListener(this.instance.wtTable.holder, 'touchend', (event) => {
+
+      onTouchStart(event);
+    };
+    const onTouchEndProxy = function(event) {
       that.instance.touchApplied = false;
-      if (isChildOf(event.target, classSelector)) {
-        onTouchEnd.call(event.target, event);
-      }
-    });
+
+      onTouchEnd(event);
+    };
+
+    eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', onTouchStartProxy);
+    eventManager.addEventListener(this.instance.wtTable.holder, 'touchend', onTouchEndProxy);
 
     if (!that.instance.momentumScrolling) {
       that.instance.momentumScrolling = {};
@@ -218,6 +198,9 @@ function Event(instance) {
         }
       }, 200);
     });
+  } else {
+    eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
+    eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
   }
 
   eventManager.addEventListener(window, 'resize', () => {

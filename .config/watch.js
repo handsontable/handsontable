@@ -1,9 +1,7 @@
-'use strict';
-
 /**
  * Config responsible for building Handsontable `dist/` files with enabled watching mode:
- *  - handsontable.js
- *  - handsontable.css
+ *  - handsontable-pro.js
+ *  - handsontable-pro.css
  */
 const path = require('path');
 const webpack = require('webpack');
@@ -37,6 +35,12 @@ module.exports.create = function create(envArgs) {
         commonjs2: 'pikaday',
         commonjs: 'pikaday',
         amd: 'pikaday',
+      },
+      'hot-formula-parser': {
+        root: 'formulaParser',
+        commonjs2: 'hot-formula-parser',
+        commonjs: 'hot-formula-parser',
+        amd: 'hot-formula-parser',
       }
     };
     c.module.rules.unshift({

@@ -68,6 +68,6 @@ describe('localHooks mixin', () => {
 
     localHooks.clearLocalHooks();
 
-    expect(localHooks._localHooks).toEqual(jasmine.any(Object));
+    expect(Object.keys(localHooks._localHooks).length).toEqual(0);
   });
 });
