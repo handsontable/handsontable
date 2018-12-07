@@ -208,8 +208,8 @@ TextEditor.prototype.focus = function(safeFocus = false) {
   if (safeFocus) {
     const activeElement = document.activeElement;
 
-    if (!isInput(activeElement)) {
-      focus(true);
+    if (activeElement.tagName !== 'INPUT') {
+      focus();
     }
   } else {
     focus();

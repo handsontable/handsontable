@@ -74,11 +74,13 @@ class FocusableWrapper {
     this.mainElement.value = ' ';
 
     if (!isMobileBrowser()) {
-      const activeElement = document.activeElement;
+      setImmediate(() => {
+        const activeElement = document.activeElement;
 
-      if (!isInput(activeElement)) {
-        this.mainElement.select();
-      }
+        if (activeElement.tagName !== 'INPUT') {
+          this.mainElement.select();
+        }
+      });
     }
   }
 }
