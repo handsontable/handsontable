@@ -16,40 +16,16 @@ import {
 import HandsontableEditor from './handsontableEditor';
 
 let skipOne = false;
-function onBeforeKeyDown(event) {
-  skipOne = false;
-  const editor = this.getActiveEditor();
-
-  if (isPrintableChar(event.keyCode) || event.keyCode === KEY_CODES.BACKSPACE ||
-    event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.INSERT) {
-    let timeOffset = 0;
-
-    // on ctl+c / cmd+c don't update suggestion list
-    if (event.keyCode === KEY_CODES.C && (event.ctrlKey || event.metaKey)) {
-      return;
-    }
-    if (!editor.isOpened()) {
-      timeOffset += 10;
-    }
-
-    if (editor.htEditor) {
-      editor.instance._registerTimeout(() => {
-        editor.queryChoices(editor.TEXTAREA.value);
-        skipOne = true;
-      }, timeOffset);
-    }
-  }
-}
 
 class AutocompleteEditor extends HandsontableEditor {
-
   /**
    * @private
    * @editor AutocompleteEditor
    * @dependencies HandsontableEditor
    */
-  init(...args) {
-    super.init(...args);
+  init() {
+    super.init();
+
     this.query = null;
     this.strippedChoices = [];
     this.rawChoices = [];
@@ -76,19 +52,15 @@ class AutocompleteEditor extends HandsontableEditor {
     addClass(this.htContainer, window.navigator.platform.indexOf('Mac') === -1 ? '' : 'htMacScroll');
   }
 
-  prepare(...args) {
-    super.prepare(...args);
-  }
-
   open(...args) {
-    this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
+    this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
     // Ugly fix for handsontable which grab window object for autocomplete scroll listener instead table element.
     this.TEXTAREA_PARENT.style.overflow = 'auto';
     super.open(...args);
     this.TEXTAREA_PARENT.style.overflow = '';
 
     const choicesListHot = this.htEditor.getInstance();
-    const _this = this;
+    // const _this = this;
     const trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
 
     this.showEditableElement();
@@ -97,20 +69,22 @@ class AutocompleteEditor extends HandsontableEditor {
     choicesListHot.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
-      afterRenderer(TD, row, col, prop, value) {
-        const { filteringCaseSensitive, allowHtml } = _this.cellProperties;
+      afterRenderer: (TD, row, col, prop, value) => {
+        const { filteringCaseSensitive, allowHtml } = this.cellProperties;
+        const query = this.query;
         let cellValue = stringify(value);
         let indexOfMatch;
         let match;
 
         if (cellValue && !allowHtml) {
-          indexOfMatch = filteringCaseSensitive === true ? cellValue.indexOf(this.query) : cellValue.toLowerCase().indexOf(_this.query.toLowerCase());
+          indexOfMatch = filteringCaseSensitive === true ? cellValue.indexOf(query) : cellValue.toLowerCase().indexOf(query.toLowerCase());
 
           if (indexOfMatch !== -1) {
-            match = cellValue.substr(indexOfMatch, _this.query.length);
+            match = cellValue.substr(indexOfMatch, query.length);
             cellValue = cellValue.replace(match, `<strong>${match}</strong>`);
           }
         }
+
         TD.innerHTML = cellValue;
       },
       autoColumnSize: true,
@@ -134,14 +108,14 @@ class AutocompleteEditor extends HandsontableEditor {
       skipOne = false;
     }
 
-    _this.instance._registerTimeout(() => {
-      _this.queryChoices(_this.TEXTAREA.value);
+    this.hot._registerTimeout(() => {
+      this.queryChoices(this.TEXTAREA.value);
     });
   }
 
   queryChoices(query) {
-    this.query = query;
     const source = this.cellProperties.source;
+    this.query = query;
 
     if (typeof source === 'function') {
       source.call(this.cellProperties, query, (choices) => {
@@ -180,6 +154,7 @@ class AutocompleteEditor extends HandsontableEditor {
       if (orderByRelevanceLength) {
         highlightIndex = orderByRelevance[0];
       }
+
     } else {
       const sorted = [];
 
@@ -202,14 +177,13 @@ class AutocompleteEditor extends HandsontableEditor {
     this.htEditor.loadData(pivot([choices]));
 
     this.updateDropdownHeight();
-
     this.flipDropdownIfNeeded();
 
     if (this.cellProperties.strict === true) {
       this.highlightBestMatchingChoice(highlightIndex);
     }
 
-    this.instance.listen(false);
+    this.hot.listen(false);
 
     setCaretPosition(this.TEXTAREA, pos, (pos === endPos ? void 0 : endPos));
   }
@@ -218,9 +192,9 @@ class AutocompleteEditor extends HandsontableEditor {
     const textareaOffset = offset(this.TEXTAREA);
     const textareaHeight = outerHeight(this.TEXTAREA);
     const dropdownHeight = this.getDropdownHeight();
-    const trimmingContainer = getTrimmingContainer(this.instance.view.wt.wtTable.TABLE);
+    const trimmingContainer = getTrimmingContainer(this.hot.view.wt.wtTable.TABLE);
     const trimmingContainerScrollTop = trimmingContainer.scrollTop;
-    const headersHeight = outerHeight(this.instance.view.wt.wtTable.THEAD);
+    const headersHeight = outerHeight(this.hot.view.wt.wtTable.THEAD);
     let containerOffset = {
       row: 0,
       col: 0
@@ -306,10 +280,6 @@ class AutocompleteEditor extends HandsontableEditor {
     });
   }
 
-  finishEditing(restoreOriginalValue, ...args) {
-    super.finishEditing(restoreOriginalValue, ...args);
-  }
-
   highlightBestMatchingChoice(index) {
     if (typeof index === 'number') {
       this.htEditor.selectCell(index, 0, void 0, void 0, void 0, false);
@@ -354,19 +324,45 @@ class AutocompleteEditor extends HandsontableEditor {
   }
 
   close(...args) {
-    this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+    this.removeHooksByKey('beforeKeyDown');
     super.close(...args);
   }
 
   discardEditor(...args) {
     super.discardEditor(...args);
 
-    this.instance.view.render();
+    this.hot.view.render();
+  }
+
+  onBeforeKeyDown(event) {
+    skipOne = false;
+    // const editor = this.getActiveEditor();
+
+    if (isPrintableChar(event.keyCode) || event.keyCode === KEY_CODES.BACKSPACE ||
+      event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.INSERT) {
+      let timeOffset = 0;
+
+      // on ctl+c / cmd+c don't update suggestion list
+      if (event.keyCode === KEY_CODES.C && (event.ctrlKey || event.metaKey)) {
+        return;
+      }
+      if (!this.isOpened()) {
+        timeOffset += 10;
+      }
+
+      if (this.htEditor) {
+        this.instance._registerTimeout(() => {
+          this.queryChoices(this.TEXTAREA.value);
+          skipOne = true;
+        }, timeOffset);
+      }
+    }
   }
 }
 
 /**
- * Filters and sorts by relevance
+ * Filters and sorts by relevance.
+ *
  * @param value
  * @param choices
  * @param caseSensitive
