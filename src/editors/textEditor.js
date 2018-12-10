@@ -31,7 +31,7 @@ class TextEditor extends BaseEditor {
     this.autoResize = autoResize();
     this.holderZIndex = -1;
 
-    this.addHook('afterDestroy', () => this.destroy());
+    this.instance.addHookOnce('afterDestroy', () => this.destroy());
   }
 
   prepare(row, col, prop, td, originalValue, cellProperties, ...args) {
@@ -109,7 +109,7 @@ class TextEditor extends BaseEditor {
     }
 
     this.hideEditableElement();
-    this.clearHooks();
+    this.removeHooksByKey('beforeKeyDown');
   }
 
   focus() {
