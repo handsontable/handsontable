@@ -15,13 +15,25 @@ import {
 } from './../helpers/dom/element';
 import HandsontableEditor from './handsontableEditor';
 
-let skipOne = false;
+const privatePool = new WeakMap();
 
+/**
+ * @private
+ * @editor AutocompleteEditor
+ * @class AutocompleteEditor
+ * @dependencies HandsontableEditor
+ */
 class AutocompleteEditor extends HandsontableEditor {
+  constructor(instance) {
+    super(instance);
+
+    privatePool.set(this, {
+      skipOne: false,
+    });
+  }
+
   /**
-   * @private
-   * @editor AutocompleteEditor
-   * @dependencies HandsontableEditor
+   * Initializes an editor's intance.
    */
   init() {
     super.init();
@@ -31,6 +43,9 @@ class AutocompleteEditor extends HandsontableEditor {
     this.rawChoices = [];
   }
 
+  /**
+   * Gets current value from editable element.
+   */
   getValue() {
     const selectedValue = this.rawChoices.find((value) => {
       const strippedValue = this.stripValueIfNeeded(value);
@@ -45,22 +60,29 @@ class AutocompleteEditor extends HandsontableEditor {
     return this.TEXTAREA.value;
   }
 
-  createElements(...args) {
-    super.createElements(...args);
+  /**
+   * Creates an editor's elements and adds necessary CSS classnames.
+   */
+  createElements() {
+    super.createElements();
 
     addClass(this.htContainer, 'autocompleteEditor');
     addClass(this.htContainer, window.navigator.platform.indexOf('Mac') === -1 ? '' : 'htMacScroll');
   }
 
-  open(...args) {
+  /**
+   * Opens the editor and adjust its size and internal Handsontable's instance.
+   */
+  open() {
+    const priv = privatePool.get(this);
+
     this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
     // Ugly fix for handsontable which grab window object for autocomplete scroll listener instead table element.
     this.TEXTAREA_PARENT.style.overflow = 'auto';
-    super.open(...args);
+    super.open();
     this.TEXTAREA_PARENT.style.overflow = '';
 
     const choicesListHot = this.htEditor.getInstance();
-    // const _this = this;
     const trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
 
     this.showEditableElement();
@@ -104,8 +126,8 @@ class AutocompleteEditor extends HandsontableEditor {
     // Add additional space for autocomplete holder
     this.htEditor.view.wt.wtTable.holder.parentNode.style['padding-right'] = `${getScrollbarWidth() + 2}px`;
 
-    if (skipOne) {
-      skipOne = false;
+    if (priv.skipOne) {
+      priv.skipOne = false;
     }
 
     this.hot._registerTimeout(() => {
@@ -113,6 +135,31 @@ class AutocompleteEditor extends HandsontableEditor {
     });
   }
 
+  /**
+   * Closes the editor.
+   */
+  close() {
+    this.removeHooksByKey('beforeKeyDown');
+    super.close();
+  }
+
+  /**
+   * Verifies result of validation or closes editor if user's cancelled changes. Re-renders WalkOnTable.
+   *
+   * @param {Boolean|undefined} result
+   */
+  discardEditor(result) {
+    super.discardEditor(result);
+
+    this.hot.view.render();
+  }
+
+  /**
+   * Prepares choices list based on applied argument.
+   *
+   * @private
+   * @param {String} query
+   */
   queryChoices(query) {
     const source = this.cellProperties.source;
     this.query = query;
@@ -132,6 +179,12 @@ class AutocompleteEditor extends HandsontableEditor {
     }
   }
 
+  /**
+   * Updates list of the possible completions to choose.
+   *
+   * @private
+   * @param {Array} choicesList
+   */
   updateChoicesList(choicesList) {
     const pos = getCaretPosition(this.TEXTAREA);
     const endPos = getSelectionEndPosition(this.TEXTAREA);
@@ -188,6 +241,11 @@ class AutocompleteEditor extends HandsontableEditor {
     setCaretPosition(this.TEXTAREA, pos, (pos === endPos ? void 0 : endPos));
   }
 
+  /**
+   * Checks where is enough place to open editor.
+   *
+   * @private
+   */
   flipDropdownIfNeeded() {
     const textareaOffset = offset(this.TEXTAREA);
     const textareaHeight = outerHeight(this.TEXTAREA);
@@ -219,6 +277,13 @@ class AutocompleteEditor extends HandsontableEditor {
     return flipNeeded;
   }
 
+  /**
+   * Checks if the internal table should generate scrollbar or could be rendered without it.
+   *
+   * @private
+   * @param {Number} spaceAvailable
+   * @param {Number} dropdownHeight
+   */
   limitDropdownIfNeeded(spaceAvailable, dropdownHeight) {
     if (dropdownHeight > spaceAvailable) {
       let tempHeight = 0;
@@ -242,6 +307,11 @@ class AutocompleteEditor extends HandsontableEditor {
     }
   }
 
+  /**
+   * Configures editor to open it at the top.
+   *
+   * @private
+   */
   flipDropdown(dropdownHeight) {
     const dropdownStyle = this.htEditor.rootElement.style;
 
@@ -251,6 +321,11 @@ class AutocompleteEditor extends HandsontableEditor {
     this.htEditor.flipped = true;
   }
 
+  /**
+   * Configures editor to open it at the bottom.
+   *
+   * @private
+   */
   unflipDropdown() {
     const dropdownStyle = this.htEditor.rootElement.style;
 
@@ -262,6 +337,11 @@ class AutocompleteEditor extends HandsontableEditor {
     this.htEditor.flipped = void 0;
   }
 
+  /**
+   * Updates width and height of the internal Handsontable's instance.
+   *
+   * @private
+   */
   updateDropdownHeight() {
     const currentDropdownWidth = this.htEditor.getColWidth(0) + getScrollbarWidth() + 2;
     const trimDropdown = this.cellProperties.trimDropdown;
@@ -274,12 +354,23 @@ class AutocompleteEditor extends HandsontableEditor {
     this.htEditor.view.wt.wtTable.alignOverlaysWithTrimmingContainer();
   }
 
+  /**
+   * Sets new height of the internal Handsontable's instance.
+   *
+   * @private
+   * @param {Number} height
+   */
   setDropdownHeight(height) {
     this.htEditor.updateSettings({
       height
     });
   }
 
+  /**
+   * Creates new selection on specified row index, or deselects selected cells.
+   *
+   * @param {Number|undefined} index
+   */
   highlightBestMatchingChoice(index) {
     if (typeof index === 'number') {
       this.htEditor.selectCell(index, 0, void 0, void 0, void 0, false);
@@ -288,6 +379,11 @@ class AutocompleteEditor extends HandsontableEditor {
     }
   }
 
+  /**
+   * Calculates and return the internal Handsontable's height.
+   *
+   * @returns {Number}
+   */
   getDropdownHeight() {
     const firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
     const visibleRows = this.cellProperties.visibleRows;
@@ -295,10 +391,20 @@ class AutocompleteEditor extends HandsontableEditor {
     return this.strippedChoices.length >= visibleRows ? (visibleRows * firstRowHeight) : (this.strippedChoices.length * firstRowHeight) + 8;
   }
 
+  /**
+   * Sanitizes value from potential dangerous tags.
+   *
+   * @param {String} value
+   */
   stripValueIfNeeded(value) {
     return this.stripValuesIfNeeded([value])[0];
   }
 
+  /**
+   * Sanitizes an array of the values from potential dangerous tags.
+   *
+   * @param {String[]} values
+   */
   stripValuesIfNeeded(values) {
     const { allowHtml } = this.cellProperties;
 
@@ -308,6 +414,12 @@ class AutocompleteEditor extends HandsontableEditor {
     return strippedValues;
   }
 
+  /**
+   * Captures use of arrow down and up to control their behaviour.
+   *
+   * @private
+   * @param {Number} keyCode
+   */
   allowKeyEventPropagation(keyCode) {
     const selectedRange = this.htEditor.getSelectedRangeLast();
     const selected = { row: selectedRange ? selectedRange.from.row : -1 };
@@ -323,19 +435,15 @@ class AutocompleteEditor extends HandsontableEditor {
     return allowed;
   }
 
-  close(...args) {
-    this.removeHooksByKey('beforeKeyDown');
-    super.close(...args);
-  }
-
-  discardEditor(...args) {
-    super.discardEditor(...args);
-
-    this.hot.view.render();
-  }
-
+  /**
+   * onBeforeKeyDown callback.
+   *
+   * @private
+   */
   onBeforeKeyDown(event) {
-    skipOne = false;
+    const priv = privatePool.get(this);
+
+    priv.skipOne = false;
     // const editor = this.getActiveEditor();
 
     if (isPrintableChar(event.keyCode) || event.keyCode === KEY_CODES.BACKSPACE ||
@@ -353,7 +461,7 @@ class AutocompleteEditor extends HandsontableEditor {
       if (this.htEditor) {
         this.instance._registerTimeout(() => {
           this.queryChoices(this.TEXTAREA.value);
-          skipOne = true;
+          priv.skipOne = true;
         }, timeOffset);
       }
     }
@@ -366,7 +474,7 @@ class AutocompleteEditor extends HandsontableEditor {
  * @param value
  * @param choices
  * @param caseSensitive
- * @returns {Array} array of indexes in original choices array
+ * @returns {Number[]} array of indexes in original choices array
  */
 AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
   const choicesRelevance = [];
