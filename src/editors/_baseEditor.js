@@ -367,7 +367,7 @@ class BaseEditor {
   }
 
   /**
-   * Returns name of the overlay, where ediotor is placed.
+   * Returns name of the overlay, where editor is placed.
    *
    * @private
    */

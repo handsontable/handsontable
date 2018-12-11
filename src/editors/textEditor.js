@@ -12,6 +12,7 @@ import {
   hasHorizontalScrollbar
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
+import { isMobileBrowser } from './../helpers/browser';
 import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
 import { KEY_CODES } from './../helpers/unicode';
@@ -24,6 +25,9 @@ import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStoppe
  * @dependencies autoResize
  */
 class TextEditor extends BaseEditor {
+  /**
+   * Initializes an editor's intance.
+   */
   init() {
     this.createElements();
     this.eventManager = new EventManager(this);
@@ -34,10 +38,60 @@ class TextEditor extends BaseEditor {
     this.instance.addHookOnce('afterDestroy', () => this.destroy());
   }
 
-  prepare(row, col, prop, td, originalValue, cellProperties, ...args) {
+  /**
+   * Gets current value from editable element.
+   */
+  getValue() {
+    return this.TEXTAREA.value;
+  }
+
+  /**
+   * Sets new value into editable element.
+   *
+   * @param {*} newValue
+   */
+  setValue(newValue) {
+    this.TEXTAREA.value = newValue;
+  }
+
+  /**
+   * Opens the editor and adjust its size.
+   */
+  open() {
+    this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
+    this.showEditableElement();
+
+    this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
+  }
+
+  /**
+   * Closes the editor.
+   */
+  close() {
+    this.autoResize.unObserve();
+
+    if (document.activeElement === this.TEXTAREA) {
+      this.hot.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
+    }
+
+    this.hideEditableElement();
+    this.removeHooksByKey('beforeKeyDown');
+  }
+
+  /**
+   * Prepares editor's meta data.
+   *
+   * @param {Number} row
+   * @param {Number} col
+   * @param {Number|String} prop
+   * @param {HTMLTableCellElement} td
+   * @param {*} originalValue
+   * @param {Object} cellProperties
+   */
+  prepare(row, col, prop, td, originalValue, cellProperties) {
     const previousState = this.state;
 
-    super.prepare(row, col, prop, td, originalValue, cellProperties, ...args);
+    super.prepare(row, col, prop, td, originalValue, cellProperties);
 
     if (!cellProperties.readOnly) {
       this.refreshDimensions(true);
@@ -59,59 +113,30 @@ class TextEditor extends BaseEditor {
       // be disabled (to make IME working).
       const restoreFocus = !fragmentSelection;
 
-      if (restoreFocus) {
+      if (restoreFocus && !isMobileBrowser()) {
         this.hot._registerImmediate(() => this.focus());
       }
     }
   }
 
-  hideEditableElement() {
-    this.textareaParentStyle.top = '-9999px';
-    this.textareaParentStyle.left = '-9999px';
-    this.textareaParentStyle.zIndex = '-1';
-    this.textareaParentStyle.position = 'fixed';
-  }
-
-  showEditableElement() {
-    this.textareaParentStyle.zIndex = this.holderZIndex >= 0 ? this.holderZIndex : '';
-    this.textareaParentStyle.position = '';
-  }
-
-  getValue() {
-    return this.TEXTAREA.value;
-  }
-
-  setValue(newValue) {
-    this.TEXTAREA.value = newValue;
-  }
-
-  beginEditing(...args) {
+  /**
+   * Begins editing on a highlighted cell and hides fillHandle corner if was present.
+   *
+   * @param {*} newInitialValue
+   * @param {*} event
+   */
+  beginEditing(newInitialValue, event) {
     if (this.state !== EditorState.VIRGIN) {
       return;
     }
 
     this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME).
-    super.beginEditing(...args);
+    super.beginEditing(newInitialValue, event);
   }
 
-  open() {
-    this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
-    this.showEditableElement();
-
-    this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
-  }
-
-  close() {
-    this.autoResize.unObserve();
-
-    if (document.activeElement === this.TEXTAREA) {
-      this.hot.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
-    }
-
-    this.hideEditableElement();
-    this.removeHooksByKey('beforeKeyDown');
-  }
-
+  /**
+   * Sets focus state on the select element.
+   */
   focus() {
     // For IME editor textarea element must be focused using ".select" method. Using ".focus" browser automatically scroll into
     // the focused element which is undesire effect.
@@ -119,6 +144,9 @@ class TextEditor extends BaseEditor {
     setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
   }
 
+  /**
+   * Creates an editor's elements and adds necessary CSS classnames.
+   */
   createElements() {
     this.TEXTAREA = document.createElement('TEXTAREA');
     this.TEXTAREA.tabIndex = -1;
@@ -140,6 +168,12 @@ class TextEditor extends BaseEditor {
     this.hot.rootElement.appendChild(this.TEXTAREA_PARENT);
   }
 
+  /**
+   * Gets HTMLTableCellElement of the edited cell if exist.
+   *
+   * @private
+   * @returns {HTMLTableCellElement|undefined}
+   */
   getEditedCell() {
     const editorSection = this.checkEditorSection();
     let editedCell;
@@ -189,6 +223,33 @@ class TextEditor extends BaseEditor {
     return editedCell !== -1 && editedCell !== -2 ? editedCell : void 0;
   }
 
+  /**
+   * Moves an editable element out of the viewport, but element must be able to hold focus for IME support.
+   *
+   * @private
+   */
+  hideEditableElement() {
+    this.textareaParentStyle.top = '-9999px';
+    this.textareaParentStyle.left = '-9999px';
+    this.textareaParentStyle.zIndex = '-1';
+    this.textareaParentStyle.position = 'fixed';
+  }
+
+  /**
+   * Resets an editable element position.
+   *
+   * @private
+   */
+  showEditableElement() {
+    this.textareaParentStyle.zIndex = this.holderZIndex >= 0 ? this.holderZIndex : '';
+    this.textareaParentStyle.position = '';
+  }
+
+  /**
+   * Refreshes editor's value using source data.
+   *
+   * @private
+   */
   refreshValue() {
     const physicalRow = this.hot.toPhysicalRow(this.row);
     const sourceData = this.hot.getSourceDataAtCell(physicalRow, this.col);
@@ -198,6 +259,12 @@ class TextEditor extends BaseEditor {
     this.refreshDimensions();
   }
 
+  /**
+   * Refreshes editor's size and position.
+   *
+   * @private
+   * @param {Boolean} force
+   */
   refreshDimensions(force = false) {
     if (this.state !== EditorState.EDITING && !force) {
       return;
@@ -207,7 +274,7 @@ class TextEditor extends BaseEditor {
     // TD is outside of the viewport.
     if (!this.TD) {
       if (!force) {
-        this.close(true);
+        this.close();
       }
 
       return;
@@ -306,39 +373,44 @@ class TextEditor extends BaseEditor {
     }, true);
   }
 
+  /**
+   * Binds events and hooks.
+   *
+   * @private
+   */
   bindEvents() {
-    const editor = this;
+    this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => stopPropagation(event));
+    this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => stopPropagation(event));
 
-    this.eventManager.addEventListener(this.TEXTAREA, 'cut', (event) => {
-      stopPropagation(event);
-    });
-    this.eventManager.addEventListener(this.TEXTAREA, 'paste', (event) => {
-      stopPropagation(event);
-    });
-
-    this.addHook('afterScrollHorizontally', () => {
-      editor.refreshDimensions();
-    });
-
-    this.addHook('afterScrollVertically', () => {
-      editor.refreshDimensions();
-    });
+    this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
+    this.addHook('afterScrollVertically', () => this.refreshDimensions());
 
     this.addHook('afterColumnResize', () => {
-      editor.refreshDimensions();
-      editor.focus();
+      this.refreshDimensions();
+      this.focus();
     });
 
     this.addHook('afterRowResize', () => {
-      editor.refreshDimensions();
-      editor.focus();
-    });
-
-    this.addHook('afterDestroy', () => {
-      editor.eventManager.destroy();
+      this.refreshDimensions();
+      this.focus();
     });
   }
 
+  /**
+   * Destroys the internal event manager and clears attached hooks.
+   *
+   * @private
+   */
+  destroy() {
+    this.eventManager.destroy();
+    this.clearHooks();
+  }
+
+  /**
+   * onBeforeKeyDown callback.
+   *
+   * @param {Event} event
+   */
   onBeforeKeyDown(event) {
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
@@ -413,11 +485,6 @@ class TextEditor extends BaseEditor {
     if ([KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT].indexOf(event.keyCode) === -1) {
       this.autoResize.resize(String.fromCharCode(event.keyCode));
     }
-  }
-
-  destroy() {
-    this.eventManager.destroy();
-    this.clearHooks();
   }
 }
 
