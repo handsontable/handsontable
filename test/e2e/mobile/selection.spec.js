@@ -1,6 +1,6 @@
-describe('Selection', () => {
-  const id = 'testContainer';
+const id = 'testContainer';
 
+describe('Selection', () => {
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
@@ -37,16 +37,19 @@ describe('Selection', () => {
 
     await sleep(100);
 
-    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-    spec().$container.find('tbody tr:eq(1) td:eq(2)').simulate('mouseover').simulate('mouseup');
+    triggerTouchEvent('touchstart', spec().$container.find('.htBorders .bottomRightSelectionHandle-HitArea')[0]);
+    triggerTouchEvent('touchmove', spec().$container.find('tbody tr:eq(1) td:eq(2)')[0]);
+    triggerTouchEvent('touchmove', spec().$container.find('tbody tr:eq(1) td:eq(3)')[0]);
+    triggerTouchEvent('touchend', spec().$container.find('tbody tr:eq(1) td:eq(3)')[0]);
 
     await sleep(100);
 
     const topLeftSelectionHandle = spec().$container.find('.ht_master .htBorders div:last-child .topLeftSelectionHandle')[0];
     const bottomRightSelectionHandle = spec().$container.find('.ht_master .htBorders div:last-child .bottomRightSelectionHandle')[0];
 
-    expect(topLeftSelectionHandle.style.display).toEqual('block');
-    expect(bottomRightSelectionHandle.style.display).toEqual('block');
+    expect(topLeftSelectionHandle.style.display).toBe('block');
+    expect(bottomRightSelectionHandle.style.display).toBe('block');
+    expect(hot.getSelected()).toEqual([[1, 1, 1, 2]]);
   });
 
   it('should not call the `select` method on the "focusable" textarea when selecting a cell', async() => {

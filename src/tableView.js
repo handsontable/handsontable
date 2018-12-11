@@ -122,6 +122,8 @@ function TableView(instance) {
     if (instance.selection.isInProgress()) {
       instance.selection.finish();
     }
+
+    isMouseDown = false;
   });
 
   this.eventManager.addEventListener(document.documentElement, 'mousedown', (event) => {

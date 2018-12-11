@@ -357,7 +357,7 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Gets the first visible column.
    *
-   * @returns {Number} Returns column index or -1 if table is not rendered.
+   * @returns {Number|null} Returns column index, -1 if table is not rendered or null if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn() {
     const wot = this.hot.view.wt;
@@ -451,13 +451,19 @@ class AutoColumnSize extends BasePlugin {
   onBeforeRender() {
     const force = this.hot.renderCall;
     const rowsCount = this.hot.countRows();
+    const firstVisibleColumn = this.getFirstVisibleColumn();
+    const lastVisibleColumn = this.getLastVisibleColumn();
+
+    if (firstVisibleColumn === null || lastVisibleColumn === null) {
+      return;
+    }
 
     // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
     if (!rowsCount) {
       return;
     }
 
-    this.calculateColumnsWidth({ from: this.getFirstVisibleColumn(), to: this.getLastVisibleColumn() }, void 0, force);
+    this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, void 0, force);
 
     if (this.isNeedRecalculate() && !this.inProgress) {
       this.calculateAllColumnsWidth();

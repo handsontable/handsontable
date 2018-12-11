@@ -51,12 +51,7 @@ class EventManager {
       callbackProxy,
     });
 
-    if (window.addEventListener) {
-      element.addEventListener(eventName, callbackProxy, false);
-    } else {
-      element.attachEvent(`on${eventName}`, callbackProxy);
-    }
-
+    element.addEventListener(eventName, callbackProxy, false);
     listenersCounter += 1;
 
     return () => {
@@ -85,12 +80,7 @@ class EventManager {
           continue;
         }
         this.context.eventListeners.splice(len, 1);
-
-        if (tmpEvent.element.removeEventListener) {
-          tmpEvent.element.removeEventListener(tmpEvent.event, tmpEvent.callbackProxy, false);
-        } else {
-          tmpEvent.element.detachEvent(`on${tmpEvent.event}`, tmpEvent.callbackProxy);
-        }
+        tmpEvent.element.removeEventListener(tmpEvent.event, tmpEvent.callbackProxy, false);
         listenersCounter -= 1;
       }
     }

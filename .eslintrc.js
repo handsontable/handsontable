@@ -77,7 +77,7 @@ module.exports = {
   },
   "overrides": [
     {
-      "files": ["test/**", "src/3rdparty/walkontable/test/**", "*.unit.js", "*.e2e.js"],
+      "files": ["test/**", "src/3rdparty/walkontable/test/**", "*.unit.js", "*.e2e.js", "src/plugins/**/test/helpers/**"],
       "rules": {
         "import/extensions": "off",
         "import/no-unresolved": [

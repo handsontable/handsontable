@@ -1,7 +1,10 @@
-'use strict';
-
 /**
- * Config responsible for building Handsontable `dist/` files:
+ * Config responsible for building Handsontable `dist/` files. Depends on HOT_FILENAME env it produces, either PRO files:
+ *  - handsontable-pro.js
+ *  - handsontable-pro.css
+ *  - handsontable-pro.full.js
+ *  - handsontable-pro.full.css
+ * or CE files:
  *  - handsontable.js
  *  - handsontable.css
  *  - handsontable.full.js
@@ -42,6 +45,12 @@ module.exports.create = function create(envArgs) {
         commonjs2: 'pikaday',
         commonjs: 'pikaday',
         amd: 'pikaday',
+      },
+      'hot-formula-parser': {
+        root: 'formulaParser',
+        commonjs2: 'hot-formula-parser',
+        commonjs: 'hot-formula-parser',
+        amd: 'hot-formula-parser',
       }
     };
     c.module.rules.unshift({
