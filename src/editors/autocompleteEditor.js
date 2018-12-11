@@ -117,11 +117,15 @@ AutocompleteEditor.prototype.open = function(...args) {
     autoColumnSize: true,
     modifyColWidth(width, col) {
       // workaround for <strong> text overlapping the dropdown, not really accurate
-      const autoWidths = this.getPlugin('autoColumnSize').widths;
+      const autoColumnSize = this.getPlugin('autoColumnSize');
       let columnWidth = width;
 
-      if (autoWidths[col]) {
-        columnWidth = autoWidths[col];
+      if (autoColumnSize) {
+        const autoWidths = autoColumnSize.widths;
+
+        if (autoWidths[col]) {
+          columnWidth = autoWidths[col];
+        }
       }
 
       return trimDropdown ? columnWidth : columnWidth + 15;
