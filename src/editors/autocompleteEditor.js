@@ -26,6 +26,24 @@ const privatePool = new WeakMap();
 class AutocompleteEditor extends HandsontableEditor {
   constructor(instance) {
     super(instance);
+    /**
+     * Query string to turn available values over.
+     *
+     * @type {String}
+     */
+    this.query = void 0;
+    /**
+     * Contains stripped choices.
+     *
+     * @type {String[]}
+     */
+    this.strippedChoices = void 0;
+    /**
+     * Contains raw choices.
+     *
+     * @type {Array}
+     */
+    this.rawChoices = void 0;
 
     privatePool.set(this, {
       skipOne: false,
@@ -45,6 +63,8 @@ class AutocompleteEditor extends HandsontableEditor {
 
   /**
    * Gets current value from editable element.
+   *
+   * @returns {String}
    */
   getValue() {
     const selectedValue = this.rawChoices.find((value) => {
@@ -245,6 +265,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * Checks where is enough place to open editor.
    *
    * @private
+   * @returns {Boolean}
    */
   flipDropdownIfNeeded() {
     const textareaOffset = offset(this.TEXTAREA);
@@ -395,6 +416,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * Sanitizes value from potential dangerous tags.
    *
    * @param {String} value
+   * @returns {String}
    */
   stripValueIfNeeded(value) {
     return this.stripValuesIfNeeded([value])[0];
@@ -404,6 +426,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * Sanitizes an array of the values from potential dangerous tags.
    *
    * @param {String[]} values
+   * @returns {String[]}
    */
   stripValuesIfNeeded(values) {
     const { allowHtml } = this.cellProperties;
@@ -419,6 +442,7 @@ class AutocompleteEditor extends HandsontableEditor {
    *
    * @private
    * @param {Number} keyCode
+   * @returns {Boolean}
    */
   allowKeyEventPropagation(keyCode) {
     const selectedRange = this.htEditor.getSelectedRangeLast();
@@ -444,7 +468,6 @@ class AutocompleteEditor extends HandsontableEditor {
     const priv = privatePool.get(this);
 
     priv.skipOne = false;
-    // const editor = this.getActiveEditor();
 
     if (isPrintableChar(event.keyCode) || event.keyCode === KEY_CODES.BACKSPACE ||
       event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.INSERT) {
