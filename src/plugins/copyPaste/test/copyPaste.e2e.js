@@ -722,5 +722,35 @@ describe('CopyPaste', () => {
       expect(afterChangeSpy)
         .toHaveBeenCalledWith([[0, 0, null, 'Kia'], [1, 0, null, 'Nissan'], [2, 0, null, 'Toyota']], 'CopyPaste.paste', void 0, void 0, void 0, void 0);
     });
+
+    it('should add new rows when columns is type `date` and `trimRows` is true', async() => {
+      handsontable({
+        data: [['']],
+        colHeaders: true,
+        columns: [
+          {
+            type: 'date',
+            dateFormat: 'MM/DD/YYYY',
+            correctFormat: true,
+          }
+        ],
+        trimRows: true,
+      });
+
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(0, 0);
+
+      plugin.paste('2/5/2018\r\n2/11/2018\r\n22/11/2018');
+
+      // triggerPaste('2/5/2018\r\n2/11/2018\r\n22/11/2018');
+
+      await sleep(300);
+
+      expect(getDataAtCell(0, 0)).toEqual('02/05/2018');
+      expect(getDataAtCell(1, 0)).toEqual('02/11/2018');
+      expect(getDataAtCell(2, 0)).toEqual('22/11/2018');
+      expect(countRows()).toEqual(3);
+    });
   });
 });
