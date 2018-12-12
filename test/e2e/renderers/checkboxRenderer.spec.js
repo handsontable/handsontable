@@ -400,6 +400,72 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
+  it('should move down without changing checkbox state when enterBeginsEditing equals false', () => {
+    handsontable({
+      enterBeginsEditing: false,
+      data: [[true], [false], [true]],
+      columns: [
+        { type: 'checkbox' }
+      ]
+    });
+
+    const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    let checkboxes = spec().$container.find(':checkbox');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(true);
+    expect(checkboxes.eq(1).prop('checked')).toBe(false);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true], [false], [true]]);
+
+    selectCell(0, 0);
+
+    keyDown('enter');
+
+    checkboxes = spec().$container.find(':checkbox');
+    const selection = getSelected();
+    expect(selection).toEqual([[1, 0, 1, 0]]);
+    expect(checkboxes.eq(0).prop('checked')).toBe(true);
+    expect(checkboxes.eq(1).prop('checked')).toBe(false);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true], [false], [true]]);
+    expect(afterChangeCallback.calls.count()).toEqual(0);
+  });
+
+  it('should begin editing and changing checkbox state when enterBeginsEditing equals true', () => {
+    handsontable({
+      enterBeginsEditing: true,
+      data: [[true], [false], [true]],
+      columns: [
+        { type: 'checkbox' }
+      ]
+    });
+
+    const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    let checkboxes = spec().$container.find(':checkbox');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(true);
+    expect(checkboxes.eq(1).prop('checked')).toBe(false);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true], [false], [true]]);
+
+    selectCell(0, 0);
+
+    keyDown('enter');
+
+    checkboxes = spec().$container.find(':checkbox');
+    const selection = getSelected();
+    expect(selection).toEqual([[0, 0, 0, 0]]);
+    expect(checkboxes.eq(0).prop('checked')).toBe(false);
+    expect(checkboxes.eq(1).prop('checked')).toBe(false);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[false], [false], [true]]);
+    expect(afterChangeCallback.calls.count()).toEqual(1);
+  });
+
   it('should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates', () => {
     handsontable({
       data: [['yes'], ['yes'], ['no']],

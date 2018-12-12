@@ -493,4 +493,19 @@ describe('AutoRowSize', () => {
 
     expect(cloneLeft.height()).toEqual(70);
   });
+
+  it('should not calculate any row heights, if there are no rows in the dataset', () => {
+    handsontable({
+      data: [[1, 2]],
+      colHeaders: true,
+      autoRowSize: true,
+    });
+
+    spyOn(getPlugin('autoRowSize'), 'calculateRowsHeight').and.callThrough();
+    const calculateColumnsWidth = getPlugin('autoRowSize').calculateRowsHeight;
+
+    loadData([]);
+
+    expect(calculateColumnsWidth).not.toHaveBeenCalled();
+  });
 });

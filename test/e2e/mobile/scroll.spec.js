@@ -1,17 +1,17 @@
 const id = 'testContainer';
 
-beforeEach(function() {
-  this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-});
-
-afterEach(function() {
-  if (this.$container) {
-    destroy();
-    this.$container.remove();
-  }
-});
-
 describe('Scrolling', () => {
+  beforeEach(function() {
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+  });
+
+  afterEach(function() {
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+  });
+
   it('should load cells below the viewport on scroll down (dimensions of the table was set)', async() => {
     const hot = handsontable({
       width: 400,
@@ -23,7 +23,7 @@ describe('Scrolling', () => {
     const $htCore = $(getHtCore());
 
     let TRs = $htCore.find('tr');
-    let lastTR = [...TRs].pop();
+    let lastTR = [...TRs.toArray()].pop();
     const lastTRTextAtStart = $(lastTR).text();
 
     $(mainHolder).scrollTop(400);
@@ -31,7 +31,7 @@ describe('Scrolling', () => {
     await sleep(300);
 
     TRs = $htCore.find('tr');
-    lastTR = [...TRs].pop();
+    lastTR = [...TRs.toArray()].pop();
     const lastTRTextLater = $(lastTR).text();
 
     expect(lastTRTextLater).not.toEqual(lastTRTextAtStart);
@@ -45,7 +45,7 @@ describe('Scrolling', () => {
     const $htCore = $(getHtCore());
 
     let TRs = $htCore.find('tr');
-    let lastTR = [...TRs].pop();
+    let lastTR = [...TRs.toArray()].pop();
     const lastTRTextAtStart = $(lastTR).text();
 
     await sleep(300);
@@ -55,7 +55,7 @@ describe('Scrolling', () => {
     await sleep(300);
 
     TRs = $htCore.find('tr');
-    lastTR = [...TRs].pop();
+    lastTR = [...TRs.toArray()].pop();
     const lastTRTextLater = $(lastTR).text();
 
     expect(lastTRTextLater).not.toEqual(lastTRTextAtStart);

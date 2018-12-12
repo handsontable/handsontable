@@ -74,11 +74,11 @@ const arrayMapper = {
       // Sort descending
       physicalIndex.sort((a, b) => b - a);
 
-      removedItems = arrayReduce(physicalIndex, (acc, item) => {
-        this._arrayMap.splice(item, 1);
-
-        return acc.concat(mapCopy.slice(item, item + 1));
-      }, []);
+      for (let i = 0, length = physicalIndex.length; i < length; i++) {
+        const indexToRemove = physicalIndex[i];
+        this._arrayMap.splice(indexToRemove, 1);
+        removedItems.push(mapCopy[indexToRemove]);
+      }
 
     } else {
       removedItems = this._arrayMap.splice(physicalIndex, amount);

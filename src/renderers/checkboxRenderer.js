@@ -98,6 +98,9 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
     const switchOffKeys = 'DELETE|BACKSPACE';
     const isKeyCode = partial(isKey, event.keyCode);
 
+    if (!instance.getSettings().enterBeginsEditing && isKeyCode('ENTER')) {
+      return;
+    }
     if (isKeyCode(`${toggleKeys}|${switchOffKeys}`) && !isImmediatePropagationStopped(event)) {
       eachSelectedCheckboxCell(() => {
         stopImmediatePropagation(event);
