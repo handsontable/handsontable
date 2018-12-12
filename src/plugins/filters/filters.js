@@ -23,7 +23,7 @@ import './filters.css';
 /**
  * @plugin Filters
  * @pro
- * @dependencies DropdownMenu TrimRows
+ * @dependencies DropdownMenu TrimRows HiddenRows
  *
  * @description
  * The plugin allows filtering the table data either by the built-in component or with the API.
