@@ -4,10 +4,16 @@ import { rangeEach } from '../../helpers/number';
 import { arrayEach } from '../../helpers/array';
 import { registerPlugin } from '../../plugins';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
+import Hooks from '../../pluginHooks';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
 
 import './hiddenColumns.css';
+
+Hooks.getSingleton().register('beforeHideColumns');
+Hooks.getSingleton().register('afterHideColumns');
+Hooks.getSingleton().register('beforeUnhideColumns');
+Hooks.getSingleton().register('afterUnhideColumns');
 
 /**
  * @plugin HiddenColumns
@@ -121,10 +127,11 @@ class HiddenColumns extends BasePlugin {
     this.addHook('beforeStretchingColumnWidth', (width, column) => this.onBeforeStretchingColumnWidth(width, column));
     this.addHook('afterCreateCol', (index, amount) => this.onAfterCreateCol(index, amount));
     this.addHook('afterRemoveCol', (index, amount) => this.onAfterRemoveCol(index, amount));
+    this.addHook('init', () => this.onInit());
 
     // Dirty workaround - the section below runs only if the HOT instance is already prepared.
     if (this.hot.view) {
-      this.onAfterPluginsInitialized();
+      this.onInit();
     }
 
     super.enablePlugin();
@@ -159,14 +166,28 @@ class HiddenColumns extends BasePlugin {
    * @param {Number[]} columns Array of column indexes.
    */
   showColumns(columns) {
-    arrayEach(columns, (column) => {
-      let columnIndex = parseInt(column, 10);
-      columnIndex = this.getLogicalColumnIndex(columnIndex);
+    const validColumns = this.isColumnDataValid(columns);
+    const continueUnhiding = this.hot.runHooks('beforeUnhideColumns', columns, validColumns);
 
-      if (this.isHidden(columnIndex, true)) {
-        this.hiddenColumns.splice(this.hiddenColumns.indexOf(columnIndex), 1);
-      }
-    });
+    if (continueUnhiding === false) {
+      return;
+    }
+
+    let changedStates = 0;
+
+    if (validColumns) {
+      arrayEach(columns, (column) => {
+        let columnIndex = parseInt(column, 10);
+        columnIndex = this.getLogicalColumnIndex(columnIndex);
+
+        if (this.isHidden(columnIndex, true)) {
+          this.hiddenColumns.splice(this.hiddenColumns.indexOf(columnIndex), 1);
+          changedStates += 1;
+        }
+      });
+    }
+
+    this.hot.runHooks('afterUnhideColumns', columns, validColumns, changedStates > 0);
   }
 
   /**
@@ -184,14 +205,28 @@ class HiddenColumns extends BasePlugin {
    * @param {Number[]} columns Array of column indexes.
    */
   hideColumns(columns) {
-    arrayEach(columns, (column) => {
-      let columnIndex = parseInt(column, 10);
-      columnIndex = this.getLogicalColumnIndex(columnIndex);
+    const validColumns = this.isColumnDataValid(columns);
+    const continueHiding = this.hot.runHooks('beforeHideColumns', columns, validColumns);
 
-      if (!this.isHidden(columnIndex, true)) {
-        this.hiddenColumns.push(columnIndex);
-      }
-    });
+    if (continueHiding === false) {
+      return;
+    }
+
+    let changedStates = 0;
+
+    if (validColumns) {
+      arrayEach(columns, (column) => {
+        let columnIndex = parseInt(column, 10);
+        columnIndex = this.getLogicalColumnIndex(columnIndex);
+
+        if (!this.isHidden(columnIndex, true)) {
+          this.hiddenColumns.push(columnIndex);
+          changedStates += 1;
+        }
+      });
+    }
+
+    this.hot.runHooks('afterHideColumns', columns, validColumns, changedStates > 0);
   }
 
   /**
@@ -218,6 +253,15 @@ class HiddenColumns extends BasePlugin {
     }
 
     return this.hiddenColumns.indexOf(columnIndex) > -1;
+  }
+
+  /**
+   * Check whether all of the provided column indexes are within the bounds of the table.
+   *
+   * @param {Array} columns Array of column indexes.
+   */
+  isColumnDataValid(columns) {
+    return columns.every(column => (column >= 0 && column < this.hot.countCols()));
   }
 
   /**
@@ -571,7 +615,7 @@ class HiddenColumns extends BasePlugin {
    *
    * @private
    */
-  onAfterPluginsInitialized() {
+  onInit() {
     const settings = this.hot.getSettings().hiddenColumns;
 
     if (typeof settings === 'object') {
