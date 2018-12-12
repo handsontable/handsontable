@@ -2184,10 +2184,9 @@ describe('UndoRedo', () => {
 
       describe('undo', () => {
         it('should undo single change', () => {
-          handsontable({
+          const HOT = handsontable({
             data: createNestedObjectData()
           });
-          const HOT = getInstance();
 
           setDataAtCell(0, 0, 'Pearce');
           expect(getDataAtCell(0, 0)).toBe('Pearce');
