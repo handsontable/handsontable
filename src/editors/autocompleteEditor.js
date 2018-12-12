@@ -477,7 +477,7 @@ class AutocompleteEditor extends HandsontableEditor {
       }
 
       if (this.htEditor) {
-        this.instance._registerTimeout(() => {
+        this.hot._registerTimeout(() => {
           this.queryChoices(this.TEXTAREA.value);
           priv.skipOne = true;
         }, timeOffset);
