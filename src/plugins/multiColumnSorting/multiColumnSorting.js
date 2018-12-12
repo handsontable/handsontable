@@ -18,6 +18,7 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
 
 /**
  * @plugin MultiColumnSorting
+ * @dependencies ColumnSorting
  * @pro
  *
  * @description
