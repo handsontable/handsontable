@@ -457,7 +457,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * onBeforeKeyDown callback.
    *
    * @private
-   * @param {Event} event
+   * @param {KeyboardEvent} event
    */
   onBeforeKeyDown(event) {
     const priv = privatePool.get(this);
