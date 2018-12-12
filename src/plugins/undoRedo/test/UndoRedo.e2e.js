@@ -2176,9 +2176,9 @@ describe('UndoRedo', () => {
 
       function createNestedObjectData() {
         return [
-          {name: {first: 'Timothy', last: 'Dalton'}, year: 1986},
-          {name: {first: 'Sean', last: 'Connery'}, year: 1962},
-          {name: {first: 'Roger', last: 'Moore'}, year: 1973}
+          { name: { first: 'Timothy', last: 'Dalton' }, year: 1986 },
+          { name: { first: 'Sean', last: 'Connery' }, year: 1962 },
+          { name: { first: 'Roger', last: 'Moore' }, year: 1973 }
         ];
       }
 
@@ -2187,7 +2187,7 @@ describe('UndoRedo', () => {
           handsontable({
             data: createNestedObjectData()
           });
-          var HOT = getInstance();
+          const HOT = getInstance();
 
           setDataAtCell(0, 0, 'Pearce');
           expect(getDataAtCell(0, 0)).toBe('Pearce');
@@ -2197,7 +2197,7 @@ describe('UndoRedo', () => {
         });
 
         it('should undo removal of single row', () => {
-          var HOT = handsontable({
+          const HOT = handsontable({
             data: createNestedObjectData().slice(0, 2)
           });
 
@@ -2231,7 +2231,7 @@ describe('UndoRedo', () => {
         });
 
         it('should undo removal of multiple rows', () => {
-          var HOT = handsontable({
+          const HOT = handsontable({
             data: createNestedObjectData()
           });
 
@@ -2273,12 +2273,12 @@ describe('UndoRedo', () => {
         });
 
         it('should undo removal of hidden columns', () => {
-          var HOT = handsontable({
+          const HOT = handsontable({
             data: createNestedObjectData().slice(0, 1),
             colHeaders: true,
             columns: [
-              {data: 'name.first'},
-              {data: 'name.last'},
+              { data: 'name.first' },
+              { data: 'name.last' },
             ]
           });
 
@@ -2308,7 +2308,7 @@ describe('UndoRedo', () => {
           handsontable({
             data: createNestedObjectData()
           });
-          var HOT = getInstance();
+          const HOT = getInstance();
 
           setDataAtCell(0, 0, 'Pearce');
           expect(getDataAtCell(0, 0)).toBe('Pearce');
@@ -2321,7 +2321,7 @@ describe('UndoRedo', () => {
         });
 
         it('should redo removal of single row', () => {
-          var HOT = handsontable({
+          const HOT = handsontable({
             data: createNestedObjectData().slice(0, 2)
           });
 
@@ -2365,7 +2365,7 @@ describe('UndoRedo', () => {
         });
 
         it('should redo removal of multiple rows', () => {
-          var HOT = handsontable({
+          const HOT = handsontable({
             data: createNestedObjectData()
           });
 
@@ -2419,12 +2419,12 @@ describe('UndoRedo', () => {
         });
 
         it('should redo removal of hidden columns', () => {
-          var HOT = handsontable({
+          const HOT = handsontable({
             data: createNestedObjectData().slice(0, 1),
             colHeaders: true,
             columns: [
-              {data: 'name.first'},
-              {data: 'name.last'},
+              { data: 'name.first' },
+              { data: 'name.last' },
             ]
           });
 
