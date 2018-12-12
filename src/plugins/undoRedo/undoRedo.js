@@ -48,7 +48,7 @@ function UndoRedo(instance) {
       return;
     }
 
-    const originalData = plugin.instance.getSourceDataArray();
+    const originalData = plugin.instance.getSourceData();
     const rowIndex = (originalData.length + index) % originalData.length;
     const physicalRowIndex = instance.toPhysicalRow(rowIndex);
     const removedData = deepClone(originalData.slice(physicalRowIndex, physicalRowIndex + amount));
@@ -337,9 +337,32 @@ UndoRedo.RemoveRowAction = function(index, data) {
 inherit(UndoRedo.RemoveRowAction, UndoRedo.Action);
 
 UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
-  instance.alter('insert_row', this.index, this.data.length, 'UndoRedo.undo');
   instance.addHookOnce('afterRender', undoneCallback);
-  instance.populateFromArray(this.index, 0, this.data, void 0, void 0, 'UndoRedo.undo');
+  instance.alter('insert_row', this.index, this.data.length, 'UndoRedo.undo');
+
+  // Convert to array for populateFromArray
+  let array = [];
+  if (instance.dataType === 'array') {
+    array = this.data;
+  } else if (instance.dataType === 'object') {
+    const endCol = instance.countCols();
+    for (let i = 0; i < this.data.length; i++) {
+      const newRow = [];
+      for (let j = 0; j < endCol; j++) {
+        const prop = instance.colToProp(j);
+        newRow.push(this.data[i][prop]);
+      }
+      array.push(newRow);
+    }
+  }
+
+  instance.populateFromArray(this.index, 0, array, void 0, void 0, 'UndoRedo.undo');
+
+  const source = instance.getSourceData();
+  for (let i = 0; i < this.data.length; i++) {
+    source[this.index + i] = this.data[i];
+  }
+  instance.render();
 };
 UndoRedo.RemoveRowAction.prototype.redo = function(instance, redoneCallback) {
   instance.addHookOnce('afterRemoveRow', redoneCallback);

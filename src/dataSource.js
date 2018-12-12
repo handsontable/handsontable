@@ -1,4 +1,4 @@
-import { getProperty } from './helpers/object';
+import { getProperty, deepObjectSize } from './helpers/object';
 import { arrayEach } from './helpers/array';
 import { rangeEach } from './helpers/number';
 
@@ -160,7 +160,7 @@ class DataSource {
           const prop = this.colToProp(column);
 
           if (toArray) {
-            newRow.push(getProperty(row, prop));
+            newRow.push(row[prop]);
           } else {
             newRow[prop] = row[prop];
           }
@@ -195,7 +195,7 @@ class DataSource {
         result = this.data[0].length;
 
       } else if (this.dataType === 'object') {
-        result = Object.keys(this.data[0]).length;
+        result = deepObjectSize(this.data[0]);
       }
     }
 
