@@ -31,34 +31,23 @@ class AutocompleteEditor extends HandsontableEditor {
      *
      * @type {String}
      */
-    this.query = void 0;
+    this.query = null;
     /**
      * Contains stripped choices.
      *
      * @type {String[]}
      */
-    this.strippedChoices = void 0;
+    this.strippedChoices = [];
     /**
      * Contains raw choices.
      *
      * @type {Array}
      */
-    this.rawChoices = void 0;
+    this.rawChoices = [];
 
     privatePool.set(this, {
       skipOne: false,
     });
-  }
-
-  /**
-   * Initializes an editor's intance.
-   */
-  init() {
-    super.init();
-
-    this.query = null;
-    this.strippedChoices = [];
-    this.rawChoices = [];
   }
 
   /**
@@ -332,6 +321,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * Configures editor to open it at the top.
    *
    * @private
+   * @param {Number} dropdownHeight
    */
   flipDropdown(dropdownHeight) {
     const dropdownStyle = this.htEditor.rootElement.style;
@@ -390,6 +380,7 @@ class AutocompleteEditor extends HandsontableEditor {
   /**
    * Creates new selection on specified row index, or deselects selected cells.
    *
+   * @private
    * @param {Number|undefined} index
    */
   highlightBestMatchingChoice(index) {
@@ -403,6 +394,7 @@ class AutocompleteEditor extends HandsontableEditor {
   /**
    * Calculates and return the internal Handsontable's height.
    *
+   * @private
    * @returns {Number}
    */
   getDropdownHeight() {
@@ -415,6 +407,7 @@ class AutocompleteEditor extends HandsontableEditor {
   /**
    * Sanitizes value from potential dangerous tags.
    *
+   * @private
    * @param {String} value
    * @returns {String}
    */
@@ -425,6 +418,7 @@ class AutocompleteEditor extends HandsontableEditor {
   /**
    * Sanitizes an array of the values from potential dangerous tags.
    *
+   * @private
    * @param {String[]} values
    * @returns {String[]}
    */
@@ -463,6 +457,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * onBeforeKeyDown callback.
    *
    * @private
+   * @param {Event} event
    */
   onBeforeKeyDown(event) {
     const priv = privatePool.get(this);
