@@ -1,5 +1,5 @@
 describe('Core.getCellMetaAtRow', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -15,7 +15,7 @@ describe('Core.getCellMetaAtRow', () => {
   it('should return a row of cell meta in a form of an array', () => {
     handsontable();
 
-    var rowOfMeta = getCellMetaAtRow(0);
+    const rowOfMeta = getCellMetaAtRow(0);
     expect(rowOfMeta.length).toBe(5);
     expect(rowOfMeta[0].row).toBe(0);
     expect(rowOfMeta[1].row).toBe(0);

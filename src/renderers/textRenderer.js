@@ -1,6 +1,6 @@
-import {empty, fastInnerText} from './../helpers/dom/element';
-import {stringify} from './../helpers/mixed';
-import {getRenderer} from './index';
+import { empty, fastInnerText } from './../helpers/dom/element';
+import { stringify } from './../helpers/mixed';
+import { getRenderer } from './index';
 
 /**
  * Default text renderer
@@ -15,14 +15,15 @@ import {getRenderer} from './index';
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
-function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  getRenderer('base').apply(this, arguments);
+function textRenderer(instance, TD, row, col, prop, value, cellProperties, ...args) {
+  getRenderer('base').apply(this, [instance, TD, row, col, prop, value, cellProperties, ...args]);
+  let escaped = value;
 
-  if (!value && cellProperties.placeholder) {
-    value = cellProperties.placeholder;
+  if (!escaped && cellProperties.placeholder) {
+    escaped = cellProperties.placeholder;
   }
 
-  var escaped = stringify(value);
+  escaped = stringify(escaped);
 
   if (!instance.getSettings().trimWhitespace) {
     escaped = escaped.replace(/ /g, String.fromCharCode(160));
@@ -30,7 +31,7 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
   if (cellProperties.rendererTemplate) {
     empty(TD);
-    var TEMPLATE = document.createElement('TEMPLATE');
+    const TEMPLATE = document.createElement('TEMPLATE');
     TEMPLATE.setAttribute('bind', '{{}}');
     TEMPLATE.innerHTML = cellProperties.rendererTemplate;
     HTMLTemplateElement.decorate(TEMPLATE);

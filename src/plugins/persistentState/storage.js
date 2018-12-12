@@ -1,4 +1,4 @@
-import {arrayEach} from './../../helpers/array';
+import { arrayEach } from './../../helpers/array';
 
 /**
  * @class Storage
@@ -46,9 +46,8 @@ class Storage {
    * @returns {}
    */
   loadValue(key, defaultValue) {
-    key = typeof key === 'undefined' ? defaultValue : key;
-
-    let value = window.localStorage.getItem(`${this.prefix}_${key}`);
+    const itemKey = typeof key === 'undefined' ? defaultValue : key;
+    const value = window.localStorage.getItem(`${this.prefix}_${itemKey}`);
 
     return value === null ? void 0 : JSON.parse(value);
   }
@@ -80,11 +79,11 @@ class Storage {
    * @private
    */
   loadSavedKeys() {
-    let keysJSON = window.localStorage.getItem(`${this.prefix}__persistentStateKeys`);
-    let keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : void 0;
+    const keysJSON = window.localStorage.getItem(`${this.prefix}__persistentStateKeys`);
+    const keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : void 0;
 
-    this.savedKeys = keys ? keys : [];
-  };
+    this.savedKeys = keys || [];
+  }
 
   /**
    * Save saved key in localStorage.
@@ -93,7 +92,7 @@ class Storage {
    */
   saveSavedKeys() {
     window.localStorage.setItem(`${this.prefix}__persistentStateKeys`, JSON.stringify(this.savedKeys));
-  };
+  }
 
   /**
    * Clear saved key from localStorage.
@@ -103,7 +102,7 @@ class Storage {
   clearSavedKeys() {
     this.savedKeys.length = 0;
     this.saveSavedKeys();
-  };
+  }
 }
 
 export default Storage;

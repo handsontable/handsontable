@@ -10,7 +10,6 @@ import CheckboxEditor from './checkboxEditor';
 import DateEditor from './dateEditor';
 import DropdownEditor from './dropdownEditor';
 import HandsontableEditor from './handsontableEditor';
-import MobileTextEditor from './mobileTextEditor';
 import NumericEditor from './numericEditor';
 import PasswordEditor from './passwordEditor';
 import SelectEditor from './selectEditor';
@@ -32,14 +31,13 @@ _register('checkbox', CheckboxEditor);
 _register('date', DateEditor);
 _register('dropdown', DropdownEditor);
 _register('handsontable', HandsontableEditor);
-_register('mobile', MobileTextEditor);
 _register('numeric', NumericEditor);
 _register('password', PasswordEditor);
 _register('select', SelectEditor);
 _register('text', TextEditor);
 
 export function RegisteredEditor(editorClass) {
-  let instances = {};
+  const instances = {};
   const Clazz = editorClass;
 
   this.getConstructor = function() {
@@ -55,7 +53,7 @@ export function RegisteredEditor(editorClass) {
   };
 
   Hooks.getSingleton().add('afterDestroy', function() {
-    instances = {};
+    instances[this.guid] = null;
   });
 }
 

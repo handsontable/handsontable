@@ -25,7 +25,7 @@ describe('mergeSort', () => {
   });
 
   it('should not change the order when such comparator is provided', () => {
-    var compareFunction = function() {
+    const compareFunction = function() {
       return 0;
     };
 
@@ -33,7 +33,7 @@ describe('mergeSort', () => {
   });
 
   it('should sort the numbers in ascending order when such comparator is provided', () => {
-    var compareFunction = function(a, b) {
+    const compareFunction = function(a, b) {
       return a - b;
     };
 
@@ -41,7 +41,7 @@ describe('mergeSort', () => {
   });
 
   it('should sort the numbers in descending order when such comparator is provided', () => {
-    var compareFunction = function(a, b) {
+    const compareFunction = function(a, b) {
       return b - a;
     };
 

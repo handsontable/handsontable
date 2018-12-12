@@ -1,7 +1,7 @@
-import {arrayEach} from './../helpers/array';
-import {getLanguageDictionary} from './dictionariesManager';
-import {getPhraseFormatters} from './phraseFormatters';
-import {isUndefined} from '../helpers/mixed';
+import { arrayEach } from './../helpers/array';
+import { getLanguageDictionary } from './dictionariesManager';
+import { getPhraseFormatters } from './phraseFormatters';
+import { isUndefined } from '../helpers/mixed';
 
 /**
  * Get phrase for specified dictionary key.

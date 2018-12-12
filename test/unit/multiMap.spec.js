@@ -1,91 +1,92 @@
 import MultiMap from 'handsontable/multiMap';
 
 describe('MultiMap', () => {
+  let multiMap;
 
-  beforeEach(function() {
-    this.multiMap = new MultiMap();
+  beforeEach(() => {
+    multiMap = new MultiMap();
   });
 
-  afterEach(function() {
-    delete this.multiMap;
+  afterEach(() => {
+    multiMap = null;
   });
 
-  it('should use string as key', function() {
-    this.multiMap.set('foo', 'bar');
+  it('should use string as key', () => {
+    multiMap.set('foo', 'bar');
 
-    expect(this.multiMap.get('foo')).toEqual('bar');
+    expect(multiMap.get('foo')).toEqual('bar');
   });
 
-  it('should use integer as key', function() {
-    this.multiMap.set(1, 'bar');
+  it('should use integer as key', () => {
+    multiMap.set(1, 'bar');
 
-    expect(this.multiMap.get(1)).toEqual('bar');
+    expect(multiMap.get(1)).toEqual('bar');
   });
 
-  it('should use integer as key', function() {
-    this.multiMap.set(1.2, 'bar');
+  it('should use integer as key', () => {
+    multiMap.set(1.2, 'bar');
 
-    expect(this.multiMap.get(1.2)).toEqual('bar');
-    expect(this.multiMap.get(1.3)).toBeUndefined();
+    expect(multiMap.get(1.2)).toEqual('bar');
+    expect(multiMap.get(1.3)).toBeUndefined();
   });
 
-  it('should use plain object as key', function() {
-    var keyObj1 = {};
-    var keyObj2 = {};
+  it('should use plain object as key', () => {
+    const keyObj1 = {};
+    const keyObj2 = {};
 
-    this.multiMap.set(keyObj1, 'bar');
+    multiMap.set(keyObj1, 'bar');
 
-    expect(this.multiMap.get(keyObj1)).toEqual('bar');
-    expect(this.multiMap.get(keyObj2)).toBeUndefined();
+    expect(multiMap.get(keyObj1)).toEqual('bar');
+    expect(multiMap.get(keyObj2)).toBeUndefined();
   });
 
-  it('should use array as key', function() {
-    var keyArray1 = [];
-    var keyArray2 = [];
+  it('should use array as key', () => {
+    const keyArray1 = [];
+    const keyArray2 = [];
 
-    this.multiMap.set(keyArray1, 'bar');
+    multiMap.set(keyArray1, 'bar');
 
-    expect(this.multiMap.get(keyArray1)).toEqual('bar');
-    expect(this.multiMap.get(keyArray2)).toBeUndefined();
+    expect(multiMap.get(keyArray1)).toEqual('bar');
+    expect(multiMap.get(keyArray2)).toBeUndefined();
   });
 
-  it('should use regexp as key', function() {
-    var keyRegexp1 = /test/;
-    var keyRegexp2 = /test/;
+  it('should use regexp as key', () => {
+    const keyRegexp1 = /test/;
+    const keyRegexp2 = /test/;
 
-    this.multiMap.set(keyRegexp1, 'bar');
+    multiMap.set(keyRegexp1, 'bar');
 
-    expect(this.multiMap.get(keyRegexp1)).toEqual('bar');
-    expect(this.multiMap.get(keyRegexp2)).toBeUndefined();
+    expect(multiMap.get(keyRegexp1)).toEqual('bar');
+    expect(multiMap.get(keyRegexp2)).toBeUndefined();
   });
 
   it('should not use boolean as key', () => {
-    var tryToSetBooleanKey = function() {
-      this.multiMap.set(false, 'bar');
+    const tryToSetBooleanKey = function() {
+      multiMap.set(false, 'bar');
     };
 
     expect(tryToSetBooleanKey).toThrow();
   });
 
   it('should not set null as key', () => {
-    var tryToSetNullKey = function() {
-      this.multiMap.set(null, 'bar');
+    const tryToSetNullKey = function() {
+      multiMap.set(null, 'bar');
     };
 
     expect(tryToSetNullKey).toThrow();
   });
 
   it('should not set undefined as key', () => {
-    var tryToSetUndefinedKey = function() {
-      this.multiMap.set(undefined, 'bar');
+    const tryToSetUndefinedKey = function() {
+      multiMap.set(undefined, 'bar');
     };
 
     expect(tryToSetUndefinedKey).toThrow();
   });
 
   it('should not set NaN as key', () => {
-    var tryToSetNaNKey = function() {
-      this.multiMap.set(NaN, 'bar');
+    const tryToSetNaNKey = function() {
+      multiMap.set(NaN, 'bar');
     };
 
     expect(tryToSetNaNKey).toThrow();

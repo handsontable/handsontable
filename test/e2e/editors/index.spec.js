@@ -39,7 +39,7 @@ describe('editors', () => {
     }
     registerEditor('myEditor', MyEditor);
 
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 6, 10],
       ],
@@ -63,7 +63,6 @@ describe('editors', () => {
     expect(getEditor('date')).toBeFunction();
     expect(getEditor('dropdown')).toBeFunction();
     expect(getEditor('handsontable')).toBeFunction();
-    expect(getEditor('mobile')).toBeFunction();
     expect(getEditor('numeric')).toBeFunction();
     expect(getEditor('password')).toBeFunction();
     expect(getEditor('select')).toBeFunction();
@@ -77,16 +76,16 @@ describe('editors', () => {
     expect(getEditor('myEditor')).toBe(MyEditor);
   });
 
-  it('should reset previous value when printable character was entered to selected, non-empty cell', async function () {
+  it('should reset previous value when printable character was entered to selected, non-empty cell', async() => {
     handsontable({
       data: [
-        {id: 10, name: 'Cup'},
-        {id: 23, name: 'Newspaper'},
-        {id: 31, name: 'Car'}
+        { id: 10, name: 'Cup' },
+        { id: 23, name: 'Newspaper' },
+        { id: 31, name: 'Car' }
       ],
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
       ]
     });
 

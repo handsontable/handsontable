@@ -1,17 +1,17 @@
-import 'babel-polyfill';
+import '@babel/polyfill';
 
 import './css/bootstrap.css';
 import './css/handsontable.css';
 import './css/mobile.handsontable.css';
 
-import {getRegisteredEditorNames, registerEditor, getEditor} from './editors';
-import {getRegisteredRendererNames, getRenderer, registerRenderer} from './renderers';
-import {getRegisteredValidatorNames, getValidator, registerValidator} from './validators';
-import {getRegisteredCellTypeNames, getCellType, registerCellType} from './cellTypes';
+import { getRegisteredEditorNames, registerEditor, getEditor } from './editors';
+import { getRegisteredRendererNames, getRenderer, registerRenderer } from './renderers';
+import { getRegisteredValidatorNames, getValidator, registerValidator } from './validators';
+import { getRegisteredCellTypeNames, getCellType, registerCellType } from './cellTypes';
 
 import Core from './core';
 import jQueryWrapper from './helpers/wrappers/jquery';
-import EventManager, {getListenersCounter} from './eventManager';
+import EventManager, { getListenersCounter } from './eventManager';
 import Hooks from './pluginHooks';
 import GhostTable from './utils/ghostTable';
 import * as arrayHelpers from './helpers/array';
@@ -29,12 +29,12 @@ import * as unicodeHelpers from './helpers/unicode';
 import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
 import * as plugins from './plugins/index';
-import {registerPlugin} from './plugins';
+import { registerPlugin } from './plugins';
 import DefaultSettings from './defaultSettings';
-import {rootInstanceSymbol} from './utils/rootInstance';
-import {getTranslatedPhrase} from './i18n';
+import { rootInstanceSymbol } from './utils/rootInstance';
+import { getTranslatedPhrase } from './i18n';
 import * as constants from './i18n/constants';
-import {registerLanguageDictionary, getLanguagesDictionaries, getLanguageDictionary} from './i18n/dictionariesManager';
+import { registerLanguageDictionary, getLanguagesDictionaries, getLanguageDictionary } from './i18n/dictionariesManager';
 
 function Handsontable(rootElement, userSettings) {
   const instance = new Core(rootElement, userSettings || {}, rootInstanceSymbol);
@@ -51,15 +51,11 @@ Handsontable.DefaultSettings = DefaultSettings;
 Handsontable.EventManager = EventManager;
 Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
 
+const hotPackageType = process.env.HOT_PACKAGE_TYPE;
+
+Handsontable.packageName = `handsontable-${hotPackageType}`;
 Handsontable.buildDate = process.env.HOT_BUILD_DATE;
-Handsontable.packageName = process.env.HOT_PACKAGE_NAME;
 Handsontable.version = process.env.HOT_VERSION;
-
-const baseVersion = process.env.HOT_BASE_VERSION;
-
-if (baseVersion) {
-  Handsontable.baseVersion = baseVersion;
-}
 
 // Export Hooks singleton
 Handsontable.hooks = Hooks.getSingleton();

@@ -1,10 +1,16 @@
-'use strict';
+const webpack = require('webpack');
 
-var webpack = require('webpack');
+const env = process.env.NODE_ENV;
+const configFactory = require('./.config/' + env);
 
-var env = process.env.NODE_ENV;
-var configFactory = require('./.config/' + env);
+// In some cases, npm env variables become rewritten to lower case names. To prevent this it is rewritten to the
+// original variable name so the --testPathPattern work in any case.
+if (process.env.npm_config_testpathpattern) {
+  process.env.npm_config_testPathPattern = process.env.npm_config_testpathpattern;
+}
 
-module.exports = function(envArgs) {
-  return configFactory.create(envArgs);
+module.exports = function() {
+  return configFactory.create({
+    testPathPattern: process.env.npm_config_testPathPattern,
+  });
 };

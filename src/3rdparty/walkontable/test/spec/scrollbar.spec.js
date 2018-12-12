@@ -1,11 +1,11 @@
 describe('WalkontableScrollbar', () => {
-  var $table,
-    $container,
-    $wrapper,
-    debug = false;
+  let $table;
+  let $container;
+  let $wrapper;
+  const debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden' });
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
     $wrapper.append($container);
@@ -22,7 +22,7 @@ describe('WalkontableScrollbar', () => {
   });
 
   it('should table in DIV.wtHolder that contains 2 scrollbars', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -37,7 +37,7 @@ describe('WalkontableScrollbar', () => {
     this.data.splice(5, this.data.length - 5);
 
     try {
-      var wt = new Walkontable.Core({
+      const wt = new Walkontable.Core({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,

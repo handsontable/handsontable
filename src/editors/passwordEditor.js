@@ -1,4 +1,4 @@
-import {empty} from './../helpers/dom/element';
+import { empty } from './../helpers/dom/element';
 import TextEditor from './textEditor';
 
 /**

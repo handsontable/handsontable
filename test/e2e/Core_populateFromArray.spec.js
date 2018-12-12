@@ -1,5 +1,5 @@
 describe('Core_populateFromArray', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,17 +12,17 @@ describe('Core_populateFromArray', () => {
     }
   });
 
-  var arrayOfArrays = function() {
+  const arrayOfArrays = function() {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda', 'Mix'],
-      ['2008', 10, 11, 12, 13, {a: 1, b: 2}],
-      ['2009', 20, 11, 14, 13, {a: 1, b: 2}],
-      ['2010', 30, 15, 12, 13, {a: 1, b: 2}]
+      ['2008', 10, 11, 12, 13, { a: 1, b: 2 }],
+      ['2009', 20, 11, 14, 13, { a: 1, b: 2 }],
+      ['2010', 30, 15, 12, 13, { a: 1, b: 2 }]
     ];
   };
 
   it('should call onChange callback', () => {
-    var output = null;
+    let output = null;
 
     handsontable({
       data: arrayOfArrays(),
@@ -36,7 +36,7 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should populate single value for whole selection', () => {
-    var output = null;
+    let output = null;
 
     handsontable({
       data: arrayOfArrays(),
@@ -50,7 +50,7 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should populate value for whole selection only if populated data isn\'t an array', () => {
-    var output = null;
+    let output = null;
 
     handsontable({
       data: arrayOfArrays(),
@@ -64,7 +64,7 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should populate value for whole selection only if populated data isn\'t an object', () => {
-    var output = null;
+    let output = null;
 
     handsontable({
       data: arrayOfArrays(),
@@ -72,13 +72,13 @@ describe('Core_populateFromArray', () => {
         output = changes;
       }
     });
-    populateFromArray(0, 0, [['test'], [{test: 1}]], 3, 0);
+    populateFromArray(0, 0, [['test'], [{ test: 1 }]], 3, 0);
 
     expect(output).toEqual([[0, 0, '', 'test'], [2, 0, '2009', 'test']]);
   });
 
   it('shouldn\'t populate value if original value doesn\'t have the same data structure', () => {
-    var output = null;
+    let output = null;
 
     handsontable({
       data: arrayOfArrays(),
@@ -92,13 +92,8 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should shift values down', () => {
-    var output = null;
-
     handsontable({
       data: arrayOfArrays(),
-      afterChange(changes) {
-        output = changes;
-      },
       minSpareRows: 1
     });
     populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_down');
@@ -116,34 +111,28 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should shift values right', () => {
-    var output = null;
-
     handsontable({
       data: arrayOfArrays(),
-      afterChange(changes) {
-        output = changes;
-      },
       minSpareCols: 1
     });
     populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_right');
 
     expect(getData()).toEqual([
       ['test', 'test2', 'test', '', 'Kia', 'Nissan', 'Toyota', 'Honda', 'Mix', null],
-      ['test3', 'test4', 'test3', '2008', 10, {a: 1, b: 2}, 12, 13, null, null],
-      ['test', 'test2', 'test', '2009', 20, {a: 1, b: 2}, 14, 13, null, null],
-      ['2010', 30, 15, 12, 13, {a: 1, b: 2}, null, null, null, null]
+      ['test3', 'test4', 'test3', '2008', 10, { a: 1, b: 2 }, 12, 13, null, null],
+      ['test', 'test2', 'test', '2009', 20, { a: 1, b: 2 }, 14, 13, null, null],
+      ['2010', 30, 15, 12, 13, { a: 1, b: 2 }, null, null, null, null]
     ]);
   });
 
   it('should run beforeAutofillInsidePopulate hook for each inserted value', () => {
-    var called = 0;
-
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfArrays()
     });
+    let called = 0;
 
-    hot.addHook('beforeAutofillInsidePopulate', (index) => {
-      called++;
+    hot.addHook('beforeAutofillInsidePopulate', () => {
+      called += 1;
     });
 
     populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 1, 1, 'Autofill.fill', 'overwrite');
@@ -153,11 +142,11 @@ describe('Core_populateFromArray', () => {
 
   it('should run beforeAutofillInsidePopulate hook and could change cell data before insert if returned object with value property', () => {
 
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfArrays()
     });
 
-    hot.addHook('beforeAutofillInsidePopulate', (index) => ({
+    hot.addHook('beforeAutofillInsidePopulate', () => ({
       value: 'my_test'
     }));
 
@@ -167,7 +156,7 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should populate 1 row from 2 selected rows', () => {
-    var hot = handsontable({
+    handsontable({
       data: arrayOfArrays()
     });
 
@@ -178,7 +167,7 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should populate 1 column from 2 selected columns`', () => {
-    var hot = handsontable({
+    handsontable({
       data: arrayOfArrays()
     });
 

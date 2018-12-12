@@ -1,5 +1,5 @@
-import {getLanguageDictionary, getLanguagesDictionaries, registerLanguageDictionary} from 'handsontable/i18n/dictionariesManager';
-import {register as registerPhraseFormatter} from 'handsontable/i18n/phraseFormatters';
+import { getLanguageDictionary, getLanguagesDictionaries, registerLanguageDictionary } from 'handsontable/i18n/dictionariesManager';
+import { register as registerPhraseFormatter } from 'handsontable/i18n/phraseFormatters';
 import plPL from 'handsontable/i18n/languages/pl-PL';
 import * as allLanguages from 'handsontable/i18n/languages';
 import * as constants from 'handsontable/i18n/constants';
@@ -49,19 +49,19 @@ describe('i18n', () => {
 
   describe('Collection of language packs', () => {
     // One of keys can be `__esModule` added by Babel. We separate it.
-    const indexFileExportNames = Object.getOwnPropertyNames(allLanguages).filter((exportedKey) => exportedKey !== '__esModule');
-    const dictionaries = indexFileExportNames.map((exportName) => allLanguages[exportName]);
-    const languageCodes = dictionaries.map((dictionary) => dictionary.languageCode);
+    const indexFileExportNames = Object.getOwnPropertyNames(allLanguages).filter(exportedKey => exportedKey !== '__esModule');
+    const dictionaries = indexFileExportNames.map(exportName => allLanguages[exportName]);
+    const languageCodes = dictionaries.map(dictionary => dictionary.languageCode);
 
-    const keysGroupedByDictionary = dictionaries.map((dictionary) => Object.keys(dictionary));
-    const dictionariesKeys = [].concat([], ...keysGroupedByDictionary).filter((key) => key !== 'languageCode');
+    const keysGroupedByDictionary = dictionaries.map(dictionary => Object.keys(dictionary));
+    const dictionariesKeys = [].concat([], ...keysGroupedByDictionary).filter(key => key !== 'languageCode');
 
-    const valuesGroupedByDictionary = dictionaries.map((dictionary) => Object.values(dictionary));
+    const valuesGroupedByDictionary = dictionaries.map(dictionary => Object.values(dictionary));
     const dictionariesValuesWithArrays = [].concat([], ...valuesGroupedByDictionary);
     const dictionariesValuesWithoutArrays = [].concat([], ...dictionariesValuesWithArrays);
 
     const filesInsideLanguageDictionary = fs.readdirSync('./src/i18n/languages');
-    const languagePacks = filesInsideLanguageDictionary.filter((name) => name !== 'index.js');
+    const languagePacks = filesInsideLanguageDictionary.filter(name => name !== 'index.js');
 
     describe('with every dictionary from `src/i18n/languages` folder', () => {
       // We take all dictionaries from export inside `src/i18n/languages/index.js` file.
@@ -86,20 +86,20 @@ describe('i18n', () => {
 
         it('should provide export names corresponding to dictionaries file names', () => {
           // two lowercase letters, two uppercase letters, for example: `esPY`.
-          expect(indexFileExportNames).toBeListFulfillingCondition((exportName) =>
-            languagePacks.map((languagePack) => languagePack.replace('.js', '').replace('-', '')).includes(exportName));
+          expect(indexFileExportNames).toBeListFulfillingCondition(exportName =>
+            languagePacks.map(languagePack => languagePack.replace('.js', '').replace('-', '')).includes(exportName));
         });
       });
 
       describe('Particular dictionary', () => {
         it('should contain language code of proper format', () => {
           // two lowercase letters, hyphen, two uppercase letters, for example: `es-PY`.
-          expect(languageCodes).toBeListFulfillingCondition((languageCode) => /^([a-z]{2})-([A-Z]{2})$/.test(languageCode));
+          expect(languageCodes).toBeListFulfillingCondition(languageCode => /^([a-z]{2})-([A-Z]{2})$/.test(languageCode));
         });
 
         it('should have file name corresponding to its language code', () => {
           // two lowercase letters, hyphen, two uppercase letters and JavaScript file extension, for example: `es-PY.js`.
-          expect(languagePacks).toBeListFulfillingCondition((languagePack) => languageCodes.includes(languagePack.replace('.js', '')));
+          expect(languagePacks).toBeListFulfillingCondition(languagePack => languageCodes.includes(languagePack.replace('.js', '')));
         });
 
         it('should contain only predefined keys (checking for typo)', () => {
@@ -107,14 +107,14 @@ describe('i18n', () => {
           // for it inside the `src/i18n/constants.js` file.
           const predefinedDictionaryKeys = Object.values(constants);
 
-          expect(dictionariesKeys).toBeListFulfillingCondition((dictionaryKey) => predefinedDictionaryKeys.includes(dictionaryKey));
+          expect(dictionariesKeys).toBeListFulfillingCondition(dictionaryKey => predefinedDictionaryKeys.includes(dictionaryKey));
         });
 
         it('should contain values defined as strings or arrays of strings, without unnecessary whitespace characters', () => {
-          expect(dictionariesValuesWithArrays).toBeListFulfillingCondition((value) => typeof value === 'string' || Array.isArray(value));
-          expect(dictionariesValuesWithoutArrays).toBeListFulfillingCondition((value) => typeof value === 'string');
-          expect(dictionariesValuesWithoutArrays).toBeListFulfillingCondition((value) => value === value.trim());
-          expect(dictionariesValuesWithoutArrays).toBeListFulfillingCondition((value) => / {2,}/.test(value) === false);
+          expect(dictionariesValuesWithArrays).toBeListFulfillingCondition(value => typeof value === 'string' || Array.isArray(value));
+          expect(dictionariesValuesWithoutArrays).toBeListFulfillingCondition(value => typeof value === 'string');
+          expect(dictionariesValuesWithoutArrays).toBeListFulfillingCondition(value => value === value.trim());
+          expect(dictionariesValuesWithoutArrays).toBeListFulfillingCondition(value => / {2,}/.test(value) === false);
         });
       });
     });

@@ -8,15 +8,16 @@ import {
   curryRight,
   isFunction,
 } from 'handsontable/helpers/function';
+import { sleep } from '../../helpers/common';
 
 describe('Function helper', () => {
   //
   // Handsontable.helper.throttle
   //
   describe('throttle', () => {
-    it('should returns new function with applied throttling functionality', (done) => {
-      var spy = jasmine.createSpy();
-      var throttled = throttle(spy, 200);
+    it('should returns new function with applied throttling functionality', async() => {
+      const spy = jasmine.createSpy();
+      const throttled = throttle(spy, 200);
 
       throttled();
       throttled();
@@ -26,27 +27,25 @@ describe('Function helper', () => {
 
       expect(spy.calls.count()).toBe(1);
 
-      setTimeout(() => {
-        throttled();
-        throttled();
+      await sleep(100);
 
-        expect(spy.calls.count()).toBe(1);
-      }, 100);
+      throttled();
+      throttled();
 
-      setTimeout(() => {
-        throttled();
-        throttled();
-        throttled();
-        throttled();
+      expect(spy.calls.count()).toBe(1);
 
-        expect(spy.calls.count()).toBe(3);
+      await sleep(300);
 
-      }, 400);
+      throttled();
+      throttled();
+      throttled();
+      throttled();
 
-      setTimeout(() => {
-        expect(spy.calls.count()).toBe(4);
-        done();
-      }, 900);
+      expect(spy.calls.count()).toBe(3);
+
+      await sleep(300);
+
+      expect(spy.calls.count()).toBe(4);
     });
   });
 
@@ -54,9 +53,9 @@ describe('Function helper', () => {
   // Handsontable.helper.throttleAfterHits
   //
   describe('throttleAfterHits', () => {
-    it('should returns new function with applied throttling functionality', (done) => {
-      var spy = jasmine.createSpy();
-      var throttled = throttleAfterHits(spy, 200, 5);
+    it('should returns new function with applied throttling functionality', async() => {
+      const spy = jasmine.createSpy();
+      const throttled = throttleAfterHits(spy, 200, 5);
 
       throttled();
       throttled();
@@ -66,26 +65,25 @@ describe('Function helper', () => {
 
       expect(spy.calls.count()).toBe(5);
 
-      setTimeout(() => {
-        throttled();
-        throttled();
+      await sleep(100);
 
-        expect(spy.calls.count()).toBe(6);
-      }, 100);
+      throttled();
+      throttled();
 
-      setTimeout(() => {
-        throttled();
-        throttled();
-        throttled();
-        throttled();
+      expect(spy.calls.count()).toBe(6);
 
-        expect(spy.calls.count()).toBe(8);
-      }, 400);
+      await sleep(300);
 
-      setTimeout(() => {
-        expect(spy.calls.count()).toBe(9);
-        done();
-      }, 900);
+      throttled();
+      throttled();
+      throttled();
+      throttled();
+
+      expect(spy.calls.count()).toBe(8);
+
+      await sleep(500);
+
+      expect(spy.calls.count()).toBe(9);
     });
   });
 
@@ -93,9 +91,9 @@ describe('Function helper', () => {
   // Handsontable.helper.debounce
   //
   describe('debounce', () => {
-    it('should returns new function with applied debouncing functionality', (done) => {
-      var spy = jasmine.createSpy();
-      var debounced = debounce(spy, 200);
+    it('should returns new function with applied debouncing functionality', async() => {
+      const spy = jasmine.createSpy();
+      const debounced = debounce(spy, 200);
 
       debounced();
       debounced();
@@ -105,26 +103,25 @@ describe('Function helper', () => {
 
       expect(spy.calls.count()).toBe(0);
 
-      setTimeout(() => {
-        debounced();
-        debounced();
+      await sleep(100);
 
-        expect(spy.calls.count()).toBe(0);
-      }, 100);
+      debounced();
+      debounced();
 
-      setTimeout(() => {
-        debounced();
-        debounced();
-        debounced();
-        debounced();
+      expect(spy.calls.count()).toBe(0);
 
-        expect(spy.calls.count()).toBe(1);
-      }, 400);
+      await sleep(300);
 
-      setTimeout(() => {
-        expect(spy.calls.count()).toBe(2);
-        done();
-      }, 900);
+      debounced();
+      debounced();
+      debounced();
+      debounced();
+
+      expect(spy.calls.count()).toBe(1);
+
+      await sleep(500);
+
+      expect(spy.calls.count()).toBe(2);
     });
   });
 
@@ -133,21 +130,25 @@ describe('Function helper', () => {
   //
   describe('pipe', () => {
     it('should returns new function with piped all passed functions', () => {
-      var spy1 = jasmine.createSpyObj('spy', ['test1', 'test2', 'test3', 'test4']);
+      const spyObject = {
+        test1: a => a + 1,
+        test2: a => a + 1,
+        test3: a => a + 1,
+        test4: a => a + 1,
+      };
+      const spyTest1 = jest.spyOn(spyObject, 'test1');
+      const spyTest2 = jest.spyOn(spyObject, 'test2');
+      const spyTest3 = jest.spyOn(spyObject, 'test3');
+      const spyTest4 = jest.spyOn(spyObject, 'test4');
 
-      spy1.test1.and.callFake((a) => a + 1);
-      spy1.test2.and.callFake((a) => a + 1);
-      spy1.test3.and.callFake((a) => a + 1);
-      spy1.test4.and.callFake((a) => a + 1);
+      const piped = pipe(spyTest1, spyTest2, spyTest3, spyTest4);
 
-      var piped = pipe(spy1.test1, spy1.test2, spy1.test3, spy1.test4);
+      const result = piped(1, 2, 'foo');
 
-      var result = piped(1, 2, 'foo');
-
-      expect(spy1.test1).toHaveBeenCalledWith(1, 2, 'foo');
-      expect(spy1.test2).toHaveBeenCalledWith(2);
-      expect(spy1.test3).toHaveBeenCalledWith(3);
-      expect(spy1.test4).toHaveBeenCalledWith(4);
+      expect(spyTest1).toHaveBeenCalledWith(1, 2, 'foo');
+      expect(spyTest2).toHaveBeenCalledWith(2);
+      expect(spyTest3).toHaveBeenCalledWith(3);
+      expect(spyTest4).toHaveBeenCalledWith(4);
       expect(result).toBe(5);
     });
   });
@@ -157,19 +158,19 @@ describe('Function helper', () => {
   //
   describe('partial', () => {
     it('should returns new function with cached arguments', () => {
-      var spy1 = jasmine.createSpyObj('spy', ['test1', 'test2', 'test3', 'test4']);
-
-      spy1.test1.and.callFake((a, b, c) => (a + b) + c);
-
-      var partialized = partial(spy1.test1, 1, 2);
+      const spyObject = {
+        test1: (a, b, c) => (a + b) + c,
+      };
+      const spyTest1 = jest.spyOn(spyObject, 'test1');
+      let partialized = partial(spyTest1, 1, 2);
 
       expect(partialized('foo')).toBe('3foo');
 
-      partialized = partial(spy1.test1);
+      partialized = partial(spyTest1);
 
       expect(partialized(1, 2, 'foo')).toBe('3foo');
 
-      partialized = partial(spy1.test1, 1, 2, 3);
+      partialized = partial(spyTest1, 1, 2, 3);
 
       expect(partialized('foo')).toBe(6);
     });
@@ -180,9 +181,9 @@ describe('Function helper', () => {
   //
   describe('curry', () => {
     it('should returns new function with cached arguments (collecting arguments from the left to the right)', () => {
-      var fn = (a, b, c) => (a + b) + c;
+      const fn = (a, b, c) => (a + b) + c;
 
-      var curried = curry(fn);
+      const curried = curry(fn);
 
       expect(curried(1, 2, 'foo')).toBe('3foo');
       expect(curried(1)(2)('foo')).toBe('3foo');
@@ -195,9 +196,9 @@ describe('Function helper', () => {
   //
   describe('curryRight', () => {
     it('should returns new function with cached arguments (collecting arguments from the right to the left)', () => {
-      var fn = (a, b, c) => (a + b) + c;
+      const fn = (a, b, c) => (a + b) + c;
 
-      var curried = curryRight(fn);
+      const curried = curryRight(fn);
 
       expect(curried('foo', 2, 1)).toBe('3foo');
       expect(curried(1, 2, 'foo')).toBe('foo21');
@@ -211,9 +212,9 @@ describe('Function helper', () => {
   //
   describe('isFunction', () => {
     it('should correctly detect function', () => {
-      var toCheck = [
+      const toCheck = [
         function() {},
-        {id() {}},
+        { id() {} },
         1,
         'text',
         /^\d+$/,

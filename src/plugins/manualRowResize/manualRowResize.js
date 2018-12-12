@@ -1,25 +1,25 @@
 import BasePlugin from './../_base';
-import {addClass, hasClass, removeClass, outerWidth} from './../../helpers/dom/element';
+import { addClass, hasClass, removeClass, outerWidth } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
-import {pageX, pageY} from './../../helpers/dom/event';
-import {arrayEach} from './../../helpers/array';
-import {rangeEach} from './../../helpers/number';
-import {registerPlugin} from './../../plugins';
+import { pageY } from './../../helpers/dom/event';
+import { arrayEach } from './../../helpers/array';
+import { rangeEach } from './../../helpers/number';
+import { registerPlugin } from './../../plugins';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
 /**
  * @description
- * ManualRowResize Plugin.
+ * This plugin allows to change rows height. To make rows height persistent the {@link Options#persistentState}
+ * plugin should be enabled.
  *
- * Has 2 UI components:
+ * The plugin creates additional components to make resizing possibly using user interface:
  * - handle - the draggable element that sets the desired height of the row.
  * - guide - the helper guide that shows the desired height as a horizontal guide.
  *
  * @plugin ManualRowResize
  */
 class ManualRowResize extends BasePlugin {
-
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -44,7 +44,8 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ManualRowResize#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -53,7 +54,7 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -62,10 +63,10 @@ class ManualRowResize extends BasePlugin {
 
     this.manualRowHeights = [];
 
-    let initialRowHeights = this.hot.getSettings().manualRowResize;
-    let loadedManualRowHeights = this.loadManualRowHeights();
+    const initialRowHeights = this.hot.getSettings().manualRowResize;
+    const loadedManualRowHeights = this.loadManualRowHeights();
 
-    if (typeof loadedManualRowHeights != 'undefined') {
+    if (typeof loadedManualRowHeights !== 'undefined') {
       this.manualRowHeights = loadedManualRowHeights;
     } else if (Array.isArray(initialRowHeights)) {
       this.manualRowHeights = initialRowHeights;
@@ -84,10 +85,10 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    let initialRowHeights = this.hot.getSettings().manualRowResize;
+    const initialRowHeights = this.hot.getSettings().manualRowResize;
 
     if (Array.isArray(initialRowHeights)) {
       this.manualRowHeights = initialRowHeights;
@@ -98,26 +99,30 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     super.disablePlugin();
   }
 
   /**
-   * Save the current sizes using the persistentState plugin.
+   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * @fires Hooks#persistentStateSave
+   * @fires Hooks#manualRowHeights
    */
   saveManualRowHeights() {
     this.hot.runHooks('persistentStateSave', 'manualRowHeights', this.manualRowHeights);
   }
 
   /**
-   * Load the previously saved sizes using the persistentState plugin.
+   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
    *
    * @returns {Array}
+   * @fires Hooks#persistentStateLoad
+   * @fires Hooks#manualRowHeights
    */
   loadManualRowHeights() {
-    let storedState = {};
+    const storedState = {};
 
     this.hot.runHooks('persistentStateLoad', 'manualRowHeights', storedState);
 
@@ -125,23 +130,24 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Set the resize handle position.
+   * Sets the resize handle position.
    *
+   * @private
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
     this.currentTH = TH;
-    let row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns CellCoords
-    let headerWidth = outerWidth(this.currentTH);
+    const row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns CellCoords
+    const headerWidth = outerWidth(this.currentTH);
 
     if (row >= 0) { // if not col header
-      let box = this.currentTH.getBoundingClientRect();
+      const box = this.currentTH.getBoundingClientRect();
 
       this.currentRow = row;
       this.selectedRows = [];
 
-      if (this.hot.selection.isSelected() && this.hot.selection.selectedHeader.rows) {
-        let {from, to} = this.hot.getSelectedRange();
+      if (this.hot.selection.isSelected() && this.hot.selection.isSelectedByRowHeader()) {
+        const { from, to } = this.hot.getSelectedRangeLast();
         let start = from.row;
         let end = to.row;
 
@@ -151,7 +157,7 @@ class ManualRowResize extends BasePlugin {
         }
 
         if (this.currentRow >= start && this.currentRow <= end) {
-          rangeEach(start, end, (i) => this.selectedRows.push(i));
+          rangeEach(start, end, i => this.selectedRows.push(i));
 
         } else {
           this.selectedRows.push(this.currentRow);
@@ -171,18 +177,22 @@ class ManualRowResize extends BasePlugin {
 
   /**
    * Refresh the resize handle position.
+   *
+   * @private
    */
   refreshHandlePosition() {
     this.handle.style.top = `${this.startOffset + this.currentHeight}px`;
   }
 
   /**
-   * Set the resize guide position.
+   * Sets the resize guide position.
+   *
+   * @private
    */
   setupGuidePosition() {
-    let handleWidth = parseInt(outerWidth(this.handle), 10);
-    let handleRightPosition = parseInt(this.handle.style.left, 10) + handleWidth;
-    let maximumVisibleElementWidth = parseInt(this.hot.view.maximumVisibleElementWidth(0), 10);
+    const handleWidth = parseInt(outerWidth(this.handle), 10);
+    const handleRightPosition = parseInt(this.handle.style.left, 10) + handleWidth;
+    const maximumVisibleElementWidth = parseInt(this.hot.view.maximumVisibleElementWidth(0), 10);
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
 
@@ -194,13 +204,17 @@ class ManualRowResize extends BasePlugin {
 
   /**
    * Refresh the resize guide position.
+   *
+   * @private
    */
   refreshGuidePosition() {
     this.guide.style.top = this.handle.style.top;
   }
 
   /**
-   * Hide both the resize handle and resize guide.
+   * Hides both the resize handle and resize guide.
+   *
+   * @private
    */
   hideHandleAndGuide() {
     removeClass(this.handle, 'active');
@@ -208,14 +222,15 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Check if provided element is considered as a row header.
+   * Checks if provided element is considered as a row header.
    *
+   * @private
    * @param {HTMLElement} element HTML element.
    * @returns {Boolean}
    */
   checkIfRowHeader(element) {
-    if (element != this.hot.rootElement) {
-      let parent = element.parentNode;
+    if (element !== this.hot.rootElement) {
+      const parent = element.parentNode;
 
       if (parent.tagName === 'TBODY') {
         return true;
@@ -228,14 +243,15 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Get the TH element from the provided element.
+   * Gets the TH element from the provided element.
    *
+   * @private
    * @param {HTMLElement} element HTML element.
    * @returns {HTMLElement}
    */
   getTHFromTargetElement(element) {
-    if (element.tagName != 'TABLE') {
-      if (element.tagName == 'TH') {
+    if (element.tagName !== 'TABLE') {
+      if (element.tagName === 'TH') {
         return element;
       }
       return this.getTHFromTargetElement(element.parentNode);
@@ -253,7 +269,7 @@ class ManualRowResize extends BasePlugin {
    */
   onMouseOver(event) {
     if (this.checkIfRowHeader(event.target)) {
-      let th = this.getTHFromTargetElement(event.target);
+      const th = this.getTHFromTargetElement(event.target);
 
       if (th) {
         if (!this.pressed) {
@@ -267,6 +283,8 @@ class ManualRowResize extends BasePlugin {
    * Auto-size row after doubleclick - callback.
    *
    * @private
+   * @fires Hooks#beforeRowResize
+   * @fires Hooks#afterRowResize
    */
   afterMouseDownTimeout() {
     const render = () => {
@@ -275,7 +293,7 @@ class ManualRowResize extends BasePlugin {
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
     const resize = (selectedRow, forceRender) => {
-      let hookNewSize = this.hot.runHooks('beforeRowResize', selectedRow, this.newSize, true);
+      const hookNewSize = this.hot.runHooks('beforeRowResize', selectedRow, this.newSize, true);
 
       if (hookNewSize !== void 0) {
         this.newSize = hookNewSize;
@@ -291,7 +309,7 @@ class ManualRowResize extends BasePlugin {
     };
 
     if (this.dblclick >= 2) {
-      let selectedRowsLength = this.selectedRows.length;
+      const selectedRowsLength = this.selectedRows.length;
 
       if (selectedRowsLength > 1) {
         arrayEach(this.selectedRows, (selectedRow) => {
@@ -319,13 +337,13 @@ class ManualRowResize extends BasePlugin {
       this.setupGuidePosition();
       this.pressed = this.hot;
 
-      if (this.autoresizeTimeout == null) {
+      if (this.autoresizeTimeout === null) {
         this.autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);
 
         this.hot._registerTimeout(this.autoresizeTimeout);
       }
-      this.dblclick++;
 
+      this.dblclick += 1;
       this.startY = pageY(event);
       this.newSize = this.startHeight;
     }
@@ -354,9 +372,11 @@ class ManualRowResize extends BasePlugin {
    * 'mouseup' event callback - apply the row resizing.
    *
    * @private
-   * @param {MouseEvent} event
+   *
+   * @fires Hooks#beforeRowResize
+   * @fires Hooks#afterRowResize
    */
-  onMouseUp(event) {
+  onMouseUp() {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
@@ -371,14 +391,14 @@ class ManualRowResize extends BasePlugin {
 
       this.saveManualRowHeights();
 
-      this.hot.runHooks('afterRowResize', selectedRow, this.newSize);
+      this.hot.runHooks('afterRowResize', selectedRow, this.newSize, false);
     };
     if (this.pressed) {
       this.hideHandleAndGuide();
       this.pressed = false;
 
-      if (this.newSize != this.startHeight) {
-        let selectedRowsLength = this.selectedRows.length;
+      if (this.newSize !== this.startHeight) {
+        const selectedRowsLength = this.selectedRows.length;
 
         if (selectedRowsLength > 1) {
           arrayEach(this.selectedRows, (selectedRow) => {
@@ -397,47 +417,50 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Bind the mouse events.
+   * Binds the mouse events.
    *
    * @private
    */
   bindEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (e) => this.onMouseOver(e));
-    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (e) => this.onMouseDown(e));
-    this.eventManager.addEventListener(window, 'mousemove', (e) => this.onMouseMove(e));
-    this.eventManager.addEventListener(window, 'mouseup', (e) => this.onMouseUp(e));
+    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', e => this.onMouseOver(e));
+    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', e => this.onMouseDown(e));
+    this.eventManager.addEventListener(window, 'mousemove', e => this.onMouseMove(e));
+    this.eventManager.addEventListener(window, 'mouseup', () => this.onMouseUp());
   }
 
   /**
-   * Cache the current row height.
+   * Sets the new height for specified row index.
    *
    * @param {Number} row Visual row index.
    * @param {Number} height Row height.
-   * @returns {Number}
+   * @returns {Number} Returns new height.
+   *
+   * @fires Hooks#modifyRow
    */
   setManualSize(row, height) {
-    row = this.hot.runHooks('modifyRow', row);
-    this.manualRowHeights[row] = height;
+    const physicalRow = this.hot.runHooks('modifyRow', row);
+
+    this.manualRowHeights[physicalRow] = height;
 
     return height;
   }
 
   /**
-   * Modify the provided row height, based on the plugin settings.
+   * Modifies the provided row height, based on the plugin settings.
    *
    * @private
    * @param {Number} height Row height.
    * @param {Number} row Visual row index.
    * @returns {Number}
+   *
+   * @fires Hooks#modifyRow
    */
   onModifyRowHeight(height, row) {
     if (this.enabled) {
-      let autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
-      let autoRowHeightResult = autoRowSizePlugin ? autoRowSizePlugin.heights[row] : null;
-
-      row = this.hot.runHooks('modifyRow', row);
-
-      let manualRowHeight = this.manualRowHeights[row];
+      const autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
+      const autoRowHeightResult = autoRowSizePlugin ? autoRowSizePlugin.heights[row] : null;
+      const physicalRow = this.hot.runHooks('modifyRow', row);
+      const manualRowHeight = this.manualRowHeights[physicalRow];
 
       if (manualRowHeight !== void 0 && (manualRowHeight === autoRowHeightResult || manualRowHeight > (height || 0))) {
         return manualRowHeight;

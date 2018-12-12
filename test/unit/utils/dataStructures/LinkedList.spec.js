@@ -1,4 +1,4 @@
-import LinkedList, {NodeStructure} from 'handsontable/utils/dataStructures/linkedList';
+import LinkedList, { NodeStructure } from 'handsontable/utils/dataStructures/linkedList';
 /**
  * Refactored implementation of LinkedList tests by Github user Jakehp
  * (part of javascript-algorithms project - all project contributors at repository website)
@@ -12,7 +12,7 @@ describe('Node', () => {
   });
 
   it('should construct properly', () => {
-    var node = new NodeStructure('data');
+    const node = new NodeStructure('data');
 
     expect(node.data).toBe('data');
     expect(node.next).toBe(null);
@@ -26,7 +26,7 @@ describe('Linked List', () => {
   });
 
   it('should push properly', () => {
-    var linkedList = new LinkedList();
+    const linkedList = new LinkedList();
 
     linkedList.push(1);
     linkedList.push(2);
@@ -43,7 +43,7 @@ describe('Linked List', () => {
   });
 
   it('should pop properly', () => {
-    var linkedList = new LinkedList();
+    const linkedList = new LinkedList();
 
     linkedList.push(1);
     linkedList.push(2);
@@ -59,7 +59,7 @@ describe('Linked List', () => {
   });
 
   it('should shift properly', () => {
-    var linkedList = new LinkedList();
+    const linkedList = new LinkedList();
 
     linkedList.push(1);
     linkedList.push(2);
@@ -75,7 +75,7 @@ describe('Linked List', () => {
   });
 
   it('should reverse properly', () => {
-    var linkedList = new LinkedList();
+    const linkedList = new LinkedList();
 
     linkedList.push(1);
     linkedList.push(2);
@@ -92,7 +92,7 @@ describe('Linked List', () => {
   });
 
   it('should recursive reverse properly', () => {
-    var linkedList = new LinkedList();
+    const linkedList = new LinkedList();
 
     linkedList.push(1);
     linkedList.push(2);
@@ -109,7 +109,7 @@ describe('Linked List', () => {
   });
 
   it('should unshift properly', () => {
-    var linkedList = new LinkedList();
+    const linkedList = new LinkedList();
 
     linkedList.push(1);
     linkedList.push(2);
@@ -127,9 +127,9 @@ describe('Linked List', () => {
   });
 
   it('should properly check for existing cycle', () => {
-    var linkedList = new LinkedList();
-    var last = new NodeStructure(2);
-    var first = new NodeStructure(1);
+    const linkedList = new LinkedList();
+    const last = new NodeStructure(2);
+    const first = new NodeStructure(1);
     last.next = first;
     last.prev = first;
     first.next = last;
@@ -141,7 +141,7 @@ describe('Linked List', () => {
   });
 
   it('should properly check for non existing cycle', () => {
-    var linkedList = new LinkedList();
+    const linkedList = new LinkedList();
 
     linkedList.push(1);
     linkedList.push(2);
@@ -153,7 +153,7 @@ describe('Linked List', () => {
   });
 
   it('should inorder properly', () => {
-    var linkedList = new LinkedList();
+    const linkedList = new LinkedList();
 
     linkedList.push(1);
     linkedList.push(2);
@@ -161,10 +161,11 @@ describe('Linked List', () => {
     linkedList.push(4);
     linkedList.push(5);
 
-    var pushedValue = 1;
+    let pushedValue = 1;
 
     function callback(node) {
-      expect(node.data).toBe(pushedValue++);
+      expect(node.data).toBe(pushedValue);
+      pushedValue += 1;
     }
 
     linkedList.inorder(callback);

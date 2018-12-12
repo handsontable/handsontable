@@ -1,14 +1,30 @@
 import localHooks from 'handsontable/mixins/localHooks';
 
 describe('localHooks mixin', () => {
+  afterEach(() => {
+    localHooks._localHooks = Object.create(null);
+  });
+
+  describe('.addLocalHook', () => {
+    it('should return itself to make method chainable', () => {
+      expect(localHooks.addLocalHook('myHook', () => {})).toBe(localHooks);
+    });
+  });
+
+  describe('.clearLocalHooks', () => {
+    it('should return itself to make method chainable', () => {
+      expect(localHooks.clearLocalHooks()).toBe(localHooks);
+    });
+  });
+
   it('should have empty collection on init', () => {
     expect(localHooks._localHooks).toEqual(jasmine.any(Object));
   });
 
   it('should add local hook to the hooks collection', () => {
-    var callback = function() {};
-    var callback1 = function() {};
-    var callback2 = function() {};
+    const callback = () => {};
+    const callback1 = () => {};
+    const callback2 = () => {};
 
     localHooks.addLocalHook('myHook', callback);
     localHooks.addLocalHook('myHook', callback);
@@ -24,10 +40,10 @@ describe('localHooks mixin', () => {
   });
 
   it('should run local hooks registered in collection', () => {
-    var callback = jasmine.createSpy();
-    var callback1 = jasmine.createSpy();
-    var callback2 = jasmine.createSpy();
-    var myArray = [1, 2];
+    const callback = jasmine.createSpy();
+    const callback1 = jasmine.createSpy();
+    const callback2 = jasmine.createSpy();
+    const myArray = [1, 2];
 
     localHooks._localHooks.myHook = [callback, callback1];
     localHooks._localHooks.myHook1 = [callback, callback2];
@@ -43,15 +59,15 @@ describe('localHooks mixin', () => {
   });
 
   it('should clear all registered hooks from collection', () => {
-    var callback = jasmine.createSpy();
-    var callback1 = jasmine.createSpy();
-    var callback2 = jasmine.createSpy();
+    const callback = () => {};
+    const callback1 = () => {};
+    const callback2 = () => {};
 
     localHooks._localHooks.myHook = [callback, callback1];
     localHooks._localHooks.myHook1 = [callback, callback2];
 
     localHooks.clearLocalHooks();
 
-    expect(localHooks._localHooks).toEqual(jasmine.any(Object));
+    expect(Object.keys(localHooks._localHooks).length).toEqual(0);
   });
 });

@@ -1,7 +1,7 @@
-require('babel-polyfill');
+require('@babel/polyfill');
 require('jasmine-co').install();
 
-let regExp = null;
+let testPathRegExp = null;
 
 if (typeof __ENV_ARGS__ === 'object' && __ENV_ARGS__.testPathPattern) {
   // Remove string between % signs. On Windows' machines an empty env variable was visible as '%{variable_name}%' so it must be stripped.
@@ -9,17 +9,43 @@ if (typeof __ENV_ARGS__ === 'object' && __ENV_ARGS__.testPathPattern) {
   const pattern = __ENV_ARGS__.testPathPattern.replace(/^%(.*)%$/, '');
 
   if (pattern) {
-    regExp = new RegExp(pattern, 'i');
+    testPathRegExp = new RegExp(pattern, 'i');
   }
+}
+
+const ignoredPaths = ['./mobile'];
+
+if (process.env.HOT_PACKAGE_TYPE === 'ce') {
+  ignoredPaths.push(
+    './bindRowsWithHeaders/',
+    './collapsibleColumns/',
+    './columnSummary/',
+    './dropdownMenu/',
+    './exportFile/',
+    './filters/',
+    './formulas/',
+    './ganttChart/',
+    './headerTooltips/',
+    './hiddenColumns/',
+    './hiddenRows/',
+    './multiColumnSorting/',
+    './nestedHeaders/',
+    './nestedRows/',
+    './trimRows/'
+  );
 }
 
 [
   require.context('.', true, /\.spec\.js$/),
   require.context('./../../src/plugins', true, /\.e2e\.js$/),
 ].forEach((req) => {
-  req.keys().forEach((key) => {
-    if (regExp === null || (regExp instanceof RegExp && regExp.test(key))) {
-      req(key);
+  req.keys().forEach((filePath) => {
+    const hasIgnoredPath = ignoredPaths.some(path => filePath.includes(path));
+
+    if (!hasIgnoredPath) {
+      if (testPathRegExp === null || (testPathRegExp instanceof RegExp && testPathRegExp.test(filePath))) {
+        req(filePath);
+      }
     }
   });
 });

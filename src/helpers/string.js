@@ -1,5 +1,4 @@
-import {stringify} from './mixed';
-import {rangeEach} from './number';
+import { stringify } from './mixed';
 
 /**
  * Convert string to upper case first letter.
@@ -18,11 +17,12 @@ export function toUpperCaseFirst(string) {
  * @returns {Boolean}
  */
 export function equalsIgnoreCase(...strings) {
-  let unique = [];
+  const unique = [];
   let length = strings.length;
 
-  while (length--) {
-    let string = stringify(strings[length]).toLowerCase();
+  while (length) {
+    length -= 1;
+    const string = stringify(strings[length]).toLowerCase();
 
     if (unique.indexOf(string) === -1) {
       unique.push(string);
@@ -84,7 +84,5 @@ const STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|/][^>]*>/gi;
  * @return {String}
  */
 export function stripTags(string) {
-  string += '';
-
-  return string.replace(STRIP_TAGS_REGEX, '');
+  return `${string}`.replace(STRIP_TAGS_REGEX, '');
 }

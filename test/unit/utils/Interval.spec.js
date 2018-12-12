@@ -3,26 +3,26 @@ import Interval from 'handsontable/utils/interval';
 describe('Interval', () => {
 
   it('should create instance of Interval object', () => {
-    var i = Interval.create(() => {}, 10);
+    const i = Interval.create(() => {}, 10);
 
     expect(i instanceof Interval).toBe(true);
   });
 
   it('should create object with delay passed as number', () => {
-    var i = Interval.create(() => {}, 15);
+    const i = Interval.create(() => {}, 15);
 
     expect(i.delay).toBe(15);
   });
 
   it('should create object with delay passed as a number of FPS', () => {
-    var i = Interval.create(() => {}, '60fps');
+    const i = Interval.create(() => {}, '60fps');
 
     expect(i.delay).toBe(1000 / 60);
   });
 
   it('should create interval object which is stopped by default', (done) => {
-    var spy = jasmine.createSpy();
-    var i = Interval.create(spy);
+    const spy = jasmine.createSpy();
+    Interval.create(spy);
 
     setTimeout(() => {
       expect(spy).not.toHaveBeenCalled();
@@ -31,8 +31,8 @@ describe('Interval', () => {
   });
 
   it('should repeatedly invoke callback function after calling `start` method', (done) => {
-    var spy = jasmine.createSpy();
-    var i = Interval.create(spy, 100);
+    const spy = jasmine.createSpy();
+    const i = Interval.create(spy, 100);
 
     i.start();
 
@@ -56,8 +56,8 @@ describe('Interval', () => {
   });
 
   it('should stop repeatedly invoking callback function after calling `stop` method', (done) => {
-    var spy = jasmine.createSpy();
-    var i = Interval.create(spy, 100);
+    const spy = jasmine.createSpy();
+    const i = Interval.create(spy, 100);
 
     i.start();
 

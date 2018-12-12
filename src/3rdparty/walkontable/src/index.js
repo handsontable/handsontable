@@ -1,4 +1,4 @@
-import 'babel-polyfill';
+import '@babel/polyfill';
 
 import ViewportColumnsCalculator from './calculator/viewportColumns';
 import ViewportRowsCalculator from './calculator/viewportRows';
@@ -13,6 +13,8 @@ import DebugOverlay from './overlay/debug';
 import LeftOverlay from './overlay/left';
 import TopOverlay from './overlay/top';
 import TopLeftCornerOverlay from './overlay/topLeftCorner';
+import BottomOverlay from './overlay/bottom';
+import BottomLeftCornerOverlay from './overlay/bottomLeftCorner';
 
 import Border from './border';
 import Walkontable from './core';
@@ -39,6 +41,8 @@ export {
   LeftOverlay,
   TopOverlay,
   TopLeftCornerOverlay,
+  BottomOverlay,
+  BottomLeftCornerOverlay,
 
   Border,
   Walkontable as default,

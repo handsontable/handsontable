@@ -1,13 +1,13 @@
 import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
-import {arrayEach} from './../../helpers/array';
+import { arrayEach } from './../../helpers/array';
 import CommandExecutor from './commandExecutor';
 import EventManager from './../../eventManager';
 import ItemsFactory from './itemsFactory';
 import Menu from './menu';
-import {registerPlugin} from './../../plugins';
-import {stopPropagation, pageX, pageY} from './../../helpers/dom/event';
-import {getWindowScrollLeft, getWindowScrollTop, hasClass} from './../../helpers/dom/element';
+import { registerPlugin } from './../../plugins';
+import { stopPropagation, pageX, pageY } from './../../helpers/dom/event';
+import { getWindowScrollLeft, getWindowScrollTop, hasClass } from './../../helpers/dom/element';
 import {
   ROW_ABOVE,
   ROW_BELOW,
@@ -25,42 +25,52 @@ import {
 import './contextMenu.css';
 
 Hooks.getSingleton().register('afterContextMenuDefaultOptions');
+Hooks.getSingleton().register('beforeContextMenuShow');
 Hooks.getSingleton().register('afterContextMenuShow');
 Hooks.getSingleton().register('afterContextMenuHide');
 Hooks.getSingleton().register('afterContextMenuExecute');
 
 /**
  * @description
- * This plugin creates the Handsontable Context Menu. It allows to create a new row or
- * column at any place in the grid among [other features](http://docs.handsontable.com/demo-context-menu.html).
+ * This plugin creates the Handsontable Context Menu. It allows to create a new row or column at any place in the
+ * grid among [other features](http://docs.handsontable.com/demo-context-menu.html).
  * Possible values:
  * * `true` (to enable default options),
  * * `false` (to disable completely)
  *
  * or array of any available strings:
- * * `["row_above", "row_below", "col_left", "col_right",
- * "remove_row", "remove_col", "---------", "undo", "redo"]`.
+ * * `'row_above'`
+ * * `'row_below'`
+ * * `'col_left'`
+ * * `'col_right'`
+ * * `'remove_row'`
+ * * `'remove_col'`
+ * * `'undo'`
+ * * `'redo'`
+ * * `'make_read_only'`
+ * * `'alignment'`
+ * * `'---------'` (menu item separator)
+ * * `'borders'` (with {@link Options#customBorders} turned on)
+ * * `'commentsAddEdit'` (with {@link Options#comments} turned on)
+ * * `'commentsRemove'` (with {@link Options#comments} turned on)
  *
  * See [the context menu demo](http://docs.handsontable.com/demo-context-menu.html) for examples.
  *
  * @example
  * ```js
- * ...
  * // as a boolean
  * contextMenu: true
- * ...
  * // as a array
  * contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo']
- * ...
  * ```
  *
  * @plugin ContextMenu
  */
 class ContextMenu extends BasePlugin {
   /**
-   * Default menu items order when `contextMenu` is enabled by `true`.
+   * Context menu default items order when `contextMenu` options is set as `true`.
    *
-   * @returns {Array}
+   * @returns {String[]}
    */
   static get DEFAULT_ITEMS() {
     return [
@@ -83,31 +93,36 @@ class ContextMenu extends BasePlugin {
     /**
      * Instance of {@link EventManager}.
      *
+     * @private
      * @type {EventManager}
      */
     this.eventManager = new EventManager(this);
     /**
      * Instance of {@link CommandExecutor}.
      *
+     * @private
      * @type {CommandExecutor}
      */
     this.commandExecutor = new CommandExecutor(this.hot);
     /**
      * Instance of {@link ItemsFactory}.
      *
+     * @private
      * @type {ItemsFactory}
      */
     this.itemsFactory = null;
     /**
      * Instance of {@link Menu}.
      *
+     * @private
      * @type {Menu}
      */
     this.menu = null;
   }
 
   /**
-   * Check if the plugin is enabled in the Handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ContextMenu#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -116,7 +131,7 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -125,10 +140,9 @@ class ContextMenu extends BasePlugin {
     this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
 
     const settings = this.hot.getSettings().contextMenu;
-    let predefinedItems = {
+    const predefinedItems = {
       items: this.itemsFactory.getItems(settings)
     };
-    this.registerEvents();
 
     if (typeof settings.callback === 'function') {
       this.commandExecutor.setCommonCallback(settings.callback);
@@ -143,7 +157,7 @@ class ContextMenu extends BasePlugin {
       this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
 
       this.itemsFactory.setPredefinedItems(predefinedItems.items);
-      let menuItems = this.itemsFactory.getItems(settings);
+      const menuItems = this.itemsFactory.getItems(settings);
 
       this.menu = new Menu(this.hot, {
         className: 'htContextMenu',
@@ -153,12 +167,15 @@ class ContextMenu extends BasePlugin {
 
       this.menu.setMenuItems(menuItems);
 
+      this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
       this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
-      this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.apply(this, params));
+      this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
+
+      this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
 
       // Register all commands. Predefined and added by user or by plugins
-      arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
+      arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
     };
 
     this.callOnPluginsReady(() => {
@@ -171,7 +188,7 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -181,7 +198,7 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     this.close();
@@ -194,18 +211,13 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
-   * Register dom listeners.
+   * Opens menu and re-position it based on the passed coordinates.
    *
-   * @private
-   */
-  registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'contextmenu', (event) => this.onContextMenu(event));
-  }
-
-  /**
-   * Open menu and re-position it based on dom event object.
-   *
-   * @param {Event} event The event object.
+   * @param {Object|Event} position An object with `pageX` and `pageY` properties which contains values relative to
+   *                                the top left of the fully rendered content area in the browser or with `clientX`
+   *                                and `clientY`  properties which contains values relative to the upper left edge
+   *                                of the content area (the viewport) of the browser window. This object is structurally
+   *                                compatible with native mouse event so it can be used either.
    */
   open(event) {
     if (!this.menu) {
@@ -223,7 +235,7 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
-   * Close menu.
+   * Closes the menu.
    */
   close() {
     if (!this.menu) {
@@ -255,29 +267,29 @@ class ContextMenu extends BasePlugin {
    *
    * Or you can execute command registered in settings where `key` is your command name.
    *
-   * @param {String} commandName
-   * @param {*} params
+   * @param {String} commandName The command name to be executed.
+   * @param {...*} params
    */
-  executeCommand(...params) {
-    this.commandExecutor.execute.apply(this.commandExecutor, params);
+  executeCommand(commandName, ...params) {
+    this.commandExecutor.execute(commandName, ...params);
   }
 
   /**
-   * On context menu listener.
+   * On contextmenu listener.
    *
    * @private
    * @param {Event} event
    */
-  onContextMenu(event) {
-    let settings = this.hot.getSettings();
-    let showRowHeaders = settings.rowHeaders;
-    let showColHeaders = settings.colHeaders;
+  onAfterOnCellContextMenu(event) {
+    const settings = this.hot.getSettings();
+    const showRowHeaders = settings.rowHeaders;
+    const showColHeaders = settings.colHeaders;
 
     function isValidElement(element) {
       return element.nodeName === 'TD' || element.parentNode.nodeName === 'TD';
     }
     // if event is from hot-table we must get web component element not element inside him
-    let element = event.realTarget;
+    const element = event.realTarget;
     this.close();
 
     if (hasClass(element, 'handsontableInput')) {
@@ -294,6 +306,15 @@ class ContextMenu extends BasePlugin {
     }
 
     this.open(event);
+  }
+
+  /**
+   * On menu before open listener.
+   *
+   * @private
+   */
+  onMenuBeforeOpen() {
+    this.hot.runHooks('beforeContextMenuShow', this);
   }
 
   /**
@@ -316,7 +337,7 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
-   * Destroy instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.close();

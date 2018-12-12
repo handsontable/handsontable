@@ -1,9 +1,12 @@
 /**
  * Adds appropriate CSS class to table cell, based on cellProperties
  */
-import {addClass, removeClass} from './../helpers/dom/element';
+import { addClass, removeClass } from './../helpers/dom/element';
 
 function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
+  const classesToAdd = [];
+  const classesToRemove = [];
+
   if (cellProperties.className) {
     if (TD.className) {
       TD.className = `${TD.className} ${cellProperties.className}`;
@@ -13,22 +16,26 @@ function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
   }
 
   if (cellProperties.readOnly) {
-    addClass(TD, cellProperties.readOnlyCellClassName);
+    classesToAdd.push(cellProperties.readOnlyCellClassName);
   }
 
   if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
-    addClass(TD, cellProperties.invalidCellClassName);
+    classesToAdd.push(cellProperties.invalidCellClassName);
+
   } else {
-    removeClass(TD, cellProperties.invalidCellClassName);
+    classesToRemove.push(cellProperties.invalidCellClassName);
   }
 
   if (cellProperties.wordWrap === false && cellProperties.noWordWrapClassName) {
-    addClass(TD, cellProperties.noWordWrapClassName);
+    classesToAdd.push(cellProperties.noWordWrapClassName);
   }
 
   if (!value && cellProperties.placeholder) {
-    addClass(TD, cellProperties.placeholderCellClassName);
+    classesToAdd.push(cellProperties.placeholderCellClassName);
   }
+
+  removeClass(TD, classesToRemove);
+  addClass(TD, classesToAdd);
 }
 
 export default cellDecorator;
