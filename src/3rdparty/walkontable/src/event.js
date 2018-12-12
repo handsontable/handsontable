@@ -8,23 +8,45 @@ import { partial } from './../../../helpers/function';
 import { isTouchSupported } from './../../../helpers/feature';
 import EventManager from './../../../eventManager';
 
+const privatePool = new WeakMap();
+
 /**
  * @class Event
  */
 class Event {
-
+  /**
+   * @param {*} instance Walkontable instance.
+   */
   constructor(instance) {
-    this.selectedCellBeforeTouchEnd = void 0;
-
-    this.dblClickTimeout = [null, null];
-    this.dblClickOrigin = [null, null];
-
+    /**
+     * Instance of {@link Walkontable}.
+     *
+     * @private
+     * @type {Walkontable}
+     */
     this.instance = instance;
+    /**
+     * Instance of {@link EventManager}.
+     *
+     * @private
+     * @type {EventManager}
+     */
     this.eventManager = new EventManager(instance);
+
+    privatePool.set(this, {
+      selectedCellBeforeTouchEnd: void 0,
+      dblClickTimeout: [null, null],
+      dblClickOrigin: [null, null],
+    });
 
     this.registerEvents();
   }
 
+  /**
+   * Adds listeners for mouse and touch events.
+   *
+   * @private
+   */
   registerEvents() {
     this.eventManager.addEventListener(this.instance.wtTable.holder, 'contextmenu', event => this.onContextMenu(event));
     this.eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', event => this.onMouseOver(event));
@@ -32,7 +54,9 @@ class Event {
 
     if (isTouchSupported()) {
       const onTouchStartProxy = (event) => {
-        this.selectedCellBeforeTouchEnd = this.instance.selections.getCell().cellRange;
+        const priv = privatePool.get(this);
+
+        priv.selectedCellBeforeTouchEnd = this.instance.selections.getCell().cellRange;
         this.instance.touchApplied = true;
 
         this.onTouchStart(event);
@@ -78,13 +102,21 @@ class Event {
     });
   }
 
+  /**
+   * Checks if an element is already selected.
+   *
+   * @private
+   * @param {Element} touchTarget
+   * @returns {Boolean}
+   */
   selectedCellWasTouched(touchTarget) {
+    const priv = privatePool.get(this);
     const cellUnderFinger = this.parentCell(touchTarget);
     const coordsOfCellUnderFinger = cellUnderFinger.coords;
 
-    if (this.selectedCellBeforeTouchEnd && coordsOfCellUnderFinger) {
-      const [rowTouched, rowSelected] = [coordsOfCellUnderFinger.row, this.selectedCellBeforeTouchEnd.from.row];
-      const [colTouched, colSelected] = [coordsOfCellUnderFinger.col, this.selectedCellBeforeTouchEnd.from.col];
+    if (priv.selectedCellBeforeTouchEnd && coordsOfCellUnderFinger) {
+      const [rowTouched, rowSelected] = [coordsOfCellUnderFinger.row, priv.selectedCellBeforeTouchEnd.from.row];
+      const [colTouched, colSelected] = [coordsOfCellUnderFinger.col, priv.selectedCellBeforeTouchEnd.from.col];
 
       return rowTouched === rowSelected && colTouched === colSelected;
     }
@@ -92,132 +124,13 @@ class Event {
     return false;
   }
 
-  onMouseDown(event) {
-    const activeElement = document.activeElement;
-    const getParentNode = partial(getParent, event.realTarget);
-    const realTarget = event.realTarget;
-
-    // ignore focusable element from mouse down processing (https://github.com/handsontable/handsontable/issues/3555)
-    if (realTarget === activeElement ||
-        getParentNode(0) === activeElement ||
-        getParentNode(1) === activeElement) {
-      return;
-    }
-
-    const cell = this.parentCell(realTarget);
-
-    if (hasClass(realTarget, 'corner')) {
-      this.instance.getSetting('onCellCornerMouseDown', event, realTarget);
-    } else if (cell.TD && this.instance.hasSetting('onCellMouseDown')) {
-      this.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, this.instance);
-    }
-
-    if (event.button !== 2 && cell.TD) { // if not right mouse button
-      this.dblClickOrigin[0] = cell.TD;
-
-      clearTimeout(this.dblClickTimeout[0]);
-
-      this.dblClickTimeout[0] = setTimeout(() => {
-        this.dblClickOrigin[0] = null;
-      }, 1000);
-    }
-  }
-
-  onContextMenu(event) {
-    if (this.instance.hasSetting('onCellContextMenu')) {
-      const cell = this.parentCell(event.realTarget);
-
-      if (cell.TD) {
-        this.instance.getSetting('onCellContextMenu', event, cell.coords, cell.TD, this.instance);
-      }
-    }
-  }
-
-  onMouseOver(event) {
-    if (!this.instance.hasSetting('onCellMouseOver')) {
-      return;
-    }
-
-    const table = this.instance.wtTable.TABLE;
-    const td = closestDown(event.realTarget, ['TD', 'TH'], table);
-    const mainWOT = this.instance.cloneSource || this.instance;
-
-    if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
-      mainWOT.lastMouseOver = td;
-
-      this.instance.getSetting('onCellMouseOver', event, this.instance.wtTable.getCoords(td), td, this.instance);
-    }
-  }
-
-  onMouseOut(event) {
-    if (!this.instance.hasSetting('onCellMouseOut')) {
-      return;
-    }
-
-    const table = this.instance.wtTable.TABLE;
-    const lastTD = closestDown(event.realTarget, ['TD', 'TH'], table);
-    const nextTD = closestDown(event.relatedTarget, ['TD', 'TH'], table);
-
-    if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
-      this.instance.getSetting('onCellMouseOut', event, this.instance.wtTable.getCoords(lastTD), lastTD, this.instance);
-    }
-  }
-
-  onMouseUp(event) {
-    if (event.button !== 2) { // if not right mouse button
-      const cell = this.parentCell(event.realTarget);
-
-      if (cell.TD && this.instance.hasSetting('onCellMouseUp')) {
-        this.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, this.instance);
-      }
-
-      if (cell.TD === this.dblClickOrigin[0] && cell.TD === this.dblClickOrigin[1]) {
-        if (hasClass(event.realTarget, 'corner')) {
-          this.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, this.instance);
-        } else {
-          this.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, this.instance);
-        }
-
-        this.dblClickOrigin[0] = null;
-        this.dblClickOrigin[1] = null;
-
-      } else if (cell.TD === this.dblClickOrigin[0]) {
-        this.dblClickOrigin[1] = cell.TD;
-
-        clearTimeout(this.dblClickTimeout[1]);
-
-        this.dblClickTimeout[1] = setTimeout(() => {
-          this.dblClickOrigin[1] = null;
-        }, 500);
-      }
-    }
-  }
-
-  onTouchStart(event) {
-    this.onMouseDown(event);
-  }
-
-  onTouchEnd(event) {
-    const excludeTags = ['A', 'BUTTON', 'INPUT'];
-    const target = event.target;
-
-    // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
-    // we check if it should be canceled. Click is blocked in a situation when the element is rendered outside
-    // selected cells. This prevents accidentally page reloads while selecting adjacent cells.
-    if (this.selectedCellWasTouched(target) === false && excludeTags.includes(target.tagName)) {
-      event.preventDefault();
-    }
-
-    this.onMouseUp(event);
-  }
-
-  destroy() {
-    clearTimeout(this.dblClickTimeout[0]);
-    clearTimeout(this.dblClickTimeout[1]);
-
-    this.eventManager.destroy();
-  }
-
+  /**
+   * Gets closest TD or TH element.
+   *
+   * @private
+   * @param {Element} elem
+   * @returns {Object} Contains coordinates and reference to TD or TH if it exists. Otherwise it's empty object.
+   */
   parentCell(elem) {
     const cell = {};
     const TABLE = this.instance.wtTable.TABLE;
@@ -239,6 +152,184 @@ class Event {
     }
 
     return cell;
+  }
+
+  /**
+   * onMouseDown callback.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onMouseDown(event) {
+    const priv = privatePool.get(this);
+    const activeElement = document.activeElement;
+    const getParentNode = partial(getParent, event.realTarget);
+    const realTarget = event.realTarget;
+
+    // ignore focusable element from mouse down processing (https://github.com/handsontable/handsontable/issues/3555)
+    if (realTarget === activeElement ||
+        getParentNode(0) === activeElement ||
+        getParentNode(1) === activeElement) {
+      return;
+    }
+
+    const cell = this.parentCell(realTarget);
+
+    if (hasClass(realTarget, 'corner')) {
+      this.instance.getSetting('onCellCornerMouseDown', event, realTarget);
+    } else if (cell.TD && this.instance.hasSetting('onCellMouseDown')) {
+      this.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, this.instance);
+    }
+
+    if (event.button !== 2 && cell.TD) { // if not right mouse button
+      priv.dblClickOrigin[0] = cell.TD;
+
+      clearTimeout(priv.dblClickTimeout[0]);
+
+      priv.dblClickTimeout[0] = setTimeout(() => {
+        priv.dblClickOrigin[0] = null;
+      }, 1000);
+    }
+  }
+
+  /**
+   * onContextMenu callback.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onContextMenu(event) {
+    if (this.instance.hasSetting('onCellContextMenu')) {
+      const cell = this.parentCell(event.realTarget);
+
+      if (cell.TD) {
+        this.instance.getSetting('onCellContextMenu', event, cell.coords, cell.TD, this.instance);
+      }
+    }
+  }
+
+  /**
+   * onMouseOver callback.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onMouseOver(event) {
+    if (!this.instance.hasSetting('onCellMouseOver')) {
+      return;
+    }
+
+    const table = this.instance.wtTable.TABLE;
+    const td = closestDown(event.realTarget, ['TD', 'TH'], table);
+    const mainWOT = this.instance.cloneSource || this.instance;
+
+    if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
+      mainWOT.lastMouseOver = td;
+
+      this.instance.getSetting('onCellMouseOver', event, this.instance.wtTable.getCoords(td), td, this.instance);
+    }
+  }
+
+  /**
+   * onMouseOut callback.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onMouseOut(event) {
+    if (!this.instance.hasSetting('onCellMouseOut')) {
+      return;
+    }
+
+    const table = this.instance.wtTable.TABLE;
+    const lastTD = closestDown(event.realTarget, ['TD', 'TH'], table);
+    const nextTD = closestDown(event.relatedTarget, ['TD', 'TH'], table);
+
+    if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
+      this.instance.getSetting('onCellMouseOut', event, this.instance.wtTable.getCoords(lastTD), lastTD, this.instance);
+    }
+  }
+
+  /**
+   * onMouseUp callback.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onMouseUp(event) {
+    if (event.button === 2) {
+      return;
+    }
+
+    // if not right mouse button
+    const priv = privatePool.get(this);
+    const cell = this.parentCell(event.realTarget);
+
+    if (cell.TD && this.instance.hasSetting('onCellMouseUp')) {
+      this.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, this.instance);
+    }
+
+    if (cell.TD === priv.dblClickOrigin[0] && cell.TD === priv.dblClickOrigin[1]) {
+      if (hasClass(event.realTarget, 'corner')) {
+        this.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, this.instance);
+      } else {
+        this.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, this.instance);
+      }
+
+      priv.dblClickOrigin[0] = null;
+      priv.dblClickOrigin[1] = null;
+
+    } else if (cell.TD === priv.dblClickOrigin[0]) {
+      priv.dblClickOrigin[1] = cell.TD;
+
+      clearTimeout(priv.dblClickTimeout[1]);
+
+      priv.dblClickTimeout[1] = setTimeout(() => {
+        priv.dblClickOrigin[1] = null;
+      }, 500);
+    }
+  }
+
+  /**
+   * onTouchStart callback. Simulates mousedown event.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onTouchStart(event) {
+    this.onMouseDown(event);
+  }
+
+  /**
+   * onTouchEnd callback. Simulates mouseup event.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onTouchEnd(event) {
+    const excludeTags = ['A', 'BUTTON', 'INPUT'];
+    const target = event.target;
+
+    // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
+    // we check if it should be canceled. Click is blocked in a situation when the element is rendered outside
+    // selected cells. This prevents accidentally page reloads while selecting adjacent cells.
+    if (this.selectedCellWasTouched(target) === false && excludeTags.includes(target.tagName)) {
+      event.preventDefault();
+    }
+
+    this.onMouseUp(event);
+  }
+
+  /**
+   * Clears double-click timeouts and destroys the internal eventManager instance.
+   */
+  destroy() {
+    const priv = privatePool.get(this);
+
+    clearTimeout(priv.dblClickTimeout[0]);
+    clearTimeout(priv.dblClickTimeout[1]);
+
+    this.eventManager.destroy();
   }
 }
 
