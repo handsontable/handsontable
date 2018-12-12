@@ -14,7 +14,6 @@ import {
 import { extendArray, to2dArray } from './helpers/array';
 import Interval from './utils/interval';
 import { rangeEach } from './helpers/number';
-import MultiMap from './multiMap';
 
 /**
  * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names
@@ -100,7 +99,7 @@ DataMap.prototype.createMap = function() {
   }
 
   this.colToPropCache = [];
-  this.propToColCache = new MultiMap();
+  this.propToColCache = new Map();
 
   const columns = this.instance.getSettings().columns;
 
@@ -858,6 +857,10 @@ DataMap.prototype.destroy = function() {
   this.dataSource = null;
   this.cachedLength = null;
   this.duckSchema = null;
+  this.colToPropCache.length = 0;
+
+  this.propToColCache.clear();
+  this.propToColCache = void 0;
 };
 
 export default DataMap;
