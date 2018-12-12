@@ -6,5 +6,5 @@ module.exports = {
   HOT_VERSION: packageBody.version,
   HOT_PACKAGE_TYPE: 'pro',
   HOT_BUILD_DATE: moment().format('DD/MM/YYYY HH:mm:ss'),
-  HOT_RELEASE_DATE: '14/11/2018',
+  HOT_RELEASE_DATE: '12/12/2018',
 };
