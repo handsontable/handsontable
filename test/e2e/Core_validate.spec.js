@@ -704,6 +704,78 @@ describe('Core_validate', () => {
     }, 200);
   });
 
+  it('should not add class name `htInvalid` for cancelled changes - on edit', async() => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator(value, callb) {
+        if (value === 'test') {
+          callb(false);
+        } else {
+          callb(true);
+        }
+      },
+      afterValidate: onAfterValidate,
+      beforeChange: () => false
+    });
+
+    setDataAtCell(0, 0, 'test');
+
+    await sleep(500);
+
+    // establishing that validation was not called
+    expect(onAfterValidate).not.toHaveBeenCalled();
+    // and that the changed value was cleared
+    expect(getDataAtCell(0, 0)).not.toEqual('test');
+    // and that the cell is not marked invalid
+    expect(spec().$container.find('td.htInvalid').length).toEqual(0);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
+  });
+
+  it('should not remove class name `htInvalid` for cancelled changes - on edit', async() => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    let allowChange = true;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator(value, callb) {
+        if (value === 'test') {
+          callb(false);
+        } else {
+          callb(true);
+        }
+      },
+      afterValidate: onAfterValidate,
+      beforeChange: () => allowChange
+    });
+
+    setDataAtCell(0, 0, 'test');
+
+    await sleep(500);
+
+    // establishing that validation was called and the cell was set to invalid
+    expect(onAfterValidate).toHaveBeenCalled();
+    expect(getDataAtCell(0, 0)).toEqual('test');
+    expect(onAfterValidate.calls.count()).toEqual(1);
+    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+
+    // setting flag to have 'beforeChange' reject changes, then change value
+    allowChange = false;
+    setDataAtCell(0, 0, 'test2');
+
+    await sleep(500);
+
+    // establishing that the value was rejected
+    expect(getDataAtCell(0, 0)).toEqual('test');
+    // and that validation was not called a second time
+    expect(onAfterValidate.calls.count()).toEqual(1);
+    // and that the cell is still marked invalid
+    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+  });
+
   it('should add class name `htInvalid` to a cell without removing other classes', (done) => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const validator = jasmine.createSpy('validator');
