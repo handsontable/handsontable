@@ -9,20 +9,50 @@ import { isTouchSupported } from './../../../helpers/feature';
 import { isMobileBrowser } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 
+const privatePool = new WeakMap();
+
 /**
- *
+ * @class Event
  */
-function Event(instance) {
-  const that = this;
-  const eventManager = new EventManager(instance);
-  let selectedCellBeforeTouchEnd;
+class Event {
+  /**
+   * @param {*} instance Walkontable instance.
+   */
+  constructor(instance) {
+    /**
+     * Instance of {@link Walkontable}.
+     *
+     * @private
+     * @type {Walkontable}
+     */
+    this.instance = instance;
+    /**
+     * Instance of {@link EventManager}.
+     *
+     * @private
+     * @type {EventManager}
+     */
+    this.eventManager = new EventManager(instance);
 
-<<<<<<< HEAD
-  this.instance = instance;
+    privatePool.set(this, {
+      selectedCellBeforeTouchEnd: void 0,
+      dblClickTimeout: [null, null],
+      dblClickOrigin: [null, null],
+    });
 
-  const dblClickOrigin = [null, null];
-  this.dblClickTimeout = [null, null];
-=======
+    this.registerEvents();
+  }
+
+  /**
+   * Adds listeners for mouse and touch events.
+   *
+   * @private
+   */
+  registerEvents() {
+    this.eventManager.addEventListener(this.instance.wtTable.holder, 'contextmenu', event => this.onContextMenu(event));
+    this.eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', event => this.onMouseOver(event));
+    this.eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseout', event => this.onMouseOut(event));
+
     const initTouchEvents = () => {
       this.eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', event => this.onTouchStart(event));
       this.eventManager.addEventListener(this.instance.wtTable.holder, 'touchend', event => this.onTouchEnd(event));
@@ -70,23 +100,67 @@ function Event(instance) {
       }
     });
   }
->>>>>>> e75d08f4f... Fix unresponsive selection (#5678)
 
-  const selectedCellWasTouched = (touchTarget) => {
-    const cellUnderFinger = that.parentCell(touchTarget);
+  /**
+   * Checks if an element is already selected.
+   *
+   * @private
+   * @param {Element} touchTarget
+   * @returns {Boolean}
+   */
+  selectedCellWasTouched(touchTarget) {
+    const priv = privatePool.get(this);
+    const cellUnderFinger = this.parentCell(touchTarget);
     const coordsOfCellUnderFinger = cellUnderFinger.coords;
 
-    if (selectedCellBeforeTouchEnd && coordsOfCellUnderFinger) {
-      const [rowTouched, rowSelected] = [coordsOfCellUnderFinger.row, selectedCellBeforeTouchEnd.from.row];
-      const [colTouched, colSelected] = [coordsOfCellUnderFinger.col, selectedCellBeforeTouchEnd.from.col];
+    if (priv.selectedCellBeforeTouchEnd && coordsOfCellUnderFinger) {
+      const [rowTouched, rowSelected] = [coordsOfCellUnderFinger.row, priv.selectedCellBeforeTouchEnd.from.row];
+      const [colTouched, colSelected] = [coordsOfCellUnderFinger.col, priv.selectedCellBeforeTouchEnd.from.col];
 
       return rowTouched === rowSelected && colTouched === colSelected;
     }
 
     return false;
-  };
+  }
 
-  const onMouseDown = function(event) {
+  /**
+   * Gets closest TD or TH element.
+   *
+   * @private
+   * @param {Element} elem
+   * @returns {Object} Contains coordinates and reference to TD or TH if it exists. Otherwise it's empty object.
+   */
+  parentCell(elem) {
+    const cell = {};
+    const TABLE = this.instance.wtTable.TABLE;
+    const TD = closestDown(elem, ['TD', 'TH'], TABLE);
+
+    if (TD) {
+      cell.coords = this.instance.wtTable.getCoords(TD);
+      cell.TD = TD;
+
+    } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'current')) {
+      cell.coords = this.instance.selections.getCell().cellRange.highlight;
+      cell.TD = this.instance.wtTable.getCell(cell.coords);
+
+    } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'area')) {
+      if (this.instance.selections.createOrGetArea().cellRange) {
+        cell.coords = this.instance.selections.createOrGetArea().cellRange.to;
+        cell.TD = this.instance.wtTable.getCell(cell.coords);
+      }
+    }
+
+    return cell;
+  }
+
+  /**
+   * onMouseDown callback.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onMouseDown(event) {
+    const priv = privatePool.get(this);
     const activeElement = document.activeElement;
     const getParentNode = partial(getParent, event.realTarget);
     const realTarget = event.realTarget;
@@ -98,106 +172,123 @@ function Event(instance) {
       return;
     }
 
-    const cell = that.parentCell(realTarget);
+    const cell = this.parentCell(realTarget);
 
     if (hasClass(realTarget, 'corner')) {
-      that.instance.getSetting('onCellCornerMouseDown', event, realTarget);
-    } else if (cell.TD) {
-      if (that.instance.hasSetting('onCellMouseDown')) {
-        that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, that.instance);
-      }
+      this.instance.getSetting('onCellCornerMouseDown', event, realTarget);
+    } else if (cell.TD && this.instance.hasSetting('onCellMouseDown')) {
+      this.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, this.instance);
     }
 
-    if (event.button !== 2) { // if not right mouse button
+    if (event.button !== 2 && cell.TD) { // if not right mouse button
+      priv.dblClickOrigin[0] = cell.TD;
+
+      clearTimeout(priv.dblClickTimeout[0]);
+
+      priv.dblClickTimeout[0] = setTimeout(() => {
+        priv.dblClickOrigin[0] = null;
+      }, 1000);
+    }
+  }
+
+  /**
+   * onContextMenu callback.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onContextMenu(event) {
+    if (this.instance.hasSetting('onCellContextMenu')) {
+      const cell = this.parentCell(event.realTarget);
+
       if (cell.TD) {
-        dblClickOrigin[0] = cell.TD;
-        clearTimeout(that.dblClickTimeout[0]);
-        that.dblClickTimeout[0] = setTimeout(() => {
-          dblClickOrigin[0] = null;
-        }, 1000);
+        this.instance.getSetting('onCellContextMenu', event, cell.coords, cell.TD, this.instance);
       }
     }
-  };
+  }
 
-  const onContextMenu = function(event) {
-    if (that.instance.hasSetting('onCellContextMenu')) {
-      const cell = that.parentCell(event.realTarget);
-
-      if (cell.TD) {
-        that.instance.getSetting('onCellContextMenu', event, cell.coords, cell.TD, that.instance);
-      }
+  /**
+   * onMouseOver callback.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onMouseOver(event) {
+    if (!this.instance.hasSetting('onCellMouseOver')) {
+      return;
     }
-  };
 
-  const onMouseOver = function(event) {
-    let table;
-    let td;
-    let mainWOT;
+    const table = this.instance.wtTable.TABLE;
+    const td = closestDown(event.realTarget, ['TD', 'TH'], table);
+    const mainWOT = this.instance.cloneSource || this.instance;
 
-    if (that.instance.hasSetting('onCellMouseOver')) {
-      table = that.instance.wtTable.TABLE;
-      td = closestDown(event.realTarget, ['TD', 'TH'], table);
-      mainWOT = that.instance.cloneSource || that.instance;
+    if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
+      mainWOT.lastMouseOver = td;
 
-      if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
-        mainWOT.lastMouseOver = td;
-
-        that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(td), td, that.instance);
-      }
+      this.instance.getSetting('onCellMouseOver', event, this.instance.wtTable.getCoords(td), td, this.instance);
     }
-  };
+  }
 
-  const onMouseOut = function(event) {
-    let table;
-    let lastTD;
-    let nextTD;
-
-    if (that.instance.hasSetting('onCellMouseOut')) {
-      table = that.instance.wtTable.TABLE;
-      lastTD = closestDown(event.realTarget, ['TD', 'TH'], table);
-      nextTD = closestDown(event.relatedTarget, ['TD', 'TH'], table);
-
-      if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
-        that.instance.getSetting('onCellMouseOut', event, that.instance.wtTable.getCoords(lastTD), lastTD, that.instance);
-      }
+  /**
+   * onMouseOut callback.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onMouseOut(event) {
+    if (!this.instance.hasSetting('onCellMouseOut')) {
+      return;
     }
-  };
 
-  const onMouseUp = function(event) {
-    if (event.button !== 2) { // if not right mouse button
-      const cell = that.parentCell(event.realTarget);
+    const table = this.instance.wtTable.TABLE;
+    const lastTD = closestDown(event.realTarget, ['TD', 'TH'], table);
+    const nextTD = closestDown(event.relatedTarget, ['TD', 'TH'], table);
 
-      if (cell.TD && that.instance.hasSetting('onCellMouseUp')) {
-        that.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, that.instance);
-      }
-
-      if (cell.TD === dblClickOrigin[0] && cell.TD === dblClickOrigin[1]) {
-        if (hasClass(event.realTarget, 'corner')) {
-          that.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, that.instance);
-        } else {
-          that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, that.instance);
-        }
-
-        dblClickOrigin[0] = null;
-        dblClickOrigin[1] = null;
-
-      } else if (cell.TD === dblClickOrigin[0]) {
-        dblClickOrigin[1] = cell.TD;
-
-        clearTimeout(that.dblClickTimeout[1]);
-
-        that.dblClickTimeout[1] = setTimeout(() => {
-          dblClickOrigin[1] = null;
-        }, 500);
-      }
+    if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
+      this.instance.getSetting('onCellMouseOut', event, this.instance.wtTable.getCoords(lastTD), lastTD, this.instance);
     }
-  };
+  }
 
-<<<<<<< HEAD
-  const onTouchStart = function(event) {
-    onMouseDown(event);
-  };
-=======
+  /**
+   * onMouseUp callback.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onMouseUp(event) {
+    if (event.button === 2) {
+      return;
+    }
+
+    // if not right mouse button
+    const priv = privatePool.get(this);
+    const cell = this.parentCell(event.realTarget);
+
+    if (cell.TD && this.instance.hasSetting('onCellMouseUp')) {
+      this.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, this.instance);
+    }
+
+    if (cell.TD === priv.dblClickOrigin[0] && cell.TD === priv.dblClickOrigin[1]) {
+      if (hasClass(event.realTarget, 'corner')) {
+        this.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, this.instance);
+      } else {
+        this.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, this.instance);
+      }
+
+      priv.dblClickOrigin[0] = null;
+      priv.dblClickOrigin[1] = null;
+
+    } else if (cell.TD === priv.dblClickOrigin[0]) {
+      priv.dblClickOrigin[1] = cell.TD;
+
+      clearTimeout(priv.dblClickTimeout[1]);
+
+      priv.dblClickTimeout[1] = setTimeout(() => {
+        priv.dblClickOrigin[1] = null;
+      }, 500);
+    }
+  }
+
   /**
    * onTouchStart callback. Simulates mousedown event.
    *
@@ -212,9 +303,14 @@ function Event(instance) {
 
     this.onMouseDown(event);
   }
->>>>>>> e75d08f4f... Fix unresponsive selection (#5678)
 
-  const onTouchEnd = function(event) {
+  /**
+   * onTouchEnd callback. Simulates mouseup event.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onTouchEnd(event) {
     const excludeTags = ['A', 'BUTTON', 'INPUT'];
     const target = event.target;
 
@@ -223,91 +319,24 @@ function Event(instance) {
     // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
     // we check if it should be canceled. Click is blocked in a situation when the element is rendered outside
     // selected cells. This prevents accidentally page reloads while selecting adjacent cells.
-    if (selectedCellWasTouched(target) === false && excludeTags.includes(target.tagName)) {
+    if (this.selectedCellWasTouched(target) === false && excludeTags.includes(target.tagName)) {
       event.preventDefault();
     }
-    onMouseUp(event);
-  };
 
-  eventManager.addEventListener(this.instance.wtTable.holder, 'contextmenu', onContextMenu);
-  eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
-  eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseout', onMouseOut);
-
-  if (isTouchSupported()) {
-    const onTouchStartProxy = function(event) {
-      selectedCellBeforeTouchEnd = instance.selections.getCell().cellRange;
-      that.instance.touchApplied = true;
-
-      onTouchStart(event);
-    };
-    const onTouchEndProxy = function(event) {
-      that.instance.touchApplied = false;
-
-      onTouchEnd(event);
-    };
-
-    eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', onTouchStartProxy);
-    eventManager.addEventListener(this.instance.wtTable.holder, 'touchend', onTouchEndProxy);
-
-    if (!that.instance.momentumScrolling) {
-      that.instance.momentumScrolling = {};
-    }
-    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', () => {
-      clearTimeout(that.instance.momentumScrolling._timeout);
-
-      if (!that.instance.momentumScrolling.ongoing) {
-        that.instance.getSetting('onBeforeTouchScroll');
-      }
-      that.instance.momentumScrolling.ongoing = true;
-
-      that.instance.momentumScrolling._timeout = setTimeout(() => {
-        if (!that.instance.touchApplied) {
-          that.instance.momentumScrolling.ongoing = false;
-
-          that.instance.getSetting('onAfterMomentumScroll');
-        }
-      }, 200);
-    });
-  } else {
-    eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
-    eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
+    this.onMouseUp(event);
   }
 
-  eventManager.addEventListener(window, 'resize', () => {
-    if (that.instance.getSetting('stretchH') !== 'none') {
-      that.instance.draw();
-    }
-  });
+  /**
+   * Clears double-click timeouts and destroys the internal eventManager instance.
+   */
+  destroy() {
+    const priv = privatePool.get(this);
 
-  this.destroy = function() {
-    clearTimeout(this.dblClickTimeout[0]);
-    clearTimeout(this.dblClickTimeout[1]);
+    clearTimeout(priv.dblClickTimeout[0]);
+    clearTimeout(priv.dblClickTimeout[1]);
 
-    eventManager.destroy();
-  };
+    this.eventManager.destroy();
+  }
 }
-
-Event.prototype.parentCell = function(elem) {
-  const cell = {};
-  const TABLE = this.instance.wtTable.TABLE;
-  const TD = closestDown(elem, ['TD', 'TH'], TABLE);
-
-  if (TD) {
-    cell.coords = this.instance.wtTable.getCoords(TD);
-    cell.TD = TD;
-
-  } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'current')) {
-    cell.coords = this.instance.selections.getCell().cellRange.highlight;
-    cell.TD = this.instance.wtTable.getCell(cell.coords);
-
-  } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'area')) {
-    if (this.instance.selections.createOrGetArea().cellRange) {
-      cell.coords = this.instance.selections.createOrGetArea().cellRange.to;
-      cell.TD = this.instance.wtTable.getCell(cell.coords);
-    }
-  }
-
-  return cell;
-};
 
 export default Event;
