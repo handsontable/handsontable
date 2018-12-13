@@ -26,16 +26,64 @@ import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStoppe
  */
 class TextEditor extends BaseEditor {
   /**
-   * Initializes an editor's intance.
+   * @param {Handsontable} instance
    */
-  init() {
-    this.createElements();
+  constructor(instance) {
+    super(instance);
+    /**
+     * Instance of {@link EventManager}.
+     *
+     * @private
+     * @type {EventManager}
+     */
     this.eventManager = new EventManager(this);
-    this.bindEvents();
+    /**
+     * Autoresize instance. Automagically resizes editor after changes.
+     *
+     * @private
+     * @type {autoResize}
+     */
     this.autoResize = autoResize();
+    /**
+     * Contains  `z-index` of the editor. Helps display editor on overlays on correct elevation.
+     *
+     * @private
+     * @type {Number}
+     */
     this.holderZIndex = -1;
+    /**
+     * An TEXTAREA element.
+     *
+     * @private
+     * @type {HTMLTextAreaElement}
+     */
+    this.TEXTAREA = void 0;
+    /**
+     * Style declaration object of the TEXTAREA element.
+     *
+     * @private
+     * @type {CSSStyleDeclaration}
+     */
+    this.textareaStyle = void 0;
+    /**
+     * Parent element of the TEXTAREA.
+     *
+     * @private
+     * @type {HTMLDivElement}
+     */
+    this.TEXTAREA_PARENT = void 0;
+    /**
+     * Style declaration object of the TEXTAREA_PARENT element.
+     *
+     * @private
+     * @type {CSSStyleDeclaration}
+     */
+    this.textareaParentStyle = void 0;
 
-    this.instance.addHookOnce('afterDestroy', () => this.destroy());
+    this.createElements();
+    this.bindEvents();
+
+    this.hot.addHookOnce('afterDestroy', () => this.destroy());
   }
 
   /**
@@ -399,6 +447,15 @@ class TextEditor extends BaseEditor {
   }
 
   /**
+   * Ugly hack for autocompleteEditor.
+   *
+   * @private
+   * @returns {Boolean}
+   */
+  allowKeyEventPropagation() {
+    // return true;
+  }
+  /**
    * Destroys the internal event manager and clears attached hooks.
    *
    * @private
@@ -425,8 +482,7 @@ class TextEditor extends BaseEditor {
     switch (event.keyCode) {
       case KEY_CODES.ARROW_RIGHT:
         if (this.isInFullEditMode()) {
-          if ((!this.isWaiting() && !this.allowKeyEventPropagation) ||
-              (!this.isWaiting() && this.allowKeyEventPropagation && !this.allowKeyEventPropagation(event.keyCode))) {
+          if (!this.isWaiting() && !this.allowKeyEventPropagation(event.keyCode)) {
             stopImmediatePropagation(event);
           }
         }
@@ -434,8 +490,7 @@ class TextEditor extends BaseEditor {
 
       case KEY_CODES.ARROW_LEFT:
         if (this.isInFullEditMode()) {
-          if ((!this.isWaiting() && !this.allowKeyEventPropagation) ||
-              (!this.isWaiting() && this.allowKeyEventPropagation && !this.allowKeyEventPropagation(event.keyCode))) {
+          if (!this.isWaiting() && !this.allowKeyEventPropagation(event.keyCode)) {
             stopImmediatePropagation(event);
           }
         }
@@ -444,8 +499,7 @@ class TextEditor extends BaseEditor {
       case KEY_CODES.ARROW_UP:
       case KEY_CODES.ARROW_DOWN:
         if (this.isInFullEditMode()) {
-          if ((!this.isWaiting() && !this.allowKeyEventPropagation) ||
-              (!this.isWaiting() && this.allowKeyEventPropagation && !this.allowKeyEventPropagation(event.keyCode))) {
+          if (!this.isWaiting() && !this.allowKeyEventPropagation(event.keyCode)) {
             stopImmediatePropagation(event);
           }
         }
