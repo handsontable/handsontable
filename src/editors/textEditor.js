@@ -40,6 +40,8 @@ class TextEditor extends BaseEditor {
 
   /**
    * Gets current value from editable element.
+   *
+   * @returns {Number}
    */
   getValue() {
     return this.TEXTAREA.value;
