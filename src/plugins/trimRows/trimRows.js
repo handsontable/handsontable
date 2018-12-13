@@ -1,5 +1,6 @@
 import BasePlugin from '../_base';
 import { rangeEach } from '../../helpers/number';
+import { arrayFilter } from '../../helpers/array';
 import { registerPlugin } from '../../plugins';
 import RowsMapper from './rowsMapper';
 
@@ -240,7 +241,7 @@ class TrimRows extends BasePlugin {
    * @returns {Boolean}
    */
   isValidConfig(trimmedRows) {
-    return trimmedRows.every(trimmedRow => (Number.isInteger(trimmedRow) && trimmedRow >= 0 && trimmedRow < this.hot.countRows()));
+    return trimmedRows.every(trimmedRow => (Number.isInteger(trimmedRow) && trimmedRow >= 0 && trimmedRow < this.hot.countSourceRows()));
   }
 
   /**
