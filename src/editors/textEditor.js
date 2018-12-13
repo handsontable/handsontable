@@ -450,11 +450,9 @@ class TextEditor extends BaseEditor {
    * Ugly hack for autocompleteEditor.
    *
    * @private
-   * @returns {Boolean}
    */
-  allowKeyEventPropagation() {
-    // return true;
-  }
+  allowKeyEventPropagation() {}
+
   /**
    * Destroys the internal event manager and clears attached hooks.
    *
