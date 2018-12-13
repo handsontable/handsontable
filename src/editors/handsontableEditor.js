@@ -15,7 +15,7 @@ class HandsontableEditor extends TextEditor {
    * Opens the editor and adjust its size.
    */
   open() {
-    this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
+    // this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
 
     super.open();
 
@@ -227,6 +227,8 @@ class HandsontableEditor extends TextEditor {
         this.TEXTAREA.focus();
       }
     }
+
+    super.onBeforeKeyDown(event);
   }
 }
 
