@@ -892,15 +892,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   function validateChanges(changes, source, callback) {
-    let beforeChangeResult;
+    if (!changes.length) {
+      return;
+    }
 
-    if (changes.length) {
-      beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
-      if (isFunction(beforeChangeResult)) {
-        warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
-      } else if (beforeChangeResult === false) {
-        changes.splice(0, changes.length); // invalidate all changes (remove everything from array)
+    const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
+
+    if (isFunction(beforeChangeResult)) {
+      warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
+
+    } else if (beforeChangeResult === false) {
+      const activeEditor = instance.getActiveEditor();
+
+      if (activeEditor) {
+        activeEditor.cancelChanges();
       }
+
+      return;
     }
 
     const waitingForValidator = new ValidatorsQueue();
