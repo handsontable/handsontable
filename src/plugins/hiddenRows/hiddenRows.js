@@ -191,7 +191,7 @@ class HiddenRows extends BasePlugin {
   /**
    * Shows the row provided as row index (counting from 0).
    *
-   * @param {...Number} row Row index.
+   * @param {...Number} row Visual row index.
    */
   showRow(...row) {
     this.showRows(row);
@@ -228,7 +228,7 @@ class HiddenRows extends BasePlugin {
   /**
    * Hides the row provided as row index (counting from 0).
    *
-   * @param {...Number} row Row index.
+   * @param {...Number} row Visual row index.
    */
   hideRow(...row) {
     this.hideRows(row);
@@ -254,7 +254,7 @@ class HiddenRows extends BasePlugin {
   /**
    * Check whether all of the provided row indexes are within the bounds of the table.
    *
-   * @param {Array} rows Array of row indexes.
+   * @param {Array} rows Array of visual row indexes.
    */
   isRowDataValid(rows) {
     return rows.every(row => Number.isInteger(row) && row >= 0 && row < this.hot.countRows());

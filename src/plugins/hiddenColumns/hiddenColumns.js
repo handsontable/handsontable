@@ -48,7 +48,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * // show single row
  * hiddenColumnsPlugin.showColumn(1);
  *
- * // show multiple rows
+ * // show multiple columns
  * hiddenColumnsPlugin.showColumn(1, 2, 9);
  *
  * // or as an array
@@ -57,7 +57,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * // hide single row
  * hiddenColumnsPlugin.hideColumn(1);
  *
- * // hide multiple rows
+ * // hide multiple columns
  * hiddenColumnsPlugin.hideColumn(1, 2, 9);
  *
  * // or as an array
@@ -166,34 +166,32 @@ class HiddenColumns extends BasePlugin {
    * @param {Number[]} columns Array of column indexes.
    */
   showColumns(columns) {
+    const currentHideConfig = this.hiddenColumns;
     const validColumns = this.isColumnDataValid(columns);
-    const continueUnhiding = this.hot.runHooks('beforeUnhideColumns', columns, validColumns);
+    let destinationHideConfig = currentHideConfig;
 
-    if (continueUnhiding === false) {
+    if (validColumns) {
+      destinationHideConfig = this.hiddenColumns.filter(hiddenColumn => columns.includes(hiddenColumn) === false);
+    }
+
+    const continueHiding = this.hot.runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, validColumns);
+
+    if (continueHiding === false) {
       return;
     }
 
-    let changedStates = 0;
-
     if (validColumns) {
-      arrayEach(columns, (column) => {
-        const visualColumn = parseInt(column, 10);
-        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-        if (this.isHidden(physicalColumn, true)) {
-          this.hiddenColumns.splice(this.hiddenColumns.indexOf(physicalColumn), 1);
-          changedStates += 1;
-        }
-      });
+      this.hiddenColumns = destinationHideConfig;
     }
 
-    this.hot.runHooks('afterUnhideColumns', columns, validColumns, changedStates > 0);
+    this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig, validColumns,
+      validColumns && destinationHideConfig.length < currentHideConfig.length);
   }
 
   /**
    * Shows a single column.
    *
-   * @param {...Number} column Column index.
+   * @param {...Number} column Visual column index.
    */
   showColumn(...column) {
     this.showColumns(column);
@@ -202,37 +200,35 @@ class HiddenColumns extends BasePlugin {
   /**
    * Hides the columns provided in the array.
    *
-   * @param {Number[]} columns Array of column indexes.
+   * @param {Number[]} columns Array of visual column indexes.
    */
   hideColumns(columns) {
+    const currentHideConfig = this.hiddenColumns;
     const validColumns = this.isColumnDataValid(columns);
-    const continueHiding = this.hot.runHooks('beforeHideColumns', columns, validColumns);
+    let destinationHideConfig = currentHideConfig;
+
+    if (validColumns) {
+      destinationHideConfig = Array.from(new Set(currentHideConfig.concat(columns)));
+    }
+
+    const continueHiding = this.hot.runHooks('beforeHideColumns', currentHideConfig, destinationHideConfig, validColumns);
 
     if (continueHiding === false) {
       return;
     }
 
-    let changedStates = 0;
-
     if (validColumns) {
-      arrayEach(columns, (column) => {
-        const visualColumn = parseInt(column, 10);
-        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-        if (!this.isHidden(physicalColumn, true)) {
-          this.hiddenColumns.push(physicalColumn);
-          changedStates += 1;
-        }
-      });
+      this.hiddenColumns = destinationHideConfig;
     }
 
-    this.hot.runHooks('afterHideColumns', columns, validColumns, changedStates > 0);
+    this.hot.runHooks('afterHideColumns', currentHideConfig, destinationHideConfig, validColumns,
+      validColumns && destinationHideConfig.length > currentHideConfig.length);
   }
 
   /**
    * Hides a single column.
    *
-   * @param {...Number} column Column index.
+   * @param {...Number} column Visual column index.
    */
   hideColumn(...column) {
     this.hideColumns(column);
@@ -261,7 +257,7 @@ class HiddenColumns extends BasePlugin {
    * @param {Array} columns Array of column indexes.
    */
   isColumnDataValid(columns) {
-    return columns.every(column => (column >= 0 && column < this.hot.countCols()));
+    return columns.every(column => Number.isInteger(column) && column >= 0 && column < this.hot.countCols());
   }
 
   /**
