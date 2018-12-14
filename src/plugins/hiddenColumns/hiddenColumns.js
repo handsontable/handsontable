@@ -42,7 +42,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  *   }
  * });
  *
- * // access to hiddenRows plugin instance:
+ * // access to hiddenColumns plugin instance:
  * const hiddenColumnsPlugin = hot.getPlugin('hiddenColumns');
  *
  * // show single row
@@ -177,11 +177,11 @@ class HiddenColumns extends BasePlugin {
 
     if (validColumns) {
       arrayEach(columns, (column) => {
-        let columnIndex = parseInt(column, 10);
-        columnIndex = this.getLogicalColumnIndex(columnIndex);
+        const visualColumn = parseInt(column, 10);
+        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
-        if (this.isHidden(columnIndex, true)) {
-          this.hiddenColumns.splice(this.hiddenColumns.indexOf(columnIndex), 1);
+        if (this.isHidden(physicalColumn, true)) {
+          this.hiddenColumns.splice(this.hiddenColumns.indexOf(physicalColumn), 1);
           changedStates += 1;
         }
       });
@@ -216,11 +216,11 @@ class HiddenColumns extends BasePlugin {
 
     if (validColumns) {
       arrayEach(columns, (column) => {
-        let columnIndex = parseInt(column, 10);
-        columnIndex = this.getLogicalColumnIndex(columnIndex);
+        const visualColumn = parseInt(column, 10);
+        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
-        if (!this.isHidden(columnIndex, true)) {
-          this.hiddenColumns.push(columnIndex);
+        if (!this.isHidden(physicalColumn, true)) {
+          this.hiddenColumns.push(physicalColumn);
           changedStates += 1;
         }
       });
@@ -242,17 +242,17 @@ class HiddenColumns extends BasePlugin {
    * Checks if the provided column is hidden.
    *
    * @param {Number} column Column index.
-   * @param {Boolean} isLogicIndex flag which determines type of index.
+   * @param {Boolean} isPhysicalIndex flag which determines type of index.
    * @returns {Boolean}
    */
-  isHidden(column, isLogicIndex = false) {
-    let columnIndex = column;
+  isHidden(column, isPhysicalIndex = false) {
+    let physicalColumn = column;
 
-    if (!isLogicIndex) {
-      columnIndex = this.getLogicalColumnIndex(columnIndex);
+    if (!isPhysicalIndex) {
+      physicalColumn = this.hot.toPhysicalColumn(column);
     }
 
-    return this.hiddenColumns.indexOf(columnIndex) > -1;
+    return this.hiddenColumns.includes(physicalColumn);
   }
 
   /**
@@ -280,19 +280,6 @@ class HiddenColumns extends BasePlugin {
         }
       }
     });
-  }
-
-  /**
-   * Get the logical index of the provided column.
-   *
-   * @private
-   * @param {Number} column Column index.
-   * @returns {Number}
-   *
-   * @fires Hooks#modifyCol
-   */
-  getLogicalColumnIndex(column) {
-    return this.hot.runHooks('modifyCol', column);
   }
 
   /**
@@ -502,9 +489,9 @@ class HiddenColumns extends BasePlugin {
 
     const getNextColumn = (col) => {
       let visualColumn = col;
-      const logicalCol = this.getLogicalColumnIndex(visualColumn);
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
-      if (this.isHidden(logicalCol, true)) {
+      if (this.isHidden(physicalColumn, true)) {
         visualColumn += 1;
         visualColumn = getNextColumn(visualColumn);
       }
@@ -526,9 +513,9 @@ class HiddenColumns extends BasePlugin {
 
     const getNextColumn = (col) => {
       let visualColumn = col;
-      const logicalCol = this.getLogicalColumnIndex(visualColumn);
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
-      if (this.isHidden(logicalCol, true)) {
+      if (this.isHidden(physicalColumn, true)) {
         if (this.lastSelectedColumn > visualColumn || coords.col === columnCount - 1) {
           if (visualColumn > 0) {
             visualColumn -= 1;
