@@ -773,8 +773,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                   pushData = false;
 
                 } else {
-                  const orgValueSchema = duckSchema(orgValue[0] || orgValue);
-                  const valueSchema = duckSchema(value[0] || value);
+                  const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : (orgValue[0] || orgValue));
+                  const valueSchema = duckSchema(Array.isArray(value) ? value : (value[0] || value));
 
                   /* eslint-disable max-depth */
                   if (isObjectEqual(orgValueSchema, valueSchema)) {
