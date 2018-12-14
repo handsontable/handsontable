@@ -1,6 +1,5 @@
 import BasePlugin from '../_base';
 import { rangeEach } from '../../helpers/number';
-import { arrayFilter } from '../../helpers/array';
 import { registerPlugin } from '../../plugins';
 import RowsMapper from './rowsMapper';
 
