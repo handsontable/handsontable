@@ -166,28 +166,26 @@ class HiddenRows extends BasePlugin {
    * @param {Number[]} rows Array of visual row indexes.
    */
   showRows(rows) {
+    const currentHideConfig = this.hiddenRows;
     const validRows = this.isRowDataValid(rows);
-    const continueUnhiding = this.hot.runHooks('beforeUnhideRows', rows, validRows);
+    let destinationHideConfig = currentHideConfig;
 
-    if (continueUnhiding === false) {
+    if (validRows) {
+      destinationHideConfig = this.hiddenRows.filter(hiddenRow => rows.includes(hiddenRow) === false);
+    }
+
+    const continueHiding = this.hot.runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, validRows);
+
+    if (continueHiding === false) {
       return;
     }
 
-    let changedStates = 0;
-
     if (validRows) {
-      arrayEach(rows, (row) => {
-        const visualRow = parseInt(row, 10);
-        const physicalRow = this.hot.toPhysicalRow(visualRow);
-
-        if (this.isHidden(visualRow, true)) {
-          this.hiddenRows.splice(this.hiddenRows.indexOf(physicalRow), 1);
-          changedStates += 1;
-        }
-      });
+      this.hiddenRows = destinationHideConfig;
     }
 
-    this.hot.runHooks('afterUnhideRows', rows, validRows, changedStates > 0);
+    this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, validRows,
+      validRows && destinationHideConfig.length < currentHideConfig.length);
   }
 
   /**
@@ -205,28 +203,26 @@ class HiddenRows extends BasePlugin {
    * @param {Number[]} rows Array of visual row indexes.
    */
   hideRows(rows) {
+    const currentHideConfig = this.hiddenRows;
     const validRows = this.isRowDataValid(rows);
-    const continueHiding = this.hot.runHooks('beforeHideRows', rows, validRows);
+    let destinationHideConfig = currentHideConfig;
+
+    if (validRows) {
+      destinationHideConfig = Array.from(new Set(currentHideConfig.concat(rows)));
+    }
+
+    const continueHiding = this.hot.runHooks('beforeHideRows', currentHideConfig, destinationHideConfig, validRows);
 
     if (continueHiding === false) {
       return;
     }
 
-    let changedStates = 0;
-
     if (validRows) {
-      arrayEach(rows, (row) => {
-        const visualRow = parseInt(row, 10);
-        const physicalRow = this.hot.toPhysicalRow(visualRow);
-
-        if (!this.isHidden(physicalRow, true)) {
-          this.hiddenRows.push(physicalRow);
-          changedStates += 1;
-        }
-      });
+      this.hiddenRows = destinationHideConfig;
     }
 
-    this.hot.runHooks('afterHideRows', rows, validRows, changedStates > 0);
+    this.hot.runHooks('afterHideRows', currentHideConfig, destinationHideConfig, validRows,
+      validRows && destinationHideConfig.length > currentHideConfig.length);
   }
 
   /**
@@ -261,7 +257,7 @@ class HiddenRows extends BasePlugin {
    * @param {Array} rows Array of row indexes.
    */
   isRowDataValid(rows) {
-    return rows.every(row => (row >= 0 && row < this.hot.countRows()));
+    return rows.every(row => Number.isInteger(row) && row >= 0 && row < this.hot.countRows());
   }
 
   /**
