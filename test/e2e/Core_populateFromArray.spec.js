@@ -94,7 +94,7 @@ describe('Core_populateFromArray', () => {
   it('should populate value for array data when array selection is changed to empty', () => {
     // Resolving issue #5675: https://github.com/handsontable/handsontable/issues/5675
     let output = null;
-    let dataArray = arrayOfArrays();
+    const dataArray = arrayOfArrays();
     dataArray[0][0] = ['2011'];
 
     handsontable({
