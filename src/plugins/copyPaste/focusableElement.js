@@ -2,7 +2,7 @@ import EventManager from './../../eventManager';
 import localHooks from './../../mixins/localHooks';
 import { mixin } from './../../helpers/object';
 import { isMobileBrowser } from './../../helpers/browser';
-import { isInput } from './../../helpers/dom/element';
+import { isOutsideInput } from './../../helpers/dom/element';
 
 /**
  * @class FocusableWrapper
@@ -77,7 +77,7 @@ class FocusableWrapper {
       setImmediate(() => {
         const activeElement = document.activeElement;
 
-        if (!isInput(activeElement)) {
+        if (!isOutsideInput(activeElement)) {
           this.mainElement.select();
         }
       });
