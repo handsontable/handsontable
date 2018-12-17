@@ -3325,7 +3325,7 @@ describe('ContextMenu', () => {
       expect(hot.getPlugin('contextMenu').close).not.toHaveBeenCalled();
     });
 
-    it('should not scroll the window when hovering over context menu items (#1897 reopen)', () => {
+    it('should not scroll the window when hovering over context menu items (#1897 reopen)', async() => {
       spec().$wrapper.css('overflow', 'visible');
 
       handsontable({
@@ -3338,6 +3338,8 @@ describe('ContextMenu', () => {
 
       selectCell(2, 4);
       contextMenu();
+
+      await sleep(100);
 
       const cmInstance = getPlugin('contextMenu').menu.hotMenu;
 

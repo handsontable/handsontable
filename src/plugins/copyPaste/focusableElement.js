@@ -77,7 +77,7 @@ class FocusableWrapper {
       setImmediate(() => {
         const activeElement = document.activeElement;
 
-        if (activeElement.tagName !== 'INPUT') {
+        if (!isInput(activeElement)) {
           this.mainElement.select();
         }
       });
