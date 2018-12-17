@@ -76,12 +76,12 @@ class Event {
           }
         }, 200);
       });
-    }
+    };
 
     const mouseEvents = () => {
       this.eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', event => this.onMouseUp(event));
       this.eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', event => this.onMouseDown(event));
-    }
+    };
 
     if (isMobileBrowser()) {
       touchEvents();
