@@ -1,4 +1,4 @@
-import '@babel/polyfill/lib/noConflict';
+import '@babel/polyfill';
 
 import './css/bootstrap.css';
 import './css/handsontable.css';
@@ -51,15 +51,11 @@ Handsontable.DefaultSettings = DefaultSettings;
 Handsontable.EventManager = EventManager;
 Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
 
+const hotPackageType = process.env.HOT_PACKAGE_TYPE;
+
+Handsontable.packageName = `handsontable-${hotPackageType}`;
 Handsontable.buildDate = process.env.HOT_BUILD_DATE;
-Handsontable.packageName = process.env.HOT_PACKAGE_NAME;
 Handsontable.version = process.env.HOT_VERSION;
-
-const baseVersion = process.env.HOT_BASE_VERSION;
-
-if (baseVersion) {
-  Handsontable.baseVersion = baseVersion;
-}
 
 // Export Hooks singleton
 Handsontable.hooks = Hooks.getSingleton();

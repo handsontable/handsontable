@@ -111,6 +111,48 @@ describe('numericValidator', () => {
     }, 100);
   });
 
+  it('should validate large-number scientific notation', (done) => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    setDataAtCell(2, 0, '1e+23');
+
+    setTimeout(() => {
+      expect(onAfterValidate).toHaveBeenCalledWith(true, 1e+23, 2, 'id', undefined, undefined);
+      done();
+    }, 100);
+  });
+
+  it('should validate small-number scientific notation', (done) => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    setDataAtCell(2, 0, '1e-23');
+
+    setTimeout(() => {
+      expect(onAfterValidate).toHaveBeenCalledWith(true, 1e-23, 2, 'id', undefined, undefined);
+      done();
+    }, 100);
+  });
+
   describe('allowEmpty', () => {
     it('should not validate an empty string when allowEmpty is set as `false`', (done) => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');

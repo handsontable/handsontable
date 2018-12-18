@@ -1,11 +1,10 @@
-'use strict';
-
 /**
  * Config responsible for building not minified Handsontable `languages/` files.
  */
 const NEW_LINE_CHAR = '\n';
 const SOURCE_LANGUAGES_DIRECTORY = 'src/i18n/languages';
 const OUTPUT_LANGUAGES_DIRECTORY = 'languages';
+const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
 const path = require('path');
 const StringReplacePlugin  = require('string-replace-webpack-plugin');
@@ -41,7 +40,7 @@ const ruleForSnippetsInjection = {
       {
         pattern: /import.+constants.+/,
         replacement: function() {
-          const snippet1 = `import Handsontable from '../../handsontable';`;
+          const snippet1 = `import Handsontable from '../../${PACKAGE_FILENAME}';`;
           const snippet2 = `const C = Handsontable.languages.dictionaryKeys;`;
 
           return `${snippet1}${NEW_LINE_CHAR.repeat(2)}${snippet2}`;
@@ -71,11 +70,11 @@ module.exports.create = function create() {
       umdNamedDefine: true
     },
     externals: {
-      '../../handsontable': {
+      [`../../${PACKAGE_FILENAME}`]: {
         root: 'Handsontable',
-        commonjs2: '../../handsontable',
-        commonjs: '../../handsontable',
-        amd: '../../handsontable',
+        commonjs2: `../../${PACKAGE_FILENAME}`,
+        commonjs: `../../${PACKAGE_FILENAME}`,
+        amd: `../../${PACKAGE_FILENAME}`,
       },
     },
     module: {

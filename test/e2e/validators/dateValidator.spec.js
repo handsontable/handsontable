@@ -82,6 +82,25 @@ describe('dateValidator', () => {
     }, 100);
   });
 
+  it('should not positively validate a non-date string and rewrite to the correct format when `allowInvalid` is false', async() => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        { data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true, allowInvalid: false },
+        { data: 'lastName' }
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    setDataAtCell(0, 0, '01/01/2015 ops');
+    await sleep(200);
+
+    expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/2015 ops', 0, 'date', undefined, undefined);
+    expect(getDataAtCell(0, 0)).toEqual('01/01/2015');
+  });
+
   it('should not positively validate a incorrect date string', (done) => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 

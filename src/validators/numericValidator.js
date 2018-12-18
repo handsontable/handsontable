@@ -6,6 +6,9 @@
  * @param {*} value - Value of edited cell
  * @param {*} callback - Callback called with validation result
  */
+
+import { isNumeric } from './../helpers/number';
+
 export default function numericValidator(value, callback) {
   let valueToValidate = value;
 
@@ -19,6 +22,6 @@ export default function numericValidator(value, callback) {
     callback(false);
 
   } else {
-    callback(/^-?\d*(\.|,)?\d*$/.test(valueToValidate));
+    callback(isNumeric(value));
   }
 }
