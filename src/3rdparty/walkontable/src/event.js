@@ -6,6 +6,7 @@ import {
 } from './../../../helpers/dom/element';
 import { partial } from './../../../helpers/function';
 import { isTouchSupported } from './../../../helpers/feature';
+import { isMobileBrowser } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 
 /**
@@ -16,10 +17,60 @@ function Event(instance) {
   const eventManager = new EventManager(instance);
   let selectedCellBeforeTouchEnd;
 
+<<<<<<< HEAD
   this.instance = instance;
 
   const dblClickOrigin = [null, null];
   this.dblClickTimeout = [null, null];
+=======
+    const initTouchEvents = () => {
+      this.eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', event => this.onTouchStart(event));
+      this.eventManager.addEventListener(this.instance.wtTable.holder, 'touchend', event => this.onTouchEnd(event));
+
+      if (!this.instance.momentumScrolling) {
+        this.instance.momentumScrolling = {};
+      }
+      this.eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', () => {
+        clearTimeout(this.instance.momentumScrolling._timeout);
+
+        if (!this.instance.momentumScrolling.ongoing) {
+          this.instance.getSetting('onBeforeTouchScroll');
+        }
+        this.instance.momentumScrolling.ongoing = true;
+
+        this.instance.momentumScrolling._timeout = setTimeout(() => {
+          if (!this.instance.touchApplied) {
+            this.instance.momentumScrolling.ongoing = false;
+
+            this.instance.getSetting('onAfterMomentumScroll');
+          }
+        }, 200);
+      });
+    };
+
+    const initMouseEvents = () => {
+      this.eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', event => this.onMouseUp(event));
+      this.eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', event => this.onMouseDown(event));
+    };
+
+    if (isMobileBrowser()) {
+      initTouchEvents();
+    } else {
+      // PC like devices which support both methods (touchscreen and ability to plug-in mouse).
+      if (isTouchSupported()) {
+        initTouchEvents();
+      }
+
+      initMouseEvents();
+    }
+
+    this.eventManager.addEventListener(window, 'resize', () => {
+      if (this.instance.getSetting('stretchH') !== 'none') {
+        this.instance.draw();
+      }
+    });
+  }
+>>>>>>> e75d08f4f... Fix unresponsive selection (#5678)
 
   const selectedCellWasTouched = (touchTarget) => {
     const cellUnderFinger = that.parentCell(touchTarget);
@@ -142,13 +193,32 @@ function Event(instance) {
     }
   };
 
+<<<<<<< HEAD
   const onTouchStart = function(event) {
     onMouseDown(event);
   };
+=======
+  /**
+   * onTouchStart callback. Simulates mousedown event.
+   *
+   * @private
+   * @param {MouseEvent} event
+   */
+  onTouchStart(event) {
+    const priv = privatePool.get(this);
+
+    priv.selectedCellBeforeTouchEnd = this.instance.selections.getCell().cellRange;
+    this.instance.touchApplied = true;
+
+    this.onMouseDown(event);
+  }
+>>>>>>> e75d08f4f... Fix unresponsive selection (#5678)
 
   const onTouchEnd = function(event) {
     const excludeTags = ['A', 'BUTTON', 'INPUT'];
     const target = event.target;
+
+    this.instance.touchApplied = false;
 
     // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
     // we check if it should be canceled. Click is blocked in a situation when the element is rendered outside
