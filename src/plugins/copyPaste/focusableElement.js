@@ -75,10 +75,10 @@ class FocusableWrapper {
 
     if (!isMobileBrowser()) {
       setImmediate(() => {
-        if (document.activeElement) {
-          if (!isOutsideInput(document.activeElement)) {
-            this.mainElement.select();
-          }
+        const activeElement = document.activeElement;
+
+        if (activeElement && !isOutsideInput(activeElement)) {
+          this.mainElement.select();
         }
       });
     }
