@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 6.2.1
- * Release date: 12/12/2018 (built at 06/12/2018 11:32:23)
+ * Version: 6.2.2
+ * Release date: 19/12/2018 (built at 18/12/2018 14:28:47)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -2924,7 +2924,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment.default)("12/12/2018", 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment.default)("19/12/2018", 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
 
       var keyGenTime = _extractTime(key);
 
@@ -3459,7 +3459,7 @@ module.exports = !__webpack_require__(4)(function () {
 /* 21 */
 /***/ (function(module, exports) {
 
-var core = module.exports = { version: '2.6.0' };
+var core = module.exports = { version: '2.6.1' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 
@@ -29585,9 +29585,9 @@ Handsontable.DefaultSettings = _defaultSettings.default;
 Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "06/12/2018 11:32:23";
+Handsontable.buildDate = "18/12/2018 14:28:47";
 Handsontable.packageName = "handsontable";
-Handsontable.version = "6.2.1";
+Handsontable.version = "6.2.2";
 var baseVersion = "";
 
 if (baseVersion) {
@@ -32259,7 +32259,7 @@ var SUPPORTS_Y = !!(function () { try { return new RegExp('x', 'y'); } catch (e)
 
 // @@split logic
 __webpack_require__(85)('split', 2, function (defined, SPLIT, $split, maybeCallNative) {
-  var internalSplit = $split;
+  var internalSplit;
   if (
     'abbc'[$SPLIT](/(b)*/)[1] == 'c' ||
     'test'[$SPLIT](/(?:)/, -1)[LENGTH] != 4 ||
@@ -32305,6 +32305,8 @@ __webpack_require__(85)('split', 2, function (defined, SPLIT, $split, maybeCallN
     internalSplit = function (separator, limit) {
       return separator === undefined && limit === 0 ? [] : $split.call(this, separator, limit);
     };
+  } else {
+    internalSplit = $split;
   }
 
   return [
@@ -45783,13 +45785,13 @@ function (_BasePlugin) {
 
       if (isColumnSorted) {
         if ((0, _mixed.isUndefined)(nextColumnConfig)) {
-          return _toConsumableArray(currentSortConfig.slice(0, indexOfColumnToChange)).concat(_toConsumableArray(currentSortConfig.slice(indexOfColumnToChange + 1)));
+          return [].concat(_toConsumableArray(currentSortConfig.slice(0, indexOfColumnToChange)), _toConsumableArray(currentSortConfig.slice(indexOfColumnToChange + 1)));
         }
 
         if (strategyId === APPEND_COLUMN_CONFIG_STRATEGY) {
-          return _toConsumableArray(currentSortConfig.slice(0, indexOfColumnToChange)).concat(_toConsumableArray(currentSortConfig.slice(indexOfColumnToChange + 1)), [nextColumnConfig]);
+          return [].concat(_toConsumableArray(currentSortConfig.slice(0, indexOfColumnToChange)), _toConsumableArray(currentSortConfig.slice(indexOfColumnToChange + 1)), [nextColumnConfig]);
         } else if (strategyId === REPLACE_COLUMN_CONFIG_STRATEGY) {
-          return _toConsumableArray(currentSortConfig.slice(0, indexOfColumnToChange)).concat([nextColumnConfig], _toConsumableArray(currentSortConfig.slice(indexOfColumnToChange + 1)));
+          return [].concat(_toConsumableArray(currentSortConfig.slice(0, indexOfColumnToChange)), [nextColumnConfig], _toConsumableArray(currentSortConfig.slice(indexOfColumnToChange + 1)));
         }
       }
 
@@ -58359,7 +58361,7 @@ function (_BasePlugin) {
         end[0] = Math.max(mergedCellRow + mergedCellData.length - 1, end[0]);
         end[1] = Math.max(mergedCellColumn + mergedCellData[0].length - 1, end[1]);
       });
-      return start.concat(end);
+      return [].concat(start, end);
     }
     /**
      * Clears the merged cells from the merged cell container.
