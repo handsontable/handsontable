@@ -53,7 +53,7 @@ class Event {
     this.eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', event => this.onMouseOver(event));
     this.eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseout', event => this.onMouseOut(event));
 
-    const touchEvents = () => {
+    const initTouchEvents = () => {
       this.eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', event => this.onTouchStart(event));
       this.eventManager.addEventListener(this.instance.wtTable.holder, 'touchend', event => this.onTouchEnd(event));
 
@@ -78,20 +78,20 @@ class Event {
       });
     };
 
-    const mouseEvents = () => {
+    const initMouseEvents = () => {
       this.eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', event => this.onMouseUp(event));
       this.eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', event => this.onMouseDown(event));
     };
 
     if (isMobileBrowser()) {
-      touchEvents();
+      initTouchEvents();
     } else {
       // PC like devices which support both methods (touchscreen and ability to plug-in mouse).
       if (isTouchSupported()) {
-        touchEvents();
+        initTouchEvents();
       }
 
-      mouseEvents();
+      initMouseEvents();
     }
 
     this.eventManager.addEventListener(window, 'resize', () => {
