@@ -6,20 +6,52 @@ import EventManager from './eventManager';
 import { EditorState } from './editors/_baseEditor';
 
 class EditorManager {
+
+  /**
+   * @param {Handsontable} instance
+   * @param {GridSettings} priv
+   * @param {Selection} selection
+   */
   constructor(instance, priv, selection) {
+    /**
+     * @private
+     * @type {Handsontable}
+     */
     this.instance = instance;
+    /**
+     * @private
+     * @type {GridSettings}
+     */
     this.priv = priv;
+    /**
+     * @private
+     * @type {Selection}
+     */
     this.selection = selection;
-
+    /**
+     * @private
+     * @type {EventManager}
+     */
     this.eventManager = new EventManager(instance);
-
+    /**
+     * @private
+     * @type {Boolean}
+     */
     this.destroyed = false;
-
+    /**
+     * @private
+     * @type {Boolean}
+     */
     this.lock = false;
-
+    /**
+     * An active editor's instance.
+     *
+     * @private
+     * @type {*}
+     */
     this.activeEditor = void 0;
 
-    this.instance.addHook('afterDocumentKeyDown', event => this.onKeyDown(event));
+    this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
     this.eventManager.addEventListener(document.documentElement, 'keydown', (event) => {
       if (!this.destroyed) {
@@ -34,9 +66,152 @@ class EditorManager {
       }
     });
 
-    this.instance.view.wt.update('onCellDblClick', (event, coords, elem) => this.onDblClick(event, coords, elem));
+    this.instance.view.wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
   }
 
+  /**
+   * Lock the editor from being prepared and closed. Locking the editor prevents its closing and
+   * reinitialized after selecting the new cell. This feature is necessary for a mobile editor.
+   */
+  lockEditor() {
+    this.lock = true;
+  }
+
+  /**
+   * Unlock the editor from being prepared and closed. This method restores the original behavior of
+   * the editors where for every new selection its instances are closed.
+   */
+  unlockEditor() {
+    this.lock = false;
+  }
+
+  /**
+   * Destroy current editor, if exists.
+   *
+   * @param {Boolean} revertOriginal
+   */
+  destroyEditor(revertOriginal) {
+    if (!this.lock) {
+      this.closeEditor(revertOriginal);
+    }
+  }
+
+  /**
+   * Get active editor.
+   *
+   * @returns {*}
+   */
+  getActiveEditor() {
+    return this.activeEditor;
+  }
+
+  /**
+   * Prepare text input to be displayed at given grid cell.
+   */
+  prepareEditor() {
+    if (this.lock) {
+      return;
+    }
+
+    if (this.activeEditor && this.activeEditor.isWaiting()) {
+      this.closeEditor(false, false, (dataSaved) => {
+        if (dataSaved) {
+          this.prepareEditor();
+        }
+      });
+
+      return;
+    }
+
+    const row = this.instance.selection.selectedRange.current().highlight.row;
+    const col = this.instance.selection.selectedRange.current().highlight.col;
+    const prop = this.instance.colToProp(col);
+    const td = this.instance.getCell(row, col);
+    const originalValue = this.instance.getSourceDataAtCell(this.instance.runHooks('modifyRow', row), col);
+    const cellProperties = this.instance.getCellMeta(row, col);
+    const editorClass = this.instance.getCellEditor(cellProperties);
+
+    if (editorClass) {
+      this.activeEditor = getEditorInstance(editorClass, this.instance);
+      this.activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
+
+    } else {
+      this.activeEditor = void 0;
+    }
+  }
+
+  /**
+   * Check is editor is opened/showed.
+   *
+   * @returns {Boolean}
+   */
+  isEditorOpened() {
+    return this.activeEditor && this.activeEditor.isOpened();
+  }
+
+  /**
+   * Open editor with initial value.
+   *
+   * @param {null|String} newInitialValue new value from which editor will start if handled property it's not the `null`.
+   * @param {DOMEvent} event
+   */
+  openEditor(newInitialValue, event) {
+    if (!this.activeEditor) {
+      return;
+    }
+
+    const readOnly = this.activeEditor.cellProperties.readOnly;
+
+    if (readOnly) {
+      // move the selection after opening the editor with ENTER key
+      if (event && event.keyCode === KEY_CODES.ENTER) {
+        this.moveSelectionAfterEnter();
+      }
+    } else {
+      this.activeEditor.beginEditing(newInitialValue, event);
+    }
+  }
+
+  /**
+   * Close editor, finish editing cell.
+   *
+   * @param {Boolean} restoreOriginalValue
+   * @param {Boolean} [ctrlDown]
+   * @param {Function} [callback]
+   */
+  closeEditor(restoreOriginalValue, ctrlDown, callback) {
+    if (this.activeEditor) {
+      this.activeEditor.finishEditing(restoreOriginalValue, ctrlDown, callback);
+
+    } else if (callback) {
+      callback(false);
+    }
+  }
+
+  /**
+   * Close editor and save changes.
+   *
+   * @param {Boolean} ctrlDown
+   */
+  closeEditorAndSaveChanges(ctrlDown) {
+    this.closeEditor(false, ctrlDown);
+  }
+
+  /**
+   * Close editor and restore original value.
+   *
+   * @param {Boolean} ctrlDown
+   */
+  closeEditorAndRestoreOriginalValue(ctrlDown) {
+    return this.closeEditor(true, ctrlDown);
+  }
+
+  /**
+   * Controls selection's behaviour after clicking `Enter`.
+   *
+   * @private
+   * @param {Boolean} shiftKey
+   */
   moveSelectionAfterEnter(shiftKey) {
     const enterMoves = typeof this.priv.settings.enterMoves === 'function' ? this.priv.settings.enterMoves(event) : this.priv.settings.enterMoves;
 
@@ -49,6 +224,12 @@ class EditorManager {
     }
   }
 
+  /**
+   * Controls selection behaviour after clicking `arrow up`.
+   *
+   * @private
+   * @param {Boolean} shiftKey
+   */
   moveSelectionUp(shiftKey) {
     if (shiftKey) {
       this.selection.transformEnd(-1, 0);
@@ -57,6 +238,12 @@ class EditorManager {
     }
   }
 
+  /**
+   * Controls selection's behaviour after clicking `arrow down`.
+   *
+   * @private
+   * @param {Boolean} shiftKey
+   */
   moveSelectionDown(shiftKey) {
     if (shiftKey) {
       // expanding selection down with shift
@@ -66,6 +253,12 @@ class EditorManager {
     }
   }
 
+  /**
+   * Controls selection's behaviour after clicking `arrow right`.
+   *
+   * @private
+   * @param {Boolean} shiftKey
+   */
   moveSelectionRight(shiftKey) {
     if (shiftKey) {
       this.selection.transformEnd(0, 1);
@@ -74,6 +267,12 @@ class EditorManager {
     }
   }
 
+  /**
+   * Controls selection's behaviour after clicking `arrow left`.
+   *
+   * @private
+   * @param {Boolean} shiftKey
+   */
   moveSelectionLeft(shiftKey) {
     if (shiftKey) {
       this.selection.transformEnd(0, -1);
@@ -82,10 +281,17 @@ class EditorManager {
     }
   }
 
-  onKeyDown(event) {
+  /**
+   * onAfterDocumentKeyDown callback.
+   *
+   * @private
+   * @param {KeyboardEvent} event
+   */
+  onAfterDocumentKeyDown(event) {
     if (!this.instance.isListening()) {
       return;
     }
+
     this.instance.runHooks('beforeKeyDown', event);
 
     // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
@@ -260,12 +466,21 @@ class EditorManager {
         event.preventDefault(); // don't page down the window
         stopPropagation(event);
         break;
+
       default:
         break;
     }
   }
 
-  onDblClick(event, coords, elem) {
+  /**
+   * onCellDblClick callback.
+   *
+   * @private
+   * @param {MouseEvent} event
+   * @param {Object} coords
+   * @param {HTMLTableCellElement|HTMLTableHeaderCellElement} elem
+   */
+  onCellDblClick(event, coords, elem) {
     // may be TD or TH
     if (elem.nodeName === 'TD') {
       if (this.activeEditor) {
@@ -276,175 +491,22 @@ class EditorManager {
   }
 
   /**
-  * Lock the editor from being prepared and closed. Locking the editor prevents its closing and
-  * reinitialized after selecting the new cell. This feature is necessary for a mobile editor.
-  *
-  * @function lockEditor
-  * @memberof! Handsontable.EditorManager#
-   */
-  lockEditor() {
-    this.lock = true;
-  }
-
-  /**
-  * Unlock the editor from being prepared and closed. This method restores the original behavior of
-  * the editors where for every new selection its instances are closed.
-  *
-  * @function unlockEditor
-  * @memberof! Handsontable.EditorManager#
-   */
-  unlockEditor() {
-    this.lock = false;
-  }
-
-  /**
-   * Destroy current editor, if exists.
-   *
-   * @function destroyEditor
-   * @memberof! Handsontable.EditorManager#
-   * @param {Boolean} revertOriginal
-   */
-  destroyEditor(revertOriginal) {
-    if (!this.lock) {
-      this.closeEditor(revertOriginal);
-    }
-  }
-
-  /**
-   * Get active editor.
-   *
-   * @function getActiveEditor
-   * @memberof! Handsontable.EditorManager#
-   * @returns {*}
-   */
-  getActiveEditor() {
-    return this.activeEditor;
-  }
-
-  /**
-   * Prepare text input to be displayed at given grid cell.
-   *
-   * @function prepareEditor
-   * @memberof! Handsontable.EditorManager#
-   */
-  prepareEditor() {
-    if (this.lock) {
-      return;
-    }
-
-    if (this.activeEditor && this.activeEditor.isWaiting()) {
-      this.closeEditor(false, false, (dataSaved) => {
-        if (dataSaved) {
-          this.prepareEditor();
-        }
-      });
-
-      return;
-    }
-
-    const row = this.instance.selection.selectedRange.current().highlight.row;
-    const col = this.instance.selection.selectedRange.current().highlight.col;
-    const prop = this.instance.colToProp(col);
-    const td = this.instance.getCell(row, col);
-    const originalValue = this.instance.getSourceDataAtCell(this.instance.runHooks('modifyRow', row), col);
-    const cellProperties = this.instance.getCellMeta(row, col);
-    const editorClass = this.instance.getCellEditor(cellProperties);
-
-    if (editorClass) {
-      this.activeEditor = getEditorInstance(editorClass, this.instance);
-      this.activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
-
-    } else {
-      this.activeEditor = void 0;
-    }
-  }
-
-  /**
-   * Check is editor is opened/showed.
-   *
-   * @function isEditorOpened
-   * @memberof! Handsontable.EditorManager#
-   * @returns {Boolean}
-   */
-  isEditorOpened() {
-    return this.activeEditor && this.activeEditor.isOpened();
-  }
-
-  /**
-   * Open editor with initial value.
-   *
-   * @function openEditor
-   * @memberof! Handsontable.EditorManager#
-   * @param {null|String} newInitialValue new value from which editor will start if handled property it's not the `null`.
-   * @param {DOMEvent} event
-   */
-  openEditor(newInitialValue, event) {
-    if (!this.activeEditor) {
-      return;
-    }
-
-    const readOnly = this.activeEditor.cellProperties.readOnly;
-
-    if (readOnly) {
-      // move the selection after opening the editor with ENTER key
-      if (event && event.keyCode === KEY_CODES.ENTER) {
-        this.moveSelectionAfterEnter();
-      }
-    } else {
-      this.activeEditor.beginEditing(newInitialValue, event);
-    }
-  }
-
-  /**
-   * Close editor, finish editing cell.
-   *
-   * @function closeEditor
-   * @memberof! Handsontable.EditorManager#
-   * @param {Boolean} restoreOriginalValue
-   * @param {Boolean} [ctrlDown]
-   * @param {Function} [callback]
-   */
-  closeEditor(restoreOriginalValue, ctrlDown, callback) {
-    if (this.activeEditor) {
-      this.activeEditor.finishEditing(restoreOriginalValue, ctrlDown, callback);
-
-    } else if (callback) {
-      callback(false);
-    }
-  }
-
-  /**
-   * Close editor and save changes.
-   *
-   * @function closeEditorAndSaveChanges
-   * @memberof! Handsontable.EditorManager#
-   * @param {Boolean} ctrlDown
-   */
-  closeEditorAndSaveChanges(ctrlDown) {
-    return this.closeEditor(false, ctrlDown);
-  }
-
-  /**
-   * Close editor and restore original value.
-   *
-   * @function closeEditorAndRestoreOriginalValue
-   * @memberof! Handsontable.EditorManager#
-   * @param {Boolean} ctrlDown
-   */
-  closeEditorAndRestoreOriginalValue(ctrlDown) {
-    return this.closeEditor(true, ctrlDown);
-  }
-
-  /**
    * Destroy the instance.
    */
   destroy() {
     this.destroyed = true;
+    this.eventManager.destroy();
   }
 }
 
 const instances = new WeakMap();
 
+/**
+ * @param {Handsontable} hotInstance
+ * @param {GridSettings} hotSettings
+ * @param {Selection} selection
+ * @param {DataMap} datamap
+ */
 EditorManager.getInstance = function(hotInstance, hotSettings, selection, datamap) {
   let editorManager = instances.get(hotInstance);
 
