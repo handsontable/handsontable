@@ -6,7 +6,6 @@ import EventManager from './eventManager';
 import { EditorState } from './editors/_baseEditor';
 
 class EditorManager {
-
   /**
    * @param {Handsontable} instance
    * @param {GridSettings} priv
@@ -14,37 +13,49 @@ class EditorManager {
    */
   constructor(instance, priv, selection) {
     /**
+     * Instance of {@link Handsontable}
+     *
      * @private
      * @type {Handsontable}
      */
     this.instance = instance;
     /**
+     * Reference to an instance's private GridSettings object.
+     *
      * @private
      * @type {GridSettings}
      */
     this.priv = priv;
     /**
+     * Instance of {@link Selection}
+     *
      * @private
      * @type {Selection}
      */
     this.selection = selection;
     /**
+     * Instance of {@link EventManager}.
+     *
      * @private
      * @type {EventManager}
      */
     this.eventManager = new EventManager(instance);
     /**
+     * Determines if EditorManager have destroyed.
+     *
      * @private
      * @type {Boolean}
      */
     this.destroyed = false;
     /**
+     * Determines if EditorManager have locked.
+     *
      * @private
      * @type {Boolean}
      */
     this.lock = false;
     /**
-     * An active editor's instance.
+     * A reference to an instance of the activeEditor.
      *
      * @private
      * @type {*}
@@ -153,7 +164,7 @@ class EditorManager {
    * Open editor with initial value.
    *
    * @param {null|String} newInitialValue new value from which editor will start if handled property it's not the `null`.
-   * @param {DOMEvent} event
+   * @param {Event} event
    */
   openEditor(newInitialValue, event) {
     if (!this.activeEditor) {
