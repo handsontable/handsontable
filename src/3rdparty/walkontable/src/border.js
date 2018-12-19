@@ -610,9 +610,9 @@ class Border {
    */
   changeBorderStyle(borderElement, border) {
     const style = this[borderElement].style;
-    const borderStyle = border[borderElement];
+    const borderStyleObject = border[borderElement];
 
-    if (!borderStyle || borderStyle.hide) {
+    if (!borderStyleObject || borderStyleObject.hide) {
       addClass(this[borderElement], 'hidden');
 
     } else {
@@ -620,15 +620,29 @@ class Border {
         removeClass(this[borderElement], 'hidden');
       }
 
-      style.backgroundColor = borderStyle.color;
-
       if (borderElement === 'top' || borderElement === 'bottom') {
-        style.height = `${borderStyle.width}px`;
+        style.height = `${borderStyleObject.width}px`;
       }
 
       if (borderElement === 'right' || borderElement === 'left') {
-        style.width = `${borderStyle.width}px`;
+        style.width = `${borderStyleObject.width}px`;
       }
+
+      if (borderStyleObject.style) {
+        const borderPosition = (borderElement === 'right' || borderElement === 'left') ? 'left' : 'top';
+        const borderStyle = `border${toUpperCaseFirst(borderPosition)}Style`;
+        const borderWidth = `border${toUpperCaseFirst(borderPosition)}Width`;
+        const borderColor = `border${toUpperCaseFirst(borderPosition)}Color`;
+
+        style[borderStyle] = borderStyleObject.style;
+        style[borderWidth] = borderStyleObject.style === 'double' ? 'medium' : `${borderStyleObject.width}px`;
+        style[borderColor] = borderStyleObject.color;
+        style.backgroundColor = null;
+
+      } else {
+        style.backgroundColor = borderStyleObject.color;
+      }
+
     }
   }
 
@@ -648,6 +662,7 @@ class Border {
     style.backgroundColor = defaultBorder.color;
     style.width = `${defaultBorder.width}px`;
     style.height = `${defaultBorder.width}px`;
+    style.border = null;
   }
 
   /**
