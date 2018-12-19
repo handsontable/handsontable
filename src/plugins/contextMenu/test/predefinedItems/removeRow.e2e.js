@@ -90,5 +90,44 @@ describe('ContextMenu', () => {
 
       expect(getDataAtCol(0)).toEqual(['A7']);
     });
+
+    it('should not shift invalid row when removing a single row', async() => {
+      const hot = handsontable({
+        data: [
+          ['aaa', 2],
+          ['bbb', 3],
+          ['ccc', 4],
+          ['ddd', 'string'],
+          ['eee', 6],
+        ],
+        contextMenu: true,
+        columns(column) {
+          if (column === 1) {
+            return {
+              column,
+              type: 'numeric'
+            };
+          }
+
+          return {};
+        }
+      });
+
+      hot.validateCells();
+
+      await sleep(100);
+
+      selectCell(1, 1);
+      contextMenu();
+
+      // "Remove row" item
+      $('.htContextMenu .ht_master .htCore')
+        .find('tbody td')
+        .not('.htSeparator')
+        .eq(4)
+        .simulate('mousedown');
+
+      expect($(hot.getCell(2, 1)).hasClass('htInvalid')).toBeTruthy();
+    });
   });
 });

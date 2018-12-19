@@ -41,7 +41,7 @@ module.exports.create = function create(envArgs) {
         baseJasminePath: '../',
         externalCssFiles: [
           'lib/normalize.css',
-          '../dist/handsontable.css',
+          '../dist/handsontable-pro.css',
           'helpers/common.css',
         ],
         externalJsFiles: [
@@ -52,9 +52,10 @@ module.exports.create = function create(envArgs) {
           'lib/backbone.js',
           '../node_modules/numbro/dist/numbro.js',
           '../node_modules/numbro/dist/languages.min.js',
-          '../dist/moment/moment.js',
-          '../dist/pikaday/pikaday.js',
-          '../dist/handsontable.js',
+          '../node_modules/moment/moment.js',
+          '../node_modules/pikaday/pikaday.js',
+          '../node_modules/hot-formula-parser/dist/formula-parser.js',
+          '../dist/handsontable-pro.js',
           '../dist/languages/all.js',
         ],
       })

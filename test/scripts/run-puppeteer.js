@@ -3,7 +3,7 @@ const http = require('http');
 const ecstatic = require('ecstatic');
 const JasmineReporter = require('jasmine-terminal-reporter');
 
-const PORT = 7992;
+const PORT = 8085;
 const DEFAULT_INACTIVITY_TIMEOUT = 10000;
 
 const [,, path] = process.argv;
@@ -55,6 +55,7 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
     listStyle: 'flat',
     activity: true,
     isVerbose: false,
+    includeStackTrace: true,
   });
   let errorCount = 0;
 
