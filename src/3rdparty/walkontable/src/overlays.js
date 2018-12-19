@@ -86,6 +86,8 @@ class Overlays {
     this.browserLineHeight = BODY_LINE_HEIGHT || FALLBACK_BODY_LINE_HEIGHT;
 
     this.registerListeners();
+    this.lastScrollX = window.scrollX;
+    this.lastScrollY = window.scrollY;
   }
 
   /**
