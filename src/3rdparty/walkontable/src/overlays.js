@@ -86,6 +86,8 @@ class Overlays {
     this.browserLineHeight = BODY_LINE_HEIGHT || FALLBACK_BODY_LINE_HEIGHT;
 
     this.registerListeners();
+    this.lastScrollX = window.scrollX;
+    this.lastScrollY = window.scrollY;
   }
 
   /**
@@ -380,7 +382,6 @@ class Overlays {
    * Synchronize scroll position between master table and overlay table.
    *
    * @private
-   * @param {Event|Object} event
    */
   syncScrollPositions() {
     if (this.destroyed) {
@@ -392,8 +393,10 @@ class Overlays {
 
     const [scrollLeft, scrollTop] = [this.scrollableElement.scrollLeft, this.scrollableElement.scrollTop];
 
-    this.horizontalScrolling = topHolder.scrollLeft !== scrollLeft;
-    this.verticalScrolling = leftHolder.scrollTop !== scrollTop;
+    this.horizontalScrolling = (topHolder.scrollLeft !== scrollLeft || this.lastScrollX !== window.scrollX);
+    this.verticalScrolling = (leftHolder.scrollTop !== scrollTop || this.lastScrollY !== window.scrollY);
+    this.lastScrollX = window.scrollX;
+    this.lastScrollY = window.scrollY;
 
     if (this.horizontalScrolling) {
       topHolder.scrollLeft = scrollLeft;

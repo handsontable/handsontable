@@ -332,8 +332,8 @@ class TextEditor extends BaseEditor {
 
     const currentOffset = offset(this.TD);
     const containerOffset = offset(this.hot.rootElement);
-    const scrollableContainerTop = this.hot.view.wt.wtOverlays.topOverlay.mainTableScrollableElement;
-    const scrollableContainerLeft = this.hot.view.wt.wtOverlays.leftOverlay.mainTableScrollableElement;
+    const scrollableContainerTop = this.hot.view.wt.wtOverlays.topOverlay.holder;
+    const scrollableContainerLeft = this.hot.view.wt.wtOverlays.leftOverlay.holder;
     const totalRowsCount = this.hot.countRows();
     const containerScrollTop = scrollableContainerTop !== window ? scrollableContainerTop.scrollTop : 0;
     const containerScrollLeft = scrollableContainerLeft !== window ? scrollableContainerLeft.scrollLeft : 0;
