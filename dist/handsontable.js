@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 6.2.1
- * Release date: 12/12/2018 (built at 06/12/2018 11:32:23)
+ * Version: 6.2.2
+ * Release date: 19/12/2018 (built at 18/12/2018 14:40:17)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -204,7 +204,7 @@ exports.isInput = isInput;
 exports.isOutsideInput = isOutsideInput;
 exports.HTML_CHARACTERS = void 0;
 
-var _browser = __webpack_require__(46);
+var _browser = __webpack_require__(42);
 
 var _feature = __webpack_require__(47);
 
@@ -2924,7 +2924,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment.default)("12/12/2018", 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment.default)("19/12/2018", 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
 
       var keyGenTime = _extractTime(key);
 
@@ -3256,7 +3256,7 @@ module.exports = function (it) {
 
 var anObject = __webpack_require__(5);
 var IE8_DOM_DEFINE = __webpack_require__(130);
-var toPrimitive = __webpack_require__(43);
+var toPrimitive = __webpack_require__(44);
 var dP = Object.defineProperty;
 
 exports.f = __webpack_require__(20) ? Object.defineProperty : function defineProperty(O, P, Attributes) {
@@ -3390,7 +3390,7 @@ exports.__esModule = true;
 exports.getRenderer = _getItem;
 exports.getRegisteredRenderers = exports.getRegisteredRendererNames = exports.hasRenderer = exports.registerRenderer = void 0;
 
-var _staticRegister2 = _interopRequireDefault(__webpack_require__(45));
+var _staticRegister2 = _interopRequireDefault(__webpack_require__(46));
 
 var _cellDecorator = _interopRequireDefault(__webpack_require__(376));
 
@@ -3459,7 +3459,7 @@ module.exports = !__webpack_require__(4)(function () {
 /* 21 */
 /***/ (function(module, exports) {
 
-var core = module.exports = { version: '2.6.0' };
+var core = module.exports = { version: '2.6.1' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 
@@ -5536,7 +5536,7 @@ exports.registerEditor = _register;
 exports.getEditor = _getItem;
 exports.getRegisteredEditors = exports.getRegisteredEditorNames = exports.hasEditor = void 0;
 
-var _staticRegister2 = _interopRequireDefault(__webpack_require__(45));
+var _staticRegister2 = _interopRequireDefault(__webpack_require__(46));
 
 var _pluginHooks = _interopRequireDefault(__webpack_require__(22));
 
@@ -6108,7 +6108,7 @@ module.exports = function (it) {
 var pIE = __webpack_require__(70);
 var createDesc = __webpack_require__(50);
 var toIObject = __webpack_require__(29);
-var toPrimitive = __webpack_require__(43);
+var toPrimitive = __webpack_require__(44);
 var has = __webpack_require__(27);
 var IE8_DOM_DEFINE = __webpack_require__(130);
 var gOPD = Object.getOwnPropertyDescriptor;
@@ -6269,7 +6269,7 @@ if (__webpack_require__(20)) {
   var toLength = __webpack_require__(16);
   var toIndex = __webpack_require__(156);
   var toAbsoluteIndex = __webpack_require__(54);
-  var toPrimitive = __webpack_require__(43);
+  var toPrimitive = __webpack_require__(44);
   var has = __webpack_require__(27);
   var classof = __webpack_require__(71);
   var isObject = __webpack_require__(7);
@@ -6742,6 +6742,109 @@ if (__webpack_require__(20)) {
 
 
 exports.__esModule = true;
+exports.setBrowserMeta = setBrowserMeta;
+exports.isChrome = isChrome;
+exports.isEdge = isEdge;
+exports.isIE = isIE;
+exports.isIE8 = isIE8;
+exports.isIE9 = isIE9;
+exports.isMSBrowser = isMSBrowser;
+exports.isMobileBrowser = isMobileBrowser;
+exports.isSafari = isSafari;
+
+var _object = __webpack_require__(2);
+
+var tester = function tester(testerFunc) {
+  var result = {
+    value: false
+  };
+
+  result.test = function (ua, vendor) {
+    result.value = testerFunc(ua, vendor);
+  };
+
+  return result;
+};
+
+var browsers = {
+  chrome: tester(function (ua, vendor) {
+    return /Chrome/.test(ua) && /Google/.test(vendor);
+  }),
+  edge: tester(function (ua) {
+    return /Edge/.test(ua);
+  }),
+  ie: tester(function (ua) {
+    return /Trident/.test(ua);
+  }),
+  ie8: tester(function () {
+    return !document.createTextNode('test').textContent;
+  }),
+  ie9: tester(function () {
+    return !!document.documentMode;
+  }),
+  mobile: tester(function (ua) {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  }),
+  safari: tester(function (ua, vendor) {
+    return /Safari/.test(ua) && /Apple Computer/.test(vendor);
+  })
+};
+
+function setBrowserMeta() {
+  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+      _ref$userAgent = _ref.userAgent,
+      userAgent = _ref$userAgent === void 0 ? navigator.userAgent : _ref$userAgent,
+      _ref$vendor = _ref.vendor,
+      vendor = _ref$vendor === void 0 ? navigator.vendor : _ref$vendor;
+
+  (0, _object.objectEach)(browsers, function (_ref2) {
+    var test = _ref2.test;
+    return void test(userAgent, vendor);
+  });
+}
+
+setBrowserMeta();
+
+function isChrome() {
+  return browsers.chrome.value;
+}
+
+function isEdge() {
+  return browsers.edge.value;
+}
+
+function isIE() {
+  return browsers.ie.value;
+}
+
+function isIE8() {
+  return browsers.ie8.value;
+}
+
+function isIE9() {
+  return browsers.ie9.value;
+}
+
+function isMSBrowser() {
+  return browsers.ie.value || browsers.edge.value;
+}
+
+function isMobileBrowser() {
+  return browsers.mobile.value;
+}
+
+function isSafari() {
+  return browsers.safari.value;
+}
+
+/***/ }),
+/* 43 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
 exports.default = void 0;
 
 var _element = __webpack_require__(1);
@@ -7067,7 +7170,7 @@ var _default = Overlay;
 exports.default = _default;
 
 /***/ }),
-/* 43 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.1.1 ToPrimitive(input [, PreferredType])
@@ -7085,7 +7188,7 @@ module.exports = function (it, S) {
 
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var META = __webpack_require__(51)('meta');
@@ -7144,7 +7247,7 @@ var meta = module.exports = {
 
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7233,109 +7336,6 @@ function staticRegister() {
     getNames: getNames,
     getValues: getValues
   };
-}
-
-/***/ }),
-/* 46 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.setBrowserMeta = setBrowserMeta;
-exports.isChrome = isChrome;
-exports.isEdge = isEdge;
-exports.isIE = isIE;
-exports.isIE8 = isIE8;
-exports.isIE9 = isIE9;
-exports.isMSBrowser = isMSBrowser;
-exports.isMobileBrowser = isMobileBrowser;
-exports.isSafari = isSafari;
-
-var _object = __webpack_require__(2);
-
-var tester = function tester(testerFunc) {
-  var result = {
-    value: false
-  };
-
-  result.test = function (ua, vendor) {
-    result.value = testerFunc(ua, vendor);
-  };
-
-  return result;
-};
-
-var browsers = {
-  chrome: tester(function (ua, vendor) {
-    return /Chrome/.test(ua) && /Google/.test(vendor);
-  }),
-  edge: tester(function (ua) {
-    return /Edge/.test(ua);
-  }),
-  ie: tester(function (ua) {
-    return /Trident/.test(ua);
-  }),
-  ie8: tester(function () {
-    return !document.createTextNode('test').textContent;
-  }),
-  ie9: tester(function () {
-    return !!document.documentMode;
-  }),
-  mobile: tester(function (ua) {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-  }),
-  safari: tester(function (ua, vendor) {
-    return /Safari/.test(ua) && /Apple Computer/.test(vendor);
-  })
-};
-
-function setBrowserMeta() {
-  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-      _ref$userAgent = _ref.userAgent,
-      userAgent = _ref$userAgent === void 0 ? navigator.userAgent : _ref$userAgent,
-      _ref$vendor = _ref.vendor,
-      vendor = _ref$vendor === void 0 ? navigator.vendor : _ref$vendor;
-
-  (0, _object.objectEach)(browsers, function (_ref2) {
-    var test = _ref2.test;
-    return void test(userAgent, vendor);
-  });
-}
-
-setBrowserMeta();
-
-function isChrome() {
-  return browsers.chrome.value;
-}
-
-function isEdge() {
-  return browsers.edge.value;
-}
-
-function isIE() {
-  return browsers.ie.value;
-}
-
-function isIE8() {
-  return browsers.ie8.value;
-}
-
-function isIE9() {
-  return browsers.ie9.value;
-}
-
-function isMSBrowser() {
-  return browsers.ie.value || browsers.edge.value;
-}
-
-function isMobileBrowser() {
-  return browsers.mobile.value;
-}
-
-function isSafari() {
-  return browsers.safari.value;
 }
 
 /***/ }),
@@ -7609,7 +7609,7 @@ exports.__esModule = true;
 exports.getValidator = _getItem;
 exports.getRegisteredValidators = exports.getRegisteredValidatorNames = exports.hasValidator = exports.registerValidator = void 0;
 
-var _staticRegister2 = _interopRequireDefault(__webpack_require__(45));
+var _staticRegister2 = _interopRequireDefault(__webpack_require__(46));
 
 var _autocompleteValidator = _interopRequireDefault(__webpack_require__(384));
 
@@ -9091,7 +9091,7 @@ var _element = __webpack_require__(1);
 
 var _autoResize = _interopRequireDefault(__webpack_require__(367));
 
-var _browser = __webpack_require__(46);
+var _browser = __webpack_require__(42);
 
 var _baseEditor = _interopRequireWildcard(__webpack_require__(73));
 
@@ -9841,7 +9841,7 @@ var global = __webpack_require__(6);
 var $export = __webpack_require__(0);
 var redefine = __webpack_require__(23);
 var redefineAll = __webpack_require__(65);
-var meta = __webpack_require__(44);
+var meta = __webpack_require__(45);
 var forOf = __webpack_require__(86);
 var anInstance = __webpack_require__(64);
 var isObject = __webpack_require__(7);
@@ -9976,7 +9976,7 @@ var _object = __webpack_require__(2);
 
 var _utils = __webpack_require__(183);
 
-var _staticRegister2 = _interopRequireDefault(__webpack_require__(45));
+var _staticRegister2 = _interopRequireDefault(__webpack_require__(46));
 
 var _enUS = _interopRequireDefault(__webpack_require__(403));
 
@@ -11246,7 +11246,7 @@ exports.registerCellType = _register;
 exports.getCellType = _getItem;
 exports.getRegisteredCellTypes = exports.getRegisteredCellTypeNames = exports.hasCellType = void 0;
 
-var _staticRegister2 = _interopRequireDefault(__webpack_require__(45));
+var _staticRegister2 = _interopRequireDefault(__webpack_require__(46));
 
 var _editors = __webpack_require__(26);
 
@@ -11365,7 +11365,7 @@ var _console = __webpack_require__(76);
 
 var _mixed = __webpack_require__(14);
 
-var _browser = __webpack_require__(46);
+var _browser = __webpack_require__(42);
 
 var _dataMap = _interopRequireDefault(__webpack_require__(397));
 
@@ -17643,7 +17643,7 @@ var $iterDefine = __webpack_require__(106);
 var step = __webpack_require__(148);
 var setSpecies = __webpack_require__(63);
 var DESCRIPTORS = __webpack_require__(20);
-var fastKey = __webpack_require__(44).fastKey;
+var fastKey = __webpack_require__(45).fastKey;
 var validate = __webpack_require__(66);
 var SIZE = DESCRIPTORS ? '_s' : 'size';
 
@@ -17785,7 +17785,7 @@ module.exports = {
 "use strict";
 
 var redefineAll = __webpack_require__(65);
-var getWeak = __webpack_require__(44).getWeak;
+var getWeak = __webpack_require__(45).getWeak;
 var anObject = __webpack_require__(5);
 var isObject = __webpack_require__(7);
 var anInstance = __webpack_require__(64);
@@ -19733,233 +19733,382 @@ var _function = __webpack_require__(59);
 
 var _feature = __webpack_require__(47);
 
+var _browser = __webpack_require__(42);
+
 var _eventManager = _interopRequireDefault(__webpack_require__(10));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var privatePool = new WeakMap();
 /**
- *
+ * @class Event
  */
-function Event(instance) {
-  var that = this;
-  var eventManager = new _eventManager.default(instance);
-  var selectedCellBeforeTouchEnd;
-  this.instance = instance;
-  var dblClickOrigin = [null, null];
-  this.dblClickTimeout = [null, null];
 
-  var selectedCellWasTouched = function selectedCellWasTouched(touchTarget) {
-    var cellUnderFinger = that.parentCell(touchTarget);
-    var coordsOfCellUnderFinger = cellUnderFinger.coords;
+var Event =
+/*#__PURE__*/
+function () {
+  /**
+   * @param {*} instance Walkontable instance.
+   */
+  function Event(instance) {
+    _classCallCheck(this, Event);
 
-    if (selectedCellBeforeTouchEnd && coordsOfCellUnderFinger) {
-      var _ref = [coordsOfCellUnderFinger.row, selectedCellBeforeTouchEnd.from.row],
-          rowTouched = _ref[0],
-          rowSelected = _ref[1];
-      var _ref2 = [coordsOfCellUnderFinger.col, selectedCellBeforeTouchEnd.from.col],
-          colTouched = _ref2[0],
-          colSelected = _ref2[1];
-      return rowTouched === rowSelected && colTouched === colSelected;
-    }
+    /**
+     * Instance of {@link Walkontable}.
+     *
+     * @private
+     * @type {Walkontable}
+     */
+    this.instance = instance;
+    /**
+     * Instance of {@link EventManager}.
+     *
+     * @private
+     * @type {EventManager}
+     */
 
-    return false;
-  };
+    this.eventManager = new _eventManager.default(instance);
+    privatePool.set(this, {
+      selectedCellBeforeTouchEnd: void 0,
+      dblClickTimeout: [null, null],
+      dblClickOrigin: [null, null]
+    });
+    this.registerEvents();
+  }
+  /**
+   * Adds listeners for mouse and touch events.
+   *
+   * @private
+   */
 
-  var onMouseDown = function onMouseDown(event) {
-    var activeElement = document.activeElement;
-    var getParentNode = (0, _function.partial)(_element.getParent, event.realTarget);
-    var realTarget = event.realTarget; // ignore focusable element from mouse down processing (https://github.com/handsontable/handsontable/issues/3555)
 
-    if (realTarget === activeElement || getParentNode(0) === activeElement || getParentNode(1) === activeElement) {
-      return;
-    }
+  _createClass(Event, [{
+    key: "registerEvents",
+    value: function registerEvents() {
+      var _this = this;
 
-    var cell = that.parentCell(realTarget);
+      this.eventManager.addEventListener(this.instance.wtTable.holder, 'contextmenu', function (event) {
+        return _this.onContextMenu(event);
+      });
+      this.eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', function (event) {
+        return _this.onMouseOver(event);
+      });
+      this.eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseout', function (event) {
+        return _this.onMouseOut(event);
+      });
 
-    if ((0, _element.hasClass)(realTarget, 'corner')) {
-      that.instance.getSetting('onCellCornerMouseDown', event, realTarget);
-    } else if (cell.TD) {
-      if (that.instance.hasSetting('onCellMouseDown')) {
-        that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, that.instance);
+      var initTouchEvents = function initTouchEvents() {
+        _this.eventManager.addEventListener(_this.instance.wtTable.holder, 'touchstart', function (event) {
+          return _this.onTouchStart(event);
+        });
+
+        _this.eventManager.addEventListener(_this.instance.wtTable.holder, 'touchend', function (event) {
+          return _this.onTouchEnd(event);
+        });
+
+        if (!_this.instance.momentumScrolling) {
+          _this.instance.momentumScrolling = {};
+        }
+
+        _this.eventManager.addEventListener(_this.instance.wtTable.holder, 'scroll', function () {
+          clearTimeout(_this.instance.momentumScrolling._timeout);
+
+          if (!_this.instance.momentumScrolling.ongoing) {
+            _this.instance.getSetting('onBeforeTouchScroll');
+          }
+
+          _this.instance.momentumScrolling.ongoing = true;
+          _this.instance.momentumScrolling._timeout = setTimeout(function () {
+            if (!_this.instance.touchApplied) {
+              _this.instance.momentumScrolling.ongoing = false;
+
+              _this.instance.getSetting('onAfterMomentumScroll');
+            }
+          }, 200);
+        });
+      };
+
+      var initMouseEvents = function initMouseEvents() {
+        _this.eventManager.addEventListener(_this.instance.wtTable.holder, 'mouseup', function (event) {
+          return _this.onMouseUp(event);
+        });
+
+        _this.eventManager.addEventListener(_this.instance.wtTable.holder, 'mousedown', function (event) {
+          return _this.onMouseDown(event);
+        });
+      };
+
+      if ((0, _browser.isMobileBrowser)()) {
+        initTouchEvents();
+      } else {
+        // PC like devices which support both methods (touchscreen and ability to plug-in mouse).
+        if ((0, _feature.isTouchSupported)()) {
+          initTouchEvents();
+        }
+
+        initMouseEvents();
       }
-    }
 
-    if (event.button !== 2) {
-      // if not right mouse button
-      if (cell.TD) {
-        dblClickOrigin[0] = cell.TD;
-        clearTimeout(that.dblClickTimeout[0]);
-        that.dblClickTimeout[0] = setTimeout(function () {
-          dblClickOrigin[0] = null;
+      this.eventManager.addEventListener(window, 'resize', function () {
+        if (_this.instance.getSetting('stretchH') !== 'none') {
+          _this.instance.draw();
+        }
+      });
+    }
+    /**
+     * Checks if an element is already selected.
+     *
+     * @private
+     * @param {Element} touchTarget
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: "selectedCellWasTouched",
+    value: function selectedCellWasTouched(touchTarget) {
+      var priv = privatePool.get(this);
+      var cellUnderFinger = this.parentCell(touchTarget);
+      var coordsOfCellUnderFinger = cellUnderFinger.coords;
+
+      if (priv.selectedCellBeforeTouchEnd && coordsOfCellUnderFinger) {
+        var _ref = [coordsOfCellUnderFinger.row, priv.selectedCellBeforeTouchEnd.from.row],
+            rowTouched = _ref[0],
+            rowSelected = _ref[1];
+        var _ref2 = [coordsOfCellUnderFinger.col, priv.selectedCellBeforeTouchEnd.from.col],
+            colTouched = _ref2[0],
+            colSelected = _ref2[1];
+        return rowTouched === rowSelected && colTouched === colSelected;
+      }
+
+      return false;
+    }
+    /**
+     * Gets closest TD or TH element.
+     *
+     * @private
+     * @param {Element} elem
+     * @returns {Object} Contains coordinates and reference to TD or TH if it exists. Otherwise it's empty object.
+     */
+
+  }, {
+    key: "parentCell",
+    value: function parentCell(elem) {
+      var cell = {};
+      var TABLE = this.instance.wtTable.TABLE;
+      var TD = (0, _element.closestDown)(elem, ['TD', 'TH'], TABLE);
+
+      if (TD) {
+        cell.coords = this.instance.wtTable.getCoords(TD);
+        cell.TD = TD;
+      } else if ((0, _element.hasClass)(elem, 'wtBorder') && (0, _element.hasClass)(elem, 'current')) {
+        cell.coords = this.instance.selections.getCell().cellRange.highlight;
+        cell.TD = this.instance.wtTable.getCell(cell.coords);
+      } else if ((0, _element.hasClass)(elem, 'wtBorder') && (0, _element.hasClass)(elem, 'area')) {
+        if (this.instance.selections.createOrGetArea().cellRange) {
+          cell.coords = this.instance.selections.createOrGetArea().cellRange.to;
+          cell.TD = this.instance.wtTable.getCell(cell.coords);
+        }
+      }
+
+      return cell;
+    }
+    /**
+     * onMouseDown callback.
+     *
+     * @private
+     * @param {MouseEvent} event
+     */
+
+  }, {
+    key: "onMouseDown",
+    value: function onMouseDown(event) {
+      var priv = privatePool.get(this);
+      var activeElement = document.activeElement;
+      var getParentNode = (0, _function.partial)(_element.getParent, event.realTarget);
+      var realTarget = event.realTarget; // ignore focusable element from mouse down processing (https://github.com/handsontable/handsontable/issues/3555)
+
+      if (realTarget === activeElement || getParentNode(0) === activeElement || getParentNode(1) === activeElement) {
+        return;
+      }
+
+      var cell = this.parentCell(realTarget);
+
+      if ((0, _element.hasClass)(realTarget, 'corner')) {
+        this.instance.getSetting('onCellCornerMouseDown', event, realTarget);
+      } else if (cell.TD && this.instance.hasSetting('onCellMouseDown')) {
+        this.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, this.instance);
+      }
+
+      if (event.button !== 2 && cell.TD) {
+        // if not right mouse button
+        priv.dblClickOrigin[0] = cell.TD;
+        clearTimeout(priv.dblClickTimeout[0]);
+        priv.dblClickTimeout[0] = setTimeout(function () {
+          priv.dblClickOrigin[0] = null;
         }, 1000);
       }
     }
-  };
+    /**
+     * onContextMenu callback.
+     *
+     * @private
+     * @param {MouseEvent} event
+     */
 
-  var onContextMenu = function onContextMenu(event) {
-    if (that.instance.hasSetting('onCellContextMenu')) {
-      var cell = that.parentCell(event.realTarget);
+  }, {
+    key: "onContextMenu",
+    value: function onContextMenu(event) {
+      if (this.instance.hasSetting('onCellContextMenu')) {
+        var cell = this.parentCell(event.realTarget);
 
-      if (cell.TD) {
-        that.instance.getSetting('onCellContextMenu', event, cell.coords, cell.TD, that.instance);
+        if (cell.TD) {
+          this.instance.getSetting('onCellContextMenu', event, cell.coords, cell.TD, this.instance);
+        }
       }
     }
-  };
+    /**
+     * onMouseOver callback.
+     *
+     * @private
+     * @param {MouseEvent} event
+     */
 
-  var onMouseOver = function onMouseOver(event) {
-    var table;
-    var td;
-    var mainWOT;
+  }, {
+    key: "onMouseOver",
+    value: function onMouseOver(event) {
+      if (!this.instance.hasSetting('onCellMouseOver')) {
+        return;
+      }
 
-    if (that.instance.hasSetting('onCellMouseOver')) {
-      table = that.instance.wtTable.TABLE;
-      td = (0, _element.closestDown)(event.realTarget, ['TD', 'TH'], table);
-      mainWOT = that.instance.cloneSource || that.instance;
+      var table = this.instance.wtTable.TABLE;
+      var td = (0, _element.closestDown)(event.realTarget, ['TD', 'TH'], table);
+      var mainWOT = this.instance.cloneSource || this.instance;
 
       if (td && td !== mainWOT.lastMouseOver && (0, _element.isChildOf)(td, table)) {
         mainWOT.lastMouseOver = td;
-        that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(td), td, that.instance);
+        this.instance.getSetting('onCellMouseOver', event, this.instance.wtTable.getCoords(td), td, this.instance);
       }
     }
-  };
+    /**
+     * onMouseOut callback.
+     *
+     * @private
+     * @param {MouseEvent} event
+     */
 
-  var onMouseOut = function onMouseOut(event) {
-    var table;
-    var lastTD;
-    var nextTD;
+  }, {
+    key: "onMouseOut",
+    value: function onMouseOut(event) {
+      if (!this.instance.hasSetting('onCellMouseOut')) {
+        return;
+      }
 
-    if (that.instance.hasSetting('onCellMouseOut')) {
-      table = that.instance.wtTable.TABLE;
-      lastTD = (0, _element.closestDown)(event.realTarget, ['TD', 'TH'], table);
-      nextTD = (0, _element.closestDown)(event.relatedTarget, ['TD', 'TH'], table);
+      var table = this.instance.wtTable.TABLE;
+      var lastTD = (0, _element.closestDown)(event.realTarget, ['TD', 'TH'], table);
+      var nextTD = (0, _element.closestDown)(event.relatedTarget, ['TD', 'TH'], table);
 
       if (lastTD && lastTD !== nextTD && (0, _element.isChildOf)(lastTD, table)) {
-        that.instance.getSetting('onCellMouseOut', event, that.instance.wtTable.getCoords(lastTD), lastTD, that.instance);
+        this.instance.getSetting('onCellMouseOut', event, this.instance.wtTable.getCoords(lastTD), lastTD, this.instance);
       }
     }
-  };
+    /**
+     * onMouseUp callback.
+     *
+     * @private
+     * @param {MouseEvent} event
+     */
 
-  var onMouseUp = function onMouseUp(event) {
-    if (event.button !== 2) {
-      // if not right mouse button
-      var cell = that.parentCell(event.realTarget);
+  }, {
+    key: "onMouseUp",
+    value: function onMouseUp(event) {
+      if (event.button === 2) {
+        return;
+      } // if not right mouse button
 
-      if (cell.TD && that.instance.hasSetting('onCellMouseUp')) {
-        that.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, that.instance);
+
+      var priv = privatePool.get(this);
+      var cell = this.parentCell(event.realTarget);
+
+      if (cell.TD && this.instance.hasSetting('onCellMouseUp')) {
+        this.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, this.instance);
       }
 
-      if (cell.TD === dblClickOrigin[0] && cell.TD === dblClickOrigin[1]) {
+      if (cell.TD === priv.dblClickOrigin[0] && cell.TD === priv.dblClickOrigin[1]) {
         if ((0, _element.hasClass)(event.realTarget, 'corner')) {
-          that.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, that.instance);
+          this.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, this.instance);
         } else {
-          that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, that.instance);
+          this.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, this.instance);
         }
 
-        dblClickOrigin[0] = null;
-        dblClickOrigin[1] = null;
-      } else if (cell.TD === dblClickOrigin[0]) {
-        dblClickOrigin[1] = cell.TD;
-        clearTimeout(that.dblClickTimeout[1]);
-        that.dblClickTimeout[1] = setTimeout(function () {
-          dblClickOrigin[1] = null;
+        priv.dblClickOrigin[0] = null;
+        priv.dblClickOrigin[1] = null;
+      } else if (cell.TD === priv.dblClickOrigin[0]) {
+        priv.dblClickOrigin[1] = cell.TD;
+        clearTimeout(priv.dblClickTimeout[1]);
+        priv.dblClickTimeout[1] = setTimeout(function () {
+          priv.dblClickOrigin[1] = null;
         }, 500);
       }
     }
-  };
+    /**
+     * onTouchStart callback. Simulates mousedown event.
+     *
+     * @private
+     * @param {MouseEvent} event
+     */
 
-  var onTouchStart = function onTouchStart(event) {
-    onMouseDown(event);
-  };
-
-  var onTouchEnd = function onTouchEnd(event) {
-    var excludeTags = ['A', 'BUTTON', 'INPUT'];
-    var target = event.target; // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
-    // we check if it should be canceled. Click is blocked in a situation when the element is rendered outside
-    // selected cells. This prevents accidentally page reloads while selecting adjacent cells.
-
-    if (selectedCellWasTouched(target) === false && excludeTags.includes(target.tagName)) {
-      event.preventDefault();
+  }, {
+    key: "onTouchStart",
+    value: function onTouchStart(event) {
+      var priv = privatePool.get(this);
+      priv.selectedCellBeforeTouchEnd = this.instance.selections.getCell().cellRange;
+      this.instance.touchApplied = true;
+      this.onMouseDown(event);
     }
+    /**
+     * onTouchEnd callback. Simulates mouseup event.
+     *
+     * @private
+     * @param {MouseEvent} event
+     */
 
-    onMouseUp(event);
-  };
+  }, {
+    key: "onTouchEnd",
+    value: function onTouchEnd(event) {
+      var excludeTags = ['A', 'BUTTON', 'INPUT'];
+      var target = event.target;
+      this.instance.touchApplied = false; // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
+      // we check if it should be canceled. Click is blocked in a situation when the element is rendered outside
+      // selected cells. This prevents accidentally page reloads while selecting adjacent cells.
 
-  eventManager.addEventListener(this.instance.wtTable.holder, 'contextmenu', onContextMenu);
-  eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
-  eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseout', onMouseOut);
-
-  if ((0, _feature.isTouchSupported)()) {
-    var onTouchStartProxy = function onTouchStartProxy(event) {
-      selectedCellBeforeTouchEnd = instance.selections.getCell().cellRange;
-      that.instance.touchApplied = true;
-      onTouchStart(event);
-    };
-
-    var onTouchEndProxy = function onTouchEndProxy(event) {
-      that.instance.touchApplied = false;
-      onTouchEnd(event);
-    };
-
-    eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', onTouchStartProxy);
-    eventManager.addEventListener(this.instance.wtTable.holder, 'touchend', onTouchEndProxy);
-
-    if (!that.instance.momentumScrolling) {
-      that.instance.momentumScrolling = {};
-    }
-
-    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', function () {
-      clearTimeout(that.instance.momentumScrolling._timeout);
-
-      if (!that.instance.momentumScrolling.ongoing) {
-        that.instance.getSetting('onBeforeTouchScroll');
+      if (this.selectedCellWasTouched(target) === false && excludeTags.includes(target.tagName)) {
+        event.preventDefault();
       }
 
-      that.instance.momentumScrolling.ongoing = true;
-      that.instance.momentumScrolling._timeout = setTimeout(function () {
-        if (!that.instance.touchApplied) {
-          that.instance.momentumScrolling.ongoing = false;
-          that.instance.getSetting('onAfterMomentumScroll');
-        }
-      }, 200);
-    });
-  } else {
-    eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
-    eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
-  }
-
-  eventManager.addEventListener(window, 'resize', function () {
-    if (that.instance.getSetting('stretchH') !== 'none') {
-      that.instance.draw();
+      this.onMouseUp(event);
     }
-  });
+    /**
+     * Clears double-click timeouts and destroys the internal eventManager instance.
+     */
 
-  this.destroy = function () {
-    clearTimeout(this.dblClickTimeout[0]);
-    clearTimeout(this.dblClickTimeout[1]);
-    eventManager.destroy();
-  };
-}
-
-Event.prototype.parentCell = function (elem) {
-  var cell = {};
-  var TABLE = this.instance.wtTable.TABLE;
-  var TD = (0, _element.closestDown)(elem, ['TD', 'TH'], TABLE);
-
-  if (TD) {
-    cell.coords = this.instance.wtTable.getCoords(TD);
-    cell.TD = TD;
-  } else if ((0, _element.hasClass)(elem, 'wtBorder') && (0, _element.hasClass)(elem, 'current')) {
-    cell.coords = this.instance.selections.getCell().cellRange.highlight;
-    cell.TD = this.instance.wtTable.getCell(cell.coords);
-  } else if ((0, _element.hasClass)(elem, 'wtBorder') && (0, _element.hasClass)(elem, 'area')) {
-    if (this.instance.selections.createOrGetArea().cellRange) {
-      cell.coords = this.instance.selections.createOrGetArea().cellRange.to;
-      cell.TD = this.instance.wtTable.getCell(cell.coords);
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      var priv = privatePool.get(this);
+      clearTimeout(priv.dblClickTimeout[0]);
+      clearTimeout(priv.dblClickTimeout[1]);
+      this.eventManager.destroy();
     }
-  }
+  }]);
 
-  return cell;
-};
+  return Event;
+}();
 
 var _default = Event;
 exports.default = _default;
@@ -19980,11 +20129,11 @@ var _array = __webpack_require__(3);
 
 var _unicode = __webpack_require__(32);
 
-var _browser = __webpack_require__(46);
+var _browser = __webpack_require__(42);
 
 var _eventManager = _interopRequireDefault(__webpack_require__(10));
 
-var _base = _interopRequireDefault(__webpack_require__(42));
+var _base = _interopRequireDefault(__webpack_require__(43));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -21157,7 +21306,7 @@ var _row = _interopRequireDefault(__webpack_require__(164));
 
 var _tableRenderer = _interopRequireDefault(__webpack_require__(171));
 
-var _base = _interopRequireDefault(__webpack_require__(42));
+var _base = _interopRequireDefault(__webpack_require__(43));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -21944,7 +22093,7 @@ var _console = __webpack_require__(76);
 
 var _templateLiteralTag = __webpack_require__(58);
 
-var _base = _interopRequireDefault(__webpack_require__(42));
+var _base = _interopRequireDefault(__webpack_require__(43));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -23202,7 +23351,7 @@ var _event = __webpack_require__(18);
 
 var _object = __webpack_require__(2);
 
-var _browser = __webpack_require__(46);
+var _browser = __webpack_require__(42);
 
 var _eventManager = _interopRequireDefault(__webpack_require__(10));
 
@@ -28986,7 +29135,7 @@ var _numeric = __webpack_require__(430);
 
 var _date = __webpack_require__(431);
 
-var _staticRegister3 = _interopRequireDefault(__webpack_require__(45));
+var _staticRegister3 = _interopRequireDefault(__webpack_require__(46));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -29529,7 +29678,7 @@ var _ghostTable = _interopRequireDefault(__webpack_require__(124));
 
 var arrayHelpers = _interopRequireWildcard(__webpack_require__(3));
 
-var browserHelpers = _interopRequireWildcard(__webpack_require__(46));
+var browserHelpers = _interopRequireWildcard(__webpack_require__(42));
 
 var dataHelpers = _interopRequireWildcard(__webpack_require__(122));
 
@@ -29585,9 +29734,9 @@ Handsontable.DefaultSettings = _defaultSettings.default;
 Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "06/12/2018 11:32:23";
+Handsontable.buildDate = "18/12/2018 14:40:17";
 Handsontable.packageName = "handsontable";
-Handsontable.version = "6.2.1";
+Handsontable.version = "6.2.2";
 var baseVersion = "";
 
 if (baseVersion) {
@@ -29836,7 +29985,7 @@ var has = __webpack_require__(27);
 var DESCRIPTORS = __webpack_require__(20);
 var $export = __webpack_require__(0);
 var redefine = __webpack_require__(23);
-var META = __webpack_require__(44).KEY;
+var META = __webpack_require__(45).KEY;
 var $fails = __webpack_require__(4);
 var shared = __webpack_require__(93);
 var setToStringTag = __webpack_require__(60);
@@ -29849,7 +29998,7 @@ var isArray = __webpack_require__(97);
 var anObject = __webpack_require__(5);
 var isObject = __webpack_require__(7);
 var toIObject = __webpack_require__(29);
-var toPrimitive = __webpack_require__(43);
+var toPrimitive = __webpack_require__(44);
 var createDesc = __webpack_require__(50);
 var _create = __webpack_require__(55);
 var gOPNExt = __webpack_require__(134);
@@ -30174,7 +30323,7 @@ __webpack_require__(35)('getOwnPropertyNames', function () {
 
 // 19.1.2.5 Object.freeze(O)
 var isObject = __webpack_require__(7);
-var meta = __webpack_require__(44).onFreeze;
+var meta = __webpack_require__(45).onFreeze;
 
 __webpack_require__(35)('freeze', function ($freeze) {
   return function freeze(it) {
@@ -30189,7 +30338,7 @@ __webpack_require__(35)('freeze', function ($freeze) {
 
 // 19.1.2.17 Object.seal(O)
 var isObject = __webpack_require__(7);
-var meta = __webpack_require__(44).onFreeze;
+var meta = __webpack_require__(45).onFreeze;
 
 __webpack_require__(35)('seal', function ($seal) {
   return function seal(it) {
@@ -30204,7 +30353,7 @@ __webpack_require__(35)('seal', function ($seal) {
 
 // 19.1.2.15 Object.preventExtensions(O)
 var isObject = __webpack_require__(7);
-var meta = __webpack_require__(44).onFreeze;
+var meta = __webpack_require__(45).onFreeze;
 
 __webpack_require__(35)('preventExtensions', function ($preventExtensions) {
   return function preventExtensions(it) {
@@ -30382,7 +30531,7 @@ var global = __webpack_require__(6);
 var has = __webpack_require__(27);
 var cof = __webpack_require__(39);
 var inheritIfRequired = __webpack_require__(101);
-var toPrimitive = __webpack_require__(43);
+var toPrimitive = __webpack_require__(44);
 var fails = __webpack_require__(4);
 var gOPN = __webpack_require__(56).f;
 var gOPD = __webpack_require__(34).f;
@@ -31395,7 +31544,7 @@ $export($export.S, 'Date', { now: function () { return new Date().getTime(); } }
 
 var $export = __webpack_require__(0);
 var toObject = __webpack_require__(24);
-var toPrimitive = __webpack_require__(43);
+var toPrimitive = __webpack_require__(44);
 
 $export($export.P + $export.F * __webpack_require__(4)(function () {
   return new Date(NaN).toJSON() !== null
@@ -31492,7 +31641,7 @@ if (!(TO_PRIMITIVE in proto)) __webpack_require__(28)(proto, TO_PRIMITIVE, __web
 "use strict";
 
 var anObject = __webpack_require__(5);
-var toPrimitive = __webpack_require__(43);
+var toPrimitive = __webpack_require__(44);
 var NUMBER = 'number';
 
 module.exports = function (hint) {
@@ -32259,7 +32408,7 @@ var SUPPORTS_Y = !!(function () { try { return new RegExp('x', 'y'); } catch (e)
 
 // @@split logic
 __webpack_require__(85)('split', 2, function (defined, SPLIT, $split, maybeCallNative) {
-  var internalSplit = $split;
+  var internalSplit;
   if (
     'abbc'[$SPLIT](/(b)*/)[1] == 'c' ||
     'test'[$SPLIT](/(?:)/, -1)[LENGTH] != 4 ||
@@ -32305,6 +32454,8 @@ __webpack_require__(85)('split', 2, function (defined, SPLIT, $split, maybeCallN
     internalSplit = function (separator, limit) {
       return separator === undefined && limit === 0 ? [] : $split.call(this, separator, limit);
     };
+  } else {
+    internalSplit = $split;
   }
 
   return [
@@ -32514,7 +32665,7 @@ module.exports = __webpack_require__(88)(SET, function (get) {
 
 var each = __webpack_require__(36)(0);
 var redefine = __webpack_require__(23);
-var meta = __webpack_require__(44);
+var meta = __webpack_require__(45);
 var assign = __webpack_require__(135);
 var weak = __webpack_require__(155);
 var isObject = __webpack_require__(7);
@@ -32838,7 +32989,7 @@ $export($export.S + $export.F * (NEW_TARGET_BUG || ARGS_BUG), 'Reflect', {
 var dP = __webpack_require__(17);
 var $export = __webpack_require__(0);
 var anObject = __webpack_require__(5);
-var toPrimitive = __webpack_require__(43);
+var toPrimitive = __webpack_require__(44);
 
 // MS Edge has broken Reflect.defineProperty - throwing instead of returning false
 $export($export.S + $export.F * __webpack_require__(4)(function () {
@@ -34182,7 +34333,7 @@ exports.default = void 0;
 
 var _element = __webpack_require__(1);
 
-var _base = _interopRequireDefault(__webpack_require__(42));
+var _base = _interopRequireDefault(__webpack_require__(43));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -34247,7 +34398,7 @@ exports.default = void 0;
 
 var _element = __webpack_require__(1);
 
-var _base = _interopRequireDefault(__webpack_require__(42));
+var _base = _interopRequireDefault(__webpack_require__(43));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -34618,7 +34769,7 @@ var _element = __webpack_require__(1);
 
 var _array = __webpack_require__(3);
 
-var _base = _interopRequireDefault(__webpack_require__(42));
+var _base = _interopRequireDefault(__webpack_require__(43));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -35033,7 +35184,7 @@ exports.default = void 0;
 
 var _element = __webpack_require__(1);
 
-var _base = _interopRequireDefault(__webpack_require__(42));
+var _base = _interopRequireDefault(__webpack_require__(43));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -35157,7 +35308,7 @@ exports.default = void 0;
 
 var _element = __webpack_require__(1);
 
-var _base = _interopRequireDefault(__webpack_require__(42));
+var _base = _interopRequireDefault(__webpack_require__(43));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -35533,7 +35684,7 @@ exports.default = void 0;
 
 var _element = __webpack_require__(1);
 
-var _base = _interopRequireDefault(__webpack_require__(42));
+var _base = _interopRequireDefault(__webpack_require__(43));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -41028,7 +41179,7 @@ exports.__esModule = true;
 exports.registerPhraseFormatter = exports.register = register;
 exports.getPhraseFormatters = exports.getAll = getAll;
 
-var _staticRegister2 = _interopRequireDefault(__webpack_require__(45));
+var _staticRegister2 = _interopRequireDefault(__webpack_require__(46));
 
 var _pluralize = _interopRequireDefault(__webpack_require__(405));
 
@@ -41099,7 +41250,7 @@ function pluralize(phrasePropositions, pluralForm) {
 exports.__esModule = true;
 exports.createHighlight = createHighlight;
 
-var _staticRegister2 = _interopRequireDefault(__webpack_require__(45));
+var _staticRegister2 = _interopRequireDefault(__webpack_require__(46));
 
 var _activeHeader = _interopRequireDefault(__webpack_require__(407));
 
@@ -45783,13 +45934,13 @@ function (_BasePlugin) {
 
       if (isColumnSorted) {
         if ((0, _mixed.isUndefined)(nextColumnConfig)) {
-          return _toConsumableArray(currentSortConfig.slice(0, indexOfColumnToChange)).concat(_toConsumableArray(currentSortConfig.slice(indexOfColumnToChange + 1)));
+          return [].concat(_toConsumableArray(currentSortConfig.slice(0, indexOfColumnToChange)), _toConsumableArray(currentSortConfig.slice(indexOfColumnToChange + 1)));
         }
 
         if (strategyId === APPEND_COLUMN_CONFIG_STRATEGY) {
-          return _toConsumableArray(currentSortConfig.slice(0, indexOfColumnToChange)).concat(_toConsumableArray(currentSortConfig.slice(indexOfColumnToChange + 1)), [nextColumnConfig]);
+          return [].concat(_toConsumableArray(currentSortConfig.slice(0, indexOfColumnToChange)), _toConsumableArray(currentSortConfig.slice(indexOfColumnToChange + 1)), [nextColumnConfig]);
         } else if (strategyId === REPLACE_COLUMN_CONFIG_STRATEGY) {
-          return _toConsumableArray(currentSortConfig.slice(0, indexOfColumnToChange)).concat([nextColumnConfig], _toConsumableArray(currentSortConfig.slice(indexOfColumnToChange + 1)));
+          return [].concat(_toConsumableArray(currentSortConfig.slice(0, indexOfColumnToChange)), [nextColumnConfig], _toConsumableArray(currentSortConfig.slice(indexOfColumnToChange + 1)));
         }
       }
 
@@ -50197,7 +50348,9 @@ function removeRowItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_ROW, pluralForm);
     },
     callback: function callback() {
-      this.alter('remove_row', (0, _utils2.transformSelectionToRowDistance)(this.getSelected()), null, 'ContextMenu.removeRow');
+      // TODO: Please keep in mind that below `1` may be improper. The table's way of work, before change `f1747b3912ea3b21fe423fd102ca94c87db81379` was restored.
+      // There is still problem when removing more than one row.
+      this.alter('remove_row', (0, _utils2.transformSelectionToRowDistance)(this.getSelected()), 1, 'ContextMenu.removeRow');
     },
     disabled: function disabled() {
       var selected = (0, _utils.getValidSelection)(this);
@@ -52231,7 +52384,7 @@ var _localHooks = _interopRequireDefault(__webpack_require__(67));
 
 var _object = __webpack_require__(2);
 
-var _browser = __webpack_require__(46);
+var _browser = __webpack_require__(42);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -58359,7 +58512,7 @@ function (_BasePlugin) {
         end[0] = Math.max(mergedCellRow + mergedCellData.length - 1, end[0]);
         end[1] = Math.max(mergedCellColumn + mergedCellData[0].length - 1, end[1]);
       });
-      return start.concat(end);
+      return [].concat(start, end);
     }
     /**
      * Clears the merged cells from the merged cell container.
@@ -60372,7 +60525,7 @@ exports.default = void 0;
 
 var _element = __webpack_require__(1);
 
-var _browser = __webpack_require__(46);
+var _browser = __webpack_require__(42);
 
 var _base = _interopRequireDefault(__webpack_require__(15));
 

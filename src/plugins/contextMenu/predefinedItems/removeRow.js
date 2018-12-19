@@ -26,7 +26,9 @@ export default function removeRowItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_ROW, pluralForm);
     },
     callback() {
-      this.alter('remove_row', transformSelectionToRowDistance(this.getSelected()), null, 'ContextMenu.removeRow');
+      // TODO: Please keep in mind that below `1` may be improper. The table's way of work, before change `f1747b3912ea3b21fe423fd102ca94c87db81379` was restored.
+      // There is still problem when removing more than one row.
+      this.alter('remove_row', transformSelectionToRowDistance(this.getSelected()), 1, 'ContextMenu.removeRow');
     },
     disabled() {
       const selected = getValidSelection(this);
