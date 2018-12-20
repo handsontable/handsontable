@@ -607,6 +607,7 @@ class Border {
    *
    * @private
    * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    */
   changeBorderStyle(borderElement, border) {
     const style = this[borderElement].style;
@@ -642,7 +643,23 @@ class Border {
       } else {
         style.backgroundColor = borderStyleObject.color;
       }
+    }
+  }
 
+  /**
+   * Add animate class.
+   *
+   * @private
+   * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   */
+  addAnimateClass(borderElement, border) {
+    const borderStyleObject = border[borderElement];
+
+    if (borderStyleObject.style) {
+      if (hasClass(this[borderElement], 'wtBorder') && !hasClass(this[borderElement], 'hidden')) {
+        addClass(this[borderElement], `htAnimateCustomBorders${toUpperCaseFirst(borderElement)}`);
+      }
     }
   }
 

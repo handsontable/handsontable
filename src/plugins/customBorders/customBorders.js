@@ -275,6 +275,16 @@ class CustomBorders extends BasePlugin {
       this.hot.selection.highlight.addCustomSelection({ border, cellRange });
       this.hot.view.wt.draw(true);
     }
+
+    if (place) {
+      arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
+        if (border.id === customSelection.settings.id) {
+          objectEach(customSelection.instanceBorders, (borderObject) => {
+            borderObject.addAnimateClass(place, border);
+          });
+        }
+      });
+    }
   }
 
   /**

@@ -276,7 +276,7 @@
   content: '*';
   display: inline-block;
   position: relative;
-  /* The multi-line header and header with longer text need more padding to not hide arrow, 
+  /* The multi-line header and header with longer text need more padding to not hide arrow,
   we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
   padding-right: 20px;
 }
@@ -759,4 +759,34 @@ thead .htCollapseButton:after {
 .ht_clone_left .wtHolder,
 .ht_clone_bottom .wtHolder {
   overflow: hidden;
+}
+
+.htAnimateCustomBordersTop {
+  animation: pulse 1.5s ease-in-out infinite alternate;
+}
+
+.htAnimateCustomBordersRight {
+  animation: pulse 1.5s ease-in-out 0.5s infinite alternate;
+}
+
+.htAnimateCustomBordersBottom {
+  animation: pulse 1.5s ease-in-out 1.5s infinite alternate;
+}
+
+.htAnimateCustomBordersLeft {
+  animation: pulse 1.5s ease-in-out 2s infinite alternate;
+}
+
+@keyframes pulse {
+  0% { border-color: 100%; }
+  10% { border-color: 90%; }
+  20% { border-color: 80%; }
+  30% { border-color: 70%; }
+  40% { border-color: 60%; }
+  50% { border-color: 50%; }
+  60% { border-color: 40%; }
+  70% { border-color: 30%; }
+  80% { border-color: 20%; }
+  90% { border-color: 10%; }
+  100% { border-color: transparent; }
 }
