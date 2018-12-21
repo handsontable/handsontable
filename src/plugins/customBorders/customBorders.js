@@ -8,6 +8,7 @@ import {
   arrayEach,
   arrayReduce,
   arrayMap } from './../../helpers/array';
+import { isUndefined, isDefined } from './../../helpers/mixed';
 import { CellRange } from './../../3rdparty/walkontable/src';
 import * as C from './../../i18n/constants';
 import {
@@ -297,7 +298,21 @@ class CustomBorders extends BasePlugin {
    * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
    */
   prepareBorderFromCustomAdded(row, column, borderDescriptor, place) {
-    let border = createEmptyBorders(row, column);
+    let borderWidth;
+
+    if (borderDescriptor) {
+      if (isDefined(borderDescriptor.bottom) && isDefined(borderDescriptor.right)) {
+        borderWidth = (borderDescriptor.bottom.width + borderDescriptor.right.width) / 2;
+
+      } else if (isUndefined(borderDescriptor.bottom) && isDefined(borderDescriptor.right)) {
+        borderWidth = borderDescriptor.right.width;
+
+      } else if (isDefined(borderDescriptor.bottom) && isUndefined(borderDescriptor.right)) {
+        borderWidth = borderDescriptor.bottom.width;
+      }
+    }
+
+    let border = createEmptyBorders(row, column, borderWidth);
 
     if (borderDescriptor) {
       border = extendDefaultBorder(border, borderDescriptor);
@@ -322,45 +337,59 @@ class CustomBorders extends BasePlugin {
    * Prepare borders from setting (object).
    *
    * @private
-   * @param {Object} rowDecriptor Object with `range`, `left`, `right`, `top` and `bottom` properties.
+   * @param {Object} borderDescriptor Object with `range`, `left`, `right`, `top` and `bottom` properties.
    */
-  prepareBorderFromCustomAddedRange(rowDecriptor) {
-    const range = rowDecriptor.range;
+  prepareBorderFromCustomAddedRange(borderDescriptor) {
+    const range = borderDescriptor.range;
 
     rangeEach(range.from.row, range.to.row, (rowIndex) => {
       rangeEach(range.from.col, range.to.col, (colIndex) => {
-        const border = createEmptyBorders(rowIndex, colIndex);
+        let borderWidth;
+
+        if (borderDescriptor) {
+          if (isDefined(borderDescriptor.bottom) && isDefined(borderDescriptor.right)) {
+            borderWidth = (borderDescriptor.bottom.width + borderDescriptor.right.width) / 2;
+
+          } else if (isUndefined(borderDescriptor.bottom) && isDefined(borderDescriptor.right)) {
+            borderWidth = borderDescriptor.right.width;
+
+          } else if (isDefined(borderDescriptor.bottom) && isUndefined(borderDescriptor.right)) {
+            borderWidth = borderDescriptor.bottom.width;
+          }
+        }
+
+        const border = createEmptyBorders(rowIndex, colIndex, Math.round(borderWidth));
         let add = 0;
 
         if (rowIndex === range.from.row) {
           add += 1;
 
-          if (hasOwnProperty(rowDecriptor, 'top')) {
-            border.top = rowDecriptor.top;
+          if (hasOwnProperty(borderDescriptor, 'top')) {
+            border.top = borderDescriptor.top;
           }
         }
 
         if (rowIndex === range.to.row) {
           add += 1;
 
-          if (hasOwnProperty(rowDecriptor, 'bottom')) {
-            border.bottom = rowDecriptor.bottom;
+          if (hasOwnProperty(borderDescriptor, 'bottom')) {
+            border.bottom = borderDescriptor.bottom;
           }
         }
 
         if (colIndex === range.from.col) {
           add += 1;
 
-          if (hasOwnProperty(rowDecriptor, 'left')) {
-            border.left = rowDecriptor.left;
+          if (hasOwnProperty(borderDescriptor, 'left')) {
+            border.left = borderDescriptor.left;
           }
         }
 
         if (colIndex === range.to.col) {
           add += 1;
 
-          if (hasOwnProperty(rowDecriptor, 'right')) {
-            border.right = rowDecriptor.right;
+          if (hasOwnProperty(borderDescriptor, 'right')) {
+            border.right = borderDescriptor.right;
           }
         }
 
@@ -403,7 +432,7 @@ class CustomBorders extends BasePlugin {
     let bordersMeta = this.hot.getCellMeta(row, column).borders;
 
     if (!bordersMeta || bordersMeta.border === void 0) {
-      bordersMeta = createEmptyBorders(row, column);
+      bordersMeta = createEmptyBorders(row, column, 1);
     }
 
     if (remove) {

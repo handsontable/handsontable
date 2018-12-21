@@ -446,15 +446,27 @@ class Border {
     this.leftStyle.height = `${height}px`;
     this.leftStyle.display = 'block';
 
-    const delta = Math.floor(this.settings.border.width / 2);
+    let delta = Math.floor(this.settings.border.width / 2);
 
-    this.bottomStyle.top = `${top + height - delta}px`;
+    if (delta > 1) {
+      delta += delta;
+    }
+
+    let extra = 0;
+
+    if (this.settings.border.width > 3) {
+      extra = (this.settings.border.width % delta) - 1;
+    } else if (this.settings.border.width === 3) {
+      extra = 1;
+    }
+
+    this.bottomStyle.top = `${top + height - delta - extra}px`;
     this.bottomStyle.left = `${left}px`;
     this.bottomStyle.width = `${width}px`;
     this.bottomStyle.display = 'block';
 
     this.rightStyle.top = `${top}px`;
-    this.rightStyle.left = `${left + width - delta}px`;
+    this.rightStyle.left = `${left + width - delta - extra}px`;
     this.rightStyle.height = `${height + 1}px`;
     this.rightStyle.display = 'block';
 

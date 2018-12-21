@@ -38,11 +38,12 @@ export function createSingleEmptyBorder() {
 /**
  * Create default Handsontable border object.
  *
+ * @param {Number} width Average width right and bottom borders or width one of them or 1 {deafult}.
  * @returns {Object} `{{width: number, color: string, cornerVisible: boolean}}`
  */
-export function createDefaultHtBorder() {
+export function createDefaultHtBorder(width) {
   return {
-    width: 1,
+    width,
     color: '#000',
     cornerVisible: false,
   };
@@ -53,12 +54,13 @@ export function createDefaultHtBorder() {
  *
  * @param {Number} row Visual row index.
  * @param {Number} col Visual column index.
+ * @param {Number} width Average width right and bottom borders or width one of them or 1 {deafult}.
  * @returns {Object} `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`
  */
-export function createEmptyBorders(row, col) {
+export function createEmptyBorders(row, col, width = 1) {
   return {
     id: createId(row, col),
-    border: createDefaultHtBorder(),
+    border: createDefaultHtBorder(width),
     row,
     col,
     top: createSingleEmptyBorder(),
