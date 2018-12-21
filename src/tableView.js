@@ -45,21 +45,18 @@ class TableView {
     /**
      * Main <THEAD> element.
      *
-     * @private
      * @type {HTMLTableSectionElement}
      */
     this.THEAD = void 0;
     /**
      * Main <TBODY> element.
      *
-     * @private
      * @type {HTMLTableSectionElement}
      */
     this.TBODY = void 0;
     /**
      * Main Walkontable instance.
      *
-     * @private
      * @type {Walkontable}
      */
     this.wt = void 0;
@@ -96,6 +93,101 @@ class TableView {
     this.createElements();
     this.registerEvents();
     this.initializeWalkOnTable();
+  }
+
+  /**
+   * Renders WalkontableUI.
+   */
+  render() {
+    this.wt.draw(!this.instance.forceFullRender);
+    this.instance.forceFullRender = false;
+    this.instance.renderCall = false;
+  }
+
+  /**
+   * Returns td object given coordinates
+   *
+   * @param {CellCoords} coords
+   * @param {Boolean} topmost
+   * @returns {HTMLTableCellElement|null}
+   */
+  getCellAtCoords(coords, topmost) {
+    const td = this.wt.getCell(coords, topmost);
+
+    if (td < 0) { // there was an exit code (cell is out of bounds)
+      return null;
+    }
+
+    return td;
+  }
+
+  /**
+   * Scroll viewport to a cell.
+   *
+   * @param {CellCoords} coords
+   * @param {Boolean} [snapToTop]
+   * @param {Boolean} [snapToRight]
+   * @param {Boolean} [snapToBottom]
+   * @param {Boolean} [snapToLeft]
+   * @returns {Boolean}
+   */
+  scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
+    return this.wt.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
+  }
+
+  /**
+   * Scroll viewport to a column.
+   *
+   * @param {Number} column Visual column index.
+   * @param {Boolean} [snapToLeft]
+   * @param {Boolean} [snapToRight]
+   * @returns {Boolean}
+   */
+  scrollViewportHorizontally(column, snapToRight, snapToLeft) {
+    return this.wt.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+  }
+
+  /**
+   * Scroll viewport to a row.
+   *
+   * @param {Number} row Visual row index.
+   * @param {Boolean} [snapToTop]
+   * @param {Boolean} [snapToBottom]
+   * @returns {Boolean}
+   */
+  scrollViewportVertically(row, snapToTop, snapToBottom) {
+    return this.wt.scrollViewportVertically(row, snapToTop, snapToBottom);
+  }
+
+  /**
+   * Updates header cell content.
+   *
+   * @since 0.15.0-beta4
+   * @param {HTMLElement} element Element to update
+   * @param {Number} index Row index or column index
+   * @param {Function} content Function which should be returns content for this cell
+   */
+  updateCellHeader(element, index, content) {
+    let renderedIndex = index;
+    const parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
+
+    // prevent wrong calculations from SampleGenerator
+    if (element.parentNode) {
+      if (hasClass(element, 'colHeader')) {
+        renderedIndex = parentOverlay.wtTable.columnFilter.sourceToRendered(index);
+      } else if (hasClass(element, 'rowHeader')) {
+        renderedIndex = parentOverlay.wtTable.rowFilter.sourceToRendered(index);
+      }
+    }
+
+    if (renderedIndex > -1) {
+      fastInnerHTML(element, content(index));
+
+    } else {
+      // workaround for https://github.com/handsontable/handsontable/issues/1946
+      fastInnerText(element, String.fromCharCode(160));
+      addClass(element, 'cornerHeader');
+    }
   }
 
   /**
@@ -539,6 +631,7 @@ class TableView {
   /**
    * Check if selected only one cell.
    *
+   * @private
    * @returns {Boolean}
    */
   isSelectedOnlyCell() {
@@ -550,6 +643,7 @@ class TableView {
   /**
    * Checks if active cell is editing.
    *
+   * @private
    * @returns {Boolean}
    */
   isCellEdited() {
@@ -561,6 +655,7 @@ class TableView {
   /**
    * `beforeDraw` callback.
    *
+   * @private
    * @param {Boolean} force
    * @param {Boolean} skipRender
    */
@@ -582,70 +677,6 @@ class TableView {
       // this.instance.forceFullRender = did Handsontable request full render?
       this.instance.runHooks('afterRender', this.instance.forceFullRender);
     }
-  }
-
-  /**
-   * Renders WalkontableUI.
-   */
-  render() {
-    this.wt.draw(!this.instance.forceFullRender);
-    this.instance.forceFullRender = false;
-    this.instance.renderCall = false;
-  }
-
-  /**
-   * Returns td object given coordinates
-   *
-   * @param {CellCoords} coords
-   * @param {Boolean} topmost
-   * @returns {HTMLTableCellElement|null}
-   */
-  getCellAtCoords(coords, topmost) {
-    const td = this.wt.getCell(coords, topmost);
-
-    if (td < 0) { // there was an exit code (cell is out of bounds)
-      return null;
-    }
-
-    return td;
-  }
-
-  /**
-   * Scroll viewport to a cell.
-   *
-   * @param {CellCoords} coords
-   * @param {Boolean} [snapToTop]
-   * @param {Boolean} [snapToRight]
-   * @param {Boolean} [snapToBottom]
-   * @param {Boolean} [snapToLeft]
-   * @returns {Boolean}
-   */
-  scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
-    return this.wt.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
-  }
-
-  /**
-   * Scroll viewport to a column.
-   *
-   * @param {Number} column Visual column index.
-   * @param {Boolean} [snapToLeft]
-   * @param {Boolean} [snapToRight]
-   * @returns {Boolean}
-   */
-  scrollViewportHorizontally(column, snapToRight, snapToLeft) {
-    return this.wt.scrollViewportHorizontally(column, snapToRight, snapToLeft);
-  }
-
-  /**
-   * Scroll viewport to a row.
-   *
-   * @param {Number} row Visual row index.
-   * @param {Boolean} [snapToTop]
-   * @param {Boolean} [snapToBottom]
-   * @returns {Boolean}
-   */
-  scrollViewportVertically(row, snapToTop, snapToBottom) {
-    return this.wt.scrollViewportVertically(row, snapToTop, snapToBottom);
   }
 
   /**
@@ -713,38 +744,6 @@ class TableView {
     }
 
     this.instance.runHooks('afterGetColHeader', col, TH);
-  }
-
-  /**
-   * Updates header cell content.
-   *
-   * @since 0.15.0-beta4
-   * @private
-   * @param {HTMLElement} element Element to update
-   * @param {Number} index Row index or column index
-   * @param {Function} content Function which should be returns content for this cell
-   */
-  updateCellHeader(element, index, content) {
-    let renderedIndex = index;
-    const parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
-
-    // prevent wrong calculations from SampleGenerator
-    if (element.parentNode) {
-      if (hasClass(element, 'colHeader')) {
-        renderedIndex = parentOverlay.wtTable.columnFilter.sourceToRendered(index);
-      } else if (hasClass(element, 'rowHeader')) {
-        renderedIndex = parentOverlay.wtTable.rowFilter.sourceToRendered(index);
-      }
-    }
-
-    if (renderedIndex > -1) {
-      fastInnerHTML(element, content(index));
-
-    } else {
-      // workaround for https://github.com/handsontable/handsontable/issues/1946
-      fastInnerText(element, String.fromCharCode(160));
-      addClass(element, 'cornerHeader');
-    }
   }
 
   /**
