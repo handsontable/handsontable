@@ -102,7 +102,7 @@ export function _injectProductInfo(key, element) {
       if (!warningMessage) {
         if (releaseTime > keyGenTime + 1) {
           warningMessage = toSingleLine`
-          Your license key of Handsontable Pro has expired.‌‌‌‌ 
+          Your license key of Handsontable Pro has expired.‌‌‌‌
           Renew your maintenance plan at https://handsontable.com or downgrade to the previous version of the software.
           `;
         }
@@ -167,4 +167,4 @@ export function clearTextSelection() {
   } else if (document.selection) { // IE?
     document.selection.empty();
   }
-};
+}

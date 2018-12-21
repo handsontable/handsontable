@@ -42,6 +42,27 @@ class TableView {
      * @type {GridSettings}
      */
     this.settings = instance.getSettings();
+    /**
+     * Main <THEAD> element.
+     *
+     * @private
+     * @type {HTMLTableSectionElement}
+     */
+    this.THEAD = void 0;
+    /**
+     * Main <TBODY> element.
+     *
+     * @private
+     * @type {HTMLTableSectionElement}
+     */
+    this.TBODY = void 0;
+    /**
+     * Main Walkontable instance.
+     *
+     * @private
+     * @type {Walkontable}
+     */
+    this.wt = void 0;
 
     privatePool.set(this, {
       /**
@@ -64,33 +85,12 @@ class TableView {
        */
       table: void 0,
       /**
-       * Main <THEAD> element.
-       *
-       * @private
-       * @type {HTMLTableSectionElement}
-       */
-      THEAD: void 0,
-      /**
-       * Main <TBODY> element.
-       *
-       * @private
-       * @type {HTMLTableSectionElement}
-       */
-      TBODY: void 0,
-      /**
        * Main Walkontable instance.
        *
        * @private
        * @type {Walkontable}
        */
-      activeWt: void 0,
-      /**
-       * Main Walkontable instance.
-       *
-       * @private
-       * @type {Walkontable}
-       */
-      wt: void 0,
+      activeWt: void 0
     });
 
     this.createElements();
@@ -120,10 +120,10 @@ class TableView {
       addClass(priv.table, this.instance.getSettings().tableClassName);
     }
 
-    priv.THEAD = document.createElement('THEAD');
-    priv.table.appendChild(priv.THEAD);
-    priv.TBODY = document.createElement('TBODY');
-    priv.table.appendChild(priv.TBODY);
+    this.THEAD = document.createElement('THEAD');
+    priv.table.appendChild(this.THEAD);
+    this.TBODY = document.createElement('TBODY');
+    priv.table.appendChild(this.TBODY);
 
     this.instance.table = priv.table;
 
@@ -339,7 +339,7 @@ class TableView {
         });
 
         this.instance.runHooks('afterOnCellMouseDown', event, coords, TD);
-        priv.activeWt = priv.wt;
+        priv.activeWt = this.wt;
       },
       onCellContextMenu: (event, coords, TD, wt) => {
         priv.activeWt = wt;
@@ -357,7 +357,7 @@ class TableView {
 
         this.instance.runHooks('afterOnCellContextMenu', event, coords, TD);
 
-        priv.activeWt = priv.wt;
+        priv.activeWt = this.wt;
       },
       onCellMouseOut: (event, coords, TD, wt) => {
         priv.activeWt = wt;
@@ -368,7 +368,7 @@ class TableView {
         }
 
         this.instance.runHooks('afterOnCellMouseOut', event, coords, TD);
-        priv.activeWt = priv.wt;
+        priv.activeWt = this.wt;
       },
       onCellMouseOver: (event, coords, TD, wt) => {
         const blockCalculations = {
@@ -394,14 +394,14 @@ class TableView {
         }
 
         this.instance.runHooks('afterOnCellMouseOver', event, coords, TD);
-        priv.activeWt = priv.wt;
+        priv.activeWt = this.wt;
       },
       onCellMouseUp: (event, coords, TD, wt) => {
         priv.activeWt = wt;
         this.instance.runHooks('beforeOnCellMouseUp', event, coords, TD);
 
         this.instance.runHooks('afterOnCellMouseUp', event, coords, TD);
-        priv.activeWt = priv.wt;
+        priv.activeWt = this.wt;
       },
       onCellCornerMouseDown: (event) => {
         event.preventDefault();
@@ -473,26 +473,27 @@ class TableView {
 
     this.instance.runHooks('beforeInitWalkontable', walkontableConfig);
 
-    priv.wt = new Walkontable(walkontableConfig);
-    priv.activeWt = priv.wt;
+    this.wt = new Walkontable(walkontableConfig);
+    priv.activeWt = this.wt;
+    const spreader = this.wt.wtTable.spreader;
 
-    this.eventManager.addEventListener(priv.wt.wtTable.spreader, 'mousedown', (event) => {
+    this.eventManager.addEventListener(spreader, 'mousedown', (event) => {
       // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
-      if (event.target === [priv].wt.wtTable.spreader && event.which === 3) {
+      if (event.target === spreader && event.which === 3) {
         stopPropagation(event);
       }
     });
 
-    this.eventManager.addEventListener(priv.wt.wtTable.spreader, 'contextmenu', (event) => {
+    this.eventManager.addEventListener(spreader, 'contextmenu', (event) => {
       // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
-      if (event.target === priv.wt.wtTable.spreader && event.which === 3) {
+      if (event.target === spreader && event.which === 3) {
         stopPropagation(event);
       }
     });
 
     this.eventManager.addEventListener(document.documentElement, 'click', () => {
       if (this.settings.observeDOMVisibility) {
-        if (priv.wt.drawInterrupted) {
+        if (this.wt.drawInterrupted) {
           this.instance.forceFullRender = true;
           this.render();
         }
@@ -587,7 +588,7 @@ class TableView {
    * Renders WalkontableUI.
    */
   render() {
-    privatePool.get(this).wt.draw(!this.instance.forceFullRender);
+    this.wt.draw(!this.instance.forceFullRender);
     this.instance.forceFullRender = false;
     this.instance.renderCall = false;
   }
@@ -600,7 +601,7 @@ class TableView {
    * @returns {HTMLTableCellElement|null}
    */
   getCellAtCoords(coords, topmost) {
-    const td = privatePool.get(this).wt.getCell(coords, topmost);
+    const td = this.wt.getCell(coords, topmost);
 
     if (td < 0) { // there was an exit code (cell is out of bounds)
       return null;
@@ -620,7 +621,7 @@ class TableView {
    * @returns {Boolean}
    */
   scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
-    return privatePool.get(this).wt.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
+    return this.wt.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
   }
 
   /**
@@ -632,7 +633,7 @@ class TableView {
    * @returns {Boolean}
    */
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
-    return privatePool.get(this).wt.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+    return this.wt.scrollViewportHorizontally(column, snapToRight, snapToLeft);
   }
 
   /**
@@ -644,7 +645,7 @@ class TableView {
    * @returns {Boolean}
    */
   scrollViewportVertically(row, snapToTop, snapToBottom) {
-    return privatePool.get(this).wt.scrollViewportVertically(row, snapToTop, snapToBottom);
+    return this.wt.scrollViewportVertically(row, snapToTop, snapToBottom);
   }
 
   /**
@@ -725,8 +726,7 @@ class TableView {
    */
   updateCellHeader(element, index, content) {
     let renderedIndex = index;
-    const priv = privatePool.get(this);
-    const parentOverlay = priv.wt.wtOverlays.getParentOverlay(element) || priv.wt;
+    const parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
 
     // prevent wrong calculations from SampleGenerator
     if (element.parentNode) {
@@ -756,7 +756,7 @@ class TableView {
    * @return {Number}
    */
   maximumVisibleElementWidth(leftOffset) {
-    const workspaceWidth = privatePool.get(this).wt.wtViewport.getWorkspaceWidth();
+    const workspaceWidth = this.wt.wtViewport.getWorkspaceWidth();
     const maxWidth = workspaceWidth - leftOffset;
 
     return maxWidth > 0 ? maxWidth : 0;
@@ -771,7 +771,7 @@ class TableView {
    * @return {Number}
    */
   maximumVisibleElementHeight(topOffset) {
-    const workspaceHeight = privatePool.get(this).wt.wtViewport.getWorkspaceHeight();
+    const workspaceHeight = this.wt.wtViewport.getWorkspaceHeight();
     const maxHeight = workspaceHeight - topOffset;
 
     return maxHeight > 0 ? maxHeight : 0;
@@ -786,7 +786,7 @@ class TableView {
   mainViewIsActive() {
     const priv = privatePool.get(this);
 
-    return priv.wt === priv.activeWt;
+    return this.wt === priv.activeWt;
   }
 
   /**
@@ -795,7 +795,7 @@ class TableView {
    * @private
    */
   destroy() {
-    privatePool.get(this).wt.destroy();
+    this.wt.destroy();
     this.eventManager.destroy();
   }
 }
