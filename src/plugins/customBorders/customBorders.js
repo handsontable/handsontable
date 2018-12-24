@@ -154,8 +154,9 @@ class CustomBorders extends BasePlugin {
     *
     * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
     * @param {Object} borderObject Object with `top`, `right`, `bottom` and `left` properties.
+    * @param {String} animationClass If present borders are animated.
     */
-  setBorders(selectionRanges, borderObject) {
+  setBorders(selectionRanges, borderObject, animationClass) {
     const defaultBorderKeys = ['top', 'right', 'bottom', 'left'];
     const borderKeys = borderObject ? Object.keys(borderObject) : defaultBorderKeys;
     const selectionType = detectSelectionType(selectionRanges);
@@ -167,7 +168,7 @@ class CustomBorders extends BasePlugin {
       for (let row = rowStart; row <= rowEnd; row += 1) {
         for (let col = columnStart; col <= columnEnd; col += 1) {
           arrayEach(borderKeys, (borderKey) => {
-            this.prepareBorderFromCustomAdded(row, col, borderObject, borderKey);
+            this.prepareBorderFromCustomAdded(row, col, borderObject, borderKey, animationClass);
           });
         }
       }
@@ -256,8 +257,9 @@ class CustomBorders extends BasePlugin {
    * @private
    * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
+   * @param {String} animationClass If present borders are animated.
    */
-  insertBorderIntoSettings(border, place) {
+  insertBorderIntoSettings(border, place, animationClass) {
     const hasSavedBorders = this.checkSavedBorders(border);
 
     if (!hasSavedBorders) {
@@ -276,11 +278,11 @@ class CustomBorders extends BasePlugin {
       this.hot.view.wt.draw(true);
     }
 
-    if (place) {
+    if (animationClass) {
       arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
         if (border.id === customSelection.settings.id) {
           objectEach(customSelection.instanceBorders, (borderObject) => {
-            borderObject.addAnimateClass(place, border);
+            borderObject.addAnimateClass(place);
           });
         }
       });
@@ -295,8 +297,9 @@ class CustomBorders extends BasePlugin {
    * @param {Number} column Visual column index.
    * @param {Object} borderDescriptor Object with `row` and `col`, `left`, `right`, `top` and `bottom` properties.
    * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
+   * @param {String} animationClass If present borders are animated.
    */
-  prepareBorderFromCustomAdded(row, column, borderDescriptor, place) {
+  prepareBorderFromCustomAdded(row, column, borderDescriptor, place, animationClass) {
     let border = createEmptyBorders(row, column);
 
     if (borderDescriptor) {
@@ -321,7 +324,7 @@ class CustomBorders extends BasePlugin {
 
     this.hot.setCellMeta(row, column, 'borders', border);
 
-    this.insertBorderIntoSettings(border, place);
+    this.insertBorderIntoSettings(border, place, animationClass);
   }
 
   /**
