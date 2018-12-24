@@ -8,7 +8,6 @@ import {
   arrayEach,
   arrayReduce,
   arrayMap } from './../../helpers/array';
-import { isUndefined, isDefined } from './../../helpers/mixed';
 import { CellRange } from './../../3rdparty/walkontable/src';
 import * as C from './../../i18n/constants';
 import {
@@ -298,23 +297,15 @@ class CustomBorders extends BasePlugin {
    * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
    */
   prepareBorderFromCustomAdded(row, column, borderDescriptor, place) {
-    let borderWidth;
+    let border = createEmptyBorders(row, column);
 
     if (borderDescriptor) {
-      if (isDefined(borderDescriptor.bottom) && isDefined(borderDescriptor.right)) {
-        borderWidth = (borderDescriptor.bottom.width + borderDescriptor.right.width) / 2;
+      const borderObject = borderDescriptor.bottom || borderDescriptor.right;
 
-      } else if (isUndefined(borderDescriptor.bottom) && isDefined(borderDescriptor.right)) {
-        borderWidth = borderDescriptor.right.width;
-
-      } else if (isDefined(borderDescriptor.bottom) && isUndefined(borderDescriptor.right)) {
-        borderWidth = borderDescriptor.bottom.width;
+      if (borderObject) {
+        border = createEmptyBorders(row, column, borderObject.width);
       }
-    }
 
-    let border = createEmptyBorders(row, column, borderWidth);
-
-    if (borderDescriptor) {
       border = extendDefaultBorder(border, borderDescriptor);
 
       arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
@@ -345,20 +336,13 @@ class CustomBorders extends BasePlugin {
     rangeEach(range.from.row, range.to.row, (rowIndex) => {
       rangeEach(range.from.col, range.to.col, (colIndex) => {
         let borderWidth;
+        const borderObject = borderDescriptor.bottom || borderDescriptor.right;
 
-        if (borderDescriptor) {
-          if (isDefined(borderDescriptor.bottom) && isDefined(borderDescriptor.right)) {
-            borderWidth = (borderDescriptor.bottom.width + borderDescriptor.right.width) / 2;
-
-          } else if (isUndefined(borderDescriptor.bottom) && isDefined(borderDescriptor.right)) {
-            borderWidth = borderDescriptor.right.width;
-
-          } else if (isDefined(borderDescriptor.bottom) && isUndefined(borderDescriptor.right)) {
-            borderWidth = borderDescriptor.bottom.width;
-          }
+        if (borderObject) {
+          borderWidth = borderObject.width;
         }
 
-        const border = createEmptyBorders(rowIndex, colIndex, Math.round(borderWidth));
+        const border = createEmptyBorders(rowIndex, colIndex, borderWidth);
         let add = 0;
 
         if (rowIndex === range.from.row) {
@@ -432,7 +416,7 @@ class CustomBorders extends BasePlugin {
     let bordersMeta = this.hot.getCellMeta(row, column).borders;
 
     if (!bordersMeta || bordersMeta.border === void 0) {
-      bordersMeta = createEmptyBorders(row, column, 1);
+      bordersMeta = createEmptyBorders(row, column);
     }
 
     if (remove) {
