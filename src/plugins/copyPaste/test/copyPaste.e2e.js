@@ -743,8 +743,6 @@ describe('CopyPaste', () => {
 
       plugin.paste('2/5/2018\r\n2/11/2018\r\n22/11/2018');
 
-      // triggerPaste('2/5/2018\r\n2/11/2018\r\n22/11/2018');
-
       await sleep(300);
 
       expect(getDataAtCell(0, 0)).toEqual('02/05/2018');

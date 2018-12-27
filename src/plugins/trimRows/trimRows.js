@@ -104,6 +104,7 @@ class TrimRows extends BasePlugin {
     this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
     this.addHook('afterRemoveRow', () => this.onAfterRemoveRow());
     this.addHook('afterLoadData', firstRun => this.onAfterLoadData(firstRun));
+    this.addHook('beforePaste', (data, coords) => this.onBeforePaste(data, coords));
 
     super.enablePlugin();
   }
@@ -306,6 +307,16 @@ class TrimRows extends BasePlugin {
     if (!firstRun) {
       this.rowsMapper.createMap(this.hot.countSourceRows());
     }
+  }
+
+  /**
+   * `beforePaste` hook callback.
+   *
+   * @private
+   * @param {Array} data An array of arrays which contains data to paste.
+   */
+  onBeforePaste(data, coords) {
+    this.hot.runHooks('afterCreateRow', coords[0].startRow, data.length);
   }
 
   /**
