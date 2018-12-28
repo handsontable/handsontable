@@ -38,8 +38,6 @@ export default function dateValidator(value, callback) {
       const correctedValue = correctFormat(valueToValidate, this.dateFormat);
       const row = this.instance.toVisualRow(this.row);
       const column = this.instance.toVisualColumn(this.col);
-      // const row = visualRow !== null ? visualRow : this.row;
-      // const column = visualColumn !== null ? visualColumn : this.col;
 
       this.instance.setDataAtCell(row, column, correctedValue, 'dateValidator');
       valid = true;

@@ -53,8 +53,6 @@ export default function timeValidator(value, callback) {
       const correctedValue = date.format(timeFormat);
       const row = this.instance.toVisualRow(this.row);
       const column = this.instance.toVisualColumn(this.col);
-      // const row = visualRow !== null ? visualRow : this.row;
-      // const column = visualColumn !== null ? visualColumn : this.col;
 
       this.instance.setDataAtCell(row, column, correctedValue, 'timeValidator');
       valid = true;
