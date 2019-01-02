@@ -225,7 +225,7 @@ class DataMap {
    *
    * @param {Object} prop
    * @fires Hooks#modifyCol
-   * @returns {*}
+   * @returns {Number}
    */
   propToCol(prop) {
     let col;
@@ -566,6 +566,7 @@ class DataMap {
    *
    * @param {Number} row Visual row index.
    * @param {Number} prop
+   * @returns {*}
    */
   get(row, prop) {
     const physicalRow = this.instance.runHooks('modifyRow', row);
