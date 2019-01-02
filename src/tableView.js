@@ -1,5 +1,6 @@
 import {
   addClass,
+  clearTextSelection,
   empty,
   fastInnerHTML,
   fastInnerText,
@@ -7,15 +8,19 @@ import {
   hasClass,
   isChildOf,
   isInput,
-  isOutsideInput
+  isOutsideInput,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
-import { clearTextSelection } from './helpers/mixed';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 
 const privatePool = new WeakMap();
+
+/**
+ * @class TableView
+ * @private
+ */
 class TableView {
   /**
    * @param {Hanstontable} instance Instance of {@link Handsontable}
@@ -92,7 +97,7 @@ class TableView {
 
     this.createElements();
     this.registerEvents();
-    this.initializeWalkOnTable();
+    this.initializeWalkontable();
   }
 
   /**
@@ -349,7 +354,7 @@ class TableView {
    *
    * @private
    */
-  initializeWalkOnTable() {
+  initializeWalkontable() {
     const priv = privatePool.get(this);
     const walkontableConfig = {
       debug: () => this.settings.debug,
@@ -598,6 +603,7 @@ class TableView {
    *
    * @private
    * @param {HTMLElement} el
+   * @returns {Boolean}
    */
   isTextSelectionAllowed(el) {
     if (isInput(el)) {
