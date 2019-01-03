@@ -27,6 +27,27 @@ describe('Core_validate', () => {
     ];
   };
 
+  it('should not throw an exception if the instance was destroyed in the meantime when validator was called', (done) => {
+    const hot = handsontable({
+      data: arrayOfObjects(),
+      validator(value, callback) {
+        setTimeout(() => {
+          callback(true);
+        }, 300);
+      }
+    });
+
+    expect(async() => {
+      hot.validateCells();
+      await sleep(100);
+
+      hot.destroy();
+      await sleep(500);
+      spec().$container.remove();
+      done();
+    }).not.toThrow();
+  });
+
   it('should call beforeValidate', () => {
     let fired = null;
 
