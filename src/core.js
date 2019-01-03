@@ -1064,7 +1064,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       // To provide consistent behaviour, validation should be always asynchronous
       instance._registerImmediate(() => {
-        console.log('validateCell._registerImmediate');
         validator.call(cellProperties, value, (valid) => {
           if (!instance) {
             return false;
