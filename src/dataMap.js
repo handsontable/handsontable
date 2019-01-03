@@ -211,7 +211,7 @@ class DataMap {
    * @returns {Number} Physical column index.
    */
   colToProp(col) {
-    const physicalColumn = this.instance.runHooks('modifyCol', col);
+    const physicalColumn = this.instance.toPhysicalColumn(col);
 
     if (!isNaN(physicalColumn) && this.colToPropCache && typeof this.colToPropCache[physicalColumn] !== 'undefined') {
       return this.colToPropCache[physicalColumn];
@@ -235,7 +235,7 @@ class DataMap {
     } else {
       col = this.propToColCache.get(prop);
     }
-    col = this.instance.runHooks('unmodifyCol', col);
+    col = this.instance.toVisualColumn(col);
 
     return col;
   }
@@ -569,7 +569,7 @@ class DataMap {
    * @returns {*}
    */
   get(row, prop) {
-    const physicalRow = this.instance.runHooks('modifyRow', row);
+    const physicalRow = this.instance.toPhysicalRow(row);
 
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)
@@ -718,7 +718,7 @@ class DataMap {
     let row;
 
     while (physicRow < totalRows && rowsToRemove) {
-      row = this.instance.runHooks('modifyRow', physicRow);
+      row = this.instance.toPhysicalRow(physicRow);
       logicRows.push(row);
 
       rowsToRemove -= 1;
@@ -741,7 +741,7 @@ class DataMap {
     let colsToRemove = amount;
 
     while (physicalCol < totalCols && colsToRemove) {
-      const col = this.instance.runHooks('modifyCol', physicalCol);
+      const col = this.instance.toPhysicalColumn(physicalCol);
 
       visualCols.push(col);
 
@@ -798,7 +798,7 @@ class DataMap {
       this.latestSourceRowsCount = length;
       if (this.cachedLength === null || reValidate) {
         rangeEach(length - 1, (row) => {
-          const physicalRow = this.instance.runHooks('modifyRow', row);
+          const physicalRow = this.instance.toPhysicalRow(row);
 
           if (physicalRow === null) {
             length -= 1;
@@ -867,7 +867,7 @@ class DataMap {
 
     for (r = Math.min(start.row, end.row); r <= rlen; r++) {
       row = [];
-      const physicalRow = this.instance.runHooks('modifyRow', r);
+      const physicalRow = this.instance.toPhysicalRow(r);
 
       for (c = Math.min(start.col, end.col); c <= clen; c++) {
 
