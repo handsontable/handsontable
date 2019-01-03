@@ -1295,7 +1295,7 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('should remove htInvalid class properly after cancelling change, when physical indexes are not equal to visual indexes', (done) => {
+  it('should remove htInvalid class properly after cancelling change, when physical indexes are not equal to visual indexes', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       columnSorting: {
@@ -1317,11 +1317,10 @@ describe('Core_validate', () => {
 
     keyDown('enter');
 
-    setTimeout(() => {
-      const $cell = $(getCell(0, 0));
-      expect($cell.hasClass('htInvalid')).toEqual(false);
-      done();
-    }, 200);
+    await sleep(300);
+
+    const $cell = $(getCell(0, 0));
+    expect($cell.hasClass('htInvalid')).toEqual(false);
   });
 
   it('should not attempt to remove the htInvalid class if the validated cell is no longer rendered', (done) => {

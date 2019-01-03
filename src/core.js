@@ -1063,8 +1063,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
       // To provide consistent behaviour, validation should be always asynchronous
-      instance._registerTimeout(setTimeout(() => {
+      instance._registerImmediate(() => {
+        console.log('validateCell._registerImmediate');
         validator.call(cellProperties, value, (valid) => {
+          if (!instance) {
+            return false;
+          }
           // eslint-disable-next-line no-param-reassign
           valid = instance.runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
           cellProperties.valid = valid;
@@ -1072,14 +1076,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           done(valid);
           instance.runHooks('postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
         });
-      }, 0));
+      });
 
     } else {
       // resolve callback even if validator function was not found
-      instance._registerTimeout(setTimeout(() => {
+      instance._registerImmediate(() => {
         cellProperties.valid = true;
         done(cellProperties.valid, false);
-      }, 0));
+      });
     }
   };
 
