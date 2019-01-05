@@ -254,11 +254,11 @@ class AutoColumnSize extends BasePlugin {
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
-        this.hot.view.wt.wtOverlays.adjustElementsSize(true);
-        // tmp
-        if (this.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
-          this.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
-        }
+        // this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+        // // tmp
+        // if (this.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
+        //   this.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
+        // }
       }
     };
 

@@ -107,18 +107,24 @@ describe('ColHeader', () => {
 
   it('should hide columns headers after updateSettings', () => {
     const hot = handsontable({
-      startCols: 5,
+      startCols: 100,
+      startRows: 100,
+      width: 250,
+      height: 200,
       colHeaders: true
     });
+    let headers = getHtCore().find('thead th').length;
 
-    expect(getHtCore().find('thead th').length).toEqual(5);
-    expect(getTopClone().find('thead th').length).toEqual(5);
+    expect(headers).toBeGreaterThan(0);
+    expect(getTopClone().find('thead th').length).toEqual(headers);
 
     hot.updateSettings({
       colHeaders: false
     });
 
-    expect(getHtCore().find('thead th').length).toEqual(0);
+    headers = getHtCore().find('thead th').length;
+
+    expect(headers).toEqual(0);
     expect(getTopClone().width()).toEqual(0);
   });
 

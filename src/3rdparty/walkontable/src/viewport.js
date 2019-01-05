@@ -189,7 +189,11 @@ class Viewport {
    * @returns {Number}
    */
   getColumnHeaderHeight() {
-    if (isNaN(this.columnHeaderHeight)) {
+    const columnHeaders = this.instance.getSetting('columnHeaders');
+
+    if (!columnHeaders.length) {
+      this.columnHeaderHeight = 0;
+    } else if (isNaN(this.columnHeaderHeight)) {
       this.columnHeaderHeight = outerHeight(this.wot.wtTable.THEAD);
     }
 
