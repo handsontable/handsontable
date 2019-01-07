@@ -1024,7 +1024,7 @@ export function isOutsideInput(element) {
  * @param {HTMLElement} element - DOM element
  */
 export function checkToFocus(element) {
-  const activeElement = document.activeElement;
+  const activeElement = document && document.activeElement;
 
   if (!isOutsideInput(activeElement)) {
     element.select();
