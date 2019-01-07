@@ -75,7 +75,9 @@ class FocusableWrapper {
 
     if (!isMobileBrowser()) {
       setImmediate(() => {
-        checkToFocus(this.mainElement);
+        if (this.mainElement) {
+          checkToFocus(this.mainElement);
+        }
       });
     }
   }
