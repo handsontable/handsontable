@@ -41,14 +41,14 @@ class EditorManager {
      */
     this.eventManager = new EventManager(instance);
     /**
-     * Determines if EditorManager have destroyed.
+     * Determines if EditorManager is destroyed.
      *
      * @private
      * @type {Boolean}
      */
     this.destroyed = false;
     /**
-     * Determines if EditorManager have locked.
+     * Determines if EditorManager is locked.
      *
      * @private
      * @type {Boolean}
@@ -134,8 +134,7 @@ class EditorManager {
       return;
     }
 
-    const row = this.instance.selection.selectedRange.current().highlight.row;
-    const col = this.instance.selection.selectedRange.current().highlight.col;
+    const { row, col } = this.instance.selection.selectedRange.current().highlight;
     const prop = this.instance.colToProp(col);
     const td = this.instance.getCell(row, col);
     const originalValue = this.instance.getSourceDataAtCell(this.instance.runHooks('modifyRow', row), col);
@@ -187,12 +186,12 @@ class EditorManager {
    * Close editor, finish editing cell.
    *
    * @param {Boolean} restoreOriginalValue
-   * @param {Boolean} [ctrlDown]
+   * @param {Boolean} [isCtrlPressed]
    * @param {Function} [callback]
    */
-  closeEditor(restoreOriginalValue, ctrlDown, callback) {
+  closeEditor(restoreOriginalValue, isCtrlPressed, callback) {
     if (this.activeEditor) {
-      this.activeEditor.finishEditing(restoreOriginalValue, ctrlDown, callback);
+      this.activeEditor.finishEditing(restoreOriginalValue, isCtrlPressed, callback);
 
     } else if (callback) {
       callback(false);
@@ -202,31 +201,31 @@ class EditorManager {
   /**
    * Close editor and save changes.
    *
-   * @param {Boolean} ctrlDown
+   * @param {Boolean} isCtrlPressed
    */
-  closeEditorAndSaveChanges(ctrlDown) {
-    this.closeEditor(false, ctrlDown);
+  closeEditorAndSaveChanges(isCtrlPressed) {
+    this.closeEditor(false, isCtrlPressed);
   }
 
   /**
    * Close editor and restore original value.
    *
-   * @param {Boolean} ctrlDown
+   * @param {Boolean} isCtrlPressed
    */
-  closeEditorAndRestoreOriginalValue(ctrlDown) {
-    return this.closeEditor(true, ctrlDown);
+  closeEditorAndRestoreOriginalValue(isCtrlPressed) {
+    return this.closeEditor(true, isCtrlPressed);
   }
 
   /**
    * Controls selection's behaviour after clicking `Enter`.
    *
    * @private
-   * @param {Boolean} shiftKey
+   * @param {Boolean} isShiftPressed
    */
-  moveSelectionAfterEnter(shiftKey) {
+  moveSelectionAfterEnter(isShiftPressed) {
     const enterMoves = typeof this.priv.settings.enterMoves === 'function' ? this.priv.settings.enterMoves(event) : this.priv.settings.enterMoves;
 
-    if (shiftKey) {
+    if (isShiftPressed) {
       // move selection up
       this.selection.transformStart(-enterMoves.row, -enterMoves.col);
     } else {
@@ -239,10 +238,10 @@ class EditorManager {
    * Controls selection behaviour after clicking `arrow up`.
    *
    * @private
-   * @param {Boolean} shiftKey
+   * @param {Boolean} isShiftPressed
    */
-  moveSelectionUp(shiftKey) {
-    if (shiftKey) {
+  moveSelectionUp(isShiftPressed) {
+    if (isShiftPressed) {
       this.selection.transformEnd(-1, 0);
     } else {
       this.selection.transformStart(-1, 0);
@@ -253,10 +252,10 @@ class EditorManager {
    * Controls selection's behaviour after clicking `arrow down`.
    *
    * @private
-   * @param {Boolean} shiftKey
+   * @param {Boolean} isShiftPressed
    */
-  moveSelectionDown(shiftKey) {
-    if (shiftKey) {
+  moveSelectionDown(isShiftPressed) {
+    if (isShiftPressed) {
       // expanding selection down with shift
       this.selection.transformEnd(1, 0);
     } else {
@@ -268,10 +267,10 @@ class EditorManager {
    * Controls selection's behaviour after clicking `arrow right`.
    *
    * @private
-   * @param {Boolean} shiftKey
+   * @param {Boolean} isShiftPressed
    */
-  moveSelectionRight(shiftKey) {
-    if (shiftKey) {
+  moveSelectionRight(isShiftPressed) {
+    if (isShiftPressed) {
       this.selection.transformEnd(0, 1);
     } else {
       this.selection.transformStart(0, 1);
@@ -282,10 +281,10 @@ class EditorManager {
    * Controls selection's behaviour after clicking `arrow left`.
    *
    * @private
-   * @param {Boolean} shiftKey
+   * @param {Boolean} isShiftPressed
    */
-  moveSelectionLeft(shiftKey) {
-    if (shiftKey) {
+  moveSelectionLeft(isShiftPressed) {
+    if (isShiftPressed) {
       this.selection.transformEnd(0, -1);
     } else {
       this.selection.transformStart(0, -1);
@@ -319,21 +318,24 @@ class EditorManager {
       return;
     }
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+    const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (this.activeEditor && !this.activeEditor.isWaiting()) {
-      if (!isMetaKey(event.keyCode) && !isCtrlMetaKey(event.keyCode) && !ctrlDown && !this.isEditorOpened()) {
+      if (!isMetaKey(event.keyCode) && !isCtrlMetaKey(event.keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
         this.openEditor('', event);
 
         return;
       }
     }
-    const rangeModifier = event.shiftKey ? this.selection.setRangeEnd : this.selection.setRangeStart;
+
+    const isShiftPressed = event.shiftKey;
+
+    const rangeModifier = isShiftPressed ? this.selection.setRangeEnd : this.selection.setRangeStart;
     let tabMoves;
 
     switch (event.keyCode) {
       case KEY_CODES.A:
-        if (!this.isEditorOpened() && ctrlDown) {
+        if (!this.isEditorOpened() && isCtrlPressed) {
           this.instance.selectAll();
 
           event.preventDefault();
@@ -343,9 +345,9 @@ class EditorManager {
 
       case KEY_CODES.ARROW_UP:
         if (this.isEditorOpened() && !this.activeEditor.isWaiting()) {
-          this.closeEditorAndSaveChanges(ctrlDown);
+          this.closeEditorAndSaveChanges(isCtrlPressed);
         }
-        this.moveSelectionUp(event.shiftKey);
+        this.moveSelectionUp(isShiftPressed);
 
         event.preventDefault();
         stopPropagation(event);
@@ -353,10 +355,10 @@ class EditorManager {
 
       case KEY_CODES.ARROW_DOWN:
         if (this.isEditorOpened() && !this.activeEditor.isWaiting()) {
-          this.closeEditorAndSaveChanges(ctrlDown);
+          this.closeEditorAndSaveChanges(isCtrlPressed);
         }
 
-        this.moveSelectionDown(event.shiftKey);
+        this.moveSelectionDown(isShiftPressed);
 
         event.preventDefault();
         stopPropagation(event);
@@ -364,10 +366,10 @@ class EditorManager {
 
       case KEY_CODES.ARROW_RIGHT:
         if (this.isEditorOpened() && !this.activeEditor.isWaiting()) {
-          this.closeEditorAndSaveChanges(ctrlDown);
+          this.closeEditorAndSaveChanges(isCtrlPressed);
         }
 
-        this.moveSelectionRight(event.shiftKey);
+        this.moveSelectionRight(isShiftPressed);
 
         event.preventDefault();
         stopPropagation(event);
@@ -375,10 +377,10 @@ class EditorManager {
 
       case KEY_CODES.ARROW_LEFT:
         if (this.isEditorOpened() && !this.activeEditor.isWaiting()) {
-          this.closeEditorAndSaveChanges(ctrlDown);
+          this.closeEditorAndSaveChanges(isCtrlPressed);
         }
 
-        this.moveSelectionLeft(event.shiftKey);
+        this.moveSelectionLeft(isShiftPressed);
 
         event.preventDefault();
         stopPropagation(event);
@@ -387,7 +389,7 @@ class EditorManager {
       case KEY_CODES.TAB:
         tabMoves = typeof this.priv.settings.tabMoves === 'function' ? this.priv.settings.tabMoves(event) : this.priv.settings.tabMoves;
 
-        if (event.shiftKey) {
+        if (isShiftPressed) {
           // move selection left
           this.selection.transformStart(-tabMoves.row, -tabMoves.col);
         } else {
@@ -420,9 +422,9 @@ class EditorManager {
         if (this.isEditorOpened()) {
 
           if (this.activeEditor && this.activeEditor.state !== EditorState.WAITING) {
-            this.closeEditorAndSaveChanges(ctrlDown);
+            this.closeEditorAndSaveChanges(isCtrlPressed);
           }
-          this.moveSelectionAfterEnter(event.shiftKey);
+          this.moveSelectionAfterEnter(isShiftPressed);
 
         } else if (this.instance.getSettings().enterBeginsEditing) {
           if (this.activeEditor) {
@@ -431,7 +433,7 @@ class EditorManager {
           this.openEditor(null, event);
 
         } else {
-          this.moveSelectionAfterEnter(event.shiftKey);
+          this.moveSelectionAfterEnter(isShiftPressed);
         }
         event.preventDefault(); // don't add newline to field
         stopImmediatePropagation(event); // required by HandsontableEditor
@@ -439,7 +441,7 @@ class EditorManager {
 
       case KEY_CODES.ESCAPE:
         if (this.isEditorOpened()) {
-          this.closeEditorAndRestoreOriginalValue(ctrlDown);
+          this.closeEditorAndRestoreOriginalValue(isCtrlPressed);
 
           this.activeEditor.focus();
         }
