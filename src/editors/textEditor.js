@@ -10,7 +10,7 @@ import {
   setCaretPosition,
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
-  isOutsideInput
+  checkToFocus
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
 import { isMobileBrowser } from './../helpers/browser';
@@ -199,11 +199,7 @@ class TextEditor extends BaseEditor {
     };
 
     if (safeFocus) {
-      const activeElement = document.activeElement;
-
-      if (!isOutsideInput(activeElement)) {
-        focus();
-      }
+      checkToFocus(this.TEXTAREA);
 
     } else {
       focus();

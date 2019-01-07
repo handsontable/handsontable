@@ -1017,3 +1017,17 @@ export function isInput(element) {
 export function isOutsideInput(element) {
   return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
 }
+
+/**
+ * Check if the given DOM element to focus.
+ *
+ * @param {HTMLElement} element - DOM element
+ */
+export function checkToFocus(element) {
+  const activeElement = document.activeElement;
+
+  if (!isOutsideInput(activeElement)) {
+    element.select();
+    setCaretPosition(element, element.value.length);
+  }
+}
