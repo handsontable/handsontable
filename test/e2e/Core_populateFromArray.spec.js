@@ -108,6 +108,24 @@ describe('Core_populateFromArray', () => {
     expect(output).toEqual([[0, 0, ['2011'], []]]);
   });
 
+  it('should populate value for array data when bound data begins as empty with new row', () => {
+    // Resolving issue #5675: https://github.com/handsontable/handsontable/issues/5675
+    let output = null;
+    const dataArray = []; // arrayOfArrays();
+    // dataArray[0][0] = ['2011'];
+
+    handsontable({
+      data: dataArray,
+      afterChange(changes) {
+        output = changes;
+      },
+      minSpareRows: 1
+    });
+    populateFromArray(0, 0, [[['2011']]], 0, 0);
+
+    expect(output).toEqual([[0, 0, undefined, ['2011']]]);
+  });
+
   it('should shift values down', () => {
     handsontable({
       data: arrayOfArrays(),
