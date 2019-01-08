@@ -70,6 +70,9 @@ let activeGuid = null;
  * ---
  */
 export default function Core(rootElement, userSettings, rootInstanceSymbol = false) {
+  // const ownerDocument = rootElement.ownerDocument;
+  // console.log(ownerDocument);
+
   let preventScrollingToCell = false;
   let instance = this;
   let GridSettings = function() {};

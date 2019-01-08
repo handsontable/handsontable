@@ -258,13 +258,13 @@ class TableView {
       }
     });
 
-    this.eventManager.addEventListener(document.documentElement, 'keyup', (event) => {
+    this.eventManager.addEventListener(this.instance.rootElement.ownerDocument.documentElement, 'keyup', (event) => {
       if (this.instance.selection.isInProgress() && !event.shiftKey) {
         this.instance.selection.finish();
       }
     });
 
-    this.eventManager.addEventListener(document.documentElement, 'mouseup', (event) => {
+    this.eventManager.addEventListener(this.instance.rootElement.ownerDocument.documentElement, 'mouseup', (event) => {
       if (this.instance.selection.isInProgress() && isLeftClick(event)) { // is left mouse button
         this.instance.selection.finish();
       }
@@ -276,7 +276,7 @@ class TableView {
       }
     });
 
-    this.eventManager.addEventListener(document.documentElement, 'contextmenu', (event) => {
+    this.eventManager.addEventListener(this.instance.rootElement.ownerDocument.documentElement, 'contextmenu', (event) => {
       if (this.instance.selection.isInProgress() && isRightClick(event)) {
         this.instance.selection.finish();
 
@@ -284,7 +284,7 @@ class TableView {
       }
     });
 
-    this.eventManager.addEventListener(document.documentElement, 'touchend', () => {
+    this.eventManager.addEventListener(this.instance.rootElement.ownerDocument.documentElement, 'touchend', () => {
       if (this.instance.selection.isInProgress()) {
         this.instance.selection.finish();
       }
@@ -292,7 +292,7 @@ class TableView {
       priv.mouseDown = false;
     });
 
-    this.eventManager.addEventListener(document.documentElement, 'mousedown', (event) => {
+    this.eventManager.addEventListener(this.instance.rootElement.ownerDocument.documentElement, 'mousedown', (event) => {
       const originalTarget = event.target;
       const eventX = event.x || event.clientX;
       const eventY = event.y || event.clientY;
@@ -311,7 +311,7 @@ class TableView {
           return;
         }
       } else {
-        while (next !== document.documentElement) {
+        while (next !== this.instance.rootElement.ownerDocument.documentElement) {
           if (next === null) {
             if (event.isTargetWebComponent) {
               break;
@@ -588,7 +588,7 @@ class TableView {
       }
     });
 
-    this.eventManager.addEventListener(document.documentElement, 'click', () => {
+    this.eventManager.addEventListener(this.instance.rootElement.ownerDocument.documentElement, 'click', () => {
       if (this.settings.observeDOMVisibility) {
         if (this.wt.drawInterrupted) {
           this.instance.forceFullRender = true;

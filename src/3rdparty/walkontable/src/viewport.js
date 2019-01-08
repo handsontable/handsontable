@@ -41,12 +41,13 @@ class Viewport {
    * @returns {number}
    */
   getWorkspaceHeight() {
+    const currentDocument = this.wot.wtTable.wtRootElement.ownerDocument;
     const trimmingContainer = this.instance.wtOverlays.topOverlay.trimmingContainer;
     let elemHeight;
     let height = 0;
 
     if (trimmingContainer === window) {
-      height = document.documentElement.clientHeight;
+      height = currentDocument.documentElement.clientHeight;
 
     } else {
       elemHeight = outerHeight(trimmingContainer);
@@ -59,11 +60,12 @@ class Viewport {
 
   getWorkspaceWidth() {
     let width;
+    const currentDocument = this.wot.wtTable.wtRootElement.ownerDocument;
     const totalColumns = this.wot.getSetting('totalColumns');
     const trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
     let overflow;
     const stretchSetting = this.wot.getSetting('stretchH');
-    const docOffsetWidth = document.documentElement.offsetWidth;
+    const docOffsetWidth = currentDocument.documentElement.offsetWidth;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (preventOverflow) {
@@ -81,7 +83,7 @@ class Viewport {
       // otherwise continue below, which will allow stretching
       // this is used in `scroll_window.html`
       // TODO test me
-      return document.documentElement.clientWidth;
+      return currentDocument.documentElement.clientWidth;
     }
 
     if (trimmingContainer !== window) {

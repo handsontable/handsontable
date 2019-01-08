@@ -454,11 +454,13 @@ export function fastInnerText(element, content) {
  * @returns {boolean}
  */
 export function isVisible(elem) {
+  const documentElement = elem.ownerDocument.documentElement;
   let next = elem;
 
-  while (polymerUnwrap(next) !== document.documentElement) { // until <html> reached
+  while (polymerUnwrap(next) !== documentElement) { // until <html> reached
     if (next === null) { // parent detached from DOM
       return false;
+
     } else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
       if (next.host) { // this is Web Components Shadow DOM
         // see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
@@ -475,9 +477,11 @@ export function isVisible(elem) {
       } else {
         return false; // this is a node detached from document in IE8
       }
-    } else if (next.style.display === 'none') {
+
+    } else if (next.style && next.style.display === 'none') {
       return false;
     }
+
     next = next.parentNode;
   }
 
@@ -491,7 +495,7 @@ export function isVisible(elem) {
  * @return {Object} Returns object with `top` and `left` props
  */
 export function offset(elem) {
-  const docElem = document.documentElement;
+  const docElem = elem.ownerDocument.documentElement;
   let elementToCheck = elem;
   let offsetLeft;
   let offsetTop;

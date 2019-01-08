@@ -183,13 +183,14 @@ class Overlays {
    * Register all necessary event listeners.
    */
   registerListeners() {
+    const currentDocument = this.wot.wtTable.wtRootElement.ownerDocument;
     const topOverlayScrollable = this.topOverlay.mainTableScrollableElement;
     const leftOverlayScrollable = this.leftOverlay.mainTableScrollableElement;
 
     const listenersToRegister = [];
-    listenersToRegister.push([document.documentElement, 'keydown', event => this.onKeyDown(event)]);
-    listenersToRegister.push([document.documentElement, 'keyup', () => this.onKeyUp()]);
-    listenersToRegister.push([document, 'visibilitychange', () => this.onKeyUp()]);
+    listenersToRegister.push([currentDocument.documentElement, 'keydown', event => this.onKeyDown(event)]);
+    listenersToRegister.push([currentDocument.documentElement, 'keyup', () => this.onKeyUp()]);
+    listenersToRegister.push([currentDocument, 'visibilitychange', () => this.onKeyUp()]);
     listenersToRegister.push([topOverlayScrollable, 'scroll', event => this.onTableScroll(event)]);
 
     if (topOverlayScrollable !== leftOverlayScrollable) {

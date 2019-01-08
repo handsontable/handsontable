@@ -471,7 +471,7 @@ class Border {
       const trimToWindow = trimmingContainer === window;
 
       if (trimToWindow) {
-        trimmingContainer = document.documentElement;
+        trimmingContainer = this.wot.wtTable.wtRootElement.ownerDocument.documentElement;
       }
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
