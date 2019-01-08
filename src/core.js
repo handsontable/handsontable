@@ -1066,7 +1066,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance._registerImmediate(() => {
         validator.call(cellProperties, value, (valid) => {
           if (!instance) {
-            return false;
+            return;
           }
           // eslint-disable-next-line no-param-reassign
           valid = instance.runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
