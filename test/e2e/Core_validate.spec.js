@@ -27,6 +27,24 @@ describe('Core_validate', () => {
     ];
   };
 
+  it('should not throw an exception if the instance was destroyed in the meantime when validator was called', async() => {
+    let validatorCallback;
+
+    const hot = handsontable({
+      data: arrayOfObjects(),
+      validator(value, callback) {
+        validatorCallback = callback;
+      }
+    });
+
+    hot.validateCells();
+    await sleep(10);
+    hot.destroy();
+
+    expect(() => { validatorCallback(false); }).not.toThrow();
+    expect(validatorCallback(false)).toBe(void 0);
+  });
+
   it('should call beforeValidate', () => {
     let fired = null;
 
@@ -1367,7 +1385,7 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('should remove htInvalid class properly after cancelling change, when physical indexes are not equal to visual indexes', (done) => {
+  it('should remove htInvalid class properly after cancelling change, when physical indexes are not equal to visual indexes', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       columnSorting: {
@@ -1389,11 +1407,10 @@ describe('Core_validate', () => {
 
     keyDown('enter');
 
-    setTimeout(() => {
-      const $cell = $(getCell(0, 0));
-      expect($cell.hasClass('htInvalid')).toEqual(false);
-      done();
-    }, 200);
+    await sleep(300);
+
+    const $cell = $(getCell(0, 0));
+    expect($cell.hasClass('htInvalid')).toEqual(false);
   });
 
   it('should not attempt to remove the htInvalid class if the validated cell is no longer rendered', (done) => {
