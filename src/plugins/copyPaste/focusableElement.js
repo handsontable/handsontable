@@ -73,7 +73,7 @@ class FocusableWrapper {
     // Add an empty space to texarea. It is necessary for safari to enable "copy" command from menu bar.
     this.mainElement.value = ' ';
 
-    if (!isMobileBrowser() && this.mainElement) {
+    if (!isMobileBrowser()) {
       checkToFocus(this.mainElement);
     }
   }

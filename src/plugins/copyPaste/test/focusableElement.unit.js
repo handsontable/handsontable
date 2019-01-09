@@ -96,13 +96,9 @@ describe('CopyPaste', () => {
       fw1 = createElement();
       const element = document.createElement('textarea');
 
-      jest.useFakeTimers();
-
       spyOn(element, 'select');
       fw1.mainElement = element;
       fw1.focus();
-
-      jest.runAllTimers();
 
       expect(element.select).toHaveBeenCalledTimes(1);
       expect(element.value).toBe(' ');
