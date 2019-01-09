@@ -892,10 +892,29 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   function validateChanges(changes, source, callback) {
+    if (!changes.length) {
+      return;
+    }
+
+    const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
+
+    if (isFunction(beforeChangeResult)) {
+      warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
+
+    } else if (beforeChangeResult === false) {
+      const activeEditor = instance.getActiveEditor();
+
+      if (activeEditor) {
+        activeEditor.cancelChanges();
+      }
+
+      return;
+    }
+
     const waitingForValidator = new ValidatorsQueue();
     const isNumericData = value => value.length > 0 && /^\s*[+-.]?\s*(?:(?:\d+(?:(\.|,)\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/.test(value);
 
-    waitingForValidator.onQueueEmpty = resolve;
+    waitingForValidator.onQueueEmpty = callback; // called when async validators are resolved and beforeChange was not async
 
     for (let i = changes.length - 1; i >= 0; i--) {
       if (changes[i] === null) {
@@ -933,20 +952,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
     }
     waitingForValidator.checkIfQueueIsEmpty();
-
-    function resolve() {
-      let beforeChangeResult;
-
-      if (changes.length) {
-        beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
-        if (isFunction(beforeChangeResult)) {
-          warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
-        } else if (beforeChangeResult === false) {
-          changes.splice(0, changes.length); // invalidate all changes (remove everything from array)
-        }
-      }
-      callback(); // called when async validators are resolved and beforeChange was not async
-    }
   }
 
   /**
