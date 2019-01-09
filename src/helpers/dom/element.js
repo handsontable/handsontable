@@ -1028,6 +1028,5 @@ export function checkToFocus(element) {
 
   if (!isOutsideInput(activeElement)) {
     element.select();
-    setCaretPosition(element, element.value.length);
   }
 }
