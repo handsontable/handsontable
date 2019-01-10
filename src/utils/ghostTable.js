@@ -212,7 +212,7 @@ class GhostTable {
    * @returns {DocumentFragment}
    */
   createColGroupsCol() {
-    const d = document;
+    const d = this.hot.rootElement.ownerDocument;
     const fragment = d.createDocumentFragment();
 
     if (this.hot.hasRowHeaders()) {
@@ -235,7 +235,7 @@ class GhostTable {
    * @returns {DocumentFragment} Returns created table row elements.
    */
   createRow(row) {
-    const d = document;
+    const d = this.hot.rootElement.ownerDocument;
     const fragment = d.createDocumentFragment();
     const th = d.createElement('th');
 
@@ -265,7 +265,7 @@ class GhostTable {
   }
 
   createColumnHeadersRow() {
-    const d = document;
+    const d = this.hot.rootElement.ownerDocument;
     const fragment = d.createDocumentFragment();
 
     if (this.hot.hasRowHeaders()) {
@@ -295,7 +295,7 @@ class GhostTable {
    * @returns {DocumentFragment} Returns created column table column elements.
    */
   createCol(column) {
-    const d = document;
+    const d = this.hot.rootElement.ownerDocument;
     const fragment = d.createDocumentFragment();
 
     this.samples.forEach((sample) => {
@@ -367,7 +367,7 @@ class GhostTable {
    * @returns {HTMLElement}
    */
   createColElement(column) {
-    const d = document;
+    const d = this.hot.rootElement.ownerDocument;
     const col = d.createElement('col');
 
     col.style.width = `${this.hot.view.wt.wtTable.getStretchedColumnWidth(column)}px`;
@@ -382,7 +382,7 @@ class GhostTable {
    * @returns {Object}
    */
   createTable(className = '') {
-    const d = document;
+    const d = this.hot.rootElement.ownerDocument;
     const fragment = d.createDocumentFragment();
     const table = d.createElement('table');
     const tHead = d.createElement('thead');
@@ -419,7 +419,7 @@ class GhostTable {
    * @returns {Object}
    */
   createContainer(className = '') {
-    const d = document;
+    const d = this.hot.rootElement.ownerDocument;
     const fragment = d.createDocumentFragment();
     const container = d.createElement('div');
     const containerClassName = `htGhostTable htAutoSize ${className.trim()}`;

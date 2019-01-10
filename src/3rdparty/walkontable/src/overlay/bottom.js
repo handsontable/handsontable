@@ -60,14 +60,15 @@ class BottomOverlay extends Overlay {
     let headerPosition = 0;
     overlayRoot.style.top = '';
 
-    if (this.wot.wtOverlays.leftOverlay.trimmingContainer === window) {
-      const box = this.wot.wtTable.hider.getBoundingClientRect();
+    if (this.wot.wtOverlays.leftOverlay.trimmingContainer === this.wot.rootWindow) {
+      const { rootDocument, wtTable } = this.wot;
+      const box = wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(box.bottom);
       let finalLeft;
       let finalBottom;
-      const bodyHeight = document.body.offsetHeight;
+      const bodyHeight = rootDocument.body.offsetHeight;
 
-      finalLeft = this.wot.wtTable.hider.style.left;
+      finalLeft = wtTable.hider.style.left;
       finalLeft = finalLeft === '' ? 0 : finalLeft;
 
       if (bottom > bodyHeight) {
@@ -96,8 +97,10 @@ class BottomOverlay extends Overlay {
    * @param {Number} pos
    */
   setScrollPosition(pos) {
-    if (this.mainTableScrollableElement === window) {
-      window.scrollTo(getWindowScrollLeft(), pos);
+    const rootWindow = this.wot.rootWindow;
+
+    if (this.mainTableScrollableElement === rootWindow) {
+      rootWindow.scrollTo(getWindowScrollLeft(), pos);
 
     } else {
       this.mainTableScrollableElement.scrollTop = pos;
@@ -160,7 +163,7 @@ class BottomOverlay extends Overlay {
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
 
-    if (this.trimmingContainer === window) {
+    if (this.trimmingContainer === this.wot.rootWindow) {
       overlayRootStyle.width = '';
 
     } else {
@@ -262,7 +265,7 @@ class BottomOverlay extends Overlay {
    * @returns {Number}
    */
   getTableParentOffset() {
-    if (this.mainTableScrollableElement === window) {
+    if (this.mainTableScrollableElement === this.wot.rootWindow) {
       return this.wot.wtTable.holderOffset.top;
     }
 

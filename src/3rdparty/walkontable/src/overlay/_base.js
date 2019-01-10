@@ -198,8 +198,10 @@ class Overlay {
     if (Overlay.CLONE_TYPES.indexOf(direction) === -1) {
       throw new Error(`Clone type "${direction}" is not supported.`);
     }
-    const clone = document.createElement('DIV');
-    const clonedTable = document.createElement('TABLE');
+    const wtTable = this.wot.wtTable;
+    const rootDocument = this.wot.rootDocument;
+    const clone = rootDocument.createElement('DIV');
+    const clonedTable = rootDocument.createElement('TABLE');
 
     clone.className = `ht_clone_${direction} handsontable`;
     clone.style.position = 'absolute';
@@ -207,21 +209,21 @@ class Overlay {
     clone.style.left = 0;
     clone.style.overflow = 'hidden';
 
-    clonedTable.className = this.wot.wtTable.TABLE.className;
+    clonedTable.className = wtTable.TABLE.className;
     clone.appendChild(clonedTable);
 
     this.type = direction;
-    this.wot.wtTable.wtRootElement.parentNode.appendChild(clone);
+    wtTable.wtRootElement.parentNode.appendChild(clone);
 
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (preventOverflow === true ||
         preventOverflow === 'horizontal' && this.type === Overlay.CLONE_TOP ||
         preventOverflow === 'vertical' && this.type === Overlay.CLONE_LEFT) {
-      this.mainTableScrollableElement = window;
+      this.mainTableScrollableElement = this.wot.rootWindow;
 
     } else {
-      this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
+      this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
     }
 
     return new Walkontable({

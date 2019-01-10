@@ -64,27 +64,29 @@ class Table {
    *
    */
   fixTableDomTree() {
+    const rootDocument = this.wot.rootDocument;
+
     this.TBODY = this.TABLE.querySelector('tbody');
 
     if (!this.TBODY) {
-      this.TBODY = document.createElement('tbody');
+      this.TBODY = rootDocument.createElement('tbody');
       this.TABLE.appendChild(this.TBODY);
     }
     this.THEAD = this.TABLE.querySelector('thead');
 
     if (!this.THEAD) {
-      this.THEAD = document.createElement('thead');
+      this.THEAD = rootDocument.createElement('thead');
       this.TABLE.insertBefore(this.THEAD, this.TBODY);
     }
     this.COLGROUP = this.TABLE.querySelector('colgroup');
 
     if (!this.COLGROUP) {
-      this.COLGROUP = document.createElement('colgroup');
+      this.COLGROUP = rootDocument.createElement('colgroup');
       this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
     }
 
     if (this.wot.getSetting('columnHeaders').length && !this.THEAD.childNodes.length) {
-      this.THEAD.appendChild(document.createElement('TR'));
+      this.THEAD.appendChild(rootDocument.createElement('TR'));
     }
   }
 
@@ -97,7 +99,7 @@ class Table {
     let spreader;
 
     if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
-      spreader = document.createElement('div');
+      spreader = this.wot.rootDocument.createElement('div');
       spreader.className = 'wtSpreader';
 
       if (parent) {
@@ -120,7 +122,7 @@ class Table {
     let hider;
 
     if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
-      hider = document.createElement('div');
+      hider = this.wot.rootDocument.createElement('div');
       hider.className = 'wtHider';
 
       if (parent) {
@@ -143,7 +145,7 @@ class Table {
     let holder;
 
     if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
-      holder = document.createElement('div');
+      holder = this.wot.rootDocument.createElement('div');
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
 
@@ -166,7 +168,7 @@ class Table {
     if (!this.isWorkingOnClone()) {
       this.holder.parentNode.style.position = 'relative';
 
-      if (trimmingElement === window) {
+      if (trimmingElement === this.wot.rootWindow) {
         const preventOverflow = this.wot.getSetting('preventOverflow');
 
         if (!preventOverflow) {

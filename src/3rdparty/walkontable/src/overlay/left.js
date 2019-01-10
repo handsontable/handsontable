@@ -45,7 +45,7 @@ class LeftOverlay extends Overlay {
     let headerPosition = 0;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === window && (!preventOverflow || preventOverflow !== 'horizontal')) {
+    if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
       const box = this.wot.wtTable.hider.getBoundingClientRect();
       const left = Math.ceil(box.left);
       const right = Math.ceil(box.right);
@@ -80,10 +80,11 @@ class LeftOverlay extends Overlay {
    * @returns {Boolean}
    */
   setScrollPosition(pos) {
+    const rootWindow = this.wot.rootWindow;
     let result = false;
 
-    if (this.mainTableScrollableElement === window && window.scrollX !== pos) {
-      window.scrollTo(pos, getWindowScrollTop());
+    if (this.mainTableScrollableElement === rootWindow && rootWindow.scrollX !== pos) {
+      rootWindow.scrollTo(pos, getWindowScrollTop());
       result = true;
 
     } else if (this.mainTableScrollableElement.scrollLeft !== pos) {
@@ -143,16 +144,17 @@ class LeftOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    const masterHolder = this.wot.wtTable.holder;
+    const { rootWindow, wtTable } = this.wot;
+    const masterHolder = wtTable.holder;
     const scrollbarHeight = masterHolder.clientHeight === masterHolder.offsetHeight ? 0 : getScrollbarWidth();
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer !== window || preventOverflow === 'vertical') {
+    if (this.trimmingContainer !== rootWindow || preventOverflow === 'vertical') {
       let height = this.wot.wtViewport.getWorkspaceHeight() - scrollbarHeight;
 
-      height = Math.min(height, innerHeight(this.wot.wtTable.wtRootElement));
+      height = Math.min(height, innerHeight(wtTable.wtRootElement));
 
       overlayRootStyle.height = `${height}px`;
 
@@ -256,7 +258,7 @@ class LeftOverlay extends Overlay {
     const preventOverflow = this.wot.getSetting('preventOverflow');
     let offset = 0;
 
-    if (!preventOverflow && this.trimmingContainer === window) {
+    if (!preventOverflow && this.trimmingContainer === this.wot.rootWindow) {
       offset = this.wot.wtTable.holderOffset.left;
     }
 

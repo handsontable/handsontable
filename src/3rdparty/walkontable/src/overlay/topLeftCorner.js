@@ -44,7 +44,7 @@ class TopLeftCornerOverlay extends Overlay {
     const tableWidth = outerWidth(this.clone.wtTable.TABLE);
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === window) {
+    if (this.trimmingContainer === this.wot.rootWindow) {
       const box = this.wot.wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(box.top);
       const left = Math.ceil(box.left);

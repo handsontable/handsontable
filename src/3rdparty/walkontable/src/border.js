@@ -63,8 +63,10 @@ class Border {
    * Register all necessary events
    */
   registerListeners() {
-    this.eventManager.addEventListener(document.body, 'mousedown', () => this.onMouseDown());
-    this.eventManager.addEventListener(document.body, 'mouseup', () => this.onMouseUp());
+    const documentBody = this.wot.rootDocument.body;
+
+    this.eventManager.addEventListener(documentBody, 'mousedown', () => this.onMouseDown());
+    this.eventManager.addEventListener(documentBody, 'mouseup', () => this.onMouseUp());
 
     for (let c = 0, len = this.main.childNodes.length; c < len; c++) {
       this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', event => this.onMouseEnter(event, this.main.childNodes[c]));
@@ -104,6 +106,7 @@ class Border {
     stopImmediatePropagation(event);
 
     const _this = this;
+    const documentBody = this.wot.rootDocument.body;
     const bounds = parentElement.getBoundingClientRect();
     // Hide border to prevents selection jumping when fragmentSelection is enabled.
     parentElement.style.display = 'none';
@@ -125,12 +128,12 @@ class Border {
 
     function handler(handlerEvent) {
       if (isOutside(handlerEvent)) {
-        _this.eventManager.removeEventListener(document.body, 'mousemove', handler);
+        _this.eventManager.removeEventListener(documentBody, 'mousemove', handler);
         parentElement.style.display = 'block';
       }
     }
 
-    this.eventManager.addEventListener(document.body, 'mousemove', handler);
+    this.eventManager.addEventListener(documentBody, 'mousemove', handler);
   }
 
   /**
@@ -139,7 +142,8 @@ class Border {
    * @param {Object} settings
    */
   createBorders(settings) {
-    this.main = document.createElement('div');
+    const rootDocument = this.wot.rootDocument;
+    this.main = rootDocument.createElement('div');
 
     const borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
     let style = this.main.style;
@@ -149,7 +153,7 @@ class Border {
 
     for (let i = 0; i < 5; i++) {
       const position = borderDivs[i];
-      const div = document.createElement('div');
+      const div = rootDocument.createElement('div');
 
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
 
@@ -192,7 +196,7 @@ class Border {
     let bordersHolder = this.wot.wtTable.bordersHolder;
 
     if (!bordersHolder) {
-      bordersHolder = document.createElement('div');
+      bordersHolder = rootDocument.createElement('div');
       bordersHolder.className = 'htBorders';
       this.wot.wtTable.bordersHolder = bordersHolder;
       this.wot.wtTable.spreader.appendChild(bordersHolder);
@@ -204,11 +208,13 @@ class Border {
    * Create multiple selector handler for mobile devices
    */
   createMultipleSelectorHandles() {
+    const rootDocument = this.wot.rootDocument;
+
     this.selectionHandles = {
-      topLeft: document.createElement('DIV'),
-      topLeftHitArea: document.createElement('DIV'),
-      bottomRight: document.createElement('DIV'),
-      bottomRightHitArea: document.createElement('DIV')
+      topLeft: rootDocument.createElement('DIV'),
+      topLeftHitArea: rootDocument.createElement('DIV'),
+      bottomRight: rootDocument.createElement('DIV'),
+      bottomRightHitArea: rootDocument.createElement('DIV')
     };
     const width = 10;
     const hitAreaWidth = 40;
@@ -468,7 +474,7 @@ class Border {
       this.cornerStyle.display = 'none';
 
       let trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
-      const trimToWindow = trimmingContainer === window;
+      const trimToWindow = trimmingContainer === this.wot.rootWindow;
 
       if (trimToWindow) {
         trimmingContainer = this.wot.wtTable.wtRootElement.ownerDocument.documentElement;

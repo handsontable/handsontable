@@ -46,7 +46,7 @@ class TopOverlay extends Overlay {
     let headerPosition = 0;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === window && (!preventOverflow || preventOverflow !== 'vertical')) {
+    if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const box = this.wot.wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(box.top);
       const bottom = Math.ceil(box.bottom);
@@ -82,10 +82,11 @@ class TopOverlay extends Overlay {
    * @returns {Boolean}
    */
   setScrollPosition(pos) {
+    const rootWindow = this.wot.rootWindow;
     let result = false;
 
-    if (this.mainTableScrollableElement === window && window.scrollY !== pos) {
-      window.scrollTo(getWindowScrollLeft(), pos);
+    if (this.mainTableScrollableElement === rootWindow && rootWindow.scrollY !== pos) {
+      rootWindow.scrollTo(getWindowScrollLeft(), pos);
       result = true;
 
     } else if (this.mainTableScrollableElement.scrollTop !== pos) {
@@ -153,7 +154,7 @@ class TopOverlay extends Overlay {
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer !== window || preventOverflow === 'horizontal') {
+    if (this.trimmingContainer !== this.wot.rootWindow || preventOverflow === 'horizontal') {
       let width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth;
 
       width = Math.min(width, innerWidth(this.wot.wtTable.wtRootElement));
@@ -263,7 +264,7 @@ class TopOverlay extends Overlay {
    * @returns {Number}
    */
   getTableParentOffset() {
-    if (this.mainTableScrollableElement === window) {
+    if (this.mainTableScrollableElement === this.wot.rootWindow) {
       return this.wot.wtTable.holderOffset.top;
 
     }

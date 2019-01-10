@@ -60,13 +60,13 @@ class BottomLeftCornerOverlay extends Overlay {
 
     overlayRoot.style.top = '';
 
-    if (this.trimmingContainer === window) {
+    if (this.trimmingContainer === this.wot.rootWindow) {
       const box = this.wot.wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(box.bottom);
       const left = Math.ceil(box.left);
       let finalLeft;
       let finalBottom;
-      const bodyHeight = document.body.offsetHeight;
+      const bodyHeight = this.wot.rootDocument.body.offsetHeight;
 
       if (left < 0) {
         finalLeft = -left;

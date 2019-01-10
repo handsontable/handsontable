@@ -17,13 +17,21 @@ class Overlays {
    */
   constructor(wotInstance) {
     /**
+     * Walkontable instance's reference.
+     *
+     * @private
+     * @type {Walkontable}
+     */
+    this.wot = wotInstance;
+
+    /**
      * Sometimes `line-height` might be set to 'normal'. In that case, a default `font-size` should be multiplied by roughly 1.2.
      * https://developer.mozilla.org/pl/docs/Web/CSS/line-height#Values
      */
-    const BODY_LINE_HEIGHT = parseInt(getComputedStyle(document.body).lineHeight, 10);
-    const FALLBACK_BODY_LINE_HEIGHT = parseInt(getComputedStyle(document.body).fontSize, 10) * 1.2;
+    const { rootDocument, rootWindow, wtTable } = this.wot;
 
-    this.wot = wotInstance;
+    const BODY_LINE_HEIGHT = parseInt(getComputedStyle(rootDocument.body).lineHeight, 10);
+    const FALLBACK_BODY_LINE_HEIGHT = parseInt(getComputedStyle(rootDocument.body).fontSize, 10) * 1.2;
 
     // legacy support
     this.instance = this.wot;
@@ -32,7 +40,7 @@ class Overlays {
     this.wot.update('scrollbarWidth', getScrollbarWidth());
     this.wot.update('scrollbarHeight', getScrollbarWidth());
 
-    this.scrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
+    this.scrollableElement = getScrollableElement(wtTable.TABLE);
 
     this.prepareOverlays();
 
@@ -86,8 +94,8 @@ class Overlays {
     this.browserLineHeight = BODY_LINE_HEIGHT || FALLBACK_BODY_LINE_HEIGHT;
 
     this.registerListeners();
-    this.lastScrollX = window.scrollX;
-    this.lastScrollY = window.scrollY;
+    this.lastScrollX = rootWindow.scrollX;
+    this.lastScrollY = rootWindow.scrollY;
   }
 
   /**
@@ -183,21 +191,21 @@ class Overlays {
    * Register all necessary event listeners.
    */
   registerListeners() {
-    const currentDocument = this.wot.wtTable.wtRootElement.ownerDocument;
+    const { rootDocument, rootWindow } = this.wot;
     const topOverlayScrollable = this.topOverlay.mainTableScrollableElement;
     const leftOverlayScrollable = this.leftOverlay.mainTableScrollableElement;
 
     const listenersToRegister = [];
-    listenersToRegister.push([currentDocument.documentElement, 'keydown', event => this.onKeyDown(event)]);
-    listenersToRegister.push([currentDocument.documentElement, 'keyup', () => this.onKeyUp()]);
-    listenersToRegister.push([currentDocument, 'visibilitychange', () => this.onKeyUp()]);
+    listenersToRegister.push([rootDocument.documentElement, 'keydown', event => this.onKeyDown(event)]);
+    listenersToRegister.push([rootDocument.documentElement, 'keyup', () => this.onKeyUp()]);
+    listenersToRegister.push([rootDocument, 'visibilitychange', () => this.onKeyUp()]);
     listenersToRegister.push([topOverlayScrollable, 'scroll', event => this.onTableScroll(event)]);
 
     if (topOverlayScrollable !== leftOverlayScrollable) {
       listenersToRegister.push([leftOverlayScrollable, 'scroll', event => this.onTableScroll(event)]);
     }
 
-    const isHighPixelRatio = window.devicePixelRatio && window.devicePixelRatio > 1;
+    const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
 
     if (isHighPixelRatio || !isChrome()) {
       listenersToRegister.push([this.instance.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event)]);
@@ -224,10 +232,10 @@ class Overlays {
       }
     }
 
-    if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
+    if (this.topOverlay.trimmingContainer !== rootWindow && this.leftOverlay.trimmingContainer !== rootWindow) {
       // This is necessary?
       // eventManager.addEventListener(window, 'scroll', (event) => this.refreshAll(event));
-      listenersToRegister.push([window, 'wheel', (event) => {
+      listenersToRegister.push([rootWindow, 'wheel', (event) => {
         let overlay;
         const deltaY = event.wheelDeltaY || event.deltaY;
         const deltaX = event.wheelDeltaX || event.deltaX;
@@ -284,7 +292,7 @@ class Overlays {
   onTableScroll(event) {
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
-
+    const rootWindow = this.wot.rootWindow;
     const masterHorizontal = this.leftOverlay.mainTableScrollableElement;
     const masterVertical = this.topOverlay.mainTableScrollableElement;
     const target = event.target;
@@ -292,8 +300,8 @@ class Overlays {
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
     if (this.keyPressed) {
-      if ((masterVertical !== window && target !== window && !event.target.contains(masterVertical)) ||
-          (masterHorizontal !== window && target !== window && !event.target.contains(masterHorizontal))) {
+      if ((masterVertical !== rootWindow && target !== rootWindow && !event.target.contains(masterVertical)) ||
+          (masterHorizontal !== rootWindow && target !== rootWindow && !event.target.contains(masterHorizontal))) {
         return;
       }
     }
@@ -307,7 +315,9 @@ class Overlays {
    * @param {Event} event
    */
   onCloneWheel(event) {
-    if (this.scrollableElement !== window) {
+    const rootWindow = this.wot.rootWindow;
+
+    if (this.scrollableElement !== rootWindow) {
       event.preventDefault();
     }
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
@@ -319,8 +329,8 @@ class Overlays {
 
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
-    const shouldNotWheelVertically = masterVertical !== window && target !== window && !event.target.contains(masterVertical);
-    const shouldNotWheelHorizontally = masterHorizontal !== window && target !== window && !event.target.contains(masterHorizontal);
+    const shouldNotWheelVertically = masterVertical !== rootWindow && target !== rootWindow && !event.target.contains(masterVertical);
+    const shouldNotWheelHorizontally = masterHorizontal !== rootWindow && target !== rootWindow && !event.target.contains(masterHorizontal);
 
     if (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally)) {
       return;
@@ -389,15 +399,16 @@ class Overlays {
       return;
     }
 
+    const rootWindow = this.wot.rootWindow;
     const topHolder = this.topOverlay.clone.wtTable.holder;
     const leftHolder = this.leftOverlay.clone.wtTable.holder;
 
     const [scrollLeft, scrollTop] = [this.scrollableElement.scrollLeft, this.scrollableElement.scrollTop];
 
-    this.horizontalScrolling = (topHolder.scrollLeft !== scrollLeft || this.lastScrollX !== window.scrollX);
-    this.verticalScrolling = (leftHolder.scrollTop !== scrollTop || this.lastScrollY !== window.scrollY);
-    this.lastScrollX = window.scrollX;
-    this.lastScrollY = window.scrollY;
+    this.horizontalScrolling = (topHolder.scrollLeft !== scrollLeft || this.lastScrollX !== rootWindow.scrollX);
+    this.verticalScrolling = (leftHolder.scrollTop !== scrollTop || this.lastScrollY !== rootWindow.scrollY);
+    this.lastScrollX = rootWindow.scrollX;
+    this.lastScrollY = rootWindow.scrollY;
 
     if (this.horizontalScrolling) {
       topHolder.scrollLeft = scrollLeft;
