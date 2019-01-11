@@ -171,7 +171,7 @@ class CopyPaste extends BasePlugin {
 
     this.getOrCreateFocusableElement();
     this.focusableElement.focus();
-    document.execCommand('copy');
+    this.hot.rootDocument.execCommand('copy');
   }
 
   /**
@@ -183,7 +183,7 @@ class CopyPaste extends BasePlugin {
 
     this.getOrCreateFocusableElement();
     this.focusableElement.focus();
-    document.execCommand('cut');
+    this.hot.rootDocument.execCommand('cut');
   }
 
   /**
@@ -417,7 +417,7 @@ class CopyPaste extends BasePlugin {
         event.clipboardData.setData('text/html', textHTML);
 
       } else if (typeof ClipboardEvent === 'undefined') {
-        window.clipboardData.setData('Text', textPlain);
+        this.hot.rootWindow.clipboardData.setData('Text', textPlain);
       }
 
       this.hot.runHooks('afterCopy', rangedData, this.copyableRanges);
@@ -455,7 +455,7 @@ class CopyPaste extends BasePlugin {
         event.clipboardData.setData('text/html', textHTML);
 
       } else if (typeof ClipboardEvent === 'undefined') {
-        window.clipboardData.setData('Text', textPlain);
+        this.hot.rootWindow.clipboardData.setData('Text', textPlain);
       }
 
       this.hot.emptySelectedCells();
@@ -491,8 +491,8 @@ class CopyPaste extends BasePlugin {
         pastedData = event.clipboardData.getData('text/plain');
       }
 
-    } else if (typeof ClipboardEvent === 'undefined' && typeof window.clipboardData !== 'undefined') {
-      pastedData = window.clipboardData.getData('Text');
+    } else if (typeof ClipboardEvent === 'undefined' && typeof this.hot.rootWindow.clipboardData !== 'undefined') {
+      pastedData = this.hot.rootWindow.clipboardData.getData('Text');
     }
 
     const inputArray = typeof pastedData !== 'string' ? pastedData : SheetClip.parse(pastedData);
@@ -561,7 +561,7 @@ class CopyPaste extends BasePlugin {
 
     this.getOrCreateFocusableElement();
 
-    if (isFragmentSelectionEnabled && this.focusableElement.getFocusableElement() !== document.activeElement && getSelectionText()) {
+    if (isFragmentSelectionEnabled && this.focusableElement.getFocusableElement() !== this.hot.rootDocument.activeElement && getSelectionText()) {
       return;
     }
 
@@ -578,7 +578,7 @@ class CopyPaste extends BasePlugin {
     if (!this.hot.isListening() || this.isEditorOpened()) {
       return;
     }
-    const activeElement = document.activeElement;
+    const activeElement = this.hot.rootDocument.activeElement;
     const activeEditor = this.hot.getActiveEditor();
 
     if (!activeEditor || (activeElement !== this.focusableElement.getFocusableElement() && activeElement !== activeEditor.select)) {

@@ -76,7 +76,7 @@ class AutocompleteEditor extends HandsontableEditor {
     super.createElements();
 
     addClass(this.htContainer, 'autocompleteEditor');
-    addClass(this.htContainer, window.navigator.platform.indexOf('Mac') === -1 ? '' : 'htMacScroll');
+    addClass(this.htContainer, this.hot.rootWindow.navigator.platform.indexOf('Mac') === -1 ? '' : 'htMacScroll');
   }
 
   /**
@@ -272,7 +272,7 @@ class AutocompleteEditor extends HandsontableEditor {
       col: 0
     };
 
-    if (trimmingContainer !== window) {
+    if (trimmingContainer !== this.hot.rootWindow) {
       containerOffset = offset(trimmingContainer);
     }
 

@@ -32,7 +32,7 @@ class Viewport {
     this.columnsVisibleCalculator = null;
 
     this.eventManager = new EventManager(this.wot);
-    this.eventManager.addEventListener(window, 'resize', () => {
+    this.eventManager.addEventListener(this.wot.rootWindow, 'resize', () => {
       this.clientHeight = this.getWorkspaceHeight();
     });
   }
@@ -46,7 +46,7 @@ class Viewport {
     let elemHeight;
     let height = 0;
 
-    if (trimmingContainer === window) {
+    if (trimmingContainer === this.wot.rootWindow) {
       height = currentDocument.documentElement.clientHeight;
 
     } else {
@@ -67,6 +67,7 @@ class Viewport {
     const stretchSetting = this.wot.getSetting('stretchH');
     const docOffsetWidth = currentDocument.documentElement.offsetWidth;
     const preventOverflow = this.wot.getSetting('preventOverflow');
+    const rootWindow = this.wot.rootWindow;
 
     if (preventOverflow) {
       return outerWidth(this.instance.wtTable.wtRootElement);
@@ -78,7 +79,7 @@ class Viewport {
       width = Math.min(this.getContainerFillWidth(), docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
     }
 
-    if (trimmingContainer === window && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
+    if (trimmingContainer === rootWindow && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
       // in case sum of column widths is higher than available stylesheet width, let's assume using the whole window
       // otherwise continue below, which will allow stretching
       // this is used in `scroll_window.html`
@@ -86,7 +87,7 @@ class Viewport {
       return currentDocument.documentElement.clientWidth;
     }
 
-    if (trimmingContainer !== window) {
+    if (trimmingContainer !== rootWindow) {
       overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
 
       if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
@@ -150,7 +151,7 @@ class Viewport {
     }
 
     const mainContainer = this.instance.wtTable.holder;
-    const dummyElement = document.createElement('div');
+    const dummyElement = this.wot.rootDocument.createElement('div');
 
     dummyElement.style.width = '100%';
     dummyElement.style.height = '1px';

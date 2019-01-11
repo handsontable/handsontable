@@ -146,7 +146,7 @@ class Comments extends BasePlugin {
     }
 
     if (!this.editor) {
-      this.editor = new CommentEditor();
+      this.editor = new CommentEditor(this.hot.rootDocument);
     }
 
     if (!this.eventManager) {
@@ -195,9 +195,9 @@ class Comments extends BasePlugin {
    * @private
    */
   registerListeners() {
-    this.eventManager.addEventListener(document, 'mouseover', event => this.onMouseOver(event));
-    this.eventManager.addEventListener(document, 'mousedown', event => this.onMouseDown(event));
-    this.eventManager.addEventListener(document, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(this.hot.rootDocument, 'mouseover', event => this.onMouseOver(event));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'mousedown', event => this.onMouseDown(event));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'mouseup', () => this.onMouseUp());
     this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', () => this.onEditorBlur());
     this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', event => this.onEditorMouseDown(event));
     this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', event => this.onEditorMouseUp(event));
@@ -401,11 +401,11 @@ class Comments extends BasePlugin {
     let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
     let cellLeftOffset = cellOffset.left;
 
-    if (this.hot.view.wt.wtViewport.hasVerticalScroll() && scrollableElement !== window) {
+    if (this.hot.view.wt.wtViewport.hasVerticalScroll() && scrollableElement !== this.hot.rootWindow) {
       cellTopOffset -= this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
     }
 
-    if (this.hot.view.wt.wtViewport.hasHorizontalScroll() && scrollableElement !== window) {
+    if (this.hot.view.wt.wtViewport.hasHorizontalScroll() && scrollableElement !== this.hot.rootWindow) {
       cellLeftOffset -= this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
     }
 
@@ -524,7 +524,7 @@ class Comments extends BasePlugin {
   onMouseOver(event) {
     const priv = privatePool.get(this);
 
-    priv.cellBelowCursor = document.elementFromPoint(event.clientX, event.clientY);
+    priv.cellBelowCursor = this.hot.rootDocument.elementFromPoint(event.clientX, event.clientY);
 
     if (this.mouseDown || this.editor.isFocused() || hasClass(event.target, 'wtBorder')
         || priv.cellBelowCursor !== event.target || !this.editor) {
@@ -539,7 +539,7 @@ class Comments extends BasePlugin {
 
       this.displaySwitch.show(range);
 
-    } else if (isChildOf(event.target, document) && !this.targetIsCommentTextArea(event)) {
+    } else if (isChildOf(event.target, this.hot.rootDocument) && !this.targetIsCommentTextArea(event)) {
       this.displaySwitch.hide();
     }
   }

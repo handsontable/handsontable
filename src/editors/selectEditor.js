@@ -25,7 +25,7 @@ class SelectEditor extends BaseEditor {
    * Initializes editor instance, DOM Element and mount hooks.
    */
   init() {
-    this.select = document.createElement('SELECT');
+    this.select = this.wot.rootDocument.createElement('SELECT');
     addClass(this.select, 'htSelectEditor');
     this.select.style.display = 'none';
 
@@ -114,7 +114,7 @@ class SelectEditor extends BaseEditor {
     empty(this.select);
 
     objectEach(options, (value, key) => {
-      const optionElement = document.createElement('OPTION');
+      const optionElement = this.hot.rootDocument.createElement('OPTION');
       optionElement.value = key;
 
       fastInnerHTML(optionElement, value);

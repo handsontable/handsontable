@@ -459,7 +459,7 @@ class Menu {
    */
   menuItemRenderer(hot, TD, row, col, prop, value) {
     const item = hot.getSourceDataAtRow(row);
-    const wrapper = document.createElement('div');
+    const wrapper = this.hot.rootDocument.createElement('div');
 
     const isSubMenu = itemToTest => hasOwnProperty(itemToTest, 'submenu');
     const itemIsSeparator = itemToTest => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
@@ -538,21 +538,21 @@ class Menu {
       className = className.replace(/[^A-z0-9]/g, '_');
       className = `${this.options.className}Sub_${className}`;
 
-      container = document.querySelector(`.${this.options.className}.${className}`);
+      container = this.hot.rootDocument.querySelector(`.${this.options.className}.${className}`);
 
     } else {
-      container = document.querySelector(`.${this.options.className}`);
+      container = this.hot.rootDocument.querySelector(`.${this.options.className}`);
     }
 
     if (!container) {
-      container = document.createElement('div');
+      container = this.hot.rootDocument.createElement('div');
 
       addClass(container, `htMenu ${this.options.className}`);
 
       if (className) {
         addClass(container, className);
       }
-      document.getElementsByTagName('body')[0].appendChild(container);
+      this.hot.rootDocument.getElementsByTagName('body')[0].appendChild(container);
     }
 
     return container;
@@ -710,7 +710,7 @@ class Menu {
 
     // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
-        (!isChildOf(event.target, '.htMenu') && isChildOf(event.target, document))) {
+        (!isChildOf(event.target, '.htMenu') && isChildOf(event.target, this.hot.rootDocument))) {
       this.close(true);
     }
   }

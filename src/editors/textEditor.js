@@ -120,7 +120,7 @@ class TextEditor extends BaseEditor {
   close() {
     this.autoResize.unObserve();
 
-    if (document.activeElement === this.TEXTAREA) {
+    if (this.hot.rootDocument.activeElement === this.TEXTAREA) {
       this.hot.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
     }
 
@@ -198,7 +198,7 @@ class TextEditor extends BaseEditor {
    * Creates an editor's elements and adds necessary CSS classnames.
    */
   createElements() {
-    this.TEXTAREA = document.createElement('TEXTAREA');
+    this.TEXTAREA = this.hot.rootDocument.createElement('TEXTAREA');
     this.TEXTAREA.tabIndex = -1;
 
     addClass(this.TEXTAREA, 'handsontableInput');
@@ -207,7 +207,7 @@ class TextEditor extends BaseEditor {
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
 
-    this.TEXTAREA_PARENT = document.createElement('DIV');
+    this.TEXTAREA_PARENT = this.hot.rootDocument.createElement('DIV');
     addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
     this.textareaParentStyle = this.TEXTAREA_PARENT.style;
@@ -335,8 +335,8 @@ class TextEditor extends BaseEditor {
     const scrollableContainerTop = this.hot.view.wt.wtOverlays.topOverlay.holder;
     const scrollableContainerLeft = this.hot.view.wt.wtOverlays.leftOverlay.holder;
     const totalRowsCount = this.hot.countRows();
-    const containerScrollTop = scrollableContainerTop !== window ? scrollableContainerTop.scrollTop : 0;
-    const containerScrollLeft = scrollableContainerLeft !== window ? scrollableContainerLeft.scrollLeft : 0;
+    const containerScrollTop = scrollableContainerTop !== this.hot.rootWindow ? scrollableContainerTop.scrollTop : 0;
+    const containerScrollLeft = scrollableContainerLeft !== this.hot.rootWindow ? scrollableContainerLeft.scrollLeft : 0;
     const editorSection = this.checkEditorSection();
 
     const scrollTop = ['', 'left'].includes(editorSection) ? containerScrollTop : 0;
