@@ -762,31 +762,45 @@ thead .htCollapseButton:after {
 }
 
 .htAnimateCustomBordersTop {
-  animation: pulse 1.5s ease-in-out infinite alternate;
+  border: none !important;
+  background: linear-gradient(to right, blue 50%, transparent 50%);
+  background-repeat: repeat-x;
+  background-size: 10px 2px, 2px 10px, 10px 2px, 2px 10px;
+  animation: borderTopRight 3s linear infinite;
 }
 
 .htAnimateCustomBordersRight {
-  animation: pulse 1.5s ease-in-out 0.5s infinite alternate;
+  border: none !important;
+  background: linear-gradient(0deg, blue 50%, transparent 50%), linear-gradient(180deg, blue 50%, transparent 50%), linear-gradient(0deg, blue 50%, transparent 50%);
+  background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
+  background-size: 10px 2px, 2px 10px, 10px 2px, 2px 10px;
+  animation: borderTopRight 1.5s linear infinite;
 }
 
 .htAnimateCustomBordersBottom {
-  animation: pulse 1.5s ease-in-out 1.5s infinite alternate;
+  border: none !important;
+  background: linear-gradient(to left, blue 50%, transparent 50%);
+  background-repeat: repeat-x;
+  background-size: 10px 2px, 2px 10px, 10px 2px, 2px 10px;
+  animation: borderBottomLeft 3s linear infinite;
 }
 
 .htAnimateCustomBordersLeft {
-  animation: pulse 1.5s ease-in-out 2s infinite alternate;
+  border: none !important;
+  background: linear-gradient(0deg, blue 50%, transparent 50%), linear-gradient(180deg, blue 50%, transparent 50%), linear-gradient(0deg, blue 50%, transparent 50%);
+  background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
+  background-size: 10px 2px, 2px 10px, 10px 2px, 2px 10px;
+  animation: borderBottomLeft 1.5s linear infinite;
 }
 
-@keyframes pulse {
-  0% { border-color: 100%; }
-  10% { border-color: 90%; }
-  20% { border-color: 80%; }
-  30% { border-color: 70%; }
-  40% { border-color: 60%; }
-  50% { border-color: 50%; }
-  60% { border-color: 40%; }
-  70% { border-color: 30%; }
-  80% { border-color: 20%; }
-  90% { border-color: 10%; }
-  100% { border-color: transparent; }
+@keyframes borderTopRight {
+  0% { background-position: left top, right top, right bottom, left bottom; }
+
+  100% { background-position: right top, right bottom, left bottom, left top; }
+}
+
+@keyframes borderBottomLeft {
+  0% { background-position: right top, right bottom, left bottom, left top; }
+
+  100% { background-position: left top, right top, right bottom, left bottom; }
 }
