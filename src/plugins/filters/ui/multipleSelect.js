@@ -127,7 +127,7 @@ class MultipleSelectUI extends BaseUI {
   build() {
     super.build();
 
-    const itemsBoxWrapper = document.createElement('div');
+    const itemsBoxWrapper = this.hot.rootDocument.createElement('div');
     const selectionControl = new BaseUI(this.hot, {
       className: 'htUISelectionControls',
       children: [this.selectAllUI, this.clearAllUI],

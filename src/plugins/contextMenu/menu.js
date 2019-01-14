@@ -62,7 +62,7 @@ class Menu {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mousedown', event => this.onDocumentMouseDown(event));
+    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mousedown', event => this.onDocumentMouseDown(event));
   }
 
   /**
@@ -306,7 +306,7 @@ class Menu {
    * @param {Event|Object} coords Event or literal Object with coordinates.
    */
   setPosition(coords) {
-    const cursor = new Cursor(coords);
+    const cursor = new Cursor(coords, this.hot.rootWindow);
 
     if (this.options.keepInViewport) {
       if (cursor.fitsBelow(this.container)) {

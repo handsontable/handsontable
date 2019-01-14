@@ -31,8 +31,8 @@ class ManualRowResize extends BasePlugin {
     this.startY = null;
     this.startHeight = null;
     this.startOffset = null;
-    this.handle = document.createElement('DIV');
-    this.guide = document.createElement('DIV');
+    this.handle = this.hot.rootDocument.createElement('DIV');
+    this.guide = this.hot.rootDocument.createElement('DIV');
     this.eventManager = new EventManager(this);
     this.pressed = null;
     this.dblclick = 0;
@@ -424,8 +424,8 @@ class ManualRowResize extends BasePlugin {
   bindEvents() {
     this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', e => this.onMouseOver(e));
     this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', e => this.onMouseDown(e));
-    this.eventManager.addEventListener(window, 'mousemove', e => this.onMouseMove(e));
-    this.eventManager.addEventListener(window, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(this.hot.rootWindow, 'mousemove', e => this.onMouseMove(e));
+    this.eventManager.addEventListener(this.hot.rootWindow, 'mouseup', () => this.onMouseUp());
   }
 
   /**

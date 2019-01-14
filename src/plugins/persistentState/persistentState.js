@@ -54,7 +54,7 @@ class PersistentState extends BasePlugin {
     }
 
     if (!this.storage) {
-      this.storage = new Storage(this.hot.rootElement.id);
+      this.storage = new Storage(this.hot.rootWindow, this.hot.rootElement.id);
     }
 
     this.addHook('persistentStateSave', (key, value) => this.saveValue(key, value));

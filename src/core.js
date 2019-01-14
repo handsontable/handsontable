@@ -90,8 +90,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     registerAsRootInstance(this);
   }
 
-  keyStateStartObserving();
-
   this.isDestroyed = false;
 
   this.rootElement = rootElement;
@@ -109,6 +107,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {Window}
    */
   this.rootWindow = this.rootDocument.defaultView;
+
+  keyStateStartObserving(this.rootDocument);
 
   this.isHotTableEnv = isChildOfWebComponentTable(this.rootElement);
   EventManager.isHotTableEnv = this.isHotTableEnv;

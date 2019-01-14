@@ -9,7 +9,8 @@ import { isMobileBrowser } from './../../helpers/browser';
  * @plugin CopyPaste
  */
 class FocusableWrapper {
-  constructor() {
+  constructor(rootDocument) {
+    this.rootDocument = rootDocument;
     /**
      * The main/operational focusable element.
      *
@@ -87,8 +88,8 @@ let refCounter = 0;
  *
  * @return {FocusableWrapper}
  */
-function createElement() {
-  const focusableWrapper = new FocusableWrapper();
+function createElement(rootDocument) {
+  const focusableWrapper = new FocusableWrapper(rootDocument);
 
   refCounter += 1;
 
@@ -129,13 +130,13 @@ function createOrGetSecondaryElement() {
   if (secondaryElement) {
 
     if (!secondaryElement.parentElement) {
-      document.body.appendChild(secondaryElement);
+      this.rootDocument.body.appendChild(secondaryElement);
     }
 
     return secondaryElement;
   }
 
-  const element = document.createElement('textarea');
+  const element = this.rootDocument.createElement('textarea');
 
   secondaryElement = element;
   element.id = 'HandsontableCopyPaste';
@@ -145,7 +146,7 @@ function createOrGetSecondaryElement() {
   element.wrap = 'hard';
   element.value = ' ';
 
-  document.body.appendChild(element);
+  this.rootDocument.body.appendChild(element);
 
   return element;
 }

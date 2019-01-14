@@ -1,3 +1,4 @@
+/* eslint-disable */
 // https://gist.github.com/paulirish/1579671
 let lastTime = 0;
 const vendors = ['ms', 'moz', 'webkit', 'o'];

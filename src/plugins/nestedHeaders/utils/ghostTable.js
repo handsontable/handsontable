@@ -29,7 +29,7 @@ class GhostTable {
    * @private
    */
   buildWidthsMapper() {
-    this.container = document.createElement('div');
+    this.container = this.nestedHeaders.hot.rootDocument.createElement('div');
 
     this.buildGhostTable(this.container);
     this.nestedHeaders.hot.rootElement.appendChild(this.container);
@@ -54,7 +54,7 @@ class GhostTable {
    * @param {HTMLElement} container
    */
   buildGhostTable(container) {
-    const d = document;
+    const d = this.nestedHeaders.hot.rootDocument;
     const fragment = d.createDocumentFragment();
     const table = d.createElement('table');
     let lastRowColspan = false;

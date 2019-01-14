@@ -131,7 +131,7 @@ class CopyPaste extends BasePlugin {
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
     this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
 
-    this.focusableElement = createElement();
+    this.focusableElement = createElement(this.hot.rootDocument);
     this.focusableElement
       .addLocalHook('copy', event => this.onCopy(event))
       .addLocalHook('cut', event => this.onCut(event))
@@ -411,7 +411,7 @@ class CopyPaste extends BasePlugin {
       const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        const textHTML = arrayToTable(rangedData);
+        const textHTML = arrayToTable(rangedData, this.hot.rootDocument);
 
         event.clipboardData.setData('text/plain', textPlain);
         event.clipboardData.setData('text/html', textHTML);
@@ -449,7 +449,7 @@ class CopyPaste extends BasePlugin {
       const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        const textHTML = arrayToTable(rangedData);
+        const textHTML = arrayToTable(rangedData, this.hot.rootDocument);
 
         event.clipboardData.setData('text/plain', textPlain);
         event.clipboardData.setData('text/html', textHTML);
@@ -486,7 +486,7 @@ class CopyPaste extends BasePlugin {
       const textHTML = event.clipboardData.getData('text/html');
 
       if (textHTML && /(<table)|(<TABLE)/.test(textHTML)) {
-        pastedData = tableToArray(textHTML);
+        pastedData = tableToArray(textHTML, this.hot.rootDocument);
       } else {
         pastedData = event.clipboardData.getData('text/plain');
       }

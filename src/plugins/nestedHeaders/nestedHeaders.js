@@ -320,9 +320,9 @@ class NestedHeaders extends BasePlugin {
 
       empty(TH);
 
-      const divEl = document.createElement('DIV');
+      const divEl = this.hot.rootDocument.createElement('DIV');
       addClass(divEl, 'relative');
-      const spanEl = document.createElement('SPAN');
+      const spanEl = this.hot.rootDocument.createElement('SPAN');
       addClass(spanEl, 'colHeader');
 
       fastInnerHTML(spanEl, _this.colspanArray[headerRow][index] ? _this.colspanArray[headerRow][index].label || '' : '');

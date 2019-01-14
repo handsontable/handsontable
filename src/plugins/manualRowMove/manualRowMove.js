@@ -459,8 +459,8 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mousemove', event => this.onMouseMove(event));
-    this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mousemove', event => this.onMouseMove(event));
+    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup', () => this.onMouseUp());
   }
 
   /**

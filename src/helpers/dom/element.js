@@ -99,11 +99,12 @@ export function closestDown(element, nodes, until) {
  * @returns {Boolean}
  */
 export function isChildOf(child, parent) {
+  const rootDocument = child.ownerDocument;
   let node = child.parentNode;
   let queriedParents = [];
 
   if (typeof parent === 'string') {
-    queriedParents = Array.prototype.slice.call(document.querySelectorAll(parent), 0);
+    queriedParents = Array.prototype.slice.call(rootDocument.querySelectorAll(parent), 0);
   } else {
     queriedParents.push(parent);
   }
@@ -204,10 +205,10 @@ export function index(element) {
  * @returns {boolean}
  */
 export function overlayContainsElement(overlayType, element) {
-  const overlayElement = document.querySelector(`.ht_clone_${overlayType}`);
+  const overlayElement = element.ownerDocument.querySelector(`.ht_clone_${overlayType}`);
   return overlayElement ? overlayElement.contains(element) : null;
 }
-
+// eslint-disable-next-line
 const classListSupport = !!document.documentElement.classList;
 let _hasClass;
 let _addClass;
@@ -231,13 +232,13 @@ function filterEmptyClassNames(classNames) {
 }
 
 if (classListSupport) {
-  const isSupportMultipleClassesArg = (function() {
-    const element = document.createElement('div');
+  const isSupportMultipleClassesArg = function(d) {
+    const element = d.createElement('div');
 
     element.classList.add('test', 'test2');
 
     return element.classList.contains('test2');
-  }());
+  };
 
   _hasClass = function(element, className) {
     if (element.classList === void 0 || typeof className !== 'string' || className === '') {
@@ -248,6 +249,7 @@ if (classListSupport) {
   };
 
   _addClass = function(element, classes) {
+    const rootDocument = element.ownerDocument;
     let className = classes;
 
     if (typeof className === 'string') {
@@ -257,7 +259,7 @@ if (classListSupport) {
     className = filterEmptyClassNames(className);
 
     if (className.length > 0) {
-      if (isSupportMultipleClassesArg) {
+      if (isSupportMultipleClassesArg(rootDocument)) {
         element.classList.add(...className);
 
       } else {

@@ -147,7 +147,7 @@ class MultipleSelectionHandles extends BasePlugin {
         return;
       }
 
-      const endTarget = document.elementFromPoint(
+      const endTarget = this.hot.rootDocument.elementFromPoint(
         event.touches[0].screenX - scrollLeft,
         event.touches[0].screenY - scrollTop);
 
