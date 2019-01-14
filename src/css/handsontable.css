@@ -763,33 +763,33 @@ thead .htCollapseButton:after {
 
 .htAnimateCustomBordersTop {
   border: none !important;
-  background: linear-gradient(to right, blue 50%, transparent 50%);
+  background: linear-gradient(to right, #005eff 50%, transparent 50%);
   background-repeat: repeat-x;
-  background-size: 10px 2px, 2px 10px, 10px 2px, 2px 10px;
-  animation: borderTopRight 3s linear infinite;
+  background-size: 10px 2px, 2px 10px;
+  animation: borderTopRight 2s linear infinite;
 }
 
 .htAnimateCustomBordersRight {
   border: none !important;
-  background: linear-gradient(0deg, blue 50%, transparent 50%), linear-gradient(180deg, blue 50%, transparent 50%), linear-gradient(0deg, blue 50%, transparent 50%);
+  background: linear-gradient(0deg, #005eff 50%, transparent 50%), linear-gradient(180deg, #005eff 50%, transparent 50%), linear-gradient(0deg, #005eff 50%, transparent 50%);
   background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
-  background-size: 10px 2px, 2px 10px, 10px 2px, 2px 10px;
+  background-size: 8px 2px, 2px 8px;
   animation: borderTopRight 1.5s linear infinite;
 }
 
 .htAnimateCustomBordersBottom {
   border: none !important;
-  background: linear-gradient(to left, blue 50%, transparent 50%);
+  background: linear-gradient(to left, #005eff 50%, transparent 50%);
   background-repeat: repeat-x;
-  background-size: 10px 2px, 2px 10px, 10px 2px, 2px 10px;
-  animation: borderBottomLeft 3s linear infinite;
+  background-size: 10px 2px, 2px 10px;
+  animation: borderBottomLeft 2s linear infinite;
 }
 
 .htAnimateCustomBordersLeft {
   border: none !important;
-  background: linear-gradient(0deg, blue 50%, transparent 50%), linear-gradient(180deg, blue 50%, transparent 50%), linear-gradient(0deg, blue 50%, transparent 50%);
+  background: linear-gradient(0deg, #005eff 50%, transparent 50%), linear-gradient(180deg, #005eff 50%, transparent 50%), linear-gradient(0deg, #005eff 50%, transparent 50%);
   background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
-  background-size: 10px 2px, 2px 10px, 10px 2px, 2px 10px;
+  background-size: 8px 2px, 2px 8px;
   animation: borderBottomLeft 1.5s linear infinite;
 }
 
