@@ -86,7 +86,7 @@ class TopOverlay extends Overlay {
     let result = false;
 
     if (this.mainTableScrollableElement === rootWindow && rootWindow.scrollY !== pos) {
-      rootWindow.scrollTo(getWindowScrollLeft(), pos);
+      rootWindow.scrollTo(getWindowScrollLeft(rootWindow), pos);
       result = true;
 
     } else if (this.mainTableScrollableElement.scrollTop !== pos) {
@@ -278,7 +278,7 @@ class TopOverlay extends Overlay {
    * @returns {Number} Main table's vertical scroll position.
    */
   getScrollPosition() {
-    return getScrollTop(this.mainTableScrollableElement);
+    return getScrollTop(this.mainTableScrollableElement, this.wot.rootWindow);
   }
 
   /**

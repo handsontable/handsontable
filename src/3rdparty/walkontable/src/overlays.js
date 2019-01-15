@@ -37,8 +37,8 @@ class Overlays {
     this.instance = this.wot;
     this.eventManager = new EventManager(this.wot);
 
-    this.wot.update('scrollbarWidth', getScrollbarWidth());
-    this.wot.update('scrollbarHeight', getScrollbarWidth());
+    this.wot.update('scrollbarWidth', getScrollbarWidth(this.wot.rootDocument));
+    this.wot.update('scrollbarHeight', getScrollbarWidth(this.wot.rootDocument));
 
     this.scrollableElement = getScrollableElement(wtTable.TABLE);
 

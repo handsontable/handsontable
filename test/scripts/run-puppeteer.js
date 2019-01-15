@@ -33,6 +33,7 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
 
   const page = await browser.newPage();
 
+  page.on('error', async() => { await page.screenshot({ path: './buddy-screenshot.png' }); });
   page.setCacheEnabled(false);
   page.setViewport({
     width: 1200,

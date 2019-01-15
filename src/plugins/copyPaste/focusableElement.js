@@ -35,7 +35,7 @@ class FocusableWrapper {
    * Switch to the secondary focusable element. Used when no any main focusable element is provided.
    */
   useSecondaryElement() {
-    const el = createOrGetSecondaryElement();
+    const el = createOrGetSecondaryElement(this.rootDocument);
 
     if (!this.listenersCount.has(el)) {
       this.listenersCount.add(el);
@@ -119,16 +119,17 @@ function forwardEventsToLocalHooks(eventManager, element, subject) {
   eventManager.addEventListener(element, 'paste', runLocalHooks('paste', subject));
 }
 
-let secondaryElement;
+const secondaryElements = new Map();
 
 /**
  * Create and attach newly created focusable element to the DOM.
  *
  * @return {HTMLElement}
  */
-function createOrGetSecondaryElement() {
-  if (secondaryElement) {
+function createOrGetSecondaryElement(rootDocument) {
+  const secondaryElement = secondaryElements.get(rootDocument);
 
+  if (secondaryElement) {
     if (!secondaryElement.parentElement) {
       this.rootDocument.body.appendChild(secondaryElement);
     }
@@ -136,9 +137,9 @@ function createOrGetSecondaryElement() {
     return secondaryElement;
   }
 
-  const element = this.rootDocument.createElement('textarea');
+  const element = rootDocument.createElement('textarea');
 
-  secondaryElement = element;
+  secondaryElements.set(rootDocument, element);
   element.id = 'HandsontableCopyPaste';
   element.className = 'copyPaste';
   element.tabIndex = -1;
@@ -146,7 +147,7 @@ function createOrGetSecondaryElement() {
   element.wrap = 'hard';
   element.value = ' ';
 
-  this.rootDocument.body.appendChild(element);
+  rootDocument.body.appendChild(element);
 
   return element;
 }
@@ -171,10 +172,13 @@ function destroyElement(wrapper) {
     refCounter = 0;
 
     // Detach secondary element from the DOM.
+    const secondaryElement = secondaryElements.get(wrapper.rootDocument);
+
     if (secondaryElement && secondaryElement.parentNode) {
       secondaryElement.parentNode.removeChild(secondaryElement);
-      secondaryElement = null;
+      secondaryElements.set(wrapper.rootDocument, null);
     }
+
     wrapper.mainElement = null;
   }
 }

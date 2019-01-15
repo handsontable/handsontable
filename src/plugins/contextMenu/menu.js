@@ -380,7 +380,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    const left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth() + 4;
+    const left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth(this.hot.rootDocument) + 4;
 
     this.container.style.left = `${left}px`;
   }

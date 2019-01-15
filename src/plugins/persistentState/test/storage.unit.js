@@ -15,38 +15,38 @@ describe('persistentState', () => {
     Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
     it('should create new storage object with prefix and empty array', () => {
-      const storage = new Storage('example');
+      const storage = new Storage(window, 'example');
 
       expect(storage.prefix).toEqual('example');
       expect(storage.savedKeys).toEqual([]);
     });
 
     it('should have saveValue method', () => {
-      const storage = new Storage('example');
+      const storage = new Storage(window, 'example');
 
       expect(storage.saveValue).toBeDefined();
     });
 
     it('should have loadValue method', () => {
-      const storage = new Storage('example');
+      const storage = new Storage(window, 'example');
 
       expect(storage.loadValue).toBeDefined();
     });
 
     it('should have reset method', () => {
-      const storage = new Storage('example');
+      const storage = new Storage(window, 'example');
 
       expect(storage.reset).toBeDefined();
     });
 
     it('should have resetAll method', () => {
-      const storage = new Storage('example');
+      const storage = new Storage(window, 'example');
 
       expect(storage.resetAll).toBeDefined();
     });
 
     it('should save data when call saveValue method', () => {
-      const storage = new Storage('example');
+      const storage = new Storage(window, 'example');
 
       storage.saveValue(1, 'one');
 
@@ -54,7 +54,7 @@ describe('persistentState', () => {
     });
 
     it('should load data from localStorage when call loadValue method', () => {
-      const storage = new Storage('example');
+      const storage = new Storage(window, 'example');
 
       localStorage.setItem(1, 'one');
 
@@ -64,7 +64,7 @@ describe('persistentState', () => {
     });
 
     it('should remove data from localStorage when call reset method', () => {
-      const storage = new Storage('example');
+      const storage = new Storage(window, 'example');
 
       storage.saveValue(1, 'one');
 
@@ -77,7 +77,7 @@ describe('persistentState', () => {
     });
 
     it('should remove all data from savedKeys array when call resetAll method', () => {
-      const storage = new Storage('example');
+      const storage = new Storage(window, 'example');
 
       storage.saveValue(1, 'one');
       storage.saveValue(2, 'two');
@@ -91,7 +91,7 @@ describe('persistentState', () => {
     });
 
     it('should load and save all keys from localStorage when call loadSavedKeys method', () => {
-      const storage = new Storage('example');
+      const storage = new Storage(window, 'example');
       const testArray = [1, 2, 3];
 
       localStorage.setItem('example__persistentStateKeys', JSON.stringify(testArray));
@@ -103,7 +103,7 @@ describe('persistentState', () => {
     });
 
     it('should save saved key in localStorage when call saveSavedKeys method', () => {
-      const storage = new Storage('example');
+      const storage = new Storage(window, 'example');
 
       storage.saveValue(1, 'one');
       storage.saveValue(2, 'two');
@@ -115,7 +115,7 @@ describe('persistentState', () => {
     });
 
     it('should clear saved key from localStorage when call clearSavedKeys method', () => {
-      const storage = new Storage('example');
+      const storage = new Storage(window, 'example');
 
       storage.saveValue(1, 'one');
       storage.saveValue(2, 'two');

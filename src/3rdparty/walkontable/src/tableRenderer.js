@@ -379,7 +379,7 @@ class TableRenderer {
       }
       // If the number of headers has been reduced, we need to replace excess TH with TD
       if (TD.nodeName === 'TH') {
-        TD = replaceThWithTd(TD, TR);
+        TD = replaceThWithTd(this.wot.rootDocument, TD, TR);
       }
       if (!hasClass(TD, 'hide')) {
         TD.className = '';
@@ -496,7 +496,7 @@ class TableRenderer {
         TR.appendChild(TH);
 
       } else if (TH.nodeName === 'TD') {
-        TH = replaceTdWithTh(TH, TR);
+        TH = replaceTdWithTh(this.wot.rootDocument, TH, TR);
       }
       this.renderRowHeader(row, visibleColIndex, TH);
       // http://jsperf.com/nextsibling-vs-indexed-childnodes
@@ -645,8 +645,8 @@ class TableRenderer {
   }
 }
 
-function replaceTdWithTh(TD, TR) {
-  const TH = this.wot.rootDocument.createElement('TH');
+function replaceTdWithTh(rootDocument, TD, TR) {
+  const TH = rootDocument.createElement('TH');
 
   TR.insertBefore(TH, TD);
   TR.removeChild(TD);
@@ -654,8 +654,8 @@ function replaceTdWithTh(TD, TR) {
   return TH;
 }
 
-function replaceThWithTd(TH, TR) {
-  const TD = this.wot.rootDocument.createElement('TD');
+function replaceThWithTd(rootDocument, TH, TR) {
+  const TD = rootDocument.createElement('TD');
 
   TR.insertBefore(TD, TH);
   TR.removeChild(TH);

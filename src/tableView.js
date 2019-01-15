@@ -243,7 +243,7 @@ class TableView {
       priv.selectionMouseDown = true;
 
       if (!this.isTextSelectionAllowed(event.target)) {
-        clearTextSelection();
+        clearTextSelection(this.instance.rootWindow);
         event.preventDefault();
         this.instance.rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
       }
@@ -256,7 +256,7 @@ class TableView {
       if (priv.selectionMouseDown && !this.isTextSelectionAllowed(event.target)) {
         // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breakes the IME editor.
         if (this.settings.fragmentSelection) {
-          clearTextSelection();
+          clearTextSelection(this.instance.rootWindow);
         }
         event.preventDefault();
       }

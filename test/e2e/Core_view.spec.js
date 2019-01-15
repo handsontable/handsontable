@@ -650,6 +650,8 @@ describe('Core_view', () => {
 
   describe('stretchH', () => {
     it('should stretch all visible columns with the ratio appropriate to the container\'s width', () => {
+      // reset scrolled window
+      window.scrollTo(0, 0);
       spec().$container[0].style.width = '300px';
 
       const hot = handsontable({
@@ -660,6 +662,8 @@ describe('Core_view', () => {
         stretchH: 'all'
       });
       const rowHeaderWidth = hot.view.wt.wtViewport.getRowHeaderWidth();
+      expect(hot.view.wt.wtOverlays.leftOverlay.getScrollPosition()).toEqual(0);
+
       let expectedCellWidth = (parseInt(spec().$container[0].style.width, 10) - rowHeaderWidth) / 5;
 
       expect(getCell(0, 0).offsetWidth).toEqual(expectedCellWidth);

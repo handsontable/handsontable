@@ -60,12 +60,12 @@ class Viewport {
 
   getWorkspaceWidth() {
     let width;
-    const currentDocument = this.wot.wtTable.wtRootElement.ownerDocument;
+    const rootDocument = this.wot.rootDocument;
     const totalColumns = this.wot.getSetting('totalColumns');
     const trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
     let overflow;
     const stretchSetting = this.wot.getSetting('stretchH');
-    const docOffsetWidth = currentDocument.documentElement.offsetWidth;
+    const docOffsetWidth = rootDocument.documentElement.offsetWidth;
     const preventOverflow = this.wot.getSetting('preventOverflow');
     const rootWindow = this.wot.rootWindow;
 
@@ -84,11 +84,11 @@ class Viewport {
       // otherwise continue below, which will allow stretching
       // this is used in `scroll_window.html`
       // TODO test me
-      return currentDocument.documentElement.clientWidth;
+      return rootDocument.documentElement.clientWidth;
     }
 
     if (trimmingContainer !== rootWindow) {
-      overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
+      overflow = getStyle(rootWindow, this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
 
       if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
         // this is used in `scroll.html`
@@ -222,14 +222,14 @@ class Viewport {
    * @returns {Number}
    */
   getRowHeaderWidth() {
-    const rowHeadersHeightSetting = this.instance.getSetting('rowHeaderWidth');
+    const rowHeadersWidthSetting = this.instance.getSetting('rowHeaderWidth');
     const rowHeaders = this.instance.getSetting('rowHeaders');
 
-    if (rowHeadersHeightSetting) {
+    if (rowHeadersWidthSetting) {
       this.rowHeaderWidth = 0;
 
       for (let i = 0, len = rowHeaders.length; i < len; i++) {
-        this.rowHeaderWidth += rowHeadersHeightSetting[i] || rowHeadersHeightSetting;
+        this.rowHeaderWidth += rowHeadersWidthSetting[i] || rowHeadersWidthSetting;
       }
     }
 

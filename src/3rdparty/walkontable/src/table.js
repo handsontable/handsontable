@@ -176,8 +176,8 @@ class Table {
           this.wtRootElement.style.overflow = 'visible';
         }
       } else {
-        this.holder.style.width = getStyle(trimmingElement, 'width');
-        this.holder.style.height = getStyle(trimmingElement, 'height');
+        this.holder.style.width = getStyle(this.wot.rootWindow, trimmingElement, 'width');
+        this.holder.style.height = getStyle(this.wot.rootWindow, trimmingElement, 'height');
         this.holder.style.overflow = '';
       }
     }

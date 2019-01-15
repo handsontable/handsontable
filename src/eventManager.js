@@ -130,8 +130,13 @@ class EventManager {
    * @param {String} eventName Event name.
    */
   fireEvent(element, eventName) {
-    const rootDocument = element.ownerDocument;
-    const rootWindow = rootDocument.defaultView;
+    let rootDocument = element.document;
+    let rootWindow = element;
+
+    if (!rootDocument) {
+      rootDocument = element.ownerDocument ? element.ownerDocument : element;
+      rootWindow = rootDocument.defaultView;
+    }
 
     const options = {
       bubbles: true,

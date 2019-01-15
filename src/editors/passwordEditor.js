@@ -11,7 +11,7 @@ class PasswordEditor extends TextEditor {
   createElements() {
     super.createElements();
 
-    this.TEXTAREA = this.wot.rootDocument.createElement('input');
+    this.TEXTAREA = this.hot.rootDocument.createElement('input');
     this.TEXTAREA.setAttribute('type', 'password');
     this.TEXTAREA.className = 'handsontableInput';
     this.textareaStyle = this.TEXTAREA.style;
