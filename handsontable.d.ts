@@ -1430,7 +1430,7 @@ declare namespace Handsontable {
     autoWrapRow?: boolean;
     bindRowsWithHeaders?: boolean | string; // pro
     cell?: any[];
-    cells?: (row?: number, col?: number, prop?: object) => GridSettings;
+    cells?: (row: number, col: number, prop: string | number) => GridSettings;
     checkedTemplate?: boolean | string;
     className?: string | any[];
     colHeaders?: ((index?: number) => void) | boolean | any[];
