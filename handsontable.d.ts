@@ -1433,7 +1433,7 @@ declare namespace Handsontable {
     cells?: (row?: number, col?: number, prop?: object) => GridSettings;
     checkedTemplate?: boolean | string;
     className?: string | any[];
-    colHeaders?: ((index?: number) => void) | boolean | any[];
+    colHeaders?: boolean | string[] | ((index: number) => string);
     collapsibleColumns?: boolean | any[]; // pro
     columnHeaderHeight?: number | any[];
     columns?: ((index?: number) => void) | any[];
@@ -1511,7 +1511,7 @@ declare namespace Handsontable {
     readOnlyCellClassName?: string;
     renderAllRows?: boolean;
     renderer?: string | renderers.Base;
-    rowHeaders?: boolean | any[] | (() => void);
+    rowHeaders?: boolean | string[] | ((index: number) => string);
     rowHeaderWidth?: number | any[];
     rowHeights?: any[] | (() => void) | number | string;
     search?: boolean;
