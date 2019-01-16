@@ -1019,12 +1019,12 @@ export function isOutsideInput(element) {
 }
 
 /**
- * Check if the given DOM element to focus.
+ * Check if the given DOM element can be focused (by using "select" method).
  *
  * @param {HTMLElement} element - DOM element
  */
-export function checkToFocus(element) {
-  const activeElement = document && document.activeElement;
+export function selectElementIfAllowed(element) {
+  const activeElement = document.activeElement;
 
   if (!isOutsideInput(activeElement)) {
     element.select();

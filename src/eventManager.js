@@ -35,10 +35,9 @@ class EventManager {
    * @param {Element} element Target element.
    * @param {String} eventName Event name.
    * @param {Function} callback Function which will be called after event occur.
-   * @param {Boolean} useCapture A Boolean indicating whether events of this type will be dispatched to the registered listener.
    * @returns {Function} Returns function which you can easily call to remove that event
    */
-  addEventListener(element, eventName, callback, useCapture = false) {
+  addEventListener(element, eventName, callback) {
     const context = this.context;
 
     function callbackProxy(event) {
@@ -52,11 +51,11 @@ class EventManager {
       callbackProxy,
     });
 
-    element.addEventListener(eventName, callbackProxy, useCapture);
+    element.addEventListener(eventName, callbackProxy);
     listenersCounter += 1;
 
     return () => {
-      this.removeEventListener(element, eventName, callback, useCapture);
+      this.removeEventListener(element, eventName, callback);
     };
   }
 
@@ -66,9 +65,8 @@ class EventManager {
    * @param {Element} element Target element.
    * @param {String} eventName Event name.
    * @param {Function} callback Function to remove from the event target. It must be the same as during registration listener.
-   * @param {Boolean} useCapture A Boolean indicating whether events of this type will be dispatched to the registered listener.
    */
-  removeEventListener(element, eventName, callback, useCapture) {
+  removeEventListener(element, eventName, callback) {
     let len = this.context.eventListeners.length;
     let tmpEvent;
 
@@ -82,7 +80,7 @@ class EventManager {
           continue;
         }
         this.context.eventListeners.splice(len, 1);
-        tmpEvent.element.removeEventListener(tmpEvent.event, tmpEvent.callbackProxy, useCapture);
+        tmpEvent.element.removeEventListener(tmpEvent.event, tmpEvent.callbackProxy);
         listenersCounter -= 1;
       }
     }
@@ -105,7 +103,7 @@ class EventManager {
       const event = this.context.eventListeners[len];
 
       if (event) {
-        this.removeEventListener(event.element, event.event, event.callback, event.useCapture);
+        this.removeEventListener(event.element, event.event, event.callback);
       }
     }
   }

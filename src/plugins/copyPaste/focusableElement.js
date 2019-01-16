@@ -2,7 +2,7 @@ import EventManager from './../../eventManager';
 import localHooks from './../../mixins/localHooks';
 import { mixin } from './../../helpers/object';
 import { isMobileBrowser } from './../../helpers/browser';
-import { checkToFocus } from './../../helpers/dom/element';
+import { selectElementIfAllowed } from './../../helpers/dom/element';
 
 /**
  * @class FocusableWrapper
@@ -74,7 +74,7 @@ class FocusableWrapper {
     this.mainElement.value = ' ';
 
     if (!isMobileBrowser()) {
-      checkToFocus(this.mainElement);
+      selectElementIfAllowed(this.mainElement);
     }
   }
 }
