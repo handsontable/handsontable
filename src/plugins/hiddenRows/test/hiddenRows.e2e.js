@@ -174,17 +174,6 @@ describe('HiddenRows', () => {
   });
 
   it('should change hiding position following the hidden row position', () => {
-    const modification = (row) => {
-      if (row === 0) {
-        return 1;
-
-      } else if (row === 1) {
-        return 0;
-      }
-
-      return row;
-    };
-
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       hiddenRows: {
@@ -198,10 +187,10 @@ describe('HiddenRows', () => {
     expect(getPlugin('hiddenRows').isHidden(0, true)).toBeTruthy();
     expect(getPlugin('hiddenRows').isHidden(0)).toBeTruthy();
 
-    // changing row sequence: 0 <-> 1
-    updateSettings({ modifyRow: modification, unmodifyRow: modification });
+    // changing row sequence: 0 <-> 5
+    updateSettings({ columnSorting: { initialConfig: { column: 0, sortOrder: 'desc' } } });
 
-    expect(getPlugin('hiddenRows').isHidden(1, true)).toBeTruthy();
+    expect(getPlugin('hiddenRows').isHidden(4, true)).toBeTruthy();
     expect(getPlugin('hiddenRows').isHidden(0)).toBeTruthy();
   });
 
