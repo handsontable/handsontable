@@ -187,7 +187,7 @@ describe('HiddenRows', () => {
     expect(getPlugin('hiddenRows').isHidden(0, true)).toBeTruthy();
     expect(getPlugin('hiddenRows').isHidden(0)).toBeTruthy();
 
-    // changing row sequence: 0 <-> 5
+    // changing row sequence: 0 <-> 4
     updateSettings({ columnSorting: { initialConfig: { column: 0, sortOrder: 'desc' } } });
 
     expect(getPlugin('hiddenRows').isHidden(4, true)).toBeTruthy();
