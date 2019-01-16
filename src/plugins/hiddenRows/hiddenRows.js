@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach } from '../../helpers/array';
+import { arrayEach, arrayMap } from '../../helpers/array';
 import { registerPlugin } from '../../plugins';
 import Hooks from '../../pluginHooks';
 import hideRowItem from './contextMenuItem/hideRow';
@@ -168,10 +168,12 @@ class HiddenRows extends BasePlugin {
   showRows(rows) {
     const currentHideConfig = this.hiddenRows;
     const validRows = this.isRowDataValid(rows);
+    const physicalRows = arrayMap(rows, visualRowIndex => this.hot.toPhysicalRow(visualRowIndex));
+
     let destinationHideConfig = currentHideConfig;
 
     if (validRows) {
-      destinationHideConfig = this.hiddenRows.filter(hiddenRow => rows.includes(hiddenRow) === false);
+      destinationHideConfig = this.hiddenRows.filter(hiddenRow => physicalRows.includes(hiddenRow) === false);
     }
 
     const continueHiding = this.hot.runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, validRows);
@@ -205,10 +207,12 @@ class HiddenRows extends BasePlugin {
   hideRows(rows) {
     const currentHideConfig = this.hiddenRows;
     const validRows = this.isRowDataValid(rows);
+    const physicalRows = arrayMap(rows, visualRowIndex => this.hot.toPhysicalRow(visualRowIndex));
     let destinationHideConfig = currentHideConfig;
 
     if (validRows) {
-      destinationHideConfig = Array.from(new Set(currentHideConfig.concat(rows)));
+      // Creating unique list of indexes.
+      destinationHideConfig = Array.from(new Set(currentHideConfig.concat(physicalRows)));
     }
 
     const continueHiding = this.hot.runHooks('beforeHideRows', currentHideConfig, destinationHideConfig, validRows);

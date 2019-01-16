@@ -1521,7 +1521,7 @@ const REGISTERED_HOOKS = [
    *
    * @pro
    * @event Hooks#afterHideRows
-   * @param {Array} rows Array of row indexes marked as hidden.
+   * @param {Array} rows Array of visual row indexes marked as hidden.
    * @param {Boolean} hidingPossible `true`, if the row indexes provided in the `rows` parameter are valid, `false` otherwise.
    * @param {Boolean} stateChanged `true`, if the action affected any non-hidden rows, `false` otherwise.
    */
@@ -1533,7 +1533,7 @@ const REGISTERED_HOOKS = [
    *
    * @pro
    * @event Hooks#beforeUnhideRows
-   * @param {Array} rows Array of row indexes about to be marked as not hidden.
+   * @param {Array} rows Array of visual row indexes about to be marked as not hidden.
    * @param {Boolean} actionPossible `true`, if all of the row indexes from `rows` are withing the bounds of the table, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the revealing action will not be completed.
    */
