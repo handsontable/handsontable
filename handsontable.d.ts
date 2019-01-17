@@ -1572,6 +1572,7 @@ declare namespace Handsontable {
     afterGetColumnHeaderRenderers?: (array: any[]) => void;
     afterGetRowHeader?: (row: number, TH: Element) => void;
     afterGetRowHeaderRenderers?: (array: any[]) => void;
+    afterHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterInit?: () => void;
     afterLanguageChange?: (languageCode: string) => void;
     afterListen?: () => void;
@@ -1606,11 +1607,12 @@ declare namespace Handsontable {
     afterSetCellMeta?: (row: number, col: number, key: string, value: any) => void;
     afterSetDataAtCell?: (changes: any[], source?: string) => void;
     afterSetDataAtRowProp?: (changes: any[], source?: string) => void;
-    afterTrimRow?: (currentTrimConfig: object[], destinationTrimConfig: object[], actionPossible: boolean, stateChanged: boolean) => void;
+    afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterUndo?: (action: object) => void;
     afterUnlisten?: () => void;
+    afterUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
-    afterUntrimRow?: (currentTrimConfig: object[], destinationTrimConfig: object[], actionPossible: boolean, stateChanged: boolean) => void;
+    afterUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterUpdateSettings?: () => void;
     afterValidate?: (isValid: boolean, value: any, row: number, prop: string | number, source: string) => void | boolean;
     afterViewportColumnCalculatorOverride?: (calc: object) => void;
@@ -1636,6 +1638,7 @@ declare namespace Handsontable {
     beforeDropdownMenuShow?: (instance: Handsontable.plugins.DropdownMenu) => void;
     beforeFilter?: (formulasStack: any[]) => void;
     beforeGetCellMeta?: (row: number, col: number, cellProperties: GridSettings) => void;
+    beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
     beforeInit?: () => void;
     beforeInitWalkontable?: (walkontableConfig: object) => void;
     beforeKeyDown?: (event: Event) => void;
@@ -1661,10 +1664,11 @@ declare namespace Handsontable {
     beforeSetRangeStartOnly?: (coords: wot.CellCoords) => void;
     beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void;
     beforeTouchScroll?: () => void;
-    beforeTrimRow?: (currentTrimConfig: object[], destinationTrimConfig: object[], actionPossible: boolean) => void;
+    beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void;
     beforeUndo?: (action: object) => void;
+    beforeUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
     beforeUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
-    beforeUntrimRow?: (currentTrimConfig: object[], destinationTrimConfig: object[], actionPossible: boolean) => void;
+    beforeUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void;
     beforeValidate?: (value: any, row: number, prop: string | number, source?: string) => void;
     beforeValueRender?: (value: any, cellProperties: object) => void;
     construct?: () => void;
