@@ -1602,7 +1602,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#beforeTrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
-   * @param {Array} destinationTrimConfigs Destination trim configuration - a list of trimmed physical row indexes.
+   * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
    * @param {Boolean} actionPossible `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the trimming action will not be completed.
    */
@@ -1614,7 +1614,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#afterTrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
-   * @param {Array} destinationTrimConfigs Destination trim configuration - a list of trimmed physical row indexes.
+   * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
    * @param {Boolean} actionPossible `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise.
    * @param {Boolean} stateChanged `true`, if the action affected any non-trimmed rows, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the trimming action will not be completed.
@@ -1627,7 +1627,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#beforeUntrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
-   * @param {Array} destinationTrimConfigs Destination trim configuration - a list of trimmed physical row indexes.
+   * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
    * @param {Boolean} actionPossible `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the untrimming action will not be completed.
    */
@@ -1639,7 +1639,7 @@ const REGISTERED_HOOKS = [
    * @pro
    * @event Hooks#afterUntrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
-   * @param {Array} destinationTrimConfigs Destination trim configuration - a list of trimmed physical row indexes.
+   * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
    * @param {Boolean} actionPossible `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise.
    * @param {Boolean} stateChanged `true`, if the action affected any trimmed rows, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the untrimming action will not be completed.
