@@ -892,10 +892,29 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   function validateChanges(changes, source, callback) {
+    if (!changes.length) {
+      return;
+    }
+
+    const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
+
+    if (isFunction(beforeChangeResult)) {
+      warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
+
+    } else if (beforeChangeResult === false) {
+      const activeEditor = instance.getActiveEditor();
+
+      if (activeEditor) {
+        activeEditor.cancelChanges();
+      }
+
+      return;
+    }
+
     const waitingForValidator = new ValidatorsQueue();
     const isNumericData = value => value.length > 0 && /^\s*[+-.]?\s*(?:(?:\d+(?:(\.|,)\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/.test(value);
 
-    waitingForValidator.onQueueEmpty = resolve;
+    waitingForValidator.onQueueEmpty = callback; // called when async validators are resolved and beforeChange was not async
 
     for (let i = changes.length - 1; i >= 0; i--) {
       if (changes[i] === null) {
@@ -933,20 +952,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
     }
     waitingForValidator.checkIfQueueIsEmpty();
-
-    function resolve() {
-      let beforeChangeResult;
-
-      if (changes.length) {
-        beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
-        if (isFunction(beforeChangeResult)) {
-          warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
-        } else if (beforeChangeResult === false) {
-          changes.splice(0, changes.length); // invalidate all changes (remove everything from array)
-        }
-      }
-      callback(); // called when async validators are resolved and beforeChange was not async
-    }
   }
 
   /**
@@ -1063,8 +1068,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
       // To provide consistent behaviour, validation should be always asynchronous
-      instance._registerTimeout(setTimeout(() => {
+      instance._registerImmediate(() => {
         validator.call(cellProperties, value, (valid) => {
+          if (!instance) {
+            return;
+          }
           // eslint-disable-next-line no-param-reassign
           valid = instance.runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
           cellProperties.valid = valid;
@@ -1072,14 +1080,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           done(valid);
           instance.runHooks('postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
         });
-      }, 0));
+      });
 
     } else {
       // resolve callback even if validator function was not found
-      instance._registerTimeout(setTimeout(() => {
+      instance._registerImmediate(() => {
         cellProperties.valid = true;
         done(cellProperties.valid, false);
-      }, 0));
+      });
     }
   };
 
