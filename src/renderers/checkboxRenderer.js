@@ -23,10 +23,11 @@ const BAD_VALUE_CLASS = 'htBadValue';
  * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
 function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, ...args) {
+  const { rootDocument } = instance;
   getRenderer('base').apply(this, [instance, TD, row, col, prop, value, cellProperties, ...args]);
   registerEvents(instance);
 
-  let input = createInput(instance.rootDocument);
+  let input = createInput(rootDocument);
   const labelOptions = cellProperties.label;
   let badValue = false;
 
@@ -66,7 +67,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
     } else if (labelOptions.property) {
       labelText = instance.getDataAtRowProp(row, labelOptions.property);
     }
-    const label = createLabel(instance.rootDocument, labelText);
+    const label = createLabel(rootDocument, labelText);
 
     if (labelOptions.position === 'before') {
       label.appendChild(input);
@@ -79,7 +80,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
   TD.appendChild(input);
 
   if (badValue) {
-    TD.appendChild(instance.rootDocument.createTextNode('#bad-value#'));
+    TD.appendChild(rootDocument.createTextNode('#bad-value#'));
   }
 
   if (!isListeningKeyDownEvent.has(instance)) {
@@ -223,10 +224,12 @@ function registerEvents(instance) {
   let eventManager = isCheckboxListenerAdded.get(instance);
 
   if (!eventManager) {
+    const { rootElement } = instance;
     eventManager = new EventManager(instance);
-    eventManager.addEventListener(instance.rootElement, 'click', event => onClick(event, instance));
-    eventManager.addEventListener(instance.rootElement, 'mouseup', event => onMouseUp(event, instance));
-    eventManager.addEventListener(instance.rootElement, 'change', event => onChange(event, instance));
+
+    eventManager.addEventListener(rootElement, 'click', event => onClick(event, instance));
+    eventManager.addEventListener(rootElement, 'mouseup', event => onMouseUp(event, instance));
+    eventManager.addEventListener(rootElement, 'change', event => onChange(event, instance));
 
     isCheckboxListenerAdded.set(instance, eventManager);
   }
@@ -237,6 +240,7 @@ function registerEvents(instance) {
 /**
  * Create input element.
  *
+ * @param {Document} rootDocument
  * @returns {Node}
  */
 function createInput(rootDocument) {
@@ -253,6 +257,8 @@ function createInput(rootDocument) {
 /**
  * Create label element.
  *
+ * @param {Document} rootDocument
+ * @param {String} text
  * @returns {Node}
  */
 function createLabel(rootDocument, text) {

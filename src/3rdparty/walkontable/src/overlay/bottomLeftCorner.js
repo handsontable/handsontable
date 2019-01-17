@@ -24,19 +24,21 @@ class BottomLeftCornerOverlay extends Overlay {
    * @returns {Boolean}
    */
   shouldBeRendered() {
+    const { wot } = this;
     /* eslint-disable no-unneeded-ternary */
-    return this.wot.getSetting('fixedRowsBottom') &&
-      (this.wot.getSetting('fixedColumnsLeft') || this.wot.getSetting('rowHeaders').length) ? true : false;
+    return wot.getSetting('fixedRowsBottom') &&
+      (wot.getSetting('fixedColumnsLeft') || wot.getSetting('rowHeaders').length) ? true : false;
   }
 
   /**
    * Reposition the overlay.
    */
   repositionOverlay() {
-    let scrollbarWidth = getScrollbarWidth();
+    const { wtTable, rootDocument } = this.wot;
     const cloneRoot = this.clone.wtTable.holder.parentNode;
+    let scrollbarWidth = getScrollbarWidth(rootDocument);
 
-    if (this.wot.wtTable.holder.clientHeight === this.wot.wtTable.holder.offsetHeight) {
+    if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
       scrollbarWidth = 0;
     }
 
@@ -48,9 +50,10 @@ class BottomLeftCornerOverlay extends Overlay {
    * Updates the corner overlay position
    */
   resetFixedPosition() {
+    const { wot } = this;
     this.updateTrimmingContainer();
 
-    if (!this.wot.wtTable.holder.parentNode) {
+    if (!wot.wtTable.holder.parentNode) {
       // removed from DOM
       return;
     }
@@ -60,13 +63,13 @@ class BottomLeftCornerOverlay extends Overlay {
 
     overlayRoot.style.top = '';
 
-    if (this.trimmingContainer === this.wot.rootWindow) {
-      const box = this.wot.wtTable.hider.getBoundingClientRect();
+    if (this.trimmingContainer === wot.rootWindow) {
+      const box = wot.wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(box.bottom);
       const left = Math.ceil(box.left);
       let finalLeft;
       let finalBottom;
-      const bodyHeight = this.wot.rootDocument.body.offsetHeight;
+      const bodyHeight = wot.rootDocument.body.offsetHeight;
 
       if (left < 0) {
         finalLeft = -left;

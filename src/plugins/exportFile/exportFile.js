@@ -93,11 +93,12 @@ class ExportFile extends BasePlugin {
    * @param {ExportOptions} options Export options.
    */
   downloadFile(format, options = {}) {
+    const { rootDocument, rootWindow } = this.hot;
     const formatter = this._createTypeFormatter(format, options);
     const blob = this._createBlob(formatter);
-    const URL = (this.hot.rootWindow.URL || this.hot.rootWindow.webkitURL);
+    const URL = (rootWindow.URL || rootWindow.webkitURL);
 
-    const a = this.hot.rootDocument.createElement('a');
+    const a = rootDocument.createElement('a');
     const name = `${formatter.options.filename}.${formatter.options.fileExtension}`;
 
     if (a.download !== void 0) {
@@ -106,9 +107,9 @@ class ExportFile extends BasePlugin {
       a.style.display = 'none';
       a.setAttribute('href', url);
       a.setAttribute('download', name);
-      this.hot.rootDocument.body.appendChild(a);
+      rootDocument.body.appendChild(a);
       a.dispatchEvent(new MouseEvent('click'));
-      this.hot.rootDocument.body.removeChild(a);
+      rootDocument.body.removeChild(a);
 
       setTimeout(() => {
         URL.revokeObjectURL(url);

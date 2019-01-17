@@ -243,9 +243,10 @@ class TableView {
       priv.selectionMouseDown = true;
 
       if (!this.isTextSelectionAllowed(event.target)) {
-        clearTextSelection(this.instance.rootWindow);
+        const { rootWindow } = this.instance;
+        clearTextSelection(rootWindow);
         event.preventDefault();
-        this.instance.rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
+        rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
       }
     });
 
@@ -307,11 +308,13 @@ class TableView {
       }
 
       // immediate click on "holder" means click on the right side of vertical scrollbar
-      if (next === this.instance.view.wt.wtTable.holder) {
-        const scrollbarWidth = getScrollbarWidth();
+      const { holder } = this.instance.view.wt.wtTable;
 
-        if (rootDocument.elementFromPoint(eventX + scrollbarWidth, eventY) !== this.instance.view.wt.wtTable.holder ||
-          rootDocument.elementFromPoint(eventX, eventY + scrollbarWidth) !== this.instance.view.wt.wtTable.holder) {
+      if (next === holder) {
+        const scrollbarWidth = getScrollbarWidth(rootDocument);
+
+        if (rootDocument.elementFromPoint(eventX + scrollbarWidth, eventY) !== holder ||
+          rootDocument.elementFromPoint(eventX, eventY + scrollbarWidth) !== holder) {
           return;
         }
       } else {
@@ -743,9 +746,9 @@ class TableView {
       }
 
     } else {
-      const d = this.instance.rootElement.ownerDocument;
-      const div = d.createElement('div');
-      const span = d.createElement('span');
+      const { rootDocument } = this.instance;
+      const div = rootDocument.createElement('div');
+      const span = rootDocument.createElement('span');
 
       div.className = 'relative';
       span.className = 'colHeader';

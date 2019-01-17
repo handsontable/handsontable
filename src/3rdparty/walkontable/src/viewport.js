@@ -59,21 +59,21 @@ class Viewport {
   }
 
   getWorkspaceWidth() {
-    let width;
-    const rootDocument = this.wot.rootDocument;
-    const totalColumns = this.wot.getSetting('totalColumns');
+    const { wot } = this;
+    const { rootDocument, rootWindow } = wot;
     const trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
-    let overflow;
-    const stretchSetting = this.wot.getSetting('stretchH');
     const docOffsetWidth = rootDocument.documentElement.offsetWidth;
-    const preventOverflow = this.wot.getSetting('preventOverflow');
-    const rootWindow = this.wot.rootWindow;
+    const totalColumns = wot.getSetting('totalColumns');
+    const stretchSetting = wot.getSetting('stretchH');
+    const preventOverflow = wot.getSetting('preventOverflow');
+    let width;
+    let overflow;
 
     if (preventOverflow) {
       return outerWidth(this.instance.wtTable.wtRootElement);
     }
 
-    if (this.wot.getSetting('freezeOverlays')) {
+    if (wot.getSetting('freezeOverlays')) {
       width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
     } else {
       width = Math.min(this.getContainerFillWidth(), docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
@@ -130,7 +130,7 @@ class Viewport {
    * @returns {Number}
    */
   sumColumnWidths(from, length) {
-    const wtTable = this.wot.wtTable;
+    const { wtTable } = this.wot;
     let sum = 0;
     let column = from;
 
@@ -183,9 +183,10 @@ class Viewport {
    * @returns {Number}
    */
   getWorkspaceActualWidth() {
-    return outerWidth(this.wot.wtTable.TABLE) ||
-      outerWidth(this.wot.wtTable.TBODY) ||
-      outerWidth(this.wot.wtTable.THEAD); // IE8 reports 0 as <table> offsetWidth;
+    const { wtTable } = this.wot;
+    return outerWidth(wtTable.TABLE) ||
+      outerWidth(wtTable.TBODY) ||
+      outerWidth(wtTable.THEAD); // IE8 reports 0 as <table> offsetWidth;
   }
 
   /**
@@ -291,52 +292,54 @@ class Viewport {
    * @returns {ViewportRowsCalculator}
    */
   createRowsCalculator(visible = false) {
+    const { wot } = this;
+    const { wtSettings, wtOverlays, wtTable, rootDocument } = wot;
     let height;
     let scrollbarHeight;
     let fixedRowsHeight;
 
     this.rowHeaderWidth = NaN;
 
-    if (this.wot.wtSettings.settings.renderAllRows && !visible) {
+    if (wtSettings.settings.renderAllRows && !visible) {
       height = Infinity;
     } else {
       height = this.getViewportHeight();
     }
 
-    let pos = this.wot.wtOverlays.topOverlay.getScrollPosition() - this.wot.wtOverlays.topOverlay.getTableParentOffset();
+    let pos = wtOverlays.topOverlay.getScrollPosition() - wtOverlays.topOverlay.getTableParentOffset();
 
     if (pos < 0) {
       pos = 0;
     }
 
-    const fixedRowsTop = this.wot.getSetting('fixedRowsTop');
-    const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
-    const totalRows = this.wot.getSetting('totalRows');
+    const fixedRowsTop = wot.getSetting('fixedRowsTop');
+    const fixedRowsBottom = wot.getSetting('fixedRowsBottom');
+    const totalRows = wot.getSetting('totalRows');
 
     if (fixedRowsTop) {
-      fixedRowsHeight = this.wot.wtOverlays.topOverlay.sumCellSizes(0, fixedRowsTop);
+      fixedRowsHeight = wtOverlays.topOverlay.sumCellSizes(0, fixedRowsTop);
       pos += fixedRowsHeight;
       height -= fixedRowsHeight;
     }
 
-    if (fixedRowsBottom && this.wot.wtOverlays.bottomOverlay.clone) {
-      fixedRowsHeight = this.wot.wtOverlays.bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
+    if (fixedRowsBottom && wtOverlays.bottomOverlay.clone) {
+      fixedRowsHeight = wtOverlays.bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
 
       height -= fixedRowsHeight;
     }
 
-    if (this.wot.wtTable.holder.clientHeight === this.wot.wtTable.holder.offsetHeight) {
+    if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
       scrollbarHeight = 0;
     } else {
-      scrollbarHeight = getScrollbarWidth();
+      scrollbarHeight = getScrollbarWidth(rootDocument);
     }
 
     return new ViewportRowsCalculator(
       height,
       pos,
-      this.wot.getSetting('totalRows'),
-      sourceRow => this.wot.wtTable.getRowHeight(sourceRow),
-      visible ? null : this.wot.wtSettings.settings.viewportRowCalculatorOverride,
+      wot.getSetting('totalRows'),
+      sourceRow => wtTable.getRowHeight(sourceRow),
+      visible ? null : wtSettings.settings.viewportRowCalculatorOverride,
       visible,
       scrollbarHeight
     );
@@ -350,8 +353,10 @@ class Viewport {
    * @returns {ViewportRowsCalculator}
    */
   createColumnsCalculator(visible = false) {
+    const { wot } = this;
+    const { wtSettings, wtOverlays, wtTable, rootDocument } = wot;
     let width = this.getViewportWidth();
-    let pos = this.wot.wtOverlays.leftOverlay.getScrollPosition() - this.wot.wtOverlays.leftOverlay.getTableParentOffset();
+    let pos = wtOverlays.leftOverlay.getScrollPosition() - wtOverlays.leftOverlay.getTableParentOffset();
 
     this.columnHeaderHeight = NaN;
 
@@ -359,26 +364,26 @@ class Viewport {
       pos = 0;
     }
 
-    const fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
+    const fixedColumnsLeft = wot.getSetting('fixedColumnsLeft');
 
     if (fixedColumnsLeft) {
-      const fixedColumnsWidth = this.wot.wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
+      const fixedColumnsWidth = wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
       pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
     }
-    if (this.wot.wtTable.holder.clientWidth !== this.wot.wtTable.holder.offsetWidth) {
-      width -= getScrollbarWidth();
+    if (wtTable.holder.clientWidth !== wtTable.holder.offsetWidth) {
+      width -= getScrollbarWidth(rootDocument);
     }
 
     return new ViewportColumnsCalculator(
       width,
       pos,
-      this.wot.getSetting('totalColumns'),
-      sourceCol => this.wot.wtTable.getColumnWidth(sourceCol),
-      visible ? null : this.wot.wtSettings.settings.viewportColumnCalculatorOverride,
+      wot.getSetting('totalColumns'),
+      sourceCol => wot.wtTable.getColumnWidth(sourceCol),
+      visible ? null : wtSettings.settings.viewportColumnCalculatorOverride,
       visible,
-      this.wot.getSetting('stretchH'),
-      (stretchedWidth, column) => this.wot.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column)
+      wot.getSetting('stretchH'),
+      (stretchedWidth, column) => wot.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column)
     );
   }
 

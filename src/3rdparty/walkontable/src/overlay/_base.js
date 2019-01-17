@@ -130,16 +130,24 @@ class Overlay {
       writable: false,
     });
 
+    const {
+      TABLE,
+      hider,
+      spreader,
+      holder,
+      wtRootElement,
+    } = this.wot.wtTable;
+
     // legacy support, deprecated in the future
     this.instance = this.wot;
 
     this.type = '';
     this.mainTableScrollableElement = null;
-    this.TABLE = this.wot.wtTable.TABLE;
-    this.hider = this.wot.wtTable.hider;
-    this.spreader = this.wot.wtTable.spreader;
-    this.holder = this.wot.wtTable.holder;
-    this.wtRootElement = this.wot.wtTable.wtRootElement;
+    this.TABLE = TABLE;
+    this.hider = hider;
+    this.spreader = spreader;
+    this.holder = holder;
+    this.wtRootElement = wtRootElement;
     this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
     this.areElementSizesAdjusted = false;
     this.updateStateOfRendering();
@@ -198,8 +206,7 @@ class Overlay {
     if (Overlay.CLONE_TYPES.indexOf(direction) === -1) {
       throw new Error(`Clone type "${direction}" is not supported.`);
     }
-    const wtTable = this.wot.wtTable;
-    const rootDocument = this.wot.rootDocument;
+    const { wtTable, rootDocument, rootWindow } = this.wot;
     const clone = rootDocument.createElement('DIV');
     const clonedTable = rootDocument.createElement('TABLE');
 
@@ -220,7 +227,7 @@ class Overlay {
     if (preventOverflow === true ||
         preventOverflow === 'horizontal' && this.type === Overlay.CLONE_TOP ||
         preventOverflow === 'vertical' && this.type === Overlay.CLONE_LEFT) {
-      this.mainTableScrollableElement = this.wot.rootWindow;
+      this.mainTableScrollableElement = rootWindow;
 
     } else {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);

@@ -598,7 +598,7 @@ export function getScrollTop(element, rootWindow = window) {
  * Returns the provided element's scrollLeft property.
  *
  * @param element
- * @param {Window}
+ * @param {Window} rootWindow
  * @returns {Number}
  */
 // eslint-disable-next-line

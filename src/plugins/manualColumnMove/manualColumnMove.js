@@ -447,8 +447,10 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mousemove', event => this.onMouseMove(event));
-    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup', () => this.onMouseUp());
+    const { documentElement } = this.hot.rootDocument;
+
+    this.eventManager.addEventListener(documentElement, 'mousemove', event => this.onMouseMove(event));
+    this.eventManager.addEventListener(documentElement, 'mouseup', () => this.onMouseUp());
   }
 
   /**

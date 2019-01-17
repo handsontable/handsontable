@@ -293,6 +293,7 @@ class NestedHeaders extends BasePlugin {
     const _this = this;
 
     return function(index, TH) {
+      const { rootDocument } = _this.hot;
       TH.removeAttribute('colspan');
       removeClass(TH, 'hiddenHeader');
 
@@ -300,8 +301,7 @@ class NestedHeaders extends BasePlugin {
       if (_this.colspanArray[headerRow][index] && _this.colspanArray[headerRow][index].colspan) {
         const colspan = _this.colspanArray[headerRow][index].colspan;
         const fixedColumnsLeft = _this.hot.getSettings().fixedColumnsLeft || 0;
-        const topLeftCornerOverlay = _this.hot.view.wt.wtOverlays.topLeftCornerOverlay;
-        const leftOverlay = _this.hot.view.wt.wtOverlays.leftOverlay;
+        const { leftOverlay, topLeftCornerOverlay } = _this.hot.view.wt.wtOverlays;
         const isInTopLeftCornerOverlay = topLeftCornerOverlay ? topLeftCornerOverlay.clone.wtTable.THEAD.contains(TH) : false;
         const isInLeftOverlay = leftOverlay ? leftOverlay.clone.wtTable.THEAD.contains(TH) : false;
 
@@ -320,9 +320,9 @@ class NestedHeaders extends BasePlugin {
 
       empty(TH);
 
-      const divEl = _this.hot.rootDocument.createElement('DIV');
+      const divEl = rootDocument.createElement('DIV');
       addClass(divEl, 'relative');
-      const spanEl = _this.hot.rootDocument.createElement('SPAN');
+      const spanEl = rootDocument.createElement('SPAN');
       addClass(spanEl, 'colHeader');
 
       fastInnerHTML(spanEl, _this.colspanArray[headerRow][index] ? _this.colspanArray[headerRow][index].label || '' : '');
@@ -466,7 +466,7 @@ class NestedHeaders extends BasePlugin {
       return;
     }
 
-    const wtOverlays = this.hot.view.wt.wtOverlays;
+    const { wtOverlays } = this.hot.view.wt;
     const selectionByHeader = this.hot.selection.isSelectedByColumnHeader();
     const from = Math.min(selection[1], selection[3]);
     const to = Math.max(selection[1], selection[3]);

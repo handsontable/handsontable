@@ -149,7 +149,7 @@ class TopOverlay extends Overlay {
    */
   adjustRootElementSize() {
     const masterHolder = this.wot.wtTable.holder;
-    const scrollbarWidth = masterHolder.clientWidth === masterHolder.offsetWidth ? 0 : getScrollbarWidth();
+    const scrollbarWidth = masterHolder.clientWidth === masterHolder.offsetWidth ? 0 : getScrollbarWidth(this.wtRootElement.rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wot.getSetting('preventOverflow');
@@ -175,7 +175,7 @@ class TopOverlay extends Overlay {
    * Adjust overlay root childs size.
    */
   adjustRootChildrenSize() {
-    let scrollbarWidth = getScrollbarWidth();
+    let scrollbarWidth = getScrollbarWidth(this.wot.rootDocument);
 
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     this.clone.wtTable.holder.style.width = this.clone.wtTable.holder.parentNode.style.width;
@@ -232,26 +232,27 @@ class TopOverlay extends Overlay {
    * @returns {Boolean}
    */
   scrollTo(sourceRow, bottomEdge) {
-    let newY = this.getTableParentOffset();
-    const sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
+    const { wot } = this;
+    const sourceInstance = wot.cloneSource ? wot.cloneSource : wot;
     const mainHolder = sourceInstance.wtTable.holder;
+    let newY = this.getTableParentOffset();
     let scrollbarCompensation = 0;
 
     if (bottomEdge && mainHolder.offsetHeight !== mainHolder.clientHeight) {
-      scrollbarCompensation = getScrollbarWidth();
+      scrollbarCompensation = getScrollbarWidth(wot.rootDocument);
     }
 
     if (bottomEdge) {
-      const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
-      const totalRows = this.wot.getSetting('totalRows');
+      const fixedRowsBottom = wot.getSetting('fixedRowsBottom');
+      const totalRows = wot.getSetting('totalRows');
 
       newY += this.sumCellSizes(0, sourceRow + 1);
-      newY -= this.wot.wtViewport.getViewportHeight() - this.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
+      newY -= wot.wtViewport.getViewportHeight() - this.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
       // Fix 1 pixel offset when cell is selected
       newY += 1;
 
     } else {
-      newY += this.sumCellSizes(this.wot.getSetting('fixedRowsTop'), sourceRow);
+      newY += this.sumCellSizes(wot.getSetting('fixedRowsTop'), sourceRow);
     }
     newY += scrollbarCompensation;
 

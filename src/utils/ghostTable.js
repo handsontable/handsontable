@@ -212,8 +212,7 @@ class GhostTable {
    * @returns {DocumentFragment}
    */
   createColGroupsCol() {
-    const d = this.hot.rootElement.ownerDocument;
-    const fragment = d.createDocumentFragment();
+    const fragment = this.hot.rootDocument.createDocumentFragment();
 
     if (this.hot.hasRowHeaders()) {
       fragment.appendChild(this.createColElement(-1));
@@ -235,9 +234,9 @@ class GhostTable {
    * @returns {DocumentFragment} Returns created table row elements.
    */
   createRow(row) {
-    const d = this.hot.rootElement.ownerDocument;
-    const fragment = d.createDocumentFragment();
-    const th = d.createElement('th');
+    const { rootDocument } = this.hot;
+    const fragment = rootDocument.createDocumentFragment();
+    const th = rootDocument.createElement('th');
 
     if (this.hot.hasRowHeaders()) {
       this.hot.view.appendRowHeader(row, th);
@@ -254,7 +253,7 @@ class GhostTable {
         cellProperties.row = row;
 
         const renderer = this.hot.getCellRenderer(cellProperties);
-        const td = d.createElement('td');
+        const td = rootDocument.createElement('td');
 
         renderer(this.hot, td, row, column, this.hot.colToProp(column), string.value, cellProperties);
         fragment.appendChild(td);
@@ -265,11 +264,11 @@ class GhostTable {
   }
 
   createColumnHeadersRow() {
-    const d = this.hot.rootElement.ownerDocument;
-    const fragment = d.createDocumentFragment();
+    const { rootDocument } = this.hot;
+    const fragment = rootDocument.createDocumentFragment();
 
     if (this.hot.hasRowHeaders()) {
-      const th = d.createElement('th');
+      const th = rootDocument.createElement('th');
       this.hot.view.appendColHeader(-1, th);
       fragment.appendChild(th);
     }
@@ -278,7 +277,7 @@ class GhostTable {
       arrayEach(sample.strings, (string) => {
         const column = string.col;
 
-        const th = d.createElement('th');
+        const th = rootDocument.createElement('th');
 
         this.hot.view.appendColHeader(column, th);
         fragment.appendChild(th);
@@ -295,8 +294,8 @@ class GhostTable {
    * @returns {DocumentFragment} Returns created column table column elements.
    */
   createCol(column) {
-    const d = this.hot.rootElement.ownerDocument;
-    const fragment = d.createDocumentFragment();
+    const { rootDocument } = this.hot;
+    const fragment = rootDocument.createDocumentFragment();
 
     this.samples.forEach((sample) => {
       arrayEach(sample.strings, (string) => {
@@ -307,8 +306,8 @@ class GhostTable {
         cellProperties.row = row;
 
         const renderer = this.hot.getCellRenderer(cellProperties);
-        const td = d.createElement('td');
-        const tr = d.createElement('tr');
+        const td = rootDocument.createElement('td');
+        const tr = rootDocument.createElement('tr');
 
         // Indicate that this element is created and supported by GhostTable. It can be useful to
         // exclude rendering performance costly logic or exclude logic which doesn't work within a hidden table.
@@ -367,8 +366,7 @@ class GhostTable {
    * @returns {HTMLElement}
    */
   createColElement(column) {
-    const d = this.hot.rootElement.ownerDocument;
-    const col = d.createElement('col');
+    const col = this.hot.rootDocument.createElement('col');
 
     col.style.width = `${this.hot.view.wt.wtTable.getStretchedColumnWidth(column)}px`;
 
@@ -382,14 +380,14 @@ class GhostTable {
    * @returns {Object}
    */
   createTable(className = '') {
-    const d = this.hot.rootElement.ownerDocument;
-    const fragment = d.createDocumentFragment();
-    const table = d.createElement('table');
-    const tHead = d.createElement('thead');
-    const tBody = d.createElement('tbody');
-    const colGroup = d.createElement('colgroup');
-    const tr = d.createElement('tr');
-    const th = d.createElement('th');
+    const { rootDocument } = this.hot;
+    const fragment = rootDocument.createDocumentFragment();
+    const table = rootDocument.createElement('table');
+    const tHead = rootDocument.createElement('thead');
+    const tBody = rootDocument.createElement('tbody');
+    const colGroup = rootDocument.createElement('colgroup');
+    const tr = rootDocument.createElement('tr');
+    const th = rootDocument.createElement('th');
 
     if (this.isVertical()) {
       table.appendChild(colGroup);
@@ -419,9 +417,9 @@ class GhostTable {
    * @returns {Object}
    */
   createContainer(className = '') {
-    const d = this.hot.rootElement.ownerDocument;
-    const fragment = d.createDocumentFragment();
-    const container = d.createElement('div');
+    const { rootDocument } = this.hot;
+    const fragment = rootDocument.createDocumentFragment();
+    const container = rootDocument.createElement('div');
     const containerClassName = `htGhostTable htAutoSize ${className.trim()}`;
 
     addClass(container, containerClassName);

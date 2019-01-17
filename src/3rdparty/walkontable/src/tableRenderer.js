@@ -180,7 +180,7 @@ class TableRenderer {
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {
         performanceWarningAppeared = true;
-        warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number
+        warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number 
           of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
       }
       if (rowsToRender !== void 0 && visibleRowIndex === rowsToRender) {

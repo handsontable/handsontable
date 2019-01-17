@@ -54,9 +54,9 @@ class GhostTable {
    * @param {HTMLElement} container
    */
   buildGhostTable(container) {
-    const d = this.nestedHeaders.hot.rootDocument;
-    const fragment = d.createDocumentFragment();
-    const table = d.createElement('table');
+    const { rootDocument } = this.nestedHeaders.hot;
+    const fragment = rootDocument.createDocumentFragment();
+    const table = rootDocument.createElement('table');
     let lastRowColspan = false;
     const isDropdownEnabled = !!this.nestedHeaders.hot.getSettings().dropdownMenu;
     const maxRows = this.nestedHeaders.colspanArray.length;
@@ -64,12 +64,12 @@ class GhostTable {
     const lastRowIndex = maxRows - 1;
 
     for (let row = 0; row < maxRows; row++) {
-      const tr = d.createElement('tr');
+      const tr = rootDocument.createElement('tr');
 
       lastRowColspan = false;
 
       for (let col = 0; col < maxCols; col++) {
-        const td = d.createElement('th');
+        const td = rootDocument.createElement('th');
         const headerObj = clone(this.nestedHeaders.colspanArray[row][col]);
 
         if (headerObj && !headerObj.hidden) {
@@ -94,10 +94,10 @@ class GhostTable {
     // We have to be sure the last row contains only the single columns.
     if (lastRowColspan) {
       {
-        const tr = d.createElement('tr');
+        const tr = rootDocument.createElement('tr');
 
         for (let col = 0; col < maxCols; col++) {
-          const td = d.createElement('th');
+          const td = rootDocument.createElement('th');
           tr.appendChild(td);
         }
 

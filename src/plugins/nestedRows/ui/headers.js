@@ -86,11 +86,12 @@ class HeadersUI extends BaseUI {
     addClass(TH, HeadersUI.CSS_CLASSES.indicatorContainer);
 
     if (rowLevel) {
+      const { rootDocument } = this.hot;
       const initialContent = innerSpan.cloneNode(true);
       innerDiv.innerHTML = '';
 
       rangeEach(0, rowLevel - 1, () => {
-        const levelIndicator = this.hot.rootDocument.createElement('SPAN');
+        const levelIndicator = rootDocument.createElement('SPAN');
         addClass(levelIndicator, HeadersUI.CSS_CLASSES.emptyIndicator);
         innerDiv.appendChild(levelIndicator);
       });

@@ -37,8 +37,8 @@ class Overlays {
     this.instance = this.wot;
     this.eventManager = new EventManager(this.wot);
 
-    this.wot.update('scrollbarWidth', getScrollbarWidth(this.wot.rootDocument));
-    this.wot.update('scrollbarHeight', getScrollbarWidth(this.wot.rootDocument));
+    this.wot.update('scrollbarWidth', getScrollbarWidth(rootDocument));
+    this.wot.update('scrollbarHeight', getScrollbarWidth(rootDocument));
 
     this.scrollableElement = getScrollableElement(wtTable.TABLE);
 
@@ -315,7 +315,7 @@ class Overlays {
    * @param {Event} event
    */
   onCloneWheel(event) {
-    const rootWindow = this.wot.rootWindow;
+    const { rootWindow } = this.wot;
 
     if (this.scrollableElement !== rootWindow) {
       event.preventDefault();
@@ -399,7 +399,7 @@ class Overlays {
       return;
     }
 
-    const rootWindow = this.wot.rootWindow;
+    const { rootWindow } = this.wot;
     const topHolder = this.topOverlay.clone.wtTable.holder;
     const leftHolder = this.leftOverlay.clone.wtTable.holder;
 
@@ -531,11 +531,12 @@ class Overlays {
    * @param {Boolean} [force=false]
    */
   adjustElementsSize(force = false) {
-    const totalColumns = this.wot.getSetting('totalColumns');
-    const totalRows = this.wot.getSetting('totalRows');
-    const headerRowSize = this.wot.wtViewport.getRowHeaderWidth();
-    const headerColumnSize = this.wot.wtViewport.getColumnHeaderHeight();
-    const hiderStyle = this.wot.wtTable.hider.style;
+    const { wot } = this;
+    const totalColumns = wot.getSetting('totalColumns');
+    const totalRows = wot.getSetting('totalRows');
+    const headerRowSize = wot.wtViewport.getRowHeaderWidth();
+    const headerColumnSize = wot.wtViewport.getColumnHeaderHeight();
+    const hiderStyle = wot.wtTable.hider.style;
 
     hiderStyle.width = `${headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)}px`;
     hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1}px`;

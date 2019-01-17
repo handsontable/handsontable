@@ -442,10 +442,12 @@ class ManualColumnResize extends BasePlugin {
    * @private
    */
   bindEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', e => this.onMouseOver(e));
-    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', e => this.onMouseDown(e));
-    this.eventManager.addEventListener(this.hot.rootWindow, 'mousemove', e => this.onMouseMove(e));
-    this.eventManager.addEventListener(this.hot.rootWindow, 'mouseup', () => this.onMouseUp());
+    const { rootWindow, rootElement } = this.hot;
+
+    this.eventManager.addEventListener(rootElement, 'mouseover', e => this.onMouseOver(e));
+    this.eventManager.addEventListener(rootElement, 'mousedown', e => this.onMouseDown(e));
+    this.eventManager.addEventListener(rootWindow, 'mousemove', e => this.onMouseMove(e));
+    this.eventManager.addEventListener(rootWindow, 'mouseup', () => this.onMouseUp());
   }
 
   /**

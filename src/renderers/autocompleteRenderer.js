@@ -17,7 +17,7 @@ import { getRenderer } from './index';
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
 function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties, ...args) {
-  const rootDocument = instance.rootDocument;
+  const { rootDocument } = instance;
   const rendererType = cellProperties.allowHtml ? 'html' : 'text';
   const ARROW = rootDocument.createElement('DIV'); // this is faster than createElement
 

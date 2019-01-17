@@ -459,8 +459,10 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mousemove', event => this.onMouseMove(event));
-    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup', () => this.onMouseUp());
+    const { documentElement } = this.hot.rootDocument;
+
+    this.eventManager.addEventListener(documentElement, 'mousemove', event => this.onMouseMove(event));
+    this.eventManager.addEventListener(documentElement, 'mouseup', () => this.onMouseUp());
   }
 
   /**
@@ -495,7 +497,7 @@ class ManualRowMove extends BasePlugin {
    * @param {Object} blockCalculations
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
-    const wtTable = this.hot.view.wt.wtTable;
+    const { wtTable, wtViewport } = this.hot.view.wt;
     const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
     const selection = this.hot.getSelectedRangeLast();
     const priv = privatePool.get(this);
@@ -527,7 +529,7 @@ class ManualRowMove extends BasePlugin {
       priv.target.TD = TD;
       priv.rowsToMove = this.prepareRowsToMoving();
 
-      const leftPos = wtTable.holder.scrollLeft + this.hot.view.wt.wtViewport.getRowHeaderWidth();
+      const leftPos = wtTable.holder.scrollLeft + wtViewport.getRowHeaderWidth();
 
       this.backlight.setPosition(null, leftPos);
       this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end + 1));

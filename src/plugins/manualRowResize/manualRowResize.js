@@ -23,6 +23,8 @@ class ManualRowResize extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
 
+    const { rootDocument } = this.hot;
+
     this.currentTH = null;
     this.currentRow = null;
     this.selectedRows = [];
@@ -31,8 +33,8 @@ class ManualRowResize extends BasePlugin {
     this.startY = null;
     this.startHeight = null;
     this.startOffset = null;
-    this.handle = this.hot.rootDocument.createElement('DIV');
-    this.guide = this.hot.rootDocument.createElement('DIV');
+    this.handle = rootDocument.createElement('DIV');
+    this.guide = rootDocument.createElement('DIV');
     this.eventManager = new EventManager(this);
     this.pressed = null;
     this.dblclick = 0;
@@ -422,10 +424,11 @@ class ManualRowResize extends BasePlugin {
    * @private
    */
   bindEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', e => this.onMouseOver(e));
-    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', e => this.onMouseDown(e));
-    this.eventManager.addEventListener(this.hot.rootWindow, 'mousemove', e => this.onMouseMove(e));
-    this.eventManager.addEventListener(this.hot.rootWindow, 'mouseup', () => this.onMouseUp());
+    const { rootElement, rootWindow } = this.hot;
+    this.eventManager.addEventListener(rootElement, 'mouseover', e => this.onMouseOver(e));
+    this.eventManager.addEventListener(rootElement, 'mousedown', e => this.onMouseDown(e));
+    this.eventManager.addEventListener(rootWindow, 'mousemove', e => this.onMouseMove(e));
+    this.eventManager.addEventListener(rootWindow, 'mouseup', () => this.onMouseUp());
   }
 
   /**

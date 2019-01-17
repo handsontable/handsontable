@@ -142,7 +142,7 @@ class Border {
    * @param {Object} settings
    */
   createBorders(settings) {
-    const rootDocument = this.wot.rootDocument;
+    const { rootDocument } = this.wot;
     this.main = rootDocument.createElement('div');
 
     const borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
@@ -193,13 +193,14 @@ class Border {
     }
     this.disappear();
 
-    let bordersHolder = this.wot.wtTable.bordersHolder;
+    const { wtTable } = this.wot;
+    let bordersHolder = wtTable.bordersHolder;
 
     if (!bordersHolder) {
       bordersHolder = rootDocument.createElement('div');
       bordersHolder.className = 'htBorders';
-      this.wot.wtTable.bordersHolder = bordersHolder;
-      this.wot.wtTable.spreader.appendChild(bordersHolder);
+      wtTable.bordersHolder = bordersHolder;
+      wtTable.spreader.appendChild(bordersHolder);
     }
     bordersHolder.appendChild(this.main);
   }
@@ -208,7 +209,7 @@ class Border {
    * Create multiple selector handler for mobile devices
    */
   createMultipleSelectorHandles() {
-    const rootDocument = this.wot.rootDocument;
+    const { rootDocument } = this.wot;
 
     this.selectionHandles = {
       topLeft: rootDocument.createElement('DIV'),
@@ -328,15 +329,16 @@ class Border {
       return;
     }
 
+    const { wtTable, rootDocument, rootWindow } = this.wot;
     let fromRow;
     let toRow;
     let fromColumn;
     let toColumn;
 
-    const rowsCount = this.wot.wtTable.getRenderedRowsCount();
+    const rowsCount = wtTable.getRenderedRowsCount();
 
     for (let i = 0; i < rowsCount; i += 1) {
-      const s = this.wot.wtTable.rowFilter.renderedToSource(i);
+      const s = wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
         fromRow = s;
@@ -345,7 +347,7 @@ class Border {
     }
 
     for (let i = rowsCount - 1; i >= 0; i -= 1) {
-      const s = this.wot.wtTable.rowFilter.renderedToSource(i);
+      const s = wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
         toRow = s;
@@ -353,10 +355,10 @@ class Border {
       }
     }
 
-    const columnsCount = this.wot.wtTable.getRenderedColumnsCount();
+    const columnsCount = wtTable.getRenderedColumnsCount();
 
     for (let i = 0; i < columnsCount; i += 1) {
-      const s = this.wot.wtTable.columnFilter.renderedToSource(i);
+      const s = wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
         fromColumn = s;
@@ -365,7 +367,7 @@ class Border {
     }
 
     for (let i = columnsCount - 1; i >= 0; i -= 1) {
-      const s = this.wot.wtTable.columnFilter.renderedToSource(i);
+      const s = wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
         toColumn = s;
@@ -377,12 +379,12 @@ class Border {
 
       return;
     }
-    let fromTD = this.wot.wtTable.getCell(new CellCoords(fromRow, fromColumn));
+    let fromTD = wtTable.getCell(new CellCoords(fromRow, fromColumn));
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    const toTD = isMultiple ? this.wot.wtTable.getCell(new CellCoords(toRow, toColumn)) : fromTD;
+    const toTD = isMultiple ? wtTable.getCell(new CellCoords(toRow, toColumn)) : fromTD;
     const fromOffset = offset(fromTD);
     const toOffset = isMultiple ? offset(toTD) : fromOffset;
-    const containerOffset = offset(this.wot.wtTable.TABLE);
+    const containerOffset = offset(wtTable.TABLE);
     const minTop = fromOffset.top;
     const minLeft = fromOffset.left;
 
@@ -418,7 +420,7 @@ class Border {
       }
     }
 
-    const style = getComputedStyle(fromTD, this.wot.rootWindow);
+    const style = getComputedStyle(fromTD, rootWindow);
 
     if (parseInt(style.borderTopWidth, 10) > 0) {
       top += 1;
@@ -473,11 +475,11 @@ class Border {
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
       this.cornerStyle.display = 'none';
 
-      let trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
-      const trimToWindow = trimmingContainer === this.wot.rootWindow;
+      let trimmingContainer = getTrimmingContainer(wtTable.TABLE);
+      const trimToWindow = trimmingContainer === rootWindow;
 
       if (trimToWindow) {
-        trimmingContainer = this.wot.wtTable.wtRootElement.ownerDocument.documentElement;
+        trimmingContainer = rootDocument.documentElement;
       }
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
@@ -543,7 +545,8 @@ class Border {
    * @return {Array|Boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
    */
   getDimensionsFromHeader(direction, fromIndex, toIndex, containerOffset) {
-    const rootHotElement = this.wot.wtTable.wtRootElement.parentNode;
+    const { wtTable } = this.wot;
+    const rootHotElement = wtTable.wtRootElement.parentNode;
     let getHeaderFn = null;
     let dimensionFn = null;
     let entireSelectionClassname = null;
@@ -555,7 +558,7 @@ class Border {
 
     switch (direction) {
       case 'rows':
-        getHeaderFn = (...args) => this.wot.wtTable.getRowHeader(...args);
+        getHeaderFn = (...args) => wtTable.getRowHeader(...args);
         dimensionFn = (...args) => outerHeight(...args);
         entireSelectionClassname = 'ht__selection--rows';
         dimensionProperty = 'top';
@@ -563,7 +566,7 @@ class Border {
         break;
 
       case 'columns':
-        getHeaderFn = (...args) => this.wot.wtTable.getColumnHeader(...args);
+        getHeaderFn = (...args) => wtTable.getColumnHeader(...args);
         dimensionFn = (...args) => outerWidth(...args);
         entireSelectionClassname = 'ht__selection--columns';
         dimensionProperty = 'left';

@@ -1204,15 +1204,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterListen
    */
   this.listen = function(modifyDocumentFocus = true) {
-    const d = instance.rootDocument;
+    const { rootDocument } = instance;
     if (modifyDocumentFocus) {
-      const invalidActiveElement = !d.activeElement || (d.activeElement && d.activeElement.nodeName === void 0);
+      const invalidActiveElement = !rootDocument.activeElement || (rootDocument.activeElement && rootDocument.activeElement.nodeName === void 0);
 
-      if (d.activeElement && d.activeElement !== d.body && !invalidActiveElement) {
-        d.activeElement.blur();
+      if (rootDocument.activeElement && rootDocument.activeElement !== rootDocument.body && !invalidActiveElement) {
+        rootDocument.activeElement.blur();
 
       } else if (invalidActiveElement) { // IE
-        d.body.focus();
+        rootDocument.body.focus();
       }
     }
 
@@ -3334,7 +3334,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     keyStateStopObserving();
 
     if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(instance)) {
-      const licenseInfo = instance.rootElement.ownerDocument.querySelector('#hot-display-license-info');
+      const licenseInfo = instance.rootDocument.querySelector('#hot-display-license-info');
 
       if (licenseInfo) {
         licenseInfo.parentNode.removeChild(licenseInfo);

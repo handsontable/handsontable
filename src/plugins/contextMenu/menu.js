@@ -520,6 +520,7 @@ class Menu {
    * @returns {HTMLElement}
    */
   createContainer(name = null) {
+    const { rootDocument } = this.hot;
     let className = name;
     let container;
 
@@ -538,21 +539,21 @@ class Menu {
       className = className.replace(/[^A-z0-9]/g, '_');
       className = `${this.options.className}Sub_${className}`;
 
-      container = this.hot.rootDocument.querySelector(`.${this.options.className}.${className}`);
+      container = rootDocument.querySelector(`.${this.options.className}.${className}`);
 
     } else {
-      container = this.hot.rootDocument.querySelector(`.${this.options.className}`);
+      container = rootDocument.querySelector(`.${this.options.className}`);
     }
 
     if (!container) {
-      container = this.hot.rootDocument.createElement('div');
+      container = rootDocument.createElement('div');
 
       addClass(container, `htMenu ${this.options.className}`);
 
       if (className) {
         addClass(container, className);
       }
-      this.hot.rootDocument.getElementsByTagName('body')[0].appendChild(container);
+      rootDocument.getElementsByTagName('body')[0].appendChild(container);
     }
 
     return container;
@@ -663,9 +664,10 @@ class Menu {
    * @private
    */
   onAfterInit() {
+    const { wtTable } = this.hotMenu.view.wt;
     const data = this.hotMenu.getSettings().data;
-    const hiderStyle = this.hotMenu.view.wt.wtTable.hider.style;
-    const holderStyle = this.hotMenu.view.wt.wtTable.holder.style;
+    const hiderStyle = wtTable.hider.style;
+    const holderStyle = wtTable.holder.style;
     const currentHiderWidth = parseInt(hiderStyle.width, 10);
 
     const realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
