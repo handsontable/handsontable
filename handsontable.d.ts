@@ -1606,11 +1606,11 @@ declare namespace Handsontable {
     afterSetCellMeta?: (row: number, col: number, key: string, value: any) => void;
     afterSetDataAtCell?: (changes: any[], source?: string) => void;
     afterSetDataAtRowProp?: (changes: any[], source?: string) => void;
-    afterTrimRow?: (rows: any[]) => void;
+    afterTrimRow?: (currentTrimConfig: object[], destinationTrimConfig: object[], actionPossible: boolean, stateChanged: boolean) => void;
     afterUndo?: (action: object) => void;
     afterUnlisten?: () => void;
     afterUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
-    afterUntrimRow?: (rows: any[]) => void;
+    afterUntrimRow?: (currentTrimConfig: object[], destinationTrimConfig: object[], actionPossible: boolean, stateChanged: boolean) => void;
     afterUpdateSettings?: () => void;
     afterValidate?: (isValid: boolean, value: any, row: number, prop: string | number, source: string) => void | boolean;
     afterViewportColumnCalculatorOverride?: (calc: object) => void;
@@ -1661,8 +1661,10 @@ declare namespace Handsontable {
     beforeSetRangeStartOnly?: (coords: wot.CellCoords) => void;
     beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void;
     beforeTouchScroll?: () => void;
+    beforeTrimRow?: (currentTrimConfig: object[], destinationTrimConfig: object[], actionPossible: boolean) => void;
     beforeUndo?: (action: object) => void;
     beforeUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
+    beforeUntrimRow?: (currentTrimConfig: object[], destinationTrimConfig: object[], actionPossible: boolean) => void;
     beforeValidate?: (value: any, row: number, prop: string | number, source?: string) => void;
     beforeValueRender?: (value: any, cellProperties: object) => void;
     construct?: () => void;

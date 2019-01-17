@@ -1597,20 +1597,52 @@ const REGISTERED_HOOKS = [
   'afterUnhideColumns',
 
   /**
+   * Fired by {@link TrimRows} plugin before trimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
+   *
+   * @pro
+   * @event Hooks#beforeTrimRow
+   * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
+   * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
+   * @param {Boolean} actionPossible `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise.
+   * @returns {undefined|Boolean} If the callback returns `false`, the trimming action will not be completed.
+   */
+  'beforeTrimRow',
+
+  /**
    * Fired by {@link TrimRows} plugin after trimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
    * @pro
    * @event Hooks#afterTrimRow
-   * @param {Number[]} rows Physical indexes of trimmed rows.
+   * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
+   * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
+   * @param {Boolean} actionPossible `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise.
+   * @param {Boolean} stateChanged `true`, if the action affected any non-trimmed rows, `false` otherwise.
+   * @returns {undefined|Boolean} If the callback returns `false`, the trimming action will not be completed.
    */
   'afterTrimRow',
+
+  /**
+   * Fired by {@link TrimRows} plugin before untrimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
+   *
+   * @pro
+   * @event Hooks#beforeUntrimRow
+   * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
+   * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
+   * @param {Boolean} actionPossible `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise.
+   * @returns {undefined|Boolean} If the callback returns `false`, the untrimming action will not be completed.
+   */
+  'beforeUntrimRow',
 
   /**
    * Fired by {@link TrimRows} plugin after untrimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
    * @pro
    * @event Hooks#afterUntrimRow
-   * @param {Number[]} rows Physical indexes of untrimmed rows.
+   * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
+   * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
+   * @param {Boolean} actionPossible `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise.
+   * @param {Boolean} stateChanged `true`, if the action affected any trimmed rows, `false` otherwise.
+   * @returns {undefined|Boolean} If the callback returns `false`, the untrimming action will not be completed.
    */
   'afterUntrimRow',
 
