@@ -88,7 +88,7 @@ class Viewport {
     }
 
     if (trimmingContainer !== rootWindow) {
-      overflow = getStyle(rootWindow, this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
+      overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow', rootWindow);
 
       if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
         // this is used in `scroll.html`

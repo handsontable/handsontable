@@ -90,8 +90,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     registerAsRootInstance(this);
   }
 
-  this.isDestroyed = false;
-
   this.rootElement = rootElement;
   /**
    * The nearest document over container.
@@ -110,6 +108,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   keyStateStartObserving(this.rootDocument);
 
+  this.isDestroyed = false;
   this.isHotTableEnv = isChildOfWebComponentTable(this.rootElement);
   EventManager.isHotTableEnv = this.isHotTableEnv;
 

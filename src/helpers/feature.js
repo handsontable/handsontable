@@ -1,5 +1,5 @@
-/* eslint-disable */
 // https://gist.github.com/paulirish/1579671
+/* eslint-disable no-restricted-globals */
 let lastTime = 0;
 const vendors = ['ms', 'moz', 'webkit', 'o'];
 let _requestAnimationFrame = window.requestAnimationFrame;
@@ -39,6 +39,17 @@ export function requestAnimationFrame(callback) {
   return _requestAnimationFrame.call(window, callback);
 }
 
+export function isClassListSupported() {
+  return !!document.documentElement.classList;
+}
+
+export function isTextContentSupported() {
+  return document.createTextNode('test').textContent;
+}
+
+export function isGetComputedStyleSupported() {
+  return !!window.getComputedStyle;
+}
 /**
  * Polyfill for cancelAnimationFrame
  *

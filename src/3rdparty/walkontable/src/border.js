@@ -418,7 +418,7 @@ class Border {
       }
     }
 
-    const style = getComputedStyle(fromTD);
+    const style = getComputedStyle(fromTD, this.wot.rootWindow);
 
     if (parseInt(style.borderTopWidth, 10) > 0) {
       top += 1;

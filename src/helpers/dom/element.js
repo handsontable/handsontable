@@ -1,5 +1,10 @@
 import { isIE8, isIE9, isSafari } from '../browser';
-import { hasCaptionProblem } from '../feature';
+import {
+  hasCaptionProblem,
+  isClassListSupported,
+  isTextContentSupported,
+  isGetComputedStyleSupported,
+} from '../feature';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -99,12 +104,11 @@ export function closestDown(element, nodes, until) {
  * @returns {Boolean}
  */
 export function isChildOf(child, parent) {
-  const rootDocument = child.ownerDocument;
   let node = child.parentNode;
   let queriedParents = [];
 
   if (typeof parent === 'string') {
-    queriedParents = Array.prototype.slice.call(rootDocument.querySelectorAll(parent), 0);
+    queriedParents = Array.prototype.slice.call(child.ownerDocument.querySelectorAll(parent), 0);
   } else {
     queriedParents.push(parent);
   }
@@ -208,8 +212,7 @@ export function overlayContainsElement(overlayType, element) {
   const overlayElement = element.ownerDocument.querySelector(`.ht_clone_${overlayType}`);
   return overlayElement ? overlayElement.contains(element) : null;
 }
-// eslint-disable-next-line
-const classListSupport = !!document.documentElement.classList;
+
 let _hasClass;
 let _addClass;
 let _removeClass;
@@ -231,7 +234,7 @@ function filterEmptyClassNames(classNames) {
   return result;
 }
 
-if (classListSupport) {
+if (isClassListSupported()) {
   const isSupportMultipleClassesArg = function(d) {
     const element = d.createElement('div');
 
@@ -423,20 +426,17 @@ export function fastInnerHTML(element, content) {
   }
 }
 
-const textContextSupport = rootDocument => !!rootDocument.createTextNode('test').textContent;
-
 /**
  * Insert text content into element
  * @return {Boolean}
  */
 export function fastInnerText(element, content) {
-  const rootDocument = element.ownerDocument;
   const child = element.firstChild;
 
   if (child && child.nodeType === 3 && child.nextSibling === null) {
     // fast lane - replace existing text node
 
-    if (textContextSupport(rootDocument)) {
+    if (isTextContentSupported) {
       // http://jsperf.com/replace-text-vs-reuse
       child.textContent = content;
     } else {
@@ -446,7 +446,7 @@ export function fastInnerText(element, content) {
   } else {
     // slow lane - empty element and insert a text node
     empty(element);
-    element.appendChild(rootDocument.createTextNode(content));
+    element.appendChild(element.ownerDocument.createTextNode(content));
   }
 }
 
@@ -499,7 +499,7 @@ export function isVisible(elem) {
 export function offset(elem) {
   const rootDocument = elem.ownerDocument;
   const rootWindow = rootDocument.defaultView;
-  const docElem = rootDocument.documentElement;
+  const documentElement = rootDocument.documentElement;
   let elementToCheck = elem;
   let offsetLeft;
   let offsetTop;
@@ -512,8 +512,8 @@ export function offset(elem) {
     box = elementToCheck.getBoundingClientRect();
 
     return {
-      top: box.top + (rootWindow.pageYOffset || docElem.scrollTop) - (docElem.clientTop || 0),
-      left: box.left + (rootWindow.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0)
+      top: box.top + (rootWindow.pageYOffset || documentElement.scrollTop) - (documentElement.clientTop || 0),
+      left: box.left + (rootWindow.pageXOffset || documentElement.scrollLeft) - (documentElement.clientLeft || 0)
     };
   }
   offsetLeft = elementToCheck.offsetLeft;
@@ -534,8 +534,8 @@ export function offset(elem) {
   // slow - http://jsperf.com/offset-vs-getboundingclientrect/6
   if (lastElem && lastElem.style.position === 'fixed') {
     // if(lastElem !== document.body) { //faster but does gives false positive in Firefox
-    offsetLeft += rootWindow.pageXOffset || docElem.scrollLeft;
-    offsetTop += rootWindow.pageYOffset || docElem.scrollTop;
+    offsetLeft += rootWindow.pageXOffset || documentElement.scrollLeft;
+    offsetTop += rootWindow.pageYOffset || documentElement.scrollTop;
   }
 
   return {
@@ -547,9 +547,11 @@ export function offset(elem) {
 /**
  * Returns the document's scrollTop property.
  *
+ * @param {Window} rootWindow
  * @returns {Number}
  */
-export function getWindowScrollTop(rootWindow) {
+// eslint-disable-next-line
+export function getWindowScrollTop(rootWindow = window) {
   let res = rootWindow.scrollY;
 
   if (res === void 0) { // IE8-11
@@ -562,9 +564,11 @@ export function getWindowScrollTop(rootWindow) {
 /**
  * Returns the document's scrollLeft property.
  *
+ * @param {Window} rootWindow
  * @returns {Number}
  */
-export function getWindowScrollLeft(rootWindow) {
+// eslint-disable-next-line
+export function getWindowScrollLeft(rootWindow = window) {
   let res = rootWindow.scrollX;
 
   if (res === void 0) { // IE8-11
@@ -578,9 +582,11 @@ export function getWindowScrollLeft(rootWindow) {
  * Returns the provided element's scrollTop property.
  *
  * @param element
+ * @param {Window} rootWindow
  * @returns {Number}
  */
-export function getScrollTop(element, rootWindow) {
+// eslint-disable-next-line
+export function getScrollTop(element, rootWindow = window) {
   if (element === rootWindow) {
     return getWindowScrollTop(rootWindow);
   }
@@ -592,9 +598,11 @@ export function getScrollTop(element, rootWindow) {
  * Returns the provided element's scrollLeft property.
  *
  * @param element
+ * @param {Window}
  * @returns {Number}
  */
-export function getScrollLeft(element, rootWindow) {
+// eslint-disable-next-line
+export function getScrollLeft(element, rootWindow = window) {
   if (element === rootWindow) {
     return getWindowScrollLeft(rootWindow);
   }
@@ -611,6 +619,7 @@ export function getScrollableElement(element) {
   const rootDocument = element.ownerDocument;
   const rootWindow = rootDocument.defaultView;
   const props = ['auto', 'scroll'];
+  const supportedGetComputedStyle = isGetComputedStyleSupported();
   let el = element.parentNode;
   let overflow;
   let overflowX;
@@ -628,7 +637,7 @@ export function getScrollableElement(element) {
     if (overflow === 'scroll' || overflowX === 'scroll' || overflowY === 'scroll') {
       return el;
 
-    } else if (rootWindow.getComputedStyle) {
+    } else if (supportedGetComputedStyle) {
       computedStyle = rootWindow.getComputedStyle(el);
       computedOverflow = computedStyle.getPropertyValue('overflow');
       computedOverflowY = computedStyle.getPropertyValue('overflow-y');
@@ -671,7 +680,7 @@ export function getTrimmingContainer(base) {
       return el;
     }
 
-    const computedStyle = getComputedStyle(el);
+    const computedStyle = getComputedStyle(el, rootWindow);
     const allowedProperties = ['scroll', 'hidden', 'auto'];
     const property = computedStyle.getPropertyValue('overflow');
     const propertyY = computedStyle.getPropertyValue('overflow-y');
@@ -692,9 +701,11 @@ export function getTrimmingContainer(base) {
  *
  * @param {HTMLElement} element
  * @param {String} prop Wanted property
+ * @param {Window} rootWindow
  * @returns {String|undefined} Element's style property
  */
-export function getStyle(rootWindow, element, prop) {
+// eslint-disable-next-line
+export function getStyle(element, prop, rootWindow = window) {
   if (!element) {
     return;
 
@@ -715,7 +726,7 @@ export function getStyle(rootWindow, element, prop) {
     return styleProp;
   }
 
-  const computedStyle = getComputedStyle(element);
+  const computedStyle = getComputedStyle(element, rootWindow);
 
   if (computedStyle[prop] !== '' && computedStyle[prop] !== void 0) {
     return computedStyle[prop];
@@ -726,12 +737,12 @@ export function getStyle(rootWindow, element, prop) {
  * Returns a computed style object for the provided element. (Needed if style is declared in external stylesheet).
  *
  * @param element
+ * @param {Window} rootWindow
  * @returns {IEElementStyle|CssStyle} Elements computed style object
  */
-export function getComputedStyle(element) {
-  const rootDocument = element.ownerDocument;
-
-  return element.currentStyle || rootDocument.defaultView.getComputedStyle(element);
+// eslint-disable-next-line
+export function getComputedStyle(element, rootWindow = window) {
+  return element.currentStyle || rootWindow.getComputedStyle(element);
 }
 
 /**
@@ -816,7 +827,7 @@ export function removeEvent(element, event, callback) {
 /**
  * Returns caret position in text input
  *
- * @author http://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
+ * @author https://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
  * @return {Number}
  */
 export function getCaretPosition(el) {
@@ -941,7 +952,7 @@ export function setCaretPosition(element, pos, endPos) {
 
 let cachedScrollbarWidth;
 
-// http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
+// https://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 function walkontableCalculateScrollbarWidth(rootDocument) {
   const inner = rootDocument.createElement('div');
   inner.style.height = '200px';
