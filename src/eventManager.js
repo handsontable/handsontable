@@ -51,7 +51,7 @@ class EventManager {
       callbackProxy,
     });
 
-    element.addEventListener(eventName, callbackProxy, false);
+    element.addEventListener(eventName, callbackProxy);
     listenersCounter += 1;
 
     return () => {
@@ -80,7 +80,7 @@ class EventManager {
           continue;
         }
         this.context.eventListeners.splice(len, 1);
-        tmpEvent.element.removeEventListener(tmpEvent.event, tmpEvent.callbackProxy, false);
+        tmpEvent.element.removeEventListener(tmpEvent.event, tmpEvent.callbackProxy);
         listenersCounter -= 1;
       }
     }

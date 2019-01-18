@@ -9,7 +9,8 @@ import {
   resetCssTransform,
   setCaretPosition,
   hasVerticalScrollbar,
-  hasHorizontalScrollbar
+  hasHorizontalScrollbar,
+  selectElementIfAllowed
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
 import { isMobileBrowser } from './../helpers/browser';
@@ -164,7 +165,7 @@ class TextEditor extends BaseEditor {
       const restoreFocus = !fragmentSelection;
 
       if (restoreFocus && !isMobileBrowser()) {
-        this.hot._registerImmediate(() => this.focus());
+        this.hot._registerImmediate(() => this.focus(true));
       }
     }
   }
@@ -186,12 +187,20 @@ class TextEditor extends BaseEditor {
 
   /**
    * Sets focus state on the select element.
+   *
+   * @param {Boolean} [safeFocus=false] If `true` select element only when is handsontableInput. Otherwise sets focus on this element.
+   * If focus is calling without param textarea need be select and set caret position.
    */
-  focus() {
+  focus(safeFocus = false) {
     // For IME editor textarea element must be focused using ".select" method. Using ".focus" browser automatically scroll into
     // the focused element which is undesire effect.
-    this.TEXTAREA.select();
-    setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+    if (safeFocus) {
+      selectElementIfAllowed(this.TEXTAREA);
+
+    } else {
+      this.TEXTAREA.select();
+      setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+    }
   }
 
   /**
