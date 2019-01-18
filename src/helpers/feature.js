@@ -44,7 +44,7 @@ export function isClassListSupported() {
 }
 
 export function isTextContentSupported() {
-  return document.createTextNode('test').textContent;
+  return !!document.createTextNode('test').textContent;
 }
 
 export function isGetComputedStyleSupported() {
