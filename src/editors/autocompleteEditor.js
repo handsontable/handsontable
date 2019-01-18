@@ -97,9 +97,11 @@ class AutocompleteEditor extends HandsontableEditor {
     this.showEditableElement();
     this.focus();
 
+    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
+
     choicesListHot.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
-      width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
+      width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth + 2 : void 0,
       afterRenderer: (TD, row, col, prop, value) => {
         const { filteringCaseSensitive, allowHtml } = this.cellProperties;
         const query = this.query;
@@ -137,7 +139,7 @@ class AutocompleteEditor extends HandsontableEditor {
     });
 
     // Add additional space for autocomplete holder
-    this.htEditor.view.wt.wtTable.holder.parentNode.style['padding-right'] = `${getScrollbarWidth() + 2}px`;
+    this.htEditor.view.wt.wtTable.holder.parentNode.style['padding-right'] = `${scrollbarWidth + 2}px`;
 
     if (priv.skipOne) {
       priv.skipOne = false;
@@ -358,7 +360,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * @private
    */
   updateDropdownHeight() {
-    const currentDropdownWidth = this.htEditor.getColWidth(0) + getScrollbarWidth() + 2;
+    const currentDropdownWidth = this.htEditor.getColWidth(0) + getScrollbarWidth(this.hot.rootDocument) + 2;
     const trimDropdown = this.cellProperties.trimDropdown;
 
     this.htEditor.updateSettings({

@@ -221,7 +221,7 @@ class SelectEditor extends BaseEditor {
       resetCssTransform(this.select);
     }
 
-    const cellComputedStyle = getComputedStyle(this.TD);
+    const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
 
     if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
       height -= 1;

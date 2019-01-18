@@ -30,8 +30,8 @@ class Overlays {
      */
     const { rootDocument, rootWindow, wtTable } = this.wot;
 
-    const BODY_LINE_HEIGHT = parseInt(getComputedStyle(rootDocument.body).lineHeight, 10);
-    const FALLBACK_BODY_LINE_HEIGHT = parseInt(getComputedStyle(rootDocument.body).fontSize, 10) * 1.2;
+    const BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).lineHeight, 10);
+    const FALLBACK_BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).fontSize, 10) * 1.2;
 
     // legacy support
     this.instance = this.wot;
