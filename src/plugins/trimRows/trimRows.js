@@ -314,6 +314,7 @@ class TrimRows extends BasePlugin {
    *
    * @private
    * @param {Array} data An array of arrays which contains data to paste.
+   * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    */
   onBeforePaste(data, coords) {
     const endRow = coords[0].endRow;
