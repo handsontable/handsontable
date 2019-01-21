@@ -316,7 +316,13 @@ class TrimRows extends BasePlugin {
    * @param {Array} data An array of arrays which contains data to paste.
    */
   onBeforePaste(data, coords) {
-    this.hot.runHooks('afterCreateRow', coords[0].startRow, data.length);
+    const endRow = coords[0].endRow;
+    const arrayLength = this.rowsMapper._arrayMap.length;
+    const amountToCreateRows = (endRow + data.length) - arrayLength;
+
+    if (amountToCreateRows > 0) {
+      this.hot.alter('insert_row', endRow + 1, amountToCreateRows, 'auto');
+    }
   }
 
   /**
