@@ -90,6 +90,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     registerAsRootInstance(this);
   }
 
+  // TODO: check if references to DOM elements should be move to UI layer (Walkontable)
+  /**
+   * Reference to the container element.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
   this.rootElement = rootElement;
   /**
    * The nearest document over container.

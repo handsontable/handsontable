@@ -19,7 +19,7 @@ import { getRenderer } from './index';
 function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties, ...args) {
   const { rootDocument } = instance;
   const rendererType = cellProperties.allowHtml ? 'html' : 'text';
-  const ARROW = rootDocument.createElement('DIV'); // this is faster than createElement
+  const ARROW = rootDocument.createElement('DIV');
 
   ARROW.className = 'htAutocompleteArrow';
   ARROW.appendChild(rootDocument.createTextNode(String.fromCharCode(9660)));

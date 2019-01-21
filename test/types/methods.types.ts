@@ -124,6 +124,7 @@ const mergeCells: Handsontable.plugins.MergeCells = hot.getPlugin('mergeCells');
 const multiColumnSorting: Handsontable.plugins.MultiColumnSorting = hot.getPlugin('multiColumnSorting');
 const nestedHeaders: Handsontable.plugins.NestedHeaders = hot.getPlugin('nestedHeaders');
 const observeChanges: Handsontable.plugins.ObserveChanges = hot.getPlugin('observeChanges');
+const persistentState: Handsontable.plugins.PersistenState = hot.getPlugin('persistentState');
 const search: Handsontable.plugins.Search = hot.getPlugin('search');
 const trimeRows: Handsontable.plugins.TrimRows = hot.getPlugin('trimRows');
 const formulas: Handsontable.plugins.Formulas = hot.getPlugin('formulas');

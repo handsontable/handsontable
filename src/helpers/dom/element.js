@@ -235,8 +235,8 @@ function filterEmptyClassNames(classNames) {
 }
 
 if (isClassListSupported()) {
-  const isSupportMultipleClassesArg = function(d) {
-    const element = d.createElement('div');
+  const isSupportMultipleClassesArg = function(rootDocument) {
+    const element = rootDocument.createElement('div');
 
     element.classList.add('test', 'test2');
 
@@ -550,7 +550,7 @@ export function offset(elem) {
  * @param {Window} rootWindow
  * @returns {Number}
  */
-// eslint-disable-next-line
+// eslint-disable-next-line no-restricted-globals
 export function getWindowScrollTop(rootWindow = window) {
   let res = rootWindow.scrollY;
 
@@ -567,7 +567,7 @@ export function getWindowScrollTop(rootWindow = window) {
  * @param {Window} rootWindow
  * @returns {Number}
  */
-// eslint-disable-next-line
+// eslint-disable-next-line no-restricted-globals
 export function getWindowScrollLeft(rootWindow = window) {
   let res = rootWindow.scrollX;
 
@@ -585,7 +585,7 @@ export function getWindowScrollLeft(rootWindow = window) {
  * @param {Window} rootWindow
  * @returns {Number}
  */
-// eslint-disable-next-line
+// eslint-disable-next-line no-restricted-globals
 export function getScrollTop(element, rootWindow = window) {
   if (element === rootWindow) {
     return getWindowScrollTop(rootWindow);
@@ -601,7 +601,7 @@ export function getScrollTop(element, rootWindow = window) {
  * @param {Window} rootWindow
  * @returns {Number}
  */
-// eslint-disable-next-line
+// eslint-disable-next-line no-restricted-globals
 export function getScrollLeft(element, rootWindow = window) {
   if (element === rootWindow) {
     return getWindowScrollLeft(rootWindow);
@@ -704,7 +704,7 @@ export function getTrimmingContainer(base) {
  * @param {Window} rootWindow
  * @returns {String|undefined} Element's style property
  */
-// eslint-disable-next-line
+// eslint-disable-next-line no-restricted-globals
 export function getStyle(element, prop, rootWindow = window) {
   if (!element) {
     return;
@@ -740,7 +740,7 @@ export function getStyle(element, prop, rootWindow = window) {
  * @param {Window} rootWindow
  * @returns {IEElementStyle|CssStyle} Elements computed style object
  */
-// eslint-disable-next-line
+// eslint-disable-next-line no-restricted-globals
 export function getComputedStyle(element, rootWindow = window) {
   return element.currentStyle || rootWindow.getComputedStyle(element);
 }
@@ -885,9 +885,11 @@ export function getSelectionEndPosition(el) {
 /**
  * Returns text under selection.
  *
+ * @param {Window} rootWindow
  * @returns {String}
  */
-export function getSelectionText(rootWindow) {
+// eslint-disable-next-line no-restricted-globals
+export function getSelectionText(rootWindow = window) {
   const rootDocument = rootWindow.document;
   let text = '';
 
@@ -902,8 +904,11 @@ export function getSelectionText(rootWindow) {
 
 /**
  * Cross-platform helper to clear text selection.
+ *
+ * @param {Window} rootWindow
  */
-export function clearTextSelection(rootWindow) {
+// eslint-disable-next-line no-restricted-globals
+export function clearTextSelection(rootWindow = window) {
   const rootDocument = rootWindow.document;
   // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
   if (rootWindow.getSelection) {
@@ -952,8 +957,15 @@ export function setCaretPosition(element, pos, endPos) {
 
 let cachedScrollbarWidth;
 
-// https://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
-function walkontableCalculateScrollbarWidth(rootDocument) {
+/**
+ * Helper to calculate scrollbar width.
+ * Source: https://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
+ *
+ * @private
+ * @param {Document} rootDocument
+ */
+// eslint-disable-next-line no-restricted-globals
+function walkontableCalculateScrollbarWidth(rootDocument = document) {
   const inner = rootDocument.createElement('div');
   inner.style.height = '200px';
   inner.style.width = '100%';
@@ -986,9 +998,11 @@ function walkontableCalculateScrollbarWidth(rootDocument) {
 /**
  * Returns the computed width of the native browser scroll bar.
  *
+ * @param {Document} rootDocument
  * @return {Number} width
  */
-export function getScrollbarWidth(rootDocument) {
+// eslint-disable-next-line no-restricted-globals
+export function getScrollbarWidth(rootDocument = document) {
   if (cachedScrollbarWidth === void 0) {
     cachedScrollbarWidth = walkontableCalculateScrollbarWidth(rootDocument);
   }

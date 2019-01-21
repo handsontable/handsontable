@@ -119,7 +119,7 @@ function forwardEventsToLocalHooks(eventManager, element, subject) {
   eventManager.addEventListener(element, 'paste', runLocalHooks('paste', subject));
 }
 
-const secondaryElements = new Map();
+const secondaryElements = new WeakMap();
 
 /**
  * Create and attach newly created focusable element to the DOM.
@@ -176,7 +176,7 @@ function destroyElement(wrapper) {
 
     if (secondaryElement && secondaryElement.parentNode) {
       secondaryElement.parentNode.removeChild(secondaryElement);
-      secondaryElements.set(wrapper.rootDocument, null);
+      secondaryElements.delete(wrapper.rootDocument);
     }
 
     wrapper.mainElement = null;

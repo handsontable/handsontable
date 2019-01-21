@@ -23,6 +23,8 @@ class ManualColumnResize extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
 
+    const { rootDocument } = this.hot;
+
     this.currentTH = null;
     this.currentCol = null;
     this.selectedCols = [];
@@ -31,8 +33,8 @@ class ManualColumnResize extends BasePlugin {
     this.startY = null;
     this.startWidth = null;
     this.startOffset = null;
-    this.handle = this.hot.rootDocument.createElement('DIV');
-    this.guide = this.hot.rootDocument.createElement('DIV');
+    this.handle = rootDocument.createElement('DIV');
+    this.guide = rootDocument.createElement('DIV');
     this.eventManager = new EventManager(this);
     this.pressed = null;
     this.dblclick = 0;

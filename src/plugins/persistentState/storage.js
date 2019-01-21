@@ -5,7 +5,8 @@ import { arrayEach } from './../../helpers/array';
  * @plugin PersistentState
  */
 class Storage {
-  constructor(rootWindow, prefix) {
+  // eslint-disable-next-line no-restricted-globals
+  constructor(prefix, rootWindow = window) {
     /**
      * Reference to proper window.
      *
