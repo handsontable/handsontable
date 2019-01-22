@@ -282,7 +282,7 @@ class CustomBorders extends BasePlugin {
       arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
         if (border.id === customSelection.settings.id) {
           objectEach(customSelection.instanceBorders, (borderObject) => {
-            borderObject.addAnimateClass(place);
+            borderObject.createAndAddAnimateClass(place, border);
           });
         }
       });
