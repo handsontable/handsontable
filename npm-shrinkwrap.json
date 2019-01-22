@@ -1,0 +1,247 @@
+{
+  "name": "handsontable",
+  "version": "6.0.2",
+  "lockfileVersion": 1,
+  "requires": true,
+  "dependencies": {
+    "@babel/helpers": {
+      "dependencies": {
+        "@babel/traverse": {}
+      }
+    },
+    "@babel/polyfill": {
+      "dependencies": {
+        "core-js": {}
+      }
+    },
+    "@microsoft/gulp-core-build": {
+      "dependencies": {
+        "jest-cli": {
+          "dependencies": {
+            "chalk": {}
+          }
+        },
+        "jest-config": {
+          "dependencies": {
+            "chalk": {}
+          }
+        },
+        "jest-message-util": {
+          "dependencies": {
+            "chalk": {}
+          }
+        },
+        "jsdom": {}
+      }
+    },
+    "@microsoft/gulp-core-build-karma": {
+      "dependencies": {
+        "gulp": {},
+        "karma": {},
+        "karma-coverage": {},
+        "schema-utils": {
+          "dependencies": {
+            "ajv": {}
+          }
+        },
+        "uglify-js": {}
+      }
+    },
+    "@microsoft/node-core-library": {},
+    "@microsoft/rush": {
+      "dependencies": {
+        "@microsoft/node-core-library": {}
+      }
+    },
+    "@microsoft/rush-lib": {
+      "dependencies": {
+        "@microsoft/node-core-library": {}
+      }
+    },
+    "acorn-node": {},
+    "babel-eslint": {
+      "dependencies": {
+        "@babel/traverse": {}
+      }
+    },
+    "babel-plugin-istanbul": {
+      "dependencies": {
+        "@babel/traverse": {}
+      }
+    },
+    "bower": {},
+    "broccoli-concat": {
+      "dependencies": {
+        "fs-extra": {}
+      }
+    },
+    "broccoli-stew": {
+      "dependencies": {
+        "fs-extra": {}
+      }
+    },
+    "browserify": {},
+    "commoner": {
+      "dependencies": {
+        "detective": {}
+      }
+    },
+    "console-ui": {
+      "dependencies": {
+        "tmp": {}
+      }
+    },
+    "css-select": {},
+    "csso": {},
+    "docxtemplater": {},
+    "ember-cli": {},
+    "ember-source": {},
+    "es6-map": {},
+    "eslint-import-resolver-node": {
+      "dependencies": {
+        "resolve": {}
+      }
+    },
+    "eslint-plugin-import": {},
+    "exec-sh": {},
+    "fast-sourcemap-concat": {
+      "dependencies": {
+        "fs-extra": {}
+      }
+    },
+    "fwd": {},
+    "istanbul-api": {},
+    "jsdom": {},
+    "jstransform": {},
+    "liftoff": {
+      "dependencies": {
+        "resolve": {}
+      }
+    },
+    "lodash._basecreate": {},
+    "material-ui-workspace": {},
+    "memory-streams": {
+      "dependencies": {
+        "readable-stream": {}
+      }
+    },
+    "meow": {
+      "dependencies": {
+        "minimist": {}
+      }
+    },
+    "merge": {},
+    "merge-descriptors": {},
+    "moment": {},
+    "multipipe": {
+      "dependencies": {
+        "duplexer2": {}
+      }
+    },
+    "mux-demux": {
+      "dependencies": {
+        "xtend": {}
+      }
+    },
+    "ncp": {},
+    "neo-async": {},
+    "node-libs-browser": {
+      "dependencies": {
+        "buffer": {},
+        "isarray": {}
+      }
+    },
+    "nth-check": {},
+    "numbro": {},
+    "opt-merger": {
+      "dependencies": {
+        "lodash": {}
+      }
+    },
+    "parse5": {},
+    "postcss-colormin": {
+      "dependencies": {
+        "caniuse-lite": {}
+      }
+    },
+    "postcss-convert-values": {
+      "dependencies": {
+        "source-map": {}
+      }
+    },
+    "postcss-discard-comments": {
+      "dependencies": {
+        "source-map": {}
+      }
+    },
+    "postcss-merge-rules": {
+      "dependencies": {
+        "caniuse-lite": {}
+      }
+    },
+    "postcss-minify-params": {
+      "dependencies": {
+        "caniuse-lite": {}
+      }
+    },
+    "postcss-normalize-unicode": {
+      "dependencies": {
+        "chalk": {}
+      }
+    },
+    "postcss-reduce-transforms": {
+      "dependencies": {
+        "postcss": {}
+      }
+    },
+    "prettier-eslint": {
+      "dependencies": {
+        "typescript": {}
+      }
+    },
+    "prettier-eslint-plugin": {
+      "dependencies": {
+        "ajv-keywords": {},
+        "minimist": {},
+        "resolve": {}
+      }
+    },
+    "ramda": {},
+    "rechoir": {
+      "dependencies": {
+        "resolve": {}
+      }
+    },
+    "regenerate-unicode-properties": {},
+    "renderkid": {
+      "dependencies": {
+        "htmlparser2": {}
+      }
+    },
+    "rx": {},
+    "rxjs": {},
+    "scss-tokenizer": {},
+    "sprintf-js": {},
+    "string-replace-webpack-plugin": {
+      "dependencies": {
+        "csso": {}
+      }
+    },
+    "strong-error-handler": {
+      "dependencies": {
+        "debug": {}
+      }
+    },
+    "strong-remoting": {},
+    "timsort": {},
+    "tslint-microsoft-contrib": {
+      "version": "6.0.0"
+    },
+    "uglify-to-browserify": {},
+    "underscore.string": {},
+    "validator": {},
+    "xmlcreate": {},
+    "xmldom": {},
+    "xtend": {}
+  }
+}

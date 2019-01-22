@@ -29,7 +29,7 @@ export class Header extends Component {
           </a>
         </p>
         <p style={styles.date}>
-          Generated with FountainJS v1.0.0 on Sun Oct 14 2018 16:30:45 GMT-0600 (Hora estándar, América Central)
+          Generated with FountainJS v1.0.0 on Thu Nov 01 2018 10:08:20 GMT-0600 (Hora estándar, América Central)
         </p>
       </header>
     );
