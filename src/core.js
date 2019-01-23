@@ -4,7 +4,7 @@ import { isFunction } from './helpers/function';
 import { warn } from './helpers/console';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser } from './helpers/browser';
-import DataMap from './dataMap';
+import { DataMap, DataSource } from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {
@@ -25,7 +25,6 @@ import { getValidator } from './validators';
 import { randomString } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
-import DataSource from './dataSource';
 import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
 import { getTranslator } from './utils/recordTranslator';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
@@ -38,6 +37,7 @@ import { hasLanguageDictionary } from './i18n/dictionariesManager';
 import { warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLanguageCode } from './i18n/utils';
 import { startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving } from './utils/keyStateObserver';
 import { Selection } from './selection';
+import { getStorage } from './dataMap/changesFilter';
 
 let activeGuid = null;
 
@@ -1127,11 +1127,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (typeof input[i][1] !== 'number') {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
+      const physicalRow = recordTranslator.toPhysicalRow(input[i][0]);
+      const physicalColumn = recordTranslator.toPhysicalColumn(input[i][1]);
+
+      getStorage(instance).markCoordsAsChanged(physicalRow, physicalColumn);
       prop = datamap.colToProp(input[i][1]);
       changes.push([
         input[i][0],
         prop,
-        dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]),
+        dataSource.getAtCell(physicalRow, input[i][1]),
         input[i][2],
       ]);
     }
@@ -1167,10 +1171,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let ilen;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
+      const physicalRow = recordTranslator.toPhysicalRow(input[i][0]);
+      const physicalColumn = recordTranslator.toPhysicalColumn(input[i][1]);
+
+      getStorage(instance).markCoordsAsChanged(physicalRow, physicalColumn);
+
       changes.push([
         input[i][0],
         input[i][1],
-        dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]),
+        dataSource.getAtCell(physicalRow, input[i][1]),
         input[i][2],
       ]);
     }
@@ -3581,6 +3590,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       clearImmediate(handler);
     });
   };
+
+  this.getStorage = function() {
+    return getStorage(instance);
+  }
 
   /**
    * Refresh selection borders. This is temporary method relic after selection rewrite.

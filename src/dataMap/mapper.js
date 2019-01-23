@@ -1,6 +1,6 @@
-import SheetClip from './../lib/SheetClip/SheetClip';
-import { cellMethodLookupFactory } from './helpers/data';
-import { columnFactory } from './helpers/setting';
+import SheetClip from './../../lib/SheetClip/SheetClip';
+import { cellMethodLookupFactory } from './../helpers/data';
+import { columnFactory } from './../helpers/setting';
 import {
   createObjectPropListener,
   deepClone,
@@ -10,10 +10,11 @@ import {
   hasOwnProperty,
   isObject,
   objectEach
-} from './helpers/object';
-import { extendArray, to2dArray } from './helpers/array';
-import Interval from './utils/interval';
-import { rangeEach } from './helpers/number';
+} from './../helpers/object';
+import { extendArray, to2dArray } from './../helpers/array';
+import Interval from './../utils/interval';
+import { rangeEach } from './../helpers/number';
+import { getStorage } from './changesFilter';
 
 const copyableLookup = cellMethodLookupFactory('copyable', false);
 
@@ -281,6 +282,8 @@ class DataMap {
       return 0;
     }
 
+    getStorage(this.instance).nextTick();
+
     const maxRows = this.instance.getSettings().maxRows;
     const columnCount = this.instance.countCols();
 
@@ -346,6 +349,8 @@ class DataMap {
 
     this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
 
+    getStorage(this.instance).nextTick();
+
     currentIndex = columnIndex;
 
     const maxCols = this.instance.getSettings().maxCols;
@@ -407,6 +412,8 @@ class DataMap {
       return;
     }
 
+    getStorage(this.instance).nextTick();
+
     const data = this.dataSource;
     const newData = this.filterData(rowIndex, rowsAmount);
 
@@ -444,6 +451,8 @@ class DataMap {
     if (actionWasNotCancelled === false) {
       return;
     }
+
+    getStorage(this.instance).nextTick();
 
     let isTableUniform = true;
     const removedColumnsCount = descendingLogicColumns.length;

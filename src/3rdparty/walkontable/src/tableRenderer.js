@@ -4,13 +4,19 @@ import {
   getScrollbarWidth,
   hasClass,
   innerHeight,
-  outerWidth
+  outerWidth,
+  // fastInnerHTML,
 } from './../../../helpers/dom/element';
 import { warn } from './../../../helpers/console';
 import { toSingleLine } from './../../../helpers/templateLiteralTag';
 import Overlay from './overlay/_base';
 
 let performanceWarningAppeared = false;
+
+// const map = new Map();
+const weakMap = new WeakMap();
+const trMap = new Map();
+let trIds = [];
 
 /**
  * @class TableRenderer
@@ -77,6 +83,12 @@ class TableRenderer {
       this.columnHeaderCount = 0;
     }
 
+    // ---
+    // if (this.wtTable.tbodyChildrenLength === 0) {
+    //   this.appendToTbody(this.createRow());
+    // }
+    // ---
+
     if (totalColumns >= 0) {
       // prepare COL and TH elements for rendering
       this.adjustAvailableNodes();
@@ -101,7 +113,7 @@ class TableRenderer {
     if (!adjusted) {
       this.adjustAvailableNodes();
     }
-    this.removeRedundantRows(rowsToRender);
+    // this.removeRedundantRows(rowsToRender);
 
     if (!this.wtTable.isWorkingOnClone() || this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
       this.markOversizedRows();
@@ -172,29 +184,101 @@ class TableRenderer {
    * @param {Number} columnsToRender
    */
   renderRows(totalRows, rowsToRender, columnsToRender) {
+    // console.log('renderRows', totalRows, rowsToRender, columnsToRender);
+    // console.time('renderRows');
+
     let TR;
     let visibleRowIndex = 0;
     let sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     const isWorkingOnClone = this.wtTable.isWorkingOnClone();
+    let step = 0;
+
+    // while (this.TBODY.firstChild) {
+    //     this.TBODY.removeChild(this.TBODY.firstChild);
+    // }
+    // this.wtTable.tbodyChildrenLength = 0;
+
+    const trIdsClone = [];
 
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {
         performanceWarningAppeared = true;
-        warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number 
+        warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number
           of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
       }
       if (rowsToRender !== void 0 && visibleRowIndex === rowsToRender) {
         // We have as much rows as needed for this clone
         break;
       }
-      TR = this.getOrCreateTrForRow(visibleRowIndex, TR);
+
+      let forceRender = false;
+
+      // TR = this.getOrCreateTrForRow(visibleRowIndex, TR);
+      TR = this.createRow(sourceRowIndex);
+
+      if (visibleRowIndex >= this.wtTable.tbodyChildrenLength) {
+        this.appendToTbody(TR);
+        trIdsClone.push(sourceRowIndex);
+        forceRender = true;
+      } else {
+        if (sourceRowIndex !== trIds[visibleRowIndex]) {
+          const el = this.createRow(trIds[visibleRowIndex]);
+
+          if (el.parentNode) {
+            // this.TBODY.replaceChild(TR, el);
+
+            const mounted = TR.parentNode;
+
+            el.replaceWith(TR);
+
+            // trIdsClone.push(sourceRowIndex);
+
+            if (mounted && trIds.indexOf(sourceRowIndex) >= 0) {
+              trIds.splice(trIds.indexOf(sourceRowIndex), 1);
+              trIdsClone.push(sourceRowIndex);
+            } else {
+              trIdsClone.push(sourceRowIndex);
+            }
+          } else {
+            this.appendToTbody(TR);
+            trIdsClone.push(sourceRowIndex);
+          }
+          forceRender = true;
+        } else {
+          trIdsClone.push(sourceRowIndex)
+        }
+      }
+
+
+      // ---
+      // if (weakMap.has(TR)) {
+      //   if (visibleRowIndex === 0) {
+      //     const boundSourceRowIndex = weakMap.get(TR);
+      //
+      //     step = sourceRowIndex - boundSourceRowIndex;
+      //   }
+
+        // if (Math.abs(rowDiff) > visibleRowsCount) {
+        //   forceRender = true;
+        // } else {
+          // const replacedTD = this.TBODY.replaceChild(TR, this.TBODY.lastChild);
+          // const replacedTD = this.TBODY.appendChild(TR);
+          // trId = trId + this.wtTable.tbodyChildrenLength;
+        // }
+
+      // } else {
+      //   forceRender = true;
+      // }
+      // weakMap.set(TR, trId);
+      TR.dataset.id = `row:${sourceRowIndex}`;
+      // ---
 
       // Render row headers
       this.renderRowHeaders(sourceRowIndex, TR);
       // Add and/or remove TDs to TR to match the desired number
       this.adjustColumns(TR, columnsToRender + this.rowHeaderCount);
       // Render cells
-      this.renderCells(sourceRowIndex, TR, columnsToRender);
+      this.renderCells(sourceRowIndex, TR, columnsToRender, forceRender);
 
       if (!isWorkingOnClone ||
           // Necessary to refresh oversized row heights after editing cell in overlays
@@ -219,6 +303,13 @@ class TableRenderer {
       visibleRowIndex += 1;
       sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     }
+    step = 0;
+
+console.log('trIdsClone', trIdsClone);
+
+    trIds = trIdsClone;
+
+    // console.timeEnd('renderRows');
   }
 
   /**
@@ -365,9 +456,12 @@ class TableRenderer {
    * @param {Number} columnsToRender
    * @returns {HTMLTableCellElement}
    */
-  renderCells(sourceRowIndex, TR, columnsToRender) {
+  renderCells(sourceRowIndex, TR, columnsToRender, forceRender) {
     let TD;
     let sourceColIndex;
+
+    // console.time('renderCells');
+    // const visibleRowsCount = this.wtTable.getVisibleRowsCount();
 
     for (let visibleColIndex = 0; visibleColIndex < columnsToRender; visibleColIndex++) {
       sourceColIndex = this.columnFilter.renderedToSource(visibleColIndex);
@@ -381,12 +475,53 @@ class TableRenderer {
       if (TD.nodeName === 'TH') {
         TD = replaceThWithTd(TD, TR);
       }
-      if (!hasClass(TD, 'hide')) {
-        TD.className = '';
+
+      // const boundCoords = {row: sourceRowIndex, column: sourceColIndex};
+      //
+      // let forceRender = true;
+      //
+      // if (weakMap.has(TD)) {
+      //   const tdCoordsBound = weakMap.get(TD);
+      //
+      //   if (tdCoordsBound.column !== sourceColIndex) {
+      //     forceRender = true;
+      //   }
+      //   const rowDiff = sourceRowIndex - tdCoordsBound.row;
+      //
+      //   // if (Math.abs(rowDiff) > visibleRowsCount) {
+      //     forceRender = true;
+      //   // }
+      //   // } else {
+      //   //   const replacedTD = TR.replaceChild(TD, );
+      //   // }
+      //
+      // } else {
+      //   forceRender = true;
+      // }
+      // weakMap.set(TD, boundCoords);
+
+      // TD.dataset.id = `row:${boundCoords.row}`;
+
+      // if (TD.dataset.id) {
+      //   if (TD.dataset.id !== `${sourceRowIndex}x${sourceColIndex}`) {
+      //     forceRender = true;
+      //   }
+      //
+      // } else {
+      //   forceRender = true;
+      // }
+      // TD.dataset.id = `${boundCoords.row}x${boundCoords.column}`;
+
+      if (forceRender) {
+        if (!hasClass(TD, 'hide')) {
+          TD.className = '';
+        }
+        TD.removeAttribute('style');
       }
-      TD.removeAttribute('style');
-      this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD);
+      this.wot.wtSettings.settings.cellRenderer(sourceRowIndex, sourceColIndex, TD, forceRender);
     }
+
+    // console.timeEnd('renderCells');
 
     return TD;
   }
@@ -426,50 +561,60 @@ class TableRenderer {
   }
 
   /**
-   * @param {HTMLTableCellElement} TR
-   */
-  appendToTbody(TR) {
-    this.TBODY.appendChild(TR);
-    this.wtTable.tbodyChildrenLength += 1;
-  }
-
-  /**
-   * @param {Number} rowIndex
+   * @param {Number} visibleRowIndex
    * @param {HTMLTableRowElement} currentTr
    * @returns {HTMLTableCellElement}
    */
-  getOrCreateTrForRow(rowIndex, currentTr) {
-    let TR;
-
-    if (rowIndex >= this.wtTable.tbodyChildrenLength) {
-      TR = this.createRow();
-      this.appendToTbody(TR);
-
-    } else if (rowIndex === 0) {
-      TR = this.TBODY.firstChild;
-
-    } else {
-      // http://jsperf.com/nextsibling-vs-indexed-childnodes
-      TR = currentTr.nextSibling;
-    }
-    if (TR.className) {
-      TR.removeAttribute('class');
-    }
-
-    return TR;
-  }
+  // getOrCreateTrForRow(visibleRowIndex, currentTr) {
+  //   let TR;
+  //
+  //   if (visibleRowIndex >=  this.wtTable.tbodyChildrenLength) {
+  //     TR = this.createRow();
+  //     this.appendToTbody(TR);
+  //
+  //   } else if (visibleRowIndex === 0) {
+  //     TR = this.TBODY.firstChild;
+  //
+  //   } else {
+  //     // http://jsperf.com/nextsibling-vs-indexed-childnodes
+  //     TR = currentTr.nextSibling;
+  //   }
+  //   if (TR.className) {
+  //     TR.removeAttribute('class');
+  //   }
+  //
+  //   return TR;
+  // }
 
   /**
    * @returns {HTMLTableCellElement}
    */
-  createRow() {
+  createRow(sourceRowIndex) {
+    if (sourceRowIndex === void 0) {
+      // Temp
+      throw new Error('Wrong sourceRowIndex');
+    }
+
+    if (trMap.has(sourceRowIndex)) {
+      return trMap.get(sourceRowIndex);
+    }
     const TR = document.createElement('TR');
 
     for (let visibleColIndex = 0; visibleColIndex < this.rowHeaderCount; visibleColIndex++) {
       TR.appendChild(document.createElement('TH'));
     }
 
+    trMap.set(sourceRowIndex, TR);
+
     return TR;
+  }
+
+  /**
+   * @param {HTMLTableCellElement} TR
+   */
+  appendToTbody(TR) {
+    this.TBODY.appendChild(TR);
+    this.wtTable.tbodyChildrenLength += 1;
   }
 
   /**
@@ -509,26 +654,6 @@ class TableRenderer {
   adjustAvailableNodes() {
     this.adjustColGroups();
     this.adjustThead();
-  }
-
-  /**
-   * Renders the column headers
-   */
-  renderColumnHeaders() {
-    if (!this.columnHeaderCount) {
-      return;
-    }
-    const columnCount = this.wtTable.getRenderedColumnsCount();
-
-    for (let i = 0; i < this.columnHeaderCount; i++) {
-      const TR = this.getTrForColumnHeaders(i);
-
-      for (let renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
-        const sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
-
-        this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
-      }
-    }
   }
 
   /**
@@ -585,6 +710,26 @@ class TableRenderer {
       }
     } else if (TR) {
       empty(TR);
+    }
+  }
+
+  /**
+   * Renders the column headers
+   */
+  renderColumnHeaders() {
+    if (!this.columnHeaderCount) {
+      return;
+    }
+    const columnCount = this.wtTable.getRenderedColumnsCount();
+
+    for (let i = 0; i < this.columnHeaderCount; i++) {
+      const TR = this.getTrForColumnHeaders(i);
+
+      for (let renderedColumnIndex = (-1) * this.rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
+        const sourceCol = this.columnFilter.renderedToSource(renderedColumnIndex);
+
+        this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
+      }
     }
   }
 

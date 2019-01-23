@@ -14,6 +14,7 @@ import EventManager from './eventManager';
 import { stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
+import { getStorage } from './dataMap/changesFilter';
 
 const privatePool = new WeakMap();
 
@@ -396,7 +397,17 @@ class TableView {
       },
       columnWidth: this.instance.getColWidth,
       rowHeight: this.instance.getRowHeight,
-      cellRenderer: (row, col, TD) => {
+      cellRenderer: (row, col, TD, forceRender) => {
+        const physicalColumn = this.instance.toPhysicalColumn(col);
+        const physicalRow = this.instance.toPhysicalRow(row);
+        const hasChangedByColumn = getStorage(this.instance).hasChangedByColumn(physicalColumn);
+        const hasChangedByCoords = getStorage(this.instance).hasChangedByCoords(physicalRow, physicalColumn);
+
+        if (!forceRender && !(hasChangedByCoords || hasChangedByColumn)) {
+          return;
+        }
+        // console.log('rend');
+
         const cellProperties = this.instance.getCellMeta(row, col);
         const prop = this.instance.colToProp(col);
         let value = this.instance.getDataAtRowProp(row, prop);
@@ -539,6 +550,8 @@ class TableView {
           calc.startRow = Math.max(calc.startRow - offset, 0);
           calc.endRow = Math.min(calc.endRow + offset, rows - 1);
         }
+        // calc.startRow = Math.max(calc.startRow - 3, 0);
+        // calc.endRow = Math.min(calc.endRow + 3, rows - 1);
         this.instance.runHooks('afterViewportRowCalculatorOverride', calc);
       },
       viewportColumnCalculatorOverride: (calc) => {
@@ -559,6 +572,8 @@ class TableView {
           calc.startRow = Math.max(calc.startColumn - offset, 0);
           calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
         }
+        // calc.startColumn = Math.max(calc.startColumn - 10, 0);
+        // calc.endColumn = Math.min(calc.endColumn + 10, cols - 1);
         this.instance.runHooks('afterViewportColumnCalculatorOverride', calc);
       },
       rowHeaderWidth: () => this.settings.rowHeaderWidth,
@@ -682,6 +697,8 @@ class TableView {
     if (force) {
       // this.instance.forceFullRender = did Handsontable request full render?
       this.instance.runHooks('afterRender', this.instance.forceFullRender);
+
+      getStorage(this.instance).clearChanges();
     }
   }
 
