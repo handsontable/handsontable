@@ -146,8 +146,7 @@ class LeftOverlay extends Overlay {
    */
   adjustRootElementSize() {
     const { wtTable, rootDocument, rootWindow } = this.wot;
-    const masterHolder = wtTable.holder;
-    const scrollbarHeight = masterHolder.clientHeight === masterHolder.offsetHeight ? 0 : getScrollbarWidth(rootDocument);
+    const scrollbarHeight = getScrollbarWidth(rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wot.getSetting('preventOverflow');

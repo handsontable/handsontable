@@ -616,8 +616,14 @@ export function getScrollLeft(element, rootWindow = window) {
  * @returns {HTMLElement} Element's scrollable parent
  */
 export function getScrollableElement(element) {
-  const rootDocument = element.ownerDocument;
-  const rootWindow = rootDocument.defaultView;
+  let rootDocument = element.document;
+  let rootWindow = element;
+
+  if (!rootDocument) {
+    rootDocument = element.ownerDocument ? element.ownerDocument : element;
+    rootWindow = rootDocument.defaultView;
+  }
+
   const props = ['auto', 'scroll'];
   const supportedGetComputedStyle = isGetComputedStyleSupported();
   let el = element.parentNode;
@@ -643,7 +649,7 @@ export function getScrollableElement(element) {
       computedOverflowY = computedStyle.getPropertyValue('overflow-y');
       computedOverflowX = computedStyle.getPropertyValue('overflow-x');
 
-      if (computedOverflow === 'scroll' || computedOverflowX === 'scroll' || computedOverflowY === 'scroll') {
+      if (props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowX) !== -1 || props.indexOf(computedOverflowY) !== -1) {
         return el;
       }
     }
@@ -989,7 +995,6 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
   if (w1 === w2) {
     w2 = outer.clientWidth;
   }
-
   (rootDocument.body || rootDocument.documentElement).removeChild(outer);
 
   return (w1 - w2);

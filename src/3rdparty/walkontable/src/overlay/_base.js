@@ -192,7 +192,13 @@ class Overlay {
    * Update the main scrollable element.
    */
   updateMainScrollableElement() {
-    this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
+    const { wtTable, rootWindow } = this.wot;
+
+    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+      this.mainTableScrollableElement = this.wot.wtTable.holder;
+    } else {
+      this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
+    }
   }
 
   /**
@@ -229,9 +235,13 @@ class Overlay {
         preventOverflow === 'vertical' && this.type === Overlay.CLONE_LEFT) {
       this.mainTableScrollableElement = rootWindow;
 
+    } else if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+      this.mainTableScrollableElement = wtTable.holder;
     } else {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
     }
+
+    // console.log(this.mainTableScrollableElement);
 
     return new Walkontable({
       cloneSource: this.wot,

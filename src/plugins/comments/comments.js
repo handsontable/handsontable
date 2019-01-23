@@ -5,8 +5,7 @@ import {
   hasClass,
   offset,
   outerWidth,
-  outerHeight,
-  getScrollableElement
+  outerHeight
 } from './../../helpers/dom/element';
 import { deepClone, deepExtend, isObject } from './../../helpers/object';
 import EventManager from './../../eventManager';
@@ -396,7 +395,7 @@ class Comments extends BasePlugin {
     }
     const { rootWindow } = this.hot;
     const { wtTable, wtOverlays, wtViewport } = this.hot.view.wt;
-    const scrollableElement = getScrollableElement(wtTable.TABLE);
+    const scrollableElement = wtOverlays.scrollableElement;
     const TD = wtTable.getCell(this.range.from);
     const row = this.range.from.row;
     const column = this.range.from.col;

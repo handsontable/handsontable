@@ -41,7 +41,7 @@ class Viewport {
    * @returns {number}
    */
   getWorkspaceHeight() {
-    const currentDocument = this.wot.wtTable.wtRootElement.ownerDocument;
+    const currentDocument = this.wot.rootDocument;
     const trimmingContainer = this.instance.wtOverlays.topOverlay.trimmingContainer;
     let elemHeight;
     let height = 0;

@@ -122,7 +122,7 @@ class Scroll {
       const rootElementOffset = offset(wtTable.wtRootElement);
       const totalTableHeight = innerHeight(wtTable.hider);
       const windowHeight = innerHeight(rootWindow);
-      const windowScrollTop = getScrollTop(rootWindow);
+      const windowScrollTop = getScrollTop(rootWindow, rootWindow);
 
       // Only calculate firstVisibleRow when table didn't filled (from up) whole viewport space
       if (rootElementOffset.top + totalTableHeight - windowHeight <= windowScrollTop) {
@@ -164,7 +164,7 @@ class Scroll {
     if (topOverlay.mainTableScrollableElement === rootWindow) {
       const rootElementOffset = offset(wtTable.wtRootElement);
       const windowHeight = innerHeight(rootWindow);
-      const windowScrollTop = getScrollTop(rootWindow);
+      const windowScrollTop = getScrollTop(rootWindow, rootWindow);
 
       // Only calculate lastVisibleRow when table didn't filled (from bottom) whole viewport space
       if (rootElementOffset.top > windowScrollTop) {

@@ -148,8 +148,7 @@ class TopOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    const masterHolder = this.wot.wtTable.holder;
-    const scrollbarWidth = masterHolder.clientWidth === masterHolder.offsetWidth ? 0 : getScrollbarWidth(this.wtRootElement.rootDocument);
+    const scrollbarWidth = getScrollbarWidth(this.wot.rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wot.getSetting('preventOverflow');
