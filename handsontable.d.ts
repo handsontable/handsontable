@@ -1,7 +1,7 @@
 declare namespace _Handsontable {
 
   class Core {
-    constructor(element: Element, options: Handsontable.DefaultSettings);
+    constructor(element: Element, options: Handsontable.GridSettings);
     addHook<K extends keyof Handsontable.Hooks>(key: K, callback: Handsontable.Hooks[K] | Handsontable.Hooks[K][]): void;
     addHookOnce<K extends keyof Handsontable.Hooks>(key: K, callback: Handsontable.Hooks[K] | Handsontable.Hooks[K][]): void;
     alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index?: number | Array<[number, number]>, amount?: number, source?: Handsontable.ChangeSource, keepEmptyRows?: boolean): void;
@@ -52,7 +52,7 @@ declare namespace _Handsontable {
     getSelectedLast(): number[] | undefined;
     getSelectedRange():  Handsontable.wot.CellRange[] | undefined;
     getSelectedRangeLast(): Handsontable.wot.CellRange | undefined;
-    getSettings(): Handsontable.DefaultSettings;
+    getSettings(): Handsontable.GridSettings;
     getSourceData(r?: number, c?: number, r2?: number, c2?: number): Handsontable.CellValue[][] | Handsontable.RowObject[];
     getSourceDataArray(r?: number, c?: number, r2?: number, c2?: number): Handsontable.CellValue[][];
     getSourceDataAtCell(row: number, column: number): Handsontable.CellValue;
@@ -96,7 +96,7 @@ declare namespace _Handsontable {
     toVisualColumn(column: number): number;
     toVisualRow(row: number): number;
     unlisten(): void;
-    updateSettings(settings: Handsontable.DefaultSettings, init: boolean): void;
+    updateSettings(settings: Handsontable.GridSettings, init?: boolean): void;
     validateCells(callback?: (valid: boolean) => void): void;
     validateColumns(columns: number[], callback?: (valid: boolean) => void): void;
     validateRows(rows: number[], callback?: (valid: boolean) => void): void;
@@ -184,9 +184,9 @@ declare namespace Handsontable {
       col: number;
       prop: string | number;
       TD: HTMLElement;
-      cellProperties: GridSettings;
+      cellProperties: CellMeta;
 
-      constructor(hotInstance: _Handsontable.Core, row: number, col: number, prop: string | number, TD: HTMLElement, cellProperties: GridSettings)
+      constructor(hotInstance: _Handsontable.Core, row: number, col: number, prop: string | number, TD: HTMLElement, cellProperties: CellMeta)
 
       beginEditing(initialValue?: CellValue): void;
       cancelChanges(): void;
@@ -202,7 +202,7 @@ declare namespace Handsontable {
       isOpened(): boolean;
       isWaiting(): boolean;
       open(): void;
-      prepare(row: number, col: number, prop: string | number, TD: HTMLElement, originalValue: CellValue, cellProperties: GridSettings): void;
+      prepare(row: number, col: number, prop: string | number, TD: HTMLElement, originalValue: CellValue, cellProperties: CellMeta): void;
       saveValue(val?: CellValue, ctrlDown?: boolean): void;
       setValue(newValue?: CellValue): void;
     }
@@ -1030,7 +1030,7 @@ declare namespace Handsontable {
       removeAllRangeBars(): void;
       setRangeBarColors(rows: object): void;
       setYear(year: number): void;
-      uniformBackgroundRenderer(instance: _Handsontable.Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: string | number, cellProperties: GridSettings): void;
+      uniformBackgroundRenderer(instance: _Handsontable.Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: string | number, cellProperties: CellMeta): void;
       unrenderRangeBar(row: number, startDateColumn: number, endDateColumn: number): void;
       updateRangeBarData(row: number, column: number, data: object): void;
     }
@@ -1404,7 +1404,7 @@ declare namespace Handsontable {
 
   namespace renderers {
     interface Base {
-      (instance: _Handsontable.Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: GridSettings): HTMLElement;
+      (instance: _Handsontable.Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellMeta): HTMLElement;
     }
 
     interface Autocomplete extends Base {}
@@ -1422,20 +1422,19 @@ declare namespace Handsontable {
 
   interface DefaultSettings extends GridSettings {}
 
-  // interface CellProperties extends GridSettings {
-  //   row: number;
-  //   col: number;
-  //   instance: Handsontable;
-  //   visualRow: number;
-  //   visualCol: number;
-  //   prop: string | number;
-  // }
+  interface CellMeta extends GridSettings {
+    row: number;
+    col: number;
+    instance: Handsontable;
+    visualRow: number;
+    visualCol: number;
+    prop: string | number;
+  }
 
-  // interface ColumnSettigs extends Pick<GridSettings, Exclude<keyof GridSettings, "data" | "columns">> {
-  //   data: string | 
-  // }
+  interface ColumnSettings extends Pick<GridSettings, Exclude<keyof GridSettings, "data">> {
+    data: string | number | ((row: RowObject | CellValue[], value?: CellValue) => CellValue | void);
+  }
 
-  // TODO: separate GridSettings from ColumnSettings and CellProperties
   interface GridSettings extends Hooks {
     activeHeaderClassName?: string;
     allowEmpty?: boolean;
@@ -1457,7 +1456,7 @@ declare namespace Handsontable {
     colHeaders?: boolean | string[] | ((index: number) => string);
     collapsibleColumns?: boolean | collapsibleColumns.Settings[]; // pro
     columnHeaderHeight?: number | (number | undefined)[];
-    columns?: GridSettings[] | ((index: number) => GridSettings);
+    columns?: ColumnSettings[] | ((index: number) => ColumnSettings);
     columnSorting?: boolean | columnSorting.Settings;
     columnSummary?: columnSummary.Settings[] | (() => columnSummary.Settings[]); // pro
     colWidths?: number | number[] | string | string[] | ((index: number) => string);
@@ -1587,7 +1586,7 @@ declare namespace Handsontable {
     afterDropdownMenuHide?: (instance: Handsontable.plugins.DropdownMenu) => void;
     afterDropdownMenuShow?: (instance: Handsontable.plugins.DropdownMenu) => void;
     afterFilter?: (formulasStack: any[]) => void;
-    afterGetCellMeta?: (row: number, col: number, cellProperties: GridSettings) => void;
+    afterGetCellMeta?: (row: number, col: number, cellProperties: CellMeta) => void;
     afterGetColHeader?: (col: number, TH: Element) => void;
     afterGetColumnHeaderRenderers?: (array: any[]) => void;
     afterGetRowHeader?: (row: number, TH: Element) => void;
@@ -1614,7 +1613,7 @@ declare namespace Handsontable {
     afterRemoveCol?: (index: number, amount: number) => void;
     afterRemoveRow?: (index: number, amount: number) => void;
     afterRender?: (isForced: boolean) => void;
-    afterRenderer?: (TD: Element, row: number, col: number, prop: string | number, value: string, cellProperties: GridSettings) => void;
+    afterRenderer?: (TD: Element, row: number, col: number, prop: string | number, value: string, cellProperties: CellMeta) => void;
     afterRowMove?: (startRow: number, endRow: number) => void;
     afterRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => void;
     afterScrollHorizontally?: () => void;
@@ -1655,7 +1654,7 @@ declare namespace Handsontable {
     beforeDropdownMenuSetItems?: (menuItems: any[]) => void;
     beforeDropdownMenuShow?: (instance: Handsontable.plugins.DropdownMenu) => void;
     beforeFilter?: (formulasStack: any[]) => void;
-    beforeGetCellMeta?: (row: number, col: number, cellProperties: GridSettings) => void;
+    beforeGetCellMeta?: (row: number, col: number, cellProperties: CellMeta) => void;
     beforeInit?: () => void;
     beforeInitWalkontable?: (walkontableConfig: object) => void;
     beforeKeyDown?: (event: Event) => void;
@@ -1673,7 +1672,7 @@ declare namespace Handsontable {
     beforeRemoveCol?: (index: number, amount: number, logicalCols?: any[]) => void;
     beforeRemoveRow?: (index: number, amount: number, logicalRows?: any[]) => void;
     beforeRender?: (isForced: boolean, skipRender: object) => void;
-    beforeRenderer?: (TD: Element, row: number, col: number, prop: string | number, value: string, cellProperties: GridSettings) => void;
+    beforeRenderer?: (TD: Element, row: number, col: number, prop: string | number, value: string, cellProperties: CellMeta) => void;
     beforeRowMove?: (columns: number[], target: number) => void;
     beforeRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => any;
     beforeSetRangeEnd?: (coords: wot.CellCoords) => void;
