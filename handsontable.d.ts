@@ -1,3 +1,4 @@
+// TODO: move Core into Handsontable namespace and get rid of this one?
 declare namespace _Handsontable {
 
   class Core {
@@ -127,7 +128,7 @@ declare namespace Handsontable {
     interface Autocomplete {
       editor: _editors.Autocomplete;
       renderer: renderers.Autocomplete;
-      validator: (value: CellValue, callback: (valid: boolean) => void) => void;
+      validator: validators.Autocomplete;
     }
 
     interface Checkbox {
@@ -138,13 +139,13 @@ declare namespace Handsontable {
     interface Date {
       editor: _editors.Date;
       renderer: renderers.Autocomplete;
-      validator: (value: CellValue, callback: (valid: boolean) => void) => void;
+      validator: validators.Date
     }
 
     interface Dropdown {
       editor: _editors.Dropdown;
       renderer: renderers.Autocomplete;
-      validator: (value: CellValue, callback: (valid: boolean) => void) => void;
+      validator: validators.Autocomplete;
     }
 
     interface Handsontable {
@@ -156,7 +157,7 @@ declare namespace Handsontable {
       dataType: string;
       editor: _editors.Numeric;
       renderer: renderers.Numeric;
-      validator: (value: CellValue, callback: (valid: boolean) => void) => void;
+      validator: validators.Numeric;
     }
 
     interface Password {
@@ -173,10 +174,11 @@ declare namespace Handsontable {
     interface Time {
       editor: _editors.Text;
       renderer: renderers.Text;
-      validator: (value: CellValue, callback: (valid: boolean) => void) => void;
+      validator: validators.Time;
     }
   }
 
+  // TODO: rename to "editors"?
   namespace _editors {
     class Base {
       instance: _Handsontable.Core;
@@ -1420,6 +1422,20 @@ declare namespace Handsontable {
     interface Text extends Base {}
   }
 
+  namespace validators {
+    interface Base {
+      (this: CellMeta, value: CellValue, callback: (valid: boolean) => void): void;
+    }
+
+    interface Autocomplete extends Base {}
+
+    interface Date extends Base {}
+
+    interface Numeric extends Base {}
+
+    interface Time extends Base {}
+  }
+
   interface DefaultSettings extends GridSettings {}
 
   interface CellMeta extends GridSettings {
@@ -1450,7 +1466,7 @@ declare namespace Handsontable {
     autoWrapRow?: boolean;
     bindRowsWithHeaders?: boolean | string; // pro
     cell?: CellSettings[];
-    cells?: (row: number, col: number, prop: string | number) => GridSettings;
+    cells?: (this: CellMeta, row: number, col: number, prop: string | number) => GridSettings;
     checkedTemplate?: boolean | string | number;
     className?: string | string[];
     colHeaders?: boolean | string[] | ((index: number) => string);
@@ -1498,8 +1514,8 @@ declare namespace Handsontable {
     hiddenColumns?: boolean | hiddenColumns.Settings; // pro
     hiddenRows?: boolean | hiddenRows.Settings; // pro
     invalidCellClassName?: string;
-    isEmptyCol?: (col: number) => boolean;
-    isEmptyRow?: (row: number) => boolean;
+    isEmptyCol?: (this: _Handsontable.Core, col: number) => boolean;
+    isEmptyRow?: (this: _Handsontable.Core, row: number) => boolean;
     label?: LabelOptions;
     language?: string;
     manualColumnFreeze?: boolean;
@@ -1537,7 +1553,7 @@ declare namespace Handsontable {
     selectOptions?: string[];
     skipColumnOnPaste?: boolean;
     sortByRelevance?: boolean;
-    source?: string[] | ((query: string, callback: (items: string[]) => void) => void);
+    source?: string[] | ((this: CellMeta, query: string, callback: (items: string[]) => void) => void);
     startCols?: number;
     startRows?: number;
     stretchH?: string;
@@ -1552,7 +1568,7 @@ declare namespace Handsontable {
     uncheckedTemplate?: boolean | string;
     undo?: boolean;
     valid?: boolean;
-    validator?: (value: CellValue, callback: (valid: boolean) => void) => void | RegExp | CellType;
+    validator?: validators.Base | RegExp | CellType;
     viewportColumnRenderingOffset?: number | string;
     viewportRowRenderingOffset?: number | string;
     visibleRows?: number;
@@ -1770,6 +1786,7 @@ declare namespace Handsontable {
     PasswordEditor: typeof Handsontable._editors.Password;
     SelectEditor: typeof Handsontable._editors.Select;
     TextEditor: typeof Handsontable._editors.Text;
+    TimeEditor: typeof Handsontable._editors.Text;
     getEditor: (editorName: string, hotInstance: Handsontable) => any;
     registerEditor: (editorName: string, editorClass: any) => void;
   }
@@ -1778,11 +1795,24 @@ declare namespace Handsontable {
     AutocompleteRenderer: renderers.Autocomplete;
     BaseRenderer: renderers.Base;
     CheckboxRenderer: renderers.Checkbox;
+    DateRenderer: renderers.Autocomplete;
+    DropdownRenderer: renderers.Autocomplete;
+    HandsontableRenderer: renderers.Autocomplete;
     HtmlRenderer: renderers.Html;
     NumericRenderer: renderers.Numeric;
     PasswordRenderer: renderers.Password;
     TextRenderer: renderers.Text;
+    TimeRenderer: renderers.Text;
     // TODO: registerRenderer(), getRenderer()
+  }
+
+  interface Validators {
+    AutocompleteValidator: validators.Autocomplete;
+    DateValidator: validators.Date;
+    DropdownValidator: validators.Autocomplete;
+    NumericValidator: validators.Numeric;
+    TimeValidator: validators.Time;
+    // TODO: getValidator(), registerValidator()
   }
 
   interface Helper {
@@ -2237,7 +2267,7 @@ declare class Handsontable extends _Handsontable.Core {
   static hooks: Handsontable.Hooks;
   static plugins: Handsontable.Plugins;
   static renderers: Handsontable.Renderers;
-  static validators: any; // TODO
+  static validators: Handsontable.Validators;
   static Core: _Handsontable.Core;
   static DefaultSettings: Handsontable.DefaultSettings;
 }
