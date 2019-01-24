@@ -4,6 +4,10 @@ import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStoppe
 import { getEditorInstance } from './editors';
 import EventManager from './eventManager';
 import { EditorState } from './editors/_baseEditor';
+import { objectEach } from './helpers/object';
+import { arrayEach } from './helpers/array';
+import { hasClass, removeClass } from './helpers/dom/element';
+import { toUpperCaseFirst } from './helpers/string';
 
 function EditorManager(instance, priv, selection) {
   const _this = this;
@@ -29,6 +33,38 @@ function EditorManager(instance, priv, selection) {
       selection.transformEnd(-1, 0);
     } else {
       selection.transformStart(-1, 0);
+
+      const selections = [...selection.highlight.areas.values()];
+
+      arrayEach(selections, (selectionObject) => {
+        objectEach(selectionObject.instanceBorders, (borderObject) => {
+          const borderDivs = ['top', 'left', 'bottom', 'right'];
+
+          for (let index = 0; index < borderDivs.length; index += 1) {
+            const position = borderDivs[index];
+            const style = borderObject[position].style;
+
+            if (hasClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`)) {
+              style.backgroundColor = '#4B89FF';
+              removeClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`);
+            }
+          }
+        });
+      });
+
+      objectEach(selection.highlight.cell.instanceBorders, (borderObject) => {
+        const borderDivs = ['top', 'left', 'bottom', 'right'];
+
+        for (let index = 0; index < borderDivs.length; index += 1) {
+          const position = borderDivs[index];
+          const style = borderObject[position].style;
+
+          if (hasClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`)) {
+            style.backgroundColor = '#4B89FF';
+            removeClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`);
+          }
+        }
+      });
     }
   }
 
@@ -38,6 +74,38 @@ function EditorManager(instance, priv, selection) {
       selection.transformEnd(1, 0);
     } else {
       selection.transformStart(1, 0);
+
+      const selections = [...selection.highlight.areas.values()];
+
+      arrayEach(selections, (selectionObject) => {
+        objectEach(selectionObject.instanceBorders, (borderObject) => {
+          const borderDivs = ['top', 'left', 'bottom', 'right'];
+
+          for (let index = 0; index < borderDivs.length; index += 1) {
+            const position = borderDivs[index];
+            const style = borderObject[position].style;
+
+            if (hasClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`)) {
+              style.backgroundColor = '#4B89FF';
+              removeClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`);
+            }
+          }
+        });
+      });
+
+      objectEach(selection.highlight.cell.instanceBorders, (borderObject) => {
+        const borderDivs = ['top', 'left', 'bottom', 'right'];
+
+        for (let index = 0; index < borderDivs.length; index += 1) {
+          const position = borderDivs[index];
+          const style = borderObject[position].style;
+
+          if (hasClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`)) {
+            style.backgroundColor = '#4B89FF';
+            removeClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`);
+          }
+        }
+      });
     }
   }
 
@@ -46,6 +114,38 @@ function EditorManager(instance, priv, selection) {
       selection.transformEnd(0, 1);
     } else {
       selection.transformStart(0, 1);
+
+      const selections = [...selection.highlight.areas.values()];
+
+      arrayEach(selections, (selectionObject) => {
+        objectEach(selectionObject.instanceBorders, (borderObject) => {
+          const borderDivs = ['top', 'left', 'bottom', 'right'];
+
+          for (let index = 0; index < borderDivs.length; index += 1) {
+            const position = borderDivs[index];
+            const style = borderObject[position].style;
+
+            if (hasClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`)) {
+              style.backgroundColor = '#4B89FF';
+              removeClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`);
+            }
+          }
+        });
+      });
+
+      objectEach(selection.highlight.cell.instanceBorders, (borderObject) => {
+        const borderDivs = ['top', 'left', 'bottom', 'right'];
+
+        for (let index = 0; index < borderDivs.length; index += 1) {
+          const position = borderDivs[index];
+          const style = borderObject[position].style;
+
+          if (hasClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`)) {
+            style.backgroundColor = '#4B89FF';
+            removeClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`);
+          }
+        }
+      });
     }
   }
 
@@ -54,6 +154,38 @@ function EditorManager(instance, priv, selection) {
       selection.transformEnd(0, -1);
     } else {
       selection.transformStart(0, -1);
+
+      const selections = [...selection.highlight.areas.values()];
+
+      arrayEach(selections, (selectionObject) => {
+        objectEach(selectionObject.instanceBorders, (borderObject) => {
+          const borderDivs = ['top', 'left', 'bottom', 'right'];
+
+          for (let index = 0; index < borderDivs.length; index += 1) {
+            const position = borderDivs[index];
+            const style = borderObject[position].style;
+
+            if (hasClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`)) {
+              style.backgroundColor = '#4B89FF';
+              removeClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`);
+            }
+          }
+        });
+      });
+
+      objectEach(selection.highlight.cell.instanceBorders, (borderObject) => {
+        const borderDivs = ['top', 'left', 'bottom', 'right'];
+
+        for (let index = 0; index < borderDivs.length; index += 1) {
+          const position = borderDivs[index];
+          const style = borderObject[position].style;
+
+          if (hasClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`)) {
+            style.backgroundColor = '#4B89FF';
+            removeClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`);
+          }
+        }
+      });
     }
   }
 

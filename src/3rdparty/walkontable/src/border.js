@@ -66,6 +66,7 @@ class Border {
   registerListeners() {
     this.eventManager.addEventListener(document.body, 'mousedown', () => this.onMouseDown());
     this.eventManager.addEventListener(document.body, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(document.body, 'copy', () => this.onCopy());
 
     for (let c = 0, len = this.main.childNodes.length; c < len; c++) {
       this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', event => this.onMouseEnter(event, this.main.childNodes[c]));
@@ -132,6 +133,27 @@ class Border {
     }
 
     this.eventManager.addEventListener(document.body, 'mousemove', handler);
+  }
+
+  /**
+   * copy listener
+   *
+   * @private
+   */
+  onCopy() {
+    if (this.settings.className === 'current' || this.settings.className === 'area') {
+      const borderDivs = ['top', 'left', 'bottom', 'right'];
+
+      for (let index = 0; index < borderDivs.length; index += 1) {
+        const position = borderDivs[index];
+        const style = this[position].style;
+
+        if (style.display === 'block') {
+          style.backgroundColor = null;
+          addClass(this[position], `htAnimateCurrent${toUpperCaseFirst(position)}`);
+        }
+      }
+    }
   }
 
   /**

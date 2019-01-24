@@ -1,5 +1,9 @@
 import { isRightClick as isRightClickEvent, isLeftClick as isLeftClickEvent } from './../helpers/dom/event';
 import { CellCoords } from './../3rdparty/walkontable/src';
+import { objectEach } from './../helpers/object';
+import { arrayEach } from './../helpers/array';
+import { hasClass, removeClass } from './../helpers/dom/element';
+import { toUpperCaseFirst } from './../helpers/string';
 
 /**
  * MouseDown handler.
@@ -17,6 +21,40 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
   const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
   const selectedCorner = selection.isSelectedByCorner();
   const selectedRow = selection.isSelectedByRowHeader();
+
+  if (currentSelection !== null) {
+    const selections = [...selection.highlight.areas.values()];
+
+    arrayEach(selections, (selectionObject) => {
+      objectEach(selectionObject.instanceBorders, (borderObject) => {
+        const borderDivs = ['top', 'left', 'bottom', 'right'];
+
+        for (let index = 0; index < borderDivs.length; index += 1) {
+          const position = borderDivs[index];
+          const style = borderObject[position].style;
+
+          if (hasClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`)) {
+            style.backgroundColor = '#4B89FF';
+            removeClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`);
+          }
+        }
+      });
+    });
+
+    objectEach(selection.highlight.cell.instanceBorders, (borderObject) => {
+      const borderDivs = ['top', 'left', 'bottom', 'right'];
+
+      for (let index = 0; index < borderDivs.length; index += 1) {
+        const position = borderDivs[index];
+        const style = borderObject[position].style;
+
+        if (hasClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`)) {
+          style.backgroundColor = '#4B89FF';
+          removeClass(borderObject[position], `htAnimateCurrent${toUpperCaseFirst(position)}`);
+        }
+      }
+    });
+  }
 
   if (isShiftKey && currentSelection) {
     if (coords.row >= 0 && coords.col >= 0 && !controller.cells) {
