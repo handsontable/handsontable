@@ -1,4 +1,3 @@
-// TODO: move Core into Handsontable namespace and get rid of this one?
 declare namespace _Handsontable {
 
   class Core {
@@ -1492,7 +1491,7 @@ declare namespace Handsontable {
     currentHeaderClassName?: string;
     currentRowClassName?: string;
     customBorders?: boolean | customBorders.Settings[];
-    data?: CellValue[][] | RowObject[]; // TODO: for columns this is a string or function
+    data?: CellValue[][] | RowObject[];
     dataSchema?: RowObject | CellValue[] | ((row: number) => RowObject | CellValue[]);
     dateFormat?: string;
     numericFormat?: NumericFormatOptions;
