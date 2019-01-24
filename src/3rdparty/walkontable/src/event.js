@@ -93,12 +93,6 @@ class Event {
 
       initMouseEvents();
     }
-
-    this.eventManager.addEventListener(window, 'resize', () => {
-      if (this.instance.getSetting('stretchH') !== 'none') {
-        this.instance.draw();
-      }
-    });
   }
 
   /**

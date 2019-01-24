@@ -434,6 +434,22 @@ describe('Core_view', () => {
     expect(hot.view.wt.wtTable.holder.style.width).toBe('220px');
   });
 
+  it('should fire afterWindowResize event after window resize', async() => {
+    const afterWindowResizeCallback = jasmine.createSpy('afterWindowResizeCallback');
+
+    handsontable({
+      afterWindowResize: afterWindowResizeCallback
+    });
+
+    const evt = document.createEvent('CustomEvent'); // MUST be 'CustomEvent'
+    evt.initCustomEvent('resize', false, false, null);
+    window.dispatchEvent(evt);
+
+    await sleep(300);
+
+    expect(afterWindowResizeCallback.calls.count()).toBe(1);
+  });
+
   // TODO fix these tests - https://github.com/handsontable/handsontable/issues/1559
   describe('maximumVisibleElementWidth', () => {
     it('should return maximum width until right edge of the viewport', () => {

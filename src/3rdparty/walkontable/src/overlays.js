@@ -257,6 +257,20 @@ class Overlays {
       }]);
     }
 
+    let resizeTimeout;
+
+    listenersToRegister.push([window, 'resize', (event) => {
+      clearTimeout(resizeTimeout);
+
+      resizeTimeout = setTimeout(() => {
+        if (this.scrollableElement === window) {
+          this.instance.draw();
+        }
+
+        this.instance.getSetting('onWindowResize', event);
+      }, 200);
+    }]);
+
     while (listenersToRegister.length) {
       const listener = listenersToRegister.pop();
       this.eventManager.addEventListener(listener[0], listener[1], listener[2]);

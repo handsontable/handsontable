@@ -1807,6 +1807,13 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterUnlisten
    */
   'afterUnlisten',
+
+  /**
+   * Fired after the window was resized.
+   *
+   * @event Hooks#afterWindowResize
+   */
+  'afterWindowResize',
 ];
 
 class Hooks {

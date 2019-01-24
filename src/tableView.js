@@ -411,6 +411,13 @@ class TableView {
       },
       selections: this.instance.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
+      onWindowResize: (event) => {
+        if (!this.instance || this.instance.isDestroyed) {
+          return;
+        }
+
+        this.instance.runHooks('afterWindowResize', event);
+      },
       onCellMouseDown: (event, coords, TD, wt) => {
         const blockCalculations = {
           row: false,
