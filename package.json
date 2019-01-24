@@ -75,6 +75,7 @@
     "data-spreadsheet"
   ],
   "dependencies": {
+    "@types/pikaday": "1.6.0",
     "hot-formula-parser": "^3.0.0",
     "moment": "2.20.1",
     "numbro": "^2.0.6",

@@ -1,3 +1,5 @@
+import { PikadayOptions } from "pikaday";
+
 declare namespace _Handsontable {
 
   class Core {
@@ -106,10 +108,11 @@ declare namespace _Handsontable {
 
 declare namespace Handsontable {
 
-  type CellValue = any; // string | number | boolean | null | undefined; // TODO: default known values, allow user-defined
+  // TODO: these are default known values, but users can extend with their own -- use type arguments?
+  type CellValue = any; // string | number | boolean | null | undefined;
   type RowObject = object; // { [prop: string]: CellValue }
-  type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' | 'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' | 'Autofill.fill' | 'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' | 'ContextMenu.columnRight' | 'ContextMenu.removeColumn' | 'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' | 'CopyPaste.paste' | 'ObserveChanges.change' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'GantChart.loadData' | 'ColumnSummary.set' | 'ColumnSummary.reset'; // TODO: allow user-defined
-  type CellType = 'autocomplete' | 'checkbox' | 'date' | 'dropdown' | 'handsontable' | 'numeric' | 'password' | 'text' | 'time'; // TODO: include user-defined
+  type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' | 'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' | 'Autofill.fill' | 'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' | 'ContextMenu.columnRight' | 'ContextMenu.removeColumn' | 'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' | 'CopyPaste.paste' | 'ObserveChanges.change' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'GantChart.loadData' | 'ColumnSummary.set' | 'ColumnSummary.reset';
+  type CellType = 'autocomplete' | 'checkbox' | 'date' | 'dropdown' | 'handsontable' | 'numeric' | 'password' | 'text' | 'time';
 
   namespace wot {
     interface CellCoords {
@@ -248,7 +251,7 @@ declare namespace Handsontable {
       close(): void;
       destroyElements(): void;
       finishEditing(isCancelled?: boolean, ctrlDown?: boolean): void;
-      getDatePickerConfig(): object; // TODO: Use @types/pikaday PikadayOptions
+      getDatePickerConfig(): PikadayOptions;
       hideDatepicker(): void;
       open(event?: Event): void;
       showDatepicker(event?: Event): void;
@@ -1494,6 +1497,7 @@ declare namespace Handsontable {
     data?: CellValue[][] | RowObject[];
     dataSchema?: RowObject | CellValue[] | ((row: number) => RowObject | CellValue[]);
     dateFormat?: string;
+    datePickerConfig?: PikadayOptions;
     numericFormat?: NumericFormatOptions;
     debug?: boolean;
     defaultDate?: string;
