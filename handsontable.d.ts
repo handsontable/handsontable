@@ -1447,7 +1447,12 @@ declare namespace Handsontable {
   }
 
   interface ColumnSettings extends Pick<GridSettings, Exclude<keyof GridSettings, "data">> {
-    data: string | number | ((row: RowObject | CellValue[], value?: CellValue) => CellValue | void);
+    data: string | number | GetterSetterFunction;
+  }
+
+  interface GetterSetterFunction {
+    (row: RowObject | CellValue[]): CellValue;
+    (row: RowObject | CellValue[], value: CellValue): void;
   }
 
   interface GridSettings extends Hooks {
@@ -1738,7 +1743,10 @@ declare namespace Handsontable {
     culture?: string; 
   }
 
-  type CellSettings = wot.CellCoords & GridSettings;
+  interface CellSettings extends GridSettings {
+    row: number;
+    col: number;
+  }
 
   interface LabelOptions {
     property?: string;
@@ -1786,7 +1794,7 @@ declare namespace Handsontable {
     SelectEditor: editors.Select;
     TextEditor: editors.Text;
     TimeEditor: editors.Text;
-    getEditor: (editorName: string, hotInstance: Handsontable) => any;
+    getEditor: (editorName: string, hotInstance: Handsontable) => any; // TODO: return type
     registerEditor: (editorName: string, editorClass: any) => void;
   }
 
@@ -2032,7 +2040,7 @@ declare namespace Handsontable {
     Search: plugins.Search,
     TouchScroll: plugins.TouchScroll,
     TrimRows: plugins.TrimRows,
-    registerPlugin: () => void
+    registerPlugin(pluginName: string, pluginClass: { new(hotInstance?: _Handsontable.Core): plugins.Base }): void;
   }
 
   // Plugin collection, map for getPlugin method
