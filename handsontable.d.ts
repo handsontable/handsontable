@@ -4,8 +4,8 @@ declare namespace _Handsontable {
 
   class Core {
     constructor(element: Element, options: Handsontable.GridSettings);
-    addHook<K extends keyof Handsontable.Hooks>(key: K, callback: Handsontable.Hooks[K] | Handsontable.Hooks[K][]): void;
-    addHookOnce<K extends keyof Handsontable.Hooks>(key: K, callback: Handsontable.Hooks[K] | Handsontable.Hooks[K][]): void;
+    addHook<K extends keyof Handsontable.Events>(key: K, callback: Handsontable.Events[K] | Handsontable.Events[K][]): void;
+    addHookOnce<K extends keyof Handsontable.Events>(key: K, callback: Handsontable.Events[K] | Handsontable.Events[K][]): void;
     alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index?: number | Array<[number, number]>, amount?: number, source?: Handsontable.ChangeSource, keepEmptyRows?: boolean): void;
     clear(): void;
     colOffset(): number;
@@ -63,7 +63,7 @@ declare namespace _Handsontable {
     getTranslatedPhrase(dictionaryKey: string, extraArguments: any): string | null;
     getValue(): Handsontable.CellValue;
     hasColHeaders(): boolean;
-    hasHook(key: keyof Handsontable.Hooks): boolean;
+    hasHook(key: keyof Handsontable.Events): boolean;
     hasRowHeaders(): boolean;
     isColumnModificationAllowed(): boolean;
     isEmptyCol(col: number): boolean;
@@ -74,10 +74,10 @@ declare namespace _Handsontable {
     populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: Handsontable.ChangeSource, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void; // TODO: better type for `deltas`
     propToCol(prop: string | number): number;
     removeCellMeta(row: number, col: number, key: string): void;
-    removeHook(key: keyof Handsontable.Hooks, callback: Function | Function[]): void;
+    removeHook(key: keyof Handsontable.Events, callback: Function | Function[]): void;
     render(): void;
     rowOffset(): number;
-    runHooks(key: keyof Handsontable.Hooks, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any; // TODO: Use Parameters<Handsontable.Hooks[K]>[0...5] and ReturnType<Handsontable.Hooks[K]> to type args and return (requires TS 3+)
+    runHooks(key: keyof Handsontable.Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any; // TODO: Use Parameters<Handsontable.Hooks[K]>[0...5] and ReturnType<Handsontable.Hooks[K]> to type args and return (requires TS 3+)
     scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean): boolean;
     selectAll(): void;
     selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
@@ -1457,7 +1457,7 @@ declare namespace Handsontable {
     (row: RowObject | CellValue[], value: CellValue): void;
   }
 
-  interface GridSettings extends Hooks {
+  interface GridSettings extends Events {
     activeHeaderClassName?: string;
     allowEmpty?: boolean;
     allowHtml?: boolean;
@@ -1583,7 +1583,7 @@ declare namespace Handsontable {
     wordWrap?: boolean;
   }
 
-  interface Hooks {
+  interface Events {
     afterAddChild?: (parent: object, element: object | void, index: number | void) => void;
     afterBeginEditing?: (row: number, column: number) => void;
     afterCellMetaReset?: () => void;
@@ -1708,11 +1708,6 @@ declare namespace Handsontable {
     beforeValidate?: (value: any, row: number, prop: string | number, source?: string) => void;
     beforeValueRender?: (value: any, cellProperties: object) => void;
     construct?: () => void;
-    // TODO: this is kinda broken... first, there's a bunch of hook methods besides getRegistered() that are not included. Second,
-    // the Hooks interface is extended by GridSettings to include all the events, but hook methods shouldn't be included. Solution:
-    // rename Hooks to Events, make a new Hooks that extends Events and adds all methods (including getRegistered), make GridSettings
-    // extends Events, not Hooks, but still reference Hooks from Handsontable.hooks. Also keyof Hooks should probably be keyof Events
-    getRegistered?: () => (keyof Hooks)[];
     hiddenColumn?: (column: number) => void;
     hiddenRow?: (row: number) => void;
     init?: () => void;
@@ -1740,6 +1735,25 @@ declare namespace Handsontable {
     unmodifyCol?: (col: number) => void;
     unmodifyRow?: (row: number) => void;
   }
+
+  interface Hooks {
+    add<K extends keyof Events>(key: K, callback: Events[K] | Events[K][], context?: Handsontable): Hooks;
+    createEmptyBucket(): Bucket;
+    deregister(key: string): void;
+    destroy(context?: Handsontable): void;
+    getBucket(context?: Handsontable): Bucket;
+    getRegistered(): (keyof Events)[];
+    has(key: keyof Events, context?: Handsontable): boolean;
+    isRegistered(key: keyof Events): boolean;
+    once<K extends keyof Events>(key: K, callback: Events[K] | Events[K][], context?: Handsontable): void;
+    register(key: string): void;
+    remove(key: keyof Events, callback: Function, context?: Handsontable): boolean;
+    run(context: Handsontable, key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
+  }
+
+  type Bucket = { 
+    [P in keyof Events]: Events[P][]; 
+  };
 
   interface NumericFormatOptions { 
     pattern: string; 
@@ -2267,7 +2281,7 @@ declare namespace Handsontable {
 declare class Handsontable extends _Handsontable.Core {
   static baseVersion: string;
   static buildDate: string;
-  static packageName: string;
+  static packageName: 'handsontable' | 'handsontable-pro';
   static version: string;
   static cellTypes: Handsontable.CellTypes;
   static languages: Handsontable.I18n.Internationalization;
