@@ -74,7 +74,7 @@ declare namespace _Handsontable {
     populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: Handsontable.ChangeSource, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void; // TODO: better type for `deltas`
     propToCol(prop: string | number): number;
     removeCellMeta(row: number, col: number, key: string): void;
-    removeHook(key: keyof Handsontable.Events, callback: Function | Function[]): void;
+    removeHook<K extends keyof Handsontable.Events>(key: K, callback: Handsontable.Events[K]): void;
     render(): void;
     rowOffset(): number;
     runHooks(key: keyof Handsontable.Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any; // TODO: Use Parameters<Handsontable.Hooks[K]>[0...5] and ReturnType<Handsontable.Hooks[K]> to type args and return (requires TS 3+)
@@ -1446,6 +1446,7 @@ declare namespace Handsontable {
     visualRow: number;
     visualCol: number;
     prop: string | number;
+    comment?: comments.CommentObject;
   }
 
   interface ColumnSettings extends Pick<GridSettings, Exclude<keyof GridSettings, "data">> {
@@ -1483,7 +1484,7 @@ declare namespace Handsontable {
     columnSummary?: columnSummary.Settings[] | (() => columnSummary.Settings[]); // pro
     colWidths?: number | number[] | string | string[] | ((index: number) => string);
     commentedCellClassName?: string;
-    comments?: boolean | CommentObject[];
+    comments?: boolean | comments.Settings;
     contextMenu?: boolean | contextMenu.MenuItemKey[] | contextMenu.Settings;
     copyable?: boolean;
     copyColsLimit?: number;
@@ -1763,6 +1764,7 @@ declare namespace Handsontable {
   interface CellSettings extends GridSettings {
     row: number;
     col: number;
+    comment?: comments.CommentObject;
   }
 
   interface LabelOptions {
@@ -2097,21 +2099,21 @@ declare namespace Handsontable {
     trimRows: plugins.TrimRows,
   }
 
-  // plugins
-  // Comments
-  interface CommentObject {
-    row: number,
-    col: number,
-    comment?: {
-      value?: string,
-      readOnly?: boolean,
+  // Plugins options
+  namespace comments {
+    interface CommentObject {
+      value?: string;
+      readOnly?: boolean;
       style?: {
-        height?: number,
-        width?: number
+        height?: number;
+        width?: number;
       }
     }
+    interface Settings {
+      displayDelay?: number;
+    }
   }
-  // ContextMenu
+  
   namespace contextMenu {
     interface Options {
       start: wot.CellCoords,
