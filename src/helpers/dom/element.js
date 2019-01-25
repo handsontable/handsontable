@@ -1,5 +1,10 @@
 import { isIE8, isIE9, isSafari } from '../browser';
-import { hasCaptionProblem } from '../feature';
+import {
+  hasCaptionProblem,
+  isClassListSupported,
+  isTextContentSupported,
+  isGetComputedStyleSupported,
+} from '../feature';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -103,7 +108,7 @@ export function isChildOf(child, parent) {
   let queriedParents = [];
 
   if (typeof parent === 'string') {
-    queriedParents = Array.prototype.slice.call(document.querySelectorAll(parent), 0);
+    queriedParents = Array.prototype.slice.call(child.ownerDocument.querySelectorAll(parent), 0);
   } else {
     queriedParents.push(parent);
   }
@@ -204,11 +209,10 @@ export function index(element) {
  * @returns {boolean}
  */
 export function overlayContainsElement(overlayType, element) {
-  const overlayElement = document.querySelector(`.ht_clone_${overlayType}`);
+  const overlayElement = element.ownerDocument.querySelector(`.ht_clone_${overlayType}`);
   return overlayElement ? overlayElement.contains(element) : null;
 }
 
-const classListSupport = !!document.documentElement.classList;
 let _hasClass;
 let _addClass;
 let _removeClass;
@@ -230,14 +234,14 @@ function filterEmptyClassNames(classNames) {
   return result;
 }
 
-if (classListSupport) {
-  const isSupportMultipleClassesArg = (function() {
-    const element = document.createElement('div');
+if (isClassListSupported()) {
+  const isSupportMultipleClassesArg = function(rootDocument) {
+    const element = rootDocument.createElement('div');
 
     element.classList.add('test', 'test2');
 
     return element.classList.contains('test2');
-  }());
+  };
 
   _hasClass = function(element, className) {
     if (element.classList === void 0 || typeof className !== 'string' || className === '') {
@@ -248,6 +252,7 @@ if (classListSupport) {
   };
 
   _addClass = function(element, classes) {
+    const rootDocument = element.ownerDocument;
     let className = classes;
 
     if (typeof className === 'string') {
@@ -257,7 +262,7 @@ if (classListSupport) {
     className = filterEmptyClassNames(className);
 
     if (className.length > 0) {
-      if (isSupportMultipleClassesArg) {
+      if (isSupportMultipleClassesArg(rootDocument)) {
         element.classList.add(...className);
 
       } else {
@@ -423,18 +428,15 @@ export function fastInnerHTML(element, content) {
 
 /**
  * Insert text content into element
- * @return {void}
+ * @return {Boolean}
  */
-
-const textContextSupport = !!document.createTextNode('test').textContent;
-
 export function fastInnerText(element, content) {
   const child = element.firstChild;
 
   if (child && child.nodeType === 3 && child.nextSibling === null) {
     // fast lane - replace existing text node
 
-    if (textContextSupport) {
+    if (isTextContentSupported) {
       // http://jsperf.com/replace-text-vs-reuse
       child.textContent = content;
     } else {
@@ -444,7 +446,7 @@ export function fastInnerText(element, content) {
   } else {
     // slow lane - empty element and insert a text node
     empty(element);
-    element.appendChild(document.createTextNode(content));
+    element.appendChild(element.ownerDocument.createTextNode(content));
   }
 }
 
@@ -454,11 +456,13 @@ export function fastInnerText(element, content) {
  * @returns {boolean}
  */
 export function isVisible(elem) {
+  const documentElement = elem.ownerDocument.documentElement;
   let next = elem;
 
-  while (polymerUnwrap(next) !== document.documentElement) { // until <html> reached
+  while (polymerUnwrap(next) !== documentElement) { // until <html> reached
     if (next === null) { // parent detached from DOM
       return false;
+
     } else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
       if (next.host) { // this is Web Components Shadow DOM
         // see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
@@ -475,9 +479,11 @@ export function isVisible(elem) {
       } else {
         return false; // this is a node detached from document in IE8
       }
-    } else if (next.style.display === 'none') {
+
+    } else if (next.style && next.style.display === 'none') {
       return false;
     }
+
     next = next.parentNode;
   }
 
@@ -491,7 +497,9 @@ export function isVisible(elem) {
  * @return {Object} Returns object with `top` and `left` props
  */
 export function offset(elem) {
-  const docElem = document.documentElement;
+  const rootDocument = elem.ownerDocument;
+  const rootWindow = rootDocument.defaultView;
+  const documentElement = rootDocument.documentElement;
   let elementToCheck = elem;
   let offsetLeft;
   let offsetTop;
@@ -504,8 +512,8 @@ export function offset(elem) {
     box = elementToCheck.getBoundingClientRect();
 
     return {
-      top: box.top + (window.pageYOffset || docElem.scrollTop) - (docElem.clientTop || 0),
-      left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0)
+      top: box.top + (rootWindow.pageYOffset || documentElement.scrollTop) - (documentElement.clientTop || 0),
+      left: box.left + (rootWindow.pageXOffset || documentElement.scrollLeft) - (documentElement.clientLeft || 0)
     };
   }
   offsetLeft = elementToCheck.offsetLeft;
@@ -515,7 +523,7 @@ export function offset(elem) {
   /* eslint-disable no-cond-assign */
   while (elementToCheck = elementToCheck.offsetParent) {
     // from my observation, document.body always has scrollLeft/scrollTop == 0
-    if (elementToCheck === document.body) {
+    if (elementToCheck === rootDocument.body) {
       break;
     }
     offsetLeft += elementToCheck.offsetLeft;
@@ -526,8 +534,8 @@ export function offset(elem) {
   // slow - http://jsperf.com/offset-vs-getboundingclientrect/6
   if (lastElem && lastElem.style.position === 'fixed') {
     // if(lastElem !== document.body) { //faster but does gives false positive in Firefox
-    offsetLeft += window.pageXOffset || docElem.scrollLeft;
-    offsetTop += window.pageYOffset || docElem.scrollTop;
+    offsetLeft += rootWindow.pageXOffset || documentElement.scrollLeft;
+    offsetTop += rootWindow.pageYOffset || documentElement.scrollTop;
   }
 
   return {
@@ -539,13 +547,15 @@ export function offset(elem) {
 /**
  * Returns the document's scrollTop property.
  *
+ * @param {Window} rootWindow
  * @returns {Number}
  */
-export function getWindowScrollTop() {
-  let res = window.scrollY;
+// eslint-disable-next-line no-restricted-globals
+export function getWindowScrollTop(rootWindow = window) {
+  let res = rootWindow.scrollY;
 
   if (res === void 0) { // IE8-11
-    res = document.documentElement.scrollTop;
+    res = rootWindow.document.documentElement.scrollTop;
   }
 
   return res;
@@ -554,13 +564,15 @@ export function getWindowScrollTop() {
 /**
  * Returns the document's scrollLeft property.
  *
+ * @param {Window} rootWindow
  * @returns {Number}
  */
-export function getWindowScrollLeft() {
-  let res = window.scrollX;
+// eslint-disable-next-line no-restricted-globals
+export function getWindowScrollLeft(rootWindow = window) {
+  let res = rootWindow.scrollX;
 
   if (res === void 0) { // IE8-11
-    res = document.documentElement.scrollLeft;
+    res = rootWindow.document.documentElement.scrollLeft;
   }
 
   return res;
@@ -570,11 +582,13 @@ export function getWindowScrollLeft() {
  * Returns the provided element's scrollTop property.
  *
  * @param element
+ * @param {Window} rootWindow
  * @returns {Number}
  */
-export function getScrollTop(element) {
-  if (element === window) {
-    return getWindowScrollTop();
+// eslint-disable-next-line no-restricted-globals
+export function getScrollTop(element, rootWindow = window) {
+  if (element === rootWindow) {
+    return getWindowScrollTop(rootWindow);
   }
   return element.scrollTop;
 
@@ -584,11 +598,13 @@ export function getScrollTop(element) {
  * Returns the provided element's scrollLeft property.
  *
  * @param element
+ * @param {Window} rootWindow
  * @returns {Number}
  */
-export function getScrollLeft(element) {
-  if (element === window) {
-    return getWindowScrollLeft();
+// eslint-disable-next-line no-restricted-globals
+export function getScrollLeft(element, rootWindow = window) {
+  if (element === rootWindow) {
+    return getWindowScrollLeft(rootWindow);
   }
   return element.scrollLeft;
 }
@@ -600,48 +616,44 @@ export function getScrollLeft(element) {
  * @returns {HTMLElement} Element's scrollable parent
  */
 export function getScrollableElement(element) {
+  let rootDocument = element.document;
+  let rootWindow = element;
+
+  if (!rootDocument) {
+    rootDocument = element.ownerDocument ? element.ownerDocument : element;
+    rootWindow = rootDocument.defaultView;
+  }
+
   const props = ['auto', 'scroll'];
+  const supportedGetComputedStyle = isGetComputedStyleSupported();
   let el = element.parentNode;
-  let overflow;
-  let overflowX;
-  let overflowY;
-  let computedStyle = '';
-  let computedOverflow = '';
-  let computedOverflowY = '';
-  let computedOverflowX = '';
 
-  while (el && el.style && document.body !== el) {
-    overflow = el.style.overflow;
-    overflowX = el.style.overflowX;
-    overflowY = el.style.overflowY;
+  while (el && el.style && rootDocument.body !== el) {
+    let { overflow, overflowX, overflowY } = el.style;
 
-    if (overflow === 'scroll' || overflowX === 'scroll' || overflowY === 'scroll') {
+    if ([overflow, overflowX, overflowY].includes('scroll')) {
       return el;
 
-    } else if (window.getComputedStyle) {
-      computedStyle = window.getComputedStyle(el);
-      computedOverflow = computedStyle.getPropertyValue('overflow');
-      computedOverflowY = computedStyle.getPropertyValue('overflow-y');
-      computedOverflowX = computedStyle.getPropertyValue('overflow-x');
+    } else if (supportedGetComputedStyle) {
+      ({ overflow, overflowX, overflowY } = rootWindow.getComputedStyle(el));
 
-      if (computedOverflow === 'scroll' || computedOverflowX === 'scroll' || computedOverflowY === 'scroll') {
+      if (props.includes(overflow) || props.includes(overflowX) || props.includes(overflowY)) {
         return el;
       }
     }
 
     // The '+ 1' after the scrollHeight/scrollWidth is to prevent problems with zoomed out Chrome.
-    if (el.clientHeight <= el.scrollHeight + 1 && (props.indexOf(overflowY) !== -1 || props.indexOf(overflow) !== -1 ||
-        props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowY) !== -1)) {
+    if (el.clientHeight <= el.scrollHeight + 1 && (props.includes(overflowY) || props.includes(overflow))) {
       return el;
     }
-    if (el.clientWidth <= el.scrollWidth + 1 && (props.indexOf(overflowX) !== -1 || props.indexOf(overflow) !== -1 ||
-        props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowX) !== -1)) {
+    if (el.clientWidth <= el.scrollWidth + 1 && (props.includes(overflowX) || props.includes(overflow))) {
       return el;
     }
+
     el = el.parentNode;
   }
 
-  return window;
+  return rootWindow;
 }
 
 /**
@@ -651,14 +663,17 @@ export function getScrollableElement(element) {
  * @returns {HTMLElement} Base element's trimming parent
  */
 export function getTrimmingContainer(base) {
+  const rootDocument = base.ownerDocument;
+  const rootWindow = rootDocument.defaultView;
+
   let el = base.parentNode;
 
-  while (el && el.style && document.body !== el) {
+  while (el && el.style && rootDocument.body !== el) {
     if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
       return el;
     }
 
-    const computedStyle = getComputedStyle(el);
+    const computedStyle = getComputedStyle(el, rootWindow);
     const allowedProperties = ['scroll', 'hidden', 'auto'];
     const property = computedStyle.getPropertyValue('overflow');
     const propertyY = computedStyle.getPropertyValue('overflow-y');
@@ -671,7 +686,7 @@ export function getTrimmingContainer(base) {
     el = el.parentNode;
   }
 
-  return window;
+  return rootWindow;
 }
 
 /**
@@ -679,37 +694,35 @@ export function getTrimmingContainer(base) {
  *
  * @param {HTMLElement} element
  * @param {String} prop Wanted property
+ * @param {Window} rootWindow
  * @returns {String|undefined} Element's style property
  */
-export function getStyle(element, prop) {
-  /* eslint-disable */
+// eslint-disable-next-line no-restricted-globals
+export function getStyle(element, prop, rootWindow = window) {
   if (!element) {
     return;
 
-  } else if (element === window) {
+  } else if (element === rootWindow) {
     if (prop === 'width') {
-      return window.innerWidth + 'px';
+      return `${rootWindow.innerWidth}px`;
 
     } else if (prop === 'height') {
-      return window.innerHeight + 'px';
+      return `${rootWindow.innerHeight}px`;
     }
 
     return;
   }
 
-  var
-    styleProp = element.style[prop],
-    computedStyle;
+  const styleProp = element.style[prop];
 
   if (styleProp !== '' && styleProp !== void 0) {
     return styleProp;
+  }
 
-  } else {
-    computedStyle = getComputedStyle(element);
+  const computedStyle = getComputedStyle(element, rootWindow);
 
-    if (computedStyle[prop] !== '' && computedStyle[prop] !== void 0) {
-      return computedStyle[prop];
-    }
+  if (computedStyle[prop] !== '' && computedStyle[prop] !== void 0) {
+    return computedStyle[prop];
   }
 }
 
@@ -717,10 +730,12 @@ export function getStyle(element, prop) {
  * Returns a computed style object for the provided element. (Needed if style is declared in external stylesheet).
  *
  * @param element
+ * @param {Window} rootWindow
  * @returns {IEElementStyle|CssStyle} Elements computed style object
  */
-export function getComputedStyle(element) {
-  return element.currentStyle || document.defaultView.getComputedStyle(element);
+// eslint-disable-next-line no-restricted-globals
+export function getComputedStyle(element, rootWindow = window) {
+  return element.currentStyle || rootWindow.getComputedStyle(element);
 }
 
 /**
@@ -775,41 +790,55 @@ export function innerWidth(element) {
 }
 
 export function addEvent(element, event, callback) {
-  if (window.addEventListener) {
+  let rootWindow = element.defaultView;
+
+  if (!rootWindow) {
+    rootWindow = element.document ? element : element.ownerDocument.defaultView;
+  }
+
+  if (rootWindow.addEventListener) {
     element.addEventListener(event, callback, false);
   } else {
-    element.attachEvent('on' + event, callback);
+    element.attachEvent(`on${event}`, callback);
   }
 }
 
 export function removeEvent(element, event, callback) {
-  if (window.removeEventListener) {
+  let rootWindow = element.defaultView;
+
+  if (!rootWindow) {
+    rootWindow = element.document ? element : element.ownerDocument.defaultView;
+  }
+
+  if (rootWindow.removeEventListener) {
     element.removeEventListener(event, callback, false);
   } else {
-    element.detachEvent('on' + event, callback);
+    element.detachEvent(`on${event}`, callback);
   }
 }
 
 /**
  * Returns caret position in text input
  *
- * @author http://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
+ * @author https://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
  * @return {Number}
  */
 export function getCaretPosition(el) {
+  const rootDocument = el.ownerDocument;
+
   if (el.selectionStart) {
     return el.selectionStart;
 
-  } else if (document.selection) { // IE8
+  } else if (rootDocument.selection) { // IE8
     el.focus();
 
-    let r = document.selection.createRange();
+    const r = rootDocument.selection.createRange();
 
-    if (r == null) {
+    if (r === null) {
       return 0;
     }
-    let re = el.createTextRange();
-    let rc = re.duplicate();
+    const re = el.createTextRange();
+    const rc = re.duplicate();
 
     re.moveToBookmark(r.getBookmark());
     rc.setEndPoint('EndToStart', re);
@@ -826,16 +855,19 @@ export function getCaretPosition(el) {
  * @return {Number}
  */
 export function getSelectionEndPosition(el) {
+  const rootDocument = el.ownerDocument;
+
   if (el.selectionEnd) {
     return el.selectionEnd;
 
-  } else if (document.selection) { // IE8
-    let r = document.selection.createRange();
+  } else if (rootDocument.selection) { // IE8
+    const r = rootDocument.selection.createRange();
 
-    if (r == null) {
+    if (r === null) {
       return 0;
     }
-    let re = el.createTextRange();
+
+    const re = el.createTextRange();
 
     return re.text.indexOf(r.text) + r.text.length;
   }
@@ -846,15 +878,18 @@ export function getSelectionEndPosition(el) {
 /**
  * Returns text under selection.
  *
+ * @param {Window} rootWindow
  * @returns {String}
  */
-export function getSelectionText() {
+// eslint-disable-next-line no-restricted-globals
+export function getSelectionText(rootWindow = window) {
+  const rootDocument = rootWindow.document;
   let text = '';
 
-  if (window.getSelection) {
-    text = window.getSelection().toString();
-  } else if (document.selection && document.selection.type !== 'Control') {
-    text = document.selection.createRange().text;
+  if (rootWindow.getSelection) {
+    text = rootWindow.getSelection().toString();
+  } else if (rootDocument.selection && rootDocument.selection.type !== 'Control') {
+    text = rootDocument.selection.createRange().text;
   }
 
   return text;
@@ -862,17 +897,21 @@ export function getSelectionText() {
 
 /**
  * Cross-platform helper to clear text selection.
+ *
+ * @param {Window} rootWindow
  */
-export function clearTextSelection() {
+// eslint-disable-next-line no-restricted-globals
+export function clearTextSelection(rootWindow = window) {
+  const rootDocument = rootWindow.document;
   // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
-  if (window.getSelection) {
-    if (window.getSelection().empty) { // Chrome
-      window.getSelection().empty();
-    } else if (window.getSelection().removeAllRanges) { // Firefox
-      window.getSelection().removeAllRanges();
+  if (rootWindow.getSelection) {
+    if (rootWindow.getSelection().empty) { // Chrome
+      rootWindow.getSelection().empty();
+    } else if (rootWindow.getSelection().removeAllRanges) { // Firefox
+      rootWindow.getSelection().removeAllRanges();
     }
-  } else if (document.selection) { // IE?
-    document.selection.empty();
+  } else if (rootDocument.selection) { // IE?
+    rootDocument.selection.empty();
   }
 }
 
@@ -909,15 +948,22 @@ export function setCaretPosition(element, pos, endPos) {
   }
 }
 
-var cachedScrollbarWidth;
+let cachedScrollbarWidth;
 
-// http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
-function walkontableCalculateScrollbarWidth() {
-  const inner = document.createElement('div');
+/**
+ * Helper to calculate scrollbar width.
+ * Source: https://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
+ *
+ * @private
+ * @param {Document} rootDocument
+ */
+// eslint-disable-next-line no-restricted-globals
+function walkontableCalculateScrollbarWidth(rootDocument = document) {
+  const inner = rootDocument.createElement('div');
   inner.style.height = '200px';
   inner.style.width = '100%';
 
-  const outer = document.createElement('div');
+  const outer = rootDocument.createElement('div');
   outer.style.boxSizing = 'content-box';
   outer.style.height = '150px';
   outer.style.left = '0px';
@@ -928,15 +974,15 @@ function walkontableCalculateScrollbarWidth() {
   outer.style.visibility = 'hidden';
   outer.appendChild(inner);
 
-  (document.body || document.documentElement).appendChild(outer);
+  (rootDocument.body || rootDocument.documentElement).appendChild(outer);
   const w1 = inner.offsetWidth;
   outer.style.overflow = 'scroll';
   let w2 = inner.offsetWidth;
-  if (w1 == w2) {
+
+  if (w1 === w2) {
     w2 = outer.clientWidth;
   }
-
-  (document.body || document.documentElement).removeChild(outer);
+  (rootDocument.body || rootDocument.documentElement).removeChild(outer);
 
   return (w1 - w2);
 }
@@ -944,11 +990,13 @@ function walkontableCalculateScrollbarWidth() {
 /**
  * Returns the computed width of the native browser scroll bar.
  *
+ * @param {Document} rootDocument
  * @return {Number} width
  */
-export function getScrollbarWidth() {
+// eslint-disable-next-line no-restricted-globals
+export function getScrollbarWidth(rootDocument = document) {
   if (cachedScrollbarWidth === void 0) {
-    cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
+    cachedScrollbarWidth = walkontableCalculateScrollbarWidth(rootDocument);
   }
 
   return cachedScrollbarWidth;
@@ -982,9 +1030,10 @@ export function setOverlayPosition(overlayElem, left, top) {
     overlayElem.style.top = top;
     overlayElem.style.left = left;
   } else if (isSafari()) {
-    overlayElem.style['-webkit-transform'] = 'translate3d(' + left + ',' + top + ',0)';
+    overlayElem.style['-webkit-transform'] = `translate3d(${left},${top},0)`;
+    overlayElem.style['-webkit-transform'] = `translate3d(${left},${top},0)`;
   } else {
-    overlayElem.style.transform = 'translate3d(' + left + ',' + top + ',0)';
+    overlayElem.style.transform = `translate3d(${left},${top},0)`;
   }
 }
 
@@ -1031,7 +1080,7 @@ export function isInput(element) {
  * @returns {Boolean}
  */
 export function isOutsideInput(element) {
-  return isInput(element) && element.className.indexOf('handsontableInput') == -1 && element.className.indexOf('copyPaste') == -1;
+  return isInput(element) && element.className.indexOf('handsontableInput') === -1 && element.className.indexOf('copyPaste') === -1;
 }
 
 /**

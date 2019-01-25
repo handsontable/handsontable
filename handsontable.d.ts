@@ -281,6 +281,7 @@ declare namespace Handsontable {
       editor: HTMLElement;
       editorStyle: CSSStyleDeclaration;
       hidden: boolean;
+      rootDocument: Document;
 
       setPosition(x: number, y: number): void;
       setSize(width: number, height: number): void;
@@ -466,6 +467,7 @@ declare namespace Handsontable {
       cellWidth: number;
       left: number;
       leftRelative: number;
+      rootWindow: Window;
       scrollLeft: number;
       scrollTop: number;
       top: number;
@@ -764,9 +766,10 @@ declare namespace Handsontable {
     }
 
     interface FocusableWrapper {
-      mainElement: HTMLElement;
       eventManager: EventManager;
       listenersCount: WeakSet<HTMLElement>;
+      mainElement: HTMLElement;
+      rootDocument: Document;
 
       useSecondaryElement(): void;
       setFocusableElement(element: HTMLElement): void;
@@ -1378,6 +1381,27 @@ declare namespace Handsontable {
       untrimRow(row: number): void;
       untrimRows(rows: number[]): void;
     }
+    
+    interface Storage {
+      prefix: string;
+      rootWindow: Window;
+      savedKeys: string[];
+      
+      clearSavedKeys(): void;
+      loadSavedKeys(): void;
+      loadValue(key: string, defaultValue: object): any;
+      resetAll(): void;
+      saveSavedKeys(): void;
+      saveValue(key: string, value: any): void;
+    }
+    
+    interface PersistenState extends Base {
+      storage: Storage;
+      
+      loadValue(key: string, saveTo: object): void;
+      saveValue(key: string, value: any): void;
+      resetValue(key: string): void;
+    }
 
     interface Search extends Base {
       callback: () => void;
@@ -1832,11 +1856,13 @@ declare namespace Handsontable {
     hasCaptionProblem(): boolean | void,
     inherit(Child: object, Parent: object): object,
     isChrome(): boolean,
+    isClassListSupported(): boolean;
     isCtrlKey(keyCode: number): boolean,
     isDefined(variable: any): boolean,
     isEdge(): boolean,
     isEmpty(variable: any): boolean,
     isFunction(func: any): boolean,
+    isGetComputedStyleSupported(): boolean,
     isIE(): boolean,
     isIE8(): boolean,
     isIE9(): boolean,
@@ -1850,6 +1876,7 @@ declare namespace Handsontable {
     isPercentValue(value: string): boolean,
     isPrintableChar(keyCode: number): boolean,
     isSafari(): boolean,
+    isTextContentSupported(): boolean,
     isTouchSupported(): boolean,
     isUndefined(variable: any): boolean,
     isWebComponentSupportedNatively(): boolean,
@@ -1881,25 +1908,26 @@ declare namespace Handsontable {
     HTML_CHARACTERS: RegExp,
     addClass: (element: HTMLElement, className: string | any[]) => void;
     addEvent: (element: HTMLElement, event: string, callback: () => void) => void;
+    clearTextSelection: (rootWindow?: Window) => void;
     closest: (element: HTMLElement, nodes: any[], until?: HTMLElement) => HTMLElement | void;
     closestDown: (element: HTMLElement, nodes: any[], until?: HTMLElement) => HTMLElement | void;
     empty: (element: HTMLElement) => void;
     fastInnerHTML: (element: HTMLElement, content: string) => void;
     fastInnerText: (element: HTMLElement, content: string) => void;
     getCaretPosition: (el: HTMLElement) => number;
-    getComputedStyle: (element: HTMLElement) => CSSStyleDeclaration | object;
+    getComputedStyle: (element: HTMLElement, rootWindow?: Window) => CSSStyleDeclaration | object;
     getCssTransform: (element: HTMLElement) => number | void;
     getParent: (element: HTMLElement, level?: number) => HTMLElement | void;
-    getScrollLeft: (element: HTMLElement) => number;
-    getScrollTop: (element: HTMLElement) => number;
+    getScrollLeft: (element: HTMLElement, rootWindow?: Window) => number;
+    getScrollTop: (element: HTMLElement, rootWindow?: Window) => number;
     getScrollableElement: (element: HTMLElement) => HTMLElement;
-    getScrollbarWidth: () => number;
+    getScrollbarWidth: (rootDocument?: Document) => number;
     getSelectionEndPosition: (el: HTMLElement) => number;
-    getSelectionText: () => string;
-    getStyle: (element: HTMLElement, prop: string) => string;
+    getSelectionText: (rootWindow?: Window) => string;
+    getStyle: (element: HTMLElement, prop: string, rootWindow?: Window) => string;
     getTrimmingContainer: (base: HTMLElement) => HTMLElement;
-    getWindowScrollLeft: () => number;
-    getWindowScrollTop: () => number;
+    getWindowScrollLeft: (rootWindow?: Window) => number;
+    getWindowScrollTop: (rootWindow?: Window) => number;
     hasClass: (element: HTMLElement, className: string) => boolean;
     hasHorizontalScrollbar: (element: HTMLElement) => boolean;
     hasVerticalScrollbar: (element: HTMLElement) => boolean;
@@ -2002,6 +2030,7 @@ declare namespace Handsontable {
     nestedHeaders: plugins.NestedHeaders,
     nestedRows: plugins.NestedRows,
     observeChanges: plugins.ObserveChanges,
+    persistentState: plugins.PersistenState,
     search: plugins.Search,
     touchScroll: plugins.TouchScroll,
     trimRows: plugins.TrimRows,

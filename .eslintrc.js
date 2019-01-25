@@ -57,6 +57,8 @@ module.exports = {
     "no-restricted-globals": [
       "error",
       "Handsontable",
+      "window",
+      "document",
       {
         "name": "console",
         "message": "Using the `console` object is not allowed within Handsontable. Please use one of the helpers from the `console.js` file instead."

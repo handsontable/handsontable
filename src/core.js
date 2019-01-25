@@ -90,14 +90,36 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     registerAsRootInstance(this);
   }
 
-  keyStateStartObserving();
+  // TODO: check if references to DOM elements should be move to UI layer (Walkontable)
+  /**
+   * Reference to the container element.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootElement = rootElement;
+  /**
+   * The nearest document over container.
+   *
+   * @private
+   * @type {Document}
+   */
+  this.rootDocument = rootElement.ownerDocument;
+  /**
+   * Window object over container's document.
+   *
+   * @private
+   * @type {Window}
+   */
+  this.rootWindow = this.rootDocument.defaultView;
+
+  keyStateStartObserving(this.rootDocument);
 
   this.isDestroyed = false;
-  this.rootElement = rootElement;
   this.isHotTableEnv = isChildOfWebComponentTable(this.rootElement);
   EventManager.isHotTableEnv = this.isHotTableEnv;
 
-  this.container = document.createElement('div');
+  this.container = this.rootDocument.createElement('div');
   this.renderCall = false;
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
@@ -1197,14 +1219,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterListen
    */
   this.listen = function(modifyDocumentFocus = true) {
+    const { rootDocument } = instance;
     if (modifyDocumentFocus) {
-      const invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
+      const invalidActiveElement = !rootDocument.activeElement || (rootDocument.activeElement && rootDocument.activeElement.nodeName === void 0);
 
-      if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
-        document.activeElement.blur();
+      if (rootDocument.activeElement && rootDocument.activeElement !== rootDocument.body && !invalidActiveElement) {
+        rootDocument.activeElement.blur();
 
       } else if (invalidActiveElement) { // IE
-        document.body.focus();
+        rootDocument.body.focus();
       }
     }
 
@@ -3326,7 +3349,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     keyStateStopObserving();
 
     if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(instance)) {
-      const licenseInfo = document.querySelector('#hot-display-license-info');
+      const licenseInfo = instance.rootDocument.querySelector('#hot-display-license-info');
 
       if (licenseInfo) {
         licenseInfo.parentNode.removeChild(licenseInfo);

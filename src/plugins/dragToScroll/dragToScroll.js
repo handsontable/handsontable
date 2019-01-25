@@ -144,8 +144,10 @@ class DragToScroll extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(document, 'mousemove', event => this.onMouseMove(event));
+    const rootDocument = this.hot.rootDocument;
+
+    this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(rootDocument, 'mousemove', event => this.onMouseMove(event));
   }
 
   /**
@@ -165,7 +167,7 @@ class DragToScroll extends BasePlugin {
   setupListening() {
     const scrollHandler = this.hot.view.wt.wtTable.holder; // native scroll
 
-    if (scrollHandler === window) {
+    if (scrollHandler === this.hot.rootWindow) {
       // not much we can do currently
       return;
     }

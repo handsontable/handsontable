@@ -121,7 +121,7 @@ class TextEditor extends BaseEditor {
   close() {
     this.autoResize.unObserve();
 
-    if (document.activeElement === this.TEXTAREA) {
+    if (this.hot.rootDocument.activeElement === this.TEXTAREA) {
       this.hot.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
     }
 
@@ -207,7 +207,7 @@ class TextEditor extends BaseEditor {
    * Creates an editor's elements and adds necessary CSS classnames.
    */
   createElements() {
-    this.TEXTAREA = document.createElement('TEXTAREA');
+    this.TEXTAREA = this.hot.rootDocument.createElement('TEXTAREA');
     this.TEXTAREA.tabIndex = -1;
 
     addClass(this.TEXTAREA, 'handsontableInput');
@@ -216,7 +216,7 @@ class TextEditor extends BaseEditor {
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
 
-    this.TEXTAREA_PARENT = document.createElement('DIV');
+    this.TEXTAREA_PARENT = this.hot.rootDocument.createElement('DIV');
     addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
     this.textareaParentStyle = this.TEXTAREA_PARENT.style;
@@ -339,13 +339,14 @@ class TextEditor extends BaseEditor {
       return;
     }
 
+    const { wtOverlays, wtViewport } = this.hot.view.wt;
     const currentOffset = offset(this.TD);
     const containerOffset = offset(this.hot.rootElement);
-    const scrollableContainerTop = this.hot.view.wt.wtOverlays.topOverlay.holder;
-    const scrollableContainerLeft = this.hot.view.wt.wtOverlays.leftOverlay.holder;
+    const scrollableContainerTop = wtOverlays.topOverlay.holder;
+    const scrollableContainerLeft = wtOverlays.leftOverlay.holder;
     const totalRowsCount = this.hot.countRows();
-    const containerScrollTop = scrollableContainerTop !== window ? scrollableContainerTop.scrollTop : 0;
-    const containerScrollLeft = scrollableContainerLeft !== window ? scrollableContainerLeft.scrollLeft : 0;
+    const containerScrollTop = scrollableContainerTop !== this.hot.rootWindow ? scrollableContainerTop.scrollTop : 0;
+    const containerScrollLeft = scrollableContainerLeft !== this.hot.rootWindow ? scrollableContainerLeft.scrollLeft : 0;
     const editorSection = this.checkEditorSection();
 
     const scrollTop = ['', 'left'].includes(editorSection) ? containerScrollTop : 0;
@@ -365,19 +366,19 @@ class TextEditor extends BaseEditor {
     // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
     switch (editorSection) {
       case 'top':
-        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'left':
-        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'top-left-corner':
-        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'bottom-left-corner':
-        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'bottom':
-        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
         break;
       default:
         break;
@@ -402,11 +403,11 @@ class TextEditor extends BaseEditor {
     this.textareaParentStyle.left = `${editLeft}px`;
     this.showEditableElement();
 
-    const firstRowOffset = this.hot.view.wt.wtViewport.rowsRenderCalculator.startPosition;
-    const firstColumnOffset = this.hot.view.wt.wtViewport.columnsRenderCalculator.startPosition;
-    const horizontalScrollPosition = this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
-    const verticalScrollPosition = this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
-    const scrollbarWidth = getScrollbarWidth();
+    const firstRowOffset = wtViewport.rowsRenderCalculator.startPosition;
+    const firstColumnOffset = wtViewport.columnsRenderCalculator.startPosition;
+    const horizontalScrollPosition = wtOverlays.leftOverlay.getScrollPosition();
+    const verticalScrollPosition = wtOverlays.topOverlay.getScrollPosition();
+    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
 
     const cellTopOffset = this.TD.offsetTop + firstRowOffset - verticalScrollPosition;
     const cellLeftOffset = this.TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
@@ -418,7 +419,7 @@ class TextEditor extends BaseEditor {
     const height = this.TD.scrollHeight + 1;
     const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
 
-    const cellComputedStyle = getComputedStyle(this.TD);
+    const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
 
     this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
     this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;

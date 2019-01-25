@@ -163,7 +163,7 @@ class ConditionComponent extends BaseComponent {
           addClass(wrapper.parentNode, 'border');
         }
 
-        const label = document.createElement('div');
+        const label = this.hot.rootDocument.createElement('div');
 
         addClass(label, 'htFiltersMenuLabel');
 

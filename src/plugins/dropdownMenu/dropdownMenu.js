@@ -351,7 +351,7 @@ class DropdownMenu extends BasePlugin {
 
       return;
     }
-    const button = document.createElement('button');
+    const button = this.hot.rootDocument.createElement('button');
 
     button.className = BUTTON_CLASS_NAME;
 

@@ -123,7 +123,7 @@ class HandsontableEditor extends TextEditor {
   createElements() {
     super.createElements();
 
-    const DIV = document.createElement('DIV');
+    const DIV = this.hot.rootDocument.createElement('DIV');
     DIV.className = 'handsontableEditor';
     this.TEXTAREA_PARENT.appendChild(DIV);
 

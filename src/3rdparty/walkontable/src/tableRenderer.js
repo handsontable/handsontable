@@ -180,7 +180,7 @@ class TableRenderer {
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {
         performanceWarningAppeared = true;
-        warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number 
+        warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number
           of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
       }
       if (rowsToRender !== void 0 && visibleRowIndex === rowsToRender) {
@@ -379,7 +379,7 @@ class TableRenderer {
       }
       // If the number of headers has been reduced, we need to replace excess TH with TD
       if (TD.nodeName === 'TH') {
-        TD = replaceThWithTd(TD, TR);
+        TD = replaceThWithTd(this.wot.rootDocument, TD, TR);
       }
       if (!hasClass(TD, 'hide')) {
         TD.className = '';
@@ -402,7 +402,7 @@ class TableRenderer {
     let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
 
     if (mainHolder.offsetHeight < mainHolder.scrollHeight) {
-      scrollbarCompensation = getScrollbarWidth();
+      scrollbarCompensation = getScrollbarWidth(this.wot.rootDocument);
     }
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
 
@@ -463,10 +463,11 @@ class TableRenderer {
    * @returns {HTMLTableCellElement}
    */
   createRow() {
-    const TR = document.createElement('TR');
+    const rootDocument = this.wot.rootDocument;
+    const TR = rootDocument.createElement('TR');
 
     for (let visibleColIndex = 0; visibleColIndex < this.rowHeaderCount; visibleColIndex++) {
-      TR.appendChild(document.createElement('TH'));
+      TR.appendChild(rootDocument.createElement('TH'));
     }
 
     return TR;
@@ -491,11 +492,11 @@ class TableRenderer {
     for (let TH = TR.firstChild, visibleColIndex = 0; visibleColIndex < this.rowHeaderCount; visibleColIndex++) {
       // If the number of row headers increased we need to create TH or replace an existing TD node with TH
       if (!TH) {
-        TH = document.createElement('TH');
+        TH = this.wot.rootDocument.createElement('TH');
         TR.appendChild(TH);
 
       } else if (TH.nodeName === 'TD') {
-        TH = replaceTdWithTh(TH, TR);
+        TH = replaceTdWithTh(this.wot.rootDocument, TH, TR);
       }
       this.renderRowHeader(row, visibleColIndex, TH);
       // http://jsperf.com/nextsibling-vs-indexed-childnodes
@@ -538,7 +539,7 @@ class TableRenderer {
     const columnCount = this.wtTable.getRenderedColumnsCount();
 
     while (this.wtTable.colgroupChildrenLength < columnCount + this.rowHeaderCount) {
-      this.COLGROUP.appendChild(document.createElement('COL'));
+      this.COLGROUP.appendChild(this.wot.rootDocument.createElement('COL'));
       this.wtTable.colgroupChildrenLength += 1;
     }
     while (this.wtTable.colgroupChildrenLength > columnCount + this.rowHeaderCount) {
@@ -558,17 +559,19 @@ class TableRenderer {
     let TR = this.THEAD.firstChild;
 
     if (this.columnHeaders.length) {
+      const rootDocument = this.wot.rootDocument;
+
       for (let i = 0, len = this.columnHeaders.length; i < len; i++) {
         TR = this.THEAD.childNodes[i];
 
         if (!TR) {
-          TR = document.createElement('TR');
+          TR = rootDocument.createElement('TR');
           this.THEAD.appendChild(TR);
         }
         this.theadChildrenLength = TR.childNodes.length;
 
         while (this.theadChildrenLength < columnCount + this.rowHeaderCount) {
-          TR.appendChild(document.createElement('TH'));
+          TR.appendChild(rootDocument.createElement('TH'));
           this.theadChildrenLength += 1;
         }
         while (this.theadChildrenLength > columnCount + this.rowHeaderCount) {
@@ -616,10 +619,11 @@ class TableRenderer {
    * @param {Number} desiredCount The desired number of TDs in the TR
    */
   adjustColumns(TR, desiredCount) {
+    const rootDocument = this.wot.rootDocument;
     let count = TR.childNodes.length;
 
     while (count < desiredCount) {
-      const TD = document.createElement('TD');
+      const TD = rootDocument.createElement('TD');
 
       TR.appendChild(TD);
       count += 1;
@@ -641,8 +645,8 @@ class TableRenderer {
   }
 }
 
-function replaceTdWithTh(TD, TR) {
-  const TH = document.createElement('TH');
+function replaceTdWithTh(rootDocument, TD, TR) {
+  const TH = rootDocument.createElement('TH');
 
   TR.insertBefore(TH, TD);
   TR.removeChild(TD);
@@ -650,8 +654,8 @@ function replaceTdWithTh(TD, TR) {
   return TH;
 }
 
-function replaceThWithTd(TH, TR) {
-  const TD = document.createElement('TD');
+function replaceThWithTd(rootDocument, TH, TR) {
+  const TD = rootDocument.createElement('TD');
 
   TR.insertBefore(TD, TH);
   TR.removeChild(TH);

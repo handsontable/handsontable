@@ -47,7 +47,7 @@ class BaseUI {
    * Method for create UI element. Only create, without append to table.
    */
   build() {
-    this._element = document.createElement('div');
+    this._element = this.hot.rootDocument.createElement('div');
     this.state = STATE_BUILT;
   }
 

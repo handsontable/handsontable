@@ -4,7 +4,6 @@ import {
   fastInnerHTML,
   getComputedStyle,
   getCssTransform,
-  getScrollableElement,
   offset,
   outerHeight,
   outerWidth,
@@ -25,7 +24,7 @@ class SelectEditor extends BaseEditor {
    * Initializes editor instance, DOM Element and mount hooks.
    */
   init() {
-    this.select = document.createElement('SELECT');
+    this.select = this.hot.rootDocument.createElement('SELECT');
     addClass(this.select, 'htSelectEditor');
     this.select.style.display = 'none';
 
@@ -114,7 +113,7 @@ class SelectEditor extends BaseEditor {
     empty(this.select);
 
     objectEach(options, (value, key) => {
-      const optionElement = document.createElement('OPTION');
+      const optionElement = this.hot.rootDocument.createElement('OPTION');
       optionElement.value = key;
 
       fastInnerHTML(optionElement, value);
@@ -175,10 +174,10 @@ class SelectEditor extends BaseEditor {
 
       return;
     }
-
+    const { wtOverlays } = this.hot.view.wt;
     const currentOffset = offset(this.TD);
     const containerOffset = offset(this.hot.rootElement);
-    const scrollableContainer = getScrollableElement(this.TD);
+    const scrollableContainer = wtOverlays.scrollableElement;
     const editorSection = this.checkEditorSection();
     let width = outerWidth(this.TD) + 1;
     let height = outerHeight(this.TD) + 1;
@@ -188,19 +187,19 @@ class SelectEditor extends BaseEditor {
 
     switch (editorSection) {
       case 'top':
-        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'left':
-        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'top-left-corner':
-        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'bottom-left-corner':
-        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'bottom':
-        cssTransformOffset = getCssTransform(this.hot.view.wt.wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
         break;
       default:
         break;
@@ -221,7 +220,7 @@ class SelectEditor extends BaseEditor {
       resetCssTransform(this.select);
     }
 
-    const cellComputedStyle = getComputedStyle(this.TD);
+    const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
 
     if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
       height -= 1;
@@ -244,26 +243,27 @@ class SelectEditor extends BaseEditor {
    * @returns {HTMLTableCellElement|undefined}
    */
   getEditedCell() {
+    const { wtOverlays } = this.hot.view.wt;
     const editorSection = this.checkEditorSection();
     let editedCell;
 
     switch (editorSection) {
       case 'top':
-        editedCell = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.getCell({
+        editedCell = wtOverlays.topOverlay.clone.wtTable.getCell({
           row: this.row,
           col: this.col
         });
         this.select.style.zIndex = 101;
         break;
       case 'corner':
-        editedCell = this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
+        editedCell = wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
           row: this.row,
           col: this.col
         });
         this.select.style.zIndex = 103;
         break;
       case 'left':
-        editedCell = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
+        editedCell = wtOverlays.leftOverlay.clone.wtTable.getCell({
           row: this.row,
           col: this.col
         });
