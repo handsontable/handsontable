@@ -2,7 +2,7 @@ import BasePlugin from '../_base';
 import { rangeEach } from '../../helpers/number';
 import { registerPlugin } from '../../plugins';
 import RowsMapper from './rowsMapper';
-import {arrayMap} from '../../helpers/array';
+import { arrayMap } from '../../helpers/array';
 
 /**
  * @plugin TrimRows
