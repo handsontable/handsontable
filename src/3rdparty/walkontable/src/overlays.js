@@ -183,6 +183,7 @@ class Overlays {
    * Register all necessary event listeners.
    */
   registerListeners() {
+    const containerElement = this.wot.wtTable.wtRootElement.parentNode;
     const topOverlayScrollable = this.topOverlay.mainTableScrollableElement;
     const leftOverlayScrollable = this.leftOverlay.mainTableScrollableElement;
 
@@ -199,7 +200,7 @@ class Overlays {
     const isHighPixelRatio = window.devicePixelRatio && window.devicePixelRatio > 1;
 
     if (isHighPixelRatio || !isChrome()) {
-      listenersToRegister.push([this.instance.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event)]);
+      listenersToRegister.push([containerElement, 'wheel', event => this.onCloneWheel(event)]);
 
     } else {
       if (this.topOverlay.needFullRender) {
@@ -257,15 +258,23 @@ class Overlays {
       }]);
     }
 
+    const computedStyle = getComputedStyle(containerElement);
     let resizeTimeout;
+    let lastWidth = 0;
+    let lastHeight = 0;
 
     listenersToRegister.push([window, 'resize', (event) => {
       clearTimeout(resizeTimeout);
 
       resizeTimeout = setTimeout(() => {
-        if (this.scrollableElement === window) {
+        const width = parseInt(computedStyle.width, 10);
+        const height = parseInt(computedStyle.height, 10);
+
+        if (this.scrollableElement === window || width !== lastWidth || height !== lastHeight) {
           this.instance.draw();
         }
+
+        [lastWidth, lastHeight] = [width, height];
 
         this.instance.getSetting('onWindowResize', event);
       }, 200);
