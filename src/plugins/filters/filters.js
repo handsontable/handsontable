@@ -22,7 +22,6 @@ import './filters.css';
 
 /**
  * @plugin Filters
- * @pro
  * @dependencies DropdownMenu TrimRows HiddenRows
  *
  * @description

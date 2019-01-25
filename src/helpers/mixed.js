@@ -82,54 +82,58 @@ const _ignored = () => typeof location !== 'undefined' && /^([a-z0-9\-]+\.)?\x68
 let _notified = false;
 
 export function _injectProductInfo(key, element) {
-  key = _norm(key || '');
-
+  const hasValidType = !isEmpty(key);
+  const isTrial = key === 'free-for-non-commercial';
   let warningMessage = '';
   let showDomMessage = true;
-  const schemaValidity = _checkKeySchema(key);
-  const ignored = _ignored();
-  const trial = isEmpty(key) || key === 'trial';
 
-  if (trial || schemaValidity) {
+  key = _norm(key || '');
+
+  const schemaValidity = _checkKeySchema(key);
+
+  if (hasValidType || isTrial || schemaValidity) {
     if (schemaValidity) {
       const releaseTime = Math.floor(moment(process.env.HOT_RELEASE_DATE, 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       const keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
-        warningMessage = 'The license key provided to Handsontable Pro is invalid. Make sure you pass it correctly.';
+        warningMessage = 'The license key provided to Handsontable is invalid. Make sure you pass it correctly.';
       }
 
       if (!warningMessage) {
         if (releaseTime > keyGenTime + 1) {
           warningMessage = toSingleLine`
-          Your license key of Handsontable Pro has expired.‌‌‌‌ 
+          Your license key of Handsontable has expired.‌‌‌‌
           Renew your maintenance plan at https://handsontable.com or downgrade to the previous version of the software.
           `;
         }
         showDomMessage = releaseTime > keyGenTime + 15;
       }
 
+    } else if (isTrial) {
+      warningMessage = 'Evaluation version of Handsontable. Not licensed for use in a production environment.';
     } else {
-      warningMessage = 'Evaluation version of Handsontable Pro. Not licensed for use in a production environment.';
+      warningMessage = 'The license key provided to Handsontable is invalid. Make sure you pass it correctly.';
     }
 
   } else {
-    warningMessage = 'The license key provided to Handsontable Pro is invalid. Make sure you pass it correctly.';
+    warningMessage = 'The license key provided to Handsontable is missing.';
   }
-  if (ignored) {
+
+  if (_ignored()) {
     warningMessage = false;
     showDomMessage = false;
   }
 
   if (warningMessage && !_notified) {
-    console[trial ? 'info' : 'warn'](warningMessage);
+    console[isTrial ? 'info' : 'warn'](warningMessage);
     _notified = true;
   }
   if (showDomMessage && element.parentNode) {
     const message = document.createElement('div');
 
     message.id = 'hot-display-license-info';
-    message.appendChild(document.createTextNode('Evaluation version of Handsontable Pro.'));
+    message.appendChild(document.createTextNode('Evaluation version of Handsontable.'));
     message.appendChild(document.createElement('br'));
     message.appendChild(document.createTextNode('Not licensed for production use.'));
 

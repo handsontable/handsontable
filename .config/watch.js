@@ -1,7 +1,7 @@
 /**
  * Config responsible for building Handsontable `dist/` files with enabled watching mode:
- *  - handsontable-pro.js
- *  - handsontable-pro.css
+ *  - handsontable.js
+ *  - handsontable.css
  */
 const path = require('path');
 const webpack = require('webpack');

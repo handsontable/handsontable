@@ -15,26 +15,6 @@ if (typeof __ENV_ARGS__ === 'object' && __ENV_ARGS__.testPathPattern) {
 
 const ignoredPaths = ['./mobile'];
 
-if (process.env.HOT_PACKAGE_TYPE === 'ce') {
-  ignoredPaths.push(
-    './bindRowsWithHeaders/',
-    './collapsibleColumns/',
-    './columnSummary/',
-    './dropdownMenu/',
-    './exportFile/',
-    './filters/',
-    './formulas/',
-    './ganttChart/',
-    './headerTooltips/',
-    './hiddenColumns/',
-    './hiddenRows/',
-    './multiColumnSorting/',
-    './nestedHeaders/',
-    './nestedRows/',
-    './trimRows/'
-  );
-}
-
 [
   require.context('.', true, /\.spec\.js$/),
   require.context('./../../src/plugins', true, /\.e2e\.js$/),

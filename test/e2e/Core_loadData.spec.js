@@ -421,23 +421,44 @@ describe('Core_loadData', () => {
     expect(errors).toBe(1);
   });
 
-  it('should load Backbone Collection as data source', () => {
-    // code borrowed from demo/backbone.js
+  it('should load custom class collection as data source', () => {
+    const CarModel = class {
+      constructor(item) {
+        this.item = item;
+      }
+      get(key) {
+        return this.item[key];
+      }
+      set(key, value) {
+        this.item[key] = value;
+      }
+    };
 
-    const CarModel = Backbone.Model.extend({});
-
-    const CarCollection = Backbone.Collection.extend({
-      model: CarModel,
-      // Backbone.Collection doesn't support `splice`, yet! Easy to add.
-      splice: hackedSplice
-    });
+    const CarCollection = class {
+      constructor() {
+        this._data = [];
+      }
+      push(item) {
+        return this._data.push(new CarModel(item));
+      }
+      splice(...args) {
+        return this._data.splice(...args);
+      }
+      slice(...args) {
+        return this._data.slice(...args);
+      }
+      get length() {
+        return this._data.length;
+      }
+      [Symbol.iterator]() {
+        return this._data[Symbol.iterator]();
+      }
+    };
     const cars = new CarCollection();
 
-    cars.add([
-      { make: 'Dodge', model: 'Ram', year: 2012, weight: 6811 },
-      { make: 'Toyota', model: 'Camry', year: 2012, weight: 3190 },
-      { make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808 }
-    ]);
+    cars.push({ make: 'Dodge', model: 'Ram', year: 2012, weight: 6811 });
+    cars.push({ make: 'Toyota', model: 'Camry', year: 2012, weight: 3190 });
+    cars.push({ make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808 });
 
     handsontable({
       data: cars,
@@ -448,25 +469,16 @@ describe('Core_loadData', () => {
       ]
     });
 
-    // use the "good" Collection methods to emulate Array.splice
-    function hackedSplice(index, howMany, ...models) {
-      const args = _.toArray([index, howMany, ...models]).slice(2).concat({ at: index });
-      const removed = this.models.slice(index, index + howMany);
-
-      this.remove(removed).add.apply(this, args);
-
-      return removed;
-    }
-
     // normally, you'd get these from the server with .fetch()
     function attr(attribute) {
       // this lets us remember `attr` for when when it is get/set
       return {
-        data(car, value) {
-          if (_.isUndefined(value)) {
-            return car.get(attribute);
+        data(model, value) {
+          if (value === void 0) {
+            return model.get(attribute);
           }
-          car.set(attribute, value);
+
+          model.set(attribute, value);
         }
       };
     }
@@ -474,23 +486,44 @@ describe('Core_loadData', () => {
     expect(countRows()).toBe(3);
   });
 
-  it('should load Backbone Collection as data source when columns is a function', () => {
-    // code borrowed from demo/backbone.js
+  it('should load custom class collection as data source when columns is a function', () => {
+    const CarModel = class {
+      constructor(item) {
+        this.item = item;
+      }
+      get(key) {
+        return this.item[key];
+      }
+      set(key, value) {
+        this.item[key] = value;
+      }
+    };
 
-    const CarModel = Backbone.Model.extend({});
-
-    const CarCollection = Backbone.Collection.extend({
-      model: CarModel,
-      // Backbone.Collection doesn't support `splice`, yet! Easy to add.
-      splice: hackedSplice
-    });
+    const CarCollection = class {
+      constructor() {
+        this._data = [];
+      }
+      push(item) {
+        return this._data.push(new CarModel(item));
+      }
+      splice(...args) {
+        return this._data.splice(...args);
+      }
+      slice(...args) {
+        return this._data.slice(...args);
+      }
+      get length() {
+        return this._data.length;
+      }
+      [Symbol.iterator]() {
+        return this._data[Symbol.iterator]();
+      }
+    };
     const cars = new CarCollection();
 
-    cars.add([
-      { make: 'Dodge', model: 'Ram', year: 2012, weight: 6811 },
-      { make: 'Toyota', model: 'Camry', year: 2012, weight: 3190 },
-      { make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808 }
-    ]);
+    cars.push({ make: 'Dodge', model: 'Ram', year: 2012, weight: 6811 });
+    cars.push({ make: 'Toyota', model: 'Camry', year: 2012, weight: 3190 });
+    cars.push({ make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808 });
 
     handsontable({
       data: cars,
@@ -509,22 +542,12 @@ describe('Core_loadData', () => {
       }
     });
 
-    // use the "good" Collection methods to emulate Array.splice
-    function hackedSplice(index, howMany, ...models) {
-      const args = _.toArray([index, howMany, ...models]).slice(2).concat({ at: index });
-      const removed = this.models.slice(index, index + howMany);
-
-      this.remove(removed).add.apply(this, args);
-
-      return removed;
-    }
-
     // normally, you'd get these from the server with .fetch()
     function attr(attribute) {
       // this lets us remember `attr` for when when it is get/set
       return {
         data(car, value) {
-          if (_.isUndefined(value)) {
+          if (value === void 0) {
             return car.get(attribute);
           }
 

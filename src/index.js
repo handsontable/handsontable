@@ -51,9 +51,7 @@ Handsontable.DefaultSettings = DefaultSettings;
 Handsontable.EventManager = EventManager;
 Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
 
-const hotPackageType = process.env.HOT_PACKAGE_TYPE;
-
-Handsontable.packageName = `handsontable-${hotPackageType}`;
+Handsontable.packageName = 'handsontable';
 Handsontable.buildDate = process.env.HOT_BUILD_DATE;
 Handsontable.version = process.env.HOT_VERSION;
 

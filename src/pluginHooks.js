@@ -111,7 +111,6 @@ const REGISTERED_HOOKS = [
    * collection which user can select by setting an array of keys or an array of objects in {@link Options#dropdownMenu}
    * option.
    *
-   * @pro
    * @event Hooks#afterDropdownMenuDefaultOptions
    * @param {Object[]} predefinedItems An array of objects containing information about the pre-defined Context Menu items.
    */
@@ -122,7 +121,6 @@ const REGISTERED_HOOKS = [
    * by user (`dropdownMenu` option). This hook can by helpful to determine if user use specified menu item or to set
    * up one of the menu item to by always visible.
    *
-   * @pro
    * @event Hooks#beforeDropdownMenuSetItems
    * @param {Object[]} menuItems An array of objects containing information about to generated Dropdown Menu items.
    */
@@ -1316,7 +1314,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link Filters} plugin before applying [filtering]{@link http://docs.handsontable.com/pro/demo-filtering.html}. This hook is fired when
    * {@link Options#filters} option is enabled.
    *
-   * @pro
    * @event Hooks#beforeFilter
    * @param {Object[]} conditionsStack An array of objects with added formulas.
    * ```js
@@ -1346,7 +1343,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link Filters} plugin after applying [filtering]{@link http://docs.handsontable.com/pro/demo-filtering.html}. This hook is fired when
    * {@link Options#filters} option is enabled.
    *
-   * @pro
    * @event Hooks#afterFilter
    * @param {Object[]} conditionsStack An array of objects with added conditions.
    * ```js
@@ -1508,7 +1504,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link HiddenRows} plugin before marking the rows as hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    * Returning `false` in the callback will prevent the hiding action from completing.
    *
-   * @pro
    * @event Hooks#beforeHideRows
    * @param {Array} rows Array of row indexes about to be marked as hidden.
    * @param {Boolean} actionPossible `true`, if all of the row indexes from `rows` are withing the bounds of the table, `false` otherwise.
@@ -1519,7 +1514,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link HiddenRows} plugin after marking the rows as hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    *
-   * @pro
    * @event Hooks#afterHideRows
    * @param {Array} rows Array of row indexes marked as hidden.
    * @param {Boolean} hidingPossible `true`, if the row indexes provided in the `rows` parameter are valid, `false` otherwise.
@@ -1531,7 +1525,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link HiddenRows} plugin before marking the rows as not hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    * Returning `false` in the callback will prevent the row revealing action from completing.
    *
-   * @pro
    * @event Hooks#beforeUnhideRows
    * @param {Array} rows Array of row indexes about to be marked as not hidden.
    * @param {Boolean} actionPossible `true`, if all of the row indexes from `rows` are withing the bounds of the table, `false` otherwise.
@@ -1542,7 +1535,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link HiddenRows} plugin after marking the rows as not hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    *
-   * @pro
    * @event Hooks#afterUnhideRows
    * @param {Array} rows Array of row indexes marked as not hidden.
    * @param {Boolean} unhidingPossible `true`, if the row indexes provided in the `rows` parameter are valid, `false` otherwise.
@@ -1554,7 +1546,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link HiddenColumns} plugin before marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    * Returning `false` in the callback will prevent the hiding action from completing.
    *
-   * @pro
    * @event Hooks#beforeHideColumns
    * @param {Array} columns Array of column indexes about to be marked as hidden.
    * @param {Boolean} actionPossible `true`, if all of the column indexes from `columns` are withing the bounds of the table, `false` otherwise.
@@ -1565,7 +1556,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link HiddenColumns} plugin after marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    *
-   * @pro
    * @event Hooks#afterHideColumns
    * @param {Array} columns Array of column indexes marked as hidden.
    * @param {Boolean} hidingPossible `true`, if the column indexes provided in the `columns` parameter are valid, `false` otherwise.
@@ -1577,7 +1567,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link HiddenColumns} plugin before marking the columns as not hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    * Returning `false` in the callback will prevent the column revealing action from completing.
    *
-   * @pro
    * @event Hooks#beforeUnhideColumns
    * @param {Array} columns Array of column indexes about to be marked as not hidden.
    * @param {Boolean} actionPossible `true`, if all of the column indexes from `columns` are withing the bounds of the table, `false` otherwise.
@@ -1588,7 +1577,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link HiddenColumns} plugin after marking the columns as not hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    *
-   * @pro
    * @event Hooks#afterUnhideColumns
    * @param {Array} columns Array of column indexes marked as not hidden.
    * @param {Boolean} unhidingPossible `true`, if the column indexes provided in the `columns` parameter are valid, `false` otherwise.
@@ -1599,7 +1587,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link TrimRows} plugin before trimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
-   * @pro
    * @event Hooks#beforeTrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
    * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
@@ -1611,7 +1598,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link TrimRows} plugin after trimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
-   * @pro
    * @event Hooks#afterTrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
    * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
@@ -1624,7 +1610,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link TrimRows} plugin before untrimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
-   * @pro
    * @event Hooks#beforeUntrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
    * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
@@ -1636,7 +1621,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link TrimRows} plugin after untrimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
-   * @pro
    * @event Hooks#afterUntrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
    * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
@@ -1650,7 +1634,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link DropdownMenu} plugin before opening the dropdown menu. This hook is fired when {@link Options#dropdownMenu}
    * option is enabled.
    *
-   * @pro
    * @event Hooks#beforeDropdownMenuShow
    * @param {DropdownMenu} dropdownMenu The DropdownMenu instance.
    */
@@ -1660,7 +1643,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link DropdownMenu} plugin after opening the Dropdown Menu. This hook is fired when {@link Options#dropdownMenu}
    * option is enabled.
    *
-   * @pro
    * @event Hooks#afterDropdownMenuShow
    * @param {DropdownMenu} dropdownMenu The DropdownMenu instance.
    */
@@ -1670,7 +1652,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link DropdownMenu} plugin after hiding the Dropdown Menu. This hook is fired when {@link Options#dropdownMenu}
    * option is enabled.
    *
-   * @pro
    * @event Hooks#afterDropdownMenuHide
    * @param {DropdownMenu} instance The DropdownMenu instance.
    */
@@ -1680,7 +1661,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link HiddenRows} plugin to check whether the provided row index is hidden. This hook is fired when
    * {@link Options#hiddenRows} option is enabled.
    *
-   * @pro
    * @event Hooks#hiddenRow
    * @param {Number} row The visual row index in question.
    */
@@ -1690,7 +1670,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link HiddenColumns} plugin to check whether the provided column index is hidden. This hook is fired when
    * {@link Options#hiddenColumns} option is enabled.
    *
-   * @pro
    * @event Hooks#hiddenColumn
    * @param {Number} column The visual column index in question.
    */
@@ -1700,7 +1679,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link NestedRows} plugin before adding a children to the NestedRows structure. This hook is fired when
    * {@link Options#nestedRows} option is enabled.
    *
-   * @pro
    * @event Hooks#beforeAddChild
    * @param {Object} parent The parent object.
    * @param {Object|undefined} element The element added as a child. If `undefined`, a blank child was added.
@@ -1712,7 +1690,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link NestedRows} plugin after adding a children to the NestedRows structure. This hook is fired when
    * {@link Options#nestedRows} option is enabled.
    *
-   * @pro
    * @event Hooks#afterAddChild
    * @param {Object} parent The parent object.
    * @param {Object|undefined} element The element added as a child. If `undefined`, a blank child was added.
@@ -1724,7 +1701,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link NestedRows} plugin before detaching a child from its parent. This hook is fired when
    * {@link Options#nestedRows} option is enabled.
    *
-   * @pro
    * @event Hooks#beforeDetachChild
    * @param {Object} parent An object representing the parent from which the element is to be detached.
    * @param {Object} element The detached element.
@@ -1735,7 +1711,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link NestedRows} plugin after detaching a child from its parent. This hook is fired when
    * {@link Options#nestedRows} option is enabled.
    *
-   * @pro
    * @event Hooks#afterDetachChild
    * @param {Object} parent An object representing the parent from which the element was detached.
    * @param {Object} element The detached element.

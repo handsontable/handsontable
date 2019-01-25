@@ -1,21 +1,3 @@
-const proFeatures = [
-  'src/plugins/bindRowsWithHeaders/',
-  'src/plugins/collapsibleColumns/',
-  'src/plugins/columnSummary/',
-  'src/plugins/dropdownMenu/',
-  'src/plugins/exportFile/',
-  'src/plugins/filters/',
-  'src/plugins/formulas/',
-  'src/plugins/ganttChart/',
-  'src/plugins/headerTooltips/',
-  'src/plugins/hiddenColumns/',
-  'src/plugins/hiddenRows/',
-  'src/plugins/multiColumnSorting/',
-  'src/plugins/nestedHeaders/',
-  'src/plugins/nestedRows/',
-  'src/plugins/trimRows/',
-];
-
 const allowedE2EModules = [
   'window',
   'jasmine-co',
@@ -30,7 +12,7 @@ const allowedE2EModules = [
   '../MemoryLeakTest',
 ];
 
-const unwantedPolyfills = [
+const unwantedCommonPolyfills = [
   'es6.reflect.*',
   'es6.math.*',
   'es6.typed.*',
@@ -61,22 +43,26 @@ const unwantedPolyfills = [
   'web.timers',
 ];
 
-const babelPreset = {
+const unwantedDistPolyfills = [
+  '@babel/plugin-transform-regenerator',
+];
+
+const babelPresetConfig = (exclude) => ({
   targets: {
     chrome: '41',
     firefox: '34',
     ie: '9',
     safari: '9'
   },
-  exclude: unwantedPolyfills,
+  exclude,
   modules: false,
   debug: false,
   useBuiltIns: 'entry',
-};
+});
 
 module.exports = {
   presets: [
-    ['@babel/preset-env', babelPreset]
+    ['@babel/preset-env', babelPresetConfig([...unwantedCommonPolyfills, ...unwantedDistPolyfills])]
   ],
   plugins: [
     ['@babel/plugin-proposal-object-rest-spread', {useBuiltIns: true}],
@@ -95,19 +81,6 @@ module.exports = {
         ['@babel/plugin-transform-modules-commonjs', {loose: true}]
       ]
     },
-    ce_commonjs: {
-      plugins: [
-        ['@babel/plugin-transform-runtime', {
-          'corejs': false,
-          'helpers': true,
-          'regenerator': true,
-          'useESModules': false,
-        }],
-        ['@babel/plugin-transform-modules-commonjs', {loose: true}],
-        ['./.config/plugin/babel-ignore-pro-features.js']
-      ],
-      ignore: proFeatures
-    },
     // Environment for transpiling files to be compatible with CommonJS.
     commonjs_dist: {
       plugins: [
@@ -118,14 +91,6 @@ module.exports = {
         'src/plugins/**/test/**'
       ]
     },
-    ce_commonjs_dist: {
-      plugins: [
-        ['@babel/plugin-transform-modules-commonjs', {loose: true}],
-        ['babel-plugin-transform-require-ignore', {extensions: ['.css']}],
-        ['./.config/plugin/babel-ignore-pro-features.js']
-      ],
-      ignore: proFeatures
-    },
     // Environment for transpiling files to be compatible with ES Modules.
     es: {
       plugins: [
@@ -135,15 +100,11 @@ module.exports = {
         'src/plugins/**/test/**'
       ]
     },
-    ce_es: {
-      plugins: [
-        ['babel-plugin-transform-require-ignore', {extensions: ['.css']}],
-        ["./.config/plugin/babel-ignore-pro-features.js"]
-      ],
-      ignore: proFeatures
-    },
     // Environment for building E2E tests (UMD).
     commonjs_e2e: {
+      presets: [
+        ['@babel/preset-env', babelPresetConfig(unwantedCommonPolyfills)]
+      ],
       plugins: [
         ['@babel/plugin-transform-runtime', {
           'corejs': false,
@@ -160,25 +121,6 @@ module.exports = {
         'src/plugins/**/test/**'
       ]
     },
-    ce_commonjs_e2e: {
-      plugins: [
-        ['@babel/plugin-transform-runtime', {
-          'corejs': false,
-          'helpers': true,
-          'regenerator': true,
-          'useESModules': false,
-        }],
-        ['@babel/plugin-transform-modules-commonjs', {loose: true}],
-        ['./.config/plugin/babel-ignore-pro-features.js'],
-        ['babel-plugin-forbidden-imports', {
-          allowedModules: allowedE2EModules
-        }]
-      ],
-      ignore: [
-        ...proFeatures,
-        'src/plugins/**/test/**'
-      ]
-    }
   },
 
   ignore: [

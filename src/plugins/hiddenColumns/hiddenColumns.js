@@ -17,7 +17,6 @@ Hooks.getSingleton().register('afterUnhideColumns');
 
 /**
  * @plugin HiddenColumns
- * @pro
  *
  * @description
  * Plugin allows to hide certain columns. The hiding is achieved by rendering the columns with width set as 0px.

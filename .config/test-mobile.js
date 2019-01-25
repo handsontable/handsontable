@@ -31,8 +31,6 @@ module.exports.create = function create(envArgs) {
         externalJsFiles: [
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
-          'lib/lodash.underscore.js',
-          'lib/backbone.js',
           '../node_modules/numbro/dist/numbro.js',
           '../node_modules/numbro/dist/languages.min.js',
           '../node_modules/moment/moment.js',

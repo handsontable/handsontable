@@ -5,7 +5,6 @@ import typeFactory, { EXPORT_TYPES } from './typeFactory';
 
 /**
  * @plugin ExportFile
- * @pro
  *
  * @description
  * The plugin enables exporting table data to file. It allows to export data as a string, blob or a downloadable file in

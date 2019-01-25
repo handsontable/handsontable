@@ -1,17 +1,20 @@
-Handsontable is licensed under two different licenses as described below.
-
-Handsontable Community Edition is licensed under the MIT license available
-in the "/licenses/CE/LICENSE.txt" file in the main project repository.
-
-Handsontable Pro is licensed under the commercial license available in the
-"/licenses/Pro/handsontable-pro-general-terms.pdf" file in the main project
-repository. The Pro version allow you to use additional, paid plugins.
-
-Handsontable is distributed by Handsoncode sp. z o. o., a limited liability
-company registered under the laws of Poland, with its registered office in
-Gdynia, Poland, at 96/98 Aleja Zwycięstwa, postal code 81-451, entered into
-the Entrepreneurs Register of the National Court Register under number
-0000538651, share capital: PLN 62,800.00., hereinafter referred to as
-"HANDSONCODE".
-
 Copyright (c) Handsoncode sp. z o.o.
+
+This Handsontable is a commercial software distributed by Handsoncode sp. z o. o., a limited liability
+company registered under the laws of Poland, with its registered office in Gdynia, Poland, at 96/98 Aleja Zwycięstwa,
+postal code 81-451, entered into the Entrepreneurs Register of the National Court Register under number 0000538651,
+share capital: PLN 62,800.00., hereinafter referred to as "HANDSONCODE".
+
+By installing, copying, or otherwise using this software, you agree to be bound by the terms
+of its General Software License Terms ("Terms") outlined in a file "handsontable-pro-general-terms.pdf"
+available in the main directory of the software repository.
+This software is copyrighted and protected by copyright laws and international treaties.
+
+You shall obtain a commercial license for this software at handsontable.com.
+
+YOU EXPRESSLY ACKNOWLEDGE AND AGREE THAT USE OF THE SOFTWARE IS AT YOUR OWN RISK AND THAT THE SOFTWARE
+IS PROVIDED "AS IS" WITHOUT ANY WARRANTIES OR CONDITIONS WHATSOEVER. HANDSONCODE EXPRESSLY DISCLAIMS ANY WARRANTY,
+EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGMENT. HANDSONCODE DOES NOT WARRANT THAT THE SOFTWARE AND ITS FUNCTIONALITY,
+RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
+UNINTERRUPTED OR ERROR FREE.
