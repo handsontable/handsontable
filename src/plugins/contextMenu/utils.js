@@ -137,8 +137,8 @@ export function markLabelAsSelected(label) {
   return `<span class="selected">${String.fromCharCode(10003)}</span>${label}`;
 }
 
-export function isItemHidden(item, instance) {
-  return !item.hidden || !(typeof item.hidden === 'function' && item.hidden.call(instance));
+export function isItemNotHidden(item, instance) {
+  return !(item.hidden === true) && !(typeof item.hidden === 'function' && item.hidden.call(instance));
 }
 
 function shiftSeparators(items, separator) {

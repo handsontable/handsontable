@@ -530,6 +530,26 @@ describe('ContextMenu', () => {
       expect(separators.length).toEqual(2);
     });
 
+    it('should hide option if hidden value equals to true', () => {
+      handsontable({
+        startCols: 5,
+        colHeaders: true,
+        contextMenu: [
+          {
+            key: '',
+            name: 'Custom option',
+            hidden: true
+          }
+        ]
+      });
+
+      contextMenu();
+      const items = $('.htContextMenu tbody td');
+      const actions = items.not('.htSeparator');
+
+      expect(actions.length).toEqual(0);
+    });
+
     it('should hide option if hidden function return true', () => {
       handsontable({
         startCols: 5,

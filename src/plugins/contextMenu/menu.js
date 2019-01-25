@@ -13,7 +13,7 @@ import EventManager from './../../eventManager';
 import { mixin, hasOwnProperty } from './../../helpers/object';
 import { isUndefined, isDefined } from './../../helpers/mixed';
 import { debounce, isFunction } from './../../helpers/function';
-import { filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection } from './utils';
+import { filterSeparators, hasSubMenu, isDisabled, isItemNotHidden, isSeparator, isSelectionDisabled, normalizeSelection } from './utils';
 import { KEY_CODES } from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
 import { SEPARATOR } from './predefinedItems';
@@ -102,15 +102,17 @@ class Menu {
   open() {
     this.runLocalHooks('beforeOpen');
 
+    let filteredItems = arrayFilter(this.menuItems, item => isItemNotHidden(item, this.hot));
+
+    filteredItems = filterSeparators(filteredItems, SEPARATOR);
+
     this.container.removeAttribute('style');
-    this.container.style.display = 'block';
+    if (filteredItems.length) {
+      this.container.style.display = 'block';
+    }
 
     const delayedOpenSubMenu = debounce(row => this.openSubMenu(row), 300);
     const minWidthOfMenu = this.options.minWidth || MIN_WIDTH;
-
-    let filteredItems = arrayFilter(this.menuItems, item => isItemHidden(item, this.hot));
-
-    filteredItems = filterSeparators(filteredItems, SEPARATOR);
 
     const settings = {
       data: filteredItems,
