@@ -201,8 +201,8 @@ describe('TrimRows', () => {
 
     const plugin = getPlugin('trimRows');
 
-    plugin.trimRows([1, 7, 3]);
-    alter('remove_row', 2, 3);
+    plugin.trimRows([1, 7, 3]); // physical row indexes after move
+    alter('remove_row', 2, 3); // visual row indexes
 
     expect(plugin.isTrimmed(7)).toBeFalsy();
     expect(plugin.isTrimmed(3)).toBeFalsy();
