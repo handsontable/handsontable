@@ -10,7 +10,8 @@ import { selectElementIfAllowed } from './../../helpers/dom/element';
  * @plugin CopyPaste
  */
 class FocusableWrapper {
-  constructor() {
+  constructor(rootDocument) {
+    this.rootDocument = rootDocument;
     /**
      * The main/operational focusable element.
      *
@@ -35,7 +36,7 @@ class FocusableWrapper {
    * Switch to the secondary focusable element. Used when no any main focusable element is provided.
    */
   useSecondaryElement() {
-    const el = createOrGetSecondaryElement();
+    const el = createOrGetSecondaryElement(this.rootDocument);
 
     if (!this.listenersCount.has(el)) {
       this.listenersCount.add(el);
@@ -88,8 +89,8 @@ let refCounter = 0;
  *
  * @return {FocusableWrapper}
  */
-function createElement() {
-  const focusableWrapper = new FocusableWrapper();
+function createElement(rootDocument) {
+  const focusableWrapper = new FocusableWrapper(rootDocument);
 
   refCounter += 1;
 
@@ -119,26 +120,27 @@ function forwardEventsToLocalHooks(eventManager, element, subject) {
   eventManager.addEventListener(element, 'paste', runLocalHooks('paste', subject));
 }
 
-let secondaryElement;
+const secondaryElements = new WeakMap();
 
 /**
  * Create and attach newly created focusable element to the DOM.
  *
  * @return {HTMLElement}
  */
-function createOrGetSecondaryElement() {
-  if (secondaryElement) {
+function createOrGetSecondaryElement(rootDocument) {
+  const secondaryElement = secondaryElements.get(rootDocument);
 
+  if (secondaryElement) {
     if (!secondaryElement.parentElement) {
-      document.body.appendChild(secondaryElement);
+      this.rootDocument.body.appendChild(secondaryElement);
     }
 
     return secondaryElement;
   }
 
-  const element = document.createElement('textarea');
+  const element = rootDocument.createElement('textarea');
 
-  secondaryElement = element;
+  secondaryElements.set(rootDocument, element);
   element.id = 'HandsontableCopyPaste';
   element.className = 'copyPaste';
   element.tabIndex = -1;
@@ -146,7 +148,7 @@ function createOrGetSecondaryElement() {
   element.wrap = 'hard';
   element.value = ' ';
 
-  document.body.appendChild(element);
+  rootDocument.body.appendChild(element);
 
   return element;
 }
@@ -171,10 +173,13 @@ function destroyElement(wrapper) {
     refCounter = 0;
 
     // Detach secondary element from the DOM.
+    const secondaryElement = secondaryElements.get(wrapper.rootDocument);
+
     if (secondaryElement && secondaryElement.parentNode) {
       secondaryElement.parentNode.removeChild(secondaryElement);
-      secondaryElement = null;
+      secondaryElements.delete(wrapper.rootDocument);
     }
+
     wrapper.mainElement = null;
   }
 }

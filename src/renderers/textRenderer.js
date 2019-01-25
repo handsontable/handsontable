@@ -31,7 +31,7 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties, ...ar
 
   if (cellProperties.rendererTemplate) {
     empty(TD);
-    const TEMPLATE = document.createElement('TEMPLATE');
+    const TEMPLATE = instance.rootDocument.createElement('TEMPLATE');
     TEMPLATE.setAttribute('bind', '{{}}');
     TEMPLATE.innerHTML = cellProperties.rendererTemplate;
     HTMLTemplateElement.decorate(TEMPLATE);

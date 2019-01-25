@@ -25,8 +25,9 @@ class TopLeftCornerOverlay extends Overlay {
    * @returns {Boolean}
    */
   shouldBeRendered() {
-    return !!((this.wot.getSetting('fixedRowsTop') || this.wot.getSetting('columnHeaders').length) &&
-        (this.wot.getSetting('fixedColumnsLeft') || this.wot.getSetting('rowHeaders').length));
+    const { wot } = this;
+    return !!((wot.getSetting('fixedRowsTop') || wot.getSetting('columnHeaders').length) &&
+        (wot.getSetting('fixedColumnsLeft') || wot.getSetting('rowHeaders').length));
   }
 
   /**
@@ -44,7 +45,7 @@ class TopLeftCornerOverlay extends Overlay {
     const tableWidth = outerWidth(this.clone.wtTable.TABLE);
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === window) {
+    if (this.trimmingContainer === this.wot.rootWindow) {
       const box = this.wot.wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(box.top);
       const left = Math.ceil(box.left);

@@ -150,7 +150,7 @@ class ValueComponent extends BaseComponent {
       renderer: (hot, wrapper, row, col, prop, value) => {
         addClass(wrapper.parentNode, 'htFiltersMenuValue');
 
-        const label = document.createElement('div');
+        const label = this.hot.rootDocument.createElement('div');
 
         addClass(label, 'htFiltersMenuLabel');
         label.textContent = value;

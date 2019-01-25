@@ -273,7 +273,7 @@ class CollapsibleColumns extends BasePlugin {
       return null;
     }
 
-    const divEl = document.createElement('DIV');
+    const divEl = this.hot.rootDocument.createElement('DIV');
 
     addClass(divEl, 'collapsibleIndicator');
 
