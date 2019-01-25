@@ -241,8 +241,6 @@ class Overlay {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
     }
 
-    // console.log(this.mainTableScrollableElement);
-
     return new Walkontable({
       cloneSource: this.wot,
       cloneOverlay: this,

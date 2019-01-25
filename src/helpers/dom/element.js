@@ -627,42 +627,29 @@ export function getScrollableElement(element) {
   const props = ['auto', 'scroll'];
   const supportedGetComputedStyle = isGetComputedStyleSupported();
   let el = element.parentNode;
-  let overflow;
-  let overflowX;
-  let overflowY;
-  let computedStyle = '';
-  let computedOverflow = '';
-  let computedOverflowY = '';
-  let computedOverflowX = '';
 
   while (el && el.style && rootDocument.body !== el) {
-    overflow = el.style.overflow;
-    overflowX = el.style.overflowX;
-    overflowY = el.style.overflowY;
+    let { overflow, overflowX, overflowY } = el.style;
 
-    if (overflow === 'scroll' || overflowX === 'scroll' || overflowY === 'scroll') {
+    if ([overflow, overflowX, overflowY].includes('scroll')) {
       return el;
 
     } else if (supportedGetComputedStyle) {
-      computedStyle = rootWindow.getComputedStyle(el);
-      computedOverflow = computedStyle.getPropertyValue('overflow');
-      computedOverflowY = computedStyle.getPropertyValue('overflow-y');
-      computedOverflowX = computedStyle.getPropertyValue('overflow-x');
+      ({ overflow, overflowX, overflowY } = rootWindow.getComputedStyle(el));
 
-      if (props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowX) !== -1 || props.indexOf(computedOverflowY) !== -1) {
+      if (props.includes(overflow) || props.includes(overflowX) || props.includes(overflowY)) {
         return el;
       }
     }
 
     // The '+ 1' after the scrollHeight/scrollWidth is to prevent problems with zoomed out Chrome.
-    if (el.clientHeight <= el.scrollHeight + 1 && (props.indexOf(overflowY) !== -1 || props.indexOf(overflow) !== -1 ||
-        props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowY) !== -1)) {
+    if (el.clientHeight <= el.scrollHeight + 1 && (props.includes(overflowY) || props.includes(overflow))) {
       return el;
     }
-    if (el.clientWidth <= el.scrollWidth + 1 && (props.indexOf(overflowX) !== -1 || props.indexOf(overflow) !== -1 ||
-        props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowX) !== -1)) {
+    if (el.clientWidth <= el.scrollWidth + 1 && (props.includes(overflowX) || props.includes(overflow))) {
       return el;
     }
+
     el = el.parentNode;
   }
 
