@@ -1798,8 +1798,11 @@ declare namespace Handsontable {
     password: cellTypes.Password;
     text: cellTypes.Text;
     time: cellTypes.Time;
-    // TODO: registerCellType(), getCellType()
+    getCellType(name: string): CellTypeObject;
+    registerCellType(name: string, type: CellTypeObject);
   }
+
+  type CellTypeObject = { renderer?: renderers.Base, editor: typeof editors.BaseEditor, validator: validators.Base };
 
   interface Editors {
     AutocompleteEditor: editors.Autocomplete;
@@ -1814,8 +1817,8 @@ declare namespace Handsontable {
     SelectEditor: editors.Select;
     TextEditor: editors.Text;
     TimeEditor: editors.Text;
-    getEditor: (editorName: string, hotInstance: Handsontable) => any; // TODO: return type
-    registerEditor: (editorName: string, editorClass: any) => void;
+    getEditor(editorName: string): editors.Base;
+    registerEditor(editorName: string, editorClass: typeof editors.BaseEditor): void;
   }
 
   interface Renderers {
@@ -1830,7 +1833,8 @@ declare namespace Handsontable {
     PasswordRenderer: renderers.Password;
     TextRenderer: renderers.Text;
     TimeRenderer: renderers.Text;
-    // TODO: registerRenderer(), getRenderer()
+    getRenderer(name: string): renderers.Base;
+    registerRenderer(name: string, renderer: renderers.Base): void;
   }
 
   interface Validators {
@@ -2100,7 +2104,7 @@ declare namespace Handsontable {
     trimRows: plugins.TrimRows,
   }
 
-  // Plugins options
+  // Plugin options
   namespace comments {
     interface CommentObject {
       value?: string;
