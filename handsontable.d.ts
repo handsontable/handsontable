@@ -77,7 +77,7 @@ declare namespace _Handsontable {
     removeHook<K extends keyof Handsontable.Events>(key: K, callback: Handsontable.Events[K]): void;
     render(): void;
     rowOffset(): number;
-    runHooks(key: keyof Handsontable.Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any; // TODO: Use Parameters<Handsontable.Hooks[K]>[0...5] and ReturnType<Handsontable.Hooks[K]> to type args and return (requires TS 3+)
+    runHooks(key: keyof Handsontable.Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any; // TODO: Use Parameters<Handsontable.Events[K]>[0...5] and ReturnType<Handsontable.Events[K]> to type args and return (requires TS 3+)
     scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean): boolean;
     selectAll(): void;
     selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
@@ -493,7 +493,7 @@ declare namespace Handsontable {
     interface Endpoints {
       plugin: plugins.ColumnSummary;
       hot: _Handsontable.Core;
-      endpoints: any[];
+      endpoints: Endpoint[];
       settings: object | (() => void);
       settingsType: string;
       currentEndpoint: object | void;
@@ -508,6 +508,21 @@ declare namespace Handsontable {
       resetAllEndpoints(endpoints: any[], useOffset?: boolean): void;
       resetEndpointValue(endpoint: object, useOffset?: boolean): void;
       setEndpointValue(endpoint: object, source: string, render?: boolean): void;
+    }
+
+    interface Endpoint {
+      destinationRow: number;
+      destinationColumn: number;
+      forceNumeric: boolean;
+      reversedRowCoords: boolean;
+      suppressDataTypeErrors: boolean;
+      readOnly: boolean;
+      roundFloat: boolean;
+      ranges: number[][];
+      sourceColumn: number;
+      type: 'sum' | 'min' | 'max' | 'count' | 'average' | 'custom';
+      result: number;
+      customFunction: ((this: ColumnSummary, endpoint: Endpoint) => number) | null;
     }
 
     interface EventManager {
@@ -2184,7 +2199,7 @@ declare namespace Handsontable {
       type: 'sum' | 'min' | 'max' | 'count' | 'average';
     } | {
       type: 'custom';
-      customFunction: (endpoint: any) => number; // TODO: endpoint type
+      customFunction: (this: plugins.ColumnSummary, endpoint: plugins.Endpoint) => number;
     });
   }
 
