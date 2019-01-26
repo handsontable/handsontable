@@ -1843,7 +1843,8 @@ declare namespace Handsontable {
     DropdownValidator: validators.Autocomplete;
     NumericValidator: validators.Numeric;
     TimeValidator: validators.Time;
-    // TODO: getValidator(), registerValidator()
+    getValidator(name: string): validators.Base;
+    registerValidator(name: string, validatotr: validators.Base): void;
   }
 
   interface Helper {
