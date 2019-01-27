@@ -22,6 +22,7 @@ export function createId(row, col) {
 export function createDefaultCustomBorder() {
   return {
     width: 1,
+    style: 'solid',
     color: '#000',
   };
 }
@@ -43,6 +44,7 @@ export function createSingleEmptyBorder() {
 export function createDefaultHtBorder() {
   return {
     width: 1,
+    style: 'solid',
     color: '#000',
     cornerVisible: false,
   };

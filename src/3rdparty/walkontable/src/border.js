@@ -145,14 +145,13 @@ class Border {
     const { rootDocument } = this.wot;
     this.main = rootDocument.createElement('div');
 
-    const borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
-    let style = this.main.style;
+    const style = this.main.style;
     style.position = 'absolute';
     style.top = 0;
     style.left = 0;
 
-    for (let i = 0; i < 5; i++) {
-      const position = borderDivs[i];
+    const borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
+    borderDivs.forEach((position) => {
       const div = rootDocument.createElement('div');
 
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
@@ -160,13 +159,16 @@ class Border {
       if (this.settings[position] && this.settings[position].hide) {
         div.className += ' hidden';
       }
-      style = div.style;
-      style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
-      style.height = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
-      style.width = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
+
+      const borderStyle = {
+        width: (this.settings[position] && this.settings[position].width) ? this.settings[position].width : settings.border.width,
+        style: (this.settings[position] && this.settings[position].style) ? this.settings[position].style : settings.border.style,
+        color: (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color,
+      };
+      this.setBorderStyle(div, position, borderStyle);
 
       this.main.appendChild(div);
-    }
+    });
     this.top = this.main.childNodes[0];
     this.left = this.main.childNodes[1];
     this.bottom = this.main.childNodes[2];
@@ -605,7 +607,6 @@ class Border {
    * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
    */
   changeBorderStyle(borderElement, border) {
-    const style = this[borderElement].style;
     const borderStyle = border[borderElement];
 
     if (!borderStyle || borderStyle.hide) {
@@ -616,15 +617,7 @@ class Border {
         removeClass(this[borderElement], 'hidden');
       }
 
-      style.backgroundColor = borderStyle.color;
-
-      if (borderElement === 'top' || borderElement === 'bottom') {
-        style.height = `${borderStyle.width}px`;
-      }
-
-      if (borderElement === 'right' || borderElement === 'left') {
-        style.width = `${borderStyle.width}px`;
-      }
+      this.setBorderStyle(this[borderElement], borderElement, borderStyle);
     }
   }
 
@@ -637,13 +630,10 @@ class Border {
   changeBorderToDefaultStyle(position) {
     const defaultBorder = {
       width: 1,
+      style: 'solid',
       color: '#000',
     };
-    const style = this[position].style;
-
-    style.backgroundColor = defaultBorder.color;
-    style.width = `${defaultBorder.width}px`;
-    style.height = `${defaultBorder.width}px`;
+    this.setBorderStyle(this[position], position, defaultBorder);
   }
 
   /**
@@ -676,6 +666,28 @@ class Border {
     if (isMobileBrowser()) {
       this.selectionHandles.styles.topLeft.display = 'none';
       this.selectionHandles.styles.bottomRight.display = 'none';
+    }
+  }
+
+  /**
+   * Set border style by position
+   *
+   * @private
+   * @param {Element} element
+   * @param {String} position Coordinate where add/remove border: top, right, bottom, left.
+   * @param {Object} borderStyle
+   */
+  setBorderStyle(element, position, borderStyle) {
+    const { style } = element;
+    switch (position) {
+      case 'top': case 'bottom':
+        style.borderTop = [`${borderStyle.width}px`, borderStyle.style, borderStyle.color].join(' ');
+        break;
+      case 'left': case 'right':
+        style.borderLeft = [`${borderStyle.width}px`, borderStyle.style, borderStyle.color].join(' ');
+        break;
+      case 'corner': default:
+        style.backgroundColor = borderStyle.color;
     }
   }
 }

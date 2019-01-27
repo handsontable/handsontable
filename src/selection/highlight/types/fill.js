@@ -11,6 +11,7 @@ function createHighlight() {
     className: 'fill',
     border: {
       width: 1,
+      style: 'solid',
       color: '#ff0000',
     },
   });

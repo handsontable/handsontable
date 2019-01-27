@@ -76,7 +76,7 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const redBorder = { color: 'red', width: 2 };
+    const redDottedBorder = { color: 'red', width: 2, style: 'dotted' };
     const empty = { hide: true };
     const customBorders = hot.getPlugin('customBorders');
 
@@ -85,32 +85,34 @@ describe('CustomBorders', () => {
     customBorders.setBorders(getSelected(), {
       top: {
         width: 2,
+        style: 'dotted',
         color: 'red'
       },
       bottom: {
         width: 2,
+        style: 'dotted',
         color: 'red'
       }
     });
 
-    expect(getCellMeta(1, 1).borders.top).toEqual(redBorder);
+    expect(getCellMeta(1, 1).borders.top).toEqual(redDottedBorder);
     expect(getCellMeta(1, 1).borders.left).toEqual(empty);
-    expect(getCellMeta(1, 1).borders.bottom).toEqual(redBorder);
+    expect(getCellMeta(1, 1).borders.bottom).toEqual(redDottedBorder);
     expect(getCellMeta(1, 1).borders.right).toEqual(empty);
 
-    expect(getCellMeta(1, 2).borders.top).toEqual(redBorder);
+    expect(getCellMeta(1, 2).borders.top).toEqual(redDottedBorder);
     expect(getCellMeta(1, 2).borders.left).toEqual(empty);
-    expect(getCellMeta(1, 2).borders.bottom).toEqual(redBorder);
+    expect(getCellMeta(1, 2).borders.bottom).toEqual(redDottedBorder);
     expect(getCellMeta(1, 2).borders.right).toEqual(empty);
 
-    expect(getCellMeta(2, 1).borders.top).toEqual(redBorder);
+    expect(getCellMeta(2, 1).borders.top).toEqual(redDottedBorder);
     expect(getCellMeta(2, 1).borders.left).toEqual(empty);
-    expect(getCellMeta(2, 1).borders.bottom).toEqual(redBorder);
+    expect(getCellMeta(2, 1).borders.bottom).toEqual(redDottedBorder);
     expect(getCellMeta(2, 1).borders.right).toEqual(empty);
 
-    expect(getCellMeta(2, 2).borders.top).toEqual(redBorder);
+    expect(getCellMeta(2, 2).borders.top).toEqual(redDottedBorder);
     expect(getCellMeta(2, 2).borders.left).toEqual(empty);
-    expect(getCellMeta(2, 2).borders.bottom).toEqual(redBorder);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(redDottedBorder);
     expect(getCellMeta(2, 2).borders.right).toEqual(empty);
   });
 
@@ -538,7 +540,7 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const defaultBorder = { color: '#000', width: 1 };
+    const defaultBorder = { color: '#000', style: 'solid', width: 1 };
     const empty = { hide: true };
     const customBorders = hot.getPlugin('customBorders');
 
@@ -588,7 +590,7 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const defaultBorder = { color: '#000', width: 1 };
+    const defaultBorder = { color: '#000', style: 'solid', width: 1 };
     const empty = { hide: true };
     const customBorders = hot.getPlugin('customBorders');
 
@@ -625,7 +627,7 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const defaultBorder = { color: '#000', width: 1 };
+    const defaultBorder = { color: '#000', style: 'solid', width: 1 };
     const empty = { hide: true };
 
     contextMenu();
@@ -653,7 +655,7 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const defaultBorder = { color: '#000', width: 1 };
+    const defaultBorder = { color: '#000', style: 'solid', width: 1 };
     const empty = { hide: true };
 
     contextMenu();
@@ -682,7 +684,7 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const defaultBorder = { color: '#000', width: 1 };
+    const defaultBorder = { color: '#000', style: 'solid', width: 1 };
     const empty = { hide: true };
 
     contextMenu();
@@ -711,7 +713,7 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const defaultBorder = { color: '#000', width: 1 };
+    const defaultBorder = { color: '#000', style: 'solid', width: 1 };
     const empty = { hide: true };
 
     contextMenu();
