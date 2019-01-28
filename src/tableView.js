@@ -92,7 +92,9 @@ class TableView {
        * @private
        * @type {Walkontable}
        */
-      activeWt: void 0
+      activeWt: void 0,
+      lastWidth: 0,
+      lastHeight: 0,
     });
 
     this.createElements();
@@ -423,7 +425,18 @@ class TableView {
           return;
         }
 
-        this.instance.runHooks('afterWindowResize', event);
+        const { width, height } = this.instance.rootElement.getBoundingClientRect();
+
+        if (this.wt.wtOverlays.scrollableElement === this.instance.rootWindow || width !== priv.lastWidth || height !== priv.lastHeight) {
+          if (this.instance.runHooks('beforeResize', event) === false) {
+            return;
+          }
+
+          [priv.lastWidth, priv.lastHeight] = [width, height];
+
+          this.wt.wtTable.draw();
+          this.instance.runHooks('afterResize', event);
+        }
       },
       onCellMouseDown: (event, coords, TD, wt) => {
         const blockCalculations = {
@@ -586,6 +599,11 @@ class TableView {
 
     this.wt = new Walkontable(walkontableConfig);
     priv.activeWt = this.wt;
+
+    const { width, height } = this.instance.rootElement.getBoundingClientRect();
+
+    [priv.lastWidth, priv.lastHeight] = [width, height];
+
     const spreader = this.wt.wtTable.spreader;
 
     this.eventManager.addEventListener(spreader, 'mousedown', (event) => {

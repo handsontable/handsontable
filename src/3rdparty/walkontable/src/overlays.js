@@ -270,25 +270,13 @@ class Overlays {
       }]);
     }
 
-    const computedStyle = getComputedStyle(containerElement);
     let resizeTimeout;
-    let lastWidth = 0;
-    let lastHeight = 0;
 
     listenersToRegister.push([rootWindow, 'resize', (event) => {
       clearTimeout(resizeTimeout);
 
       resizeTimeout = setTimeout(() => {
-        const width = parseInt(computedStyle.width, 10);
-        const height = parseInt(computedStyle.height, 10);
-
-        if (this.scrollableElement === rootWindow || width !== lastWidth || height !== lastHeight) {
-          this.instance.draw();
-        }
-
-        [lastWidth, lastHeight] = [width, height];
-
-        this.instance.getSetting('onWindowResize', event);
+        this.wot.getSetting('onWindowResize', event);
       }, 200);
     }]);
 
