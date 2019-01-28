@@ -1089,7 +1089,7 @@ export function isOutsideInput(element) {
  * @param {HTMLElement} element - DOM element
  */
 export function selectElementIfAllowed(element) {
-  const activeElement = document.activeElement;
+  const activeElement = element.ownerDocument.activeElement;
 
   if (!isOutsideInput(activeElement)) {
     element.select();
