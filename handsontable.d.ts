@@ -183,7 +183,7 @@ declare namespace Handsontable {
   }
 
   namespace editors {
-    class Base {
+    abstract class Base {
       instance: _Handsontable.Core;
       row: number;
       col: number;
@@ -193,28 +193,38 @@ declare namespace Handsontable {
 
       constructor(hotInstance: _Handsontable.Core, row: number, col: number, prop: string | number, TD: HTMLElement, cellProperties: CellProperties)
 
-      beginEditing(initialValue?: CellValue): void;
+      beginEditing(initialValue?: any): void;
       cancelChanges(): void;
       checkEditorSection(): 'top-left-corner' | 'top' | 'bottom-left-corner' | 'bottom' | 'left' | '' ;
-      close(): void; // abstract
+      abstract close(): void;
       discardEditor(validationResult?: boolean): void;
       enableFullEditMode(): void;
       extend<T extends editors.Base>(): T;
       finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
-      getValue(): CellValue; // abstract
+      abstract getValue(): any;
       init(): void;
       isInFullEditMode(): boolean;
       isOpened(): boolean;
       isWaiting(): boolean;
-      open(): void; // abstract
-      prepare(row: number, col: number, prop: string | number, TD: HTMLElement, originalValue: CellValue, cellProperties: CellProperties): void;
-      saveValue(val?: CellValue, ctrlDown?: boolean): void;
-      setValue(newValue?: CellValue): void; // abstract
+      abstract open(): void;
+      prepare(row: number, col: number, prop: string | number, TD: HTMLElement, originalValue: any, cellProperties: CellProperties): void;
+      saveValue(val?: any, ctrlDown?: boolean): void;
+      abstract setValue(newValue?: any): void;
     }
 
-    class Checkbox extends Base {}
+    class Checkbox extends Base {
+      close(): void;
+      getValue(): any;
+      open(): void;
+      setValue(newValue?: any): void;
+    }
 
     class Mobile extends Base {
+      close(): void;
+      getValue(): any;
+      open(): void;
+      setValue(newValue?: any): void;
+
       hideCellPointer(): void;
       onBeforeKeyDown(event?: Event): void;
       prepareAndSave(): void;
@@ -225,6 +235,11 @@ declare namespace Handsontable {
     }
 
     class Select extends Base {
+      close(): void;
+      getValue(): any;
+      open(): void;
+      setValue(newValue?: any): void;
+
       focus(): void;
       getEditedCell(): Element | undefined;
       prepareOptions(optionsToPrepare?: RowObject | CellValue[]): void;
@@ -234,8 +249,12 @@ declare namespace Handsontable {
     }
 
     class Text extends Base {
+      close(): void;
+      getValue(): any;
+      open(): void;
+      setValue(newValue?: any): void;
+
       bindEvents(): void;
-      close(tdOutside?: HTMLElement): void;
       createElements(): void;
       destroy(): void;
       focus(): void;
@@ -250,9 +269,7 @@ declare namespace Handsontable {
     }
 
     class Date extends Text {
-      close(): void;
       destroyElements(): void;
-      finishEditing(isCancelled?: boolean, ctrlDown?: boolean): void;
       getDatePickerConfig(): PikadayOptions;
       hideDatepicker(): void;
       open(event?: Event): void;
@@ -261,20 +278,15 @@ declare namespace Handsontable {
 
     class Handsontable extends Text {
       assignHooks(): void;
-      beginEditing(initialValue?: CellValue): void;
-      close(): void;
-      finishEditing(isCancelled?: boolean, ctrlDown?: boolean): void;
       focus(): void;
-      open(): void;
     }
 
-    class Numeric extends Text {}
+    class Numeric extends Text { }
 
     class Password extends Text {}
 
     class Autocomplete extends Handsontable {
       allowKeyEventPropagation(keyCode?: number): boolean;
-      finishEditing(restoreOriginalValue?: boolean): void;
       flipDropdown(dropdownHeight?: number): void;
       flipDropdownIfNeeded(): void;
       getDropdownHeight(): number;
@@ -289,27 +301,6 @@ declare namespace Handsontable {
     }
 
     class Dropdown extends Autocomplete {}
-
-    class CommentEditor {
-      editor: HTMLElement;
-      editorStyle: CSSStyleDeclaration;
-      hidden: boolean;
-
-      setPosition(x: number, y: number): void;
-      setSize(width: number, height: number): void;
-      resetSize(): void;
-      setReadOnlyState(state: boolean): void;
-      show(): void;
-      hide(): void;
-      isVisible(): boolean;
-      setValue(value?: string): void;
-      getValue(): string;
-      isFocused(): boolean;
-      focus(): void;
-      createEditor(): HTMLElement;
-      getInputElement(): HTMLElement;
-      destroy(): void;
-    }
   }
 
   namespace plugins {
@@ -763,7 +754,7 @@ declare namespace Handsontable {
     interface Comments extends Base {
       contextMenuEvent: boolean;
       displayDelay: number;
-      editor: editors.CommentEditor;
+      editor: CommentEditor;
       eventManager: EventManager;
       mouseDown: boolean;
       range: CommentsRangeObject;
@@ -784,6 +775,27 @@ declare namespace Handsontable {
       targetIsCellWithComment(event: Event): boolean;
       targetIsCommentTextArea(event: Event): boolean;
       updateCommentMeta(row: number, column: number, metaObject: object): void;
+    }
+
+    interface CommentEditor {
+      editor: HTMLElement;
+      editorStyle: CSSStyleDeclaration;
+      hidden: boolean;
+
+      setPosition(x: number, y: number): void;
+      setSize(width: number, height: number): void;
+      resetSize(): void;
+      setReadOnlyState(state: boolean): void;
+      show(): void;
+      hide(): void;
+      isVisible(): boolean;
+      setValue(value?: string): void;
+      getValue(): string;
+      isFocused(): boolean;
+      focus(): void;
+      createEditor(): HTMLElement;
+      getInputElement(): HTMLElement;
+      destroy(): void;
     }
 
     interface ContextMenu extends Base {
