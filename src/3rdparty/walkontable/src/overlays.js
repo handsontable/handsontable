@@ -194,7 +194,6 @@ class Overlays {
    * Register all necessary event listeners.
    */
   registerListeners() {
-    const containerElement = this.wot.wtTable.wtRootElement.parentNode;
     const { rootDocument, rootWindow } = this.wot;
     const topOverlayScrollable = this.topOverlay.mainTableScrollableElement;
     const leftOverlayScrollable = this.leftOverlay.mainTableScrollableElement;
@@ -212,7 +211,7 @@ class Overlays {
     const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
 
     if (isHighPixelRatio || !isChrome()) {
-      listenersToRegister.push([containerElement, 'wheel', event => this.onCloneWheel(event)]);
+      listenersToRegister.push([this.wot.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event)]);
 
     } else {
       if (this.topOverlay.needFullRender) {

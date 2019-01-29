@@ -93,7 +93,17 @@ class TableView {
        * @type {Walkontable}
        */
       activeWt: void 0,
+      /**
+       * Cached width of the rootElement.
+       *
+       * @type {Number}
+       */
       lastWidth: 0,
+      /**
+       * Cached height of the rootElement.
+       *
+       * @type {Number}
+       */
       lastHeight: 0,
     });
 
@@ -425,19 +435,18 @@ class TableView {
           return;
         }
 
+        const isWindowScrollableElement = this.wt.wtOverlays.scrollableElement === this.instance.rootWindow;
         const { width, height } = this.instance.rootElement.getBoundingClientRect();
+        const isSizeChanged = width !== priv.lastWidth || height !== priv.lastHeight;
 
-        if (this.wt.wtOverlays.scrollableElement === this.instance.rootWindow || width !== priv.lastWidth || height !== priv.lastHeight) {
-          if (this.instance.runHooks('beforeResize', event) === false) {
-            return;
-          }
-
-          [priv.lastWidth, priv.lastHeight] = [width, height];
-
-          // this.wt.wtTable.draw();
-          this.instance.render();
-          this.instance.runHooks('afterResize', event);
+        if (!isWindowScrollableElement || !isSizeChanged || this.instance.runHooks('beforeResize', event) === false) {
+          return;
         }
+
+        [priv.lastWidth, priv.lastHeight] = [width, height];
+
+        this.instance.render();
+        this.instance.runHooks('afterResize', event);
       },
       onCellMouseDown: (event, coords, TD, wt) => {
         const blockCalculations = {
@@ -601,11 +610,11 @@ class TableView {
     this.wt = new Walkontable(walkontableConfig);
     priv.activeWt = this.wt;
 
+    const spreader = this.wt.wtTable.spreader;
+    // We have to cache width and height after Walkontable initialization.
     const { width, height } = this.instance.rootElement.getBoundingClientRect();
 
     [priv.lastWidth, priv.lastHeight] = [width, height];
-
-    const spreader = this.wt.wtTable.spreader;
 
     this.eventManager.addEventListener(spreader, 'mousedown', (event) => {
       // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar

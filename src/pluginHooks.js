@@ -1824,7 +1824,7 @@ const REGISTERED_HOOKS = [
   'afterResize',
 
   /**
-   * Cancellable hook, fired after the window was resized, but before redraw table.
+   * Cancellable hook, called after resizing a window, but before redrawing a table.
    *
    * @event Hooks#beforeResize
    */
