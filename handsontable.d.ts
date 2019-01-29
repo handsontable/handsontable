@@ -1,5 +1,12 @@
 import { PikadayOptions } from "pikaday";
 
+/**
+ * @internal
+ * Omit properties K from T
+ */
+type Omit<T, K extends keyof T> = Pick<T, ({ [P in keyof T]: P } & { [P in K]: never } & { [x: string]: never, [x: number]: never })[keyof T]>;
+// type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>; // TS >= 2.8
+
 declare namespace _Handsontable {
 
   class Core {
@@ -281,7 +288,7 @@ declare namespace Handsontable {
       focus(): void;
     }
 
-    class Numeric extends Text { }
+    class Numeric extends Text {}
 
     class Password extends Text {}
 
@@ -318,29 +325,29 @@ declare namespace Handsontable {
 
       interface ConditionId {
         args: any[];
-        name?: ConditionName
+        name?: ConditionName;
         command?: {
-          key: ConditionName
+          key: ConditionName;
         }
       }
 
       interface Condition {
-        name: ConditionName,
+        name: ConditionName;
         args: any[];
-        func: (dataRow: CellValue, values: any[]) => boolean
+        func: (dataRow: CellValue, values: any[]) => boolean;
       }
 
       interface CellLikeData {
         meta: {
-          row: number,
-          col: number,
-          visualCol: number,
-          visualRow: number,
-          type: string,
-          instance: _Handsontable.Core,
-          dateFormat?: string
-        },
-        value: string
+          row: number;
+          col: number;
+          visualCol: number;
+          visualRow: number;
+          type: string;
+          instance: _Handsontable.Core;
+          dateFormat?: string;
+        };
+        value: string;
       }
 
       interface BaseComponent {
@@ -748,8 +755,8 @@ declare namespace Handsontable {
     }
 
     type CommentsRangeObject = {
-      from: wot.CellCoords,
-      to?: wot.CellCoords
+      from: wot.CellCoords;
+      to?: wot.CellCoords;
     }
     interface Comments extends Base {
       contextMenuEvent: boolean;
@@ -1178,8 +1185,8 @@ declare namespace Handsontable {
     interface MultiColumnSorting extends Base {
       clearSort(): void;
       destroy(): void;
-      getSortConfig(column: number): void | columnSorting.Config
-      getSortConfig(): Array<columnSorting.Config>
+      getSortConfig(column: number): void | columnSorting.Config;
+      getSortConfig(): Array<columnSorting.Config>;
       isSorted(): boolean;
       setSortConfig(sortConfig?: columnSorting.Config | Array<columnSorting.Config>): void;
       sort(sortConfig?: columnSorting.Config | Array<columnSorting.Config>): void;
@@ -1523,7 +1530,7 @@ declare namespace Handsontable {
     isSearchResult?: boolean;
   }
 
-  interface ColumnSettings extends Pick<GridSettings, Exclude<keyof GridSettings, "data">> {
+  interface ColumnSettings extends Omit<GridSettings, "data"> {
     data: string | number | ColumnDataGetterSetterFunction;
   }
 
@@ -1949,134 +1956,134 @@ declare namespace Handsontable {
 
   interface Helper {
     readonly KEY_CODES: {
-      A: number,
-      ALT: number,
-      ARROW_DOWN: number,
-      ARROW_LEFT: number,
-      ARROW_RIGHT: number,
-      ARROW_UP: number,
-      BACKSPACE: number,
-      C: number,
-      CAPS_LOCK: number,
-      COMMA: number,
-      COMMAND_LEFT: number,
-      COMMAND_RIGHT: number,
-      CONTROL_LEFT: number,
-      DELETE: number,
-      END: number,
-      ENTER: number,
-      ESCAPE: number,
-      F1: number,
-      F2: number,
-      F3: number,
-      F4: number,
-      F5: number,
-      F6: number,
-      F7: number,
-      F8: number,
-      F9: number,
-      F10: number,
-      F11: number,
-      F12: number,
-      HOME: number,
-      INSERT: number,
-      MOUSE_LEFT: number,
-      MOUSE_MIDDLE: number,
-      MOUSE_RIGHT: number,
-      PAGE_DOWN: number,
-      PAGE_UP: number,
-      PERIOD: number,
-      SHIFT: number,
-      SPACE: number,
-      TAB: number,
-      V: number,
-      X: number
-    },
-    arrayAvg(array: any[]): number,
-    arrayEach(array: any[], iteratee: (value: any, index: number, array: any[]) => void): any[],
-    arrayFilter(array: any[], predicate: (value: any, index: number, array: any[]) => void): any[],
-    arrayFlatten(array: any[]): any[],
-    arrayIncludes(array: any[], searchElement: any, fromIndex: number): any[],
-    arrayMap(array: any[], iteratee: (value: any, index: number, array: any[]) => void): any[],
-    arrayMax(array: any[]): number,
-    arrayMin(array: any[]): number,
-    arrayReduce(array: any[], iteratee: (value: any, index: number, array: any[]) => void, accumulator: any, initFromArray: boolean): any,
-    arraySum(array: any[]): number,
-    arrayUnique(array: any[]): any[],
-    cancelAnimationFrame(id: number): void,
-    cellMethodLookupFactory(methodName: string, allowUndefined: boolean): void,
-    clone(object: object): object,
-    columnFactory(GridSettings: GridSettings, conflictList: any[]): object,
-    createEmptySpreadsheetData(rows: number, columns: number): any[],
-    createObjectPropListener(defaultValue?: any, propertyToListen?: string): object,
-    createSpreadsheetData(rows?: number, columns?: number): any[],
-    createSpreadsheetObjectData(rows?: number, colCount?: number): any[],
-    curry(func: () => void): () => void,
-    curryRight(func: () => void): () => void,
-    debounce(func: () => void, wait?: number): () => void,
-    deepClone(obj: object): object,
-    deepExtend(target: object, extension: object): void,
-    deepObjectSize(object: object): number,
-    defineGetter(object: object, property: any, value: any, options: object): void,
-    duckSchema(object: any[] | object): any[] | object,
-    endsWith(string: string, needle: string): boolean,
-    equalsIgnoreCase(...string: string[]): boolean,
-    extend(target: object, extension: object): void,
-    extendArray(arr: any[], extension: any[]): void,
-    getComparisonFunction(language: string, options?: object): any | void,
-    getNormalizedDate(dateString: string): Date,
-    getProperty(object: object, name: string): any | void,
-    getPrototypeOf(obj: object): any | void,
-    hasCaptionProblem(): boolean | void,
-    inherit(Child: object, Parent: object): object,
-    isChrome(): boolean,
-    isCtrlKey(keyCode: number): boolean,
-    isDefined(variable: any): boolean,
-    isEdge(): boolean,
-    isEmpty(variable: any): boolean,
-    isFunction(func: any): boolean,
-    isIE(): boolean,
-    isIE8(): boolean,
-    isIE9(): boolean,
-    isKey(keyCode: number, baseCode: string): boolean
-    isMetaKey(keyCode: number): boolean,
-    isMobileBrowser(): boolean,
-    isMSBrowser(): boolean,
-    isNumeric(n: any): boolean,
-    isObject(obj: any): boolean,
-    isObjectEqual(object1: object | any[], object2: object | any[]): boolean,
-    isPercentValue(value: string): boolean,
-    isPrintableChar(keyCode: number): boolean,
-    isSafari(): boolean,
-    isTouchSupported(): boolean,
-    isUndefined(variable: any): boolean,
-    isWebComponentSupportedNatively(): boolean,
-    mixin(Base: object, ...mixins: object[]): object,
-    objectEach(object: object, iteratee: (value: any, key: any, object: object) => void): object,
-    padStart(string: string, maxLength: number, fillString?: string): string,
-    partial(func: () => void, ...params: any[]): () => void,
-    pipe(...functions: (() => void)[]): () => void,
-    pivot(arr: any[]): any[],
-    randomString(): string,
-    rangeEach(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void,
-    rangeEachReverse(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void,
-    requestAnimationFrame(callback: () => void): number,
-    spreadsheetColumnIndex(label: string): number,
-    spreadsheetColumnLabel(index: number): string,
-    startsWith(string: string, needle: string): boolean,
-    stringify(value: any): string,
-    stripTags(string: string): string,
-    substitute(template: string, variables?: object): string,
-    throttle(func: () => void, wait?: number): () => void,
-    throttleAfterHits(func: () => void, wait?: number, hits?: number): () => void,
-    to2dArray(arr: any[]): void,
-    toUpperCaseFirst(string: string): string,
-    translateRowsToColumns(input: any[]): any[],
-    valueAccordingPercent(value: number, percent: string | number): number
+      A: number;
+      ALT: number;
+      ARROW_DOWN: number;
+      ARROW_LEFT: number;
+      ARROW_RIGHT: number;
+      ARROW_UP: number;
+      BACKSPACE: number;
+      C: number;
+      CAPS_LOCK: number;
+      COMMA: number;
+      COMMAND_LEFT: number;
+      COMMAND_RIGHT: number;
+      CONTROL_LEFT: number;
+      DELETE: number;
+      END: number;
+      ENTER: number;
+      ESCAPE: number;
+      F1: number;
+      F2: number;
+      F3: number;
+      F4: number;
+      F5: number;
+      F6: number;
+      F7: number;
+      F8: number;
+      F9: number;
+      F10: number;
+      F11: number;
+      F12: number;
+      HOME: number;
+      INSERT: number;
+      MOUSE_LEFT: number;
+      MOUSE_MIDDLE: number;
+      MOUSE_RIGHT: number;
+      PAGE_DOWN: number;
+      PAGE_UP: number;
+      PERIOD: number;
+      SHIFT: number;
+      SPACE: number;
+      TAB: number;
+      V: number;
+      X: number;
+    };
+    arrayAvg(array: any[]): number;
+    arrayEach(array: any[], iteratee: (value: any, index: number, array: any[]) => void): any[];
+    arrayFilter(array: any[], predicate: (value: any, index: number, array: any[]) => void): any[];
+    arrayFlatten(array: any[]): any[];
+    arrayIncludes(array: any[], searchElement: any, fromIndex: number): any[];
+    arrayMap(array: any[], iteratee: (value: any, index: number, array: any[]) => void): any[];
+    arrayMax(array: any[]): number;
+    arrayMin(array: any[]): number;
+    arrayReduce(array: any[], iteratee: (value: any, index: number, array: any[]) => void, accumulator: any, initFromArray: boolean): any;
+    arraySum(array: any[]): number;
+    arrayUnique(array: any[]): any[];
+    cancelAnimationFrame(id: number): void;
+    cellMethodLookupFactory(methodName: string, allowUndefined: boolean): void;
+    clone(object: object): object;
+    columnFactory(GridSettings: GridSettings, conflictList: any[]): object;
+    createEmptySpreadsheetData(rows: number, columns: number): any[];
+    createObjectPropListener(defaultValue?: any, propertyToListen?: string): object;
+    createSpreadsheetData(rows?: number, columns?: number): any[];
+    createSpreadsheetObjectData(rows?: number, colCount?: number): any[];
+    curry(func: () => void): () => void;
+    curryRight(func: () => void): () => void;
+    debounce(func: () => void, wait?: number): () => void;
+    deepClone(obj: object): object;
+    deepExtend(target: object, extension: object): void;
+    deepObjectSize(object: object): number;
+    defineGetter(object: object, property: any, value: any, options: object): void;
+    duckSchema(object: any[] | object): any[] | object;
+    endsWith(string: string, needle: string): boolean;
+    equalsIgnoreCase(...string: string[]): boolean;
+    extend(target: object, extension: object): void;
+    extendArray(arr: any[], extension: any[]): void;
+    getComparisonFunction(language: string, options?: object): any | void;
+    getNormalizedDate(dateString: string): Date;
+    getProperty(object: object, name: string): any | void;
+    getPrototypeOf(obj: object): any | void;
+    hasCaptionProblem(): boolean | void;
+    inherit(Child: object, Parent: object): object;
+    isChrome(): boolean;
+    isCtrlKey(keyCode: number): boolean;
+    isDefined(variable: any): boolean;
+    isEdge(): boolean;
+    isEmpty(variable: any): boolean;
+    isFunction(func: any): boolean;
+    isIE(): boolean;
+    isIE8(): boolean;
+    isIE9(): boolean;
+    isKey(keyCode: number, baseCode: string): boolean;
+    isMetaKey(keyCode: number): boolean;
+    isMobileBrowser(): boolean;
+    isMSBrowser(): boolean;
+    isNumeric(n: any): boolean;
+    isObject(obj: any): boolean;
+    isObjectEqual(object1: object | any[], object2: object | any[]): boolean;
+    isPercentValue(value: string): boolean;
+    isPrintableChar(keyCode: number): boolean;
+    isSafari(): boolean;
+    isTouchSupported(): boolean;
+    isUndefined(variable: any): boolean;
+    isWebComponentSupportedNatively(): boolean;
+    mixin(Base: object, ...mixins: object[]): object;
+    objectEach(object: object, iteratee: (value: any, key: any, object: object) => void): object;
+    padStart(string: string, maxLength: number, fillString?: string): string;
+    partial(func: () => void, ...params: any[]): () => void;
+    pipe(...functions: (() => void)[]): () => void;
+    pivot(arr: any[]): any[];
+    randomString(): string;
+    rangeEach(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void;
+    rangeEachReverse(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void;
+    requestAnimationFrame(callback: () => void): number;
+    spreadsheetColumnIndex(label: string): number;
+    spreadsheetColumnLabel(index: number): string;
+    startsWith(string: string, needle: string): boolean;
+    stringify(value: any): string;
+    stripTags(string: string): string;
+    substitute(template: string, variables?: object): string;
+    throttle(func: () => void, wait?: number): () => void;
+    throttleAfterHits(func: () => void, wait?: number, hits?: number): () => void;
+    to2dArray(arr: any[]): void;
+    toUpperCaseFirst(string: string): string;
+    translateRowsToColumns(input: any[]): any[];
+    valueAccordingPercent(value: number, percent: string | number): number;
   }
 
   interface Dom {
-    HTML_CHARACTERS: RegExp,
+    HTML_CHARACTERS: RegExp;
     addClass: (element: HTMLElement, className: string | any[]) => void;
     addEvent: (element: HTMLElement, event: string, callback: () => void) => void;
     closest: (element: HTMLElement, nodes: any[], until?: HTMLElement) => HTMLElement | void;
@@ -2131,78 +2138,78 @@ declare namespace Handsontable {
   }
 
   interface Plugins {
-    AutoColumnSize: plugins.AutoColumnSize,
-    Autofill: plugins.Autofill,
-    AutoRowSize: plugins.AutoRowSize,
-    BasePlugin: plugins.Base,
-    BindRowsWithHeaders: plugins.BindRowsWithHeaders,
-    CollapsibleColumns: plugins.CollapsibleColumns,
-    ColumnSorting: plugins.ColumnSorting,
-    ColumnSummary: plugins.ColumnSummary,
-    Comments: plugins.Comments,
-    ContextMenu: plugins.ContextMenu,
-    CopyPaste: plugins.CopyPaste,
-    DragToScroll: plugins.DragToScroll,
-    DropdownMenu: plugins.DropdownMenu,
-    ExportFile: plugins.ExportFile,
-    Filters: plugins.Filters,
-    Formulas: plugins.Formulas,
-    GanttChart: plugins.GanttChart,
-    HeaderTooltips: plugins.HeaderTooltips,
-    HiddenColumns: plugins.HiddenColumns,
-    HiddenRows: plugins.HiddenRows,
-    ManualColumnFreeze: plugins.ManualColumnFreeze,
-    ManualColumnMove: plugins.ManualColumnMove,
-    ManualColumnResize: plugins.ManualColumnResize,
-    ManualRowMove: plugins.ManualRowMove,
+    AutoColumnSize: plugins.AutoColumnSize;
+    Autofill: plugins.Autofill;
+    AutoRowSize: plugins.AutoRowSize;
+    BasePlugin: plugins.Base;
+    BindRowsWithHeaders: plugins.BindRowsWithHeaders;
+    CollapsibleColumns: plugins.CollapsibleColumns;
+    ColumnSorting: plugins.ColumnSorting;
+    ColumnSummary: plugins.ColumnSummary;
+    Comments: plugins.Comments;
+    ContextMenu: plugins.ContextMenu;
+    CopyPaste: plugins.CopyPaste;
+    DragToScroll: plugins.DragToScroll;
+    DropdownMenu: plugins.DropdownMenu;
+    ExportFile: plugins.ExportFile;
+    Filters: plugins.Filters;
+    Formulas: plugins.Formulas;
+    GanttChart: plugins.GanttChart;
+    HeaderTooltips: plugins.HeaderTooltips;
+    HiddenColumns: plugins.HiddenColumns;
+    HiddenRows: plugins.HiddenRows;
+    ManualColumnFreeze: plugins.ManualColumnFreeze;
+    ManualColumnMove: plugins.ManualColumnMove;
+    ManualColumnResize: plugins.ManualColumnResize;
+    ManualRowMove: plugins.ManualRowMove;
     ManualRowResize: plugins.ManualRowResize;
     MergeCells: plugins.MergeCells;
-    MultiColumnSorting: plugins.MultiColumnSorting,
-    MultipleSelectionHandles: plugins.MultipleSelectionHandles,
-    NestedHeaders: plugins.NestedHeaders,
-    NestedRows: plugins.NestedRows,
-    ObserveChanges: plugins.ObserveChanges,
-    Search: plugins.Search,
-    TouchScroll: plugins.TouchScroll,
-    TrimRows: plugins.TrimRows,
+    MultiColumnSorting: plugins.MultiColumnSorting;
+    MultipleSelectionHandles: plugins.MultipleSelectionHandles;
+    NestedHeaders: plugins.NestedHeaders;
+    NestedRows: plugins.NestedRows;
+    ObserveChanges: plugins.ObserveChanges;
+    Search: plugins.Search;
+    TouchScroll: plugins.TouchScroll;
+    TrimRows: plugins.TrimRows;
     registerPlugin(pluginName: string, pluginClass: { new(hotInstance?: _Handsontable.Core): plugins.Base }): void;
   }
 
   // Plugin collection, map for getPlugin method
   interface PluginsCollection {
-    autoColumnSize: plugins.AutoColumnSize,
-    autofill: plugins.Autofill,
-    autoRowSize: plugins.AutoRowSize,
-    bindRowsWithHeaders: plugins.BindRowsWithHeaders,
-    collapsibleColumns: plugins.CollapsibleColumns,
-    columnSorting: plugins.ColumnSorting,
-    columnSummary: plugins.ColumnSummary,
-    comments: plugins.Comments,
-    contextMenu: plugins.ContextMenu,
-    copyPaste: plugins.CopyPaste,
-    dragToScroll: plugins.DragToScroll,
-    dropdownMenu: plugins.DropdownMenu,
-    exportFile: plugins.ExportFile,
-    filters: plugins.Filters,
-    formulas: plugins.Formulas,
-    ganttChart: plugins.GanttChart,
-    headerTooltips: plugins.HeaderTooltips,
-    hiddenColumns: plugins.HiddenColumns,
-    hiddenRows: plugins.HiddenRows,
-    manualColumnFreeze: plugins.ManualColumnFreeze,
-    manualColumnMove: plugins.ManualColumnMove,
-    manualColumnResize: plugins.ManualColumnResize,
-    manualRowMove: plugins.ManualRowMove,
+    autoColumnSize: plugins.AutoColumnSize;
+    autofill: plugins.Autofill;
+    autoRowSize: plugins.AutoRowSize;
+    bindRowsWithHeaders: plugins.BindRowsWithHeaders;
+    collapsibleColumns: plugins.CollapsibleColumns;
+    columnSorting: plugins.ColumnSorting;
+    columnSummary: plugins.ColumnSummary;
+    comments: plugins.Comments;
+    contextMenu: plugins.ContextMenu;
+    copyPaste: plugins.CopyPaste;
+    dragToScroll: plugins.DragToScroll;
+    dropdownMenu: plugins.DropdownMenu;
+    exportFile: plugins.ExportFile;
+    filters: plugins.Filters;
+    formulas: plugins.Formulas;
+    ganttChart: plugins.GanttChart;
+    headerTooltips: plugins.HeaderTooltips;
+    hiddenColumns: plugins.HiddenColumns;
+    hiddenRows: plugins.HiddenRows;
+    manualColumnFreeze: plugins.ManualColumnFreeze;
+    manualColumnMove: plugins.ManualColumnMove;
+    manualColumnResize: plugins.ManualColumnResize;
+    manualRowMove: plugins.ManualRowMove;
     manualRowResize: plugins.ManualRowResize;
     mergeCells: plugins.MergeCells;
-    multiColumnSorting: plugins.MultiColumnSorting,
-    multipleSelectionHandles: plugins.MultipleSelectionHandles,
-    nestedHeaders: plugins.NestedHeaders,
-    nestedRows: plugins.NestedRows,
-    observeChanges: plugins.ObserveChanges,
-    search: plugins.Search,
-    touchScroll: plugins.TouchScroll,
-    trimRows: plugins.TrimRows,
+    multiColumnSorting: plugins.MultiColumnSorting;
+    multipleSelectionHandles: plugins.MultipleSelectionHandles;
+    nestedHeaders: plugins.NestedHeaders;
+    nestedRows: plugins.NestedRows;
+    observeChanges: plugins.ObserveChanges;
+    search: plugins.Search;
+    touchScroll: plugins.TouchScroll;
+    trimRows: plugins.TrimRows;
   }
 
   // Plugin options
@@ -2222,8 +2229,8 @@ declare namespace Handsontable {
   
   namespace contextMenu {
     interface Selection {
-      start: wot.CellCoords,
-      end: wot.CellCoords
+      start: wot.CellCoords;
+      end: wot.CellCoords;
     }
     interface Settings {
       callback?: (key: string, selection: Selection[], clickEvent: MouseEvent) => void;
@@ -2251,7 +2258,7 @@ declare namespace Handsontable {
       items: SubmenuItemConfig[];
     }
 
-    interface SubmenuItemConfig extends Pick<MenuItemConfig, Exclude<keyof MenuItemConfig, "key">> {
+    interface SubmenuItemConfig extends Omit<MenuItemConfig, "key"> {
       /**
        * Submenu item `key` must be defined as "parent_key:sub_key" where "parent_key" is the parent MenuItemConfig key.
        */
@@ -2261,26 +2268,26 @@ declare namespace Handsontable {
 
   namespace columnSorting {
     type SortOrderType = 'asc' | 'desc';
-    type Config = { column: number, sortOrder: SortOrderType }
+    type Config = { column: number; sortOrder: SortOrderType }
 
     interface Settings {
-      initialConfig?: Config,
-      sortEmptyCells?: boolean,
-      indicator?: boolean,
-      headerAction?: boolean,
+      initialConfig?: Config;
+      sortEmptyCells?: boolean;
+      indicator?: boolean;
+      headerAction?: boolean;
       compareFunctionFactory?: ((sortOrder: SortOrderType, columnMeta: GridSettings) =>
-        (value: any, nextValue: any) => -1 | 0 | 1)
+        (value: any, nextValue: any) => -1 | 0 | 1);
     }
   }
 
   namespace multiColumnSorting {
     interface Settings {
-      initialConfig?: columnSorting.Config | Array<columnSorting.Config>,
-      sortEmptyCells?: boolean,
-      indicator?: boolean,
-      headerAction?: boolean,
+      initialConfig?: columnSorting.Config | Array<columnSorting.Config>;
+      sortEmptyCells?: boolean;
+      indicator?: boolean;
+      headerAction?: boolean;
       compareFunctionFactory?: ((sortOrder: columnSorting.SortOrderType, columnMeta: GridSettings) =>
-        (value: any, nextValue: any) => -1 | 0 | 1)
+        (value: any, nextValue: any) => -1 | 0 | 1);
     }
   }
 
