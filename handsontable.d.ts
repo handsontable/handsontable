@@ -71,7 +71,7 @@ declare namespace _Handsontable {
     isListening(): boolean;
     listen(): void;
     loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[]): void;
-    populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: Handsontable.ChangeSource, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void; // TODO: better type for `deltas`
+    populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: Handsontable.ChangeSource, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
     propToCol(prop: string | number): number;
     removeCellMeta(row: number, col: number, key: string): void;
     removeHook<K extends keyof Handsontable.Events>(key: K, callback: Handsontable.Events[K]): void;
@@ -110,7 +110,9 @@ declare namespace Handsontable {
 
   // TODO: these are default known values, but users can extend with their own -- use type arguments?
   type CellValue = any; // string | number | boolean | null | undefined;
+  type CellChange = [number, string | number, CellValue, CellValue]; // [row, column, prevValue, nextValue]
   type RowObject = object; // { [prop: string]: CellValue }
+  type ColProp = string | number;
   type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' | 'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' | 'Autofill.fill' | 'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' | 'ContextMenu.columnRight' | 'ContextMenu.removeColumn' | 'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' | 'CopyPaste.paste' | 'ObserveChanges.change' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'GantChart.loadData' | 'ColumnSummary.set' | 'ColumnSummary.reset';
   type CellType = 'autocomplete' | 'checkbox' | 'date' | 'dropdown' | 'handsontable' | 'numeric' | 'password' | 'text' | 'time';
 
@@ -194,20 +196,20 @@ declare namespace Handsontable {
       beginEditing(initialValue?: CellValue): void;
       cancelChanges(): void;
       checkEditorSection(): 'top-left-corner' | 'top' | 'bottom-left-corner' | 'bottom' | 'left' | '' ;
-      close(): void; // TODO: abstract
+      close(): void; // abstract
       discardEditor(validationResult?: boolean): void;
       enableFullEditMode(): void;
       extend<T extends editors.Base>(): T;
       finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
-      getValue(): CellValue; // TODO: abstract
+      getValue(): CellValue; // abstract
       init(): void;
       isInFullEditMode(): boolean;
       isOpened(): boolean;
       isWaiting(): boolean;
-      open(): void; // TODO: abstract
+      open(): void; // abstract
       prepare(row: number, col: number, prop: string | number, TD: HTMLElement, originalValue: CellValue, cellProperties: CellProperties): void;
       saveValue(val?: CellValue, ctrlDown?: boolean): void;
-      setValue(newValue?: CellValue): void; // TODO: abstract
+      setValue(newValue?: CellValue): void; // abstract
     }
 
     class Checkbox extends Base {}
@@ -316,6 +318,12 @@ declare namespace Handsontable {
       type OperationType = 'conjunction' | 'disjunction';
       type ConditionName = 'begins_with' | 'between' | 'by_value' | 'contains' | 'empty' | 'ends_with' | 'eq' | 'gt' |
         'gte' | 'lt' | 'lte' | 'not_between' | 'not_contains' | 'not_empty' | 'neq';
+
+      type ColumnConditions = {
+        column: number;
+        conditions: Handsontable.plugins.FiltersPlugin.ConditionId[];
+        operation: Handsontable.plugins.FiltersPlugin.OperationType;
+      }
 
       interface ConditionId {
         args: any[];
@@ -1004,6 +1012,43 @@ declare namespace Handsontable {
       save(axis: string, index: number, amount: number): void;
     }
 
+    namespace UndoRedoAction {
+      type Change = {
+        actionType: 'change';
+        changes: CellChange[];
+      };
+      type InsertRow = {
+        actionType: 'insert_row';
+        amount: number;
+        index: number;
+      }
+      type RemoveRow = {
+        actionType: 'remove_row';
+        index: number;
+        data: CellValue[][];
+      }
+      type InsertCol = {
+        actionType: 'insert_col';
+        amount: number;
+        index: number;
+      }
+      type RemoveCol = {
+        actionType: 'remove_col';
+        amount: number;
+        columnPositions: number[];
+        index: number;
+        indexes: number[];
+        headers: string[];
+        data: CellValue[][];
+      }
+      type Filter = {
+        actionType: 'filter';
+        conditionsStack: FiltersPlugin.ColumnConditions[];
+      }
+    }
+    
+    type UndoRedoAction = UndoRedoAction.Change | UndoRedoAction.InsertRow | UndoRedoAction.RemoveRow | UndoRedoAction.InsertCol | UndoRedoAction.RemoveCol | UndoRedoAction.Filter;
+
     interface Formulas extends Base {
       dataProvider: DataProvider;
       eventManager: EventManager;
@@ -1467,10 +1512,10 @@ declare namespace Handsontable {
   }
 
   interface ColumnSettings extends Pick<GridSettings, Exclude<keyof GridSettings, "data">> {
-    data: string | number | GetterSetterFunction;
+    data: string | number | ColumnDataGetterSetterFunction;
   }
 
-  interface GetterSetterFunction {
+  interface ColumnDataGetterSetterFunction {
     (row: RowObject | CellValue[]): CellValue;
     (row: RowObject | CellValue[], value: CellValue): void;
   }
@@ -1484,11 +1529,11 @@ declare namespace Handsontable {
     allowInvalid?: boolean;
     allowRemoveColumn?: boolean;
     allowRemoveRow?: boolean;
-    autoColumnSize?: AutoSizeSettings | boolean;
-    autoRowSize?: AutoSizeSettings | boolean;
+    autoColumnSize?: autoColumnSize.Settings | boolean;
+    autoRowSize?: autoRowSize.Settings | boolean;
     autoWrapCol?: boolean;
     autoWrapRow?: boolean;
-    bindRowsWithHeaders?: boolean | string; // pro
+    bindRowsWithHeaders?: boolean | 'loose' | 'strict'; // pro
     cell?: CellSettings[];
     cells?: (this: CellProperties, row: number, col: number, prop: string | number) => GridSettings;
     checkedTemplate?: boolean | string | number;
@@ -1582,7 +1627,7 @@ declare namespace Handsontable {
     source?: string[] | ((this: CellProperties, query: string, callback: (items: string[]) => void) => void);
     startCols?: number;
     startRows?: number;
-    stretchH?: string;
+    stretchH?: 'none' | 'all' | 'last';
     strict?: boolean;
     tableClassName?: string | string[];
     tabMoves?: wot.CellCoords | ((event: KeyboardEvent) => wot.CellCoords);
@@ -1602,43 +1647,43 @@ declare namespace Handsontable {
   }
 
   interface Events {
-    afterAddChild?: (parent: object, element: object | void, index: number | void) => void;
+    afterAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
     afterBeginEditing?: (row: number, column: number) => void;
     afterCellMetaReset?: () => void;
-    afterChange?: (changes: [number, string | number, any, any][], source: string) => void;
+    afterChange?: (changes: CellChange[], source: ChangeSource) => void;
     afterChangesObserved?: () => void;
     afterColumnMove?: (startColumn: number, endColumn: number) => void;
     afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
-    afterColumnSort?: (currentSortConfig: object[], destinationSortConfigs: object[]) => void;
-    afterContextMenuDefaultOptions?: (predefinedItems: any[]) => void;
-    afterContextMenuHide?: (context: Handsontable.plugins.ContextMenu) => void;
-    afterContextMenuShow?: (context: Handsontable.plugins.ContextMenu) => void;
-    afterCopy?: (data: any[], coords: any[]) => void;
+    afterColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void;
+    afterContextMenuDefaultOptions?: (predefinedItems: (contextMenu.PredefinedMenuItemKey | contextMenu.MenuItemConfig)[]) => void;
+    afterContextMenuHide?: (context: plugins.ContextMenu) => void;
+    afterContextMenuShow?: (context: plugins.ContextMenu) => void;
+    afterCopy?: (data: CellValue[][], coords: plugins.RangeType[]) => void;
     afterCopyLimit?: (selectedRows: number, selectedColumnds: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
     afterCreateCol?: (index: number, amount: number) => void;
     afterCreateRow?: (index: number, amount: number) => void;
-    afterCut?: (data: any[], coords: any[]) => void;
+    afterCut?: (data: CellValue[][], coords: plugins.RangeType[]) => void;
     afterDeselect?: () => void;
     afterDestroy?: () => void;
-    afterDetachChild?: (parent: object, element: object) => void;
-    afterDocumentKeyDown?: (event: Event) => void;
+    afterDetachChild?: (parent: RowObject, element: RowObject) => void;
+    afterDocumentKeyDown?: (event: KeyboardEvent) => void;
     afterDrawSelection?: (currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel: number | void) => string | void
-    afterDropdownMenuDefaultOptions?: (predefinedItems: any[]) => void;
-    afterDropdownMenuHide?: (instance: Handsontable.plugins.DropdownMenu) => void;
-    afterDropdownMenuShow?: (instance: Handsontable.plugins.DropdownMenu) => void;
-    afterFilter?: (formulasStack: any[]) => void;
+    afterDropdownMenuDefaultOptions?: (predefinedItems: (contextMenu.PredefinedMenuItemKey | contextMenu.MenuItemConfig)[]) => void;
+    afterDropdownMenuHide?: (instance: plugins.DropdownMenu) => void;
+    afterDropdownMenuShow?: (instance: plugins.DropdownMenu) => void;
+    afterFilter?: (conditionsStack: plugins.FiltersPlugin.ColumnConditions[]) => void;
     afterGetCellMeta?: (row: number, col: number, cellProperties: CellProperties) => void;
     afterGetColHeader?: (col: number, TH: Element) => void;
-    afterGetColumnHeaderRenderers?: (array: any[]) => void;
+    afterGetColumnHeaderRenderers?: (renderers: ((col: number, TH: Element) => void)[]) => void;
     afterGetRowHeader?: (row: number, TH: Element) => void;
-    afterGetRowHeaderRenderers?: (array: any[]) => void;
+    afterGetRowHeaderRenderers?: (renderers: ((row: number, TH: Element) => void)[]) => void;
     afterInit?: () => void;
     afterLanguageChange?: (languageCode: string) => void;
     afterListen?: () => void;
-    afterLoadData?: (firstTime: boolean) => void;
-    afterMergeCells?: (cellRange: wot.CellRange, mergeParent: object, auto: boolean) => void;
-    afterModifyTransformEnd?: (coords: wot.CellCoords, rowTransformDir: number, colTransformDir: number) => void;
-    afterModifyTransformStart?: (coords: wot.CellCoords, rowTransformDir: number, colTransformDir: number) => void;
+    afterLoadData?: (initialLoad: boolean) => void;
+    afterMergeCells?: (cellRange: wot.CellRange, mergeParent: mergeCells.Settings, auto: boolean) => void;
+    afterModifyTransformEnd?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
+    afterModifyTransformStart?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
     afterMomentumScroll?: () => void;
     afterOnCellContextMenu?: (event: MouseEvent, coords: wot.CellCoords, TD: Element) => void;
     afterOnCellCornerDblClick?: (event: MouseEvent) => void;
@@ -1647,9 +1692,9 @@ declare namespace Handsontable {
     afterOnCellMouseOver?: (event: MouseEvent, coords: wot.CellCoords, TD: Element) => void;
     afterOnCellMouseOut?: (event: MouseEvent, coords: wot.CellCoords, TD: Element) => void;
     afterOnCellMouseUp?: (event: MouseEvent, coords: wot.CellCoords, TD: Element) => void;
-    afterPaste?: (data: any[], coords: any[]) => void;
+    afterPaste?: (data: CellValue[][], coords: plugins.RangeType[]) => void;
     afterPluginsInitialized?: () => void;
-    afterRedo?: (action: object) => void;
+    afterRedo?: (action: plugins.UndoRedoAction) => void;
     afterRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
     afterRemoveCol?: (index: number, amount: number) => void;
     afterRemoveRow?: (index: number, amount: number) => void;
@@ -1659,84 +1704,83 @@ declare namespace Handsontable {
     afterRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => void;
     afterScrollHorizontally?: () => void;
     afterScrollVertically?: () => void;
-    afterSelection?: (r: number, c: number, r2: number, c2: number, preventScrolling: object, selectionLayerLevel: number) => void;
-    afterSelectionByProp?: (r: number, p: string, r2: number, p2: string, preventScrolling: object, selectionLayerLevel: number) => void;
+    afterSelection?: (r: number, c: number, r2: number, c2: number, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
+    afterSelectionByProp?: (r: number, p: string, r2: number, p2: string, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
     afterSelectionEnd?: (r: number, c: number, r2: number, c2: number, selectionLayerLevel: number) => void;
     afterSelectionEndByProp?: (r: number, p: string, r2: number, p2: string, selectionLayerLevel: number) => void;
     afterSetCellMeta?: (row: number, col: number, key: string, value: any) => void;
-    afterSetDataAtCell?: (changes: any[], source?: string) => void;
-    afterSetDataAtRowProp?: (changes: any[], source?: string) => void;
-    afterTrimRow?: (rows: any[]) => void;
-    afterUndo?: (action: object) => void;
+    afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
+    afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
+    afterTrimRow?: (rows: number[]) => void;
+    afterUndo?: (action: plugins.UndoRedoAction) => void;
     afterUnlisten?: () => void;
     afterUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
-    afterUntrimRow?: (rows: any[]) => void;
-    afterUpdateSettings?: () => void;
-    afterValidate?: (isValid: boolean, value: any, row: number, prop: string | number, source: string) => void | boolean;
-    afterViewportColumnCalculatorOverride?: (calc: object) => void;
-    afterViewportRowCalculatorOverride?: (calc: object) => void;
-    beforeAddChild?: (parent: object, element: object | void, index: number | void) => void;
-    beforeAutofill?: (start: object, end: object, data: any[]) => void;
-    beforeAutofillInsidePopulate?: (index: object, direction: string, input: any[], deltas: any[]) => void;
-    beforeCellAlignment?: (stateBefore: any, range: any, type: string, alignmentClass: string) => void;
-    beforeChange?: (changes: [number, string | number, any, any][], source: string) => void;
-    beforeChangeRender?: (changes: any[], source: string) => void;
+    afterUntrimRow?: (rows: number[]) => void;
+    afterUpdateSettings?: (newSettings: GridSettings) => void;
+    afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number, source: ChangeSource) => void | boolean;
+    afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
+    afterViewportRowCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
+    beforeAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
+    beforeAutofill?: (start: wot.CellCoords, end: wot.CellCoords, data: CellValue[][]) => void;
+    beforeAutofillInsidePopulate?: (index: wot.CellCoords, direction: 'up' | 'down' | 'left' | 'right', input: CellValue[][], deltas: any[]) => void;
+    beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: wot.CellRange[], type: 'horizontal' | 'vertical', alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
+    beforeChange?: (changes: CellChange[], source: ChangeSource) => void;
+    beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
     beforeColumnMove?: (columns: number[], target: number) => void;
     beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
-    beforeColumnSort?: (currentSortConfig: object[], destinationSortConfigs: object[]) => void;
-    beforeContextMenuSetItems?: (menuItems: any[]) => void;
-    beforeContextMenuShow?: (context: Handsontable.plugins.ContextMenu) => void;
-    beforeCopy?: (data: any[], coords: any[]) => any;
-    beforeCreateCol?: (index: number, amount: number, source?: string) => void;
-    beforeCreateRow?: (index: number, amount: number, source?: string) => void;
-    beforeCut?: (data: any[], coords: any[]) => any;
-    beforeDetachChild?: (parent: object, element: object) => void;
-    beforeDrawBorders?: (corners: any[], borderClassName: string) => void;
-    beforeDropdownMenuSetItems?: (menuItems: any[]) => void;
-    beforeDropdownMenuShow?: (instance: Handsontable.plugins.DropdownMenu) => void;
-    beforeFilter?: (formulasStack: any[]) => void;
+    beforeColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void;
+    beforeContextMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
+    beforeContextMenuShow?: (context: plugins.ContextMenu) => void;
+    beforeCopy?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
+    beforeCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
+    beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
+    beforeCut?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
+    beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
+    beforeDrawBorders?: (corners: number[], borderClassName: 'current' | 'area' | 'highlight' | undefined) => void;
+    beforeDropdownMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
+    beforeDropdownMenuShow?: (instance: plugins.DropdownMenu) => void;
+    beforeFilter?: (formulasStack: plugins.FiltersPlugin.ColumnConditions[]) => void;
     beforeGetCellMeta?: (row: number, col: number, cellProperties: CellProperties) => void;
     beforeInit?: () => void;
     beforeInitWalkontable?: (walkontableConfig: object) => void;
-    beforeKeyDown?: (event: Event) => void;
+    beforeKeyDown?: (event: KeyboardEvent) => void;
     beforeLanguageChange?: (languageCode: string) => void;
     beforeMergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
-    beforeOnCellContextMenu?: (event: object, coords: object, TD: Element) => void;
-    beforeOnCellMouseDown?: (event: Event, coords: object, TD: Element, controller: object) => void;
-    beforeOnCellMouseOut?: (event: Event, coords: wot.CellCoords, TD: Element) => void;
-    beforeOnCellMouseOver?: (event: Event, coords: wot.CellCoords, TD: Element, controller: object) => void;
-    beforeOnCellMouseUp?: (event: Event, coords: wot.CellCoords, TD: Element, controller: object) => void;
-    beforePaste?: (data: any[], coords: any[]) => any;
+    beforeOnCellContextMenu?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
+    beforeOnCellMouseDown?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
+    beforeOnCellMouseOut?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
+    beforeOnCellMouseOver?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
+    beforeOnCellMouseUp?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
+    beforePaste?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
     beforeRemoveCellClassNames?: () => string[] | void;
     beforeRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
-    beforeRedo?: (action: object) => void;
-    beforeRemoveCol?: (index: number, amount: number, logicalCols?: any[]) => void;
-    beforeRemoveRow?: (index: number, amount: number, logicalRows?: any[]) => void;
-    beforeRender?: (isForced: boolean, skipRender: object) => void;
-    beforeRenderer?: (TD: Element, row: number, col: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
+    beforeRedo?: (action: plugins.UndoRedoAction) => void;
+    beforeRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
+    beforeRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
+    beforeRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
+    beforeRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
     beforeRowMove?: (columns: number[], target: number) => void;
-    beforeRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => any;
+    beforeRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => number | undefined;
     beforeSetRangeEnd?: (coords: wot.CellCoords) => void;
     beforeSetRangeStart?: (coords: wot.CellCoords) => void;
     beforeSetRangeStartOnly?: (coords: wot.CellCoords) => void;
     beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void;
     beforeTouchScroll?: () => void;
-    beforeUndo?: (action: object) => void;
+    beforeUndo?: (action: plugins.UndoRedoAction) => void;
     beforeUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
-    beforeValidate?: (value: any, row: number, prop: string | number, source?: string) => void;
-    beforeValueRender?: (value: any, cellProperties: object) => void;
+    beforeValidate?: (value: CellValue, row: number, prop: string | number, source?: ChangeSource) => void;
+    beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
     construct?: () => void;
     hiddenColumn?: (column: number) => void;
     hiddenRow?: (row: number) => void;
     init?: () => void;
-    manualRowHeights?: (state: any[]) => void;
-    modifyAutofillRange?: (startArea: any[], entireArea: any[]) => void;
+    modifyAutofillRange?: (startArea: [number, number, number, number][], entireArea: [number, number, number, number][]) => void;
     modifyCol?: (col: number) => void;
     modifyColHeader?: (column: number) => void;
     modifyColumnHeaderHeight?: () => void;
     modifyColWidth?: (width: number, col: number) => void;
-    modifyCopyableRange?: (copyableRanges: any[]) => void;
-    modifyData?: (row: number, column: number, valueHolder: object, ioMode: string) => void;
+    modifyCopyableRange?: (copyableRanges: plugins.RangeType[]) => void;
+    modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
     modifyGetCellCoords?: (row: number, column: number, topmost: boolean) => void;
     modifyRow?: (row: number) => void;
     modifyRowData?: (row: number) => void;
@@ -1746,7 +1790,7 @@ declare namespace Handsontable {
     modifyRowSourceData?: (row: number) => void;
     modifyTransformEnd?: (delta: wot.CellCoords) => void;
     modifyTransformStart?: (delta: wot.CellCoords) => void;
-    persistentStateLoad?: (key: string, valuePlaceholder: object) => void;
+    persistentStateLoad?: (key: string, valuePlaceholder: { value: any }) => void;
     persistentStateReset?: (key: string) => void;
     persistentStateSave?: (key: string, value: any) => void;
     skipLengthCache?: (delay: number) => void;
@@ -1790,6 +1834,30 @@ declare namespace Handsontable {
     value?: string | (() => string);
   }
 
+  interface ViewportColumnsCalculator {
+    count: number;
+    startColumn: number | null;
+    endColumn: number | null;
+    startPosition: number | number;
+    startRow?: number;
+    endRow?: number;
+    stretchAllRatio: number;
+    stretchLastWidth: number;
+    stretch: 'none' | 'all' | 'last';
+    totalTargetWidth: number;
+    needVerifyLastColumnWidth: boolean;
+    stretchAllColumnsWidth: number[];
+    calculate(): void;
+    refreshStretching(totalWidth: number): void;
+    getStretchedColumnWidth(column: number, baseWidth: number): number | null;
+  }
+
+  interface SelectionController {
+    row: boolean;
+    column: boolean;
+    cells: boolean;
+  }
+
   namespace I18n {
     type LanguageDictionary = {
       [phraseKey: string]: string | string[];
@@ -1818,7 +1886,11 @@ declare namespace Handsontable {
     registerCellType(name: string, type: CellTypeObject);
   }
 
-  type CellTypeObject = { renderer?: renderers.Base, editor: typeof editors.BaseEditor, validator: validators.Base };
+  interface CellTypeObject {
+    renderer?: renderers.Base;
+    editor?: typeof editors.BaseEditor;
+    validator?: validators.Base;
+  }
 
   interface Editors {
     AutocompleteEditor: editors.Autocomplete;
@@ -2200,8 +2272,16 @@ declare namespace Handsontable {
     }
   }
 
-  interface AutoSizeSettings { 
-    syncLimit?: string | number;
+  namespace autoColumnSize {
+    interface Settings { 
+      syncLimit?: string | number;
+    }
+  }
+
+  namespace autoRowSize {
+    interface Settings { 
+      syncLimit?: string | number;
+    }
   }
 
   namespace collapsibleColumns {
