@@ -111,7 +111,8 @@ export function _injectProductInfo(key, element) {
       }
 
     } else if (isTrial) {
-      warningMessage = 'Evaluation version of Handsontable. Not licensed for use in a production environment.';
+      warningMessage = false;
+      showDomMessage = false;
     } else {
       warningMessage = 'The license key provided to Handsontable is invalid. Make sure you pass it correctly.';
     }

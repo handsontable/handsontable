@@ -48,15 +48,15 @@ Assuming that you have already installed Handsontable, create an empty `<div>` e
 ```
 In the next step, pass a reference to that `<div>` element into the Handsontable constructor and fill the instance with sample data:
 ```javascript
-var data = [
+const data = [
   ["", "Tesla", "Volvo", "Toyota", "Honda"],
   ["2017", 10, 11, 12, 13],
   ["2018", 20, 11, 14, 13],
-  ["2019", 30, 15, 12, 13]
+  ["2019", 30, 15, 12, 13],
 ];
 
-var container = document.getElementById('example');
-var hot = new Handsontable(container, {
+const container = document.getElementById('example');
+const hot = new Handsontable(container, {
   data: data,
   rowHeaders: true,
   colHeaders: true,
