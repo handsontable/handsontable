@@ -71,6 +71,7 @@ declare namespace _Handsontable {
     propToCol(prop: string | number): number;
     removeCellMeta(row: number, col: number, key: string): void;
     removeHook(key: string, callback: (() => void) | (() => void)[]): void;
+    refreshDimensions(): void;
     render(): void;
     rowOffset(): number;
     runHooks(key: string, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
@@ -1616,12 +1617,12 @@ declare namespace Handsontable {
     afterPaste?: (data: any[], coords: any[]) => void;
     afterPluginsInitialized?: () => void;
     afterRedo?: (action: object) => void;
+    afterRefreshDimensions?: (previousDimensions: object, currentDimensions: object, stateChanged: boolean) => void;
     afterRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
     afterRemoveCol?: (index: number, amount: number) => void;
     afterRemoveRow?: (index: number, amount: number) => void;
     afterRender?: (isForced: boolean) => void;
     afterRenderer?: (TD: Element, row: number, col: number, prop: string | number, value: string, cellProperties: GridSettings) => void;
-    afterResize?: (event: Event) => void;
     afterRowMove?: (startRow: number, endRow: number) => void;
     afterRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => void;
     afterScrollHorizontally?: () => void;
@@ -1681,11 +1682,11 @@ declare namespace Handsontable {
     beforeRemoveCellClassNames?: () => string[] | void;
     beforeRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
     beforeRedo?: (action: object) => void;
+    beforeRefreshDimensions?: (previousDimensions: object, currentDimensions: object, actionPossible: boolean) => boolean | void;
     beforeRemoveCol?: (index: number, amount: number, logicalCols?: any[]) => void;
     beforeRemoveRow?: (index: number, amount: number, logicalRows?: any[]) => void;
     beforeRender?: (isForced: boolean, skipRender: object) => void;
     beforeRenderer?: (TD: Element, row: number, col: number, prop: string | number, value: string, cellProperties: GridSettings) => void;
-    beforeResize?: (event: Event) => void;
     beforeRowMove?: (columns: number[], target: number) => void;
     beforeRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => any;
     beforeSetRangeEnd?: (coords: wot.CellCoords) => void;

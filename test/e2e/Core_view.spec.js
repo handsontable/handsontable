@@ -439,10 +439,10 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
 
-    const beforeResizeCallback = jasmine.createSpy('beforeResizeCallback');
+    const beforeRefreshDimensionsCallback = jasmine.createSpy('beforeRefreshDimensionsCallback');
 
     handsontable({
-      beforeResize: beforeResizeCallback,
+      beforeRefreshDimensions: beforeRefreshDimensionsCallback,
     });
 
     spec().$container[0].style.width = '40%';
@@ -452,7 +452,7 @@ describe('Core_view', () => {
 
     await sleep(300);
 
-    expect(beforeResizeCallback.calls.count()).toBe(1);
+    expect(beforeRefreshDimensionsCallback.calls.count()).toBe(1);
   });
 
   it('should fire afterResize event after window resize', async() => {
@@ -460,10 +460,10 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
 
-    const afterResizeCallback = jasmine.createSpy('afterResizeCallback');
+    const afterRefreshDimensionsCallback = jasmine.createSpy('afterRefreshDimensions');
 
     handsontable({
-      afterResize: afterResizeCallback,
+      afterRefreshDimensions: afterRefreshDimensionsCallback,
     });
 
     spec().$container[0].style.width = '40%';
@@ -473,30 +473,7 @@ describe('Core_view', () => {
 
     await sleep(300);
 
-    expect(afterResizeCallback.calls.count()).toBe(1);
-  });
-
-  it('should not call beforeResize and afterResize if containers\' width doesn\'t changed', async() => {
-    spec().$container[0].style.width = '50%';
-    spec().$container[0].style.height = '60px';
-    spec().$container[0].style.overflow = 'hidden';
-
-    const beforeResizeCallback = jasmine.createSpy('beforeResizeCallback');
-    const afterResizeCallback = jasmine.createSpy('afterResizeCallback');
-
-    handsontable({
-      beforeResize: beforeResizeCallback,
-      afterResize: afterResizeCallback,
-    });
-
-    const evt = document.createEvent('CustomEvent'); // MUST be 'CustomEvent'
-    evt.initCustomEvent('resize', false, false, null);
-    window.dispatchEvent(evt);
-
-    await sleep(300);
-
-    expect(beforeResizeCallback.calls.count()).toBe(0);
-    expect(beforeResizeCallback.calls.count()).toBe(0);
+    expect(afterRefreshDimensionsCallback.calls.count()).toBe(1);
   });
 
   it('should be possible to block auto resize after window resize', async() => {
@@ -504,14 +481,14 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
 
-    const beforeResizeCallback = jasmine.createSpy('beforeResizeCallback');
-    const afterResizeCallback = jasmine.createSpy('afterResizeCallback');
+    const beforeRefreshDimensionsCallback = jasmine.createSpy('beforeRefreshDimensionsCallback');
+    const afterRefreshDimensionsCallback = jasmine.createSpy('afterRefreshDimensionsCallback');
 
-    beforeResizeCallback.and.callFake(() => false);
+    beforeRefreshDimensionsCallback.and.callFake(() => false);
 
     handsontable({
-      beforeResize: beforeResizeCallback,
-      afterResize: afterResizeCallback,
+      beforeRefreshDimensions: beforeRefreshDimensionsCallback,
+      afterRefreshDimensions: afterRefreshDimensionsCallback,
     });
 
     spec().$container[0].style.width = '40%';
@@ -521,8 +498,8 @@ describe('Core_view', () => {
 
     await sleep(300);
 
-    expect(beforeResizeCallback.calls.count()).toBe(1);
-    expect(afterResizeCallback.calls.count()).toBe(0);
+    expect(beforeRefreshDimensionsCallback.calls.count()).toBe(1);
+    expect(afterRefreshDimensionsCallback.calls.count()).toBe(0);
   });
 
   // TODO fix these tests - https://github.com/handsontable/handsontable/issues/1559

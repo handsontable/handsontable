@@ -271,11 +271,11 @@ class Overlays {
 
     let resizeTimeout;
 
-    listenersToRegister.push([rootWindow, 'resize', (event) => {
+    listenersToRegister.push([rootWindow, 'resize', () => {
       clearTimeout(resizeTimeout);
 
       resizeTimeout = setTimeout(() => {
-        this.wot.getSetting('onWindowResize', event);
+        this.wot.getSetting('onWindowResize');
       }, 200);
     }]);
 

@@ -430,23 +430,12 @@ class TableView {
       },
       selections: this.instance.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
-      onWindowResize: (event) => {
+      onWindowResize: () => {
         if (!this.instance || this.instance.isDestroyed) {
           return;
         }
 
-        const isWindowScrollableElement = this.wt.wtOverlays.scrollableElement === this.instance.rootWindow;
-        const { width, height } = this.instance.rootElement.getBoundingClientRect();
-        const isSizeChanged = width !== priv.lastWidth || height !== priv.lastHeight;
-
-        if (!isWindowScrollableElement || !isSizeChanged || this.instance.runHooks('beforeResize', event) === false) {
-          return;
-        }
-
-        [priv.lastWidth, priv.lastHeight] = [width, height];
-
-        this.instance.render();
-        this.instance.runHooks('afterResize', event);
+        this.instance.refreshDimensions();
       },
       onCellMouseDown: (event, coords, TD, wt) => {
         const blockCalculations = {
@@ -614,7 +603,7 @@ class TableView {
     // We have to cache width and height after Walkontable initialization.
     const { width, height } = this.instance.rootElement.getBoundingClientRect();
 
-    [priv.lastWidth, priv.lastHeight] = [width, height];
+    this.setLastSize(width, height);
 
     this.eventManager.addEventListener(spreader, 'mousedown', (event) => {
       // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
@@ -824,6 +813,24 @@ class TableView {
     const maxHeight = workspaceHeight - topOffset;
 
     return maxHeight > 0 ? maxHeight : 0;
+  }
+
+  /**
+   * Sets new dimensions of the container.
+   */
+  setLastSize(width, height) {
+    const priv = privatePool.get(this);
+
+    [priv.lastWidth, priv.lastHeight] = [width, height];
+  }
+
+  /**
+   * Returns cached dimensions.
+   */
+  getLastSize() {
+    const priv = privatePool.get(this);
+
+    return { width: priv.lastWidth, height: priv.lastHeight };
   }
 
   /**
