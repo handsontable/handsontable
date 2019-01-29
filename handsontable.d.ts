@@ -194,20 +194,20 @@ declare namespace Handsontable {
       beginEditing(initialValue?: CellValue): void;
       cancelChanges(): void;
       checkEditorSection(): 'top-left-corner' | 'top' | 'bottom-left-corner' | 'bottom' | 'left' | '' ;
-      close(): void;
+      close(): void; // TODO: abstract
       discardEditor(validationResult?: boolean): void;
       enableFullEditMode(): void;
       extend<T extends editors.Base>(): T;
       finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
-      getValue(): CellValue;
+      getValue(): CellValue; // TODO: abstract
       init(): void;
       isInFullEditMode(): boolean;
       isOpened(): boolean;
       isWaiting(): boolean;
-      open(): void;
+      open(): void; // TODO: abstract
       prepare(row: number, col: number, prop: string | number, TD: HTMLElement, originalValue: CellValue, cellProperties: CellProperties): void;
       saveValue(val?: CellValue, ctrlDown?: boolean): void;
-      setValue(newValue?: CellValue): void;
+      setValue(newValue?: CellValue): void; // TODO: abstract
     }
 
     class Checkbox extends Base {}
@@ -1461,7 +1461,9 @@ declare namespace Handsontable {
     visualRow: number;
     visualCol: number;
     prop: string | number;
+    valid?: boolean;
     comment?: comments.CommentObject;
+    isSearchResult?: boolean;
   }
 
   interface ColumnSettings extends Pick<GridSettings, Exclude<keyof GridSettings, "data">> {
@@ -1500,7 +1502,7 @@ declare namespace Handsontable {
     colWidths?: number | number[] | string | string[] | ((index: number) => string);
     commentedCellClassName?: string;
     comments?: boolean | comments.Settings;
-    contextMenu?: boolean | contextMenu.MenuItemKey[] | contextMenu.Settings;
+    contextMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
     copyable?: boolean;
     copyColsLimit?: number;
     copyPaste?: boolean;
@@ -1519,7 +1521,7 @@ declare namespace Handsontable {
     defaultDate?: string;
     disableVisualSelection?: boolean | 'current' | 'area' | 'header' | ('current' | 'area' | 'header')[];
     dragToScroll?: boolean;
-    dropdownMenu?: boolean | contextMenu.MenuItemKey[] | contextMenu.Settings; // pro
+    dropdownMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings; // pro
     editor?: CellType | editors.Base | boolean;
     enterBeginsEditing?: boolean;
     enterMoves?: wot.CellCoords | ((event: KeyboardEvent) => wot.CellCoords);
@@ -1591,7 +1593,6 @@ declare namespace Handsontable {
     type?: CellType;
     uncheckedTemplate?: boolean | string;
     undo?: boolean;
-    valid?: boolean;
     validator?: validators.Base | RegExp | CellType;
     viewportColumnRenderingOffset?: number | string;
     viewportRowRenderingOffset?: number | string;
@@ -2136,15 +2137,42 @@ declare namespace Handsontable {
   }
   
   namespace contextMenu {
-    interface Options {
+    interface Selection {
       start: wot.CellCoords,
       end: wot.CellCoords
     }
     interface Settings {
-      callback: (key: string, options: contextMenu.Options) => void;
-      items: any; // TODO: define this type
+      callback?: (key: string, selection: Selection[], clickEvent: MouseEvent) => void;
+      items: PredefinedMenuItemKey[] | MenuConfig;
     }
-    type MenuItemKey = 'row_above' | 'row_below' | 'col_left' | 'col_right' | '---------' | 'remove_row' | 'remove_col' | 'clear_column' | 'undo' | 'redo' | 'make_read_only' | 'alignment' | 'cut' | 'copy' | 'freeze_column' | 'unfreeze_column' | 'borders' | 'commentsAddEdit' | 'commentsRemove' | 'commentsReadOnly' | 'mergeCells' | 'add_child' | 'detach_from_parent' | 'hidden_columns_hide' | 'hidden_columns_show' | 'hidden_rows_hide' | 'hidden_rows_show' | 'filter_by_condition' | 'filter_operators' | 'filter_by_condition2' | 'filter_by_value' | 'filter_action_bar';
+    type PredefinedMenuItemKey = 'row_above' | 'row_below' | 'col_left' | 'col_right' | '---------' | 'remove_row' | 'remove_col' | 'clear_column' | 'undo' | 'redo' | 'make_read_only' | 'alignment' | 'cut' | 'copy' | 'freeze_column' | 'unfreeze_column' | 'borders' | 'commentsAddEdit' | 'commentsRemove' | 'commentsReadOnly' | 'mergeCells' | 'add_child' | 'detach_from_parent' | 'hidden_columns_hide' | 'hidden_columns_show' | 'hidden_rows_hide' | 'hidden_rows_show' | 'filter_by_condition' | 'filter_operators' | 'filter_by_condition2' | 'filter_by_value' | 'filter_action_bar';
+
+    type MenuConfig = {
+      [key: string]: MenuItemConfig;
+    }
+
+    interface MenuItemConfig {
+      name: string | ((this: _Handsontable.Core) => string);
+      key?: string;
+      hidden?: boolean | ((this: _Handsontable.Core) => boolean);
+      disabled?: boolean | ((this: _Handsontable.Core) => boolean);
+      disableSelection?: boolean;
+      isCommand?: boolean;
+      callback?(this: _Handsontable.Core, key: string, selection: Selection[], clickEvent: MouseEvent): void;
+      renderer?(this: MenuItemConfig, hot: _Handsontable.Core, wrapper: HTMLElement, row: number, col: number, prop: number | string, itemValue: string): HTMLElement;
+      submenu?: SubmenuConfig;
+    }
+
+    interface SubmenuConfig {
+      items: SubmenuItemConfig[];
+    }
+
+    interface SubmenuItemConfig extends Pick<MenuItemConfig, Exclude<keyof MenuItemConfig, "key">> {
+      /**
+       * Submenu item `key` must be defined as "parent_key:sub_key" where "parent_key" is the parent MenuItemConfig key.
+       */
+      key: string;
+    }
   }
 
   namespace columnSorting {
