@@ -434,7 +434,8 @@ class TableView {
 
           [priv.lastWidth, priv.lastHeight] = [width, height];
 
-          this.wt.wtTable.draw();
+          // this.wt.wtTable.draw();
+          this.instance.render();
           this.instance.runHooks('afterResize', event);
         }
       },
