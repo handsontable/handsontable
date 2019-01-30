@@ -34,10 +34,13 @@ declare namespace _Handsontable {
     getActiveEditor<T extends Handsontable.editors.Base>(): T | undefined;
     getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
     getCellEditor<T extends Handsontable.editors.Base>(row: number, col: number): T;
+    getCellEditor<T extends Handsontable.editors.Base>(cellMeta: Handsontable.CellMeta): T;
     getCellMeta(row: number, col: number): Handsontable.CellProperties;
     getCellMetaAtRow(row: number): Handsontable.CellProperties[];
     getCellRenderer(row: number, col: number): Handsontable.renderers.Base;
-    getCellValidator(row: number, col: number): (value: Handsontable.CellValue, callback: (valid: boolean) => void) => void | RegExp | undefined;
+    getCellRenderer(cellMeta: Handsontable.CellMeta): Handsontable.renderers.Base;
+    getCellValidator(row: number, col: number): Handsontable.validators.Base | RegExp | undefined;
+    getCellValidator(cellMeta: Handsontable.CellMeta): Handsontable.validators.Base | RegExp | undefined;
     getColHeader(): (number | string)[];
     getColHeader(col: number): number | string;
     getColWidth(col: number): number;
@@ -50,7 +53,7 @@ declare namespace _Handsontable {
     getDataAtProp(prop: string | number): Handsontable.CellValue[];
     getDataAtRow(row: number): Handsontable.CellValue[];
     getDataAtRowProp(row: number, prop: string): Handsontable.CellValue;
-    getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
+    getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): Handsontable.CellType | 'mixed';
     getInstance(): Handsontable;
     getPlugin<T extends keyof Handsontable.PluginsCollection>(pluginName: T): Handsontable.PluginsCollection[T];
     getRowHeader(): (string | number)[];
@@ -81,7 +84,7 @@ declare namespace _Handsontable {
     populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: Handsontable.ChangeSource, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
     propToCol(prop: string | number): number;
     removeCellMeta(row: number, col: number, key: string): void;
-    removeCellMeta(row: number, col: number, key: keyof Handsontable.CellProperties): void;
+    removeCellMeta(row: number, col: number, key: keyof Handsontable.CellMeta): void;
     removeHook<K extends keyof Handsontable.Events>(key: K, callback: Handsontable.Events[K]): void;
     render(): void;
     rowOffset(): number;
@@ -96,8 +99,8 @@ declare namespace _Handsontable {
     selectColumns(startColumn: number | string, endColumn?: number | string): boolean;
     selectRows(startRow: number, endRow?: number): boolean;
     setCellMeta(row: number, col: number, key: string, val: any): void;
-    setCellMeta<K extends keyof Handsontable.CellProperties>(row: number, col: number, key: K, val: Handsontable.CellProperties[K]): void;
-    setCellMetaObject<T extends Partial<Handsontable.CellProperties>>(row: number, col: number, prop: T): void;
+    setCellMeta<K extends keyof Handsontable.CellMeta>(row: number, col: number, key: K, val: Handsontable.CellMeta[K]): void;
+    setCellMetaObject<T extends Handsontable.CellMeta>(row: number, col: number, prop: T): void;
     setDataAtCell(row: number, col: string | number, value: Handsontable.CellValue, source?: Handsontable.ChangeSource): void;
     setDataAtCell(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: Handsontable.ChangeSource): void;
     setDataAtRowProp(row: number, prop: string, value: Handsontable.CellValue, source?: Handsontable.ChangeSource): void;
@@ -123,7 +126,7 @@ declare namespace Handsontable {
   type CellValue = any; // string | number | boolean | null | undefined;
   type CellChange = [number, string | number, CellValue, CellValue]; // [row, column, prevValue, nextValue]
   type RowObject = object; // { [prop: string]: CellValue }
-  type ColProp = string | number;
+  type SourceData = RowObject | CellValue[]; // TODO
   type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' | 'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' | 'Autofill.fill' | 'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' | 'ContextMenu.columnRight' | 'ContextMenu.removeColumn' | 'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' | 'CopyPaste.paste' | 'ObserveChanges.change' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'GantChart.loadData' | 'ColumnSummary.set' | 'ColumnSummary.reset';
   type CellType = 'autocomplete' | 'checkbox' | 'date' | 'dropdown' | 'handsontable' | 'numeric' | 'password' | 'text' | 'time';
 
@@ -1546,20 +1549,38 @@ declare namespace Handsontable {
 
   interface DefaultSettings extends GridSettings {}
 
-  interface CellProperties extends ColumnSettings {
+  /**
+   * A rendered cell object with computed properties.
+   */
+  interface CellProperties extends CellMeta {
     row: number;
     col: number;
     instance: Handsontable;
     visualRow: number;
     visualCol: number;
     prop: string | number;
+  }
+
+  /**
+   * Additional cell-specific meta data.
+   */
+  interface CellMeta extends ColumnSettings {
     valid?: boolean;
     comment?: comments.CommentObject;
     isSearchResult?: boolean;
+    hidden?: boolean;
+    skipRowOnPaste?: boolean;
   }
 
+  /**
+   * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
+   */
   interface ColumnSettings extends Omit<GridSettings, "data"> {
-    data: string | number | ColumnDataGetterSetterFunction;
+    data?: string | number | ColumnDataGetterSetterFunction;
+    /**
+     * Column and cell meta data is extensible, developers can add any properties they want.
+     */
+    [key: string]: any;
   }
 
   interface ColumnDataGetterSetterFunction {
@@ -1567,6 +1588,9 @@ declare namespace Handsontable {
     (row: RowObject | CellValue[], value: CellValue): void;
   }
 
+  /**
+   * Base table settings that will cascade to columns and cells.
+   */
   interface GridSettings extends Events {
     activeHeaderClassName?: string;
     allowEmpty?: boolean;
@@ -1582,7 +1606,7 @@ declare namespace Handsontable {
     autoWrapRow?: boolean;
     bindRowsWithHeaders?: boolean | 'loose' | 'strict'; // pro
     cell?: CellSettings[];
-    cells?: (this: CellProperties, row: number, col: number, prop: string | number) => GridSettings;
+    cells?: (this: CellProperties, row: number, col: number, prop: string | number) => CellMeta;
     checkedTemplate?: boolean | string | number;
     className?: string | string[];
     colHeaders?: boolean | string[] | ((index: number) => string);
@@ -1881,10 +1905,9 @@ declare namespace Handsontable {
     culture?: string; 
   }
 
-  interface CellSettings extends GridSettings {
+  interface CellSettings extends CellMeta {
     row: number;
     col: number;
-    comment?: comments.CommentObject;
   }
 
   interface LabelOptions {
