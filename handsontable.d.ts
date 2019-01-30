@@ -32,7 +32,7 @@ declare namespace _Handsontable {
     destroyEditor(revertOriginal?: boolean, prepareEditorIfNeeded?: boolean): void;
     emptySelectedCells(): void;
     getActiveEditor<T extends Handsontable.editors.Base>(): T | undefined;
-    getCell(row: number, col: number, topmost?: boolean): Element;
+    getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
     getCellEditor<T extends Handsontable.editors.Base>(row: number, col: number): T;
     getCellMeta(row: number, col: number): Handsontable.GridSettings;
     getCellMetaAtRow(row: number): Handsontable.GridSettings[];
@@ -233,7 +233,7 @@ declare namespace Handsontable {
       setValue(newValue?: any): void;
 
       hideCellPointer(): void;
-      onBeforeKeyDown(event?: Event): void;
+      onBeforeKeyDown(event?: KeyboardEvent): void;
       prepareAndSave(): void;
       scrollToView(): void;
       updateEditorData(): void;
@@ -248,7 +248,7 @@ declare namespace Handsontable {
       setValue(newValue?: any): void;
 
       focus(): void;
-      getEditedCell(): Element | undefined;
+      getEditedCell(): HTMLTableCellElement | undefined;
       prepareOptions(optionsToPrepare?: RowObject | CellValue[]): void;
       refreshDimensions(): void;
       refreshValue(): void;
@@ -267,7 +267,7 @@ declare namespace Handsontable {
       focus(): void;
       hideEditableElement(): void;
       showEditableElement(): void;
-      getEditedCell(): Element | undefined;
+      getEditedCell(): HTMLTableCellElement | undefined;
       refreshDimensions(force?: boolean): void;
       refreshValue(): void;
       TEXTAREA: HTMLInputElement;
@@ -1716,10 +1716,10 @@ declare namespace Handsontable {
     afterDropdownMenuShow?: (instance: plugins.DropdownMenu) => void;
     afterFilter?: (conditionsStack: plugins.FiltersPlugin.ColumnConditions[]) => void;
     afterGetCellMeta?: (row: number, col: number, cellProperties: CellProperties) => void;
-    afterGetColHeader?: (col: number, TH: Element) => void;
-    afterGetColumnHeaderRenderers?: (renderers: ((col: number, TH: Element) => void)[]) => void;
-    afterGetRowHeader?: (row: number, TH: Element) => void;
-    afterGetRowHeaderRenderers?: (renderers: ((row: number, TH: Element) => void)[]) => void;
+    afterGetColHeader?: (col: number, TH: HTMLTableHeaderCellElement) => void;
+    afterGetColumnHeaderRenderers?: (renderers: ((col: number, TH: HTMLTableHeaderCellElement) => void)[]) => void;
+    afterGetRowHeader?: (row: number, TH: HTMLTableHeaderCellElement) => void;
+    afterGetRowHeaderRenderers?: (renderers: ((row: number, TH: HTMLTableHeaderCellElement) => void)[]) => void;
     afterHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterInit?: () => void;
@@ -1730,13 +1730,13 @@ declare namespace Handsontable {
     afterModifyTransformEnd?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
     afterModifyTransformStart?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
     afterMomentumScroll?: () => void;
-    afterOnCellContextMenu?: (event: MouseEvent, coords: wot.CellCoords, TD: Element) => void;
+    afterOnCellContextMenu?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
     afterOnCellCornerDblClick?: (event: MouseEvent) => void;
     afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
-    afterOnCellMouseDown?: (event: MouseEvent, coords: wot.CellCoords, TD: Element) => void;
-    afterOnCellMouseOver?: (event: MouseEvent, coords: wot.CellCoords, TD: Element) => void;
-    afterOnCellMouseOut?: (event: MouseEvent, coords: wot.CellCoords, TD: Element) => void;
-    afterOnCellMouseUp?: (event: MouseEvent, coords: wot.CellCoords, TD: Element) => void;
+    afterOnCellMouseDown?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
+    afterOnCellMouseOver?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
+    afterOnCellMouseOut?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
+    afterOnCellMouseUp?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
     afterPaste?: (data: CellValue[][], coords: plugins.RangeType[]) => void;
     afterPluginsInitialized?: () => void;
     afterRedo?: (action: plugins.UndoRedoAction) => void;
@@ -1744,7 +1744,7 @@ declare namespace Handsontable {
     afterRemoveCol?: (index: number, amount: number) => void;
     afterRemoveRow?: (index: number, amount: number) => void;
     afterRender?: (isForced: boolean) => void;
-    afterRenderer?: (TD: Element, row: number, col: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
+    afterRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
     afterRowMove?: (startRow: number, endRow: number) => void;
     afterRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => void;
     afterScrollHorizontally?: () => void;
