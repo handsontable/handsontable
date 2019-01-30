@@ -68,18 +68,25 @@ describe('RowHeader', () => {
 
   it('should hide rows headers after updateSetting', () => {
     const hot = handsontable({
-      startRows: 5,
+      startCols: 100,
+      startRows: 100,
+      width: 250,
+      height: 200,
       rowHeaders: true
     });
+    let headers = getHtCore().find('tbody th').length;
 
-    expect(getHtCore().find('tbody th').length).toEqual(5);
-    expect(getLeftClone().find('tbody th').length).toEqual(5);
+    expect(headers).toBeGreaterThan(0);
+    expect(getLeftClone().find('tbody th').length).toEqual(headers);
 
     hot.updateSettings({
       rowHeaders: false
     });
 
-    expect(getHtCore().find('tbody th').length).toEqual(0);
+    headers = getHtCore().find('tbody th').length;
+
+    expect(headers).toEqual(0);
+    expect(getLeftClone().width()).toEqual(0);
   });
 
   it('should show rows headers after updateSettings', () => {

@@ -1235,7 +1235,7 @@ describe('MergeCells', () => {
         ]
       });
 
-      hot.selectCell(0, 5, 9, 5);
+      hot.selectColumns(5);
       expect(JSON.stringify(hot.getSelectedLast())).toEqual('[0,5,9,5]');
 
       // it should work only for selecting the entire column
@@ -1251,7 +1251,7 @@ describe('MergeCells', () => {
         ]
       });
 
-      hot.selectCell(5, 0, 5, 9);
+      hot.selectRows(5);
       expect(JSON.stringify(hot.getSelectedLast())).toEqual('[5,0,5,9]');
 
       // it should work only for selecting the entire row

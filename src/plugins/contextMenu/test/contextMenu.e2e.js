@@ -186,15 +186,15 @@ describe('ContextMenu', () => {
 
       $(cell).simulate('mousedown', { button: 2 });
       $(cell).simulate('contextmenu', {
-        clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
-        clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(),
+        clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hot.rootWindow),
+        clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hot.rootWindow),
       });
 
       expect(hot.selection.isInProgress()).toBe(false);
     });
 
     it('should call every selection hooks after right click on table cell', () => {
-      handsontable({
+      const hot = handsontable({
         contextMenu: true,
       });
 
@@ -213,8 +213,8 @@ describe('ContextMenu', () => {
 
       $(cell).simulate('mousedown', { button: 2 });
       $(cell).simulate('contextmenu', {
-        clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
-        clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(),
+        clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hot.rootWindow),
+        clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hot.rootWindow),
       });
 
       expect(afterSelectionCallback.calls.count()).toEqual(1);

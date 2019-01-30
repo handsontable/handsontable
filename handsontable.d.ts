@@ -483,6 +483,7 @@ declare namespace Handsontable {
       cellWidth: number;
       left: number;
       leftRelative: number;
+      rootWindow: Window;
       scrollLeft: number;
       scrollTop: number;
       top: number;
@@ -788,6 +789,7 @@ declare namespace Handsontable {
       editor: HTMLElement;
       editorStyle: CSSStyleDeclaration;
       hidden: boolean;
+      rootDocument: Document;
 
       setPosition(x: number, y: number): void;
       setSize(width: number, height: number): void;
@@ -817,9 +819,10 @@ declare namespace Handsontable {
     }
 
     interface FocusableWrapper {
-      mainElement: HTMLElement;
       eventManager: EventManager;
       listenersCount: WeakSet<HTMLElement>;
+      mainElement: HTMLElement;
+      rootDocument: Document;
 
       useSecondaryElement(): void;
       setFocusableElement(element: HTMLElement): void;
@@ -1468,6 +1471,27 @@ declare namespace Handsontable {
       untrimRow(row: number): void;
       untrimRows(rows: number[]): void;
     }
+    
+    interface Storage {
+      prefix: string;
+      rootWindow: Window;
+      savedKeys: string[];
+      
+      clearSavedKeys(): void;
+      loadSavedKeys(): void;
+      loadValue(key: string, defaultValue: object): any;
+      resetAll(): void;
+      saveSavedKeys(): void;
+      saveValue(key: string, value: any): void;
+    }
+    
+    interface PersistenState extends Base {
+      storage: Storage;
+      
+      loadValue(key: string, saveTo: object): void;
+      saveValue(key: string, value: any): void;
+      resetValue(key: string): void;
+    }
 
     interface Search extends Base {
       callback: () => void;
@@ -1696,6 +1720,8 @@ declare namespace Handsontable {
     afterGetColumnHeaderRenderers?: (renderers: ((col: number, TH: Element) => void)[]) => void;
     afterGetRowHeader?: (row: number, TH: Element) => void;
     afterGetRowHeaderRenderers?: (renderers: ((row: number, TH: Element) => void)[]) => void;
+    afterHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
+    afterHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterInit?: () => void;
     afterLanguageChange?: (languageCode: string) => void;
     afterListen?: () => void;
@@ -1730,11 +1756,13 @@ declare namespace Handsontable {
     afterSetCellMeta?: (row: number, col: number, key: string, value: any) => void;
     afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
     afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
-    afterTrimRow?: (rows: number[]) => void;
+    afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterUndo?: (action: plugins.UndoRedoAction) => void;
     afterUnlisten?: () => void;
+    afterUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
+    afterUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
-    afterUntrimRow?: (rows: number[]) => void;
+    afterUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterUpdateSettings?: (newSettings: GridSettings) => void;
     afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number, source: ChangeSource) => void | boolean;
     afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
@@ -1760,6 +1788,8 @@ declare namespace Handsontable {
     beforeDropdownMenuShow?: (instance: plugins.DropdownMenu) => void;
     beforeFilter?: (formulasStack: plugins.FiltersPlugin.ColumnConditions[]) => void;
     beforeGetCellMeta?: (row: number, col: number, cellProperties: CellProperties) => void;
+    beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
+    beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
     beforeInit?: () => void;
     beforeInitWalkontable?: (walkontableConfig: object) => void;
     beforeKeyDown?: (event: KeyboardEvent) => void;
@@ -1785,8 +1815,12 @@ declare namespace Handsontable {
     beforeSetRangeStartOnly?: (coords: wot.CellCoords) => void;
     beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void;
     beforeTouchScroll?: () => void;
+    beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void;
     beforeUndo?: (action: plugins.UndoRedoAction) => void;
+    beforeUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
+    beforeUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
     beforeUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
+    beforeUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void;
     beforeValidate?: (value: CellValue, row: number, prop: string | number, source?: ChangeSource) => void;
     beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
     construct?: () => void;
@@ -1956,155 +1990,159 @@ declare namespace Handsontable {
 
   interface Helper {
     readonly KEY_CODES: {
-      A: number;
-      ALT: number;
-      ARROW_DOWN: number;
-      ARROW_LEFT: number;
-      ARROW_RIGHT: number;
-      ARROW_UP: number;
-      BACKSPACE: number;
-      C: number;
-      CAPS_LOCK: number;
-      COMMA: number;
-      COMMAND_LEFT: number;
-      COMMAND_RIGHT: number;
-      CONTROL_LEFT: number;
-      DELETE: number;
-      END: number;
-      ENTER: number;
-      ESCAPE: number;
-      F1: number;
-      F2: number;
-      F3: number;
-      F4: number;
-      F5: number;
-      F6: number;
-      F7: number;
-      F8: number;
-      F9: number;
-      F10: number;
-      F11: number;
-      F12: number;
-      HOME: number;
-      INSERT: number;
-      MOUSE_LEFT: number;
-      MOUSE_MIDDLE: number;
-      MOUSE_RIGHT: number;
-      PAGE_DOWN: number;
-      PAGE_UP: number;
-      PERIOD: number;
-      SHIFT: number;
-      SPACE: number;
-      TAB: number;
-      V: number;
-      X: number;
-    };
-    arrayAvg(array: any[]): number;
-    arrayEach(array: any[], iteratee: (value: any, index: number, array: any[]) => void): any[];
-    arrayFilter(array: any[], predicate: (value: any, index: number, array: any[]) => void): any[];
-    arrayFlatten(array: any[]): any[];
-    arrayIncludes(array: any[], searchElement: any, fromIndex: number): any[];
-    arrayMap(array: any[], iteratee: (value: any, index: number, array: any[]) => void): any[];
-    arrayMax(array: any[]): number;
-    arrayMin(array: any[]): number;
-    arrayReduce(array: any[], iteratee: (value: any, index: number, array: any[]) => void, accumulator: any, initFromArray: boolean): any;
-    arraySum(array: any[]): number;
-    arrayUnique(array: any[]): any[];
-    cancelAnimationFrame(id: number): void;
-    cellMethodLookupFactory(methodName: string, allowUndefined: boolean): void;
-    clone(object: object): object;
-    columnFactory(GridSettings: GridSettings, conflictList: any[]): object;
-    createEmptySpreadsheetData(rows: number, columns: number): any[];
-    createObjectPropListener(defaultValue?: any, propertyToListen?: string): object;
-    createSpreadsheetData(rows?: number, columns?: number): any[];
-    createSpreadsheetObjectData(rows?: number, colCount?: number): any[];
-    curry(func: () => void): () => void;
-    curryRight(func: () => void): () => void;
-    debounce(func: () => void, wait?: number): () => void;
-    deepClone(obj: object): object;
-    deepExtend(target: object, extension: object): void;
-    deepObjectSize(object: object): number;
-    defineGetter(object: object, property: any, value: any, options: object): void;
-    duckSchema(object: any[] | object): any[] | object;
-    endsWith(string: string, needle: string): boolean;
-    equalsIgnoreCase(...string: string[]): boolean;
-    extend(target: object, extension: object): void;
-    extendArray(arr: any[], extension: any[]): void;
-    getComparisonFunction(language: string, options?: object): any | void;
-    getNormalizedDate(dateString: string): Date;
-    getProperty(object: object, name: string): any | void;
-    getPrototypeOf(obj: object): any | void;
-    hasCaptionProblem(): boolean | void;
-    inherit(Child: object, Parent: object): object;
-    isChrome(): boolean;
-    isCtrlKey(keyCode: number): boolean;
-    isDefined(variable: any): boolean;
-    isEdge(): boolean;
-    isEmpty(variable: any): boolean;
-    isFunction(func: any): boolean;
-    isIE(): boolean;
-    isIE8(): boolean;
-    isIE9(): boolean;
-    isKey(keyCode: number, baseCode: string): boolean;
-    isMetaKey(keyCode: number): boolean;
-    isMobileBrowser(): boolean;
-    isMSBrowser(): boolean;
-    isNumeric(n: any): boolean;
-    isObject(obj: any): boolean;
-    isObjectEqual(object1: object | any[], object2: object | any[]): boolean;
-    isPercentValue(value: string): boolean;
-    isPrintableChar(keyCode: number): boolean;
-    isSafari(): boolean;
-    isTouchSupported(): boolean;
-    isUndefined(variable: any): boolean;
-    isWebComponentSupportedNatively(): boolean;
-    mixin(Base: object, ...mixins: object[]): object;
-    objectEach(object: object, iteratee: (value: any, key: any, object: object) => void): object;
-    padStart(string: string, maxLength: number, fillString?: string): string;
-    partial(func: () => void, ...params: any[]): () => void;
-    pipe(...functions: (() => void)[]): () => void;
-    pivot(arr: any[]): any[];
-    randomString(): string;
-    rangeEach(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void;
-    rangeEachReverse(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void;
-    requestAnimationFrame(callback: () => void): number;
-    spreadsheetColumnIndex(label: string): number;
-    spreadsheetColumnLabel(index: number): string;
-    startsWith(string: string, needle: string): boolean;
-    stringify(value: any): string;
-    stripTags(string: string): string;
-    substitute(template: string, variables?: object): string;
-    throttle(func: () => void, wait?: number): () => void;
-    throttleAfterHits(func: () => void, wait?: number, hits?: number): () => void;
-    to2dArray(arr: any[]): void;
-    toUpperCaseFirst(string: string): string;
-    translateRowsToColumns(input: any[]): any[];
-    valueAccordingPercent(value: number, percent: string | number): number;
+      A: number,
+      ALT: number,
+      ARROW_DOWN: number,
+      ARROW_LEFT: number,
+      ARROW_RIGHT: number,
+      ARROW_UP: number,
+      BACKSPACE: number,
+      C: number,
+      CAPS_LOCK: number,
+      COMMA: number,
+      COMMAND_LEFT: number,
+      COMMAND_RIGHT: number,
+      CONTROL_LEFT: number,
+      DELETE: number,
+      END: number,
+      ENTER: number,
+      ESCAPE: number,
+      F1: number,
+      F2: number,
+      F3: number,
+      F4: number,
+      F5: number,
+      F6: number,
+      F7: number,
+      F8: number,
+      F9: number,
+      F10: number,
+      F11: number,
+      F12: number,
+      HOME: number,
+      INSERT: number,
+      MOUSE_LEFT: number,
+      MOUSE_MIDDLE: number,
+      MOUSE_RIGHT: number,
+      PAGE_DOWN: number,
+      PAGE_UP: number,
+      PERIOD: number,
+      SHIFT: number,
+      SPACE: number,
+      TAB: number,
+      V: number,
+      X: number
+    },
+    arrayAvg(array: any[]): number,
+    arrayEach(array: any[], iteratee: (value: any, index: number, array: any[]) => void): any[],
+    arrayFilter(array: any[], predicate: (value: any, index: number, array: any[]) => void): any[],
+    arrayFlatten(array: any[]): any[],
+    arrayIncludes(array: any[], searchElement: any, fromIndex: number): any[],
+    arrayMap(array: any[], iteratee: (value: any, index: number, array: any[]) => void): any[],
+    arrayMax(array: any[]): number,
+    arrayMin(array: any[]): number,
+    arrayReduce(array: any[], iteratee: (value: any, index: number, array: any[]) => void, accumulator: any, initFromArray: boolean): any,
+    arraySum(array: any[]): number,
+    arrayUnique(array: any[]): any[],
+    cancelAnimationFrame(id: number): void,
+    cellMethodLookupFactory(methodName: string, allowUndefined: boolean): void,
+    clone(object: object): object,
+    columnFactory(GridSettings: GridSettings, conflictList: any[]): object,
+    createEmptySpreadsheetData(rows: number, columns: number): any[],
+    createObjectPropListener(defaultValue?: any, propertyToListen?: string): object,
+    createSpreadsheetData(rows?: number, columns?: number): any[],
+    createSpreadsheetObjectData(rows?: number, colCount?: number): any[],
+    curry(func: () => void): () => void,
+    curryRight(func: () => void): () => void,
+    debounce(func: () => void, wait?: number): () => void,
+    deepClone(obj: object): object,
+    deepExtend(target: object, extension: object): void,
+    deepObjectSize(object: object): number,
+    defineGetter(object: object, property: any, value: any, options: object): void,
+    duckSchema(object: any[] | object): any[] | object,
+    endsWith(string: string, needle: string): boolean,
+    equalsIgnoreCase(...string: string[]): boolean,
+    extend(target: object, extension: object): void,
+    extendArray(arr: any[], extension: any[]): void,
+    getComparisonFunction(language: string, options?: object): any | void,
+    getNormalizedDate(dateString: string): Date,
+    getProperty(object: object, name: string): any | void,
+    getPrototypeOf(obj: object): any | void,
+    hasCaptionProblem(): boolean | void,
+    inherit(Child: object, Parent: object): object,
+    isChrome(): boolean,
+    isClassListSupported(): boolean;
+    isCtrlKey(keyCode: number): boolean,
+    isDefined(variable: any): boolean,
+    isEdge(): boolean,
+    isEmpty(variable: any): boolean,
+    isFunction(func: any): boolean,
+    isGetComputedStyleSupported(): boolean,
+    isIE(): boolean,
+    isIE8(): boolean,
+    isIE9(): boolean,
+    isKey(keyCode: number, baseCode: string): boolean
+    isMetaKey(keyCode: number): boolean,
+    isMobileBrowser(): boolean,
+    isMSBrowser(): boolean,
+    isNumeric(n: any): boolean,
+    isObject(obj: any): boolean,
+    isObjectEqual(object1: object | any[], object2: object | any[]): boolean,
+    isPercentValue(value: string): boolean,
+    isPrintableChar(keyCode: number): boolean,
+    isSafari(): boolean,
+    isTextContentSupported(): boolean,
+    isTouchSupported(): boolean,
+    isUndefined(variable: any): boolean,
+    isWebComponentSupportedNatively(): boolean,
+    mixin(Base: object, ...mixins: object[]): object,
+    objectEach(object: object, iteratee: (value: any, key: any, object: object) => void): object,
+    padStart(string: string, maxLength: number, fillString?: string): string,
+    partial(func: () => void, ...params: any[]): () => void,
+    pipe(...functions: (() => void)[]): () => void,
+    pivot(arr: any[]): any[],
+    randomString(): string,
+    rangeEach(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void,
+    rangeEachReverse(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void,
+    requestAnimationFrame(callback: () => void): number,
+    spreadsheetColumnIndex(label: string): number,
+    spreadsheetColumnLabel(index: number): string,
+    startsWith(string: string, needle: string): boolean,
+    stringify(value: any): string,
+    stripTags(string: string): string,
+    substitute(template: string, variables?: object): string,
+    throttle(func: () => void, wait?: number): () => void,
+    throttleAfterHits(func: () => void, wait?: number, hits?: number): () => void,
+    to2dArray(arr: any[]): void,
+    toUpperCaseFirst(string: string): string,
+    translateRowsToColumns(input: any[]): any[],
+    valueAccordingPercent(value: number, percent: string | number): number
   }
 
   interface Dom {
     HTML_CHARACTERS: RegExp;
     addClass: (element: HTMLElement, className: string | any[]) => void;
     addEvent: (element: HTMLElement, event: string, callback: () => void) => void;
+    clearTextSelection: (rootWindow?: Window) => void;
     closest: (element: HTMLElement, nodes: any[], until?: HTMLElement) => HTMLElement | void;
     closestDown: (element: HTMLElement, nodes: any[], until?: HTMLElement) => HTMLElement | void;
     empty: (element: HTMLElement) => void;
     fastInnerHTML: (element: HTMLElement, content: string) => void;
     fastInnerText: (element: HTMLElement, content: string) => void;
     getCaretPosition: (el: HTMLElement) => number;
-    getComputedStyle: (element: HTMLElement) => CSSStyleDeclaration | object;
+    getComputedStyle: (element: HTMLElement, rootWindow?: Window) => CSSStyleDeclaration | object;
     getCssTransform: (element: HTMLElement) => number | void;
     getParent: (element: HTMLElement, level?: number) => HTMLElement | void;
-    getScrollLeft: (element: HTMLElement) => number;
-    getScrollTop: (element: HTMLElement) => number;
+    getScrollLeft: (element: HTMLElement, rootWindow?: Window) => number;
+    getScrollTop: (element: HTMLElement, rootWindow?: Window) => number;
     getScrollableElement: (element: HTMLElement) => HTMLElement;
-    getScrollbarWidth: () => number;
+    getScrollbarWidth: (rootDocument?: Document) => number;
     getSelectionEndPosition: (el: HTMLElement) => number;
-    getSelectionText: () => string;
-    getStyle: (element: HTMLElement, prop: string) => string;
+    getSelectionText: (rootWindow?: Window) => string;
+    getStyle: (element: HTMLElement, prop: string, rootWindow?: Window) => string;
     getTrimmingContainer: (base: HTMLElement) => HTMLElement;
-    getWindowScrollLeft: () => number;
-    getWindowScrollTop: () => number;
+    getWindowScrollLeft: (rootWindow?: Window) => number;
+    getWindowScrollTop: (rootWindow?: Window) => number;
     hasClass: (element: HTMLElement, className: string) => boolean;
     hasHorizontalScrollbar: (element: HTMLElement) => boolean;
     hasVerticalScrollbar: (element: HTMLElement) => boolean;
@@ -2207,6 +2245,7 @@ declare namespace Handsontable {
     nestedHeaders: plugins.NestedHeaders;
     nestedRows: plugins.NestedRows;
     observeChanges: plugins.ObserveChanges;
+    persistentState: plugins.PersistenState;
     search: plugins.Search;
     touchScroll: plugins.TouchScroll;
     trimRows: plugins.TrimRows;

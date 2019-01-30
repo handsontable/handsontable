@@ -8,24 +8,24 @@ let refCount = 0;
 /**
  * Begins observing keyboard keys states.
  */
-function startObserving() {
+function startObserving(rootDocument) {
   if (refCount === 0) {
-    eventManager.addEventListener(document, 'keydown', (event) => {
+    eventManager.addEventListener(rootDocument, 'keydown', (event) => {
       if (!pressedKeys.has(event.keyCode)) {
         pressedKeys.add(event.keyCode);
       }
     });
-    eventManager.addEventListener(document, 'keyup', (event) => {
+    eventManager.addEventListener(rootDocument, 'keyup', (event) => {
       if (pressedKeys.has(event.keyCode)) {
         pressedKeys.delete(event.keyCode);
       }
     });
-    eventManager.addEventListener(document, 'visibilitychange', () => {
-      if (document.hidden) {
+    eventManager.addEventListener(rootDocument, 'visibilitychange', () => {
+      if (rootDocument.hidden) {
         pressedKeys.clear();
       }
     });
-    eventManager.addEventListener(window, 'blur', () => {
+    eventManager.addEventListener(rootDocument.defaultView, 'blur', () => {
       pressedKeys.clear();
     });
   }

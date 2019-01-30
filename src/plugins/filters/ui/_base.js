@@ -49,7 +49,7 @@ class BaseUI {
      * @type {Element}
      * @private
      */
-    this._element = document.createElement(this.options.wrapIt ? 'div' : this.options.tagName);
+    this._element = this.hot.rootDocument.createElement(this.options.wrapIt ? 'div' : this.options.tagName);
     /**
      * Flag which determines build state of element.
      *
@@ -139,7 +139,7 @@ class BaseUI {
       arrayEach(this.options.children, element => this._element.appendChild(element.element));
 
     } else if (this.options.wrapIt) {
-      const element = document.createElement(this.options.tagName);
+      const element = this.hot.rootDocument.createElement(this.options.tagName);
 
       objectEach(this.options, (value, key) => {
         if (element[key] !== void 0 && key !== 'className' && key !== 'tagName' && key !== 'children') {

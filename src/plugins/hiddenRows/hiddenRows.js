@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach } from '../../helpers/array';
+import { arrayEach, arrayMap } from '../../helpers/array';
 import { registerPlugin } from '../../plugins';
 import Hooks from '../../pluginHooks';
 import hideRowItem from './contextMenuItem/hideRow';
@@ -163,37 +163,37 @@ class HiddenRows extends BasePlugin {
   /**
    * Shows the rows provided in the array.
    *
-   * @param {Number[]} rows Array of row index.
+   * @param {Number[]} rows Array of visual row indexes.
    */
   showRows(rows) {
+    const currentHideConfig = this.hiddenRows;
     const validRows = this.isRowDataValid(rows);
-    const continueUnhiding = this.hot.runHooks('beforeUnhideRows', rows, validRows);
+    const physicalRows = arrayMap(rows, visualRowIndex => this.hot.toPhysicalRow(visualRowIndex));
 
-    if (continueUnhiding === false) {
+    let destinationHideConfig = currentHideConfig;
+
+    if (validRows) {
+      destinationHideConfig = this.hiddenRows.filter(hiddenRow => physicalRows.includes(hiddenRow) === false);
+    }
+
+    const continueHiding = this.hot.runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, validRows);
+
+    if (continueHiding === false) {
       return;
     }
 
-    let changedStates = 0;
-
     if (validRows) {
-      arrayEach(rows, (row) => {
-        let visualRow = parseInt(row, 10);
-        visualRow = this.getLogicalRowIndex(visualRow);
-
-        if (this.isHidden(visualRow, true)) {
-          this.hiddenRows.splice(this.hiddenRows.indexOf(visualRow), 1);
-          changedStates += 1;
-        }
-      });
+      this.hiddenRows = destinationHideConfig;
     }
 
-    this.hot.runHooks('afterUnhideRows', rows, validRows, changedStates > 0);
+    this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, validRows,
+      validRows && destinationHideConfig.length < currentHideConfig.length);
   }
 
   /**
    * Shows the row provided as row index (counting from 0).
    *
-   * @param {...Number} row Row index.
+   * @param {...Number} row Visual row index.
    */
   showRow(...row) {
     this.showRows(row);
@@ -202,37 +202,37 @@ class HiddenRows extends BasePlugin {
   /**
    * Hides the rows provided in the array.
    *
-   * @param {Number[]} rows Array of row index.
+   * @param {Number[]} rows Array of visual row indexes.
    */
   hideRows(rows) {
+    const currentHideConfig = this.hiddenRows;
     const validRows = this.isRowDataValid(rows);
-    const continueHiding = this.hot.runHooks('beforeHideRows', rows, validRows);
+    const physicalRows = arrayMap(rows, visualRowIndex => this.hot.toPhysicalRow(visualRowIndex));
+    let destinationHideConfig = currentHideConfig;
+
+    if (validRows) {
+      // Creating unique list of indexes.
+      destinationHideConfig = Array.from(new Set(currentHideConfig.concat(physicalRows)));
+    }
+
+    const continueHiding = this.hot.runHooks('beforeHideRows', currentHideConfig, destinationHideConfig, validRows);
 
     if (continueHiding === false) {
       return;
     }
 
-    let changedStates = 0;
-
     if (validRows) {
-      arrayEach(rows, (row) => {
-        const visualRow = parseInt(row, 10);
-        const logicalRow = this.getLogicalRowIndex(visualRow);
-
-        if (!this.isHidden(logicalRow, true)) {
-          this.hiddenRows.push(logicalRow);
-          changedStates += 1;
-        }
-      });
+      this.hiddenRows = destinationHideConfig;
     }
 
-    this.hot.runHooks('afterHideRows', rows, validRows, changedStates > 0);
+    this.hot.runHooks('afterHideRows', currentHideConfig, destinationHideConfig, validRows,
+      validRows && destinationHideConfig.length > currentHideConfig.length);
   }
 
   /**
    * Hides the row provided as row index (counting from 0).
    *
-   * @param {...Number} row Row index.
+   * @param {...Number} row Visual row index.
    */
   hideRow(...row) {
     this.hideRows(row);
@@ -241,27 +241,27 @@ class HiddenRows extends BasePlugin {
   /**
    * Checks if given row is hidden.
    *
-   * @param {Number} row Column index.
-   * @param {Boolean} isLogicIndex flag which determines type of index.
+   * @param {Number} row Row index.
+   * @param {Boolean} isPhysicalIndex flag which determines type of index.
    * @returns {Boolean}
    */
-  isHidden(row, isLogicIndex = false) {
-    let logicalRow = row;
+  isHidden(row, isPhysicalIndex = false) {
+    let physicalRow = row;
 
-    if (!isLogicIndex) {
-      logicalRow = this.getLogicalRowIndex(logicalRow);
+    if (!isPhysicalIndex) {
+      physicalRow = this.hot.toPhysicalRow(row);
     }
 
-    return this.hiddenRows.indexOf(logicalRow) > -1;
+    return this.hiddenRows.includes(physicalRow);
   }
 
   /**
    * Check whether all of the provided row indexes are within the bounds of the table.
    *
-   * @param {Array} rows Array of row indexes.
+   * @param {Array} rows Array of visual row indexes.
    */
   isRowDataValid(rows) {
-    return rows.every(row => (row >= 0 && row < this.hot.countRows()));
+    return rows.every(row => Number.isInteger(row) && row >= 0 && row < this.hot.countRows());
   }
 
   /**
@@ -275,19 +275,6 @@ class HiddenRows extends BasePlugin {
         meta.skipRowOnPaste = false;
       }
     });
-  }
-
-  /**
-   * Returns the logical index of the provided row.
-   *
-   * @private
-   * @param {Number} row
-   * @returns {Number}
-   *
-   * @fires Hooks#modifyRow
-   */
-  getLogicalRowIndex(row) {
-    return this.hot.runHooks('modifyRow', row);
   }
 
   /**

@@ -9,7 +9,7 @@ describe('ContextMenu', () => {
         width: 100,
         height: 200
       };
-      const cursor = new Cursor(coords);
+      const cursor = new Cursor(coords, window);
 
       expect(cursor.top).toBe(coords.top);
       expect(cursor.topRelative).toBeLessThan(coords.top + 1);
@@ -28,7 +28,7 @@ describe('ContextMenu', () => {
         width: 100,
         height: 200
       };
-      const cursor = new Cursor(coords);
+      const cursor = new Cursor(coords, window);
       const fakeElement = {
         offsetHeight: 9
       };
@@ -51,7 +51,7 @@ describe('ContextMenu', () => {
         width: 100,
         height: 200
       };
-      const cursor = new Cursor(coords);
+      const cursor = new Cursor(coords, window);
       const fakeElement = {
         offsetHeight: 9
       };
@@ -75,7 +75,7 @@ describe('ContextMenu', () => {
         width: 30,
         height: 200
       };
-      const cursor = new Cursor(coords);
+      const cursor = new Cursor(coords, window);
       const fakeElement = {
         offsetWidth: 9
       };
@@ -99,7 +99,7 @@ describe('ContextMenu', () => {
         width: 100,
         height: 200
       };
-      const cursor = new Cursor(coords);
+      const cursor = new Cursor(coords, window);
       const fakeElement = {
         offsetWidth: 9
       };
