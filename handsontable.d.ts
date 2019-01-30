@@ -34,8 +34,8 @@ declare namespace _Handsontable {
     getActiveEditor<T extends Handsontable.editors.Base>(): T | undefined;
     getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
     getCellEditor<T extends Handsontable.editors.Base>(row: number, col: number): T;
-    getCellMeta(row: number, col: number): Handsontable.GridSettings;
-    getCellMetaAtRow(row: number): Handsontable.GridSettings[];
+    getCellMeta(row: number, col: number): Handsontable.CellProperties;
+    getCellMetaAtRow(row: number): Handsontable.CellProperties[];
     getCellRenderer(row: number, col: number): Handsontable.renderers.Base;
     getCellValidator(row: number, col: number): (value: Handsontable.CellValue, callback: (valid: boolean) => void) => void | RegExp | undefined;
     getColHeader(): (number | string)[];
@@ -92,8 +92,9 @@ declare namespace _Handsontable {
     selectCells(coords: Array<[number, number | string, number, number | string]> | Array<Handsontable.wot.CellRange>, scrollToCell?: boolean, changeListener?: boolean): boolean;
     selectColumns(startColumn: number | string, endColumn?: number | string): boolean;
     selectRows(startRow: number, endRow?: number): boolean;
-    setCellMeta(row: number, col: number, key: string, val: string): void;
-    setCellMetaObject(row: number, col: number, prop: Handsontable.GridSettings): void;
+    setCellMeta(row: number, col: number, key: string, val: any): void;
+    setCellMeta<K extends keyof Handsontable.CellProperties>(row: number, col: number, key: K, val: Handsontable.CellProperties[K]): void;
+    setCellMetaObject<T extends Partial<Handsontable.CellProperties>>(row: number, col: number, prop: T): void;
     setDataAtCell(row: number, col: string | number, value: Handsontable.CellValue, source?: Handsontable.ChangeSource): void;
     setDataAtCell(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: Handsontable.ChangeSource): void;
     setDataAtRowProp(row: number, prop: string, value: Handsontable.CellValue, source?: Handsontable.ChangeSource): void;
