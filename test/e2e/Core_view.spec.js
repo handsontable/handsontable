@@ -434,72 +434,113 @@ describe('Core_view', () => {
     expect(hot.view.wt.wtTable.holder.style.width).toBe('220px');
   });
 
-  it('should fire beforeResize event after window resize and before render table', async() => {
-    spec().$container[0].style.width = '50%';
-    spec().$container[0].style.height = '60px';
-    spec().$container[0].style.overflow = 'hidden';
+  describe('resize', () => {
+    beforeEach(() => {
+      spec().$iframe = $('<iframe style="width:"/>').appendTo(spec().$container);
+      const doc = spec().$iframe[0].contentDocument;
 
-    const beforeRefreshDimensionsCallback = jasmine.createSpy('beforeRefreshDimensionsCallback');
+      doc.open('text/html', 'replace');
+      doc.write(`
+        <!doctype html>
+        <head>
+          <link type="text/css" rel="stylesheet" href="../dist/handsontable-pro.full.min.css">
+        </head>`);
+      doc.close();
 
-    handsontable({
-      beforeRefreshDimensions: beforeRefreshDimensionsCallback,
+      spec().$iframeContainer = $('<div/>').appendTo(doc.body);
     });
 
-    spec().$container[0].style.width = '40%';
-    const evt = document.createEvent('CustomEvent'); // MUST be 'CustomEvent'
-    evt.initCustomEvent('resize', false, false, null);
-    window.dispatchEvent(evt);
-
-    await sleep(300);
-
-    expect(beforeRefreshDimensionsCallback.calls.count()).toBe(1);
-  });
-
-  it('should fire afterResize event after window resize', async() => {
-    spec().$container[0].style.width = '50%';
-    spec().$container[0].style.height = '60px';
-    spec().$container[0].style.overflow = 'hidden';
-
-    const afterRefreshDimensionsCallback = jasmine.createSpy('afterRefreshDimensions');
-
-    handsontable({
-      afterRefreshDimensions: afterRefreshDimensionsCallback,
+    afterEach(() => {
+      if (spec().$iframe) {
+        spec().$iframeContainer.handsontable('destroy');
+        spec().$iframe.remove();
+      }
     });
 
-    spec().$container[0].style.width = '40%';
-    const evt = document.createEvent('CustomEvent'); // MUST be 'CustomEvent'
-    evt.initCustomEvent('resize', false, false, null);
-    window.dispatchEvent(evt);
+    it('should fire refreshDimensions hooks after window resize', async() => {
+      spec().$iframe[0].style.width = '50%';
+      spec().$iframe[0].style.height = '60px';
 
-    await sleep(300);
+      const beforeRefreshDimensionsCallback = jasmine.createSpy('beforeRefreshDimensionsCallback');
+      const afterRefreshDimensionsCallback = jasmine.createSpy('afterRefreshDimensions');
 
-    expect(afterRefreshDimensionsCallback.calls.count()).toBe(1);
-  });
+      spec().$iframeContainer.handsontable({
+        beforeRefreshDimensions: beforeRefreshDimensionsCallback,
+        afterRefreshDimensions: afterRefreshDimensionsCallback,
+      });
 
-  it('should be possible to block auto resize after window resize', async() => {
-    spec().$container[0].style.width = '50%';
-    spec().$container[0].style.height = '60px';
-    spec().$container[0].style.overflow = 'hidden';
+      spec().$iframe[0].style.width = '50px';
 
-    const beforeRefreshDimensionsCallback = jasmine.createSpy('beforeRefreshDimensionsCallback');
-    const afterRefreshDimensionsCallback = jasmine.createSpy('afterRefreshDimensionsCallback');
+      await sleep(300);
 
-    beforeRefreshDimensionsCallback.and.callFake(() => false);
-
-    handsontable({
-      beforeRefreshDimensions: beforeRefreshDimensionsCallback,
-      afterRefreshDimensions: afterRefreshDimensionsCallback,
+      expect(beforeRefreshDimensionsCallback.calls.count()).toBe(1);
+      expect(afterRefreshDimensionsCallback.calls.count()).toBe(1);
     });
 
-    spec().$container[0].style.width = '40%';
-    const evt = document.createEvent('CustomEvent'); // MUST be 'CustomEvent'
-    evt.initCustomEvent('resize', false, false, null);
-    window.dispatchEvent(evt);
+    it('should be possible to block auto refresh after window resize', async() => {
+      spec().$iframe[0].style.width = '50%';
+      spec().$iframe[0].style.height = '60px';
 
-    await sleep(300);
+      const beforeRefreshDimensionsCallback = jasmine.createSpy('beforeRefreshDimensionsCallback');
+      const afterRefreshDimensionsCallback = jasmine.createSpy('afterRefreshDimensionsCallback');
 
-    expect(beforeRefreshDimensionsCallback.calls.count()).toBe(1);
-    expect(afterRefreshDimensionsCallback.calls.count()).toBe(0);
+      beforeRefreshDimensionsCallback.and.callFake(() => false);
+
+      spec().$iframeContainer.handsontable({
+        beforeRefreshDimensions: beforeRefreshDimensionsCallback,
+        afterRefreshDimensions: afterRefreshDimensionsCallback,
+      });
+
+      spec().$iframe[0].style.width = '50px';
+
+      await sleep(300);
+
+      expect(beforeRefreshDimensionsCallback.calls.count()).toBe(1);
+      expect(afterRefreshDimensionsCallback.calls.count()).toBe(0);
+    });
+
+    it('should return actionPossible as false if container\'s dimensions didn\'t change', async() => {
+      spec().$iframe[0].style.width = '50%';
+      spec().$iframe[0].style.height = '60px';
+
+      const beforeRefreshDimensionsCallback = jasmine.createSpy('beforeRefreshDimensionsCallback');
+      const afterRefreshDimensionsCallback = jasmine.createSpy('afterRefreshDimensionsCallback');
+
+      spec().$iframeContainer.handsontable({
+        beforeRefreshDimensions: beforeRefreshDimensionsCallback,
+        afterRefreshDimensions: afterRefreshDimensionsCallback,
+        width: 300,
+        height: 300,
+      });
+
+      spec().$iframe[0].style.width = '50px';
+
+      await sleep(300);
+
+      expect(beforeRefreshDimensionsCallback.calls.argsFor(0)[2]).toBe(false);
+      expect(afterRefreshDimensionsCallback.calls.argsFor(0)[2]).toBe(false);
+    });
+
+    it('should run hooks if container\'s dimensions did change', () => {
+      spec().$container[0].style.width = '50%';
+      spec().$container[0].style.height = '60px';
+      spec().$container[0].style.overflow = 'hidden';
+
+      const beforeRefreshDimensionsCallback = jasmine.createSpy('beforeRefreshDimensionsCallback');
+      const afterRefreshDimensionsCallback = jasmine.createSpy('afterRefreshDimensionsCallback');
+
+      handsontable({
+        beforeRefreshDimensions: beforeRefreshDimensionsCallback,
+        afterRefreshDimensions: afterRefreshDimensionsCallback,
+      });
+
+      spec().$container[0].style.width = '50px';
+
+      refreshDimensions();
+
+      expect(beforeRefreshDimensionsCallback.calls.argsFor(0)[2]).toBe(true);
+      expect(afterRefreshDimensionsCallback.calls.argsFor(0)[2]).toBe(true);
+    });
   });
 
   // TODO fix these tests - https://github.com/handsontable/handsontable/issues/1559
