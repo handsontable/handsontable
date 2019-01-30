@@ -81,10 +81,13 @@ declare namespace _Handsontable {
     populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: Handsontable.ChangeSource, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
     propToCol(prop: string | number): number;
     removeCellMeta(row: number, col: number, key: string): void;
+    removeCellMeta(row: number, col: number, key: keyof Handsontable.CellProperties): void;
     removeHook<K extends keyof Handsontable.Events>(key: K, callback: Handsontable.Events[K]): void;
     render(): void;
     rowOffset(): number;
-    runHooks(key: keyof Handsontable.Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any; // TODO: Use Parameters<Handsontable.Events[K]>[0...5] and ReturnType<Handsontable.Events[K]> to type args and return (requires TS 3+)
+    runHooks(key: keyof Handsontable.Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
+    // Requires TS 3.0:
+    // runHooks<K extends keyof Handsontable.Events>(key: K, ...params: Parameters<Handsontable.Events[K]>): ReturnType<Handsontable.Events[K]>;
     scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean): boolean;
     selectAll(): void;
     selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
@@ -1865,6 +1868,8 @@ declare namespace Handsontable {
     register(key: string): void;
     remove(key: keyof Events, callback: Function, context?: Handsontable): boolean;
     run(context: Handsontable, key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
+    // Requires TS 3.0:
+    // run<K extends keyof Events>(context: Handsontable, key: K, ...params: Parameters<Events[K]>): ReturnType<Events[K]>;
   }
 
   type Bucket = { 
