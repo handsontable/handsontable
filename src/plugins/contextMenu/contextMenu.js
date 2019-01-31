@@ -137,54 +137,48 @@ class ContextMenu extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
+    const settings = this.hot.getSettings().contextMenu;
+
     this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
 
+    if (typeof settings.callback === 'function') {
+      this.commandExecutor.setCommonCallback(settings.callback);
+    }
+
+    this.addHook('afterInit', () => this.delayedInitialization());
+
+    super.enablePlugin();
+  }
+
+  delayedInitialization() {
     const settings = this.hot.getSettings().contextMenu;
     const predefinedItems = {
       items: this.itemsFactory.getItems(settings)
     };
 
-    if (typeof settings.callback === 'function') {
-      this.commandExecutor.setCommonCallback(settings.callback);
-    }
-    super.enablePlugin();
+    this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
 
-    const delayedInitialization = () => {
-      if (!this.hot) {
-        return;
-      }
+    this.itemsFactory.setPredefinedItems(predefinedItems.items);
+    const menuItems = this.itemsFactory.getItems(settings);
 
-      this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
-
-      this.itemsFactory.setPredefinedItems(predefinedItems.items);
-      const menuItems = this.itemsFactory.getItems(settings);
-
-      this.menu = new Menu(this.hot, {
-        className: 'htContextMenu',
-        keepInViewport: true
-      });
-      this.hot.runHooks('beforeContextMenuSetItems', menuItems);
-
-      this.menu.setMenuItems(menuItems);
-
-      this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
-      this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
-      this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
-      this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
-
-      this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
-
-      // Register all commands. Predefined and added by user or by plugins
-      arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
-    };
-
-    this.callOnPluginsReady(() => {
-      if (this.isPluginsReady) {
-        setTimeout(delayedInitialization, 0);
-      } else {
-        delayedInitialization();
-      }
+    this.menu = new Menu(this.hot, {
+      className: 'htContextMenu',
+      keepInViewport: true
     });
+    this.hot.runHooks('beforeContextMenuSetItems', menuItems);
+
+    this.menu.setMenuItems(menuItems);
+
+    this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
+    this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
+    this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
+    this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
+
+    this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
+
+    // Register all commands. Predefined and added by user or by plugins
+    arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
   }
 
   /**
@@ -193,6 +187,8 @@ class ContextMenu extends BasePlugin {
   updatePlugin() {
     this.disablePlugin();
     this.enablePlugin();
+
+    this.delayedInitialization();
 
     super.updatePlugin();
   }
