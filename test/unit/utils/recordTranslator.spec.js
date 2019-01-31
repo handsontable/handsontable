@@ -9,7 +9,7 @@ describe('RecordTranslator', () => {
     const t = new RecordTranslator(hotMock);
 
     expect(t.toVisualRow(12)).toBe(54);
-    expect(hotMock.runHooks).toHaveBeenCalledWith('unmodifyRow', 12);
+    expect(hotMock.runHooks).toHaveBeenCalledWith('unmodifyRow', 12, void 0);
   });
 
   it('should translate to visual column using hook system', () => {
@@ -19,7 +19,7 @@ describe('RecordTranslator', () => {
     const t = new RecordTranslator(hotMock);
 
     expect(t.toVisualColumn(12)).toBe(54);
-    expect(hotMock.runHooks).toHaveBeenCalledWith('unmodifyCol', 12);
+    expect(hotMock.runHooks).toHaveBeenCalledWith('unmodifyCol', 12, void 0);
   });
 
   it('should translate to visual coordinates (as an object)', () => {
@@ -47,7 +47,7 @@ describe('RecordTranslator', () => {
     const t = new RecordTranslator(hotMock);
 
     expect(t.toPhysicalRow(12)).toBe(54);
-    expect(hotMock.runHooks).toHaveBeenCalledWith('modifyRow', 12);
+    expect(hotMock.runHooks).toHaveBeenCalledWith('modifyRow', 12, void 0);
   });
 
   it('should translate to physical column using hook system', () => {
@@ -57,7 +57,7 @@ describe('RecordTranslator', () => {
     const t = new RecordTranslator(hotMock);
 
     expect(t.toPhysicalColumn(12)).toBe(54);
-    expect(hotMock.runHooks).toHaveBeenCalledWith('modifyCol', 12);
+    expect(hotMock.runHooks).toHaveBeenCalledWith('modifyCol', 12, void 0);
   });
 
   it('should translate to physical coordinates (as an object)', () => {
