@@ -550,7 +550,7 @@ class Endpoints {
    * @returns {Number}
    */
   getVisualRowIndex(row) {
-    return this.hot.runHooks('unmodifyRow', row, 'columnSummary');
+    return this.hot.toVisualRow(row, 'columnSummary');
   }
 
   /**
@@ -561,7 +561,7 @@ class Endpoints {
    * @returns {Number}
    */
   getVisualColumnIndex(column) {
-    return this.hot.runHooks('unmodifyCol', column, 'columnSummary');
+    return this.hot.toVisualColumn(column, 'columnSummary');
   }
 
   /**

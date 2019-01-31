@@ -102,7 +102,7 @@ class BindRowsWithHeaders extends BasePlugin {
    * @fires Hooks#modifyRow
    */
   onModifyRowHeader(row) {
-    return this.bindStrategy.translate(this.hot.runHooks('modifyRow', row));
+    return this.bindStrategy.translate(this.hot.toPhysicalRow(row));
   }
 
   /**
@@ -131,7 +131,7 @@ class BindRowsWithHeaders extends BasePlugin {
     if (index !== false) {
       // Collect physical row index.
       rangeEach(index, index + amount - 1, (removedIndex) => {
-        this.removedRows.push(this.hot.runHooks('modifyRow', removedIndex));
+        this.removedRows.push(this.hot.toPhysicalRow(removedIndex));
       });
     }
   }

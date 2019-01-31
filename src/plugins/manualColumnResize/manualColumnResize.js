@@ -466,7 +466,7 @@ class ManualColumnResize extends BasePlugin {
      *  We need to run col through modifyCol hook, in case the order of displayed columns is different than the order
      *  in data source. For instance, this order can be modified by manualColumnMove plugin.
      */
-    const physicalColumn = this.hot.runHooks('modifyCol', column);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.manualColumnWidths[physicalColumn] = newWidth;
 
@@ -479,7 +479,7 @@ class ManualColumnResize extends BasePlugin {
    * @param {Number} column Visual column index.
    */
   clearManualSize(column) {
-    const physicalColumn = this.hot.runHooks('modifyCol', column);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.manualColumnWidths[physicalColumn] = void 0;
   }
@@ -496,7 +496,7 @@ class ManualColumnResize extends BasePlugin {
     let newWidth = width;
 
     if (this.enabled) {
-      const physicalColumn = this.hot.runHooks('modifyCol', column);
+      const physicalColumn = this.hot.toPhysicalColumn(column);
       const columnWidth = this.manualColumnWidths[physicalColumn];
 
       if (this.hot.getSettings().manualColumnResize && columnWidth) {

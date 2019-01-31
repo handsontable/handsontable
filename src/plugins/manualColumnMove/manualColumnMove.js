@@ -665,7 +665,7 @@ class ManualColumnMove extends BasePlugin {
     if (index !== false) {
       // Collect physical row index.
       rangeEach(index, index + amount - 1, (removedIndex) => {
-        this.removedColumns.push(this.hot.runHooks('modifyCol', removedIndex, this.pluginName));
+        this.removedColumns.push(this.hot.toPhysicalColumn(removedIndex, this.pluginName));
       });
     }
   }

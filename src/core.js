@@ -1989,9 +1989,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function toVisualRow
    * @param {Number} row Physical row index.
+   * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns visual row index.
    */
-  this.toVisualRow = row => recordTranslator.toVisualRow(row);
+  this.toVisualRow = (row, source) => recordTranslator.toVisualRow(row, source);
 
   /**
    * Translate physical column index into visual.
@@ -2002,9 +2003,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function toVisualColumn
    * @param {Number} column Physical column index.
+   * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns visual column index.
    */
-  this.toVisualColumn = column => recordTranslator.toVisualColumn(column);
+  this.toVisualColumn = (column, source) => recordTranslator.toVisualColumn(column, source);
 
   /**
    * Translate visual row index into physical.
@@ -2015,9 +2017,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function toPhysicalRow
    * @param {Number} row Visual row index.
+   * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns physical row index.
    */
-  this.toPhysicalRow = row => recordTranslator.toPhysicalRow(row);
+  this.toPhysicalRow = (row, source) => recordTranslator.toPhysicalRow(row, source);
 
   /**
    * Translate visual column index into physical.
@@ -2028,9 +2031,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function toPhysicalColumn
    * @param {Number} column Visual column index.
+   * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns physical column index.
    */
-  this.toPhysicalColumn = column => recordTranslator.toPhysicalColumn(column);
+  this.toPhysicalColumn = (column, source) => recordTranslator.toPhysicalColumn(column, source);
 
   /**
    * @description
@@ -2742,7 +2746,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         return arr[visualColumnIndex];
       };
       const baseCol = columnIndex;
-      const physicalColumn = instance.runHooks('modifyCol', baseCol);
+      const physicalColumn = instance.toPhysicalColumn(baseCol);
 
       const prop = translateVisualIndexToColumns(physicalColumn);
 

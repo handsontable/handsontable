@@ -681,7 +681,7 @@ class ManualRowMove extends BasePlugin {
     if (index !== false) {
       // Collect physical row index.
       rangeEach(index, index + amount - 1, (removedIndex) => {
-        this.removedRows.push(this.hot.runHooks('modifyRow', removedIndex, this.pluginName));
+        this.removedRows.push(this.hot.toPhysicalRow(removedIndex, this.pluginName));
       });
     }
   }

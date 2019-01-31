@@ -14,20 +14,22 @@ export class RecordTranslator {
    * Translate physical row index into visual.
    *
    * @param {Number} row Physical row index.
+   * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns visual row index.
    */
-  toVisualRow(row) {
-    return this.hot.runHooks('unmodifyRow', row);
+  toVisualRow(row, source) {
+    return this.hot.runHooks('unmodifyRow', row, source);
   }
 
   /**
    * Translate physical column index into visual.
    *
    * @param {Number} column Physical column index.
+   * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns visual column index.
    */
-  toVisualColumn(column) {
-    return this.hot.runHooks('unmodifyCol', column);
+  toVisualColumn(column, source) {
+    return this.hot.runHooks('unmodifyCol', column, source);
   }
 
   /**
@@ -57,20 +59,22 @@ export class RecordTranslator {
    * Translate visual row index into physical.
    *
    * @param {Number} row Visual row index.
+   * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns physical row index.
    */
-  toPhysicalRow(row) {
-    return this.hot.runHooks('modifyRow', row);
+  toPhysicalRow(row, source) {
+    return this.hot.runHooks('modifyRow', row, source);
   }
 
   /**
    * Translate visual column index into physical.
    *
    * @param {Number} column Visual column index.
+   * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns physical column index.
    */
-  toPhysicalColumn(column) {
-    return this.hot.runHooks('modifyCol', column);
+  toPhysicalColumn(column, source) {
+    return this.hot.runHooks('modifyCol', column, source);
   }
 
   /**

@@ -654,7 +654,7 @@ class DataMap {
    * @param {String} [source] Source of hook runner.
    */
   set(row, prop, value, source) {
-    const physicalRow = this.instance.runHooks('modifyRow', row, source || 'datamapGet');
+    const physicalRow = this.instance.toPhysicalRow(row, source || 'datamapGet');
     let newValue = value;
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)

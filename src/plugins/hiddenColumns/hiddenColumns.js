@@ -327,7 +327,7 @@ class HiddenColumns extends BasePlugin {
    * @fires Hooks#unmodifyCol
    */
   onAfterGetCellMeta(row, col, cellProperties) {
-    const colIndex = this.hot.runHooks('unmodifyCol', col);
+    const colIndex = this.hot.toVisualColumn(col);
 
     if (this.settings.copyPasteEnabled === false && this.isHidden(col)) {
       cellProperties.skipColumnOnPaste = true;

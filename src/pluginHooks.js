@@ -910,6 +910,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#modifyCol
    * @param {Number} column Visual column index.
+   * @param {undefined|String} source Source of call i.e. plugin name.
    */
   'modifyCol',
 
@@ -918,6 +919,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#unmodifyCol
    * @param {Number} column Physical column index.
+   * @param {undefined|String} source Source of call i.e. plugin name.
    */
   'unmodifyCol',
 
@@ -926,6 +928,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#unmodifyRow
    * @param {Number} row Physical row index.
+   * @param {undefined|String} source Source of call i.e. plugin name.
    */
   'unmodifyRow',
 
@@ -951,6 +954,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#modifyRow
    * @param {Number} row Visual row index.
+   * @param {undefined|String} source Source of call i.e. plugin name.
    */
   'modifyRow',
 
