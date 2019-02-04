@@ -430,16 +430,15 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(false);
 
       plugin.enablePlugin();
-      plugin.delayedInitialization();
-
-      contextMenu();
 
       await sleep(300);
+
+      contextMenu();
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
-    it('should reenable menu with updateSettings when it was disabled in constructor', async() => {
+    it('should reenable menu with updateSettings when it was disabled in constructor', () => {
       handsontable({
         contextMenu: false,
         height: 100
@@ -455,16 +454,13 @@ describe('ContextMenu', () => {
 
       expect(plugin.isEnabled()).toBe(true);
 
-      await sleep(50);
-
-      expect($('.htContextMenu')[0]).not.toBeUndefined();
       expect($('.htContextMenu').is(':visible')).toBe(false);
 
       contextMenu();
 
-      await sleep(300);
-
-      expect($('.htContextMenu').is(':visible')).toBe(true);
+      setTimeout(() => {
+        expect($('.htContextMenu').is(':visible')).toBe(true);
+      }, 300);
     });
 
     it('should disable menu with updateSettings when it was enabled in constructor', () => {
@@ -3085,7 +3081,7 @@ describe('ContextMenu', () => {
       }
     });
 
-    it('should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ', async() => {
+    it('should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ', () => {
       const hot1 = handsontable({
         contextMenu: false,
         height: 100
@@ -3113,16 +3109,14 @@ describe('ContextMenu', () => {
         contextMenu: false
       });
 
-      await sleep(50);
-
       contextMenu2();
       expect(hot2.getPlugin('contextMenu').isEnabled()).toBe(false);
 
       contextMenu();
 
-      await sleep(1100);
-
-      expect($('.htContextMenu').is(':visible')).toBe(true);
+      setTimeout(() => {
+        expect($('.htContextMenu').is(':visible')).toBe(true);
+      }, 1100);
 
       function contextMenu2() {
         const hot = spec().$container2.data('handsontable');
