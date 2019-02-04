@@ -156,6 +156,9 @@ DefaultSettings.prototype = {
    * // as a number
    * width: 500,
    *
+   * // as a string
+   * width: '75vw',
+   *
    * // as a function
    * width: function() {
    *   return 500;
@@ -174,6 +177,9 @@ DefaultSettings.prototype = {
    * ```js
    * // as a number
    * height: 500,
+   *
+   * // as a string
+   * height: '75vh',
    *
    * // as a function
    * height: function() {

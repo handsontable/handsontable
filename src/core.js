@@ -1796,7 +1796,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         width = width();
       }
 
-      instance.rootElement.style.width = `${width}px`;
+      instance.rootElement.style.width = isNaN(width) ? `${width}` : `${width}px`;
     }
 
     if (!init) {
