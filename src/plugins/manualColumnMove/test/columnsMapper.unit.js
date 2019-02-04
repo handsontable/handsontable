@@ -9,8 +9,8 @@ describe('manualColumnMove', () => {
       expect(mapper.manualColumnMove).toBe(manualColumnMoveMock);
     });
 
-    it('should be mixed with arrayMapper object', () => {
-      expect(ColumnsMapper.MIXINS).toEqual(['arrayMapper']);
+    it('should be mixed with indexMapper object', () => {
+      expect(ColumnsMapper.MIXINS).toEqual(['indexMapper']);
     });
 
     it('should destroy array after calling destroy method', () => {

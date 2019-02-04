@@ -1,4 +1,4 @@
-import arrayMapper from '../../mixins/arrayMapper';
+import indexMapper from '../../mixins/indexMapper';
 import { mixin } from '../../helpers/object';
 import { rangeEach } from '../../helpers/number';
 
@@ -29,6 +29,6 @@ class RowsMapper {
   }
 }
 
-mixin(RowsMapper, arrayMapper);
+mixin(RowsMapper, indexMapper);
 
 export default RowsMapper;

@@ -256,7 +256,7 @@ class TrimRows extends BasePlugin {
     let physicalRow = row;
 
     if (source !== this.pluginName) {
-      physicalRow = this.rowsMapper.getValueByIndex(physicalRow);
+      physicalRow = this.rowsMapper.getPhysicalIndex(physicalRow);
     }
 
     return physicalRow;
@@ -274,7 +274,7 @@ class TrimRows extends BasePlugin {
     let visualRow = row;
 
     if (source !== this.pluginName) {
-      visualRow = this.rowsMapper.getIndexByValue(visualRow);
+      visualRow = this.rowsMapper.getVisualIndex(visualRow);
     }
 
     return visualRow;

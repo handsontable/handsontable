@@ -594,7 +594,7 @@ class ColumnSorting extends BasePlugin {
     // The blockade of the indices translation is released.
     this.blockPluginTranslation = false;
 
-    // Save all indexes to arrayMapper, a completely new sequence is set by the plugin
+    // Save all indexes to indexMapper, a completely new sequence is set by the plugin
     this.rowsMapper._arrayMap = arrayMap(indexesWithData, indexWithData => indexWithData[0]);
   }
 
@@ -666,7 +666,7 @@ class ColumnSorting extends BasePlugin {
    */
   onModifyRow(row, source) {
     if (this.blockPluginTranslation === false && source !== this.pluginName && this.isSorted()) {
-      const rowInMapper = this.rowsMapper.getValueByIndex(row);
+      const rowInMapper = this.rowsMapper.getPhysicalIndex(row);
       row = rowInMapper === null ? row : rowInMapper;
     }
 
@@ -682,7 +682,7 @@ class ColumnSorting extends BasePlugin {
    */
   onUnmodifyRow(row, source) {
     if (this.blockPluginTranslation === false && source !== this.pluginName && this.isSorted()) {
-      row = this.rowsMapper.getIndexByValue(row);
+      row = this.rowsMapper.getVisualIndex(row);
     }
 
     return row;

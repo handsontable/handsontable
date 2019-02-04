@@ -196,12 +196,12 @@ class ManualColumnMove extends BasePlugin {
     if (beforeColumnHook !== false) {
       // first we need to rewrite an visual indexes to physical for save reference after move
       arrayEach(columns, (column, index, array) => {
-        array[index] = this.columnsMapper.getValueByIndex(column);
+        array[index] = this.columnsMapper.getPhysicalIndex(column);
       });
 
       // next, when we have got an physical indexes, we can move columns
       arrayEach(columns, (column, index) => {
-        const actualPosition = this.columnsMapper.getIndexByValue(column);
+        const actualPosition = this.columnsMapper.getVisualIndex(column);
 
         if (actualPosition !== target) {
           this.columnsMapper.moveColumn(actualPosition, target + index);
@@ -618,8 +618,8 @@ class ManualColumnMove extends BasePlugin {
     this.hot.view.wt.wtOverlays.adjustElementsSize(true);
 
     if (!priv.disallowMoving) {
-      const selectionStart = this.columnsMapper.getIndexByValue(priv.columnsToMove[0]);
-      const selectionEnd = this.columnsMapper.getIndexByValue(priv.columnsToMove[priv.columnsToMove.length - 1]);
+      const selectionStart = this.columnsMapper.getVisualIndex(priv.columnsToMove[0]);
+      const selectionEnd = this.columnsMapper.getVisualIndex(priv.columnsToMove[priv.columnsToMove.length - 1]);
       this.changeSelection(selectionStart, selectionEnd);
     }
 
@@ -700,7 +700,7 @@ class ManualColumnMove extends BasePlugin {
 
     if (source !== this.pluginName) {
       // ugly fix for try to insert new, needed columns after pasting data
-      const columnInMapper = this.columnsMapper.getValueByIndex(physicalColumn);
+      const columnInMapper = this.columnsMapper.getPhysicalIndex(physicalColumn);
       physicalColumn = columnInMapper === null ? physicalColumn : columnInMapper;
     }
 
@@ -715,7 +715,7 @@ class ManualColumnMove extends BasePlugin {
    * @returns {Number} Visual column index.
    */
   onUnmodifyCol(column) {
-    const indexInMapper = this.columnsMapper.getIndexByValue(column);
+    const indexInMapper = this.columnsMapper.getVisualIndex(column);
 
     return indexInMapper === null ? column : indexInMapper;
   }

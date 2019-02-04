@@ -1,4 +1,4 @@
-import arrayMapper from '../../../mixins/arrayMapper';
+import indexMapper from '../../../mixins/indexMapper';
 import { mixin } from '../../../helpers/object';
 
 /**
@@ -43,6 +43,6 @@ class StrictBindStrategy {
   }
 }
 
-mixin(StrictBindStrategy, arrayMapper);
+mixin(StrictBindStrategy, indexMapper);
 
 export default StrictBindStrategy;

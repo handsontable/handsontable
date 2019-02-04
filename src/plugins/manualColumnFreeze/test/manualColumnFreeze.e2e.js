@@ -35,7 +35,7 @@ describe('manualColumnFreeze', () => {
 
       plugin.freezeColumn(5);
 
-      expect(movePlugin.columnsMapper.getValueByIndex(0)).toEqual(5);
+      expect(movePlugin.columnsMapper.getPhysicalIndex(0)).toEqual(5);
     });
   });
 
@@ -65,9 +65,9 @@ describe('manualColumnFreeze', () => {
       plugin.unfreezeColumn(0);
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
-      expect(movePlugin.columnsMapper.getValueByIndex(0)).toEqual(1);
-      expect(movePlugin.columnsMapper.getValueByIndex(1)).toEqual(2);
-      expect(movePlugin.columnsMapper.getValueByIndex(2)).toEqual(0);
+      expect(movePlugin.columnsMapper.getPhysicalIndex(0)).toEqual(1);
+      expect(movePlugin.columnsMapper.getPhysicalIndex(1)).toEqual(2);
+      expect(movePlugin.columnsMapper.getPhysicalIndex(2)).toEqual(0);
     });
 
     it('should unfreeze the last column', () => {
@@ -82,14 +82,14 @@ describe('manualColumnFreeze', () => {
       plugin.freezeColumn(9);
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
-      expect(movePlugin.columnsMapper.getValueByIndex(0)).toEqual(9);
-      expect(movePlugin.columnsMapper.getValueByIndex(9)).toEqual(8);
+      expect(movePlugin.columnsMapper.getPhysicalIndex(0)).toEqual(9);
+      expect(movePlugin.columnsMapper.getPhysicalIndex(9)).toEqual(8);
 
       plugin.unfreezeColumn(0);
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
-      expect(movePlugin.columnsMapper.getValueByIndex(0)).toEqual(0);
-      expect(movePlugin.columnsMapper.getValueByIndex(9)).toEqual(9);
+      expect(movePlugin.columnsMapper.getPhysicalIndex(0)).toEqual(0);
+      expect(movePlugin.columnsMapper.getPhysicalIndex(9)).toEqual(9);
     });
   });
 

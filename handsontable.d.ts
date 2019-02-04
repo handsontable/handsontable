@@ -1068,16 +1068,16 @@ declare namespace Handsontable {
       unfreezeColumn(column: number): void;
     }
 
-    interface arrayMapper {
-      getValueByIndex(index: number): any;
-      getIndexByValue(value: any): number;
+    interface indexMapper {
+      getPhysicalIndex(index: number): any;
+      getVisualIndex(value: any): number;
       insertItems(index: number, amount?: number): any[];
       removeItems(index: number, amount?: number): any[];
       shiftItems(index: number, amount?: number): void;
       unshiftItems(index: number, amount?: number): void;
     }
 
-    interface MoveColumnsMapper extends arrayMapper {
+    interface MoveColumnsMapper extends indexMapper {
       manualColumnMove: ManualColumnMove;
 
       clearNull(): void;
@@ -1086,7 +1086,7 @@ declare namespace Handsontable {
       moveColumn(from: number, to: number): void;
     }
 
-    interface MoveRowsMapper extends arrayMapper {
+    interface MoveRowsMapper extends indexMapper {
       manualRowMove: ManualRowMove;
 
       clearNull(): void;
@@ -1105,7 +1105,7 @@ declare namespace Handsontable {
       sort(sortConfig?: columnSorting.Config | Array<columnSorting.Config>): void;
     }
 
-    interface TrimRowsMapper extends arrayMapper {
+    interface TrimRowsMapper extends indexMapper {
       trimRows: TrimRows;
 
       createMap(length?: number): void;

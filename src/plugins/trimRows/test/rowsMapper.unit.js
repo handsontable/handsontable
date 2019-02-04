@@ -8,8 +8,8 @@ describe('TrimRows -> RowsMapper', () => {
     expect(mapper.trimRows).toBe(trimRowsMock);
   });
 
-  it('should be mixed with arrayMapper object', () => {
-    expect(RowsMapper.MIXINS).toEqual(['arrayMapper']);
+  it('should be mixed with indexMapper object', () => {
+    expect(RowsMapper.MIXINS).toEqual(['indexMapper']);
   });
 
   it('should destroy array after calling destroy method', () => {

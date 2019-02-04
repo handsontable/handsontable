@@ -110,7 +110,7 @@ class ManualColumnFreeze extends BasePlugin {
 
     priv.moveByFreeze = true;
 
-    if (column !== this.getMovePlugin().columnsMapper.getValueByIndex(column)) {
+    if (column !== this.getMovePlugin().columnsMapper.getPhysicalIndex(column)) {
       this.frozenColumnsBasePositions[settings.fixedColumnsLeft] = column;
     }
 
@@ -168,15 +168,15 @@ class ManualColumnFreeze extends BasePlugin {
     const movePlugin = this.getMovePlugin();
     const settings = this.hot.getSettings();
     let i = settings.fixedColumnsLeft;
-    let j = movePlugin.columnsMapper.getValueByIndex(i);
+    let j = movePlugin.columnsMapper.getPhysicalIndex(i);
     let initialCol;
 
     if (this.frozenColumnsBasePositions[column] === null || this.frozenColumnsBasePositions[column] === void 0) {
-      initialCol = movePlugin.columnsMapper.getValueByIndex(column);
+      initialCol = movePlugin.columnsMapper.getPhysicalIndex(column);
 
       while (j !== null && j <= initialCol) {
         i += 1;
-        j = movePlugin.columnsMapper.getValueByIndex(i);
+        j = movePlugin.columnsMapper.getPhysicalIndex(i);
       }
 
     } else {
@@ -185,7 +185,7 @@ class ManualColumnFreeze extends BasePlugin {
 
       while (j !== null && j <= initialCol) {
         i += 1;
-        j = movePlugin.columnsMapper.getValueByIndex(i);
+        j = movePlugin.columnsMapper.getPhysicalIndex(i);
       }
       i = j;
     }

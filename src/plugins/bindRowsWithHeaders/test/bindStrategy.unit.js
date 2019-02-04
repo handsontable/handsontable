@@ -74,15 +74,15 @@ describe('BindRowsWithHeaders -> BindStrategy', () => {
   });
 
   it('should forward `translate` method call to the strategy object', () => {
-    const strategyMock = { getValueByIndex() {} };
-    const getValueByIndexSpy = jest.spyOn(strategyMock, 'getValueByIndex');
+    const strategyMock = { getPhysicalIndex() {} };
+    const getPhysicalIndexSpy = jest.spyOn(strategyMock, 'getPhysicalIndex');
     const strategy = new BindStrategy();
 
-    strategy.strategy = { getValueByIndex: getValueByIndexSpy };
+    strategy.strategy = { getPhysicalIndex: getPhysicalIndexSpy };
     strategy.translate(1);
 
-    expect(getValueByIndexSpy).toHaveBeenCalledTimes(1);
-    expect(getValueByIndexSpy).toHaveBeenCalledWith(1);
+    expect(getPhysicalIndexSpy).toHaveBeenCalledTimes(1);
+    expect(getPhysicalIndexSpy).toHaveBeenCalledWith(1);
   });
 
   it('should forward `clearMap` method call to the strategy object', () => {

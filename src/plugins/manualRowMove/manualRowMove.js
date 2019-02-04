@@ -195,12 +195,12 @@ class ManualRowMove extends BasePlugin {
     if (!priv.disallowMoving) {
       // first we need to rewrite an visual indexes to physical for save reference after move
       arrayEach(rows, (row, index, array) => {
-        array[index] = this.rowsMapper.getValueByIndex(row);
+        array[index] = this.rowsMapper.getPhysicalIndex(row);
       });
 
       // next, when we have got an physical indexes, we can move rows
       arrayEach(rows, (row, index) => {
-        const actualPosition = this.rowsMapper.getIndexByValue(row);
+        const actualPosition = this.rowsMapper.getVisualIndex(row);
 
         if (actualPosition !== target) {
           this.rowsMapper.moveRow(actualPosition, target + index);
@@ -634,8 +634,8 @@ class ManualRowMove extends BasePlugin {
     this.hot.render();
 
     if (!priv.disallowMoving) {
-      const selectionStart = this.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
-      const selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[rowsLen - 1]);
+      const selectionStart = this.rowsMapper.getVisualIndex(priv.rowsToMove[0]);
+      const selectionEnd = this.rowsMapper.getVisualIndex(priv.rowsToMove[rowsLen - 1]);
       this.changeSelection(selectionStart, selectionEnd);
     }
 
@@ -715,7 +715,7 @@ class ManualRowMove extends BasePlugin {
     let physicalRow = row;
 
     if (source !== this.pluginName) {
-      const rowInMapper = this.rowsMapper.getValueByIndex(physicalRow);
+      const rowInMapper = this.rowsMapper.getPhysicalIndex(physicalRow);
       physicalRow = rowInMapper === null ? physicalRow : rowInMapper;
     }
 
@@ -730,7 +730,7 @@ class ManualRowMove extends BasePlugin {
    * @returns {Number} Visual row index.
    */
   onUnmodifyRow(row) {
-    const indexInMapper = this.rowsMapper.getIndexByValue(row);
+    const indexInMapper = this.rowsMapper.getVisualIndex(row);
 
     return indexInMapper === null ? row : indexInMapper;
   }

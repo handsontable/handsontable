@@ -1,4 +1,4 @@
-import arrayMapper from '../../../mixins/arrayMapper';
+import indexMapper from '../../../mixins/indexMapper';
 import { mixin } from '../../../helpers/object';
 
 /**
@@ -43,6 +43,6 @@ class LooseBindStrategy {
   }
 }
 
-mixin(LooseBindStrategy, arrayMapper);
+mixin(LooseBindStrategy, indexMapper);
 
 export default LooseBindStrategy;

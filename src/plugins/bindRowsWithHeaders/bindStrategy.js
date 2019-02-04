@@ -70,12 +70,12 @@ class BindStrategy {
   }
 
   /**
-   * Alias for getValueByIndex of strategy class.
+   * Alias for getPhysicalIndex of strategy class.
    *
    * @param {*} params
    */
   translate(...params) {
-    return this.strategy.getValueByIndex(...params);
+    return this.strategy.getPhysicalIndex(...params);
   }
 
   /**
