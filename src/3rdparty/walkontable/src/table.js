@@ -177,9 +177,13 @@ class Table {
           this.wtRootElement.style.overflow = 'visible';
         }
       } else {
-        this.holder.style.width = getStyle(trimmingElement, 'width', rootWindow);
-        this.holder.style.height = getStyle(trimmingElement, 'height', rootWindow);
-        this.holder.style.overflow = '';
+        const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
+        const holderStyle = this.holder.style;
+        const { width, height } = trimmingElement.getBoundingClientRect();
+
+        holderStyle.width = `${width}px`;
+        holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
+        holderStyle.overflow = '';
       }
     }
   }
