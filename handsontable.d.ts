@@ -31,10 +31,10 @@ declare namespace _Handsontable {
     destroy(): void;
     destroyEditor(revertOriginal?: boolean, prepareEditorIfNeeded?: boolean): void;
     emptySelectedCells(): void;
-    getActiveEditor<T extends Handsontable.editors.Base>(): T | undefined;
+    getActiveEditor<T extends Handsontable._editors.Base>(): T | undefined;
     getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
-    getCellEditor<T extends Handsontable.editors.Base>(row: number, col: number): T;
-    getCellEditor<T extends Handsontable.editors.Base>(cellMeta: Handsontable.CellMeta): T;
+    getCellEditor<T extends Handsontable._editors.Base>(row: number, col: number): T;
+    getCellEditor<T extends Handsontable._editors.Base>(cellMeta: Handsontable.CellMeta): T;
     getCellMeta(row: number, col: number): Handsontable.CellProperties;
     getCellMetaAtRow(row: number): Handsontable.CellProperties[];
     getCellRenderer(row: number, col: number): Handsontable.renderers.Base;
@@ -144,59 +144,62 @@ declare namespace Handsontable {
 
   namespace cellTypes {
     interface Autocomplete {
-      editor: editors.Autocomplete;
+      editor: _editors.Autocomplete;
       renderer: renderers.Autocomplete;
       validator: validators.Autocomplete;
     }
 
     interface Checkbox {
-      editor: editors.Checkbox;
+      editor: _editors.Checkbox;
       renderer: renderers.Checkbox;
     }
 
     interface Date {
-      editor: editors.Date;
+      editor: _editors.Date;
       renderer: renderers.Autocomplete;
       validator: validators.Date
     }
 
     interface Dropdown {
-      editor: editors.Dropdown;
+      editor: _editors.Dropdown;
       renderer: renderers.Autocomplete;
       validator: validators.Autocomplete;
     }
 
     interface Handsontable {
-      editor: editors.Handsontable;
+      editor: _editors.Handsontable;
       renderer: renderers.Autocomplete;
     }
 
     interface Numeric {
       dataType: string;
-      editor: editors.Numeric;
+      editor: _editors.Numeric;
       renderer: renderers.Numeric;
       validator: validators.Numeric;
     }
 
     interface Password {
       copyable: boolean;
-      editor: editors.Password;
+      editor: _editors.Password;
       renderer: renderers.Password;
     }
 
     interface Text {
-      editor: editors.Text;
+      editor: _editors.Text;
       renderer: renderers.Text;
     }
 
     interface Time {
-      editor: editors.Text;
+      editor: _editors.Text;
       renderer: renderers.Text;
       validator: validators.Time;
     }
   }
 
-  namespace editors {
+  // This is called "_editors" to avoid circular naming conflict with the "Handsontable.editors" namespace.
+  // The other namespaces don't need this hack because they don't define any values (ie classes) only types (ie interfaces).
+  // TODO: This would be better solved by moving all types outside the exported namespaces. (Separate type definition from publication.)
+  namespace _editors {
     abstract class Base {
       instance: _Handsontable.Core;
       row: number;
@@ -213,7 +216,7 @@ declare namespace Handsontable {
       abstract close(): void;
       discardEditor(validationResult?: boolean): void;
       enableFullEditMode(): void;
-      extend<T extends editors.Base>(): T;
+      extend<T extends _editors.Base>(): T;
       finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
       abstract getValue(): any;
       init(): void;
@@ -1638,7 +1641,7 @@ declare namespace Handsontable {
     disableVisualSelection?: boolean | 'current' | 'area' | 'header' | ('current' | 'area' | 'header')[];
     dragToScroll?: boolean;
     dropdownMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings; // pro
-    editor?: CellType | editors.Base | boolean;
+    editor?: CellType | typeof _editors.Base | boolean;
     enterBeginsEditing?: boolean;
     enterMoves?: wot.CellCoords | ((event: KeyboardEvent) => wot.CellCoords);
     fillHandle?: boolean | 'vertical' | 'horizontal' | autoFill.Settings;
@@ -1970,25 +1973,25 @@ declare namespace Handsontable {
 
   interface CellTypeObject {
     renderer?: renderers.Base;
-    editor?: typeof editors.BaseEditor;
+    editor?: typeof _editors.Base;
     validator?: validators.Base;
   }
 
   interface Editors {
-    AutocompleteEditor: editors.Autocomplete;
-    BaseEditor: editors.Base;
-    CheckboxEditor: editors.Checkbox;
-    DateEditor: editors.Date;
-    DropdownEditor: editors.Dropdown;
-    HandsontableEditor: editors.Handsontable;
-    MobileEditor: editors.Mobile;
-    NumericEditor: editors.Numeric;
-    PasswordEditor: editors.Password;
-    SelectEditor: editors.Select;
-    TextEditor: editors.Text;
-    TimeEditor: editors.Text;
-    getEditor(editorName: string): editors.Base;
-    registerEditor(editorName: string, editorClass: typeof editors.BaseEditor): void;
+    AutocompleteEditor: typeof _editors.Autocomplete;
+    BaseEditor: typeof _editors.Base;
+    CheckboxEditor: typeof _editors.Checkbox;
+    DateEditor: typeof _editors.Date;
+    DropdownEditor: typeof _editors.Dropdown;
+    HandsontableEditor: typeof _editors.Handsontable;
+    MobileEditor: typeof _editors.Mobile;
+    NumericEditor: typeof _editors.Numeric;
+    PasswordEditor: typeof _editors.Password;
+    SelectEditor: typeof _editors.Select;
+    TextEditor: typeof _editors.Text;
+    TimeEditor: typeof _editors.Text;
+    getEditor(editorName: string): _editors.Base;
+    registerEditor(editorName: string, editorClass: typeof _editors.Base): void;
   }
 
   interface Renderers {
