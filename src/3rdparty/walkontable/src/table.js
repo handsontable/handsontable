@@ -400,7 +400,7 @@ class Table {
       // row after rendered rows
       return -2;
 
-    } else if (this.isColumnBeforeViewport(column)) {
+    } else if (this.isColumnBeforeRenderedColumns(column)) {
       // column before rendered columns
       return -3;
 
@@ -551,6 +551,10 @@ class Table {
 
   isColumnBeforeViewport(column) {
     return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
+  }
+
+  isColumnBeforeRenderedColumns(column) {
+    return this.columnFilter && (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column) < 0 && column >= 0);
   }
 
   isColumnAfterViewport(column) {
