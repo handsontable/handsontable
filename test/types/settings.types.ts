@@ -44,7 +44,6 @@ const hotSettings: Handsontable.GridSettings = {
   commentedCellClassName: 'foo',
   comments: {},
   contextMenu: true,
-  contextMenuCopyPaste: {},
   copyable: true,
   copyColsLimit: 123,
   copyPaste: true,
