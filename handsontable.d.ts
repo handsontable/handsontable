@@ -1799,11 +1799,11 @@ declare namespace Handsontable {
     beforeAutofill?: (start: wot.CellCoords, end: wot.CellCoords, data: CellValue[][]) => void;
     beforeAutofillInsidePopulate?: (index: wot.CellCoords, direction: 'up' | 'down' | 'left' | 'right', input: CellValue[][], deltas: any[]) => void;
     beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: wot.CellRange[], type: 'horizontal' | 'vertical', alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
-    beforeChange?: (changes: CellChange[], source: ChangeSource) => void;
+    beforeChange?: (changes: CellChange[], source: ChangeSource) => void | boolean;
     beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
     beforeColumnMove?: (columns: number[], target: number) => void;
-    beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
-    beforeColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void;
+    beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void | number;
+    beforeColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void | boolean;
     beforeContextMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
     beforeContextMenuShow?: (context: plugins.ContextMenu) => void;
     beforeCopy?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
@@ -1814,7 +1814,7 @@ declare namespace Handsontable {
     beforeDrawBorders?: (corners: number[], borderClassName: 'current' | 'area' | 'highlight' | undefined) => void;
     beforeDropdownMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
     beforeDropdownMenuShow?: (instance: plugins.DropdownMenu) => void;
-    beforeFilter?: (formulasStack: plugins.FiltersPlugin.ColumnConditions[]) => void;
+    beforeFilter?: (formulasStack: plugins.FiltersPlugin.ColumnConditions[]) => void | boolean;
     beforeGetCellMeta?: (row: number, col: number, cellProperties: CellProperties) => void;
     beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
     beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
@@ -1837,11 +1837,11 @@ declare namespace Handsontable {
     beforeRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
     beforeRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
     beforeRowMove?: (columns: number[], target: number) => void;
-    beforeRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => number | undefined;
+    beforeRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => number | void;
     beforeSetRangeEnd?: (coords: wot.CellCoords) => void;
     beforeSetRangeStart?: (coords: wot.CellCoords) => void;
     beforeSetRangeStartOnly?: (coords: wot.CellCoords) => void;
-    beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void;
+    beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void | number;
     beforeTouchScroll?: () => void;
     beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void;
     beforeUndo?: (action: plugins.UndoRedoAction) => void;
@@ -1862,7 +1862,7 @@ declare namespace Handsontable {
     modifyColWidth?: (width: number, col: number) => void;
     modifyCopyableRange?: (copyableRanges: plugins.RangeType[]) => void;
     modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
-    modifyGetCellCoords?: (row: number, column: number, topmost: boolean) => void;
+    modifyGetCellCoords?: (row: number, column: number, topmost: boolean) => void | [number, number] | [number, number, number, number];
     modifyRow?: (row: number) => void;
     modifyRowData?: (row: number) => void;
     modifyRowHeader?: (row: number) => void;
@@ -1965,7 +1965,7 @@ declare namespace Handsontable {
     text: cellTypes.Text;
     time: cellTypes.Time;
     getCellType(name: string): CellTypeObject;
-    registerCellType(name: string, type: CellTypeObject);
+    registerCellType(name: string, type: CellTypeObject): void;
   }
 
   interface CellTypeObject {
@@ -2402,6 +2402,7 @@ declare namespace Handsontable {
     type BorderOptions = {
       width: number;
       color: string;
+      style: string;
     }
     type BorderRange = {
       range: {
