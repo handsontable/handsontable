@@ -275,7 +275,7 @@ class SelectEditor extends BaseEditor {
         break;
     }
 
-    return editedCell !== -1 && editedCell !== -2 ? editedCell : void 0;
+    return editedCell < 0 ? void 0 : editedCell;
   }
 
   /**
