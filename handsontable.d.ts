@@ -9,11 +9,13 @@ type Omit<T, K extends keyof T> = Pick<T, ({ [P in keyof T]: P } & { [P in K]: n
 
 declare namespace _Handsontable {
 
+  type CustomChangeSource = Handsontable.ChangeSource | string;
+
   class Core {
     constructor(element: Element, options: Handsontable.GridSettings);
     addHook<K extends keyof Handsontable.Events>(key: K, callback: Handsontable.Events[K] | Handsontable.Events[K][]): void;
     addHookOnce<K extends keyof Handsontable.Events>(key: K, callback: Handsontable.Events[K] | Handsontable.Events[K][]): void;
-    alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index?: number | Array<[number, number]>, amount?: number, source?: Handsontable.ChangeSource, keepEmptyRows?: boolean): void;
+    alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index?: number | Array<[number, number]>, amount?: number, source?: CustomChangeSource, keepEmptyRows?: boolean): void;
     clear(): void;
     colOffset(): number;
     colToProp(col: number): string | number;
@@ -81,7 +83,7 @@ declare namespace _Handsontable {
     isListening(): boolean;
     listen(): void;
     loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[]): void;
-    populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: Handsontable.ChangeSource, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
+    populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: CustomChangeSource, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
     propToCol(prop: string | number): number;
     removeCellMeta(row: number, col: number, key: string): void;
     removeCellMeta(row: number, col: number, key: keyof Handsontable.CellMeta): void;
@@ -101,10 +103,10 @@ declare namespace _Handsontable {
     setCellMeta(row: number, col: number, key: string, val: any): void;
     setCellMeta<K extends keyof Handsontable.CellMeta>(row: number, col: number, key: K, val: Handsontable.CellMeta[K]): void;
     setCellMetaObject<T extends Handsontable.CellMeta>(row: number, col: number, prop: T): void;
-    setDataAtCell(row: number, col: string | number, value: Handsontable.CellValue, source?: Handsontable.ChangeSource): void;
-    setDataAtCell(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: Handsontable.ChangeSource): void;
-    setDataAtRowProp(row: number, prop: string, value: Handsontable.CellValue, source?: Handsontable.ChangeSource): void;
-    setDataAtRowProp(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: Handsontable.ChangeSource): void;
+    setDataAtCell(row: number, col: string | number, value: Handsontable.CellValue, source?: CustomChangeSource): void;
+    setDataAtCell(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: CustomChangeSource): void;
+    setDataAtRowProp(row: number, prop: string, value: Handsontable.CellValue, source?: CustomChangeSource): void;
+    setDataAtRowProp(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: CustomChangeSource): void;
     spliceCol(col: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     spliceRow(row: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     toPhysicalColumn(column: number): number;
@@ -126,7 +128,7 @@ declare namespace Handsontable {
   type CellValue = any; // string | number | boolean | null | undefined;
   type CellChange = [number, string | number, CellValue, CellValue]; // [row, column, prevValue, nextValue]
   type RowObject = object; // { [prop: string]: CellValue }
-  type SourceData = RowObject | CellValue[]; // TODO
+  // type SourceData = RowObject | CellValue[]; // TODO
   type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' | 'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' | 'Autofill.fill' | 'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' | 'ContextMenu.columnRight' | 'ContextMenu.removeColumn' | 'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' | 'CopyPaste.paste' | 'ObserveChanges.change' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'GantChart.loadData' | 'ColumnSummary.set' | 'ColumnSummary.reset';
   type CellType = 'autocomplete' | 'checkbox' | 'date' | 'dropdown' | 'handsontable' | 'numeric' | 'password' | 'text' | 'time';
 
@@ -1724,7 +1726,7 @@ declare namespace Handsontable {
     afterAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
     afterBeginEditing?: (row: number, column: number) => void;
     afterCellMetaReset?: () => void;
-    afterChange?: (changes: CellChange[], source: ChangeSource) => void;
+    afterChange?: (changes: CellChange[] | null, source: ChangeSource) => void;
     afterChangesObserved?: () => void;
     afterColumnMove?: (startColumn: number, endColumn: number) => void;
     afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
