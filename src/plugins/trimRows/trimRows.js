@@ -301,6 +301,14 @@ class TrimRows extends BasePlugin {
    */
   onAfterCreateRow(index, amount) {
     this.rowsMapper.shiftItems(index, amount);
+
+    this.trimmedRows = arrayMap(this.trimmedRows, (trimmedRow) => {
+      if (trimmedRow >= this.rowsMapper.getValueByIndex(index)) {
+        return trimmedRow + amount;
+      }
+
+      return trimmedRow;
+    });
   }
 
   /**
