@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 
-const hotSettings: Handsontable.GridSettings = {
+const allSettings: Required<Handsontable.GridSettings> = {
   activeHeaderClassName: 'foo',
   allowEmpty: true,
   allowHtml: true,
@@ -56,6 +56,16 @@ const hotSettings: Handsontable.GridSettings = {
   data: [],
   dataSchema: {},
   dateFormat: 'foo',
+  datePickerConfig: {
+    // First day of the week (0: Sunday, 1: Monday, etc)
+    firstDay: 0,
+    showWeekNumber: true,
+    numberOfMonths: 3,
+    disableDayFn: function(date) {
+      // Disable Sunday and Saturday
+      return date.getDay() === 0 || date.getDay() === 6;
+    }
+  },
   debug: true,
   defaultDate: 'foo',
   disableVisualSelection: true,
@@ -71,6 +81,7 @@ const hotSettings: Handsontable.GridSettings = {
   fixedColumnsLeft: 123,
   fixedRowsBottom: 123,
   fixedRowsTop: 123,
+  licenseKey: "",
   numericFormat: {
     pattern: '0,00',
     culture: 'en-US'
@@ -177,6 +188,8 @@ const hotSettings: Handsontable.GridSettings = {
   afterGetColumnHeaderRenderers: (array) => {},
   afterGetRowHeader: (row, TH) => {},
   afterGetRowHeaderRenderers: (array) => {},
+  afterHideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
+  afterHideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
   afterInit: () => {},
   afterLanguageChange: (languageCode) => {},
   afterListen: () => {},
@@ -214,6 +227,8 @@ const hotSettings: Handsontable.GridSettings = {
   afterTrimRow: (rows) => {},
   afterUndo: (action) => {},
   afterUnlisten: () => {},
+  afterUnhideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
+  afterUnhideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
   afterUnmergeCells: (cellRange, auto) => {},
   afterUntrimRow: (rows) => {},
   afterUpdateSettings: () => {},
@@ -241,6 +256,8 @@ const hotSettings: Handsontable.GridSettings = {
   beforeDropdownMenuShow: (instance) => {},
   beforeFilter: (formulasStack) => {},
   beforeGetCellMeta: (row, col, cellProperties) => {},
+  beforeHideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
+  beforeHideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeInit: () => {},
   beforeInitWalkontable: (walkontableConfig) => {},
   beforeKeyDown: (event) => {},
@@ -266,8 +283,12 @@ const hotSettings: Handsontable.GridSettings = {
   beforeSetRangeStartOnly: (coords) => {},
   beforeStretchingColumnWidth: (stretchedWidth, column) => {},
   beforeTouchScroll: () => {},
+  beforeTrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible) => {},
   beforeUndo: (action) => {},
+  beforeUnhideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
+  beforeUnhideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeUnmergeCells: (cellRange, auto) => {},
+  beforeUntrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible) => {},
   beforeValidate: (value, row, prop, source) => {},
   beforeValueRender: (value) => {},
   construct: () => {},
@@ -285,6 +306,7 @@ const hotSettings: Handsontable.GridSettings = {
   modifyRow: (row) => {},
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
+  modifyRowHeaderWidth: (rowHeaderWidth) => {},
   modifyRowHeight: (height, row) => {},
   modifyRowSourceData: (row) => {},
   modifyTransformEnd: (delta) => {},
