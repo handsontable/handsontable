@@ -1662,7 +1662,7 @@ declare namespace Handsontable {
     fragmentSelection?: boolean | string;
     ganttChart?: ganttChart.Settings; // pro
     headerTooltips?: boolean | headerTooltips.Settings; // pro
-    height?: number | (() => number);
+    height?: number | string | (() => number | string);
     hiddenColumns?: boolean | hiddenColumns.Settings; // pro
     hiddenRows?: boolean | hiddenRows.Settings; // pro
     invalidCellClassName?: string;
@@ -1724,7 +1724,7 @@ declare namespace Handsontable {
     viewportColumnRenderingOffset?: number | string;
     viewportRowRenderingOffset?: number | string;
     visibleRows?: number;
-    width?: number | (() => number);
+    width?: number | string | (() => number | string);
     wordWrap?: boolean;
   }
 

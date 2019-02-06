@@ -148,13 +148,16 @@ DefaultSettings.prototype = {
   /**
    * Width of the grid. Can be a value or a function that returns a value.
    *
-   * @type {Number|Function}
+   * @type {Number|String|Function}
    * @default undefined
    *
    * @example
    * ```
    * // as a number
    * width: 500,
+   *
+   * // as a string
+   * width: '75vw',
    *
    * // as a function
    * width: function() {
@@ -167,13 +170,16 @@ DefaultSettings.prototype = {
   /**
    * Height of the grid. Can be a number or a function that returns a number.
    *
-   * @type {Number|Function}
+   * @type {Number|String|Function}
    * @default undefined
    *
    * @example
    * ```js
    * // as a number
    * height: 500,
+   *
+   * // as a string
+   * height: '75vh',
    *
    * // as a function
    * height: function() {
