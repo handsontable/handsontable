@@ -1806,6 +1806,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
       }
 
+      instance.runHooks('updatePlugin');
       instance.runHooks('afterUpdateSettings', settings);
     }
 
