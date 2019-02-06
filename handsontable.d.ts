@@ -1659,6 +1659,7 @@ declare namespace Handsontable {
     fixedColumnsLeft?: number;
     fixedRowsBottom?: number; // pro
     fixedRowsTop?: number;
+    formulas?: boolean | formulas.Settings;
     fragmentSelection?: boolean | string;
     ganttChart?: ganttChart.Settings; // pro
     headerTooltips?: boolean | headerTooltips.Settings; // pro
@@ -1686,6 +1687,7 @@ declare namespace Handsontable {
     multiColumnSorting?: boolean | multiColumnSorting.Settings;
     selectionMode?: 'single' | 'range' | 'multiple';
     nestedHeaders?: (string | nestedHeaders.NestedHeader)[][]; // pro
+    nestedRows?: boolean;
     noWordWrapClassName?: string;
     observeChanges?: boolean;
     observeDOMVisibility?: boolean;
@@ -2437,6 +2439,14 @@ declare namespace Handsontable {
     interface Settings {
       autoInsertRow?: boolean;
       direction?: 'vertical' | 'horizontal';
+    }
+  }
+
+  namespace formulas {
+    interface Settings {
+      variables?: {
+        [key: string]: any;
+      }
     }
   }
 
