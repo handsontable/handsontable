@@ -14,7 +14,7 @@ const cellProperties: Handsontable.CellProperties = {
 
 const TD = document.createElement('td');
 
-// Verify the built-in editors exist and have the right class types -- spot check a couple class methods each
+// Verify the built-in editors exist and have the right class types -- spot check a couple class methods on each
 const autocomplete = new Handsontable.editors.AutocompleteEditor(hot, 0, 0, 'prop', TD, cellProperties);
 autocomplete.isOpened();
 autocomplete.flipDropdown(100);
@@ -58,7 +58,7 @@ const time = new Handsontable.editors.TimeEditor(hot, 0, 0, 'prop', TD, cellProp
 time.discardEditor();
 
 
-// Verify top-level validator API
+// Verify top-level editors API
 class CustomEditor extends Handsontable.editors.getEditor('text') {
   open(){}
   close(){}
