@@ -154,8 +154,9 @@ class CustomBorders extends BasePlugin {
     *
     * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
     * @param {Object} borderObject Object with `top`, `right`, `bottom` and `left` properties.
+    * @param {String} animationClass If present borders are animated.
     */
-  setBorders(selectionRanges, borderObject) {
+  setBorders(selectionRanges, borderObject, animationClass) {
     const defaultBorderKeys = ['top', 'right', 'bottom', 'left'];
     const borderKeys = borderObject ? Object.keys(borderObject) : defaultBorderKeys;
     const selectionType = detectSelectionType(selectionRanges);
@@ -167,7 +168,7 @@ class CustomBorders extends BasePlugin {
       for (let row = rowStart; row <= rowEnd; row += 1) {
         for (let col = columnStart; col <= columnEnd; col += 1) {
           arrayEach(borderKeys, (borderKey) => {
-            this.prepareBorderFromCustomAdded(row, col, borderObject, borderKey);
+            this.prepareBorderFromCustomAdded(row, col, borderObject, borderKey, animationClass);
           });
         }
       }
@@ -256,8 +257,9 @@ class CustomBorders extends BasePlugin {
    * @private
    * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
+   * @param {String} animationClass If present borders are animated.
    */
-  insertBorderIntoSettings(border, place) {
+  insertBorderIntoSettings(border, place, animationClass) {
     const hasSavedBorders = this.checkSavedBorders(border);
 
     if (!hasSavedBorders) {
@@ -275,6 +277,16 @@ class CustomBorders extends BasePlugin {
       this.hot.selection.highlight.addCustomSelection({ border, cellRange });
       this.hot.view.wt.draw(true);
     }
+
+    if (animationClass) {
+      arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
+        if (border.id === customSelection.settings.id) {
+          objectEach(customSelection.instanceBorders, (borderObject) => {
+            borderObject.createAndAddAnimateClass(place, border);
+          });
+        }
+      });
+    }
   }
 
   /**
@@ -285,11 +297,18 @@ class CustomBorders extends BasePlugin {
    * @param {Number} column Visual column index.
    * @param {Object} borderDescriptor Object with `row` and `col`, `left`, `right`, `top` and `bottom` properties.
    * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
+   * @param {String} animationClass If present borders are animated.
    */
-  prepareBorderFromCustomAdded(row, column, borderDescriptor, place) {
+  prepareBorderFromCustomAdded(row, column, borderDescriptor, place, animationClass) {
     let border = createEmptyBorders(row, column);
 
     if (borderDescriptor) {
+      const borderObject = borderDescriptor.bottom || borderDescriptor.right;
+
+      if (borderObject) {
+        border = createEmptyBorders(row, column, borderObject.width);
+      }
+
       border = extendDefaultBorder(border, borderDescriptor);
 
       arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
@@ -305,52 +324,59 @@ class CustomBorders extends BasePlugin {
 
     this.hot.setCellMeta(row, column, 'borders', border);
 
-    this.insertBorderIntoSettings(border, place);
+    this.insertBorderIntoSettings(border, place, animationClass);
   }
 
   /**
    * Prepare borders from setting (object).
    *
    * @private
-   * @param {Object} rowDecriptor Object with `range`, `left`, `right`, `top` and `bottom` properties.
+   * @param {Object} borderDescriptor Object with `range`, `left`, `right`, `top` and `bottom` properties.
    */
-  prepareBorderFromCustomAddedRange(rowDecriptor) {
-    const range = rowDecriptor.range;
+  prepareBorderFromCustomAddedRange(borderDescriptor) {
+    const range = borderDescriptor.range;
 
     rangeEach(range.from.row, range.to.row, (rowIndex) => {
       rangeEach(range.from.col, range.to.col, (colIndex) => {
-        const border = createEmptyBorders(rowIndex, colIndex);
+        let borderWidth;
+        const borderObject = borderDescriptor.bottom || borderDescriptor.right;
+
+        if (borderObject) {
+          borderWidth = borderObject.width;
+        }
+
+        const border = createEmptyBorders(rowIndex, colIndex, borderWidth);
         let add = 0;
 
         if (rowIndex === range.from.row) {
           add += 1;
 
-          if (hasOwnProperty(rowDecriptor, 'top')) {
-            border.top = rowDecriptor.top;
+          if (hasOwnProperty(borderDescriptor, 'top')) {
+            border.top = borderDescriptor.top;
           }
         }
 
         if (rowIndex === range.to.row) {
           add += 1;
 
-          if (hasOwnProperty(rowDecriptor, 'bottom')) {
-            border.bottom = rowDecriptor.bottom;
+          if (hasOwnProperty(borderDescriptor, 'bottom')) {
+            border.bottom = borderDescriptor.bottom;
           }
         }
 
         if (colIndex === range.from.col) {
           add += 1;
 
-          if (hasOwnProperty(rowDecriptor, 'left')) {
-            border.left = rowDecriptor.left;
+          if (hasOwnProperty(borderDescriptor, 'left')) {
+            border.left = borderDescriptor.left;
           }
         }
 
         if (colIndex === range.to.col) {
           add += 1;
 
-          if (hasOwnProperty(rowDecriptor, 'right')) {
-            border.right = rowDecriptor.right;
+          if (hasOwnProperty(borderDescriptor, 'right')) {
+            border.right = borderDescriptor.right;
           }
         }
 

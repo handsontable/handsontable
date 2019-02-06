@@ -13,6 +13,7 @@ import {
 import { stopImmediatePropagation } from './../../../helpers/dom/event';
 import { objectEach } from './../../../helpers/object';
 import { isMobileBrowser } from './../../../helpers/browser';
+import { toUpperCaseFirst } from './../../../helpers/string';
 import EventManager from './../../../eventManager';
 import CellCoords from './cell/coords';
 
@@ -166,6 +167,18 @@ class Border {
         color: (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color,
       };
       this.setBorderStyle(div, position, borderStyle);
+
+      if (this.settings[position] && this.settings[position].style) {
+        const borderPosition = (position === 'right' || position === 'left') ? 'left' : 'top';
+        const borderStyle = `border${toUpperCaseFirst(borderPosition)}Style`;
+        const borderWidth = `border${toUpperCaseFirst(borderPosition)}Width`;
+        const borderColor = `border${toUpperCaseFirst(borderPosition)}Color`;
+
+        style[borderStyle] = this.settings[position].style;
+        style[borderWidth] = this.settings[position].style === 'double' ? style.medium : style.width;
+        style[borderColor] = style.backgroundColor;
+        style.backgroundColor = null;
+      }
 
       this.main.appendChild(div);
     });
@@ -443,15 +456,27 @@ class Border {
     this.leftStyle.height = `${height}px`;
     this.leftStyle.display = 'block';
 
-    const delta = Math.floor(this.settings.border.width / 2);
+    let delta = Math.floor(this.settings.border.width / 2);
 
-    this.bottomStyle.top = `${top + height - delta}px`;
+    if (delta > 1) {
+      delta += delta;
+    }
+
+    let extra = 0;
+
+    if (this.settings.border.width > 3) {
+      extra = (this.settings.border.width % delta) - 1;
+    } else if (this.settings.border.width === 3) {
+      extra = 1;
+    }
+
+    this.bottomStyle.top = `${top + height - delta - extra}px`;
     this.bottomStyle.left = `${left}px`;
     this.bottomStyle.width = `${width}px`;
     this.bottomStyle.display = 'block';
 
     this.rightStyle.top = `${top}px`;
-    this.rightStyle.left = `${left + width - delta}px`;
+    this.rightStyle.left = `${left + width - delta - extra}px`;
     this.rightStyle.height = `${height + 1}px`;
     this.rightStyle.display = 'block';
 
@@ -605,20 +630,69 @@ class Border {
    *
    * @private
    * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    */
   changeBorderStyle(borderElement, border) {
     const borderStyle = border[borderElement];
 
-    if (!borderStyle || borderStyle.hide) {
+    if (!borderStyleObject || borderStyleObject.hide) {
       addClass(this[borderElement], 'hidden');
 
     } else {
       if (hasClass(this[borderElement], 'hidden')) {
         removeClass(this[borderElement], 'hidden');
       }
-
+      
       this.setBorderStyle(this[borderElement], borderElement, borderStyle);
     }
+  }
+
+  /**
+   * Create and add animate class.
+   *
+   * @private
+   * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   */
+  createAndAddAnimateClass(borderElement, border) {
+    const styles = `.htAnimateCustomBorders${toUpperCaseFirst(borderElement)} { border: none !important;
+    background: ${borderElement === 'top' || borderElement === 'bottom' ? `linear-gradient(to right, ${border[borderElement].color} 50%, transparent 50%)` :
+    `linear-gradient(0deg, ${border[borderElement].color} 50%, transparent 50%),
+    linear-gradient(180deg, ${border[borderElement].color} 50%, transparent 50%), linear-gradient(0deg, ${border[borderElement].color} 50%, transparent 50%)`};
+    background-repeat: ${borderElement === 'top' || borderElement === 'bottom' ? 'repeat-x' : 'repeat-x, repeat-y, repeat-x, repeat-y'};
+    background-size: ${borderElement === 'top' || borderElement === 'bottom' ?
+    `10px ${border[borderElement].width}px, ${border[borderElement].width}px 10px` : `8px ${border[borderElement].width}px, ${border[borderElement].width}px 8px`};
+    animation: ${borderElement === 'top' || borderElement === 'right' ? 'borderTopRight' : 'borderBottomLeft'} 2s linear infinite; }`;
+
+    const keyFrames = `@keyframes ${borderElement === 'top' || borderElement === 'right' ?
+      `borderTopRight {
+        0% { background-position: left top, right top, right bottom, left bottom; }
+
+        100% { background-position: right top, right bottom, left bottom, left top; }
+      }` :
+      `borderBottomLeft {
+        0% { background-position: right top, right bottom, left bottom, left top; }
+
+        100% { background-position: left top, right top, right bottom, left bottom; }
+      }`
+    }`;
+
+    const sheet = (() => {
+      const style = document.createElement('style');
+
+      // WebKit hack :(
+      style.appendChild(document.createTextNode(''));
+
+      document.head.appendChild(style);
+
+      return style.sheet;
+    })();
+    const cssRulesNum = sheet.cssRules.length;
+
+    sheet.insertRule(styles, cssRulesNum);
+    sheet.insertRule(keyFrames, cssRulesNum);
+
+    addClass(this[borderElement], `htAnimateCustomBorders${toUpperCaseFirst(borderElement)}`);
   }
 
   /**
@@ -633,6 +707,7 @@ class Border {
       style: 'solid',
       color: '#000',
     };
+
     this.setBorderStyle(this[position], position, defaultBorder);
   }
 
