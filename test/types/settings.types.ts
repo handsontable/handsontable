@@ -81,6 +81,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   fixedColumnsLeft: 123,
   fixedRowsBottom: 123,
   fixedRowsTop: 123,
+  formulas: {
+    variables: {
+      FOO: 64,
+      BAR: 'baz',
+    }
+  },
   licenseKey: "",
   numericFormat: {
     pattern: '0,00',
@@ -116,6 +122,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   multiColumnSorting: {},
   selectionMode: 'single',
   nestedHeaders: [],
+  nestedRows: true,
   noWordWrapClassName: 'foo',
   observeChanges: true,
   observeDOMVisibility: true,
