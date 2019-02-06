@@ -231,17 +231,25 @@ declare namespace Handsontable {
    * TODO: This would be better solved by moving all types outside the exported namespaces. (Separate type definition from type publication.)
    */
   namespace _editors {
+    type EditorState = 
+      'STATE_VIRGIN' | // before editing
+      'STATE_EDITING' |
+      'STATE_WAITING' | // waiting for async validation
+      'STATE_FINISHED';
+
     abstract class Base {
       instance: _Handsontable.Core;
       row: number;
       col: number;
       prop: string | number;
-      TD: HTMLElement;
+      TD: HTMLTableCellElement;
+      originalValue: any;
       cellProperties: CellProperties;
+      state: EditorState;
 
       constructor(hotInstance: _Handsontable.Core, row: number, col: number, prop: string | number, TD: HTMLTableCellElement, cellProperties: CellProperties)
 
-      beginEditing(initialValue?: any): void;
+      beginEditing(initialValue?: any, event?: Event): void;
       cancelChanges(): void;
       checkEditorSection(): 'top-left-corner' | 'top' | 'bottom-left-corner' | 'bottom' | 'left' | '' ;
       abstract close(): void;
@@ -249,12 +257,13 @@ declare namespace Handsontable {
       enableFullEditMode(): void;
       extend<T extends _editors.Base>(): T;
       finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
+      abstract focus(): void;
       abstract getValue(): any;
       init(): void;
       isInFullEditMode(): boolean;
       isOpened(): boolean;
       isWaiting(): boolean;
-      abstract open(): void;
+      abstract open(event?: Event): void;
       prepare(row: number, col: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: CellProperties): void;
       saveValue(val?: any, ctrlDown?: boolean): void;
       abstract setValue(newValue?: any): void;
@@ -262,6 +271,7 @@ declare namespace Handsontable {
 
     class Checkbox extends Base {
       close(): void;
+      focus(): void;
       getValue(): any;
       open(): void;
       setValue(newValue?: any): void;
@@ -269,6 +279,7 @@ declare namespace Handsontable {
 
     class Mobile extends Base {
       close(): void;
+      focus(): void;
       getValue(): any;
       open(): void;
       setValue(newValue?: any): void;
@@ -284,11 +295,11 @@ declare namespace Handsontable {
 
     class Select extends Base {
       close(): void;
+      focus(): void;
       getValue(): any;
       open(): void;
       setValue(newValue?: any): void;
 
-      focus(): void;
       getEditedCell(): HTMLTableCellElement | undefined;
       prepareOptions(optionsToPrepare?: RowObject | CellValue[]): void;
       refreshDimensions(): void;
@@ -298,6 +309,7 @@ declare namespace Handsontable {
 
     class Text extends Base {
       close(): void;
+      focus(): void;
       getValue(): any;
       open(): void;
       setValue(newValue?: any): void;
@@ -305,7 +317,6 @@ declare namespace Handsontable {
       bindEvents(): void;
       createElements(): void;
       destroy(): void;
-      focus(): void;
       hideEditableElement(): void;
       showEditableElement(): void;
       getEditedCell(): HTMLTableCellElement | undefined;
@@ -326,7 +337,6 @@ declare namespace Handsontable {
 
     class Handsontable extends Text {
       assignHooks(): void;
-      focus(): void;
     }
 
     class Numeric extends Text {}

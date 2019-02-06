@@ -64,5 +64,6 @@ class CustomEditor extends Handsontable.editors.getEditor('text') {
   close(){}
   getValue(){}
   setValue(value: any){}
+  focus(){}
 }
 Handsontable.editors.registerEditor('custom', CustomEditor);
