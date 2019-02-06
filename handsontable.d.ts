@@ -9,13 +9,11 @@ type Omit<T, K extends keyof T> = Pick<T, ({ [P in keyof T]: P } & { [P in K]: n
 
 declare namespace _Handsontable {
 
-  type CustomChangeSource = Handsontable.ChangeSource | string;
-
   class Core {
     constructor(element: Element, options: Handsontable.GridSettings);
     addHook<K extends keyof Handsontable.Events>(key: K, callback: Handsontable.Events[K] | Handsontable.Events[K][]): void;
     addHookOnce<K extends keyof Handsontable.Events>(key: K, callback: Handsontable.Events[K] | Handsontable.Events[K][]): void;
-    alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index?: number | Array<[number, number]>, amount?: number, source?: CustomChangeSource, keepEmptyRows?: boolean): void;
+    alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index?: number | Array<[number, number]>, amount?: number, source?: string, keepEmptyRows?: boolean): void;
     clear(): void;
     colOffset(): number;
     colToProp(col: number): string | number;
@@ -83,7 +81,7 @@ declare namespace _Handsontable {
     isListening(): boolean;
     listen(): void;
     loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[]): void;
-    populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: CustomChangeSource, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
+    populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
     propToCol(prop: string | number): number;
     removeCellMeta(row: number, col: number, key: string): void;
     removeCellMeta(row: number, col: number, key: keyof Handsontable.CellMeta): void;
@@ -103,10 +101,10 @@ declare namespace _Handsontable {
     setCellMeta(row: number, col: number, key: string, val: any): void;
     setCellMeta<K extends keyof Handsontable.CellMeta>(row: number, col: number, key: K, val: Handsontable.CellMeta[K]): void;
     setCellMetaObject<T extends Handsontable.CellMeta>(row: number, col: number, prop: T): void;
-    setDataAtCell(row: number, col: string | number, value: Handsontable.CellValue, source?: CustomChangeSource): void;
-    setDataAtCell(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: CustomChangeSource): void;
-    setDataAtRowProp(row: number, prop: string, value: Handsontable.CellValue, source?: CustomChangeSource): void;
-    setDataAtRowProp(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: CustomChangeSource): void;
+    setDataAtCell(row: number, col: string | number, value: Handsontable.CellValue, source?: string): void;
+    setDataAtCell(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: string): void;
+    setDataAtRowProp(row: number, prop: string, value: Handsontable.CellValue, source?: string): void;
+    setDataAtRowProp(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: string): void;
     spliceCol(col: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     spliceRow(row: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     toPhysicalColumn(column: number): number;
@@ -124,12 +122,39 @@ declare namespace _Handsontable {
 
 declare namespace Handsontable {
 
-  // TODO: these are default known values, but users can extend with their own -- use type arguments?
-  type CellValue = any; // string | number | boolean | null | undefined;
-  type CellChange = [number, string | number, CellValue, CellValue]; // [row, column, prevValue, nextValue]
-  type RowObject = object; // { [prop: string]: CellValue }
-  // type SourceRowData = RowObject | CellValue[]; // TODO
+  // These types represent default known values, but users can extend with their own, leading to the need for assertions.
+  // Using type arguments (ex `GridSettings<CellValue, CellType, SourceData>`) would solve this and provide very strict 
+  // type-checking, but adds a lot of noise for no benefit in the most common use cases.
+
+  /**
+   * A cell value, which can be anything to support custom cell data types, but by default is `string | number | boolean | undefined`.
+   */
+  type CellValue = any;
+
+  /**
+   * A cell change represented by `[row, column, prevValue, nextValue]`.
+   */
+  type CellChange = [number, string | number, CellValue, CellValue];
+
+  /**
+   * A row object, one of the two ways to supply data to the table, the alternative being an array of values.
+   * Row objects can have any data assigned to them, not just column data, and can define a `__children` array for nested rows.
+   */
+  type RowObject = { [prop: string]: any };
+
+  /**
+   * A single row of source data, which can be represented as an array of values, or an object with key/value pairs.
+   */
+  type SourceRowData = RowObject | CellValue[];
+
+  /**
+   * The default sources for which the table triggers hooks. 
+   */
   type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' | 'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' | 'Autofill.fill' | 'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' | 'ContextMenu.columnRight' | 'ContextMenu.removeColumn' | 'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' | 'CopyPaste.paste' | 'ObserveChanges.change' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'GantChart.loadData' | 'ColumnSummary.set' | 'ColumnSummary.reset';
+
+  /**
+   * The default cell type aliases the table has built-in. 
+   */
   type CellType = 'autocomplete' | 'checkbox' | 'date' | 'dropdown' | 'handsontable' | 'numeric' | 'password' | 'text' | 'time';
 
   namespace wot {
