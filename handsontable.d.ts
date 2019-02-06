@@ -128,7 +128,7 @@ declare namespace Handsontable {
   type CellValue = any; // string | number | boolean | null | undefined;
   type CellChange = [number, string | number, CellValue, CellValue]; // [row, column, prevValue, nextValue]
   type RowObject = object; // { [prop: string]: CellValue }
-  // type SourceData = RowObject | CellValue[]; // TODO
+  // type SourceRowData = RowObject | CellValue[]; // TODO
   type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' | 'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' | 'Autofill.fill' | 'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' | 'ContextMenu.columnRight' | 'ContextMenu.removeColumn' | 'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' | 'CopyPaste.paste' | 'ObserveChanges.change' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'GantChart.loadData' | 'ColumnSummary.set' | 'ColumnSummary.reset';
   type CellType = 'autocomplete' | 'checkbox' | 'date' | 'dropdown' | 'handsontable' | 'numeric' | 'password' | 'text' | 'time';
 
@@ -146,61 +146,65 @@ declare namespace Handsontable {
 
   namespace cellTypes {
     interface Autocomplete {
-      editor: _editors.Autocomplete;
+      editor: typeof _editors.Autocomplete;
       renderer: renderers.Autocomplete;
       validator: validators.Autocomplete;
     }
 
     interface Checkbox {
-      editor: _editors.Checkbox;
+      editor: typeof _editors.Checkbox;
       renderer: renderers.Checkbox;
     }
 
     interface Date {
-      editor: _editors.Date;
+      editor: typeof _editors.Date;
       renderer: renderers.Autocomplete;
       validator: validators.Date
     }
 
     interface Dropdown {
-      editor: _editors.Dropdown;
+      editor: typeof _editors.Dropdown;
       renderer: renderers.Autocomplete;
       validator: validators.Autocomplete;
     }
 
     interface Handsontable {
-      editor: _editors.Handsontable;
+      editor: typeof _editors.Handsontable;
       renderer: renderers.Autocomplete;
     }
 
     interface Numeric {
       dataType: string;
-      editor: _editors.Numeric;
+      editor: typeof _editors.Numeric;
       renderer: renderers.Numeric;
       validator: validators.Numeric;
     }
 
     interface Password {
       copyable: boolean;
-      editor: _editors.Password;
+      editor: typeof _editors.Password;
       renderer: renderers.Password;
     }
 
     interface Text {
-      editor: _editors.Text;
+      editor: typeof _editors.Text;
       renderer: renderers.Text;
     }
 
     interface Time {
-      editor: _editors.Text;
+      editor: typeof _editors.Text;
       renderer: renderers.Text;
       validator: validators.Time;
     }
   }
 
-  // This is called "_editors" to avoid circular naming conflict with the "Handsontable.editors" namespace.
-  // The other namespaces don't need this hack because they don't define any values (ie classes) only types (ie interfaces).
-  // TODO: This would be better solved by moving all types outside the exported namespaces. (Separate type definition from publication.)
+
+  /**
+   * The "_editor" namespace is named to avoid circular reference conflict with "Handsontable.editors" namespace.
+   * The other namespaces (renderers, validators, etc) don't need this because they don't expose values (classes), just types (interfaces).
+   * Note that TS will think it can use the values defined here, ex `new Handsontable._editors.Base()` compiles, but this is wrong.
+   * TODO: This would be better solved by moving all types outside the exported namespaces. (Separate type definition from type publication.)
+   */
   namespace _editors {
     abstract class Base {
       instance: _Handsontable.Core;
@@ -210,7 +214,7 @@ declare namespace Handsontable {
       TD: HTMLElement;
       cellProperties: CellProperties;
 
-      constructor(hotInstance: _Handsontable.Core, row: number, col: number, prop: string | number, TD: HTMLElement, cellProperties: CellProperties)
+      constructor(hotInstance: _Handsontable.Core, row: number, col: number, prop: string | number, TD: HTMLTableCellElement, cellProperties: CellProperties)
 
       beginEditing(initialValue?: any): void;
       cancelChanges(): void;
@@ -226,7 +230,7 @@ declare namespace Handsontable {
       isOpened(): boolean;
       isWaiting(): boolean;
       abstract open(): void;
-      prepare(row: number, col: number, prop: string | number, TD: HTMLElement, originalValue: any, cellProperties: CellProperties): void;
+      prepare(row: number, col: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: CellProperties): void;
       saveValue(val?: any, ctrlDown?: boolean): void;
       abstract setValue(newValue?: any): void;
     }
@@ -1522,7 +1526,7 @@ declare namespace Handsontable {
 
   namespace renderers {
     interface Base {
-      (instance: _Handsontable.Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties): HTMLElement;
+      (instance: _Handsontable.Core, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties): HTMLTableCellElement;
     }
 
     interface Autocomplete extends Base {}
@@ -1552,7 +1556,9 @@ declare namespace Handsontable {
     interface Time extends Base {}
   }
 
-  interface DefaultSettings extends GridSettings {}
+  interface DefaultSettings {
+    new(): GridSettings;
+  }
 
   /**
    * A rendered cell object with computed properties.
@@ -1973,10 +1979,14 @@ declare namespace Handsontable {
     registerCellType(name: string, type: CellTypeObject): void;
   }
 
-  interface CellTypeObject {
+  interface CellTypeObject extends GridSettings {
     renderer?: renderers.Base;
     editor?: typeof _editors.Base;
     validator?: validators.Base;
+    /**
+     * Custom properties which will be accessible in `cellProperties`
+     */
+    [key: string]: any;
   }
 
   interface Editors {
@@ -1992,7 +2002,7 @@ declare namespace Handsontable {
     SelectEditor: typeof _editors.Select;
     TextEditor: typeof _editors.Text;
     TimeEditor: typeof _editors.Text;
-    getEditor(editorName: string): _editors.Base;
+    getEditor(editorName: string): typeof _editors.Base;
     registerEditor(editorName: string, editorClass: typeof _editors.Base): void;
   }
 
@@ -2516,7 +2526,7 @@ declare class Handsontable extends _Handsontable.Core {
   static plugins: Handsontable.Plugins;
   static renderers: Handsontable.Renderers;
   static validators: Handsontable.Validators;
-  static Core: _Handsontable.Core;
+  static Core: typeof _Handsontable.Core;
   static DefaultSettings: Handsontable.DefaultSettings;
 }
 
