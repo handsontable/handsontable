@@ -127,7 +127,8 @@ class MultipleSelectUI extends BaseUI {
   build() {
     super.build();
 
-    const itemsBoxWrapper = document.createElement('div');
+    const { rootDocument } = this.hot;
+    const itemsBoxWrapper = rootDocument.createElement('div');
     const selectionControl = new BaseUI(this.hot, {
       className: 'htUISelectionControls',
       children: [this.selectAllUI, this.clearAllUI],
@@ -158,7 +159,7 @@ class MultipleSelectUI extends BaseUI {
         autoWrapCol: true,
         height: 110,
         // Workaround for #151.
-        colWidths: () => this.itemsBox.container.scrollWidth - getScrollbarWidth(),
+        colWidths: () => this.itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument),
         copyPaste: false,
         disableVisualSelection: 'area',
         fillHandle: false,

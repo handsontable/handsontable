@@ -143,42 +143,6 @@ describe('TrimRows', () => {
     expect(getDataAtCell(1, 0)).toBe('A2');
   });
 
-  it('should call hook after trim row', () => {
-    const callback = jasmine.createSpy();
-    const hot = handsontable({
-      data: getMultilineData(5, 10),
-      trimRows: true,
-      width: 500,
-      height: 300,
-    });
-
-    expect(callback).not.toHaveBeenCalled();
-
-    hot.addHook('afterTrimRow', callback);
-    hot.getPlugin('trimRows').trimRow(1);
-    hot.render();
-
-    expect(callback).toHaveBeenCalledWith([1], void 0, void 0, void 0, void 0, void 0);
-  });
-
-  it('should call hook after untrim row', () => {
-    const callback = jasmine.createSpy();
-    const hot = handsontable({
-      data: getMultilineData(5, 10),
-      trimRows: [1],
-      width: 500,
-      height: 300,
-    });
-
-    expect(callback).not.toHaveBeenCalled();
-
-    hot.addHook('afterUntrimRow', callback);
-    hot.getPlugin('trimRows').untrimRow(1);
-    hot.render();
-
-    expect(callback).toHaveBeenCalledWith([1], void 0, void 0, void 0, void 0, void 0);
-  });
-
   it('should trim big data set', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1000, 5),
@@ -242,30 +206,394 @@ describe('TrimRows', () => {
     }, 100);
   });
 
-  it('should not affect `afterValidate` hook #11', (done) => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
-      trimRows: true,
-      cells() {
-        return { type: 'numeric' };
-      }
+  describe('plugin hooks', () => {
+    it('should not affect `afterValidate` hook #11', (done) => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        trimRows: true,
+        cells() {
+          return { type: 'numeric' };
+        }
+      });
+
+      hot.populateFromArray(5, 1, [
+        ['A1', 'A2'],
+        ['B1', 'B2'],
+        ['C1', 'C2'],
+        ['D1', 'D2'],
+        ['E1', 'E2'],
+      ]);
+
+      setTimeout(() => {
+        const $addedCell = $(getCell(5, 1));
+
+        expect($addedCell.hasClass('htInvalid')).toEqual(true);
+
+        done();
+      }, 100);
     });
 
-    hot.populateFromArray(5, 1, [
-      ['A1', 'A2'],
-      ['B1', 'B2'],
-      ['C1', 'C2'],
-      ['D1', 'D2'],
-      ['E1', 'E2'],
-    ]);
+    describe('beforeTrimRow', () => {
+      it('should fire the `beforeTrimRow` hook before trimming a single row by plugin API', () => {
+        const beforeTrimRowHookCallback = jasmine.createSpy('beforeTrimRowHookCallback');
 
-    setTimeout(() => {
-      const $addedCell = $(getCell(5, 1));
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: true,
+          beforeTrimRow: beforeTrimRowHookCallback
+        });
 
-      expect($addedCell.hasClass('htInvalid')).toEqual(true);
+        getPlugin('trimRows').trimRow(2);
 
-      done();
-    }, 100);
+        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([], [2], true, void 0, void 0, void 0);
+      });
+
+      it('should fire the `beforeTrimRow` hook before hiding multiple rows by plugin API', () => {
+        const beforeTrimRowHookCallback = jasmine.createSpy('beforeTrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: true,
+          beforeTrimRow: beforeTrimRowHookCallback
+        });
+
+        getPlugin('trimRows').trimRows([2, 3, 4]);
+
+        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([], [2, 3, 4], true, void 0, void 0, void 0);
+      });
+
+      it('should be possible to cancel the trimming action by returning `false` from the `beforeTrimRow` hook', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: true,
+          beforeTrimRow: () => false
+        });
+
+        getPlugin('trimRows').trimRow(2);
+
+        expect(getPlugin('trimRows').isTrimmed(2)).toBeFalsy();
+      });
+
+      it('should not perform trimming and return `false` as the third parameter of the `beforeTrimRow` hook' +
+        ' if any of the provided rows is out of scope of the table', () => {
+        const beforeTrimRowHookCallback = jasmine.createSpy('beforeTrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: true,
+          beforeTrimRow: beforeTrimRowHookCallback
+        });
+
+        const plugin = getPlugin('trimRows');
+        plugin.trimRows([0, 5, 10, 15]);
+
+        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
+        expect(plugin.isTrimmed(0)).toBeFalsy();
+        expect(plugin.isTrimmed(5)).toBeFalsy();
+        expect(plugin.isTrimmed(10)).toBeFalsy();
+      });
+
+      it('should not perform trimming and return `false` as the third parameter of the `beforeTrimRow` hook' +
+        ' if any of the provided rows is not integer', () => {
+        const beforeTrimRowHookCallback = jasmine.createSpy('beforeTrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: true,
+          beforeTrimRow: beforeTrimRowHookCallback
+        });
+
+        const plugin = getPlugin('trimRows');
+        plugin.trimRows([0, 5, 1.1]);
+
+        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
+        expect(plugin.isTrimmed(0)).toBeFalsy();
+        expect(plugin.isTrimmed(5)).toBeFalsy();
+      });
+    });
+
+    describe('afterTrimRow', () => {
+      it('should fire the `afterTrimRow` hook after trimming a single row by plugin API', () => {
+        const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: true,
+          afterTrimRow: afterTrimRowHookCallback
+        });
+
+        getPlugin('trimRows').trimRow(2);
+
+        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [2], true, true, void 0, void 0);
+      });
+
+      it('should fire the `afterTrimRow` hook after trimming multiple rows by plugin API', () => {
+        const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: true,
+          afterTrimRow: afterTrimRowHookCallback
+        });
+
+        getPlugin('trimRows').trimRows([2, 3, 4]);
+
+        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [2, 3, 4], true, true, void 0, void 0);
+      });
+
+      it('it should NOT fire the `afterTrimRow` hook, if the `beforeTrimRow` hook returned false', () => {
+        const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: true,
+          beforeTrimRow: () => false,
+          afterTrimRow: afterTrimRowHookCallback
+        });
+
+        getPlugin('trimRows').trimRows([2, 3, 4]);
+
+        expect(afterTrimRowHookCallback).not.toHaveBeenCalled();
+      });
+
+      it('should return `false` as the fourth parameter, if the trimming action did not change the state of the trimRows plugin', () => {
+        const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: [0, 5],
+          afterTrimRow: afterTrimRowHookCallback
+        });
+
+        const plugin = getPlugin('trimRows');
+        plugin.trimRows([0, 5]);
+
+        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], true, false, void 0, void 0);
+      });
+
+      it('should return `true` as the third and fourth parameter, if the trimming action changed the state of the trimRows plugin', () => {
+        const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: [0, 5],
+          afterTrimRow: afterTrimRowHookCallback
+        });
+
+        const plugin = getPlugin('trimRows');
+        plugin.trimRows([0, 5, 6]);
+
+        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5, 6], true, true, void 0, void 0);
+      });
+
+      it('should not perform trimming and return `false` as the third and fourth parameter of the `afterTrimRow` hook' +
+        ' if any of the provided rows is out of scope of the table', () => {
+        const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: true,
+          afterTrimRow: afterTrimRowHookCallback
+        });
+
+        const plugin = getPlugin('trimRows');
+        plugin.trimRows([0, 5, 10, 15]);
+
+        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
+        expect(plugin.isTrimmed(0)).toBeFalsy();
+        expect(plugin.isTrimmed(5)).toBeFalsy();
+        expect(plugin.isTrimmed(10)).toBeFalsy();
+      });
+
+      it('should not perform trimming and return `false` as the third and fourth parameter of the `afterTrimRow` hook' +
+        ' if any of the provided rows is not integer', () => {
+        const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: true,
+          afterTrimRow: afterTrimRowHookCallback
+        });
+
+        const plugin = getPlugin('trimRows');
+        plugin.trimRows([0, 5, 1.1]);
+
+        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
+        expect(plugin.isTrimmed(0)).toBeFalsy();
+        expect(plugin.isTrimmed(5)).toBeFalsy();
+      });
+    });
+
+    describe('beforeUntrimRow', () => {
+      it('should fire the `beforeUntrimRow` hook before untrimming a single, previously trimmed row', () => {
+        const beforeUntrimRowHookCallback = jasmine.createSpy('beforeUntrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: [2],
+          beforeUntrimRow: beforeUntrimRowHookCallback
+        });
+
+        getPlugin('trimRows').untrimRow(2);
+
+        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([2], [], true, void 0, void 0, void 0);
+      });
+
+      it('should fire the `beforeUntrimRow` hook before untrimming the multiple, previously trimmed rows ', () => {
+        const beforeUntrimRowHookCallback = jasmine.createSpy('beforeUntrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: [2, 3, 4],
+          beforeUntrimRow: beforeUntrimRowHookCallback
+        });
+
+        getPlugin('trimRows').untrimRows([2, 3, 4]);
+
+        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([2, 3, 4], [], true, void 0, void 0, void 0);
+      });
+
+      it('should be possible to cancel the untrimming action by returning `false` from the `beforeUntrimRow` hook', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: [2, 3, 4],
+          beforeUntrimRow: () => false
+        });
+
+        getPlugin('trimRows').untrimRow(2);
+
+        expect(getPlugin('trimRows').isTrimmed(2)).toBeTruthy();
+      });
+
+      it('should not perform untrimming and return `false` as the third parameter of the `beforeUntrimRow` hook' +
+        ' if any of the provided rows is out of scope of the table', () => {
+        const beforeUntrimRowHookCallback = jasmine.createSpy('beforeUntrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: [0, 5],
+          beforeUntrimRow: beforeUntrimRowHookCallback
+        });
+
+        const plugin = getPlugin('trimRows');
+        plugin.untrimRows([0, 5, 10, 15]);
+
+        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false, void 0, void 0, void 0);
+        expect(plugin.isTrimmed(0)).toBeTruthy();
+        expect(plugin.isTrimmed(5)).toBeTruthy();
+      });
+
+      it('should not perform untrimming and return `false` as the third parameter of the `beforeUntrimRow` hook' +
+        ' if any of the provided rows is out of scope of the table', () => {
+        const beforeUntrimRowHookCallback = jasmine.createSpy('beforeUntrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: [0, 5],
+          beforeUntrimRow: beforeUntrimRowHookCallback
+        });
+
+        const plugin = getPlugin('trimRows');
+        plugin.untrimRows([0, 5, 10, 15]);
+
+        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false, void 0, void 0, void 0);
+        expect(plugin.isTrimmed(0)).toBeTruthy();
+        expect(plugin.isTrimmed(5)).toBeTruthy();
+      });
+    });
+
+    describe('afterUntrimRow', () => {
+      it('should fire the `afterUntrimRow` hook after untrimming a previously trimmed single row', () => {
+        const afterUntrimRowHookCallback = jasmine.createSpy('afterUntrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: [2],
+          afterUntrimRow: afterUntrimRowHookCallback
+        });
+
+        getPlugin('trimRows').untrimRow(2);
+
+        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([2], [], true, true, void 0, void 0);
+      });
+
+      it('should fire the `afterUntrimRow` hook after untrimming a multiple, previously trimmed rows', () => {
+        const afterUntrimRowHookCallback = jasmine.createSpy('afterUntrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: [2, 3, 4],
+          afterUntrimRow: afterUntrimRowHookCallback
+        });
+
+        getPlugin('trimRows').untrimRows([2, 3, 4]);
+
+        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([2, 3, 4], [], true, true, void 0, void 0);
+      });
+
+      it('it should NOT fire the `afterUntrimRow` hook, if the `beforeUntrimRow` hook returned false', () => {
+        const afterUntrimRowHookCallback = jasmine.createSpy('afterUntrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: true,
+          beforeUntrimRow: () => false,
+          afterUntrimRow: afterUntrimRowHookCallback
+        });
+
+        getPlugin('trimRows').untrimRows([2, 3, 4]);
+
+        expect(afterUntrimRowHookCallback).not.toHaveBeenCalled();
+      });
+
+      it('should return `false` as the fourth parameter, if the untrimming action did not change the state of the trimRows plugin', () => {
+        const afterUntrimRowHookCallback = jasmine.createSpy('afterUntrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: true,
+          afterUntrimRow: afterUntrimRowHookCallback
+        });
+
+        const plugin = getPlugin('trimRows');
+        plugin.untrimRows([0, 5]);
+
+        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([], [], true, false, void 0, void 0);
+      });
+
+      it('should return `true` as the fourth parameter, if the untrimming action changed the state of the trimRows plugin', () => {
+        const afterUntrimRowHookCallback = jasmine.createSpy('afterUntrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          trimRows: [0, 5],
+          afterUntrimRow: afterUntrimRowHookCallback
+        });
+
+        const plugin = getPlugin('trimRows');
+        plugin.untrimRows([0, 5, 6]);
+
+        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [], true, true, void 0, void 0);
+      });
+
+      it('should not perform hiding and return `false` as the third and fourth parameter of the `afterUntrimRow` hook' +
+        ' if any of the provided rows is not integer', () => {
+        const afterUntrimRowHookCallback = jasmine.createSpy('afterUntrimRowHookCallback');
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 7),
+          trimRows: [0, 5],
+          afterUntrimRow: afterUntrimRowHookCallback
+        });
+
+        const plugin = getPlugin('trimRows');
+        plugin.untrimRows([0, 5, 1.1]);
+
+        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false, false, void 0, void 0);
+        expect(plugin.isTrimmed(0)).toBeTruthy();
+        expect(plugin.isTrimmed(5)).toBeTruthy();
+      });
+    });
   });
 
   describe('copy-paste functionality', () => {

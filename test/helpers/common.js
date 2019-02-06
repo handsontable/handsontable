@@ -222,8 +222,8 @@ export function contextMenu(cell) {
 
   $(clickedCell).simulate('mousedown', { button: 2 });
   $(clickedCell).simulate('contextmenu', {
-    clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
-    clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(),
+    clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hotInstance.rootWindow),
+    clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hotInstance.rootWindow),
   });
   // Chrome doesn't call `mouseup`.
   // $(cell).simulate('mouseup', { button: 2 });

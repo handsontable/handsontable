@@ -440,10 +440,11 @@ class Autofill extends BasePlugin {
    * @returns {Boolean}
    */
   getIfMouseWasDraggedOutside(event) {
-    const tableBottom = offset(this.hot.table).top - (window.pageYOffset ||
-      document.documentElement.scrollTop) + outerHeight(this.hot.table);
-    const tableRight = offset(this.hot.table).left - (window.pageXOffset ||
-      document.documentElement.scrollLeft) + outerWidth(this.hot.table);
+    const { documentElement } = this.hot.rootDocument;
+    const tableBottom = offset(this.hot.table).top - (this.hot.rootWindow.pageYOffset ||
+      documentElement.scrollTop) + outerHeight(this.hot.table);
+    const tableRight = offset(this.hot.table).left - (this.hot.rootWindow.pageXOffset ||
+      documentElement.scrollLeft) + outerWidth(this.hot.table);
 
     return event.clientY > tableBottom && event.clientX <= tableRight;
   }
@@ -454,8 +455,10 @@ class Autofill extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(document.documentElement, 'mousemove', event => this.onMouseMove(event));
+    const { documentElement } = this.hot.rootDocument;
+
+    this.eventManager.addEventListener(documentElement, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(documentElement, 'mousemove', event => this.onMouseMove(event));
   }
 
   /**

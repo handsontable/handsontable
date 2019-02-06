@@ -11,6 +11,7 @@ function createHighlight({ cellCornerVisible }) {
     className: 'current',
     border: {
       width: 2,
+      style: 'solid',
       color: '#4b89ff',
       cornerVisible: cellCornerVisible,
     },

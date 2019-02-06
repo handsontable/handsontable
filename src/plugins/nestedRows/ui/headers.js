@@ -86,11 +86,12 @@ class HeadersUI extends BaseUI {
     addClass(TH, HeadersUI.CSS_CLASSES.indicatorContainer);
 
     if (rowLevel) {
+      const { rootDocument } = this.hot;
       const initialContent = innerSpan.cloneNode(true);
       innerDiv.innerHTML = '';
 
       rangeEach(0, rowLevel - 1, () => {
-        const levelIndicator = document.createElement('SPAN');
+        const levelIndicator = rootDocument.createElement('SPAN');
         addClass(levelIndicator, HeadersUI.CSS_CLASSES.emptyIndicator);
         innerDiv.appendChild(levelIndicator);
       });
@@ -99,7 +100,7 @@ class HeadersUI extends BaseUI {
     }
 
     if (this.dataManager.hasChildren(rowObject)) {
-      const buttonsContainer = document.createElement('DIV');
+      const buttonsContainer = this.hot.rootDocument.createElement('DIV');
       addClass(TH, HeadersUI.CSS_CLASSES.parent);
 
       if (this.collapsingUI.areChildrenCollapsed(rowIndex)) {

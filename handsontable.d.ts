@@ -281,6 +281,7 @@ declare namespace Handsontable {
       editor: HTMLElement;
       editorStyle: CSSStyleDeclaration;
       hidden: boolean;
+      rootDocument: Document;
 
       setPosition(x: number, y: number): void;
       setSize(width: number, height: number): void;
@@ -466,6 +467,7 @@ declare namespace Handsontable {
       cellWidth: number;
       left: number;
       leftRelative: number;
+      rootWindow: Window;
       scrollLeft: number;
       scrollTop: number;
       top: number;
@@ -764,9 +766,10 @@ declare namespace Handsontable {
     }
 
     interface FocusableWrapper {
-      mainElement: HTMLElement;
       eventManager: EventManager;
       listenersCount: WeakSet<HTMLElement>;
+      mainElement: HTMLElement;
+      rootDocument: Document;
 
       useSecondaryElement(): void;
       setFocusableElement(element: HTMLElement): void;
@@ -1378,6 +1381,27 @@ declare namespace Handsontable {
       untrimRow(row: number): void;
       untrimRows(rows: number[]): void;
     }
+    
+    interface Storage {
+      prefix: string;
+      rootWindow: Window;
+      savedKeys: string[];
+      
+      clearSavedKeys(): void;
+      loadSavedKeys(): void;
+      loadValue(key: string, defaultValue: object): any;
+      resetAll(): void;
+      saveSavedKeys(): void;
+      saveValue(key: string, value: any): void;
+    }
+    
+    interface PersistenState extends Base {
+      storage: Storage;
+      
+      loadValue(key: string, saveTo: object): void;
+      saveValue(key: string, value: any): void;
+      resetValue(key: string): void;
+    }
 
     interface Search extends Base {
       callback: () => void;
@@ -1572,6 +1596,8 @@ declare namespace Handsontable {
     afterGetColumnHeaderRenderers?: (array: any[]) => void;
     afterGetRowHeader?: (row: number, TH: Element) => void;
     afterGetRowHeaderRenderers?: (array: any[]) => void;
+    afterHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
+    afterHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterInit?: () => void;
     afterLanguageChange?: (languageCode: string) => void;
     afterListen?: () => void;
@@ -1606,11 +1632,13 @@ declare namespace Handsontable {
     afterSetCellMeta?: (row: number, col: number, key: string, value: any) => void;
     afterSetDataAtCell?: (changes: any[], source?: string) => void;
     afterSetDataAtRowProp?: (changes: any[], source?: string) => void;
-    afterTrimRow?: (rows: any[]) => void;
+    afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterUndo?: (action: object) => void;
     afterUnlisten?: () => void;
+    afterUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
+    afterUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
-    afterUntrimRow?: (rows: any[]) => void;
+    afterUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
     afterUpdateSettings?: () => void;
     afterValidate?: (isValid: boolean, value: any, row: number, prop: string | number, source: string) => void | boolean;
     afterViewportColumnCalculatorOverride?: (calc: object) => void;
@@ -1636,6 +1664,8 @@ declare namespace Handsontable {
     beforeDropdownMenuShow?: (instance: Handsontable.plugins.DropdownMenu) => void;
     beforeFilter?: (formulasStack: any[]) => void;
     beforeGetCellMeta?: (row: number, col: number, cellProperties: GridSettings) => void;
+    beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
+    beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
     beforeInit?: () => void;
     beforeInitWalkontable?: (walkontableConfig: object) => void;
     beforeKeyDown?: (event: Event) => void;
@@ -1661,8 +1691,12 @@ declare namespace Handsontable {
     beforeSetRangeStartOnly?: (coords: wot.CellCoords) => void;
     beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void;
     beforeTouchScroll?: () => void;
+    beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void;
     beforeUndo?: (action: object) => void;
+    beforeUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
+    beforeUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
     beforeUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
+    beforeUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void;
     beforeValidate?: (value: any, row: number, prop: string | number, source?: string) => void;
     beforeValueRender?: (value: any, cellProperties: object) => void;
     construct?: () => void;
@@ -1830,11 +1864,13 @@ declare namespace Handsontable {
     hasCaptionProblem(): boolean | void,
     inherit(Child: object, Parent: object): object,
     isChrome(): boolean,
+    isClassListSupported(): boolean;
     isCtrlKey(keyCode: number): boolean,
     isDefined(variable: any): boolean,
     isEdge(): boolean,
     isEmpty(variable: any): boolean,
     isFunction(func: any): boolean,
+    isGetComputedStyleSupported(): boolean,
     isIE(): boolean,
     isIE8(): boolean,
     isIE9(): boolean,
@@ -1848,6 +1884,7 @@ declare namespace Handsontable {
     isPercentValue(value: string): boolean,
     isPrintableChar(keyCode: number): boolean,
     isSafari(): boolean,
+    isTextContentSupported(): boolean,
     isTouchSupported(): boolean,
     isUndefined(variable: any): boolean,
     isWebComponentSupportedNatively(): boolean,
@@ -1879,25 +1916,26 @@ declare namespace Handsontable {
     HTML_CHARACTERS: RegExp,
     addClass: (element: HTMLElement, className: string | any[]) => void;
     addEvent: (element: HTMLElement, event: string, callback: () => void) => void;
+    clearTextSelection: (rootWindow?: Window) => void;
     closest: (element: HTMLElement, nodes: any[], until?: HTMLElement) => HTMLElement | void;
     closestDown: (element: HTMLElement, nodes: any[], until?: HTMLElement) => HTMLElement | void;
     empty: (element: HTMLElement) => void;
     fastInnerHTML: (element: HTMLElement, content: string) => void;
     fastInnerText: (element: HTMLElement, content: string) => void;
     getCaretPosition: (el: HTMLElement) => number;
-    getComputedStyle: (element: HTMLElement) => CSSStyleDeclaration | object;
+    getComputedStyle: (element: HTMLElement, rootWindow?: Window) => CSSStyleDeclaration | object;
     getCssTransform: (element: HTMLElement) => number | void;
     getParent: (element: HTMLElement, level?: number) => HTMLElement | void;
-    getScrollLeft: (element: HTMLElement) => number;
-    getScrollTop: (element: HTMLElement) => number;
+    getScrollLeft: (element: HTMLElement, rootWindow?: Window) => number;
+    getScrollTop: (element: HTMLElement, rootWindow?: Window) => number;
     getScrollableElement: (element: HTMLElement) => HTMLElement;
-    getScrollbarWidth: () => number;
+    getScrollbarWidth: (rootDocument?: Document) => number;
     getSelectionEndPosition: (el: HTMLElement) => number;
-    getSelectionText: () => string;
-    getStyle: (element: HTMLElement, prop: string) => string;
+    getSelectionText: (rootWindow?: Window) => string;
+    getStyle: (element: HTMLElement, prop: string, rootWindow?: Window) => string;
     getTrimmingContainer: (base: HTMLElement) => HTMLElement;
-    getWindowScrollLeft: () => number;
-    getWindowScrollTop: () => number;
+    getWindowScrollLeft: (rootWindow?: Window) => number;
+    getWindowScrollTop: (rootWindow?: Window) => number;
     hasClass: (element: HTMLElement, className: string) => boolean;
     hasHorizontalScrollbar: (element: HTMLElement) => boolean;
     hasVerticalScrollbar: (element: HTMLElement) => boolean;
@@ -2000,6 +2038,7 @@ declare namespace Handsontable {
     nestedHeaders: plugins.NestedHeaders,
     nestedRows: plugins.NestedRows,
     observeChanges: plugins.ObserveChanges,
+    persistentState: plugins.PersistenState,
     search: plugins.Search,
     touchScroll: plugins.TouchScroll,
     trimRows: plugins.TrimRows,

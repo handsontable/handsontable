@@ -90,14 +90,36 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     registerAsRootInstance(this);
   }
 
-  keyStateStartObserving();
+  // TODO: check if references to DOM elements should be move to UI layer (Walkontable)
+  /**
+   * Reference to the container element.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootElement = rootElement;
+  /**
+   * The nearest document over container.
+   *
+   * @private
+   * @type {Document}
+   */
+  this.rootDocument = rootElement.ownerDocument;
+  /**
+   * Window object over container's document.
+   *
+   * @private
+   * @type {Window}
+   */
+  this.rootWindow = this.rootDocument.defaultView;
+
+  keyStateStartObserving(this.rootDocument);
 
   this.isDestroyed = false;
-  this.rootElement = rootElement;
   this.isHotTableEnv = isChildOfWebComponentTable(this.rootElement);
   EventManager.isHotTableEnv = this.isHotTableEnv;
 
-  this.container = document.createElement('div');
+  this.container = this.rootDocument.createElement('div');
   this.renderCall = false;
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
@@ -892,10 +914,29 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   function validateChanges(changes, source, callback) {
+    if (!changes.length) {
+      return;
+    }
+
+    const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
+
+    if (isFunction(beforeChangeResult)) {
+      warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
+
+    } else if (beforeChangeResult === false) {
+      const activeEditor = instance.getActiveEditor();
+
+      if (activeEditor) {
+        activeEditor.cancelChanges();
+      }
+
+      return;
+    }
+
     const waitingForValidator = new ValidatorsQueue();
     const isNumericData = value => value.length > 0 && /^\s*[+-.]?\s*(?:(?:\d+(?:(\.|,)\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/.test(value);
 
-    waitingForValidator.onQueueEmpty = resolve;
+    waitingForValidator.onQueueEmpty = callback; // called when async validators are resolved and beforeChange was not async
 
     for (let i = changes.length - 1; i >= 0; i--) {
       if (changes[i] === null) {
@@ -933,20 +974,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
     }
     waitingForValidator.checkIfQueueIsEmpty();
-
-    function resolve() {
-      let beforeChangeResult;
-
-      if (changes.length) {
-        beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
-        if (isFunction(beforeChangeResult)) {
-          warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
-        } else if (beforeChangeResult === false) {
-          changes.splice(0, changes.length); // invalidate all changes (remove everything from array)
-        }
-      }
-      callback(); // called when async validators are resolved and beforeChange was not async
-    }
   }
 
   /**
@@ -1063,8 +1090,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
       // To provide consistent behaviour, validation should be always asynchronous
-      instance._registerTimeout(setTimeout(() => {
+      instance._registerImmediate(() => {
         validator.call(cellProperties, value, (valid) => {
+          if (!instance) {
+            return;
+          }
           // eslint-disable-next-line no-param-reassign
           valid = instance.runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
           cellProperties.valid = valid;
@@ -1072,14 +1102,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           done(valid);
           instance.runHooks('postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
         });
-      }, 0));
+      });
 
     } else {
       // resolve callback even if validator function was not found
-      instance._registerTimeout(setTimeout(() => {
+      instance._registerImmediate(() => {
         cellProperties.valid = true;
         done(cellProperties.valid, false);
-      }, 0));
+      });
     }
   };
 
@@ -1189,14 +1219,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterListen
    */
   this.listen = function(modifyDocumentFocus = true) {
+    const { rootDocument } = instance;
     if (modifyDocumentFocus) {
-      const invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
+      const invalidActiveElement = !rootDocument.activeElement || (rootDocument.activeElement && rootDocument.activeElement.nodeName === void 0);
 
-      if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
-        document.activeElement.blur();
+      if (rootDocument.activeElement && rootDocument.activeElement !== rootDocument.body && !invalidActiveElement) {
+        rootDocument.activeElement.blur();
 
       } else if (invalidActiveElement) { // IE
-        document.body.focus();
+        rootDocument.body.focus();
       }
     }
 
@@ -3318,7 +3349,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     keyStateStopObserving();
 
     if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(instance)) {
-      const licenseInfo = document.querySelector('#hot-display-license-info');
+      const licenseInfo = instance.rootDocument.querySelector('#hot-display-license-info');
 
       if (licenseInfo) {
         licenseInfo.parentNode.removeChild(licenseInfo);

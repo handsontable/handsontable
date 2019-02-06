@@ -32,6 +32,7 @@ describe('WalkontableBorder', () => {
         current: new Walkontable.Selection({
           border: {
             width: 1,
+            style: 'solid',
             color: 'red'
           }
         })
@@ -54,31 +55,31 @@ describe('WalkontableBorder', () => {
 
     $td1.simulate('mousedown');
 
-    expect($top.css('height')).toBe('1px');
+    expect($top.css('borderTopWidth')).toBe('1px');
     expect($top.position().top).toBe(23);
     expect($top.position().left).toBe(0);
-    expect($right.css('width')).toBe('1px');
+    expect($right.css('borderLeftWidth')).toBe('1px');
     expect($right.position().top).toBe(23);
     expect($right.position().left).toBe(49);
-    expect($bottom.css('height')).toBe('1px');
+    expect($bottom.css('borderTopWidth')).toBe('1px');
     expect($bottom.position().top).toBe(46);
     expect($bottom.position().left).toBe(0);
-    expect($left.css('width')).toBe('1px');
+    expect($left.css('borderLeftWidth')).toBe('1px');
     expect($left.position().top).toBe(23);
     expect($left.position().left).toBe(0);
 
     $td2.simulate('mousedown');
 
-    expect($top.css('height')).toBe('1px');
+    expect($top.css('borderTopWidth')).toBe('1px');
     expect($top.position().top).toBe(46);
     expect($top.position().left).toBe(49);
-    expect($right.css('width')).toBe('1px');
+    expect($right.css('borderLeftWidth')).toBe('1px');
     expect($right.position().top).toBe(46);
     expect($right.position().left).toBe(99);
-    expect($bottom.css('height')).toBe('1px');
+    expect($bottom.css('borderTopWidth')).toBe('1px');
     expect($bottom.position().top).toBe(69);
     expect($bottom.position().left).toBe(49);
-    expect($left.css('width')).toBe('1px');
+    expect($left.css('borderLeftWidth')).toBe('1px');
     expect($left.position().top).toBe(46);
     expect($left.position().left).toBe(49);
   });
@@ -93,6 +94,7 @@ describe('WalkontableBorder', () => {
         current: new Walkontable.Selection({
           border: {
             width: 1,
+            style: 'solid',
             color: 'red'
           }
         })
@@ -113,16 +115,16 @@ describe('WalkontableBorder', () => {
 
     $td1.simulate('mousedown');
 
-    expect($top.css('height')).toBe('1px');
+    expect($top.css('borderTopWidth')).toBe('1px');
     expect($top.position().top).toBe(23);
     expect($top.position().left).toBe(0);
-    expect($right.css('width')).toBe('1px');
+    expect($right.css('borderLeftWidth')).toBe('1px');
     expect($right.position().top).toBe(23);
     expect($right.position().left).toBe(49);
-    expect($bottom.css('height')).toBe('1px');
+    expect($bottom.css('borderTopWidth')).toBe('1px');
     expect($bottom.position().top).toBe(46);
     expect($bottom.position().left).toBe(0);
-    expect($left.css('width')).toBe('1px');
+    expect($left.css('borderLeftWidth')).toBe('1px');
     expect($left.position().top).toBe(23);
     expect($left.position().left).toBe(0);
   });
@@ -137,6 +139,7 @@ describe('WalkontableBorder', () => {
         current: new Walkontable.Selection({
           border: {
             width: 1,
+            style: 'solid',
             color: 'red'
           }
         })
@@ -158,16 +161,16 @@ describe('WalkontableBorder', () => {
     const $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
     const $left = $(wt.selections.getCell().getBorder(wt).left);
 
-    expect($top.css('height')).toBe('1px');
+    expect($top.css('borderTopWidth')).toBe('1px');
     expect($top.position().top).toBe(0);
     expect($top.position().left).toBe(0);
-    expect($right.css('width')).toBe('1px');
+    expect($right.css('borderLeftWidth')).toBe('1px');
     expect($right.position().top).toBe(0);
     expect($right.position().left).toBe(49);
-    expect($bottom.css('height')).toBe('1px');
+    expect($bottom.css('borderTopWidth')).toBe('1px');
     expect($bottom.position().top).toBe(115);
     expect($bottom.position().left).toBe(0);
-    expect($left.css('width')).toBe('1px');
+    expect($left.css('borderLeftWidth')).toBe('1px');
     expect($left.position().top).toBe(0);
     expect($left.position().left).toBe(0);
   });
