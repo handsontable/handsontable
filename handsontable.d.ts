@@ -1485,6 +1485,7 @@ declare namespace Handsontable {
       bindRowsWithHeadersPlugin: BindRowsWithHeaders | void;
       dataManager: DataManager | void;
       headersUI: object | void;
+      collapsingUI: object | void;
       sourceData: object | void;
       trimRowsPlugin: TrimRows | void;
     }
