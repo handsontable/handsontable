@@ -278,7 +278,7 @@ class CustomBorders extends BasePlugin {
       this.hot.view.wt.draw(true);
     }
 
-    if (animationClass) {
+    if (animationClass === 'htAnimateCustomBorders') {
       arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
         if (border.id === customSelection.settings.id) {
           objectEach(customSelection.instanceBorders, (borderObject) => {
