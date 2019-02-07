@@ -775,11 +775,11 @@ class ColumnSorting extends BasePlugin {
    * Callback for the `afterRemoveRow` hook.
    *
    * @private
-   * @param {Number} removedRows Visual indexes of the removed row.
-   * @param {Number} amount  Amount of removed rows.
+   * @param {Number} index Visual index of the removed row.
+   * @param {Number} amount Amount of removed rows.
    */
-  onAfterRemoveRow(removedRows, amount) {
-    this.rowsMapper.unshiftItems(removedRows, amount);
+  onAfterRemoveRow(index, amount) {
+    this.rowsMapper.unshiftItems(index, amount);
   }
 
   // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. We clear the cache after action which reorganize sequence of columns.
