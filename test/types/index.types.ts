@@ -18,3 +18,4 @@ Handsontable.renderers;
 Handsontable.validators;
 new Handsontable.Core(elem, {});
 const defaultSettings: Handsontable.GridSettings = new Handsontable.DefaultSettings();
+new Handsontable.EventManager({});

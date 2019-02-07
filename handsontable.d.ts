@@ -1596,6 +1596,10 @@ declare namespace Handsontable {
     new(): GridSettings;
   }
 
+  interface EventManager {
+    new(context: object): plugins.EventManager;
+  }
+
   /**
    * A rendered cell object with computed properties.
    */
@@ -2574,6 +2578,7 @@ declare class Handsontable extends _Handsontable.Core {
   static renderers: Handsontable.Renderers;
   static validators: Handsontable.Validators;
   static Core: typeof _Handsontable.Core;
+  static EventManager: Handsontable.EventManager;
   static DefaultSettings: Handsontable.DefaultSettings;
 }
 
