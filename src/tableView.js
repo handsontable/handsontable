@@ -688,6 +688,7 @@ class TableView {
   onDraw(force) {
     if (force) {
       // this.instance.forceFullRender = did Handsontable request full render?
+      console.log('tableview.onDraw');
       this.instance.runHooks('afterRender', this.instance.forceFullRender);
     }
   }

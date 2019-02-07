@@ -188,8 +188,8 @@ class ColumnSorting extends BasePlugin {
     });
 
     this.rowsMapper.clearMap();
-
     super.disablePlugin();
+    this.hot.render();
   }
 
   // DIFF - MultiColumnSorting & ColumnSorting: changed function documentation.

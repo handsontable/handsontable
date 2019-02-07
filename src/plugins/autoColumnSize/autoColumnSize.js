@@ -169,6 +169,7 @@ class AutoColumnSize extends BasePlugin {
     this.addHook('beforeRender', force => this.onBeforeRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
     this.addHook('afterInit', () => this.onAfterInit());
+    this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
     super.enablePlugin();
   }
 
@@ -176,12 +177,15 @@ class AutoColumnSize extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
+    super.updatePlugin();
+  }
+
+  onAfterUpdateSettings() {
     const changedColumns = this.findColumnsWhereHeaderWasChanged();
 
     if (changedColumns.length) {
       this.clearCache(changedColumns);
     }
-    super.updatePlugin();
   }
 
   /**

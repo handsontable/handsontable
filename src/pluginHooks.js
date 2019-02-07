@@ -1815,6 +1815,13 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterUnlisten
    */
   'afterUnlisten',
+
+  /**
+   * 
+   *
+   * @event Hooks#updatePlugin
+   */
+  'updatePlugin',
 ];
 
 class Hooks {

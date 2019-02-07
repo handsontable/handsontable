@@ -36,7 +36,7 @@ class BasePlugin {
     this.initialized = false;
 
     this.hot.addHook('afterPluginsInitialized', () => this.onAfterPluginsInitialized());
-    this.hot.addHook('updatePlugin', newSettings => this.onUpdatePlugin(newSettings));
+    this.hot.addHook('updatePlugin', () => this.onUpdatePlugin());
     this.hot.addHook('beforeInit', () => this.init());
   }
 
