@@ -1661,7 +1661,7 @@ declare namespace Handsontable {
     columns?: ColumnSettings[] | ((index: number) => ColumnSettings);
     columnSorting?: boolean | columnSorting.Settings;
     columnSummary?: columnSummary.Settings[] | (() => columnSummary.Settings[]); // pro
-    colWidths?: number | number[] | string | string[] | ((index: number) => string);
+    colWidths?: number | number[] | string | string[] | ((index: number) => string | number);
     commentedCellClassName?: string;
     comments?: boolean | comments.Settings;
     contextMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
@@ -1738,7 +1738,7 @@ declare namespace Handsontable {
     renderer?: CellType | renderers.Base;
     rowHeaders?: boolean | string[] | ((index: number) => string);
     rowHeaderWidth?: number | number[];
-    rowHeights?: number | number[] | string | string[] | ((index: number) => string);
+    rowHeights?: number | number[] | string | string[] | ((index: number) => string | number);
     search?: boolean;
     selectOptions?: string[];
     skipColumnOnPaste?: boolean;
@@ -2358,15 +2358,15 @@ declare namespace Handsontable {
     }
     type PredefinedMenuItemKey = 'row_above' | 'row_below' | 'col_left' | 'col_right' | '---------' | 'remove_row' | 'remove_col' | 'clear_column' | 'undo' | 'redo' | 'make_read_only' | 'alignment' | 'cut' | 'copy' | 'freeze_column' | 'unfreeze_column' | 'borders' | 'commentsAddEdit' | 'commentsRemove' | 'commentsReadOnly' | 'mergeCells' | 'add_child' | 'detach_from_parent' | 'hidden_columns_hide' | 'hidden_columns_show' | 'hidden_rows_hide' | 'hidden_rows_show' | 'filter_by_condition' | 'filter_operators' | 'filter_by_condition2' | 'filter_by_value' | 'filter_action_bar';
 
-    type MenuConfig = {
+    interface MenuConfig {
       [key: string]: MenuItemConfig;
     }
 
     interface MenuItemConfig {
-      name: string | ((this: _Handsontable.Core) => string);
+      name?: string | ((this: _Handsontable.Core) => string);
       key?: string;
-      hidden?: boolean | ((this: _Handsontable.Core) => boolean);
-      disabled?: boolean | ((this: _Handsontable.Core) => boolean);
+      hidden?: boolean | ((this: _Handsontable.Core) => boolean | void);
+      disabled?: boolean | ((this: _Handsontable.Core) => boolean | void);
       disableSelection?: boolean;
       isCommand?: boolean;
       callback?(this: _Handsontable.Core, key: string, selection: Selection[], clickEvent: MouseEvent): void;
@@ -2414,6 +2414,7 @@ declare namespace Handsontable {
   namespace autoColumnSize {
     interface Settings { 
       syncLimit?: string | number;
+      userHeaders?: boolean;
     }
   }
 
