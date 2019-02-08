@@ -13,7 +13,7 @@ declare function oneOf<A, B, C, D, E, F, G, H, I, J>(a: A, b: B, c: C, d: D, e: 
 declare function oneOf<T extends any[]>(...args: T): T[number];
 declare const trueOfFalse: true | false;
 
-// Enums prevent type widening of literals -- for use with oneOf()
+// Enums prevent type widening of literals -- for use with objects inside oneOf()
 enum DisableVisualSelection { current = 'current', area = 'area', header ='header' }
 enum SortDirection { asc = 'asc', desc = 'desc' }
 
