@@ -157,6 +157,21 @@ declare namespace Handsontable {
    */
   type CellType = 'autocomplete' | 'checkbox' | 'date' | 'dropdown' | 'handsontable' | 'numeric' | 'password' | 'text' | 'time';
 
+  /**
+   * The default editor aliases the table has built-in.
+   */
+  type EditorType = 'autocomplete' | 'checkbox' | 'date' | 'dropdown' | 'handsontable' | 'mobile' | 'password' | 'select' | 'text';
+
+  /**
+   * The default renderer aliases the table has built-in.
+   */
+  type RendererType = 'autocomplete' | 'checkbox' | 'html' | 'numeric' | 'password' | 'text';
+
+  /**
+   * The default validator aliases the table has built-in.
+   */
+  type ValidatorType = 'autocomplete' | 'date' | 'numeric' | 'time';
+
   namespace wot {
     interface CellCoords {
       col: number;
@@ -1562,7 +1577,7 @@ declare namespace Handsontable {
 
   namespace renderers {
     interface Base {
-      (instance: _Handsontable.Core, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties): HTMLTableCellElement;
+      (instance: _Handsontable.Core, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties): HTMLTableCellElement | void;
     }
 
     interface Autocomplete extends Base {}
@@ -1689,7 +1704,7 @@ declare namespace Handsontable {
     disableVisualSelection?: boolean | 'current' | 'area' | 'header' | ('current' | 'area' | 'header')[];
     dragToScroll?: boolean;
     dropdownMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings; // pro
-    editor?: CellType | typeof _editors.Base | boolean;
+    editor?: EditorType | typeof _editors.Base | boolean;
     enterBeginsEditing?: boolean;
     enterMoves?: wot.CellCoords | ((event: KeyboardEvent) => wot.CellCoords);
     fillHandle?: boolean | 'vertical' | 'horizontal' | autoFill.Settings;
@@ -1700,7 +1715,7 @@ declare namespace Handsontable {
     fixedRowsBottom?: number; // pro
     fixedRowsTop?: number;
     formulas?: boolean | formulas.Settings;
-    fragmentSelection?: boolean | string;
+    fragmentSelection?: boolean | 'cell';
     ganttChart?: ganttChart.Settings; // pro
     headerTooltips?: boolean | headerTooltips.Settings; // pro
     height?: number | string | (() => number | string);
@@ -1725,14 +1740,12 @@ declare namespace Handsontable {
     minSpareCols?: number;
     minSpareRows?: number;
     multiColumnSorting?: boolean | multiColumnSorting.Settings;
-    selectionMode?: 'single' | 'range' | 'multiple';
     nestedHeaders?: (string | nestedHeaders.NestedHeader)[][]; // pro
     nestedRows?: boolean;
     noWordWrapClassName?: string;
     observeChanges?: boolean;
     observeDOMVisibility?: boolean;
     outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
-    pasteMode?: string;
     persistentState?: boolean;
     placeholder?: string;
     placeholderCellClassName?: string;
@@ -1740,11 +1753,12 @@ declare namespace Handsontable {
     readOnly?: boolean;
     readOnlyCellClassName?: string;
     renderAllRows?: boolean;
-    renderer?: CellType | renderers.Base;
+    renderer?: RendererType | renderers.Base;
     rowHeaders?: boolean | string[] | ((index: number) => string);
     rowHeaderWidth?: number | number[];
     rowHeights?: number | number[] | string | string[] | ((index: number) => string | number);
     search?: boolean;
+    selectionMode?: 'single' | 'range' | 'multiple';
     selectOptions?: string[];
     skipColumnOnPaste?: boolean;
     sortByRelevance?: boolean;
@@ -1760,10 +1774,10 @@ declare namespace Handsontable {
     trimRows?: boolean | number[]; // pro
     trimWhitespace?: boolean;
     type?: CellType;
-    uncheckedTemplate?: boolean | string;
+    uncheckedTemplate?: boolean | string | number;
     undo?: boolean;
-    validator?: validators.Base | RegExp | CellType;
-    viewportColumnRenderingOffset?: number | string;
+    validator?: validators.Base | RegExp | ValidatorType;
+    viewportColumnRenderingOffset?: number | 'auto';
     viewportRowRenderingOffset?: number | string;
     visibleRows?: number;
     width?: number | string | (() => number | string);
@@ -1830,10 +1844,10 @@ declare namespace Handsontable {
     afterRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => void;
     afterScrollHorizontally?: () => void;
     afterScrollVertically?: () => void;
-    afterSelection?: (r: number, c: number, r2: number, c2: number, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
-    afterSelectionByProp?: (r: number, p: string, r2: number, p2: string, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
-    afterSelectionEnd?: (r: number, c: number, r2: number, c2: number, selectionLayerLevel: number) => void;
-    afterSelectionEndByProp?: (r: number, p: string, r2: number, p2: string, selectionLayerLevel: number) => void;
+    afterSelection?: (row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
+    afterSelectionByProp?: (row: number, prop: string, row2: number, prop2: string, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
+    afterSelectionEnd?: (row: number, column: number, row2: number, column2: number, selectionLayerLevel: number) => void;
+    afterSelectionEndByProp?: (row: number, prop: string, row2: number, prop2: string, selectionLayerLevel: number) => void;
     afterSetCellMeta?: (row: number, col: number, key: string, value: any) => void;
     afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
     afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
@@ -1867,7 +1881,7 @@ declare namespace Handsontable {
     beforeDrawBorders?: (corners: number[], borderClassName: 'current' | 'area' | 'highlight' | undefined) => void;
     beforeDropdownMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
     beforeDropdownMenuShow?: (instance: plugins.DropdownMenu) => void;
-    beforeFilter?: (formulasStack: plugins.FiltersPlugin.ColumnConditions[]) => void | boolean;
+    beforeFilter?: (conditionsStack: plugins.FiltersPlugin.ColumnConditions[]) => void | boolean;
     beforeGetCellMeta?: (row: number, col: number, cellProperties: CellProperties) => void;
     beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
     beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void;
@@ -2458,9 +2472,9 @@ declare namespace Handsontable {
 
   namespace customBorders {
     type BorderOptions = {
-      width: number;
-      color: string;
-      style: string;
+      width?: number;
+      color?: string;
+      style?: string;
     }
     type BorderRange = {
       range: {
