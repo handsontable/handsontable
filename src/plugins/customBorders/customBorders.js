@@ -261,7 +261,6 @@ class CustomBorders extends BasePlugin {
    */
   insertBorderIntoSettings(border, place, animationClass) {
     const hasSavedBorders = this.checkSavedBorders(border);
-    // console.log(border);
 
     if (!hasSavedBorders) {
       this.savedBorders.push(border);
