@@ -47,9 +47,9 @@ declare namespace _Handsontable {
     getCoords(elem: Element | null): Handsontable.wot.CellCoords;
     getCopyableData(row: number, column: number): string;
     getCopyableText(startRow: number, startCol: number, endRow: number, endCol: number): string;
-    getData(r?: number, c?: number, r2?: number, c2?: number): Handsontable.CellValue[];
-    getDataAtCell(row: number, col: number): Handsontable.CellValue;
-    getDataAtCol(col: number): Handsontable.CellValue[];
+    getData(row?: number, column?: number, row2?: number, column2?: number): Handsontable.CellValue[];
+    getDataAtCell(row: number, column: number): Handsontable.CellValue;
+    getDataAtCol(column: number): Handsontable.CellValue[];
     getDataAtProp(prop: string | number): Handsontable.CellValue[];
     getDataAtRow(row: number): Handsontable.CellValue[];
     getDataAtRowProp(row: number, prop: string): Handsontable.CellValue;
