@@ -11,7 +11,7 @@ declare function oneOf<A, B, C, D, E, F, G, H>(a: A, b: B, c: C, d: D, e: E, f: 
 declare function oneOf<A, B, C, D, E, F, G, H, I>(a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I): A | B | C | D | E | F | G | H | I;
 declare function oneOf<A, B, C, D, E, F, G, H, I, J>(a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J): A | B | C | D | E | F | G | H | I | J;
 declare function oneOf<T extends any[]>(...args: T): T[number];
-declare const trueOfFalse: true | false;
+declare const true_or_false: true | false;
 
 // Enums prevent type widening of literals -- for use with objects inside oneOf()
 enum DisableVisualSelection { current = 'current', area = 'area', header ='header' }
@@ -98,7 +98,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     { type: 'numeric', numericFormat: { pattern: '0,0.00 $' } },
     { type: 'text', readOnly: true }
   ],
-  columnSorting: trueOfFalse || {
+  columnSorting: true_or_false || {
     initialConfig: {
       column: 1,
       sortOrder: 'asc'
@@ -128,7 +128,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   colWidths: oneOf(100, '100px', ((index: number) => oneOf('100px', 100))),
   commentedCellClassName: 'foo',
   comments: oneOf(true, { displayDelay: 123 }),
-  contextMenu: oneOf(true, contextMenuDemo) || ['row_above', 'row_below', 'col_left', 'col_right', '---------', 'remove_row', 'remove_col', 'clear_column', 'undo', 'redo', 'make_read_only', 'alignment', 'cut', 'copy', 'freeze_column', 'unfreeze_column', 'borders', 'commentsAddEdit', 'commentsRemove', 'commentsReadOnly', 'mergeCells', 'add_child', 'detach_from_parent', 'hidden_columns_hide', 'hidden_columns_show', 'hidden_rows_hide', 'hidden_rows_show', 'filter_by_condition', 'filter_operators', 'filter_by_condition2', 'filter_by_value', 'filter_action_bar'],
+  contextMenu: oneOf(true_or_false, contextMenuDemo) || ['row_above', 'row_below', 'col_left', 'col_right', '---------', 'remove_row', 'remove_col', 'clear_column', 'undo', 'redo', 'make_read_only', 'alignment', 'cut', 'copy', 'freeze_column', 'unfreeze_column', 'borders', 'commentsAddEdit', 'commentsRemove', 'commentsReadOnly', 'mergeCells', 'add_child', 'detach_from_parent', 'hidden_columns_hide', 'hidden_columns_show', 'hidden_rows_hide', 'hidden_rows_show', 'filter_by_condition', 'filter_operators', 'filter_by_condition2', 'filter_by_value', 'filter_action_bar'],
   copyable: true,
   copyColsLimit: 123,
   copyPaste: true,
@@ -172,11 +172,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   defaultDate: 'foo',
   disableVisualSelection: oneOf(true, 'current', 'area', 'header', [DisableVisualSelection.current, DisableVisualSelection.area, DisableVisualSelection.header]),
   dragToScroll: false,
-  dropdownMenu: oneOf(true, contextMenuDemo) || ['row_above', 'row_below', 'col_left', 'col_right', '---------', 'remove_row', 'remove_col', 'clear_column', 'undo', 'redo', 'make_read_only', 'alignment', 'cut', 'copy', 'freeze_column', 'unfreeze_column', 'borders', 'commentsAddEdit', 'commentsRemove', 'commentsReadOnly', 'mergeCells', 'add_child', 'detach_from_parent', 'hidden_columns_hide', 'hidden_columns_show', 'hidden_rows_hide', 'hidden_rows_show', 'filter_by_condition', 'filter_operators', 'filter_by_condition2', 'filter_by_value', 'filter_action_bar'],
+  dropdownMenu: oneOf(true_or_false, contextMenuDemo) || ['row_above', 'row_below', 'col_left', 'col_right', '---------', 'remove_row', 'remove_col', 'clear_column', 'undo', 'redo', 'make_read_only', 'alignment', 'cut', 'copy', 'freeze_column', 'unfreeze_column', 'borders', 'commentsAddEdit', 'commentsRemove', 'commentsReadOnly', 'mergeCells', 'add_child', 'detach_from_parent', 'hidden_columns_hide', 'hidden_columns_show', 'hidden_rows_hide', 'hidden_rows_show', 'filter_by_condition', 'filter_operators', 'filter_by_condition2', 'filter_by_value', 'filter_action_bar'],
   editor: oneOf(true, 'autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'mobile', 'password', 'select', 'text'),
   enterBeginsEditing: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 1, col: 1})),
-  fillHandle: oneOf(true, 'vertical', 'horizontal') || {
+  fillHandle: oneOf(true_or_false, 'vertical', 'horizontal') || {
     autoInsertRow: false,
     direction: 'vertical'
   },
@@ -259,7 +259,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   minRows: 123,
   minSpareCols: 123,
   minSpareRows: 123,
-  multiColumnSorting: trueOfFalse || {
+  multiColumnSorting: true_or_false || {
     initialConfig: oneOf(
       { column: 1, sortOrder: SortDirection.desc }, 
       [{ column: 1, sortOrder: SortDirection.asc }, { column: 0, sortOrder: SortDirection.desc }]
