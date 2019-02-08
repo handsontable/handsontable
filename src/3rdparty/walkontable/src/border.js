@@ -623,10 +623,12 @@ class Border {
    * @private
    * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
    * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   * @param {CellRange} cellRange
    */
-  changeBorderStyle(borderElement, border) {
+  changeBorderStyle(borderElement, border, cellRange) {
     const style = this[borderElement].style;
     const borderStyle = border[borderElement];
+    const corners = this.getCorners(cellRange);
 
     if (!borderStyle || borderStyle.hide) {
       addClass(this[borderElement], 'hidden');
@@ -649,7 +651,26 @@ class Border {
       }
 
       this.setBorderStyle(this[borderElement], borderElement, borderStyle);
+      this.appear(corners);
     }
+  }
+
+  /**
+   * Returns the top left (TL) and bottom right (BR) selection coordinates
+   *
+   * @param {CellRange} cellRange
+   * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`
+   */
+  getCorners(cellRange) {
+    const topLeft = cellRange.getTopLeftCorner();
+    const bottomRight = cellRange.getBottomRightCorner();
+
+    return [
+      topLeft.row,
+      topLeft.col,
+      bottomRight.row,
+      bottomRight.col,
+    ];
   }
 
   /**
@@ -749,12 +770,12 @@ class Border {
 
     switch (position) {
       case 'top': case 'bottom':
-        style.borderTop = [`${borderStyle.width}px`, borderStyle.style, borderStyle.color].join(' ');
+        style.borderTop = [`${borderStyle.width}px`, borderStyle.style ? borderStyle.style : this.settings.border.style, borderStyle.color].join(' ');
         style.height = `${borderStyle.width}px`;
         break;
 
       case 'left': case 'right':
-        style.borderLeft = [`${borderStyle.width}px`, borderStyle.style, borderStyle.color].join(' ');
+        style.borderLeft = [`${borderStyle.width}px`, borderStyle.style ? borderStyle.style : this.settings.border.style, borderStyle.color].join(' ');
         break;
 
       case 'corner': default:

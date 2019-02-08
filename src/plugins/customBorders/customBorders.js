@@ -261,6 +261,7 @@ class CustomBorders extends BasePlugin {
    */
   insertBorderIntoSettings(border, place, animationClass) {
     const hasSavedBorders = this.checkSavedBorders(border);
+    // console.log(border);
 
     if (!hasSavedBorders) {
       this.savedBorders.push(border);
@@ -316,6 +317,7 @@ class CustomBorders extends BasePlugin {
           Object.assign(customSelection.settings, borderDescriptor);
 
           border = customSelection.settings;
+          border.border.width = borderDescriptor[place].width;
 
           return false; // breaks forAll
         }
@@ -690,7 +692,7 @@ class CustomBorders extends BasePlugin {
 
           if (place) {
             objectEach(customSelection.instanceBorders, (borderObject) => {
-              borderObject.changeBorderStyle(place, border);
+              borderObject.changeBorderStyle(place, border, cellRange);
             });
           }
 
