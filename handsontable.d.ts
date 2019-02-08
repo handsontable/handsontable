@@ -1778,7 +1778,7 @@ declare namespace Handsontable {
     undo?: boolean;
     validator?: validators.Base | RegExp | ValidatorType;
     viewportColumnRenderingOffset?: number | 'auto';
-    viewportRowRenderingOffset?: number | string;
+    viewportRowRenderingOffset?: number | 'auto';
     visibleRows?: number;
     width?: number | string | (() => number | string);
     wordWrap?: boolean;

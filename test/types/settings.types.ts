@@ -1,21 +1,21 @@
 import Handsontable from 'handsontable';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
-declare const oneOf: <T extends any[]>(...a: T) => T[number];
-declare const boolean: true | false;
-declare const number: 100 | 0;
+declare function oneOf<A, B>(a: A, b: B): A | B;
+declare function oneOf<A, B, C>(a: A, b: B, c: C): A | B | C;
+declare function oneOf<A, B, C, D>(a: A, b: B, c: C, d: D): A | B | C | D;
+declare function oneOf<A, B, C, D, E>(a: A, b: B, c: C, d: D, e: E): A | B | C | D | E;
+declare function oneOf<A, B, C, D, E, F>(a: A, b: B, c: C, d: D, e: E, f: F): A | B | C | D | E | F;
+declare function oneOf<A, B, C, D, E, F, G>(a: A, b: B, c: C, d: D, e: E, f: F, g: G): A | B | C | D | E | F | G;
+declare function oneOf<A, B, C, D, E, F, G, H>(a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H): A | B | C | D | E | F | G | H;
+declare function oneOf<A, B, C, D, E, F, G, H, I>(a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I): A | B | C | D | E | F | G | H | I;
+declare function oneOf<A, B, C, D, E, F, G, H, I, J>(a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J): A | B | C | D | E | F | G | H | I | J;
+declare function oneOf<T extends any[]>(...args: T): T[number];
+declare const trueOfFalse: true | false;
 
 // Enums prevent type widening of literals -- for use with oneOf()
-enum BindRowsWithHeaders { loose = 'loose', strict = 'strict', }
 enum DisableVisualSelection { current = 'current', area = 'area', header ='header' }
-enum EditorType { autocomplete = 'autocomplete', checkbox = 'checkbox', date = 'date', dropdown = 'dropdown', handsontable = 'handsontable', mobile = 'mobile', password = 'password', select = 'select', text = 'text' }
-enum FillHandle { vertical = 'vertical', horizontal = 'horizontal' }
 enum SortDirection { asc = 'asc', desc = 'desc' }
-enum PreventOverflow { vertical = 'vertical', horizontal = 'horizontal' }
-enum RendererType { autocomplete = 'autocomplete', checkbox = 'checkbox', html = 'html', numeric = 'numeric', password = 'password', text = 'text' }
-enum SelectionMode { single = 'single', range = 'range', multiple = 'multiple' }
-enum StretchH { none = 'none', last = 'last', all = 'all' }
-enum ValidatorType { autocomplete = 'autocomplete', date = 'date', numeric = 'numeric', time = 'time' }
 
 const contextMenuDemo: Handsontable.contextMenu.Settings = {
   callback(key, selection, clickEvent) { },
@@ -67,7 +67,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   autoRowSize: oneOf(true, { syncLimit: 300 }),
   autoWrapCol: true,
   autoWrapRow: true,
-  bindRowsWithHeaders: oneOf(true, BindRowsWithHeaders.loose, BindRowsWithHeaders.strict),
+  bindRowsWithHeaders: oneOf(true, 'loose', 'strict'),
   cell: [
     {
       row: 0,
@@ -98,7 +98,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     { type: 'numeric', numericFormat: { pattern: '0,0.00 $' } },
     { type: 'text', readOnly: true }
   ],
-  columnSorting: boolean || {
+  columnSorting: trueOfFalse || {
     initialConfig: {
       column: 1,
       sortOrder: 'asc'
@@ -170,13 +170,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   debug: true,
   defaultDate: 'foo',
-  disableVisualSelection: oneOf(true, DisableVisualSelection.current, DisableVisualSelection.area, DisableVisualSelection.header, [DisableVisualSelection.current, DisableVisualSelection.area, DisableVisualSelection.header]),
+  disableVisualSelection: oneOf(true, 'current', 'area', 'header', [DisableVisualSelection.current, DisableVisualSelection.area, DisableVisualSelection.header]),
   dragToScroll: false,
   dropdownMenu: oneOf(true, contextMenuDemo) || ['row_above', 'row_below', 'col_left', 'col_right', '---------', 'remove_row', 'remove_col', 'clear_column', 'undo', 'redo', 'make_read_only', 'alignment', 'cut', 'copy', 'freeze_column', 'unfreeze_column', 'borders', 'commentsAddEdit', 'commentsRemove', 'commentsReadOnly', 'mergeCells', 'add_child', 'detach_from_parent', 'hidden_columns_hide', 'hidden_columns_show', 'hidden_rows_hide', 'hidden_rows_show', 'filter_by_condition', 'filter_operators', 'filter_by_condition2', 'filter_by_value', 'filter_action_bar'],
-  editor: oneOf(true, EditorType.autocomplete, EditorType.checkbox, EditorType.date, EditorType.dropdown, EditorType.handsontable, EditorType.mobile, EditorType.password, EditorType.select, EditorType.text),
+  editor: oneOf(true, 'autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'mobile', 'password', 'select', 'text'),
   enterBeginsEditing: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 1, col: 1})),
-  fillHandle: oneOf(true, FillHandle.vertical, FillHandle.horizontal) || {
+  fillHandle: oneOf(true, 'vertical', 'horizontal') || {
     autoInsertRow: false,
     direction: 'vertical'
   },
@@ -192,7 +192,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
       BAR: 'baz',
     }
   }),
-  fragmentSelection: boolean || 'cell',
+  fragmentSelection: oneOf(true, 'cell'),
   ganttChart: {
     firstWeekDay: 'monday',
     startYear: 2015,
@@ -259,7 +259,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   minRows: 123,
   minSpareCols: 123,
   minSpareRows: 123,
-  multiColumnSorting: boolean || {
+  multiColumnSorting: trueOfFalse || {
     initialConfig: oneOf(
       { column: 1, sortOrder: SortDirection.desc }, 
       [{ column: 1, sortOrder: SortDirection.asc }, { column: 0, sortOrder: SortDirection.desc }]
@@ -290,26 +290,26 @@ const allSettings: Required<Handsontable.GridSettings> = {
   persistentState: true,
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
-  preventOverflow: oneOf(true, PreventOverflow.vertical, PreventOverflow.horizontal),
+  preventOverflow: oneOf(true, 'vertical', 'horizontal'),
   readOnly: true,
   readOnlyCellClassName: 'foo',
   renderAllRows: true,
   renderer: oneOf(
-    RendererType.autocomplete, RendererType.checkbox, RendererType.html, RendererType.numeric, RendererType.password, RendererType.text, 
+    'autocomplete', 'checkbox', 'html', 'numeric', 'password', 'text', 
     (instance: Handsontable, TD: HTMLTableCellElement, row: number, col: number, prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
   ),
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
   search: true,
-  selectionMode: oneOf(SelectionMode.single, SelectionMode.range, SelectionMode.multiple),
+  selectionMode: oneOf('single', 'range', 'multiple'),
   selectOptions: ['A', 'B', 'C'],
   skipColumnOnPaste: true,
   sortByRelevance: true,
   source: oneOf(['A', 'B', 'C', 'D'], (query: string, callback: (item: string[]) => void) => callback(['A', 'B', 'C', 'D'])),
   startCols: 123,
   startRows: 123,
-  stretchH: oneOf(StretchH.none, StretchH.last, StretchH.all),
+  stretchH: oneOf('none', 'last', 'all'),
   strict: true,
   tableClassName: oneOf('foo', ['first-class-name', 'second-class-name']),
   tabMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 2, col: 2})),
@@ -323,10 +323,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   validator: oneOf(
     (value: any, callback: (valid: boolean) => void) => callback(true),
     /^[0-9]$/,
-    ValidatorType.autocomplete, ValidatorType.date, ValidatorType.numeric, ValidatorType.time
+    'autocomplete', 'date', 'numeric', 'time'
   ),
-  viewportColumnRenderingOffset: number || 'auto',
-  viewportRowRenderingOffset: number || 'auto',
+  viewportColumnRenderingOffset: oneOf(100, 'auto'),
+  viewportRowRenderingOffset: oneOf(100, 'auto'),
   visibleRows: 123,
   width: oneOf(500, () => 500),
   wordWrap: true,
