@@ -634,6 +634,20 @@ describe('TrimRows', () => {
         expect(plugin.isTrimmed(5)).toBeTruthy();
       });
     });
+
+    it('should not override the `index` parameter of the `beforeCreateRow` hook', () => {
+      const onBeforeCreateRowCallback = jasmine.createSpy('beforeCreateRow');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        trimRows: true,
+        beforeCreateRow: onBeforeCreateRowCallback
+      });
+
+      alter('insert_row', 1);
+
+      expect(onBeforeCreateRowCallback).toHaveBeenCalledWith(1, 1, ...new Array(4));
+    });
   });
 
   describe('copy-paste functionality', () => {
