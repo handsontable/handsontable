@@ -3204,28 +3204,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Select the cell specified by the `row` and `prop` arguments, or a range finishing at `endRow`, `endProp`.
-   * By default, viewport will be scrolled to selection.
-   *
-   * @deprecated
-   * @memberof Core#
-   * @function selectCellByProp
-   * @param {Number} row Visual row index.
-   * @param {String} prop Property name.
-   * @param {Number} [endRow] visual end row index (if selecting a range).
-   * @param {String} [endProp] End property name (if selecting a range).
-   * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the selection.
-   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
-   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
-   */
-  this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell = true, changeListener = true) {
-    warn(toSingleLine`Deprecation warning: This method is going to be removed in the next release.
-      If you want to select a cell using props, please use the \`selectCell\` method.`);
-
-    return this.selectCells([[row, prop, endRow, endProp]], scrollToCell, changeListener);
-  };
-
-  /**
    * Select column specified by `startColumn` visual index, column property or a range of columns finishing at `endColumn`.
    *
    * @example
