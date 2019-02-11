@@ -18,7 +18,6 @@ import {
   objectEach
 } from './helpers/object';
 import { arrayFlatten, arrayMap, arrayEach, arrayReduce } from './helpers/array';
-import { toSingleLine } from './helpers/templateLiteralTag';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
 import { getValidator } from './validators';
