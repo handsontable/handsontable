@@ -830,14 +830,14 @@ class GanttChart extends BasePlugin {
    *
    * @private
    */
-  onUpdatePlugin() {
+  onUpdateSettings() {
     if (this.internalUpdateSettings) {
       this.applyRangeBarMetaCache();
 
       return;
     }
 
-    super.onUpdatePlugin();
+    super.onUpdateSettings();
   }
 
   /**

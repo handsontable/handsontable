@@ -155,8 +155,8 @@ class ColumnSorting extends BasePlugin {
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
     this.addHook('afterInit', () => this.loadOrSortBySettings());
     this.addHook('afterLoadData', initialLoad => this.onAfterLoadData(initialLoad));
-    this.addHook('afterRemoveCol', () => this.onAfterRemoveCol());
     this.addHook('afterCreateCol', () => this.onAfterCreateCol());
+    this.addHook('afterRemoveCol', () => this.onAfterRemoveCol());
 
     // TODO: Workaround? It should be refactored / described.
     if (this.hot.view) {
@@ -187,8 +187,8 @@ class ColumnSorting extends BasePlugin {
     });
 
     this.rowsMapper.clearMap();
+
     super.disablePlugin();
-    this.hot.render();
   }
 
   // DIFF - MultiColumnSorting & ColumnSorting: changed function documentation.
@@ -733,6 +733,8 @@ class ColumnSorting extends BasePlugin {
    * @param {Object} newSettings New settings object.
    */
   onUpdateSettings(newSettings) {
+    super.onUpdateSettings();
+
     this.columnMetaCache.clear();
 
     if (isDefined(newSettings[this.pluginKey])) {

@@ -709,7 +709,7 @@ function removeExposedUndoRedoMethods(instance) {
 const hook = Hooks.getSingleton();
 
 hook.add('afterInit', init);
-hook.add('updatePlugin', init);
+hook.add('afterUpdateSettings', init);
 
 hook.register('beforeUndo');
 hook.register('afterUndo');
