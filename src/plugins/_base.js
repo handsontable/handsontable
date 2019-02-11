@@ -36,7 +36,7 @@ class BasePlugin {
     this.initialized = false;
 
     this.hot.addHook('afterPluginsInitialized', () => this.onAfterPluginsInitialized());
-    this.hot.addHook('updatePlugin', () => this.onUpdatePlugin());
+    this.hot.addHook('afterUpdateSettings', newSettings => this.onUpdateSettings(newSettings));
     this.hot.addHook('beforeInit', () => this.init());
   }
 
@@ -142,7 +142,7 @@ class BasePlugin {
    *
    * @private
    */
-  onUpdatePlugin() {
+  onUpdateSettings() {
     if (this.isEnabled) {
       if (this.enabled && !this.isEnabled()) {
         this.disablePlugin();

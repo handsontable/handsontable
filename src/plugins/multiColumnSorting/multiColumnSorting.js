@@ -229,18 +229,18 @@ class MultiColumnSorting extends ColumnSorting {
   }
 
   /**
-   * Overwriting base plugin's `onUpdatePlugin` method. Please keep in mind that `onUpdatePlugin` isn't called
+   * Overwriting base plugin's `onUpdateSettings` method. Please keep in mind that `onAfterUpdateSettings` isn't called
    * for `updateSettings` in specific situations.
    *
    * @private
    * @param {Object} newSettings New settings object.
    */
-  onAfterUpdateSettings(newSettings) {
+  onUpdateSettings(newSettings) {
     if (this.hot.getSettings()[this.pluginKey] && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY]) {
       warnAboutPluginsConflict();
     }
 
-    return super.onAfterUpdateSettings(newSettings);
+    return super.onUpdateSettings(newSettings);
   }
 
   /**

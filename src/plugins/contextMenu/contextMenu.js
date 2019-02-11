@@ -146,12 +146,17 @@ class ContextMenu extends BasePlugin {
     }
     super.enablePlugin();
 
+    this.menu = new Menu(this.hot, {
+      className: 'htContextMenu',
+      keepInViewport: true
+    });
+
     this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
-    this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
-    this.addHook('afterInit', () => this.onAfterUpdateSettings());
   }
 
-  onAfterUpdateSettings() {
+  generateCommands() {
+    this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
+
     const settings = this.hot.getSettings().contextMenu;
     const predefinedItems = {
       items: this.itemsFactory.getItems(settings)
@@ -162,10 +167,6 @@ class ContextMenu extends BasePlugin {
     this.itemsFactory.setPredefinedItems(predefinedItems.items);
     const menuItems = this.itemsFactory.getItems(settings);
 
-    this.menu = new Menu(this.hot, {
-      className: 'htContextMenu',
-      keepInViewport: true
-    });
     this.hot.runHooks('beforeContextMenuSetItems', menuItems);
 
     this.menu.setMenuItems(menuItems);
@@ -212,9 +213,12 @@ class ContextMenu extends BasePlugin {
    *                                compatible with native mouse event so it can be used either.
    */
   open(event) {
+    this.generateCommands();
+
     if (!this.menu) {
       return;
     }
+
     this.menu.open();
     this.menu.setPosition({
       top: parseInt(pageY(event), 10) - getWindowScrollTop(this.hot.rootWindow),
@@ -233,6 +237,9 @@ class ContextMenu extends BasePlugin {
     if (!this.menu) {
       return;
     }
+
+    this.itemsFactory = null;
+
     this.menu.close();
   }
 

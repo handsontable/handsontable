@@ -155,7 +155,6 @@ class ColumnSorting extends BasePlugin {
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
     this.addHook('afterInit', () => this.loadOrSortBySettings());
     this.addHook('afterLoadData', initialLoad => this.onAfterLoadData(initialLoad));
-    this.addHook('afterUpdateSettings', settings => this.onAfterUpdateSettings(settings));
     this.addHook('afterRemoveCol', () => this.onAfterRemoveCol());
     this.addHook('afterCreateCol', () => this.onAfterCreateCol());
 
@@ -727,13 +726,13 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Overwriting base plugin's `onUpdatePlugin` method. Please keep in mind that `onUpdatePlugin` isn't called
+   * Overwriting base plugin's `onUpdateSettings` method. Please keep in mind that `onAfterUpdateSettings` isn't called
    * for `updateSettings` in specific situations.
    *
    * @private
    * @param {Object} newSettings New settings object.
    */
-  onAfterUpdateSettings(newSettings) {
+  onUpdateSettings(newSettings) {
     this.columnMetaCache.clear();
 
     if (isDefined(newSettings[this.pluginKey])) {
