@@ -384,6 +384,8 @@ class Table {
    * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:
    *  -1 row before viewport
    *  -2 row after viewport
+   *  -3 column before viewport
+   *  -4 column after viewport
    */
   getCell(coords) {
     let row = coords.row;
@@ -401,6 +403,14 @@ class Table {
     } else if (this.isRowAfterRenderedRows(row)) {
       // row after rendered rows
       return -2;
+
+    } else if (this.isColumnBeforeRenderedColumns(column)) {
+      // column before rendered columns
+      return -3;
+
+    } else if (this.isColumnAfterRenderedColumns(column)) {
+      // column after rendered columns
+      return -4;
     }
 
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
@@ -547,8 +557,16 @@ class Table {
     return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
   }
 
+  isColumnBeforeRenderedColumns(column) {
+    return this.columnFilter && (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column) < 0 && column >= 0);
+  }
+
   isColumnAfterViewport(column) {
     return this.columnFilter && (this.columnFilter.sourceToRendered(column) > this.getLastVisibleColumn());
+  }
+
+  isColumnAfterRenderedColumns(column) {
+    return this.columnFilter && (this.columnFilter.sourceToRendered(column) > this.getLastRenderedColumn());
   }
 
   isLastRowFullyVisible() {
