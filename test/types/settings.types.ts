@@ -1,19 +1,12 @@
 import Handsontable from 'handsontable';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
-declare function oneOf<A, B>(a: A, b: B): A | B;
-declare function oneOf<A, B, C>(a: A, b: B, c: C): A | B | C;
-declare function oneOf<A, B, C, D>(a: A, b: B, c: C, d: D): A | B | C | D;
-declare function oneOf<A, B, C, D, E>(a: A, b: B, c: C, d: D, e: E): A | B | C | D | E;
-declare function oneOf<A, B, C, D, E, F>(a: A, b: B, c: C, d: D, e: E, f: F): A | B | C | D | E | F;
-declare function oneOf<A, B, C, D, E, F, G>(a: A, b: B, c: C, d: D, e: E, f: F, g: G): A | B | C | D | E | F | G;
-declare function oneOf<A, B, C, D, E, F, G, H>(a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H): A | B | C | D | E | F | G | H;
-declare function oneOf<A, B, C, D, E, F, G, H, I>(a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I): A | B | C | D | E | F | G | H | I;
-declare function oneOf<A, B, C, D, E, F, G, H, I, J>(a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J): A | B | C | D | E | F | G | H | I | J;
-declare function oneOf<T extends any[]>(...args: T): T[number];
+type Primitive = string | number | boolean | undefined | null;
+declare function oneOf<T extends (string | number | boolean | undefined | null | object)[]>(...args: T): T[number];
 declare const true_or_false: true | false;
 
-// Enums prevent type widening of literals -- for use with objects inside oneOf()
+// Enums prevent type widening of literals -- for use with objects inside oneOf(), not required by users
+// This can be replaced once `as const` context is shipped: https://github.com/Microsoft/TypeScript/pull/29510
 enum DisableVisualSelection { current = 'current', area = 'area', header ='header' }
 enum SortDirection { asc = 'asc', desc = 'desc' }
 
