@@ -65,8 +65,8 @@ declare namespace _Handsontable {
     getSelectedRange():  Handsontable.wot.CellRange[] | undefined;
     getSelectedRangeLast(): Handsontable.wot.CellRange | undefined;
     getSettings(): Handsontable.GridSettings;
-    getSourceData(r?: number, c?: number, r2?: number, c2?: number): Handsontable.CellValue[][] | Handsontable.RowObject[];
-    getSourceDataArray(r?: number, c?: number, r2?: number, c2?: number): Handsontable.CellValue[][];
+    getSourceData(row?: number, column?: number, row2?: number, column2?: number): Handsontable.CellValue[][] | Handsontable.RowObject[];
+    getSourceDataArray(row?: number, column?: number, row2?: number, ccolumn2?: number): Handsontable.CellValue[][];
     getSourceDataAtCell(row: number, column: number): Handsontable.CellValue;
     getSourceDataAtCol(column: number): Handsontable.CellValue[];
     getSourceDataAtRow(row: number): Handsontable.CellValue[] | Handsontable.RowObject;
