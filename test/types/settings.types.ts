@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
-type Primitive = string | number | boolean | undefined | null;
 declare function oneOf<T extends (string | number | boolean | undefined | null | object)[]>(...args: T): T[number];
 declare const true_or_false: true | false;
 
