@@ -220,6 +220,7 @@ class ContextMenu extends BasePlugin {
     }
 
     this.menu.close();
+    this.itemsFactory = null;
   }
 
   /**
@@ -256,6 +257,13 @@ class ContextMenu extends BasePlugin {
     this.commandExecutor.execute(commandName, ...params);
   }
 
+  /**
+   * Prepares available contextMenu's items list and registers them in commandExecutor.
+   *
+   * @private
+   * @fires Hooks#afterContextMenuDefaultOptions
+   * @fires Hooks#beforeContextMenuSetItems
+   */
   prepareMenuItems() {
     this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
 
