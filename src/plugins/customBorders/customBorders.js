@@ -40,28 +40,42 @@ import {
  * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
  * of an array.
  *
- * See [Custom Borders](http://docs.handsontable.com/demo-custom-borders.html) demo for more examples.
+ * See [Custom Borders](https://handsontable.com/docs/6.2.2/demo-customizing-borders.html) demo for more examples.
  *
  * @example
  * ```js
  * customBorders: [
- *   {
- *    range: {
- *      from: {
- *        row: 1,
- *        col: 1
- *      },
- *      to: {
- *        row: 3,
- *        col: 4
- *      },
- *    },
- *    left: {},
- *    right: {},
- *    top: {},
- *    bottom: {},
+ * {
+ * range: {
+ *   from: {
+ *     row: 1,
+ *     col: 1
  *   },
- * ],
+ *   to: {
+ *     row: 3,
+ *     col: 4
+ *   }
+ * },
+ *  top: {
+ *    width: 2,
+ *    style: 'dotted'
+ *  },
+ *  left: {
+ *    width: 2,
+ *    color: '#5292F7',
+ *  },
+ *  bottom: {
+ *    width: 6,
+ *    color: '#5292F7',
+ *    style: 'dashed'
+ *  },
+ *  right: {
+ *    width: 9,
+ *    color: '#5292F7',
+ *    style: 'double'
+ *   }
+ *  }
+ * ]
  *
  * // or
  * customBorders: [
@@ -74,11 +88,22 @@ import {
  *     right: {
  *       width: 1,
  *       color: 'green',
+ *       style: 'solid'
  *     },
  *     top: '',
  *     bottom: '',
  *   }
  * ],
+ *
+ * // or
+ * const customBordersPlugin = hot.getPlugin('customBorders');
+ * customBordersPlugin.setBorders(hot.getSelectedRange(),
+ * {
+ *   top: {style: 'dotted', width: 2, color: 'gray'},
+ *   bottom: {style: 'dashed', width: 4, color: 'black'},
+ *   left: {style: 'dashed', width: 5, color: 'red'},
+ *   right: {style: 'dotted', width: 3, color: 'black'}
+ * });
  * ```
  */
 class CustomBorders extends BasePlugin {
@@ -154,9 +179,8 @@ class CustomBorders extends BasePlugin {
     *
     * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
     * @param {Object} borderObject Object with `top`, `right`, `bottom` and `left` properties.
-    * @param {String} animationClass If present borders are animated.
     */
-  setBorders(selectionRanges, borderObject, animationClass) {
+  setBorders(selectionRanges, borderObject) {
     const defaultBorderKeys = ['top', 'right', 'bottom', 'left'];
     const borderKeys = borderObject ? Object.keys(borderObject) : defaultBorderKeys;
     const selectionType = detectSelectionType(selectionRanges);
@@ -168,7 +192,7 @@ class CustomBorders extends BasePlugin {
       for (let row = rowStart; row <= rowEnd; row += 1) {
         for (let col = columnStart; col <= columnEnd; col += 1) {
           arrayEach(borderKeys, (borderKey) => {
-            this.prepareBorderFromCustomAdded(row, col, borderObject, borderKey, animationClass);
+            this.prepareBorderFromCustomAdded(row, col, borderObject, borderKey);
           });
         }
       }
@@ -257,9 +281,8 @@ class CustomBorders extends BasePlugin {
    * @private
    * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
-   * @param {String} animationClass If present borders are animated.
    */
-  insertBorderIntoSettings(border, place, animationClass) {
+  insertBorderIntoSettings(border, place) {
     const hasSavedBorders = this.checkSavedBorders(border);
 
     if (!hasSavedBorders) {
@@ -277,16 +300,6 @@ class CustomBorders extends BasePlugin {
       this.hot.selection.highlight.addCustomSelection({ border, cellRange });
       this.hot.view.wt.draw(true);
     }
-
-    if (animationClass === 'htAnimateCustomBorders') {
-      arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
-        if (border.id === customSelection.settings.id) {
-          objectEach(customSelection.instanceBorders, (borderObject) => {
-            borderObject.createAndAddAnimateClass(place, border);
-          });
-        }
-      });
-    }
   }
 
   /**
@@ -297,9 +310,8 @@ class CustomBorders extends BasePlugin {
    * @param {Number} column Visual column index.
    * @param {Object} borderDescriptor Object with `row` and `col`, `left`, `right`, `top` and `bottom` properties.
    * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
-   * @param {String} animationClass If present borders are animated.
    */
-  prepareBorderFromCustomAdded(row, column, borderDescriptor, place, animationClass) {
+  prepareBorderFromCustomAdded(row, column, borderDescriptor, place) {
     let border = createEmptyBorders(row, column);
 
     if (borderDescriptor) {
@@ -325,7 +337,7 @@ class CustomBorders extends BasePlugin {
 
     this.hot.setCellMeta(row, column, 'borders', border);
 
-    this.insertBorderIntoSettings(border, place, animationClass);
+    this.insertBorderIntoSettings(border, place);
   }
 
   /**

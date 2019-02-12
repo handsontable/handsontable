@@ -472,6 +472,48 @@ class Border {
     this.rightStyle.height = `${height + 1}px`;
     this.rightStyle.display = 'block';
 
+    if (this.settings.right && this.settings.right.hide !== true) {
+      delta = Math.floor(this.settings.right.width / 2);
+
+      if (delta > 1) {
+        delta += delta;
+      }
+
+      extra = 0;
+
+      if (this.settings.right.width > 3) {
+        extra = (this.settings.right.width % delta) - 1;
+      } else if (this.settings.right.width === 3) {
+        extra = 1;
+      }
+
+      this.rightStyle.top = `${top}px`;
+      this.rightStyle.left = `${left + width - delta - extra}px`;
+      this.rightStyle.height = `${height + 1}px`;
+      this.rightStyle.display = 'block';
+    }
+
+    if (this.settings.bottom && this.settings.bottom.hide !== true) {
+      delta = Math.floor(this.settings.bottom.width / 2);
+
+      if (delta > 1) {
+        delta += delta;
+      }
+
+      extra = 0;
+
+      if (this.settings.bottom.width > 3) {
+        extra = (this.settings.bottom.width % delta) - 1;
+      } else if (this.settings.bottom.width === 3) {
+        extra = 1;
+      }
+
+      this.bottomStyle.top = `${top + height - delta - extra}px`;
+      this.bottomStyle.left = `${left}px`;
+      this.bottomStyle.width = `${width}px`;
+      this.bottomStyle.display = 'block';
+    }
+
     let cornerVisibleSetting = this.settings.border.cornerVisible;
     cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ? cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
 
@@ -671,57 +713,6 @@ class Border {
       bottomRight.row,
       bottomRight.col,
     ];
-  }
-
-  /**
-   * Create and add animate class.
-   *
-   * @private
-   * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
-   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
-   */
-  createAndAddAnimateClass(borderElement, border) {
-    const { rootDocument } = this.wot;
-
-    const styles = `.htAnimateCustomBorders${toUpperCaseFirst(borderElement)} { border: none !important;
-    background: ${borderElement === 'top' || borderElement === 'bottom' ? `linear-gradient(to right, ${border[borderElement].color} 50%, transparent 50%)` :
-    `linear-gradient(0deg, ${border[borderElement].color} 50%, transparent 50%),
-    linear-gradient(180deg, ${border[borderElement].color} 50%, transparent 50%), linear-gradient(0deg, ${border[borderElement].color} 50%, transparent 50%)`};
-    background-repeat: ${borderElement === 'top' || borderElement === 'bottom' ? 'repeat-x' : 'repeat-x, repeat-y, repeat-x, repeat-y'};
-    background-size: ${borderElement === 'top' || borderElement === 'bottom' ?
-    `10px ${border[borderElement].width}px, ${border[borderElement].width}px 10px` : `8px ${border[borderElement].width}px, ${border[borderElement].width}px 8px`};
-    animation: ${borderElement === 'top' || borderElement === 'right' ? 'borderTopRight' : 'borderBottomLeft'} 2s linear infinite; }`;
-
-    const keyFrames = `@keyframes ${borderElement === 'top' || borderElement === 'right' ?
-      `borderTopRight {
-        0% { background-position: left top, right top, right bottom, left bottom; }
-
-        100% { background-position: right top, right bottom, left bottom, left top; }
-      }` :
-      `borderBottomLeft {
-        0% { background-position: right top, right bottom, left bottom, left top; }
-
-        100% { background-position: left top, right top, right bottom, left bottom; }
-      }`
-    }`;
-
-    const sheet = (() => {
-      const style = rootDocument.createElement('style');
-
-      // WebKit hack :(
-      style.appendChild(rootDocument.createTextNode(''));
-
-      rootDocument.head.appendChild(style);
-
-      return style.sheet;
-    })();
-
-    const cssRulesNum = sheet.cssRules.length;
-
-    sheet.insertRule(styles, cssRulesNum);
-    sheet.insertRule(keyFrames, cssRulesNum);
-
-    addClass(this[borderElement], `htAnimateCustomBorders${toUpperCaseFirst(borderElement)}`);
   }
 
   /**
