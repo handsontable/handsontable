@@ -138,8 +138,6 @@ class ContextMenu extends BasePlugin {
       return;
     }
 
-    // this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
-
     const settings = this.hot.getSettings().contextMenu;
 
     if (typeof settings.callback === 'function') {
