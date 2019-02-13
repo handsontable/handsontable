@@ -111,8 +111,7 @@ describe('Core_populateFromArray', () => {
   it('should populate value for array data when bound data begins as empty with new row', () => {
     // Resolving issue #5675: https://github.com/handsontable/handsontable/issues/5675
     let output = null;
-    const dataArray = []; // arrayOfArrays();
-    // dataArray[0][0] = ['2011'];
+    const dataArray = [];
 
     handsontable({
       data: dataArray,
