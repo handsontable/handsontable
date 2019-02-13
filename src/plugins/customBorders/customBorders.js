@@ -315,12 +315,6 @@ class CustomBorders extends BasePlugin {
     let border = createEmptyBorders(row, column);
 
     if (borderDescriptor) {
-      const borderObject = borderDescriptor.bottom || borderDescriptor.right;
-
-      if (borderObject) {
-        border = createEmptyBorders(row, column, borderObject.width);
-      }
-
       border = extendDefaultBorder(border, borderDescriptor);
 
       arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
@@ -328,7 +322,6 @@ class CustomBorders extends BasePlugin {
           Object.assign(customSelection.settings, borderDescriptor);
 
           border = customSelection.settings;
-          border.border.width = borderDescriptor[place].width;
 
           return false; // breaks forAll
         }
@@ -351,14 +344,7 @@ class CustomBorders extends BasePlugin {
 
     rangeEach(range.from.row, range.to.row, (rowIndex) => {
       rangeEach(range.from.col, range.to.col, (colIndex) => {
-        let borderWidth;
-        const borderObject = borderDescriptor.bottom || borderDescriptor.right;
-
-        if (borderObject) {
-          borderWidth = borderObject.width;
-        }
-
-        const border = createEmptyBorders(rowIndex, colIndex, borderWidth);
+        const border = createEmptyBorders(rowIndex, colIndex);
         let add = 0;
 
         if (rowIndex === range.from.row) {
@@ -727,7 +713,7 @@ class CustomBorders extends BasePlugin {
 
     if (Array.isArray(customBorders)) {
       if (!customBorders.length) {
-        this.savedBorders = customBorders;
+        this.clearBorders();
       }
 
       this.createCustomBorders(customBorders);
