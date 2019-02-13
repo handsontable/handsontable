@@ -283,7 +283,6 @@ class TableView {
 
     this.eventManager.addEventListener(documentElement, 'contextmenu', (event) => {
       if (this.instance.selection.isInProgress() && isRightClick(event)) {
-        console.log('test');
         this.instance.selection.finish();
 
         priv.mouseDown = false;

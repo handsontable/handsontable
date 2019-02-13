@@ -549,7 +549,10 @@ describe('ContextMenu', () => {
       let items = $('.htContextMenu tbody td');
       let actions = items.not('.htSeparator');
 
-      expect(actions.length).toEqual(0);
+      expect(actions.length).toEqual(1);
+      expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
+        'No available options',
+      ].join(''));
 
       const header = $('.ht_clone_top thead th').eq(1);
 
