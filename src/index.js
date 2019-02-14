@@ -34,6 +34,8 @@ import DefaultSettings from './defaultSettings';
 import { rootInstanceSymbol } from './utils/rootInstance';
 import { getTranslatedPhrase } from './i18n';
 import * as constants from './i18n/constants';
+import { toHandsontable, toHTMLTable } from './utils/parseTable';
+
 import { registerLanguageDictionary, getLanguagesDictionaries, getLanguageDictionary } from './i18n/dictionariesManager';
 
 function Handsontable(rootElement, userSettings) {

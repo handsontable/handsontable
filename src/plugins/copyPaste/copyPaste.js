@@ -9,7 +9,7 @@ import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
-import { arrayToTable, tableToArray } from './utils';
+import { arrayToTable, tableToArray } from './../../utils/parseTable';
 
 import './copyPaste.css';
 
