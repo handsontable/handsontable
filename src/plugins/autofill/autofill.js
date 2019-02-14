@@ -162,7 +162,9 @@ class Autofill extends BasePlugin {
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();
 
-      this.hot.runHooks('beforeAutofill', startOfDragCoords, endOfDragCoords, selectionData);
+      if (this.hot.runHooks('beforeAutofill', startOfDragCoords, endOfDragCoords, selectionData) === false) {
+        return false;
+      }
 
       const deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
       let fillData = selectionData;
