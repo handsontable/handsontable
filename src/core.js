@@ -776,7 +776,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               }
               const visualColumn = c - skippedColumn;
               let value = getInputValue(visualRow, visualColumn);
-              const orgValue = instance.getDataAtCell(current.row, current.col);
+              let orgValue = instance.getDataAtCell(current.row, current.col);
               const index = {
                 row: visualRow,
                 col: visualColumn
@@ -790,12 +790,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 }
               }
               if (value !== null && typeof value === 'object') {
+                // when 'value' is array and 'orgValue' is null, set 'orgValue' to
+                // an empty array so that the null value can be compared to 'value'
+                // as an empty value for the array context
+                if (Array.isArray(value) && orgValue === null) orgValue = [];
+
                 if (orgValue === null || typeof orgValue !== 'object') {
                   pushData = false;
 
                 } else {
-                  const orgValueSchema = duckSchema(orgValue[0] || orgValue);
-                  const valueSchema = duckSchema(value[0] || value);
+                  const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : (orgValue[0] || orgValue));
+                  const valueSchema = duckSchema(Array.isArray(value) ? value : (value[0] || value));
 
                   /* eslint-disable max-depth */
                   if (isObjectEqual(orgValueSchema, valueSchema)) {
