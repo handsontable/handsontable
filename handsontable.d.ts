@@ -1946,23 +1946,22 @@ declare namespace Handsontable {
       unmodifyCol?: (col: number) => void;
       unmodifyRow?: (row: number) => void;
     }
-  }
-
-  interface Hooks {
-    add<K extends keyof Hooks.Events>(key: K, callback: Hooks.Events[K] | Hooks.Events[K][], context?: Handsontable): Hooks;
-    createEmptyBucket(): Bucket;
-    deregister(key: string): void;
-    destroy(context?: Handsontable): void;
-    getBucket(context?: Handsontable): Bucket;
-    getRegistered(): (keyof Hooks.Events)[];
-    has(key: keyof Hooks.Events, context?: Handsontable): boolean;
-    isRegistered(key: keyof Hooks.Events): boolean;
-    once<K extends keyof Hooks.Events>(key: K, callback: Hooks.Events[K] | Hooks.Events[K][], context?: Handsontable): void;
-    register(key: string): void;
-    remove(key: keyof Hooks.Events, callback: Function, context?: Handsontable): boolean;
-    run(context: Handsontable, key: keyof Hooks.Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
-    // Requires TS 3.0:
-    // run<K extends keyof Events>(context: Handsontable, key: K, ...params: Parameters<Events[K]>): ReturnType<Events[K]>;
+    interface Methods {
+      add<K extends keyof Hooks.Events>(key: K, callback: Hooks.Events[K] | Hooks.Events[K][], context?: Handsontable): Hooks.Methods;
+      createEmptyBucket(): Bucket;
+      deregister(key: string): void;
+      destroy(context?: Handsontable): void;
+      getBucket(context?: Handsontable): Bucket;
+      getRegistered(): (keyof Hooks.Events)[];
+      has(key: keyof Hooks.Events, context?: Handsontable): boolean;
+      isRegistered(key: keyof Hooks.Events): boolean;
+      once<K extends keyof Hooks.Events>(key: K, callback: Hooks.Events[K] | Hooks.Events[K][], context?: Handsontable): void;
+      register(key: string): void;
+      remove(key: keyof Hooks.Events, callback: Function, context?: Handsontable): boolean;
+      run(context: Handsontable, key: keyof Hooks.Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
+      // Requires TS 3.0:
+      // run<K extends keyof Events>(context: Handsontable, key: K, ...params: Parameters<Events[K]>): ReturnType<Events[K]>;
+    }
   }
 
   type Bucket = { 
@@ -2589,7 +2588,7 @@ declare class Handsontable extends _Handsontable.Core {
   static dom: Handsontable.Dom;
   static editors: Handsontable.Editors;
   static helper: Handsontable.Helper;
-  static hooks: Handsontable.Hooks;
+  static hooks: Handsontable.Hooks.Methods;
   static plugins: Handsontable.Plugins;
   static renderers: Handsontable.Renderers;
   static validators: Handsontable.Validators;
