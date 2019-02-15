@@ -1678,7 +1678,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           instance.addHook(i, settings[i]);
         }
 
-      } else if (!init && hasOwnProperty(settings, i)) { // Update settings
+      } else if (!init && i !== 'className' && hasOwnProperty(settings, i)) { // Update settings
         GridSettings.prototype[i] = settings[i];
       }
     }
@@ -1754,9 +1754,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (GridSettings.prototype.className) {
         removeClass(instance.rootElement, GridSettings.prototype.className);
       }
+
       if (settings.className) {
         addClass(instance.rootElement, settings.className);
       }
+
+      GridSettings.prototype.className = settings.className;
     }
 
     let currentHeight = instance.rootElement.style.height;
