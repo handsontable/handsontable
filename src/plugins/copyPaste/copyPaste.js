@@ -9,7 +9,7 @@ import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
-import { arrayToTable, tableToArray } from './../../utils/parseTable';
+import { arrayToTable, tableToHandsontable } from './../../utils/parseTable';
 
 import './copyPaste.css';
 
@@ -486,7 +486,7 @@ class CopyPaste extends BasePlugin {
       const textHTML = event.clipboardData.getData('text/html');
 
       if (textHTML && /(<table)|(<TABLE)/.test(textHTML)) {
-        pastedData = tableToArray(textHTML, this.hot.rootDocument);
+        pastedData = tableToHandsontable(textHTML, this.hot.rootDocument).data;
       } else {
         pastedData = event.clipboardData.getData('text/plain');
       }

@@ -126,8 +126,10 @@ function isHTMLTable(element) {
  *
  * @param {Element|String} element Node element or string, which should contain `<table>...</table>`.
  */
-export function tableToArray(element, rootDocument) {
-  const result = [];
+export function tableToHandsontable(element, rootDocument) {
+  const data = [];
+  const colHeaders = [];
+  const rowHeaders = [];
   let checkElement = element;
 
   if (typeof checkElement === 'string') {
@@ -137,28 +139,51 @@ export function tableToArray(element, rootDocument) {
   }
 
   if (checkElement && isHTMLTable(checkElement)) {
-    const rows = checkElement.rows;
-    const rowsLen = rows && rows.length;
     const tempArray = [];
+    const { tHead, tBodies } = checkElement;
+    const tBodiesLen = tBodies.length;
+    let hasRowHeaders = false;
 
-    for (let row = 0; row < rowsLen; row += 1) {
-      const cells = rows[row].cells;
-      const cellsLen = cells.length;
-      const newRow = [];
+    for (let tbody = 0; tbody < tBodiesLen; tbody += 1) {
+      const rows = tBodies[tbody].rows;
+      const rowsLen = rows && rows.length;
 
-      for (let column = 0; column < cellsLen; column += 1) {
-        const cell = cells[column];
-        cell.innerHTML = cell.innerHTML.trim().replace(/<br(.|)>(\n?)/, '\n');
-        const cellText = cell.innerText;
+      for (let row = 0; row < rowsLen; row += 1) {
+        const cells = rows[row].cells;
+        const cellsLen = cells.length;
+        const newRow = [];
 
-        newRow.push(cellText);
+        for (let column = 0; column < cellsLen; column += 1) {
+          const cell = cells[column];
+          cell.innerHTML = cell.innerHTML.trim().replace(/<br(.|)>(\n?)/, '\n');
+          const cellText = cell.innerText;
+
+          if (cell.nodeName.toLowerCase() === 'th') {
+            hasRowHeaders = true;
+            rowHeaders.push(cellText);
+          } else {
+            newRow.push(cellText);
+          }
+        }
+
+        tempArray.push(newRow);
       }
-
-      tempArray.push(newRow);
     }
 
-    result.push(...tempArray);
+    data.push(...tempArray);
+
+    const columnTHs = tHead && tHead.rows.item(0).cells;
+    const columnTHsLen = columnTHs ? columnTHs.length : 0;
+    for (let header = hasRowHeaders ? 1 : 0; header < columnTHsLen; header += 1) {
+      const th = columnTHs[header];
+      th.innerHTML = th.innerHTML.trim().replace(/<br(.|)>(\n?)/, '\n');
+      colHeaders.push(th.innerText);
+    }
   }
 
-  return result;
+  return {
+    data,
+    colHeaders,
+    rowHeaders,
+  };
 }
