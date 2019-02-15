@@ -4,10 +4,10 @@ import { isEmpty } from './../helpers/mixed';
  * Converts Handsontable into HTMLTableElement
  * @param {Handsontable} instance
  */
-export function handsontableToHTMLTable(instance) {
+export function handsontableToTable({ instance, addRowHeaders = true, addColumnHeaders = true }) {
   const doc = instance.rootDocument;
-  const hasColumnHeaders = instance.hasColHeaders();
-  const hasRowHeaders = instance.hasRowHeaders();
+  const hasColumnHeaders = addColumnHeaders && instance.hasColHeaders();
+  const hasRowHeaders = addRowHeaders && instance.hasRowHeaders();
 
   const coords = [
     hasColumnHeaders ? -1 : 0,
@@ -15,41 +15,60 @@ export function handsontableToHTMLTable(instance) {
     instance.countRows() - 1,
     instance.countCols() - 1,
   ];
+
   const data = instance.getData(...coords);
 
   const countRows = data.length;
   const countCols = countRows > 0 ? data[0].length : 0;
 
-  const TABLE = doc.createElement('table');
-  const THEAD = hasColumnHeaders ? TABLE.createTHead() : null;
-  const TBODY = TABLE.createTBody();
+  const TABLE = ['<table>', '</table>'];
+  const THEAD = ['<thead>', '</thead>'];
+  const TBODY = ['<tbody>', '</tbody>'];
+
+  const TEMP_ELEM = doc.createElement('div');
 
   for (let row = 0; row < countRows; row += 1) {
     const isColumnHeadersRow = hasColumnHeaders && row === 0;
-    const TR = isColumnHeadersRow ? THEAD.insertRow() : TBODY.insertRow();
+    const CELLS = [];
 
     for (let column = 0; column < countCols; column += 1) {
       const isRowHeadersColumn = !isColumnHeadersRow && hasRowHeaders && column === 0;
+      let cell = '';
 
       if (isColumnHeadersRow) {
-        const TH = doc.createElement('th');
-        TH.innerText = instance.getColHeader(hasRowHeaders ? column - 1 : column);
-        TR.appendChild(TH);
+        TEMP_ELEM.innerText = instance.getColHeader(hasRowHeaders ? column - 1 : column);
+        cell = `<th>${TEMP_ELEM.innerHTML}</th>`;
 
       } else if (isRowHeadersColumn) {
-        const TH = doc.createElement('th');
-        TH.innerText = instance.getRowHeader(hasColumnHeaders ? row - 1 : row);
-        TR.appendChild(TH);
+        TEMP_ELEM.innerText = instance.getRowHeader(hasColumnHeaders ? row - 1 : row);
+        cell = `<th>${TEMP_ELEM.innerHTML}</th>`;
 
       } else {
-        const CELL = TR.insertCell();
         const cellData = data[row][column];
-        CELL.innerText = isEmpty(cellData) ? '' : cellData;
+
+        if (isEmpty(cellData)) {
+          cell = '<td></td>';
+        } else {
+          TEMP_ELEM.innerText = cellData;
+          cell = `<td>${TEMP_ELEM.innerHTML}</td>`;
+        }
       }
+
+      CELLS.push(cell);
+    }
+
+    const TR = ['<tr>', ...CELLS, '</tr>'].join('');
+
+    if (isColumnHeadersRow) {
+      THEAD.splice(1, 0, TR);
+    } else {
+      TBODY.splice(-1, 0, TR);
     }
   }
 
-  return TABLE;
+  TABLE.splice(1, 0, THEAD.join(''), TBODY.join(''));
+
+  return TABLE.join('');
 }
 
 /**
