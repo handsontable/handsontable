@@ -1,6 +1,58 @@
 import { isEmpty } from './../helpers/mixed';
 
 /**
+ * Converts Handsontable into HTMLTableElement
+ * @param {Handsontable} instance
+ */
+export function handsontableToHTMLTable(instance) {
+  const doc = instance.rootDocument;
+  const hasColumnHeaders = instance.hasColHeaders();
+  const hasRowHeaders = instance.hasRowHeaders();
+
+  const coords = [
+    hasColumnHeaders ? -1 : 0,
+    hasRowHeaders ? -1 : 0,
+    instance.countRows() - 1,
+    instance.countCols() - 1,
+  ];
+  const data = instance.getData(...coords);
+
+  const countRows = data.length;
+  const countCols = countRows > 0 ? data[0].length : 0;
+
+  const TABLE = doc.createElement('table');
+  const THEAD = hasColumnHeaders ? TABLE.createTHead() : null;
+  const TBODY = TABLE.createTBody();
+
+  for (let row = 0; row < countRows; row += 1) {
+    const isColumnHeadersRow = hasColumnHeaders && row === 0;
+    const TR = isColumnHeadersRow ? THEAD.insertRow() : TBODY.insertRow();
+
+    for (let column = 0; column < countCols; column += 1) {
+      const isRowHeadersColumn = !isColumnHeadersRow && hasRowHeaders && column === 0;
+
+      if (isColumnHeadersRow) {
+        const TH = doc.createElement('th');
+        TH.innerText = instance.getColHeader(hasRowHeaders ? column - 1 : column);
+        TR.appendChild(TH);
+
+      } else if (isRowHeadersColumn) {
+        const TH = doc.createElement('th');
+        TH.innerText = instance.getRowHeader(hasColumnHeaders ? row - 1 : row);
+        TR.appendChild(TH);
+
+      } else {
+        const CELL = TR.insertCell();
+        const cellData = data[row][column];
+        CELL.innerText = isEmpty(cellData) ? '' : cellData;
+      }
+    }
+  }
+
+  return TABLE;
+}
+
+/**
  * Converts javascript array into HTMLTable.
  *
  * @param {Array} input Input array which will be converted to HTMLTable
