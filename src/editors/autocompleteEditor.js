@@ -210,7 +210,7 @@ class AutocompleteEditor extends HandsontableEditor {
     let choices = choicesList;
 
     if (sortByRelevanceSetting) {
-      orderByRelevance = AutocompleteEditor.sortByRelevance(
+      orderByRelevance = this.sortByRelevance(
         this.stripValueIfNeeded(this.getValue()),
         choices,
         this.cellProperties.filteringCaseSensitive
