@@ -14,10 +14,10 @@ describe('keyStateObserver', () => {
 
   describe('.startObserving', () => {
     it('should internally keep calls count to make the dom listener removable', () => {
-      startObserving();
-      startObserving();
-      startObserving();
-      startObserving();
+      startObserving(document);
+      startObserving(document);
+      startObserving(document);
+      startObserving(document);
 
       expect(_getRefCount()).toBe(4);
     });
@@ -25,25 +25,25 @@ describe('keyStateObserver', () => {
 
   describe('.stopObserving', () => {
     it('should internally keep calls count to make the dom listener removable', () => {
-      startObserving();
-      startObserving();
-      startObserving();
-      startObserving();
+      startObserving(document);
+      startObserving(document);
+      startObserving(document);
+      startObserving(document);
 
       expect(_getRefCount()).toBe(4);
 
-      stopObserving();
-      stopObserving();
-      stopObserving();
-      stopObserving();
-      stopObserving();
-      stopObserving();
+      stopObserving(document);
+      stopObserving(document);
+      stopObserving(document);
+      stopObserving(document);
+      stopObserving(document);
+      stopObserving(document);
 
       expect(_getRefCount()).toBe(0);
     });
 
     it('should reset all key states after the last stopObserving function is called', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressed('ENTER')).toBe(false);
       expect(isPressed('BACKSPACE')).toBe(false);
@@ -57,7 +57,7 @@ describe('keyStateObserver', () => {
       expect(isPressed('BACKSPACE')).toBe(true);
       expect(isPressedCtrlKey()).toBe(true);
 
-      stopObserving();
+      stopObserving(document);
 
       expect(isPressed('ENTER')).toBe(false);
       expect(isPressed('BACKSPACE')).toBe(false);
@@ -67,7 +67,7 @@ describe('keyStateObserver', () => {
 
   describe('.isPressedCtrlKey', () => {
     it('should return `true` when CTRL key is pressed', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressedCtrlKey()).toBe(false);
 
@@ -81,7 +81,7 @@ describe('keyStateObserver', () => {
     });
 
     it('should return `true` when left CMD key is pressed', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressedCtrlKey()).toBe(false);
 
@@ -95,7 +95,7 @@ describe('keyStateObserver', () => {
     });
 
     it('should return `true` when right CMD key is pressed', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressedCtrlKey()).toBe(false);
 
@@ -109,7 +109,7 @@ describe('keyStateObserver', () => {
     });
 
     it('should return `true` when CMD key is pressed (macOS on FF)', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressedCtrlKey()).toBe(false);
 
@@ -123,7 +123,7 @@ describe('keyStateObserver', () => {
     });
 
     it('should return `false` when left CMD key AND F is pressed', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressedCtrlKey()).toBe(false);
 
@@ -135,7 +135,7 @@ describe('keyStateObserver', () => {
     });
 
     it('should return `false` when right CMD key AND F is pressed', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressedCtrlKey()).toBe(false);
 
@@ -147,7 +147,7 @@ describe('keyStateObserver', () => {
     });
 
     it('should return `false` when CMD key AND F is pressed (macOS on FF)', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressedCtrlKey()).toBe(false);
 
@@ -159,7 +159,7 @@ describe('keyStateObserver', () => {
     });
 
     it('should return `false` when CTRL key AND F is pressed', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressedCtrlKey()).toBe(false);
 
@@ -171,7 +171,7 @@ describe('keyStateObserver', () => {
     });
 
     it('should return `false` when left CMD key AND D is pressed', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressedCtrlKey()).toBe(false);
 
@@ -183,7 +183,7 @@ describe('keyStateObserver', () => {
     });
 
     it('should return `false` when right CMD key AND D is pressed', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressedCtrlKey()).toBe(false);
 
@@ -195,7 +195,7 @@ describe('keyStateObserver', () => {
     });
 
     it('should return `false` when CMD key AND D is pressed (macOS on FF)', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressedCtrlKey()).toBe(false);
 
@@ -207,7 +207,7 @@ describe('keyStateObserver', () => {
     });
 
     it('should return `false` when CTRL key AND D is pressed', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressedCtrlKey()).toBe(false);
 
@@ -221,7 +221,7 @@ describe('keyStateObserver', () => {
 
   describe('.isPressed', () => {
     it('should return `true` when ENTER key is pressed', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressed('ENTER')).toBe(false);
 
@@ -235,7 +235,7 @@ describe('keyStateObserver', () => {
     });
 
     it('should return `true` when multiple expected keys are pressed', () => {
-      startObserving();
+      startObserving(document);
 
       expect(isPressed('ENTER|BACKSPACE')).toBe(false);
 

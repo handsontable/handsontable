@@ -23,7 +23,8 @@ class CommentEditor {
     return 'htCommentCell';
   }
 
-  constructor() {
+  constructor(rootDocument) {
+    this.rootDocument = rootDocument;
     this.editor = this.createEditor();
     this.editorStyle = this.editor.style;
 
@@ -130,7 +131,7 @@ class CommentEditor {
    * @returns {Boolean}
    */
   isFocused() {
-    return document.activeElement === this.getInputElement();
+    return this.rootDocument.activeElement === this.getInputElement();
   }
 
   /**
@@ -146,14 +147,14 @@ class CommentEditor {
    * @returns {HTMLElement}
    */
   createEditor() {
-    const editor = document.createElement('div');
-    const textArea = document.createElement('textarea');
-    let container = document.querySelector(`.${CommentEditor.CLASS_EDITOR_CONTAINER}`);
+    const editor = this.rootDocument.createElement('div');
+    const textArea = this.rootDocument.createElement('textarea');
+    let container = this.rootDocument.querySelector(`.${CommentEditor.CLASS_EDITOR_CONTAINER}`);
 
     if (!container) {
-      container = document.createElement('div');
+      container = this.rootDocument.createElement('div');
       addClass(container, CommentEditor.CLASS_EDITOR_CONTAINER);
-      document.body.appendChild(container);
+      this.rootDocument.body.appendChild(container);
     }
 
     addClass(editor, CommentEditor.CLASS_EDITOR);

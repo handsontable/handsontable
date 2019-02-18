@@ -131,7 +131,7 @@ class CopyPaste extends BasePlugin {
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
     this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
 
-    this.focusableElement = createElement();
+    this.focusableElement = createElement(this.hot.rootDocument);
     this.focusableElement
       .addLocalHook('copy', event => this.onCopy(event))
       .addLocalHook('cut', event => this.onCut(event))
@@ -171,7 +171,7 @@ class CopyPaste extends BasePlugin {
 
     this.getOrCreateFocusableElement();
     this.focusableElement.focus();
-    document.execCommand('copy');
+    this.hot.rootDocument.execCommand('copy');
   }
 
   /**
@@ -183,7 +183,7 @@ class CopyPaste extends BasePlugin {
 
     this.getOrCreateFocusableElement();
     this.focusableElement.focus();
-    document.execCommand('cut');
+    this.hot.rootDocument.execCommand('cut');
   }
 
   /**
@@ -411,13 +411,13 @@ class CopyPaste extends BasePlugin {
       const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        const textHTML = arrayToTable(rangedData);
+        const textHTML = arrayToTable(rangedData, this.hot.rootDocument);
 
         event.clipboardData.setData('text/plain', textPlain);
         event.clipboardData.setData('text/html', textHTML);
 
       } else if (typeof ClipboardEvent === 'undefined') {
-        window.clipboardData.setData('Text', textPlain);
+        this.hot.rootWindow.clipboardData.setData('Text', textPlain);
       }
 
       this.hot.runHooks('afterCopy', rangedData, this.copyableRanges);
@@ -449,13 +449,13 @@ class CopyPaste extends BasePlugin {
       const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        const textHTML = arrayToTable(rangedData);
+        const textHTML = arrayToTable(rangedData, this.hot.rootDocument);
 
         event.clipboardData.setData('text/plain', textPlain);
         event.clipboardData.setData('text/html', textHTML);
 
       } else if (typeof ClipboardEvent === 'undefined') {
-        window.clipboardData.setData('Text', textPlain);
+        this.hot.rootWindow.clipboardData.setData('Text', textPlain);
       }
 
       this.hot.emptySelectedCells();
@@ -486,13 +486,13 @@ class CopyPaste extends BasePlugin {
       const textHTML = event.clipboardData.getData('text/html');
 
       if (textHTML && /(<table)|(<TABLE)/.test(textHTML)) {
-        pastedData = tableToArray(textHTML);
+        pastedData = tableToArray(textHTML, this.hot.rootDocument);
       } else {
         pastedData = event.clipboardData.getData('text/plain');
       }
 
-    } else if (typeof ClipboardEvent === 'undefined' && typeof window.clipboardData !== 'undefined') {
-      pastedData = window.clipboardData.getData('Text');
+    } else if (typeof ClipboardEvent === 'undefined' && typeof this.hot.rootWindow.clipboardData !== 'undefined') {
+      pastedData = this.hot.rootWindow.clipboardData.getData('Text');
     }
 
     const inputArray = typeof pastedData !== 'string' ? pastedData : SheetClip.parse(pastedData);
@@ -561,7 +561,7 @@ class CopyPaste extends BasePlugin {
 
     this.getOrCreateFocusableElement();
 
-    if (isFragmentSelectionEnabled && this.focusableElement.getFocusableElement() !== document.activeElement && getSelectionText()) {
+    if (isFragmentSelectionEnabled && this.focusableElement.getFocusableElement() !== this.hot.rootDocument.activeElement && getSelectionText()) {
       return;
     }
 
@@ -578,7 +578,7 @@ class CopyPaste extends BasePlugin {
     if (!this.hot.isListening() || this.isEditorOpened()) {
       return;
     }
-    const activeElement = document.activeElement;
+    const activeElement = this.hot.rootDocument.activeElement;
     const activeEditor = this.hot.getActiveEditor();
 
     if (!activeEditor || (activeElement !== this.focusableElement.getFocusableElement() && activeElement !== activeEditor.select)) {

@@ -2,6 +2,7 @@ import BasePlugin from '../_base';
 import { rangeEach } from '../../helpers/number';
 import { registerPlugin } from '../../plugins';
 import RowsMapper from './rowsMapper';
+import { arrayMap } from '../../helpers/array';
 
 /**
  * @plugin TrimRows
@@ -222,7 +223,7 @@ class TrimRows extends BasePlugin {
    * @returns {Boolean}
    */
   isTrimmed(row) {
-    return this.trimmedRows.indexOf(row) > -1;
+    return this.trimmedRows.includes(row);
   }
 
   /**
@@ -287,7 +288,9 @@ class TrimRows extends BasePlugin {
    * @param {String} source Source of the change.
    */
   onBeforeCreateRow(index, amount, source) {
-    return !(this.isEnabled() && this.trimmedRows.length > 0 && source === 'auto');
+    if (this.isEnabled() && this.trimmedRows.length > 0 && source === 'auto') {
+      return false;
+    }
   }
 
   /**
@@ -299,6 +302,14 @@ class TrimRows extends BasePlugin {
    */
   onAfterCreateRow(index, amount) {
     this.rowsMapper.shiftItems(index, amount);
+
+    this.trimmedRows = arrayMap(this.trimmedRows, (trimmedRow) => {
+      if (trimmedRow >= this.rowsMapper.getValueByIndex(index)) {
+        return trimmedRow + amount;
+      }
+
+      return trimmedRow;
+    });
   }
 
   /**
@@ -328,6 +339,9 @@ class TrimRows extends BasePlugin {
    */
   onAfterRemoveRow() {
     this.rowsMapper.unshiftItems(this.removedRows);
+    // TODO: Maybe it can be optimized? N x M checks, where N is number of already trimmed rows and M is number of removed rows.
+    // Decreasing physical indexes (some of them should be updated, because few indexes are missing in new list of indexes after removal).
+    this.trimmedRows = arrayMap(this.trimmedRows, trimmedRow => trimmedRow - this.removedRows.filter(removedRow => removedRow < trimmedRow).length);
   }
 
   /**

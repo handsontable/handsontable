@@ -62,7 +62,7 @@ class Menu {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mousedown', event => this.onDocumentMouseDown(event));
+    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mousedown', event => this.onDocumentMouseDown(event));
   }
 
   /**
@@ -306,7 +306,7 @@ class Menu {
    * @param {Event|Object} coords Event or literal Object with coordinates.
    */
   setPosition(coords) {
-    const cursor = new Cursor(coords);
+    const cursor = new Cursor(coords, this.hot.rootWindow);
 
     if (this.options.keepInViewport) {
       if (cursor.fitsBelow(this.container)) {
@@ -380,7 +380,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    const left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth() + 4;
+    const left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth(this.hot.rootDocument) + 4;
 
     this.container.style.left = `${left}px`;
   }
@@ -459,7 +459,7 @@ class Menu {
    */
   menuItemRenderer(hot, TD, row, col, prop, value) {
     const item = hot.getSourceDataAtRow(row);
-    const wrapper = document.createElement('div');
+    const wrapper = this.hot.rootDocument.createElement('div');
 
     const isSubMenu = itemToTest => hasOwnProperty(itemToTest, 'submenu');
     const itemIsSeparator = itemToTest => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
@@ -520,6 +520,7 @@ class Menu {
    * @returns {HTMLElement}
    */
   createContainer(name = null) {
+    const { rootDocument } = this.hot;
     let className = name;
     let container;
 
@@ -538,21 +539,21 @@ class Menu {
       className = className.replace(/[^A-z0-9]/g, '_');
       className = `${this.options.className}Sub_${className}`;
 
-      container = document.querySelector(`.${this.options.className}.${className}`);
+      container = rootDocument.querySelector(`.${this.options.className}.${className}`);
 
     } else {
-      container = document.querySelector(`.${this.options.className}`);
+      container = rootDocument.querySelector(`.${this.options.className}`);
     }
 
     if (!container) {
-      container = document.createElement('div');
+      container = rootDocument.createElement('div');
 
       addClass(container, `htMenu ${this.options.className}`);
 
       if (className) {
         addClass(container, className);
       }
-      document.getElementsByTagName('body')[0].appendChild(container);
+      rootDocument.getElementsByTagName('body')[0].appendChild(container);
     }
 
     return container;
@@ -663,9 +664,10 @@ class Menu {
    * @private
    */
   onAfterInit() {
+    const { wtTable } = this.hotMenu.view.wt;
     const data = this.hotMenu.getSettings().data;
-    const hiderStyle = this.hotMenu.view.wt.wtTable.hider.style;
-    const holderStyle = this.hotMenu.view.wt.wtTable.holder.style;
+    const hiderStyle = wtTable.hider.style;
+    const holderStyle = wtTable.holder.style;
     const currentHiderWidth = parseInt(hiderStyle.width, 10);
 
     const realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
@@ -710,7 +712,7 @@ class Menu {
 
     // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
-        (!isChildOf(event.target, '.htMenu') && isChildOf(event.target, document))) {
+        (!isChildOf(event.target, '.htMenu') && isChildOf(event.target, this.hot.rootDocument))) {
       this.close(true);
     }
   }
