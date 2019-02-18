@@ -89,7 +89,7 @@ describe('WalkontableTable', () => {
     expect($table.find('tbody tr:first th:eq(0)')[0].innerHTML).toBe('Row');
   });
 
-  it('getCell should only return cells from rendered rows', function() {
+  it('getCell should only return cells from rendered rows and columns', function() {
     const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
@@ -102,6 +102,11 @@ describe('WalkontableTable', () => {
     expect($table.find('tr:eq(8) td:first-child').text()).toEqual(this.data[8][0].toString());
     expect(wt.wtTable.getCell(new Walkontable.CellCoords(20, 0))).toBe(-2); // exit code
     expect(wt.wtTable.getCell(new Walkontable.CellCoords(25, 0))).toBe(-2); // exit code
+    expect(wt.wtTable.getCell(new Walkontable.CellCoords(7, 5))).toBe(-4); // exit code - after rendered column
+
+    wt.scrollViewportHorizontally(getTotalColumns() - 1);
+    wt.draw();
+    expect(wt.wtTable.getCell(new Walkontable.CellCoords(7, 0))).toBe(-3); // exit code - before rendered column
   });
 
   it('getCoords should return coords of TD', () => {

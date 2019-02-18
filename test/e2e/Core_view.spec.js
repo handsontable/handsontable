@@ -354,6 +354,16 @@ describe('Core_view', () => {
     expect(spec().$container.height()).toEqual(107);
   });
 
+  it('should allow width to be a string', () => {
+    handsontable({
+      startRows: 10,
+      startCols: 10,
+      height: '50vh',
+    });
+
+    expect(spec().$container.height()).toEqual(window.innerHeight / 2);
+  });
+
   it('should allow width to be a number', () => {
     handsontable({
       startRows: 10,
@@ -374,6 +384,18 @@ describe('Core_view', () => {
     });
 
     expect(spec().$container.width()).toEqual(107); // rootElement is full width but this should do the trick
+  });
+
+  it('should allow width to be a string', () => {
+    handsontable({
+      startRows: 10,
+      startCols: 10,
+      width: '50%',
+    });
+
+    const parentWidth = spec().$container.parent().width();
+
+    expect(spec().$container.width()).toBeAroundValue(parentWidth * 0.5, 0.5);
   });
 
   it('should fire beforeRender event after table has been scrolled', async() => {
