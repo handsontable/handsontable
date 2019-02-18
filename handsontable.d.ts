@@ -123,7 +123,7 @@ declare namespace _Handsontable {
 declare namespace Handsontable {
 
   // These types represent default known values, but users can extend with their own, leading to the need for assertions.
-  // Using type arguments (ex `GridSettings<CellValue, CellType, SourceData>`) would solve this and provide very strict 
+  // Using type arguments (ex `GridSettings<CellValue, CellType, SourceData>`) would solve this and provide very strict
   // type-checking, but adds a lot of noise for no benefit in the most common use cases.
 
   /**
@@ -148,12 +148,12 @@ declare namespace Handsontable {
   type SourceRowData = RowObject | CellValue[];
 
   /**
-   * The default sources for which the table triggers hooks. 
+   * The default sources for which the table triggers hooks.
    */
   type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' | 'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' | 'Autofill.fill' | 'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' | 'ContextMenu.columnRight' | 'ContextMenu.removeColumn' | 'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' | 'CopyPaste.paste' | 'ObserveChanges.change' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'GantChart.loadData' | 'ColumnSummary.set' | 'ColumnSummary.reset';
 
   /**
-   * The default cell type aliases the table has built-in. 
+   * The default cell type aliases the table has built-in.
    */
   type CellType = 'autocomplete' | 'checkbox' | 'date' | 'dropdown' | 'handsontable' | 'numeric' | 'password' | 'text' | 'time';
 
@@ -246,7 +246,7 @@ declare namespace Handsontable {
    * TODO: This would be better solved by moving all types outside the exported namespaces. (Separate type definition from type publication.)
    */
   namespace _editors {
-    type EditorState = 
+    type EditorState =
       'STATE_VIRGIN' | // before editing
       'STATE_EDITING' |
       'STATE_WAITING' | // waiting for async validation
@@ -1134,7 +1134,7 @@ declare namespace Handsontable {
         conditionsStack: FiltersPlugin.ColumnConditions[];
       }
     }
-    
+
     type UndoRedoAction = UndoRedoAction.Change | UndoRedoAction.InsertRow | UndoRedoAction.RemoveRow | UndoRedoAction.InsertCol | UndoRedoAction.RemoveCol | UndoRedoAction.Filter;
 
     interface Formulas extends Base {
@@ -1538,12 +1538,12 @@ declare namespace Handsontable {
       untrimRow(row: number): void;
       untrimRows(rows: number[]): void;
     }
-    
+
     interface Storage {
       prefix: string;
       rootWindow: Window;
       savedKeys: string[];
-      
+
       clearSavedKeys(): void;
       loadSavedKeys(): void;
       loadValue(key: string, defaultValue: object): any;
@@ -1551,10 +1551,10 @@ declare namespace Handsontable {
       saveSavedKeys(): void;
       saveValue(key: string, value: any): void;
     }
-    
+
     interface PersistenState extends Base {
       storage: Storage;
-      
+
       loadValue(key: string, saveTo: object): void;
       saveValue(key: string, value: any): void;
       resetValue(key: string): void;
@@ -1964,13 +1964,13 @@ declare namespace Handsontable {
     }
   }
 
-  type Bucket = { 
-    [P in keyof Hooks.Events]: Hooks.Events[P][]; 
+  type Bucket = {
+    [P in keyof Hooks.Events]: Hooks.Events[P][];
   };
 
-  interface NumericFormatOptions { 
-    pattern: string; 
-    culture?: string; 
+  interface NumericFormatOptions {
+    pattern: string;
+    culture?: string;
   }
 
   interface CellSettings extends CellMeta {
@@ -2366,7 +2366,7 @@ declare namespace Handsontable {
       displayDelay?: number;
     }
   }
-  
+
   namespace contextMenu {
     interface Selection {
       start: wot.CellCoords;
@@ -2432,14 +2432,14 @@ declare namespace Handsontable {
   }
 
   namespace autoColumnSize {
-    interface Settings { 
+    interface Settings {
       syncLimit?: string | number;
       userHeaders?: boolean;
     }
   }
 
   namespace autoRowSize {
-    interface Settings { 
+    interface Settings {
       syncLimit?: string | number;
     }
   }
@@ -2451,7 +2451,7 @@ declare namespace Handsontable {
       collapsible: boolean;
     }
   }
-  
+
   namespace columnSummary {
     type Settings = {
       destinationRow: number;
@@ -2581,7 +2581,7 @@ declare namespace Handsontable {
 declare class Handsontable extends _Handsontable.Core {
   static baseVersion: string;
   static buildDate: string;
-  static packageName: 'handsontable' | 'handsontable-pro';
+  static packageName: 'handsontable';
   static version: string;
   static cellTypes: Handsontable.CellTypes;
   static languages: Handsontable.I18n.Internationalization;
