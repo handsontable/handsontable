@@ -5,7 +5,7 @@ class TextEditor extends Handsontable.editors.TextEditor {
     super.init();
   }
 
-  prepare(row: number, col: number, prop: string | number, td: HTMLElement, originalValue: any, cellProperties: Handsontable.GridSettings) {
+  prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement, originalValue: any, cellProperties: Handsontable.CellProperties) {
     super.prepare(row, col, prop, td, originalValue, cellProperties);
   }
 
