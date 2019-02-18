@@ -1460,6 +1460,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   };
 
+  this.refreshDimensions = function() {
+    if (!instance.view) {
+      return;
+    }
+
+    const { width: lastWidth, height: lastHeight } = instance.view.getLastSize();
+    const { width, height } = instance.rootElement.getBoundingClientRect();
+    const isSizeChanged = width !== lastWidth || height !== lastHeight;
+    const isResizeBlocked = instance.runHooks('beforeRefreshDimensions', { width: lastWidth, height: lastHeight }, { width, height }, isSizeChanged) === false;
+
+    if (isResizeBlocked) {
+      return;
+    }
+
+    if (isSizeChanged || instance.view.wt.wtOverlays.scrollableElement === instance.rootWindow) {
+      instance.view.setLastSize(width, height);
+      instance.render();
+    }
+
+    instance.runHooks('afterRefreshDimensions', { width: lastWidth, height: lastHeight }, { width, height }, isSizeChanged);
+  };
+
   /**
    * Loads new data to Handsontable. Loading new data resets the cell meta.
    *
