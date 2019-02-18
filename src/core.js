@@ -18,7 +18,6 @@ import {
   objectEach
 } from './helpers/object';
 import { arrayFlatten, arrayMap, arrayEach, arrayReduce } from './helpers/array';
-import { toSingleLine } from './helpers/templateLiteralTag';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
 import { getValidator } from './validators';
@@ -777,7 +776,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               }
               const visualColumn = c - skippedColumn;
               let value = getInputValue(visualRow, visualColumn);
-              const orgValue = instance.getDataAtCell(current.row, current.col);
+              let orgValue = instance.getDataAtCell(current.row, current.col);
               const index = {
                 row: visualRow,
                 col: visualColumn
@@ -791,12 +790,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 }
               }
               if (value !== null && typeof value === 'object') {
+                // when 'value' is array and 'orgValue' is null, set 'orgValue' to
+                // an empty array so that the null value can be compared to 'value'
+                // as an empty value for the array context
+                if (Array.isArray(value) && orgValue === null) orgValue = [];
+
                 if (orgValue === null || typeof orgValue !== 'object') {
                   pushData = false;
 
                 } else {
-                  const orgValueSchema = duckSchema(orgValue[0] || orgValue);
-                  const valueSchema = duckSchema(value[0] || value);
+                  const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : (orgValue[0] || orgValue));
+                  const valueSchema = duckSchema(Array.isArray(value) ? value : (value[0] || value));
 
                   /* eslint-disable max-depth */
                   if (isObjectEqual(orgValueSchema, valueSchema)) {
@@ -1454,6 +1458,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance._refreshBorders(null);
       editorManager.unlockEditor();
     }
+  };
+
+  this.refreshDimensions = function() {
+    if (!instance.view) {
+      return;
+    }
+
+    const { width: lastWidth, height: lastHeight } = instance.view.getLastSize();
+    const { width, height } = instance.rootElement.getBoundingClientRect();
+    const isSizeChanged = width !== lastWidth || height !== lastHeight;
+    const isResizeBlocked = instance.runHooks('beforeRefreshDimensions', { width: lastWidth, height: lastHeight }, { width, height }, isSizeChanged) === false;
+
+    if (isResizeBlocked) {
+      return;
+    }
+
+    if (isSizeChanged || instance.view.wt.wtOverlays.scrollableElement === instance.rootWindow) {
+      instance.view.setLastSize(width, height);
+      instance.render();
+    }
+
+    instance.runHooks('afterRefreshDimensions', { width: lastWidth, height: lastHeight }, { width, height }, isSizeChanged);
   };
 
   /**
@@ -3201,28 +3227,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     preventScrollingToCell = false;
 
     return wasSelected;
-  };
-
-  /**
-   * Select the cell specified by the `row` and `prop` arguments, or a range finishing at `endRow`, `endProp`.
-   * By default, viewport will be scrolled to selection.
-   *
-   * @deprecated
-   * @memberof Core#
-   * @function selectCellByProp
-   * @param {Number} row Visual row index.
-   * @param {String} prop Property name.
-   * @param {Number} [endRow] visual end row index (if selecting a range).
-   * @param {String} [endProp] End property name (if selecting a range).
-   * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the selection.
-   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
-   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
-   */
-  this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell = true, changeListener = true) {
-    warn(toSingleLine`Deprecation warning: This method is going to be removed in the next release.
-      If you want to select a cell using props, please use the \`selectCell\` method.`);
-
-    return this.selectCells([[row, prop, endRow, endProp]], scrollToCell, changeListener);
   };
 
   /**

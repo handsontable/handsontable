@@ -1815,6 +1815,27 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterUnlisten
    */
   'afterUnlisten',
+
+  /**
+   * Fired after the window was resized.
+   *
+   * @event Hooks#afterRefreshDimensions
+   * @param {Object} previousDimensions Previous dimensions of the container.
+   * @param {Object} currentDimensions Current dimensions of the container.
+   * @param {Boolean} stateChanged `true`, if the container was re-render, `false` otherwise.
+   */
+  'afterRefreshDimensions',
+
+  /**
+   * Cancellable hook, called after resizing a window, but before redrawing a table.
+   *
+   * @event Hooks#beforeRefreshDimensions
+   * @param {Object} previousDimensions Previous dimensions of the container.
+   * @param {Object} currentDimensions Current dimensions of the container.
+   * @param {Boolean} actionPossible `true`, if current and previous dimensions are different, `false` otherwise.
+   * @returns {undefined|Boolean} If the callback returns `false`, the refresh action will not be completed.
+   */
+  'beforeRefreshDimensions',
 ];
 
 class Hooks {

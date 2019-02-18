@@ -92,7 +92,19 @@ class TableView {
        * @private
        * @type {Walkontable}
        */
-      activeWt: void 0
+      activeWt: void 0,
+      /**
+       * Cached width of the rootElement.
+       *
+       * @type {Number}
+       */
+      lastWidth: 0,
+      /**
+       * Cached height of the rootElement.
+       *
+       * @type {Number}
+       */
+      lastHeight: 0,
     });
 
     this.createElements();
@@ -418,6 +430,13 @@ class TableView {
       },
       selections: this.instance.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
+      onWindowResize: () => {
+        if (!this.instance || this.instance.isDestroyed) {
+          return;
+        }
+
+        this.instance.refreshDimensions();
+      },
       onCellMouseDown: (event, coords, TD, wt) => {
         const blockCalculations = {
           row: false,
@@ -579,7 +598,12 @@ class TableView {
 
     this.wt = new Walkontable(walkontableConfig);
     priv.activeWt = this.wt;
+
     const spreader = this.wt.wtTable.spreader;
+    // We have to cache width and height after Walkontable initialization.
+    const { width, height } = this.instance.rootElement.getBoundingClientRect();
+
+    this.setLastSize(width, height);
 
     this.eventManager.addEventListener(spreader, 'mousedown', (event) => {
       // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
@@ -789,6 +813,24 @@ class TableView {
     const maxHeight = workspaceHeight - topOffset;
 
     return maxHeight > 0 ? maxHeight : 0;
+  }
+
+  /**
+   * Sets new dimensions of the container.
+   */
+  setLastSize(width, height) {
+    const priv = privatePool.get(this);
+
+    [priv.lastWidth, priv.lastHeight] = [width, height];
+  }
+
+  /**
+   * Returns cached dimensions.
+   */
+  getLastSize() {
+    const priv = privatePool.get(this);
+
+    return { width: priv.lastWidth, height: priv.lastHeight };
   }
 
   /**
