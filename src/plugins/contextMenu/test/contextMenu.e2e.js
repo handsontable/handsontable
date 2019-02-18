@@ -3358,6 +3358,30 @@ describe('ContextMenu', () => {
   });
 
   describe('afterContextMenuDefaultOptions hook', () => {
+    it('should be called each time the user tries to open the context menu', async() => {
+      const cb = jasmine.createSpy();
+
+      handsontable({
+        contextMenu: true,
+        afterContextMenuDefaultOptions: cb
+      });
+
+      expect(cb.calls.count()).toBe(0);
+
+      selectCell(0, 0);
+      contextMenu();
+
+      await sleep(100);
+
+      expect(cb.calls.count()).toBe(1);
+
+      contextMenu();
+
+      await sleep(100);
+
+      expect(cb.calls.count()).toBe(2);
+    });
+
     it('should call afterContextMenuDefaultOptions hook with context menu options as the first param', async() => {
       const cb = jasmine.createSpy();
 
@@ -3391,6 +3415,30 @@ describe('ContextMenu', () => {
   });
 
   describe('beforeContextMenuSetItems hook', () => {
+    it('should be called each time the user tries to open the context menu', async() => {
+      const cb = jasmine.createSpy();
+
+      handsontable({
+        contextMenu: true,
+        beforeContextMenuSetItems: cb
+      });
+
+      expect(cb.calls.count()).toBe(0);
+
+      selectCell(0, 0);
+      contextMenu();
+
+      await sleep(100);
+
+      expect(cb.calls.count()).toBe(1);
+
+      contextMenu();
+
+      await sleep(100);
+
+      expect(cb.calls.count()).toBe(2);
+    });
+
     it('should add new menu item even when item is excluded from plugin settings', async() => {
       const hookListener = function(options) {
         options.push({
