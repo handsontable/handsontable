@@ -40,7 +40,8 @@
     "build:walkontable": "cross-env BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd ./hot.config.js webpack --hide-modules ./src/3rdparty/walkontable/src/index.js",
     "build:languages": "cross-env BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd ./hot.config.js webpack",
     "build:languages.min": "cross-env BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd ./hot.config.js webpack",
-    "release": "npm run clean && npm run build && npm publish"
+    "release": "npm run clean && npm run build && npm publish",
+    "postinstall": "node -p \"'Handsontable 7.0'\""
   },
   "keywords": [
     "data",
