@@ -1,20 +1,28 @@
-Copyright (c) Handsoncode sp. z o.o.
+Copyright (c) HANDSONCODE sp. z o. o.
 
-This Handsontable is a commercial software distributed by Handsoncode sp. z o. o., a limited liability
-company registered under the laws of Poland, with its registered office in Gdynia, Poland, at 96/98 Aleja Zwycięstwa,
-postal code 81-451, entered into the Entrepreneurs Register of the National Court Register under number 0000538651,
-share capital: PLN 62,800.00., hereinafter referred to as "HANDSONCODE".
+HANDSONTABLE is a software distributed by HANDSONCODE sp. z o. o.,
+a Polish corporation, based in Gdynia, Poland, at 96/98 Aleja Zwycięstwa,
+registered with the National Court Register under number 538651,
+EU tax ID number: PL5862294002, share capital: PLN 62,800.00.
 
-By installing, copying, or otherwise using this software, you agree to be bound by the terms
-of its General Software License Terms ("Terms") outlined in a file "handsontable-pro-general-terms.pdf"
-available in the main directory of the software repository.
-This software is copyrighted and protected by copyright laws and international treaties.
+This software is protected by applicable copyright laws, including
+international treaties, and dual-licensed – depending on whether
+your use is intended for or may result in commercial advantage
+or monetary compensation (commercial purposes), or not.
 
-You shall obtain a commercial license for this software at handsontable.com.
+If your use involves only such purposes as research, private study,
+evaluation and the like, you agree to be bound by the terms included
+in the “handsontable-non-commercial-license.pdf” file, available
+in the main directory of this software repository.
 
-YOU EXPRESSLY ACKNOWLEDGE AND AGREE THAT USE OF THE SOFTWARE IS AT YOUR OWN RISK AND THAT THE SOFTWARE
-IS PROVIDED "AS IS" WITHOUT ANY WARRANTIES OR CONDITIONS WHATSOEVER. HANDSONCODE EXPRESSLY DISCLAIMS ANY WARRANTY,
-EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGMENT. HANDSONCODE DOES NOT WARRANT THAT THE SOFTWARE AND ITS FUNCTIONALITY,
-RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
-UNINTERRUPTED OR ERROR FREE.
+By installing, copying, or otherwise using this software for
+commercial purposes, you agree to be bound by the terms included
+in the “handsontable-general-terms.pdf” file, available in the main
+directory of this software repository.
+
+HANDSONCODE PROVIDES THIS SOFTWARE ON AN “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND. IN NO EVENT
+AND UNDER NO LEGAL THEORY, SHALL HANDSONCODE BE LIABLE
+TO YOU FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT, SPECIAL,
+INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
+FROM USE OR INABILITY TO USE THIS SOFTWARE.
