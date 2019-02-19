@@ -33,7 +33,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
 /**
  * @description
  * This plugin creates the Handsontable Context Menu. It allows to create a new row or column at any place in the
- * grid among [other features](http://docs.handsontable.com/demo-context-menu.html).
+ * grid among [other features](https://handsontable.com/docs/demo-context-menu.html).
  * Possible values:
  * * `true` (to enable default options),
  * * `false` (to disable completely)
@@ -54,7 +54,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  * * `'commentsAddEdit'` (with {@link Options#comments} turned on)
  * * `'commentsRemove'` (with {@link Options#comments} turned on)
  *
- * See [the context menu demo](http://docs.handsontable.com/demo-context-menu.html) for examples.
+ * See [the context menu demo](https://handsontable.com/docs/demo-context-menu.html) for examples.
  *
  * @example
  * ```js
@@ -137,54 +137,26 @@ class ContextMenu extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
 
     const settings = this.hot.getSettings().contextMenu;
-    const predefinedItems = {
-      items: this.itemsFactory.getItems(settings)
-    };
 
     if (typeof settings.callback === 'function') {
       this.commandExecutor.setCommonCallback(settings.callback);
     }
-    super.enablePlugin();
 
-    const delayedInitialization = () => {
-      if (!this.hot) {
-        return;
-      }
-
-      this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
-
-      this.itemsFactory.setPredefinedItems(predefinedItems.items);
-      const menuItems = this.itemsFactory.getItems(settings);
-
-      this.menu = new Menu(this.hot, {
-        className: 'htContextMenu',
-        keepInViewport: true
-      });
-      this.hot.runHooks('beforeContextMenuSetItems', menuItems);
-
-      this.menu.setMenuItems(menuItems);
-
-      this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
-      this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
-      this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
-      this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
-
-      this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
-
-      // Register all commands. Predefined and added by user or by plugins
-      arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
-    };
-
-    this.callOnPluginsReady(() => {
-      if (this.isPluginsReady) {
-        setTimeout(delayedInitialization, 0);
-      } else {
-        delayedInitialization();
-      }
+    this.menu = new Menu(this.hot, {
+      className: 'htContextMenu',
+      keepInViewport: true
     });
+
+    this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
+    this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
+    this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
+    this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
+
+    this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
+
+    super.enablePlugin();
   }
 
   /**
@@ -223,6 +195,9 @@ class ContextMenu extends BasePlugin {
     if (!this.menu) {
       return;
     }
+
+    this.prepareMenuItems();
+
     this.menu.open();
     this.menu.setPosition({
       top: parseInt(pageY(event), 10) - getWindowScrollTop(this.hot.rootWindow),
@@ -241,7 +216,9 @@ class ContextMenu extends BasePlugin {
     if (!this.menu) {
       return;
     }
+
     this.menu.close();
+    this.itemsFactory = null;
   }
 
   /**
@@ -271,7 +248,39 @@ class ContextMenu extends BasePlugin {
    * @param {...*} params
    */
   executeCommand(commandName, ...params) {
+    if (this.itemsFactory === null) {
+      this.prepareMenuItems();
+    }
+
     this.commandExecutor.execute(commandName, ...params);
+  }
+
+  /**
+   * Prepares available contextMenu's items list and registers them in commandExecutor.
+   *
+   * @private
+   * @fires Hooks#afterContextMenuDefaultOptions
+   * @fires Hooks#beforeContextMenuSetItems
+   */
+  prepareMenuItems() {
+    this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
+
+    const settings = this.hot.getSettings().contextMenu;
+    const predefinedItems = {
+      items: this.itemsFactory.getItems(settings)
+    };
+
+    this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
+
+    this.itemsFactory.setPredefinedItems(predefinedItems.items);
+    const menuItems = this.itemsFactory.getItems(settings);
+
+    this.hot.runHooks('beforeContextMenuSetItems', menuItems);
+
+    this.menu.setMenuItems(menuItems);
+
+    // Register all commands. Predefined and added by user or by plugins
+    arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
   }
 
   /**
