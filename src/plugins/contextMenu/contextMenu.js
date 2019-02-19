@@ -19,7 +19,7 @@ import {
   REDO,
   READ_ONLY,
   ALIGNMENT,
-  SEPARATOR
+  SEPARATOR,
 } from './predefinedItems';
 
 import './contextMenu.css';
@@ -199,6 +199,11 @@ class ContextMenu extends BasePlugin {
     this.prepareMenuItems();
 
     this.menu.open();
+
+    if (!this.menu.isOpened()) {
+      return;
+    }
+
     this.menu.setPosition({
       top: parseInt(pageY(event), 10) - getWindowScrollTop(this.hot.rootWindow),
       left: parseInt(pageX(event), 10) - getWindowScrollLeft(this.hot.rootWindow),

@@ -438,7 +438,7 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
-    it('should reenable menu with updateSettings when it was disabled in constructor', () => {
+    it('should reenable menu with updateSettings when it was disabled in constructor', async() => {
       handsontable({
         contextMenu: false,
         height: 100
@@ -458,9 +458,9 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      setTimeout(() => {
-        expect($('.htContextMenu').is(':visible')).toBe(true);
-      }, 300);
+      await sleep(300);
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
     it('should disable menu with updateSettings when it was enabled in constructor', () => {
@@ -549,7 +549,10 @@ describe('ContextMenu', () => {
       let items = $('.htContextMenu tbody td');
       let actions = items.not('.htSeparator');
 
-      expect(actions.length).toEqual(0);
+      expect(actions.length).toEqual(1);
+      expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
+        'No available options',
+      ].join(''));
 
       const header = $('.ht_clone_top thead th').eq(1);
 
@@ -3081,7 +3084,7 @@ describe('ContextMenu', () => {
       }
     });
 
-    it('should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ', () => {
+    it('should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ', async() => {
       const hot1 = handsontable({
         contextMenu: false,
         height: 100
@@ -3114,9 +3117,9 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      setTimeout(() => {
-        expect($('.htContextMenu').is(':visible')).toBe(true);
-      }, 1100);
+      await sleep(300);
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
 
       function contextMenu2() {
         const hot = spec().$container2.data('handsontable');
