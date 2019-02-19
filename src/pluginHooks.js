@@ -88,7 +88,7 @@ const REGISTERED_HOOKS = [
   'afterChangesObserved',
 
   /**
-   * Fired by {@link ContextMenu} after setting up the Context Menu's default options. These options are a collection
+   * Fired each time user opens {@link ContextMenu} and after setting up the Context Menu's default options. These options are a collection
    * which user can select by setting an array of keys or an array of objects in {@link Options#contextMenu} option.
    *
    * @event Hooks#afterContextMenuDefaultOptions
@@ -97,7 +97,7 @@ const REGISTERED_HOOKS = [
   'afterContextMenuDefaultOptions',
 
   /**
-   * Fired by {@link ContextMenu} plugin before setting up the Context Menu's items but after filtering these options by
+   * Fired each time user opens {@link ContextMenu} plugin before setting up the Context Menu's items but after filtering these options by
    * user (`contextMenu` option). This hook can by helpful to determine if user use specified menu item or to set up
    * one of the menu item to by always visible.
    *
@@ -1815,6 +1815,27 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterUnlisten
    */
   'afterUnlisten',
+
+  /**
+   * Fired after the window was resized.
+   *
+   * @event Hooks#afterRefreshDimensions
+   * @param {Object} previousDimensions Previous dimensions of the container.
+   * @param {Object} currentDimensions Current dimensions of the container.
+   * @param {Boolean} stateChanged `true`, if the container was re-render, `false` otherwise.
+   */
+  'afterRefreshDimensions',
+
+  /**
+   * Cancellable hook, called after resizing a window, but before redrawing a table.
+   *
+   * @event Hooks#beforeRefreshDimensions
+   * @param {Object} previousDimensions Previous dimensions of the container.
+   * @param {Object} currentDimensions Current dimensions of the container.
+   * @param {Boolean} actionPossible `true`, if current and previous dimensions are different, `false` otherwise.
+   * @returns {undefined|Boolean} If the callback returns `false`, the refresh action will not be completed.
+   */
+  'beforeRefreshDimensions',
 ];
 
 class Hooks {

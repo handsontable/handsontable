@@ -289,7 +289,9 @@ class TrimRows extends BasePlugin {
    * @param {String} source Source of the change.
    */
   onBeforeCreateRow(index, amount, source) {
-    return !(this.isEnabled() && this.trimmedRows.length > 0 && source === 'auto');
+    if (this.isEnabled() && this.trimmedRows.length > 0 && source === 'auto') {
+      return false;
+    }
   }
 
   /**

@@ -61,8 +61,7 @@ describe('Core_init', () => {
     doc.write(`
       <!doctype html>
       <head>
-      <link type="text/css" rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/handsontable-pro@6.2.2/dist/handsontable.full.min.css">
+        <link type="text/css" rel="stylesheet" href="../dist/handsontable-pro.full.min.css">
       </head>`);
     doc.close();
 
@@ -73,8 +72,7 @@ describe('Core_init', () => {
     }).not.toThrow();
   });
 
-  xit('should create table even if is launched inside custom element', () => {
-    // TODO: When we'll update phantomjs, then we should try to run this test case.
+  it('should create table even if is launched inside custom element', () => {
     spec().$container = $(`<hot-table><div id="${id}"></div></hot-table>`).appendTo('body');
     handsontable();
 

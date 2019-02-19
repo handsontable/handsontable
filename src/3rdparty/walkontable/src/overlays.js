@@ -211,7 +211,7 @@ class Overlays {
     const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
 
     if (isHighPixelRatio || !isChrome()) {
-      listenersToRegister.push([this.instance.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event)]);
+      listenersToRegister.push([this.wot.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event)]);
 
     } else {
       if (this.topOverlay.needFullRender) {
@@ -268,6 +268,16 @@ class Overlays {
         }
       }]);
     }
+
+    let resizeTimeout;
+
+    listenersToRegister.push([rootWindow, 'resize', () => {
+      clearTimeout(resizeTimeout);
+
+      resizeTimeout = setTimeout(() => {
+        this.wot.getSetting('onWindowResize');
+      }, 200);
+    }]);
 
     while (listenersToRegister.length) {
       const listener = listenersToRegister.pop();
