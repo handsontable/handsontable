@@ -1726,7 +1726,7 @@ declare namespace Handsontable {
     isEmptyRow?: (this: _Handsontable.Core, row: number) => boolean;
     label?: LabelOptions;
     language?: string;
-    licenseKey?: string;
+    licenseKey?: string | 'non-commercial-and-evaluation';
     manualColumnFreeze?: boolean;
     manualColumnMove?: boolean | number[];
     manualColumnResize?: boolean | number[];
