@@ -83,6 +83,8 @@ DefaultSettings.prototype = {
    * @example
    * ```js
    * licenseKey: '00000-00000-00000-00000-00000',
+   * // or
+   * licenseKey: 'non-commercial-and-evaluation',
    * ```
    */
   licenseKey: void 0,
