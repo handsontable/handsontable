@@ -41,7 +41,7 @@
     "build:languages": "cross-env BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd ./hot.config.js webpack",
     "build:languages.min": "cross-env BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd ./hot.config.js webpack",
     "release": "npm run clean && npm run build && npm publish",
-    "postinstall": "node -p \"'Handsontable is no longer released under the MIT license. Read more about this change on our blog.'\""
+    "postinstall": "node -p \"'Handsontable is no longer released under the MIT license. Read more about this change on our blog at https://handsontable.com/blog.'\""
   },
   "keywords": [
     "data",
