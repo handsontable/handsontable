@@ -153,7 +153,7 @@ Handsontable is dual-licensed. You can either use a free license for all your no
 
 **The license key is obligatory since [Handsontable 7.0.0](//github.com/handsontable/handsontable/tree/7.0.0) (released in March 2019).**
 
-If you use Handsontable for purposes not intended toward monetary compensation such as teaching, academic research, evaluation and experimentation, pass a phrase `'non-commercial-and-evaluation'`, as presented below:
+If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass a phrase `'non-commercial-and-evaluation'`, as presented below:
 
 ```js
 const hot = new Handsontable(container, {
