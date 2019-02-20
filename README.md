@@ -57,10 +57,10 @@ Alternatively, you can simply embed it in your HTML file.
 Now turn your placeholder into a data grid with sample data.
 ```js
 const data = [
-  ["", "Tesla", "Volvo", "Toyota", "Ford"],
-  ["2019", 10, 11, 12, 13],
-  ["2020", 20, 11, 14, 13],
-  ["2021", 30, 15, 12, 13]
+  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+  ['2019', 10, 11, 12, 13],
+  ['2020', 20, 11, 14, 13],
+  ['2021', 30, 15, 12, 13]
 ];
 
 const container = document.getElementById('example');
