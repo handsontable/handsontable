@@ -13,5 +13,6 @@ commonjs/3rdparty/walkontable/test
 es/3rdparty/walkontable/test
 !languages/*
 !lib/**/*
-!handsontable-pro-general-terms.pdf
+!handsontable-general-terms.pdf
+!handsontable-non-commercial-license.pdf
 !handsontable.d.ts
