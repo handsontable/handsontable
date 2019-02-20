@@ -74,12 +74,23 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    const { left, position, top, zIndex } = spec().$container.find('.handsontableInputHolder').css(['left', 'position', 'top', 'zIndex']);
+    const { left, position, top, zIndex, overflow, height, width } = spec().$container.find('.handsontableInputHolder').css([
+      'left',
+      'position',
+      'top',
+      'zIndex',
+      'overflow',
+      'height',
+      'width',
+    ]);
 
-    expect(left).toBe('-9999px');
+    expect(parseInt(left, 10)).toBe(0);
     expect(position).toBe('fixed');
-    expect(top).toBe('-9999px');
+    expect(parseInt(top, 10)).toBe(0);
     expect(zIndex).toBe('-1');
+    expect(overflow).toBe('hidden');
+    expect(parseInt(height, 10)).toBe(0);
+    expect(parseInt(width, 10)).toBe(0);
   });
 
   it('should change editor\'s CSS properties during switching to being visible', () => {
@@ -92,12 +103,23 @@ describe('TextEditor', () => {
 
     const cell = getCell(0, 0);
     const [cellOffsetTop, cellOffsetLeft] = [cell.offsetTop, cell.offsetLeft];
-    const { left, position, top, zIndex } = spec().$container.find('.handsontableInputHolder').css(['left', 'position', 'top', 'zIndex']);
+    const { left, position, top, zIndex, overflow, height, width } = spec().$container.find('.handsontableInputHolder').css([
+      'left',
+      'position',
+      'top',
+      'zIndex',
+      'overflow',
+      'height',
+      'width',
+    ]);
 
     expect(parseInt(left, 10)).toBeAroundValue(cellOffsetLeft);
     expect(position).toBe('absolute');
     expect(parseInt(top, 10)).toBeAroundValue(cellOffsetTop);
     expect(zIndex).not.toBe('-1');
+    expect(overflow).not.toBe('hidden');
+    expect(parseInt(height, 10)).not.toBe(0);
+    expect(parseInt(width, 10)).not.toBe(0);
   });
 
   it('should render string in textarea', () => {

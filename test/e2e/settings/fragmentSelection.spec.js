@@ -18,23 +18,14 @@ describe('settings', () => {
      * @returns {*}
      */
     function getSelected() {
-      /* eslint-disable no-else-return */
-      let text = '';
+      const { activeElement } = document;
+      const selection = window.getSelection();
 
-      // IE8
-      if (window.getSelection && window.getSelection().toString() && $(window.getSelection()).attr('type') !== 'Caret') {
-        text = window.getSelection();
+      if (activeElement.value) {
+        return activeElement.value.substring(activeElement.selectionStart, activeElement.selectionEnd);
 
-        return text.toString();
-
-      } else { // standards
-        const selection = document.selection && document.selection.createRange();
-
-        if (!(typeof selection === 'undefined') && selection.text && selection.text.toString()) {
-          text = selection.text;
-
-          return text.toString();
-        }
+      } else if (selection.type !== 'Caret') {
+        return selection.toString();
       }
 
       return false;
