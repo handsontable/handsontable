@@ -14,7 +14,6 @@ import BasePlugin from '../_base';
 
 /**
  * @plugin CollapsibleColumns
- * @pro
  * @dependencies NestedHeaders HiddenColumns
  *
  * @description

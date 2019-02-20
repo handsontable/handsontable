@@ -123,7 +123,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
-  if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(this)) {
+  if (isRootInstance(this)) {
     _injectProductInfo(userSettings.licenseKey, rootElement);
   }
 
@@ -3352,8 +3352,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     keyStateStopObserving();
 
-    if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(instance)) {
-      const licenseInfo = instance.rootDocument.querySelector('#hot-display-license-info');
+    if (isRootInstance(instance)) {
+      const licenseInfo = this.rootDocument.querySelector('#hot-display-license-info');
 
       if (licenseInfo) {
         licenseInfo.parentNode.removeChild(licenseInfo);

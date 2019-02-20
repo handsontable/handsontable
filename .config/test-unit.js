@@ -22,7 +22,6 @@ module.exports.create = function create(envArgs) {
       filename: '[name].entry.js',
       path: path.resolve(__dirname, '../test/dist'),
     };
-    c.resolve.alias['handsontable-pro'] = path.resolve(__dirname, '../src');
 
     c.module.rules.unshift({
       test: [/\.css$/,],

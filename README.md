@@ -1,67 +1,66 @@
 <div align="center">
-  <a href="//handsontable.com" target="_blank"><img src="https://raw.githubusercontent.com/handsontable/static-files/master/Images/Logo/Handsontable/Handsontable-logo-300-74-new.png" alt="Handsontable logo" /></a>
+
+[![Handsontable](https://raw.githubusercontent.com/handsontable/static-files/master/Images/Logo/Handsontable/Handsontable-logo-300-74-new.png)](//handsontable.com)
+
+**Handsontable** is a JavaScript/HTML5 data grid component with spreadsheet look & feel. <br>
+It provides easy data binding, data validation, filtering, sorting and CRUD operations.
+
+Handsontable works with [Vue](//github.com/handsontable/vue-handsontable-official), [React](//github.com/handsontable/react-handsontable) and [Angular](//github.com/handsontable/angular-handsontable).
+<br><br>
+[![npm](https://img.shields.io/npm/dt/handsontable.svg)](//npmjs.com/package/handsontable)
+[![npm](https://img.shields.io/npm/dm/handsontable.svg)](//npmjs.com/package/handsontable)
+[![Build status](https://travis-ci.org/handsontable/handsontable.png?branch=master)](//travis-ci.org/handsontable/handsontable)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
+[![Known Vulnerabilities](https://snyk.io/test/github/handsontable/handsontable/badge.svg?targetFile=package.json)](https://snyk.io/test/github/handsontable/handsontable?targetFile=package.json)
+[![](https://data.jsdelivr.com/v1/package/npm/handsontable/badge?style=rounded)](https://www.jsdelivr.com/package/npm/handsontable)
 </div>
 
 <br>
 
-[**Handsontable**](//handsontable.com) is an open source JavaScript/HTML5 data grid component with spreadsheet look & feel. It easily integrates with any data source and comes with a variety of useful features like data binding, validation, sorting or powerful context menu. It is available for [Vue](//github.com/handsontable/vue-handsontable-official), [React](//github.com/handsontable/react-handsontable) and [Angular](//github.com/handsontable/angular-handsontable).
+<div align="center">
+<a href="//handsontable.com/examples?headers">
+<img src="https://raw.githubusercontent.com/handsontable/static-files/master/Images/Screenshots/handsontable-screenshot-new.png" align="center" alt="Handsontable Screenshot"/>
+</a>
+</div>
 
-[![npm](https://img.shields.io/npm/dt/handsontable.svg)](//npmjs.com/package/handsontable)
-[![npm](https://img.shields.io/npm/dm/handsontable.svg)](//npmjs.com/package/handsontable)
-[![Build status](https://travis-ci.org/handsontable/handsontable.png?branch=master)](//travis-ci.org/handsontable/handsontable)
-[![npm](https://img.shields.io/github/contributors/handsontable/handsontable.svg)](//github.com/handsontable/handsontable/graphs/contributors)
+<br>
 
-## Table of contents
+## Installation
 
-1. [What to use it for?](#what-to-use-it-for)
-1. [Installation](#installation)
-2. [Basic usage](#basic-usage)
-3. [Examples](#examples)
-4. [Features](#features)
-5. [Screenshot](#screenshot)
-6. [Resources](#resources)
-7. [Wrappers](#wrappers)
-8. [Support](#support)
-9. [Contributing](#contributing)
-10. [Community](#community)
-11. [License](#license)
-
-### What to use it for?
-The list below gives a rough idea on what you can do with Handsontable CE, but it shouldn't limit you in any way:
-
-- Database editing
-- Configuration controlling
-- Data merging
-- Team scheduling
-- Sales reporting
-- Financial analysis
-
-### Installation
-There are [many ways to install](//handsontable.com/download) Handsontable, but we suggest using npm.
-
-**Community Edition:**
+Use npm to install the latest version.
 ```
 npm install handsontable
 ```
 
-**Handsontable Pro:**
-```
-npm install handsontable-pro
-```
+You can use Yarn, NuGet or [other methods](//handsontable.com/download) as well. You can load it directly from [jsDelivr](//www.jsdelivr.com/package/npm/handsontable).
 
-### Basic usage
-Assuming that you have already installed Handsontable, create an empty `<div>` element that will be turned into a spreadsheet:
+## Usage
+
+Create a placeholder - an HTML element holding a place for a data grid.
 
 ```html
 <div id="example"></div>
 ```
-In the next step, pass a reference to that `<div>` element into the Handsontable CE constructor and fill the instance with sample data:
-```javascript
+
+Import Handsontable and its stylesheet.
+```js
+import Handsontable from "handsontable";
+import 'handsontable/dist/handsontable.full.css';
+```
+
+Alternatively, you can simply embed it in your HTML file.
+```html
+<script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" rel="stylesheet">
+```
+
+Now turn your placeholder into a data grid with sample data.
+```js
 const data = [
-  ["", "Tesla", "Volvo", "Toyota", "Honda"],
-  ["2017", 10, 11, 12, 13],
-  ["2018", 20, 11, 14, 13],
-  ["2019", 30, 15, 12, 13]
+  ["", "Tesla", "Volvo", "Toyota", "Ford"],
+  ["2019", 10, 11, 12, 13],
+  ["2020", 20, 11, 14, 13],
+  ["2021", 30, 15, 12, 13]
 ];
 
 const container = document.getElementById('example');
@@ -72,104 +71,104 @@ const hot = new Handsontable(container, {
 });
 ```
 
-### Examples
-- [See a live demo](//handsontable.com/examples.html)
+##### [See the live demo](//handsontable.com/examples)
 
-### Features
+## Features
 
-Some of the most popular features include:
+A list of some of the most popular features:
 
-| Community Edition        	| Handsontable Pro           	|
-|--------------------------	|---------------------------	|
-| Sorting data             	| Filtering                 	|
-| Validating data          	| Export to file            	|
-| Conditional formatting   	| Dropdown menu             	|
-| Merging cells            	| Nested headers            	|
-| Custom cell types        	| Collapsing columns        	|
-| Freezing rows/columns    	| Multiple Column Sorting   	|
-| Moving rows/columns      	| Hiding rows               	|
-| Resizing rows/columns    	| Hiding columns            	|
-| Context menu             	| Trimming rows             	|
-| Comments                 	| Column summary            	|
-| Auto-fill option         	| Header tooltips           	|
-| Non-contiguous selection 	| Binding rows with headers 	|
+- Multiple column sorting
+- Non-contiguous selection
+- Filtering data
+- Export to file
+- Validating data
+- Conditional formatting
+- Merging cells
+- Custom cell types
+- Freezing rows/columns
+- Moving rows/columns
+- Resizing rows/columns
+- Hiding rows/columns
+- Context menu
+- Comments
+- Auto-fill option
 
-### Screenshot
-<div align="center">
-<a href="//handsontable.com/examples.html?manual-resize&manual-move&conditional-formatting&context-menu&filters&dropdown-menu&headers">
-<img src="https://raw.githubusercontent.com/handsontable/static-files/master/Images/Screenshots/handsontable-pro-showcase.png" align="center" alt="Handsontable Pro Screenshot"/>
-</a>
-</div>
+## Framework support
 
-### Resources
+Use one of the available wrappers to use Handsontable with your favorite framework:
+
+- [Handsontable for Vue](//github.com/handsontable/vue-handsontable-official)
+- [Handsontable for React](//github.com/handsontable/react-handsontable)
+- [Handsontable for Angular](//github.com/handsontable/angular-handsontable)
+
+## Documentation
+
+- [Developer guides](//handsontable.com/docs)
 - [API Reference](//handsontable.com/docs/Core.html)
-- [Compatibility](//handsontable.com/docs/tutorial-compatibility.html)
-- [Change log](//github.com/handsontable/handsontable/releases)
-- [Newsroom](//twitter.com/handsontable)
+- [Release notes](//handsontable.com/docs/tutorial-release-notes.html)
+- [Twitter](//twitter.com/handsontable) (News and updates)
 
-### Wrappers
-Handsontable comes with wrappers and directives for most popular frameworks:
+## Support and contribution
 
-- [Angular](//github.com/handsontable/angular-handsontable)
-- [Angular 1](//github.com/handsontable/ngHandsontable)
-- [React](//github.com/handsontable/react-handsontable)
-- [Vue](//github.com/handsontable/vue-handsontable-official)
-- [Polymer](//github.com/handsontable/hot-table)
+We provide support for all users through [GitHub issues](//github.com/handsontable/handsontable/issues). If you purchased a commercial license then you can add a new ticket through the [contact form](//handsontable.com/contact?category=technical_support).
 
-### Support
-You can help us in developing this project by making pull requests and [reporting issues](//github.com/handsontable/handsontable/issues).
+If you would like to contribute to this project, make sure you first read the [guide for contributors](//github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md).
 
-If you have an active support package for Handsontable Pro then write to us at support/at/handsontable.com or through the [contact form](https://handsontable.com/contact?category=technical_support).
+## Browser compatibility
 
-### Contributing
-If you would like to help us to develop Handsontable, please take a look at this [guide for contributors](//github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md).
+Handsontable is compatible with modern browsers such as Chrome, Firefox, Safari, Opera, and Edge. It also supports Internet Explorer 9-11 but with limited performance.
 
-### Community
-- [GitHub issues](//github.com/handsontable/handsontable/issues)
-- [Stackoverflow](//stackoverflow.com/tags/handsontable)
-- [Twitter](//twitter.com/handsontable)
+## License
 
-### License
-Handsontable Community Edition is released under the [MIT license](//github.com/handsontable/handsontable/blob/master/licenses/CE/LICENSE.txt) but some of the plugins (Pro) are distributed under the [commercial license](//github.com/handsontable/handsontable/blob/master/licenses/Pro/handsontable-pro-general-terms.pdf). See the table below for details.
+Handsontable is dual-licensed. You can either use a free license for all your non-commercial projects or purchase a commercial license. See the table below for a comparison of these two.
 
-| Name                    	| Localization                    	|
-|--------------------------	|---------------------------------	|
-| Bind rows with headers   	| /src/plugins/bindRowsWithHeaders 	|
-| Collapsing columns       	| /src/plugins/collapsibleColumns 	|
-| Summary calculations     	| /src/plugins/columnSummary      	|
-| Dropdown menu            	| /src/plugins/dropdownMenu       	|
-| Export to file           	| /src/plugins/exportFile         	|
-| Filtering                	| /src/plugins/filters            	|
-| Formula support          	| /src/plugins/formulas           	|
-| Gantt Chart              	| /src/plugins/ganttChart         	|
-| Header tooltips          	| /src/plugins/headerTooltips      	|
-| Hiding columns           	| /src/plugins/hiddenColumns      	|
-| Hiding rows              	| /src/plugins/hiddenRows         	|
-| Multi-column sorting     	| /src/plugins/multiColumnSorting 	|
-| Nested headers           	| /src/plugins/nestedHeaders      	|
-| Nested rows              	| /src/plugins/nestedRows         	|
-| Trimming rows            	| /src/plugins/trimRows           	|
+<table>
+  <thead align="center">
+    <tr>
+      <th width="50%">Free license</th>
+      <th width="50%">Paid license</th>
+    </tr>    
+  </thead>
+  <tbody align="center">
+    <tr>
+      <td>For non-commercial purposes such as teaching, academic research, personal experimentation, but also for evaluating  on development and testing servers.</td>
+      <td>For all commercial purposes</td>
+    </tr>
+    <tr>
+      <td>All features are available</td>
+      <td>All features are available</td>
+    </tr>
+    <tr>
+      <td>Community support</td>
+      <td>Dedicated support</td>
+    </tr>    
+    <tr>
+      <td><a href="//github.com/handsontable/handsontable/blob/master/LICENSE">Read the license</a></td>
+      <td><a href="//handsontable.com/pricing">See plans</a></td>
+    </tr>
+  </tbody>
+</table>
 
-<br>
+## License key
 
-**License key**
+**The license key is obligatory since [Handsontable 7.0.0](//github.com/handsontable/handsontable/tree/7.0.0) (released in March 2019).**
 
-Handsontable Pro requires passing a valid license key in the configuration section.
-You can find your purchased license key in your account at [my.handsontable.com](//my.handsontable.com/sign-in.html).
+If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass a phrase `'non-commercial-and-evaluation'`, as presented below:
 
-An example of what the configuration object should look like:
-
-```javascript
-const hot = new Handsontable(container,{
+```js
+const hot = new Handsontable(container, {
   data: data,
   rowHeaders: true,
   colHeaders: true,
-  licenseKey: '00000-00000-00000-00000-00000'
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 
-**Note that the license key is passed as a string so you need to wrap it in quotes ('').**
+If, on the other hand, you use Handsontable in a project that supports or is connected with your commercial activity, then you should purchase the license key at [handsontable.com](//handsontable.com/pricing).
+
+The license key is validated in an offline mode.  No connection is made to any server. [Learn more](//handsontable.com/docs/tutorial-license-key.html) on how it works.
 
 <br>
+<br>
 
-Copyrights belong to Handsoncode sp. z o.o.
+Created by [Handsoncode](//handsoncode.net) with ❤ and ☕ in [Tricity](//en.wikipedia.org/wiki/Tricity,_Poland).

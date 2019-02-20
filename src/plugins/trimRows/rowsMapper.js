@@ -5,7 +5,6 @@ import { rangeEach } from '../../helpers/number';
 /**
  * @class RowsMapper
  * @plugin TrimRows
- * @pro
  */
 class RowsMapper {
   constructor(trimRows) {

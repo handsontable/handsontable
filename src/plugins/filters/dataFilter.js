@@ -3,7 +3,6 @@ import { arrayEach } from '../../helpers/array';
 /**
  * @class DataFilter
  * @plugin Filters
- * @pro
  */
 class DataFilter {
   constructor(conditionCollection, columnDataFactory = () => []) {

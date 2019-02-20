@@ -1,17 +1,28 @@
-Handsontable is licensed under two different licenses as described below.
+Copyright (c) HANDSONCODE sp. z o. o.
 
-Handsontable Community Edition is licensed under the MIT license available
-in the "/licenses/CE/LICENSE.txt" file in the main project repository.
+HANDSONTABLE is a software distributed by HANDSONCODE sp. z o. o.,
+a Polish corporation, based in Gdynia, Poland, at 96/98 Aleja Zwycięstwa,
+registered with the National Court Register under number 538651,
+EU tax ID number: PL5862294002, share capital: PLN 62,800.00.
 
-Handsontable Pro is licensed under the commercial license available in the
-"/licenses/Pro/handsontable-pro-general-terms.pdf" file in the main project
-repository. The Pro version allow you to use additional, paid plugins.
+This software is protected by applicable copyright laws, including
+international treaties, and dual-licensed – depending on whether
+your use is intended for or may result in commercial advantage
+or monetary compensation (commercial purposes), or not.
 
-Handsontable is distributed by Handsoncode sp. z o. o., a limited liability
-company registered under the laws of Poland, with its registered office in
-Gdynia, Poland, at 96/98 Aleja Zwycięstwa, postal code 81-451, entered into
-the Entrepreneurs Register of the National Court Register under number
-0000538651, share capital: PLN 62,800.00., hereinafter referred to as
-"HANDSONCODE".
+If your use involves only such purposes as research, private study,
+evaluation and the like, you agree to be bound by the terms included
+in the “handsontable-non-commercial-license.pdf” file, available
+in the main directory of this software repository.
 
-Copyright (c) Handsoncode sp. z o.o.
+By installing, copying, or otherwise using this software for
+commercial purposes, you agree to be bound by the terms included
+in the “handsontable-general-terms.pdf” file, available in the main
+directory of this software repository.
+
+HANDSONCODE PROVIDES THIS SOFTWARE ON AN “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND. IN NO EVENT
+AND UNDER NO LEGAL THEORY, SHALL HANDSONCODE BE LIABLE
+TO YOU FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT, SPECIAL,
+INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
+FROM USE OR INABILITY TO USE THIS SOFTWARE.
