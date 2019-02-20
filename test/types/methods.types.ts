@@ -75,6 +75,7 @@ hot.loadData([{a:'a',b:2,c:''}, {a:'a',b:2,c:''}]);
 hot.populateFromArray(123, 123, [], 123, 123, 'foo', 'shift_down', 'left', []);
 hot.propToCol('foo') === 123;
 hot.propToCol(123) === 123;
+hot.refreshDimensions();
 hot.removeCellMeta(123, 123, 'foo');
 hot.removeHook('afterChange', function() {});
 hot.render();

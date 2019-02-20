@@ -83,6 +83,7 @@ declare namespace _Handsontable {
     loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[]): void;
     populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
     propToCol(prop: string | number): number;
+    refreshDimensions(): void;
     removeCellMeta(row: number, col: number, key: string): void;
     removeCellMeta(row: number, col: number, key: keyof Handsontable.CellMeta): void;
     removeHook<K extends keyof Handsontable.Hooks.Events>(key: K, callback: Handsontable.Hooks.Events[K]): void;
@@ -1836,6 +1837,7 @@ declare namespace Handsontable {
       afterPaste?: (data: CellValue[][], coords: plugins.RangeType[]) => void;
       afterPluginsInitialized?: () => void;
       afterRedo?: (action: plugins.UndoRedoAction) => void;
+      afterRefreshDimensions?: (previousDimensions: object, currentDimensions: object, stateChanged: boolean) => void;
       afterRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
       afterRemoveCol?: (index: number, amount: number) => void;
       afterRemoveRow?: (index: number, amount: number) => void;
@@ -1900,6 +1902,7 @@ declare namespace Handsontable {
       beforeRemoveCellClassNames?: () => string[] | void;
       beforeRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
       beforeRedo?: (action: plugins.UndoRedoAction) => void;
+      beforeRefreshDimensions?: (previousDimensions: object, currentDimensions: object, actionPossible: boolean) => boolean | void;
       beforeRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
       beforeRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
       beforeRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;

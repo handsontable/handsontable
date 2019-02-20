@@ -16,7 +16,7 @@ import { debounce, isFunction } from './../../helpers/function';
 import { filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection } from './utils';
 import { KEY_CODES } from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
-import { SEPARATOR } from './predefinedItems';
+import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
 import { stopImmediatePropagation } from './../../helpers/dom/event';
 
 const MIN_WIDTH = 215;
@@ -107,8 +107,22 @@ class Menu {
 
     const delayedOpenSubMenu = debounce(row => this.openSubMenu(row), 300);
     const minWidthOfMenu = this.options.minWidth || MIN_WIDTH;
+    let noItemsDefined = false;
 
-    let filteredItems = arrayFilter(this.menuItems, item => isItemHidden(item, this.hot));
+    let filteredItems = arrayFilter(this.menuItems, (item) => {
+      if (item.key === NO_ITEMS) {
+        noItemsDefined = true;
+      }
+
+      return isItemHidden(item, this.hot);
+    });
+
+    if (filteredItems.length < 1 && !noItemsDefined) {
+      filteredItems.push(predefinedItems()[NO_ITEMS]);
+
+    } else if (filteredItems.length === 0) {
+      return;
+    }
 
     filteredItems = filterSeparators(filteredItems, SEPARATOR);
 
