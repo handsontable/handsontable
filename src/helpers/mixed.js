@@ -133,7 +133,7 @@ export function _injectProductInfo(key, element) {
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       const keyValidityDays = _extractTime(key);
 
-      keyValidityDate = moment(keyValidityDays * 8.64e7, 'x').format('MMMM DD, YYYY');
+      keyValidityDate = moment((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
 
       if (releaseDays > keyValidityDays) {
         const daysAfterRelease = moment().diff(releaseDate, 'days');
