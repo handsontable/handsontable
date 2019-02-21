@@ -5,7 +5,8 @@ import {
   getWindowScrollTop,
   hasClass,
   outerWidth,
-  innerHeight,
+  // innerWidth,
+  // innerHeight,
   removeClass,
   setOverlayPosition,
   resetCssTransform
@@ -152,10 +153,38 @@ class LeftOverlay extends Overlay {
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer !== rootWindow || preventOverflow === 'vertical') {
-      let height = this.wot.wtViewport.getWorkspaceHeight() - scrollbarHeight;
+      const {
+        scrollHeight: rootElemScrollHeight,
+        scrollWidth: rootElemScrollWidth,
+      } = wtTable.wtRootElement;
+      const {
+        scrollHeight: holderScrollHeight,
+        scrollWidth: holderScrollWidth,
+      } = wtTable.holder;
 
-      height = Math.min(height, innerHeight(wtTable.wtRootElement));
+      let viewportHeight = rootElemScrollHeight;
+      let hasBottomScroll = scrollbarHeight > 0;
+      let height = this.wot.wtViewport.getWorkspaceHeight();
 
+      if (hasBottomScroll) {
+        // it has scrollbar on the bottom
+        if (rootElemScrollWidth < holderScrollWidth) {
+          viewportHeight -= scrollbarHeight;
+
+        } else if (holderScrollHeight > rootElemScrollHeight) {
+          if (wtTable.hider.scrollWidth + scrollbarHeight < rootElemScrollWidth) {
+            hasBottomScroll = false;
+          }
+        } else {
+          hasBottomScroll = false;
+        }
+      }
+
+      if (hasBottomScroll) {
+        height -= scrollbarHeight;
+      }
+
+      height = Math.min(height, viewportHeight);
       overlayRootStyle.height = `${height}px`;
 
     } else {

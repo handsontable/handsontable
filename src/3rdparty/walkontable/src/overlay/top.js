@@ -5,7 +5,8 @@ import {
   getWindowScrollLeft,
   hasClass,
   outerHeight,
-  innerWidth,
+  // innerWidth,
+  // innerHeight,
   removeClass,
   setOverlayPosition,
   resetCssTransform
@@ -148,16 +149,45 @@ class TopOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    const scrollbarWidth = getScrollbarWidth(this.wot.rootDocument);
+    const { wtTable, rootDocument, rootWindow } = this.wot;
+    const scrollbarWidth = getScrollbarWidth(rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer !== this.wot.rootWindow || preventOverflow === 'horizontal') {
-      let width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth;
+    if (this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal') {
+      const {
+        scrollHeight: rootElemScrollHeight,
+        scrollWidth: rootElemScrollWidth,
+      } = wtTable.wtRootElement;
+      const {
+        scrollHeight: holderScrollHeight,
+        scrollWidth: holderScrollWidth,
+      } = wtTable.holder;
 
-      width = Math.min(width, innerWidth(this.wot.wtTable.wtRootElement));
+      let viewportWidth = rootElemScrollWidth;
+      let hasScroll = scrollbarWidth > 0;
+      let width = this.wot.wtViewport.getWorkspaceWidth();
 
+      if (hasScroll) {
+        // it has scrollbar on the bottom
+        if (rootElemScrollHeight < holderScrollHeight) {
+          viewportWidth -= scrollbarWidth;
+
+        } else if (holderScrollWidth > rootElemScrollWidth) {
+          if (wtTable.hider.scrollHeight + scrollbarWidth < rootElemScrollHeight) {
+            hasScroll = false;
+          }
+        } else {
+          hasScroll = false;
+        }
+      }
+
+      if (hasScroll) {
+        width -= scrollbarWidth;
+      }
+
+      width = Math.min(width, viewportWidth);
       overlayRootStyle.width = `${width}px`;
 
     } else {
