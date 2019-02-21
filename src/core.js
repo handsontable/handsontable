@@ -27,7 +27,7 @@ import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
 import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
-import { getTranslator } from './utils/recordTranslator';
+import { getTranslator } from './translations/recordTranslator';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
@@ -1531,6 +1531,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource.colToProp = datamap.colToProp.bind(datamap);
     dataSource.propToCol = datamap.propToCol.bind(datamap);
 
+    recordTranslator.rowIndexMapper.createSimpleSequence(data.length);
+    recordTranslator.columnIndexMapper.createSimpleSequence(data[0] ? data[0].length : 0);
+
     clearCellSettingCache();
 
     grid.adjustRowsAndCols();
@@ -2035,6 +2038,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number} Returns physical column index.
    */
   this.toPhysicalColumn = (column, source) => recordTranslator.toPhysicalColumn(column, source);
+
+  this.recordTranslator = recordTranslator;
 
   /**
    * @description

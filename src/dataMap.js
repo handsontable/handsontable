@@ -14,6 +14,7 @@ import {
 import { extendArray, to2dArray } from './helpers/array';
 import Interval from './utils/interval';
 import { rangeEach } from './helpers/number';
+import { getTranslator } from './translations/recordTranslator';
 
 const copyableLookup = cellMethodLookupFactory('copyable', false);
 
@@ -281,6 +282,12 @@ class DataMap {
       return 0;
     }
 
+    let physicalRowIndex = this.instance.countSourceRows();
+
+    if (rowIndex < this.instance.countRows()) {
+      physicalRowIndex = this.instance.toPhysicalRow(rowIndex);
+    }
+
     const maxRows = this.instance.getSettings().maxRows;
     const columnCount = this.instance.countCols();
 
@@ -310,11 +317,12 @@ class DataMap {
         this.dataSource.push(row);
 
       } else {
-        this.spliceData(rowIndex, 0, row);
+        this.spliceData(physicalRowIndex, 0, row);
       }
 
       numberOfCreatedRows += 1;
     }
+    this.instance.recordTranslator.rowIndexMapper.updateIndexesAfterInsertion(physicalRowIndex, amount);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -781,37 +789,12 @@ class DataMap {
 
     if (maxRowsFromSettings < 0 || maxRowsFromSettings === 0) {
       maxRows = 0;
+
     } else {
       maxRows = maxRowsFromSettings || Infinity;
     }
 
-    let length = this.instance.countSourceRows();
-
-    if (this.instance.hasHook('modifyRow')) {
-      let reValidate = this.skipCache;
-
-      this.interval.start();
-      if (length !== this.latestSourceRowsCount) {
-        reValidate = true;
-      }
-
-      this.latestSourceRowsCount = length;
-      if (this.cachedLength === null || reValidate) {
-        rangeEach(length - 1, (row) => {
-          const physicalRow = this.instance.toPhysicalRow(row);
-
-          if (physicalRow === null) {
-            length -= 1;
-          }
-        });
-        this.cachedLength = length;
-
-      } else {
-        length = this.cachedLength;
-      }
-    } else {
-      this.interval.stop();
-    }
+    const length = this.instance.countSourceRows() - getTranslator(this.instance).rowIndexMapper.getSkippedIndexes().length;
 
     return Math.min(length, maxRows);
   }
