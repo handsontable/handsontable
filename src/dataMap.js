@@ -423,7 +423,10 @@ class DataMap {
       Array.prototype.push.apply(data, newData);
     }
 
-    this.instance.recordTranslator.rowIndexMapper.updateIndexesAfterRemoval(logicRows);
+    // TODO: Function `removeRow` should validate fully, probably above.
+    if (index < this.instance.countRows()) {
+      this.instance.recordTranslator.rowIndexMapper.updateIndexesAfterRemoval(logicRows);
+    }
 
     this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
 
