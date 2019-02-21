@@ -1,4 +1,4 @@
-import { arrayFilter } from './../helpers/array';
+import { arrayFilter, arrayMap } from './../helpers/array';
 import { rangeEach } from './../helpers/number';
 
 class IndexMapper {
@@ -81,6 +81,21 @@ class IndexMapper {
   insertIndexes(indexesList, firstInsertedIndex, amountOfIndexes) {
     indexesList.splice(firstInsertedIndex, 0, ...new Array(amountOfIndexes)
       .fill(firstInsertedIndex).map((indexFromList, stepsFromStartIndex) => indexFromList + stepsFromStartIndex));
+  }
+
+  updateIndexesAfterRemoval(removedIndexes) {
+    this.indexesSequence = this.getRemovedIndexes(this.indexesSequence, removedIndexes);
+    this.skippedIndexes = this.getRemovedIndexes(this.skippedIndexes, removedIndexes);
+    this.indexesSequence = this.getDecreasedIndexes(this.indexesSequence, removedIndexes);
+    this.skippedIndexes = this.getDecreasedIndexes(this.skippedIndexes, removedIndexes);
+  }
+
+  getRemovedIndexes(indexesList, removedIndexes) {
+    return arrayFilter(indexesList, index => removedIndexes.includes(index) === false);
+  }
+
+  getDecreasedIndexes(indexesList, removedIndexes) {
+    return arrayMap(indexesList, index => index - removedIndexes.filter(removedRow => removedRow < index).length);
   }
 }
 

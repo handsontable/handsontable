@@ -423,6 +423,8 @@ class DataMap {
       Array.prototype.push.apply(data, newData);
     }
 
+    this.instance.recordTranslator.rowIndexMapper.updateIndexesAfterRemoval(logicRows);
+
     this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
 
     this.instance.forceFullRender = true; // used when data was changed
