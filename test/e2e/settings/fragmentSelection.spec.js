@@ -21,11 +21,10 @@ describe('settings', () => {
       const { activeElement } = document;
       const selection = window.getSelection();
 
-      if (activeElement.value) {
-        return activeElement.value.substring(activeElement.selectionStart, activeElement.selectionEnd);
-
-      } else if (selection.type !== 'Caret') {
+      if (selection.type === 'Range') {
         return selection.toString();
+      } else if (activeElement.value && activeElement.value.selectionStart) {
+        return activeElement.value.substring(activeElement.selectionStart, activeElement.selectionEnd);
       }
 
       return false;
@@ -81,16 +80,16 @@ describe('settings', () => {
         expect(sel).toEqual(' '); // copyPaste has selected space in textarea
       });
 
-      xit('should allow fragmentSelection when set to true', () => {
+      it('should allow fragmentSelection when set to true', () => {
         // We have to try another way to simulate text selection.
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: true
         });
-        selectElementText(spec().$container.find('td')[1], 3);
 
-        mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));
+        mouseDown(spec().$container.find('tr:eq(0) td:eq(1)'));
         mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
+        selectElementText(spec().$container.find('td')[1], 3);
 
         let sel = getSelected();
         sel = sel.replace(/\s/g, ''); // tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
@@ -98,16 +97,17 @@ describe('settings', () => {
         expect(sel).toEqual('B1C1D1');
       });
 
-      xit('should allow fragmentSelection from one cell when set to `cell`', () => {
-        // We have to try another way to simulate text selection.
+      it('should allow fragmentSelection from one cell when set to `cell`', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
         });
-        selectElementText(spec().$container.find('td')[1], 1);
 
-        mouseDown(spec().$container.find('tr:eq(0) td:eq(1)'));
-        mouseUp(spec().$container.find('tr:eq(0) td:eq(1)'));
+        const $TD = spec().$container.find('tr:eq(0) td:eq(1)');
+
+        mouseDown($TD);
+        mouseUp($TD);
+        selectElementText($TD[0], 1);
 
         expect(getSelected().replace(/\s/g, '')).toEqual('B1');
       });

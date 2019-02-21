@@ -349,6 +349,7 @@ class TextEditor extends BaseEditor {
     this.textareaParentStyle.width = '';
     this.textareaParentStyle.height = '';
     this.textareaParentStyle.overflow = '';
+    this.textareaParentStyle.opacity = '';
 
     const { wtOverlays, wtViewport } = this.hot.view.wt;
     const currentOffset = offset(this.TD);
