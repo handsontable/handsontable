@@ -110,13 +110,13 @@ Use one of the available wrappers to use Handsontable with your favorite framewo
 
 ## Support and contribution
 
-We provide support for all users through [GitHub issues](//github.com/handsontable/handsontable/issues). If you purchased a commercial license then you can add a new ticket through the [contact form](//handsontable.com/contact?category=technical_support).
+We provide support for all users through [GitHub issues](//github.com/handsontable/handsontable/issues). If you have a commercial license then you can add a new ticket through the [contact form](//handsontable.com/contact?category=technical_support).
 
 If you would like to contribute to this project, make sure you first read the [guide for contributors](//github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md).
 
 ## Browser compatibility
 
-Handsontable is compatible with modern browsers such as Chrome, Firefox, Safari, Opera, and Edge. It also supports Internet Explorer 9-11 but with limited performance.
+Handsontable is compatible with modern browsers such as Chrome, Firefox, Safari, Opera, and Edge. It also supports Internet Explorer 9 to 11 but with limited performance.
 
 ## License
 
@@ -131,7 +131,7 @@ Handsontable is dual-licensed. You can either use a free license for all your no
   </thead>
   <tbody align="center">
     <tr>
-      <td>For non-commercial purposes such as teaching, academic research, personal experimentation, but also for evaluating  on development and testing servers.</td>
+      <td>For non-commercial purposes such as teaching, academic research, personal experimentation, and evaluating  on development and testing servers.</td>
       <td>For all commercial purposes</td>
     </tr>
     <tr>
@@ -151,9 +151,9 @@ Handsontable is dual-licensed. You can either use a free license for all your no
 
 ## License key
 
-**The license key is obligatory since [Handsontable 7.0.0](//github.com/handsontable/handsontable/tree/7.0.0) (released in March 2019).**
+**The license key is obligatory since [Handsontable 7.0.0](//github.com/handsontable/handsontable/releases/tag/7.0.0) (released in March 2019).**
 
-If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass a phrase `'non-commercial-and-evaluation'`, as presented below:
+If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass the phrase `'non-commercial-and-evaluation'`, as presented below:
 
 ```js
 const hot = new Handsontable(container, {
@@ -164,9 +164,9 @@ const hot = new Handsontable(container, {
 });
 ```
 
-If, on the other hand, you use Handsontable in a project that supports or is connected with your commercial activity, then you should purchase the license key at [handsontable.com](//handsontable.com/pricing).
+If, on the other hand, you use Handsontable in a project that supports your commercial activity, then you must purchase the license key at [handsontable.com](//handsontable.com/pricing).
 
-The license key is validated in an offline mode.  No connection is made to any server. [Learn more](//handsontable.com/docs/tutorial-license-key.html) on how it works.
+The license key is validated in an offline mode.  No connection is made to any server. [Learn more](//handsontable.com/docs/tutorial-license-key.html) about how it works.
 
 <br>
 <br>
