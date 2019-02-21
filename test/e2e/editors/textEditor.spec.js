@@ -74,25 +74,21 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    const { left, position, top, zIndex, overflow, opacity, height, width } = spec().$container.find('.handsontableInputHolder').css([
+    const { left, right, position, top, zIndex, overflow } = spec().$container.find('.handsontableInputHolder').css([
       'left',
+      'right',
       'position',
       'top',
       'zIndex',
       'overflow',
-      'opacity',
-      'height',
-      'width',
     ]);
 
-    expect(parseInt(left, 10)).toBe(0);
+    expect(parseInt(left, 10)).toBe(spec().$container.find('.handsontableInputHolder')[0].offsetWidth * -1);
+    expect(parseInt(right, 10)).toBe(document.body.offsetWidth);
     expect(position).toBe('fixed');
     expect(parseInt(top, 10)).toBe(0);
     expect(zIndex).toBe('-1');
     expect(overflow).toBe('hidden');
-    expect(parseInt(opacity, 10)).toBe(0);
-    expect(parseInt(height, 10)).toBe(1);
-    expect(parseInt(width, 10)).toBe(1);
   });
 
   it('should change editor\'s CSS properties during switching to being visible', () => {
@@ -105,25 +101,21 @@ describe('TextEditor', () => {
 
     const cell = getCell(0, 0);
     const [cellOffsetTop, cellOffsetLeft] = [cell.offsetTop, cell.offsetLeft];
-    const { left, position, top, zIndex, overflow, opacity, height, width } = spec().$container.find('.handsontableInputHolder').css([
+    const { left, right, position, top, zIndex, overflow } = spec().$container.find('.handsontableInputHolder').css([
       'left',
+      'right',
       'position',
       'top',
       'zIndex',
       'overflow',
-      'opacity',
-      'height',
-      'width',
     ]);
 
     expect(parseInt(left, 10)).toBeAroundValue(cellOffsetLeft);
+    expect(parseInt(right, 10)).not.toBe(document.body.offsetWidth);
     expect(position).toBe('absolute');
     expect(parseInt(top, 10)).toBeAroundValue(cellOffsetTop);
     expect(zIndex).not.toBe('-1');
     expect(overflow).not.toBe('hidden');
-    expect(parseInt(opacity, 10)).not.toBe(0);
-    expect(parseInt(height, 10)).toBeGreaterThan(1);
-    expect(parseInt(width, 10)).toBeGreaterThan(1);
   });
 
   it('should render string in textarea', () => {

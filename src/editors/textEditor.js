@@ -165,10 +165,7 @@ class TextEditor extends BaseEditor {
       const restoreFocus = !fragmentSelection;
 
       if (restoreFocus && !isMobileBrowser()) {
-
-        this.hot._registerImmediate(() => {
-          this.focus(true);
-        });
+        this.hot._registerImmediate(() => this.focus(true));
       }
     }
   }
@@ -292,13 +289,11 @@ class TextEditor extends BaseEditor {
    */
   hideEditableElement() {
     this.textareaParentStyle.top = '0px';
-    this.textareaParentStyle.right = '0px';
+    this.textareaParentStyle.right = '100%';
+    this.textareaParentStyle.left = 'auto';
     this.textareaParentStyle.zIndex = '-1';
     this.textareaParentStyle.position = 'fixed';
-    this.textareaParentStyle.width = '1px';
-    this.textareaParentStyle.height = '1px';
     this.textareaParentStyle.overflow = 'hidden';
-    this.textareaParentStyle.opacity = '0';
   }
 
   /**
@@ -346,10 +341,8 @@ class TextEditor extends BaseEditor {
       return;
     }
 
-    this.textareaParentStyle.width = '';
-    this.textareaParentStyle.height = '';
     this.textareaParentStyle.overflow = '';
-    this.textareaParentStyle.opacity = '';
+    this.textareaParentStyle.right = 'auto';
 
     const { wtOverlays, wtViewport } = this.hot.view.wt;
     const currentOffset = offset(this.TD);
