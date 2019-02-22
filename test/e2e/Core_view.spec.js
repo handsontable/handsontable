@@ -118,6 +118,22 @@ describe('Core_view', () => {
 
   });
 
+  it('should scroll viewport to the correct column', async() => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(20, 200),
+      height: 300,
+      width: 300
+    });
+
+    hot.scrollViewportTo(0, 30);
+    await sleep(250);
+    expect(hot.view.wt.wtScroll.getFirstVisibleColumn()).toEqual(30);
+
+    hot.scrollViewportTo(0, 199);
+    await sleep(250);
+    expect(hot.view.wt.wtScroll.getLastVisibleColumn()).toEqual(199);
+  });
+
   it('should not throw error while scrolling viewport to 0, 0 (empty data)', () => {
     spec().$container[0].style.width = '400px';
 
