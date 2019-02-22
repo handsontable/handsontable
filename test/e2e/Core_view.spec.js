@@ -122,7 +122,9 @@ describe('Core_view', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 200),
       height: 300,
-      width: 300
+      width: 300,
+      rowHeaders: true,
+      colHeaders: true
     });
 
     hot.scrollViewportTo(0, 30);
@@ -130,7 +132,7 @@ describe('Core_view', () => {
     expect(hot.view.wt.wtScroll.getFirstVisibleColumn()).toEqual(30);
 
     hot.scrollViewportTo(0, 199);
-    await sleep(450);
+    await sleep(250);
     expect(hot.view.wt.wtScroll.getLastVisibleColumn()).toEqual(199);
   });
 
