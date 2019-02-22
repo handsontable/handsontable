@@ -118,6 +118,22 @@ describe('Core_view', () => {
 
   });
 
+  it('should scroll viewport to the last cell in the last row', async() => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(120, 200),
+      height: 300,
+      width: 300,
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    await sleep(400);
+    hot.scrollViewportTo(119, 199);
+    await sleep(400);
+    expect(hot.view.wt.wtScroll.getLastVisibleColumn()).toEqual(199);
+    expect(hot.view.wt.wtScroll.getLastVisibleRow()).toEqual(119);
+  });
+
   it('should not throw error while scrolling viewport to 0, 0 (empty data)', () => {
     spec().$container[0].style.width = '400px';
 
