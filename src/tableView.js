@@ -315,7 +315,7 @@ class TableView {
       const eventY = event.y || event.clientY;
       let next = event.target;
 
-      if (priv.mouseDown || !rootElement) {
+      if (priv.mouseDown || !rootElement || !this.instance.view) {
         return; // it must have been started in a cell
       }
 
