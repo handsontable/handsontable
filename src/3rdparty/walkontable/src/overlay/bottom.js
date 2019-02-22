@@ -162,7 +162,7 @@ class BottomOverlay extends Overlay {
   adjustRootElementSize() {
     const { wtTable, wtViewport, rootWindow } = this.wot;
     const masterHolder = wtTable.holder;
-    const scrollbarWidth = masterHolder.clientWidth === masterHolder.offsetWidth ? 0 : getScrollbarWidth(this.wot.rootDocument);
+     const scrollbarWidth = getScrollbarWidth(this.wot.rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wot.getSetting('preventOverflow');
