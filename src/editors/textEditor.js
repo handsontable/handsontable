@@ -288,10 +288,12 @@ class TextEditor extends BaseEditor {
    * @private
    */
   hideEditableElement() {
-    this.textareaParentStyle.top = '-9999px';
-    this.textareaParentStyle.left = '-9999px';
-    this.textareaParentStyle.zIndex = '-1';
+    this.textareaParentStyle.left = 'auto';
+    this.textareaParentStyle.overflow = 'hidden';
     this.textareaParentStyle.position = 'fixed';
+    this.textareaParentStyle.right = '100%';
+    this.textareaParentStyle.top = '0px';
+    this.textareaParentStyle.zIndex = '-1';
   }
 
   /**
@@ -300,8 +302,10 @@ class TextEditor extends BaseEditor {
    * @private
    */
   showEditableElement() {
-    this.textareaParentStyle.zIndex = this.holderZIndex >= 0 ? this.holderZIndex : '';
+    this.textareaParentStyle.overflow = '';
     this.textareaParentStyle.position = '';
+    this.textareaParentStyle.right = 'auto';
+    this.textareaParentStyle.zIndex = this.holderZIndex >= 0 ? this.holderZIndex : '';
   }
 
   /**
