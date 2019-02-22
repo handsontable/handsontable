@@ -120,7 +120,7 @@ describe('Core_view', () => {
 
   it('should scroll viewport to the correct column', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(20, 200),
+      data: Handsontable.helper.createSpreadsheetData(120, 200),
       height: 300,
       width: 300,
       rowHeaders: true,
@@ -132,7 +132,7 @@ describe('Core_view', () => {
     expect(hot.view.wt.wtScroll.getFirstVisibleColumn()).toEqual(30);
 
     hot.scrollViewportTo(0, 199);
-    await sleep(250);
+    await sleep(400);
     expect(hot.view.wt.wtScroll.getLastVisibleColumn()).toEqual(199);
   });
 
