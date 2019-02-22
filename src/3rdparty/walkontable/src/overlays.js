@@ -36,9 +36,9 @@ class Overlays {
     this.instance = this.wot;
     this.eventManager = new EventManager(this.wot);
 
-    this.scrollBarSize = getScrollbarWidth(rootDocument);
-    this.wot.update('scrollbarWidth', this.scrollBarSize);
-    this.wot.update('scrollbarHeight', this.scrollBarSize);
+    this.scrollbarSize = getScrollbarWidth(rootDocument);
+    this.wot.update('scrollbarWidth', this.scrollbarSize);
+    this.wot.update('scrollbarHeight', this.scrollbarSize);
 
     if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
       this.scrollableElement = wtTable.holder;
@@ -563,7 +563,7 @@ class Overlays {
     hiderStyle.width = `${headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)}px`;
     hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1}px`;
 
-    if (this.scrollBarSize > 0) {
+    if (this.scrollbarSize > 0) {
       const {
         scrollHeight: rootElemScrollHeight,
         scrollWidth: rootElemScrollWidth,
@@ -576,9 +576,9 @@ class Overlays {
       this.hasScrollbarRight = rootElemScrollHeight < holderScrollHeight;
       this.hasScrollbarBottom = rootElemScrollWidth < holderScrollWidth;
 
-      if (this.hasScrollbarRight && wtTable.hider.scrollWidth + this.scrollBarSize > rootElemScrollWidth) {
+      if (this.hasScrollbarRight && wtTable.hider.scrollWidth + this.scrollbarSize > rootElemScrollWidth) {
         this.hasScrollbarBottom = true;
-      } else if (this.hasScrollbarBottom && wtTable.hider.scrollHeight + this.scrollBarSize > rootElemScrollHeight) {
+      } else if (this.hasScrollbarBottom && wtTable.hider.scrollHeight + this.scrollbarSize > rootElemScrollHeight) {
         this.hasScrollbarRight = true;
       }
     }

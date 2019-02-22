@@ -5,11 +5,9 @@ import {
   getWindowScrollLeft,
   hasClass,
   outerHeight,
-  // innerWidth,
-  // innerHeight,
   removeClass,
   setOverlayPosition,
-  resetCssTransform
+  resetCssTransform,
 } from './../../../../helpers/dom/element';
 import { arrayEach } from './../../../../helpers/array';
 import Overlay from './_base';
