@@ -581,13 +581,6 @@ class Overlays {
       } else if (this.hasScrollbarBottom && wtTable.hider.scrollHeight + this.scrollBarSize > rootElemScrollHeight) {
         this.hasScrollbarRight = true;
       }
-      // else if (holderScrollWidth > rootElemScrollWidth) {
-      //   if (wtTable.hider.scrollHeight + scrollbarWidth < rootElemScrollHeight) {
-      //     hasScroll = false;
-      //   }
-      // } else {
-      //   hasScroll = false;
-      // }
     }
 
     this.topOverlay.adjustElementsSize(force);
