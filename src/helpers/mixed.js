@@ -99,7 +99,7 @@ const consoleMessages = {
 const domMessages = {
   invalid: () => toSingleLine`
     The license key for Handsontable is invalid.\x20
-    <a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> on how\x20
+    <a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> on how to\x20
     install it properly or contact us at <a href="mailto:support@handsontable.com">support@handsontable.com</a>.`,
   expired: ({ keyValidityDate, hotVersion }) => toSingleLine`
     The license key for Handsontable expired on ${keyValidityDate}, and is not valid for the installed\x20
