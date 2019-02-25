@@ -75,6 +75,32 @@ describe('Core_view', () => {
     expect(spec().$container.find('.undefined').length).toBe(0);
   });
 
+  it('should properly calculate dimensions of the table if a container has border', () => {
+    spec().$container[0].style.width = '250px';
+    spec().$container[0].style.height = '200px';
+    spec().$container[0].style.overflow = 'hidden';
+    spec().$container[0].style.border = '10px solid #000';
+
+    const hot = handsontable({
+      startRows: 10,
+      startCols: 10,
+      colWidths: 50,
+      rowHeights: 50,
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    const scrollbarSize = hot.view.wt.wtOverlays.scrollbarSize;
+    const { scrollWidth: masterScrollWidth, scrollHeight: masterScrollHeight } = spec().$container.find('.ht_master')[0];
+    const topScrollWidth = spec().$container.find('.ht_clone_top')[0].scrollWidth;
+    const leftScrollHeight = spec().$container.find('.ht_clone_left')[0].scrollHeight;
+
+    expect(masterScrollWidth).toBe(250);
+    expect(masterScrollHeight).toBe(200);
+    expect(masterScrollWidth - scrollbarSize).toBe(topScrollWidth);
+    expect(masterScrollHeight - scrollbarSize).toBe(leftScrollHeight);
+  });
+
   it('should scroll viewport when partially visible cell is clicked', () => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
