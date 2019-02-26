@@ -560,6 +560,7 @@ class ColumnSorting extends BasePlugin {
   sortByPresetSortStates() {
     if (this.columnStatesManager.isListOfSortedColumnsEmpty()) {
       this.rowsMapper.clearMap();
+      this.hot.recordTranslator.rowIndexMapper.createSimpleSequence();
 
       return;
     }
@@ -568,16 +569,14 @@ class ColumnSorting extends BasePlugin {
     const sortedColumnsList = this.columnStatesManager.getSortedColumns();
     const numberOfRows = this.hot.countRows();
 
-    // Function `getDataAtCell` won't call the indices translation inside `onModifyRow` callback - we check the `blockPluginTranslation`
-    // flag inside it (we just want to get data not already modified by `columnSorting` plugin translation).
-    this.blockPluginTranslation = true;
-
     const getDataForSortedColumns = visualRowIndex =>
       arrayMap(sortedColumnsList, physicalColumn => this.hot.getDataAtCell(visualRowIndex, this.hot.toVisualColumn(physicalColumn)));
 
     for (let visualRowIndex = 0; visualRowIndex < this.getNumberOfRowsToSort(numberOfRows); visualRowIndex += 1) {
-      indexesWithData.push([visualRowIndex].concat(getDataForSortedColumns(visualRowIndex)));
+      indexesWithData.push([this.hot.toPhysicalRow(visualRowIndex)].concat(getDataForSortedColumns(visualRowIndex)));
     }
+
+    const indexesBefore = arrayMap(indexesWithData, indexWithData => indexWithData[0]);
 
     sort(
       indexesWithData,
@@ -591,11 +590,17 @@ class ColumnSorting extends BasePlugin {
       indexesWithData.push([visualRowIndex].concat(getDataForSortedColumns(visualRowIndex)));
     }
 
-    // The blockade of the indices translation is released.
-    this.blockPluginTranslation = false;
+    const indexesAfter = arrayMap(indexesWithData, indexWithData => indexWithData[0]);
 
-    // Save all indexes to indexMapper, a completely new sequence is set by the plugin
-    this.rowsMapper._arrayMap = arrayMap(indexesWithData, indexWithData => indexWithData[0]);
+    const indexMapping = new Map(arrayMap(indexesBefore, (indexBefore, indexInsideArray) => [indexBefore, indexesAfter[indexInsideArray]]));
+
+    this.hot.recordTranslator.rowIndexMapper.indexesSequence = arrayMap(this.hot.recordTranslator.rowIndexMapper.indexesSequence, (physicalIndex) => {
+      if (indexMapping.has(physicalIndex)) {
+        return indexMapping.get(physicalIndex);
+      }
+
+      return physicalIndex;
+    });
   }
 
   /**
