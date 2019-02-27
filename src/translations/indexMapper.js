@@ -62,10 +62,16 @@ class IndexMapper {
     this.skippedIndexes = indexes;
   }
 
-  updateIndexesAfterInsertion(firstInsertedIndex, amountOfIndexes) {
-    this.indexesSequence = this.getIncreasedIndexes(this.indexesSequence, firstInsertedIndex, amountOfIndexes);
-    this.skippedIndexes = this.getIncreasedIndexes(this.skippedIndexes, firstInsertedIndex, amountOfIndexes);
-    this.insertIndexes(this.indexesSequence, firstInsertedIndex, amountOfIndexes);
+  updateIndexesAfterInsertion(firstVisualInsertedIndex, firstPhysicalInsertedIndex, amountOfIndexes) {
+    const visibleIndexes = this.indexesSequence.filter(index => this.skippedIndexes.includes(index) === false);
+    const nthVisibleIndex = visibleIndexes[firstVisualInsertedIndex];
+    const insetionIndex = this.indexesSequence.includes(nthVisibleIndex) ? this.indexesSequence.indexOf(nthVisibleIndex) : this.indexesSequence.length;
+
+    this.indexesSequence = this.getIncreasedIndexes(this.indexesSequence, firstPhysicalInsertedIndex, amountOfIndexes);
+    this.skippedIndexes = this.getIncreasedIndexes(this.skippedIndexes, firstPhysicalInsertedIndex, amountOfIndexes);
+
+    this.insertIndexes(this.indexesSequence, insetionIndex, new Array(amountOfIndexes)
+      .fill(firstPhysicalInsertedIndex).map((nextIndex, stepsFromStart) => nextIndex + stepsFromStart));
   }
 
   getIncreasedIndexes(indexesList, firstInsertedIndex, amountOfIndexes) {
@@ -78,9 +84,8 @@ class IndexMapper {
     });
   }
 
-  insertIndexes(indexesList, firstInsertedIndex, amountOfIndexes) {
-    indexesList.splice(firstInsertedIndex, 0, ...new Array(amountOfIndexes)
-      .fill(firstInsertedIndex).map((indexFromList, stepsFromStartIndex) => indexFromList + stepsFromStartIndex));
+  insertIndexes(indexesList, firstInsertedIndex, insertedIndexes) {
+    indexesList.splice(firstInsertedIndex, 0, ...insertedIndexes);
   }
 
   updateIndexesAfterRemoval(removedIndexes) {

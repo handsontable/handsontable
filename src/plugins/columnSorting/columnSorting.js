@@ -19,7 +19,6 @@ import {
   wasHeaderClickedProperly
 } from './utils';
 import { getClassedToRemove, getClassesToAdd } from './domHelpers';
-import RowsMapper from './rowsMapper';
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
 
@@ -93,13 +92,6 @@ class ColumnSorting extends BasePlugin {
      */
     this.columnStatesManager = new ColumnStatesManager();
     /**
-     * Object containing visual row indexes mapped to data source indexes.
-     *
-     * @private
-     * @type {RowsMapper}
-     */
-    this.rowsMapper = new RowsMapper(this);
-    /**
      * It blocks the plugin translation, this flag is checked inside `onModifyRow` callback.
      *
      * @private
@@ -144,15 +136,9 @@ class ColumnSorting extends BasePlugin {
       this.enableObserveChangesPlugin();
     }
 
-    this.addHook('afterTrimRow', () => this.sortByPresetSortStates());
-    this.addHook('afterUntrimRow', () => this.sortByPresetSortStates());
-    this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
-    this.addHook('unmodifyRow', (row, source) => this.onUnmodifyRow(row, source));
     this.addHook('afterGetColHeader', (column, TH) => this.onAfterGetColHeader(column, TH));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, controller) => this.onBeforeOnCellMouseDown(event, coords, TD, controller));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
-    this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
-    this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
     this.addHook('afterInit', () => this.loadOrSortBySettings());
     this.addHook('afterLoadData', initialLoad => this.onAfterLoadData(initialLoad));
     this.addHook('afterCreateCol', () => this.onAfterCreateCol());
@@ -186,7 +172,7 @@ class ColumnSorting extends BasePlugin {
       this.hot.removeHook('afterGetColHeader', clearColHeader);
     });
 
-    this.rowsMapper.clearMap();
+    this.hot.recordTranslator.rowIndexMapper.createSimpleSequence();
 
     super.disablePlugin();
   }
@@ -559,7 +545,6 @@ class ColumnSorting extends BasePlugin {
    */
   sortByPresetSortStates() {
     if (this.columnStatesManager.isListOfSortedColumnsEmpty()) {
-      this.rowsMapper.clearMap();
       this.hot.recordTranslator.rowIndexMapper.createSimpleSequence();
 
       return;
@@ -663,37 +648,6 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Callback for `modifyRow` hook. Translates visual row index to the sorted row index.
-   *
-   * @private
-   * @param {Number} row Visual row index.
-   * @returns {Number} Physical row index.
-   */
-  onModifyRow(row, source) {
-    if (this.blockPluginTranslation === false && source !== this.pluginName && this.isSorted()) {
-      const rowInMapper = this.rowsMapper.getPhysicalIndex(row);
-      row = rowInMapper === null ? row : rowInMapper;
-    }
-
-    return row;
-  }
-
-  /**
-   * Callback for `unmodifyRow` hook. Translates sorted row index to visual row index.
-   *
-   * @private
-   * @param {Number} row Physical row index.
-   * @returns {Number} Visual row index.
-   */
-  onUnmodifyRow(row, source) {
-    if (this.blockPluginTranslation === false && source !== this.pluginName && this.isSorted()) {
-      row = this.rowsMapper.getVisualIndex(row);
-    }
-
-    return row;
-  }
-
-  /**
    * Callback for the `onAfterGetColHeader` hook. Adds column sorting CSS classes.
    *
    * @private
@@ -754,7 +708,7 @@ class ColumnSorting extends BasePlugin {
    * @param {Boolean} initialLoad flag that determines whether the data has been loaded during the initialization.
    */
   onAfterLoadData(initialLoad) {
-    this.rowsMapper.clearMap();
+    this.hot.recordTranslator.rowIndexMapper.createSimpleSequence();
     this.columnMetaCache.clear();
 
     if (initialLoad === true) {
@@ -763,28 +717,6 @@ class ColumnSorting extends BasePlugin {
         this.loadOrSortBySettings();
       }
     }
-  }
-
-  /**
-   * Callback for the `afterCreateRow` hook.
-   *
-   * @private
-   * @param {Number} index Visual index of the created row.
-   * @param {Number} amount Amount of created rows.
-   */
-  onAfterCreateRow(index, amount) {
-    this.rowsMapper.shiftItems(index, amount);
-  }
-
-  /**
-   * Callback for the `afterRemoveRow` hook.
-   *
-   * @private
-   * @param {Number} removedRows Visual indexes of the removed row.
-   * @param {Number} amount  Amount of removed rows.
-   */
-  onAfterRemoveRow(removedRows, amount) {
-    this.rowsMapper.unshiftItems(removedRows, amount);
   }
 
   // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. We clear the cache after action which reorganize sequence of columns.
@@ -869,7 +801,6 @@ class ColumnSorting extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.rowsMapper.destroy();
     this.columnStatesManager.destroy();
 
     super.destroy();
