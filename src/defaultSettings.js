@@ -96,7 +96,7 @@ DefaultSettings.prototype = {
    *
    * See [Understanding binding as reference](https://docs.handsontable.com/tutorial-data-binding.html#page-reference).
    *
-   * @type {Array[]|Object[]|Function}
+   * @type {Array[]|Object[]}
    * @default undefined
    * @example
    * ```js
@@ -1572,7 +1572,7 @@ DefaultSettings.prototype = {
    * contextMenu: true,
    *
    * // as an array
-   * contextMenu: ['row_above', 'row_below', '--------', 'undo', 'redo'],
+   * contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo'],
    *
    * // as an object (`name` attribute is required in the custom keys)
    * contextMenu: {

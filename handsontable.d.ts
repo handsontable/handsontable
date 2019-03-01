@@ -1671,25 +1671,23 @@ declare namespace Handsontable {
     autoRowSize?: autoRowSize.Settings | boolean;
     autoWrapCol?: boolean;
     autoWrapRow?: boolean;
-    bindRowsWithHeaders?: boolean | 'loose' | 'strict'; // pro
+    bindRowsWithHeaders?: boolean | 'loose' | 'strict';
     cell?: CellSettings[];
     cells?: (this: CellProperties, row: number, col: number, prop: string | number) => CellMeta;
     checkedTemplate?: boolean | string | number;
     className?: string | string[];
     colHeaders?: boolean | string[] | ((index: number) => string);
-    collapsibleColumns?: boolean | collapsibleColumns.Settings[]; // pro
+    collapsibleColumns?: boolean | collapsibleColumns.Settings[];
     columnHeaderHeight?: number | (number | undefined)[];
     columns?: ColumnSettings[] | ((index: number) => ColumnSettings);
     columnSorting?: boolean | columnSorting.Settings;
-    columnSummary?: columnSummary.Settings[] | (() => columnSummary.Settings[]); // pro
+    columnSummary?: columnSummary.Settings[] | (() => columnSummary.Settings[]);
     colWidths?: number | number[] | string | string[] | ((index: number) => string | number);
     commentedCellClassName?: string;
-    comments?: boolean | comments.Settings;
+    comments?: boolean | comments.Settings | comments.CommentConfig[];
     contextMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
     copyable?: boolean;
-    copyColsLimit?: number;
     copyPaste?: boolean;
-    copyRowsLimit?: number;
     correctFormat?: boolean;
     currentColClassName?: string;
     currentHeaderClassName?: string;
@@ -1704,24 +1702,24 @@ declare namespace Handsontable {
     defaultDate?: string;
     disableVisualSelection?: boolean | 'current' | 'area' | 'header' | ('current' | 'area' | 'header')[];
     dragToScroll?: boolean;
-    dropdownMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings; // pro
-    editor?: EditorType | typeof _editors.Base | boolean;
+    dropdownMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
+    editor?: EditorType | typeof _editors.Base | boolean | string;
     enterBeginsEditing?: boolean;
     enterMoves?: wot.CellCoords | ((event: KeyboardEvent) => wot.CellCoords);
     fillHandle?: boolean | 'vertical' | 'horizontal' | autoFill.Settings;
     filter?: boolean;
     filteringCaseSensitive?: boolean;
-    filters?: boolean; // pro
+    filters?: boolean;
     fixedColumnsLeft?: number;
-    fixedRowsBottom?: number; // pro
+    fixedRowsBottom?: number;
     fixedRowsTop?: number;
     formulas?: boolean | formulas.Settings;
     fragmentSelection?: boolean | 'cell';
-    ganttChart?: ganttChart.Settings; // pro
-    headerTooltips?: boolean | headerTooltips.Settings; // pro
+    ganttChart?: ganttChart.Settings;
+    headerTooltips?: boolean | headerTooltips.Settings;
     height?: number | string | (() => number | string);
-    hiddenColumns?: boolean | hiddenColumns.Settings; // pro
-    hiddenRows?: boolean | hiddenRows.Settings; // pro
+    hiddenColumns?: boolean | hiddenColumns.Settings;
+    hiddenRows?: boolean | hiddenRows.Settings;
     invalidCellClassName?: string;
     isEmptyCol?: (this: _Handsontable.Core, col: number) => boolean;
     isEmptyRow?: (this: _Handsontable.Core, row: number) => boolean;
@@ -1741,7 +1739,7 @@ declare namespace Handsontable {
     minSpareCols?: number;
     minSpareRows?: number;
     multiColumnSorting?: boolean | multiColumnSorting.Settings;
-    nestedHeaders?: (string | nestedHeaders.NestedHeader)[][]; // pro
+    nestedHeaders?: (string | nestedHeaders.NestedHeader)[][];
     nestedRows?: boolean;
     noWordWrapClassName?: string;
     observeChanges?: boolean;
@@ -1754,7 +1752,7 @@ declare namespace Handsontable {
     readOnly?: boolean;
     readOnlyCellClassName?: string;
     renderAllRows?: boolean;
-    renderer?: RendererType | renderers.Base;
+    renderer?: RendererType | string | renderers.Base;
     rowHeaders?: boolean | string[] | ((index: number) => string);
     rowHeaderWidth?: number | number[];
     rowHeights?: number | number[] | string | string[] | ((index: number) => string | number);
@@ -1772,12 +1770,12 @@ declare namespace Handsontable {
     tabMoves?: wot.CellCoords | ((event: KeyboardEvent) => wot.CellCoords);
     title?: string;
     trimDropdown?: boolean;
-    trimRows?: boolean | number[]; // pro
+    trimRows?: boolean | number[];
     trimWhitespace?: boolean;
-    type?: CellType;
+    type?: CellType | string;
     uncheckedTemplate?: boolean | string | number;
     undo?: boolean;
-    validator?: validators.Base | RegExp | ValidatorType;
+    validator?: validators.Base | RegExp | ValidatorType | string;
     viewportColumnRenderingOffset?: number | 'auto';
     viewportRowRenderingOffset?: number | 'auto';
     visibleRows?: number;
@@ -2368,6 +2366,11 @@ declare namespace Handsontable {
     interface Settings {
       displayDelay?: number;
     }
+    interface CommentConfig {
+      row: number,
+      col: number,
+      comment: CommentObject
+    }
   }
 
   namespace contextMenu {
@@ -2487,10 +2490,10 @@ declare namespace Handsontable {
       }
     }
     type Settings = (wot.CellCoords | BorderRange) & {
-      left?: BorderOptions;
-      right?: BorderOptions;
-      top?: BorderOptions;
-      bottom?: BorderOptions;
+      left?: BorderOptions | string;
+      right?: BorderOptions | string;
+      top?: BorderOptions | string;
+      bottom?: BorderOptions | string;
     }
   }
 

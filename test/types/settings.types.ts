@@ -16,10 +16,10 @@ const contextMenuDemo: Handsontable.contextMenu.Settings = {
       name() {
         return '';
       },
-      disabled() { 
+      disabled() {
         return !!this.getSelectedLast();
       },
-      hidden() { 
+      hidden() {
         return !!this.getSelectedLast();
       },
       callback(key, selection, clickEvent) {
@@ -71,11 +71,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const cellProperties: Handsontable.CellMeta = {};
     const visualRowIndex = this.instance.toVisualRow(row);
     const visualColIndex = this.instance.toVisualColumn(column);
-  
+
     if (visualRowIndex === 0 && visualColIndex === 0) {
       cellProperties.readOnly = true;
     }
-  
+
     return cellProperties;
   },
   checkedTemplate: oneOf(true, 123, 'foo'),
@@ -119,12 +119,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ],
   colWidths: oneOf(100, '100px', ((index: number) => oneOf('100px', 100))),
   commentedCellClassName: 'foo',
-  comments: oneOf(true, { displayDelay: 123 }),
+  comments: oneOf(true, { displayDelay: 123 }, [
+    {
+      row: 1,
+      col: 1,
+      comment: { value: "Test" }
+    }
+    ]),
   contextMenu: oneOf(true_or_false, contextMenuDemo) || ['row_above', 'row_below', 'col_left', 'col_right', '---------', 'remove_row', 'remove_col', 'clear_column', 'undo', 'redo', 'make_read_only', 'alignment', 'cut', 'copy', 'freeze_column', 'unfreeze_column', 'borders', 'commentsAddEdit', 'commentsRemove', 'commentsReadOnly', 'mergeCells', 'add_child', 'detach_from_parent', 'hidden_columns_hide', 'hidden_columns_show', 'hidden_rows_hide', 'hidden_rows_show', 'filter_by_condition', 'filter_operators', 'filter_by_condition2', 'filter_by_value', 'filter_action_bar'],
   copyable: true,
-  copyColsLimit: 123,
   copyPaste: true,
-  copyRowsLimit: 123,
   correctFormat: true,
   currentColClassName: 'foo',
   currentHeaderClassName: 'foo',
@@ -148,6 +152,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
       top: { width: 2, color: 'red' },
       bottom: { width: 2, color: 'red' }
     }
+  ],
+  [
+    {
+      row: 2,
+      col: 2,
+      left: '',
+      right: ''
+    }
   ]),
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
@@ -165,7 +177,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   disableVisualSelection: oneOf(true, 'current', 'area', 'header', [DisableVisualSelection.current, DisableVisualSelection.area, DisableVisualSelection.header]),
   dragToScroll: false,
   dropdownMenu: oneOf(true_or_false, contextMenuDemo) || ['row_above', 'row_below', 'col_left', 'col_right', '---------', 'remove_row', 'remove_col', 'clear_column', 'undo', 'redo', 'make_read_only', 'alignment', 'cut', 'copy', 'freeze_column', 'unfreeze_column', 'borders', 'commentsAddEdit', 'commentsRemove', 'commentsReadOnly', 'mergeCells', 'add_child', 'detach_from_parent', 'hidden_columns_hide', 'hidden_columns_show', 'hidden_rows_hide', 'hidden_rows_show', 'filter_by_condition', 'filter_operators', 'filter_by_condition2', 'filter_by_value', 'filter_action_bar'],
-  editor: oneOf(true, 'autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'mobile', 'password', 'select', 'text'),
+  editor: oneOf(true, 'autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'mobile', 'password', 'select', 'text', 'custom.editor'),
   enterBeginsEditing: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 1, col: 1})),
   fillHandle: oneOf(true_or_false, 'vertical', 'horizontal') || {
@@ -253,7 +265,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   minSpareRows: 123,
   multiColumnSorting: true_or_false || {
     initialConfig: oneOf(
-      { column: 1, sortOrder: SortDirection.desc }, 
+      { column: 1, sortOrder: SortDirection.desc },
       [{ column: 1, sortOrder: SortDirection.asc }, { column: 0, sortOrder: SortDirection.desc }]
     ),
     sortEmptyCells: true,
@@ -287,7 +299,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   readOnlyCellClassName: 'foo',
   renderAllRows: true,
   renderer: oneOf(
-    'autocomplete', 'checkbox', 'html', 'numeric', 'password', 'text', 
+    'autocomplete', 'checkbox', 'html', 'numeric', 'password', 'text', 'custom.renderer',
     (instance: Handsontable, TD: HTMLTableCellElement, row: number, col: number, prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
   ),
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
@@ -309,13 +321,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
   trimDropdown: true,
   trimRows: oneOf(true, [5, 10, 15]),
   trimWhitespace: true,
-  type: 'autocomplete',
+  type: oneOf('autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'numeric', 'password', 'text', 'time', 'custom.cell.type'),
   uncheckedTemplate: oneOf(true, 'foo', 123),
   undo: true,
   validator: oneOf(
     (value: any, callback: (valid: boolean) => void) => callback(true),
     /^[0-9]$/,
-    'autocomplete', 'date', 'numeric', 'time'
+    'autocomplete', 'date', 'numeric', 'time', 'custom.validator'
   ),
   viewportColumnRenderingOffset: oneOf(100, 'auto'),
   viewportRowRenderingOffset: oneOf(100, 'auto'),
