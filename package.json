@@ -14,6 +14,8 @@
   "main": "commonjs/index.js",
   "module": "es/index.js",
   "jsnext:main": "es/index.js",
+  "jsdelivr": "dist/handsontable.full.min.js",
+  "unpkg": "dist/handsontable.full.min.js",
   "scripts": {
     "clean": "rimraf commonjs es coverage tmp",
     "lint": "eslint src/ test/",
