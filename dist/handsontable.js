@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.0.0
- * Release date: 06/03/2019 (built at 25/02/2019 11:36:32)
+ * Release date: 06/03/2019 (built at 01/03/2019 09:51:57)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -29779,7 +29779,7 @@ DefaultSettings.prototype = {
    *
    * See [Understanding binding as reference](https://docs.handsontable.com/tutorial-data-binding.html#page-reference).
    *
-   * @type {Array[]|Object[]|Function}
+   * @type {Array[]|Object[]}
    * @default undefined
    * @example
    * ```js
@@ -31261,7 +31261,7 @@ DefaultSettings.prototype = {
    * contextMenu: true,
    *
    * // as an array
-   * contextMenu: ['row_above', 'row_below', '--------', 'undo', 'redo'],
+   * contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo'],
    *
    * // as an object (`name` attribute is required in the custom keys)
    * contextMenu: {
@@ -36486,7 +36486,7 @@ Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "25/02/2019 11:36:32";
+Handsontable.buildDate = "01/03/2019 09:51:57";
 Handsontable.version = "7.0.0"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -69014,7 +69014,7 @@ function (_BasePlugin) {
      * const container = document.getElementById('example');
      * const hot = new Handsontable(container, {
      *   date: getData(),
-     *   filter: true
+     *   filters: true
      * });
      *
      * // access to filters plugin instance
