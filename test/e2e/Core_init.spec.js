@@ -73,11 +73,16 @@ describe('Core_init', () => {
   });
 
   it('should create table even if is launched inside custom element', () => {
+    const onErrorSpy = spyOn(window, 'onerror');
     spec().$container = $(`<hot-table><div id="${id}"></div></hot-table>`).appendTo('body');
+
     handsontable();
 
-    expect(() => {
-      mouseOver(spec().$container.find('tr:eq(0) td:eq(1)'));
-    }).not.toThrow();
+    const cell = spec().$container.find('tr:eq(0) td:eq(1)');
+
+    mouseOver(cell);
+    mouseDown(cell);
+
+    expect(onErrorSpy).not.toHaveBeenCalled();
   });
 });

@@ -65,6 +65,13 @@ class TableView {
      * @type {Walkontable}
      */
     this.wt = void 0;
+    /**
+     * Main Walkontable instance.
+     *
+     * @private
+     * @type {Walkontable}
+     */
+    this.activeWt = void 0;
 
     privatePool.set(this, {
       /**
@@ -86,13 +93,6 @@ class TableView {
        * @type {HTMLTableElement}
        */
       table: void 0,
-      /**
-       * Main Walkontable instance.
-       *
-       * @private
-       * @type {Walkontable}
-       */
-      activeWt: void 0,
       /**
        * Cached width of the rootElement.
        *
@@ -446,7 +446,7 @@ class TableView {
 
         this.instance.listen();
 
-        priv.activeWt = wt;
+        this.activeWt = wt;
         priv.mouseDown = true;
 
         this.instance.runHooks('beforeOnCellMouseDown', event, coords, TD, blockCalculations);
@@ -462,10 +462,10 @@ class TableView {
         });
 
         this.instance.runHooks('afterOnCellMouseDown', event, coords, TD);
-        priv.activeWt = this.wt;
+        this.activeWt = this.wt;
       },
       onCellContextMenu: (event, coords, TD, wt) => {
-        priv.activeWt = wt;
+        this.activeWt = wt;
         priv.mouseDown = false;
 
         if (this.instance.selection.isInProgress()) {
@@ -480,10 +480,10 @@ class TableView {
 
         this.instance.runHooks('afterOnCellContextMenu', event, coords, TD);
 
-        priv.activeWt = this.wt;
+        this.activeWt = this.wt;
       },
       onCellMouseOut: (event, coords, TD, wt) => {
-        priv.activeWt = wt;
+        this.activeWt = wt;
         this.instance.runHooks('beforeOnCellMouseOut', event, coords, TD);
 
         if (isImmediatePropagationStopped(event)) {
@@ -491,7 +491,7 @@ class TableView {
         }
 
         this.instance.runHooks('afterOnCellMouseOut', event, coords, TD);
-        priv.activeWt = this.wt;
+        this.activeWt = this.wt;
       },
       onCellMouseOver: (event, coords, TD, wt) => {
         const blockCalculations = {
@@ -500,7 +500,7 @@ class TableView {
           cell: false
         };
 
-        priv.activeWt = wt;
+        this.activeWt = wt;
 
         this.instance.runHooks('beforeOnCellMouseOver', event, coords, TD, blockCalculations);
 
@@ -517,14 +517,14 @@ class TableView {
         }
 
         this.instance.runHooks('afterOnCellMouseOver', event, coords, TD);
-        priv.activeWt = this.wt;
+        this.activeWt = this.wt;
       },
       onCellMouseUp: (event, coords, TD, wt) => {
-        priv.activeWt = wt;
+        this.activeWt = wt;
         this.instance.runHooks('beforeOnCellMouseUp', event, coords, TD);
 
         this.instance.runHooks('afterOnCellMouseUp', event, coords, TD);
-        priv.activeWt = this.wt;
+        this.activeWt = this.wt;
       },
       onCellCornerMouseDown: (event) => {
         event.preventDefault();
@@ -597,7 +597,7 @@ class TableView {
     this.instance.runHooks('beforeInitWalkontable', walkontableConfig);
 
     this.wt = new Walkontable(walkontableConfig);
-    priv.activeWt = this.wt;
+    this.activeWt = this.wt;
 
     const spreader = this.wt.wtTable.spreader;
     // We have to cache width and height after Walkontable initialization.
@@ -840,9 +840,7 @@ class TableView {
    * @returns {Boolean}
    */
   mainViewIsActive() {
-    const priv = privatePool.get(this);
-
-    return this.wt === priv.activeWt;
+    return this.wt === this.activeWt;
   }
 
   /**
