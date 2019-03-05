@@ -196,6 +196,15 @@ class Walkontable {
   }
 
   /**
+   * Check if this instance acts as an overlay (internally called as "clone" of the master table).
+   *
+   * @returns {String}
+   */
+  isClone() {
+    return this.cloneSource ? false : true;;
+  }
+
+  /**
    * Check overlay type of this Walkontable instance.
    *
    * @param {String} name Clone type @see {Overlay.CLONE_TYPES}.

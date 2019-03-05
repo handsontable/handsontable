@@ -5,7 +5,6 @@ import {
   getScrollTop,
   offset,
 } from './../../../helpers/dom/element';
-import { rangeEach, rangeEachReverse } from './../../../helpers/number';
 
 /**
  * @class Scroll
@@ -61,7 +60,8 @@ class Scroll {
     if (column >= 0 && column <= Math.max(totalColumns - 1, 0)) {
       if (column >= fixedColumnsLeft && (column < this.getFirstVisibleColumn() || snapToLeft)) {
         result = leftOverlay.scrollTo(column);
-      } else if (column > this.getLastVisibleColumn() || snapToRight) {
+      // } else if (column > this.getLastVisibleColumn() || snapToRight) {
+      } else if (column >= this.getLastVisibleColumn() || snapToRight) {
         result = leftOverlay.scrollTo(column, true);
       }
     }
@@ -93,7 +93,8 @@ class Scroll {
     if (row >= 0 && row <= Math.max(totalRows - 1, 0)) {
       if (row >= fixedRowsTop && (row < this.getFirstVisibleRow() || snapToTop)) {
         result = topOverlay.scrollTo(row);
-      } else if ((row > this.getLastVisibleRow() && row < totalRows - fixedRowsBottom) || snapToBottom) {
+      // } else if ((row > this.getLastVisibleRow() && row < totalRows - fixedRowsBottom) || snapToBottom) {
+      } else if ((row >= this.getLastVisibleRow() && row < totalRows - fixedRowsBottom) || snapToBottom) {
         result = topOverlay.scrollTo(row, true);
       }
     }
@@ -129,16 +130,26 @@ class Scroll {
 
         rowsHeight += topOverlay.sumCellSizes(0, fixedRowsTop);
 
-        rangeEachReverse(totalRows, 1, (row) => {
+        for (var row = totalRows; row > 0; row--) {
           rowsHeight += topOverlay.sumCellSizes(row - 1, row);
 
           if (rootElementOffset.top + totalTableHeight - rowsHeight <= windowScrollTop) {
             // Return physical row + 1
             firstVisibleRow = row;
-
-            return false;
+            break;
           }
-        });
+        }
+
+        // rangeEachReverse(totalRows, 1, (row) => {
+        //   rowsHeight += topOverlay.sumCellSizes(row - 1, row);
+        //
+        //   if (rootElementOffset.top + totalTableHeight - rowsHeight <= windowScrollTop) {
+        //     // Return physical row + 1
+        //     firstVisibleRow = row;
+        //
+        //     return false;
+        //   }
+        // });
       }
     }
 
@@ -162,23 +173,33 @@ class Scroll {
 
     if (topOverlay.mainTableScrollableElement === window) {
       const rootElementOffset = offset(wtTable.wtRootElement);
-      const windowHeight = innerHeight(window);
       const windowScrollTop = getScrollTop(window);
 
       // Only calculate lastVisibleRow when table didn't filled (from bottom) whole viewport space
       if (rootElementOffset.top > windowScrollTop) {
+        const windowHeight = innerHeight(window);
         let rowsHeight = wtViewport.getColumnHeaderHeight();
 
-        rangeEach(1, totalRows, (row) => {
+        for (var row = 1; row <= totalRows; row++) {
           rowsHeight += topOverlay.sumCellSizes(row - 1, row);
 
           if (rootElementOffset.top + rowsHeight - windowScrollTop >= windowHeight) {
             // Return physical row - 1 (-2 because rangeEach gives row index + 1 - sumCellSizes requirements)
             lastVisibleRow = row - 2;
-
-            return false;
+            break;
           }
-        });
+        }
+
+        // rangeEach(1, totalRows, (row) => {
+        //   rowsHeight += topOverlay.sumCellSizes(row - 1, row);
+        //
+        //   if (rootElementOffset.top + rowsHeight - windowScrollTop >= windowHeight) {
+        //     // Return physical row - 1 (-2 because rangeEach gives row index + 1 - sumCellSizes requirements)
+        //     lastVisibleRow = row - 2;
+        //
+        //     return false;
+        //   }
+        // });
       }
     }
 
@@ -210,16 +231,26 @@ class Scroll {
       if (rootElementOffset.left + totalTableWidth - windowWidth <= windowScrollLeft) {
         let columnsWidth = wtViewport.getRowHeaderWidth();
 
-        rangeEachReverse(totalColumns, 1, (column) => {
+        for (var column = totalColumns; column > 0; column--) {
           columnsWidth += leftOverlay.sumCellSizes(column - 1, column);
 
           if (rootElementOffset.left + totalTableWidth - columnsWidth <= windowScrollLeft) {
             // Return physical column + 1
             firstVisibleColumn = column;
-
-            return false;
+            break;
           }
-        });
+        }
+
+        // rangeEachReverse(totalColumns, 1, (column) => {
+        //   columnsWidth += leftOverlay.sumCellSizes(column - 1, column);
+        //
+        //   if (rootElementOffset.left + totalTableWidth - columnsWidth <= windowScrollLeft) {
+        //     // Return physical column + 1
+        //     firstVisibleColumn = column;
+        //
+        //     return false;
+        //   }
+        // });
       }
     }
 
@@ -243,23 +274,33 @@ class Scroll {
 
     if (leftOverlay.mainTableScrollableElement === window) {
       const rootElementOffset = offset(wtTable.wtRootElement);
-      const windowWidth = innerWidth(window);
       const windowScrollLeft = getScrollLeft(window);
 
       // Only calculate lastVisibleColumn when table didn't filled (from right) whole viewport space
       if (rootElementOffset.left > windowScrollLeft) {
+        const windowWidth = innerWidth(window);
         let columnsWidth = wtViewport.getRowHeaderWidth();
 
-        rangeEach(1, totalColumns, (column) => {
+        for (var column = 1; column <= totalColumns; column++) {
           columnsWidth += leftOverlay.sumCellSizes(column - 1, column);
 
           if (rootElementOffset.left + columnsWidth - windowScrollLeft >= windowWidth) {
             // Return physical column - 1 (-2 because rangeEach gives column index + 1 - sumCellSizes requirements)
             lastVisibleColumn = column - 2;
-
-            return false;
+            break;
           }
-        });
+        }
+
+        // rangeEach(1, totalColumns, (column) => {
+        //   columnsWidth += leftOverlay.sumCellSizes(column - 1, column);
+        //
+        //   if (rootElementOffset.left + columnsWidth - windowScrollLeft >= windowWidth) {
+        //     // Return physical column - 1 (-2 because rangeEach gives column index + 1 - sumCellSizes requirements)
+        //     lastVisibleColumn = column - 2;
+        //
+        //     return false;
+        //   }
+        // });
       }
     }
 

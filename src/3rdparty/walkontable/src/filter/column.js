@@ -66,6 +66,10 @@ class ColumnFilter {
    * @returns {Number}
    */
   visibleRowHeadedColumnToSourceColumn(index) {
+    // if (this.countTH === 0) {
+    //   return -1;
+    // }
+
     return this.renderedToSource(this.offsettedTH(index));
   }
 
@@ -74,6 +78,10 @@ class ColumnFilter {
    * @returns {Number}
    */
   sourceColumnToVisibleRowHeadedColumn(index) {
+    // if (this.countTH === 0) {
+    //   return -1;
+    // }
+
     return this.unOffsettedTH(this.sourceToRendered(index));
   }
 }

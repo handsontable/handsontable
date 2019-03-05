@@ -42,14 +42,13 @@ class Viewport {
    */
   getWorkspaceHeight() {
     const trimmingContainer = this.instance.wtOverlays.topOverlay.trimmingContainer;
-    let elemHeight;
     let height = 0;
 
     if (trimmingContainer === window) {
       height = document.documentElement.clientHeight;
 
     } else {
-      elemHeight = outerHeight(trimmingContainer);
+      let elemHeight = outerHeight(trimmingContainer);
       // returns height without DIV scrollbar
       height = (elemHeight > 0 && trimmingContainer.clientHeight > 0) ? trimmingContainer.clientHeight : Infinity;
     }
@@ -58,17 +57,16 @@ class Viewport {
   }
 
   getWorkspaceWidth() {
-    let width;
-    const totalColumns = this.wot.getSetting('totalColumns');
-    const trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
-    let overflow;
-    const stretchSetting = this.wot.getSetting('stretchH');
-    const docOffsetWidth = document.documentElement.offsetWidth;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (preventOverflow) {
       return outerWidth(this.instance.wtTable.wtRootElement);
     }
+
+    const totalColumns = this.wot.getSetting('totalColumns');
+    const trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
+    const docOffsetWidth = document.documentElement.offsetWidth;
+    let width;
 
     if (this.wot.getSetting('freezeOverlays')) {
       width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
@@ -85,7 +83,7 @@ class Viewport {
     }
 
     if (trimmingContainer !== window) {
-      overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
+      const overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
 
       if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
         // this is used in `scroll.html`
@@ -93,6 +91,8 @@ class Viewport {
         return Math.max(width, trimmingContainer.clientWidth);
       }
     }
+
+    const stretchSetting = this.wot.getSetting('stretchH');
 
     if (stretchSetting === 'none' || !stretchSetting) {
       // if no stretching is used, return the maximum used workspace width
@@ -430,14 +430,16 @@ class Viewport {
    */
   areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) {
     if (this.rowsVisibleCalculator) {
-      if (proposedRowsVisibleCalculator.startRow < this.rowsRenderCalculator.startRow ||
-          (proposedRowsVisibleCalculator.startRow === this.rowsRenderCalculator.startRow &&
-          proposedRowsVisibleCalculator.startRow > 0)) {
+      // if (proposedRowsVisibleCalculator.startRow < this.rowsRenderCalculator.startRow ||
+          // (proposedRowsVisibleCalculator.startRow === this.rowsRenderCalculator.startRow &&
+          // proposedRowsVisibleCalculator.startRow > 0)) {
+      if (proposedRowsVisibleCalculator.startRow < this.rowsRenderCalculator.startRow) {
         return false;
 
-      } else if (proposedRowsVisibleCalculator.endRow > this.rowsRenderCalculator.endRow ||
-          (proposedRowsVisibleCalculator.endRow === this.rowsRenderCalculator.endRow &&
-          proposedRowsVisibleCalculator.endRow < this.wot.getSetting('totalRows') - 1)) {
+      // } else if (proposedRowsVisibleCalculator.endRow > this.rowsRenderCalculator.endRow ||
+          // (proposedRowsVisibleCalculator.endRow === this.rowsRenderCalculator.endRow &&
+          // proposedRowsVisibleCalculator.endRow < this.wot.getSetting('totalRows') - 1)) {
+      } else if (proposedRowsVisibleCalculator.endRow > this.rowsRenderCalculator.endRow) {
         return false;
 
       }
@@ -458,14 +460,16 @@ class Viewport {
    */
   areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator) {
     if (this.columnsVisibleCalculator) {
-      if (proposedColumnsVisibleCalculator.startColumn < this.columnsRenderCalculator.startColumn ||
-          (proposedColumnsVisibleCalculator.startColumn === this.columnsRenderCalculator.startColumn &&
-          proposedColumnsVisibleCalculator.startColumn > 0)) {
+      // if (proposedColumnsVisibleCalculator.startColumn < this.columnsRenderCalculator.startColumn ||
+          // (proposedColumnsVisibleCalculator.startColumn === this.columnsRenderCalculator.startColumn &&
+          // proposedColumnsVisibleCalculator.startColumn > 0)) {
+      if (proposedColumnsVisibleCalculator.startColumn < this.columnsRenderCalculator.startColumn) {
         return false;
 
-      } else if (proposedColumnsVisibleCalculator.endColumn > this.columnsRenderCalculator.endColumn ||
-          (proposedColumnsVisibleCalculator.endColumn === this.columnsRenderCalculator.endColumn &&
-          proposedColumnsVisibleCalculator.endColumn < this.wot.getSetting('totalColumns') - 1)) {
+      // } else if (proposedColumnsVisibleCalculator.endColumn > this.columnsRenderCalculator.endColumn ||
+          // (proposedColumnsVisibleCalculator.endColumn === this.columnsRenderCalculator.endColumn &&
+          // proposedColumnsVisibleCalculator.endColumn < this.wot.getSetting('totalColumns') - 1)) {
+      } else if (proposedColumnsVisibleCalculator.endColumn > this.columnsRenderCalculator.endColumn) {
         return false;
 
       }

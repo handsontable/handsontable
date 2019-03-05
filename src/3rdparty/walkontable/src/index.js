@@ -24,7 +24,7 @@ import Scroll from './scroll';
 import Selection from './selection';
 import Settings from './settings';
 import Table from './table';
-import TableRenderer from './tableRenderer';
+import * as TableRenderer from './renderer';
 import Viewport from './viewport';
 
 export {

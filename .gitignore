@@ -12,6 +12,7 @@ src/3rdparty/walkontable/dist/
 tmp/
 cars.sqlite
 dev*.html
+dev*.js
 npm-debug.log
 
 !dist/README.md
