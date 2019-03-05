@@ -1,4 +1,4 @@
-import { arrayFilter, arrayMap } from './../helpers/array';
+import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
 import { rangeEach } from './../helpers/number';
 
 class IndexMapper {
@@ -14,12 +14,12 @@ class IndexMapper {
    * @return {Number|null} Returns translated index mapped by passed visual index.
    */
   getPhysicalIndex(visualIndex) {
-    const visualIndexes = arrayFilter(this.indexesSequence, physicalIndex => this.skippedIndexes.includes(physicalIndex) === false);
-    const length = visualIndexes.length;
+    const visibleIndexes = arrayFilter(this.indexesSequence, index => this.skippedIndexes.includes(index) === false);
+    const length = visibleIndexes.length;
     let physicalIndex = null;
 
     if (visualIndex < length) {
-      physicalIndex = visualIndexes[visualIndex];
+      physicalIndex = visibleIndexes[visualIndex];
     }
 
     return physicalIndex;
@@ -32,10 +32,11 @@ class IndexMapper {
    * @returns {Number|null} Returns a visual index of the index mapper.
    */
   getVisualIndex(physicalIndex) {
+    const visibleIndexes = arrayFilter(this.indexesSequence, index => this.skippedIndexes.includes(index) === false);
     let visualIndex = null;
 
     if (!this.skippedIndexes.includes(physicalIndex) && this.indexesSequence.includes(physicalIndex)) {
-      visualIndex = this.indexesSequence.indexOf(physicalIndex);
+      visualIndex = visibleIndexes.indexOf(physicalIndex);
     }
 
     return visualIndex;
@@ -63,7 +64,7 @@ class IndexMapper {
   }
 
   updateIndexesAfterInsertion(firstVisualInsertedIndex, firstPhysicalInsertedIndex, amountOfIndexes) {
-    const visibleIndexes = this.indexesSequence.filter(index => this.skippedIndexes.includes(index) === false);
+    const visibleIndexes = arrayFilter(this.indexesSequence, index => this.skippedIndexes.includes(index) === false);
     const nthVisibleIndex = visibleIndexes[firstVisualInsertedIndex];
     const insetionIndex = this.indexesSequence.includes(nthVisibleIndex) ? this.indexesSequence.indexOf(nthVisibleIndex) : this.indexesSequence.length;
 
@@ -101,6 +102,43 @@ class IndexMapper {
 
   getDecreasedIndexes(indexesList, removedIndexes) {
     return arrayMap(indexesList, index => index - removedIndexes.filter(removedRow => removedRow < index).length);
+  }
+
+  /**
+   * Move indexes in the index mapper.
+   *
+   * @param {Number|Array} movedIndexes Visual index(es) to move.
+   * @param {Number} finalIndex Visual row index being a start index for the moved rows.
+   */
+  moveItems(movedIndexes, finalIndex) {
+    if (typeof movedIndexes === 'number') {
+      movedIndexes = [movedIndexes];
+    }
+
+    const physicalMovedIndexes = arrayMap(movedIndexes, row => this.getPhysicalIndex(row));
+
+    this.indexesSequence = this.getRemovedIndexes(this.indexesSequence, physicalMovedIndexes);
+
+    const visibleIndexes = arrayFilter(this.indexesSequence, index => this.skippedIndexes.includes(index) === false);
+
+    // When item(s) are moved after the last item we assign new index.
+    let indexNumber = this.indexesSequence.length;
+
+    // Otherwise, we find proper index for inserted item(s).
+    if (finalIndex < visibleIndexes.length) {
+      const physicalIndex = this.getPhysicalIndex(finalIndex);
+      indexNumber = this.indexesSequence.indexOf(physicalIndex);
+    }
+
+    // We count number of skipped rows from the start to the position of inserted item(s).
+    const skippedRowsToTargetIndex = arrayReduce(this.indexesSequence.slice(0, indexNumber), (skippedRowsSum, currentValue) => {
+      if (this.skippedIndexes.includes(currentValue)) {
+        return skippedRowsSum + 1;
+      }
+      return skippedRowsSum;
+    }, 0);
+
+    this.insertIndexes(this.indexesSequence, finalIndex + skippedRowsToTargetIndex, physicalMovedIndexes);
   }
 }
 
