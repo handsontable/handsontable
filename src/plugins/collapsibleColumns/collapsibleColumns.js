@@ -14,7 +14,6 @@ import BasePlugin from '../_base';
 
 /**
  * @plugin CollapsibleColumns
- * @pro
  * @dependencies NestedHeaders HiddenColumns
  *
  * @description
@@ -273,7 +272,7 @@ class CollapsibleColumns extends BasePlugin {
       return null;
     }
 
-    const divEl = document.createElement('DIV');
+    const divEl = this.hot.rootDocument.createElement('DIV');
 
     addClass(divEl, 'collapsibleIndicator');
 

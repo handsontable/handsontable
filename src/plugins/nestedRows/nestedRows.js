@@ -14,7 +14,6 @@ const privatePool = new WeakMap();
 
 /**
  * @plugin NestedRows
- * @pro
  * @experimental
  *
  * @description

@@ -1,10 +1,5 @@
 /**
- * Config responsible for building Handsontable `dist/` files. Depends on HOT_FILENAME env it produces, either PRO files:
- *  - handsontable-pro.js
- *  - handsontable-pro.css
- *  - handsontable-pro.full.js
- *  - handsontable-pro.full.css
- * or CE files:
+ * Config responsible for building Handsontable `dist/` files:
  *  - handsontable.js
  *  - handsontable.css
  *  - handsontable.full.js

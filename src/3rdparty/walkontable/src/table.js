@@ -69,27 +69,29 @@ class Table {
    *
    */
   fixTableDomTree() {
+    const rootDocument = this.wot.rootDocument;
+
     this.TBODY = this.TABLE.querySelector('tbody');
 
     if (!this.TBODY) {
-      this.TBODY = document.createElement('tbody');
+      this.TBODY = rootDocument.createElement('tbody');
       this.TABLE.appendChild(this.TBODY);
     }
     this.THEAD = this.TABLE.querySelector('thead');
 
     if (!this.THEAD) {
-      this.THEAD = document.createElement('thead');
+      this.THEAD = rootDocument.createElement('thead');
       this.TABLE.insertBefore(this.THEAD, this.TBODY);
     }
     this.COLGROUP = this.TABLE.querySelector('colgroup');
 
     if (!this.COLGROUP) {
-      this.COLGROUP = document.createElement('colgroup');
+      this.COLGROUP = rootDocument.createElement('colgroup');
       this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
     }
 
     if (this.wot.getSetting('columnHeaders').length && !this.THEAD.childNodes.length) {
-      this.THEAD.appendChild(document.createElement('TR'));
+      this.THEAD.appendChild(rootDocument.createElement('TR'));
     }
   }
 
@@ -102,7 +104,7 @@ class Table {
     let spreader;
 
     if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
-      spreader = document.createElement('div');
+      spreader = this.wot.rootDocument.createElement('div');
       spreader.className = 'wtSpreader';
 
       if (parent) {
@@ -125,7 +127,7 @@ class Table {
     let hider;
 
     if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
-      hider = document.createElement('div');
+      hider = this.wot.rootDocument.createElement('div');
       hider.className = 'wtHider';
 
       if (parent) {
@@ -148,7 +150,7 @@ class Table {
     let holder;
 
     if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
-      holder = document.createElement('div');
+      holder = this.wot.rootDocument.createElement('div');
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
 
@@ -168,10 +170,11 @@ class Table {
   alignOverlaysWithTrimmingContainer() {
     if (!this.isWorkingOnClone()) {
       const trimmingElement = getTrimmingContainer(this.wtRootElement);
+      const { rootWindow } = this.wot;
 
       this.holder.parentNode.style.position = 'relative';
 
-      if (trimmingElement === window) {
+      if (trimmingElement === rootWindow) {
         const preventOverflow = this.wot.getSetting('preventOverflow');
 
         if (!preventOverflow) {
@@ -179,9 +182,17 @@ class Table {
           this.wtRootElement.style.overflow = 'visible';
         }
       } else {
-        this.holder.style.width = getStyle(trimmingElement, 'width');
-        this.holder.style.height = getStyle(trimmingElement, 'height');
-        this.holder.style.overflow = '';
+        const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
+        const holderStyle = this.holder.style;
+        const { scrollWidth, scrollHeight } = trimmingElement;
+        let { width, height } = trimmingElement.getBoundingClientRect();
+
+        width = Math.min(width, scrollWidth);
+        height = Math.min(height, scrollHeight);
+
+        holderStyle.width = `${width}px`;
+        holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
+        holderStyle.overflow = '';
       }
     }
   }
@@ -197,9 +208,12 @@ class Table {
    * @returns {Table}
    */
   draw(fastDraw) {
-    const { wtOverlays, wtViewport } = this.wot;
-    const rowHeadersCount = this.wot.getSetting('rowHeaders').length;
+    const { wot } = this;
+    const { wtOverlays, wtViewport } = wot;
     const isClone = this.isWorkingOnClone();
+    const totalRows = this.instance.getSetting('totalRows');
+    const rowHeaders = wot.getSetting('rowHeaders').length;
+    const columnHeaders = wot.getSetting('columnHeaders').length;
     let syncScroll = false;
     let runFastDraw = fastDraw;
 
@@ -207,7 +221,7 @@ class Table {
       this.holderOffset = offset(this.holder);
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
-      if (rowHeadersCount && !this.wot.getSetting('fixedColumnsLeft')) {
+      if (rowHeaders && !wot.getSetting('fixedColumnsLeft')) {
         const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
         const previousState = this.correctHeaderWidth;
 
@@ -233,7 +247,9 @@ class Table {
       }
     } else {
       const totalRows = this.instance.getSetting('totalRows');
-      const columnHeadersCount = this.wot.getSetting('columnHeaders').length;
+      const columnHeadersCount = wot.getSetting('columnHeaders').length;
+
+      const { cloneOverlay } = wot;
 
       if (isClone) {
         this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
@@ -242,29 +258,28 @@ class Table {
       }
       let startRow;
 
-      if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_DEBUG) ||
-          Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP) ||
-          Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
+      if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_DEBUG) ||
+          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP) ||
+          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
         startRow = 0;
-      } else if (Overlay.isOverlayTypeOf(this.instance.cloneOverlay, Overlay.CLONE_BOTTOM) ||
-          Overlay.isOverlayTypeOf(this.instance.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-        startRow = Math.max(totalRows - this.wot.getSetting('fixedRowsBottom'), 0);
+      } else if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM) ||
+          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+        startRow = Math.max(totalRows - wot.getSetting('fixedRowsBottom'), 0);
       } else {
         startRow = wtViewport.rowsRenderCalculator.startRow;
       }
       let startColumn;
 
-      if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_DEBUG) ||
-          Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_LEFT) ||
-          Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER) ||
-          Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_DEBUG) ||
+          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_LEFT) ||
+          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER) ||
+          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startColumn = 0;
       } else {
         startColumn = wtViewport.columnsRenderCalculator.startColumn;
       }
-
-      this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
-      this.columnFilter = new ColumnFilter(startColumn, this.wot.getSetting('totalColumns'), rowHeadersCount);
+      this.rowFilter = new RowFilter(startRow, totalRows, columnHeaders);
+      this.columnFilter = new ColumnFilter(startColumn, wot.getSetting('totalColumns'), rowHeaders);
 
       this.alignOverlaysWithTrimmingContainer();
 
@@ -379,7 +394,8 @@ class Table {
     if (syncScroll) {
       wtOverlays.syncScrollWithMaster();
     }
-    this.wot.drawn = true;
+
+    wot.drawn = true;
 
     return this;
   }
@@ -398,10 +414,12 @@ class Table {
    * @param {Boolean} fastDraw If fast drawing is enabled than additionally className clearing is applied.
    */
   refreshSelections(fastDraw) {
-    if (!this.wot.selections) {
+    const { wot } = this;
+
+    if (!wot.selections) {
       return;
     }
-    const highlights = Array.from(this.wot.selections);
+    const highlights = Array.from(wot.selections);
     const len = highlights.length;
 
     if (fastDraw) {
@@ -433,7 +451,7 @@ class Table {
         }
       }
 
-      const additionalClassesToRemove = this.wot.getSetting('onBeforeRemoveCellClassNames');
+      const additionalClassesToRemove = wot.getSetting('onBeforeRemoveCellClassNames');
 
       if (Array.isArray(additionalClassesToRemove)) {
         for (let i = 0; i < additionalClassesToRemove.length; i++) {
@@ -450,7 +468,7 @@ class Table {
     }
 
     for (let i = 0; i < len; i++) {
-      highlights[i].draw(this.wot, fastDraw);
+      highlights[i].draw(wot, fastDraw);
     }
   }
 
@@ -461,6 +479,8 @@ class Table {
    * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:
    *  -1 row before viewport
    *  -2 row after viewport
+   *  -3 column before viewport
+   *  -4 column after viewport
    */
   getCell(coords) {
     let row = coords.row;
@@ -478,6 +498,14 @@ class Table {
     } else if (this.isRowAfterRenderedRows(row)) {
       // row after rendered rows
       return -2;
+
+    } else if (this.isColumnBeforeRenderedColumns(column)) {
+      // column before rendered columns
+      return -3;
+
+    } else if (this.isColumnAfterRenderedColumns(column)) {
+      // column after rendered columns
+      return -4;
     }
 
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
@@ -628,8 +656,16 @@ class Table {
     return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
   }
 
+  isColumnBeforeRenderedColumns(column) {
+    return this.columnFilter && (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column) < 0 && column >= 0);
+  }
+
   isColumnAfterViewport(column) {
     return this.columnFilter && (this.columnFilter.sourceToRendered(column) > this.getLastVisibleColumn());
+  }
+
+  isColumnAfterRenderedColumns(column) {
+    return this.columnFilter && (this.columnFilter.sourceToRendered(column) > this.getLastRenderedColumn());
   }
 
   isLastRowFullyVisible() {

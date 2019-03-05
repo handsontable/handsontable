@@ -93,7 +93,19 @@ class TableView {
        * @private
        * @type {Walkontable}
        */
-      activeWt: void 0
+      activeWt: void 0,
+      /**
+       * Cached width of the rootElement.
+       *
+       * @type {Number}
+       */
+      lastWidth: 0,
+      /**
+       * Cached height of the rootElement.
+       *
+       * @type {Number}
+       */
+      lastHeight: 0,
     });
 
     this.createElements();
@@ -203,24 +215,26 @@ class TableView {
    */
   createElements() {
     const priv = privatePool.get(this);
-    const originalStyle = this.instance.rootElement.getAttribute('style');
+    const { rootElement, rootDocument } = this.instance;
+    const originalStyle = rootElement.getAttribute('style');
 
     if (originalStyle) {
-      this.instance.rootElement.setAttribute('data-originalstyle', originalStyle); // needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+      rootElement.setAttribute('data-originalstyle', originalStyle); // needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
     }
 
-    addClass(this.instance.rootElement, 'handsontable');
+    addClass(rootElement, 'handsontable');
 
-    priv.table = document.createElement('TABLE');
+    priv.table = rootDocument.createElement('TABLE');
     addClass(priv.table, 'htCore');
 
     if (this.instance.getSettings().tableClassName) {
       addClass(priv.table, this.instance.getSettings().tableClassName);
     }
 
-    this.THEAD = document.createElement('THEAD');
+    this.THEAD = rootDocument.createElement('THEAD');
     priv.table.appendChild(this.THEAD);
-    this.TBODY = document.createElement('TBODY');
+
+    this.TBODY = rootDocument.createElement('TBODY');
     priv.table.appendChild(this.TBODY);
 
     this.instance.table = priv.table;
@@ -235,49 +249,52 @@ class TableView {
    */
   registerEvents() {
     const priv = privatePool.get(this);
+    const { rootElement, rootDocument } = this.instance;
+    const documentElement = rootDocument.documentElement;
 
-    this.eventManager.addEventListener(this.instance.rootElement, 'mousedown', (event) => {
+    this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
       priv.selectionMouseDown = true;
 
       if (!this.isTextSelectionAllowed(event.target)) {
-        clearTextSelection();
+        const { rootWindow } = this.instance;
+        clearTextSelection(rootWindow);
         event.preventDefault();
-        window.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
+        rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
       }
     });
 
-    this.eventManager.addEventListener(this.instance.rootElement, 'mouseup', () => {
+    this.eventManager.addEventListener(rootElement, 'mouseup', () => {
       priv.selectionMouseDown = false;
     });
-    this.eventManager.addEventListener(this.instance.rootElement, 'mousemove', (event) => {
+    this.eventManager.addEventListener(rootElement, 'mousemove', (event) => {
       if (priv.selectionMouseDown && !this.isTextSelectionAllowed(event.target)) {
         // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breakes the IME editor.
         if (this.settings.fragmentSelection) {
-          clearTextSelection();
+          clearTextSelection(this.instance.rootWindow);
         }
         event.preventDefault();
       }
     });
 
-    this.eventManager.addEventListener(document.documentElement, 'keyup', (event) => {
+    this.eventManager.addEventListener(documentElement, 'keyup', (event) => {
       if (this.instance.selection.isInProgress() && !event.shiftKey) {
         this.instance.selection.finish();
       }
     });
 
-    this.eventManager.addEventListener(document.documentElement, 'mouseup', (event) => {
+    this.eventManager.addEventListener(documentElement, 'mouseup', (event) => {
       if (this.instance.selection.isInProgress() && isLeftClick(event)) { // is left mouse button
         this.instance.selection.finish();
       }
 
       priv.mouseDown = false;
 
-      if (isOutsideInput(document.activeElement) || (!this.instance.selection.isSelected() && !isRightClick(event))) {
+      if (isOutsideInput(rootDocument.activeElement) || (!this.instance.selection.isSelected() && !isRightClick(event))) {
         this.instance.unlisten();
       }
     });
 
-    this.eventManager.addEventListener(document.documentElement, 'contextmenu', (event) => {
+    this.eventManager.addEventListener(documentElement, 'contextmenu', (event) => {
       if (this.instance.selection.isInProgress() && isRightClick(event)) {
         this.instance.selection.finish();
 
@@ -285,7 +302,7 @@ class TableView {
       }
     });
 
-    this.eventManager.addEventListener(document.documentElement, 'touchend', () => {
+    this.eventManager.addEventListener(documentElement, 'touchend', () => {
       if (this.instance.selection.isInProgress()) {
         this.instance.selection.finish();
       }
@@ -293,26 +310,28 @@ class TableView {
       priv.mouseDown = false;
     });
 
-    this.eventManager.addEventListener(document.documentElement, 'mousedown', (event) => {
+    this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
       const originalTarget = event.target;
       const eventX = event.x || event.clientX;
       const eventY = event.y || event.clientY;
       let next = event.target;
 
-      if (priv.mouseDown || !this.instance.rootElement) {
+      if (priv.mouseDown || !rootElement || !this.instance.view) {
         return; // it must have been started in a cell
       }
 
       // immediate click on "holder" means click on the right side of vertical scrollbar
-      if (next === this.instance.view.wt.wtTable.holder) {
-        const scrollbarWidth = getScrollbarWidth();
+      const { holder } = this.instance.view.wt.wtTable;
 
-        if (document.elementFromPoint(eventX + scrollbarWidth, eventY) !== this.instance.view.wt.wtTable.holder ||
-          document.elementFromPoint(eventX, eventY + scrollbarWidth) !== this.instance.view.wt.wtTable.holder) {
+      if (next === holder) {
+        const scrollbarWidth = getScrollbarWidth(rootDocument);
+
+        if (rootDocument.elementFromPoint(eventX + scrollbarWidth, eventY) !== holder ||
+          rootDocument.elementFromPoint(eventX, eventY + scrollbarWidth) !== holder) {
           return;
         }
       } else {
-        while (next !== document.documentElement) {
+        while (next !== documentElement) {
           if (next === null) {
             if (event.isTargetWebComponent) {
               break;
@@ -320,7 +339,7 @@ class TableView {
             // click on something that was a row but now is detached (possibly because your click triggered a rerender)
             return;
           }
-          if (next === this.instance.rootElement) {
+          if (next === rootElement) {
             // click inside container
             return;
           }
@@ -422,6 +441,13 @@ class TableView {
       },
       selections: this.instance.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
+      onWindowResize: () => {
+        if (!this.instance || this.instance.isDestroyed) {
+          return;
+        }
+
+        this.instance.refreshDimensions();
+      },
       onCellMouseDown: (event, coords, TD, wt) => {
         const blockCalculations = {
           row: false,
@@ -587,7 +613,12 @@ class TableView {
 
     this.wt = new Walkontable(walkontableConfig);
     priv.activeWt = this.wt;
+
     const spreader = this.wt.wtTable.spreader;
+    // We have to cache width and height after Walkontable initialization.
+    const { width, height } = this.instance.rootElement.getBoundingClientRect();
+
+    this.setLastSize(width, height);
 
     this.eventManager.addEventListener(spreader, 'mousedown', (event) => {
       // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
@@ -603,7 +634,7 @@ class TableView {
       }
     });
 
-    this.eventManager.addEventListener(document.documentElement, 'click', () => {
+    this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'click', () => {
       if (this.settings.observeDOMVisibility) {
         if (this.wt.drawInterrupted) {
           this.instance.forceFullRender = true;
@@ -722,12 +753,13 @@ class TableView {
       this.updateCellHeader(container.querySelector('.rowHeader'), row, this.instance.getRowHeader);
 
     } else {
-      const div = document.createElement('div');
-      const span = document.createElement('span');
+      const { rootDocument, getRowHeader } = this.instance;
+      const div = rootDocument.createElement('div');
+      const span = rootDocument.createElement('span');
 
       div.className = 'relative';
       span.className = 'rowHeader';
-      this.updateCellHeader(span, row, this.instance.getRowHeader);
+      this.updateCellHeader(span, row, getRowHeader);
 
       div.appendChild(span);
       TH.appendChild(div);
@@ -755,8 +787,9 @@ class TableView {
       }
 
     } else {
-      const div = document.createElement('div');
-      const span = document.createElement('span');
+      const { rootDocument } = this.instance;
+      const div = rootDocument.createElement('div');
+      const span = rootDocument.createElement('span');
 
       div.className = 'relative';
       span.className = 'colHeader';
@@ -797,6 +830,24 @@ class TableView {
     const maxHeight = workspaceHeight - topOffset;
 
     return maxHeight > 0 ? maxHeight : 0;
+  }
+
+  /**
+   * Sets new dimensions of the container.
+   */
+  setLastSize(width, height) {
+    const priv = privatePool.get(this);
+
+    [priv.lastWidth, priv.lastHeight] = [width, height];
+  }
+
+  /**
+   * Returns cached dimensions.
+   */
+  getLastSize() {
+    const priv = privatePool.get(this);
+
+    return { width: priv.lastWidth, height: priv.lastHeight };
   }
 
   /**

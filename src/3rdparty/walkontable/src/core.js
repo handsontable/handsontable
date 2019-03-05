@@ -25,6 +25,8 @@ class Walkontable {
 
     // this is the namespace for global events
     this.guid = `wt_${randomString()}`;
+    this.rootDocument = settings.table.ownerDocument;
+    this.rootWindow = this.rootDocument.defaultView;
 
     // bootstrap from settings
     if (settings.cloneSource) {

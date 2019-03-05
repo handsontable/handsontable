@@ -701,7 +701,7 @@ class MergeCells extends BasePlugin {
     selRange.to = coords;
     let rangeExpanded = false;
 
-    if ((selRange.from.row === 0 && selRange.to.row === this.hot.countRows() - 1) || (selRange.from.col === 0 && selRange.to.col === this.hot.countCols() - 1)) {
+    if (this.hot.selection.isSelectedByColumnHeader() || this.hot.selection.isSelectedByRowHeader()) {
       return;
     }
 

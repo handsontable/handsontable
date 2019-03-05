@@ -17,14 +17,14 @@ describe('CopyPaste', () => {
     });
 
     it('should create and return instance of FocusableWrapper class', () => {
-      fw1 = createElement();
+      fw1 = createElement(document);
 
       expect(fw1.constructor.name).toBe('FocusableWrapper');
     });
 
     it('should create new instance of FocusableWrapper class on every createElement call', () => {
-      fw1 = createElement();
-      fw2 = createElement();
+      fw1 = createElement(document);
+      fw2 = createElement(document);
 
       fw1.useSecondaryElement();
       fw2.useSecondaryElement();
@@ -34,7 +34,7 @@ describe('CopyPaste', () => {
     });
 
     it('should create focusable element only once when useSecondaryElement method is called multiple times', () => {
-      fw1 = createElement();
+      fw1 = createElement(document);
       fw1.useSecondaryElement();
 
       expect(fw1.mainElement).toBe(document.querySelector('#HandsontableCopyPaste'));
@@ -50,7 +50,7 @@ describe('CopyPaste', () => {
     });
 
     it('should fire internal events only once when useSecondaryElement method is called multiple times', () => {
-      fw1 = createElement();
+      fw1 = createElement(document);
 
       fw1.useSecondaryElement();
       fw1.useSecondaryElement();
@@ -65,7 +65,7 @@ describe('CopyPaste', () => {
     });
 
     it('should fire internal events only once when external focusable element is passed multiple times', () => {
-      fw1 = createElement();
+      fw1 = createElement(document);
       const element = document.createElement('textarea');
 
       fw1.setFocusableElement(element);
@@ -82,7 +82,7 @@ describe('CopyPaste', () => {
     });
 
     it('should return focusable element through mainElement property', () => {
-      fw1 = createElement();
+      fw1 = createElement(document);
       const element = document.createElement('textarea');
 
       expect(fw1.getFocusableElement()).toBe(null);
@@ -93,7 +93,7 @@ describe('CopyPaste', () => {
     });
 
     it('should select focusable element and set value as an empty string when focus method is called', () => {
-      fw1 = createElement();
+      fw1 = createElement(document);
       const element = document.createElement('textarea');
 
       spyOn(element, 'select');
@@ -105,8 +105,8 @@ describe('CopyPaste', () => {
     });
 
     it('should destroy FocusableWrapper object instance and detach secondary focusable element from DOM', () => {
-      fw1 = createElement();
-      fw2 = createElement();
+      fw1 = createElement(document);
+      fw2 = createElement(document);
 
       fw1.useSecondaryElement();
       fw2.useSecondaryElement();

@@ -8,9 +8,9 @@ import { pageX, pageY } from './../../helpers/dom/event';
  * @plugin ContextMenu
  */
 class Cursor {
-  constructor(object) {
-    const windowScrollTop = getWindowScrollTop();
-    const windowScrollLeft = getWindowScrollLeft();
+  constructor(object, rootWindow) {
+    const windowScrollTop = getWindowScrollTop(rootWindow);
+    const windowScrollLeft = getWindowScrollLeft(rootWindow);
     let top;
     let topRelative;
     let left;
@@ -18,6 +18,7 @@ class Cursor {
     let cellHeight;
     let cellWidth;
 
+    this.rootWindow = rootWindow;
     this.type = this.getSourceType(object);
 
     if (this.type === 'literal') {
@@ -82,7 +83,7 @@ class Cursor {
    * @param {Number} [viewportHeight] The viewport height.
    * @returns {Boolean}
    */
-  fitsBelow(element, viewportHeight = window.innerHeight) {
+  fitsBelow(element, viewportHeight = this.rootWindow.innerHeight) {
     return this.topRelative + element.offsetHeight <= viewportHeight;
   }
 
@@ -93,7 +94,7 @@ class Cursor {
    * @param {Number} [viewportWidth] The viewport width.
    * @returns {Boolean}
    */
-  fitsOnRight(element, viewportWidth = window.innerWidth) {
+  fitsOnRight(element, viewportWidth = this.rootWindow.innerWidth) {
     return this.leftRelative + this.cellWidth + element.offsetWidth <= viewportWidth;
   }
 

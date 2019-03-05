@@ -38,7 +38,7 @@ class InputUI extends BaseUI {
   build() {
     super.build();
     const priv = privatePool.get(this);
-    const icon = document.createElement('div');
+    const icon = this.hot.rootDocument.createElement('div');
 
     priv.input = this._element.firstChild;
 

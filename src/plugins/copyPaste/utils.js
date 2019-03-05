@@ -5,12 +5,12 @@ import { isEmpty } from './../../helpers/mixed';
  *
  * @param {Array} input Input array which will be converted to HTMLTable
  */
-export function arrayToTable(input) {
+export function arrayToTable(input, rootDocument) {
   const inputLen = input.length;
   const result = ['<table>'];
 
-  const tempElement = document.createElement('div');
-  document.documentElement.appendChild(tempElement);
+  const tempElement = rootDocument.createElement('div');
+  rootDocument.documentElement.appendChild(tempElement);
 
   for (let row = 0; row < inputLen; row += 1) {
     const rowData = input[row];
@@ -34,7 +34,7 @@ export function arrayToTable(input) {
     }
   }
 
-  document.documentElement.removeChild(tempElement);
+  rootDocument.documentElement.removeChild(tempElement);
 
   result.push('</table>');
 
@@ -55,12 +55,12 @@ function isHTMLTable(element) {
  *
  * @param {Element|String} element Node element or string, which should contain `<table>...</table>`.
  */
-export function tableToArray(element) {
+export function tableToArray(element, rootDocument) {
   const result = [];
   let checkElement = element;
 
   if (typeof checkElement === 'string') {
-    const tempElem = document.createElement('div');
+    const tempElem = rootDocument.createElement('div');
     tempElem.innerHTML = checkElement.replace(/\n/g, '');
     checkElement = tempElem.querySelector('table');
   }

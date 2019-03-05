@@ -28,11 +28,11 @@ describe('ContextMenuReadOnly', () => {
     selectCell(2, 3);
     contextMenu();
 
-    const changeToReadOnluButton = $('.htItemWrapper').filter(function() {
+    const changeToReadOnlyButton = $('.htItemWrapper').filter(function() {
       return $(this).text() === 'Read only';
     })[0];
 
-    $(changeToReadOnluButton).simulate('mousedown');
+    $(changeToReadOnlyButton).simulate('mousedown');
     expect(afterSetCellMetaCallback).toHaveBeenCalledWith(2, 3, 'readOnly', true, undefined, undefined);
   });
 });

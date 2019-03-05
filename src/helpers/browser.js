@@ -15,7 +15,9 @@ const browsers = {
   chrome: tester((ua, vendor) => /Chrome/.test(ua) && /Google/.test(vendor)),
   edge: tester(ua => /Edge/.test(ua)),
   ie: tester(ua => /Trident/.test(ua)),
+  // eslint-disable-next-line no-restricted-globals
   ie8: tester(() => !(document.createTextNode('test').textContent)),
+  // eslint-disable-next-line no-restricted-globals
   ie9: tester(() => !!(document.documentMode)),
   mobile: tester(ua => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),

@@ -1,12 +1,11 @@
 import BasePlugin from '../_base';
-import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { registerPlugin } from '../../plugins';
 import RowsMapper from './rowsMapper';
+import { arrayMap } from '../../helpers/array';
 
 /**
  * @plugin TrimRows
- * @pro
  *
  * @description
  * The plugin allows to trim certain rows. The trimming is achieved by applying the transformation algorithm to the data
@@ -137,20 +136,33 @@ class TrimRows extends BasePlugin {
    *
    * @param {Number[]} rows Array of physical row indexes.
    * @fires Hooks#skipLengthCache
+   * @fires Hooks#beforeTrimRow
    * @fires Hooks#afterTrimRow
    */
   trimRows(rows) {
-    arrayEach(rows, (row) => {
-      const physicalRow = parseInt(row, 10);
+    const currentTrimConfig = this.trimmedRows;
+    const isValidConfig = this.isValidConfig(rows);
+    let destinationTrimConfig = currentTrimConfig;
 
-      if (!this.isTrimmed(physicalRow)) {
-        this.trimmedRows.push(physicalRow);
-      }
-    });
+    if (isValidConfig) {
+      destinationTrimConfig = Array.from(new Set(currentTrimConfig.concat(rows)));
+    }
 
-    this.hot.runHooks('skipLengthCache', 100);
-    this.rowsMapper.createMap(this.hot.countSourceRows());
-    this.hot.runHooks('afterTrimRow', rows);
+    const allowTrimRow = this.hot.runHooks('beforeTrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig);
+
+    if (allowTrimRow === false) {
+      return;
+    }
+
+    if (isValidConfig) {
+      this.trimmedRows = destinationTrimConfig;
+
+      this.hot.runHooks('skipLengthCache', 100);
+      this.rowsMapper.createMap(this.hot.countSourceRows());
+    }
+
+    this.hot.runHooks('afterTrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
+      isValidConfig && destinationTrimConfig.length > currentTrimConfig.length);
   }
 
   /**
@@ -167,20 +179,33 @@ class TrimRows extends BasePlugin {
    *
    * @param {Number[]} rows Array of physical row indexes.
    * @fires Hooks#skipLengthCache
+   * @fires Hooks#beforeUntrimRow
    * @fires Hooks#afterUntrimRow
    */
   untrimRows(rows) {
-    arrayEach(rows, (row) => {
-      const physicalRow = parseInt(row, 10);
+    const currentTrimConfig = this.trimmedRows;
+    const isValidConfig = this.isValidConfig(rows);
+    let destinationTrimConfig = currentTrimConfig;
 
-      if (this.isTrimmed(physicalRow)) {
-        this.trimmedRows.splice(this.trimmedRows.indexOf(physicalRow), 1);
-      }
-    });
+    if (isValidConfig) {
+      destinationTrimConfig = this.trimmedRows.filter(trimmedRow => rows.includes(trimmedRow) === false);
+    }
 
-    this.hot.runHooks('skipLengthCache', 100);
-    this.rowsMapper.createMap(this.hot.countSourceRows());
-    this.hot.runHooks('afterUntrimRow', rows);
+    const allowUntrimRow = this.hot.runHooks('beforeUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig);
+
+    if (allowUntrimRow === false) {
+      return;
+    }
+
+    if (isValidConfig) {
+      this.trimmedRows = destinationTrimConfig;
+
+      this.hot.runHooks('skipLengthCache', 100);
+      this.rowsMapper.createMap(this.hot.countSourceRows());
+    }
+
+    this.hot.runHooks('afterUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
+      isValidConfig && destinationTrimConfig.length < currentTrimConfig.length);
   }
 
   /**
@@ -198,7 +223,7 @@ class TrimRows extends BasePlugin {
    * @returns {Boolean}
    */
   isTrimmed(row) {
-    return this.trimmedRows.indexOf(row) > -1;
+    return this.trimmedRows.includes(row);
   }
 
   /**
@@ -206,6 +231,16 @@ class TrimRows extends BasePlugin {
    */
   untrimAll() {
     this.untrimRows([].concat(this.trimmedRows));
+  }
+
+  /**
+   * Get if trim config is valid.
+   *
+   * @param {Array} trimmedRows List of physical row indexes.
+   * @returns {Boolean}
+   */
+  isValidConfig(trimmedRows) {
+    return trimmedRows.every(trimmedRow => (Number.isInteger(trimmedRow) && trimmedRow >= 0 && trimmedRow < this.hot.countSourceRows()));
   }
 
   /**
@@ -253,7 +288,9 @@ class TrimRows extends BasePlugin {
    * @param {String} source Source of the change.
    */
   onBeforeCreateRow(index, amount, source) {
-    return !(this.isEnabled() && this.trimmedRows.length > 0 && source === 'auto');
+    if (this.isEnabled() && this.trimmedRows.length > 0 && source === 'auto') {
+      return false;
+    }
   }
 
   /**
@@ -265,6 +302,14 @@ class TrimRows extends BasePlugin {
    */
   onAfterCreateRow(index, amount) {
     this.rowsMapper.shiftItems(index, amount);
+
+    this.trimmedRows = arrayMap(this.trimmedRows, (trimmedRow) => {
+      if (trimmedRow >= this.rowsMapper.getValueByIndex(index)) {
+        return trimmedRow + amount;
+      }
+
+      return trimmedRow;
+    });
   }
 
   /**
@@ -294,6 +339,9 @@ class TrimRows extends BasePlugin {
    */
   onAfterRemoveRow() {
     this.rowsMapper.unshiftItems(this.removedRows);
+    // TODO: Maybe it can be optimized? N x M checks, where N is number of already trimmed rows and M is number of removed rows.
+    // Decreasing physical indexes (some of them should be updated, because few indexes are missing in new list of indexes after removal).
+    this.trimmedRows = arrayMap(this.trimmedRows, trimmedRow => trimmedRow - this.removedRows.filter(removedRow => removedRow < trimmedRow).length);
   }
 
   /**

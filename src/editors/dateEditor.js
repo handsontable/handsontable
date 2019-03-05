@@ -49,7 +49,7 @@ class DateEditor extends TextEditor {
   createElements() {
     super.createElements();
 
-    this.datePicker = document.createElement('DIV');
+    this.datePicker = this.hot.rootDocument.createElement('DIV');
     this.datePickerStyle = this.datePicker.style;
     this.datePickerStyle.position = 'absolute';
     this.datePickerStyle.top = 0;
@@ -57,7 +57,7 @@ class DateEditor extends TextEditor {
     this.datePickerStyle.zIndex = 9999;
 
     addClass(this.datePicker, 'htDatepickerHolder');
-    document.body.appendChild(this.datePicker);
+    this.hot.rootDocument.body.appendChild(this.datePicker);
 
     this.$datePicker = new Pikaday(this.getDatePickerConfig());
     const eventManager = new EventManager(this);
@@ -144,8 +144,8 @@ class DateEditor extends TextEditor {
     const isMouseDown = this.instance.view.isMouseDown();
     const isMeta = event ? isMetaKey(event.keyCode) : false;
 
-    this.datePickerStyle.top = `${window.pageYOffset + offset.top + outerHeight(this.TD)}px`;
-    this.datePickerStyle.left = `${window.pageXOffset + offset.left}px`;
+    this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
+    this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + offset.left}px`;
 
     this.$datePicker._onInputFocus = function() {};
     datePickerConfig.format = dateFormat;

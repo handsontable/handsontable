@@ -78,15 +78,16 @@ DefaultSettings.prototype = {
   /**
    * License key for commercial version of Handsontable.
    *
-   * @pro
    * @type {String}
-   * @default 'trial'
+   * @default undefined
    * @example
    * ```js
    * licenseKey: '00000-00000-00000-00000-00000',
+   * // or
+   * licenseKey: 'non-commercial-and-evaluation',
    * ```
    */
-  licenseKey: 'trial',
+  licenseKey: void 0,
 
   /**
    * @description
@@ -95,7 +96,7 @@ DefaultSettings.prototype = {
    *
    * See [Understanding binding as reference](https://docs.handsontable.com/tutorial-data-binding.html#page-reference).
    *
-   * @type {Array[]|Object[]|Function}
+   * @type {Array[]|Object[]}
    * @default undefined
    * @example
    * ```js
@@ -148,13 +149,16 @@ DefaultSettings.prototype = {
   /**
    * Width of the grid. Can be a value or a function that returns a value.
    *
-   * @type {Number|Function}
+   * @type {Number|String|Function}
    * @default undefined
    *
    * @example
    * ```
    * // as a number
    * width: 500,
+   *
+   * // as a string
+   * width: '75vw',
    *
    * // as a function
    * width: function() {
@@ -167,13 +171,16 @@ DefaultSettings.prototype = {
   /**
    * Height of the grid. Can be a number or a function that returns a number.
    *
-   * @type {Number|Function}
+   * @type {Number|String|Function}
    * @default undefined
    *
    * @example
    * ```js
    * // as a number
    * height: 500,
+   *
+   * // as a string
+   * height: '75vh',
    *
    * // as a function
    * height: function() {
@@ -1565,7 +1572,7 @@ DefaultSettings.prototype = {
    * contextMenu: true,
    *
    * // as an array
-   * contextMenu: ['row_above', 'row_below', '--------', 'undo', 'redo'],
+   * contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo'],
    *
    * // as an object (`name` attribute is required in the custom keys)
    * contextMenu: {
@@ -1789,7 +1796,6 @@ DefaultSettings.prototype = {
    *   * `false` = the table moves all empty cells to the end of the table
    * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
    *
-   * @pro
    * @type {Boolean|Object}
    * @default undefined
    *
@@ -2336,7 +2342,6 @@ DefaultSettings.prototype = {
    * If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
    * if at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
    *
-   * @pro
    * @type {Boolean|String}
    * @default undefined
    *
@@ -2361,7 +2366,6 @@ DefaultSettings.prototype = {
    * To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property
    * as an array of objects, as in the example below.
    *
-   * @pro
    * @type {Boolean|Object[]}
    * @default undefined
    *
@@ -2394,7 +2398,6 @@ DefaultSettings.prototype = {
    *
    * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
    *
-   * @pro
    * @type {Object[]|Function}
    * @default undefined
    *
@@ -2423,7 +2426,6 @@ DefaultSettings.prototype = {
    * This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
    * the {@link Options#contextMenu}, but is triggered by clicking the button in the header.
    *
-   * @pro
    * @type {Boolean|Object|String[]}
    * @default undefined
    *
@@ -2442,7 +2444,6 @@ DefaultSettings.prototype = {
   /**
    * The {@link Filters} plugin allows filtering the table data either by the built-in component or with the API.
    *
-   * @pro
    * @type {Boolean}
    * @default undefined
    *
@@ -2457,7 +2458,6 @@ DefaultSettings.prototype = {
   /**
    * The {@link Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
    *
-   * @pro
    * @type {Boolean|Object}
    * @default undefined
    *
@@ -2482,7 +2482,6 @@ DefaultSettings.prototype = {
    * The {@link GanttChart} plugin enables a possibility to create a Gantt chart using a Handsontable instance. In this
    * case, the whole table becomes read-only.
    *
-   * @pro
    * @type {Object}
    * @default undefined
    */
@@ -2497,7 +2496,6 @@ DefaultSettings.prototype = {
    * * the `columns` property defines if tooltips should be added to column headers,
    * * the `onlyTrimmed` property defines if tooltips should be added only to headers, which content is trimmed by the header itself (the content being wider then the header).
    *
-   * @pro
    * @type {Boolean|Object}
    * @default undefined
    *
@@ -2522,7 +2520,6 @@ DefaultSettings.prototype = {
    *  * `columns` - an array of rows that should be hidden on plugin initialization
    *  * `indicators` - enables small ui markers to indicate where are hidden columns
    *
-   * @pro
    * @type {Boolean|Object}
    * @default undefined
    *
@@ -2548,7 +2545,6 @@ DefaultSettings.prototype = {
    *  * `rows` - an array of rows that should be hidden on plugin initialization
    *  * `indicators` - enables small ui markers to indicate where are hidden columns
    *
-   * @pro
    * @type {Boolean|Object}
    * @default undefined
    *
@@ -2572,7 +2568,6 @@ DefaultSettings.prototype = {
    * @description
    * Allows creating a nested header structure, using the HTML's colspan attribute.
    *
-   * @pro
    * @type {Array[]}
    * @default undefined
    *
@@ -2591,7 +2586,6 @@ DefaultSettings.prototype = {
    * @description
    * Plugin allowing hiding of certain rows.
    *
-   * @pro
    * @type {Boolean|Number[]}
    * @default undefined
    *
@@ -2762,7 +2756,6 @@ DefaultSettings.prototype = {
    * nestedRows: true,
    * ```
    *
-   * @pro
    * @type {Boolean}
    * @default false
    */

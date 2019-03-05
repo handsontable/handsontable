@@ -53,8 +53,26 @@ describe('Core_init', () => {
     expect(getData()).toBeTruthy();
   });
 
-  xit('should create table even if is launched inside custom element', () => {
-    // TODO: When we'll update phantomjs, then we should try to run this test case.
+  it('should create an instance when the iframe is a container', () => {
+    const iframe = $('<iframe/>').appendTo(spec().$container);
+    const doc = iframe[0].contentDocument;
+
+    doc.open('text/html', 'replace');
+    doc.write(`
+      <!doctype html>
+      <head>
+        <link type="text/css" rel="stylesheet" href="../dist/handsontable-pro.full.min.css">
+      </head>`);
+    doc.close();
+
+    const container = $('<div/>').appendTo(doc.body);
+    expect(() => {
+      container.handsontable({});
+      container.handsontable('destroy');
+    }).not.toThrow();
+  });
+
+  it('should create table even if is launched inside custom element', () => {
     spec().$container = $(`<hot-table><div id="${id}"></div></hot-table>`).appendTo('body');
     handsontable();
 

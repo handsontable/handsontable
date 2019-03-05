@@ -117,7 +117,7 @@ export function isMetaKey(keyCode) {
 export function isCtrlKey(keyCode) {
   const keys = [];
 
-  if (window.navigator.platform.includes('Mac')) {
+  if (navigator.platform.includes('Mac')) {
     keys.push(KEY_CODES.COMMAND_LEFT, KEY_CODES.COMMAND_RIGHT, KEY_CODES.COMMAND_FIREFOX);
   } else {
     keys.push(KEY_CODES.CONTROL);
