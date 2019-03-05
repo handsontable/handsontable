@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.0.0
- * Release date: 06/03/2019 (built at 01/03/2019 09:51:57)
+ * Release date: 06/03/2019 (built at 05/03/2019 15:48:40)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -36486,7 +36486,7 @@ Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "01/03/2019 09:51:57";
+Handsontable.buildDate = "05/03/2019 15:48:40";
 Handsontable.version = "7.0.0"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -43284,6 +43284,14 @@ function () {
      */
 
     this.wt = void 0;
+    /**
+     * Main Walkontable instance.
+     *
+     * @private
+     * @type {Walkontable}
+     */
+
+    this.activeWt = void 0;
     privatePool.set(this, {
       /**
        * Defines if the text should be selected during mousemove.
@@ -43306,14 +43314,6 @@ function () {
        * @type {HTMLTableElement}
        */
       table: void 0,
-
-      /**
-       * Main Walkontable instance.
-       *
-       * @private
-       * @type {Walkontable}
-       */
-      activeWt: void 0,
 
       /**
        * Cached width of the rootElement.
@@ -43711,7 +43711,7 @@ function () {
 
           _this2.instance.listen();
 
-          priv.activeWt = wt;
+          _this2.activeWt = wt;
           priv.mouseDown = true;
 
           _this2.instance.runHooks('beforeOnCellMouseDown', event, coords, TD, blockCalculations);
@@ -43728,10 +43728,10 @@ function () {
 
           _this2.instance.runHooks('afterOnCellMouseDown', event, coords, TD);
 
-          priv.activeWt = _this2.wt;
+          _this2.activeWt = _this2.wt;
         },
         onCellContextMenu: function onCellContextMenu(event, coords, TD, wt) {
-          priv.activeWt = wt;
+          _this2.activeWt = wt;
           priv.mouseDown = false;
 
           if (_this2.instance.selection.isInProgress()) {
@@ -43746,10 +43746,10 @@ function () {
 
           _this2.instance.runHooks('afterOnCellContextMenu', event, coords, TD);
 
-          priv.activeWt = _this2.wt;
+          _this2.activeWt = _this2.wt;
         },
         onCellMouseOut: function onCellMouseOut(event, coords, TD, wt) {
-          priv.activeWt = wt;
+          _this2.activeWt = wt;
 
           _this2.instance.runHooks('beforeOnCellMouseOut', event, coords, TD);
 
@@ -43759,7 +43759,7 @@ function () {
 
           _this2.instance.runHooks('afterOnCellMouseOut', event, coords, TD);
 
-          priv.activeWt = _this2.wt;
+          _this2.activeWt = _this2.wt;
         },
         onCellMouseOver: function onCellMouseOver(event, coords, TD, wt) {
           var blockCalculations = {
@@ -43767,7 +43767,7 @@ function () {
             column: false,
             cell: false
           };
-          priv.activeWt = wt;
+          _this2.activeWt = wt;
 
           _this2.instance.runHooks('beforeOnCellMouseOver', event, coords, TD, blockCalculations);
 
@@ -43785,16 +43785,16 @@ function () {
 
           _this2.instance.runHooks('afterOnCellMouseOver', event, coords, TD);
 
-          priv.activeWt = _this2.wt;
+          _this2.activeWt = _this2.wt;
         },
         onCellMouseUp: function onCellMouseUp(event, coords, TD, wt) {
-          priv.activeWt = wt;
+          _this2.activeWt = wt;
 
           _this2.instance.runHooks('beforeOnCellMouseUp', event, coords, TD);
 
           _this2.instance.runHooks('afterOnCellMouseUp', event, coords, TD);
 
-          priv.activeWt = _this2.wt;
+          _this2.activeWt = _this2.wt;
         },
         onCellCornerMouseDown: function onCellCornerMouseDown(event) {
           event.preventDefault();
@@ -43899,7 +43899,7 @@ function () {
       };
       this.instance.runHooks('beforeInitWalkontable', walkontableConfig);
       this.wt = new _src.default(walkontableConfig);
-      priv.activeWt = this.wt;
+      this.activeWt = this.wt;
       var spreader = this.wt.wtTable.spreader; // We have to cache width and height after Walkontable initialization.
 
       var _this$instance$rootEl = this.instance.rootElement.getBoundingClientRect(),
@@ -44171,8 +44171,7 @@ function () {
   }, {
     key: "mainViewIsActive",
     value: function mainViewIsActive() {
-      var priv = privatePool.get(this);
-      return this.wt === priv.activeWt;
+      return this.wt === this.activeWt;
     }
     /**
      * Destroyes internal WalkOnTable's instance. Detaches all of the bonded listeners.
