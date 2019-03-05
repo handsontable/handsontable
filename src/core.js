@@ -1532,7 +1532,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource.propToCol = datamap.propToCol.bind(datamap);
 
     recordTranslator.rowIndexMapper.createSimpleSequence(data.length);
-    recordTranslator.columnIndexMapper.createSimpleSequence(data[0] ? data[0].length : 0);
+
+    let numberOfColumns = 0;
+
+    if (dataSource.dataType === 'array') {
+      numberOfColumns = data[0].length;
+
+    } else if (isObject(data[0])) {
+      numberOfColumns = Object.keys(data[0]).length;
+    }
+
+    recordTranslator.columnIndexMapper.createSimpleSequence(numberOfColumns);
 
     clearCellSettingCache();
 
