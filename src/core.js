@@ -846,25 +846,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   this.init = function() {
-    const data = priv.settings.data;
-    let numberOfColumns = priv.settings.startCols;
-    let numberOfRows = priv.settings.startRows;
-
-    dataSource.setData(data);
-
-    if (isDefined(data)) {
-      if (priv.settings.dataType === 'array') {
-        numberOfColumns = data[0].length;
-
-      } else if (isObject(data[0])) {
-        numberOfColumns = Object.keys(data[0]).length;
-      }
-
-      numberOfRows = data.length;
-    }
-
-    recordTranslator.columnIndexMapper.createSimpleSequence(numberOfColumns);
-    recordTranslator.rowIndexMapper.createSimpleSequence(numberOfRows);
+    dataSource.setData(priv.settings.data);
 
     instance.runHooks('beforeInit');
 
@@ -873,6 +855,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     this.updateSettings(priv.settings, true);
+
+    recordTranslator.columnIndexMapper.createSimpleSequence(this.countSourceCols());
+    recordTranslator.rowIndexMapper.createSimpleSequence(this.countSourceRows());
 
     this.view = new TableView(this);
     editorManager = EditorManager.getInstance(instance, priv, selection, datamap);
