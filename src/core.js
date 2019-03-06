@@ -846,7 +846,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   this.init = function() {
-    dataSource.setData(priv.settings.data);
+    const data = priv.settings.data;
+    let numberOfColumns = priv.settings.startCols;
+    let numberOfRows = priv.settings.startRows;
+
+    dataSource.setData(data);
+
+    if (isDefined(data)) {
+      if (priv.settings.dataType === 'array') {
+        numberOfColumns = data[0].length;
+
+      } else if (isObject(data[0])) {
+        numberOfColumns = Object.keys(data[0]).length;
+      }
+
+      numberOfRows = data.length;
+    }
+
+    recordTranslator.columnIndexMapper.createSimpleSequence(numberOfColumns);
+    recordTranslator.rowIndexMapper.createSimpleSequence(numberOfRows);
+
     instance.runHooks('beforeInit');
 
     if (isMobileBrowser()) {
@@ -1530,19 +1549,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource.dataType = instance.dataType;
     dataSource.colToProp = datamap.colToProp.bind(datamap);
     dataSource.propToCol = datamap.propToCol.bind(datamap);
-
-    recordTranslator.rowIndexMapper.createSimpleSequence(data.length);
-
-    let numberOfColumns = 0;
-
-    if (dataSource.dataType === 'array') {
-      numberOfColumns = data[0].length;
-
-    } else if (isObject(data[0])) {
-      numberOfColumns = Object.keys(data[0]).length;
-    }
-
-    recordTranslator.columnIndexMapper.createSimpleSequence(numberOfColumns);
 
     clearCellSettingCache();
 
