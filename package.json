@@ -10,10 +10,12 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "6.2.1",
+  "version": "7.0.0",
   "main": "commonjs/index.js",
   "module": "es/index.js",
   "jsnext:main": "es/index.js",
+  "jsdelivr": "dist/handsontable.full.min.js",
+  "unpkg": "dist/handsontable.full.min.js",
   "scripts": {
     "clean": "rimraf commonjs es coverage tmp",
     "lint": "eslint src/ test/",
@@ -105,7 +107,7 @@
     "on-build-webpack": "^0.1.0",
     "optimize-css-assets-webpack-plugin": "^3.1.1",
     "progress-bar-webpack-plugin": "^1.10.0",
-    "puppeteer": "^1.10.0",
+    "puppeteer": "1.12.2",
     "rimraf": "^2.5.4",
     "spawn-command": "0.0.2",
     "string-replace-webpack-plugin": "^0.1.3",
