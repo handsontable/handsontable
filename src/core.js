@@ -857,10 +857,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     recordTranslator.columnIndexMapper.createSimpleSequence(this.countSourceCols());
     recordTranslator.rowIndexMapper.createSimpleSequence(this.countSourceRows());
 
-    this.updateSettings(priv.settings, true);;
-
-    recordTranslator.columnIndexMapper.createSimpleSequence(this.countSourceCols());
-    recordTranslator.rowIndexMapper.createSimpleSequence(this.countSourceRows());
+    this.updateSettings(priv.settings, true);
 
     this.view = new TableView(this);
     editorManager = EditorManager.getInstance(instance, priv, selection, datamap);
