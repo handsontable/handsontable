@@ -854,9 +854,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       addClass(instance.rootElement, 'mobile');
     }
 
-    recordTranslator.columnIndexMapper.createSimpleSequence(this.countSourceCols());
-    recordTranslator.rowIndexMapper.createSimpleSequence(this.countSourceRows());
-
     this.updateSettings(priv.settings, true);
 
     this.view = new TableView(this);
@@ -1538,6 +1535,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     clearCellSettingCache();
 
     grid.adjustRowsAndCols();
+
+    recordTranslator.columnIndexMapper.createSimpleSequence(this.countSourceCols());
+    recordTranslator.rowIndexMapper.createSimpleSequence(this.countSourceRows());
+
     instance.runHooks('afterLoadData', priv.firstRun);
 
     if (priv.firstRun) {
