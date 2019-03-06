@@ -92,6 +92,8 @@ class Settings {
       onModifyRowHeaderWidth: null,
       onModifyGetCellCoords: null,
 
+      onWindowResize: null,
+
       // constants
       scrollbarWidth: 10,
       scrollbarHeight: 10,

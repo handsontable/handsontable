@@ -1,0 +1,55 @@
+.handsontable th.ht_nestingLevels {
+    text-align: left;
+    padding-left: 7px;
+}
+
+.handsontable th div.ht_nestingLevels {
+    display: inline-block;
+    position: absolute;
+    left: 11px;
+}
+
+.handsontable.innerBorderLeft th div.ht_nestingLevels,
+.handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingLevels {
+    right: 10px;
+}
+
+.handsontable th span.ht_nestingLevel {
+    display: inline-block;
+}
+
+.handsontable th span.ht_nestingLevel_empty {
+    display: inline-block;
+    width: 10px;
+    height: 1px;
+    float: left;
+}
+
+.handsontable th span.ht_nestingLevel::after {
+    content: "\2510";
+    font-size: 9px;
+    display: inline-block;
+    position: relative;
+    bottom: 3px;
+}
+
+
+.handsontable th div.ht_nestingButton {
+    display: inline-block;
+    position: absolute;
+    right: -2px;
+    cursor: pointer;
+}
+
+.handsontable th div.ht_nestingButton.ht_nestingExpand::after {
+    content: "\002B";
+}
+
+.handsontable th div.ht_nestingButton.ht_nestingCollapse::after {
+    content: "\002D";
+}
+
+.handsontable.innerBorderLeft th div.ht_nestingButton,
+.handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingButton {
+    right: 0;
+}

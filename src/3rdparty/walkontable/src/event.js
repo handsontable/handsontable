@@ -93,12 +93,6 @@ class Event {
 
       initMouseEvents();
     }
-
-    this.eventManager.addEventListener(window, 'resize', () => {
-      if (this.instance.getSetting('stretchH') !== 'none') {
-        this.instance.draw();
-      }
-    });
   }
 
   /**
@@ -161,7 +155,7 @@ class Event {
    */
   onMouseDown(event) {
     const priv = privatePool.get(this);
-    const activeElement = document.activeElement;
+    const activeElement = this.instance.rootDocument.activeElement;
     const getParentNode = partial(getParent, event.realTarget);
     const realTarget = event.realTarget;
 

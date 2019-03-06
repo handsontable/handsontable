@@ -60,6 +60,7 @@ class MultipleSelectionHandles extends BasePlugin {
    */
   registerListeners() {
     const _this = this;
+    const { rootElement } = this.hot;
 
     function removeFromDragged(query) {
 
@@ -81,7 +82,7 @@ class MultipleSelectionHandles extends BasePlugin {
       }
     }
 
-    this.eventManager.addEventListener(this.hot.rootElement, 'touchstart', (event) => {
+    this.eventManager.addEventListener(rootElement, 'touchstart', (event) => {
       let selectedRange;
 
       if (hasClass(event.target, 'topLeftSelectionHandle-HitArea')) {
@@ -114,7 +115,7 @@ class MultipleSelectionHandles extends BasePlugin {
       }
     });
 
-    this.eventManager.addEventListener(this.hot.rootElement, 'touchend', (event) => {
+    this.eventManager.addEventListener(rootElement, 'touchend', (event) => {
       if (hasClass(event.target, 'topLeftSelectionHandle-HitArea')) {
         removeFromDragged.call(_this, 'topLeft');
 
@@ -133,9 +134,10 @@ class MultipleSelectionHandles extends BasePlugin {
       }
     });
 
-    this.eventManager.addEventListener(this.hot.rootElement, 'touchmove', (event) => {
-      const scrollTop = getWindowScrollTop();
-      const scrollLeft = getWindowScrollLeft();
+    this.eventManager.addEventListener(rootElement, 'touchmove', (event) => {
+      const { rootWindow, rootDocument } = this.hot;
+      const scrollTop = getWindowScrollTop(rootWindow);
+      const scrollLeft = getWindowScrollLeft(rootWindow);
       let targetCoords;
       let selectedRange;
       let rangeWidth;
@@ -147,7 +149,7 @@ class MultipleSelectionHandles extends BasePlugin {
         return;
       }
 
-      const endTarget = document.elementFromPoint(
+      const endTarget = rootDocument.elementFromPoint(
         event.touches[0].screenX - scrollLeft,
         event.touches[0].screenY - scrollTop);
 

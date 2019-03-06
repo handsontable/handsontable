@@ -1,9 +1,9 @@
-import * as Handsontable from 'handsontable';
+import Handsontable from 'handsontable';
 
 class PasswordEditor extends Handsontable.editors.TextEditor {
   createElements() {
     // Call the original createElements method
-    super.createElements.apply(this, arguments);
+    super.createElements();
 
     // Create password input and update relevant properties
     this.TEXTAREA = document.createElement('input');

@@ -88,6 +88,7 @@ export const getValue = handsontableMethodFactory('getValue');
 export const loadData = handsontableMethodFactory('loadData');
 export const populateFromArray = handsontableMethodFactory('populateFromArray');
 export const propToCol = handsontableMethodFactory('propToCol');
+export const refreshDimensions = handsontableMethodFactory('refreshDimensions');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
 export const render = handsontableMethodFactory('render');
 export const selectAll = handsontableMethodFactory('selectAll');
@@ -222,8 +223,8 @@ export function contextMenu(cell) {
 
   $(clickedCell).simulate('mousedown', { button: 2 });
   $(clickedCell).simulate('contextmenu', {
-    clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
-    clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(),
+    clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hotInstance.rootWindow),
+    clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hotInstance.rootWindow),
   });
   // Chrome doesn't call `mouseup`.
   // $(cell).simulate('mouseup', { button: 2 });

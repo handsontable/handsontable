@@ -57,6 +57,8 @@ module.exports = {
     "no-restricted-globals": [
       "error",
       "Handsontable",
+      "window",
+      "document",
       {
         "name": "console",
         "message": "Using the `console` object is not allowed within Handsontable. Please use one of the helpers from the `console.js` file instead."
@@ -77,7 +79,7 @@ module.exports = {
   },
   "overrides": [
     {
-      "files": ["test/**", "src/3rdparty/walkontable/test/**", "*.unit.js", "*.e2e.js"],
+      "files": ["test/**", "src/3rdparty/walkontable/test/**", "*.unit.js", "*.e2e.js", "src/plugins/**/test/helpers/**"],
       "rules": {
         "import/extensions": "off",
         "import/no-unresolved": [

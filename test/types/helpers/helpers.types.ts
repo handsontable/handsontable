@@ -1,9 +1,6 @@
-import * as Handsontable from 'handsontable';
+import Handsontable from 'handsontable';
 
-const gridSettings: Handsontable.GridSettings = {
-  valid: true,
-  className: 'foo'
-};
+const gridSettings: Handsontable.GridSettings = { };
 
 Handsontable.helper.arrayAvg([1, 3, 4]);
 Handsontable.helper.arrayEach([1, 2, 3], (value, index, array) => {});

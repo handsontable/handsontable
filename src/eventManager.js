@@ -51,7 +51,7 @@ class EventManager {
       callbackProxy,
     });
 
-    element.addEventListener(eventName, callbackProxy, false);
+    element.addEventListener(eventName, callbackProxy);
     listenersCounter += 1;
 
     return () => {
@@ -80,7 +80,7 @@ class EventManager {
           continue;
         }
         this.context.eventListeners.splice(len, 1);
-        tmpEvent.element.removeEventListener(tmpEvent.event, tmpEvent.callbackProxy, false);
+        tmpEvent.element.removeEventListener(tmpEvent.event, tmpEvent.callbackProxy);
         listenersCounter -= 1;
       }
     }
@@ -130,10 +130,18 @@ class EventManager {
    * @param {String} eventName Event name.
    */
   fireEvent(element, eventName) {
+    let rootDocument = element.document;
+    let rootWindow = element;
+
+    if (!rootDocument) {
+      rootDocument = element.ownerDocument ? element.ownerDocument : element;
+      rootWindow = rootDocument.defaultView;
+    }
+
     const options = {
       bubbles: true,
       cancelable: (eventName !== 'mousemove'),
-      view: window,
+      view: rootWindow,
       detail: 0,
       screenX: 0,
       screenY: 0,
@@ -148,16 +156,16 @@ class EventManager {
     };
     let event;
 
-    if (document.createEvent) {
-      event = document.createEvent('MouseEvents');
+    if (rootDocument.createEvent) {
+      event = rootDocument.createEvent('MouseEvents');
       event.initMouseEvent(eventName, options.bubbles, options.cancelable,
         options.view, options.detail,
         options.screenX, options.screenY, options.clientX, options.clientY,
         options.ctrlKey, options.altKey, options.shiftKey, options.metaKey,
-        options.button, options.relatedTarget || document.body.parentNode);
+        options.button, options.relatedTarget || rootDocument.body.parentNode);
 
     } else {
-      event = document.createEventObject();
+      event = rootDocument.createEventObject();
     }
 
     if (element.dispatchEvent) {

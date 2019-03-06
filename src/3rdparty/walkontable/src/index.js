@@ -1,4 +1,4 @@
-import '@babel/polyfill/lib/noConflict';
+import '@babel/polyfill';
 
 import ViewportColumnsCalculator from './calculator/viewportColumns';
 import ViewportRowsCalculator from './calculator/viewportRows';

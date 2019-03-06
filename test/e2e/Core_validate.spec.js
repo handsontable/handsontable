@@ -27,6 +27,24 @@ describe('Core_validate', () => {
     ];
   };
 
+  it('should not throw an exception if the instance was destroyed in the meantime when validator was called', async() => {
+    let validatorCallback;
+
+    const hot = handsontable({
+      data: arrayOfObjects(),
+      validator(value, callback) {
+        validatorCallback = callback;
+      }
+    });
+
+    hot.validateCells();
+    await sleep(10);
+    hot.destroy();
+
+    expect(() => { validatorCallback(false); }).not.toThrow();
+    expect(validatorCallback(false)).toBe(void 0);
+  });
+
   it('should call beforeValidate', () => {
     let fired = null;
 
@@ -704,6 +722,78 @@ describe('Core_validate', () => {
     }, 200);
   });
 
+  it('should not add class name `htInvalid` for cancelled changes - on edit', async() => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator(value, callb) {
+        if (value === 'test') {
+          callb(false);
+        } else {
+          callb(true);
+        }
+      },
+      afterValidate: onAfterValidate,
+      beforeChange: () => false
+    });
+
+    setDataAtCell(0, 0, 'test');
+
+    await sleep(500);
+
+    // establishing that validation was not called
+    expect(onAfterValidate).not.toHaveBeenCalled();
+    // and that the changed value was cleared
+    expect(getDataAtCell(0, 0)).not.toEqual('test');
+    // and that the cell is not marked invalid
+    expect(spec().$container.find('td.htInvalid').length).toEqual(0);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
+  });
+
+  it('should not remove class name `htInvalid` for cancelled changes - on edit', async() => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    let allowChange = true;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator(value, callb) {
+        if (value === 'test') {
+          callb(false);
+        } else {
+          callb(true);
+        }
+      },
+      afterValidate: onAfterValidate,
+      beforeChange: () => allowChange
+    });
+
+    setDataAtCell(0, 0, 'test');
+
+    await sleep(500);
+
+    // establishing that validation was called and the cell was set to invalid
+    expect(onAfterValidate).toHaveBeenCalled();
+    expect(getDataAtCell(0, 0)).toEqual('test');
+    expect(onAfterValidate.calls.count()).toEqual(1);
+    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+
+    // setting flag to have 'beforeChange' reject changes, then change value
+    allowChange = false;
+    setDataAtCell(0, 0, 'test2');
+
+    await sleep(500);
+
+    // establishing that the value was rejected
+    expect(getDataAtCell(0, 0)).toEqual('test');
+    // and that validation was not called a second time
+    expect(onAfterValidate.calls.count()).toEqual(1);
+    // and that the cell is still marked invalid
+    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+  });
+
   it('should add class name `htInvalid` to a cell without removing other classes', (done) => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const validator = jasmine.createSpy('validator');
@@ -1295,7 +1385,7 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('should remove htInvalid class properly after cancelling change, when physical indexes are not equal to visual indexes', (done) => {
+  it('should remove htInvalid class properly after cancelling change, when physical indexes are not equal to visual indexes', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       columnSorting: {
@@ -1317,11 +1407,10 @@ describe('Core_validate', () => {
 
     keyDown('enter');
 
-    setTimeout(() => {
-      const $cell = $(getCell(0, 0));
-      expect($cell.hasClass('htInvalid')).toEqual(false);
-      done();
-    }, 200);
+    await sleep(300);
+
+    const $cell = $(getCell(0, 0));
+    expect($cell.hasClass('htInvalid')).toEqual(false);
   });
 
   it('should not attempt to remove the htInvalid class if the validated cell is no longer rendered', (done) => {
@@ -1630,7 +1719,7 @@ describe('Core_validate', () => {
   it('should not allow keyboard movement until cell is validated (move LEFT)', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       allowInvalid: false,
       columns: [

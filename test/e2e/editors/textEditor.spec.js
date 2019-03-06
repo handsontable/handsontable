@@ -74,12 +74,21 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    const { left, position, top, zIndex } = spec().$container.find('.handsontableInputHolder').css(['left', 'position', 'top', 'zIndex']);
+    const { left, right, position, top, zIndex, overflow } = spec().$container.find('.handsontableInputHolder').css([
+      'left',
+      'right',
+      'position',
+      'top',
+      'zIndex',
+      'overflow',
+    ]);
 
-    expect(left).toBe('-9999px');
+    expect(parseInt(left, 10)).toBe(spec().$container.find('.handsontableInputHolder')[0].offsetWidth * -1);
+    expect(parseInt(right, 10)).toBe(document.body.offsetWidth);
     expect(position).toBe('fixed');
-    expect(top).toBe('-9999px');
+    expect(parseInt(top, 10)).toBe(0);
     expect(zIndex).toBe('-1');
+    expect(overflow).toBe('hidden');
   });
 
   it('should change editor\'s CSS properties during switching to being visible', () => {
@@ -92,12 +101,21 @@ describe('TextEditor', () => {
 
     const cell = getCell(0, 0);
     const [cellOffsetTop, cellOffsetLeft] = [cell.offsetTop, cell.offsetLeft];
-    const { left, position, top, zIndex } = spec().$container.find('.handsontableInputHolder').css(['left', 'position', 'top', 'zIndex']);
+    const { left, right, position, top, zIndex, overflow } = spec().$container.find('.handsontableInputHolder').css([
+      'left',
+      'right',
+      'position',
+      'top',
+      'zIndex',
+      'overflow',
+    ]);
 
     expect(parseInt(left, 10)).toBeAroundValue(cellOffsetLeft);
+    expect(parseInt(right, 10)).not.toBe(document.body.offsetWidth);
     expect(position).toBe('absolute');
     expect(parseInt(top, 10)).toBeAroundValue(cellOffsetTop);
     expect(zIndex).not.toBe('-1');
+    expect(overflow).not.toBe('hidden');
   });
 
   it('should render string in textarea', () => {
@@ -892,6 +910,7 @@ describe('TextEditor', () => {
       fixedRowsTop: 2,
       rowHeaders: true,
       colHeaders: true,
+      height: 500,
     });
 
     const $holder = $(hot.view.wt.wtTable.holder);
@@ -921,10 +940,59 @@ describe('TextEditor', () => {
     expect($(getCell(4, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
 
     // non-fixed
-    selectCell(4, 4);
+    selectCell(10, 6);
     keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
-    expect($(getCell(4, 4, true)).offset().left).toEqual($inputHolder.offset().left + 1);
-    expect($(getCell(4, 4, true)).offset().top).toEqual($inputHolder.offset().top + 1);
+    expect($(getCell(10, 6, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(10, 6, true)).offset().top).toEqual($inputHolder.offset().top + 1);
+  });
+
+  it('editor should move with the page when scrolled with fixed rows and horizontal overflow without a set height', async() => {
+    spec().$container[0].style = 'width: 400px';
+
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(300, 300),
+      preventOverflow: 'horizontal',
+      fixedColumnsLeft: 2,
+      fixedRowsTop: 2,
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    hot.render();
+
+    await sleep(50);
+    // corner
+    window.scrollBy(300, 300);
+    selectCell(1, 1);
+    keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
+    window.scrollBy(-300, -300);
+    const $inputHolder = $('.handsontableInputHolder');
+    expect($(getCell(1, 1, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(1, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
+
+    // top
+    window.scrollBy(0, 300);
+    selectCell(1, 4);
+    keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
+    window.scrollBy(0, -300);
+    expect($(getCell(1, 4, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(1, 4, true)).offset().top).toEqual($inputHolder.offset().top + 1);
+
+    // left
+    window.scrollBy(300, 0);
+    selectCell(4, 1);
+    keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
+    window.scrollBy(-300, 0);
+    expect($(getCell(4, 1, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(4, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
+
+    // non-fixed
+    window.scrollBy(300, 300);
+    selectCell(10, 6);
+    keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
+    window.scrollBy(-300, -300);
+    expect($(getCell(10, 6, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(10, 6, true)).offset().top).toEqual($inputHolder.offset().top + 1);
   });
 
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (corner)', () => {

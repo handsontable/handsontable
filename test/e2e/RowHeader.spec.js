@@ -26,6 +26,26 @@ describe('RowHeader', () => {
     expect(spec().$container.find('tbody th').length).toBeGreaterThan(0);
   });
 
+  it('should properly calculate colHeaders\' overlay width', () => {
+    handsontable({
+      rowHeaders: true,
+      startCols: 1,
+      startRows: 5,
+      width: 150,
+      height: 126,
+      rowHeights: 25,
+    });
+
+    const cloneTop = spec().$container.find('.ht_clone_left');
+    const masterHolder = spec().$container.find('.ht_master .wtHolder');
+
+    expect(cloneTop.height()).toBe(masterHolder.height());
+
+    alter('insert_col', void 0, 10);
+
+    expect(cloneTop.height()).toBeLessThan(masterHolder.height());
+  });
+
   it('should show row headers numbered 1-10 by default', () => {
     const startRows = 5;
     handsontable({
@@ -68,18 +88,25 @@ describe('RowHeader', () => {
 
   it('should hide rows headers after updateSetting', () => {
     const hot = handsontable({
-      startRows: 5,
+      startCols: 100,
+      startRows: 100,
+      width: 250,
+      height: 200,
       rowHeaders: true
     });
+    let headers = getHtCore().find('tbody th').length;
 
-    expect(getHtCore().find('tbody th').length).toEqual(5);
-    expect(getLeftClone().find('tbody th').length).toEqual(5);
+    expect(headers).toBeGreaterThan(0);
+    expect(getLeftClone().find('tbody th').length).toEqual(headers);
 
     hot.updateSettings({
       rowHeaders: false
     });
 
-    expect(getHtCore().find('tbody th').length).toEqual(0);
+    headers = getHtCore().find('tbody th').length;
+
+    expect(headers).toEqual(0);
+    expect(getLeftClone().width()).toEqual(0);
   });
 
   it('should show rows headers after updateSettings', () => {

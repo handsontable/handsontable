@@ -75,6 +75,32 @@ describe('Core_view', () => {
     expect(spec().$container.find('.undefined').length).toBe(0);
   });
 
+  it('should properly calculate dimensions of the table if a container has border', () => {
+    spec().$container[0].style.width = '250px';
+    spec().$container[0].style.height = '200px';
+    spec().$container[0].style.overflow = 'hidden';
+    spec().$container[0].style.border = '10px solid #000';
+
+    const hot = handsontable({
+      startRows: 10,
+      startCols: 10,
+      colWidths: 50,
+      rowHeights: 50,
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    const scrollbarSize = hot.view.wt.wtOverlays.scrollbarSize;
+    const { scrollWidth: masterScrollWidth, scrollHeight: masterScrollHeight } = spec().$container.find('.ht_master')[0];
+    const topScrollWidth = spec().$container.find('.ht_clone_top')[0].scrollWidth;
+    const leftScrollHeight = spec().$container.find('.ht_clone_left')[0].scrollHeight;
+
+    expect(masterScrollWidth).toBe(250);
+    expect(masterScrollHeight).toBe(200);
+    expect(masterScrollWidth - scrollbarSize).toBe(topScrollWidth);
+    expect(masterScrollHeight - scrollbarSize).toBe(leftScrollHeight);
+  });
+
   it('should scroll viewport when partially visible cell is clicked', () => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
@@ -116,6 +142,22 @@ describe('Core_view', () => {
     expect(wtHolder[0].scrollTop).toEqual(230);
     expect(wtHolder[0].scrollLeft).toEqual(500);
 
+  });
+
+  it('should scroll viewport to the last cell in the last row', async() => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(120, 200),
+      height: 300,
+      width: 300,
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    await sleep(400);
+    hot.scrollViewportTo(119, 199);
+    await sleep(400);
+    expect(hot.view.wt.wtScroll.getLastVisibleColumn()).toEqual(199);
+    expect(hot.view.wt.wtScroll.getLastVisibleRow()).toEqual(119);
   });
 
   it('should not throw error while scrolling viewport to 0, 0 (empty data)', () => {
@@ -354,6 +396,16 @@ describe('Core_view', () => {
     expect(spec().$container.height()).toEqual(107);
   });
 
+  it('should allow width to be a string', () => {
+    handsontable({
+      startRows: 10,
+      startCols: 10,
+      height: '50vh',
+    });
+
+    expect(spec().$container.height()).toEqual(window.innerHeight / 2);
+  });
+
   it('should allow width to be a number', () => {
     handsontable({
       startRows: 10,
@@ -374,6 +426,18 @@ describe('Core_view', () => {
     });
 
     expect(spec().$container.width()).toEqual(107); // rootElement is full width but this should do the trick
+  });
+
+  it('should allow width to be a string', () => {
+    handsontable({
+      startRows: 10,
+      startCols: 10,
+      width: '50%',
+    });
+
+    const parentWidth = spec().$container.parent().width();
+
+    expect(spec().$container.width()).toBeAroundValue(parentWidth * 0.5, 0.5);
   });
 
   it('should fire beforeRender event after table has been scrolled', async() => {
@@ -432,6 +496,115 @@ describe('Core_view', () => {
     // after afterRender hook triggered element style shouldn't changed
     expect(hot.view.wt.wtTable.holder.style.overflow).toBe('scroll');
     expect(hot.view.wt.wtTable.holder.style.width).toBe('220px');
+  });
+
+  describe('resize', () => {
+    beforeEach(() => {
+      spec().$iframe = $('<iframe style="width:"/>').appendTo(spec().$container);
+      const doc = spec().$iframe[0].contentDocument;
+
+      doc.open('text/html', 'replace');
+      doc.write(`
+        <!doctype html>
+        <head>
+          <link type="text/css" rel="stylesheet" href="../dist/handsontable.full.min.css">
+        </head>`);
+      doc.close();
+
+      spec().$iframeContainer = $('<div/>').appendTo(doc.body);
+    });
+
+    afterEach(() => {
+      if (spec().$iframe) {
+        spec().$iframeContainer.handsontable('destroy');
+        spec().$iframe.remove();
+      }
+    });
+
+    it('should fire refreshDimensions hooks after window resize', async() => {
+      spec().$iframe[0].style.width = '50%';
+      spec().$iframe[0].style.height = '60px';
+
+      const beforeRefreshDimensionsCallback = jasmine.createSpy('beforeRefreshDimensionsCallback');
+      const afterRefreshDimensionsCallback = jasmine.createSpy('afterRefreshDimensions');
+
+      spec().$iframeContainer.handsontable({
+        beforeRefreshDimensions: beforeRefreshDimensionsCallback,
+        afterRefreshDimensions: afterRefreshDimensionsCallback,
+      });
+
+      spec().$iframe[0].style.width = '50px';
+
+      await sleep(300);
+
+      expect(beforeRefreshDimensionsCallback.calls.count()).toBe(1);
+      expect(afterRefreshDimensionsCallback.calls.count()).toBe(1);
+    });
+
+    it('should be possible to block auto refresh after window resize', async() => {
+      spec().$iframe[0].style.width = '50%';
+      spec().$iframe[0].style.height = '60px';
+
+      const beforeRefreshDimensionsCallback = jasmine.createSpy('beforeRefreshDimensionsCallback');
+      const afterRefreshDimensionsCallback = jasmine.createSpy('afterRefreshDimensionsCallback');
+
+      beforeRefreshDimensionsCallback.and.callFake(() => false);
+
+      spec().$iframeContainer.handsontable({
+        beforeRefreshDimensions: beforeRefreshDimensionsCallback,
+        afterRefreshDimensions: afterRefreshDimensionsCallback,
+      });
+
+      spec().$iframe[0].style.width = '50px';
+
+      await sleep(300);
+
+      expect(beforeRefreshDimensionsCallback.calls.count()).toBe(1);
+      expect(afterRefreshDimensionsCallback.calls.count()).toBe(0);
+    });
+
+    it('should return actionPossible as false if container\'s dimensions didn\'t change', async() => {
+      spec().$iframe[0].style.width = '50%';
+      spec().$iframe[0].style.height = '60px';
+
+      const beforeRefreshDimensionsCallback = jasmine.createSpy('beforeRefreshDimensionsCallback');
+      const afterRefreshDimensionsCallback = jasmine.createSpy('afterRefreshDimensionsCallback');
+
+      spec().$iframeContainer.handsontable({
+        beforeRefreshDimensions: beforeRefreshDimensionsCallback,
+        afterRefreshDimensions: afterRefreshDimensionsCallback,
+        width: 300,
+        height: 300,
+      });
+
+      spec().$iframe[0].style.width = '50px';
+
+      await sleep(300);
+
+      expect(beforeRefreshDimensionsCallback.calls.argsFor(0)[2]).toBe(false);
+      expect(afterRefreshDimensionsCallback.calls.argsFor(0)[2]).toBe(false);
+    });
+
+    it('should run hooks if container\'s dimensions did change', () => {
+      spec().$container[0].style.width = '50%';
+      spec().$container[0].style.height = '60px';
+      spec().$container[0].style.overflow = 'hidden';
+
+      const beforeRefreshDimensionsCallback = jasmine.createSpy('beforeRefreshDimensionsCallback');
+      const afterRefreshDimensionsCallback = jasmine.createSpy('afterRefreshDimensionsCallback');
+
+      handsontable({
+        beforeRefreshDimensions: beforeRefreshDimensionsCallback,
+        afterRefreshDimensions: afterRefreshDimensionsCallback,
+      });
+
+      spec().$container[0].style.width = '50px';
+
+      refreshDimensions();
+
+      expect(beforeRefreshDimensionsCallback.calls.argsFor(0)[2]).toBe(true);
+      expect(afterRefreshDimensionsCallback.calls.argsFor(0)[2]).toBe(true);
+    });
   });
 
   // TODO fix these tests - https://github.com/handsontable/handsontable/issues/1559
@@ -650,6 +823,8 @@ describe('Core_view', () => {
 
   describe('stretchH', () => {
     it('should stretch all visible columns with the ratio appropriate to the container\'s width', () => {
+      // reset scrolled window
+      window.scrollTo(0, 0);
       spec().$container[0].style.width = '300px';
 
       const hot = handsontable({
@@ -660,6 +835,8 @@ describe('Core_view', () => {
         stretchH: 'all'
       });
       const rowHeaderWidth = hot.view.wt.wtViewport.getRowHeaderWidth();
+      expect(hot.view.wt.wtOverlays.leftOverlay.getScrollPosition()).toEqual(0);
+
       let expectedCellWidth = (parseInt(spec().$container[0].style.width, 10) - rowHeaderWidth) / 5;
 
       expect(getCell(0, 0).offsetWidth).toEqual(expectedCellWidth);

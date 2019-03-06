@@ -1,4 +1,4 @@
-require('@babel/polyfill/lib/noConflict');
+require('@babel/polyfill');
 require('jasmine-co').install();
 
 let testPathRegExp = null;
@@ -13,14 +13,16 @@ if (typeof __ENV_ARGS__ === 'object' && __ENV_ARGS__.testPathPattern) {
   }
 }
 
-const ignoredE2ETestsPath = './mobile';
+const ignoredPaths = ['./mobile'];
 
 [
   require.context('.', true, /\.spec\.js$/),
   require.context('./../../src/plugins', true, /\.e2e\.js$/),
 ].forEach((req) => {
   req.keys().forEach((filePath) => {
-    if (filePath.includes(ignoredE2ETestsPath) === false) {
+    const hasIgnoredPath = ignoredPaths.some(path => filePath.includes(path));
+
+    if (!hasIgnoredPath) {
       if (testPathRegExp === null || (testPathRegExp instanceof RegExp && testPathRegExp.test(filePath))) {
         req(filePath);
       }

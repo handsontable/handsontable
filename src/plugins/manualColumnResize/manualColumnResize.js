@@ -23,6 +23,8 @@ class ManualColumnResize extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
 
+    const { rootDocument } = this.hot;
+
     this.currentTH = null;
     this.currentCol = null;
     this.selectedCols = [];
@@ -31,8 +33,8 @@ class ManualColumnResize extends BasePlugin {
     this.startY = null;
     this.startWidth = null;
     this.startOffset = null;
-    this.handle = document.createElement('DIV');
-    this.guide = document.createElement('DIV');
+    this.handle = rootDocument.createElement('DIV');
+    this.guide = rootDocument.createElement('DIV');
     this.eventManager = new EventManager(this);
     this.pressed = null;
     this.dblclick = 0;
@@ -442,10 +444,12 @@ class ManualColumnResize extends BasePlugin {
    * @private
    */
   bindEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', e => this.onMouseOver(e));
-    this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', e => this.onMouseDown(e));
-    this.eventManager.addEventListener(window, 'mousemove', e => this.onMouseMove(e));
-    this.eventManager.addEventListener(window, 'mouseup', () => this.onMouseUp());
+    const { rootWindow, rootElement } = this.hot;
+
+    this.eventManager.addEventListener(rootElement, 'mouseover', e => this.onMouseOver(e));
+    this.eventManager.addEventListener(rootElement, 'mousedown', e => this.onMouseDown(e));
+    this.eventManager.addEventListener(rootWindow, 'mousemove', e => this.onMouseMove(e));
+    this.eventManager.addEventListener(rootWindow, 'mouseup', () => this.onMouseUp());
   }
 
   /**

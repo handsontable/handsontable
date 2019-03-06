@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * Config responsible for building End-to-End test files (bundled into `test/dist/`). These tests testing `*.full.min.js` files:
  *  - e2e.entry.js
@@ -33,8 +31,6 @@ module.exports.create = function create(envArgs) {
           'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
-          'lib/lodash.underscore.js',
-          'lib/backbone.js',
           '../dist/handsontable.full.min.js',
           '../node_modules/numbro/dist/languages.min.js',
           '../dist/languages/all.min.js',

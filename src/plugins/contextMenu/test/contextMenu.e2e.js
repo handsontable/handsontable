@@ -186,15 +186,15 @@ describe('ContextMenu', () => {
 
       $(cell).simulate('mousedown', { button: 2 });
       $(cell).simulate('contextmenu', {
-        clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
-        clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(),
+        clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hot.rootWindow),
+        clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hot.rootWindow),
       });
 
       expect(hot.selection.isInProgress()).toBe(false);
     });
 
     it('should call every selection hooks after right click on table cell', () => {
-      handsontable({
+      const hot = handsontable({
         contextMenu: true,
       });
 
@@ -213,8 +213,8 @@ describe('ContextMenu', () => {
 
       $(cell).simulate('mousedown', { button: 2 });
       $(cell).simulate('contextmenu', {
-        clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
-        clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(),
+        clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hot.rootWindow),
+        clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hot.rootWindow),
       });
 
       expect(afterSelectionCallback.calls.count()).toEqual(1);
@@ -438,7 +438,7 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
-    it('should reenable menu with updateSettings when it was disabled in constructor', () => {
+    it('should reenable menu with updateSettings when it was disabled in constructor', async() => {
       handsontable({
         contextMenu: false,
         height: 100
@@ -458,9 +458,9 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      setTimeout(() => {
-        expect($('.htContextMenu').is(':visible')).toBe(true);
-      }, 300);
+      await sleep(300);
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
     it('should disable menu with updateSettings when it was enabled in constructor', () => {
@@ -549,7 +549,10 @@ describe('ContextMenu', () => {
       let items = $('.htContextMenu tbody td');
       let actions = items.not('.htSeparator');
 
-      expect(actions.length).toEqual(0);
+      expect(actions.length).toEqual(1);
+      expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
+        'No available options',
+      ].join(''));
 
       const header = $('.ht_clone_top thead th').eq(1);
 
@@ -3081,7 +3084,7 @@ describe('ContextMenu', () => {
       }
     });
 
-    it('should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ', () => {
+    it('should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ', async() => {
       const hot1 = handsontable({
         contextMenu: false,
         height: 100
@@ -3114,9 +3117,9 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      setTimeout(() => {
-        expect($('.htContextMenu').is(':visible')).toBe(true);
-      }, 1100);
+      await sleep(300);
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
 
       function contextMenu2() {
         const hot = spec().$container2.data('handsontable');
@@ -3325,7 +3328,7 @@ describe('ContextMenu', () => {
       expect(hot.getPlugin('contextMenu').close).not.toHaveBeenCalled();
     });
 
-    it('should not scroll the window when hovering over context menu items (#1897 reopen)', () => {
+    it('should not scroll the window when hovering over context menu items (#1897 reopen)', async() => {
       spec().$wrapper.css('overflow', 'visible');
 
       handsontable({
@@ -3338,6 +3341,8 @@ describe('ContextMenu', () => {
 
       selectCell(2, 4);
       contextMenu();
+
+      await sleep(100);
 
       const cmInstance = getPlugin('contextMenu').menu.hotMenu;
 
@@ -3356,6 +3361,30 @@ describe('ContextMenu', () => {
   });
 
   describe('afterContextMenuDefaultOptions hook', () => {
+    it('should be called each time the user tries to open the context menu', async() => {
+      const cb = jasmine.createSpy();
+
+      handsontable({
+        contextMenu: true,
+        afterContextMenuDefaultOptions: cb
+      });
+
+      expect(cb.calls.count()).toBe(0);
+
+      selectCell(0, 0);
+      contextMenu();
+
+      await sleep(100);
+
+      expect(cb.calls.count()).toBe(1);
+
+      contextMenu();
+
+      await sleep(100);
+
+      expect(cb.calls.count()).toBe(2);
+    });
+
     it('should call afterContextMenuDefaultOptions hook with context menu options as the first param', async() => {
       const cb = jasmine.createSpy();
 
@@ -3389,6 +3418,30 @@ describe('ContextMenu', () => {
   });
 
   describe('beforeContextMenuSetItems hook', () => {
+    it('should be called each time the user tries to open the context menu', async() => {
+      const cb = jasmine.createSpy();
+
+      handsontable({
+        contextMenu: true,
+        beforeContextMenuSetItems: cb
+      });
+
+      expect(cb.calls.count()).toBe(0);
+
+      selectCell(0, 0);
+      contextMenu();
+
+      await sleep(100);
+
+      expect(cb.calls.count()).toBe(1);
+
+      contextMenu();
+
+      await sleep(100);
+
+      expect(cb.calls.count()).toBe(2);
+    });
+
     it('should add new menu item even when item is excluded from plugin settings', async() => {
       const hookListener = function(options) {
         options.push({

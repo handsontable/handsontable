@@ -5,6 +5,7 @@ import {
   hasClass,
   isInput,
   removeClass,
+  selectElementIfAllowed
 } from 'handsontable/helpers/dom/element';
 
 describe('DomElement helper', () => {
@@ -258,6 +259,32 @@ describe('DomElement helper', () => {
       removeClass(elementMock, ['']);
 
       expect(elementMock.classList.remove).not.toHaveBeenCalled();
+    });
+  });
+
+  //
+  // Handsontable.helper.selectElementIfAllowed
+  //
+  describe('selectElementIfAllowed', () => {
+    it('should select hot editor', () => {
+      const textarea = document.createElement('textarea');
+      textarea.className = 'handsontableInput';
+
+      const spy = spyOn(textarea, 'select');
+
+      selectElementIfAllowed(textarea);
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('shouldn\'t focus input', () => {
+      const input = document.createElement('input');
+
+      const spy = spyOn(input, 'focus');
+
+      selectElementIfAllowed(input);
+
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 });

@@ -5,8 +5,7 @@ import {
   hasClass,
   offset,
   outerWidth,
-  outerHeight,
-  getScrollableElement
+  outerHeight
 } from './../../helpers/dom/element';
 import { deepClone, deepExtend, isObject } from './../../helpers/object';
 import EventManager from './../../eventManager';
@@ -146,7 +145,7 @@ class Comments extends BasePlugin {
     }
 
     if (!this.editor) {
-      this.editor = new CommentEditor();
+      this.editor = new CommentEditor(this.hot.rootDocument);
     }
 
     if (!this.eventManager) {
@@ -195,9 +194,11 @@ class Comments extends BasePlugin {
    * @private
    */
   registerListeners() {
-    this.eventManager.addEventListener(document, 'mouseover', event => this.onMouseOver(event));
-    this.eventManager.addEventListener(document, 'mousedown', event => this.onMouseDown(event));
-    this.eventManager.addEventListener(document, 'mouseup', () => this.onMouseUp());
+    const { rootDocument } = this.hot;
+
+    this.eventManager.addEventListener(rootDocument, 'mouseover', event => this.onMouseOver(event));
+    this.eventManager.addEventListener(rootDocument, 'mousedown', event => this.onMouseDown(event));
+    this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.onMouseUp());
     this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', () => this.onEditorBlur());
     this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', event => this.onEditorMouseDown(event));
     this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', event => this.onEditorMouseUp(event));
@@ -392,21 +393,23 @@ class Comments extends BasePlugin {
     if (!force && (!this.range.from || !this.editor.isVisible())) {
       return;
     }
-    const scrollableElement = getScrollableElement(this.hot.view.wt.wtTable.TABLE);
-    const TD = this.hot.view.wt.wtTable.getCell(this.range.from);
+    const { rootWindow } = this.hot;
+    const { wtTable, wtOverlays, wtViewport } = this.hot.view.wt;
+    const scrollableElement = wtOverlays.scrollableElement;
+    const TD = wtTable.getCell(this.range.from);
     const row = this.range.from.row;
     const column = this.range.from.col;
     const cellOffset = offset(TD);
-    const lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
+    const lastColWidth = wtTable.getStretchedColumnWidth(column);
     let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
     let cellLeftOffset = cellOffset.left;
 
-    if (this.hot.view.wt.wtViewport.hasVerticalScroll() && scrollableElement !== window) {
-      cellTopOffset -= this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
+    if (wtViewport.hasVerticalScroll() && scrollableElement !== rootWindow) {
+      cellTopOffset -= wtOverlays.topOverlay.getScrollPosition();
     }
 
-    if (this.hot.view.wt.wtViewport.hasHorizontalScroll() && scrollableElement !== window) {
-      cellLeftOffset -= this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
+    if (wtViewport.hasHorizontalScroll() && scrollableElement !== rootWindow) {
+      cellLeftOffset -= wtOverlays.leftOverlay.getScrollPosition();
     }
 
     const x = cellLeftOffset + lastColWidth;
@@ -523,8 +526,9 @@ class Comments extends BasePlugin {
    */
   onMouseOver(event) {
     const priv = privatePool.get(this);
+    const { rootDocument } = this.hot;
 
-    priv.cellBelowCursor = document.elementFromPoint(event.clientX, event.clientY);
+    priv.cellBelowCursor = rootDocument.elementFromPoint(event.clientX, event.clientY);
 
     if (this.mouseDown || this.editor.isFocused() || hasClass(event.target, 'wtBorder')
         || priv.cellBelowCursor !== event.target || !this.editor) {
@@ -539,7 +543,7 @@ class Comments extends BasePlugin {
 
       this.displaySwitch.show(range);
 
-    } else if (isChildOf(event.target, document) && !this.targetIsCommentTextArea(event)) {
+    } else if (isChildOf(event.target, rootDocument) && !this.targetIsCommentTextArea(event)) {
       this.displaySwitch.hide();
     }
   }
