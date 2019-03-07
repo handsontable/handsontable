@@ -1,5 +1,5 @@
 import BasePlugin from './../_base';
-import { addClass, hasClass, removeClass, outerHeight } from './../../helpers/dom/element';
+import { addClass, hasClass, removeClass, outerHeight, offset } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
 import { pageX } from './../../helpers/dom/event';
 import { arrayEach } from './../../helpers/array';
@@ -144,11 +144,15 @@ class ManualColumnResize extends BasePlugin {
 
     this.currentTH = TH;
 
-    const col = this.hot.view.wt.wtTable.getCoords(TH).col; // getCoords returns CellCoords
+    const cellCoords = this.hot.view.wt.wtTable.getCoords(this.currentTH);
+    const col = cellCoords.col;
     const headerHeight = outerHeight(this.currentTH);
 
-    if (col >= 0) { // if not col header
+    if (col >= 0) { // if col header
       const box = this.currentTH.getBoundingClientRect();
+      const fixedColumn = col < this.hot.getSettings().fixedColumnsLeft;
+      const parentOverlay = fixedColumn ? this.hot.view.wt.wtOverlays.topLeftCornerOverlay : this.hot.view.wt.wtOverlays.topOverlay;
+      const relativeHeaderPosition = parentOverlay.getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
 
       this.currentCol = col;
       this.selectedCols = [];
@@ -169,14 +173,17 @@ class ManualColumnResize extends BasePlugin {
         } else {
           this.selectedCols.push(this.currentCol);
         }
+
       } else {
         this.selectedCols.push(this.currentCol);
       }
 
-      this.startOffset = box.left - 6;
+      this.startOffset = relativeHeaderPosition.left - 6;
       this.startWidth = parseInt(box.width, 10);
-      this.handle.style.top = `${box.top}px`;
+
+      this.handle.style.top = `${relativeHeaderPosition.top}px`;
       this.handle.style.left = `${this.startOffset + this.startWidth}px`;
+
       this.handle.style.height = `${headerHeight}px`;
       this.hot.rootElement.appendChild(this.handle);
     }

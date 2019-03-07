@@ -139,11 +139,16 @@ class ManualRowResize extends BasePlugin {
    */
   setupHandlePosition(TH) {
     this.currentTH = TH;
-    const row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns CellCoords
+
+    const cellCoords = this.hot.view.wt.wtTable.getCoords(this.currentTH);
+    const row = cellCoords.row;
     const headerWidth = outerWidth(this.currentTH);
 
     if (row >= 0) { // if not col header
       const box = this.currentTH.getBoundingClientRect();
+      const fixedRow = row < this.hot.getSettings().fixedRowsTop;
+      const parentOverlay = fixedRow ? this.hot.view.wt.wtOverlays.topLeftCornerOverlay : this.hot.view.wt.wtOverlays.leftOverlay;
+      const relativeHeaderPosition = parentOverlay.getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
 
       this.currentRow = row;
       this.selectedRows = [];
@@ -164,14 +169,17 @@ class ManualRowResize extends BasePlugin {
         } else {
           this.selectedRows.push(this.currentRow);
         }
+
       } else {
         this.selectedRows.push(this.currentRow);
       }
 
-      this.startOffset = box.top - 6;
+      this.startOffset = relativeHeaderPosition.top - 6;
       this.startHeight = parseInt(box.height, 10);
-      this.handle.style.left = `${box.left}px`;
+
       this.handle.style.top = `${this.startOffset + this.startHeight}px`;
+      this.handle.style.left = `${relativeHeaderPosition.left}px`;
+
       this.handle.style.width = `${headerWidth}px`;
       this.hot.rootElement.appendChild(this.handle);
     }

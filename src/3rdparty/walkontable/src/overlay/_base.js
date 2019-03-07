@@ -1,9 +1,11 @@
 import {
   getScrollableElement,
   getTrimmingContainer,
+  offset
 } from './../../../../helpers/dom/element';
 import { defineGetter } from './../../../../helpers/object';
 import { arrayEach } from './../../../../helpers/array';
+import { warn } from './../../../../helpers/console';
 import EventManager from './../../../../eventManager';
 import Walkontable from './../core';
 
@@ -199,6 +201,78 @@ class Overlay {
     } else {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
     }
+  }
+
+  /**
+   * Calculates coordinates of the provided element, relative to the root Handsontable element.
+   * NOTE: The element needs to be a child of the overlay in order for the method to work correctly.
+   *
+   * @param {HTMLElement} element The cell element to calculate the position for.
+   * @param {Number} rowIndex Row index.
+   * @param {Number} columnIndex Column index.
+   * @returns {{top: Number, left: Number}|undefined}
+   */
+  getRelativeCellPosition(element, rowIndex, columnIndex) {
+    if (this.clone.wtTable.holder.contains(element) === false) {
+      warn(`The provided element is not a child of the ${this.type} overlay`);
+
+      return;
+    }
+
+    const fixedColumn = columnIndex < this.wot.getSetting('fixedColumnsLeft');
+    const fixedRow = rowIndex < this.wot.getSetting('fixedRowsTop');
+    const windowScroll = this.mainTableScrollableElement === this.wot.rootWindow;
+    const tableHorizontalScrollPosition = this.clone.cloneSource.wtOverlays.leftOverlay.getScrollPosition();
+    const tableVerticalScrollPosition = this.clone.cloneSource.wtOverlays.topOverlay.getScrollPosition();
+    const spreaderOffsetLeft = this.clone.wtTable.spreader.offsetLeft;
+    const spreaderOffsetTop = this.clone.wtTable.spreader.offsetTop;
+    const elementOffsetLeft = element.offsetLeft;
+    const elementOffsetTop = element.offsetTop;
+    let offsetObject = null;
+    let horizontalScrollOffset = 0;
+    let verticalScrollOffset = 0;
+
+    if (windowScroll) {
+      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
+
+      if (!fixedColumn) {
+        horizontalScrollOffset = spreaderOffsetLeft;
+
+      } else {
+        horizontalScrollOffset = absoluteRootElementPosition.left > 0 ? 0 : (-1) * absoluteRootElementPosition.left;
+      }
+
+      if (!fixedRow) {
+        verticalScrollOffset = spreaderOffsetTop;
+
+      } else {
+        const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+
+        verticalScrollOffset = absoluteOverlayPosition.top - absoluteRootElementPosition.top;
+      }
+
+      offsetObject = {
+        left: elementOffsetLeft + horizontalScrollOffset,
+        top: elementOffsetTop + verticalScrollOffset
+      };
+
+    } else {
+
+      if (!fixedColumn) {
+        horizontalScrollOffset = tableHorizontalScrollPosition - spreaderOffsetLeft;
+      }
+
+      if (!fixedRow) {
+        verticalScrollOffset = tableVerticalScrollPosition - spreaderOffsetTop;
+      }
+
+      offsetObject = {
+        left: elementOffsetLeft - horizontalScrollOffset,
+        top: elementOffsetTop - verticalScrollOffset,
+      };
+    }
+
+    return offsetObject;
   }
 
   /**
