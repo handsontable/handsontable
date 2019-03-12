@@ -683,6 +683,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'shift_right':
           repeatCol = end ? end.col - start.col + 1 : 0;
           repeatRow = end ? end.row - start.row + 1 : 0;
+
+          const firstInsertedIndex = instance.countCols();
+
+          recordTranslator.columnIndexMapper.updateIndexesAfterInsertion(firstInsertedIndex, firstInsertedIndex, repeatCol);
+
           for (r = 0, rlen = input.length, rmax = Math.max(rlen, repeatRow); r < rmax; r++) {
             if (r < rlen) {
               for (c = 0, clen = input[r].length; c < repeatCol - clen; c++) {
