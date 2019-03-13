@@ -2380,7 +2380,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row, column, key, value) {
-    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
+    const [physicalRow, physicalColumn] = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];;
 
     if (!priv.columnSettings[physicalColumn]) {
       priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
@@ -2420,7 +2420,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getCellMeta = function(row, column) {
     const prop = datamap.colToProp(column);
-    const [potentialPhysicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
+    const [potentialPhysicalRow, physicalColumn] = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];
     let physicalRow = potentialPhysicalRow;
 
     // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
