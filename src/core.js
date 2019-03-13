@@ -1154,7 +1154,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (typeof input[i][1] !== 'number') {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
-      prop = datamap.colToProp(input[i][1]) || input[i][1];
+      prop = datamap.colToProp(input[i][1]);
       changes.push([
         input[i][0],
         prop,
@@ -2001,7 +2001,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns visual row index.
    */
-  this.toVisualRow = (row, source) => recordTranslator.toVisualRow(row, source);
+  this.toVisualRow = (row, source) => {
+    const visualRow = recordTranslator.toVisualRow(row, source);
+
+    if (visualRow !== null) {
+      return visualRow;
+    }
+
+    return row;
+  };
 
   /**
    * Translate physical column index into visual.
@@ -2015,7 +2023,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns visual column index.
    */
-  this.toVisualColumn = (column, source) => recordTranslator.toVisualColumn(column, source);
+  this.toVisualColumn = (column, source) => {
+    const visualColumn = recordTranslator.toVisualColumn(column, source);
+
+    if (visualColumn !== null) {
+      return visualColumn;
+    }
+
+    return column;
+  };
 
   /**
    * Translate visual row index into physical.
@@ -2029,7 +2045,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns physical row index.
    */
-  this.toPhysicalRow = (row, source) => recordTranslator.toPhysicalRow(row, source);
+  this.toPhysicalRow = (row, source) => {
+    const physicalRow = recordTranslator.toPhysicalRow(row, source);
+
+    if (physicalRow !== null) {
+      return physicalRow;
+    }
+
+    return row;
+  };
 
   /**
    * Translate visual column index into physical.
@@ -2043,7 +2067,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns physical column index.
    */
-  this.toPhysicalColumn = (column, source) => recordTranslator.toPhysicalColumn(column, source);
+  this.toPhysicalColumn = (column, source) => {
+    const physicalColumn = recordTranslator.toPhysicalColumn(column, source);
+
+    if (physicalColumn !== null) {
+      return physicalColumn;
+    }
+
+    return column;
+  };
 
   this.recordTranslator = recordTranslator;
 
