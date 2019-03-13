@@ -684,10 +684,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           repeatCol = end ? end.col - start.col + 1 : 0;
           repeatRow = end ? end.row - start.row + 1 : 0;
 
-          const firstInsertedIndex = instance.countCols();
-
-          recordTranslator.columnIndexMapper.updateIndexesAfterInsertion(firstInsertedIndex, firstInsertedIndex, repeatCol);
-
           for (r = 0, rlen = input.length, rmax = Math.max(rlen, repeatRow); r < rmax; r++) {
             if (r < rlen) {
               for (c = 0, clen = input[r].length; c < repeatCol - clen; c++) {
@@ -1038,6 +1034,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
     }
 
+    // TODO: should also handle situation when shifting indexes right
+    recordTranslator.columnIndexMapper.fillTo(instance.countCols());
+
     instance.forceFullRender = true; // used when data was changed
     grid.adjustRowsAndCols();
     instance.runHooks('beforeChangeRender', changes, source);
@@ -1155,7 +1154,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (typeof input[i][1] !== 'number') {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
-      prop = datamap.colToProp(input[i][1]);
+      prop = datamap.colToProp(input[i][1]) || input[i][1];
       changes.push([
         input[i][0],
         prop,

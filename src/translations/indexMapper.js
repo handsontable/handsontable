@@ -63,6 +63,14 @@ class IndexMapper {
     this.skippedIndexes = indexes;
   }
 
+  fillTo(lastIndex) {
+    const numberOfIndexes = this.indexesSequence.length;
+
+    if (numberOfIndexes < lastIndex) {
+      this.updateIndexesAfterInsertion(numberOfIndexes, numberOfIndexes, lastIndex - numberOfIndexes);
+    }
+  }
+
   updateIndexesAfterInsertion(firstVisualInsertedIndex, firstPhysicalInsertedIndex, amountOfIndexes) {
     const visibleIndexes = arrayFilter(this.indexesSequence, index => this.skippedIndexes.includes(index) === false);
     const nthVisibleIndex = visibleIndexes[firstVisualInsertedIndex];
