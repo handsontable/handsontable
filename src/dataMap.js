@@ -590,7 +590,7 @@ class DataMap {
    * @returns {*}
    */
   get(row, prop) {
-    const physicalRow = this.instance.toPhysicalRow(row);
+    const physicalRow = this.instance.recordTranslator.toPhysicalRow(row);
 
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)
@@ -824,7 +824,7 @@ class DataMap {
     };
 
     const end = {
-      row: Math.max(this.instance.countSourceRows() - 1, 0),
+      row: Math.max(this.instance.countRows() - 1, 0),
       col: Math.max(this.instance.countCols() - 1, 0),
     };
 
