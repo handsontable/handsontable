@@ -207,7 +207,9 @@ class TextEditor extends BaseEditor {
    * Creates an editor's elements and adds necessary CSS classnames.
    */
   createElements() {
-    this.TEXTAREA = this.hot.rootDocument.createElement('TEXTAREA');
+    const { rootDocument } = this.hot;
+
+    this.TEXTAREA = rootDocument.createElement('TEXTAREA');
     this.TEXTAREA.tabIndex = -1;
 
     addClass(this.TEXTAREA, 'handsontableInput');
@@ -215,8 +217,9 @@ class TextEditor extends BaseEditor {
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
+    this.textareaStyle.overflowY = 'visible';
 
-    this.TEXTAREA_PARENT = this.hot.rootDocument.createElement('DIV');
+    this.TEXTAREA_PARENT = rootDocument.createElement('DIV');
     addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
     this.textareaParentStyle = this.TEXTAREA_PARENT.style;
@@ -288,11 +291,11 @@ class TextEditor extends BaseEditor {
    * @private
    */
   hideEditableElement() {
-    this.textareaParentStyle.left = 'auto';
-    this.textareaParentStyle.overflow = 'hidden';
-    this.textareaParentStyle.position = 'fixed';
-    this.textareaParentStyle.right = '100%';
-    this.textareaParentStyle.top = '0px';
+    this.textareaStyle.textIndent = '-99999px';
+    this.textareaStyle.overflowY = 'visible';
+
+    this.textareaParentStyle.opacity = '0';
+    this.textareaParentStyle.height = '1px';
     this.textareaParentStyle.zIndex = '-1';
   }
 
@@ -302,10 +305,15 @@ class TextEditor extends BaseEditor {
    * @private
    */
   showEditableElement() {
+    this.textareaParentStyle.height = '';
     this.textareaParentStyle.overflow = '';
     this.textareaParentStyle.position = '';
     this.textareaParentStyle.right = 'auto';
     this.textareaParentStyle.zIndex = this.holderZIndex >= 0 ? this.holderZIndex : '';
+    this.textareaParentStyle.opacity = '1';
+
+    this.textareaStyle.textIndent = '';
+    this.textareaStyle.overflowY = 'auto';
   }
 
   /**
