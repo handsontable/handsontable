@@ -57,7 +57,7 @@ class SelectEditor extends BaseEditor {
     this._opened = true;
     this.refreshDimensions();
     this.select.style.display = '';
-    this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
+    this.addHook('beforeKeyDown', (event) => this.onBeforeKeyDown(event));
   }
 
   /**
