@@ -283,7 +283,7 @@ class SelectEditor extends BaseEditor {
    *
    * @private
    */
-  onBeforeKeyDown() {
+  onBeforeKeyDown(event) {
     const previousOptionIndex = this.select.selectedIndex - 1;
     const nextOptionIndex = this.select.selectedIndex + 1;
 
