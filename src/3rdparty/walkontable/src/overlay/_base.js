@@ -1,7 +1,6 @@
 import {
   getScrollableElement,
-  getTrimmingContainer,
-  offset
+  getTrimmingContainer
 } from './../../../../helpers/dom/element';
 import { defineGetter } from './../../../../helpers/object';
 import { arrayEach } from './../../../../helpers/array';
@@ -218,57 +217,68 @@ class Overlay {
 
       return;
     }
-
-    const fixedColumn = columnIndex < this.wot.getSetting('fixedColumnsLeft');
-    const fixedRow = rowIndex < this.wot.getSetting('fixedRowsTop');
     const windowScroll = this.mainTableScrollableElement === this.wot.rootWindow;
-    const tableHorizontalScrollPosition = this.clone.cloneSource.wtOverlays.leftOverlay.getScrollPosition();
-    const tableVerticalScrollPosition = this.clone.cloneSource.wtOverlays.topOverlay.getScrollPosition();
-    const spreaderOffsetLeft = this.clone.wtTable.spreader.offsetLeft;
-    const spreaderOffsetTop = this.clone.wtTable.spreader.offsetTop;
-    const elementOffsetLeft = element.offsetLeft;
-    const elementOffsetTop = element.offsetTop;
+    const fixedColumn = columnIndex < this.wot.getSetting('fixedColumnsLeft');
+    const fixedRowTop = rowIndex < this.wot.getSetting('fixedRowsTop');
+    const fixedRowBottom = rowIndex >= this.wot.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom');
+    const spreaderOffset = {
+      left: this.clone.wtTable.spreader.offsetLeft,
+      top: this.clone.wtTable.spreader.offsetTop
+    };
+    const elementOffset = {
+      left: element.offsetLeft,
+      top: element.offsetTop
+    };
     let offsetObject = null;
-    let horizontalScrollOffset = 0;
-    let verticalScrollOffset = 0;
+    let horizontalOffset = 0;
+    let verticalOffset = 0;
 
     if (windowScroll) {
       const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
 
       if (!fixedColumn) {
-        horizontalScrollOffset = spreaderOffsetLeft;
+        horizontalOffset = spreaderOffset.left;
 
       } else {
-        horizontalScrollOffset = absoluteRootElementPosition.left > 0 ? 0 : (-1) * absoluteRootElementPosition.left;
+        horizontalOffset = absoluteRootElementPosition.left <= 0 ? (-1) * absoluteRootElementPosition.left : 0;
       }
 
-      if (!fixedRow) {
-        verticalScrollOffset = spreaderOffsetTop;
-
-      } else {
+      if (fixedRowTop) {
         const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
 
-        verticalScrollOffset = absoluteOverlayPosition.top - absoluteRootElementPosition.top;
+        verticalOffset = absoluteOverlayPosition.top - absoluteRootElementPosition.top;
+
+      } else {
+        verticalOffset = spreaderOffset.top;
       }
 
       offsetObject = {
-        left: elementOffsetLeft + horizontalScrollOffset,
-        top: elementOffsetTop + verticalScrollOffset
+        left: elementOffset.left + horizontalOffset,
+        top: elementOffset.top + verticalOffset
       };
 
     } else {
+      const tableScrollPosition = {
+        horizontal: this.clone.cloneSource.wtOverlays.leftOverlay.getScrollPosition(),
+        vertical: this.clone.cloneSource.wtOverlays.topOverlay.getScrollPosition()
+      };
 
       if (!fixedColumn) {
-        horizontalScrollOffset = tableHorizontalScrollPosition - spreaderOffsetLeft;
+        horizontalOffset = tableScrollPosition.horizontal - spreaderOffset.left;
       }
 
-      if (!fixedRow) {
-        verticalScrollOffset = tableVerticalScrollPosition - spreaderOffsetTop;
+      if (fixedRowBottom) {
+        const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
+        const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+        verticalOffset = (absoluteOverlayPosition.top * (-1)) + absoluteRootElementPosition.top;
+
+      } else if (!fixedRowTop) {
+        verticalOffset = tableScrollPosition.vertical - spreaderOffset.top;
       }
 
       offsetObject = {
-        left: elementOffsetLeft - horizontalScrollOffset,
-        top: elementOffsetTop - verticalScrollOffset,
+        left: elementOffset.left - horizontalOffset,
+        top: elementOffset.top - verticalOffset,
       };
     }
 
@@ -305,8 +315,8 @@ class Overlay {
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (preventOverflow === true ||
-        preventOverflow === 'horizontal' && this.type === Overlay.CLONE_TOP ||
-        preventOverflow === 'vertical' && this.type === Overlay.CLONE_LEFT) {
+      preventOverflow === 'horizontal' && this.type === Overlay.CLONE_TOP ||
+      preventOverflow === 'vertical' && this.type === Overlay.CLONE_LEFT) {
       this.mainTableScrollableElement = rootWindow;
 
     } else if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
@@ -365,3 +375,4 @@ class Overlay {
 }
 
 export default Overlay;
+

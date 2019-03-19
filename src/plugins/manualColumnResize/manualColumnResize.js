@@ -1,5 +1,5 @@
 import BasePlugin from './../_base';
-import { addClass, hasClass, removeClass, outerHeight, offset } from './../../helpers/dom/element';
+import { addClass, hasClass, removeClass, outerHeight } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
 import { pageX } from './../../helpers/dom/event';
 import { arrayEach } from './../../helpers/array';
@@ -152,7 +152,13 @@ class ManualColumnResize extends BasePlugin {
       const box = this.currentTH.getBoundingClientRect();
       const fixedColumn = col < this.hot.getSettings().fixedColumnsLeft;
       const parentOverlay = fixedColumn ? this.hot.view.wt.wtOverlays.topLeftCornerOverlay : this.hot.view.wt.wtOverlays.topOverlay;
-      const relativeHeaderPosition = parentOverlay.getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+      let relativeHeaderPosition = parentOverlay.getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+
+      // If the TH is not a child of the top/top-left overlay, recalculate using the top-most header
+      if (!relativeHeaderPosition) {
+        const topMostHeader = parentOverlay.clone.wtTable.THEAD.lastChild.children[+!!this.hot.getSettings().rowHeaders + col];
+        relativeHeaderPosition = parentOverlay.getRelativeCellPosition(topMostHeader, cellCoords.row, cellCoords.col);
+      }
 
       this.currentCol = col;
       this.selectedCols = [];

@@ -140,15 +140,30 @@ class ManualRowResize extends BasePlugin {
   setupHandlePosition(TH) {
     this.currentTH = TH;
 
-    const cellCoords = this.hot.view.wt.wtTable.getCoords(this.currentTH);
+    const cellCoords = this.hot.getCoords(this.currentTH);
     const row = cellCoords.row;
     const headerWidth = outerWidth(this.currentTH);
 
     if (row >= 0) { // if not col header
       const box = this.currentTH.getBoundingClientRect();
-      const fixedRow = row < this.hot.getSettings().fixedRowsTop;
-      const parentOverlay = fixedRow ? this.hot.view.wt.wtOverlays.topLeftCornerOverlay : this.hot.view.wt.wtOverlays.leftOverlay;
-      const relativeHeaderPosition = parentOverlay.getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+      const fixedRowTop = row < this.hot.getSettings().fixedRowsTop;
+      const fixedRowBottom = row >= this.hot.countRows() - this.hot.getSettings().fixedRowsBottom;
+      let parentOverlay = this.hot.view.wt.wtOverlays.leftOverlay;
+
+      if (fixedRowTop) {
+        parentOverlay = this.hot.view.wt.wtOverlays.topLeftCornerOverlay;
+
+      } else if (fixedRowBottom) {
+        parentOverlay = this.hot.view.wt.wtOverlays.bottomLeftCornerOverlay;
+      }
+
+      let relativeHeaderPosition = parentOverlay.getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+
+      // If the TH is not a child of the left/top-left/bottom-left overlay, recalculate using the top-most header
+      if (!relativeHeaderPosition) {
+        const topMostHeader = parentOverlay.clone.wtTable.TBODY.children[+!!this.hot.getSettings().colHeaders + row].firstChild;
+        relativeHeaderPosition = parentOverlay.getRelativeCellPosition(topMostHeader, cellCoords.row, cellCoords.col);
+      }
 
       this.currentRow = row;
       this.selectedRows = [];
