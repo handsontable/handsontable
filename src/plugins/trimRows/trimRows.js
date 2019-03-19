@@ -65,7 +65,7 @@ class TrimRows extends BasePlugin {
     const settings = this.hot.getSettings().trimRows;
 
     if (Array.isArray(settings)) {
-      this.hot.recordTranslator.rowIndexMapper.setSkippedIndexes(settings);
+      this.hot.recordTranslator.setSkippedRows(settings);
     }
 
     super.enablePlugin();
@@ -89,7 +89,7 @@ class TrimRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.recordTranslator.rowIndexMapper.setSkippedIndexes([]);
+    this.hot.recordTranslator.setSkippedRows([]);
     super.disablePlugin();
   }
 
@@ -102,7 +102,7 @@ class TrimRows extends BasePlugin {
    * @fires Hooks#afterTrimRow
    */
   trimRows(rows) {
-    const currentTrimConfig = this.hot.recordTranslator.rowIndexMapper.getSkippedIndexes();
+    const currentTrimConfig = this.hot.recordTranslator.getSkippedRows();
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
 
@@ -117,7 +117,7 @@ class TrimRows extends BasePlugin {
     }
 
     if (isValidConfig) {
-      this.hot.recordTranslator.rowIndexMapper.setSkippedIndexes(destinationTrimConfig);
+      this.hot.recordTranslator.setSkippedRows(destinationTrimConfig);
     }
 
     this.hot.runHooks('afterTrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
@@ -142,7 +142,7 @@ class TrimRows extends BasePlugin {
    * @fires Hooks#afterUntrimRow
    */
   untrimRows(rows) {
-    const currentTrimConfig = this.hot.recordTranslator.rowIndexMapper.getSkippedIndexes();
+    const currentTrimConfig = this.hot.recordTranslator.getSkippedRows();
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
 
@@ -157,7 +157,7 @@ class TrimRows extends BasePlugin {
     }
 
     if (isValidConfig) {
-      this.hot.recordTranslator.rowIndexMapper.setSkippedIndexes(destinationTrimConfig);
+      this.hot.recordTranslator.setSkippedRows(destinationTrimConfig);
     }
 
     this.hot.runHooks('afterUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
@@ -174,19 +174,20 @@ class TrimRows extends BasePlugin {
   }
 
   /**
-   * Checks if given physical row is hidden.
+   * Checks if given row is hidden.
    *
+   * @param physicalRow Physical row index.
    * @returns {Boolean}
    */
-  isTrimmed(row) {
-    return this.hot.recordTranslator.rowIndexMapper.getSkippedIndexes().includes(row);
+  isTrimmed(physicalRow) {
+    return this.hot.recordTranslator.isSkippedRow(physicalRow);
   }
 
   /**
    * Untrims all trimmed rows.
    */
   untrimAll() {
-    this.untrimRows([].concat(this.hot.recordTranslator.rowIndexMapper.getSkippedIndexes()));
+    this.untrimRows([].concat(this.hot.recordTranslator.getSkippedRows()));
   }
 
   /**

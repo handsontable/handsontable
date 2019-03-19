@@ -98,6 +98,62 @@ export class RecordTranslator {
 
     return result;
   }
+
+  /**
+   * Get list of row indexes skipped in the process of rendering.
+   *
+   * @returns {Array}
+   */
+  getSkippedRows() {
+    return this.rowIndexMapper.getSkippedIndexes();
+  }
+
+  /**
+   * Get list of column indexes skipped in the process of rendering.
+   *
+   * @returns {Array}
+   */
+  getSkippedColumns() {
+    return this.columnIndexMapper.getSkippedIndexes();
+  }
+
+  /**
+   * Get whether row index is skipped in the process of rendering.
+   *
+   * @param row  Physical row index.
+   * @returns {Boolean}
+   */
+  isSkippedRow(row) {
+    return this.rowIndexMapper.isSkipped(row);
+  }
+
+  /**
+   * Get whether column index is skipped in the process of rendering.
+   *
+   * @param column Physical column index.
+   * @returns {Boolean}
+   */
+  isSkippedColumn(column) {
+    return this.columnIndexMapper.isSkipped(column);
+  }
+
+  /**
+   * Set completely new list of row indexes skipped in the process of rendering.
+   *
+   * @param {Array} Physical row indexes.
+   */
+  setSkippedRows(indexes) {
+    this.rowIndexMapper.setSkippedIndexes(indexes);
+  }
+
+  /**
+   * Set completely new list of column indexes skipped in the process of rendering.
+   *
+   * @param {Array} Physical column indexes.
+   */
+  setSkippedColumns(indexes) {
+    this.columnIndexMapper.setSkippedIndexes(indexes);
+  }
 }
 
 const identities = new WeakMap();
