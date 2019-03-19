@@ -1154,7 +1154,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (typeof input[i][1] !== 'number') {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
-      prop = datamap.colToProp(input[i][1]);
+
+      if (input[i][1] >= this.countCols()) {
+        prop = input[i][1];
+
+      } else {
+        prop = datamap.colToProp(input[i][1]);
+      }
+
       changes.push([
         input[i][0],
         prop,
@@ -2001,15 +2008,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns visual row index.
    */
-  this.toVisualRow = (row, source) => {
-    const visualRow = recordTranslator.toVisualRow(row, source);
-
-    if (visualRow !== null) {
-      return visualRow;
-    }
-
-    return row;
-  };
+  this.toVisualRow = (row, source) => recordTranslator.toVisualRow(row, source);
 
   /**
    * Translate physical column index into visual.
@@ -2023,15 +2022,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns visual column index.
    */
-  this.toVisualColumn = (column, source) => {
-    const visualColumn = recordTranslator.toVisualColumn(column, source);
-
-    if (visualColumn !== null) {
-      return visualColumn;
-    }
-
-    return column;
-  };
+  this.toVisualColumn = (column, source) => recordTranslator.toVisualColumn(column, source);
 
   /**
    * Translate visual row index into physical.
@@ -2045,15 +2036,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns physical row index.
    */
-  this.toPhysicalRow = (row, source) => {
-    const physicalRow = recordTranslator.toPhysicalRow(row, source);
-
-    if (physicalRow !== null) {
-      return physicalRow;
-    }
-
-    return row;
-  };
+  this.toPhysicalRow = (row, source) => recordTranslator.toPhysicalRow(row, source);
 
   /**
    * Translate visual column index into physical.
@@ -2067,15 +2050,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns physical column index.
    */
-  this.toPhysicalColumn = (column, source) => {
-    const physicalColumn = recordTranslator.toPhysicalColumn(column, source);
-
-    if (physicalColumn !== null) {
-      return physicalColumn;
-    }
-
-    return column;
-  };
+  this.toPhysicalColumn = (column, source) => recordTranslator.toPhysicalColumn(column, source);
 
   this.recordTranslator = recordTranslator;
 
@@ -2380,7 +2355,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row, column, key, value) {
-    const [physicalRow, physicalColumn] = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];;
+    let physicalRow = row;
+    let physicalColumn = column;
+
+    if (row < this.countRows()) {
+      physicalRow = recordTranslator.toPhysicalRow(row);
+    }
+
+    if (column < this.countCols()) {
+      physicalColumn = recordTranslator.toPhysicalColumn(column);
+    }
 
     if (!priv.columnSettings[physicalColumn]) {
       priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
@@ -2419,14 +2403,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterGetCellMeta
    */
   this.getCellMeta = function(row, column) {
-    const prop = datamap.colToProp(column);
-    const [potentialPhysicalRow, physicalColumn] = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];
-    let physicalRow = potentialPhysicalRow;
+    let physicalRow = row;
+    let physicalColumn = column;
 
-    // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
-    if (physicalRow === null) {
-      physicalRow = row;
+    if (row < this.countRows()) {
+      physicalRow = recordTranslator.toPhysicalRow(row);
     }
+
+    if (column < this.countCols()) {
+      physicalColumn = recordTranslator.toPhysicalColumn(column);
+    }
+
+    const prop = datamap.colToProp(column);
 
     if (!priv.columnSettings[physicalColumn]) {
       priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);

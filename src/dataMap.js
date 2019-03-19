@@ -209,10 +209,14 @@ class DataMap {
    * Returns property name that corresponds with the given column index.
    *
    * @param {Number} col Visual column index.
-   * @returns {Number} Physical column index.
+   * @returns {String|Number} Column property, physical column index or handled argument.
    */
-  colToProp(col) {
-    const physicalColumn = this.instance.toPhysicalColumn(col);
+  colToProp(column) {
+    let physicalColumn = column;
+
+    if (column < this.instance.countCols()) {
+      physicalColumn = getTranslator(this.instance).toPhysicalColumn(column);
+    }
 
     if (!isNaN(physicalColumn) && this.colToPropCache && typeof this.colToPropCache[physicalColumn] !== 'undefined') {
       return this.colToPropCache[physicalColumn];
@@ -224,21 +228,21 @@ class DataMap {
   /**
    * Translates property into visual column index.
    *
-   * @param {Object} prop
-   * @fires Hooks#modifyCol
+   * @param {String|Number} prop
    * @returns {Number}
    */
   propToCol(prop) {
-    let col;
-
     if (typeof this.propToColCache.get(prop) === 'undefined') {
-      col = prop;
-    } else {
-      col = this.propToColCache.get(prop);
+      return prop;
     }
-    col = this.instance.toVisualColumn(col);
 
-    return col;
+    const physicalColumn = this.propToColCache.get(prop);
+
+    if (physicalColumn < this.instance.countSourceCols()) {
+      return getTranslator(this.instance).toVisualColumn(physicalColumn);
+    }
+
+    return physicalColumn;
   }
 
   /**
