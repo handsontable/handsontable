@@ -172,7 +172,7 @@ class ColumnSorting extends BasePlugin {
       this.hot.removeHook('afterGetColHeader', clearColHeader);
     });
 
-    this.hot.recordTranslator.rowIndexMapper.createSimpleSequence();
+    this.hot.recordTranslator.rowIndexMapper.createIndexesSequence();
 
     super.disablePlugin();
   }
@@ -545,7 +545,7 @@ class ColumnSorting extends BasePlugin {
    */
   sortByPresetSortStates() {
     if (this.columnStatesManager.isListOfSortedColumnsEmpty()) {
-      this.hot.recordTranslator.rowIndexMapper.createSimpleSequence();
+      this.hot.recordTranslator.rowIndexMapper.createIndexesSequence();
 
       return;
     }
@@ -708,7 +708,7 @@ class ColumnSorting extends BasePlugin {
    * @param {Boolean} initialLoad flag that determines whether the data has been loaded during the initialization.
    */
   onAfterLoadData(initialLoad) {
-    this.hot.recordTranslator.rowIndexMapper.createSimpleSequence();
+    this.hot.recordTranslator.rowIndexMapper.createIndexesSequence();
     this.columnMetaCache.clear();
 
     if (initialLoad === true) {

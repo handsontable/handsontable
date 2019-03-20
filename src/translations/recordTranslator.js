@@ -154,6 +154,20 @@ export class RecordTranslator {
   setSkippedColumns(indexes) {
     this.columnIndexMapper.setSkippedIndexes(indexes);
   }
+
+  /**
+   * Clear all skipped row indexes.
+   */
+  clearSkippedRows() {
+    this.rowIndexMapper.clearSkippedIndexes();
+  }
+
+  /**
+   * Clear all skipped column indexes.
+   */
+  clearSkippedColumns() {
+    this.columnIndexMapper.clearSkippedIndexes();
+  }
 }
 
 const identities = new WeakMap();

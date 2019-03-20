@@ -1,5 +1,4 @@
 import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
-import { rangeEach } from './../helpers/number';
 
 class IndexMapper {
   constructor() {
@@ -14,11 +13,12 @@ class IndexMapper {
    * @return {Number|null} Returns translated index mapped by passed visual index.
    */
   getPhysicalIndex(visualIndex) {
-    const visibleIndexes = arrayFilter(this.indexesSequence, index => this.isSkipped(index) === false);
-    const length = visibleIndexes.length;
+    const visibleIndexes = this.getNotSkippedIndexes();
+    const numberOfVisibleIndexes = visibleIndexes.length;
+
     let physicalIndex = null;
 
-    if (visualIndex < length) {
+    if (visualIndex < numberOfVisibleIndexes) {
       physicalIndex = visibleIndexes[visualIndex];
     }
 
@@ -32,7 +32,7 @@ class IndexMapper {
    * @returns {Number|null} Returns a visual index of the index mapper.
    */
   getVisualIndex(physicalIndex) {
-    const visibleIndexes = arrayFilter(this.indexesSequence, index => this.isSkipped(index) === false);
+    const visibleIndexes = this.getNotSkippedIndexes();
     let visualIndex = null;
 
     if (!this.isSkipped(physicalIndex) && this.has(physicalIndex)) {
@@ -43,16 +43,12 @@ class IndexMapper {
   }
 
   /**
-   * Reset current map array and create new one.
+   * Reset current index map and create new one.
    *
    * @param {Number} [length] Custom generated map length.
    */
-  createSimpleSequence(length = this.indexesSequence.length) {
-    this.indexesSequence.length = 0;
-
-    rangeEach(length - 1, (itemIndex) => {
-      this.indexesSequence[itemIndex] = itemIndex;
-    });
+  createIndexesSequence(length = this.getNumberOfIndexes()) {
+    this.setIndexesSequence(new Array(length).fill(0).map((nextIndex, stepsFromStart) => nextIndex + stepsFromStart));
   }
 
   /**
@@ -61,7 +57,7 @@ class IndexMapper {
    * @returns {Array}
    */
   getIndexesSequence() {
-    return this.indexesSequence;
+    return this.indexesSequence.slice();
   }
 
   /**
@@ -70,7 +66,7 @@ class IndexMapper {
    * @param {Array} Physical row indexes.
    */
   setIndexesSequence(indexes) {
-    this.indexesSequence = indexes;
+    this.indexesSequence = indexes.slice();
   }
 
   /**
@@ -89,7 +85,7 @@ class IndexMapper {
    * @returns {Array}
    */
   getSkippedIndexes() {
-    return this.skippedIndexes;
+    return this.skippedIndexes.slice();
   }
 
   /**
@@ -98,7 +94,7 @@ class IndexMapper {
    * @param {Array} Physical row indexes.
    */
   setSkippedIndexes(indexes) {
-    this.skippedIndexes = indexes;
+    this.skippedIndexes = indexes.slice();
   }
 
   /**
@@ -112,12 +108,46 @@ class IndexMapper {
   }
 
   /**
+   * Clear all skipped indexes.
+   */
+  clearSkippedIndexes() {
+    this.skippedIndexes.length = 0;
+  }
+
+  /**
+   * Get all indexes NOT skipped in the process of rendering.
+   *
+   * @returns {Array}
+   */
+  getNotSkippedIndexes() {
+    return arrayFilter(this.getIndexesSequence(), index => this.isSkipped(index) === false);
+  }
+
+  /**
+   * Get length of all indexes NOT skipped in the process of rendering.
+   *
+   * @returns {Array}
+   */
+  getNotSkippedIndexesLength() {
+    return this.getNotSkippedIndexes().length;
+  }
+
+  /**
+   * Get number of all indexes.
+   *
+   * @returns {Number}
+   */
+  getNumberOfIndexes() {
+    return this.getIndexesSequence().length;
+  }
+
+  /**
    * Fill index mapper to the new length.
    *
    * @param {Number} newLength New length for the index mapper.
    */
   fillTo(newLength) {
-    const numberOfIndexes = this.indexesSequence.length;
+    const numberOfIndexes = this.getNumberOfIndexes();
 
     if (numberOfIndexes < newLength) {
       this.insertIndexes(this.getIndexesSequence(), numberOfIndexes, new Array(newLength - numberOfIndexes).fill(
@@ -126,22 +156,21 @@ class IndexMapper {
   }
 
   /**
-   * Update indexes after inserting new indexes operation.
+   * Update indexes after inserting new indexes.
    *
    * @param {Number} firstInsertedVisualIndex First inserted visual index.
    * @param {Number} firstInsertedPhysicalIndex First inserted physical index.
    * @param {Number} amountOfIndexes Amount of inserted indexes.
    */
   updateIndexesAfterInsertion(firstInsertedVisualIndex, firstInsertedPhysicalIndex, amountOfIndexes) {
-    const visibleIndexes = arrayFilter(this.indexesSequence, index => this.skippedIndexes.includes(index) === false);
+    const visibleIndexes = this.getNotSkippedIndexes();
     const nthVisibleIndex = visibleIndexes[firstInsertedVisualIndex];
     const insertionIndex = this.indexesSequence.includes(nthVisibleIndex) ? this.indexesSequence.indexOf(nthVisibleIndex) : this.indexesSequence.length;
 
     this.setIndexesSequence(this.getIncreasedIndexes(this.getIndexesSequence(), firstInsertedPhysicalIndex, amountOfIndexes));
+    this.setIndexesSequence(this.getListWithInsertedIndexes(this.getIndexesSequence(), insertionIndex, new Array(amountOfIndexes)
+      .fill(firstInsertedPhysicalIndex).map((nextIndex, stepsFromStart) => nextIndex + stepsFromStart)));
     this.setSkippedIndexes(this.getIncreasedIndexes(this.getSkippedIndexes(), firstInsertedPhysicalIndex, amountOfIndexes));
-
-    this.insertIndexes(this.getIndexesSequence(), insertionIndex, new Array(amountOfIndexes)
-      .fill(firstInsertedPhysicalIndex).map((nextIndex, stepsFromStart) => nextIndex + stepsFromStart));
   }
 
   /**
@@ -163,18 +192,18 @@ class IndexMapper {
   }
 
   /**
-   * Insert new indexes to list of indexes.
+   * Get list with new indexes added to list.
    *
    * @param {Array} indexesList List of indexes.
    * @param {Number} insertionIndex Position inside actual list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
-  insertIndexes(indexesList, insertionIndex, insertedIndexes) {
-    indexesList.splice(insertionIndex, 0, ...insertedIndexes);
+  getListWithInsertedIndexes(indexesList, insertionIndex, insertedIndexes) {
+    return [...indexesList.slice(0, insertionIndex), ...insertedIndexes, ...indexesList.slice(insertionIndex)];
   }
 
   /**
-   * Update indexes after removing some indexes operation.
+   * Update indexes after removing some indexes.
    *
    * @param {Array} removedIndexes List of removed indexes.
    */

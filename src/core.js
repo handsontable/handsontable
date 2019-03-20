@@ -1547,8 +1547,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     grid.adjustRowsAndCols();
 
-    recordTranslator.columnIndexMapper.createSimpleSequence(this.countSourceCols());
-    recordTranslator.rowIndexMapper.createSimpleSequence(this.countSourceRows());
+    recordTranslator.columnIndexMapper.createIndexesSequence(this.countSourceCols());
+    recordTranslator.rowIndexMapper.createIndexesSequence(this.countSourceRows());
 
     instance.runHooks('afterLoadData', priv.firstRun);
 

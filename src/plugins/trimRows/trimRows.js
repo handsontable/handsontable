@@ -89,7 +89,7 @@ class TrimRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.recordTranslator.setSkippedRows([]);
+    this.hot.recordTranslator.clearSkippedRows();
     super.disablePlugin();
   }
 
@@ -187,7 +187,7 @@ class TrimRows extends BasePlugin {
    * Untrims all trimmed rows.
    */
   untrimAll() {
-    this.untrimRows([].concat(this.hot.recordTranslator.getSkippedRows()));
+    this.untrimRows(this.hot.recordTranslator.getSkippedRows());
   }
 
   /**
