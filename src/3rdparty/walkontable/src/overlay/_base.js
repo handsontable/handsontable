@@ -207,8 +207,8 @@ class Overlay {
    * NOTE: The element needs to be a child of the overlay in order for the method to work correctly.
    *
    * @param {HTMLElement} element The cell element to calculate the position for.
-   * @param {Number} rowIndex Row index.
-   * @param {Number} columnIndex Column index.
+   * @param {Number} rowIndex Visual row index.
+   * @param {Number} columnIndex Visual column index.
    * @returns {{top: Number, left: Number}|undefined}
    */
   getRelativeCellPosition(element, rowIndex, columnIndex) {
@@ -230,59 +230,92 @@ class Overlay {
       top: element.offsetTop
     };
     let offsetObject = null;
-    let horizontalOffset = 0;
-    let verticalOffset = 0;
 
     if (windowScroll) {
-      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
-
-      if (!fixedColumn) {
-        horizontalOffset = spreaderOffset.left;
-
-      } else {
-        horizontalOffset = absoluteRootElementPosition.left <= 0 ? (-1) * absoluteRootElementPosition.left : 0;
-      }
-
-      if (fixedRowTop) {
-        const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
-
-        verticalOffset = absoluteOverlayPosition.top - absoluteRootElementPosition.top;
-
-      } else {
-        verticalOffset = spreaderOffset.top;
-      }
-
-      offsetObject = {
-        left: elementOffset.left + horizontalOffset,
-        top: elementOffset.top + verticalOffset
-      };
+      offsetObject = this.getRelativeCellPositionWithinWindow(fixedRowTop, fixedColumn, elementOffset, spreaderOffset);
 
     } else {
-      const tableScrollPosition = {
-        horizontal: this.clone.cloneSource.wtOverlays.leftOverlay.getScrollPosition(),
-        vertical: this.clone.cloneSource.wtOverlays.topOverlay.getScrollPosition()
-      };
-
-      if (!fixedColumn) {
-        horizontalOffset = tableScrollPosition.horizontal - spreaderOffset.left;
-      }
-
-      if (fixedRowBottom) {
-        const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
-        const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
-        verticalOffset = (absoluteOverlayPosition.top * (-1)) + absoluteRootElementPosition.top;
-
-      } else if (!fixedRowTop) {
-        verticalOffset = tableScrollPosition.vertical - spreaderOffset.top;
-      }
-
-      offsetObject = {
-        left: elementOffset.left - horizontalOffset,
-        top: elementOffset.top - verticalOffset,
-      };
+      offsetObject = this.getRelativeCellPositionWithinHolder(fixedRowTop, fixedRowBottom, fixedColumn, elementOffset, spreaderOffset);
     }
 
     return offsetObject;
+  }
+
+  /**
+   * Calculates coordinates of the provided element, relative to the root Handsontable element within a table with window
+   * as a scrollable element.
+   *
+   * @private
+   * @param {Boolean} onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
+   * @param {Boolean} onFixedColumn `true` if the coordinates point to a place within the fixed columns.
+   * @param {Number} elementOffset Offset position of the cell element.
+   * @param {Number} spreaderOffset Offset position of the spreader element.
+   * @returns {{top: Number, left: Number}}
+   */
+  getRelativeCellPositionWithinWindow(onFixedRowTop, onFixedColumn, elementOffset, spreaderOffset) {
+    const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
+    let horizontalOffset = 0;
+    let verticalOffset = 0;
+
+    if (!onFixedColumn) {
+      horizontalOffset = spreaderOffset.left;
+
+    } else {
+      horizontalOffset = absoluteRootElementPosition.left <= 0 ? (-1) * absoluteRootElementPosition.left : 0;
+    }
+
+    if (onFixedRowTop) {
+      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+
+      verticalOffset = absoluteOverlayPosition.top - absoluteRootElementPosition.top;
+
+    } else {
+      verticalOffset = spreaderOffset.top;
+    }
+
+    return {
+      left: elementOffset.left + horizontalOffset,
+      top: elementOffset.top + verticalOffset
+    };
+  }
+
+  /**
+   * Calculates coordinates of the provided element, relative to the root Handsontable element within a table with window
+   * as a scrollable element.
+   *
+   * @private
+   * @param {Boolean} onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
+   * @param {Boolean} onFixedRowBottom `true` if the coordinates point to a place within the bottom fixed rows.
+   * @param {Boolean} onFixedColumn `true` if the coordinates point to a place within the fixed columns.
+   * @param {Number} elementOffset Offset position of the cell element.
+   * @param {Number} spreaderOffset Offset position of the spreader element.
+   * @returns {{top: Number, left: Number}}
+   */
+  getRelativeCellPositionWithinHolder(onFixedRowTop, onFixedRowBottom, onFixedColumn, elementOffset, spreaderOffset) {
+    const tableScrollPosition = {
+      horizontal: this.clone.cloneSource.wtOverlays.leftOverlay.getScrollPosition(),
+      vertical: this.clone.cloneSource.wtOverlays.topOverlay.getScrollPosition()
+    };
+    let horizontalOffset = 0;
+    let verticalOffset = 0;
+
+    if (!onFixedColumn) {
+      horizontalOffset = tableScrollPosition.horizontal - spreaderOffset.left;
+    }
+
+    if (onFixedRowBottom) {
+      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
+      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+      verticalOffset = (absoluteOverlayPosition.top * (-1)) + absoluteRootElementPosition.top;
+
+    } else if (!onFixedRowTop) {
+      verticalOffset = tableScrollPosition.vertical - spreaderOffset.top;
+    }
+
+    return {
+      left: elementOffset.left - horizontalOffset,
+      top: elementOffset.top - verticalOffset,
+    };
   }
 
   /**
