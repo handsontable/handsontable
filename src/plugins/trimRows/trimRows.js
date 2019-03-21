@@ -191,7 +191,7 @@ class TrimRows extends BasePlugin {
    * @returns {Boolean}
    */
   isTrimmed(physicalRow) {
-    return this.rowIndexMapper.isSkipped()(physicalRow);
+    return this.rowIndexMapper.isSkipped(physicalRow);
   }
 
   /**

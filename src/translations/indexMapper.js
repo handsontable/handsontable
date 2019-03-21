@@ -1,4 +1,4 @@
-import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
+import { arrayFilter, arrayMap } from './../helpers/array';
 
 class IndexMapper {
   constructor() {
@@ -155,7 +155,7 @@ class IndexMapper {
    * @param {Number} amountOfIndexes Amount of inserted indexes.
    */
   updateIndexesAfterInsertion(firstInsertedVisualIndex, firstInsertedPhysicalIndex, amountOfIndexes) {
-    const nthVisibleIndex = this.getNthNotSkippedIndex(firstInsertedVisualIndex);
+    const nthVisibleIndex = this.getNotSkippedIndexes()[firstInsertedVisualIndex];
     const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
 
     this.setIndexesSequence(this.getIncreasedIndexes(this.getIndexesSequence(), firstInsertedPhysicalIndex, amountOfIndexes));
