@@ -35,7 +35,7 @@ class IndexMapper {
     const visibleIndexes = this.getNotSkippedIndexes();
     let visualIndex = null;
 
-    if (!this.isSkipped(physicalIndex) && this.has(physicalIndex)) {
+    if (!this.isSkipped(physicalIndex) && this.getIndexesSequence().includes(physicalIndex)) {
       visualIndex = visibleIndexes.indexOf(physicalIndex);
     }
 
