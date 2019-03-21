@@ -1,4 +1,4 @@
-import { arrayFilter, arrayMap } from './../helpers/array';
+import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
 
 class IndexMapper {
   constructor() {
@@ -129,6 +129,41 @@ class IndexMapper {
    */
   getNumberOfIndexes() {
     return this.getIndexesSequence().length;
+  }
+
+  /**
+   * Move indexes in the index mapper.
+   *
+   * @param {Number|Array} movedIndexes Visual index(es) to move.
+   * @param {Number} finalIndex Visual row index being a start index for the moved rows.
+   */
+  moveIndexes(movedIndexes, finalIndex) {
+    if (typeof movedIndexes === 'number') {
+      movedIndexes = [movedIndexes];
+    }
+
+    const physicalMovedIndexes = arrayMap(movedIndexes, row => this.getPhysicalIndex(row));
+
+    this.setIndexesSequence(this.getFilteredIndexes(this.getIndexesSequence(), physicalMovedIndexes));
+
+    // When item(s) are moved after the last item we assign new index.
+    let indexNumber = this.getNumberOfIndexes();
+
+    // Otherwise, we find proper index for inserted item(s).
+    if (finalIndex < this.getNotSkippedIndexesLength()) {
+      const physicalIndex = this.getPhysicalIndex(finalIndex);
+      indexNumber = this.getIndexesSequence().indexOf(physicalIndex);
+    }
+
+    // We count number of skipped rows from the start to the position of inserted item(s).
+    const skippedRowsToTargetIndex = arrayReduce(this.getIndexesSequence().slice(0, indexNumber), (skippedRowsSum, currentValue) => {
+      if (this.isSkipped(currentValue)) {
+        return skippedRowsSum + 1;
+      }
+      return skippedRowsSum;
+    }, 0);
+
+    this.setIndexesSequence(this.getListWithInsertedIndexes(this.getIndexesSequence(), finalIndex + skippedRowsToTargetIndex, physicalMovedIndexes));
   }
 
   /**

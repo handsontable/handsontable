@@ -9,6 +9,7 @@ import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
 import './manualRowMove.css';
+import {getTranslator} from '../../translations/recordTranslator';
 
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
@@ -90,6 +91,13 @@ class ManualRowMove extends BasePlugin {
      * @type {Object}
      */
     this.guideline = new GuidelineUI(hotInstance);
+    /**
+     * Object containing visual row indexes mapped to data source indexes.
+     *
+     * @private
+     * @type {ArrayMapper}
+     */
+    this.rowIndexMapper = getTranslator(this.hot).getRowIndexMapper();
   }
 
   /**
@@ -182,7 +190,7 @@ class ManualRowMove extends BasePlugin {
     }
 
     if (movePossible) {
-      this.hot.recordTranslator.rowIndexMapper.moveItems(rows, finalIndex);
+      this.rowIndexMapper.moveIndexes(rows, finalIndex);
     }
 
     this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePossible && this.isRowOrderChanged(rows, finalIndex));
@@ -224,7 +232,7 @@ class ManualRowMove extends BasePlugin {
    * @returns {Boolean}
    */
   isMovePossible(movedRows, finalIndex) {
-    const length = this.hot.recordTranslator.rowIndexMapper.indexesSequence.length - this.hot.recordTranslator.rowIndexMapper.skippedIndexes.length;
+    const length = this.rowIndexMapper.getNotSkippedIndexesLength();
 
     // An attempt to transfer more rows to start destination than is possible (only when moving from the top to the bottom).
     const tooHighDestinationIndex = movedRows.length + finalIndex > length;

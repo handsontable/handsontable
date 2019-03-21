@@ -160,7 +160,7 @@ const indexMapper = {
    * @param {Number|Array} movedIndexes Visual index(es) to move.
    * @param {Number} finalIndex Visual row index being a start index for the moved rows.
    */
-  moveItems(movedIndexes, finalIndex) {
+  moveIndexes(movedIndexes, finalIndex) {
     if (typeof movedIndexes === 'number') {
       movedIndexes = [movedIndexes];
     }
