@@ -20,7 +20,7 @@ export class RecordTranslator {
    * @returns {Number} Returns visual row index.
    */
   toVisualRow(row) {
-    return this.hot.runHooks('unmodifyRow', this.rowIndexMapper.getVisualIndex(row));
+    return this.hot.runHooks('unmodifyRow', this.getRowIndexMapper().getVisualIndex(row));
   }
 
   /**
@@ -30,7 +30,7 @@ export class RecordTranslator {
    * @returns {Number} Returns visual column index.
    */
   toVisualColumn(column) {
-    return this.hot.runHooks('unmodifyCol', this.columnIndexMapper.getVisualIndex(column));
+    return this.hot.runHooks('unmodifyCol', this.getColumnIndexMapper().getVisualIndex(column));
   }
 
   /**
@@ -63,7 +63,7 @@ export class RecordTranslator {
    * @returns {Number} Returns physical row index.
    */
   toPhysicalRow(row) {
-    return this.hot.runHooks('modifyRow', this.rowIndexMapper.getPhysicalIndex(row));
+    return this.hot.runHooks('modifyRow', this.getRowIndexMapper().getPhysicalIndex(row));
   }
 
   /**
@@ -73,7 +73,7 @@ export class RecordTranslator {
    * @returns {Number} Returns physical column index.
    */
   toPhysicalColumn(column) {
-    return this.hot.runHooks('modifyCol', this.columnIndexMapper.getPhysicalIndex(column));
+    return this.hot.runHooks('modifyCol', this.getColumnIndexMapper().getPhysicalIndex(column));
   }
 
   /**
@@ -100,73 +100,21 @@ export class RecordTranslator {
   }
 
   /**
-   * Get list of row indexes skipped in the process of rendering.
+   * Get index mapper for rows.
    *
-   * @returns {Array}
+   * @returns {IndexMapper}
    */
-  getSkippedRows() {
-    return this.rowIndexMapper.getSkippedIndexes();
+  getRowIndexMapper() {
+    return this.rowIndexMapper;
   }
 
   /**
-   * Get list of column indexes skipped in the process of rendering.
+   * Get index mapper for columns.
    *
-   * @returns {Array}
+   * @returns {IndexMapper}
    */
-  getSkippedColumns() {
-    return this.columnIndexMapper.getSkippedIndexes();
-  }
-
-  /**
-   * Get whether row index is skipped in the process of rendering.
-   *
-   * @param row  Physical row index.
-   * @returns {Boolean}
-   */
-  isSkippedRow(row) {
-    return this.rowIndexMapper.isSkipped(row);
-  }
-
-  /**
-   * Get whether column index is skipped in the process of rendering.
-   *
-   * @param column Physical column index.
-   * @returns {Boolean}
-   */
-  isSkippedColumn(column) {
-    return this.columnIndexMapper.isSkipped(column);
-  }
-
-  /**
-   * Set completely new list of row indexes skipped in the process of rendering.
-   *
-   * @param {Array} Physical row indexes.
-   */
-  setSkippedRows(indexes) {
-    this.rowIndexMapper.setSkippedIndexes(indexes);
-  }
-
-  /**
-   * Set completely new list of column indexes skipped in the process of rendering.
-   *
-   * @param {Array} Physical column indexes.
-   */
-  setSkippedColumns(indexes) {
-    this.columnIndexMapper.setSkippedIndexes(indexes);
-  }
-
-  /**
-   * Clear all skipped row indexes.
-   */
-  clearSkippedRows() {
-    this.rowIndexMapper.clearSkippedIndexes();
-  }
-
-  /**
-   * Clear all skipped column indexes.
-   */
-  clearSkippedColumns() {
-    this.columnIndexMapper.clearSkippedIndexes();
+  getColumnIndexMapper() {
+    return this.columnIndexMapper;
   }
 }
 

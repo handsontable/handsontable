@@ -8,6 +8,7 @@ import { arrayMap } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import BasePlugin from '../_base';
 import { registerPlugin } from './../../plugins';
+import { getTranslator } from '../../translations/recordTranslator';
 import Hooks from '../../pluginHooks';
 import { isPressedCtrlKey } from '../../utils/keyStateObserver';
 import { ColumnStatesManager } from './columnStatesManager';
@@ -112,6 +113,13 @@ class ColumnSorting extends BasePlugin {
      * @type {String}
      */
     this.pluginKey = PLUGIN_KEY;
+    /**
+     * Object containing visual row indexes mapped to data source indexes.
+     *
+     * @private
+     * @type {ArrayMapper}
+     */
+    this.rowIndexMapper = getTranslator(this.hot).getRowIndexMapper();
   }
 
   /**
@@ -172,7 +180,7 @@ class ColumnSorting extends BasePlugin {
       this.hot.removeHook('afterGetColHeader', clearColHeader);
     });
 
-    this.hot.recordTranslator.rowIndexMapper.createIndexesSequence();
+    this.rowIndexMapper.createIndexesSequence();
 
     super.disablePlugin();
   }
@@ -545,7 +553,7 @@ class ColumnSorting extends BasePlugin {
    */
   sortByPresetSortStates() {
     if (this.columnStatesManager.isListOfSortedColumnsEmpty()) {
-      this.hot.recordTranslator.rowIndexMapper.createIndexesSequence();
+      this.rowIndexMapper.createIndexesSequence();
 
       return;
     }
@@ -579,13 +587,13 @@ class ColumnSorting extends BasePlugin {
 
     const indexMapping = new Map(arrayMap(indexesBefore, (indexBefore, indexInsideArray) => [indexBefore, indexesAfter[indexInsideArray]]));
 
-    this.hot.recordTranslator.rowIndexMapper.indexesSequence = arrayMap(this.hot.recordTranslator.rowIndexMapper.indexesSequence, (physicalIndex) => {
+    this.rowIndexMapper.setIndexesSequence(arrayMap(this.rowIndexMapper.getIndexesSequence(), (physicalIndex) => {
       if (indexMapping.has(physicalIndex)) {
         return indexMapping.get(physicalIndex);
       }
 
       return physicalIndex;
-    });
+    }));
   }
 
   /**
@@ -708,7 +716,7 @@ class ColumnSorting extends BasePlugin {
    * @param {Boolean} initialLoad flag that determines whether the data has been loaded during the initialization.
    */
   onAfterLoadData(initialLoad) {
-    this.hot.recordTranslator.rowIndexMapper.createIndexesSequence();
+    this.rowIndexMapper.createIndexesSequence();
     this.columnMetaCache.clear();
 
     if (initialLoad === true) {
