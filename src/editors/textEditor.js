@@ -13,7 +13,7 @@ import {
   selectElementIfAllowed
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
-import { isMobileBrowser } from './../helpers/browser';
+import { isMobileBrowser, isIE, isEdge } from './../helpers/browser';
 import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
 import { KEY_CODES } from './../helpers/unicode';
@@ -291,7 +291,9 @@ class TextEditor extends BaseEditor {
    * @private
    */
   hideEditableElement() {
-    this.textareaStyle.textIndent = '-99999px';
+    if (isIE() || isEdge()) {
+      this.textareaStyle.textIndent = '-99999px';
+    }
     this.textareaStyle.overflowY = 'visible';
 
     this.textareaParentStyle.opacity = '0';
