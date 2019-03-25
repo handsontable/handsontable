@@ -12,6 +12,10 @@ licenseBody += '\nRelease date: ' + process.env.HOT_RELEASE_DATE + ' (built at '
 module.exports.create = function create(envArgs) {
   const config = {
     devtool: false,
+    performance: {
+      maxEntrypointSize: 2000000,
+      maxAssetSize: 2000000,
+    },
     output: {
       library: 'Handsontable',
       libraryTarget: 'umd',
@@ -22,7 +26,7 @@ module.exports.create = function create(envArgs) {
     resolve: {
       alias: {},
     },
-    mode: 'production',
+    mode: 'none',
     module: {
       rules: [
         {
