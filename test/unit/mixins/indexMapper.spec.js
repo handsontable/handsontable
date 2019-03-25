@@ -86,9 +86,9 @@ describe('indexMapper mixin', () => {
     it('should move given indexes', () => {
       indexMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-      indexMapper.moveItems(8, 0);
-      indexMapper.moveItems(3, 1);
-      indexMapper.moveItems(5, 2);
+      indexMapper.moveIndexes(8, 0);
+      indexMapper.moveIndexes(3, 1);
+      indexMapper.moveIndexes(5, 2);
 
       expect(indexMapper._arrayMap.length).toBe(10);
       expect(indexMapper._arrayMap).toEqual([8, 2, 4, 0, 1, 3, 5, 6, 7, 9]);
@@ -97,18 +97,18 @@ describe('indexMapper mixin', () => {
     it('should return to their index', () => {
       indexMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-      indexMapper.moveItems(5, 0);
-      indexMapper.moveItems(8, 1);
+      indexMapper.moveIndexes(5, 0);
+      indexMapper.moveIndexes(8, 1);
 
       expect(indexMapper._arrayMap.length).toBe(10);
       expect(indexMapper._arrayMap).toEqual([5, 8, 0, 1, 2, 3, 4, 6, 7, 9]);
 
-      indexMapper.moveItems(1, 8);
+      indexMapper.moveIndexes(1, 8);
 
       expect(indexMapper._arrayMap.length).toBe(10);
       expect(indexMapper._arrayMap).toEqual([5, 0, 1, 2, 3, 4, 6, 7, 8, 9]);
 
-      indexMapper.moveItems(0, 5);
+      indexMapper.moveIndexes(0, 5);
 
       expect(indexMapper._arrayMap.length).toBe(10);
       expect(indexMapper._arrayMap).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
