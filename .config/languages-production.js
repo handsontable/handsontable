@@ -4,6 +4,7 @@
 const path = require('path');
 const webpack  = require('webpack');
 const configFactory = require('./languages-development');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const OUTPUT_LANGUAGES_DIRECTORY = 'dist/languages';
 
 module.exports.create = function create() {
@@ -13,25 +14,43 @@ module.exports.create = function create() {
   configs.forEach(function(config) {
     config.output.path = path.resolve(__dirname, '../', OUTPUT_LANGUAGES_DIRECTORY);
     config.output.filename = '[name].min.js';
-
-    config.plugins = [
-      new webpack.optimize.UglifyJsPlugin({
-        compressor: {
-          pure_getters: true,
-          unsafe: true,
-          unsafe_comps: true,
-          warnings: false,
-          screw_ie8: true,
-        },
-        mangle: {
-          screw_ie8: true,
-        },
-        output: {
-          comments: /^!|@preserve|@license|@cc_on/i,
-          screw_ie8: true,
-        },
-      })
-    ];
+    config.mode = 'production';
+    // config.optimization = {
+    //   minimizer: [
+    //     new UglifyJsPlugin({
+    //       compressor: {
+    //         pure_getters: true,
+    //         warnings: false,
+    //         screw_ie8: true,
+    //       },
+    //       mangle: {
+    //         screw_ie8: true,
+    //       },
+    //       output: {
+    //         comments: /^!|@preserve|@license|@cc_on/i,
+    //         screw_ie8: true,
+    //       },
+    //     }),
+    //   ]
+    // };
+    // config.plugins = [
+    //   new webpack.optimize.UglifyJsPlugin({
+    //     compressor: {
+    //       pure_getters: true,
+    //       unsafe: true,
+    //       unsafe_comps: true,
+    //       warnings: false,
+    //       screw_ie8: true,
+    //     },
+    //     mangle: {
+    //       screw_ie8: true,
+    //     },
+    //     output: {
+    //       comments: /^!|@preserve|@license|@cc_on/i,
+    //       screw_ie8: true,
+    //     },
+    //   })
+    // ];
   });
 
   return [].concat(configs);

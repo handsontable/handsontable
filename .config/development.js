@@ -5,7 +5,7 @@
  *  - handsontable.full.js
  *  - handsontable.full.css
  */
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const path = require('path');
 const webpack = require('webpack');
@@ -19,7 +19,7 @@ module.exports.create = function create(envArgs) {
 
   configBase.forEach(function(c) {
     c.output.filename = PACKAGE_FILENAME + '.js';
-
+    c.mode = 'development';
     c.devtool = 'source-map';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css files)
     c.externals = {
@@ -56,7 +56,7 @@ module.exports.create = function create(envArgs) {
       loader: path.resolve(__dirname, 'loader/empty-loader.js'),
     });
     c.plugins.push(
-      new ExtractTextPlugin(PACKAGE_FILENAME + '.css')
+      new MiniCssExtractPlugin({ filename: `${PACKAGE_FILENAME}.css` }),
     );
   });
 
@@ -86,7 +86,7 @@ module.exports.create = function create(envArgs) {
     });
 
     c.plugins.push(
-      new ExtractTextPlugin(PACKAGE_FILENAME + '.full.css')
+      new MiniCssExtractPlugin({ filename: `${PACKAGE_FILENAME}.full.css` })
     );
   });
 

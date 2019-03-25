@@ -5,7 +5,7 @@
  *  - handsontable.full.min.js
  *  - handsontable.full.min.css
  */
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
@@ -20,31 +20,52 @@ module.exports.create = function create(envArgs) {
   // Add uglifyJs plugin for each configuration
   config.forEach(function(c) {
     const isFullBuild = /\.full\.js$/.test(c.output.filename);
-
+    c.mode = 'production';
     c.devtool = false;
     c.output.filename = c.output.filename.replace(/\.js$/, '.min.js');
 
-    // Remove all 'ExtractTextPlugin' instances
+    // c.optimization = {
+    //   minimizer: [
+    //     new UglifyJsPlugin({
+    //       compressor: {
+    //         pure_getters: true,
+    //         warnings: false,
+    //         screw_ie8: true,
+    //       },
+    //       mangle: {
+    //         screw_ie8: true,
+    //       },
+    //       output: {
+    //         comments: /^!|@preserve|@license|@cc_on/i,
+    //         screw_ie8: true,
+    //       },
+    //     }),
+    //   ]
+    // };
+    // Remove all 'MiniCssExtractPlugin' instances
     c.plugins = c.plugins.filter(function(plugin) {
-      return !(plugin instanceof ExtractTextPlugin);
+      return !(plugin instanceof MiniCssExtractPlugin);
     });
 
     c.plugins.push(
-      new webpack.optimize.UglifyJsPlugin({
-        compressor: {
-          pure_getters: true,
-          warnings: false,
-          screw_ie8: true,
-        },
-        mangle: {
-          screw_ie8: true,
-        },
-        output: {
-          comments: /^!|@preserve|@license|@cc_on/i,
-          screw_ie8: true,
-        },
-      }),
-      new ExtractTextPlugin(PACKAGE_FILENAME + (isFullBuild ? '.full' : '') + '.min.css'),
+      // new webpack.optimize.UglifyJsPlugin({
+      //   compressor: {
+      //     pure_getters: true,
+      //     warnings: false,
+      //     screw_ie8: true,
+      //   },
+      //   mangle: {
+      //     screw_ie8: true,
+      //   },
+      //   output: {
+      //     comments: /^!|@preserve|@license|@cc_on/i,
+      //     screw_ie8: true,
+      //   },
+      // }),
+      new MiniCssExtractPlugin({
+          filename: `${PACKAGE_FILENAME}${isFullBuild ? '.full' : ''}.min.css`,
+      }
+        ),
       new OptimizeCssAssetsPlugin({
         assetNameRegExp: isFullBuild ? /\.full\.min\.css$/ : /\.min\.css$/,
         cssProcessorOptions: { zindex: false },
