@@ -252,7 +252,7 @@ export function getProperty(object, name) {
   objectEach(names, (nameItem) => {
     result = result[nameItem];
 
-    if (result === void 0) {
+    if (result === void 0 || result === null) {
       result = void 0;
 
       return false;
