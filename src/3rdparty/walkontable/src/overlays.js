@@ -215,7 +215,8 @@ class Overlays {
     const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
 
     if (isHighPixelRatio || !isChrome()) {
-      listenersToRegister.push([this.wot.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event)]);
+      // Resolves issue outline https://github.com/handsontable/handsontable/issues/5913
+      // listenersToRegister.push([this.wot.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event)]);
 
     } else {
       if (this.topOverlay.needFullRender) {
