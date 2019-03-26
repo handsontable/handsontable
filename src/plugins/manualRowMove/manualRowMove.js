@@ -95,7 +95,7 @@ class ManualRowMove extends BasePlugin {
      * Object containing visual row indexes mapped to data source indexes.
      *
      * @private
-     * @type {ArrayMapper}
+     * @type {IndexMapper}
      */
     this.rowIndexMapper = getTranslator(this.hot).getRowIndexMapper();
   }

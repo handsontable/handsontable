@@ -1,9 +1,15 @@
 import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
+import IndexesList from './indexesList';
+
+const INDEXES_SEQUENCE_KEY = 'sequence';
+const SKIPPED_INDEXES_KEY = 'skipped';
 
 class IndexMapper {
   constructor() {
-    this.indexesSequence = [];
-    this.skippedIndexes = [];
+    this.indexesLists = new Map([
+      [INDEXES_SEQUENCE_KEY, new IndexesList()],
+      [SKIPPED_INDEXES_KEY, new IndexesList()],
+    ]);
   }
 
   /**
@@ -57,7 +63,7 @@ class IndexMapper {
    * @returns {Array}
    */
   getIndexesSequence() {
-    return this.indexesSequence.slice();
+    return this.indexesLists.get(INDEXES_SEQUENCE_KEY).getIndexes();
   }
 
   /**
@@ -66,7 +72,7 @@ class IndexMapper {
    * @param {Array} indexes Physical row indexes.
    */
   setIndexesSequence(indexes) {
-    this.indexesSequence = indexes.slice();
+    return this.indexesLists.get(INDEXES_SEQUENCE_KEY).setIndexes(indexes);
   }
 
   /**
@@ -75,7 +81,7 @@ class IndexMapper {
    * @returns {Array}
    */
   getSkippedIndexes() {
-    return this.skippedIndexes.slice();
+    return this.indexesLists.get(SKIPPED_INDEXES_KEY).getIndexes();
   }
 
   /**
@@ -84,7 +90,7 @@ class IndexMapper {
    * @param {Array} indexes Physical row indexes.
    */
   setSkippedIndexes(indexes) {
-    this.skippedIndexes = indexes.slice();
+    return this.indexesLists.get(SKIPPED_INDEXES_KEY).setIndexes(indexes);
   }
 
   /**
@@ -94,14 +100,14 @@ class IndexMapper {
    * @returns {Boolean}
    */
   isSkipped(physicalIndex) {
-    return this.skippedIndexes.includes(physicalIndex);
+    return this.getSkippedIndexes().includes(physicalIndex);
   }
 
   /**
    * Clear all skipped indexes.
    */
   clearSkippedIndexes() {
-    this.skippedIndexes.length = 0;
+    this.setSkippedIndexes([]);
   }
 
   /**
@@ -167,21 +173,6 @@ class IndexMapper {
   }
 
   /**
-   * Fill index mapper to the new length.
-   *
-   * @private
-   * @param {Number} newLength New length for the index mapper.
-   */
-  fillTo(newLength) {
-    const numberOfIndexes = this.getNumberOfIndexes();
-
-    if (numberOfIndexes < newLength) {
-      this.insertIndexes(this.getIndexesSequence(), numberOfIndexes, new Array(newLength - numberOfIndexes).fill(
-        numberOfIndexes).map((nextIndex, stepsFromStart) => nextIndex + stepsFromStart));
-    }
-  }
-
-  /**
    * Update indexes after inserting new indexes.
    *
    * @private
@@ -192,42 +183,10 @@ class IndexMapper {
   updateIndexesAfterInsertion(firstInsertedVisualIndex, firstInsertedPhysicalIndex, amountOfIndexes) {
     const nthVisibleIndex = this.getNotSkippedIndexes()[firstInsertedVisualIndex];
     const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
+    const insertedIndexes = new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex).map((nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
-    this.setIndexesSequence(this.getIncreasedIndexes(this.getIndexesSequence(), firstInsertedPhysicalIndex, amountOfIndexes));
-    this.setIndexesSequence(this.getListWithInsertedIndexes(this.getIndexesSequence(), insertionIndex, new Array(amountOfIndexes)
-      .fill(firstInsertedPhysicalIndex).map((nextIndex, stepsFromStart) => nextIndex + stepsFromStart)));
-    this.setSkippedIndexes(this.getIncreasedIndexes(this.getSkippedIndexes(), firstInsertedPhysicalIndex, amountOfIndexes));
-  }
-
-  /**
-   * Get transformed list of indexes after insertion.
-   *
-   * @private
-   * @param {Array} indexesList List of indexes.
-   * @param {Number} firstInsertedIndex First inserted index.
-   * @param {Number} amountOfIndexes Amount of inserted indexes.
-   * @returns {Array}
-   */
-  getIncreasedIndexes(indexesList, firstInsertedIndex, amountOfIndexes) {
-    return indexesList.map((index) => {
-      if (index >= firstInsertedIndex) {
-        return index + amountOfIndexes;
-      }
-
-      return index;
-    });
-  }
-
-  /**
-   * Get list with new indexes added to list.
-   *
-   * @private
-   * @param {Array} indexesList List of indexes.
-   * @param {Number} insertionIndex Position inside actual list.
-   * @param {Array} insertedIndexes List of inserted indexes.
-   */
-  getListWithInsertedIndexes(indexesList, insertionIndex, insertedIndexes) {
-    return [...indexesList.slice(0, insertionIndex), ...insertedIndexes, ...indexesList.slice(insertionIndex)];
+    this.indexesLists.get(INDEXES_SEQUENCE_KEY).addIndexesAndReorganize(insertionIndex, insertedIndexes);
+    this.indexesLists.get(SKIPPED_INDEXES_KEY).increaseIndexes(insertionIndex, insertedIndexes);
   }
 
   /**
@@ -237,34 +196,8 @@ class IndexMapper {
    * @param {Array} removedIndexes List of removed indexes.
    */
   updateIndexesAfterRemoval(removedIndexes) {
-    this.setIndexesSequence(this.getFilteredIndexes(this.getIndexesSequence(), removedIndexes));
-    this.setIndexesSequence(this.getDecreasedIndexes(this.getIndexesSequence(), removedIndexes));
-    this.setSkippedIndexes(this.getFilteredIndexes(this.getSkippedIndexes(), removedIndexes));
-    this.setSkippedIndexes(this.getDecreasedIndexes(this.getSkippedIndexes(), removedIndexes));
-  }
-
-  /**
-   * Get filtered list of indexes.
-   *
-   * @private
-   * @param {Array} indexesList List of indexes.
-   * @param {Array} removedIndexes List of removed indexes.
-   * @returns {Array}
-   */
-  getFilteredIndexes(indexesList, removedIndexes) {
-    return arrayFilter(indexesList, index => removedIndexes.includes(index) === false);
-  }
-
-  /**
-   * Get transformed list of indexes after removal.
-   *
-   * @private
-   * @param {Array} indexesList List of indexes.
-   * @param removedIndexes List of removed indexes.
-   * @returns {Array}
-   */
-  getDecreasedIndexes(indexesList, removedIndexes) {
-    return arrayMap(indexesList, index => index - removedIndexes.filter(removedRow => removedRow < index).length);
+    this.indexesLists.get(INDEXES_SEQUENCE_KEY).removeIndexesAndReorganize(removedIndexes);
+    this.indexesLists.get(SKIPPED_INDEXES_KEY).removeIndexesAndReorganize(removedIndexes);
   }
 }
 

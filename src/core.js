@@ -1034,9 +1034,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
     }
 
-    // TODO: should also handle situation when shifting indexes right
-    recordTranslator.columnIndexMapper.fillTo(instance.countCols());
-
     instance.forceFullRender = true; // used when data was changed
     grid.adjustRowsAndCols();
     instance.runHooks('beforeChangeRender', changes, source);
