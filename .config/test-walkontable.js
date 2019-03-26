@@ -12,6 +12,7 @@ const wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
 module.exports.create = function create(envArgs) {
   const config = {
     target: 'web',
+    mode: 'none',
     devtool: 'cheap-module-source-map',
     output: {
       libraryTarget: 'var',

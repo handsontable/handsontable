@@ -61,7 +61,7 @@ const ruleForSnippetsInjection = {
 
 module.exports.create = function create() {
   const config = {
-    mode: 'development',
+    mode: 'none',
     entry: getEntryJsFiles(),
     output: {
       path: path.resolve(__dirname, '../' + OUTPUT_LANGUAGES_DIRECTORY),
