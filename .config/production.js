@@ -32,11 +32,8 @@ module.exports.create = function create(envArgs) {
             compressor: {
               pure_getters: true,
               warnings: false,
-              // screw_ie8: true,
             },
-            mangle: {
-              // screw_ie8: true,
-            },
+            mangle: {},
             output: {
               comments: /^!|@preserve|@license|@cc_on/i,
             },

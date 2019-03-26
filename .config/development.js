@@ -6,9 +6,7 @@
  *  - handsontable.full.css
  */
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const path = require('path');
-const webpack = require('webpack');
 const configFactory = require('./base');
 
 const PACKAGE_FILENAME = process.env.HOT_FILENAME;

@@ -4,7 +4,6 @@
  *  - handsontable.css
  */
 const path = require('path');
-const webpack = require('webpack');
 const configFactory = require('./base');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 

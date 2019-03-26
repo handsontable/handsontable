@@ -8,7 +8,6 @@
 const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
 const path = require('path');
-const webpack = require('webpack');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
