@@ -444,7 +444,7 @@ class TableView {
           cell: false
         };
 
-        this.instance.listen();
+        this.instance.listen(false);
 
         priv.activeWt = wt;
         priv.mouseDown = true;

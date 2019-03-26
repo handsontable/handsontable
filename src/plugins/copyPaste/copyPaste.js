@@ -127,7 +127,7 @@ class CopyPaste extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
-    this.addHook('afterOnCellMouseUp', event => this.onAfterOnCellMouseUp(event));
+    this.addHook('afterOnCellMouseUp', () => this.onAfterOnCellMouseUp());
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
     this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
 
@@ -537,15 +537,14 @@ class CopyPaste extends BasePlugin {
    * Force focus on focusableElement.
    *
    * @private
-   * @param {Event} event MouseEvent.
    */
-  onAfterOnCellMouseUp(event) {
+  onAfterOnCellMouseUp() {
     if (!this.hot.isListening() || this.isEditorOpened()) {
       return;
     }
 
     this.getOrCreateFocusableElement();
-    this.focusableElement.focus(event);
+    this.focusableElement.focus();
   }
 
   /**

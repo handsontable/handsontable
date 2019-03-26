@@ -1087,10 +1087,9 @@ export function isOutsideInput(element) {
  * Check if the given DOM element can be focused (by using "select" method).
  *
  * @param {HTMLElement} element - DOM element
- * @param {Event} event MouseEvent.
  */
-export function selectElementIfAllowed(element, event) {
-  const activeElement = event ? event.realTarget : element.ownerDocument.activeElement;
+export function selectElementIfAllowed(element) {
+  const activeElement = element.ownerDocument.activeElement;
 
   if (!isOutsideInput(activeElement)) {
     element.select();
