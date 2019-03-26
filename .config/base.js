@@ -17,11 +17,12 @@ module.exports.create = function create(envArgs) {
       maxAssetSize: 2000000,
     },
     output: {
+      globalObject: `typeof self !== 'undefined' ? self : this`,
       library: 'Handsontable',
-      libraryTarget: 'umd',
       libraryExport: 'default',
-      umdNamedDefine: true,
+      libraryTarget: 'umd',
       path: path.resolve(__dirname, '../dist'),
+      umdNamedDefine: true,
     },
     resolve: {
       alias: {},

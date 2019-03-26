@@ -12,9 +12,10 @@ module.exports.create = function create() {
     devtool: 'cheap-module-source-map',
     mode: 'none',
     output: {
+      filename: 'walkontable.js',
+      globalObject: `typeof self !== 'undefined' ? self : this`,
       library: 'Walkontable',
       libraryTarget: 'var',
-      filename: 'walkontable.js',
       path: path.resolve(wotPath, 'dist'),
     },
     module: {

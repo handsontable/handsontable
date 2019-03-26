@@ -15,8 +15,9 @@ module.exports.create = function create(envArgs) {
     mode: 'none',
     devtool: 'cheap-module-source-map',
     output: {
-      libraryTarget: 'var',
       filename: '[name].entry.js',
+      globalObject: `typeof self !== 'undefined' ? self : this`,
+      libraryTarget: 'var',
       path: path.resolve(wotPath, 'test/dist'),
     },
     module: {
