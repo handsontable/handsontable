@@ -1,4 +1,7 @@
-import { getScrollableElement, getScrollbarWidth } from './../../../helpers/dom/element';
+import {
+  getScrollableElement,
+  getScrollbarWidth,
+} from './../../../helpers/dom/element';
 import { arrayEach } from './../../../helpers/array';
 import { isKey } from './../../../helpers/unicode';
 import { isChrome } from './../../../helpers/browser';
@@ -52,16 +55,16 @@ class Overlays {
     this.keyPressed = false;
     this.spreaderLastSize = {
       width: null,
-      height: null
+      height: null,
     };
     this.overlayScrollPositions = {
       master: {
         top: 0,
-        left: 0
+        left: 0,
       },
       top: {
         top: null,
-        left: 0
+        left: 0,
       },
       bottom: {
         top: null,
@@ -76,16 +79,16 @@ class Overlays {
     this.pendingScrollCallbacks = {
       master: {
         top: 0,
-        left: 0
+        left: 0,
       },
       top: {
-        left: 0
+        left: 0,
       },
       bottom: {
-        left: 0
+        left: 0,
       },
       left: {
-        top: 0
+        top: 0,
       }
     };
 
@@ -119,13 +122,13 @@ class Overlays {
     if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM)) {
       this.bottomOverlay = {
         needFullRender: false,
-        updateStateOfRendering: () => false
+        updateStateOfRendering: () => false,
       };
     }
     if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       this.bottomLeftCornerOverlay = {
         needFullRender: false,
-        updateStateOfRendering: () => false
+        updateStateOfRendering: () => false,
       };
     }
 
@@ -240,51 +243,46 @@ class Overlays {
     if (this.topOverlay.trimmingContainer !== rootWindow && this.leftOverlay.trimmingContainer !== rootWindow) {
       // This is necessary?
       // eventManager.addEventListener(window, 'scroll', (event) => this.refreshAll(event));
-      listenersToRegister.push([
-        rootWindow,
-        'wheel',
-        (event) => {
-          let overlay;
-          const deltaY = event.wheelDeltaY || event.deltaY;
-          const deltaX = event.wheelDeltaX || event.deltaX;
+      listenersToRegister.push([rootWindow, 'wheel', (event) => {
+        let overlay;
+        const deltaY = event.wheelDeltaY || event.deltaY;
+        const deltaX = event.wheelDeltaX || event.deltaX;
 
-          if (this.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
-            overlay = 'top';
-          } else if (this.bottomOverlay.clone && this.bottomOverlay.clone.wtTable.holder.contains(event.realTarget)) {
-            overlay = 'bottom';
-          } else if (this.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
-            overlay = 'left';
-          } else if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.clone && this.topLeftCornerOverlay.clone.wtTable.holder.contains(event.realTarget)) {
-            overlay = 'topLeft';
-          } else if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone && this.bottomLeftCornerOverlay.clone.wtTable.holder.contains(event.realTarget)) {
-            overlay = 'bottomLeft';
-          }
+        if (this.topOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+          overlay = 'top';
 
-          if (
-            (overlay === 'top' && deltaY !== 0) ||
-            (overlay === 'left' && deltaX !== 0) ||
-            (overlay === 'bottom' && deltaY !== 0) ||
-            ((overlay === 'topLeft' || overlay === 'bottomLeft') && (deltaY !== 0 || deltaX !== 0))
-          ) {
-            event.preventDefault();
-          }
+        } else if (this.bottomOverlay.clone && this.bottomOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+          overlay = 'bottom';
+
+        } else if (this.leftOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+          overlay = 'left';
+
+        } else if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.clone && this.topLeftCornerOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+          overlay = 'topLeft';
+
+        } else if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone && this.bottomLeftCornerOverlay.clone.wtTable.holder.contains(event.realTarget)) {
+          overlay = 'bottomLeft';
         }
-      ]);
+
+        if ((overlay === 'top' && deltaY !== 0) ||
+          (overlay === 'left' && deltaX !== 0) ||
+          (overlay === 'bottom' && deltaY !== 0) ||
+          ((overlay === 'topLeft' || overlay === 'bottomLeft') && (deltaY !== 0 || deltaX !== 0))) {
+
+          event.preventDefault();
+        }
+      }]);
     }
 
     let resizeTimeout;
 
-    listenersToRegister.push([
-      rootWindow,
-      'resize',
-      () => {
-        clearTimeout(resizeTimeout);
+    listenersToRegister.push([rootWindow, 'resize', () => {
+      clearTimeout(resizeTimeout);
 
-        resizeTimeout = setTimeout(() => {
-          this.wot.getSetting('onWindowResize');
-        }, 200);
-      }
-    ]);
+      resizeTimeout = setTimeout(() => {
+        this.wot.getSetting('onWindowResize');
+      }, 200);
+    }]);
 
     while (listenersToRegister.length) {
       const listener = listenersToRegister.pop();
@@ -320,10 +318,8 @@ class Overlays {
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
     if (this.keyPressed) {
-      if (
-        (masterVertical !== rootWindow && target !== rootWindow && !event.target.contains(masterVertical)) ||
-        (masterHorizontal !== rootWindow && target !== rootWindow && !event.target.contains(masterHorizontal))
-      ) {
+      if ((masterVertical !== rootWindow && target !== rootWindow && !event.target.contains(masterVertical)) ||
+          (masterHorizontal !== rootWindow && target !== rootWindow && !event.target.contains(masterHorizontal))) {
         return;
       }
     }
@@ -383,8 +379,8 @@ class Overlays {
    * @returns {Boolean}
    */
   translateMouseWheelToScroll(event) {
-    let deltaY = isNaN(event.deltaY) ? -1 * event.wheelDeltaY : event.deltaY;
-    let deltaX = isNaN(event.deltaX) ? -1 * event.wheelDeltaX : event.deltaX;
+    let deltaY = isNaN(event.deltaY) ? (-1) * event.wheelDeltaY : event.deltaY;
+    let deltaX = isNaN(event.deltaX) ? (-1) * event.wheelDeltaX : event.deltaX;
 
     if (event.deltaMode === 1) {
       deltaX += deltaX * this.browserLineHeight;
@@ -427,8 +423,8 @@ class Overlays {
 
     const [scrollLeft, scrollTop] = [this.scrollableElement.scrollLeft, this.scrollableElement.scrollTop];
 
-    this.horizontalScrolling = topHolder.scrollLeft !== scrollLeft || this.lastScrollX !== rootWindow.scrollX;
-    this.verticalScrolling = leftHolder.scrollTop !== scrollTop || this.lastScrollY !== rootWindow.scrollY;
+    this.horizontalScrolling = (topHolder.scrollLeft !== scrollLeft || this.lastScrollX !== rootWindow.scrollX);
+    this.verticalScrolling = (leftHolder.scrollTop !== scrollTop || this.lastScrollY !== rootWindow.scrollY);
     this.lastScrollX = rootWindow.scrollX;
     this.lastScrollY = rootWindow.scrollY;
 
@@ -569,8 +565,14 @@ class Overlays {
     hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1}px`;
 
     if (this.scrollbarSize > 0) {
-      const { scrollHeight: rootElemScrollHeight, scrollWidth: rootElemScrollWidth } = wtTable.wtRootElement;
-      const { scrollHeight: holderScrollHeight, scrollWidth: holderScrollWidth } = wtTable.holder;
+      const {
+        scrollHeight: rootElemScrollHeight,
+        scrollWidth: rootElemScrollWidth,
+      } = wtTable.wtRootElement;
+      const {
+        scrollHeight: holderScrollHeight,
+        scrollWidth: holderScrollWidth,
+      } = wtTable.holder;
 
       this.hasScrollbarRight = rootElemScrollHeight < holderScrollHeight;
       this.hasScrollbarBottom = rootElemScrollWidth < holderScrollWidth;
@@ -614,7 +616,13 @@ class Overlays {
       return null;
     }
 
-    const overlays = [this.topOverlay, this.leftOverlay, this.bottomOverlay, this.topLeftCornerOverlay, this.bottomLeftCornerOverlay];
+    const overlays = [
+      this.topOverlay,
+      this.leftOverlay,
+      this.bottomOverlay,
+      this.topLeftCornerOverlay,
+      this.bottomLeftCornerOverlay
+    ];
     let result = null;
 
     arrayEach(overlays, (elem) => {
