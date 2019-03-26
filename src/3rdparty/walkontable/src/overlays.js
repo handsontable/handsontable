@@ -206,36 +206,36 @@ class Overlays {
     listenersToRegister.push([rootDocument.documentElement, 'keydown', event => this.onKeyDown(event)]);
     listenersToRegister.push([rootDocument.documentElement, 'keyup', () => this.onKeyUp()]);
     listenersToRegister.push([rootDocument, 'visibilitychange', () => this.onKeyUp()]);
-    listenersToRegister.push([topOverlayScrollableElement, 'scroll', event => this.onTableScroll(event)]);
+    listenersToRegister.push([topOverlayScrollableElement, 'scroll', event => this.onTableScroll(event), { passive: true }]);
 
     if (topOverlayScrollableElement !== leftOverlayScrollableElement) {
-      listenersToRegister.push([leftOverlayScrollableElement, 'scroll', event => this.onTableScroll(event)]);
+      listenersToRegister.push([leftOverlayScrollableElement, 'scroll', event => this.onTableScroll(event), { passive: true }]);
     }
 
     const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
 
     if (isHighPixelRatio || !isChrome()) {
-      listenersToRegister.push([this.wot.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event)]);
+      listenersToRegister.push([this.wot.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event), { passive: true }]);
 
     } else {
       if (this.topOverlay.needFullRender) {
-        listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event)]);
+        listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: true }]);
       }
 
       if (this.bottomOverlay.needFullRender) {
-        listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event)]);
+        listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: true }]);
       }
 
       if (this.leftOverlay.needFullRender) {
-        listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event)]);
+        listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: true }]);
       }
 
       if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.needFullRender) {
-        listenersToRegister.push([this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event)]);
+        listenersToRegister.push([this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: true }]);
       }
 
       if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.needFullRender) {
-        listenersToRegister.push([this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event)]);
+        listenersToRegister.push([this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: true }]);
       }
     }
 
@@ -251,7 +251,7 @@ class Overlays {
 
     while (listenersToRegister.length) {
       const listener = listenersToRegister.pop();
-      this.eventManager.addEventListener(listener[0], listener[1], listener[2]);
+      this.eventManager.addEventListener(...listener);
 
       this.registeredListeners.push(listener);
     }
@@ -300,9 +300,6 @@ class Overlays {
   onCloneWheel(event) {
     const { rootWindow } = this.wot;
 
-    if (this.scrollableElement !== rootWindow) {
-      event.preventDefault();
-    }
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
 
