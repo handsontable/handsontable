@@ -6,9 +6,19 @@ class IndexesList {
   }
 
   /**
+   * Initialize list with sequence of indexes numbers from `0` to `n`, where `n` is equal to handled function parameter.
+   *
+   * @param {Number} length New length of list.
+   */
+  init(length) {
+    this.list = new Array(length).fill(0).map((nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
+
+    return this;
+  }
+
+  /**
    * Get full list of indexes.
    *
-   * @private
    * @returns {Array}
    */
   getIndexes() {
@@ -18,7 +28,6 @@ class IndexesList {
   /**
    * Set new indexes list.
    *
-   * @private
    * @param {Array} indexes List of set indexes.
    */
   setIndexes(indexes) {
@@ -41,7 +50,7 @@ class IndexesList {
    * Remove indexes from the list and reorganize.
    *
    * @private
-   * @param removedIndexes List of removed indexes.
+   * @param {Array} removedIndexes List of removed indexes.
    */
   removeIndexesAndReorganize(removedIndexes) {
     this.filterIndexes(removedIndexes);
@@ -93,7 +102,7 @@ class IndexesList {
    * Transform list of indexes after removal.
    *
    * @private
-   * @param removedIndexes List of removed indexes.
+   * @param {Array} removedIndexes List of removed indexes.
    */
   decreaseIndexes(removedIndexes) {
     this.list = arrayMap(this.list, index => index - removedIndexes.filter(removedRow => removedRow < index).length);

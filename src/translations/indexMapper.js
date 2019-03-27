@@ -49,12 +49,40 @@ class IndexMapper {
   }
 
   /**
+   * Register custom indexes list.
+   *
+   * @param {String} name Unique name of the indexes list.
+   * @returns {IndexesList}
+   */
+  registerIndexesList(name) {
+    if (this.indexesLists.has(name) === false) {
+      this.indexesLists.set(name, new IndexesList());
+    }
+
+    return this.indexesLists.get(name);
+  }
+
+  /**
+   * Get indexes list by it's name.
+   *
+   * @param {String} name Name of the indexes list.
+   * @returns {IndexesList}
+   */
+  getIndexesList(name) {
+    return this.indexesLists.get(name);
+  }
+
+  /**
    * Reset current index map and create new one.
    *
    * @param {Number} [length] Custom generated map length.
    */
   createIndexesSequence(length = this.getNumberOfIndexes()) {
-    this.setIndexesSequence(new Array(length).fill(0).map((nextIndex, stepsFromStart) => nextIndex + stepsFromStart));
+    Array.from(this.indexesLists).forEach(([key, list]) => {
+      if (key !== SKIPPED_INDEXES_KEY) {
+        list.init(length);
+      }
+    });
   }
 
   /**
@@ -149,8 +177,9 @@ class IndexMapper {
     }
 
     const physicalMovedIndexes = arrayMap(movedIndexes, row => this.getPhysicalIndex(row));
+    const sequenceOfIndexes = this.indexesLists.get(INDEXES_SEQUENCE_KEY);
 
-    this.setIndexesSequence(this.getFilteredIndexes(this.getIndexesSequence(), physicalMovedIndexes));
+    sequenceOfIndexes.filterIndexes(physicalMovedIndexes);
 
     // When item(s) are moved after the last item we assign new index.
     let indexNumber = this.getNumberOfIndexes();
@@ -169,7 +198,7 @@ class IndexMapper {
       return skippedRowsSum;
     }, 0);
 
-    this.setIndexesSequence(this.getListWithInsertedIndexes(this.getIndexesSequence(), finalIndex + skippedRowsToTargetIndex, physicalMovedIndexes));
+    sequenceOfIndexes.insertIndexes(finalIndex + skippedRowsToTargetIndex, physicalMovedIndexes);
   }
 
   /**
@@ -185,8 +214,14 @@ class IndexMapper {
     const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
     const insertedIndexes = new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex).map((nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
-    this.indexesLists.get(INDEXES_SEQUENCE_KEY).addIndexesAndReorganize(insertionIndex, insertedIndexes);
-    this.indexesLists.get(SKIPPED_INDEXES_KEY).increaseIndexes(insertionIndex, insertedIndexes);
+    Array.from(this.indexesLists).forEach(([key, list]) => {
+      if (key === SKIPPED_INDEXES_KEY) {
+        list.increaseIndexes(insertionIndex, insertedIndexes);
+
+      } else {
+        list.addIndexesAndReorganize(insertionIndex, insertedIndexes);
+      }
+    });
   }
 
   /**
@@ -196,8 +231,9 @@ class IndexMapper {
    * @param {Array} removedIndexes List of removed indexes.
    */
   updateIndexesAfterRemoval(removedIndexes) {
-    this.indexesLists.get(INDEXES_SEQUENCE_KEY).removeIndexesAndReorganize(removedIndexes);
-    this.indexesLists.get(SKIPPED_INDEXES_KEY).removeIndexesAndReorganize(removedIndexes);
+    this.indexesLists.forEach((list) => {
+      list.removeIndexesAndReorganize(removedIndexes);
+    });
   }
 }
 

@@ -120,6 +120,13 @@ class ColumnSorting extends BasePlugin {
      * @type {IndexMapper}
      */
     this.rowIndexMapper = getTranslator(this.hot).getRowIndexMapper();
+    /**
+     * Plugin indexes.
+     *
+     * @private
+     * @type {IndexesList}
+     */
+    this.pluginIndexes = this.rowIndexMapper.registerIndexesList(this.pluginKey);
   }
 
   /**
@@ -214,6 +221,10 @@ class ColumnSorting extends BasePlugin {
 
     if (allowSort === false) {
       return;
+    }
+
+    if (currentSortConfig.length === 0) {
+      this.pluginIndexes.setIndexes(this.rowIndexMapper.getIndexesSequence());
     }
 
     if (sortPossible) {
@@ -553,7 +564,7 @@ class ColumnSorting extends BasePlugin {
    */
   sortByPresetSortStates() {
     if (this.columnStatesManager.isListOfSortedColumnsEmpty()) {
-      this.rowIndexMapper.createIndexesSequence();
+      this.rowIndexMapper.setIndexesSequence(this.pluginIndexes.getIndexes());
 
       return;
     }
