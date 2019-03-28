@@ -47,7 +47,7 @@ const unwantedDistPolyfills = [
   '@babel/plugin-transform-regenerator',
 ];
 
-const babelPresetConfig = (exclude) => ({
+const babelPresetConfig = exclude => ({
   targets: {
     chrome: '41',
     firefox: '34',
@@ -65,7 +65,7 @@ module.exports = {
     ['@babel/preset-env', babelPresetConfig([...unwantedCommonPolyfills, ...unwantedDistPolyfills])]
   ],
   plugins: [
-    ['@babel/plugin-proposal-object-rest-spread', {useBuiltIns: true}],
+    ['@babel/plugin-proposal-object-rest-spread', { useBuiltIns: true }],
     ['transform-inline-environment-variables']
   ],
   env: {
@@ -73,19 +73,19 @@ module.exports = {
     commonjs: {
       plugins: [
         ['@babel/plugin-transform-runtime', {
-          'corejs': false,
-          'helpers': true,
-          'regenerator': true,
-          'useESModules': false,
+          corejs: false,
+          helpers: true,
+          regenerator: true,
+          useESModules: false,
         }],
-        ['@babel/plugin-transform-modules-commonjs', {loose: true}]
+        ['@babel/plugin-transform-modules-commonjs', { loose: true }]
       ]
     },
     // Environment for transpiling files to be compatible with CommonJS.
     commonjs_dist: {
       plugins: [
-        ['@babel/plugin-transform-modules-commonjs', {loose: true}],
-        ['babel-plugin-transform-require-ignore', {extensions: ['.css']}]
+        ['@babel/plugin-transform-modules-commonjs', { loose: true }],
+        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }]
       ],
       ignore: [
         'src/plugins/**/test/**'
@@ -94,7 +94,7 @@ module.exports = {
     // Environment for transpiling files to be compatible with ES Modules.
     es: {
       plugins: [
-        ['babel-plugin-transform-require-ignore', {extensions: ['.css']}]
+        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }]
       ],
       ignore: [
         'src/plugins/**/test/**'
@@ -107,12 +107,12 @@ module.exports = {
       ],
       plugins: [
         ['@babel/plugin-transform-runtime', {
-          'corejs': false,
-          'helpers': true,
-          'regenerator': true,
-          'useESModules': false,
+          corejs: false,
+          helpers: true,
+          regenerator: true,
+          useESModules: false,
         }],
-        ['@babel/plugin-transform-modules-commonjs', {loose: true}],
+        ['@babel/plugin-transform-modules-commonjs', { loose: true }],
         ['babel-plugin-forbidden-imports', {
           allowedModules: allowedE2EModules
         }]
