@@ -441,7 +441,7 @@ TextRenderer readOnly cell
 }
 
 .handsontable .htSubmenu :after{
-  content: '▶';
+  content: '\25B6';
   color: #777;
   position: absolute;
   right: 5px;
