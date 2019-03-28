@@ -1,9 +1,10 @@
 import {
   getScrollableElement,
-  getTrimmingContainer,
+  getTrimmingContainer
 } from './../../../../helpers/dom/element';
 import { defineGetter } from './../../../../helpers/object';
 import { arrayEach } from './../../../../helpers/array';
+import { warn } from './../../../../helpers/console';
 import EventManager from './../../../../eventManager';
 import Walkontable from './../core';
 
@@ -202,6 +203,122 @@ class Overlay {
   }
 
   /**
+   * Calculates coordinates of the provided element, relative to the root Handsontable element.
+   * NOTE: The element needs to be a child of the overlay in order for the method to work correctly.
+   *
+   * @param {HTMLElement} element The cell element to calculate the position for.
+   * @param {Number} rowIndex Visual row index.
+   * @param {Number} columnIndex Visual column index.
+   * @returns {{top: Number, left: Number}|undefined}
+   */
+  getRelativeCellPosition(element, rowIndex, columnIndex) {
+    if (this.clone.wtTable.holder.contains(element) === false) {
+      warn(`The provided element is not a child of the ${this.type} overlay`);
+
+      return;
+    }
+    const windowScroll = this.mainTableScrollableElement === this.wot.rootWindow;
+    const fixedColumn = columnIndex < this.wot.getSetting('fixedColumnsLeft');
+    const fixedRowTop = rowIndex < this.wot.getSetting('fixedRowsTop');
+    const fixedRowBottom = rowIndex >= this.wot.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom');
+    const spreaderOffset = {
+      left: this.clone.wtTable.spreader.offsetLeft,
+      top: this.clone.wtTable.spreader.offsetTop
+    };
+    const elementOffset = {
+      left: element.offsetLeft,
+      top: element.offsetTop
+    };
+    let offsetObject = null;
+
+    if (windowScroll) {
+      offsetObject = this.getRelativeCellPositionWithinWindow(fixedRowTop, fixedColumn, elementOffset, spreaderOffset);
+
+    } else {
+      offsetObject = this.getRelativeCellPositionWithinHolder(fixedRowTop, fixedRowBottom, fixedColumn, elementOffset, spreaderOffset);
+    }
+
+    return offsetObject;
+  }
+
+  /**
+   * Calculates coordinates of the provided element, relative to the root Handsontable element within a table with window
+   * as a scrollable element.
+   *
+   * @private
+   * @param {Boolean} onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
+   * @param {Boolean} onFixedColumn `true` if the coordinates point to a place within the fixed columns.
+   * @param {Number} elementOffset Offset position of the cell element.
+   * @param {Number} spreaderOffset Offset position of the spreader element.
+   * @returns {{top: Number, left: Number}}
+   */
+  getRelativeCellPositionWithinWindow(onFixedRowTop, onFixedColumn, elementOffset, spreaderOffset) {
+    const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
+    let horizontalOffset = 0;
+    let verticalOffset = 0;
+
+    if (!onFixedColumn) {
+      horizontalOffset = spreaderOffset.left;
+
+    } else {
+      horizontalOffset = absoluteRootElementPosition.left <= 0 ? (-1) * absoluteRootElementPosition.left : 0;
+    }
+
+    if (onFixedRowTop) {
+      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+
+      verticalOffset = absoluteOverlayPosition.top - absoluteRootElementPosition.top;
+
+    } else {
+      verticalOffset = spreaderOffset.top;
+    }
+
+    return {
+      left: elementOffset.left + horizontalOffset,
+      top: elementOffset.top + verticalOffset
+    };
+  }
+
+  /**
+   * Calculates coordinates of the provided element, relative to the root Handsontable element within a table with window
+   * as a scrollable element.
+   *
+   * @private
+   * @param {Boolean} onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
+   * @param {Boolean} onFixedRowBottom `true` if the coordinates point to a place within the bottom fixed rows.
+   * @param {Boolean} onFixedColumn `true` if the coordinates point to a place within the fixed columns.
+   * @param {Number} elementOffset Offset position of the cell element.
+   * @param {Number} spreaderOffset Offset position of the spreader element.
+   * @returns {{top: Number, left: Number}}
+   */
+  getRelativeCellPositionWithinHolder(onFixedRowTop, onFixedRowBottom, onFixedColumn, elementOffset, spreaderOffset) {
+    const tableScrollPosition = {
+      horizontal: this.clone.cloneSource.wtOverlays.leftOverlay.getScrollPosition(),
+      vertical: this.clone.cloneSource.wtOverlays.topOverlay.getScrollPosition()
+    };
+    let horizontalOffset = 0;
+    let verticalOffset = 0;
+
+    if (!onFixedColumn) {
+      horizontalOffset = tableScrollPosition.horizontal - spreaderOffset.left;
+    }
+
+    if (onFixedRowBottom) {
+      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
+      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+      verticalOffset = (absoluteOverlayPosition.top * (-1)) + absoluteRootElementPosition.top;
+
+    } else if (!onFixedRowTop) {
+      verticalOffset = tableScrollPosition.vertical - spreaderOffset.top;
+    }
+
+    return {
+      left: elementOffset.left - horizontalOffset,
+      top: elementOffset.top - verticalOffset,
+    };
+  }
+
+  /**
    * Make a clone of table for overlay
    *
    * @param {String} direction Can be `Overlay.CLONE_TOP`, `Overlay.CLONE_LEFT`,
@@ -231,8 +348,8 @@ class Overlay {
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (preventOverflow === true ||
-        preventOverflow === 'horizontal' && this.type === Overlay.CLONE_TOP ||
-        preventOverflow === 'vertical' && this.type === Overlay.CLONE_LEFT) {
+      preventOverflow === 'horizontal' && this.type === Overlay.CLONE_TOP ||
+      preventOverflow === 'vertical' && this.type === Overlay.CLONE_LEFT) {
       this.mainTableScrollableElement = rootWindow;
 
     } else if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
@@ -291,3 +408,4 @@ class Overlay {
 }
 
 export default Overlay;
+
