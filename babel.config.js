@@ -12,57 +12,22 @@ const allowedE2EModules = [
   '../MemoryLeakTest',
 ];
 
-const unwantedCommonPolyfills = [
-  'es6.reflect.*',
-  'es6.math.*',
-  'es6.typed.*',
-  'es6.date.*',
-  'es6.regex.*',
-  'es6.array.sort',
-  'es6.array.species',
-  'es6.string.anchor',
-  'es6.string.big',
-  'es6.string.blink',
-  'es6.string.bold',
-  'es6.string.fixed',
-  'es6.string.fontcolor',
-  'es6.string.fontsize',
-  'es6.string.italics',
-  'es6.string.link',
-  'es6.string.small',
-  'es6.string.strike',
-  'es6.string.sub',
-  'es6.string.sup',
-  'es6.string.iterator',
-  'es6.function.has-instance',
-  'es7.object.define-getter',
-  'es7.object.define-setter',
-  'es7.object.lookup-getter',
-  'es7.object.lookup-setter',
-  'es7.symbol.async-iterator',
-  'web.timers',
-];
-
-const unwantedDistPolyfills = [
-  '@babel/plugin-transform-regenerator',
-];
-
-const babelPresetConfig = exclude => ({
+const babelPresetConfig = () => ({
   targets: {
     chrome: '41',
     firefox: '34',
     ie: '9',
     safari: '9'
   },
-  exclude,
   modules: false,
   debug: false,
-  useBuiltIns: 'entry',
+  useBuiltIns: 'usage',
+  corejs: 3,
 });
 
 module.exports = {
   presets: [
-    ['@babel/preset-env', babelPresetConfig([...unwantedCommonPolyfills, ...unwantedDistPolyfills])]
+    ['@babel/preset-env', babelPresetConfig()]
   ],
   plugins: [
     ['@babel/plugin-proposal-object-rest-spread', { useBuiltIns: true }],
@@ -102,9 +67,6 @@ module.exports = {
     },
     // Environment for building E2E tests (UMD).
     commonjs_e2e: {
-      presets: [
-        ['@babel/preset-env', babelPresetConfig(unwantedCommonPolyfills)]
-      ],
       plugins: [
         ['@babel/plugin-transform-runtime', {
           corejs: false,
