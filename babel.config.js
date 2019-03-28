@@ -38,10 +38,10 @@ module.exports = {
     commonjs: {
       plugins: [
         ['@babel/plugin-transform-runtime', {
-          'corejs': false,
-          'helpers': true,
-          'regenerator': true,
-          'useESModules': false,
+          corejs: false,
+          helpers: true,
+          regenerator: true,
+          useESModules: false,
         }],
         ['@babel/plugin-transform-modules-commonjs', { loose: true }]
       ]
@@ -69,10 +69,10 @@ module.exports = {
     commonjs_e2e: {
       plugins: [
         ['@babel/plugin-transform-runtime', {
-          'corejs': false,
-          'helpers': true,
-          'regenerator': true,
-          'useESModules': false,
+          corejs: false,
+          helpers: true,
+          regenerator: true,
+          useESModules: false,
         }],
         ['@babel/plugin-transform-modules-commonjs', { loose: true }],
         ['babel-plugin-forbidden-imports', {

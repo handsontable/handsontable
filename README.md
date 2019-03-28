@@ -143,7 +143,7 @@ Handsontable is dual-licensed. You can either use a free license for all your no
       <td>Dedicated support</td>
     </tr>    
     <tr>
-      <td><a href="//github.com/handsontable/handsontable/blob/master/LICENSE">Read the license</a></td>
+      <td><a href="//github.com/handsontable/handsontable/blob/master/LICENSE.txt">Read the license</a></td>
       <td><a href="//handsontable.com/pricing">See plans</a></td>
     </tr>
   </tbody>

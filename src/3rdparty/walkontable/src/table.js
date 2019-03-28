@@ -483,6 +483,11 @@ class Table {
         row -= CONTAINER.childNodes.length;
       }
 
+    } else if (overlayContainsElement(Overlay.CLONE_BOTTOM_LEFT_CORNER, cellElement) || overlayContainsElement(Overlay.CLONE_BOTTOM, cellElement)) {
+      const totalRows = this.wot.getSetting('totalRows');
+
+      row = totalRows - CONTAINER.childNodes.length + row;
+
     } else if (CONTAINER === this.THEAD) {
       row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
 
@@ -490,7 +495,8 @@ class Table {
       row = this.rowFilter.renderedToSource(row);
     }
 
-    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, cellElement) || overlayContainsElement(Overlay.CLONE_LEFT, cellElement)) {
+    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, cellElement) || overlayContainsElement(Overlay.CLONE_LEFT, cellElement)
+      || overlayContainsElement(Overlay.CLONE_BOTTOM_LEFT_CORNER, cellElement) || overlayContainsElement(Overlay.CLONE_BOTTOM, cellElement)) {
       col = this.columnFilter.offsettedTH(col);
 
     } else {
