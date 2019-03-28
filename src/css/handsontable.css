@@ -181,7 +181,7 @@
 
 /* row + column resizer*/
 .handsontable .manualColumnResizer {
-  position: fixed;
+  position: absolute;
   top: 0;
   cursor: col-resize;
   z-index: 110;
@@ -190,7 +190,7 @@
 }
 
 .handsontable .manualRowResizer {
-  position: fixed;
+  position: absolute;
   left: 0;
   cursor: row-resize;
   z-index: 110;
@@ -206,7 +206,7 @@
 }
 
 .handsontable .manualColumnResizerGuide {
-  position: fixed;
+  position: absolute;
   right: 0;
   top: 0;
   background-color: #34a9db;
@@ -217,7 +217,7 @@
 }
 
 .handsontable .manualRowResizerGuide {
-  position: fixed;
+  position: absolute;
   left: 0;
   bottom: 0;
   background-color: #34a9db;
@@ -441,7 +441,7 @@ TextRenderer readOnly cell
 }
 
 .handsontable .htSubmenu :after{
-  content: '▶';
+  content: '\25B6';
   color: #777;
   position: absolute;
   right: 5px;

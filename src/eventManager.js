@@ -1,6 +1,6 @@
 import { polymerWrap, closest } from './helpers/dom/element';
-import { hasOwnProperty } from './helpers/object';
-import { isWebComponentSupportedNatively } from './helpers/feature';
+import { hasOwnProperty, } from './helpers/object';
+import { isWebComponentSupportedNatively, isPassiveEventSupported } from './helpers/feature';
 import { stopImmediatePropagation as _stopImmediatePropagation } from './helpers/dom/event';
 
 /**
@@ -35,13 +35,18 @@ class EventManager {
    * @param {Element} element Target element.
    * @param {String} eventName Event name.
    * @param {Function} callback Function which will be called after event occur.
+   * @param {AddEventListenerOptions|Boolean} [options] Listener options if object or useCapture if boolean.
    * @returns {Function} Returns function which you can easily call to remove that event
    */
-  addEventListener(element, eventName, callback) {
+  addEventListener(element, eventName, callback, options = false) {
     const context = this.context;
 
     function callbackProxy(event) {
       callback.call(this, extendEvent(context, event));
+    }
+
+    if (typeof options !== 'boolean' && !isPassiveEventSupported()) {
+      options = false;
     }
 
     this.context.eventListeners.push({
@@ -49,9 +54,10 @@ class EventManager {
       event: eventName,
       callback,
       callbackProxy,
+      options,
     });
 
-    element.addEventListener(eventName, callbackProxy);
+    element.addEventListener(eventName, callbackProxy, options);
     listenersCounter += 1;
 
     return () => {
@@ -80,7 +86,7 @@ class EventManager {
           continue;
         }
         this.context.eventListeners.splice(len, 1);
-        tmpEvent.element.removeEventListener(tmpEvent.event, tmpEvent.callbackProxy);
+        tmpEvent.element.removeEventListener(tmpEvent.event, tmpEvent.callbackProxy, tmpEvent.options);
         listenersCounter -= 1;
       }
     }

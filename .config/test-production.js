@@ -5,7 +5,6 @@
  */
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
-const webpack = require('webpack');
 const configFactory = require('./test-e2e');
 const JasmineHtml = require('./plugin/jasmine-html');
 
