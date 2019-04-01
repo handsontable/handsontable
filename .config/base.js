@@ -1,4 +1,4 @@
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 const path = require('path');
 const fs = require('fs');
@@ -12,24 +12,30 @@ licenseBody += '\nRelease date: ' + process.env.HOT_RELEASE_DATE + ' (built at '
 module.exports.create = function create(envArgs) {
   const config = {
     devtool: false,
+    performance: {
+      maxEntrypointSize: 2000000,
+      maxAssetSize: 2000000,
+    },
     output: {
+      globalObject: `typeof self !== 'undefined' ? self : this`,
       library: 'Handsontable',
-      libraryTarget: 'umd',
       libraryExport: 'default',
-      umdNamedDefine: true,
+      libraryTarget: 'umd',
       path: path.resolve(__dirname, '../dist'),
+      umdNamedDefine: true,
     },
     resolve: {
       alias: {},
     },
+    mode: 'none',
     module: {
       rules: [
         {
           test: /\.css$/,
-          loader: ExtractTextPlugin.extract({
-            fallback: 'style-loader',
-            use: 'css-loader',
-          }),
+          use: [
+            { loader: MiniCssExtractPlugin.loader },
+            { loader: 'css-loader' },
+          ]
         },
         {
           test: [

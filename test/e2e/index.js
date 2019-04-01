@@ -1,4 +1,3 @@
-require('@babel/polyfill');
 require('jasmine-co').install();
 
 let testPathRegExp = null;
