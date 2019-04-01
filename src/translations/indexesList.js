@@ -1,17 +1,21 @@
 import { arrayMap, arrayFilter } from './../helpers/array';
 
 class IndexesList {
-  constructor() {
+  constructor(initValue = 0, initFn = (nextIndex, stepsFromStart) => nextIndex + stepsFromStart) {
     this.list = [];
+    this.initValue = initValue;
+    this.initFn = initFn;
   }
 
   /**
-   * Initialize list with sequence of indexes numbers from `0` to `n`, where `n` is equal to handled function parameter.
+   * Initialize list with values.
    *
    * @param {Number} length New length of list.
    */
   init(length) {
-    this.list = new Array(length).fill(0).map((nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
+    this.list = arrayMap(new Array(length).fill(this.initValue), (element, indexOfArray) => {
+      return this.initFn(element, indexOfArray);
+    });
 
     return this;
   }
@@ -32,6 +36,15 @@ class IndexesList {
    */
   setIndexes(indexes) {
     this.list = indexes.slice();
+  }
+
+  /**
+   * Get length of indexes list.
+   *
+   * @returns {Number}
+   */
+  getLength() {
+    return this.getIndexes().length;
   }
 
   /**

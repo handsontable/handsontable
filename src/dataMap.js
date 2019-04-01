@@ -811,7 +811,7 @@ class DataMap {
       maxRows = maxRowsFromSettings || Infinity;
     }
 
-    const length = this.instance.countSourceRows() - getTranslator(this.instance).rowIndexMapper.getSkippedIndexes().length;
+    const length = getTranslator(this.instance).rowIndexMapper.getNotSkippedIndexesLength();
 
     return Math.min(length, maxRows);
   }

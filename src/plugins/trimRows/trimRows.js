@@ -75,6 +75,8 @@ class TrimRows extends BasePlugin {
     }
     const settings = this.hot.getSettings().trimRows;
 
+    // console.log(settings);
+
     if (Array.isArray(settings)) {
       this.rowIndexMapper.setSkippedIndexes(settings);
     }

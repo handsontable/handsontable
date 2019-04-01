@@ -7,8 +7,8 @@ const SKIPPED_INDEXES_KEY = 'skipped';
 class IndexMapper {
   constructor() {
     this.indexesLists = new Map([
-      [INDEXES_SEQUENCE_KEY, new IndexesList()],
-      [SKIPPED_INDEXES_KEY, new IndexesList()],
+      [INDEXES_SEQUENCE_KEY, new IndexesList(0)],
+      [SKIPPED_INDEXES_KEY, new IndexesList(false)],
     ]);
   }
 
@@ -54,9 +54,9 @@ class IndexMapper {
    * @param {String} name Unique name of the indexes list.
    * @returns {IndexesList}
    */
-  registerIndexesList(name) {
+  registerIndexesList(name, initFn) {
     if (this.indexesLists.has(name) === false) {
-      this.indexesLists.set(name, new IndexesList());
+      this.indexesLists.set(name, new IndexesList(initFn));
     }
 
     return this.indexesLists.get(name);
@@ -78,9 +78,9 @@ class IndexMapper {
    * @param {Number} [length] Custom generated map length.
    */
   createIndexesSequence(length = this.getNumberOfIndexes()) {
-    Array.from(this.indexesLists).forEach(([key, list]) => {
-      if (key !== SKIPPED_INDEXES_KEY) {
-        list.init(length);
+    this.indexesLists.forEach((listOfIndexes) => {
+      if (listOfIndexes.getLength() === 0) {
+        listOfIndexes.init(length);
       }
     });
   }
@@ -109,7 +109,13 @@ class IndexMapper {
    * @returns {Array}
    */
   getSkippedIndexes() {
-    return this.indexesLists.get(SKIPPED_INDEXES_KEY).getIndexes();
+    return this.indexesLists.get(SKIPPED_INDEXES_KEY).getIndexes().reduce((accu, skipped, index) => {
+      if (skipped === true) {
+        return accu.concat(index);
+      }
+
+      return accu;
+    }, []);
   }
 
   /**
@@ -118,7 +124,18 @@ class IndexMapper {
    * @param {Array} indexes Physical row indexes.
    */
   setSkippedIndexes(indexes) {
-    return this.indexesLists.get(SKIPPED_INDEXES_KEY).setIndexes(indexes);
+    let indexesSequence = this.getIndexesSequence();
+
+    if (indexesSequence.length === 0) {
+      const theHighestIndex = Math.max(...indexes);
+      const tmpIndexesList = new IndexesList(0).init(theHighestIndex + 1);
+
+      indexesSequence = tmpIndexesList.getIndexes();
+    }
+
+    const skippedIndexes = arrayMap(indexesSequence, index => indexes.includes(index));
+
+    this.indexesLists.get(SKIPPED_INDEXES_KEY).setIndexes(skippedIndexes);
   }
 
   /**
@@ -212,7 +229,7 @@ class IndexMapper {
   updateIndexesAfterInsertion(firstInsertedVisualIndex, firstInsertedPhysicalIndex, amountOfIndexes) {
     const nthVisibleIndex = this.getNotSkippedIndexes()[firstInsertedVisualIndex];
     const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
-    const insertedIndexes = new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex).map((nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
+    const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
     Array.from(this.indexesLists).forEach(([key, list]) => {
       if (key === SKIPPED_INDEXES_KEY) {

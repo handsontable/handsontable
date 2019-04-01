@@ -998,6 +998,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       let skipThisChange = false;
 
       if (changes[i] === null) {
+        console.log(1);
         changes.splice(i, 1);
         /* eslint-disable no-continue */
         continue;
@@ -1005,13 +1006,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if ((changes[i][2] === null || changes[i][2] === void 0)
         && (changes[i][3] === null || changes[i][3] === void 0)) {
+        console.log(2);
         /* eslint-disable no-continue */
         continue;
       }
 
       if (priv.settings.allowInsertRow) {
+        console.log(3);
         while (changes[i][0] > instance.countRows() - 1) {
           const numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
+          console.log(numberOfCreatedRows);
 
           if (numberOfCreatedRows === 0) {
             skipThisChange = true;
@@ -1027,12 +1031,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
+          console.log('create', i);
           datamap.createCol(void 0, void 0, source);
         }
       }
 
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
     }
+
+    console.log(instance.getSourceData().slice());
 
     instance.forceFullRender = true; // used when data was changed
     grid.adjustRowsAndCols();
