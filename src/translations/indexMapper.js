@@ -7,7 +7,7 @@ const SKIPPED_INDEXES_KEY = 'skipped';
 class IndexMapper {
   constructor() {
     this.indexesLists = new Map([
-      [INDEXES_SEQUENCE_KEY, new IndexesList(0)],
+      [INDEXES_SEQUENCE_KEY, new IndexesList()],
       [SKIPPED_INDEXES_KEY, new IndexesList(false)],
     ]);
   }
@@ -52,13 +52,12 @@ class IndexMapper {
    * Register custom indexes list.
    *
    * @param {String} name Unique name of the indexes list.
-   * @param {*} initValue Initial value for the list.
-   * @param {Function} initFn Initial function for all elements of the list.
+   * @param {*} initValueOrFn Initial value or function for all elements of the list.
    * @returns {IndexesList}
    */
-  registerIndexesList(name, initValue, initFn) {
+  registerIndexesList(name, initValueOrFn) {
     if (this.indexesLists.has(name) === false) {
-      this.indexesLists.set(name, new IndexesList(initValue, initFn));
+      this.indexesLists.set(name, new IndexesList(initValueOrFn));
     }
 
     return this.indexesLists.get(name);
@@ -79,7 +78,7 @@ class IndexMapper {
    *
    * @param {Number} [length] Custom generated map length.
    */
-  createIndexesSequence(length = this.getNumberOfIndexes()) {
+  initToLength(length = this.getNumberOfIndexes()) {
     this.indexesLists.forEach((listOfIndexes) => {
       if (listOfIndexes.getLength() === 0) {
         listOfIndexes.init(length);
@@ -126,16 +125,7 @@ class IndexMapper {
    * @param {Array} indexes Physical row indexes.
    */
   setSkippedIndexes(indexes) {
-    let indexesSequence = this.getIndexesSequence();
-
-    if (indexesSequence.length === 0) {
-      const theHighestIndex = Math.max(...indexes);
-      const tmpIndexesList = new IndexesList(0).init(theHighestIndex + 1);
-
-      indexesSequence = tmpIndexesList.getIndexes();
-    }
-
-    const skippedIndexes = arrayMap(indexesSequence, index => indexes.includes(index));
+    const skippedIndexes = arrayMap(this.getIndexesSequence(), index => indexes.includes(index));
 
     this.indexesLists.get(SKIPPED_INDEXES_KEY).setIndexes(skippedIndexes);
   }

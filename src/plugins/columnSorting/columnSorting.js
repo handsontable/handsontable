@@ -187,7 +187,7 @@ class ColumnSorting extends BasePlugin {
       this.hot.removeHook('afterGetColHeader', clearColHeader);
     });
 
-    this.rowIndexMapper.createIndexesSequence();
+    this.rowIndexMapper.setIndexesSequence(this.pluginIndexes.getIndexes());
 
     super.disablePlugin();
   }
@@ -727,7 +727,6 @@ class ColumnSorting extends BasePlugin {
    * @param {Boolean} initialLoad flag that determines whether the data has been loaded during the initialization.
    */
   onAfterLoadData(initialLoad) {
-    this.rowIndexMapper.createIndexesSequence();
     this.columnMetaCache.clear();
 
     if (initialLoad === true) {

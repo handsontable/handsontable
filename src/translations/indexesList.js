@@ -1,10 +1,10 @@
 import { arrayMap, arrayFilter } from './../helpers/array';
+import { isFunction } from './../helpers/function';
 
 class IndexesList {
-  constructor(initValue = 0, initFn = (nextIndex, stepsFromStart) => nextIndex + stepsFromStart) {
+  constructor(initValueOrFn = index => index) {
     this.list = [];
-    this.initValue = initValue;
-    this.initFn = initFn;
+    this.initValueOrFn = initValueOrFn;
   }
 
   /**
@@ -13,8 +13,12 @@ class IndexesList {
    * @param {Number} length New length of list.
    */
   init(length) {
-    this.list = arrayMap(new Array(length).fill(this.initValue), (element, indexOfArray) => {
-      return this.initFn(element, indexOfArray);
+    this.list = arrayMap(new Array(length), (element, indexOfArray) => {
+      if (isFunction(this.initValueOrFn)) {
+        return this.initValueOrFn(indexOfArray);
+      }
+
+      return this.initValueOrFn;
     });
 
     return this;
