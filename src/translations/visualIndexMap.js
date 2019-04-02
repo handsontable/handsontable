@@ -1,19 +1,19 @@
 import { arrayMap, arrayFilter } from './../helpers/array';
 import { isFunction } from './../helpers/function';
 
-class IndexesList {
+class VisualIndexMap {
   constructor(initValueOrFn = index => index) {
     this.list = [];
     this.initValueOrFn = initValueOrFn;
   }
 
   /**
-   * Initialize list with values.
+   * Initialize list with default values for particular indexes.
    *
    * @param {Number} length New length of list.
    */
   init(length) {
-    this.list = arrayMap(new Array(length), (element, indexOfArray) => {
+    this.list = arrayMap(new Array(length), (_, indexOfArray) => {
       if (isFunction(this.initValueOrFn)) {
         return this.initValueOrFn(indexOfArray);
       }
@@ -25,30 +25,30 @@ class IndexesList {
   }
 
   /**
-   * Get full list of indexes.
+   * Get full list of values for particular indexes.
    *
    * @returns {Array}
    */
-  getIndexes() {
+  getValues() {
     return this.list.slice();
   }
 
   /**
-   * Set new indexes list.
+   * Set new values for particular indexes.
    *
    * @param {Array} indexes List of set indexes.
    */
-  setIndexes(indexes) {
+  setValues(indexes) {
     this.list = indexes.slice();
   }
 
   /**
-   * Get length of indexes list.
+   * Get length of index map.
    *
    * @returns {Number}
    */
   getLength() {
-    return this.getIndexes().length;
+    return this.getValues().length;
   }
 
   /**
@@ -126,4 +126,4 @@ class IndexesList {
   }
 }
 
-export default IndexesList;
+export default VisualIndexMap;
