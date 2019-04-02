@@ -52,11 +52,13 @@ class IndexMapper {
    * Register custom indexes list.
    *
    * @param {String} name Unique name of the indexes list.
+   * @param {*} initValue Initial value for the list.
+   * @param {Function} initFn Initial function for all elements of the list.
    * @returns {IndexesList}
    */
-  registerIndexesList(name, initFn) {
+  registerIndexesList(name, initValue, initFn) {
     if (this.indexesLists.has(name) === false) {
-      this.indexesLists.set(name, new IndexesList(initFn));
+      this.indexesLists.set(name, new IndexesList(initValue, initFn));
     }
 
     return this.indexesLists.get(name);

@@ -1,6 +1,7 @@
 import BasePlugin from '../_base';
 import { registerPlugin } from '../../plugins';
-import {getTranslator} from '../../translations/recordTranslator';
+import { getTranslator } from '../../translations/recordTranslator';
+import { isDefined } from '../../helpers/mixed';
 
 /**
  * @plugin TrimRows
@@ -73,13 +74,8 @@ class TrimRows extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    const settings = this.hot.getSettings().trimRows;
 
-    // console.log(settings);
-
-    if (Array.isArray(settings)) {
-      this.rowIndexMapper.setSkippedIndexes(settings);
-    }
+    this.addHook('afterLoadData', () => this.onAfterLoadData());
 
     super.enablePlugin();
   }
@@ -91,8 +87,7 @@ class TrimRows extends BasePlugin {
     const settings = this.hot.getSettings().trimRows;
 
     if (Array.isArray(settings)) {
-      this.disablePlugin();
-      this.enablePlugin();
+      this.rowIndexMapper.setSkippedIndexes(settings);
     }
 
     super.updatePlugin();
@@ -211,6 +206,19 @@ class TrimRows extends BasePlugin {
    */
   isValidConfig(trimmedRows) {
     return trimmedRows.every(trimmedRow => (Number.isInteger(trimmedRow) && trimmedRow >= 0 && trimmedRow < this.hot.countSourceRows()));
+  }
+
+  /**
+   * `afterLoadData` hook callback.
+   *
+   * @private
+   */
+  onAfterLoadData() {
+    const settings = this.hot.getSettings().trimRows;
+
+    if (Array.isArray(settings)) {
+      this.rowIndexMapper.setSkippedIndexes(settings);
+    }
   }
 }
 
