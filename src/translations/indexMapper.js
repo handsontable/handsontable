@@ -1,6 +1,6 @@
 import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
-import VisualIndexMap from './visualIndexMap';
-import PhysicalIndexMap from './physicalIndexMap';
+import VisualIndexMap from './maps/visualIndexMap';
+import PhysicalIndexMap from './maps/physicalIndexMap';
 
 const INDEXES_SEQUENCE_KEY = 'sequence';
 const SKIPPED_INDEXES_KEY = 'skipped';
@@ -226,7 +226,7 @@ class IndexMapper {
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
     this.mappings.forEach((list) => {
-      list.addIndexesAndReorganize(insertionIndex, insertedIndexes);
+      list.addValueAndReorganize(insertionIndex, insertedIndexes);
     });
   }
 
@@ -238,7 +238,7 @@ class IndexMapper {
    */
   updateIndexesAfterRemoval(removedIndexes) {
     this.mappings.forEach((list) => {
-      list.removeIndexesAndReorganize(removedIndexes);
+      list.removeValuesAndReorganize(removedIndexes);
     });
   }
 }

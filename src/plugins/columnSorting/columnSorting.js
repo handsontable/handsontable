@@ -9,7 +9,7 @@ import { rangeEach } from '../../helpers/number';
 import BasePlugin from '../_base';
 import { registerPlugin } from './../../plugins';
 import { getTranslator } from '../../translations/recordTranslator';
-import VisualIndexMap from '../../translations/visualIndexMap';
+import VisualIndexMap from '../../translations/maps/visualIndexMap';
 import Hooks from '../../pluginHooks';
 import { isPressedCtrlKey } from '../../utils/keyStateObserver';
 import { ColumnStatesManager } from './columnStatesManager';

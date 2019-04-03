@@ -1,81 +1,42 @@
-import { arrayMap, arrayFilter } from './../helpers/array';
-import { isFunction } from './../helpers/function';
+import { arrayMap, arrayFilter } from '../../helpers/array';
+import IndexMap from './indexMap';
 
-class VisualIndexMap {
+/**
+ * Map from visual index to physical index.
+ */
+class VisualIndexMap extends IndexMap {
   constructor(initValueOrFn = index => index) {
+    super(initValueOrFn);
+
     this.list = [];
     this.initValueOrFn = initValueOrFn;
   }
 
   /**
-   * Initialize list with default values for particular indexes.
-   *
-   * @param {Number} length New length of list.
-   */
-  init(length) {
-    this.list = arrayMap(new Array(length), (_, indexOfArray) => {
-      if (isFunction(this.initValueOrFn)) {
-        return this.initValueOrFn(indexOfArray);
-      }
-
-      return this.initValueOrFn;
-    });
-
-    return this;
-  }
-
-  /**
-   * Get full list of values for particular indexes.
-   *
-   * @returns {Array}
-   */
-  getValues() {
-    return this.list.slice();
-  }
-
-  /**
-   * Set new values for particular indexes.
-   *
-   * @param {Array} values List of set values.
-   */
-  setValues(values) {
-    this.list = values.slice();
-  }
-
-  /**
-   * Get length of index map.
-   *
-   * @returns {Number}
-   */
-  getLength() {
-    return this.getValues().length;
-  }
-
-  /**
-   * Add indexes to list and reorganize.
+   * Add values to list and reorganize.
    *
    * @private
    * @param {Number} insertionIndex Position inside actual list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
-  addIndexesAndReorganize(insertionIndex, insertedIndexes) {
+  addValueAndReorganize(insertionIndex, insertedIndexes) {
     this.increaseIndexes(insertionIndex, insertedIndexes);
     this.insertIndexes(insertionIndex, insertedIndexes);
   }
 
   /**
-   * Remove indexes from the list and reorganize.
+   * Remove values from the list and reorganize.
    *
    * @private
    * @param {Array} removedIndexes List of removed indexes.
    */
-  removeIndexesAndReorganize(removedIndexes) {
+  removeValuesAndReorganize(removedIndexes) {
     this.filterIndexes(removedIndexes);
     this.decreaseIndexes(removedIndexes);
   }
 
   /**
-   * Transform list of indexes after insertion.
+   * Transform list of values after insertion.
    *
    * @private
    * @param {Number} insertionIndex Position inside actual list.
