@@ -1,5 +1,6 @@
 import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
 import VisualIndexMap from './visualIndexMap';
+import PhysicalIndexMap from './physicalIndexMap';
 
 const INDEXES_SEQUENCE_KEY = 'sequence';
 const SKIPPED_INDEXES_KEY = 'skipped';
@@ -8,7 +9,7 @@ class IndexMapper {
   constructor() {
     this.mappings = new Map([
       [INDEXES_SEQUENCE_KEY, new VisualIndexMap()],
-      [SKIPPED_INDEXES_KEY, new VisualIndexMap(false)],
+      [SKIPPED_INDEXES_KEY, new PhysicalIndexMap(false)],
     ]);
   }
 
@@ -52,12 +53,12 @@ class IndexMapper {
    * Register custom indexes map.
    *
    * @param {String} name Unique name of the indexes list.
-   * @param {VisualIndexMap} Index map containing miscellaneous (i.e. meta data, indexes sequence) updated after remove and insert data actions.
+   * @param {VisualIndexMap} indexMap Index map containing miscellaneous (i.e. meta data, indexes sequence) updated after remove and insert data actions.
    * @returns {VisualIndexMap}
    */
-  registerIndexMap(name, initValueOrFn) {
+  registerIndexMap(name, indexMap) {
     if (this.mappings.has(name) === false) {
-      this.mappings.set(name, new VisualIndexMap(initValueOrFn));
+      this.mappings.set(name, indexMap);
     }
 
     return this.mappings.get(name);
@@ -110,12 +111,12 @@ class IndexMapper {
    * @returns {Array}
    */
   getSkippedIndexes() {
-    return this.mappings.get(SKIPPED_INDEXES_KEY).getValues().reduce((accu, skipped, index) => {
-      if (skipped === true) {
-        return accu.concat(index);
+    return arrayReduce(this.mappings.get(SKIPPED_INDEXES_KEY).getValues(), (skippedIndexes, isSkipped, index) => {
+      if (isSkipped === true) {
+        return skippedIndexes.concat(index);
       }
 
-      return accu;
+      return skippedIndexes;
     }, []);
   }
 
@@ -204,6 +205,7 @@ class IndexMapper {
       if (this.isSkipped(currentValue)) {
         return skippedRowsSum + 1;
       }
+
       return skippedRowsSum;
     }, 0);
 
@@ -223,13 +225,8 @@ class IndexMapper {
     const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
-    Array.from(this.mappings).forEach(([key, list]) => {
-      if (key === SKIPPED_INDEXES_KEY) {
-        list.increaseIndexes(insertionIndex, insertedIndexes);
-
-      } else {
-        list.addIndexesAndReorganize(insertionIndex, insertedIndexes);
-      }
+    this.mappings.forEach((list) => {
+      list.addIndexesAndReorganize(insertionIndex, insertedIndexes);
     });
   }
 
