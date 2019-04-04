@@ -1544,8 +1544,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     grid.adjustRowsAndCols();
 
-    recordTranslator.columnIndexMapper.initToLength(this.countSourceCols());
-    recordTranslator.rowIndexMapper.initToLength(this.countSourceRows());
+    recordTranslator.getColumnIndexMapper().initToLength(this.countSourceCols());
+    recordTranslator.getRowIndexMapper().initToLength(this.countSourceRows());
 
     instance.runHooks('afterLoadData', priv.firstRun);
 
@@ -2953,7 +2953,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function countRows
    * @returns {Number} Total number of rows.
    */
-  this.countRows = function() {
+  this.countRows = function(dupa) {
+    if (dupa) {
+      console.log(datamap.getLength());
+      debugger;
+    }
+
     return datamap.getLength();
   };
 

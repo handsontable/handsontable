@@ -17,6 +17,7 @@ import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
 import { CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERATION_OR_THEN_VARIABLE } from './constants';
+import { getTranslator } from '../../translations/recordTranslator';
 
 import './filters.css';
 
@@ -52,13 +53,6 @@ class Filters extends BasePlugin {
      * @type {EventManager}
      */
     this.eventManager = new EventManager(this);
-    /**
-     * Instance of {@link TrimRows}.
-     *
-     * @private
-     * @type {TrimRows}
-     */
-    this.trimRowsPlugin = null;
     /**
      * Instance of {@link DropdownMenu}.
      *
@@ -108,6 +102,13 @@ class Filters extends BasePlugin {
      * @type {Map}
      */
     this.hiddenRowsCache = new Map();
+    /**
+     * Object containing visual row indexes mapped to data source indexes.
+     *
+     * @private
+     * @type {IndexMap}
+     */
+    this.rowIndexMapper = getTranslator(this.hot).getRowIndexMapper();
 
     // One listener for the enable/disable functionality
     this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
@@ -131,7 +132,6 @@ class Filters extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    this.trimRowsPlugin = this.hot.getPlugin('trimRows');
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
     const addConfirmationHooks = (component) => {
@@ -185,10 +185,6 @@ class Filters extends BasePlugin {
     this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
     this.addHook('afterChange', changes => this.onAfterChange(changes));
 
-    // force to enable dependent plugins
-    this.hot.getSettings().trimRows = true;
-    this.trimRowsPlugin.enablePlugin();
-
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu) {
       this.dropdownMenuPlugin.disablePlugin();
@@ -221,7 +217,7 @@ class Filters extends BasePlugin {
       });
 
       this.conditionCollection.clean();
-      this.trimRowsPlugin.untrimAll();
+      this.rowIndexMapper.clearSkippedIndexes();
     }
     super.disablePlugin();
   }
@@ -344,7 +340,7 @@ class Filters extends BasePlugin {
       if (needToFilter) {
         const trimmedRows = [];
 
-        this.trimRowsPlugin.trimmedRows.length = 0;
+        this.rowIndexMapper.clearSkippedIndexes();
 
         visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
 
@@ -356,13 +352,13 @@ class Filters extends BasePlugin {
           }
         });
 
-        this.trimRowsPlugin.trimRows(trimmedRows);
+        this.rowIndexMapper.setSkippedIndexes(trimmedRows);
 
         if (!visibleVisualRows.length) {
           this.hot.deselectCell();
         }
       } else {
-        this.trimRowsPlugin.untrimAll();
+        this.rowIndexMapper.clearSkippedIndexes();
       }
     }
 
@@ -590,7 +586,7 @@ class Filters extends BasePlugin {
       this.components.get('filter_by_value').saveState(physicalIndex);
       this.saveHiddenRowsCache(physicalIndex);
 
-      this.trimRowsPlugin.trimmedRows.length = 0;
+      this.rowIndexMapper.clearSkippedIndexes();
       this.filter();
     }
     this.dropdownMenuPlugin.close();
@@ -686,7 +682,6 @@ class Filters extends BasePlugin {
       this.conditionCollection.destroy();
       this.conditionUpdateObserver.destroy();
       this.hiddenRowsCache.clear();
-      this.trimRowsPlugin.disablePlugin();
     }
     super.destroy();
   }

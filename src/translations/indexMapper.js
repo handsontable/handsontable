@@ -1,6 +1,6 @@
 import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
-import VisualIndexMap from './maps/visualIndexMap';
-import PhysicalIndexMap from './maps/physicalIndexMap';
+import IndexMap from './maps/indexMap';
+import ValueMap from './maps/valueMap';
 
 const INDEXES_SEQUENCE_KEY = 'sequence';
 const SKIPPED_INDEXES_KEY = 'skipped';
@@ -8,8 +8,8 @@ const SKIPPED_INDEXES_KEY = 'skipped';
 class IndexMapper {
   constructor() {
     this.mappings = new Map([
-      [INDEXES_SEQUENCE_KEY, new VisualIndexMap()],
-      [SKIPPED_INDEXES_KEY, new PhysicalIndexMap(false)],
+      [INDEXES_SEQUENCE_KEY, new IndexMap()],
+      [SKIPPED_INDEXES_KEY, new ValueMap(false)],
     ]);
   }
 
@@ -53,8 +53,8 @@ class IndexMapper {
    * Register custom indexes map.
    *
    * @param {String} name Unique name of the indexes list.
-   * @param {VisualIndexMap} indexMap Index map containing miscellaneous (i.e. meta data, indexes sequence) updated after remove and insert data actions.
-   * @returns {VisualIndexMap}
+   * @param {IndexMap} indexMap Index map containing miscellaneous (i.e. meta data, indexes sequence) updated after remove and insert data actions.
+   * @returns {IndexMap}
    */
   registerIndexMap(name, indexMap) {
     if (this.mappings.has(name) === false) {
@@ -68,7 +68,7 @@ class IndexMapper {
    * Get indexes list by it's name.
    *
    * @param {String} name Name of the indexes list.
-   * @returns {VisualIndexMap}
+   * @returns {IndexMap}
    */
   getIndexMap(name) {
     return this.mappings.get(name);
@@ -81,9 +81,7 @@ class IndexMapper {
    */
   initToLength(length = this.getNumberOfIndexes()) {
     this.mappings.forEach((listOfIndexes) => {
-      if (listOfIndexes.getLength() === 0) {
-        listOfIndexes.init(length);
-      }
+      listOfIndexes.init(length);
     });
   }
 
