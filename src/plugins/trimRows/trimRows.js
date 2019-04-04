@@ -1,7 +1,6 @@
 import BasePlugin from '../_base';
 import { registerPlugin } from '../../plugins';
 import { getTranslator } from '../../translations/recordTranslator';
-import { isDefined } from '../../helpers/mixed';
 
 /**
  * @plugin TrimRows

@@ -2953,12 +2953,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function countRows
    * @returns {Number} Total number of rows.
    */
-  this.countRows = function(dupa) {
-    if (dupa) {
-      console.log(datamap.getLength());
-      debugger;
-    }
-
+  this.countRows = function() {
     return datamap.getLength();
   };
 

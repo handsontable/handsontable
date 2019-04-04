@@ -9,7 +9,7 @@ import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
 import './manualRowMove.css';
-import {getTranslator} from '../../translations/recordTranslator';
+import { getTranslator } from '../../translations/recordTranslator';
 
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
