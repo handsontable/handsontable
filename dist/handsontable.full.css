@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 7.0.0
- * Release date: 06/03/2019 (built at 05/03/2019 15:48:40)
+ * Version: 7.0.1
+ * Release date: 08/04/2019 (built at 29/03/2019 11:28:56)
  */
 /**
  * Fix for bootstrap styles
@@ -96,6 +96,7 @@
 .handsontable .table-striped > tbody > tr:nth-of-type(even) {
   background-color: #FFF;
 }
+
 .handsontable {
   position: relative;
 }
@@ -279,7 +280,7 @@
 
 /* row + column resizer*/
 .handsontable .manualColumnResizer {
-  position: fixed;
+  position: absolute;
   top: 0;
   cursor: col-resize;
   z-index: 110;
@@ -288,7 +289,7 @@
 }
 
 .handsontable .manualRowResizer {
-  position: fixed;
+  position: absolute;
   left: 0;
   cursor: row-resize;
   z-index: 110;
@@ -304,7 +305,7 @@
 }
 
 .handsontable .manualColumnResizerGuide {
-  position: fixed;
+  position: absolute;
   right: 0;
   top: 0;
   background-color: #34a9db;
@@ -315,7 +316,7 @@
 }
 
 .handsontable .manualRowResizerGuide {
-  position: fixed;
+  position: absolute;
   left: 0;
   bottom: 0;
   background-color: #34a9db;
@@ -862,6 +863,7 @@ thead .htCollapseButton:after {
 .ht_clone_bottom .wtHolder {
   overflow: hidden;
 }
+
 /*
 
  Handsontable Mobile Text Editor stylesheet
@@ -978,7 +980,7 @@ thead .htCollapseButton:after {
 }
 
 .htMobileEditorContainer .moveHandle:after {
-  content: "..\A..\A..\A..";
+  content: "..\a..\a..\a..";
   white-space: pre;
   line-height: 10px;
   font-size: 20pt;
@@ -1077,6 +1079,7 @@ thead .htCollapseButton:after {
   animation-fill-mode: forwards;
   -webkit-animation-fill-mode: forwards;
 }
+
 @charset "UTF-8";
 
 /*!
@@ -1299,6 +1302,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     cursor: help;
 }
 
+
 .htCommentCell {
     position: relative;
 }
@@ -1338,6 +1342,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px, inset 0 0 0 1px #5292f7;
     border-left: 3px solid #5292f7;
 }
+
 /*!
  * Handsontable ContextMenu
  */
@@ -1425,6 +1430,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .htContextMenu .ht_master .wtHolder {
   overflow: hidden;
 }
+
 textarea#HandsontableCopyPaste {
   position: fixed !important;
   top: 0 !important;
@@ -1433,10 +1439,12 @@ textarea#HandsontableCopyPaste {
   opacity: 0;
   outline: 0 none !important;
 }
+
 .htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_top_left_corner th:nth-child(2),
 .htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_left td:first-of-type {
   border-left: 0 none;
 }
+
 .handsontable .wtHider {
   position: relative;
 }
@@ -1480,6 +1488,7 @@ textarea#HandsontableCopyPaste {
 .handsontable.on-moving--columns .ht__manualColumnMove--backlight {
   display: block;
 }
+
 .handsontable .wtHider {
   position: relative;
 }
@@ -1523,6 +1532,7 @@ textarea#HandsontableCopyPaste {
 .handsontable.on-moving--rows .ht__manualRowMove--backlight {
   display: block;
 }
+
 .handsontable tbody td[rowspan][class*="area"][class*="highlight"]:not([class*="fullySelectedMergedCell"]):before {
     opacity: 0;
 }
@@ -1562,6 +1572,7 @@ textarea#HandsontableCopyPaste {
 .handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-7"]:before {
     opacity: 0.58;
 }
+
 /*!
  * Handsontable DropdownMenu
  */
@@ -1577,7 +1588,7 @@ textarea#HandsontableCopyPaste {
   float: right;
 }
 .handsontable .changeType:before {
-  content: '\25BC   ';
+  content: '\25BC\ ';
 }
 
 .handsontable .changeType:hover {
@@ -1668,6 +1679,7 @@ textarea#HandsontableCopyPaste {
 .htDropdownMenu .ht_master .wtHolder {
   overflow: hidden;
 }
+
 /* Column's number position */
 .handsontable span.colHeader.columnSorting::after {
   /* Centering start */
@@ -1728,6 +1740,7 @@ textarea#HandsontableCopyPaste {
 .htGhostTable th div button.changeType + span.colHeader.columnSorting:not(.indicatorDisabled) {
   padding-right: 5px;
 }
+
 /*!
  * Handsontable Filters
  */
@@ -2007,6 +2020,7 @@ textarea#HandsontableCopyPaste {
 .handsontable .htFiltersMenuOperators {
   padding-bottom: 5px;
 }
+
 .handsontable.ganttChart tr:first-child th div.relative {
   padding-right: 21px;
 }
@@ -2033,9 +2047,11 @@ textarea#HandsontableCopyPaste {
 .handsontable.ganttChart td.rangeBar.area.partial {
   background: #A1D8AD;
 }
+
 .handsontable thead th.hiddenHeader:not(:first-of-type) {
   display: none;
 }
+
 .handsontable th.ht_nestingLevels {
     text-align: left;
     padding-left: 7px;
@@ -2080,17 +2096,18 @@ textarea#HandsontableCopyPaste {
 }
 
 .handsontable th div.ht_nestingButton.ht_nestingExpand::after {
-    content: "+";
+    content: "\002B";
 }
 
 .handsontable th div.ht_nestingButton.ht_nestingCollapse::after {
-    content: "-";
+    content: "\002D";
 }
 
 .handsontable.innerBorderLeft th div.ht_nestingButton,
 .handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingButton {
     right: 0;
-}/*
+}
+/*
  * Handsontable HiddenColumns
  */
 .handsontable th.beforeHiddenColumn {
@@ -2122,6 +2139,7 @@ textarea#HandsontableCopyPaste {
 .handsontable th.firstVisibleColumn {
   border-left: 1px solid #CCC;
 }
+
 /*!
  * Handsontable HiddenRows
  */
@@ -2156,3 +2174,4 @@ textarea#HandsontableCopyPaste {
 .handsontable th.afterHiddenRow.firstVisibleRow {
   border-top: 1px solid #CCC;
 }
+
