@@ -65,6 +65,7 @@ describe('WalkontableCore', () => {
       }]
     });
     wt.draw();
+
     expect($table.find('thead th').length).toBe(5); // include corner TH
     expect($table.find('tbody tr:first th').length).toBe(1);
     expect($table.find('tbody tr:first td').length).toBe(4);

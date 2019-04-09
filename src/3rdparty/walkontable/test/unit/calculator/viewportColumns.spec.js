@@ -1,11 +1,13 @@
-describe('Walkontable.ViewportColumnsCalculator', () => {
+import ViewportColumnsCalculator from 'walkontable/calculator/viewportColumns';
+
+describe('ViewportColumnsCalculator', () => {
   function allColumns20() {
     return 20;
   }
 
   it('should render first 5 columns in unscrolled container', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(100, 0, 1000, allColumns20);
-    const visibleCalc = new Walkontable.ViewportColumnsCalculator(100, 0, 1000, allColumns20, null, true);
+    const calc = new ViewportColumnsCalculator(100, 0, 1000, allColumns20);
+    const visibleCalc = new ViewportColumnsCalculator(100, 0, 1000, allColumns20, null, true);
 
     expect(calc.startColumn).toBe(0);
     expect(calc.startPosition).toBe(0);
@@ -16,8 +18,8 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('should render 6 columns, starting from 3 in container scrolled to half of fourth column', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(100, 70, 1000, allColumns20);
-    const visibleCalc = new Walkontable.ViewportColumnsCalculator(100, 70, 1000, allColumns20, null, true);
+    const calc = new ViewportColumnsCalculator(100, 70, 1000, allColumns20);
+    const visibleCalc = new ViewportColumnsCalculator(100, 70, 1000, allColumns20, null, true);
 
     expect(calc.startColumn).toBe(3);
     expect(calc.startPosition).toBe(60);
@@ -32,8 +34,8 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
       calc.startColumn -= 2;
       calc.endColumn += 2;
     };
-    const calc = new Walkontable.ViewportColumnsCalculator(100, 70, 1000, allColumns20, overrideFn);
-    const visibleCalc = new Walkontable.ViewportColumnsCalculator(100, 70, 1000, allColumns20, null, true);
+    const calc = new ViewportColumnsCalculator(100, 70, 1000, allColumns20, overrideFn);
+    const visibleCalc = new ViewportColumnsCalculator(100, 70, 1000, allColumns20, null, true);
 
     expect(calc.startColumn).toBe(1);
     expect(calc.startPosition).toBe(20);
@@ -44,8 +46,8 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('should return number of rendered columns', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(100, 50, 1000, allColumns20);
-    const visibleCalc = new Walkontable.ViewportColumnsCalculator(100, 50, 1000, allColumns20, null, true);
+    const calc = new ViewportColumnsCalculator(100, 50, 1000, allColumns20);
+    const visibleCalc = new ViewportColumnsCalculator(100, 50, 1000, allColumns20, null, true);
 
     expect(calc.count).toBe(6);
 
@@ -53,8 +55,8 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('should render all columns if their size is smaller than viewport', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(200, 0, 8, allColumns20);
-    const visibleCalc = new Walkontable.ViewportColumnsCalculator(200, 0, 8, allColumns20, null, true);
+    const calc = new ViewportColumnsCalculator(200, 0, 8, allColumns20);
+    const visibleCalc = new ViewportColumnsCalculator(200, 0, 8, allColumns20, null, true);
 
     expect(calc.startColumn).toBe(0);
     expect(calc.endColumn).toBe(7);
@@ -66,8 +68,8 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('should render all columns if their size is exactly the viewport', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(200, 0, 10, allColumns20);
-    const visibleCalc = new Walkontable.ViewportColumnsCalculator(200, 0, 10, allColumns20, null, true);
+    const calc = new ViewportColumnsCalculator(200, 0, 10, allColumns20);
+    const visibleCalc = new ViewportColumnsCalculator(200, 0, 10, allColumns20, null, true);
 
     expect(calc.startColumn).toBe(0);
     expect(calc.endColumn).toBe(9);
@@ -79,8 +81,8 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('should render all columns if their size is slightly larger than viewport', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(199, 0, 10, allColumns20);
-    const visibleCalc = new Walkontable.ViewportColumnsCalculator(199, 0, 10, allColumns20, null, true);
+    const calc = new ViewportColumnsCalculator(199, 0, 10, allColumns20);
+    const visibleCalc = new ViewportColumnsCalculator(199, 0, 10, allColumns20, null, true);
 
     expect(calc.startColumn).toBe(0);
     expect(calc.endColumn).toBe(9);
@@ -92,8 +94,8 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('should set null values if total columns is 0', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(200, 0, 0, allColumns20);
-    const visibleCalc = new Walkontable.ViewportColumnsCalculator(200, 0, 0, allColumns20, null, true);
+    const calc = new ViewportColumnsCalculator(200, 0, 0, allColumns20);
+    const visibleCalc = new ViewportColumnsCalculator(200, 0, 0, allColumns20, null, true);
 
     expect(calc.startColumn).toBe(null);
     expect(calc.startPosition).toBe(null);
@@ -109,8 +111,8 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
       myCalc.startColumn = 0;
       myCalc.endColumn = 0;
     };
-    const calc = new Walkontable.ViewportColumnsCalculator(200, 0, 0, allColumns20, overrideFn);
-    const visibleCalc = new Walkontable.ViewportColumnsCalculator(200, 0, 0, allColumns20, null, true);
+    const calc = new ViewportColumnsCalculator(200, 0, 0, allColumns20, overrideFn);
+    const visibleCalc = new ViewportColumnsCalculator(200, 0, 0, allColumns20, null, true);
 
     expect(calc.startColumn).toBe(null);
     expect(calc.startPosition).toBe(null);
@@ -122,8 +124,8 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('should scroll backwards if total columns is reached', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(190, 350, 20, allColumns20);
-    const visibleCalc = new Walkontable.ViewportColumnsCalculator(190, 350, 20, allColumns20, null, true);
+    const calc = new ViewportColumnsCalculator(190, 350, 20, allColumns20);
+    const visibleCalc = new ViewportColumnsCalculator(190, 350, 20, allColumns20, null, true);
 
     expect(calc.startColumn).toBe(10);
     expect(calc.startPosition).toBe(200);
@@ -135,7 +137,7 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('should update stretchAllRatio after refreshStretching call (stretch: all)', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(250, 0, 20, allColumns20, null, true, 'all');
+    const calc = new ViewportColumnsCalculator(250, 0, 20, allColumns20, null, true, 'all');
 
     expect(calc.stretchAllRatio).toBe(0);
     expect(calc.stretchLastWidth).toBe(0);
@@ -147,7 +149,7 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('should update stretchAllRatio after refreshStretching call (stretch: last)', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(250, 0, 5, allColumns20, null, true, 'last');
+    const calc = new ViewportColumnsCalculator(250, 0, 5, allColumns20, null, true, 'last');
 
     expect(calc.stretchAllRatio).toBe(0);
     expect(calc.stretchLastWidth).toBe(0);
@@ -159,7 +161,7 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('should return valid stretched column width (stretch: all)', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(250, 0, 5, allColumns20, null, true, 'all');
+    const calc = new ViewportColumnsCalculator(250, 0, 5, allColumns20, null, true, 'all');
 
     expect(calc.getStretchedColumnWidth(0, 50)).toBe(null);
     expect(calc.needVerifyLastColumnWidth).toBe(true);
@@ -176,7 +178,7 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('should return valid stretched column width (stretch: last)', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(250, 0, 5, allColumns20, null, true, 'last');
+    const calc = new ViewportColumnsCalculator(250, 0, 5, allColumns20, null, true, 'last');
 
     expect(calc.getStretchedColumnWidth(0, 50)).toBe(null);
 
@@ -190,7 +192,7 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('call refreshStretching should clear stretchAllColumnsWidth and needVerifyLastColumnWidth property', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(250, 0, 5, allColumns20, null, true, 'all');
+    const calc = new ViewportColumnsCalculator(250, 0, 5, allColumns20, null, true, 'all');
 
     expect(calc.stretchAllColumnsWidth.length).toBe(0);
     expect(calc.needVerifyLastColumnWidth).toBe(true);
@@ -213,8 +215,8 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
 
   it('should calculate the number of columns based on a default width, ' +
     'when the width returned from the function is not a number', () => {
-    const calc = new Walkontable.ViewportColumnsCalculator(200, 0, 1000, () => (void 0 + 1));
-    const visibleCalc = new Walkontable.ViewportColumnsCalculator(200, 0, 1000, () => (void 0 + 1), null, true);
+    const calc = new ViewportColumnsCalculator(200, 0, 1000, () => (void 0 + 1));
+    const visibleCalc = new ViewportColumnsCalculator(200, 0, 1000, () => (void 0 + 1), null, true);
 
     expect(calc.startColumn).toBe(0);
     expect(calc.startPosition).toBe(0);

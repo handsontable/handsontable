@@ -92,15 +92,15 @@ class ViewportRowsCalculator {
       if (isNaN(rowHeight)) {
         rowHeight = ViewportRowsCalculator.DEFAULT_HEIGHT;
       }
-      // if (sum <= scrollOffset && !onlyFullyVisible) {
+      if (sum <= scrollOffset && !onlyFullyVisible) {
       // Calculate the first visible row index includes that row which is only partially visible.
-      if (sum <= scrollOffset) {
+      // if (sum <= scrollOffset) {
         this.startRow = i;
       }
 
-      // if (sum >= scrollOffset && sum + rowHeight <= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
+      if (sum >= scrollOffset && sum + rowHeight <= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
       // Calculate the last visible row index includes that row which is only partially visible.
-      if (sum >= scrollOffset && sum <= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
+      // if (sum >= scrollOffset && sum <= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
         if (this.startRow === null) {
           this.startRow = i;
         }

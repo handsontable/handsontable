@@ -12,7 +12,6 @@ class Storage {
   }
 
   nextTick() {
-    console.log('cyk');
     this.disableToNextCycle = true;
   }
 

@@ -39,10 +39,9 @@ export default class CellsRenderer {
 
   render() {
     const { rowsToRender, columnsToRender, rows } = this.table;
-    let orderViewSherer;
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
-    // for (let visibleRowIndex = 0; visibleRowIndex < 1; visibleRowIndex++) {
+    // for (let visibleRowIndex = 0; visibleRowIndex < 4; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
       const hasStaleRowContent = rows.hasStaleContent(sourceRowIndex);
       const TR = rows.getRenderedNode(visibleRowIndex);
@@ -51,29 +50,24 @@ export default class CellsRenderer {
 
       const orderView = this.obtainOrderView(sourceRowIndex, TR);
 
-      // if (visibleRowIndex === 0) {
-      //   orderView.markAsPatternSharer();
-      //   orderViewSherer = orderView;
-      // } else {
-      //   orderViewSherer.sharePatternWith(orderView);
-      // }
-
       orderView
         .setSize(columnsToRender)
         .setOffset(this.table.renderedColumnToSource(0))
         .start();
 
+      // console.log('cells: orderView.commands', orderView.commands.toString());
+
       for (let visibleColIndex = 0; visibleColIndex < columnsToRender; visibleColIndex++) {
         const sourceColIndex = this.table.renderedColumnToSource(visibleColIndex);
 
-        orderView.render(sourceColIndex);
+        orderView.render();
 
         const TD = orderView.getCurrentNode();
         const hasStaleContent = hasStaleRowContent || orderView.hasStaleContent(sourceColIndex);
         // const hasStaleContent = true;
 
         if (hasStaleContent) {
-          if (!hasClass(TD, 'hide')) {
+          if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
             TD.className = '';
           }
           TD.removeAttribute('style');

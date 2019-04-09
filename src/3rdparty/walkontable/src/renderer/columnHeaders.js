@@ -12,11 +12,13 @@ export default class ColumnHeadersRenderer {
   }
 
   adjust() {
-    const columnHeadersCount = this.table.columnHeadersCount;
+    const { columnHeadersCount, rowHeadersCount } = this.table;
     let TR = this.rootNode.firstChild;
 
     if (columnHeadersCount) {
-      const columnCount = this.columnsToRender;
+      const { columnsToRender } = this.table;
+
+      // console.log('rowHeadersCount', rowHeadersCount, columnsToRender);
 
       for (let i = 0, len = columnHeadersCount; i < len; i++) {
         TR = this.rootNode.childNodes[i];
@@ -27,11 +29,13 @@ export default class ColumnHeadersRenderer {
         }
         this.renderedNodes = TR.childNodes.length;
 
-        while (this.renderedNodes < columnCount) {
+        while (this.renderedNodes < columnsToRender + rowHeadersCount) {
+        // while (this.renderedNodes < columnsToRender) {
           TR.appendChild(document.createElement('th'));
           this.renderedNodes += 1;
         }
-        while (this.renderedNodes > columnCount) {
+        while (this.renderedNodes > columnsToRender + rowHeadersCount) {
+        // while (this.renderedNodes > columnsToRender) {
           TR.removeChild(TR.lastChild);
           this.renderedNodes -= 1;
         }
@@ -49,19 +53,25 @@ export default class ColumnHeadersRenderer {
   }
 
   render() {
-    const { columnHeaderCount, columnHeaderFunctions } = this.table;
+    const { columnHeadersCount } = this.table;
 
-    for (let i = 0; i < columnHeaderCount; i++) {
-      const TR = this.rootNode.childNodes[i];
+    for (let visibleRowIndex = 0; visibleRowIndex < columnHeadersCount; visibleRowIndex++) {
+      const { columnHeaderFunctions, columnsToRender, rowHeadersCount } = this.table;
+      const TR = this.rootNode.childNodes[visibleRowIndex];
 
-      for (let renderedColumnIndex = 0; renderedColumnIndex < columnCount; renderedColumnIndex++) {
-        const sourceCol = this.table.renderedColumnToSource(renderedColumnIndex);
-        const TH = TR.childNodes[renderedColumnIndex];
+      // for (let renderedColumnIndex = 0; renderedColumnIndex < columnsToRender; renderedColumnIndex++) {
+      for (let renderedColumnIndex = (-1) * rowHeadersCount; renderedColumnIndex < columnsToRender; renderedColumnIndex++) {
+        const sourceColumnIndex = this.table.renderedColumnToSource(renderedColumnIndex);
+        const TH = TR.childNodes[renderedColumnIndex + rowHeadersCount];
 
         TH.className = '';
         TH.removeAttribute('style');
 
-        return columnHeaderFunctions[i](sourceCol, TH, i);
+        columnHeaderFunctions[visibleRowIndex](sourceColumnIndex, TH, visibleRowIndex);
+      }
+
+      if (TR.firstChild) {
+        TR.firstChild.style.height = `25px`;
       }
     }
   }

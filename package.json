@@ -127,7 +127,8 @@
   "jest": {
     "roots": [
       "./test/unit",
-      "./src/plugins"
+      "./src/plugins",
+      "./src/3rdparty/walkontable/test/unit"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/test/bootstrap.js"

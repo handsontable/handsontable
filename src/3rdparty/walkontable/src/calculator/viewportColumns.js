@@ -95,18 +95,18 @@ class ViewportColumnsCalculator {
     for (let i = 0; i < totalColumns; i++) {
       columnWidth = this._getColumnWidth(i);
 
-      // if (sum <= scrollOffset && !onlyFullyVisible) {
+      if (sum <= scrollOffset && !onlyFullyVisible) {
       // Calculate the first visible column index includes that column which is only partially visible.
-      if (sum <= scrollOffset) {
+      // if (sum <= scrollOffset) {
         this.startColumn = i;
       }
 
       // +1 pixel for row header width compensation for horizontal scroll > 0
       const compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
 
-      // if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + compensatedViewportWidth) {
+      if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + compensatedViewportWidth) {
       // Calculate the last visible column index includes that column which is only partially visible.
-      if (sum >= scrollOffset && sum <= scrollOffset + compensatedViewportWidth) {
+      // if (sum >= scrollOffset && sum <= scrollOffset + compensatedViewportWidth) {
         if (this.startColumn === null || this.startColumn === void 0) {
           this.startColumn = i;
         }

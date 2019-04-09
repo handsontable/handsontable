@@ -1,9 +1,9 @@
 export default class ColGroupRenderer {
-  constructor(rootNode, widthGetter) {
+  constructor(rootNode, columnUtils) {
     this.rootNode = rootNode;
+    this.columnUtils = columnUtils;
     this.table = null;
     this.renderedNodes = 0;
-    this.widthGetter = widthGetter;
   }
 
   setTable(table) {
@@ -11,13 +11,13 @@ export default class ColGroupRenderer {
   }
 
   adjust() {
-    const { columnsToRender } = this.table;
+    const { columnsToRender, rowHeadersCount } = this.table;
 
-    while (this.renderedNodes < columnsToRender) {
+    while (this.renderedNodes < columnsToRender + rowHeadersCount) {
       this.rootNode.appendChild(document.createElement('col'));
       this.renderedNodes += 1;
     }
-    while (this.renderedNodes > columnsToRender) {
+    while (this.renderedNodes > columnsToRender + rowHeadersCount) {
       this.rootNode.removeChild(this.rootNode.lastChild);
       this.renderedNodes -= 1;
     }
@@ -36,11 +36,18 @@ export default class ColGroupRenderer {
     //   }
     // }
 
-    const { columnsToRender } = this.table;
+    const { columnsToRender, rowHeadersCount } = this.table;
 
-    for (let renderedColumnIndex = 0; renderedColumnIndex < columnsToRender; renderedColumnIndex++) {
+    for (let renderedColumnIndex = 0; renderedColumnIndex < rowHeadersCount; renderedColumnIndex++) {
       const sourceColumn = this.table.renderedColumnToSource(renderedColumnIndex);
-      const width = this.widthGetter(sourceColumn);
+      const width = this.columnUtils.getHeaderWidth(sourceColumn);
+
+      this.rootNode.childNodes[renderedColumnIndex].style.width = `${width}px`;
+    }
+
+    for (let renderedColumnIndex = rowHeadersCount; renderedColumnIndex < columnsToRender; renderedColumnIndex++) {
+      const sourceColumn = this.table.renderedColumnToSource(renderedColumnIndex);
+      const width = this.columnUtils.getWidth(sourceColumn);
 
       this.rootNode.childNodes[renderedColumnIndex].style.width = `${width}px`;
     }

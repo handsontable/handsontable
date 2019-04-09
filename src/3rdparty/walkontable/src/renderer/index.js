@@ -14,9 +14,6 @@ import RowsRenderer from './rows';
 import CellsRenderer from './cells';
 import TableRenderer from './table';
 
-// TODO: After moving class to one instance check if this warning works!
-let performanceWarningAppeared = false;
-
 /**
  * @class TableRenderer
  */
@@ -28,14 +25,14 @@ export default class Renderer {
     this.wot = wot;
     this.wtTable = wtTable;
     this.table = new TableRenderer(wtTable.TABLE, {
-      markAsClone: this.wot.isClone(),
+      isClone: this.wot.isClone(),
       totalRows: this.wot.getSetting('totalRows'),
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
     this.table.setRenderers({
       rowHeaders: new RowHeadersRenderer(),
       columnHeaders: new ColumnHeadersRenderer(wtTable.THEAD),
-      colGroup: new ColGroupRenderer(wtTable.COLGROUP, (width) => wtTable.columnUtils.getWidth(width)),
+      colGroup: new ColGroupRenderer(wtTable.COLGROUP, wtTable.columnUtils),
       rows: new RowsRenderer(wtTable.TBODY),
       cells: new CellsRenderer(),
     })
@@ -45,8 +42,8 @@ export default class Renderer {
    * Set filter calculators for newly calculated row and column position. The filters are used to transform visual
    * indexes (0 to N) to source indexes provided by Handsontable.
    *
-   * @param {[type]} rowFilter
-   * @param {[type]} columnFilter
+   * @param {ColumnFilter} rowFilter
+   * @param {ColumnFilter} columnFilter
    */
   setFilters(rowFilter, columnFilter) {
     this.table.setFilters(rowFilter, columnFilter);
@@ -66,10 +63,14 @@ export default class Renderer {
     return this;
   }
 
-  setHeaderContentRenderers(rowHeaders, columnsHeaders) {
-    this.table.setHeaderContentRenderers(rowHeaders, columnsHeaders);
+  setHeaderContentRenderers(rowHeaders, columnHeaders) {
+    this.table.setHeaderContentRenderers(rowHeaders, columnHeaders);
 
     return this;
+  }
+
+  adjust() {
+    this.table.adjust();
   }
 
   render() {

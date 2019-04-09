@@ -5,30 +5,13 @@ export default class OrderView {
   constructor(rootNode, nodesPool) {
     this.rootNode = rootNode;
     this.nodesPool = nodesPool;
-    // this.mutationObserver = new MutationObserver((mutationsList) => {
-    //   let size = this.viewSize;
-    //
-    //   for (var i = 0; i < mutationsList.length; i++) {
-    //     const { addedNodes, removedNodes } = mutationsList[i];
-    //     const addedNodesLength = addedNodes.length;
-    //     const removedNodesLength = removedNodes.length;
-    //
-    //     if (addedNodesLength > 0 && removedNodesLength === 0) {
-    //       size += addedNodesLength;
-    //     } else if (addedNodesLength === 0 && removedNodesLength > 0) {
-    //       size -= removedNodesLength;
-    //     }
-    //   }
-    //
-    //   this.viewSize = size;
-    // });
 
     this.collectedNodes = [];
     this.renderedNodes = 0;
     this.visualIndex = 0;
     this.viewSize = 0;
+    this.nextOrder = [];
     this.currOrder = [];
-    this.prevOrder = [];
     this.staleNodeIndexes = [];
 
     // tmp
@@ -49,23 +32,6 @@ export default class OrderView {
     return this;
   }
 
-  markAsPatternSharer() {
-    // this.isPatternSharer = true;
-    // this.nodeOrderCommands.length = 0;
-  }
-
-  // setPattern(pattern) {
-  //   this.pattern = pattern;
-  // }
-
-  sharePatternWith(orderView) {
-    orderView.pattern = [...this.nodeOrderCommands];
-    orderView.renderedNodes = this.renderedNodes;
-    orderView.viewSize = this.viewSize;
-    orderView.prevOrder = [...this.prevOrder];
-    orderView.staleNodeIndexes = [...this.staleNodeIndexes];
-  }
-
   setRootNode(rootNode) {
     this.rootNode = rootNode;
   }
@@ -84,28 +50,40 @@ export default class OrderView {
     return length > 0 ? this.collectedNodes[length - 1] : null;
   }
 
-  start() {
+  start(is) {
     // @TODO(perf-tip): If view axis position doesn't change this can be optimized to reuse previously collected nodes.
     this.collectedNodes.length = 0;
+    this.staleNodeIndexes.length = 0;
 
-    // if (this.pattern.length === 0) {
-      this.staleNodeIndexes.length = 0;
-      // this.mutationObserver.observe(this.rootNode, { childList: true });
-    // } else {
-      // this.mutationObserver.disconnect();
+    // @TODO(perf-tip): Creating an array is not necessary it would be enought to pass offset and size for current and next order.
+    const nextOrder = createRange(this.offset, this.viewSize);
+    // @TODO(perf-tip): Move createLeadsFromOrders to external module + memoization or cache for currOrder?
+    this.commands = createLeadsFromOrders(this.currOrder, nextOrder);
+
+    this.is = is;
+
+    // if (this.is) {
+      // console.log(1, this.commands.toString(), 'prev', this.currOrder.toString(), 'curr', nextOrder.toString());
     // }
 
-    // @TODO: Creating an array is not necessary it would be enought to pass offset and size for current order.
-    this.currOrder = createRange(this.offset, this.viewSize);
-    // @TODO: Move createLeadsFromOrders to external module + memoization or cache for prevOrder?
-    this.commands = createLeadsFromOrders(this.prevOrder, this.currOrder);
+    this.currOrder = [];
   }
 
   render() {
-    const { visualIndex, rootNode, collectedNodes } = this;
+    const command = this.commands.shift();
+    const [ , nodeIndex ] = command;
 
-    const command = this.commands[visualIndex];
-    const [ name, nodeIndex, nodePrevIndex ] = command;
+    // if (this.is) {
+      // console.log('command', command);
+    // }
+
+    this.currOrder.push(nodeIndex);
+    this.applyCommand(command);
+  }
+
+  applyCommand(command) {
+    const { rootNode, collectedNodes } = this;
+    const [ name, nodeIndex, nodePrevIndex, nodeIndexToRemove ] = command;
     const node = this.nodesPool(nodeIndex);
 
     collectedNodes.push(node);
@@ -116,29 +94,32 @@ export default class OrderView {
 
     switch (name) {
       case 'insert':
-      rootNode.insertBefore(node, this.nodesPool(nodePrevIndex));
-      rootNode.removeChild(rootNode.lastChild);
-      break;
+        rootNode.insertBefore(node, this.nodesPool(nodePrevIndex));
+        // rootNode.removeChild(rootNode.lastChild);
+        rootNode.removeChild(this.nodesPool(nodeIndexToRemove));
+        break;
       case 'append':
-      rootNode.appendChild(node);
-      break;
+        rootNode.appendChild(node);
+        break;
       case 'replace':
-      rootNode.replaceChild(node, this.nodesPool(nodePrevIndex));
-      break;
+        rootNode.replaceChild(node, this.nodesPool(nodePrevIndex));
+        break;
       case 'remove':
-      rootNode.removeChild(node);
-      break;
+        rootNode.removeChild(node);
+        break;
     }
-
-    this.visualIndex += 1;
   }
 
   end() {
-    this.prevOrder = this.currOrder;
-    this.currOrder = [];
+    while (this.commands.length > 0) {
+      this.applyCommand(this.commands.shift());
+    }
+
+    // this.currOrder = this.nextOrder;
+    // this.nextOrder = [];
 
     // this.pattern.length = 0;
-    this.isPatternSharer = false;
+    // this.isPatternSharer = false;
     this.visualIndex = 0;
   }
 }

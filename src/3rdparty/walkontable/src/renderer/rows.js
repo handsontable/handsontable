@@ -3,6 +3,7 @@ import { toSingleLine } from './../../../../helpers/templateLiteralTag';
 import OrderView from '../utils/orderView';
 import NodesPool from '../utils/nodesPool';
 
+// TODO: After moving class to one instance check if this warning works!
 let performanceWarningAppeared = false;
 
 export default class RowsRenderer {
@@ -39,7 +40,7 @@ export default class RowsRenderer {
     this.orderView
       .setSize(rowsToRender)
       .setOffset(sourceRowIndex)
-      .start();
+      .start(true);
 
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {

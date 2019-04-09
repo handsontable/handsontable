@@ -9,6 +9,7 @@ import {
   overlayContainsElement,
   closest,
   outerWidth,
+  innerHeight,
 } from './../../../helpers/dom/element';
 import { isFunction } from './../../../helpers/function';
 import CellCoords from './cell/coords';
@@ -61,8 +62,8 @@ class Table {
     // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
     this.wot.wtSettings.settings.rowHeaderWidth = () => this._modifyRowHeaderWidth(origRowHeaderWidth);
 
-    this.tableRenderer = new TableRenderer(this.wot, this);
     this.columnUtils = new ColumnUtils(this.wot);
+    this.tableRenderer = new TableRenderer(this.wot, this);
   }
 
   /**
@@ -204,16 +205,19 @@ class Table {
   /**
    * Redraws the table
    *
-   * @param {Boolean} fastDraw If TRUE, will try to avoid full redraw and only update the border positions. If FALSE or UNDEFINED, will perform a full redraw
+   * @param {Boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
+   *                                   If FALSE or UNDEFINED, will perform a full redraw.
    * @returns {Table}
    */
-  draw(fastDraw) {
+  draw(fastDraw = false) {
     const { wot } = this;
     const { wtOverlays, wtViewport } = wot;
     const isClone = this.isWorkingOnClone();
     const totalRows = this.instance.getSetting('totalRows');
-    const rowHeaders = wot.getSetting('rowHeaders').length;
-    const columnHeaders = wot.getSetting('columnHeaders').length;
+    const rowHeaders = wot.getSetting('rowHeaders');
+    const rowHeadersCount = rowHeaders.length;
+    const columnHeaders = wot.getSetting('columnHeaders');
+    const columnHeadersCount = columnHeaders.length;
     let syncScroll = false;
     let runFastDraw = fastDraw;
 
@@ -221,7 +225,7 @@ class Table {
       this.holderOffset = offset(this.holder);
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
-      if (rowHeaders && !wot.getSetting('fixedColumnsLeft')) {
+      if (rowHeadersCount && !wot.getSetting('fixedColumnsLeft')) {
         const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
         const previousState = this.correctHeaderWidth;
 
@@ -246,9 +250,6 @@ class Table {
         wtOverlays.refresh(true);
       }
     } else {
-      const totalRows = this.instance.getSetting('totalRows');
-      const columnHeadersCount = wot.getSetting('columnHeaders').length;
-
       const { cloneOverlay } = wot;
 
       if (isClone) {
@@ -258,28 +259,26 @@ class Table {
       }
       let startRow;
 
-      if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_DEBUG) ||
-          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP) ||
+      if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP) ||
           Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
         startRow = 0;
       } else if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM) ||
-          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+                 Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startRow = Math.max(totalRows - wot.getSetting('fixedRowsBottom'), 0);
       } else {
         startRow = wtViewport.rowsRenderCalculator.startRow;
       }
       let startColumn;
 
-      if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_DEBUG) ||
-          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_LEFT) ||
+      if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_LEFT) ||
           Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER) ||
           Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startColumn = 0;
       } else {
         startColumn = wtViewport.columnsRenderCalculator.startColumn;
       }
-      this.rowFilter = new RowFilter(startRow, totalRows, columnHeaders);
-      this.columnFilter = new ColumnFilter(startColumn, wot.getSetting('totalColumns'), rowHeaders);
+      this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
+      this.columnFilter = new ColumnFilter(startColumn, wot.getSetting('totalColumns'), rowHeadersCount);
 
       this.alignOverlaysWithTrimmingContainer();
 
@@ -297,10 +296,13 @@ class Table {
       if (performRedraw) {
         const rowHeaders = this.wot.getSetting('rowHeaders');
         const columnHeaders = this.wot.getSetting('columnHeaders');
+        const totalRows = this.instance.getSetting('totalRows');
+        const totalColumns = this.instance.getSetting('totalColumns');
 
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
 
-        if (this.wot.isOverlayName(Overlay.CLONE_BOTTOM) || this.wot.isOverlayName(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+        if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM) ||
+            Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
           // do NOT render headers on the bottom or bottom-left corner overlay
           this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
         }
@@ -312,6 +314,10 @@ class Table {
           .setFilters(this.rowFilter, this.columnFilter)
           .render();
 
+        // TODO: Temp
+        this.wot.wtViewport.oversizedRows = [];
+        // end
+
         let workspaceWidth;
 
         if (!isClone) {
@@ -319,9 +325,49 @@ class Table {
           this.wot.wtViewport.containerWidth = null;
         }
 
-        if (!isClone || this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
-          // this.markOversizedRows();
+        this.columnUtils.calculateWidths();
+
+        // TODO: Temp
+        const overlayName = this.wot.getOverlayName();
+
+        // if (!this.columnHeaderCount || this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] || this.wtTable.isWorkingOnClone()) {
+          // return;
+        // }
+        if (columnHeadersCount && !this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] && isClone) {
+          const columnCount = this.getRenderedColumnsCount();
+          const rowHeaderCount = rowHeaders.length;
+
+          for (let i = 0; i < columnHeadersCount; i++) {
+            for (let renderedColumnIndex = (-1) * rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
+              this.markIfOversizedColumnHeader(renderedColumnIndex);
+            }
+            // for (let renderedColumnIndex = 0; renderedColumnIndex < columnCount; renderedColumnIndex++) {
+              // this.markIfOversizedColumnHeader(renderedColumnIndex);
+            // }
+          }
+          this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] = true;
         }
+        // end
+
+        // TODO: Temp
+        const columnHeaderss = this.wot.getSetting('columnHeaders');
+        const children = this.wot.wtTable.THEAD.childNodes;
+        const oversizedColumnHeaders = this.wot.wtViewport.oversizedColumnHeaders;
+
+        for (let i = 0, len = columnHeaderss.length; i < len; i++) {
+          if (oversizedColumnHeaders[i]) {
+            if (!children[i] || children[i].childNodes.length === 0) {
+              return;
+            }
+            children[i].childNodes[0].style.height = `${oversizedColumnHeaders[i]}px`;
+          }
+        }
+        // end
+
+        if (!isClone || this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
+          this.markOversizedRows();
+        }
+
         if (!isClone) {
           this.wot.wtViewport.createVisibleCalculators();
           this.wot.wtOverlays.refresh(false);
@@ -339,14 +385,17 @@ class Table {
           if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
             // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
             this.wot.wtViewport.containerWidth = null;
+            this.columnUtils.calculateWidths();
+            this.tableRenderer.table.colGroup.render(); // ???
+            // this.tableRenderer.render();
 
-            const firstRendered = this.getFirstRenderedColumn();
-            const lastRendered = this.getLastRenderedColumn();
-            const defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
-            let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
-
-            rowHeaderWidthSetting = this.wot.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
-
+            // const firstRendered = this.getFirstRenderedColumn();
+            // const lastRendered = this.getLastRenderedColumn();
+            // const defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
+            // let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
+            //
+            // rowHeaderWidthSetting = this.wot.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
+            //
             // if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== void 0) {
             //   for (let i = 0; i < rowHeadersCount; i++) {
             //     let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
@@ -399,6 +448,48 @@ class Table {
 
     return this;
   }
+
+
+  markIfOversizedColumnHeader(col) {
+    const sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
+    let level = this.wot.getSetting('columnHeaders').length;
+    const defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
+    let previousColHeaderHeight;
+    let currentHeader;
+    let currentHeaderHeight;
+    const columnHeaderHeightSetting = this.wot.getSetting('columnHeaderHeight') || [];
+
+    while (level) {
+      level -= 1;
+
+      previousColHeaderHeight = this.wot.wtTable.getColumnHeaderHeight(level);
+      currentHeader = this.wot.wtTable.getColumnHeader(sourceColIndex, level);
+
+      if (!currentHeader) {
+        /* eslint-disable no-continue */
+        continue;
+      }
+      currentHeaderHeight = innerHeight(currentHeader);
+
+      if (!previousColHeaderHeight && defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
+        this.wot.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
+      }
+
+      if (Array.isArray(columnHeaderHeightSetting)) {
+        if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== void 0) {
+          this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
+        }
+
+      } else if (!isNaN(columnHeaderHeightSetting)) {
+        this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting;
+      }
+
+      if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] || columnHeaderHeightSetting)) {
+        this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting);
+      }
+    }
+  }
+
 
   removeClassFromCells(className) {
     const nodes = this.TABLE.querySelectorAll(`.${className}`);
@@ -601,6 +692,48 @@ class Table {
     return new CellCoords(row, col);
   }
 
+  /**
+   * Check if any of the rendered rows is higher than expected, and if so, cache them
+   */
+  markOversizedRows() {
+    if (this.wot.getSetting('externalRowCalculator')) {
+      return;
+    }
+    let rowCount = this.TBODY.childNodes.length;
+    const expectedTableHeight = rowCount * this.wot.wtSettings.settings.defaultRowHeight;
+    const actualTableHeight = innerHeight(this.TBODY) - 1;
+    let previousRowHeight;
+    let rowInnerHeight;
+    let sourceRowIndex;
+    let currentTr;
+    let rowHeader;
+
+    if (expectedTableHeight === actualTableHeight && !this.wot.getSetting('fixedRowsBottom')) {
+      // If the actual table height equals rowCount * default single row height, no row is oversized -> no need to iterate over them
+      return;
+    }
+
+    while (rowCount) {
+      rowCount -= 1;
+      sourceRowIndex = this.rowFilter.renderedToSource(rowCount);
+      previousRowHeight = this.getRowHeight(sourceRowIndex);
+      currentTr = this.getTrForRow(sourceRowIndex);
+      rowHeader = currentTr.querySelector('th');
+
+      if (rowHeader) {
+        rowInnerHeight = innerHeight(rowHeader);
+      } else {
+        rowInnerHeight = innerHeight(currentTr) - 1;
+      }
+
+      if ((!previousRowHeight && this.wot.wtSettings.settings.defaultRowHeight < rowInnerHeight ||
+          previousRowHeight < rowInnerHeight)) {
+        rowInnerHeight += 1;
+        this.wot.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
+      }
+    }
+  }
+
   getTrForRow(row) {
     return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
   }
@@ -683,7 +816,7 @@ class Table {
   }
 
   getRenderedColumnsCount() {
-    let columnsCount = this.wot.wtViewport.columnsRenderCalculator.count;
+    const columnsCount = this.wot.wtViewport.columnsRenderCalculator.count;
 
     if (this.wot.isOverlayName(Overlay.CLONE_LEFT) ||
         this.wot.isOverlayName(Overlay.CLONE_TOP_LEFT_CORNER) ||

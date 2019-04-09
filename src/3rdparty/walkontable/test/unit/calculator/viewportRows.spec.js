@@ -1,11 +1,13 @@
-describe('Walkontable.ViewportRowsCalculator', () => {
+import ViewportRowsCalculator from 'walkontable/calculator/viewportRows';
+
+describe('ViewportRowsCalculator', () => {
   function allRows20() {
     return 20;
   }
 
   it('should render first 5 rows in unscrolled container', () => {
-    const calc = new Walkontable.ViewportRowsCalculator(100, 0, 1000, allRows20);
-    const visibleCalc = new Walkontable.ViewportRowsCalculator(100, 0, 1000, allRows20, null, true);
+    const calc = new ViewportRowsCalculator(100, 0, 1000, allRows20);
+    const visibleCalc = new ViewportRowsCalculator(100, 0, 1000, allRows20, null, true);
 
     expect(calc.startRow).toBe(0);
     expect(calc.startPosition).toBe(0);
@@ -16,8 +18,8 @@ describe('Walkontable.ViewportRowsCalculator', () => {
   });
 
   it('should render 6 rows, starting from 3 in container scrolled to half of fourth row', () => {
-    const calc = new Walkontable.ViewportRowsCalculator(100, 70, 1000, allRows20);
-    const visibleCalc = new Walkontable.ViewportRowsCalculator(100, 70, 1000, allRows20, null, true);
+    const calc = new ViewportRowsCalculator(100, 70, 1000, allRows20);
+    const visibleCalc = new ViewportRowsCalculator(100, 70, 1000, allRows20, null, true);
 
     expect(calc.startRow).toBe(3);
     expect(calc.startPosition).toBe(60);
@@ -32,8 +34,8 @@ describe('Walkontable.ViewportRowsCalculator', () => {
       calc.startRow -= 2;
       calc.endRow += 2;
     };
-    const calc = new Walkontable.ViewportRowsCalculator(100, 70, 1000, allRows20, overrideFn);
-    const visibleCalc = new Walkontable.ViewportRowsCalculator(100, 70, 1000, allRows20, null, true);
+    const calc = new ViewportRowsCalculator(100, 70, 1000, allRows20, overrideFn);
+    const visibleCalc = new ViewportRowsCalculator(100, 70, 1000, allRows20, null, true);
 
     expect(calc.startRow).toBe(1);
     expect(calc.startPosition).toBe(20);
@@ -44,8 +46,8 @@ describe('Walkontable.ViewportRowsCalculator', () => {
   });
 
   it('should return number of rendered rows', () => {
-    const calc = new Walkontable.ViewportRowsCalculator(100, 50, 1000, allRows20);
-    const visibleCalc = new Walkontable.ViewportRowsCalculator(100, 50, 1000, allRows20, null, true);
+    const calc = new ViewportRowsCalculator(100, 50, 1000, allRows20);
+    const visibleCalc = new ViewportRowsCalculator(100, 50, 1000, allRows20, null, true);
 
     expect(calc.count).toBe(6);
 
@@ -53,8 +55,8 @@ describe('Walkontable.ViewportRowsCalculator', () => {
   });
 
   it('should render all rows if their size is smaller than viewport', () => {
-    const calc = new Walkontable.ViewportRowsCalculator(200, 0, 8, allRows20);
-    const visibleCalc = new Walkontable.ViewportRowsCalculator(200, 0, 8, allRows20, null, true);
+    const calc = new ViewportRowsCalculator(200, 0, 8, allRows20);
+    const visibleCalc = new ViewportRowsCalculator(200, 0, 8, allRows20, null, true);
 
     expect(calc.startRow).toBe(0);
     expect(calc.endRow).toBe(7);
@@ -66,8 +68,8 @@ describe('Walkontable.ViewportRowsCalculator', () => {
   });
 
   it('should render all rows if their size is exactly the viewport', () => {
-    const calc = new Walkontable.ViewportRowsCalculator(200, 0, 10, allRows20);
-    const visibleCalc = new Walkontable.ViewportRowsCalculator(200, 0, 10, allRows20, null, true);
+    const calc = new ViewportRowsCalculator(200, 0, 10, allRows20);
+    const visibleCalc = new ViewportRowsCalculator(200, 0, 10, allRows20, null, true);
 
     expect(calc.startRow).toBe(0);
     expect(calc.endRow).toBe(9);
@@ -79,8 +81,8 @@ describe('Walkontable.ViewportRowsCalculator', () => {
   });
 
   it('should render all rows if their size is slightly larger than viewport', () => {
-    const calc = new Walkontable.ViewportRowsCalculator(199, 0, 10, allRows20);
-    const visibleCalc = new Walkontable.ViewportRowsCalculator(199, 0, 10, allRows20, null, true);
+    const calc = new ViewportRowsCalculator(199, 0, 10, allRows20);
+    const visibleCalc = new ViewportRowsCalculator(199, 0, 10, allRows20, null, true);
 
     expect(calc.startRow).toBe(0);
     expect(calc.endRow).toBe(9);
@@ -92,8 +94,8 @@ describe('Walkontable.ViewportRowsCalculator', () => {
   });
 
   it('should set null values if total rows is 0', () => {
-    const calc = new Walkontable.ViewportRowsCalculator(200, 0, 0, allRows20);
-    const visibleCalc = new Walkontable.ViewportRowsCalculator(200, 0, 0, allRows20, null, true);
+    const calc = new ViewportRowsCalculator(200, 0, 0, allRows20);
+    const visibleCalc = new ViewportRowsCalculator(200, 0, 0, allRows20, null, true);
 
     expect(calc.startRow).toBe(null);
     expect(calc.startPosition).toBe(null);
@@ -109,8 +111,8 @@ describe('Walkontable.ViewportRowsCalculator', () => {
       myCalc.startRow = 0;
       myCalc.endRow = 0;
     };
-    const calc = new Walkontable.ViewportRowsCalculator(200, 0, 0, allRows20, overrideFn);
-    const visibleCalc = new Walkontable.ViewportRowsCalculator(200, 0, 0, allRows20, null, true);
+    const calc = new ViewportRowsCalculator(200, 0, 0, allRows20, overrideFn);
+    const visibleCalc = new ViewportRowsCalculator(200, 0, 0, allRows20, null, true);
 
     expect(calc.startRow).toBe(null);
     expect(calc.startPosition).toBe(null);
@@ -122,8 +124,8 @@ describe('Walkontable.ViewportRowsCalculator', () => {
   });
 
   it('should scroll backwards if total rows is reached', () => {
-    const calc = new Walkontable.ViewportRowsCalculator(190, 350, 20, allRows20);
-    const visibleCalc = new Walkontable.ViewportRowsCalculator(190, 350, 20, allRows20, null, true);
+    const calc = new ViewportRowsCalculator(190, 350, 20, allRows20);
+    const visibleCalc = new ViewportRowsCalculator(190, 350, 20, allRows20, null, true);
 
     expect(calc.startRow).toBe(10);
     expect(calc.startPosition).toBe(200);
@@ -136,8 +138,8 @@ describe('Walkontable.ViewportRowsCalculator', () => {
 
   it('should calculate the number of rows based on a default height, ' +
     'when the height returned from the function is not a number', () => {
-    const calc = new Walkontable.ViewportRowsCalculator(100, 0, 1000, () => (void 0 + 1));
-    const visibleCalc = new Walkontable.ViewportRowsCalculator(100, 0, 1000, () => (void 0 + 1), null, true);
+    const calc = new ViewportRowsCalculator(100, 0, 1000, () => (void 0 + 1));
+    const visibleCalc = new ViewportRowsCalculator(100, 0, 1000, () => (void 0 + 1), null, true);
 
     expect(calc.startRow).toBe(0);
     expect(calc.startPosition).toBe(0);

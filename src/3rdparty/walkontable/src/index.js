@@ -7,7 +7,6 @@ import CellRange from './cell/range';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 
-import DebugOverlay from './overlay/debug';
 import LeftOverlay from './overlay/left';
 import TopOverlay from './overlay/top';
 import TopLeftCornerOverlay from './overlay/topLeftCorner';
@@ -35,7 +34,6 @@ export {
   ColumnFilter,
   RowFilter,
 
-  DebugOverlay,
   LeftOverlay,
   TopOverlay,
   TopLeftCornerOverlay,

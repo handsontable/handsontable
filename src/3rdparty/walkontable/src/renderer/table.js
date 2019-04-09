@@ -15,8 +15,8 @@ export default class TableRenderer {
     this.columnsToRender = 0;
     this.rowHeaderFunctions = [];
     this.rowHeadersCount = 0;
-    this.columnsHeaderFunctions = [];
-    this.columnsHeadersCount = 0;
+    this.columnHeaderFunctions = [];
+    this.columnHeadersCount = 0;
     // options
     this.isClone = isClone;
     this.totalRows = totalRows;
@@ -37,11 +37,11 @@ export default class TableRenderer {
     return this;
   }
 
-  setHeaderContentRenderers(rowHeaders, columnsHeaders) {
+  setHeaderContentRenderers(rowHeaders, columnHeaders) {
     this.rowHeaderFunctions = rowHeaders;
     this.rowHeadersCount = rowHeaders.length;
-    this.columnsHeaderFunctions = columnsHeaders;
-    this.columnsHeadersCount = columnsHeaders.length;
+    this.columnHeaderFunctions = columnHeaders;
+    this.columnHeadersCount = columnHeaders.length;
 
     return this;
   }
@@ -75,17 +75,17 @@ export default class TableRenderer {
     this.rows.adjust();
 
     this.colGroup.render();
-    this.rowHeaders.render();
     this.columnHeaders.render();
     this.rows.render();
+    this.rowHeaders.render();
     this.cells.render();
   }
 
   refresh() {
     this.colGroup.refresh();
-    this.rowHeaders.refresh();
     this.columnHeaders.refresh();
     this.rows.refresh();
+    this.rowHeaders.refresh();
     this.cells.refresh();
   }
 }

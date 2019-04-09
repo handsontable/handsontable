@@ -13,14 +13,14 @@ export default class NodesPool {
       throw new Error('Wrong id');
     }
 
-    const key = args.length > 1 ? args.join('') : args[0];
+    const key = args.length > 1 ? args.join('x') : args[0];
     let node;
 
     if (this.pool.has(key)) {
       node = this.pool.get(key);
     } else {
       node = document.createElement(this.nodeType);
-      node.dataset.id = key;
+      // node.dataset.id = key;
       this.pool.set(key, node);
     }
 
