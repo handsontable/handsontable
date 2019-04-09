@@ -1542,10 +1542,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     clearCellSettingCache();
 
-    grid.adjustRowsAndCols();
-
-    recordTranslator.getColumnIndexMapper().initToLength(this.countSourceCols());
+    recordTranslator.getColumnIndexMapper().initToLength(Math.max(this.countSourceCols(), this.countCols()));
     recordTranslator.getRowIndexMapper().initToLength(this.countSourceRows());
+
+    grid.adjustRowsAndCols();
 
     instance.runHooks('afterLoadData', priv.firstRun);
 
