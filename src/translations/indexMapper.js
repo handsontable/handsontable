@@ -1,16 +1,16 @@
-import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
+import { arrayFilter, arrayMap, arrayReduce, pivot } from './../helpers/array';
 import IndexMap from './maps/indexMap';
-import ValueMap from './maps/valueMap';
+import MapCollection from './mapCollection';
 
 const INDEXES_SEQUENCE_KEY = 'sequence';
-const SKIPPED_INDEXES_KEY = 'skipped';
 
 class IndexMapper {
   constructor() {
-    this.mappings = new Map([
+    this.indexToIndexCollection = new MapCollection([
       [INDEXES_SEQUENCE_KEY, new IndexMap()],
-      [SKIPPED_INDEXES_KEY, new ValueMap(false)],
     ]);
+
+    this.skipCollection = new MapCollection();
   }
 
   /**
@@ -50,39 +50,13 @@ class IndexMapper {
   }
 
   /**
-   * Register custom indexes map.
-   *
-   * @param {String} name Unique name of the indexes list.
-   * @param {IndexMap} indexMap Index map containing miscellaneous (i.e. meta data, indexes sequence) updated after remove and insert data actions.
-   * @returns {IndexMap}
-   */
-  registerIndexMap(name, indexMap) {
-    if (this.mappings.has(name) === false) {
-      this.mappings.set(name, indexMap);
-    }
-
-    return this.mappings.get(name);
-  }
-
-  /**
-   * Get indexes list by it's name.
-   *
-   * @param {String} name Name of the indexes list.
-   * @returns {IndexMap}
-   */
-  getIndexMap(name) {
-    return this.mappings.get(name);
-  }
-
-  /**
    * Reset current index map and create new one.
    *
    * @param {Number} [length] Custom generated map length.
    */
   initToLength(length = this.getNumberOfIndexes()) {
-    this.mappings.forEach((listOfIndexes) => {
-      listOfIndexes.init(length);
-    });
+    this.indexToIndexCollection.initToLength(length);
+    this.skipCollection.initToLength(length);
   }
 
   /**
@@ -91,7 +65,7 @@ class IndexMapper {
    * @returns {Array}
    */
   getIndexesSequence() {
-    return this.mappings.get(INDEXES_SEQUENCE_KEY).getValues();
+    return this.indexToIndexCollection.get(INDEXES_SEQUENCE_KEY).getValues();
   }
 
   /**
@@ -100,7 +74,7 @@ class IndexMapper {
    * @param {Array} indexes Physical row indexes.
    */
   setIndexesSequence(indexes) {
-    return this.mappings.get(INDEXES_SEQUENCE_KEY).setValues(indexes);
+    return this.indexToIndexCollection.get(INDEXES_SEQUENCE_KEY).setValues(indexes);
   }
 
   /**
@@ -109,7 +83,25 @@ class IndexMapper {
    * @returns {Array}
    */
   getSkippedIndexes() {
-    return arrayReduce(this.mappings.get(SKIPPED_INDEXES_KEY).getValues(), (skippedIndexes, isSkipped, index) => {
+    // Array of arrays in form:
+    // [
+    //    [ skip0_boolean(index: 0), skip0_boolean(index: 1), ..., skip0_boolean(index: n)],
+    //    [ skip1_boolean(index: 0), skip1_boolean(index: 1), ..., skip1_boolean(index: n)],
+    //    ...
+    // ]
+    const particularSkipsLists = arrayMap(this.skipCollection.get(), map => map.getValues());
+    // Array of arrays in form:
+    // [
+    //    [ skip0_boolean(index: 0), skip1_boolean(index: 0), ..., skipn_boolean(index: 0)],
+    //    [ skip0_boolean(index: 1), skip1_boolean(index: 1), ..., skipn_boolean(index: 1)],
+    //    ...
+    // ]
+    // where: `skip0`, `skip1` are particular types of skipped indexes i.e. skipped indexes by the `TrimRows` or by the `Filters` plugin.
+    const skipBooleansForIndex = pivot(particularSkipsLists);
+    const skipResults = arrayReduce(skipBooleansForIndex,
+      (accumulator, skipIndexesAtIndex) => accumulator.concat(skipIndexesAtIndex.some(value => value === true)), []);
+
+    return arrayReduce(skipResults, (skippedIndexes, isSkipped, index) => {
       if (isSkipped === true) {
         return skippedIndexes.concat(index);
       }
@@ -121,12 +113,13 @@ class IndexMapper {
   /**
    * Set completely new list of indexes skipped in the process of rendering.
    *
+   * @param {ValueMap} skipMap Skip map.
    * @param {Array} indexes Physical row indexes.
    */
-  setSkippedIndexes(indexes) {
+  setSkippedIndexes(skipMap, indexes) {
     const skippedIndexes = arrayMap(this.getIndexesSequence(), index => indexes.includes(index));
 
-    this.mappings.get(SKIPPED_INDEXES_KEY).setValues(skippedIndexes);
+    skipMap.setValues(skippedIndexes);
   }
 
   /**
@@ -142,8 +135,8 @@ class IndexMapper {
   /**
    * Clear all skipped indexes.
    */
-  clearSkippedIndexes() {
-    this.setSkippedIndexes([]);
+  clearSkippedIndexes(skipMap) {
+    this.setSkippedIndexes(skipMap, []);
   }
 
   /**
@@ -185,7 +178,7 @@ class IndexMapper {
     }
 
     const physicalMovedIndexes = arrayMap(movedIndexes, row => this.getPhysicalIndex(row));
-    const sequenceOfIndexes = this.mappings.get(INDEXES_SEQUENCE_KEY);
+    const sequenceOfIndexes = this.indexToIndexCollection.get(INDEXES_SEQUENCE_KEY);
 
     sequenceOfIndexes.filterIndexes(physicalMovedIndexes);
 
@@ -223,9 +216,8 @@ class IndexMapper {
     const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
-    this.mappings.forEach((list) => {
-      list.addValueAndReorganize(insertionIndex, insertedIndexes);
-    });
+    this.indexToIndexCollection.updateIndexesAfterInsertion(insertionIndex, insertedIndexes);
+    this.skipCollection.updateIndexesAfterInsertion(insertionIndex, insertedIndexes);
   }
 
   /**
@@ -235,9 +227,8 @@ class IndexMapper {
    * @param {Array} removedIndexes List of removed indexes.
    */
   updateIndexesAfterRemoval(removedIndexes) {
-    this.mappings.forEach((list) => {
-      list.removeValuesAndReorganize(removedIndexes);
-    });
+    this.indexToIndexCollection.updateIndexesAfterRemoval(removedIndexes);
+    this.skipCollection.updateIndexesAfterRemoval(removedIndexes);
   }
 }
 

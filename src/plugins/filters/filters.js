@@ -20,11 +20,12 @@ import { CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERAT
 import { getTranslator } from '../../translations/recordTranslator';
 
 import './filters.css';
+import ValueMap from '../../translations/maps/valueMap';
 
 /**
  * @plugin Filters
  * @pro
- * @dependencies DropdownMenu TrimRows HiddenRows
+ * @dependencies DropdownMenu HiddenRows
  *
  * @description
  * The plugin allows filtering the table data either by the built-in component or with the API.
@@ -110,6 +111,8 @@ class Filters extends BasePlugin {
      */
     this.rowIndexMapper = getTranslator(this.hot).getRowIndexMapper();
 
+    this.filtersRowsMap = null;
+
     // One listener for the enable/disable functionality
     this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
   }
@@ -132,6 +135,9 @@ class Filters extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
+    this.filtersRowsMap = this.rowIndexMapper.skipCollection.register('filters', new ValueMap(false));
+
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
     const addConfirmationHooks = (component) => {
@@ -217,7 +223,7 @@ class Filters extends BasePlugin {
       });
 
       this.conditionCollection.clean();
-      this.rowIndexMapper.clearSkippedIndexes();
+      this.rowIndexMapper.clearSkippedIndexes(this.filtersRowsMap);
     }
     super.disablePlugin();
   }
@@ -340,7 +346,7 @@ class Filters extends BasePlugin {
       if (needToFilter) {
         const trimmedRows = [];
 
-        this.rowIndexMapper.clearSkippedIndexes();
+        this.rowIndexMapper.clearSkippedIndexes(this.filtersRowsMap);
 
         visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
 
@@ -352,13 +358,13 @@ class Filters extends BasePlugin {
           }
         });
 
-        this.rowIndexMapper.setSkippedIndexes(trimmedRows);
+        this.rowIndexMapper.setSkippedIndexes(this.filtersRowsMap, trimmedRows);
 
         if (!visibleVisualRows.length) {
           this.hot.deselectCell();
         }
       } else {
-        this.rowIndexMapper.clearSkippedIndexes();
+        this.rowIndexMapper.clearSkippedIndexes(this.filtersRowsMap);
       }
     }
 
@@ -586,7 +592,7 @@ class Filters extends BasePlugin {
       this.components.get('filter_by_value').saveState(physicalIndex);
       this.saveHiddenRowsCache(physicalIndex);
 
-      this.rowIndexMapper.clearSkippedIndexes();
+      this.rowIndexMapper.clearSkippedIndexes(this.filtersRowsMap);
       this.filter();
     }
     this.dropdownMenuPlugin.close();

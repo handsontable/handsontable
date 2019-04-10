@@ -1542,6 +1542,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     clearCellSettingCache();
 
+    // Method `countSourceRows` doesn't return number of columns declared by `columns` property.
     recordTranslator.getColumnIndexMapper().initToLength(Math.max(this.countSourceCols(), this.countCols()));
     recordTranslator.getRowIndexMapper().initToLength(this.countSourceRows());
 

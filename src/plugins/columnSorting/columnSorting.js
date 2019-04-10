@@ -125,9 +125,9 @@ class ColumnSorting extends BasePlugin {
      * Plugin indexes cache.
      *
      * @private
-     * @type {IndexMap}
+     * @type {null|IndexMap}
      */
-    this.indexesSequenceCache = this.rowIndexMapper.registerIndexMap(this.pluginKey, new IndexMap());
+    this.indexesSequenceCache = null;
   }
 
   /**
@@ -151,6 +151,8 @@ class ColumnSorting extends BasePlugin {
     if (isUndefined(this.hot.getSettings().observeChanges)) {
       this.enableObserveChangesPlugin();
     }
+
+    this.indexesSequenceCache = this.rowIndexMapper.indexToIndexCollection.register(this.pluginKey, new IndexMap());
 
     this.addHook('afterGetColHeader', (column, TH) => this.onAfterGetColHeader(column, TH));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, controller) => this.onBeforeOnCellMouseDown(event, coords, TD, controller));
