@@ -1,4 +1,5 @@
 import { arrayFilter, arrayMap, arrayReduce, pivot } from './../helpers/array';
+import { isDefined } from './../helpers/mixed';
 import IndexMap from './maps/indexMap';
 import MapCollection from './mapCollection';
 
@@ -82,24 +83,36 @@ class IndexMapper {
    *
    * @returns {Array}
    */
-  getSkippedIndexes() {
-    // Array of arrays in form:
-    // [
-    //    [ skip0_boolean(index: 0), skip0_boolean(index: 1), ..., skip0_boolean(index: n)],
-    //    [ skip1_boolean(index: 0), skip1_boolean(index: 1), ..., skip1_boolean(index: n)],
-    //    ...
-    // ]
-    const particularSkipsLists = arrayMap(this.skipCollection.get(), map => map.getValues());
-    // Array of arrays in form:
-    // [
-    //    [ skip0_boolean(index: 0), skip1_boolean(index: 0), ..., skipn_boolean(index: 0)],
-    //    [ skip0_boolean(index: 1), skip1_boolean(index: 1), ..., skipn_boolean(index: 1)],
-    //    ...
-    // ]
-    // where: `skip0`, `skip1` are particular types of skipped indexes i.e. skipped indexes by the `TrimRows` or by the `Filters` plugin.
-    const skipBooleansForIndex = pivot(particularSkipsLists);
-    const skipResults = arrayReduce(skipBooleansForIndex,
-      (accumulator, skipIndexesAtIndex) => accumulator.concat(skipIndexesAtIndex.some(value => value === true)), []);
+  getSkippedIndexes(skipMap) {
+    let skipResults;
+
+    if (isDefined(skipMap)) {
+      skipResults = skipMap.getValues();
+
+    } else {
+      /**
+         Array of arrays in form:
+         [
+           [ skip0_boolean(index: 0), skip0_boolean(index: 1), ..., skip0_boolean(index: n)],
+           [ skip1_boolean(index: 0), skip1_boolean(index: 1), ..., skip1_boolean(index: n)],
+           ...
+         ]
+       */
+      const particularSkipsLists = arrayMap(this.skipCollection.get(), map => map.getValues());
+      /**
+         Array of arrays in form:
+         [
+           [ skip0_boolean(index: 0), skip1_boolean(index: 0), ..., skipn_boolean(index: 0)],
+           [ skip0_boolean(index: 1), skip1_boolean(index: 1), ..., skipn_boolean(index: 1)],
+           ...
+         ]
+
+         where: `skip0`, `skip1` are particular types of skipped indexes i.e. skipped indexes by the `TrimRows` or by the `Filters` plugin.
+       */
+      const skipBooleansForIndex = pivot(particularSkipsLists);
+      skipResults = arrayReduce(skipBooleansForIndex,
+        (accumulator, skipIndexesAtIndex) => accumulator.concat(skipIndexesAtIndex.some(value => value === true)), []);
+    }
 
     return arrayReduce(skipResults, (skippedIndexes, isSkipped, index) => {
       if (isSkipped === true) {

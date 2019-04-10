@@ -113,7 +113,7 @@ class TrimRows extends BasePlugin {
    * @fires Hooks#afterTrimRow
    */
   trimRows(rows) {
-    const currentTrimConfig = this.rowIndexMapper.getSkippedIndexes();
+    const currentTrimConfig = this.rowIndexMapper.getSkippedIndexes(this.trimmedRowsMap);
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
 
@@ -153,7 +153,7 @@ class TrimRows extends BasePlugin {
    * @fires Hooks#afterUntrimRow
    */
   untrimRows(rows) {
-    const currentTrimConfig = this.rowIndexMapper.getSkippedIndexes();
+    const currentTrimConfig = this.rowIndexMapper.getSkippedIndexes(this.trimmedRowsMap);
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
 
@@ -198,7 +198,7 @@ class TrimRows extends BasePlugin {
    * Untrims all trimmed rows.
    */
   untrimAll() {
-    this.untrimRows(this.rowIndexMapper.getSkippedIndexes());
+    this.untrimRows(this.rowIndexMapper.getSkippedIndexes(this.trimmedRowsMap));
   }
 
   /**
