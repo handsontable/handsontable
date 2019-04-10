@@ -352,9 +352,9 @@ class Filters extends BasePlugin {
 
         const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
 
-        rangeEach(this.hot.countSourceRows() - 1, (row) => {
+        rangeEach(this.hot.countRows() - 1, (row) => {
           if (!visibleVisualRowsAssertion(row)) {
-            trimmedRows.push(row);
+            trimmedRows.push(getTranslator(this.hot).toPhysicalRow(row));
           }
         });
 
@@ -408,7 +408,7 @@ class Filters extends BasePlugin {
     const visualIndex = this.t.toVisualColumn(column);
     const data = [];
 
-    arrayEach(this.hot.getSourceDataAtCol(visualIndex), (value, rowIndex) => {
+    arrayEach(this.hot.getDataAtCol(visualIndex), (value, rowIndex) => {
       const { row, col, visualCol, visualRow, type, instance, dateFormat } = this.hot.getCellMeta(rowIndex, visualIndex);
 
       data.push({

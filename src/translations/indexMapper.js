@@ -130,9 +130,7 @@ class IndexMapper {
    * @param {Array} indexes Physical row indexes.
    */
   setSkippedIndexes(skipMap, indexes) {
-    const skippedIndexes = arrayMap(this.getIndexesSequence(), index => indexes.includes(index));
-
-    skipMap.setValues(skippedIndexes);
+    skipMap.setValues(arrayMap(new Array(this.getNumberOfIndexes()), (_, indexInsideList) => indexes.includes(indexInsideList)));
   }
 
   /**
