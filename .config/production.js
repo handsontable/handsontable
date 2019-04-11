@@ -1,10 +1,5 @@
 /**
- * Config responsible for building Handsontable `dist/` minified files. Depends on HOT_FILENAME env it produces, either PRO files:
- *  - handsontable-pro.min.js
- *  - handsontable-pro.min.css
- *  - handsontable-pro.full.min.js
- *  - handsontable-pro.full.min.css
- * or CE files:
+ * Config responsible for building Handsontable `dist/` minified files:
  *  - handsontable.min.js
  *  - handsontable.min.css
  *  - handsontable.full.min.js

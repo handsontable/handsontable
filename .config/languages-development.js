@@ -4,13 +4,14 @@
 const NEW_LINE_CHAR = '\n';
 const SOURCE_LANGUAGES_DIRECTORY = 'src/i18n/languages';
 const OUTPUT_LANGUAGES_DIRECTORY = 'languages';
-const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
 const path = require('path');
 const StringReplacePlugin  = require('string-replace-webpack-plugin');
 const WebpackOnBuildPlugin = require('on-build-webpack');
 const fs  = require('fs');
 const fsExtra  = require('fs-extra');
+
+const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
 function getEntryJsFiles() {
   const entryObject = {};

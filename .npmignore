@@ -1,20 +1,18 @@
-node_modules/
-src/
-test/
-tmp/
+# Ignore all files and directories in this repository...
+*
+*/
 
-_SpecRunner.html
+# ...and add files and directories that are the only ones that match the pattern below
+!commonjs/**/*
+commonjs/3rdparty/walkontable/test
+!dist/*.js
+!dist/*.css
 !dist/README.md
-.config
-.DS_Store
-.github
-.grunt
-.idea
-cars.sqlite
-CNAME
-dev.html
-hot.config.js
-npm-debug.log
-package-lock.json
-webpack.config.js
-yarn.lock
+!dist/languages/*
+!es/**/*
+es/3rdparty/walkontable/test
+!languages/*
+!lib/**/*
+!handsontable-general-terms.pdf
+!handsontable-non-commercial-license.pdf
+!handsontable.d.ts

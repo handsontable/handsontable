@@ -204,12 +204,32 @@ describe('TrimRows', () => {
     plugin.trimRows([1, 7, 3]); // physical row indexes after move
     alter('remove_row', 2, 3); // visual row indexes
 
+    expect(plugin.isTrimmed(1)).toBeTruthy();
+    expect(plugin.isTrimmed(5)).toBeTruthy(); // 7 -> 5
+    expect(plugin.isTrimmed(2)).toBeTruthy(); // 3 -> 2
+
     expect(plugin.isTrimmed(7)).toBeFalsy();
     expect(plugin.isTrimmed(3)).toBeFalsy();
+  });
+
+  it('should update trimmed row indexes after insertion', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 1),
+      trimRows: true,
+      manualRowMove: [4, 0, 8, 5, 2, 6, 1, 7, 3, 9]
+    });
+
+    const plugin = getPlugin('trimRows');
+
+    plugin.trimRows([1, 7, 3]); // physical row indexes after move
+    alter('insert_row', 2, 3); // visual row indexes
 
     expect(plugin.isTrimmed(1)).toBeTruthy();
-    expect(plugin.isTrimmed(5)).toBeTruthy();
-    expect(plugin.isTrimmed(2)).toBeTruthy();
+    expect(plugin.isTrimmed(10)).toBeTruthy(); // 7 -> 10
+    expect(plugin.isTrimmed(6)).toBeTruthy(); // 3 -> 6
+
+    expect(plugin.isTrimmed(7)).toBeFalsy();
+    expect(plugin.isTrimmed(3)).toBeFalsy();
   });
 
   it('should clear cache after loading new data by `loadData` function, when plugin `trimRows` is enabled #92', function(done) {
@@ -613,6 +633,20 @@ describe('TrimRows', () => {
         expect(plugin.isTrimmed(0)).toBeTruthy();
         expect(plugin.isTrimmed(5)).toBeTruthy();
       });
+    });
+
+    it('should not override the `index` parameter of the `beforeCreateRow` hook', () => {
+      const onBeforeCreateRowCallback = jasmine.createSpy('beforeCreateRow');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        trimRows: true,
+        beforeCreateRow: onBeforeCreateRowCallback
+      });
+
+      alter('insert_row', 1);
+
+      expect(onBeforeCreateRowCallback).toHaveBeenCalledWith(1, 1, ...new Array(4));
     });
   });
 

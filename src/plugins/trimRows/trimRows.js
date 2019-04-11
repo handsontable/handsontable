@@ -5,7 +5,6 @@ import ValueMap from '../../translations/maps/valueMap';
 
 /**
  * @plugin TrimRows
- * @pro
  *
  * @description
  * The plugin allows to trim certain rows. The trimming is achieved by applying the transformation algorithm to the data

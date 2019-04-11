@@ -7,7 +7,7 @@ import {
   removeClass,
   removeTextNodes,
   overlayContainsElement,
-  closest
+  closest,
 } from './../../../helpers/dom/element';
 import { isFunction } from './../../../helpers/function';
 import CellCoords from './cell/coords';
@@ -177,9 +177,17 @@ class Table {
           this.wtRootElement.style.overflow = 'visible';
         }
       } else {
-        this.holder.style.width = getStyle(trimmingElement, 'width', rootWindow);
-        this.holder.style.height = getStyle(trimmingElement, 'height', rootWindow);
-        this.holder.style.overflow = '';
+        const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
+        const holderStyle = this.holder.style;
+        const { scrollWidth, scrollHeight } = trimmingElement;
+        let { width, height } = trimmingElement.getBoundingClientRect();
+
+        width = Math.min(width, scrollWidth);
+        height = Math.min(height, scrollHeight);
+
+        holderStyle.width = `${width}px`;
+        holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
+        holderStyle.overflow = '';
       }
     }
   }
@@ -245,8 +253,8 @@ class Table {
           Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP) ||
           Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
         startRow = 0;
-      } else if (Overlay.isOverlayTypeOf(this.instance.cloneOverlay, Overlay.CLONE_BOTTOM) ||
-          Overlay.isOverlayTypeOf(this.instance.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      } else if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM) ||
+          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startRow = Math.max(totalRows - wot.getSetting('fixedRowsBottom'), 0);
       } else {
         startRow = wtViewport.rowsRenderCalculator.startRow;
@@ -380,6 +388,8 @@ class Table {
    * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:
    *  -1 row before viewport
    *  -2 row after viewport
+   *  -3 column before viewport
+   *  -4 column after viewport
    */
   getCell(coords) {
     let row = coords.row;
@@ -397,6 +407,14 @@ class Table {
     } else if (this.isRowAfterRenderedRows(row)) {
       // row after rendered rows
       return -2;
+
+    } else if (this.isColumnBeforeRenderedColumns(column)) {
+      // column before rendered columns
+      return -3;
+
+    } else if (this.isColumnAfterRenderedColumns(column)) {
+      // column after rendered columns
+      return -4;
     }
 
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
@@ -543,8 +561,16 @@ class Table {
     return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
   }
 
+  isColumnBeforeRenderedColumns(column) {
+    return this.columnFilter && (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column) < 0 && column >= 0);
+  }
+
   isColumnAfterViewport(column) {
     return this.columnFilter && (this.columnFilter.sourceToRendered(column) > this.getLastVisibleColumn());
+  }
+
+  isColumnAfterRenderedColumns(column) {
+    return this.columnFilter && (this.columnFilter.sourceToRendered(column) > this.getLastRenderedColumn());
   }
 
   isLastRowFullyVisible() {

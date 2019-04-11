@@ -7,7 +7,6 @@ import { getTranslator } from '../../utils/recordTranslator';
  *
  * @class Endpoints
  * @plugin ColumnSummary
- * @pro
  */
 class Endpoints {
   constructor(plugin, settings) {

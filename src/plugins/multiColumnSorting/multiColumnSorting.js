@@ -19,7 +19,6 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
 /**
  * @plugin MultiColumnSorting
  * @dependencies ColumnSorting
- * @pro
  *
  * @description
  * This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the

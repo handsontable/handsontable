@@ -616,11 +616,11 @@ export function getScrollLeft(element, rootWindow = window) {
  * @returns {HTMLElement} Element's scrollable parent
  */
 export function getScrollableElement(element) {
-  let rootDocument = element.document;
-  let rootWindow = element;
+  let rootDocument = element.ownerDocument;
+  let rootWindow = rootDocument ? rootDocument.defaultView : void 0;
 
   if (!rootDocument) {
-    rootDocument = element.ownerDocument ? element.ownerDocument : element;
+    rootDocument = element.document ? element.document : element;
     rootWindow = rootDocument.defaultView;
   }
 

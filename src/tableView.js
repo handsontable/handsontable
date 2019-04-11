@@ -65,6 +65,13 @@ class TableView {
      * @type {Walkontable}
      */
     this.wt = void 0;
+    /**
+     * Main Walkontable instance.
+     *
+     * @private
+     * @type {Walkontable}
+     */
+    this.activeWt = void 0;
 
     privatePool.set(this, {
       /**
@@ -87,12 +94,17 @@ class TableView {
        */
       table: void 0,
       /**
-       * Main Walkontable instance.
+       * Cached width of the rootElement.
        *
-       * @private
-       * @type {Walkontable}
+       * @type {Number}
        */
-      activeWt: void 0
+      lastWidth: 0,
+      /**
+       * Cached height of the rootElement.
+       *
+       * @type {Number}
+       */
+      lastHeight: 0,
     });
 
     this.createElements();
@@ -303,7 +315,7 @@ class TableView {
       const eventY = event.y || event.clientY;
       let next = event.target;
 
-      if (priv.mouseDown || !rootElement) {
+      if (priv.mouseDown || !rootElement || !this.instance.view) {
         return; // it must have been started in a cell
       }
 
@@ -418,6 +430,13 @@ class TableView {
       },
       selections: this.instance.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
+      onWindowResize: () => {
+        if (!this.instance || this.instance.isDestroyed) {
+          return;
+        }
+
+        this.instance.refreshDimensions();
+      },
       onCellMouseDown: (event, coords, TD, wt) => {
         const blockCalculations = {
           row: false,
@@ -427,7 +446,7 @@ class TableView {
 
         this.instance.listen();
 
-        priv.activeWt = wt;
+        this.activeWt = wt;
         priv.mouseDown = true;
 
         this.instance.runHooks('beforeOnCellMouseDown', event, coords, TD, blockCalculations);
@@ -443,10 +462,10 @@ class TableView {
         });
 
         this.instance.runHooks('afterOnCellMouseDown', event, coords, TD);
-        priv.activeWt = this.wt;
+        this.activeWt = this.wt;
       },
       onCellContextMenu: (event, coords, TD, wt) => {
-        priv.activeWt = wt;
+        this.activeWt = wt;
         priv.mouseDown = false;
 
         if (this.instance.selection.isInProgress()) {
@@ -461,10 +480,10 @@ class TableView {
 
         this.instance.runHooks('afterOnCellContextMenu', event, coords, TD);
 
-        priv.activeWt = this.wt;
+        this.activeWt = this.wt;
       },
       onCellMouseOut: (event, coords, TD, wt) => {
-        priv.activeWt = wt;
+        this.activeWt = wt;
         this.instance.runHooks('beforeOnCellMouseOut', event, coords, TD);
 
         if (isImmediatePropagationStopped(event)) {
@@ -472,7 +491,7 @@ class TableView {
         }
 
         this.instance.runHooks('afterOnCellMouseOut', event, coords, TD);
-        priv.activeWt = this.wt;
+        this.activeWt = this.wt;
       },
       onCellMouseOver: (event, coords, TD, wt) => {
         const blockCalculations = {
@@ -481,7 +500,7 @@ class TableView {
           cell: false
         };
 
-        priv.activeWt = wt;
+        this.activeWt = wt;
 
         this.instance.runHooks('beforeOnCellMouseOver', event, coords, TD, blockCalculations);
 
@@ -498,14 +517,14 @@ class TableView {
         }
 
         this.instance.runHooks('afterOnCellMouseOver', event, coords, TD);
-        priv.activeWt = this.wt;
+        this.activeWt = this.wt;
       },
       onCellMouseUp: (event, coords, TD, wt) => {
-        priv.activeWt = wt;
+        this.activeWt = wt;
         this.instance.runHooks('beforeOnCellMouseUp', event, coords, TD);
 
         this.instance.runHooks('afterOnCellMouseUp', event, coords, TD);
-        priv.activeWt = this.wt;
+        this.activeWt = this.wt;
       },
       onCellCornerMouseDown: (event) => {
         event.preventDefault();
@@ -578,8 +597,13 @@ class TableView {
     this.instance.runHooks('beforeInitWalkontable', walkontableConfig);
 
     this.wt = new Walkontable(walkontableConfig);
-    priv.activeWt = this.wt;
+    this.activeWt = this.wt;
+
     const spreader = this.wt.wtTable.spreader;
+    // We have to cache width and height after Walkontable initialization.
+    const { width, height } = this.instance.rootElement.getBoundingClientRect();
+
+    this.setLastSize(width, height);
 
     this.eventManager.addEventListener(spreader, 'mousedown', (event) => {
       // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
@@ -792,15 +816,31 @@ class TableView {
   }
 
   /**
+   * Sets new dimensions of the container.
+   */
+  setLastSize(width, height) {
+    const priv = privatePool.get(this);
+
+    [priv.lastWidth, priv.lastHeight] = [width, height];
+  }
+
+  /**
+   * Returns cached dimensions.
+   */
+  getLastSize() {
+    const priv = privatePool.get(this);
+
+    return { width: priv.lastWidth, height: priv.lastHeight };
+  }
+
+  /**
    * Checks if master overlay is active.
    *
    * @private
    * @returns {Boolean}
    */
   mainViewIsActive() {
-    const priv = privatePool.get(this);
-
-    return this.wt === priv.activeWt;
+    return this.wt === this.activeWt;
   }
 
   /**

@@ -36,8 +36,9 @@ class Overlays {
     this.instance = this.wot;
     this.eventManager = new EventManager(this.wot);
 
-    this.wot.update('scrollbarWidth', getScrollbarWidth(rootDocument));
-    this.wot.update('scrollbarHeight', getScrollbarWidth(rootDocument));
+    this.scrollbarSize = getScrollbarWidth(rootDocument);
+    this.wot.update('scrollbarWidth', this.scrollbarSize);
+    this.wot.update('scrollbarHeight', this.scrollbarSize);
 
     if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
       this.scrollableElement = wtTable.holder;
@@ -46,6 +47,9 @@ class Overlays {
     }
 
     this.prepareOverlays();
+
+    this.hasScrollbarBottom = false;
+    this.hasScrollbarRight = false;
 
     this.destroyed = false;
     this.keyPressed = false;
@@ -211,7 +215,7 @@ class Overlays {
     const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
 
     if (isHighPixelRatio || !isChrome()) {
-      listenersToRegister.push([this.instance.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event)]);
+      listenersToRegister.push([this.wot.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event)]);
 
     } else {
       if (this.topOverlay.needFullRender) {
@@ -268,6 +272,16 @@ class Overlays {
         }
       }]);
     }
+
+    let resizeTimeout;
+
+    listenersToRegister.push([rootWindow, 'resize', () => {
+      clearTimeout(resizeTimeout);
+
+      resizeTimeout = setTimeout(() => {
+        this.wot.getSetting('onWindowResize');
+      }, 200);
+    }]);
 
     while (listenersToRegister.length) {
       const listener = listenersToRegister.pop();
@@ -539,22 +553,39 @@ class Overlays {
    * @param {Boolean} [force=false]
    */
   adjustElementsSize(force = false) {
-    const { wot } = this;
-    const totalColumns = wot.getSetting('totalColumns');
-    const totalRows = wot.getSetting('totalRows');
-    const headerRowSize = wot.wtViewport.getRowHeaderWidth();
-    const headerColumnSize = wot.wtViewport.getColumnHeaderHeight();
-    const hiderStyle = wot.wtTable.hider.style;
+    const { wtViewport, wtTable } = this.wot;
+    const totalColumns = this.wot.getSetting('totalColumns');
+    const totalRows = this.wot.getSetting('totalRows');
+    const headerRowSize = wtViewport.getRowHeaderWidth();
+    const headerColumnSize = wtViewport.getColumnHeaderHeight();
+    const hiderStyle = wtTable.hider.style;
 
     hiderStyle.width = `${headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)}px`;
     hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1}px`;
 
+    if (this.scrollbarSize > 0) {
+      const {
+        scrollHeight: rootElemScrollHeight,
+        scrollWidth: rootElemScrollWidth,
+      } = wtTable.wtRootElement;
+      const {
+        scrollHeight: holderScrollHeight,
+        scrollWidth: holderScrollWidth,
+      } = wtTable.holder;
+
+      this.hasScrollbarRight = rootElemScrollHeight < holderScrollHeight;
+      this.hasScrollbarBottom = rootElemScrollWidth < holderScrollWidth;
+
+      if (this.hasScrollbarRight && wtTable.hider.scrollWidth + this.scrollbarSize > rootElemScrollWidth) {
+        this.hasScrollbarBottom = true;
+      } else if (this.hasScrollbarBottom && wtTable.hider.scrollHeight + this.scrollbarSize > rootElemScrollHeight) {
+        this.hasScrollbarRight = true;
+      }
+    }
+
     this.topOverlay.adjustElementsSize(force);
     this.leftOverlay.adjustElementsSize(force);
-
-    if (this.bottomOverlay.clone) {
-      this.bottomOverlay.adjustElementsSize(force);
-    }
+    this.bottomOverlay.adjustElementsSize(force);
   }
 
   /**

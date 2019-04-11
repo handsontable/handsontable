@@ -249,9 +249,13 @@ class AutoColumnSize extends BasePlugin {
 
       if (current < length) {
         timer = requestAnimationFrame(loop);
+
       } else {
         cancelAnimationFrame(timer);
         this.inProgress = false;
+
+        // @TODO Should call once per render cycle, currently fired separately in different plugins
+        this.hot.view.wt.wtOverlays.adjustElementsSize();
       }
     };
 
