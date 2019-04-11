@@ -498,6 +498,80 @@ describe('Core_view', () => {
     expect(hot.view.wt.wtTable.holder.style.width).toBe('220px');
   });
 
+  describe('scroll', () => {
+    it('should call preventDefault in a wheel event on fixed overlay\'s element', async() => {
+      spec().$container.css({
+        width: '200px',
+        height: '200px',
+        overflow: 'hidden',
+      });
+
+      window.scrollTo(0, 0);
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        colHeaders: true,
+        rowHeaders: true,
+      });
+
+      const eventManager = new Handsontable.EventManager(hot);
+      const spy = jasmine.createSpy();
+      eventManager.addEventListener(window, 'wheel', spy);
+
+      const wheelEvt = new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        deltaMode: 0,
+        deltaX: 800,
+        deltaY: 400,
+      });
+
+      spec().$container.find('.ht_clone_top_left_corner .wtHolder')[0].dispatchEvent(wheelEvt);
+
+      await sleep(100);
+
+      expect(spy.calls.argsFor(0)[0].defaultPrevented).toBe(true);
+      eventManager.destroy();
+    });
+
+    it('should not scroll window when a wheel event occurs on fixed overlay', async() => {
+      spec().$container.css({
+        width: '200px',
+        height: '200px',
+        overflow: 'hidden',
+        margin: '2000px',
+      });
+
+      window.scrollTo(0, 0);
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        colHeaders: true,
+        rowHeaders: true,
+      });
+
+      const wheelEvt = new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        deltaMode: 0,
+        deltaX: 800,
+        deltaY: 400,
+      });
+
+      spec().$container.find('.ht_clone_top_left_corner .wtHolder')[0].dispatchEvent(wheelEvt);
+
+      await sleep(100);
+      const masterHolder = spec().$container.find('.ht_master .wtHolder')[0];
+
+      expect(masterHolder.scrollLeft).toBe(800);
+      expect(masterHolder.scrollTop).toBe(400);
+      expect(window.scrollX).toBe(0);
+      expect(window.scrollY).toBe(0);
+    });
+  });
+
   describe('resize', () => {
     beforeEach(() => {
       spec().$iframe = $('<iframe style="width:"/>').appendTo(spec().$container);
