@@ -2,6 +2,7 @@ import BasePlugin from '../_base';
 import { registerPlugin } from '../../plugins';
 import { getTranslator } from '../../translations/recordTranslator';
 import ValueMap from '../../translations/maps/valueMap';
+import { buildIndexToValueList, getIndexListByCondition } from '../../translations/helpers';
 
 /**
  * @plugin TrimRows
@@ -54,7 +55,7 @@ class TrimRows extends BasePlugin {
      * @private
      * @type {IndexMapper}
      */
-    this.rowIndexMapper = getTranslator(this.hot).getRowIndexMapper();
+    this.translator = getTranslator(this.hot);
     this.trimmedRowsMap = null;
   }
   /**
@@ -75,7 +76,7 @@ class TrimRows extends BasePlugin {
       return;
     }
 
-    this.trimmedRowsMap = this.rowIndexMapper.skipCollection.register('trimRows', new ValueMap(false));
+    this.trimmedRowsMap = this.translator.getRowIndexMapper().skipCollection.register('trimRows', new ValueMap(false));
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
 
@@ -89,7 +90,9 @@ class TrimRows extends BasePlugin {
     const settings = this.hot.getSettings().trimRows;
 
     if (Array.isArray(settings)) {
-      this.rowIndexMapper.setSkippedIndexes(this.trimmedRowsMap, settings);
+      this.trimmedRowsMap.setValues(
+        buildIndexToValueList(this.translator.getRowIndexMapper().getNumberOfIndexes(), (_, physicalIndex) => settings.includes(physicalIndex))
+      );
     }
 
     super.updatePlugin();
@@ -99,7 +102,7 @@ class TrimRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.rowIndexMapper.clearSkippedIndexes(this.trimmedRowsMap);
+    this.trimmedRowsMap.setValues([]);
     super.disablePlugin();
   }
 
@@ -112,7 +115,8 @@ class TrimRows extends BasePlugin {
    * @fires Hooks#afterTrimRow
    */
   trimRows(rows) {
-    const currentTrimConfig = this.rowIndexMapper.getSkippedIndexes(this.trimmedRowsMap);
+    const currentTrimConfig = getIndexListByCondition(this.trimmedRowsMap.getValues(), value => value);
+
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
 
@@ -127,7 +131,9 @@ class TrimRows extends BasePlugin {
     }
 
     if (isValidConfig) {
-      this.rowIndexMapper.setSkippedIndexes(this.trimmedRowsMap, destinationTrimConfig);
+      this.trimmedRowsMap.setValues(
+        buildIndexToValueList(this.translator.getRowIndexMapper().getNumberOfIndexes(), (_, indexInsideList) => destinationTrimConfig.includes(indexInsideList))
+      );
     }
 
     this.hot.runHooks('afterTrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
@@ -152,7 +158,7 @@ class TrimRows extends BasePlugin {
    * @fires Hooks#afterUntrimRow
    */
   untrimRows(rows) {
-    const currentTrimConfig = this.rowIndexMapper.getSkippedIndexes(this.trimmedRowsMap);
+    const currentTrimConfig = getIndexListByCondition(this.trimmedRowsMap.getValues(), value => value);
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
 
@@ -167,7 +173,9 @@ class TrimRows extends BasePlugin {
     }
 
     if (isValidConfig) {
-      this.rowIndexMapper.setSkippedIndexes(this.trimmedRowsMap, destinationTrimConfig);
+      this.trimmedRowsMap.setValues(
+        buildIndexToValueList(this.translator.getRowIndexMapper().getNumberOfIndexes(), (_, indexInsideList) => destinationTrimConfig.includes(indexInsideList))
+      );
     }
 
     this.hot.runHooks('afterUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
@@ -190,14 +198,14 @@ class TrimRows extends BasePlugin {
    * @returns {Boolean}
    */
   isTrimmed(physicalRow) {
-    return this.rowIndexMapper.isSkipped(physicalRow);
+    return this.trimmedRowsMap.getValueAtIndex(physicalRow);
   }
 
   /**
    * Untrims all trimmed rows.
    */
   untrimAll() {
-    this.untrimRows(this.rowIndexMapper.getSkippedIndexes(this.trimmedRowsMap));
+    this.untrimRows(getIndexListByCondition(this.trimmedRowsMap.getValues(), value => value));
   }
 
   /**
@@ -219,7 +227,9 @@ class TrimRows extends BasePlugin {
     const settings = this.hot.getSettings().trimRows;
 
     if (Array.isArray(settings)) {
-      this.rowIndexMapper.setSkippedIndexes(this.trimmedRowsMap, settings);
+      this.trimmedRowsMap.setValues(
+        buildIndexToValueList(this.translator.getRowIndexMapper().getNumberOfIndexes(), (_, physicalIndex) => settings.includes(physicalIndex))
+      );
     }
   }
 }

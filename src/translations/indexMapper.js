@@ -83,54 +83,17 @@ class IndexMapper {
    *
    * @returns {Array}
    */
-  getSkippedIndexes(skipMap) {
-    let skipResults;
+  getSkippedIndexes() {
+    const particularSkipsLists = arrayMap(this.skipCollection.get(), skipList => skipList.getValues());
+    const skipBooleansForIndex = pivot(particularSkipsLists);
 
-    if (isDefined(skipMap)) {
-      skipResults = skipMap.getValues();
-
-    } else {
-      /**
-         Array of arrays in form:
-         [
-           [ skip0_boolean(index: 0), skip0_boolean(index: 1), ..., skip0_boolean(index: n)],
-           [ skip1_boolean(index: 0), skip1_boolean(index: 1), ..., skip1_boolean(index: n)],
-           ...
-         ]
-       */
-      const particularSkipsLists = arrayMap(this.skipCollection.get(), map => map.getValues());
-      /**
-         Array of arrays in form:
-         [
-           [ skip0_boolean(index: 0), skip1_boolean(index: 0), ..., skipn_boolean(index: 0)],
-           [ skip0_boolean(index: 1), skip1_boolean(index: 1), ..., skipn_boolean(index: 1)],
-           ...
-         ]
-
-         where: `skip0`, `skip1` are particular types of skipped indexes i.e. skipped indexes by the `TrimRows` or by the `Filters` plugin.
-       */
-      const skipBooleansForIndex = pivot(particularSkipsLists);
-      skipResults = arrayReduce(skipBooleansForIndex,
-        (accumulator, skipIndexesAtIndex) => accumulator.concat(skipIndexesAtIndex.some(value => value === true)), []);
-    }
-
-    return arrayReduce(skipResults, (skippedIndexes, isSkipped, index) => {
-      if (isSkipped === true) {
-        return skippedIndexes.concat(index);
+    return arrayReduce(skipBooleansForIndex, (skippedIndexesResult, skipIndexesAtIndex, physicalIndex) => {
+      if (skipIndexesAtIndex.some(isSkipped => isSkipped === true)) {
+        return skippedIndexesResult.concat(physicalIndex);
       }
 
-      return skippedIndexes;
+      return skippedIndexesResult;
     }, []);
-  }
-
-  /**
-   * Set completely new list of indexes skipped in the process of rendering.
-   *
-   * @param {ValueMap} skipMap Skip map.
-   * @param {Array} indexes Physical row indexes.
-   */
-  setSkippedIndexes(skipMap, indexes) {
-    skipMap.setValues(arrayMap(new Array(this.getNumberOfIndexes()), (_, indexInsideList) => indexes.includes(indexInsideList)));
   }
 
   /**
@@ -141,13 +104,6 @@ class IndexMapper {
    */
   isSkipped(physicalIndex) {
     return this.getSkippedIndexes().includes(physicalIndex);
-  }
-
-  /**
-   * Clear all skipped indexes.
-   */
-  clearSkippedIndexes(skipMap) {
-    this.setSkippedIndexes(skipMap, []);
   }
 
   /**
