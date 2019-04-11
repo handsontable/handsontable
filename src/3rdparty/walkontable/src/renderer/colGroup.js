@@ -26,16 +26,6 @@ export default class ColGroupRenderer {
   render() {
     this.adjust();
 
-    // if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== void 0) {
-    //   for (let i = 0; i < this.rowHeaderCount; i++) {
-    //     let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
-    //
-    //     width = (width === null || width === void 0) ? defaultColumnWidth : width;
-    //
-    //     this.COLGROUP.childNodes[i].style.width = `${width}px`;
-    //   }
-    // }
-
     const { columnsToRender, rowHeadersCount } = this.table;
 
     for (let renderedColumnIndex = 0; renderedColumnIndex < rowHeadersCount; renderedColumnIndex++) {

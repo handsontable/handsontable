@@ -1,8 +1,14 @@
-import { createLeadsFromOrders } from 'walkontable/utils/orderLeads';
+import ViewDiffer from 'walkontable/utils/viewDiffer';
 
 describe('createLeadsFromOrders', () => {
   it('should complete leads filled with "append" type when previous order wasn\'t exist', () => {
-    expect(createLeadsFromOrders([], [0, 1, 2, 3, 4, 5])).toEqual([
+    const vd = new ViewDiffer();
+
+    vd
+      .setSize(6)
+      .setOffset(0);
+
+    expect(vd.diff()).toEqual([
       ['append', 0],
       ['append', 1],
       ['append', 2],
@@ -13,7 +19,16 @@ describe('createLeadsFromOrders', () => {
   });
 
   it('should complete leads filled with "append" type when next order is longer than previous', () => {
-    expect(createLeadsFromOrders([0, 1, 2], [0, 1, 2, 3, 4, 5])).toEqual([
+    const vd = new ViewDiffer();
+
+    vd
+      .setSize(3)
+      .setOffset(0)
+      .setSize(6)
+      .setOffset(0)
+      ;
+
+    expect(vd.diff()).toEqual([
       ['none', 0],
       ['none', 1],
       ['none', 2],
@@ -24,7 +39,16 @@ describe('createLeadsFromOrders', () => {
   });
 
   it('should complete leads filled with "remove" type when next order is shorter than previous', () => {
-    expect(createLeadsFromOrders([0, 1, 2, 3, 4, 5], [])).toEqual([
+    const vd = new ViewDiffer();
+
+    vd
+      .setSize(6)
+      .setOffset(0)
+      .setSize(0)
+      .setOffset(0)
+      ;
+
+    expect(vd.diff()).toEqual([
       ['remove', 0],
       ['remove', 1],
       ['remove', 2],
@@ -36,7 +60,16 @@ describe('createLeadsFromOrders', () => {
 
   describe('scroll down emulation', () => {
     it('should generate correct leads when a new order is shifted by 1 step down according to the previous order', () => {
-      expect(createLeadsFromOrders([0, 1, 2, 3, 4, 5], [1, 2, 3, 4, 5, 6])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(0)
+        .setSize(6)
+        .setOffset(1)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['replace', 1, 0],
         ['none', 2],
         ['none', 3],
@@ -47,7 +80,16 @@ describe('createLeadsFromOrders', () => {
     });
 
     it('should generate correct leads when a new order is shifted by 3 steps down according to the previous order', () => {
-      expect(createLeadsFromOrders([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(0)
+        .setSize(6)
+        .setOffset(3)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['replace', 3, 0],
         ['replace', 4, 1],
         ['replace', 5, 2],
@@ -58,7 +100,16 @@ describe('createLeadsFromOrders', () => {
     });
 
     it('should generate correct leads when a new order is shifted by 5 steps down according to the previous order', () => {
-      expect(createLeadsFromOrders([0, 1, 2, 3, 4, 5], [5, 6, 7, 8, 9, 10])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(0)
+        .setSize(6)
+        .setOffset(5)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['replace', 5, 0],
         ['replace', 6, 1],
         ['replace', 7, 2],
@@ -69,7 +120,16 @@ describe('createLeadsFromOrders', () => {
     });
 
     it('should generate correct leads when a new order is shifted by 10 steps down according to the previous order', () => {
-      expect(createLeadsFromOrders([0, 1, 2, 3, 4, 5], [10, 11, 12, 13, 14, 15])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(0)
+        .setSize(6)
+        .setOffset(10)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['replace', 10, 0],
         ['replace', 11, 1],
         ['replace', 12, 2],
@@ -80,7 +140,16 @@ describe('createLeadsFromOrders', () => {
     });
 
     it('should generate correct leads when a new order is shifted by 3 steps down and is longer (by 4 items) according to the previous order', () => {
-      expect(createLeadsFromOrders([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8, 9, 10, 11, 12])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(0)
+        .setSize(10)
+        .setOffset(3)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['replace', 3, 0],
         ['replace', 4, 1],
         ['replace', 5, 2],
@@ -95,7 +164,16 @@ describe('createLeadsFromOrders', () => {
     });
 
     it('should generate correct leads when a new order is shifted by 7 steps down and is longer (by 2 items) according to the previous order', () => {
-      expect(createLeadsFromOrders([2, 3, 4, 5, 6, 7, 8], [9, 10, 11, 12, 13, 14, 15, 16])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(7)
+        .setOffset(2)
+        .setSize(8)
+        .setOffset(9)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['replace', 9, 2],
         ['replace', 10, 3],
         ['replace', 11, 4],
@@ -108,7 +186,16 @@ describe('createLeadsFromOrders', () => {
     });
 
     it('should generate correct leads when a new order is shifted by 3 steps down and is shorter (by 3 items) according to the previous order', () => {
-      expect(createLeadsFromOrders([0, 1, 2, 3, 4, 5], [3, 4, 5])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(0)
+        .setSize(3)
+        .setOffset(3)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['replace', 3, 0],
         ['replace', 4, 1],
         ['replace', 5, 2],
@@ -116,7 +203,16 @@ describe('createLeadsFromOrders', () => {
     });
 
     it('should generate correct leads when a new order is shifted by 30 steps down and is shorter (3 items) according to the previous order', () => {
-      expect(createLeadsFromOrders([0, 1, 2, 3, 4, 5], [30, 31, 32])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(0)
+        .setSize(3)
+        .setOffset(30)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['replace', 30, 0],
         ['replace', 31, 1],
         ['replace', 32, 2],
@@ -128,7 +224,16 @@ describe('createLeadsFromOrders', () => {
 
     it(`should generate correct leads when a new order is shifted by 2 steps down, is shorter (by 1 item) according to the previous order
         (force generating "replace" and "append" types)`, () => {
-      expect(createLeadsFromOrders([19, 20, 21, 22, 23, 24, 25, 26, 27], [21, 22, 23, 24, 25, 26, 27, 28])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(9)
+        .setOffset(19)
+        .setSize(8)
+        .setOffset(21)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['replace', 21, 19],
         ['replace', 22, 20],
         ['none', 23],
@@ -143,7 +248,16 @@ describe('createLeadsFromOrders', () => {
 
   describe('scroll up emulation', () => {
     it('should generate correct leads when a new order is shifted by 1 step up according to the previous order', () => {
-      expect(createLeadsFromOrders([20, 21, 22, 23, 24, 25], [19, 20, 21, 22, 23, 24])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(20)
+        .setSize(6)
+        .setOffset(19)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['insert', 19, 20, 25],
         ['none', 20],
         ['none', 21],
@@ -154,7 +268,16 @@ describe('createLeadsFromOrders', () => {
     });
 
     it('should generate correct leads when a new order is shifted by 3 steps up according to the previous order', () => {
-      expect(createLeadsFromOrders([20, 21, 22, 23, 24, 25], [17, 18, 19, 20, 21, 22])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(20)
+        .setSize(6)
+        .setOffset(17)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['insert', 17, 20, 25],
         ['insert', 18, 20, 24],
         ['insert', 19, 20, 23],
@@ -165,7 +288,16 @@ describe('createLeadsFromOrders', () => {
     });
 
     it('should generate correct leads when a new order is shifted by 5 steps up according to the previous order', () => {
-      expect(createLeadsFromOrders([20, 21, 22, 23, 24, 25], [15, 16, 17, 18, 19, 20])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(20)
+        .setSize(6)
+        .setOffset(15)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['insert', 15, 20, 25],
         ['insert', 16, 20, 24],
         ['insert', 17, 20, 23],
@@ -176,7 +308,16 @@ describe('createLeadsFromOrders', () => {
     });
 
     it('should generate correct leads when a new order is shifted by 10 steps up according to the previous order', () => {
-      expect(createLeadsFromOrders([20, 21, 22, 23, 24, 25], [10, 11, 12, 13, 14, 15])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(20)
+        .setSize(6)
+        .setOffset(10)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['insert', 10, 20, 25],
         ['insert', 11, 20, 24],
         ['insert', 12, 20, 23],
@@ -187,7 +328,16 @@ describe('createLeadsFromOrders', () => {
     });
 
     it('should generate correct leads when a new order is shifted by 3 steps up and is longer (by 2 items) according to the previous order', () => {
-      expect(createLeadsFromOrders([20, 21, 22, 23, 24, 25], [17, 18, 19, 20, 21, 22, 23, 24])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(20)
+        .setSize(8)
+        .setOffset(17)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['insert', 17, 20, 25],
         ['insert', 18, 20, 24],
         ['insert', 19, 20, 23],
@@ -200,7 +350,16 @@ describe('createLeadsFromOrders', () => {
     });
 
     it('should generate correct leads when a new order is shifted by 7 steps up and is longer (by 2 items) according to the previous order', () => {
-      expect(createLeadsFromOrders([20, 21, 22, 23, 24, 25], [13, 14, 15, 16, 17, 18, 19, 20])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(20)
+        .setSize(8)
+        .setOffset(13)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['insert', 13, 20, 25],
         ['insert', 14, 20, 24],
         ['insert', 15, 20, 23],
@@ -213,7 +372,16 @@ describe('createLeadsFromOrders', () => {
     });
 
     it('should generate correct leads when a new order is shifted by 3 steps up and is shorter (by 4 items) according to the previous order', () => {
-      expect(createLeadsFromOrders([20, 21, 22, 23, 24, 25, 26], [17, 18, 19])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(7)
+        .setOffset(20)
+        .setSize(3)
+        .setOffset(17)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['insert', 17, 20, 26],
         ['insert', 18, 20, 25],
         ['insert', 19, 20, 24],
@@ -222,16 +390,37 @@ describe('createLeadsFromOrders', () => {
         ['remove', 22],
         ['remove', 23],
       ]);
-      expect(createLeadsFromOrders([20, 21, 22, 23, 24, 25, 26], [24, 25, 26])).toEqual([
-        ['replace', 24, 20],
-        ['replace', 25, 21],
-        ['replace', 26, 22],
-        ['remove', 23],
-      ]);
+
+      {
+        const vd = new ViewDiffer();
+
+        vd
+          .setSize(7)
+          .setOffset(20)
+          .setSize(3)
+          .setOffset(24)
+          ;
+
+        expect(vd.diff()).toEqual([
+          ['replace', 24, 20],
+          ['replace', 25, 21],
+          ['replace', 26, 22],
+          ['remove', 23],
+        ]);
+      }
     });
 
     it('should generate correct leads when a new order is shifted by 20 steps up and is shorter (by 3 items) according to the previous order', () => {
-      expect(createLeadsFromOrders([20, 21, 22, 23, 24, 25], [0, 1, 2])).toEqual([
+      const vd = new ViewDiffer();
+
+      vd
+        .setSize(6)
+        .setOffset(20)
+        .setSize(3)
+        .setOffset(0)
+        ;
+
+      expect(vd.diff()).toEqual([
         ['insert', 0, 20, 25],
         ['insert', 1, 20, 24],
         ['insert', 2, 20, 23],

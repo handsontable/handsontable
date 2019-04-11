@@ -6,9 +6,8 @@ export default class NodesPool {
   }
 
   obtain(...args) {
-    // @TODO
-    // This can be optimalized to make smaller pool of available nodes. Currently,
-    // elements are created for all rows/cells.
+    // @TODO (perf-tip) This can be optimalized to make smaller pool of available nodes. Currently,
+    // elements are created for all rows/cells. The pool with implemented LRU or similar? or spatial hash map?
     if (args[0] === void 0) {
       throw new Error('Wrong id');
     }
@@ -20,7 +19,7 @@ export default class NodesPool {
       node = this.pool.get(key);
     } else {
       node = document.createElement(this.nodeType);
-      // node.dataset.id = key;
+      node.dataset.id = key;
       this.pool.set(key, node);
     }
 

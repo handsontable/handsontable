@@ -18,8 +18,6 @@ export default class ColumnHeadersRenderer {
     if (columnHeadersCount) {
       const { columnsToRender } = this.table;
 
-      // console.log('rowHeadersCount', rowHeadersCount, columnsToRender);
-
       for (let i = 0, len = columnHeadersCount; i < len; i++) {
         TR = this.rootNode.childNodes[i];
 
@@ -59,7 +57,6 @@ export default class ColumnHeadersRenderer {
       const { columnHeaderFunctions, columnsToRender, rowHeadersCount } = this.table;
       const TR = this.rootNode.childNodes[visibleRowIndex];
 
-      // for (let renderedColumnIndex = 0; renderedColumnIndex < columnsToRender; renderedColumnIndex++) {
       for (let renderedColumnIndex = (-1) * rowHeadersCount; renderedColumnIndex < columnsToRender; renderedColumnIndex++) {
         const sourceColumnIndex = this.table.renderedColumnToSource(renderedColumnIndex);
         const TH = TR.childNodes[renderedColumnIndex + rowHeadersCount];
@@ -70,6 +67,7 @@ export default class ColumnHeadersRenderer {
         columnHeaderFunctions[visibleRowIndex](sourceColumnIndex, TH, visibleRowIndex);
       }
 
+      // ???
       if (TR.firstChild) {
         TR.firstChild.style.height = `25px`;
       }

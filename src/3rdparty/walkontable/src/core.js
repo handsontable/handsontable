@@ -81,7 +81,11 @@ class Walkontable {
       // draw interrupted because TABLE is not visible
       this.drawInterrupted = true;
     } else {
-      this.wtTable.draw(fastDraw);
+      if (!this.wtTable._rendering) {
+        this.wtTable.draw(fastDraw);
+      } else {
+        console.log('interrupted');
+      }
     }
 
     return this;

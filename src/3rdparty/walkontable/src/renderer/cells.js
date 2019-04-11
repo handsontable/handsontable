@@ -41,7 +41,6 @@ export default class CellsRenderer {
     const { rowsToRender, columnsToRender, rows } = this.table;
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
-    // for (let visibleRowIndex = 0; visibleRowIndex < 4; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
       const hasStaleRowContent = rows.hasStaleContent(sourceRowIndex);
       const TR = rows.getRenderedNode(visibleRowIndex);
@@ -50,30 +49,38 @@ export default class CellsRenderer {
 
       const orderView = this.obtainOrderView(sourceRowIndex, TR);
 
+      // @TODO(perf-tip): For cells other than "visual 0" generating diff leands can be reused. New order (leads)
+      // shoule be shared between previous orderView.
       orderView
         .setSize(columnsToRender)
         .setOffset(this.table.renderedColumnToSource(0))
         .start();
 
-      // console.log('cells: orderView.commands', orderView.commands.toString());
+      for (let visibleColumnIndex = 0; visibleColumnIndex < columnsToRender; visibleColumnIndex++) {
+        const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
+        let TD;
 
-      for (let visibleColIndex = 0; visibleColIndex < columnsToRender; visibleColIndex++) {
-        const sourceColIndex = this.table.renderedColumnToSource(visibleColIndex);
+        if (TR.childNodes.length) {
+          TD = TR.childNodes[0];
+        } else {
+          TD = document.createElement('td');
+          TR.appendChild(TD);
+        }
 
-        orderView.render();
+        // orderView.render();
 
-        const TD = orderView.getCurrentNode();
-        const hasStaleContent = hasStaleRowContent || orderView.hasStaleContent(sourceColIndex);
-        // const hasStaleContent = true;
+        // const TD = orderView.getCurrentNode();
+        // const hasStaleContent = hasStaleRowContent || orderView.hasStaleContent(sourceColumnIndex);
 
-        if (hasStaleContent) {
+        // if (hasStaleContent) {
           if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
             TD.className = '';
           }
           TD.removeAttribute('style');
-        }
+        // }
 
-        this.table.cellRenderer(sourceRowIndex, sourceColIndex, TD, hasStaleContent);
+        // this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD, hasStaleContent);
+        this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD, true);
       }
 
       orderView.end();

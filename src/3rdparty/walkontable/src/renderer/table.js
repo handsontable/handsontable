@@ -69,15 +69,15 @@ export default class TableRenderer {
   }
 
   render() {
-    this.colGroup.adjust();
-    this.rowHeaders.adjust();
-    this.columnHeaders.adjust();
+    // this.colGroup.adjust();
+    // this.rowHeaders.adjust();
+    // this.columnHeaders.adjust();
     this.rows.adjust();
 
-    this.colGroup.render();
-    this.columnHeaders.render();
+    // this.colGroup.render();
+    // this.columnHeaders.render();
     this.rows.render();
-    this.rowHeaders.render();
+    // this.rowHeaders.render();
     this.cells.render();
   }
 

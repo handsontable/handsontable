@@ -53,20 +53,13 @@ export default class RowsRenderer {
         break;
       }
 
-      this.orderView.render(sourceRowIndex);
+      this.orderView.render();
 
       visibleRowIndex += 1;
       sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
     }
 
     this.orderView.end();
-
-    // @TODO This can be optimalized by reusing mounted elements insted of removing them.
-    // while (this.orderView.renderedNodes > rowsToRender) {
-      // this.rootNode.removeChild(this.rootNode.lastChild);
-      // this.orderView.renderedNodes -= 1;
-    // }
-    //
   }
 
   refresh() {

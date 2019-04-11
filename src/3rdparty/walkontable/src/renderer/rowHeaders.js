@@ -37,7 +37,6 @@ export default class RowHeadersRenderer {
     const { rowsToRender, columnsToRender, rows, rowHeaderFunctions, rowHeadersCount } = this.table;
 
     for (let visibleRowIndex = 0; rowHeadersCount && visibleRowIndex < rowsToRender; visibleRowIndex++) {
-    // for (let visibleRowIndex = 0; visibleRowIndex < 4; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
       const TR = rows.getRenderedNode(visibleRowIndex);
 

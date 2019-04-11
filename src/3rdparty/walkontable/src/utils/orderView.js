@@ -1,39 +1,33 @@
 import NodesPool from './nodesPool';
-import { createLeadsFromOrders } from './orderLeads';
+import ViewDiffer from './viewDiffer';
 
 export default class OrderView {
   constructor(rootNode, nodesPool) {
     this.rootNode = rootNode;
     this.nodesPool = nodesPool;
+    this.viewDiffer = new ViewDiffer();
 
     this.collectedNodes = [];
-    this.renderedNodes = 0;
-    this.visualIndex = 0;
-    this.viewSize = 0;
-    this.nextOrder = [];
-    this.currOrder = [];
     this.staleNodeIndexes = [];
-
-    // tmp
-    this.isPatternSharer = false;
-    this.orderLeads = [];
-    this.pattern = [];
+    this.leads = [];
   }
 
   setSize(size) {
-    this.viewSize = size;
+    this.viewDiffer.setSize(size);
 
     return this;
   }
 
   setOffset(offset) {
-    this.offset = offset;
+    this.viewDiffer.setOffset(offset);
 
     return this;
   }
 
   setRootNode(rootNode) {
     this.rootNode = rootNode;
+
+    return this;
   }
 
   hasStaleContent(sourceIndex) {
@@ -55,30 +49,21 @@ export default class OrderView {
     this.collectedNodes.length = 0;
     this.staleNodeIndexes.length = 0;
 
-    // @TODO(perf-tip): Creating an array is not necessary it would be enought to pass offset and size for current and next order.
-    const nextOrder = createRange(this.offset, this.viewSize);
-    // @TODO(perf-tip): Move createLeadsFromOrders to external module + memoization or cache for currOrder?
-    this.commands = createLeadsFromOrders(this.currOrder, nextOrder);
+    this.leads = this.viewDiffer.diff();
 
     this.is = is;
 
-    // if (this.is) {
-      // console.log(1, this.commands.toString(), 'prev', this.currOrder.toString(), 'curr', nextOrder.toString());
-    // }
-
-    this.currOrder = [];
+    if (this.is) {
+      // console.log(
+      //   'START', this.leads.toString(),
+      //   'CURRENT', this.viewDiffer.currentOffset, this.viewDiffer.currentViewSize,
+      //   'NEXT', this.viewDiffer.nextOffset, this.viewDiffer.nextViewSize,
+      // );
+    }
   }
 
   render() {
-    const command = this.commands.shift();
-    const [ , nodeIndex ] = command;
-
-    // if (this.is) {
-      // console.log('command', command);
-    // }
-
-    this.currOrder.push(nodeIndex);
-    this.applyCommand(command);
+    this.applyCommand(this.leads.shift());
   }
 
   applyCommand(command) {
@@ -95,7 +80,6 @@ export default class OrderView {
     switch (name) {
       case 'insert':
         rootNode.insertBefore(node, this.nodesPool(nodePrevIndex));
-        // rootNode.removeChild(rootNode.lastChild);
         rootNode.removeChild(this.nodesPool(nodeIndexToRemove));
         break;
       case 'append':
@@ -103,6 +87,7 @@ export default class OrderView {
         break;
       case 'replace':
         rootNode.replaceChild(node, this.nodesPool(nodePrevIndex));
+        // this.nodesPool(nodePrevIndex).replaceWith(node);
         break;
       case 'remove':
         rootNode.removeChild(node);
@@ -111,25 +96,8 @@ export default class OrderView {
   }
 
   end() {
-    while (this.commands.length > 0) {
-      this.applyCommand(this.commands.shift());
+    while (this.leads.length > 0) {
+      this.applyCommand(this.leads.shift());
     }
-
-    // this.currOrder = this.nextOrder;
-    // this.nextOrder = [];
-
-    // this.pattern.length = 0;
-    // this.isPatternSharer = false;
-    this.visualIndex = 0;
   }
-}
-
-function createRange(from, length) {
-  const range = [];
-
-  for (var i = 0; i < length; i++) {
-    range.push(from + i);
-  }
-
-  return range;
 }
