@@ -154,7 +154,7 @@
 }
 
 .handsontable .htCheckboxRendererInput {
-  margin: 0 5px 0 0;
+  margin: -3px 5px 0 0;
   vertical-align: middle;
   height: 1em;
 }
