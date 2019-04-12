@@ -4,10 +4,10 @@ import { isEmpty } from './../helpers/mixed';
  * Converts Handsontable into HTMLTableElement
  * @param {Handsontable} instance
  */
-export function handsontableToTable({ instance, addRowHeaders = true, addColumnHeaders = true }) {
+export function convertToHTMLTable({ instance, options = {} }) {
   const doc = instance.rootDocument;
-  const hasColumnHeaders = addColumnHeaders && instance.hasColHeaders();
-  const hasRowHeaders = addRowHeaders && instance.hasRowHeaders();
+  const hasColumnHeaders = instance.hasColHeaders();
+  const hasRowHeaders = instance.hasRowHeaders();
 
   const coords = [
     hasColumnHeaders ? -1 : 0,
@@ -122,11 +122,12 @@ function isHTMLTable(element) {
 }
 
 /**
- * Converts HTMLTable or string into array.
+ * Converts HTMLTable or string into Handsontable configuration object.
  *
  * @param {Element|String} element Node element or string, which should contain `<table>...</table>`.
  */
-export function tableToHandsontable(element, rootDocument) {
+// eslint-disable-next-line no-restricted-globals
+export function tableToHandsontable(element, rootDocument = document) {
   const data = [];
   const colHeaders = [];
   const rowHeaders = [];
