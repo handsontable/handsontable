@@ -5,7 +5,6 @@
  */
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
-const webpack = require('webpack');
 const configFactory = require('./test-e2e');
 const JasmineHtml = require('./plugin/jasmine-html');
 
@@ -24,16 +23,14 @@ module.exports.create = function create(envArgs) {
         baseJasminePath: '../',
         externalCssFiles: [
           'lib/normalize.css',
-          '../dist/handsontable-pro.full.min.css',
+          '../dist/handsontable.full.min.css',
           'helpers/common.css',
         ],
         externalJsFiles: [
           'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
-          'lib/lodash.underscore.js',
-          'lib/backbone.js',
-          '../dist/handsontable-pro.full.min.js',
+          '../dist/handsontable.full.min.js',
           '../node_modules/numbro/dist/languages.min.js',
           '../dist/languages/all.min.js',
         ],

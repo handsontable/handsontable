@@ -26,6 +26,26 @@ describe('ColHeader', () => {
     expect(spec().$container.find('thead th').length).toBeGreaterThan(0);
   });
 
+  it('should properly calculate colHeaders\' overlay width', () => {
+    handsontable({
+      colHeaders: true,
+      startCols: 5,
+      startRows: 1,
+      width: 250,
+      height: 100,
+      colWidths: 50,
+    });
+
+    const cloneTop = spec().$container.find('.ht_clone_top');
+    const masterHolder = spec().$container.find('.ht_master .wtHolder');
+
+    expect(cloneTop.width()).toBe(masterHolder.width());
+
+    alter('insert_row', void 0, 10);
+
+    expect(cloneTop.width()).toBeLessThan(masterHolder.width());
+  });
+
   it('should show default columns headers labelled A-(Z * n)', () => {
     const startCols = 5;
 

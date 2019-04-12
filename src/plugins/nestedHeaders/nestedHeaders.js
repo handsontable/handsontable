@@ -18,8 +18,6 @@ import './nestedHeaders.css';
 
 /**
  * @plugin NestedHeaders
- * @pro
- *
  * @description
  * The plugin allows to create a nested header structure, using the HTML's colspan attribute.
  *

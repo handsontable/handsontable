@@ -22,7 +22,6 @@ import './filters.css';
 
 /**
  * @plugin Filters
- * @pro
  * @dependencies DropdownMenu TrimRows HiddenRows
  *
  * @description
@@ -262,7 +261,7 @@ class Filters extends BasePlugin {
    * const container = document.getElementById('example');
    * const hot = new Handsontable(container, {
    *   date: getData(),
-   *   filter: true
+   *   filters: true
    * });
    *
    * // access to filters plugin instance

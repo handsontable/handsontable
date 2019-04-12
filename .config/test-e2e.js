@@ -4,7 +4,6 @@
  *  - helpers.entry.js
  */
 const path = require('path');
-const webpack = require('webpack');
 const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
 
@@ -41,21 +40,19 @@ module.exports.create = function create(envArgs) {
         baseJasminePath: '../',
         externalCssFiles: [
           'lib/normalize.css',
-          '../dist/handsontable-pro.css',
+          '../dist/handsontable.css',
           'helpers/common.css',
         ],
         externalJsFiles: [
           'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
-          'lib/lodash.underscore.js',
-          'lib/backbone.js',
           '../node_modules/numbro/dist/numbro.js',
           '../node_modules/numbro/dist/languages.min.js',
           '../node_modules/moment/moment.js',
           '../node_modules/pikaday/pikaday.js',
           '../node_modules/hot-formula-parser/dist/formula-parser.js',
-          '../dist/handsontable-pro.js',
+          '../dist/handsontable.js',
           '../dist/languages/all.js',
         ],
       })

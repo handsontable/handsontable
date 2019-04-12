@@ -123,7 +123,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
-  if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(this)) {
+  if (isRootInstance(this)) {
     _injectProductInfo(userSettings.licenseKey, rootElement);
   }
 
@@ -1458,6 +1458,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance._refreshBorders(null);
       editorManager.unlockEditor();
     }
+  };
+
+  this.refreshDimensions = function() {
+    if (!instance.view) {
+      return;
+    }
+
+    const { width: lastWidth, height: lastHeight } = instance.view.getLastSize();
+    const { width, height } = instance.rootElement.getBoundingClientRect();
+    const isSizeChanged = width !== lastWidth || height !== lastHeight;
+    const isResizeBlocked = instance.runHooks('beforeRefreshDimensions', { width: lastWidth, height: lastHeight }, { width, height }, isSizeChanged) === false;
+
+    if (isResizeBlocked) {
+      return;
+    }
+
+    if (isSizeChanged || instance.view.wt.wtOverlays.scrollableElement === instance.rootWindow) {
+      instance.view.setLastSize(width, height);
+      instance.render();
+    }
+
+    instance.runHooks('afterRefreshDimensions', { width: lastWidth, height: lastHeight }, { width, height }, isSizeChanged);
   };
 
   /**
@@ -3330,8 +3352,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     keyStateStopObserving();
 
-    if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(instance)) {
-      const licenseInfo = instance.rootDocument.querySelector('#hot-display-license-info');
+    if (isRootInstance(instance)) {
+      const licenseInfo = this.rootDocument.querySelector('#hot-display-license-info');
 
       if (licenseInfo) {
         licenseInfo.parentNode.removeChild(licenseInfo);

@@ -232,14 +232,14 @@
   border: 1px solid #b9b9b9;
 }
 .handsontable .htUISelectDropdown:after {
-  content: '▲';
+  content: '\25B2';
   font-size: 7px;
   position: absolute;
   right: 10px;
   top: 0;
 }
 .handsontable .htUISelectDropdown:before {
-  content: '▼';
+  content: '\25BC';
   font-size: 7px;
   position: absolute;
   right: 10px;

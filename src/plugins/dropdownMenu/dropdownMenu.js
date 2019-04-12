@@ -30,7 +30,6 @@ const BUTTON_CLASS_NAME = 'changeType';
 
 /**
  * @plugin DropdownMenu
- * @pro
  * @dependencies ContextMenu
  *
  * @description

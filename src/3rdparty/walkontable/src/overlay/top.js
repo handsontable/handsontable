@@ -5,10 +5,9 @@ import {
   getWindowScrollLeft,
   hasClass,
   outerHeight,
-  innerWidth,
   removeClass,
   setOverlayPosition,
-  resetCssTransform
+  resetCssTransform,
 } from './../../../../helpers/dom/element';
 import { arrayEach } from './../../../../helpers/array';
 import Overlay from './_base';
@@ -148,16 +147,20 @@ class TopOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    const scrollbarWidth = getScrollbarWidth(this.wot.rootDocument);
+    const { wtTable, rootDocument, rootWindow } = this.wot;
+    const scrollbarWidth = getScrollbarWidth(rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer !== this.wot.rootWindow || preventOverflow === 'horizontal') {
-      let width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth;
+    if (this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal') {
+      let width = this.wot.wtViewport.getWorkspaceWidth();
 
-      width = Math.min(width, innerWidth(this.wot.wtTable.wtRootElement));
+      if (this.wot.wtOverlays.hasScrollbarRight) {
+        width -= scrollbarWidth;
+      }
 
+      width = Math.min(width, wtTable.wtRootElement.scrollWidth);
       overlayRootStyle.width = `${width}px`;
 
     } else {

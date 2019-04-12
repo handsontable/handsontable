@@ -14,7 +14,6 @@ import { createArrayAssertion } from './utils';
  *
  * @class ConditionUpdateObserver
  * @plugin Filters
- * @pro
  */
 class ConditionUpdateObserver {
   constructor(conditionCollection, columnDataFactory = () => []) {

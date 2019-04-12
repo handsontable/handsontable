@@ -6,7 +6,6 @@ import { arrayMap } from '../../helpers/array';
 
 /**
  * @plugin TrimRows
- * @pro
  *
  * @description
  * The plugin allows to trim certain rows. The trimming is achieved by applying the transformation algorithm to the data
@@ -289,7 +288,9 @@ class TrimRows extends BasePlugin {
    * @param {String} source Source of the change.
    */
   onBeforeCreateRow(index, amount, source) {
-    return !(this.isEnabled() && this.trimmedRows.length > 0 && source === 'auto');
+    if (this.isEnabled() && this.trimmedRows.length > 0 && source === 'auto') {
+      return false;
+    }
   }
 
   /**

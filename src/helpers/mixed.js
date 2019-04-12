@@ -81,59 +81,120 @@ const _extractTime = (v) => _hd(_ss(_norm(v), _hd('12'), _cp('\x46'))) / (_hd(_s
 const _ignored = () => typeof location !== 'undefined' && /^([a-z0-9\-]+\.)?\x68\x61\x6E\x64\x73\x6F\x6E\x74\x61\x62\x6C\x65\x2E\x63\x6F\x6D$/i.test(location.host);
 let _notified = false;
 
+const consoleMessages = {
+  invalid: () => toSingleLine`
+    The license key for Handsontable is invalid.\x20
+    If you need any help, contact us at support@handsontable.com.`,
+  expired: ({ keyValidityDate, hotVersion }) => toSingleLine`
+    The license key for Handsontable expired on ${keyValidityDate}, and is not valid for the installed\x20
+    version ${hotVersion}. Renew your license key at handsontable.com or downgrade to a version released prior\x20
+    to ${keyValidityDate}. If you need any help, contact us at sales@handsontable.com.`,
+  missing: () => toSingleLine`
+    The license key for Handsontable is missing. Use your purchased key to activate the product.\x20
+    Alternatively, you can activate Handsontable to use for non-commercial purposes by\x20
+    passing the key: 'non-commercial-and-evaluation'. If you need any help, contact\x20
+    us at support@handsontable.com.`,
+  non_commercial: () => '',
+};
+const domMessages = {
+  invalid: () => toSingleLine`
+    The license key for Handsontable is invalid.\x20
+    <a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> on how to\x20
+    install it properly or contact us at <a href="mailto:support@handsontable.com">support@handsontable.com</a>.`,
+  expired: ({ keyValidityDate, hotVersion }) => toSingleLine`
+    The license key for Handsontable expired on ${keyValidityDate}, and is not valid for the installed\x20
+    version ${hotVersion}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> your\x20
+    license key or downgrade to a version released prior to ${keyValidityDate}. If you need any\x20
+    help, contact us at <a href="mailto:sales@handsontable.com">sales@handsontable.com</a>.`,
+  missing: () => toSingleLine`
+    The license key for Handsontable is missing. Use your purchased key to activate the product.\x20
+    Alternatively, you can activate Handsontable to use for non-commercial purposes by\x20
+    passing the key: 'non-commercial-and-evaluation'.\x20
+    <a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> about it in\x20
+    the documentation or contact us at <a href="mailto:support@handsontable.com">support@handsontable.com</a>.`,
+  non_commercial: () => '',
+};
+
 export function _injectProductInfo(key, element) {
+  const hasValidType = !isEmpty(key);
+  const isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
+  const hotVersion = process.env.HOT_VERSION;
+  let keyValidityDate;
+  let consoleMessageState = 'invalid';
+  let domMessageState = 'invalid';
+
   key = _norm(key || '');
 
-  let warningMessage = '';
-  let showDomMessage = true;
   const schemaValidity = _checkKeySchema(key);
-  const ignored = _ignored();
-  const trial = isEmpty(key) || key === 'trial';
 
-  if (trial || schemaValidity) {
+  if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseTime = Math.floor(moment(process.env.HOT_RELEASE_DATE, 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
-      const keyGenTime = _extractTime(key);
+      const releaseDate = moment(process.env.HOT_RELEASE_DATE, 'DD/MM/YYYY');
+      const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
+      const keyValidityDays = _extractTime(key);
 
-      if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
-        warningMessage = 'The license key provided to Handsontable Pro is invalid. Make sure you pass it correctly.';
+      keyValidityDate = moment((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
+
+      if (releaseDays > keyValidityDays) {
+        const daysAfterRelease = moment().diff(releaseDate, 'days');
+
+        consoleMessageState = daysAfterRelease <= 1 ? 'valid' : 'expired';
+        domMessageState = daysAfterRelease <= 15 ? 'valid' : 'expired';
+      } else {
+        consoleMessageState = 'valid';
+        domMessageState = 'valid';
       }
 
-      if (!warningMessage) {
-        if (releaseTime > keyGenTime + 1) {
-          warningMessage = toSingleLine`
-          Your license key of Handsontable Pro has expired.‌‌‌‌ 
-          Renew your maintenance plan at https://handsontable.com or downgrade to the previous version of the software.
-          `;
-        }
-        showDomMessage = releaseTime > keyGenTime + 15;
-      }
+    } else if (isNonCommercial) {
+      consoleMessageState = 'non_commercial';
+      domMessageState = 'valid';
 
     } else {
-      warningMessage = 'Evaluation version of Handsontable Pro. Not licensed for use in a production environment.';
+      consoleMessageState = 'invalid';
+      domMessageState = 'invalid';
     }
 
   } else {
-    warningMessage = 'The license key provided to Handsontable Pro is invalid. Make sure you pass it correctly.';
-  }
-  if (ignored) {
-    warningMessage = false;
-    showDomMessage = false;
+    consoleMessageState = 'missing';
+    domMessageState = 'missing';
   }
 
-  if (warningMessage && !_notified) {
-    console[trial ? 'info' : 'warn'](warningMessage);
+  if (_ignored()) {
+    consoleMessageState = 'valid';
+    domMessageState = 'valid';
+  }
+
+  if (!_notified && consoleMessageState !== 'valid') {
+    const message = consoleMessages[consoleMessageState]({
+      keyValidityDate,
+      hotVersion,
+    });
+
+    if (message) {
+      console[consoleMessageState === 'non_commercial' ? 'info' : 'warn'](consoleMessages[consoleMessageState]({
+        keyValidityDate,
+        hotVersion,
+      }));
+    }
     _notified = true;
   }
-  if (showDomMessage && element.parentNode) {
-    const message = document.createElement('div');
 
-    message.id = 'hot-display-license-info';
-    message.appendChild(document.createTextNode('Evaluation version of Handsontable Pro.'));
-    message.appendChild(document.createElement('br'));
-    message.appendChild(document.createTextNode('Not licensed for production use.'));
+  if (domMessageState !== 'valid' && element.parentNode) {
+    const message = domMessages[domMessageState]({
+      keyValidityDate,
+      hotVersion,
+    });
 
-    element.parentNode.insertBefore(message, element.nextSibling);
+    if (message) {
+      const messageNode = document.createElement('div');
+
+      messageNode.id = 'hot-display-license-info';
+      messageNode.innerHTML = domMessages[domMessageState]({
+        keyValidityDate,
+        hotVersion,
+      });
+      element.parentNode.insertBefore(messageNode, element.nextSibling);
+    }
   }
 }
 

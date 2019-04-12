@@ -4,18 +4,18 @@
  */
 const path = require('path');
 const webpack = require('webpack');
-const configFactory = require('./base');
-const JasmineHtml = require('./plugin/jasmine-html');
 
 const wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
 
-module.exports.create = function create(envArgs) {
+module.exports.create = function create() {
   const config = {
     devtool: 'cheap-module-source-map',
+    mode: 'none',
     output: {
+      filename: 'walkontable.js',
+      globalObject: `typeof self !== 'undefined' ? self : this`,
       library: 'Walkontable',
       libraryTarget: 'var',
-      filename: 'walkontable.js',
       path: path.resolve(wotPath, 'dist'),
     },
     module: {

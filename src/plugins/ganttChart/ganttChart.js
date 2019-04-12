@@ -12,7 +12,6 @@ import './ganttChart.css';
 
 /**
  * @plugin GanttChart
- * @pro
  * @experimental
  * @dependencies CollapsibleColumns
  *

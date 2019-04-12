@@ -418,7 +418,10 @@ describe('HiddenColumns', () => {
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
-      expect(actions.length).toEqual(0);
+      expect(actions.length).toEqual(1);
+      expect(actions.text()).toEqual([
+        'No available options',
+      ].join(''));
     });
     it('should hide selected columns by "Hide column" in context menu', () => {
       const hot = handsontable({
