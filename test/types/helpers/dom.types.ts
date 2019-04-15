@@ -55,7 +55,7 @@ Handsontable.dom.isVisible(domElement);
 Handsontable.dom.offset(domElement);
 Handsontable.dom.outerHeight(domElement);
 Handsontable.dom.outerWidth(domElement);
-Handsontable.dom.overlayContainsElement('foo', domElement);
+Handsontable.dom.overlayContainsElement('top', domElement, domElement);
 Handsontable.dom.pageX(domEvent);
 Handsontable.dom.pageY(domEvent);
 Handsontable.dom.polymerUnwrap(domElement);
