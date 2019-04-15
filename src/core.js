@@ -1568,7 +1568,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     clearCellSettingCache();
 
-    // Method `countSourceRows` doesn't return number of columns declared by `columns` property.
+    // Method `countSourceRows` doesn't return number of columns declared by `minCols` property.
     recordTranslator.getColumnIndexMapper().initToLength(Math.max(this.countSourceCols(), this.countCols()));
     recordTranslator.getRowIndexMapper().initToLength(this.countSourceRows());
 
@@ -2029,10 +2029,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function toVisualRow
    * @param {Number} row Physical row index.
-   * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns visual row index.
    */
-  this.toVisualRow = (row, source) => recordTranslator.toVisualRow(row, source);
+  this.toVisualRow = row => recordTranslator.toVisualRow(row);
 
   /**
    * Translate physical column index into visual.
@@ -2043,10 +2042,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function toVisualColumn
    * @param {Number} column Physical column index.
-   * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns visual column index.
    */
-  this.toVisualColumn = (column, source) => recordTranslator.toVisualColumn(column, source);
+  this.toVisualColumn = column => recordTranslator.toVisualColumn(column);
 
   /**
    * Translate visual row index into physical.
@@ -2057,10 +2055,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function toPhysicalRow
    * @param {Number} row Visual row index.
-   * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns physical row index.
    */
-  this.toPhysicalRow = (row, source) => recordTranslator.toPhysicalRow(row, source);
+  this.toPhysicalRow = row => recordTranslator.toPhysicalRow(row);
 
   /**
    * Translate visual column index into physical.
@@ -2071,10 +2068,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function toPhysicalColumn
    * @param {Number} column Visual column index.
-   * @param {undefined|String} source Source of call i.e. plugin name.
    * @returns {Number} Returns physical column index.
    */
-  this.toPhysicalColumn = (column, source) => recordTranslator.toPhysicalColumn(column, source);
+  this.toPhysicalColumn = column => recordTranslator.toPhysicalColumn(column);
 
   this.recordTranslator = recordTranslator;
 
