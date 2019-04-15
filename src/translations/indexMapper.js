@@ -1,5 +1,4 @@
 import { arrayFilter, arrayMap, arrayReduce, pivot } from './../helpers/array';
-import { isDefined } from './../helpers/mixed';
 import IndexMap from './maps/indexMap';
 import MapCollection from './mapCollection';
 

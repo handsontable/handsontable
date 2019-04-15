@@ -59,7 +59,7 @@ class BaseMap {
    * Clear all values.
    */
   clear() {
-    this.setValues([]);
+    this.init(this.list.length);
   }
 
   /**
