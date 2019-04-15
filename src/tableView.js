@@ -386,14 +386,14 @@ class TableView {
       columnWidth: this.instance.getColWidth,
       rowHeight: this.instance.getRowHeight,
       cellRenderer: (row, col, TD, needRecreateContent) => {
-        // const physicalColumn = this.instance.toPhysicalColumn(col);
-        // const physicalRow = this.instance.toPhysicalRow(row);
-        // const hasChangedByColumn = getStorage(this.instance).hasChangedByColumn(physicalColumn);
-        // const hasChangedByCoords = getStorage(this.instance).hasChangedByCoords(physicalRow, physicalColumn);
-        //
-        // if (!needRecreateContent && !(hasChangedByCoords || hasChangedByColumn)) {
-        //   return;
-        // }
+        const physicalColumn = this.instance.toPhysicalColumn(col);
+        const physicalRow = this.instance.toPhysicalRow(row);
+        const hasChangedByColumn = getStorage(this.instance).hasChangedByColumn(physicalColumn);
+        const hasChangedByCoords = getStorage(this.instance).hasChangedByCoords(physicalRow, physicalColumn);
+
+        if (!needRecreateContent && !(hasChangedByCoords || hasChangedByColumn)) {
+          return;
+        }
 
         const cellProperties = this.instance.getCellMeta(row, col);
         const prop = this.instance.colToProp(col);
@@ -526,46 +526,46 @@ class TableView {
       onBeforeStretchingColumnWidth: (stretchedWidth, column) => this.instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column),
       onModifyRowHeaderWidth: rowHeaderWidth => this.instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (row, column, topmost) => this.instance.runHooks('modifyGetCellCoords', row, column, topmost),
-      // viewportRowCalculatorOverride: (calc) => {
-      //   const rows = this.instance.countRows();
-      //   let viewportOffset = this.settings.viewportRowRenderingOffset;
-      //
-      //   if (viewportOffset === 'auto' && this.settings.fixedRowsTop) {
-      //     viewportOffset = 10;
-      //   }
-      //   if (typeof viewportOffset === 'number') {
-      //     calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
-      //     calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
-      //   }
-      //   if (viewportOffset === 'auto') {
-      //     const center = calc.startRow + calc.endRow - calc.startRow;
-      //     const offset = Math.ceil(center / rows * 12);
-      //
-      //     calc.startRow = Math.max(calc.startRow - offset, 0);
-      //     calc.endRow = Math.min(calc.endRow + offset, rows - 1);
-      //   }
-      //   this.instance.runHooks('afterViewportRowCalculatorOverride', calc);
-      // },
-      // viewportColumnCalculatorOverride: (calc) => {
-      //   const cols = this.instance.countCols();
-      //   let viewportOffset = this.settings.viewportColumnRenderingOffset;
-      //
-      //   if (viewportOffset === 'auto' && this.settings.fixedColumnsLeft) {
-      //     viewportOffset = 10;
-      //   }
-      //   if (typeof viewportOffset === 'number') {
-      //     calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
-      //     calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
-      //   }
-      //   if (viewportOffset === 'auto') {
-      //     const center = calc.startColumn + calc.endColumn - calc.startColumn;
-      //     const offset = Math.ceil(center / cols * 12);
-      //
-      //     calc.startRow = Math.max(calc.startColumn - offset, 0);
-      //     calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
-      //   }
-      //   this.instance.runHooks('afterViewportColumnCalculatorOverride', calc);
-      // },
+      viewportRowCalculatorOverride: (calc) => {
+        // const rows = this.instance.countRows();
+        let viewportOffset = this.settings.viewportRowRenderingOffset;
+        //
+        // if (viewportOffset === 'auto' && this.settings.fixedRowsTop) {
+        //   viewportOffset = 10;
+        // }
+        // if (typeof viewportOffset === 'number') {
+        //   calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
+        //   calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
+        // }
+        // if (viewportOffset === 'auto') {
+        //   const center = calc.startRow + calc.endRow - calc.startRow;
+        //   const offset = Math.ceil(center / rows * 12);
+        //
+        //   calc.startRow = Math.max(calc.startRow - offset, 0);
+        //   calc.endRow = Math.min(calc.endRow + offset, rows - 1);
+        // }
+        // this.instance.runHooks('afterViewportRowCalculatorOverride', calc);
+      },
+      viewportColumnCalculatorOverride: (calc) => {
+        // const cols = this.instance.countCols();
+        let viewportOffset = this.settings.viewportColumnRenderingOffset;
+
+        // if (viewportOffset === 'auto' && this.settings.fixedColumnsLeft) {
+        //   viewportOffset = 10;
+        // }
+        // if (typeof viewportOffset === 'number') {
+        //   calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
+        //   calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
+        // }
+        // if (viewportOffset === 'auto') {
+        //   const center = calc.startColumn + calc.endColumn - calc.startColumn;
+        //   const offset = Math.ceil(center / cols * 12);
+        //
+        //   calc.startRow = Math.max(calc.startColumn - offset, 0);
+        //   calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
+        // }
+        // this.instance.runHooks('afterViewportColumnCalculatorOverride', calc);
+      },
       rowHeaderWidth: () => this.settings.rowHeaderWidth,
       columnHeaderHeight: () => {
         const columnHeaderHeight = this.instance.runHooks('modifyColumnHeaderHeight');

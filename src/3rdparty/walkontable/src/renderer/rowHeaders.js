@@ -1,17 +1,13 @@
 import OrderView from '../utils/orderView';
 import NodesPool from '../utils/nodesPool';
+import BaseRenderer from './_base';
 
-export default class RowHeadersRenderer {
+export default class RowHeadersRenderer extends BaseRenderer {
   constructor() {
-    this.rootNode = null;
-    this.table = null;
+    super();
     this.nodesPool = new NodesPool('th');
     this.orderViews = new Map();
     this.sourceRowIndex = 0;
-  }
-
-  setTable(table) {
-    this.table = table;
   }
 
   obtainOrderView(sourceIndex, rootNode = null) {
@@ -27,10 +23,6 @@ export default class RowHeadersRenderer {
     }
 
     return orderView;
-  }
-
-  adjust() {
-
   }
 
   render() {
@@ -62,9 +54,5 @@ export default class RowHeadersRenderer {
 
       orderView.end();
     }
-  }
-
-  refresh() {
-
   }
 }

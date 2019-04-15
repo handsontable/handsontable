@@ -433,6 +433,15 @@ class Viewport {
   }
 
   /**
+   * Creates rowsVisibleCalculator and columnsVisibleCalculator (after draw, to determine what are
+   * the actually visible rows and columns)
+   */
+  // createFullyVisibleCalculators() {
+  //   this.rowsVisibleCalculator = this.createRowsCalculator(true);
+  //   this.columnsVisibleCalculator = this.createColumnsCalculator(true);
+  // }
+
+  /**
    * Returns information whether proposedRowsVisibleCalculator viewport
    * is contained inside rows rendered in previous draw (cached in rowsRenderCalculator)
    *

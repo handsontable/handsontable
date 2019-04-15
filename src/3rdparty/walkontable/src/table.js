@@ -217,15 +217,6 @@ class Table {
     let syncScroll = false;
     let runFastDraw = fastDraw;
 
-    if (this._rendering) {
-      // console.log('draw', false);
-      throw new Error('d');
-      return;
-    }
-    this._rendering = true;
-
-    // console.log('draw', fastDraw);
-
     if (!isClone) {
       this.holderOffset = offset(this.holder);
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
@@ -428,7 +419,6 @@ class Table {
     }
 
     wot.drawn = true;
-    this._rendering = false;
 
     return this;
   }

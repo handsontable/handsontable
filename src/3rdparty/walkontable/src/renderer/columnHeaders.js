@@ -1,14 +1,10 @@
 import { empty } from './../../../../helpers/dom/element';
+import BaseRenderer from './_base';
 
-export default class ColumnHeadersRenderer {
+export default class ColumnHeadersRenderer extends BaseRenderer {
   constructor(rootNode) {
-    this.rootNode = rootNode;
-    this.table = null;
+    super(rootNode);
     this.renderedNodes = 0;
-  }
-
-  setTable(table) {
-    this.table = table;
   }
 
   adjust() {
@@ -72,9 +68,5 @@ export default class ColumnHeadersRenderer {
         TR.firstChild.style.height = `25px`;
       }
     }
-  }
-
-  refresh() {
-
   }
 }

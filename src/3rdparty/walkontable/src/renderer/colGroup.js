@@ -1,13 +1,10 @@
-export default class ColGroupRenderer {
-  constructor(rootNode, columnUtils) {
-    this.rootNode = rootNode;
-    this.columnUtils = columnUtils;
-    this.table = null;
-    this.renderedNodes = 0;
-  }
+import BaseRenderer from './_base';
 
-  setTable(table) {
-    this.table = table;
+export default class ColGroupRenderer extends BaseRenderer {
+  constructor(rootNode, columnUtils) {
+    super(rootNode);
+    this.columnUtils = columnUtils;
+    this.renderedNodes = 0;
   }
 
   adjust() {
@@ -41,9 +38,5 @@ export default class ColGroupRenderer {
 
       this.rootNode.childNodes[renderedColumnIndex].style.width = `${width}px`;
     }
-  }
-
-  refresh() {
-
   }
 }

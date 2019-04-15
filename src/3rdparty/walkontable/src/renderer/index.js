@@ -76,8 +76,4 @@ export default class Renderer {
   render() {
     this.table.render();
   }
-
-  refresh() {
-    this.table.refresh();
-  }
 }
