@@ -650,14 +650,14 @@ class ManualRowMove extends BasePlugin {
     }
 
     const firstMovedVisualRow = priv.rowsToMove[0];
-    const firstMovedPhysicalRow = this.recordTranslator.toPhysicalRow(firstMovedVisualRow);
+    const firstMovedPhysicalRow = this.translator.toPhysicalRow(firstMovedVisualRow);
 
     this.dragRows(priv.rowsToMove, target);
 
     // this.persistentStateSave();
     this.hot.render();
 
-    const selectionStart = this.recordTranslator.toVisualRow(firstMovedPhysicalRow);
+    const selectionStart = this.translator.toVisualRow(firstMovedPhysicalRow);
     const selectionEnd = selectionStart + rowsLen - 1;
 
     this.changeSelection(selectionStart, selectionEnd);
