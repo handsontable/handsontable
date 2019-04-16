@@ -139,11 +139,31 @@ class ManualRowResize extends BasePlugin {
    */
   setupHandlePosition(TH) {
     this.currentTH = TH;
-    const row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns CellCoords
+
+    const cellCoords = this.hot.getCoords(this.currentTH);
+    const row = cellCoords.row;
     const headerWidth = outerWidth(this.currentTH);
 
     if (row >= 0) { // if not col header
       const box = this.currentTH.getBoundingClientRect();
+      const fixedRowTop = row < this.hot.getSettings().fixedRowsTop;
+      const fixedRowBottom = row >= this.hot.countRows() - this.hot.getSettings().fixedRowsBottom;
+      let parentOverlay = this.hot.view.wt.wtOverlays.leftOverlay;
+
+      if (fixedRowTop) {
+        parentOverlay = this.hot.view.wt.wtOverlays.topLeftCornerOverlay;
+
+      } else if (fixedRowBottom) {
+        parentOverlay = this.hot.view.wt.wtOverlays.bottomLeftCornerOverlay;
+      }
+
+      let relativeHeaderPosition = parentOverlay.getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+
+      // If the TH is not a child of the left/top-left/bottom-left overlay, recalculate using the top-most header
+      if (!relativeHeaderPosition) {
+        const topMostHeader = parentOverlay.clone.wtTable.TBODY.children[+!!this.hot.getSettings().colHeaders + row].firstChild;
+        relativeHeaderPosition = parentOverlay.getRelativeCellPosition(topMostHeader, cellCoords.row, cellCoords.col);
+      }
 
       this.currentRow = row;
       this.selectedRows = [];
@@ -164,14 +184,17 @@ class ManualRowResize extends BasePlugin {
         } else {
           this.selectedRows.push(this.currentRow);
         }
+
       } else {
         this.selectedRows.push(this.currentRow);
       }
 
-      this.startOffset = box.top - 6;
+      this.startOffset = relativeHeaderPosition.top - 6;
       this.startHeight = parseInt(box.height, 10);
-      this.handle.style.left = `${box.left}px`;
+
       this.handle.style.top = `${this.startOffset + this.startHeight}px`;
+      this.handle.style.left = `${relativeHeaderPosition.left}px`;
+
       this.handle.style.width = `${headerWidth}px`;
       this.hot.rootElement.appendChild(this.handle);
     }

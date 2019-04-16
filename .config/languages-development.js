@@ -61,14 +61,17 @@ const ruleForSnippetsInjection = {
 
 module.exports.create = function create() {
   const config = {
+    mode: 'none',
     entry: getEntryJsFiles(),
     output: {
-      path: path.resolve(__dirname, '../' + OUTPUT_LANGUAGES_DIRECTORY),
-      libraryTarget: 'umd',
       filename: '[name].js',
+      globalObject: `typeof self !== 'undefined' ? self : this`,
       // Workaround below: Without this option webpack would export all language packs as globals
       libraryExport: '___',
-      umdNamedDefine: true
+      libraryTarget: 'umd',
+      path: path.resolve(__dirname, '../' + OUTPUT_LANGUAGES_DIRECTORY),
+      umdNamedDefine: true,
+      
     },
     externals: {
       [`../../${PACKAGE_FILENAME}`]: {

@@ -4,7 +4,6 @@
  *  - helpers.entry.js
  */
 const path = require('path');
-const webpack = require('webpack');
 const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
 

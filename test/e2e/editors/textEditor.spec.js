@@ -72,23 +72,19 @@ describe('TextEditor', () => {
       editor: 'text',
     });
 
-    selectCell(0, 0);
+    selectCell(1, 1);
 
-    const { left, right, position, top, zIndex, overflow } = spec().$container.find('.handsontableInputHolder').css([
+    const { left, top, position, zIndex } = spec().$container.find('.handsontableInputHolder').css([
       'left',
-      'right',
-      'position',
       'top',
-      'zIndex',
-      'overflow',
+      'position',
+      'zIndex'
     ]);
 
-    expect(parseInt(left, 10)).toBe(spec().$container.find('.handsontableInputHolder')[0].offsetWidth * -1);
-    expect(parseInt(right, 10)).toBe(document.body.offsetWidth);
-    expect(position).toBe('fixed');
-    expect(parseInt(top, 10)).toBe(0);
+    expect(parseInt(left, 10)).toBe(getCell(1, 1).offsetLeft - 1);
+    expect(position).toBe('absolute');
+    expect(parseInt(top, 10)).toBe(getCell(1, 1).offsetTop - 1);
     expect(zIndex).toBe('-1');
-    expect(overflow).toBe('hidden');
   });
 
   it('should change editor\'s CSS properties during switching to being visible', () => {
