@@ -1871,7 +1871,7 @@ declare namespace Handsontable {
       beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: wot.CellRange[], type: 'horizontal' | 'vertical', alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
       beforeChange?: (changes: CellChange[], source: ChangeSource) => void | boolean;
       beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
-      beforeColumnMove?: (columns: number[], target: number) => void;
+      beforeColumnMove?: (columns: number[], target: number) => void | boolean;
       beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void | number;
       beforeColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void | boolean;
       beforeContextMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
