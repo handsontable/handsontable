@@ -1,5 +1,7 @@
 import { arrayMap } from '../../helpers/array';
+import { mixin } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
+import localHooks from './../../mixins/localHooks';
 
 /**
  * Map from index to value.
@@ -43,6 +45,8 @@ class BaseMap {
    */
   setValues(values) {
     this.list = values.slice();
+
+    this.runLocalHooks('mapChanged');
   }
 
   /**
@@ -60,6 +64,7 @@ class BaseMap {
    */
   clear() {
     this.init(this.list.length);
+    this.runLocalHooks('mapChanged');
   }
 
   /**
@@ -94,5 +99,7 @@ class BaseMap {
     throw Error('Map removeValuesAndReorganize() method unimplemented');
   }
 }
+
+mixin(BaseMap, localHooks);
 
 export default BaseMap;

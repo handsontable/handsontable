@@ -6,11 +6,13 @@ const INDEXES_SEQUENCE_KEY = 'sequence';
 
 class IndexMapper {
   constructor() {
-    this.indexToIndexCollection = new MapCollection([
+    this.indexToIndexCollection = new MapCollection(this, [
       [INDEXES_SEQUENCE_KEY, new IndexMap()],
     ]);
 
-    this.skipCollection = new MapCollection();
+    this.skipCollection = new MapCollection(this);
+    this.notSkippedIndexesCache = null;
+    this.skippedIndexesCache = null;
   }
 
   /**
@@ -83,16 +85,22 @@ class IndexMapper {
    * @returns {Array}
    */
   getSkippedIndexes() {
+    if (this.skippedIndexesCache !== null) {
+      return this.skippedIndexesCache;
+    }
+
     const particularSkipsLists = arrayMap(this.skipCollection.get(), skipList => skipList.getValues());
     const skipBooleansForIndex = pivot(particularSkipsLists);
 
-    return arrayReduce(skipBooleansForIndex, (skippedIndexesResult, skipIndexesAtIndex, physicalIndex) => {
+    this.skippedIndexesCache = arrayReduce(skipBooleansForIndex, (skippedIndexesResult, skipIndexesAtIndex, physicalIndex) => {
       if (skipIndexesAtIndex.some(isSkipped => isSkipped === true)) {
         return skippedIndexesResult.concat(physicalIndex);
       }
 
       return skippedIndexesResult;
     }, []);
+
+    return this.skippedIndexesCache;
   }
 
   /**
@@ -111,7 +119,13 @@ class IndexMapper {
    * @returns {Array}
    */
   getNotSkippedIndexes() {
-    return arrayFilter(this.getIndexesSequence(), index => this.isSkipped(index) === false);
+    if (this.notSkippedIndexesCache !== null) {
+      return this.notSkippedIndexesCache;
+    }
+
+    this.notSkippedIndexesCache = arrayFilter(this.getIndexesSequence(), index => this.isSkipped(index) === false);
+
+    return this.notSkippedIndexesCache;
   }
 
   /**
@@ -195,6 +209,11 @@ class IndexMapper {
   updateIndexesAfterRemoval(removedIndexes) {
     this.indexToIndexCollection.updateIndexesAfterRemoval(removedIndexes);
     this.skipCollection.updateIndexesAfterRemoval(removedIndexes);
+  }
+
+  clearCache() {
+    this.notSkippedIndexesCache = null;
+    this.skippedIndexesCache = null;
   }
 }
 

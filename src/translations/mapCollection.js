@@ -1,7 +1,8 @@
 import { isUndefined } from '../helpers/mixed';
 
 class MapCollection {
-  constructor(entries) {
+  constructor(indexMapper, entries) {
+    this.indexMapper = indexMapper;
     this.mappings = new Map(entries);
   }
 
@@ -16,6 +17,8 @@ class MapCollection {
     if (this.mappings.has(name) === false) {
       this.mappings.set(name, map);
     }
+
+    map.addLocalHook('mapChanged', () => this.indexMapper.clearCache());
 
     return this.mappings.get(name);
   }
@@ -44,6 +47,8 @@ class MapCollection {
     this.mappings.forEach((list) => {
       list.removeValuesAndReorganize(removedIndexes);
     });
+
+    this.indexMapper.clearCache();
   }
 
   /**
@@ -58,6 +63,8 @@ class MapCollection {
     this.mappings.forEach((list) => {
       list.addValueAndReorganize(insertionIndex, insertedIndexes);
     });
+
+    this.indexMapper.clearCache();
   }
 
   /**
@@ -69,6 +76,8 @@ class MapCollection {
     this.mappings.forEach((list) => {
       list.init(length);
     });
+
+    this.indexMapper.clearCache();
   }
 }
 
