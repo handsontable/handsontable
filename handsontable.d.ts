@@ -711,14 +711,14 @@ declare namespace Handsontable {
 
       constructor(hotInstance?: _Handsontable.Core);
 
-      addHook(name: string, callback: () => void): void;
+      addHook(name: string, callback: (...args: any[]) => any): void;
       callOnPluginsReady(callback: () => void): void;
       clearHooks(): void;
       destroy(): void;
       disablePlugin(): void;
       enablePlugin(): void;
       init(): void;
-      removeHook(name: string): void;
+      removeHooks(name: string): void;
     }
 
     interface AutoColumnSize extends Base {
@@ -1364,6 +1364,8 @@ declare namespace Handsontable {
 
       moveColumn(column: number, target: number): void;
       moveColumns(columns: number[], target: number): void;
+      persistentStateLoad(): void;
+      persistentStateSave(): void;
     }
 
     interface ManualColumnResize extends Base {
@@ -1790,7 +1792,7 @@ declare namespace Handsontable {
       afterCellMetaReset?: () => void;
       afterChange?: (changes: CellChange[] | null, source: ChangeSource) => void;
       afterChangesObserved?: () => void;
-      afterColumnMove?: (startColumn: number, endColumn: number) => void;
+      afterColumnMove?: (columns: number[], target: number) => void;
       afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
       afterColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void;
       afterContextMenuDefaultOptions?: (predefinedItems: (contextMenu.PredefinedMenuItemKey | contextMenu.MenuItemConfig)[]) => void;
