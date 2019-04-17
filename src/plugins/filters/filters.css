@@ -94,7 +94,7 @@
 
 /* Menu label */
 .handsontable .htFiltersMenuLabel {
-  font-size: 0.7em;
+  font-size: 0.75em;
 }
 
 /* Component action bar */
@@ -122,7 +122,7 @@
 .handsontable .htFiltersMenuCondition .htUIInput input,
 .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input {
   font-family: inherit;
-  font-size: 0.7em;
+  font-size: 0.75em;
   padding: 4px;
   box-sizing: border-box;
   width: 100%;
@@ -148,7 +148,7 @@
 
 .handsontable .htUIClearAll a, .handsontable .htUISelectAll a {
   color: #3283D8;
-  font-size: 0.7em;
+  font-size: 0.75em;
 }
 
 .handsontable .htUISelectionControls {

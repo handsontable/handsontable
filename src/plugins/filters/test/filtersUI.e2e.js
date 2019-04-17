@@ -3277,6 +3277,45 @@ describe('Filters UI', () => {
     });
   });
 
+  it('should inherit font family and size from body', () => {
+    handsontable({
+      data: getDataForFilters(),
+      colHeaders: true,
+      filters: true,
+      dropdownMenu: true
+    });
+
+    const body = document.body;
+    const bodyStyle = body.style;
+    const fontFamily = bodyStyle.fontFamily;
+    const fontSize = bodyStyle.fontSize;
+
+    bodyStyle.fontFamily = 'Helvetica';
+    bodyStyle.fontSize = '24px';
+
+    dropdownMenu(0);
+    const htItemWrapper = document.querySelector('.htItemWrapper');
+    const compStyleHtItemWrapper = Handsontable.dom.getComputedStyle(htItemWrapper);
+
+    const htFiltersMenuLabel = document.querySelector('.htFiltersMenuLabel');
+    const compStyleHtFiltersMenuLabel = Handsontable.dom.getComputedStyle(htFiltersMenuLabel);
+
+    const htUISelectCaption = document.querySelector('.htUISelectCaption');
+    const compStyleHtUISelectCaption = Handsontable.dom.getComputedStyle(htUISelectCaption);
+
+    expect(compStyleHtItemWrapper.fontFamily).toBe('Helvetica');
+    expect(compStyleHtItemWrapper.fontSize).toBe('24px');
+
+    expect(compStyleHtFiltersMenuLabel.fontFamily).toBe('Helvetica');
+    expect(compStyleHtFiltersMenuLabel.fontSize).toBe('18px');
+
+    expect(compStyleHtUISelectCaption.fontFamily).toBe('Helvetica');
+    expect(compStyleHtUISelectCaption.fontSize).toBe('16.8px');
+
+    bodyStyle.fontFamily = fontFamily;
+    bodyStyle.fontSize = fontSize;
+  });
+
   describe('Dimensions of filter\'s elements inside drop-down menu', () => {
     it('should scale text input showed after condition selection (pixel perfect)', () => {
       handsontable({
