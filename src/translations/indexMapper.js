@@ -6,11 +6,11 @@ const INDEXES_SEQUENCE_KEY = 'sequence';
 
 class IndexMapper {
   constructor() {
-    this.indexToIndexCollection = new MapCollection(this, [
+    this.indexToIndexCollection = new MapCollection([
       [INDEXES_SEQUENCE_KEY, new IndexMap()],
     ]);
 
-    this.skipCollection = new MapCollection(this);
+    this.skipCollection = new MapCollection([], () => this.rebuildCache());
     this.notSkippedIndexesCache = null;
     this.skippedIndexesCache = null;
   }
@@ -24,7 +24,6 @@ class IndexMapper {
   getPhysicalIndex(visualIndex) {
     const visibleIndexes = this.getNotSkippedIndexes();
     const numberOfVisibleIndexes = visibleIndexes.length;
-
     let physicalIndex = null;
 
     if (visualIndex < numberOfVisibleIndexes) {
@@ -59,6 +58,8 @@ class IndexMapper {
   initToLength(length = this.getNumberOfIndexes()) {
     this.indexToIndexCollection.initToLength(length);
     this.skipCollection.initToLength(length);
+
+    this.rebuildCache();
   }
 
   /**
@@ -76,31 +77,32 @@ class IndexMapper {
    * @param {Array} indexes Physical row indexes.
    */
   setIndexesSequence(indexes) {
-    return this.indexToIndexCollection.get(INDEXES_SEQUENCE_KEY).setValues(indexes);
+    this.indexToIndexCollection.get(INDEXES_SEQUENCE_KEY).setValues(indexes);
+
+    this.rebuildNotSkippedIndexesCache();
   }
 
   /**
    * Get all indexes skipped in the process of rendering.
    *
+   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
-  getSkippedIndexes() {
-    if (this.skippedIndexesCache !== null) {
+  getSkippedIndexes(readFromCache = true) {
+    if (readFromCache === true) {
       return this.skippedIndexesCache;
     }
 
     const particularSkipsLists = arrayMap(this.skipCollection.get(), skipList => skipList.getValues());
     const skipBooleansForIndex = pivot(particularSkipsLists);
 
-    this.skippedIndexesCache = arrayReduce(skipBooleansForIndex, (skippedIndexesResult, skipIndexesAtIndex, physicalIndex) => {
+    return arrayReduce(skipBooleansForIndex, (skippedIndexesResult, skipIndexesAtIndex, physicalIndex) => {
       if (skipIndexesAtIndex.some(isSkipped => isSkipped === true)) {
         return skippedIndexesResult.concat(physicalIndex);
       }
 
       return skippedIndexesResult;
     }, []);
-
-    return this.skippedIndexesCache;
   }
 
   /**
@@ -116,16 +118,15 @@ class IndexMapper {
   /**
    * Get all indexes NOT skipped in the process of rendering.
    *
+   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
-  getNotSkippedIndexes() {
-    if (this.notSkippedIndexesCache !== null) {
+  getNotSkippedIndexes(readFromCache = true) {
+    if (readFromCache === true) {
       return this.notSkippedIndexesCache;
     }
 
-    this.notSkippedIndexesCache = arrayFilter(this.getIndexesSequence(), index => this.isSkipped(index) === false);
-
-    return this.notSkippedIndexesCache;
+    return arrayFilter(this.getIndexesSequence(), index => this.isSkipped(index) === false);
   }
 
   /**
@@ -198,6 +199,8 @@ class IndexMapper {
 
     this.indexToIndexCollection.updateIndexesAfterInsertion(insertionIndex, insertedIndexes);
     this.skipCollection.updateIndexesAfterInsertion(insertionIndex, insertedIndexes);
+
+    this.rebuildCache();
   }
 
   /**
@@ -209,11 +212,30 @@ class IndexMapper {
   updateIndexesAfterRemoval(removedIndexes) {
     this.indexToIndexCollection.updateIndexesAfterRemoval(removedIndexes);
     this.skipCollection.updateIndexesAfterRemoval(removedIndexes);
+
+    this.rebuildCache();
   }
 
-  clearCache() {
-    this.notSkippedIndexesCache = null;
-    this.skippedIndexesCache = null;
+  /**
+   * Rebuild cache for skipped indexes.
+   */
+  rebuildSkippedIndexesCache() {
+    this.skippedIndexesCache = this.getSkippedIndexes(false);
+  }
+
+  /**
+   * Rebuild cache for not skipped indexes.
+   */
+  rebuildNotSkippedIndexesCache() {
+    this.notSkippedIndexesCache = this.getNotSkippedIndexes(false);
+  }
+
+  /**
+   * Rebuild cache for all indexes.
+   */
+  rebuildCache() {
+    this.rebuildSkippedIndexesCache();
+    this.rebuildNotSkippedIndexesCache();
   }
 }
 

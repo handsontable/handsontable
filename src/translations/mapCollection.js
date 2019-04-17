@@ -1,9 +1,9 @@
 import { isUndefined } from '../helpers/mixed';
 
 class MapCollection {
-  constructor(indexMapper, entries) {
-    this.indexMapper = indexMapper;
+  constructor(entries, onSingleMapChange = () => {}) {
     this.mappings = new Map(entries);
+    this.onSingleMapChange = onSingleMapChange;
   }
 
   /**
@@ -18,7 +18,7 @@ class MapCollection {
       this.mappings.set(name, map);
     }
 
-    map.addLocalHook('mapChanged', () => this.indexMapper.clearCache());
+    map.addLocalHook('mapChanged', () => this.onSingleMapChange());
 
     return this.mappings.get(name);
   }
@@ -47,8 +47,6 @@ class MapCollection {
     this.mappings.forEach((list) => {
       list.removeValuesAndReorganize(removedIndexes);
     });
-
-    this.indexMapper.clearCache();
   }
 
   /**
@@ -63,8 +61,6 @@ class MapCollection {
     this.mappings.forEach((list) => {
       list.addValueAndReorganize(insertionIndex, insertedIndexes);
     });
-
-    this.indexMapper.clearCache();
   }
 
   /**
@@ -76,8 +72,6 @@ class MapCollection {
     this.mappings.forEach((list) => {
       list.init(length);
     });
-
-    this.indexMapper.clearCache();
   }
 }
 
