@@ -206,6 +206,10 @@ export function tableToHandsontable(element, rootDocument = document) {
 
   countRows = dataRows.length;
 
+  if (!countCols) {
+    countCols = Array.from(dataRows[0].cells).reduce((cols, cell) => cols + cell.colSpan, 0);
+  }
+
   const dataArr = Array(countRows);
 
   for (let r = 0; r < countRows; r++) {
