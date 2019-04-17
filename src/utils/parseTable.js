@@ -37,7 +37,7 @@ export function convertToHTMLTable({ instance, options = {} }) {
 
       if (isColumnHeadersRow) {
         TEMP_ELEM.innerText = instance.getColHeader(hasRowHeaders ? column - 1 : column);
-        cell = `<th>${TEMP_ELEM.innerHTML}</th>`;
+        cell = `<th>${TEMP_ELEM.innerText}</th>`;
 
       } else if (isRowHeadersColumn) {
         TEMP_ELEM.innerText = instance.getRowHeader(hasColumnHeaders ? row - 1 : row);
@@ -95,7 +95,8 @@ export function arrayToTable(input, rootDocument) {
     for (let column = 0; column < columnsLen; column += 1) {
       tempElement.innerText = `${isEmpty(rowData[column]) ? '' : rowData[column]}`;
 
-      columnsResult.push(`<td>${tempElement.innerHTML}</td>`);
+      // columnsResult.push(`<td>${tempElement.innerHTML.replace(/<br>/g, '\r\n')}</td>`);
+      columnsResult.push(`<td>${tempElement.innerHTML.replace(/<br>/g, '<br style="mso-data-placement:same-cell;" />\r\n')}</td>`);
     }
 
     result.push('<tr>', ...columnsResult, '</tr>');
@@ -128,63 +129,226 @@ function isHTMLTable(element) {
  */
 // eslint-disable-next-line no-restricted-globals
 export function tableToHandsontable(element, rootDocument = document) {
-  const data = [];
-  const colHeaders = [];
-  const rowHeaders = [];
+  const settingsObj = {};
+  const fragment = rootDocument.createDocumentFragment();
+  const tempElem = rootDocument.createElement('div');
+  fragment.appendChild(tempElem);
+
   let checkElement = element;
 
   if (typeof checkElement === 'string') {
-    const tempElem = rootDocument.createElement('div');
-    tempElem.innerHTML = checkElement.replace(/\n/g, '');
+    tempElem.innerHTML = `${checkElement}`;
     checkElement = tempElem.querySelector('table');
   }
 
-  if (checkElement && isHTMLTable(checkElement)) {
-    const tempArray = [];
-    const { tHead, tBodies } = checkElement;
-    const tBodiesLen = tBodies.length;
-    let hasRowHeaders = false;
+  if (!checkElement || !isHTMLTable(checkElement)) {
+    // throw error?
+    return;
+  }
 
-    for (let tbody = 0; tbody < tBodiesLen; tbody += 1) {
-      const rows = tBodies[tbody].rows;
-      const rowsLen = rows && rows.length;
+  const hasRowHeaders = checkElement.querySelector('tbody th') !== null;
+  const fixedRowsBottom = checkElement.tFoot && Array.from(checkElement.tFoot.rows) || [];
+  const fixedRowsTop = [];
 
-      for (let row = 0; row < rowsLen; row += 1) {
-        const cells = rows[row].cells;
-        const cellsLen = cells.length;
-        const newRow = [];
+  // const hasColHeaders = checkElement.querySelector('thead th') !== null;
+  let hasColHeaders = false;
+  let thRowsLen = 0;
+  let countCols = 0;
+  let countRows = 0;
 
-        for (let column = 0; column < cellsLen; column += 1) {
-          const cell = cells[column];
-          cell.innerHTML = cell.innerHTML.trim().replace(/<br(.|)>(\n?)/, '\n');
-          const cellText = cell.innerText;
+  if (checkElement.tHead) {
+    const thRows = Array.from(checkElement.tHead.rows).filter((tr) => {
+      const isDataRow = tr.querySelector('td') !== null;
 
-          if (cell.nodeName.toLowerCase() === 'th') {
-            hasRowHeaders = true;
-            rowHeaders.push(cellText);
-          } else {
-            newRow.push(cellText);
-          }
+      if (isDataRow) {
+        fixedRowsTop.push(tr);
+      }
+
+      return !isDataRow;
+    });
+
+    thRowsLen = thRows.length;
+    hasColHeaders = thRowsLen > 0;
+
+    if (thRowsLen > 1) {
+      // nestedHeaders
+
+    } else if (hasColHeaders) {
+      const colHeaders = Array.from(thRows[0].children).reduce((headers, header, index) => {
+        if (hasRowHeaders && index === 0) {
+          return headers;
         }
 
-        tempArray.push(newRow);
-      }
-    }
+        headers.push(header.innerHTML);
 
-    data.push(...tempArray);
+        return headers;
+      }, []);
 
-    const columnTHs = tHead && tHead.rows.item(0).cells;
-    const columnTHsLen = columnTHs ? columnTHs.length : 0;
-    for (let header = hasRowHeaders ? 1 : 0; header < columnTHsLen; header += 1) {
-      const th = columnTHs[header];
-      th.innerHTML = th.innerHTML.trim().replace(/<br(.|)>(\n?)/, '\n');
-      colHeaders.push(th.innerText);
+      countCols = colHeaders.length;
+
+      settingsObj.colHeaders = colHeaders;
     }
   }
 
-  return {
-    data,
-    colHeaders,
-    rowHeaders,
-  };
+  if (fixedRowsTop.length) {
+    settingsObj.fixedRowsTop = fixedRowsTop.length;
+  }
+  if (fixedRowsBottom.length) {
+    settingsObj.fixedRowsBottom = fixedRowsBottom.length;
+  }
+
+  const dataRows = [
+    ...fixedRowsTop,
+    ...Array.from(checkElement.tBodies).reduce((sections, section) => {
+      sections.push(...section.rows); return sections;
+    }, []),
+    ...fixedRowsBottom];
+
+  countRows = dataRows.length;
+
+  const dataArr = Array(countRows);
+
+  for (let r = 0; r < countRows; r++) {
+    dataArr[r] = Array(countCols);
+  }
+
+  // {row: 1, col: 1, rowspan: 2, colspan: 2}
+  const mergeCells = [];
+  const rowHeaders = [];
+
+  for (let row = 0; row < countRows; row++) {
+    const rowData = dataRows[row];
+
+    Array.from(rowData.cells).forEach((cell) => {
+      const {
+        nodeName,
+        innerText,
+        innerHTML,
+        rowSpan: rowspan,
+        colSpan: colspan,
+      } = cell;
+      const col = dataArr[row].findIndex(value => value === void 0);
+
+      if (nodeName.toLowerCase() === 'th') {
+        rowHeaders.push(innerHTML);
+
+        return;
+      }
+
+      // console.log({
+      //   innerText,
+      //   row,
+      //   col,
+      //   rowspan,
+      //   colspan,
+      // });
+
+      if (rowspan > 1 || colspan > 1) {
+        for (let rstart = row; rstart < row + rowspan; rstart++) {
+          for (let cstart = col; cstart < col + colspan; cstart++) {
+            dataArr[rstart][cstart] = null;
+          }
+        }
+
+        mergeCells.push({
+          col,
+          row,
+          rowspan,
+          colspan,
+        });
+      }
+
+      dataArr[row][col] = innerText;
+    });
+  }
+
+  // const dataArr = dataRows.reduce((dataset, row) => {
+  //   dataset.push(Array.from(row.cells).reduce((rowdata, cell) => {
+  //     const isRowHeader = cell.nodeName.toLowerCase() === 'th';
+
+  //     if (isRowHeader) {
+  //       rowHeaders.push(cell.innerHTML);
+
+  //     } else {
+  //       const {
+  //         innerText,
+  //         rowSpan,
+  //         colSpan,
+  //         cellIndex,
+  //       } = cell;
+
+  //       const mergeConfig = {
+  //         col: cellIndex - (hasRowHeaders ? 1 : 0),
+  //         row: cell.parentElement.rowIndex - thRowsLen,
+  //         rowspan: parseInt(rowSpan, 10),
+  //         colspan: parseInt(colSpan, 10),
+  //       };
+
+  //       rowdata.push(innerText);
+
+  //       if (mergeConfig.rowspan > 1 || mergeConfig.colspan > 1) {
+  //         mergeCells.push(mergeConfig);
+  //       }
+  //     }
+
+  //     return rowdata;
+  //   }, []));
+
+  //   return dataset;
+  // }, []);
+
+  if (mergeCells.length) {
+    settingsObj.mergeCells = mergeCells;
+  }
+  if (rowHeaders.length) {
+    settingsObj.rowHeaders = rowHeaders;
+  }
+
+  if (dataArr.length) {
+    settingsObj.data = dataArr;
+  }
+
+  // const clonedTable = checkElement.cloneNode(true);
+  // tempElem.innerHTML = '';
+  // const tempArray = [];
+  // const { tHead, tBodies } = clonedTable;
+  // const tBodiesLen = tBodies.length;
+  // let hasRowHeaders = false;
+
+  // for (let tbody = 0; tbody < tBodiesLen; tbody += 1) {
+  //   const rows = tBodies[tbody].rows;
+  //   const rowsLen = rows && rows.length;
+
+  //   for (let row = 0; row < rowsLen; row += 1) {
+  //     const cells = rows[row].cells;
+  //     const cellsLen = cells.length;
+  //     const newRow = [];
+
+  //     for (let column = 0; column < cellsLen; column += 1) {
+  //       const cell = cells[column];
+  //       const cellHTML = cell.innerHTML.trim();
+
+  //       if (cell.nodeName.toLowerCase() === 'th') {
+  //         hasRowHeaders = true;
+  //         settingsObj.rowHeaders.push(cellHTML);
+  //       } else {
+  //         newRow.push(cellHTML.replace(/<br(.|)>(\n?)/g, '\r\n'));
+  //       }
+  //     }
+
+  //     tempArray.push(newRow);
+  //   }
+  // }
+
+  // settingsObj.data.push(...tempArray);
+
+  // const columnTHs = tHead && tHead.rows.item(0).cells;
+  // const columnTHsLen = columnTHs ? columnTHs.length : 0;
+  // for (let header = hasRowHeaders ? 1 : 0; header < columnTHsLen; header += 1) {
+  //   const th = columnTHs[header];
+  //   th.innerHTML = th.innerHTML.trim().replace(/<br(.|)>(\n?)/, '\n');
+  //   settingsObj.colHeaders.push(th.innerText);
+  // }
+
+  return settingsObj;
 }
