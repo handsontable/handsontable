@@ -147,7 +147,7 @@ class Search extends BasePlugin {
         const cellProperties = this.hot.getCellMeta(rowIndex, colIndex);
         const cellCallback = cellProperties.search.callback || callback;
         const cellQueryMethod = cellProperties.search.queryMethod || queryMethod;
-        const testResult = cellQueryMethod(queryStr, cellData);
+        const testResult = cellQueryMethod(queryStr, cellData, cellProperties);
 
         if (testResult) {
           const singleResult = {

@@ -2449,7 +2449,7 @@ declare namespace Handsontable {
 
     type SearchCallback = (instance: Handsontable, row: number, column: number, value: CellValue, result: boolean) => void;
 
-    type SearchQueryMethod = (queryStr: string, value: CellValue) => boolean;
+    type SearchQueryMethod = (queryStr: string, value: CellValue, cellProperties: CellProperties) => boolean;
   }
 
   namespace autoColumnSize {
