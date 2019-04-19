@@ -63,7 +63,7 @@
   "dependencies": {
     "@types/pikaday": "1.6.0",
     "core-js": "^3.0.0",
-    "hot-formula-parser": "^3.0.0",
+    "hot-formula-parser": "^3.0.1",
     "moment": "2.20.1",
     "numbro": "2.1.1",
     "pikaday": "1.5.1"
@@ -101,8 +101,8 @@
     "jasmine-co": "^1.2.2",
     "jasmine-core": "2.5.2",
     "jasmine-terminal-reporter": "^1.0.3",
-    "jest": "^24.1.0",
-    "jest-cli": "^24.1.0",
+    "jest": "^24.7.1",
+    "jest-cli": "^24.7.1",
     "loader-utils": "^1.1.0",
     "mini-css-extract-plugin": "^0.5.0",
     "on-build-webpack": "^0.1.0",
