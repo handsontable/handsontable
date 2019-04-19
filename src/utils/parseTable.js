@@ -122,6 +122,117 @@ function isHTMLTable(element) {
   return (element && element.nodeName || '').toLowerCase() === 'table';
 }
 
+export function convertHTMLTableToArray(table) {
+  performance.mark('start');
+
+  const tableStr = table.replace(/<!--(.|[\n\r])*?-->/gim, '');
+  const settingsObj = {};
+
+  const thead = tableStr.match(/<\s*thead[^>]*\s*>(.|[\n\r]*)*?<\s*\/\s*thead>/gim);
+  const tfoot = tableStr.match(/<\s*tfoot[^>]*\s*>(.|[\n\r]*)*?<\s*\/\s*tfoot>/gim);
+  const tbodies = tableStr.match(/<\s*tbody[^>]*\s*>(.|[\n\r]*)*?<\s*\/\s*tbody>(?!(table|tbody))/gim);
+  const regTRsInSections = /<\s*tr[^>]*\s*>(.|[\n\r])*?<\s*\/\s*tr>/gm;
+
+  const theadRows = (thead && thead[0].match(regTRsInSections)) || [];
+  const tfootRows = (tfoot && tfoot[0].match(regTRsInSections)) || [];
+  let tbodiesRows;
+
+  let countRows = 0;
+  let countCols = 0;
+
+  if (!thead && !tfoot && !tbodies && tableStr.search(/<\s*tr[^>]*\s*>(.|[\n\r])*?<\s*\/\s*tr>/m) > -1) {
+    tbodiesRows = tableStr.match(regTRsInSections);
+
+  } else if (tbodies) {
+    tbodiesRows = tbodies.reduce((rows, tbody) => {
+      const result = tbody.match(regTRsInSections);
+
+      if (result) {
+        rows.push(...result);
+      }
+
+      return rows;
+    }, []);
+  }
+
+  const rowsTop = [];
+  const colHeadersRows = theadRows.filter((row) => {
+    const hasOnlyHeaders = row.search(/<\s*td[^>]*\s*>(.|[\n\r])*?<\s*\/\s*td>/m) < 0;
+
+    if (!hasOnlyHeaders) {
+      rowsTop.push(row);
+    }
+
+    return hasOnlyHeaders;
+  });
+
+  if (rowsTop.length) {
+    tbodiesRows.unshift(...rowsTop);
+    settingsObj.fixedRowsTop = rowsTop.length;
+  }
+  if (tfootRows.length) {
+    tbodiesRows.push(...tfootRows);
+    settingsObj.fixedRowsBottom = tfootRows.length;
+  }
+
+  const hasRowHeaders = tbodiesRows[0].search(/<\s*th[^>]*\s*>(.|[\n\r])*?<\s*\/\s*th>/gim) > -1;
+  const colHeadersRowsLen = colHeadersRows.length;
+
+  if (colHeadersRowsLen > 1) {
+    // nestedHeaders
+    settingsObj.nestedHeaders = colHeadersRows.reduce((rows, row) => {
+      const parsedRow = row.match(/<\s*th[^>]*\s*>(.|[\n\r])*?<\s*\/\s*th>/gim).reduce((headers, header, index) => {
+        if (hasRowHeaders && index === 0) {
+          return headers;
+        }
+
+        const tag = header.match(/<\s*th[^>]*\s*>/gim);
+        const props = (tag[0].match(/\w*=("|')(.*?)[\d\w\s:;]*/gim) || []).reduce((propObj, prop) => {
+          const propArr = prop.split(/=\S/);
+
+          propObj[propArr[0]] = propArr[1];
+
+          return propObj;
+        }, {});
+        const value = header.replace(/<\s*th[^>]*\s*>|<\s*\/\s*th>/gim, '');
+        const colspan = props.colspan;
+
+        headers.push(colspan && colspan > 1 ? { colspan, label: value } : value);
+
+        return headers;
+      }, []);
+
+      rows.push(parsedRow);
+
+      return rows;
+    }, []);
+
+  } else if (colHeadersRowsLen) {
+    settingsObj.colHeaders = colHeadersRows[0].match(/<\s*th[^>]*\s*>(.|[\n\r])*?<\s*\/\s*th>/gim).reduce((headers, header, index) => {
+      if (hasRowHeaders && index === 0) {
+        return headers;
+      }
+
+      // const tag = header.match(/<\s*th[^>]*\s*>/gim);
+      const value = header.replace(/<\s*th[^>]*\s*>|<\s*\/\s*th>/gim, '');
+      headers.push(value);
+
+      return headers;
+    }, []);
+
+    countCols = settingsObj.colHeaders.length;
+
+  } else {
+    // countCols on first datarow
+  }
+
+  performance.mark('end');
+  performance.measure('convertHTMLTableToArray', 'start', 'end');
+  console.log(performance.getEntriesByName('convertHTMLTableToArray').slice(-1)[0]);
+
+  return settingsObj;
+}
+
 /**
  * Converts HTMLTable or string into Handsontable configuration object.
  *
@@ -129,10 +240,13 @@ function isHTMLTable(element) {
  */
 // eslint-disable-next-line no-restricted-globals
 export function tableToHandsontable(element, rootDocument = document) {
+  performance.mark('start');
+
   const settingsObj = {};
   const fragment = rootDocument.createDocumentFragment();
   const tempElem = rootDocument.createElement('div');
   fragment.appendChild(tempElem);
+  // rootDocument.documentElement.appendChild(tempElem);
 
   let checkElement = element;
 
@@ -147,13 +261,11 @@ export function tableToHandsontable(element, rootDocument = document) {
   }
 
   const hasRowHeaders = checkElement.querySelector('tbody th') !== null;
+  const countCols = Array.from(checkElement.querySelector('tr').cells).reduce((cols, cell) => cols + cell.colSpan, 0) - (hasRowHeaders ? 1 : 0);
   const fixedRowsBottom = checkElement.tFoot && Array.from(checkElement.tFoot.rows) || [];
   const fixedRowsTop = [];
-
-  // const hasColHeaders = checkElement.querySelector('thead th') !== null;
   let hasColHeaders = false;
   let thRowsLen = 0;
-  let countCols = 0;
   let countRows = 0;
 
   if (checkElement.tHead) {
@@ -171,10 +283,30 @@ export function tableToHandsontable(element, rootDocument = document) {
     hasColHeaders = thRowsLen > 0;
 
     if (thRowsLen > 1) {
-      // nestedHeaders
+      settingsObj.nestedHeaders = Array.from(thRows).reduce((rows, row) => {
+        const headersRow = Array.from(row.cells).reduce((headers, header, currentIndex) => {
+          if (hasRowHeaders && currentIndex === 0) {
+            return headers;
+          }
+
+          const {
+            colSpan: colspan,
+            innerHTML,
+          } = header;
+          const nextHeader = colspan > 1 ? { label: innerHTML, colspan } : innerHTML;
+
+          headers.push(nextHeader);
+
+          return headers;
+        }, []);
+
+        rows.push(headersRow);
+
+        return rows;
+      }, []);
 
     } else if (hasColHeaders) {
-      const colHeaders = Array.from(thRows[0].children).reduce((headers, header, index) => {
+      settingsObj.colHeaders = Array.from(thRows[0].children).reduce((headers, header, index) => {
         if (hasRowHeaders && index === 0) {
           return headers;
         }
@@ -183,10 +315,6 @@ export function tableToHandsontable(element, rootDocument = document) {
 
         return headers;
       }, []);
-
-      countCols = colHeaders.length;
-
-      settingsObj.colHeaders = colHeaders;
     }
   }
 
@@ -205,10 +333,6 @@ export function tableToHandsontable(element, rootDocument = document) {
     ...fixedRowsBottom];
 
   countRows = dataRows.length;
-
-  if (!countCols) {
-    countCols = Array.from(dataRows[0].cells).reduce((cols, cell) => cols + cell.colSpan, 0);
-  }
 
   const dataArr = Array(countRows);
 
@@ -354,5 +478,10 @@ export function tableToHandsontable(element, rootDocument = document) {
   //   settingsObj.colHeaders.push(th.innerText);
   // }
 
+  // rootDocument.documentElement.removeChild(tempElem);
+  performance.mark('end');
+
+  performance.measure('tableToHandsontable', 'start', 'end');
+  console.log(performance.getEntriesByName('tableToHandsontable').slice(-1)[0]);
   return settingsObj;
 }
