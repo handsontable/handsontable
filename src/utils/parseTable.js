@@ -4,7 +4,7 @@ import { isEmpty } from './../helpers/mixed';
  * Converts Handsontable into HTMLTableElement
  * @param {Handsontable} instance
  */
-export function convertToHTMLTable({ instance, options = {} }) {
+export function convertToHTMLTable({ instance }) {
   const doc = instance.rootDocument;
   const hasColumnHeaders = instance.hasColHeaders();
   const hasRowHeaders = instance.hasRowHeaders();
@@ -78,10 +78,11 @@ export function convertToHTMLTable({ instance, options = {} }) {
  */
 export function arrayToTable(input, rootDocument) {
   const inputLen = input.length;
-  const result = ['<table>'];
+  const result = ['<style>br{mso-data-placement: same-cell}</style>', '<table>'];
 
+  const fragment = rootDocument.createDocumentFragment();
   const tempElement = rootDocument.createElement('div');
-  rootDocument.documentElement.appendChild(tempElement);
+  fragment.appendChild(tempElement);
 
   for (let row = 0; row < inputLen; row += 1) {
     const rowData = input[row];
@@ -93,10 +94,17 @@ export function arrayToTable(input, rootDocument) {
     }
 
     for (let column = 0; column < columnsLen; column += 1) {
-      tempElement.innerText = `${isEmpty(rowData[column]) ? '' : rowData[column]}`;
+      const cellData = rowData[column];
+      const parsedCellData = isEmpty(cellData) ?
+        '' :
+        cellData.replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n').replace(/\x20/gi, '&nbsp;').replace(/\t/gi, '&#9;');
+
+      // tempElement.innerText = `${isEmpty(rowData[column]) ? '' : rowData[column]}`;
+
+      columnsResult.push(`<td>${parsedCellData}</td>`);
 
       // columnsResult.push(`<td>${tempElement.innerHTML.replace(/<br>/g, '\r\n')}</td>`);
-      columnsResult.push(`<td>${tempElement.innerHTML.replace(/<br>/g, '<br style="mso-data-placement:same-cell;" />\r\n')}</td>`);
+      // columnsResult.push(`<td style="white-space: normal">${tempElement.innerHTML.replace(/<br>/g, '<br>\r\n')}</td>`);
     }
 
     result.push('<tr>', ...columnsResult, '</tr>');
@@ -106,7 +114,7 @@ export function arrayToTable(input, rootDocument) {
     }
   }
 
-  rootDocument.documentElement.removeChild(tempElement);
+  // rootDocument.documentElement.removeChild(tempElement);
 
   result.push('</table>');
 
@@ -122,117 +130,6 @@ function isHTMLTable(element) {
   return (element && element.nodeName || '').toLowerCase() === 'table';
 }
 
-export function convertHTMLTableToArray(table) {
-  performance.mark('start');
-
-  const tableStr = table.replace(/<!--(.|[\n\r])*?-->/gim, '');
-  const settingsObj = {};
-
-  const thead = tableStr.match(/<\s*thead[^>]*\s*>(.|[\n\r]*)*?<\s*\/\s*thead>/gim);
-  const tfoot = tableStr.match(/<\s*tfoot[^>]*\s*>(.|[\n\r]*)*?<\s*\/\s*tfoot>/gim);
-  const tbodies = tableStr.match(/<\s*tbody[^>]*\s*>(.|[\n\r]*)*?<\s*\/\s*tbody>(?!(table|tbody))/gim);
-  const regTRsInSections = /<\s*tr[^>]*\s*>(.|[\n\r])*?<\s*\/\s*tr>/gm;
-
-  const theadRows = (thead && thead[0].match(regTRsInSections)) || [];
-  const tfootRows = (tfoot && tfoot[0].match(regTRsInSections)) || [];
-  let tbodiesRows;
-
-  let countRows = 0;
-  let countCols = 0;
-
-  if (!thead && !tfoot && !tbodies && tableStr.search(/<\s*tr[^>]*\s*>(.|[\n\r])*?<\s*\/\s*tr>/m) > -1) {
-    tbodiesRows = tableStr.match(regTRsInSections);
-
-  } else if (tbodies) {
-    tbodiesRows = tbodies.reduce((rows, tbody) => {
-      const result = tbody.match(regTRsInSections);
-
-      if (result) {
-        rows.push(...result);
-      }
-
-      return rows;
-    }, []);
-  }
-
-  const rowsTop = [];
-  const colHeadersRows = theadRows.filter((row) => {
-    const hasOnlyHeaders = row.search(/<\s*td[^>]*\s*>(.|[\n\r])*?<\s*\/\s*td>/m) < 0;
-
-    if (!hasOnlyHeaders) {
-      rowsTop.push(row);
-    }
-
-    return hasOnlyHeaders;
-  });
-
-  if (rowsTop.length) {
-    tbodiesRows.unshift(...rowsTop);
-    settingsObj.fixedRowsTop = rowsTop.length;
-  }
-  if (tfootRows.length) {
-    tbodiesRows.push(...tfootRows);
-    settingsObj.fixedRowsBottom = tfootRows.length;
-  }
-
-  const hasRowHeaders = tbodiesRows[0].search(/<\s*th[^>]*\s*>(.|[\n\r])*?<\s*\/\s*th>/gim) > -1;
-  const colHeadersRowsLen = colHeadersRows.length;
-
-  if (colHeadersRowsLen > 1) {
-    // nestedHeaders
-    settingsObj.nestedHeaders = colHeadersRows.reduce((rows, row) => {
-      const parsedRow = row.match(/<\s*th[^>]*\s*>(.|[\n\r])*?<\s*\/\s*th>/gim).reduce((headers, header, index) => {
-        if (hasRowHeaders && index === 0) {
-          return headers;
-        }
-
-        const tag = header.match(/<\s*th[^>]*\s*>/gim);
-        const props = (tag[0].match(/\w*=("|')(.*?)[\d\w\s:;]*/gim) || []).reduce((propObj, prop) => {
-          const propArr = prop.split(/=\S/);
-
-          propObj[propArr[0]] = propArr[1];
-
-          return propObj;
-        }, {});
-        const value = header.replace(/<\s*th[^>]*\s*>|<\s*\/\s*th>/gim, '');
-        const colspan = props.colspan;
-
-        headers.push(colspan && colspan > 1 ? { colspan, label: value } : value);
-
-        return headers;
-      }, []);
-
-      rows.push(parsedRow);
-
-      return rows;
-    }, []);
-
-  } else if (colHeadersRowsLen) {
-    settingsObj.colHeaders = colHeadersRows[0].match(/<\s*th[^>]*\s*>(.|[\n\r])*?<\s*\/\s*th>/gim).reduce((headers, header, index) => {
-      if (hasRowHeaders && index === 0) {
-        return headers;
-      }
-
-      // const tag = header.match(/<\s*th[^>]*\s*>/gim);
-      const value = header.replace(/<\s*th[^>]*\s*>|<\s*\/\s*th>/gim, '');
-      headers.push(value);
-
-      return headers;
-    }, []);
-
-    countCols = settingsObj.colHeaders.length;
-
-  } else {
-    // countCols on first datarow
-  }
-
-  performance.mark('end');
-  performance.measure('convertHTMLTableToArray', 'start', 'end');
-  console.log(performance.getEntriesByName('convertHTMLTableToArray').slice(-1)[0]);
-
-  return settingsObj;
-}
-
 /**
  * Converts HTMLTable or string into Handsontable configuration object.
  *
@@ -240,13 +137,10 @@ export function convertHTMLTableToArray(table) {
  */
 // eslint-disable-next-line no-restricted-globals
 export function tableToHandsontable(element, rootDocument = document) {
-  performance.mark('start');
-
   const settingsObj = {};
   const fragment = rootDocument.createDocumentFragment();
   const tempElem = rootDocument.createElement('div');
   fragment.appendChild(tempElem);
-  // rootDocument.documentElement.appendChild(tempElem);
 
   let checkElement = element;
 
@@ -340,7 +234,6 @@ export function tableToHandsontable(element, rootDocument = document) {
     dataArr[r] = Array(countCols);
   }
 
-  // {row: 1, col: 1, rowspan: 2, colspan: 2}
   const mergeCells = [];
   const rowHeaders = [];
 
@@ -350,7 +243,6 @@ export function tableToHandsontable(element, rootDocument = document) {
     Array.from(rowData.cells).forEach((cell) => {
       const {
         nodeName,
-        innerText,
         innerHTML,
         rowSpan: rowspan,
         colSpan: colspan,
@@ -362,14 +254,6 @@ export function tableToHandsontable(element, rootDocument = document) {
 
         return;
       }
-
-      // console.log({
-      //   innerText,
-      //   row,
-      //   col,
-      //   rowspan,
-      //   colspan,
-      // });
 
       if (rowspan > 1 || colspan > 1) {
         for (let rstart = row; rstart < row + rowspan; rstart++) {
@@ -386,44 +270,15 @@ export function tableToHandsontable(element, rootDocument = document) {
         });
       }
 
-      dataArr[row][col] = innerText;
+      const generator = tempElem.querySelector('meta[name$="enerator"]');
+      if (generator && /excel/gi.test(generator.content)) {
+        dataArr[row][col] = innerHTML.replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,2}/gim, '\r\n').replace(/(<([^>]+)>)/gi, '');
+      } else {
+        dataArr[row][col] = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n').replace(/(<([^>]+)>)/gi, '');
+      }
+      dataArr[row][col] = dataArr[row][col].replace(/&nbsp;/gi, '\x20');
     });
   }
-
-  // const dataArr = dataRows.reduce((dataset, row) => {
-  //   dataset.push(Array.from(row.cells).reduce((rowdata, cell) => {
-  //     const isRowHeader = cell.nodeName.toLowerCase() === 'th';
-
-  //     if (isRowHeader) {
-  //       rowHeaders.push(cell.innerHTML);
-
-  //     } else {
-  //       const {
-  //         innerText,
-  //         rowSpan,
-  //         colSpan,
-  //         cellIndex,
-  //       } = cell;
-
-  //       const mergeConfig = {
-  //         col: cellIndex - (hasRowHeaders ? 1 : 0),
-  //         row: cell.parentElement.rowIndex - thRowsLen,
-  //         rowspan: parseInt(rowSpan, 10),
-  //         colspan: parseInt(colSpan, 10),
-  //       };
-
-  //       rowdata.push(innerText);
-
-  //       if (mergeConfig.rowspan > 1 || mergeConfig.colspan > 1) {
-  //         mergeCells.push(mergeConfig);
-  //       }
-  //     }
-
-  //     return rowdata;
-  //   }, []));
-
-  //   return dataset;
-  // }, []);
 
   if (mergeCells.length) {
     settingsObj.mergeCells = mergeCells;
@@ -436,52 +291,5 @@ export function tableToHandsontable(element, rootDocument = document) {
     settingsObj.data = dataArr;
   }
 
-  // const clonedTable = checkElement.cloneNode(true);
-  // tempElem.innerHTML = '';
-  // const tempArray = [];
-  // const { tHead, tBodies } = clonedTable;
-  // const tBodiesLen = tBodies.length;
-  // let hasRowHeaders = false;
-
-  // for (let tbody = 0; tbody < tBodiesLen; tbody += 1) {
-  //   const rows = tBodies[tbody].rows;
-  //   const rowsLen = rows && rows.length;
-
-  //   for (let row = 0; row < rowsLen; row += 1) {
-  //     const cells = rows[row].cells;
-  //     const cellsLen = cells.length;
-  //     const newRow = [];
-
-  //     for (let column = 0; column < cellsLen; column += 1) {
-  //       const cell = cells[column];
-  //       const cellHTML = cell.innerHTML.trim();
-
-  //       if (cell.nodeName.toLowerCase() === 'th') {
-  //         hasRowHeaders = true;
-  //         settingsObj.rowHeaders.push(cellHTML);
-  //       } else {
-  //         newRow.push(cellHTML.replace(/<br(.|)>(\n?)/g, '\r\n'));
-  //       }
-  //     }
-
-  //     tempArray.push(newRow);
-  //   }
-  // }
-
-  // settingsObj.data.push(...tempArray);
-
-  // const columnTHs = tHead && tHead.rows.item(0).cells;
-  // const columnTHsLen = columnTHs ? columnTHs.length : 0;
-  // for (let header = hasRowHeaders ? 1 : 0; header < columnTHsLen; header += 1) {
-  //   const th = columnTHs[header];
-  //   th.innerHTML = th.innerHTML.trim().replace(/<br(.|)>(\n?)/, '\n');
-  //   settingsObj.colHeaders.push(th.innerText);
-  // }
-
-  // rootDocument.documentElement.removeChild(tempElem);
-  performance.mark('end');
-
-  performance.measure('tableToHandsontable', 'start', 'end');
-  console.log(performance.getEntriesByName('tableToHandsontable').slice(-1)[0]);
   return settingsObj;
 }

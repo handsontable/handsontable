@@ -9,7 +9,7 @@ import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
-import { arrayToTable, tableToHandsontable, convertToHTMLTable } from './../../utils/parseTable';
+import { arrayToTable, tableToHandsontable } from './../../utils/parseTable';
 
 import './copyPaste.css';
 
@@ -481,12 +481,15 @@ class CopyPaste extends BasePlugin {
     }
 
     let pastedData;
+    let mergeCellsSettings;
 
     if (event && typeof event.clipboardData !== 'undefined') {
       const textHTML = event.clipboardData.getData('text/html');
 
-      if (textHTML && /(<table)|(<TABLE)/.test(textHTML)) {
-        pastedData = tableToHandsontable(textHTML, this.hot.rootDocument).data;
+      if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
+        const parsedTable = tableToHandsontable(textHTML, this.hot.rootDocument);
+        pastedData = parsedTable.data;
+        mergeCellsSettings = parsedTable.mergeCells;
       } else {
         pastedData = event.clipboardData.getData('text/plain');
       }
@@ -506,6 +509,10 @@ class CopyPaste extends BasePlugin {
     }
 
     const [startRow, startColumn, endRow, endColumn] = this.populateValues(inputArray);
+
+    if (mergeCellsSettings) {
+      this.hot.runHooks('modifyMergeCells', mergeCellsSettings, { row: startRow, col: startColumn });
+    }
 
     this.hot.selectCell(
       startRow,

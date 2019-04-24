@@ -186,7 +186,7 @@ class MergeCells extends BasePlugin {
    * @private
    * @param {Array|Boolean} settings The settings provided to the plugin.
    */
-  generateFromSettings(settings) {
+  generateFromSettings(settings, offset = { row: 0, col: 0 }) {
     if (Array.isArray(settings)) {
       let populationArgumentsList = [];
 
@@ -195,8 +195,8 @@ class MergeCells extends BasePlugin {
           return;
         }
 
-        const highlight = new CellCoords(setting.row, setting.col);
-        const rangeEnd = new CellCoords(setting.row + setting.rowspan - 1, setting.col + setting.colspan - 1);
+        const highlight = new CellCoords(setting.row + offset.row, setting.col + offset.col);
+        const rangeEnd = new CellCoords(setting.row + offset.row + setting.rowspan - 1, setting.col + offset.col + setting.colspan - 1);
         const mergeRange = new CellRange(highlight, highlight, rangeEnd);
 
         populationArgumentsList.push(this.mergeRange(mergeRange, true, true));
