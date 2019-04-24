@@ -185,33 +185,31 @@ class IndexMapper {
   }
 
   /**
-   * Update indexes after inserting new indexes.
+   * Insert new indexes and update value of the previous ones.
    *
-   * @private
    * @param {Number} firstInsertedVisualIndex First inserted visual index.
    * @param {Number} firstInsertedPhysicalIndex First inserted physical index.
    * @param {Number} amountOfIndexes Amount of inserted indexes.
    */
-  updateIndexesAfterInsertion(firstInsertedVisualIndex, firstInsertedPhysicalIndex, amountOfIndexes) {
+  addIndexes(firstInsertedVisualIndex, firstInsertedPhysicalIndex, amountOfIndexes) {
     const nthVisibleIndex = this.getNotSkippedIndexes()[firstInsertedVisualIndex];
     const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
-    this.indexToIndexCollection.updateIndexesAfterInsertion(insertionIndex, insertedIndexes);
-    this.skipCollection.updateIndexesAfterInsertion(insertionIndex, insertedIndexes);
+    this.indexToIndexCollection.addIndexes(insertionIndex, insertedIndexes);
+    this.skipCollection.addIndexes(insertionIndex, insertedIndexes);
 
     this.rebuildCache();
   }
 
   /**
-   * Update indexes after removing some indexes.
+   * Remove some indexes and update value of the previous ones.
    *
-   * @private
    * @param {Array} removedIndexes List of removed indexes.
    */
-  updateIndexesAfterRemoval(removedIndexes) {
-    this.indexToIndexCollection.updateIndexesAfterRemoval(removedIndexes);
-    this.skipCollection.updateIndexesAfterRemoval(removedIndexes);
+  removeIndexes(removedIndexes) {
+    this.indexToIndexCollection.removeIndexes(removedIndexes);
+    this.skipCollection.removeIndexes(removedIndexes);
 
     this.rebuildCache();
   }

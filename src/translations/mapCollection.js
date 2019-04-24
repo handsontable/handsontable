@@ -38,26 +38,26 @@ class MapCollection {
   }
 
   /**
-   * Update indexes after removing some indexes.
+   * Remove some indexes and update value of the previous ones.
    *
    * @private
    * @param {Array} removedIndexes List of removed indexes.
    */
-  updateIndexesAfterRemoval(removedIndexes) {
+  removeIndexes(removedIndexes) {
     this.mappings.forEach((list) => {
       list.removeValuesAndReorganize(removedIndexes);
     });
   }
 
   /**
-   * Update indexes after inserting new indexes.
+   * Insert new indexes and update value of the previous ones.
    *
    * @private
    * @param {Number} firstInsertedVisualIndex First inserted visual index.
    * @param {Number} firstInsertedPhysicalIndex First inserted physical index.
    * @param {Number} amountOfIndexes Amount of inserted indexes.
    */
-  updateIndexesAfterInsertion(insertionIndex, insertedIndexes) {
+  addIndexes(insertionIndex, insertedIndexes) {
     this.mappings.forEach((list) => {
       list.addValueAndReorganize(insertionIndex, insertedIndexes);
     });

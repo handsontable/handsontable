@@ -327,7 +327,7 @@ class DataMap {
       numberOfCreatedRows += 1;
     }
 
-    this.instance.recordTranslator.getRowIndexMapper().updateIndexesAfterInsertion(rowIndex, physicalRowIndex, amount);
+    this.instance.recordTranslator.getRowIndexMapper().addIndexes(rowIndex, physicalRowIndex, amount);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -391,7 +391,7 @@ class DataMap {
       currentIndex += 1;
     }
 
-    this.instance.recordTranslator.getColumnIndexMapper().updateIndexesAfterInsertion(columnIndex, columnIndex, amount);
+    this.instance.recordTranslator.getColumnIndexMapper().addIndexes(columnIndex, columnIndex, amount);
 
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -432,7 +432,7 @@ class DataMap {
 
     // TODO: Function `removeRow` should validate fully, probably above.
     if (rowIndex < this.instance.countRows()) {
-      this.instance.recordTranslator.getRowIndexMapper().updateIndexesAfterRemoval(logicRows);
+      this.instance.recordTranslator.getRowIndexMapper().removeIndexes(logicRows);
     }
 
     this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
@@ -494,7 +494,7 @@ class DataMap {
 
     // TODO: Function `removeCol` should validate fully, probably above.
     if (index < this.instance.countCols()) {
-      this.instance.recordTranslator.getColumnIndexMapper().updateIndexesAfterRemoval(logicColumns);
+      this.instance.recordTranslator.getColumnIndexMapper().removeIndexes(logicColumns);
     }
 
     this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
