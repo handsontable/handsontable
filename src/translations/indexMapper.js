@@ -11,7 +11,7 @@ class IndexMapper {
     this.notSkippedIndexesCache = null;
     this.skippedIndexesCache = null;
 
-    this.skipCollection.addLocalHook('collectionChanged', () => this.rebuildCache());
+    this.skipCollection.addLocalHook('collectionChanged', () => this.rebuildAllIndexesCache());
   }
 
   /**
@@ -59,7 +59,7 @@ class IndexMapper {
     this.skipCollection.initToLength(length);
     this.variousMappingsCollection.initToLength(length);
 
-    this.rebuildCache();
+    this.rebuildAllIndexesCache();
   }
 
   /**
@@ -185,7 +185,7 @@ class IndexMapper {
   }
 
   /**
-   * Insert new indexes and update value of the previous ones.
+   * Insert new indexes and corresponding mapping and update values of the previous ones.
    *
    * @param {Number} firstInsertedVisualIndex First inserted visual index.
    * @param {Number} firstInsertedPhysicalIndex First inserted physical index.
@@ -196,22 +196,24 @@ class IndexMapper {
     const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
-    this.indexToIndexCollection.addIndexes(insertionIndex, insertedIndexes);
+    this.indexesSequence.addValueAndReorganize(insertionIndex, insertedIndexes);
     this.skipCollection.addIndexes(insertionIndex, insertedIndexes);
+    this.variousMappingsCollection.addIndexes(insertionIndex, insertedIndexes);
 
-    this.rebuildCache();
+    this.rebuildAllIndexesCache();
   }
 
   /**
-   * Remove some indexes and update value of the previous ones.
+   * Remove some indexes and corresponding mappings and update values of the previous ones.
    *
    * @param {Array} removedIndexes List of removed indexes.
    */
   removeIndexes(removedIndexes) {
-    this.indexToIndexCollection.removeIndexes(removedIndexes);
+    this.indexesSequence.removeValuesAndReorganize(removedIndexes);
     this.skipCollection.removeIndexes(removedIndexes);
+    this.variousMappingsCollection.removeIndexes(removedIndexes);
 
-    this.rebuildCache();
+    this.rebuildAllIndexesCache();
   }
 
   /**
@@ -231,7 +233,7 @@ class IndexMapper {
   /**
    * Rebuild cache for all indexes.
    */
-  rebuildCache() {
+  rebuildAllIndexesCache() {
     this.rebuildSkippedIndexesCache();
     this.rebuildNotSkippedIndexesCache();
   }
