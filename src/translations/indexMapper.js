@@ -2,17 +2,16 @@ import { arrayFilter, arrayMap, arrayReduce, pivot } from './../helpers/array';
 import IndexMap from './maps/indexMap';
 import MapCollection from './mapCollection';
 
-const INDEXES_SEQUENCE_KEY = 'sequence';
-
 class IndexMapper {
   constructor() {
-    this.indexToIndexCollection = new MapCollection([
-      [INDEXES_SEQUENCE_KEY, new IndexMap()],
-    ]);
+    this.indexesSequence = new IndexMap();
+    this.skipCollection = new MapCollection();
+    this.variousMappingsCollection = new MapCollection();
 
-    this.skipCollection = new MapCollection([], () => this.rebuildCache());
     this.notSkippedIndexesCache = null;
     this.skippedIndexesCache = null;
+
+    this.skipCollection.addLocalHook('collectionChanged', () => this.rebuildCache());
   }
 
   /**
@@ -56,8 +55,9 @@ class IndexMapper {
    * @param {Number} [length] Custom generated map length.
    */
   initToLength(length = this.getNumberOfIndexes()) {
-    this.indexToIndexCollection.initToLength(length);
+    this.indexesSequence.init(length);
     this.skipCollection.initToLength(length);
+    this.variousMappingsCollection.initToLength(length);
 
     this.rebuildCache();
   }
@@ -68,7 +68,7 @@ class IndexMapper {
    * @returns {Array}
    */
   getIndexesSequence() {
-    return this.indexToIndexCollection.get(INDEXES_SEQUENCE_KEY).getValues();
+    return this.indexesSequence.getValues();
   }
 
   /**
@@ -77,7 +77,7 @@ class IndexMapper {
    * @param {Array} indexes Physical row indexes.
    */
   setIndexesSequence(indexes) {
-    this.indexToIndexCollection.get(INDEXES_SEQUENCE_KEY).setValues(indexes);
+    this.indexesSequence.setValues(indexes);
 
     this.rebuildNotSkippedIndexesCache();
   }
@@ -132,7 +132,7 @@ class IndexMapper {
   /**
    * Get length of all indexes NOT skipped in the process of rendering.
    *
-   * @returns {Array}
+   * @returns {Number}
    */
   getNotSkippedIndexesLength() {
     return this.getNotSkippedIndexes().length;
@@ -159,7 +159,7 @@ class IndexMapper {
     }
 
     const physicalMovedIndexes = arrayMap(movedIndexes, row => this.getPhysicalIndex(row));
-    const sequenceOfIndexes = this.indexToIndexCollection.get(INDEXES_SEQUENCE_KEY);
+    const sequenceOfIndexes = this.indexesSequence;
 
     sequenceOfIndexes.filterIndexes(physicalMovedIndexes);
 

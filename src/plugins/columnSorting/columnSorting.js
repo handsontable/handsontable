@@ -152,7 +152,7 @@ class ColumnSorting extends BasePlugin {
       this.enableObserveChangesPlugin();
     }
 
-    this.indexesSequenceCache = this.rowIndexMapper.indexToIndexCollection.register(this.pluginKey, new IndexMap());
+    this.indexesSequenceCache = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey, new IndexMap());
 
     this.addHook('afterGetColHeader', (column, TH) => this.onAfterGetColHeader(column, TH));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, controller) => this.onBeforeOnCellMouseDown(event, coords, TD, controller));

@@ -1,4 +1,6 @@
 import { isUndefined } from '../helpers/mixed';
+import { mixin } from '../helpers/object';
+import localHooks from '../mixins/localHooks';
 
 class MapCollection {
   constructor(entries, onSingleMapChange = () => {}) {
@@ -18,7 +20,7 @@ class MapCollection {
       this.mappings.set(name, map);
     }
 
-    map.addLocalHook('mapChanged', () => this.onSingleMapChange());
+    map.addLocalHook('mapChanged', () => this.runLocalHooks('collectionChanged'));
 
     return this.mappings.get(name);
   }
@@ -74,5 +76,7 @@ class MapCollection {
     });
   }
 }
+
+mixin(MapCollection, localHooks);
 
 export default MapCollection;
