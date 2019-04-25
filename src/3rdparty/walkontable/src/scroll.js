@@ -5,6 +5,9 @@ import {
   getScrollTop,
   offset,
 } from './../../../helpers/dom/element';
+import {
+  rangeEachReverse, rangeEach,
+} from './../../../helpers/number';
 
 /**
  * @class Scroll
@@ -60,8 +63,7 @@ class Scroll {
     if (column >= 0 && column <= Math.max(totalColumns - 1, 0)) {
       if (column >= fixedColumnsLeft && (column < this.getFirstVisibleColumn() || snapToLeft)) {
         result = leftOverlay.scrollTo(column);
-      // } else if (column > this.getLastVisibleColumn() || snapToRight) {
-      } else if (column >= this.getLastVisibleColumn() || snapToRight) {
+      } else if (column > this.getLastVisibleColumn() || snapToRight) {
         result = leftOverlay.scrollTo(column, true);
       }
     }
@@ -93,8 +95,7 @@ class Scroll {
     if (row >= 0 && row <= Math.max(totalRows - 1, 0)) {
       if (row >= fixedRowsTop && (row < this.getFirstVisibleRow() || snapToTop)) {
         result = topOverlay.scrollTo(row);
-      // } else if ((row > this.getLastVisibleRow() && row < totalRows - fixedRowsBottom) || snapToBottom) {
-      } else if ((row >= this.getLastVisibleRow() && row < totalRows - fixedRowsBottom) || snapToBottom) {
+      } else if ((row > this.getLastVisibleRow() && row < totalRows - fixedRowsBottom) || snapToBottom) {
         result = topOverlay.scrollTo(row, true);
       }
     }
@@ -140,17 +141,6 @@ class Scroll {
             break;
           }
         }
-
-        // rangeEachReverse(totalRows, 1, (row) => {
-        //   rowsHeight += topOverlay.sumCellSizes(row - 1, row);
-        //
-        //   if (rootElementOffset.top + totalTableHeight - rowsHeight <= windowScrollTop) {
-        //     // Return physical row + 1
-        //     firstVisibleRow = row;
-        //
-        //     return false;
-        //   }
-        // });
       }
     }
 
@@ -191,17 +181,6 @@ class Scroll {
             break;
           }
         }
-
-        // rangeEach(1, totalRows, (row) => {
-        //   rowsHeight += topOverlay.sumCellSizes(row - 1, row);
-        //
-        //   if (rootElementOffset.top + rowsHeight - windowScrollTop >= windowHeight) {
-        //     // Return physical row - 1 (-2 because rangeEach gives row index + 1 - sumCellSizes requirements)
-        //     lastVisibleRow = row - 2;
-        //
-        //     return false;
-        //   }
-        // });
       }
     }
 
@@ -243,17 +222,6 @@ class Scroll {
             break;
           }
         }
-
-        // rangeEachReverse(totalColumns, 1, (column) => {
-        //   columnsWidth += leftOverlay.sumCellSizes(column - 1, column);
-        //
-        //   if (rootElementOffset.left + totalTableWidth - columnsWidth <= windowScrollLeft) {
-        //     // Return physical column + 1
-        //     firstVisibleColumn = column;
-        //
-        //     return false;
-        //   }
-        // });
       }
     }
 
@@ -295,17 +263,6 @@ class Scroll {
             break;
           }
         }
-
-        // rangeEach(1, totalColumns, (column) => {
-        //   columnsWidth += leftOverlay.sumCellSizes(column - 1, column);
-        //
-        //   if (rootElementOffset.left + columnsWidth - windowScrollLeft >= windowWidth) {
-        //     // Return physical column - 1 (-2 because rangeEach gives column index + 1 - sumCellSizes requirements)
-        //     lastVisibleColumn = column - 2;
-        //
-        //     return false;
-        //   }
-        // });
       }
     }
 

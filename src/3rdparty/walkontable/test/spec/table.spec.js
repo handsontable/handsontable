@@ -407,17 +407,19 @@ describe('WalkontableTable', () => {
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
         count += 1;
-        return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+        wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportRowCalculatorOverride(calc) {
         calc.endRow += 10;
       }
     });
     wt.draw();
+
     const oldCount = count;
 
     wt.scrollViewportVertically(8);
     wt.draw(true);
+
     expect(count).not.toBeGreaterThan(oldCount);
   });
 
@@ -430,21 +432,24 @@ describe('WalkontableTable', () => {
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
         count += 1;
-        return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+        wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportRowCalculatorOverride(calc) {
         calc.endRow += 10;
       }
     });
     wt.draw();
+
     const oldCount = count;
 
     wt.scrollViewportVertically(10);
     wt.draw(true);
+
     expect(count).not.toBeGreaterThan(oldCount);
 
     wt.scrollViewportVertically(getTotalRows() - 1);
     wt.draw(true);
+
     expect(count).toBeGreaterThan(oldCount);
   });
 
@@ -458,7 +463,7 @@ describe('WalkontableTable', () => {
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
         count += 1;
-        return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+        wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportColumnCalculatorOverride(calc) {
         calc.endColumn += 10;
@@ -483,22 +488,24 @@ describe('WalkontableTable', () => {
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
         count += 1;
-
-        return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+        wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportColumnCalculatorOverride(calc) {
         calc.endColumn += 10;
       }
     });
     wt.draw();
+
     const oldCount = count;
 
     wt.scrollViewportHorizontally(10);
     wt.draw(true);
+
     expect(count).not.toBeGreaterThan(oldCount);
 
-    wt.scrollViewportHorizontally(11);
+    wt.scrollViewportHorizontally(12);
     wt.draw(true);
+
     expect(count).toBeGreaterThan(oldCount);
   });
 

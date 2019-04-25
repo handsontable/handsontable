@@ -44,22 +44,12 @@ export default class OrderView {
     return length > 0 ? this.collectedNodes[length - 1] : null;
   }
 
-  start(is) {
-    // @TODO(perf-tip): If view axis position doesn't change this can be optimized to reuse previously collected nodes.
+  start() {
+    // @TODO(perf-tip): If view axis position doesn't change (scroll in a different direction) this can be
+    // optimized by reusing previously collected nodes.
     this.collectedNodes.length = 0;
     this.staleNodeIndexes.length = 0;
-
     this.leads = this.viewDiffer.diff();
-
-    this.is = is;
-
-    if (this.is) {
-      // console.log(
-      //   'START', this.leads.toString(),
-      //   'CURRENT', this.viewDiffer.currentOffset, this.viewDiffer.currentViewSize,
-      //   'NEXT', this.viewDiffer.nextOffset, this.viewDiffer.nextViewSize,
-      // );
-    }
   }
 
   render() {
@@ -80,6 +70,7 @@ export default class OrderView {
     switch (name) {
       case 'insert':
         rootNode.insertBefore(node, this.nodesPool(nodePrevIndex));
+        // To keep the constant length of child nodes remove the last child
         rootNode.removeChild(this.nodesPool(nodeIndexToRemove));
         break;
       case 'append':
@@ -87,7 +78,6 @@ export default class OrderView {
         break;
       case 'replace':
         rootNode.replaceChild(node, this.nodesPool(nodePrevIndex));
-        // this.nodesPool(nodePrevIndex).replaceWith(node);
         break;
       case 'remove':
         rootNode.removeChild(node);

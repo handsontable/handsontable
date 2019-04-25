@@ -1,12 +1,3 @@
-import {
-  addClass,
-  empty,
-  getScrollbarWidth,
-  hasClass,
-  innerHeight,
-  outerWidth,
-  // fastInnerHTML,
-} from './../../../../helpers/dom/element';
 import RowHeadersRenderer from './rowHeaders';
 import ColumnHeadersRenderer from './columnHeaders';
 import ColGroupRenderer from './colGroup';
@@ -22,27 +13,26 @@ export default class Renderer {
    * @param {WalkontableTable} wtTable
    */
   constructor(wot, wtTable) {
-    this.wot = wot;
-    this.wtTable = wtTable;
     this.table = new TableRenderer(wtTable.TABLE, {
-      isClone: this.wot.isClone(),
-      totalRows: this.wot.getSetting('totalRows'),
-      cellRenderer: this.wot.wtSettings.settings.cellRenderer,
+      cellRenderer: wot.wtSettings.settings.cellRenderer,
     });
-    this.table.setRenderers({
-      rowHeaders: new RowHeadersRenderer(),
-      columnHeaders: new ColumnHeadersRenderer(wtTable.THEAD),
-      colGroup: new ColGroupRenderer(wtTable.COLGROUP, wtTable.columnUtils),
-      rows: new RowsRenderer(wtTable.TBODY),
-      cells: new CellsRenderer(),
-    })
+    this.table
+      .setRenderers({
+        rowHeaders: new RowHeadersRenderer(),
+        columnHeaders: new ColumnHeadersRenderer(wtTable.THEAD),
+        colGroup: new ColGroupRenderer(wtTable.COLGROUP),
+        rows: new RowsRenderer(wtTable.TBODY),
+        cells: new CellsRenderer(),
+      })
+      .setSize(wot.getSetting('totalRows'), wot.getSetting('totalColumns'))
+      .setAxisUtils(wtTable.rowUtils, wtTable.columnUtils);
   }
 
   /**
    * Set filter calculators for newly calculated row and column position. The filters are used to transform visual
    * indexes (0 to N) to source indexes provided by Handsontable.
    *
-   * @param {ColumnFilter} rowFilter
+   * @param {RowFilter} rowFilter
    * @param {ColumnFilter} columnFilter
    */
   setFilters(rowFilter, columnFilter) {
@@ -52,13 +42,13 @@ export default class Renderer {
   }
 
   /**
-   * Set the target size of the rendered table.
+   * Set the viewport size of the rendered table.
    *
    * @param {Number} rowsCount An amount of rows to render.
    * @param {Number} columnsCount An amount of columns to render.
    */
-  setSize(rowsCount, columnsCount) {
-    this.table.setSize(rowsCount, columnsCount);
+  setViewportSize(rowsCount, columnsCount) {
+    this.table.setViewportSize(rowsCount, columnsCount);
 
     return this;
   }

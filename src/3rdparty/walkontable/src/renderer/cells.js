@@ -1,5 +1,4 @@
 import {
-  addClass,
   hasClass,
 } from './../../../../helpers/dom/element';
 import OrderView from '../utils/orderView';
@@ -56,12 +55,12 @@ export default class CellsRenderer extends BaseRenderer {
         const TD = orderView.getCurrentNode();
         const hasStaleContent = hasStaleRowContent || orderView.hasStaleContent(sourceColumnIndex);
 
-        if (hasStaleContent) {
+        // if (hasStaleContent) {
           if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
             TD.className = '';
           }
           TD.removeAttribute('style');
-        }
+        // }
 
         this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD, hasStaleContent);
       }

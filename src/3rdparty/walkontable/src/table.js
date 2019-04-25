@@ -18,6 +18,7 @@ import RowFilter from './filter/row';
 import TableRenderer from './renderer';
 import Overlay from './overlay/_base';
 import ColumnUtils from './utils/column';
+import RowUtils from './utils/row';
 
 /**
  *
@@ -59,6 +60,7 @@ class Table {
     this.wot.wtSettings.settings.rowHeaderWidth = () => this._modifyRowHeaderWidth(origRowHeaderWidth);
 
     this.columnUtils = new ColumnUtils(this.wot);
+    this.rowUtils = new RowUtils(this.wot);
     this.tableRenderer = new TableRenderer(this.wot, this);
   }
 
@@ -100,7 +102,7 @@ class Table {
     const parent = table.parentNode;
     let spreader;
 
-    if (!parent || parent.nodeType !== 1 || !hasClass(parent, 'wtHolder')) {
+    if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent, 'wtHolder')) {
       spreader = this.wot.rootDocument.createElement('div');
       spreader.className = 'wtSpreader';
 
@@ -303,15 +305,26 @@ class Table {
           this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
         }
 
-        this.columnUtils.calculateWidths();
+        // this.columnUtils.calculateWidths();
 
         this.tableRenderer
-          .setSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
+          .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
           .setFilters(this.rowFilter, this.columnFilter)
           .render();
 
-        // TODO: Temp
-        this.wot.wtViewport.oversizedRows = [];
+        // Necessary to refresh oversized row heights after editing cell in overlays
+        if (!this.wot.getSetting('externalRowCalculator') && (!isClone || this.wot.isOverlayName(Overlay.CLONE_BOTTOM))) {
+          const rowsToRender = this.getRenderedRowsCount();
+
+          // Reset the oversized row cache for rendered rows
+          for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
+            const sourceRow = this.rowFilter.renderedToSource(visibleRowIndex);
+
+            if (this.wot.wtViewport.oversizedRows && this.wot.wtViewport.oversizedRows[sourceRow]) {
+              this.wot.wtViewport.oversizedRows[sourceRow] = void 0;
+            }
+          }
+        }
         // end
 
         let workspaceWidth;
@@ -323,13 +336,10 @@ class Table {
 
         this.columnUtils.calculateWidths();
 
-        // TODO: Temp
+        // Moved from this.markOversizedColumnHeaders
         const overlayName = this.wot.getOverlayName();
 
-        // if (!this.columnHeaderCount || this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] || this.wtTable.isWorkingOnClone()) {
-          // return;
-        // }
-        if (columnHeadersCount && !this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] && isClone) {
+        if (columnHeadersCount && !this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] && !isClone) {
           const columnCount = this.getRenderedColumnsCount();
           const rowHeaderCount = rowHeaders.length;
 
@@ -337,15 +347,12 @@ class Table {
             for (let renderedColumnIndex = (-1) * rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
               this.markIfOversizedColumnHeader(renderedColumnIndex);
             }
-            // for (let renderedColumnIndex = 0; renderedColumnIndex < columnCount; renderedColumnIndex++) {
-              // this.markIfOversizedColumnHeader(renderedColumnIndex);
-            // }
           }
           this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] = true;
         }
         // end
 
-        // TODO: Temp
+        // Moved from this.adjustColumnHeaderHeights
         {
           const columnHeaders = this.wot.getSetting('columnHeaders');
           const children = this.wot.wtTable.THEAD.childNodes;
@@ -377,7 +384,6 @@ class Table {
           if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
             // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
             this.columnUtils.calculateWidths();
-            // this.tableRenderer.refresh();
             this.tableRenderer.table.colGroup.render();
           }
 
@@ -385,7 +391,7 @@ class Table {
             // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
             this.wot.wtViewport.containerWidth = null;
             this.columnUtils.calculateWidths();
-            this.tableRenderer.table.colGroup.render(); // ???
+            this.tableRenderer.table.colGroup.render();
           }
 
           this.wot.getSetting('onDraw', true);
@@ -830,34 +836,6 @@ class Table {
     return this.wot.getSetting('totalRows') === this.getVisibleRowsCount();
   }
 
-  /**
-   * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height
-   *
-   * @param {Number} sourceRow
-   * @returns {Number}
-   */
-  getRowHeight(sourceRow) {
-    let height = this.wot.wtSettings.settings.rowHeight(sourceRow);
-    const oversizedHeight = this.wot.wtViewport.oversizedRows[sourceRow];
-
-    if (oversizedHeight !== void 0) {
-      height = height === void 0 ? oversizedHeight : Math.max(height, oversizedHeight);
-    }
-
-    return height;
-  }
-
-  getColumnHeaderHeight(level) {
-    let height = this.wot.wtSettings.settings.defaultRowHeight;
-    const oversizedHeight = this.wot.wtViewport.oversizedColumnHeaders[level];
-
-    if (oversizedHeight !== void 0) {
-      height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
-    }
-
-    return height;
-  }
-
   getVisibleColumnsCount() {
     return this.wot.wtViewport.columnsVisibleCalculator.count;
   }
@@ -866,33 +844,26 @@ class Table {
     return this.wot.getSetting('totalColumns') === this.getVisibleColumnsCount();
   }
 
+  /**
+   * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height
+   *
+   * @param {Number} sourceRow
+   * @returns {Number}
+   */
+  getRowHeight(sourceRow) {
+    return this.rowUtils.getHeight(sourceRow);
+  }
+
+  getColumnHeaderHeight(level) {
+    return this.columnUtils.getHeaderHeight(level);
+  }
+
   getColumnWidth(sourceColumn) {
-    let width = this.wot.wtSettings.settings.columnWidth;
-
-    if (typeof width === 'function') {
-      width = width(sourceColumn);
-
-    } else if (typeof width === 'object') {
-      width = width[sourceColumn];
-    }
-
-    return width || this.wot.wtSettings.settings.defaultColumnWidth;
+    return this.columnUtils.getWidth(sourceColumn);
   }
 
   getStretchedColumnWidth(sourceColumn) {
-    const columnWidth = this.getColumnWidth(sourceColumn);
-    let width = (columnWidth === null || columnWidth === void 0) ? this.instance.wtSettings.settings.defaultColumnWidth : columnWidth;
-    const calculator = this.wot.wtViewport.columnsRenderCalculator;
-
-    if (calculator) {
-      const stretchedWidth = calculator.getStretchedColumnWidth(sourceColumn, width);
-
-      if (stretchedWidth) {
-        width = stretchedWidth;
-      }
-    }
-
-    return width;
+    return this.columnUtils.getStretchedColumnWidth(sourceColumn);
   }
 
   /**

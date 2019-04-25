@@ -1,3 +1,5 @@
+import { RENDER_TYPE, FULLY_VISIBLE_TYPE, PARTIALLY_VISIBLE_TYPE } from './constants';
+
 const privatePool = new WeakMap();
 
 /**
@@ -17,23 +19,32 @@ class ViewportRowsCalculator {
   }
 
   /**
-   * @param {Number} viewportHeight Height of the viewport
-   * @param {Number} scrollOffset Current vertical scroll position of the viewport
-   * @param {Number} totalRows Total number of rows
-   * @param {Function} rowHeightFn Function that returns the height of the row at a given index (in px)
-   * @param {Function} overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
-   * @param {Boolean} onlyFullyVisible if `true`, only startRow and endRow will be indexes of rows that are fully in viewport
-   * @param {Number} horizontalScrollbarHeight
+   * @param {Object} options Object with all options specyfied for row viewport calculation.
+   * @param {Number} options.viewportHeight Height of the viewport
+   * @param {Number} options.scrollOffset Current vertical scroll position of the viewport
+   * @param {Number} options.totalRows Total number of rows
+   * @param {Function} options.rowHeightFn Function that returns the height of the row at a given index (in px)
+   * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
+   * @param {String} options.calculationType String which describes types of calculation which will be performed.
+   * @param {Number} options.horizontalScrollbarHeight
    */
-  constructor(viewportHeight, scrollOffset, totalRows, rowHeightFn, overrideFn, onlyFullyVisible, horizontalScrollbarHeight) {
+  constructor({
+    viewportSize,
+    scrollOffset,
+    totalItems,
+    itemSizeFn,
+    overrideFn,
+    calculationType,
+    scrollbarHeight
+  } = {}) {
     privatePool.set(this, {
-      viewportHeight,
+      viewportHeight: viewportSize,
       scrollOffset,
-      totalRows,
-      rowHeightFn,
+      totalRows: totalItems,
+      rowHeightFn: itemSizeFn,
       overrideFn,
-      onlyFullyVisible,
-      horizontalScrollbarHeight
+      calculationType,
+      horizontalScrollbarHeight: scrollbarHeight
     });
 
     /**
@@ -76,7 +87,7 @@ class ViewportRowsCalculator {
     const startPositions = [];
 
     const priv = privatePool.get(this);
-    const onlyFullyVisible = priv.onlyFullyVisible;
+    const calculationType = priv.calculationType;
     const overrideFn = priv.overrideFn;
     const rowHeightFn = priv.rowHeightFn;
     const scrollOffset = priv.scrollOffset;
@@ -92,15 +103,11 @@ class ViewportRowsCalculator {
       if (isNaN(rowHeight)) {
         rowHeight = ViewportRowsCalculator.DEFAULT_HEIGHT;
       }
-      if (sum <= scrollOffset && !onlyFullyVisible) {
-      // Calculate the first visible row index includes that row which is only partially visible.
-      // if (sum <= scrollOffset) {
+      if (sum <= scrollOffset && calculationType !== FULLY_VISIBLE_TYPE) {
         this.startRow = i;
       }
 
-      if (sum >= scrollOffset && sum + rowHeight <= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
-      // Calculate the last visible row index includes that row which is only partially visible.
-      // if (sum >= scrollOffset && sum <= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
+      if (sum >= scrollOffset && sum + (calculationType === FULLY_VISIBLE_TYPE ? rowHeight : 0) <= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
         if (this.startRow === null) {
           this.startRow = i;
         }
@@ -110,7 +117,7 @@ class ViewportRowsCalculator {
       startPositions.push(sum);
       sum += rowHeight;
 
-      if (!onlyFullyVisible) {
+      if (calculationType !== FULLY_VISIBLE_TYPE) {
         this.endRow = i;
       }
       if (sum >= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
@@ -128,7 +135,7 @@ class ViewportRowsCalculator {
         // rowHeight is the height of the last row
         const viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1];
 
-        if (viewportSum <= viewportHeight - horizontalScrollbarHeight || !onlyFullyVisible) {
+        if (viewportSum <= viewportHeight - horizontalScrollbarHeight || calculationType !== FULLY_VISIBLE_TYPE) {
           this.startRow -= 1;
         }
         if (viewportSum >= viewportHeight - horizontalScrollbarHeight) {
@@ -137,7 +144,7 @@ class ViewportRowsCalculator {
       }
     }
 
-    if (this.startRow !== null && overrideFn) {
+    if (calculationType === RENDER_TYPE && this.startRow !== null && overrideFn) {
       overrideFn(this);
     }
     this.startPosition = startPositions[this.startRow];
@@ -145,6 +152,12 @@ class ViewportRowsCalculator {
     if (this.startPosition === void 0) {
       this.startPosition = null;
     }
+
+    // If endRow exceeded its total rows size set endRow to the latest item
+    if (totalRows < this.endRow) {
+      this.endRow = totalRows - 1;
+    }
+
     if (this.startRow !== null) {
       this.count = this.endRow - this.startRow + 1;
     }

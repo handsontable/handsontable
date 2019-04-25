@@ -249,7 +249,7 @@ describe('Core_loadData', () => {
       rowHeights: [23, 23, 23, 23],
       cells: cellsSpy
     });
-    //
+
     expect(cellsSpy.calls.count()).toEqual(43);
   });
 

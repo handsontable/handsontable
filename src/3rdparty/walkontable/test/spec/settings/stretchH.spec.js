@@ -62,17 +62,20 @@ describe('stretchH option', () => {
     wt.draw();
 
     const initialTableWidth = $table.outerWidth();
+
     expect(initialTableWidth).toBeAroundValue($table[0].clientWidth);
 
     $wrapper.width(600).height(500);
 
     const evt = document.createEvent('CustomEvent'); // MUST be 'CustomEvent'
+
     evt.initCustomEvent('resize', false, false, null);
     window.dispatchEvent(evt);
 
     await sleep(300);
 
     const currentTableWidth = $table.outerWidth();
+
     expect(currentTableWidth).toBeAroundValue($table[0].clientWidth);
     expect(currentTableWidth).toBeGreaterThan(initialTableWidth);
   });
@@ -104,6 +107,7 @@ describe('stretchH option', () => {
     expectedColWidth = Math.floor(expectedColWidth);
 
     const wtHider = $table.parents('.wtHider');
+
     expect(wtHider.find('col:eq(0)').width()).toBeAroundValue(expectedColWidth);
     expect(wtHider.find('col:eq(1)').width() - expectedColWidth).toBeInArray([0, 1]); // fix differences between Mac and Linux PhantomJS
   });

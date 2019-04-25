@@ -4,7 +4,6 @@ import BaseRenderer from './_base';
 export default class ColumnHeadersRenderer extends BaseRenderer {
   constructor(rootNode) {
     super(rootNode);
-    this.renderedNodes = 0;
   }
 
   adjust() {
@@ -24,12 +23,10 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
         this.renderedNodes = TR.childNodes.length;
 
         while (this.renderedNodes < columnsToRender + rowHeadersCount) {
-        // while (this.renderedNodes < columnsToRender) {
           TR.appendChild(document.createElement('th'));
           this.renderedNodes += 1;
         }
         while (this.renderedNodes > columnsToRender + rowHeadersCount) {
-        // while (this.renderedNodes > columnsToRender) {
           TR.removeChild(TR.lastChild);
           this.renderedNodes -= 1;
         }
@@ -61,11 +58,6 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
         TH.removeAttribute('style');
 
         columnHeaderFunctions[visibleRowIndex](sourceColumnIndex, TH, visibleRowIndex);
-      }
-
-      // ???
-      if (TR.firstChild) {
-        TR.firstChild.style.height = `25px`;
       }
     }
   }

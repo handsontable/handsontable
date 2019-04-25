@@ -26,9 +26,9 @@ export default class RowHeadersRenderer extends BaseRenderer {
   }
 
   render() {
-    const { rowsToRender, columnsToRender, rows, rowHeaderFunctions, rowHeadersCount } = this.table;
+    const { rowsToRender, rows, rowHeaderFunctions, rowHeadersCount } = this.table;
 
-    for (let visibleRowIndex = 0; rowHeadersCount && visibleRowIndex < rowsToRender; visibleRowIndex++) {
+    for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
       const TR = rows.getRenderedNode(visibleRowIndex);
 

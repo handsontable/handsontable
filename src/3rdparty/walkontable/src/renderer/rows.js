@@ -32,7 +32,7 @@ export default class RowsRenderer extends BaseRenderer {
     this.orderView
       .setSize(rowsToRender)
       .setOffset(sourceRowIndex)
-      .start(true);
+      .start();
 
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {

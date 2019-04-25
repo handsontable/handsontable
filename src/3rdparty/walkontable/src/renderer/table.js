@@ -1,5 +1,5 @@
 export default class TableRenderer {
-  constructor(rootNode, { isClone = false, totalRows = 0, cellRenderer = (() => {}) } = {}) {
+  constructor(rootNode, { cellRenderer } = {}) {
     this.rootNode = rootNode;
     // renderers
     this.rowHeaders = null;
@@ -10,6 +10,9 @@ export default class TableRenderer {
     // filters
     this.rowFilter = null;
     this.columnFilter = null;
+    // utils
+    this.rowUtils = null;
+    this.columnUtils = null;
     //
     this.rowsToRender = 0;
     this.columnsToRender = 0;
@@ -17,13 +20,28 @@ export default class TableRenderer {
     this.rowHeadersCount = 0;
     this.columnHeaderFunctions = [];
     this.columnHeadersCount = 0;
+
+    this.totalRows = 0;
+    this.totalColumn = 0;
     // options
-    this.isClone = isClone;
-    this.totalRows = totalRows;
     this.cellRenderer = cellRenderer;
   }
 
-  setSize(rowsCount, columnsCount) {
+  setAxisUtils(rowUtils, columnUtils) {
+    this.rowUtils = rowUtils;
+    this.columnUtils = columnUtils;
+
+    return this;
+  }
+
+  setSize(totalRows, totalColumn) {
+    this.totalRows = totalRows;
+    this.totalColumn = totalColumn;
+
+    return this;
+  }
+
+  setViewportSize(rowsCount, columnsCount) {
     this.rowsToRender = rowsCount;
     this.columnsToRender = columnsCount;
 
@@ -58,6 +76,8 @@ export default class TableRenderer {
     this.colGroup = colGroup;
     this.rows = rows;
     this.cells = cells;
+
+    return this;
   }
 
   renderedRowToSource(rowIndex) {
@@ -79,5 +99,24 @@ export default class TableRenderer {
     this.rows.render();
     this.rowHeaders.render();
     this.cells.render();
+
+    const { rowsToRender, rows } = this;
+
+    // Fix for multi-line content and for supporting `rowHeights` option.
+    for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
+      const TR = rows.getRenderedNode(visibleRowIndex);
+
+      if (TR.firstChild) {
+        const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
+        const rowHeight = this.rowUtils.getHeight(sourceRowIndex);
+
+        if (rowHeight) {
+          // Decrease height. 1 pixel will be "replaced" by 1px border top
+          TR.firstChild.style.height = `${rowHeight - 1}px`;
+        } else {
+          TR.firstChild.style.height = '';
+        }
+      }
+    }
   }
 }

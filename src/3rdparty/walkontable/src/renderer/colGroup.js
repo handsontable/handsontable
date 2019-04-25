@@ -1,10 +1,10 @@
 import BaseRenderer from './_base';
+import { addClass } from './../../../../helpers/dom/element';
 
 export default class ColGroupRenderer extends BaseRenderer {
   constructor(rootNode, columnUtils) {
     super(rootNode);
     this.columnUtils = columnUtils;
-    this.renderedNodes = 0;
   }
 
   adjust() {
@@ -25,18 +25,26 @@ export default class ColGroupRenderer extends BaseRenderer {
 
     const { columnsToRender, rowHeadersCount } = this.table;
 
-    for (let renderedColumnIndex = 0; renderedColumnIndex < rowHeadersCount; renderedColumnIndex++) {
-      const sourceColumn = this.table.renderedColumnToSource(renderedColumnIndex);
-      const width = this.columnUtils.getHeaderWidth(sourceColumn);
+    // Render column nodes for row headers
+    for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {
+      const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
+      const width = this.table.columnUtils.getHeaderWidth(sourceColumnIndex);
 
-      this.rootNode.childNodes[renderedColumnIndex].style.width = `${width}px`;
+      this.rootNode.childNodes[visibleColumnIndex].style.width = `${width}px`;
     }
 
-    for (let renderedColumnIndex = rowHeadersCount; renderedColumnIndex < columnsToRender; renderedColumnIndex++) {
-      const sourceColumn = this.table.renderedColumnToSource(renderedColumnIndex);
-      const width = this.columnUtils.getWidth(sourceColumn);
+    // Render column nodes for cells
+    for (let visibleColumnIndex = 0; visibleColumnIndex < columnsToRender; visibleColumnIndex++) {
+      const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
+      const width = this.table.columnUtils.getStretchedColumnWidth(sourceColumnIndex);
 
-      this.rootNode.childNodes[renderedColumnIndex].style.width = `${width}px`;
+      this.rootNode.childNodes[visibleColumnIndex + rowHeadersCount].style.width = `${width}px`;
+    }
+
+    const firstChild = this.rootNode.firstChild;
+
+    if (firstChild) {
+      addClass(firstChild, 'rowHeader');
     }
   }
 }
