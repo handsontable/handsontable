@@ -26,6 +26,8 @@ class BaseMap {
       return this.initValueOrFn;
     });
 
+    this.runLocalHooks('mapChanged');
+
     return this;
   }
 
@@ -64,7 +66,6 @@ class BaseMap {
    */
   clear() {
     this.init(this.list.length);
-    this.runLocalHooks('mapChanged');
   }
 
   /**

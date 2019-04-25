@@ -22,6 +22,8 @@ class IndexMap extends BaseMap {
   addValueAndReorganize(insertionIndex, insertedIndexes) {
     this.increaseIndexes(insertionIndex, insertedIndexes);
     this.insertIndexes(insertionIndex, insertedIndexes);
+
+    this.runLocalHooks('mapChanged');
   }
 
   /**
@@ -33,6 +35,8 @@ class IndexMap extends BaseMap {
   removeValuesAndReorganize(removedIndexes) {
     this.filterIndexes(removedIndexes);
     this.decreaseIndexes(removedIndexes);
+
+    this.runLocalHooks('mapChanged');
   }
 
   /**

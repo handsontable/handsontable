@@ -59,7 +59,7 @@ class MapCollection {
    * @param {Number} firstInsertedPhysicalIndex First inserted physical index.
    * @param {Number} amountOfIndexes Amount of inserted indexes.
    */
-  addIndexes(insertionIndex, insertedIndexes) {
+  insertIndexes(insertionIndex, insertedIndexes) {
     this.mappings.forEach((list) => {
       list.addValueAndReorganize(insertionIndex, insertedIndexes);
     });

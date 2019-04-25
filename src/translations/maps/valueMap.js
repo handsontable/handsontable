@@ -22,6 +22,8 @@ class ValueMap extends BaseMap {
    */
   addValueAndReorganize(insertionIndex, insertedIndexes) {
     this.insertValues(insertionIndex, insertedIndexes);
+
+    this.runLocalHooks('mapChanged');
   }
 
   /**
@@ -32,6 +34,8 @@ class ValueMap extends BaseMap {
    */
   removeValuesAndReorganize(removedIndexes) {
     this.filterValues(removedIndexes);
+
+    this.runLocalHooks('mapChanged');
   }
 
   /**

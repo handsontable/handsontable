@@ -327,7 +327,7 @@ class DataMap {
       numberOfCreatedRows += 1;
     }
 
-    this.instance.recordTranslator.getRowIndexMapper().addIndexes(rowIndex, physicalRowIndex, amount);
+    this.instance.recordTranslator.getRowIndexMapper().insertIndexes(rowIndex, physicalRowIndex, amount);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -391,7 +391,7 @@ class DataMap {
       currentIndex += 1;
     }
 
-    this.instance.recordTranslator.getColumnIndexMapper().addIndexes(columnIndex, columnIndex, amount);
+    this.instance.recordTranslator.getColumnIndexMapper().insertIndexes(columnIndex, columnIndex, amount);
 
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
