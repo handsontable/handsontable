@@ -209,8 +209,14 @@ export function index(element) {
  * @returns {boolean}
  */
 export function overlayContainsElement(overlayType, element) {
-  const overlayElement = element.ownerDocument.querySelector(`.ht_clone_${overlayType}`);
-  return overlayElement ? overlayElement.contains(element) : null;
+  const overlayElements = element.ownerDocument.querySelectorAll(`.ht_clone_${overlayType}`);
+  for (let overlayElementIndex = 0; overlayElementIndex < overlayElements.length; overlayElementIndex++) {
+    const overlayElement = overlayElements[overlayElementIndex];
+    if (overlayElement.contains(element)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 let _hasClass;
