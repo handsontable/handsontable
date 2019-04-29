@@ -1,35 +1,31 @@
 /*!
- * Copyright (c) HANDSONCODE sp. z o. o.
+ * Copyright (c) Handsoncode sp. z o.o.
  * 
- * HANDSONTABLE is a software distributed by HANDSONCODE sp. z o. o.,
- * a Polish corporation, based in Gdynia, Poland, at 96/98 Aleja Zwycięstwa,
- * registered with the National Court Register under number 538651,
- * EU tax ID number: PL5862294002, share capital: PLN 62,800.00.
+ * This Handsontable Pro is a commercial software distributed by Handsoncode sp.
+ * z o. o., a limited liability company registered under the laws of Poland, with
+ * its registered office in Gdynia, Poland, at 96/98 Aleja Zwycięstwa, postal
+ * code 81-451, entered into the Entrepreneurs Register of the National Court
+ * Register under number 0000538651, share capital: PLN 62,800.00., hereinafter
+ * referred to as "HANDSONCODE".
  * 
- * This software is protected by applicable copyright laws, including
- * international treaties, and dual-licensed – depending on whether
- * your use is intended for or may result in commercial advantage
- * or monetary compensation (commercial purposes), or not.
+ * By installing, copying, or otherwise using this software, you agree to be
+ * bound by the terms of its General Software License Terms ("Terms") outlined in
+ * a file available in the "/licenses/Pro/handsontable-pro-general-terms.pdf"
+ * directory of the software repository. This software is copyrighted and
+ * protected by copyright laws and international treaties. You shall obtain a
+ * commercial license for this software at handsontable.com.
  * 
- * If your use involves only such purposes as research, private study,
- * evaluation and the like, you agree to be bound by the terms included
- * in the “handsontable-non-commercial-license.pdf” file, available
- * in the main directory of this software repository.
+ * YOU EXPRESSLY ACKNOWLEDGE AND AGREE THAT USE OF THE SOFTWARE IS AT YOUR OWN
+ * RISK AND THAT THE SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTIES OR
+ * CONDITIONS WHATSOEVER. HANDSONCODE EXPRESSLY DISCLAIMS ANY WARRANTY, EXPRESS
+ * OR IMPLIED, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGMENT.
+ * HANDSONCODE DOES NOT WARRANT THAT THE SOFTWARE AND ITS FUNCTIONALITY,
+ * RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION
+ * OF THE SOFTWARE WILL BE UNINTERRUPTED OR ERROR FREE.
  * 
- * By installing, copying, or otherwise using this software for
- * commercial purposes, you agree to be bound by the terms included
- * in the “handsontable-general-terms.pdf” file, available in the main
- * directory of this software repository.
- * 
- * HANDSONCODE PROVIDES THIS SOFTWARE ON AN “AS IS” BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND. IN NO EVENT
- * AND UNDER NO LEGAL THEORY, SHALL HANDSONCODE BE LIABLE
- * TO YOU FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT, SPECIAL,
- * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
- * FROM USE OR INABILITY TO USE THIS SOFTWARE.
- * 
- * Version: 7.0.2
- * Release date: 09/04/2019 (built at 29/04/2019 10:53:29)
+ * Version: 6.2.1
+ * Release date: 12/12/2018 (built at 11/04/2019 08:31:16)
  */
 /**
  * Fix for bootstrap styles
@@ -96,7 +92,6 @@
 .handsontable .table-striped > tbody > tr:nth-of-type(even) {
   background-color: #FFF;
 }
-
 .handsontable {
   position: relative;
 }
@@ -280,7 +275,7 @@
 
 /* row + column resizer*/
 .handsontable .manualColumnResizer {
-  position: absolute;
+  position: fixed;
   top: 0;
   cursor: col-resize;
   z-index: 110;
@@ -289,7 +284,7 @@
 }
 
 .handsontable .manualRowResizer {
-  position: absolute;
+  position: fixed;
   left: 0;
   cursor: row-resize;
   z-index: 110;
@@ -305,7 +300,7 @@
 }
 
 .handsontable .manualColumnResizerGuide {
-  position: absolute;
+  position: fixed;
   right: 0;
   top: 0;
   background-color: #34a9db;
@@ -316,7 +311,7 @@
 }
 
 .handsontable .manualRowResizerGuide {
-  position: absolute;
+  position: fixed;
   left: 0;
   bottom: 0;
   background-color: #34a9db;
@@ -863,7 +858,6 @@ thead .htCollapseButton:after {
 .ht_clone_bottom .wtHolder {
   overflow: hidden;
 }
-
 /*
 
  Handsontable Mobile Text Editor stylesheet
@@ -980,7 +974,7 @@ thead .htCollapseButton:after {
 }
 
 .htMobileEditorContainer .moveHandle:after {
-  content: "..\a..\a..\a..";
+  content: "..\A..\A..\A..";
   white-space: pre;
   line-height: 10px;
   font-size: 20pt;
@@ -1079,230 +1073,6 @@ thead .htCollapseButton:after {
   animation-fill-mode: forwards;
   -webkit-animation-fill-mode: forwards;
 }
-
-@charset "UTF-8";
-
-/*!
- * Pikaday
- * Copyright © 2014 David Bushell | BSD & MIT license | http://dbushell.com/
- */
-
-.pika-single {
-    z-index: 9999;
-    display: block;
-    position: relative;
-    color: #333;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-bottom-color: #bbb;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-}
-
-/*
-clear child float (pika-lendar), using the famous micro clearfix hack
-http://nicolasgallagher.com/micro-clearfix-hack/
-*/
-.pika-single:before,
-.pika-single:after {
-    content: " ";
-    display: table;
-}
-.pika-single:after { clear: both }
-.pika-single { *zoom: 1 }
-
-.pika-single.is-hidden {
-    display: none;
-}
-
-.pika-single.is-bound {
-    position: absolute;
-    box-shadow: 0 5px 15px -5px rgba(0,0,0,.5);
-}
-
-.pika-lendar {
-    float: left;
-    width: 240px;
-    margin: 8px;
-}
-
-.pika-title {
-    position: relative;
-    text-align: center;
-}
-
-.pika-label {
-    display: inline-block;
-    *display: inline;
-    position: relative;
-    z-index: 9999;
-    overflow: hidden;
-    margin: 0;
-    padding: 5px 3px;
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: bold;
-    background-color: #fff;
-}
-.pika-title select {
-    cursor: pointer;
-    position: absolute;
-    z-index: 9998;
-    margin: 0;
-    left: 0;
-    top: 5px;
-    filter: alpha(opacity=0);
-    opacity: 0;
-}
-
-.pika-prev,
-.pika-next {
-    display: block;
-    cursor: pointer;
-    position: relative;
-    outline: none;
-    border: 0;
-    padding: 0;
-    width: 20px;
-    height: 30px;
-    /* hide text using text-indent trick, using width value (it's enough) */
-    text-indent: 20px;
-    white-space: nowrap;
-    overflow: hidden;
-    background-color: transparent;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-size: 75% 75%;
-    opacity: .5;
-    *position: absolute;
-    *top: 0;
-}
-
-.pika-prev:hover,
-.pika-next:hover {
-    opacity: 1;
-}
-
-.pika-prev,
-.is-rtl .pika-next {
-    float: left;
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAAUklEQVR42u3VMQoAIBADQf8Pgj+OD9hG2CtONJB2ymQkKe0HbwAP0xucDiQWARITIDEBEnMgMQ8S8+AqBIl6kKgHiXqQqAeJepBo/z38J/U0uAHlaBkBl9I4GwAAAABJRU5ErkJggg==');
-    *left: 0;
-}
-
-.pika-next,
-.is-rtl .pika-prev {
-    float: right;
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAAU0lEQVR42u3VOwoAMAgE0dwfAnNjU26bYkBCFGwfiL9VVWoO+BJ4Gf3gtsEKKoFBNTCoCAYVwaAiGNQGMUHMkjGbgjk2mIONuXo0nC8XnCf1JXgArVIZAQh5TKYAAAAASUVORK5CYII=');
-    *right: 0;
-}
-
-.pika-prev.is-disabled,
-.pika-next.is-disabled {
-    cursor: default;
-    opacity: .2;
-}
-
-.pika-select {
-    display: inline-block;
-    *display: inline;
-}
-
-.pika-table {
-    width: 100%;
-    border-collapse: collapse;
-    border-spacing: 0;
-    border: 0;
-}
-
-.pika-table th,
-.pika-table td {
-    width: 14.285714285714286%;
-    padding: 0;
-}
-
-.pika-table th {
-    color: #999;
-    font-size: 12px;
-    line-height: 25px;
-    font-weight: bold;
-    text-align: center;
-}
-
-.pika-button {
-    cursor: pointer;
-    display: block;
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    outline: none;
-    border: 0;
-    margin: 0;
-    width: 100%;
-    padding: 5px;
-    color: #666;
-    font-size: 12px;
-    line-height: 15px;
-    text-align: right;
-    background: #f5f5f5;
-}
-
-.pika-week {
-    font-size: 11px;
-    color: #999;
-}
-
-.is-today .pika-button {
-    color: #33aaff;
-    font-weight: bold;
-}
-
-.is-selected .pika-button {
-    color: #fff;
-    font-weight: bold;
-    background: #33aaff;
-    box-shadow: inset 0 1px 3px #178fe5;
-    border-radius: 3px;
-}
-
-.is-inrange .pika-button {
-    background: #D5E9F7;
-}
-
-.is-startrange .pika-button {
-    color: #fff;
-    background: #6CB31D;
-    box-shadow: none;
-    border-radius: 3px;
-}
-
-.is-endrange .pika-button {
-    color: #fff;
-    background: #33aaff;
-    box-shadow: none;
-    border-radius: 3px;
-}
-
-.is-disabled .pika-button,
-.is-outside-current-month .pika-button {
-    pointer-events: none;
-    cursor: default;
-    color: #999;
-    opacity: .3;
-}
-
-.pika-button:hover {
-    color: #fff;
-    background: #ff8000;
-    box-shadow: none;
-    border-radius: 3px;
-}
-
-/* styling for abbr */
-.pika-table abbr {
-    border-bottom: none;
-    cursor: help;
-}
-
-
 .htCommentCell {
     position: relative;
 }
@@ -1342,7 +1112,6 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px, inset 0 0 0 1px #5292f7;
     border-left: 3px solid #5292f7;
 }
-
 /*!
  * Handsontable ContextMenu
  */
@@ -1430,7 +1199,6 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .htContextMenu .ht_master .wtHolder {
   overflow: hidden;
 }
-
 textarea#HandsontableCopyPaste {
   position: fixed !important;
   top: 0 !important;
@@ -1439,12 +1207,10 @@ textarea#HandsontableCopyPaste {
   opacity: 0;
   outline: 0 none !important;
 }
-
 .htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_top_left_corner th:nth-child(2),
 .htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_left td:first-of-type {
   border-left: 0 none;
 }
-
 .handsontable .wtHider {
   position: relative;
 }
@@ -1488,7 +1254,6 @@ textarea#HandsontableCopyPaste {
 .handsontable.on-moving--columns .ht__manualColumnMove--backlight {
   display: block;
 }
-
 .handsontable .wtHider {
   position: relative;
 }
@@ -1532,7 +1297,6 @@ textarea#HandsontableCopyPaste {
 .handsontable.on-moving--rows .ht__manualRowMove--backlight {
   display: block;
 }
-
 .handsontable tbody td[rowspan][class*="area"][class*="highlight"]:not([class*="fullySelectedMergedCell"]):before {
     opacity: 0;
 }
@@ -1572,7 +1336,6 @@ textarea#HandsontableCopyPaste {
 .handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-7"]:before {
     opacity: 0.58;
 }
-
 /*!
  * Handsontable DropdownMenu
  */
@@ -1588,7 +1351,7 @@ textarea#HandsontableCopyPaste {
   float: right;
 }
 .handsontable .changeType:before {
-  content: '\25BC\ ';
+  content: '\25BC   ';
 }
 
 .handsontable .changeType:hover {
@@ -1679,7 +1442,6 @@ textarea#HandsontableCopyPaste {
 .htDropdownMenu .ht_master .wtHolder {
   overflow: hidden;
 }
-
 /* Column's number position */
 .handsontable span.colHeader.columnSorting::after {
   /* Centering start */
@@ -1740,7 +1502,6 @@ textarea#HandsontableCopyPaste {
 .htGhostTable th div button.changeType + span.colHeader.columnSorting:not(.indicatorDisabled) {
   padding-right: 5px;
 }
-
 /*!
  * Handsontable Filters
  */
@@ -2020,7 +1781,6 @@ textarea#HandsontableCopyPaste {
 .handsontable .htFiltersMenuOperators {
   padding-bottom: 5px;
 }
-
 .handsontable.ganttChart tr:first-child th div.relative {
   padding-right: 21px;
 }
@@ -2047,11 +1807,9 @@ textarea#HandsontableCopyPaste {
 .handsontable.ganttChart td.rangeBar.area.partial {
   background: #A1D8AD;
 }
-
 .handsontable thead th.hiddenHeader:not(:first-of-type) {
   display: none;
 }
-
 .handsontable th.ht_nestingLevels {
     text-align: left;
     padding-left: 7px;
@@ -2096,18 +1854,17 @@ textarea#HandsontableCopyPaste {
 }
 
 .handsontable th div.ht_nestingButton.ht_nestingExpand::after {
-    content: "\002B";
+    content: "+";
 }
 
 .handsontable th div.ht_nestingButton.ht_nestingCollapse::after {
-    content: "\002D";
+    content: "-";
 }
 
 .handsontable.innerBorderLeft th div.ht_nestingButton,
 .handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingButton {
     right: 0;
-}
-/*
+}/*
  * Handsontable HiddenColumns
  */
 .handsontable th.beforeHiddenColumn {
@@ -2139,7 +1896,6 @@ textarea#HandsontableCopyPaste {
 .handsontable th.firstVisibleColumn {
   border-left: 1px solid #CCC;
 }
-
 /*!
  * Handsontable HiddenRows
  */
@@ -2175,3 +1931,4 @@ textarea#HandsontableCopyPaste {
   border-top: 1px solid #CCC;
 }
 
+/*# sourceMappingURL=handsontable-pro.css.map*/

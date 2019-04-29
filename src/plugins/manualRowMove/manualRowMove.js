@@ -9,7 +9,6 @@ import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
 import './manualRowMove.css';
-import { getTranslator } from '../../translations/recordTranslator';
 
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
@@ -91,13 +90,6 @@ class ManualRowMove extends BasePlugin {
      * @type {Object}
      */
     this.guideline = new GuidelineUI(hotInstance);
-    /**
-     * Object containing visual row indexes mapped to data source indexes.
-     *
-     * @private
-     * @type {IndexMapper}
-     */
-    this.translator = getTranslator(this.hot);
   }
 
   /**
@@ -190,7 +182,7 @@ class ManualRowMove extends BasePlugin {
     }
 
     if (movePossible) {
-      this.translator.getRowIndexMapper().moveIndexes(rows, finalIndex);
+      this.t.getRowIndexMapper().moveIndexes(rows, finalIndex);
     }
 
     this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePossible && this.isRowOrderChanged(rows, finalIndex));
@@ -232,7 +224,7 @@ class ManualRowMove extends BasePlugin {
    * @returns {Boolean}
    */
   isMovePossible(movedRows, finalIndex) {
-    const length = this.translator.getRowIndexMapper().getNotSkippedIndexesLength();
+    const length = this.t.getRowIndexMapper().getNotSkippedIndexesLength();
 
     // An attempt to transfer more rows to start destination than is possible (only when moving from the top to the bottom).
     const tooHighDestinationIndex = movedRows.length + finalIndex > length;
@@ -650,14 +642,14 @@ class ManualRowMove extends BasePlugin {
     }
 
     const firstMovedVisualRow = priv.rowsToMove[0];
-    const firstMovedPhysicalRow = this.translator.toPhysicalRow(firstMovedVisualRow);
+    const firstMovedPhysicalRow = this.t.toPhysicalRow(firstMovedVisualRow);
 
     this.dragRows(priv.rowsToMove, target);
 
     // this.persistentStateSave();
     this.hot.render();
 
-    const selectionStart = this.translator.toVisualRow(firstMovedPhysicalRow);
+    const selectionStart = this.t.toVisualRow(firstMovedPhysicalRow);
     const selectionEnd = selectionStart + rowsLen - 1;
 
     this.changeSelection(selectionStart, selectionEnd);

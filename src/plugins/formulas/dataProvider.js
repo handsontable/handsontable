@@ -1,7 +1,7 @@
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { hasOwnProperty } from '../../helpers/object';
-import { getTranslator } from '../../utils/recordTranslator';
+import { getTranslator } from '../../translations';
 
 /**
  * Data class provider responsible for providing a set of range data types, necessary for calculating formulas.

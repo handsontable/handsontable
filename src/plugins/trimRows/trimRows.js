@@ -1,7 +1,6 @@
 import BasePlugin from '../_base';
 import { registerPlugin } from '../../plugins';
-import { getTranslator } from '../../translations/recordTranslator';
-import ValueMap from '../../translations/maps/valueMap';
+import { ValueMap } from '../../translations';
 import { buildIndexToValueList, getIndexListByCondition } from '../../translations/helpers';
 
 /**
@@ -49,13 +48,6 @@ import { buildIndexToValueList, getIndexListByCondition } from '../../translatio
 class TrimRows extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * Object containing visual row indexes mapped to data source indexes.
-     *
-     * @private
-     * @type {IndexMapper}
-     */
-    this.translator = getTranslator(this.hot);
     this.trimmedRowsMap = null;
   }
   /**
@@ -76,7 +68,7 @@ class TrimRows extends BasePlugin {
       return;
     }
 
-    this.trimmedRowsMap = this.translator.getRowIndexMapper().skipCollection.register('trimRows', new ValueMap(false));
+    this.trimmedRowsMap = this.t.getRowIndexMapper().skipCollection.register('trimRows', new ValueMap(false));
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
 
@@ -91,7 +83,7 @@ class TrimRows extends BasePlugin {
 
     if (Array.isArray(settings)) {
       this.trimmedRowsMap.setValues(
-        buildIndexToValueList(this.translator.getRowIndexMapper().getNumberOfIndexes(), (_, physicalIndex) => settings.includes(physicalIndex))
+        buildIndexToValueList(this.t.getRowIndexMapper().getNumberOfIndexes(), (_, physicalIndex) => settings.includes(physicalIndex))
       );
     }
 
@@ -132,7 +124,7 @@ class TrimRows extends BasePlugin {
 
     if (isValidConfig) {
       this.trimmedRowsMap.setValues(
-        buildIndexToValueList(this.translator.getRowIndexMapper().getNumberOfIndexes(), (_, indexInsideList) => destinationTrimConfig.includes(indexInsideList))
+        buildIndexToValueList(this.t.getRowIndexMapper().getNumberOfIndexes(), (_, indexInsideList) => destinationTrimConfig.includes(indexInsideList))
       );
     }
 
@@ -174,7 +166,7 @@ class TrimRows extends BasePlugin {
 
     if (isValidConfig) {
       this.trimmedRowsMap.setValues(
-        buildIndexToValueList(this.translator.getRowIndexMapper().getNumberOfIndexes(), (_, indexInsideList) => destinationTrimConfig.includes(indexInsideList))
+        buildIndexToValueList(this.t.getRowIndexMapper().getNumberOfIndexes(), (_, indexInsideList) => destinationTrimConfig.includes(indexInsideList))
       );
     }
 
@@ -228,7 +220,7 @@ class TrimRows extends BasePlugin {
 
     if (Array.isArray(settings)) {
       this.trimmedRowsMap.setValues(
-        buildIndexToValueList(this.translator.getRowIndexMapper().getNumberOfIndexes(), (_, physicalIndex) => settings.includes(physicalIndex))
+        buildIndexToValueList(this.t.getRowIndexMapper().getNumberOfIndexes(), (_, physicalIndex) => settings.includes(physicalIndex))
       );
     }
   }

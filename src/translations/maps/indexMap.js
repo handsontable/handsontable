@@ -77,7 +77,9 @@ class IndexMap extends BaseMap {
    * @param {Array} removedIndexes List of removed indexes.
    */
   filterIndexes(removedIndexes) {
-    this.list = arrayFilter(this.list, index => removedIndexes.includes(index) === false);
+    this.list = arrayFilter(this.list, (index) => {
+      return removedIndexes.includes(index) === false;
+    });
   }
 
   /**

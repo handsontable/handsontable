@@ -26,7 +26,7 @@ import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
 import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
-import { getTranslator } from './translations/recordTranslator';
+import { getTranslator } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';

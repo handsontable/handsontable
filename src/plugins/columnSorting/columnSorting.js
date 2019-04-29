@@ -8,8 +8,7 @@ import { arrayMap } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import BasePlugin from '../_base';
 import { registerPlugin } from './../../plugins';
-import { getTranslator } from '../../translations/recordTranslator';
-import IndexMap from '../../translations/maps/indexMap';
+import { IndexMap } from '../../translations';
 import Hooks from '../../pluginHooks';
 import { isPressedCtrlKey } from '../../utils/keyStateObserver';
 import { ColumnStatesManager } from './columnStatesManager';
@@ -115,13 +114,6 @@ class ColumnSorting extends BasePlugin {
      */
     this.pluginKey = PLUGIN_KEY;
     /**
-     * Object containing visual row indexes mapped to data source indexes.
-     *
-     * @private
-     * @type {IndexMap}
-     */
-    this.rowIndexMapper = getTranslator(this.hot).getRowIndexMapper();
-    /**
      * Plugin indexes cache.
      *
      * @private
@@ -152,7 +144,7 @@ class ColumnSorting extends BasePlugin {
       this.enableObserveChangesPlugin();
     }
 
-    this.indexesSequenceCache = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey, new IndexMap());
+    this.indexesSequenceCache = this.t.getRowIndexMapper().variousMappingsCollection.register(this.pluginKey, new IndexMap());
 
     this.addHook('afterGetColHeader', (column, TH) => this.onAfterGetColHeader(column, TH));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, controller) => this.onBeforeOnCellMouseDown(event, coords, TD, controller));
@@ -190,7 +182,7 @@ class ColumnSorting extends BasePlugin {
       this.hot.removeHook('afterGetColHeader', clearColHeader);
     });
 
-    this.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
+    this.t.getRowIndexMapper().setIndexesSequence(this.indexesSequenceCache.getValues());
 
     super.disablePlugin();
   }
@@ -227,7 +219,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (currentSortConfig.length === 0) {
-      this.indexesSequenceCache.setValues(this.rowIndexMapper.getIndexesSequence());
+      this.indexesSequenceCache.setValues(this.t.getRowIndexMapper().getIndexesSequence());
     }
 
     if (sortPossible) {
@@ -567,7 +559,7 @@ class ColumnSorting extends BasePlugin {
    */
   sortByPresetSortStates() {
     if (this.columnStatesManager.isListOfSortedColumnsEmpty()) {
-      this.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
+      this.t.getRowIndexMapper().setIndexesSequence(this.indexesSequenceCache.getValues());
 
       return;
     }
@@ -601,7 +593,7 @@ class ColumnSorting extends BasePlugin {
 
     const indexMapping = new Map(arrayMap(indexesBefore, (indexBefore, indexInsideArray) => [indexBefore, indexesAfter[indexInsideArray]]));
 
-    this.rowIndexMapper.setIndexesSequence(arrayMap(this.rowIndexMapper.getIndexesSequence(), (physicalIndex) => {
+    this.t.getRowIndexMapper().setIndexesSequence(arrayMap(this.t.getRowIndexMapper().getIndexesSequence(), (physicalIndex) => {
       if (indexMapping.has(physicalIndex)) {
         return indexMapping.get(physicalIndex);
       }

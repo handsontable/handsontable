@@ -58,7 +58,13 @@ class BaseMap {
    * @returns {*}
    */
   getValueAtIndex(index) {
-    return this.getValues()[index];
+    const values = this.getValues();
+
+    if (index < values.length) {
+      return values[index];
+    }
+
+    return void 0;
   }
 
   /**

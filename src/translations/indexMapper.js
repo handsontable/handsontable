@@ -202,8 +202,8 @@ class IndexMapper {
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
     this.indexesSequence.addValueAndReorganize(insertionIndex, insertedIndexes);
-    this.skipCollection.addIndexes(insertionIndex, insertedIndexes);
-    this.variousMappingsCollection.addIndexes(insertionIndex, insertedIndexes);
+    this.skipCollection.insertIndexes(insertionIndex, insertedIndexes);
+    this.variousMappingsCollection.insertIndexes(insertionIndex, insertedIndexes);
 
     this.updateCache();
   }

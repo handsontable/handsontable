@@ -1,4 +1,4 @@
-import { RecordTranslator, registerIdentity, getTranslator } from 'handsontable/utils/recordTranslator';
+import { RecordTranslator, registerIdentity, getTranslator } from 'handsontable/translations/recordTranslator';
 import Handsontable from 'handsontable';
 
 describe('RecordTranslator', () => {

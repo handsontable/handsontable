@@ -14,7 +14,7 @@ import {
 import { extendArray, to2dArray } from './helpers/array';
 import Interval from './utils/interval';
 import { rangeEach } from './helpers/number';
-import { getTranslator } from './translations/recordTranslator';
+import { getTranslator } from './translations';
 
 const copyableLookup = cellMethodLookupFactory('copyable', false);
 

@@ -1,6 +1,6 @@
 import { defineGetter, objectEach } from './../helpers/object';
 import { arrayEach } from './../helpers/array';
-import { getTranslator } from './../utils/recordTranslator';
+import { getTranslator } from './../translations';
 import { getRegistredPluginNames, getPluginName } from './../plugins';
 
 const privatePool = new WeakMap();

@@ -17,7 +17,7 @@ import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
 import { CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERATION_OR_THEN_VARIABLE } from './constants';
-import { getTranslator } from '../../translations/recordTranslator';
+import { getTranslator } from '../../translations';
 import { buildIndexToValueList } from '../../translations/helpers';
 
 import './filters.css';
@@ -103,13 +103,6 @@ class Filters extends BasePlugin {
      * @type {Map}
      */
     this.hiddenRowsCache = new Map();
-    /**
-     * Object containing visual row indexes mapped to data source indexes.
-     *
-     * @private
-     * @type {IndexMap}
-     */
-    this.translator = getTranslator(this.hot);
 
     this.filtersRowsMap = null;
 
@@ -136,7 +129,7 @@ class Filters extends BasePlugin {
       return;
     }
 
-    this.filtersRowsMap = this.translator.getRowIndexMapper().skipCollection.register('filters', new ValueMap(false));
+    this.filtersRowsMap = this.t.getRowIndexMapper().skipCollection.register('filters', new ValueMap(false));
 
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
@@ -360,7 +353,7 @@ class Filters extends BasePlugin {
         });
 
         this.filtersRowsMap.setValues(
-          buildIndexToValueList(this.translator.getRowIndexMapper().getNumberOfIndexes(), (_, physicalIndex) => trimmedRows.includes(physicalIndex))
+          buildIndexToValueList(this.t.getRowIndexMapper().getNumberOfIndexes(), (_, physicalIndex) => trimmedRows.includes(physicalIndex))
         );
 
         if (!visibleVisualRows.length) {

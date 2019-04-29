@@ -1,7 +1,7 @@
 import { Parser, ERROR_REF, error as isFormulaError } from 'hot-formula-parser';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import localHooks from '../../mixins/localHooks';
-import { getTranslator } from '../../utils/recordTranslator';
+import { getTranslator } from '../../translations';
 import { mixin } from '../../helpers/object';
 import CellValue from './cell/value';
 import CellReference from './cell/reference';

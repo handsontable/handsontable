@@ -1,6 +1,6 @@
 import { arrayEach } from '../../helpers/array';
 import { warn } from '../../helpers/console';
-import { getTranslator } from '../../utils/recordTranslator';
+import { getTranslator } from '../../translations';
 
 /**
  * Class used to make all endpoint-related operations.

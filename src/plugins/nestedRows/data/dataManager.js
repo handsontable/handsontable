@@ -1,7 +1,7 @@
 import { rangeEach } from '../../../helpers/number';
 import { objectEach, hasOwnProperty } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
-import { getTranslator } from '../../../utils/recordTranslator';
+import { getTranslator } from '../../../translations';
 
 /**
  * Class responsible for making data operations.
