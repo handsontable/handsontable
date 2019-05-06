@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 7.0.2
- * Release date: 09/04/2019 (built at 09/04/2019 12:57:10)
+ * Version: 7.0.3
+ * Release date: 13/05/2019 (built at 06/05/2019 14:38:42)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -1143,12 +1143,13 @@ function index(element) {
  *
  * @param {String} overlay
  * @param {HTMLElement} element
+ * @param {HTMLElement} root
  * @returns {boolean}
  */
 
 
-function overlayContainsElement(overlayType, element) {
-  var overlayElement = element.ownerDocument.querySelector(".ht_clone_".concat(overlayType));
+function overlayContainsElement(overlayType, element, root) {
+  var overlayElement = root.parentElement.querySelector(".ht_clone_".concat(overlayType));
   return overlayElement ? overlayElement.contains(element) : null;
 }
 
@@ -3910,7 +3911,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "7.0.2";
+  var hotVersion = "7.0.3";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -3920,7 +3921,7 @@ function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("09/04/2019", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("13/05/2019", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
 
       var keyValidityDays = _extractTime(key);
@@ -16550,7 +16551,7 @@ function Core(rootElement, userSettings) {
             current.col = start.col;
             cellMeta = instance.getCellMeta(current.row, current.col);
 
-            if ((source === 'CopyPaste.paste' || source === 'Autofill.autofill') && cellMeta.skipRowOnPaste) {
+            if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipRowOnPaste) {
               skippedRow += 1;
               current.row += 1;
               rlen += 1;
@@ -27054,11 +27055,11 @@ function () {
       var row = (0, _element.index)(TR);
       var col = cellElement.cellIndex;
 
-      if ((0, _element.overlayContainsElement)(_base.default.CLONE_TOP_LEFT_CORNER, cellElement) || (0, _element.overlayContainsElement)(_base.default.CLONE_TOP, cellElement)) {
+      if ((0, _element.overlayContainsElement)(_base.default.CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement) || (0, _element.overlayContainsElement)(_base.default.CLONE_TOP, cellElement, this.wtRootElement)) {
         if (CONTAINER.nodeName === 'THEAD') {
           row -= CONTAINER.childNodes.length;
         }
-      } else if ((0, _element.overlayContainsElement)(_base.default.CLONE_BOTTOM_LEFT_CORNER, cellElement) || (0, _element.overlayContainsElement)(_base.default.CLONE_BOTTOM, cellElement)) {
+      } else if ((0, _element.overlayContainsElement)(_base.default.CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement) || (0, _element.overlayContainsElement)(_base.default.CLONE_BOTTOM, cellElement, this.wtRootElement)) {
         var totalRows = this.wot.getSetting('totalRows');
         row = totalRows - CONTAINER.childNodes.length + row;
       } else if (CONTAINER === this.THEAD) {
@@ -27067,7 +27068,7 @@ function () {
         row = this.rowFilter.renderedToSource(row);
       }
 
-      if ((0, _element.overlayContainsElement)(_base.default.CLONE_TOP_LEFT_CORNER, cellElement) || (0, _element.overlayContainsElement)(_base.default.CLONE_LEFT, cellElement) || (0, _element.overlayContainsElement)(_base.default.CLONE_BOTTOM_LEFT_CORNER, cellElement) || (0, _element.overlayContainsElement)(_base.default.CLONE_BOTTOM, cellElement)) {
+      if ((0, _element.overlayContainsElement)(_base.default.CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement) || (0, _element.overlayContainsElement)(_base.default.CLONE_LEFT, cellElement, this.wtRootElement) || (0, _element.overlayContainsElement)(_base.default.CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement) || (0, _element.overlayContainsElement)(_base.default.CLONE_BOTTOM, cellElement, this.wtRootElement)) {
         col = this.columnFilter.offsettedTH(col);
       } else {
         col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
@@ -32168,6 +32169,29 @@ DefaultSettings.prototype = {
    * ```
    */
   skipColumnOnPaste: false,
+
+  /**
+   * @description
+   * When added to a cell property, it skips the row on paste and pastes the data on the following row.
+   *
+   * @type {Boolean}
+   * @default false
+   *
+   * @example
+   * ```js
+   * cells: function(row, column) {
+   *  const cellProperties = {};
+   *
+   *  // don't paste data to the second row
+   *  if (row === 1) {
+   *    cellProperties.skipRowOnPaste = true;
+   *  }
+   *
+   *  return cellProperties;
+   * }
+   * ```
+   */
+  skipRowOnPaste: false,
 
   /**
    * @description
@@ -37671,8 +37695,8 @@ Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "09/04/2019 12:57:10";
-Handsontable.version = "7.0.2"; // Export Hooks singleton
+Handsontable.buildDate = "06/05/2019 14:38:42";
+Handsontable.version = "7.0.3"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
@@ -48618,6 +48642,10 @@ var _pluginHooks = _interopRequireDefault(__webpack_require__(43));
 
 var _element = __webpack_require__(5);
 
+var _array = __webpack_require__(3);
+
+var _number = __webpack_require__(15);
+
 var _eventManager = _interopRequireDefault(__webpack_require__(23));
 
 var _plugins = __webpack_require__(20);
@@ -48771,6 +48799,33 @@ function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(Autofill.prototype), "disablePlugin", this).call(this);
     }
     /**
+     * Prepares copyable ranges from the cells selection.
+     *
+     * @private
+     * @returns {Object[]} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+     */
+
+  }, {
+    key: "getCopyableRanges",
+    value: function getCopyableRanges() {
+      var selRange = this.hot.getSelectedRangeLast();
+      var topLeft = selRange.getTopLeftCorner();
+      var bottomRight = selRange.getBottomRightCorner();
+      var startRow = topLeft.row;
+      var startCol = topLeft.col;
+      var endRow = bottomRight.row;
+      var endCol = bottomRight.col;
+      var copyableRanges = [];
+      copyableRanges.push({
+        startRow: startRow,
+        startCol: startCol,
+        endRow: endRow,
+        endCol: endCol
+      });
+      copyableRanges = this.hot.runHooks('modifyCopyableRange', copyableRanges);
+      return copyableRanges;
+    }
+    /**
      * Gets selection data
      *
      * @private
@@ -48780,11 +48835,32 @@ function (_BasePlugin) {
   }, {
     key: "getSelectionData",
     value: function getSelectionData() {
-      var selRange = {
-        from: this.hot.getSelectedRangeLast().from,
-        to: this.hot.getSelectedRangeLast().to
-      };
-      return this.hot.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
+      var _this3 = this;
+
+      var copyableRanges = this.getCopyableRanges();
+      var copyableRows = [];
+      var copyableColumns = [];
+      var data = [];
+      (0, _array.arrayEach)(copyableRanges, function (range) {
+        (0, _number.rangeEach)(range.startRow, range.endRow, function (row) {
+          if (copyableRows.indexOf(row) === -1) {
+            copyableRows.push(row);
+          }
+        });
+        (0, _number.rangeEach)(range.startCol, range.endCol, function (column) {
+          if (copyableColumns.indexOf(column) === -1) {
+            copyableColumns.push(column);
+          }
+        });
+      });
+      (0, _array.arrayEach)(copyableRows, function (row) {
+        var rowSet = [];
+        (0, _array.arrayEach)(copyableColumns, function (column) {
+          rowSet.push(_this3.hot.getCopyableData(row, column));
+        });
+        data.push(rowSet);
+      });
+      return data;
     }
     /**
      * Try to apply fill values to the area in fill border, omitting the selection border.
@@ -48926,12 +49002,12 @@ function (_BasePlugin) {
   }, {
     key: "addRow",
     value: function addRow() {
-      var _this3 = this;
+      var _this4 = this;
 
       this.hot._registerTimeout(setTimeout(function () {
-        _this3.hot.alter(INSERT_ROW_ALTER_ACTION_NAME, void 0, 1, "".concat(_this3.pluginName, ".fill"));
+        _this4.hot.alter(INSERT_ROW_ALTER_ACTION_NAME, void 0, 1, "".concat(_this4.pluginName, ".fill"));
 
-        _this3.addingStarted = false;
+        _this4.addingStarted = false;
       }, INTERVAL_FOR_ADDING_ROW));
     }
     /**
@@ -49102,14 +49178,14 @@ function (_BasePlugin) {
   }, {
     key: "registerEvents",
     value: function registerEvents() {
-      var _this4 = this;
+      var _this5 = this;
 
       var documentElement = this.hot.rootDocument.documentElement;
       this.eventManager.addEventListener(documentElement, 'mouseup', function () {
-        return _this4.onMouseUp();
+        return _this5.onMouseUp();
       });
       this.eventManager.addEventListener(documentElement, 'mousemove', function (event) {
-        return _this4.onMouseMove(event);
+        return _this5.onMouseMove(event);
       });
     }
     /**
@@ -49287,7 +49363,7 @@ function getDeltas(start, end, data, direction) {
   if (['down', 'up'].indexOf(direction) !== -1) {
     var arr = [];
 
-    for (var col = 0; col <= diffCol; col++) {
+    for (var col = 0; col < diffCol; col++) {
       var startValue = parseInt(data[0][col], 10);
       var endValue = parseInt(data[rowsLength - 1][col], 10);
       var delta = (direction === 'down' ? endValue - startValue : startValue - endValue) / (rowsLength - 1) || 0;
@@ -49298,7 +49374,7 @@ function getDeltas(start, end, data, direction) {
   }
 
   if (['right', 'left'].indexOf(direction) !== -1) {
-    for (var row = 0; row <= diffRow; row++) {
+    for (var row = 0; row < diffRow; row++) {
       var _startValue = parseInt(data[row][0], 10);
 
       var _endValue = parseInt(data[row][columnsLength - 1], 10);
