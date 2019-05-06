@@ -1338,7 +1338,7 @@ DefaultSettings.prototype = {
    *
    *  // don't paste data to the second row
    *  if (row === 1) {
-   *  cellProperties.skipRowOnPaste = true;
+   *    cellProperties.skipRowOnPaste = true;
    *  }
    *
    *  return cellProperties;
