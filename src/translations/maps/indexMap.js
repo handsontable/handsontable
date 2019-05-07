@@ -7,9 +7,6 @@ import BaseMap from './baseMap';
 class IndexMap extends BaseMap {
   constructor(initValueOrFn = index => index) {
     super(initValueOrFn);
-
-    this.list = [];
-    this.initValueOrFn = initValueOrFn;
   }
 
   /**

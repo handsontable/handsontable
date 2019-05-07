@@ -40,13 +40,13 @@ class IndexMapper {
    */
   getVisualIndex(physicalIndex) {
     const visibleIndexes = this.getNotSkippedIndexes();
-    let visualIndex = null;
+    const visualIndex = visibleIndexes.indexOf(physicalIndex);
 
-    if (!this.isSkipped(physicalIndex) && this.getIndexesSequence().includes(physicalIndex)) {
-      visualIndex = visibleIndexes.indexOf(physicalIndex);
+    if (visualIndex !== -1) {
+      return visualIndex;
     }
 
-    return visualIndex;
+    return null;
   }
 
   /**

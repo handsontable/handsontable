@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { registerPlugin } from '../../plugins';
 import { ValueMap } from '../../translations';
-import { arrayEach } from '../../helpers/array';
+import { arrayEach, arrayReduce } from '../../helpers/array';
 
 /**
  * @plugin TrimRows
@@ -101,6 +101,21 @@ class TrimRows extends BasePlugin {
   }
 
   /**
+   * Get trimmed rows.
+   *
+   * @returns {Array} Physical rows.
+   */
+  getTrimConfig() {
+    return arrayReduce(this.trimmedRowsMap.getValues(), (indexesList, isTrimmed, physicalIndex) => {
+      if (isTrimmed) {
+        return indexesList.concat(physicalIndex);
+      }
+
+      return indexesList;
+    }, []);
+  }
+
+  /**
    * Trims the rows provided in the array.
    *
    * @param {Number[]} rows Array of physical row indexes.
@@ -108,7 +123,7 @@ class TrimRows extends BasePlugin {
    * @fires Hooks#afterTrimRow
    */
   trimRows(rows) {
-    const currentTrimConfig = this.trimmedRowsMap.getIndexesByValueCondition(value => value);
+    const currentTrimConfig = this.getTrimConfig();
 
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
@@ -150,7 +165,7 @@ class TrimRows extends BasePlugin {
    * @fires Hooks#afterUntrimRow
    */
   untrimRows(rows) {
-    const currentTrimConfig = this.trimmedRowsMap.getIndexesByValueCondition(value => value);
+    const currentTrimConfig = this.getTrimConfig();
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
 
@@ -197,7 +212,7 @@ class TrimRows extends BasePlugin {
    * Untrims all trimmed rows.
    */
   untrimAll() {
-    this.untrimRows(this.trimmedRowsMap.getIndexesByValueCondition(value => value));
+    this.untrimRows(this.getTrimConfig());
   }
 
   /**
