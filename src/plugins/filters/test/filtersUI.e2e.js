@@ -1665,6 +1665,9 @@ describe('Filters UI', () => {
       $(document.activeElement).simulate('keyup');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
+      // this condition needs extra time to apply filters
+      await sleep(10);
+
       dropdownMenu(4);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // eq
