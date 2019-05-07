@@ -1190,7 +1190,7 @@ describe('MergeCells', () => {
   });
 
   describe('Validation', () => {
-    it('should not hide the merged cells after validating the table', (done) => {
+    it('should not hide the merged cells after validating the table', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -1212,17 +1212,15 @@ describe('MergeCells', () => {
 
       hot.validateCells();
 
-      setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalled();
+      await sleep(150);
 
-        firstCollection = hot.getCell(5, 4);
-        secondCollection = hot.getCell(1, 1);
+      expect(onAfterValidate).toHaveBeenCalled();
 
-        expect(firstCollection.style.display.indexOf('none')).toEqual(-1);
-        expect(secondCollection.style.display.indexOf('none')).toEqual(-1);
+      firstCollection = hot.getCell(5, 4);
+      secondCollection = hot.getCell(1, 1);
 
-        done();
-      }, 100);
+      expect(firstCollection.style.display.indexOf('none')).toEqual(-1);
+      expect(secondCollection.style.display.indexOf('none')).toEqual(-1);
     });
   });
 
