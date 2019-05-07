@@ -1,4 +1,4 @@
-import { arrayMap } from '../../helpers/array';
+import {arrayMap, arrayReduce} from '../../helpers/array';
 import { mixin } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
 import localHooks from './../../mixins/localHooks';
@@ -116,6 +116,24 @@ class BaseMap {
   // eslint-disable-next-line no-unused-vars
   removeValuesAndReorganize(removedIndexes) {
     throw Error('Map removeValuesAndReorganize() method unimplemented');
+  }
+
+  /**
+   * Get indexes list by given condition checked on list of values.
+   *
+   * @param {Array} valueList List of values.
+   * @param {Function} condition Condition for values to meet.
+   * @returns {Array}
+   */
+
+  getIndexesByValueCondition(condition) {
+    return arrayReduce(this.getValues(), (indexList, value, physicalIndex) => {
+      if (condition(value, physicalIndex)) {
+        return indexList.concat(physicalIndex);
+      }
+
+      return indexList;
+    }, []);
   }
 }
 

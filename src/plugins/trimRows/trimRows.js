@@ -1,7 +1,6 @@
 import BasePlugin from '../_base';
 import { registerPlugin } from '../../plugins';
 import { ValueMap } from '../../translations';
-import { getIndexListByCondition, buildIndexToValueList } from '../../translations/helpers';
 import { arrayEach } from '../../helpers/array';
 
 /**
@@ -109,7 +108,7 @@ class TrimRows extends BasePlugin {
    * @fires Hooks#afterTrimRow
    */
   trimRows(rows) {
-    const currentTrimConfig = getIndexListByCondition(this.trimmedRowsMap.getValues(), value => value);
+    const currentTrimConfig = this.trimmedRowsMap.getIndexesByValueCondition(value => value);
 
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
@@ -151,7 +150,7 @@ class TrimRows extends BasePlugin {
    * @fires Hooks#afterUntrimRow
    */
   untrimRows(rows) {
-    const currentTrimConfig = getIndexListByCondition(this.trimmedRowsMap.getValues(), value => value);
+    const currentTrimConfig = this.trimmedRowsMap.getIndexesByValueCondition(value => value);
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
 
@@ -198,7 +197,7 @@ class TrimRows extends BasePlugin {
    * Untrims all trimmed rows.
    */
   untrimAll() {
-    this.untrimRows(getIndexListByCondition(this.trimmedRowsMap.getValues(), value => value));
+    this.untrimRows(this.trimmedRowsMap.getIndexesByValueCondition(value => value));
   }
 
   /**
