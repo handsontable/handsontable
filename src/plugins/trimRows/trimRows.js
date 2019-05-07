@@ -1,7 +1,8 @@
 import BasePlugin from '../_base';
 import { registerPlugin } from '../../plugins';
 import { ValueMap } from '../../translations';
-import { buildIndexToValueList, getIndexListByCondition } from '../../translations/helpers';
+import { getIndexListByCondition, buildIndexToValueList } from '../../translations/helpers';
+import { arrayEach } from '../../helpers/array';
 
 /**
  * @plugin TrimRows
@@ -79,12 +80,14 @@ class TrimRows extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    const settings = this.hot.getSettings().trimRows;
+    const trimmedRows = this.hot.getSettings().trimRows;
 
-    if (Array.isArray(settings)) {
-      this.trimmedRowsMap.setValues(
-        buildIndexToValueList(this.t.getRowIndexMapper().getNumberOfIndexes(), (_, physicalIndex) => settings.includes(physicalIndex))
-      );
+    if (Array.isArray(trimmedRows)) {
+      this.trimmedRowsMap.clear();
+
+      arrayEach(trimmedRows, (physicalRow) => {
+        this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
+      });
     }
 
     super.updatePlugin();
@@ -102,7 +105,6 @@ class TrimRows extends BasePlugin {
    * Trims the rows provided in the array.
    *
    * @param {Number[]} rows Array of physical row indexes.
-   * @fires Hooks#skipLengthCache
    * @fires Hooks#beforeTrimRow
    * @fires Hooks#afterTrimRow
    */
@@ -123,9 +125,9 @@ class TrimRows extends BasePlugin {
     }
 
     if (isValidConfig) {
-      this.trimmedRowsMap.setValues(
-        buildIndexToValueList(this.t.getRowIndexMapper().getNumberOfIndexes(), (_, indexInsideList) => destinationTrimConfig.includes(indexInsideList))
-      );
+      arrayEach(rows, (physicalRow) => {
+        this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
+      });
     }
 
     this.hot.runHooks('afterTrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
@@ -145,7 +147,6 @@ class TrimRows extends BasePlugin {
    * Untrims the rows provided in the array.
    *
    * @param {Number[]} rows Array of physical row indexes.
-   * @fires Hooks#skipLengthCache
    * @fires Hooks#beforeUntrimRow
    * @fires Hooks#afterUntrimRow
    */
@@ -165,9 +166,9 @@ class TrimRows extends BasePlugin {
     }
 
     if (isValidConfig) {
-      this.trimmedRowsMap.setValues(
-        buildIndexToValueList(this.t.getRowIndexMapper().getNumberOfIndexes(), (_, indexInsideList) => destinationTrimConfig.includes(indexInsideList))
-      );
+      arrayEach(rows, (physicalRow) => {
+        this.trimmedRowsMap.setValueAtIndex(physicalRow, false);
+      });
     }
 
     this.hot.runHooks('afterUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
@@ -216,12 +217,12 @@ class TrimRows extends BasePlugin {
    * @private
    */
   onAfterLoadData() {
-    const settings = this.hot.getSettings().trimRows;
+    const trimmedRows = this.hot.getSettings().trimRows;
 
-    if (Array.isArray(settings)) {
-      this.trimmedRowsMap.setValues(
-        buildIndexToValueList(this.t.getRowIndexMapper().getNumberOfIndexes(), (_, physicalIndex) => settings.includes(physicalIndex))
-      );
+    if (Array.isArray(trimmedRows)) {
+      arrayEach(trimmedRows, (physicalRow) => {
+        this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
+      });
     }
   }
 }

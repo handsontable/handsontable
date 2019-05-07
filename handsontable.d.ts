@@ -1943,7 +1943,6 @@ declare namespace Handsontable {
       persistentStateLoad?: (key: string, valuePlaceholder: { value: any }) => void;
       persistentStateReset?: (key: string) => void;
       persistentStateSave?: (key: string, value: any) => void;
-      skipLengthCache?: (delay: number) => void;
       unmodifyCol?: (col: number) => void;
       unmodifyRow?: (row: number) => void;
     }

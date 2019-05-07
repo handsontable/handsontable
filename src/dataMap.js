@@ -12,7 +12,6 @@ import {
   objectEach
 } from './helpers/object';
 import { extendArray, to2dArray } from './helpers/array';
-import Interval from './utils/interval';
 import { rangeEach } from './helpers/number';
 import { getTranslator } from './translations';
 
@@ -76,18 +75,6 @@ class DataMap {
      */
     this.dataSource = this.instance.getSettings().data;
     /**
-     * Cached rows number.
-     *
-     * @type {Number}
-     */
-    this.cachedLength = null;
-    /**
-     * Flag determines if the cache should be used.
-     *
-     * @type {Boolean}
-     */
-    this.skipCache = false;
-    /**
      * Cached sourceData rows number.
      *
      * @type {Number}
@@ -113,15 +100,6 @@ class DataMap {
     this.propToColCache = void 0;
 
     this.createMap();
-    /**
-     * Instance of {@link Interval}
-     *
-     * @type {Interval}
-     */
-    this.interval = Interval.create(() => this.clearLengthCache(), '15fps');
-
-    this.instance.addHook('skipLengthCache', delay => this.onSkipLengthCache(delay));
-    this.onSkipLengthCache(500);
   }
 
   /**
@@ -789,13 +767,6 @@ class DataMap {
   }
 
   /**
-   * Clear cached data length.
-   */
-  clearLengthCache() {
-    this.cachedLength = null;
-  }
-
-  /**
    * Get data length.
    *
    * @returns {Number}
@@ -907,26 +878,9 @@ class DataMap {
   }
 
   /**
-   * `skipLengthCache` callback.
-   *
-   * @private
-   * @param {Number} delay Time of the delay in milliseconds.
-   */
-  onSkipLengthCache(delay) {
-    this.skipCache = true;
-
-    setTimeout(() => {
-      this.skipCache = false;
-    }, delay);
-  }
-
-  /**
    * Destroy instance.
    */
   destroy() {
-    this.interval.stop();
-
-    this.interval = null;
     this.instance = null;
     this.priv = null;
     this.GridSettings = null;

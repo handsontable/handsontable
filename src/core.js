@@ -1840,8 +1840,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (!init) {
-      datamap.clearLengthCache(); // force clear cache length on updateSettings() #3416
-
       if (instance.view) {
         instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
       }

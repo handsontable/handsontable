@@ -38,8 +38,6 @@ class CollapsingUI extends BaseUI {
         });
       },
       applyStash: () => {
-        // Workaround for wrong indexes being set in the trimRows plugin
-        this.hot.runHooks('skipLengthCache', 100);
         this.collapseMultipleChildren(this.lastCollapsedRows, true);
         this.lastCollapsedRows = void 0;
       },

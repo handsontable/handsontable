@@ -41,17 +41,6 @@ class BaseMap {
   }
 
   /**
-   * Set new values for particular indexes.
-   *
-   * @param {Array} values List of set values.
-   */
-  setValues(values) {
-    this.list = values.slice();
-
-    this.runLocalHooks('mapChanged');
-  }
-
-  /**
    * Get value for particular index.
    *
    * @param {Number} index
@@ -65,6 +54,29 @@ class BaseMap {
     }
 
     return void 0;
+  }
+
+  /**
+   * Set new values for particular indexes.
+   *
+   * @param {Array} values List of set values.
+   */
+  setValues(values) {
+    this.list = values.slice();
+
+    this.runLocalHooks('mapChanged');
+  }
+
+  /**
+   * Set new value for particular index.
+   *
+   * @param {Number} index
+   * @param {*} value
+   */
+  setValueAtIndex(index, value) {
+    this.list[index] = value;
+
+    this.runLocalHooks('mapChanged');
   }
 
   /**

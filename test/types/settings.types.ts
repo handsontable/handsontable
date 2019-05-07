@@ -494,7 +494,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
   persistentStateLoad: () => {},
   persistentStateReset: () => {},
   persistentStateSave: () => {},
-  skipLengthCache: (delay) => {},
   unmodifyCol: () => {},
   unmodifyRow: (row) => {},
 }

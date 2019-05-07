@@ -1493,14 +1493,6 @@ const REGISTERED_HOOKS = [
   'afterPluginsInitialized',
 
   /**
-   * Used to skip the length cache calculation for a defined period of time.
-   *
-   * @event Hooks#skipLengthCache
-   * @param {Number} delay The delay in milliseconds.
-   */
-  'skipLengthCache',
-
-  /**
    * Fired by {@link HiddenRows} plugin before marking the rows as hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    * Returning `false` in the callback will prevent the hiding action from completing.
    *
