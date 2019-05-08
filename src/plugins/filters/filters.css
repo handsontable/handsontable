@@ -94,7 +94,7 @@
 
 /* Menu label */
 .handsontable .htFiltersMenuLabel {
-  font-size: 12px;
+  font-size: 0.75em;
 }
 
 /* Component action bar */
@@ -121,6 +121,8 @@
 }
 .handsontable .htFiltersMenuCondition .htUIInput input,
 .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input {
+  font-family: inherit;
+  font-size: 0.75em;
   padding: 4px;
   box-sizing: border-box;
   width: 100%;
@@ -146,7 +148,7 @@
 
 .handsontable .htUIClearAll a, .handsontable .htUISelectAll a {
   color: #3283D8;
-  font-size: 12px;
+  font-size: 0.75em;
 }
 
 .handsontable .htUISelectionControls {
@@ -186,8 +188,8 @@
   background-color: #eee;
   color: #000;
   cursor: pointer;
-  font-family: arial, sans-serif;
-  font-size: 11px;
+  font-family: inherit;
+  font-size: 0.7em;
   font-weight: bold;
   height: 19px;
   min-width: 64px;
@@ -219,8 +221,8 @@
   background-color: #e8e8e8;
   border-radius: 2px;
   border: 1px solid #d2d1d1;
-  font-family: arial, sans-serif;
-  font-size: 11px;
+  font-family: inherit;
+  font-size: 0.7em;
   font-weight: bold;
   padding: 3px 20px 3px 10px;
   text-overflow: ellipsis;
@@ -272,6 +274,10 @@
 
 .handsontable .htUIRadio > input[type=radio] {
   margin-right: 0.5ex;
+}
+
+.handsontable .htUIRadio label {
+  vertical-align: middle;
 }
 
 .handsontable .htFiltersMenuOperators {

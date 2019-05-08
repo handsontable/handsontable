@@ -1,6 +1,8 @@
 import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
 import { offset, outerHeight, outerWidth } from './../../helpers/dom/element';
+import { arrayEach } from './../../helpers/array';
+import { rangeEach } from './../../helpers/number';
 import EventManager from './../../eventManager';
 import { registerPlugin } from './../../plugins';
 import { CellCoords } from './../../3rdparty/walkontable/src';
@@ -122,18 +124,69 @@ class Autofill extends BasePlugin {
   }
 
   /**
+   * Prepares copyable ranges from the cells selection.
+   *
+   * @private
+   * @returns {Object[]} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   */
+  getCopyableRanges() {
+    const selRange = this.hot.getSelectedRangeLast();
+    const topLeft = selRange.getTopLeftCorner();
+    const bottomRight = selRange.getBottomRightCorner();
+    const startRow = topLeft.row;
+    const startCol = topLeft.col;
+    const endRow = bottomRight.row;
+    const endCol = bottomRight.col;
+    let copyableRanges = [];
+
+    copyableRanges.push({
+      startRow,
+      startCol,
+      endRow,
+      endCol
+    });
+
+    copyableRanges = this.hot.runHooks('modifyCopyableRange', copyableRanges);
+
+    return copyableRanges;
+  }
+
+  /**
    * Gets selection data
    *
    * @private
    * @returns {Array} Array with the data.
    */
   getSelectionData() {
-    const selRange = {
-      from: this.hot.getSelectedRangeLast().from,
-      to: this.hot.getSelectedRangeLast().to,
-    };
+    const copyableRanges = this.getCopyableRanges();
+    const copyableRows = [];
+    const copyableColumns = [];
+    const data = [];
 
-    return this.hot.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
+    arrayEach(copyableRanges, (range) => {
+      rangeEach(range.startRow, range.endRow, (row) => {
+        if (copyableRows.indexOf(row) === -1) {
+          copyableRows.push(row);
+        }
+      });
+      rangeEach(range.startCol, range.endCol, (column) => {
+        if (copyableColumns.indexOf(column) === -1) {
+          copyableColumns.push(column);
+        }
+      });
+    });
+
+    arrayEach(copyableRows, (row) => {
+      const rowSet = [];
+
+      arrayEach(copyableColumns, (column) => {
+        rowSet.push(this.hot.getCopyableData(row, column));
+      });
+
+      data.push(rowSet);
+    });
+
+    return data;
   }
 
   /**
