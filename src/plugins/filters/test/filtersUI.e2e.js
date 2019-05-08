@@ -1665,6 +1665,9 @@ describe('Filters UI', () => {
       $(document.activeElement).simulate('keyup');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
+      // this condition needs extra time to apply filters
+      await sleep(10);
+
       dropdownMenu(4);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // eq
@@ -1965,8 +1968,7 @@ describe('Filters UI', () => {
       }, 900);
     });
 
-    it('should filter data properly after changing operator ' +
-      '(`conjunction` <-> `disjunction` operation)', (done) => {
+    it('should filter data properly after changing operator (`conjunction` <-> `disjunction` operation)', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1981,38 +1983,33 @@ describe('Filters UI', () => {
       $(conditionSelectRootElements().first).simulate('click');
       $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
 
-      setTimeout(() => {
-        document.activeElement.value = 'm';
-        $(document.activeElement).simulate('keyup');
+      await sleep(300);
+      document.activeElement.value = 'm';
+      $(document.activeElement).simulate('keyup');
 
-        $(conditionSelectRootElements().second).simulate('click');
-        $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
-      }, 300);
+      $(conditionSelectRootElements().second).simulate('click');
+      $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
 
-      setTimeout(() => {
-        document.activeElement.value = 'e';
-        $(document.activeElement).simulate('keyup');
+      await sleep(300);
+      document.activeElement.value = 'e';
+      $(document.activeElement).simulate('keyup');
 
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-        expect(getData().length).toBe(3);
-        dropdownMenu(1);
-      }, 600);
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      expect(getData().length).toBe(3);
+      dropdownMenu(1);
 
-      setTimeout(() => {
-        // disjunction
-        $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-        expect(getData().length).toBe(7);
-        dropdownMenu(1);
-      }, 900);
+      await sleep(300);
+      // disjunction
+      $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      expect(getData().length).toBe(7);
+      dropdownMenu(1);
 
-      setTimeout(() => {
-        // conjunction
-        $(conditionRadioInput(0).element).find('input[type="radio"]').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-        expect(getData().length).toBe(3);
-        done();
-      }, 1200);
+      await sleep(300);
+      // conjunction
+      $(conditionRadioInput(0).element).find('input[type="radio"]').simulate('click');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      expect(getData().length).toBe(3);
     });
 
     it('should filter data properly after clearing second input', (done) => {
