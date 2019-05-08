@@ -97,7 +97,7 @@ export function arrayToTable(input, rootDocument) {
       const cellData = rowData[column];
       const parsedCellData = isEmpty(cellData) ?
         '' :
-        cellData.replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n').replace(/\x20/gi, '&nbsp;').replace(/\t/gi, '&#9;');
+        cellData.toString().replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n').replace(/\x20/gi, '&nbsp;').replace(/\t/gi, '&#9;');
 
       // tempElement.innerText = `${isEmpty(rowData[column]) ? '' : rowData[column]}`;
 

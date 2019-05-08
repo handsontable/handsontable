@@ -187,7 +187,7 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent);
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('A2');
-      expect(copyEvent.clipboardData.getData('text/html')).toBe('<table><tbody><tr><td>A2</td></tr></tbody></table>');
+      expect(copyEvent.clipboardData.getData('text/html')).toBe('<style>br{mso-data-placement: same-cell}</style><table><tbody><tr><td>A2</td></tr></tbody></table>');
     });
 
     it('should call beforeCopy and afterCopy during copying operation', () => {
@@ -252,7 +252,7 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent);
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('A2');
-      expect(copyEvent.clipboardData.getData('text/html')).toEqual('<table><tbody><tr><td>A2</td></tr></tbody></table>');
+      expect(copyEvent.clipboardData.getData('text/html')).toEqual('<style>br{mso-data-placement: same-cell}</style><table><tbody><tr><td>A2</td></tr></tbody></table>');
     });
 
     it('should be possible to copy multiline text', () => {
@@ -270,7 +270,10 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent);
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('"A\nB"\tC');
-      expect(copyEvent.clipboardData.getData('text/html')).toEqual('<table><tbody><tr><td>A<br>B</td><td>C</td></tr></tbody></table>');
+      expect(copyEvent.clipboardData.getData('text/html')).toEqual([
+        '<style>br{mso-data-placement: same-cell}</style><table><tbody><tr><td>A<br>',
+        'B</td><td>C</td></tr></tbody></table>'
+      ].join('\r\n'));
     });
 
     it('should be possible to copy special chars', () => {
@@ -289,8 +292,9 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~');
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
-        '<table><tbody><tr><td>!@#$%^&amp;*()_+-={[</td>',
-        '<td>]};:\'"\\|,&lt;.&gt;/?~</td></tr></tbody></table>'
+        '<style>br{mso-data-placement: same-cell}</style>',
+        '<table><tbody><tr><td>!@#$%^&*()_+-={[</td>',
+        '<td>]};:\'"\\|,<.>/?~</td></tr></tbody></table>'
       ].join(''));
     });
 
@@ -312,8 +316,9 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('{"test": "value"}\n{"test2": {"testtest": ""}}\n{"test3": ""}');
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
-        '<table><tbody><tr><td>{"test": "value"}</td></tr><tr><td>{"test2": {"testtest": ""}}</td>',
-        '</tr><tr><td>{"test3": ""}</td></tr></tbody></table>'
+        '<style>br{mso-data-placement: same-cell}</style>',
+        '<table><tbody><tr><td>{"test":&nbsp;"value"}</td></tr><tr><td>{"test2":&nbsp;{"testtest":&nbsp;""}}</td>',
+        '</tr><tr><td>{"test3":&nbsp;""}</td></tr></tbody></table>'
       ].join(''));
     });
 
@@ -337,6 +342,7 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('\n0\nfalse\n\n');
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
+        '<style>br{mso-data-placement: same-cell}</style>',
         '<table><tbody><tr><td></td></tr><tr><td>0</td></tr><tr><td>false</td></tr>',
         '<tr><td></td></tr><tr><td></td></tr></tbody></table>'
       ].join(''));
@@ -364,7 +370,7 @@ describe('CopyPaste', () => {
       plugin.onCut(cutEvent);
 
       expect(cutEvent.clipboardData.getData('text/plain')).toBe('A2');
-      expect(cutEvent.clipboardData.getData('text/html')).toEqual('<table><tbody><tr><td>A2</td></tr></tbody></table>');
+      expect(cutEvent.clipboardData.getData('text/html')).toEqual('<style>br{mso-data-placement: same-cell}</style><table><tbody><tr><td>A2</td></tr></tbody></table>');
 
       expect(hot.getDataAtCell(1, 0)).toBe('');
     });
