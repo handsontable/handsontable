@@ -481,15 +481,14 @@ class CopyPaste extends BasePlugin {
     }
 
     let pastedData;
-    let mergeCellsSettings;
+    let parsedConfig;
 
     if (event && typeof event.clipboardData !== 'undefined') {
       const textHTML = event.clipboardData.getData('text/html');
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
-        const parsedTable = tableToHandsontable(textHTML, this.hot.rootDocument);
-        pastedData = parsedTable.data;
-        mergeCellsSettings = parsedTable.mergeCells;
+        parsedConfig = tableToHandsontable(textHTML, this.hot.rootDocument);
+        pastedData = parsedConfig.data;
       } else {
         pastedData = event.clipboardData.getData('text/plain');
       }
@@ -510,10 +509,6 @@ class CopyPaste extends BasePlugin {
 
     const [startRow, startColumn, endRow, endColumn] = this.populateValues(inputArray);
 
-    if (mergeCellsSettings) {
-      this.hot.runHooks('modifyMergeCells', mergeCellsSettings, { row: startRow, col: startColumn });
-    }
-
     this.hot.selectCell(
       startRow,
       startColumn,
@@ -521,7 +516,7 @@ class CopyPaste extends BasePlugin {
       Math.min(this.hot.countCols() - 1, endColumn),
     );
 
-    this.hot.runHooks('afterPaste', inputArray, this.copyableRanges);
+    this.hot.runHooks('afterPaste', inputArray, this.copyableRanges, parsedConfig || {});
   }
 
   /**

@@ -115,6 +115,7 @@ class MergeCells extends BasePlugin {
     this.addHook('beforeDrawBorders', (...args) => this.onBeforeDrawAreaBorders(...args));
     this.addHook('afterDrawSelection', (...args) => this.onAfterDrawSelection(...args));
     this.addHook('beforeRemoveCellClassNames', (...args) => this.onBeforeRemoveCellClassNames(...args));
+    this.addHook('afterPaste', (...args) => this.onAfterPaste(...args));
 
     super.enablePlugin();
   }
@@ -979,6 +980,16 @@ class MergeCells extends BasePlugin {
    */
   onBeforeRemoveCellClassNames() {
     return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
+  }
+
+  onAfterPaste(inputArray, copyableRanges, configuration) {
+    const { mergeCells } = configuration;
+    if (!mergeCells) {
+      return;
+    }
+    const [row, col] = this.hot.getSelectedLast();
+
+    this.generateFromSettings(mergeCells, { row, col });
   }
 }
 

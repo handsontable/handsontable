@@ -262,12 +262,17 @@ export function tableToHandsontable(element, rootDocument = document) {
           }
         }
 
-        mergeCells.push({
-          col,
-          row,
-          rowspan,
-          colspan,
-        });
+        const styleAttr = cell.getAttribute('style');
+        const ignoreMerge = styleAttr && styleAttr.includes('mso-ignore:colspan');
+
+        if (!ignoreMerge) {
+          mergeCells.push({
+            col,
+            row,
+            rowspan,
+            colspan,
+          });
+        }
       }
 
       const generator = tempElem.querySelector('meta[name$="enerator"]');
