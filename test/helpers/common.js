@@ -245,6 +245,7 @@ export function dropdownMenu(columnIndex) {
 
   if (button) {
     $(button).simulate('mousedown');
+    $(button).simulate('mouseup');
     $(button).simulate('click');
   }
 }
