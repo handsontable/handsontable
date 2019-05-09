@@ -1,10 +1,22 @@
 import { isEmpty } from './../helpers/mixed';
 
 /**
- * Converts Handsontable into HTMLTableElement
- * @param {Handsontable} instance
+ * Verifies if node is an HTMLTable element.
+ *
+ * @param {Node} element Node to verify if it's an HTMLTable.
  */
-export function convertToHTMLTable({ instance }) {
+function isHTMLTable(element) {
+  return (element && element.nodeName || '').toLowerCase() === 'table';
+}
+
+/**
+ * Converts Handsontable into HTMLTableElement.
+ *
+ * @param {Core} instance
+ *
+ * @returns {String} outerHTML of the HTMLTableElement
+ */
+export function instanceToHTML(instance) {
   const doc = instance.rootDocument;
   const hasColumnHeaders = instance.hasColHeaders();
   const hasRowHeaders = instance.hasRowHeaders();
@@ -72,11 +84,15 @@ export function convertToHTMLTable({ instance }) {
 }
 
 /**
- * Converts javascript array into HTMLTable.
+ * Converts 2D array into HTMLTableElement.
  *
  * @param {Array} input Input array which will be converted to HTMLTable
+ * @param {Document} [rootDocument]
+ *
+ * @returns {String} outerHTML of the HTMLTableElement
  */
-export function arrayToTable(input, rootDocument) {
+// eslint-disable-next-line no-restricted-globals
+export function arrayToHTML(input, rootDocument = document) {
   const inputLen = input.length;
   const result = ['<style>br{mso-data-placement: same-cell}</style>', '<table>'];
 
@@ -99,12 +115,7 @@ export function arrayToTable(input, rootDocument) {
         '' :
         cellData.toString().replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n').replace(/\x20/gi, '&nbsp;').replace(/\t/gi, '&#9;');
 
-      // tempElement.innerText = `${isEmpty(rowData[column]) ? '' : rowData[column]}`;
-
       columnsResult.push(`<td>${parsedCellData}</td>`);
-
-      // columnsResult.push(`<td>${tempElement.innerHTML.replace(/<br>/g, '\r\n')}</td>`);
-      // columnsResult.push(`<td style="white-space: normal">${tempElement.innerHTML.replace(/<br>/g, '<br>\r\n')}</td>`);
     }
 
     result.push('<tr>', ...columnsResult, '</tr>');
@@ -114,29 +125,19 @@ export function arrayToTable(input, rootDocument) {
     }
   }
 
-  // rootDocument.documentElement.removeChild(tempElement);
-
   result.push('</table>');
 
   return result.join('');
 }
 
 /**
- * Helper to verify if DOM element is an HTMLTable element.
- *
- * @param {Element} element Node element to verify if it's an HTMLTable.
- */
-function isHTMLTable(element) {
-  return (element && element.nodeName || '').toLowerCase() === 'table';
-}
-
-/**
  * Converts HTMLTable or string into Handsontable configuration object.
  *
  * @param {Element|String} element Node element or string, which should contain `<table>...</table>`.
+ * @param {Document} [rootDocument]
  */
 // eslint-disable-next-line no-restricted-globals
-export function tableToHandsontable(element, rootDocument = document) {
+export function tableToSettings(element, rootDocument = document) {
   const settingsObj = {};
   const fragment = rootDocument.createDocumentFragment();
   const tempElem = rootDocument.createElement('div');

@@ -9,7 +9,7 @@ import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
-import { arrayToTable, tableToHandsontable } from './../../utils/parseTable';
+import { arrayToHTML, tableToSettings } from './../../utils/parseTable';
 
 import './copyPaste.css';
 
@@ -411,7 +411,7 @@ class CopyPaste extends BasePlugin {
       const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        const textHTML = arrayToTable(rangedData, this.hot.rootDocument);
+        const textHTML = arrayToHTML(rangedData, this.hot.rootDocument);
 
         event.clipboardData.setData('text/plain', textPlain);
         event.clipboardData.setData('text/html', textHTML);
@@ -449,7 +449,7 @@ class CopyPaste extends BasePlugin {
       const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        const textHTML = arrayToTable(rangedData, this.hot.rootDocument);
+        const textHTML = arrayToHTML(rangedData, this.hot.rootDocument);
 
         event.clipboardData.setData('text/plain', textPlain);
         event.clipboardData.setData('text/html', textHTML);
@@ -481,13 +481,13 @@ class CopyPaste extends BasePlugin {
     }
 
     let pastedData;
-    let parsedConfig;
+    let parsedConfig = {};
 
     if (event && typeof event.clipboardData !== 'undefined') {
       const textHTML = event.clipboardData.getData('text/html');
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
-        parsedConfig = tableToHandsontable(textHTML, this.hot.rootDocument);
+        parsedConfig = tableToSettings(textHTML, this.hot.rootDocument);
         pastedData = parsedConfig.data;
       } else {
         pastedData = event.clipboardData.getData('text/plain');
@@ -503,7 +503,7 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
-    if (this.hot.runHooks('beforePaste', inputArray, this.copyableRanges) === false) {
+    if (this.hot.runHooks('beforePaste', inputArray, this.copyableRanges, parsedConfig) === false) {
       return;
     }
 
@@ -516,7 +516,7 @@ class CopyPaste extends BasePlugin {
       Math.min(this.hot.countCols() - 1, endColumn),
     );
 
-    this.hot.runHooks('afterPaste', inputArray, this.copyableRanges, parsedConfig || {});
+    this.hot.runHooks('afterPaste', inputArray, this.copyableRanges, parsedConfig);
   }
 
   /**

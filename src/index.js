@@ -173,4 +173,20 @@ Handsontable.languages.registerLanguageDictionary = registerLanguageDictionary;
 // Alias to `getTranslatedPhrase` function, for more information check it API.
 Handsontable.languages.getTranslatedPhrase = (...args) => getTranslatedPhrase(...args);
 
+/**
+ * Prepares Handsontable configuration based on HTMLElement.
+ *
+ * @param {Node} element Node element to prepare Handsontable configuration.
+ * @returns {DefaultSettings} Object with Handsontable configuration.
+ */
+Handsontable.fromHTML = element => Handsontable.helper.tableToSettings(element);
+
+/**
+ * Prepares Handsontable configuration based on string.
+ *
+ * @param {String} htmlText Node element to prepare Handsontable configuration.
+ * @returns {DefaultSettings} Object with Handsontable configuration.
+ */
+Handsontable.fromString = htmlText => Handsontable.helper.tableToSettings(htmlText);
+
 export default Handsontable;
