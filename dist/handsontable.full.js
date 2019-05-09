@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.0.3
- * Release date: 13/05/2019 (built at 06/05/2019 14:38:42)
+ * Release date: 13/05/2019 (built at 09/05/2019 09:56:50)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -16560,7 +16560,7 @@ function (_BaseEditor) {
       this.textareaParentStyle.zIndex = this.holderZIndex >= 0 ? this.holderZIndex : '';
       this.textareaParentStyle.opacity = '1';
       this.textareaStyle.textIndent = '';
-      this.textareaStyle.overflowY = 'auto';
+      this.textareaStyle.overflowY = 'hidden';
     }
     /**
      * Refreshes editor's value using source data.
@@ -58883,7 +58883,7 @@ Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "06/05/2019 14:38:42";
+Handsontable.buildDate = "09/05/2019 09:56:50";
 Handsontable.version = "7.0.3"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
