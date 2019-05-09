@@ -66,7 +66,7 @@ describe('CopyPaste', () => {
     handsontable();
     selectCell(0, 0);
 
-    await sleep(10);
+    await sleep(150);
 
     expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     expect($('#HandsontableCopyPaste').length).toBe(0);
@@ -123,7 +123,7 @@ describe('CopyPaste', () => {
       hot1.selectCell(0, 0);
       hot2.selectCell(1, 1);
 
-      await sleep(0);
+      await sleep(100);
 
       expect($('#HandsontableCopyPaste').length).toBe(0);
       expect(document.activeElement).toBe(hot2.getActiveEditor().TEXTAREA);

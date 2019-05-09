@@ -153,9 +153,9 @@ describe('Core_view', () => {
       colHeaders: true
     });
 
-    await sleep(400);
+    await sleep(500);
     hot.scrollViewportTo(119, 199);
-    await sleep(400);
+    await sleep(500);
     expect(hot.view.wt.wtScroll.getLastVisibleColumn()).toEqual(199);
     expect(hot.view.wt.wtScroll.getLastVisibleRow()).toEqual(119);
   });

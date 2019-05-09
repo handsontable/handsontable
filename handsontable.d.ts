@@ -183,6 +183,7 @@ declare namespace Handsontable {
       from: CellCoords;
       to: CellCoords;
     }
+    type OverlayType = 'top' | 'bottom' | 'left' | 'top_left_corner' | 'bottom_left_corner' | 'debug';
   }
 
   namespace cellTypes {
@@ -2262,7 +2263,7 @@ declare namespace Handsontable {
     offset: (elem: HTMLElement) => object;
     outerHeight: (elem: HTMLElement) => number;
     outerWidth: (element: HTMLElement) => number;
-    overlayContainsElement: (overlayType: string, element: HTMLElement) => boolean;
+    overlayContainsElement: (overlayType: wot.OverlayType, element: HTMLElement, root: HTMLElement) => boolean;
     pageX: (event: Event) => number;
     pageY: (event: Event) => number;
     polymerUnwrap: (element: HTMLElement) => any | void;
