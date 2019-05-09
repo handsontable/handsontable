@@ -57,12 +57,24 @@ export function instanceToHTML(instance) {
 
       } else {
         const cellData = data[row][column];
+        const { hidden, rowspan, colspan } = instance.getCellMeta(row - (hasRowHeaders ? 1 : 0), column - (hasColumnHeaders ? 1 : 0));
 
-        if (isEmpty(cellData)) {
-          cell = '<td></td>';
-        } else {
-          TEMP_ELEM.innerText = cellData;
-          cell = `<td>${TEMP_ELEM.innerHTML}</td>`;
+        if (!hidden) {
+          const attrs = [];
+
+          if (rowspan) {
+            attrs.push(`rowspan="${rowspan}"`);
+          }
+          if (colspan) {
+            attrs.push(`colspan="${colspan}"`);
+          }
+
+          if (isEmpty(cellData)) {
+            cell = `<td ${attrs.join(' ')}></td>`;
+          } else {
+            TEMP_ELEM.innerText = cellData;
+            cell = `<td ${attrs.join(' ')}>${TEMP_ELEM.innerHTML}</td>`;
+          }
         }
       }
 

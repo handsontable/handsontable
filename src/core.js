@@ -3574,7 +3574,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 7.1.0
    * @returns {HTMLTableElement}
    */
-  this.toHTML = () => instanceToHTML(this);
+  this.toHTML = () => {
+    const tempElement = this.rootDocument.createElement('div');
+    tempElement.insertAdjacentHTML('afterbegin', instanceToHTML(this));
+
+    return tempElement.firstElementChild;
+  };
 
   this.timeouts = [];
 
