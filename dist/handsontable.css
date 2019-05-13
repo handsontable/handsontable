@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 7.0.2
- * Release date: 09/04/2019 (built at 09/04/2019 12:57:10)
+ * Version: 7.0.3
+ * Release date: 13/05/2019 (built at 09/05/2019 09:56:50)
  */
 /**
  * Fix for bootstrap styles
@@ -610,12 +610,13 @@ CheckboxRenderer
 */
 .handsontable .htCheckboxRendererInput {
   display: inline-block;
-  vertical-align: middle;
 }
 .handsontable .htCheckboxRendererInput.noValue {
   opacity: 0.5;
 }
 .handsontable .htCheckboxRendererLabel {
+  font-size: inherit;
+  vertical-align: middle;
   cursor: pointer;
   display: inline-block;
   width: 100%;
@@ -1614,7 +1615,7 @@ textarea#HandsontableCopyPaste {
 
 /* Menu label */
 .handsontable .htFiltersMenuLabel {
-  font-size: 12px;
+  font-size: 0.75em;
 }
 
 /* Component action bar */
@@ -1641,6 +1642,8 @@ textarea#HandsontableCopyPaste {
 }
 .handsontable .htFiltersMenuCondition .htUIInput input,
 .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input {
+  font-family: inherit;
+  font-size: 0.75em;
   padding: 4px;
   box-sizing: border-box;
   width: 100%;
@@ -1666,7 +1669,7 @@ textarea#HandsontableCopyPaste {
 
 .handsontable .htUIClearAll a, .handsontable .htUISelectAll a {
   color: #3283D8;
-  font-size: 12px;
+  font-size: 0.75em;
 }
 
 .handsontable .htUISelectionControls {
@@ -1706,8 +1709,8 @@ textarea#HandsontableCopyPaste {
   background-color: #eee;
   color: #000;
   cursor: pointer;
-  font-family: arial, sans-serif;
-  font-size: 11px;
+  font-family: inherit;
+  font-size: 0.7em;
   font-weight: bold;
   height: 19px;
   min-width: 64px;
@@ -1739,8 +1742,8 @@ textarea#HandsontableCopyPaste {
   background-color: #e8e8e8;
   border-radius: 2px;
   border: 1px solid #d2d1d1;
-  font-family: arial, sans-serif;
-  font-size: 11px;
+  font-family: inherit;
+  font-size: 0.7em;
   font-weight: bold;
   padding: 3px 20px 3px 10px;
   text-overflow: ellipsis;
@@ -1792,6 +1795,10 @@ textarea#HandsontableCopyPaste {
 
 .handsontable .htUIRadio > input[type=radio] {
   margin-right: 0.5ex;
+}
+
+.handsontable .htUIRadio label {
+  vertical-align: middle;
 }
 
 .handsontable .htFiltersMenuOperators {

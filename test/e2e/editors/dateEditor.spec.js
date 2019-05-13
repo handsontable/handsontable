@@ -255,7 +255,7 @@ describe('DateEditor', () => {
 
     editor.finishEditing();
 
-    await sleep(30);
+    await sleep(100);
 
     expect(getDataAtCell(0, 0)).toEqual('foo');
   });
@@ -359,7 +359,7 @@ describe('DateEditor', () => {
     expect(getDataAtCell(0, 0)).toEqual('01/14/2006');
   });
 
-  it('should display a calendar based on a current date, even if a date in a wrong format was entered previously', (done) => {
+  it('should display a calendar based on a current date, even if a date in a wrong format was entered previously', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       columns: [
@@ -371,22 +371,19 @@ describe('DateEditor', () => {
 
     setDataAtCell(4, 1, '15-11-11');
 
-    setTimeout(() => {
-      selectCell(5, 1);
-      keyDown('enter');
+    await sleep(200);
+    selectCell(5, 1);
+    keyDown('enter');
 
-      expect($('.pika-single').is(':visible')).toBe(true);
+    expect($('.pika-single').is(':visible')).toBe(true);
 
-      mouseDown($('.pika-single').find('.pika-table tbody tr:eq(3) td:eq(3) button'));
-    }, 150);
+    mouseDown($('.pika-single').find('.pika-table tbody tr:eq(3) td:eq(3) button'));
 
-    setTimeout(() => {
-      const resultDate = getDataAtCell(5, 1);
+    await sleep(200);
+    const resultDate = getDataAtCell(5, 1);
 
-      expect(moment(resultDate).year()).toEqual(moment().year());
-      expect(moment(resultDate).month()).toEqual(moment().month());
-      done();
-    }, 300);
+    expect(moment(resultDate).year()).toEqual(moment().year());
+    expect(moment(resultDate).month()).toEqual(moment().month());
   });
 
   it('should display Pikaday Calendar bottom of the selected cell', () => {

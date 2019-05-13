@@ -1326,6 +1326,29 @@ DefaultSettings.prototype = {
 
   /**
    * @description
+   * When added to a cell property, it skips the row on paste and pastes the data on the following row.
+   *
+   * @type {Boolean}
+   * @default false
+   *
+   * @example
+   * ```js
+   * cells: function(row, column) {
+   *  const cellProperties = {};
+   *
+   *  // don't paste data to the second row
+   *  if (row === 1) {
+   *    cellProperties.skipRowOnPaste = true;
+   *  }
+   *
+   *  return cellProperties;
+   * }
+   * ```
+   */
+  skipRowOnPaste: false,
+
+  /**
+   * @description
    * Setting to `true` enables the {@link Search} plugin (see [demo](https://docs.handsontable.com/demo-search-for-values.html)).
    *
    * @type {Boolean}

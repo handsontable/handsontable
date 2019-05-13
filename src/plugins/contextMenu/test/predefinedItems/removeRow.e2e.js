@@ -115,7 +115,7 @@ describe('ContextMenu', () => {
 
       hot.validateCells();
 
-      await sleep(100);
+      await sleep(150);
 
       selectCell(1, 1);
       contextMenu();
