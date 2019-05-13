@@ -34,7 +34,7 @@ export function instanceToHTML(instance) {
   const countCols = countRows > 0 ? data[0].length : 0;
 
   const TABLE = ['<table>', '</table>'];
-  const THEAD = ['<thead>', '</thead>'];
+  const THEAD = hasColumnHeaders ? ['<thead>', '</thead>'] : [];
   const TBODY = ['<tbody>', '</tbody>'];
 
   const TEMP_ELEM = doc.createElement('div');
@@ -158,7 +158,7 @@ export function tableToSettings(element, rootDocument = document) {
   let checkElement = element;
 
   if (typeof checkElement === 'string') {
-    tempElem.innerHTML = `${checkElement}`;
+    tempElem.insertAdjacentHTML('afterbegin', `${checkElement}`);
     checkElement = tempElem.querySelector('table');
   }
 
@@ -250,16 +250,21 @@ export function tableToSettings(element, rootDocument = document) {
   const mergeCells = [];
   const rowHeaders = [];
 
+  const generator = tempElem.querySelector('meta[name$="enerator"]');
+
   for (let row = 0; row < countRows; row++) {
     const rowData = dataRows[row];
+    const cells = Array.from(rowData.cells);
+    const cellsLen = cells.length;
 
-    Array.from(rowData.cells).forEach((cell) => {
+    for (let cellId = 0; cellId < cellsLen; cellId++) {
+      const cell = cells[cellId];
       const {
         nodeName,
         innerHTML,
         rowSpan: rowspan,
         colSpan: colspan,
-      } = cell;
+      } = cells;
       const col = dataArr[row].findIndex(value => value === void 0);
 
       if (nodeName.toLowerCase() === 'th') {
@@ -288,14 +293,20 @@ export function tableToSettings(element, rootDocument = document) {
         }
       }
 
-      const generator = tempElem.querySelector('meta[name$="enerator"]');
-      if (generator && /excel/gi.test(generator.content)) {
-        dataArr[row][col] = innerHTML.replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,2}/gim, '\r\n').replace(/(<([^>]+)>)/gi, '');
-      } else {
-        dataArr[row][col] = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n').replace(/(<([^>]+)>)/gi, '');
+      let result = innerHTML;
+
+      if (/<span style=('|")mso-spacerun:(\s*?)yes('|")>/gi.test(innerHTML)) {
+        result = innerHTML.replace(/[\r\n]/gim, '');
       }
+
+      if (generator && /excel/gi.test(generator.content)) {
+        dataArr[row][col] = result.replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,2}/gim, '\r\n').replace(/(<([^>]+)>)/gi, '');
+      } else {
+        dataArr[row][col] = result.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n').replace(/(<([^>]+)>)/gi, '');
+      }
+
       dataArr[row][col] = dataArr[row][col].replace(/&nbsp;/gi, '\x20');
-    });
+    }
   }
 
   if (mergeCells.length) {
