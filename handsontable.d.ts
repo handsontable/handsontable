@@ -2225,7 +2225,7 @@ declare namespace Handsontable {
   interface Dom {
     HTML_CHARACTERS: RegExp;
     addClass: (element: HTMLElement, className: string | any[]) => void;
-    addEvent: (element: HTMLElement, event: string, callback: () => void) => void;
+    addEvent: (element: HTMLElement, event: string, callback: (event: Event) => void) => void;
     clearTextSelection: (rootWindow?: Window) => void;
     closest: (element: HTMLElement, nodes: any[], until?: HTMLElement) => HTMLElement | void;
     closestDown: (element: HTMLElement, nodes: any[], until?: HTMLElement) => HTMLElement | void;
