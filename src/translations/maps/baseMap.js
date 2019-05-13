@@ -21,10 +21,10 @@ class BaseMap {
     this.list.length = 0;
 
     if (isFunction(this.initValueOrFn)) {
-      rangeEach(length, index => this.list.push(this.initValueOrFn(index)));
+      rangeEach(length - 1, index => this.list.push(this.initValueOrFn(index)));
 
     } else {
-      rangeEach(length, () => this.list.push(this.initValueOrFn));
+      rangeEach(length - 1, () => this.list.push(this.initValueOrFn));
     }
 
     this.runLocalHooks('mapChanged');
