@@ -1,4 +1,4 @@
-import { arrayMap } from '../../helpers/array';
+import { rangeEach } from '../../helpers/number';
 import { mixin } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
 import localHooks from './../../mixins/localHooks';
@@ -18,13 +18,14 @@ class BaseMap {
    * @param {Number} length New length of list.
    */
   init(length) {
-    this.list = arrayMap(new Array(length), (_, indexOfArray) => {
-      if (isFunction(this.initValueOrFn)) {
-        return this.initValueOrFn(indexOfArray);
-      }
+    this.list.length = 0;
 
-      return this.initValueOrFn;
-    });
+    if (isFunction(this.initValueOrFn)) {
+      rangeEach(length, index => this.list.push(this.initValueOrFn(index)));
+
+    } else {
+      rangeEach(length, () => this.list.push(this.initValueOrFn));
+    }
 
     this.runLocalHooks('mapChanged');
 
