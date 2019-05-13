@@ -182,7 +182,7 @@ class ManualRowMove extends BasePlugin {
     }
 
     if (movePossible) {
-      this.t.getRowIndexMapper().moveIndexes(rows, finalIndex);
+      this.rowIndexMapper.moveIndexes(rows, finalIndex);
     }
 
     this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePossible && this.isRowOrderChanged(rows, finalIndex));
@@ -224,7 +224,7 @@ class ManualRowMove extends BasePlugin {
    * @returns {Boolean}
    */
   isMovePossible(movedRows, finalIndex) {
-    const length = this.t.getRowIndexMapper().getNotSkippedIndexesLength();
+    const length = this.rowIndexMapper.getNotSkippedIndexesLength();
 
     // An attempt to transfer more rows to start destination than is possible (only when moving from the top to the bottom).
     const tooHighDestinationIndex = movedRows.length + finalIndex > length;

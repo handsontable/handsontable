@@ -25,6 +25,12 @@ class BasePlugin {
     defineGetter(this, 't', getTranslator(hotInstance), {
       writable: false
     });
+    defineGetter(this, 'rowIndexMapper', getTranslator(hotInstance).getRowIndexMapper(), {
+      writable: false
+    });
+    defineGetter(this, 'columnIndexMapper', getTranslator(hotInstance).getColumnIndexMapper(), {
+      writable: false
+    });
 
     privatePool.set(this, { hooks: {} });
     initializedPlugins = null;
@@ -175,7 +181,7 @@ class BasePlugin {
     this.clearHooks();
 
     objectEach(this, (value, property) => {
-      if (property !== 'hot' && property !== 't') {
+      if (['hot', 't', 'rowIndexMapper', 'columnIndexMapper'].includes(property) === false) {
         this[property] = null;
       }
     });

@@ -144,7 +144,7 @@ class ColumnSorting extends BasePlugin {
       this.enableObserveChangesPlugin();
     }
 
-    this.indexesSequenceCache = this.t.getRowIndexMapper().variousMappingsCollection.register(this.pluginKey, new IndexMap());
+    this.indexesSequenceCache = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey, new IndexMap());
 
     this.addHook('afterGetColHeader', (column, TH) => this.onAfterGetColHeader(column, TH));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, controller) => this.onBeforeOnCellMouseDown(event, coords, TD, controller));
@@ -182,7 +182,7 @@ class ColumnSorting extends BasePlugin {
       this.hot.removeHook('afterGetColHeader', clearColHeader);
     });
 
-    this.t.getRowIndexMapper().setIndexesSequence(this.indexesSequenceCache.getValues());
+    this.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
 
     super.disablePlugin();
   }
@@ -219,7 +219,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (currentSortConfig.length === 0) {
-      this.indexesSequenceCache.setValues(this.t.getRowIndexMapper().getIndexesSequence());
+      this.indexesSequenceCache.setValues(this.rowIndexMapper.getIndexesSequence());
     }
 
     if (sortPossible) {
@@ -559,7 +559,7 @@ class ColumnSorting extends BasePlugin {
    */
   sortByPresetSortStates() {
     if (this.columnStatesManager.isListOfSortedColumnsEmpty()) {
-      this.t.getRowIndexMapper().setIndexesSequence(this.indexesSequenceCache.getValues());
+      this.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
 
       return;
     }
@@ -593,7 +593,7 @@ class ColumnSorting extends BasePlugin {
 
     const indexMapping = new Map(arrayMap(indexesBefore, (indexBefore, indexInsideArray) => [indexBefore, indexesAfter[indexInsideArray]]));
 
-    this.t.getRowIndexMapper().setIndexesSequence(arrayMap(this.t.getRowIndexMapper().getIndexesSequence(), (physicalIndex) => {
+    this.rowIndexMapper.setIndexesSequence(arrayMap(this.rowIndexMapper.getIndexesSequence(), (physicalIndex) => {
       if (indexMapping.has(physicalIndex)) {
         return indexMapping.get(physicalIndex);
       }

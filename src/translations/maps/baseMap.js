@@ -37,7 +37,7 @@ class BaseMap {
    * @returns {Array}
    */
   getValues() {
-    return this.list.slice();
+    return this.list;
   }
 
   /**
