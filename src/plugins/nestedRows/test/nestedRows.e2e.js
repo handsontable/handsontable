@@ -1,4 +1,4 @@
-fdescribe('NestedRows', () => {
+describe('NestedRows', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
