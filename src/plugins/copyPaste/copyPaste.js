@@ -481,13 +481,12 @@ class CopyPaste extends BasePlugin {
     }
 
     let pastedData;
-    let parsedConfig = {};
 
     if (event && typeof event.clipboardData !== 'undefined') {
       const textHTML = event.clipboardData.getData('text/html');
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
-        parsedConfig = tableToSettings(textHTML, this.hot.rootDocument);
+        const parsedConfig = tableToSettings(textHTML, this.hot.rootDocument);
         pastedData = parsedConfig.data;
       } else {
         pastedData = event.clipboardData.getData('text/plain');
@@ -497,17 +496,19 @@ class CopyPaste extends BasePlugin {
       pastedData = this.hot.rootWindow.clipboardData.getData('Text');
     }
 
-    const inputArray = typeof pastedData !== 'string' ? pastedData : SheetClip.parse(pastedData);
+    if (typeof pastedData === 'string') {
+      pastedData = SheetClip.parse(pastedData);
+    }
 
-    if (inputArray.length === 0) {
+    if (pastedData && pastedData.length === 0) {
       return;
     }
 
-    if (this.hot.runHooks('beforePaste', inputArray, this.copyableRanges, parsedConfig) === false) {
+    if (this.hot.runHooks('beforePaste', pastedData, this.copyableRanges) === false) {
       return;
     }
 
-    const [startRow, startColumn, endRow, endColumn] = this.populateValues(inputArray);
+    const [startRow, startColumn, endRow, endColumn] = this.populateValues(pastedData);
 
     this.hot.selectCell(
       startRow,
@@ -516,7 +517,7 @@ class CopyPaste extends BasePlugin {
       Math.min(this.hot.countCols() - 1, endColumn),
     );
 
-    this.hot.runHooks('afterPaste', inputArray, this.copyableRanges, parsedConfig);
+    this.hot.runHooks('afterPaste', pastedData, this.copyableRanges);
   }
 
   /**

@@ -6,7 +6,7 @@ import { isEmpty } from './../helpers/mixed';
  * @param {Node} element Node to verify if it's an HTMLTable.
  */
 function isHTMLTable(element) {
-  return (element && element.nodeName || '').toLowerCase() === 'table';
+  return (element && element.nodeName || '') === 'TABLE';
 }
 
 /**
@@ -106,7 +106,7 @@ export function instanceToHTML(instance) {
 // eslint-disable-next-line no-restricted-globals
 export function arrayToHTML(input, rootDocument = document) {
   const inputLen = input.length;
-  const result = ['<style>br{mso-data-placement: same-cell}</style>', '<table>'];
+  const result = ['<style>br{mso-data-placement:same-cell}</style>', '<table>'];
 
   const fragment = rootDocument.createDocumentFragment();
   const tempElement = rootDocument.createElement('div');
@@ -147,6 +147,7 @@ export function arrayToHTML(input, rootDocument = document) {
  *
  * @param {Element|String} element Node element or string, which should contain `<table>...</table>`.
  * @param {Document} [rootDocument]
+ * @returns {Object} Return configuration object. Contains keys as DefaultSettings.
  */
 // eslint-disable-next-line no-restricted-globals
 export function tableToSettings(element, rootDocument = document) {
@@ -163,10 +164,20 @@ export function tableToSettings(element, rootDocument = document) {
   }
 
   if (!checkElement || !isHTMLTable(checkElement)) {
-    // throw error?
     return;
   }
 
+  const styleElem = tempElem.querySelector('style');
+  const cssStyleGroups = styleElem ? styleElem.innerHTML.match(/[.@]?\w*[\r\n]?\t?\{[\w\s-.,:;\\()"']*}/g).reverse() : [];
+  const styleSheet = new CSSStyleSheet();
+
+  for (let g = 0; g < cssStyleGroups.length; g++) {
+    styleSheet.insertRule(cssStyleGroups[g]);
+  }
+
+  const styleSheetArr = Array.from(styleSheet.cssRules);
+
+  const generator = tempElem.querySelector('meta[name$="enerator"]');
   const hasRowHeaders = checkElement.querySelector('tbody th') !== null;
   const countCols = Array.from(checkElement.querySelector('tr').cells).reduce((cols, cell) => cols + cell.colSpan, 0) - (hasRowHeaders ? 1 : 0);
   const fixedRowsBottom = checkElement.tFoot && Array.from(checkElement.tFoot.rows) || [];
@@ -250,11 +261,9 @@ export function tableToSettings(element, rootDocument = document) {
   const mergeCells = [];
   const rowHeaders = [];
 
-  const generator = tempElem.querySelector('meta[name$="enerator"]');
-
   for (let row = 0; row < countRows; row++) {
-    const rowData = dataRows[row];
-    const cells = Array.from(rowData.cells);
+    const tr = dataRows[row];
+    const cells = Array.from(tr.cells);
     const cellsLen = cells.length;
 
     for (let cellId = 0; cellId < cellsLen; cellId++) {
@@ -264,48 +273,50 @@ export function tableToSettings(element, rootDocument = document) {
         innerHTML,
         rowSpan: rowspan,
         colSpan: colspan,
-      } = cells;
+      } = cell;
       const col = dataArr[row].findIndex(value => value === void 0);
 
-      if (nodeName.toLowerCase() === 'th') {
-        rowHeaders.push(innerHTML);
+      if (nodeName === 'TD') {
+        if (rowspan > 1 || colspan > 1) {
+          for (let rstart = row; rstart < row + rowspan; rstart++) {
+            if (rstart < countRows) {
+              for (let cstart = col; cstart < col + colspan; cstart++) {
+                dataArr[rstart][cstart] = null;
+              }
+            }
+          }
 
-        return;
-      }
+          const styleAttr = cell.getAttribute('style');
+          const ignoreMerge = styleAttr && styleAttr.includes('mso-ignore:colspan');
 
-      if (rowspan > 1 || colspan > 1) {
-        for (let rstart = row; rstart < row + rowspan; rstart++) {
-          for (let cstart = col; cstart < col + colspan; cstart++) {
-            dataArr[rstart][cstart] = null;
+          if (!ignoreMerge) {
+            mergeCells.push({ col, row, rowspan, colspan });
           }
         }
 
-        const styleAttr = cell.getAttribute('style');
-        const ignoreMerge = styleAttr && styleAttr.includes('mso-ignore:colspan');
+        const cellStyle = styleSheetArr.reduce((settings, cssRule) => {
+          if (cssRule.selectorText && cell.matches(cssRule.selectorText)) {
+            settings.whiteSpace = cssRule.style.whiteSpace;
+          }
 
-        if (!ignoreMerge) {
-          mergeCells.push({
-            col,
-            row,
-            rowspan,
-            colspan,
-          });
+          return settings;
+        }, {});
+
+        if (cellStyle.whiteSpace === 'nowrap') {
+          dataArr[row][col] = innerHTML.replace(/[\r\n][\x20]{0,2}/gim, '\x20')
+            .replace(/<br(\s*|\/)>/gim, '\r\n')
+            .replace(/(<([^>]+)>)/gi, '')
+            .replace(/&nbsp;/gi, '\x20');
+
+        } else if (generator && /excel/gi.test(generator.content)) {
+          dataArr[row][col] = innerHTML.replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,2}/gim, '\r\n').replace(/(<([^>]+)>)/gi, '').replace(/&nbsp;/gi, '\x20');
+        } else {
+          dataArr[row][col] = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n').replace(/(<([^>]+)>)/gi, '').replace(/&nbsp;/gi, '\x20');
         }
-      }
 
-      let result = innerHTML;
-
-      if (/<span style=('|")mso-spacerun:(\s*?)yes('|")>/gi.test(innerHTML)) {
-        result = innerHTML.replace(/[\r\n]/gim, '');
-      }
-
-      if (generator && /excel/gi.test(generator.content)) {
-        dataArr[row][col] = result.replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,2}/gim, '\r\n').replace(/(<([^>]+)>)/gi, '');
       } else {
-        dataArr[row][col] = result.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n').replace(/(<([^>]+)>)/gi, '');
+        rowHeaders.push(innerHTML);
       }
-
-      dataArr[row][col] = dataArr[row][col].replace(/&nbsp;/gi, '\x20');
     }
   }
 
