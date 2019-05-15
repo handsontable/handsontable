@@ -40,6 +40,15 @@ class MapCollection {
   }
 
   /**
+   * Get collection size.
+   *
+   * @returns {Number}
+   */
+  getLength() {
+    return this.mappings.size;
+  }
+
+  /**
    * Remove some indexes and update value of the previous ones.
    *
    * @private

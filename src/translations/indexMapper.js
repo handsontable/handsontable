@@ -1,4 +1,5 @@
-import { arrayFilter, arrayMap, arrayReduce, pivot } from './../helpers/array';
+import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
+import { rangeEach } from '../helpers/number';
 import IndexMap from './maps/indexMap';
 import MapCollection from './mapCollection';
 
@@ -154,27 +155,29 @@ class IndexMapper {
   }
 
   /**
-   * Get all indexes skipped in the process of rendering.
+   * Get flat list of values, which are result whether index was skipped in any of skip collection's element.
    *
    * @private
    * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
-  getSkippedIndexes(readFromCache = true) {
+  getFlattenSkipList(readFromCache = true) {
     if (readFromCache === true) {
-      return this.skippedIndexesCache;
+      return this.flattenSkipList;
     }
 
+    if (this.skipCollection.getLength() === 0) {
+      return [];
+    }
+
+    const result = [];
     const particularSkipsLists = arrayMap(this.skipCollection.get(), skipList => skipList.getValues());
-    const skipBooleansForIndex = pivot(particularSkipsLists);
 
-    return arrayReduce(skipBooleansForIndex, (skippedIndexesResult, skipIndexesAtIndex, physicalIndex) => {
-      if (skipIndexesAtIndex.some(isSkipped => isSkipped === true)) {
-        return skippedIndexesResult.concat(physicalIndex);
-      }
+    rangeEach(this.indexesSequence.getLength(), (physicalIndex) => {
+      result[physicalIndex] = particularSkipsLists.some(particularSkipsList => particularSkipsList[physicalIndex]);
+    });
 
-      return skippedIndexesResult;
-    }, []);
+    return result;
   }
 
   /**
@@ -185,7 +188,7 @@ class IndexMapper {
    * @returns {Boolean}
    */
   isSkipped(physicalIndex) {
-    return this.getSkippedIndexes().includes(physicalIndex);
+    return this.getFlattenSkipList()[physicalIndex] || false;
   }
 
   /**
@@ -228,7 +231,7 @@ class IndexMapper {
    * @private
    */
   updateCache() {
-    this.skippedIndexesCache = this.getSkippedIndexes(false);
+    this.flattenSkipList = this.getFlattenSkipList(false);
     this.notSkippedIndexesCache = this.getNotSkippedIndexes(false);
   }
 }
