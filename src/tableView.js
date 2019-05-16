@@ -385,7 +385,8 @@ class TableView {
       },
       columnWidth: this.instance.getColWidth,
       rowHeight: this.instance.getRowHeight,
-      cellRenderer: (row, col, TD, needRecreateContent) => {
+      cellRenderer: (row, col, TD) => {
+      // cellRenderer: (row, col, TD, needRecreateContent) => {
         // const physicalColumn = this.instance.toPhysicalColumn(col);
         // const physicalRow = this.instance.toPhysicalRow(row);
         // const hasChangedByColumn = getStorage(this.instance).hasChangedByColumn(physicalColumn);

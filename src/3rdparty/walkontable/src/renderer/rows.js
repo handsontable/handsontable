@@ -1,7 +1,6 @@
 import { warn } from './../../../../helpers/console';
 import { toSingleLine } from './../../../../helpers/templateLiteralTag';
-import OrderView from '../utils/orderView';
-import NodesPool from '../utils/nodesPool';
+import { OrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
 
 // TODO: After moving class to one instance check if this warning works!
@@ -9,8 +8,7 @@ let performanceWarningAppeared = false;
 
 export default class RowsRenderer extends BaseRenderer {
   constructor(rootNode) {
-    super(rootNode);
-    this.nodesPool = new NodesPool('tr');
+    super('tr', rootNode);
     this.orderView = new OrderView(rootNode, (sourceRowIndex) => {
       return this.nodesPool.obtain(sourceRowIndex);
     });

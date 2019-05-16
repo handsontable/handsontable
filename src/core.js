@@ -3620,7 +3620,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.getStorage = function() {
     return getStorage(instance);
-  }
+  };
 
   /**
    * Refresh selection borders. This is temporary method relic after selection rewrite.

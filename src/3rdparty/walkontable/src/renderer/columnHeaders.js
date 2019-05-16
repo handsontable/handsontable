@@ -3,7 +3,7 @@ import BaseRenderer from './_base';
 
 export default class ColumnHeadersRenderer extends BaseRenderer {
   constructor(rootNode) {
-    super(rootNode);
+    super(null, rootNode); // NodePool is not implemented for this renderer yet
   }
 
   adjust() {
@@ -17,13 +17,13 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
         TR = this.rootNode.childNodes[i];
 
         if (!TR) {
-          TR = document.createElement('tr');
+          TR = this.table.rootDocument.createElement('tr');
           this.rootNode.appendChild(TR);
         }
         this.renderedNodes = TR.childNodes.length;
 
         while (this.renderedNodes < columnsToRender + rowHeadersCount) {
-          TR.appendChild(document.createElement('th'));
+          TR.appendChild(this.table.rootDocument.createElement('th'));
           this.renderedNodes += 1;
         }
         while (this.renderedNodes > columnsToRender + rowHeadersCount) {

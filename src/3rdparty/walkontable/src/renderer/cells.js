@@ -1,14 +1,12 @@
 import {
   hasClass,
 } from './../../../../helpers/dom/element';
-import OrderView from '../utils/orderView';
-import NodesPool from '../utils/nodesPool';
+import { SharedOrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
 
 export default class CellsRenderer extends BaseRenderer {
   constructor() {
-    super();
-    this.nodesPool = new NodesPool('td');
+    super('td');
     this.orderViews = new Map();
     this.sourceRowIndex = 0;
   }
@@ -19,7 +17,7 @@ export default class CellsRenderer extends BaseRenderer {
     if (this.orderViews.has(sourceIndex)) {
       orderView = this.orderViews.get(sourceIndex);
     } else {
-      orderView = new OrderView(rootNode, (sourceColumnIndex) => {
+      orderView = new SharedOrderView(rootNode, (sourceColumnIndex) => {
         return this.nodesPool.obtain(this.sourceRowIndex, sourceColumnIndex);
       });
       this.orderViews.set(sourceIndex, orderView);
@@ -29,7 +27,7 @@ export default class CellsRenderer extends BaseRenderer {
   }
 
   render() {
-    const { rowsToRender, columnsToRender, rows } = this.table;
+    const { rowsToRender, columnsToRender, rows, rowHeaders } = this.table;
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
@@ -39,27 +37,28 @@ export default class CellsRenderer extends BaseRenderer {
       this.sourceRowIndex = sourceRowIndex;
 
       const orderView = this.obtainOrderView(sourceRowIndex, TR);
+      const rowHeadersView = rowHeaders.obtainOrderView(sourceRowIndex, TR);
 
-      // @TODO(perf-tip): For cells other than "visual 0" generating diff leads can be reused. New order (leads)
-      // shoule be shared between previous orderView.
+      // @TODO(perf-tip): For cells other than "visual 0" generating diff leads/commands can be skipped. New order view
+      // shoule share state between next orderViews.
       orderView
+        .prependView(rowHeadersView)
         .setSize(columnsToRender)
         .setOffset(this.table.renderedColumnToSource(0))
         .start();
 
       for (let visibleColumnIndex = 0; visibleColumnIndex < columnsToRender; visibleColumnIndex++) {
-        const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
-
         orderView.render();
 
         const TD = orderView.getCurrentNode();
+        const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
         const hasStaleContent = hasStaleRowContent || orderView.hasStaleContent(sourceColumnIndex);
 
         // if (hasStaleContent) {
-          if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
-            TD.className = '';
-          }
-          TD.removeAttribute('style');
+        if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
+          TD.className = '';
+        }
+        TD.removeAttribute('style');
         // }
 
         this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD, hasStaleContent);

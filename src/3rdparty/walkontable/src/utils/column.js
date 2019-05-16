@@ -56,7 +56,7 @@ export default class ColumnUtils {
     const { wot } = this;
     const { wtTable, wtViewport, cloneSource } = wot;
     const mainHolder = cloneSource ? cloneSource.wtTable.holder : wtTable.holder;
-    const scrollbarCompensation = mainHolder.offsetHeight < mainHolder.scrollHeight ? getScrollbarWidth() : 0
+    const scrollbarCompensation = mainHolder.offsetHeight < mainHolder.scrollHeight ? getScrollbarWidth() : 0;
     let rowHeaderWidthSetting = wot.getSetting('rowHeaderWidth');
 
     wtViewport.columnsRenderCalculator.refreshStretching(wtViewport.getViewportWidth() - scrollbarCompensation);
@@ -68,7 +68,7 @@ export default class ColumnUtils {
       const defaultColumnWidth = wot.getSetting('defaultColumnWidth');
 
       for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {
-        const width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[visibleColumnIndex] : rowHeaderWidthSetting;
+        let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[visibleColumnIndex] : rowHeaderWidthSetting;
 
         width = (width === null || width === void 0) ? defaultColumnWidth : width;
 

@@ -203,7 +203,7 @@ class Walkontable {
    * @returns {String}
    */
   isClone() {
-    return this.cloneSource ? false : true;;
+    return !this.cloneSource;
   }
 
   /**

@@ -262,7 +262,7 @@ describe('ViewportRowsCalculator', () => {
       scrollOffset: 0,
       totalItems: 0,
       itemSizeFn: index => allRows20(index),
-      overrideFn: (calc) => overrideFn(calc),
+      overrideFn: calc => overrideFn(calc),
       scrollbarHeight: void 0,
     };
     const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });

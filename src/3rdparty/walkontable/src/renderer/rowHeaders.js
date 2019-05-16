@@ -1,11 +1,9 @@
-import OrderView from '../utils/orderView';
-import NodesPool from '../utils/nodesPool';
+import { OrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
 
 export default class RowHeadersRenderer extends BaseRenderer {
   constructor() {
-    super();
-    this.nodesPool = new NodesPool('th');
+    super('th');
     this.orderViews = new Map();
     this.sourceRowIndex = 0;
   }
@@ -26,7 +24,7 @@ export default class RowHeadersRenderer extends BaseRenderer {
   }
 
   render() {
-    const { rowsToRender, rows, rowHeaderFunctions, rowHeadersCount } = this.table;
+    const { rowsToRender, rowHeaderFunctions, rowHeadersCount, rows } = this.table;
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);

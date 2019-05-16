@@ -1,9 +1,6 @@
 const changesCollection = new WeakMap();
 
-function coordsToString(row, column) {
-  return `${row}x${column}`;
-}
-
+/* eslint-disable import/prefer-default-export */
 class Storage {
   constructor() {
     this.collection = new Map();

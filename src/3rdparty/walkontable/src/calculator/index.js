@@ -5,4 +5,4 @@ export * from './constants';
 export {
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
-}
+};

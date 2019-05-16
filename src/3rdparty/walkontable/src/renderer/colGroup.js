@@ -2,16 +2,15 @@ import BaseRenderer from './_base';
 import { addClass } from './../../../../helpers/dom/element';
 
 export default class ColGroupRenderer extends BaseRenderer {
-  constructor(rootNode, columnUtils) {
-    super(rootNode);
-    this.columnUtils = columnUtils;
+  constructor(rootNode) {
+    super(null, rootNode); // NodePool is not implemented for this renderer yet
   }
 
   adjust() {
     const { columnsToRender, rowHeadersCount } = this.table;
 
     while (this.renderedNodes < columnsToRender + rowHeadersCount) {
-      this.rootNode.appendChild(document.createElement('col'));
+      this.rootNode.appendChild(this.table.rootDocument.createElement('col'));
       this.renderedNodes += 1;
     }
     while (this.renderedNodes > columnsToRender + rowHeadersCount) {

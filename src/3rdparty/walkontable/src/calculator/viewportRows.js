@@ -1,4 +1,4 @@
-import { RENDER_TYPE, FULLY_VISIBLE_TYPE, PARTIALLY_VISIBLE_TYPE } from './constants';
+import { RENDER_TYPE, FULLY_VISIBLE_TYPE } from './constants';
 
 const privatePool = new WeakMap();
 

@@ -1,6 +1,7 @@
 export default class TableRenderer {
   constructor(rootNode, { cellRenderer } = {}) {
     this.rootNode = rootNode;
+    this.rootDocument = this.rootNode.ownerDocument;
     // renderers
     this.rowHeaders = null;
     this.columnHeaders = null;
@@ -22,7 +23,7 @@ export default class TableRenderer {
     this.columnHeadersCount = 0;
 
     this.totalRows = 0;
-    this.totalColumn = 0;
+    this.totalColumns = 0;
     // options
     this.cellRenderer = cellRenderer;
   }
@@ -34,9 +35,9 @@ export default class TableRenderer {
     return this;
   }
 
-  setSize(totalRows, totalColumn) {
+  setSize(totalRows, totalColumns) {
     this.totalRows = totalRows;
-    this.totalColumn = totalColumn;
+    this.totalColumns = totalColumns;
 
     return this;
   }
@@ -64,7 +65,7 @@ export default class TableRenderer {
     return this;
   }
 
-  setRenderers({ rowHeaders, columnHeaders, colGroup, rows, cells } = renderers) {
+  setRenderers({ rowHeaders, columnHeaders, colGroup, rows, cells } = {}) {
     rowHeaders.setTable(this);
     columnHeaders.setTable(this);
     colGroup.setTable(this);
@@ -89,16 +90,21 @@ export default class TableRenderer {
   }
 
   render() {
-    this.colGroup.adjust();
-    this.rowHeaders.adjust();
     this.columnHeaders.adjust();
     this.rows.adjust();
+    this.rowHeaders.adjust();
+    this.colGroup.adjust();
 
-    this.colGroup.render();
     this.columnHeaders.render();
     this.rows.render();
     this.rowHeaders.render();
     this.cells.render();
+
+    // After the cells are rendered calculate columns width (or columns stretch width) to prepare proper values
+    // for colGroup renderer (which renders COL elements).
+    this.columnUtils.calculateWidths();
+
+    this.colGroup.render();
 
     const { rowsToRender, rows } = this;
 

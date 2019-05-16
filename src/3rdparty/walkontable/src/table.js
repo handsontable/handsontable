@@ -212,6 +212,7 @@ class Table {
     const { wtOverlays, wtViewport } = wot;
     const isClone = this.isWorkingOnClone();
     const totalRows = this.instance.getSetting('totalRows');
+    const totalColumns = this.instance.getSetting('totalColumns');
     const rowHeaders = wot.getSetting('rowHeaders');
     const rowHeadersCount = rowHeaders.length;
     const columnHeaders = wot.getSetting('columnHeaders');
@@ -276,7 +277,8 @@ class Table {
         startColumn = wtViewport.columnsRenderCalculator.startColumn;
       }
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
-      this.columnFilter = new ColumnFilter(startColumn, wot.getSetting('totalColumns'), rowHeadersCount);
+      // this.columnFilter = new ColumnFilter(startColumn, wot.getSetting('totalColumns'), rowHeadersCount);
+      this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
       this.alignOverlaysWithTrimmingContainer();
 
@@ -288,14 +290,14 @@ class Table {
 
         this.wot.getSetting('beforeDraw', true, skipRender);
 
-        performRedraw = skipRender.skipRender !== true
+        performRedraw = skipRender.skipRender !== true;
       }
 
       if (performRedraw) {
-        const rowHeaders = this.wot.getSetting('rowHeaders');
-        const columnHeaders = this.wot.getSetting('columnHeaders');
-        const totalRows = this.instance.getSetting('totalRows');
-        const totalColumns = this.instance.getSetting('totalColumns');
+        // const rowHeaders = this.wot.getSetting('rowHeaders');
+        // const columnHeaders = this.wot.getSetting('columnHeaders');
+        // const totalRows = this.instance.getSetting('totalRows');
+        // const totalColumns = this.instance.getSetting('totalColumns');
 
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
 
@@ -305,7 +307,20 @@ class Table {
           this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
         }
 
-        // this.columnUtils.calculateWidths();
+        // Necessary to refresh oversized row heights after editing cell in overlays
+        if (!this.wot.getSetting('externalRowCalculator') && (!isClone || this.wot.isOverlayName(Overlay.CLONE_BOTTOM))) {
+          const rowsToRender = this.getRenderedRowsCount();
+
+          // Reset the oversized row cache for rendered rows
+          for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
+            const sourceRow = this.rowFilter.renderedToSource(visibleRowIndex);
+
+            if (this.wot.wtViewport.oversizedRows && this.wot.wtViewport.oversizedRows[sourceRow]) {
+              this.wot.wtViewport.oversizedRows[sourceRow] = void 0;
+            }
+          }
+        }
+        // end
 
         this.tableRenderer
           .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
@@ -334,9 +349,7 @@ class Table {
           this.wot.wtViewport.containerWidth = null;
         }
 
-        this.columnUtils.calculateWidths();
-
-        // Moved from this.markOversizedColumnHeaders
+        // Moved from this.markOversizedColumnHeaders of the tableRenderer.js file
         const overlayName = this.wot.getOverlayName();
 
         if (columnHeadersCount && !this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] && !isClone) {
@@ -352,9 +365,9 @@ class Table {
         }
         // end
 
-        // Moved from this.adjustColumnHeaderHeights
+        // Moved from this.adjustColumnHeaderHeights of the tableRenderer.js file
         {
-          const columnHeaders = this.wot.getSetting('columnHeaders');
+          // const columnHeaders = this.wot.getSetting('columnHeaders');
           const children = this.wot.wtTable.THEAD.childNodes;
           const oversizedColumnHeaders = this.wot.wtViewport.oversizedColumnHeaders;
 
@@ -429,7 +442,6 @@ class Table {
     return this;
   }
 
-
   markIfOversizedColumnHeader(col) {
     const sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
     let level = this.wot.getSetting('columnHeaders').length;
@@ -469,7 +481,6 @@ class Table {
       }
     }
   }
-
 
   removeClassFromCells(className) {
     const nodes = this.TABLE.querySelectorAll(`.${className}`);
@@ -597,11 +608,7 @@ class Table {
     const TR = this.THEAD.childNodes[level];
 
     if (TR) {
-      const columnHeaderIndex = this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col);
-
-      // if (columnHeaderIndex > -1) {
-        return TR.childNodes[columnHeaderIndex];
-      // }
+      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
     }
   }
 

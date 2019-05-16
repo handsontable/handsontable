@@ -14,6 +14,7 @@ module.exports = {
       "as-needed",
       { "requireForBlockBody": true }
     ],
+    "arrow-body-style": "off",
     "class-methods-use-this": "off",
     "comma-dangle": "off",
     "consistent-return": "off",

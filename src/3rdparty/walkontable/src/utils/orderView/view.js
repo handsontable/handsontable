@@ -1,4 +1,3 @@
-import NodesPool from './nodesPool';
 import ViewDiffer from './viewDiffer';
 
 export default class OrderView {
@@ -20,12 +19,6 @@ export default class OrderView {
 
   setOffset(offset) {
     this.viewDiffer.setOffset(offset);
-
-    return this;
-  }
-
-  setRootNode(rootNode) {
-    this.rootNode = rootNode;
 
     return this;
   }
@@ -58,7 +51,7 @@ export default class OrderView {
 
   applyCommand(command) {
     const { rootNode, collectedNodes } = this;
-    const [ name, nodeIndex, nodePrevIndex, nodeIndexToRemove ] = command;
+    const [name, nodeIndex, nodePrevIndex, nodeIndexToRemove] = command;
     const node = this.nodesPool(nodeIndex);
 
     collectedNodes.push(node);
@@ -68,19 +61,24 @@ export default class OrderView {
     }
 
     switch (name) {
-      case 'insert':
-        rootNode.insertBefore(node, this.nodesPool(nodePrevIndex));
-        // To keep the constant length of child nodes remove the last child
-        rootNode.removeChild(this.nodesPool(nodeIndexToRemove));
+      case 'prepend':
+        rootNode.insertBefore(node, rootNode.firstChild);
         break;
       case 'append':
         rootNode.appendChild(node);
+        break;
+      case 'insert_before':
+        rootNode.insertBefore(node, this.nodesPool(nodePrevIndex));
+        // To keep the constant length of child nodes (after inserting a node) remove the last child.
+        rootNode.removeChild(this.nodesPool(nodeIndexToRemove));
         break;
       case 'replace':
         rootNode.replaceChild(node, this.nodesPool(nodePrevIndex));
         break;
       case 'remove':
         rootNode.removeChild(node);
+        break;
+      default:
         break;
     }
   }
