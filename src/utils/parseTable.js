@@ -106,7 +106,11 @@ export function instanceToHTML(instance) {
 // eslint-disable-next-line no-restricted-globals
 export function arrayToHTML(input, rootDocument = document) {
   const inputLen = input.length;
-  const result = ['<style>br{mso-data-placement:same-cell}</style>', '<table>'];
+  const result = [
+    '<meta name="generator" content="Handsontable"/>',
+    '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+    '<table>',
+  ];
 
   const fragment = rootDocument.createDocumentFragment();
   const tempElement = rootDocument.createElement('div');
@@ -168,7 +172,7 @@ export function tableToSettings(element, rootDocument = document) {
   }
 
   const styleElem = tempElem.querySelector('style');
-  const cssStyleGroups = styleElem ? styleElem.innerHTML.match(/[.@]?\w*[\r\n]?\t?\{[\w\s-.,:;\\()"']*}/g).reverse() : [];
+  const cssStyleGroups = styleElem ? styleElem.innerHTML.match(/[.@#]?\w*\s*?\{[\w\s-.,:;\\#()"']*}/g).reverse() : [];
   const styleSheet = new CSSStyleSheet();
 
   for (let g = 0; g < cssStyleGroups.length; g++) {
@@ -296,7 +300,11 @@ export function tableToSettings(element, rootDocument = document) {
 
         const cellStyle = styleSheetArr.reduce((settings, cssRule) => {
           if (cssRule.selectorText && cell.matches(cssRule.selectorText)) {
-            settings.whiteSpace = cssRule.style.whiteSpace;
+            const { whiteSpace } = cssRule.style;
+
+            if (whiteSpace) {
+              settings.whiteSpace = whiteSpace;
+            }
           }
 
           return settings;
