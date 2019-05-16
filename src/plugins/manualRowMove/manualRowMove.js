@@ -113,6 +113,7 @@ class ManualRowMove extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
     this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
     this.addHook('afterScrollHorizontally', () => this.onAfterScrollHorizontally());
+    this.addHook('afterLoadData', () => this.initWork());
 
     this.registerEvents();
 
@@ -129,7 +130,7 @@ class ManualRowMove extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
-    this.onAfterPluginsInitialized();
+    this.initWork();
 
     super.updatePlugin();
   }
@@ -310,7 +311,7 @@ class ManualRowMove extends BasePlugin {
    *
    * @private
    */
-  initialSettings() {
+  moveBySettingsOrLoad() {
     const pluginSettings = this.hot.getSettings().manualRowMove;
 
     if (Array.isArray(pluginSettings)) {
@@ -673,12 +674,12 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * `afterPluginsInitialized` hook callback.
+   * Init plugin work.
    *
    * @private
    */
-  onAfterPluginsInitialized() {
-    this.initialSettings();
+  initWork() {
+    this.moveBySettingsOrLoad();
     this.backlight.build();
     this.guideline.build();
   }

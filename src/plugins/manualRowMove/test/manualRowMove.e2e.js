@@ -131,32 +131,6 @@ describe('manualRowMove', () => {
     });
   });
 
-  describe('loadData', () => {
-    it('should increase numbers of rows if it is necessary', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
-        manualRowMove: true
-      });
-
-      hot.loadData(Handsontable.helper.createSpreadsheetData(10, 10));
-
-      expect(countRows()).toEqual(10);
-      expect(hot.getPlugin('manualRowMove').rowsMapper.__arrayMap.length).toEqual(10);
-    });
-
-    it('should decrease numbers of rows if it is necessary', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
-        manualRowMove: true
-      });
-
-      hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
-
-      expect(countRows()).toEqual(2);
-      expect(hot.getPlugin('manualRowMove').rowsMapper.__arrayMap.length).toEqual(2);
-    });
-  });
-
   describe('moving', () => {
     it('should keep cell meta created using cells function', () => {
       const hot = handsontable({
