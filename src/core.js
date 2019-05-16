@@ -523,6 +523,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * Makes sure there are empty rows at the bottom of the table
      */
     adjustRowsAndCols() {
+      const rowIndexMapper = getTranslator(instance).rowIndexMapper;
+      const anyRowSkipped = rowIndexMapper.getNumberOfIndexes() > rowIndexMapper.getNotSkippedIndexesLength();
+
+      if (anyRowSkipped) {
+        return;
+      }
+
       if (priv.settings.minRows) {
         // should I add empty rows to data source to meet minRows?
         const rows = instance.countRows();
@@ -1568,7 +1575,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     clearCellSettingCache();
 
-    // Method `countSourceRows` doesn't return number of columns declared by `minCols` property.
+    // Method `countSourceCols` doesn't return number of columns declared by `minCols` property.
     recordTranslator.getColumnIndexMapper().initToLength(Math.max(this.countSourceCols(), this.countCols()));
     recordTranslator.getRowIndexMapper().initToLength(this.countSourceRows());
 

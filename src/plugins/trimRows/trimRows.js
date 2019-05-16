@@ -69,8 +69,7 @@ class TrimRows extends BasePlugin {
     }
 
     this.trimmedRowsMap = this.rowIndexMapper.skipCollection.register('trimRows', new ValueMap(false));
-
-    this.addHook('afterLoadData', () => this.onAfterLoadData());
+    this.trimmedRowsMap.addLocalHook('init', () => this.onMapInit());
 
     super.enablePlugin();
   }
@@ -226,11 +225,11 @@ class TrimRows extends BasePlugin {
   }
 
   /**
-   * `afterLoadData` hook callback.
+   * On map initialized hook callback.
    *
    * @private
    */
-  onAfterLoadData() {
+  onMapInit() {
     const trimmedRows = this.hot.getSettings().trimRows;
 
     if (Array.isArray(trimmedRows)) {

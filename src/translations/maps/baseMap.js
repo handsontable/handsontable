@@ -28,6 +28,7 @@ class BaseMap {
     }
 
     this.runLocalHooks('mapChanged');
+    this.runLocalHooks('init');
 
     return this;
   }
@@ -73,11 +74,18 @@ class BaseMap {
    *
    * @param {Number} index
    * @param {*} value
+   * @returns {Boolean}
    */
   setValueAtIndex(index, value) {
-    this.list[index] = value;
+    if (index < this.getLength()) {
+      this.list[index] = value;
 
-    this.runLocalHooks('mapChanged');
+      this.runLocalHooks('mapChanged');
+
+      return true;
+    }
+
+    return false;
   }
 
   /**
