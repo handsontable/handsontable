@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 14);
+/******/ 	return __webpack_require__(__webpack_require__.s = 15);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -351,12 +351,12 @@ exports.arrayEach = function(array, iteratee) {
 };
 
 exports.transpose = function(matrix) {
-  if(!matrix) { 
+  if(!matrix) {
     return error.value;
   }
 
-  return matrix[0].map(function(col, i) { 
-    return matrix.map(function(row) { 
+  return matrix[0].map(function(col, i) {
+    return matrix.map(function(row) {
       return row[i];
     });
   });
@@ -469,7 +469,8 @@ function invertNumber(number) {
 var utils = __webpack_require__(1);
 var error = __webpack_require__(0);
 var statistical = __webpack_require__(5);
-var information = __webpack_require__(7);
+var information = __webpack_require__(8);
+var evalExpression = __webpack_require__(7);
 
 exports.ABS = function(number) {
   number = utils.parseNumber(number);
@@ -1456,41 +1457,73 @@ exports.SUM = function() {
 
 exports.SUMIF = function(range, criteria) {
   range = utils.parseNumberArray(utils.flatten(range));
+
   if (range instanceof Error) {
     return range;
   }
   var result = 0;
+  var isWildcard = criteria === void 0 || criteria === '*';
+  var tokenizedCriteria = isWildcard ? null : evalExpression.parse(criteria + '');
+
   for (var i = 0; i < range.length; i++) {
-    result += (eval(range[i] + criteria)) ? range[i] : 0; // jshint ignore:line
+    var value = range[i];
+
+    if (isWildcard) {
+      result += value;
+    } else {
+      var tokens = [evalExpression.createToken(value, evalExpression.TOKEN_TYPE_LITERAL)].concat(tokenizedCriteria);
+
+      result += (evalExpression.compute(tokens) ? value : 0);
+    }
   }
+
   return result;
 };
 
 exports.SUMIFS = function() {
   var args = utils.argsToArray(arguments);
   var range = utils.parseNumberArray(utils.flatten(args.shift()));
+
   if (range instanceof Error) {
     return range;
   }
-  var criteria = args;
-
+  var criterias = args;
   var n_range_elements = range.length;
-  var n_criterias = criteria.length;
-
+  var criteriaLength = criterias.length;
   var result = 0;
+
   for (var i = 0; i < n_range_elements; i++) {
-    var el = range[i];
-    var condition = '';
-    for (var c = 0; c < n_criterias; c++) {
-      condition += el + criteria[c];
-      if (c !== n_criterias - 1) {
-        condition += '&&';
+    var value = range[i];
+    var isMeetCondition = false;
+
+    for (var j = 0; j < criteriaLength; j++) {
+      var criteria = criterias[j];
+      var isWildcard = criteria === void 0 || criteria === '*';
+      var computedResult = false;
+
+      if (isWildcard) {
+        computedResult = true;
+      } else {
+        var tokenizedCriteria = evalExpression.parse(criteria + '');
+        var tokens = [evalExpression.createToken(value, evalExpression.TOKEN_TYPE_LITERAL)].concat(tokenizedCriteria);
+
+        computedResult = evalExpression.compute(tokens);
       }
+
+      // Criterias are calculated as AND so any `false` breakes the loop as unmeet condition
+      if (!computedResult) {
+        isMeetCondition = false;
+        break;
+      }
+
+      isMeetCondition = true;
     }
-    if (eval(condition)) { // jshint ignore:line
-      result += el;
+
+    if (isMeetCondition) {
+      result += value;
     }
   }
+
   return result;
 };
 
@@ -1623,10 +1656,11 @@ exports.TRUNC = function(number, digits) {
 
 var mathTrig = __webpack_require__(4);
 var text = __webpack_require__(6);
-var jStat = __webpack_require__(9).jStat;
+var jStat = __webpack_require__(10);
 var utils = __webpack_require__(1);
+var evalExpression = __webpack_require__(7);
 var error = __webpack_require__(0);
-var misc = __webpack_require__(10);
+var misc = __webpack_require__(11);
 
 var SQRT2PI = 2.5066282746310002;
 
@@ -1692,17 +1726,31 @@ exports.AVERAGEIF = function(range, criteria, average_range) {
   average_range = average_range || range;
   range = utils.flatten(range);
   average_range = utils.parseNumberArray(utils.flatten(average_range));
+
   if (average_range instanceof Error) {
     return average_range;
   }
   var average_count = 0;
   var result = 0;
+  var isWildcard = criteria === void 0 || criteria === '*';
+  var tokenizedCriteria = isWildcard ? null : evalExpression.parse(criteria + '');
+
   for (var i = 0; i < range.length; i++) {
-    if (eval(range[i] + criteria)) { // jshint ignore:line
+    var value = range[i];
+
+    if (isWildcard) {
       result += average_range[i];
       average_count++;
+    } else {
+      var tokens = [evalExpression.createToken(value, evalExpression.TOKEN_TYPE_LITERAL)].concat(tokenizedCriteria);
+
+      if (evalExpression.compute(tokens)) {
+        result += average_range[i];
+        average_count++;
+      }
     }
   }
+
   return result / average_count;
 };
 
@@ -1710,25 +1758,46 @@ exports.AVERAGEIFS = function() {
   // Does not work with multi dimensional ranges yet!
   //http://office.microsoft.com/en-001/excel-help/averageifs-function-HA010047493.aspx
   var args = utils.argsToArray(arguments);
-  var criteria = (args.length - 1) / 2;
+  var criteriaLength = (args.length - 1) / 2;
   var range = utils.flatten(args[0]);
   var count = 0;
   var result = 0;
+
   for (var i = 0; i < range.length; i++) {
-    var condition = '';
-    for (var j = 0; j < criteria; j++) {
-      condition += args[2 * j + 1][i] + args[2 * j + 2];
-      if (j !== criteria - 1) {
-        condition += '&&';
+    var isMeetCondition = false;
+
+    for (var j = 0; j < criteriaLength; j++) {
+      var value = args[2 * j + 1][i];
+      var criteria = args[2 * j + 2];
+      var isWildcard = criteria === void 0 || criteria === '*';
+      var computedResult = false;
+
+      if (isWildcard) {
+        computedResult = true;
+      } else {
+        var tokenizedCriteria = evalExpression.parse(criteria + '');
+        var tokens = [evalExpression.createToken(value, evalExpression.TOKEN_TYPE_LITERAL)].concat(tokenizedCriteria);
+
+        computedResult = evalExpression.compute(tokens);
       }
+
+      // Criterias are calculated as AND so any `false` breakes the loop as unmeet condition
+      if (!computedResult) {
+        isMeetCondition = false;
+        break;
+      }
+
+      isMeetCondition = true;
     }
-    if (eval(condition)) { // jshint ignore:line
+
+    if (isMeetCondition) {
       result += range[i];
       count++;
     }
   }
 
   var average = result / count;
+
   if (isNaN(average)) {
     return 0;
   } else {
@@ -2051,41 +2120,48 @@ exports.COUNTBLANK = function() {
 
 exports.COUNTIF = function(range, criteria) {
   range = utils.flatten(range);
-  if (!/[<>=!]/.test(criteria)) {
-    criteria = '=="' + criteria + '"';
+
+  var isWildcard = criteria === void 0 || criteria === '*';
+
+  if (isWildcard) {
+    return range.length;
   }
+
   var matches = 0;
+  var tokenizedCriteria = evalExpression.parse(criteria + '');
+
   for (var i = 0; i < range.length; i++) {
-    if (typeof range[i] !== 'string') {
-      if (eval(range[i] + criteria)) { // jshint ignore:line
-        matches++;
-      }
-    } else {
-      if (eval('"' + range[i] + '"' + criteria)) { // jshint ignore:line
-        matches++;
-      }
+    var value = range[i];
+    var tokens = [evalExpression.createToken(value, evalExpression.TOKEN_TYPE_LITERAL)].concat(tokenizedCriteria);
+
+    if (evalExpression.compute(tokens)) {
+      matches++;
     }
   }
+
   return matches;
 };
 
 exports.COUNTIFS = function() {
   var args = utils.argsToArray(arguments);
   var results = new Array(utils.flatten(args[0]).length);
+
   for (var i = 0; i < results.length; i++) {
     results[i] = true;
   }
   for (i = 0; i < args.length; i += 2) {
     var range = utils.flatten(args[i]);
     var criteria = args[i + 1];
-    if (!/[<>=!]/.test(criteria)) {
-      criteria = '=="' + criteria + '"';
-    }
-    for (var j = 0; j < range.length; j++) {
-      if (typeof range[j] !== 'string') {
-        results[j] = results[j] && eval(range[j] + criteria); // jshint ignore:line
-      } else {
-        results[j] = results[j] && eval('"' + range[j] + '"' + criteria); // jshint ignore:line
+    var isWildcard = criteria === void 0 || criteria === '*';
+
+    if (!isWildcard) {
+      var tokenizedCriteria = evalExpression.parse(criteria + '');
+
+      for (var j = 0; j < range.length; j++) {
+        var value = range[j];
+        var tokens = [evalExpression.createToken(value, evalExpression.TOKEN_TYPE_LITERAL)].concat(tokenizedCriteria);
+
+        results[j] = results[j] && evalExpression.compute(tokens);
       }
     }
   }
@@ -2095,6 +2171,7 @@ exports.COUNTIFS = function() {
       result++;
     }
   }
+
   return result;
 };
 
@@ -3730,6 +3807,202 @@ exports.VALUE = function() {
 
 /***/ }),
 /* 7 */
+/***/ (function(module, exports) {
+
+var defaultOperator = '=';
+var validSymbols = ['>', '>=', '<', '<=', '=', '<>'];
+var TOKEN_TYPE_OPERATOR = 'operator';
+var TOKEN_TYPE_LITERAL = 'literal';
+var SUPPORTED_TOKENS = [TOKEN_TYPE_OPERATOR, TOKEN_TYPE_LITERAL];
+
+exports.TOKEN_TYPE_OPERATOR = TOKEN_TYPE_OPERATOR;
+exports.TOKEN_TYPE_LITERAL = TOKEN_TYPE_LITERAL;
+
+/**
+ * Create token which describe passed symbol/value.
+ *
+ * @param {String} value Value/Symbol to describe.
+ * @param {String} type Type of the token 'operator' or 'literal'.
+ * @return {Object}
+ */
+function createToken(value, type) {
+  if (SUPPORTED_TOKENS.indexOf(type) === -1) {
+    throw new Error('Unsupported token type: ' + type);
+  }
+
+  return {
+    value: value,
+    type: type,
+  };
+}
+
+/**
+ * Tries to cast numeric values to their type passed as a string.
+ *
+ * @param {*} value
+ * @return {*}
+ */
+function castValueToCorrectType(value) {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  if (/^\d+(\.\d+)?$/.test(value)) {
+    value = value.indexOf('.') === -1 ? parseInt(value, 10) : parseFloat(value);
+  }
+
+  return value;
+}
+
+/**
+ * Generate stream of tokens from passed expression.
+ *
+ * @param {String} expression
+ * @return {String[]}
+ */
+function tokenizeExpression(expression) {
+  var expressionLength = expression.length;
+  var tokens = [];
+  var cursorIndex = 0;
+  var processedValue = '';
+  var processedSymbol = '';
+
+  while (cursorIndex < expressionLength) {
+    var char = expression.charAt(cursorIndex);
+
+    switch (char) {
+      case '>':
+      case '<':
+      case '=':
+        processedSymbol = processedSymbol + char;
+
+        if (processedValue.length > 0) {
+          tokens.push(processedValue);
+          processedValue = '';
+        }
+      break;
+      default:
+        if (processedSymbol.length > 0) {
+          tokens.push(processedSymbol);
+          processedSymbol = '';
+        }
+
+        processedValue = processedValue + char;
+      break;
+    }
+    cursorIndex++;
+  }
+
+  if (processedValue.length > 0) {
+    tokens.push(processedValue);
+  }
+  if (processedSymbol.length > 0) {
+    tokens.push(processedSymbol);
+  }
+
+  return tokens;
+};
+
+/**
+ * Analyze and convert tokens to an object which describes their meaning.
+ *
+ * @param {String[]} tokens
+ * @return {Object[]}
+ */
+function analyzeTokens(tokens) {
+  var literalValue = '';
+  var analyzedTokens = [];
+
+  for (var i = 0; i < tokens.length; i++) {
+    var token = tokens[i];
+
+    if (i === 0 && validSymbols.indexOf(token) >= 0) {
+      analyzedTokens.push(createToken(token, TOKEN_TYPE_OPERATOR));
+    } else {
+      literalValue += token;
+    }
+  }
+
+  if (literalValue.length > 0) {
+    analyzedTokens.push(createToken(castValueToCorrectType(literalValue), TOKEN_TYPE_LITERAL));
+  }
+
+  if (analyzedTokens.length > 0 && analyzedTokens[0].type !== TOKEN_TYPE_OPERATOR) {
+    analyzedTokens.unshift(createToken(defaultOperator, TOKEN_TYPE_OPERATOR));
+  }
+
+  return analyzedTokens;
+};
+
+/**
+ * Compute/Evaluate an expression passed as an array of tokens.
+ *
+ * @param {Object[]} tokens
+ * @return {Boolean}
+ */
+function computeExpression(tokens) {
+  var values = [];
+  var operator;
+
+  for (var i = 0; i < tokens.length; i++) {
+    var token = tokens[i];
+
+    switch (token.type) {
+      case TOKEN_TYPE_OPERATOR:
+        operator = token.value;
+      break;
+      case TOKEN_TYPE_LITERAL:
+        values.push(token.value);
+      break;
+    }
+  }
+
+  return evaluate(values, operator);
+};
+
+/**
+ * Evaluate values based on passed math operator.
+ *
+ * @param {*} values
+ * @param {String} operator
+ * @return {Boolean}
+ */
+function evaluate(values, operator) {
+  var result = false;
+
+  switch (operator) {
+    case '>':
+      result = values[0] > values[1];
+      break;
+    case '>=':
+      result = values[0] >= values[1];
+      break;
+    case '<':
+      result = values[0] < values[1];
+      break;
+    case '<=':
+      result = values[0] <= values[1];
+      break;
+    case '=':
+      result = values[0] == values[1];
+      break;
+    case '<>':
+      result = values[0] != values[1];
+      break;
+  }
+
+  return result;
+}
+
+exports.parse = function(expression) {
+  return analyzeTokens(tokenizeExpression(expression));
+};
+exports.createToken = createToken;
+exports.compute = computeExpression;
+
+
+/***/ }),
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var error = __webpack_require__(0);
@@ -3868,7 +4141,7 @@ exports.TYPE = function(value) {
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var error = __webpack_require__(0);
@@ -4432,18 +4705,20 @@ function serial(date) {
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 (function (window, factory) {
     if (true) {
         module.exports = factory();
     } else if (typeof define === 'function' && define.amd) {
-        define(factory);
+        define('jstat', factory);
+    } else if(typeof exports === 'object') {
+        exports['jstat'] = factory();
     } else {
-        window.jStat = factory();
+        window['jstat'] = factory();
     }
-})(this, function () {
+})(typeof self !== 'undefined' ? self : this, function () {
 var jStat = (function(Math, undefined) {
 
 // For quick reference.
@@ -5110,8 +5385,9 @@ jProto.alter = function alter(func) {
 // Extend prototype with simple shortcut methods.
 (function(funcs) {
   for (var i = 0; i < funcs.length; i++) (function(passfunc) {
-    jProto[passfunc] = new Function(
-        'return jStat(jStat.' + passfunc + '.apply(null, arguments));');
+    jProto[passfunc] = function() {
+      return jStat(jStat[passfunc].apply(null, arguments));
+    };
   })(funcs[i]);
 })('create zeros ones rand identity'.split(' '));
 
@@ -9127,15 +9403,12 @@ jStat.models = (function(){
 
   return { ols: ols_wrap };
 })();
-  // Make it compatible with previous version.
-  jStat.jStat = jStat;
-
   return jStat;
 });
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var utils = __webpack_require__(1);
@@ -9199,15 +9472,16 @@ exports.NUMBERS = function () {
   });
 };
 
+
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var error = __webpack_require__(0);
-var jStat = __webpack_require__(9).jStat;
+var jStat = __webpack_require__(10);
 var text = __webpack_require__(6);
 var utils = __webpack_require__(1);
-var bessel = __webpack_require__(25);
+var bessel = __webpack_require__(26);
 
 function isValidBinaryNumber(number) {
   return (/^[01]{1,10}$/).test(number);
@@ -10768,7 +11042,7 @@ exports.OCT2HEX = function(number, places) {
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10780,7 +11054,7 @@ var SUPPORTED_FORMULAS = ['ABS', 'ACCRINT', 'ACOS', 'ACOSH', 'ACOT', 'ACOTH', 'A
 exports['default'] = SUPPORTED_FORMULAS;
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10913,7 +11187,7 @@ function toLabel(row, column) {
 }
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10922,11 +11196,11 @@ function toLabel(row, column) {
 exports.__esModule = true;
 exports.rowLabelToIndex = exports.rowIndexToLabel = exports.columnLabelToIndex = exports.columnIndexToLabel = exports.toLabel = exports.extractLabel = exports.error = exports.Parser = exports.ERROR_VALUE = exports.ERROR_REF = exports.ERROR_NUM = exports.ERROR_NULL = exports.ERROR_NOT_AVAILABLE = exports.ERROR_NAME = exports.ERROR_DIV_ZERO = exports.ERROR = exports.SUPPORTED_FORMULAS = undefined;
 
-var _parser = __webpack_require__(15);
+var _parser = __webpack_require__(16);
 
 var _parser2 = _interopRequireDefault(_parser);
 
-var _supportedFormulas = __webpack_require__(12);
+var _supportedFormulas = __webpack_require__(13);
 
 var _supportedFormulas2 = _interopRequireDefault(_supportedFormulas);
 
@@ -10934,7 +11208,7 @@ var _error = __webpack_require__(2);
 
 var _error2 = _interopRequireDefault(_error);
 
-var _cell = __webpack_require__(13);
+var _cell = __webpack_require__(14);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -10957,7 +11231,7 @@ exports.rowIndexToLabel = _cell.rowIndexToLabel;
 exports.rowLabelToIndex = _cell.rowLabelToIndex;
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10965,17 +11239,17 @@ exports.rowLabelToIndex = _cell.rowLabelToIndex;
 
 exports.__esModule = true;
 
-var _tinyEmitter = __webpack_require__(16);
+var _tinyEmitter = __webpack_require__(17);
 
 var _tinyEmitter2 = _interopRequireDefault(_tinyEmitter);
 
-var _evaluateByOperator = __webpack_require__(17);
+var _evaluateByOperator = __webpack_require__(18);
 
 var _evaluateByOperator2 = _interopRequireDefault(_evaluateByOperator);
 
-var _grammarParser = __webpack_require__(38);
+var _grammarParser = __webpack_require__(39);
 
-var _string = __webpack_require__(41);
+var _string = __webpack_require__(40);
 
 var _number = __webpack_require__(3);
 
@@ -10983,7 +11257,7 @@ var _error = __webpack_require__(2);
 
 var _error2 = _interopRequireDefault(_error);
 
-var _cell = __webpack_require__(13);
+var _cell = __webpack_require__(14);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -11283,7 +11557,7 @@ var Parser = function (_Emitter) {
 exports['default'] = Parser;
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports) {
 
 function E () {
@@ -11355,7 +11629,7 @@ module.exports = E;
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11365,55 +11639,55 @@ exports.__esModule = true;
 exports['default'] = evaluateByOperator;
 exports.registerOperation = registerOperation;
 
-var _add = __webpack_require__(18);
+var _add = __webpack_require__(19);
 
 var _add2 = _interopRequireDefault(_add);
 
-var _ampersand = __webpack_require__(19);
+var _ampersand = __webpack_require__(20);
 
 var _ampersand2 = _interopRequireDefault(_ampersand);
 
-var _divide = __webpack_require__(20);
+var _divide = __webpack_require__(21);
 
 var _divide2 = _interopRequireDefault(_divide);
 
-var _equal = __webpack_require__(21);
+var _equal = __webpack_require__(22);
 
 var _equal2 = _interopRequireDefault(_equal);
 
-var _formulaFunction = __webpack_require__(22);
+var _formulaFunction = __webpack_require__(23);
 
 var _formulaFunction2 = _interopRequireDefault(_formulaFunction);
 
-var _greaterThan = __webpack_require__(30);
+var _greaterThan = __webpack_require__(31);
 
 var _greaterThan2 = _interopRequireDefault(_greaterThan);
 
-var _greaterThanOrEqual = __webpack_require__(31);
+var _greaterThanOrEqual = __webpack_require__(32);
 
 var _greaterThanOrEqual2 = _interopRequireDefault(_greaterThanOrEqual);
 
-var _lessThan = __webpack_require__(32);
+var _lessThan = __webpack_require__(33);
 
 var _lessThan2 = _interopRequireDefault(_lessThan);
 
-var _lessThanOrEqual = __webpack_require__(33);
+var _lessThanOrEqual = __webpack_require__(34);
 
 var _lessThanOrEqual2 = _interopRequireDefault(_lessThanOrEqual);
 
-var _minus = __webpack_require__(34);
+var _minus = __webpack_require__(35);
 
 var _minus2 = _interopRequireDefault(_minus);
 
-var _multiply = __webpack_require__(35);
+var _multiply = __webpack_require__(36);
 
 var _multiply2 = _interopRequireDefault(_multiply);
 
-var _notEqual = __webpack_require__(36);
+var _notEqual = __webpack_require__(37);
 
 var _notEqual2 = _interopRequireDefault(_notEqual);
 
-var _power = __webpack_require__(37);
+var _power = __webpack_require__(38);
 
 var _power2 = _interopRequireDefault(_power);
 
@@ -11477,7 +11751,7 @@ registerOperation(_notEqual2['default'].SYMBOL, _notEqual2['default']);
 registerOperation(_minus2['default'].SYMBOL, _minus2['default']);
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11512,7 +11786,7 @@ function func(first) {
 func.SYMBOL = SYMBOL;
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11535,7 +11809,7 @@ function func() {
 func.SYMBOL = SYMBOL;
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11573,7 +11847,7 @@ function func(first) {
 func.SYMBOL = SYMBOL;
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11590,7 +11864,7 @@ function func(exp1, exp2) {
 func.SYMBOL = SYMBOL;
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11600,11 +11874,11 @@ exports.__esModule = true;
 exports.SYMBOL = undefined;
 exports['default'] = func;
 
-var _formulajs = __webpack_require__(23);
+var _formulajs = __webpack_require__(24);
 
 var formulajs = _interopRequireWildcard(_formulajs);
 
-var _supportedFormulas = __webpack_require__(12);
+var _supportedFormulas = __webpack_require__(13);
 
 var _supportedFormulas2 = _interopRequireDefault(_supportedFormulas);
 
@@ -11661,22 +11935,22 @@ func.isFactory = true;
 func.SYMBOL = SYMBOL;
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var categories = [
-  __webpack_require__(24),
-  __webpack_require__(26),
-  __webpack_require__(11),
+  __webpack_require__(25),
   __webpack_require__(27),
+  __webpack_require__(12),
+  __webpack_require__(28),
   __webpack_require__(4),
   __webpack_require__(6),
-  __webpack_require__(8),
-  __webpack_require__(28),
-  __webpack_require__(7),
+  __webpack_require__(9),
   __webpack_require__(29),
+  __webpack_require__(8),
+  __webpack_require__(30),
   __webpack_require__(5),
-  __webpack_require__(10)
+  __webpack_require__(11)
 ];
 
 for (var c in categories) {
@@ -11688,13 +11962,13 @@ for (var c in categories) {
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var mathTrig = __webpack_require__(4);
 var statistical = __webpack_require__(5);
-var engineering = __webpack_require__(11);
-var dateTime = __webpack_require__(8);
+var engineering = __webpack_require__(12);
+var dateTime = __webpack_require__(9);
 
 function set(fn, root) {
   if (root) {
@@ -11781,7 +12055,7 @@ exports.ZTEST = statistical.Z.TEST;
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var M = Math;
@@ -11996,13 +12270,14 @@ if(true) {
 
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var error = __webpack_require__(0);
 var stats = __webpack_require__(5);
 var maths = __webpack_require__(4);
 var utils = __webpack_require__(1);
+var evalExpression = __webpack_require__(7);
 
 function compact(array) {
   var result = [];
@@ -12062,7 +12337,18 @@ function findResultIndex(database, criterias) {
         }
         hasMatchingCriteria = true;
         for (var p = 1; p < criteria.length; ++p) {
-          currentCriteriaResult = currentCriteriaResult || eval(database[k][l] + criteria[p]);  // jshint ignore:line
+          if (!currentCriteriaResult) {
+            var isWildcard = criteria[p] === void 0 || criteria[p] === '*';
+
+            if (isWildcard) {
+              currentCriteriaResult = true;
+            } else {
+              var tokenizedCriteria = evalExpression.parse(criteria[p] + '');
+              var tokens = [evalExpression.createToken(database[k][l], evalExpression.TOKEN_TYPE_LITERAL)].concat(tokenizedCriteria);
+
+              currentCriteriaResult = evalExpression.compute(tokens);
+            }
+          }
         }
       }
       if (hasMatchingCriteria) {
@@ -12389,12 +12675,12 @@ exports.DVARP = function(database, field, criteria) {
 
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var error = __webpack_require__(0);
 var utils = __webpack_require__(1);
-var information = __webpack_require__(7);
+var information = __webpack_require__(8);
 
 exports.AND = function() {
   var args = utils.flatten(arguments);
@@ -12506,11 +12792,11 @@ exports.SWITCH = function () {
 
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var error = __webpack_require__(0);
-var dateTime = __webpack_require__(8);
+var dateTime = __webpack_require__(9);
 var utils = __webpack_require__(1);
 
 function validDate(d) {
@@ -13602,7 +13888,7 @@ exports.YIELDMAT = function() {
 
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var error = __webpack_require__(0);
@@ -13683,7 +13969,7 @@ exports.VLOOKUP = function (needle, table, index, rangeLookup) {
   }
 
   return error.na;
-};      
+};
 
 exports.HLOOKUP = function (needle, table, index, rangeLookup) {
   if (!needle || !table || !index) {
@@ -13708,7 +13994,7 @@ exports.HLOOKUP = function (needle, table, index, rangeLookup) {
 
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13725,7 +14011,7 @@ function func(exp1, exp2) {
 func.SYMBOL = SYMBOL;
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13742,7 +14028,7 @@ function func(exp1, exp2) {
 func.SYMBOL = SYMBOL;
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13759,7 +14045,7 @@ function func(exp1, exp2) {
 func.SYMBOL = SYMBOL;
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13776,7 +14062,7 @@ function func(exp1, exp2) {
 func.SYMBOL = SYMBOL;
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13811,7 +14097,7 @@ function func(first) {
 func.SYMBOL = SYMBOL;
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13846,7 +14132,7 @@ function func(first) {
 func.SYMBOL = SYMBOL;
 
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13863,7 +14149,7 @@ function func(exp1, exp2) {
 func.SYMBOL = SYMBOL;
 
 /***/ }),
-/* 37 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13892,10 +14178,10 @@ function func(exp1, exp2) {
 func.SYMBOL = SYMBOL;
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(module, process) {/* parser generated by jison 0.4.17 */
+/* parser generated by jison 0.4.18 */
 /*
   Returns a Parser object of the following structure:
 
@@ -13970,7 +14256,7 @@ func.SYMBOL = SYMBOL;
 */
 var grammarParser = (function(){
 var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,5],$V1=[1,8],$V2=[1,6],$V3=[1,7],$V4=[1,9],$V5=[1,14],$V6=[1,15],$V7=[1,16],$V8=[1,12],$V9=[1,13],$Va=[1,17],$Vb=[1,19],$Vc=[1,20],$Vd=[1,21],$Ve=[1,22],$Vf=[1,23],$Vg=[1,24],$Vh=[1,25],$Vi=[1,26],$Vj=[1,27],$Vk=[1,28],$Vl=[5,9,10,11,13,14,15,16,17,18,19,20,29,30],$Vm=[5,9,10,11,13,14,15,16,17,18,19,20,29,30,32],$Vn=[5,9,10,11,13,14,15,16,17,18,19,20,29,30,34],$Vo=[5,10,11,13,14,15,16,17,29,30],$Vp=[5,10,13,14,15,16,29,30],$Vq=[5,10,11,13,14,15,16,17,18,19,29,30],$Vr=[13,29,30];
-var parser = {trace: function trace() { },
+var parser = {trace: function trace () { },
 yy: {},
 symbols_: {"error":2,"expressions":3,"expression":4,"EOF":5,"variableSequence":6,"number":7,"STRING":8,"&":9,"=":10,"+":11,"(":12,")":13,"<":14,">":15,"NOT":16,"-":17,"*":18,"/":19,"^":20,"FUNCTION":21,"expseq":22,"cell":23,"ABSOLUTE_CELL":24,"RELATIVE_CELL":25,"MIXED_CELL":26,":":27,"ARRAY":28,";":29,",":30,"VARIABLE":31,"DECIMAL":32,"NUMBER":33,"%":34,"ERROR":35,"$accept":0,"$end":1},
 terminals_: {5:"EOF",8:"STRING",9:"&",10:"=",11:"+",12:"(",13:")",14:"<",15:">",16:"NOT",17:"-",18:"*",19:"/",20:"^",21:"FUNCTION",24:"ABSOLUTE_CELL",25:"RELATIVE_CELL",26:"MIXED_CELL",27:":",28:"ARRAY",29:";",30:",",31:"VARIABLE",32:"DECIMAL",33:"NUMBER",34:"%",35:"ERROR"},
@@ -14119,14 +14405,7 @@ case 38: case 42:
 break;
 case 39:
 
-      var result = [];
-      var arr = eval("[" + yytext + "]");
-
-      arr.forEach(function(item) {
-        result.push(item);
-      });
-
-      this.$ = result;
+      this.$ = yy.trimEdges(yytext).split(',');
 
 break;
 case 40: case 41:
@@ -14165,20 +14444,16 @@ break;
 },
 table: [{2:11,3:1,4:2,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{1:[3]},{5:[1,18],9:$Vb,10:$Vc,11:$Vd,14:$Ve,15:$Vf,16:$Vg,17:$Vh,18:$Vi,19:$Vj,20:$Vk},o($Vl,[2,2],{32:[1,29]}),o($Vl,[2,3],{34:[1,30]}),o($Vl,[2,4]),{2:11,4:31,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{2:11,4:32,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{2:11,4:33,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{12:[1,34]},o($Vl,[2,23]),o($Vl,[2,24],{2:35,35:$Va}),o($Vm,[2,42]),o($Vn,[2,44],{32:[1,36]}),o($Vl,[2,26],{27:[1,37]}),o($Vl,[2,27],{27:[1,38]}),o($Vl,[2,28],{27:[1,39]}),o([5,9,10,11,13,14,15,16,17,18,19,20,29,30,35],[2,47]),{1:[2,1]},{2:11,4:40,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{2:11,4:41,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{2:11,4:42,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{2:11,4:45,6:3,7:4,8:$V0,10:[1,43],11:$V1,12:$V2,15:[1,44],17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{2:11,4:47,6:3,7:4,8:$V0,10:[1,46],11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{2:11,4:48,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{2:11,4:49,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{2:11,4:50,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{2:11,4:51,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{2:11,4:52,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{31:[1,53]},o($Vn,[2,46]),{9:$Vb,10:$Vc,11:$Vd,13:[1,54],14:$Ve,15:$Vf,16:$Vg,17:$Vh,18:$Vi,19:$Vj,20:$Vk},o($Vo,[2,19],{9:$Vb,18:$Vi,19:$Vj,20:$Vk}),o($Vo,[2,20],{9:$Vb,18:$Vi,19:$Vj,20:$Vk}),{2:11,4:57,6:3,7:4,8:$V0,11:$V1,12:$V2,13:[1,55],17:$V3,21:$V4,22:56,23:10,24:$V5,25:$V6,26:$V7,28:[1,58],31:$V8,33:$V9,35:$Va},o($Vl,[2,25]),{33:[1,59]},{24:[1,60],25:[1,61],26:[1,62]},{24:[1,63],25:[1,64],26:[1,65]},{24:[1,66],25:[1,67],26:[1,68]},o($Vl,[2,5]),o([5,10,13,29,30],[2,6],{9:$Vb,11:$Vd,14:$Ve,15:$Vf,16:$Vg,17:$Vh,18:$Vi,19:$Vj,20:$Vk}),o($Vo,[2,7],{9:$Vb,18:$Vi,19:$Vj,20:$Vk}),{2:11,4:69,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{2:11,4:70,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},o($Vp,[2,14],{9:$Vb,11:$Vd,17:$Vh,18:$Vi,19:$Vj,20:$Vk}),{2:11,4:71,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},o($Vp,[2,13],{9:$Vb,11:$Vd,17:$Vh,18:$Vi,19:$Vj,20:$Vk}),o([5,10,13,16,29,30],[2,12],{9:$Vb,11:$Vd,14:$Ve,15:$Vf,17:$Vh,18:$Vi,19:$Vj,20:$Vk}),o($Vo,[2,15],{9:$Vb,18:$Vi,19:$Vj,20:$Vk}),o($Vq,[2,16],{9:$Vb,20:$Vk}),o($Vq,[2,17],{9:$Vb,20:$Vk}),o([5,10,11,13,14,15,16,17,18,19,20,29,30],[2,18],{9:$Vb}),o($Vm,[2,43]),o($Vl,[2,8]),o($Vl,[2,21]),{13:[1,72],29:[1,73],30:[1,74]},o($Vr,[2,38],{9:$Vb,10:$Vc,11:$Vd,14:$Ve,15:$Vf,16:$Vg,17:$Vh,18:$Vi,19:$Vj,20:$Vk}),o($Vr,[2,39]),o($Vn,[2,45]),o($Vl,[2,29]),o($Vl,[2,30]),o($Vl,[2,31]),o($Vl,[2,32]),o($Vl,[2,33]),o($Vl,[2,34]),o($Vl,[2,35]),o($Vl,[2,36]),o($Vl,[2,37]),o($Vp,[2,9],{9:$Vb,11:$Vd,17:$Vh,18:$Vi,19:$Vj,20:$Vk}),o($Vp,[2,11],{9:$Vb,11:$Vd,17:$Vh,18:$Vi,19:$Vj,20:$Vk}),o($Vp,[2,10],{9:$Vb,11:$Vd,17:$Vh,18:$Vi,19:$Vj,20:$Vk}),o($Vl,[2,22]),{2:11,4:75,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},{2:11,4:76,6:3,7:4,8:$V0,11:$V1,12:$V2,17:$V3,21:$V4,23:10,24:$V5,25:$V6,26:$V7,31:$V8,33:$V9,35:$Va},o($Vr,[2,40],{9:$Vb,10:$Vc,11:$Vd,14:$Ve,15:$Vf,16:$Vg,17:$Vh,18:$Vi,19:$Vj,20:$Vk}),o($Vr,[2,41],{9:$Vb,10:$Vc,11:$Vd,14:$Ve,15:$Vf,16:$Vg,17:$Vh,18:$Vi,19:$Vj,20:$Vk})],
 defaultActions: {18:[2,1]},
-parseError: function parseError(str, hash) {
+parseError: function parseError (str, hash) {
     if (hash.recoverable) {
         this.trace(str);
     } else {
-        function _parseError (msg, hash) {
-            this.message = msg;
-            this.hash = hash;
-        }
-        _parseError.prototype = Error;
-
-        throw new _parseError(str, hash);
+        var error = new Error(str);
+        error.hash = hash;
+        throw error;
     }
 },
-parse: function parse(input) {
+parse: function parse (input) {
     var self = this,
         stack = [0],
         tstack = [], // token stack
@@ -14228,6 +14503,7 @@ parse: function parse(input) {
         lstack.length = lstack.length - n;
     }
 
+_token_stack:
     var lex = function () {
         var token;
         token = lexer.lex() || EOF;
@@ -14254,6 +14530,7 @@ parse: function parse(input) {
             action = table[state] && table[state][symbol];
         }
 
+_handle_error:
         // handle parse error
         if (typeof action === 'undefined' || !action.length || !action[0]) {
             var error_rule_depth;
@@ -14557,7 +14834,7 @@ showPosition:function () {
     },
 
 // test the lexed token: return FALSE when not a match, otherwise return token
-test_match:function (match, indexed_rule) {
+test_match:function(match, indexed_rule) {
         var token,
             lines,
             backup;
@@ -14687,7 +14964,7 @@ next:function () {
     },
 
 // return next match that has a token
-lex:function lex() {
+lex:function lex () {
         var r = this.next();
         if (r) {
             return r;
@@ -14697,12 +14974,12 @@ lex:function lex() {
     },
 
 // activates a new lexer condition state (pushes the new lexer condition state onto the condition stack)
-begin:function begin(condition) {
+begin:function begin (condition) {
         this.conditionStack.push(condition);
     },
 
 // pop the previously active lexer condition state off the condition stack
-popState:function popState() {
+popState:function popState () {
         var n = this.conditionStack.length - 1;
         if (n > 0) {
             return this.conditionStack.pop();
@@ -14712,7 +14989,7 @@ popState:function popState() {
     },
 
 // produce the lexer rule set which is active for the currently active lexer condition state
-_currentRules:function _currentRules() {
+_currentRules:function _currentRules () {
         if (this.conditionStack.length && this.conditionStack[this.conditionStack.length - 1]) {
             return this.conditions[this.conditionStack[this.conditionStack.length - 1]].rules;
         } else {
@@ -14721,7 +14998,7 @@ _currentRules:function _currentRules() {
     },
 
 // return the currently active lexer condition state; when an index argument is provided it produces the N-th previous condition state, if available
-topState:function topState(n) {
+topState:function topState (n) {
         n = this.conditionStack.length - 1 - Math.abs(n || 0);
         if (n >= 0) {
             return this.conditionStack[n];
@@ -14731,7 +15008,7 @@ topState:function topState(n) {
     },
 
 // alias for begin(condition)
-pushState:function pushState(condition) {
+pushState:function pushState (condition) {
         this.begin(condition);
     },
 
@@ -14837,233 +15114,11 @@ if (true) {
 exports.parser = grammarParser;
 exports.Parser = grammarParser.Parser;
 exports.parse = function () { return grammarParser.parse.apply(grammarParser, arguments); };
-if (typeof module !== 'undefined' && __webpack_require__.c[__webpack_require__.s] === module) {
-  exports.main(process.argv.slice(1));
 }
-}
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(39)(module), __webpack_require__(40)))
-
-/***/ }),
-/* 39 */
-/***/ (function(module, exports) {
-
-module.exports = function(module) {
-	if(!module.webpackPolyfill) {
-		module.deprecate = function() {};
-		module.paths = [];
-		// module.parent = undefined by default
-		if(!module.children) module.children = [];
-		Object.defineProperty(module, "loaded", {
-			enumerable: true,
-			get: function() {
-				return module.l;
-			}
-		});
-		Object.defineProperty(module, "id", {
-			enumerable: true,
-			get: function() {
-				return module.i;
-			}
-		});
-		module.webpackPolyfill = 1;
-	}
-	return module;
-};
 
 
 /***/ }),
 /* 40 */
-/***/ (function(module, exports) {
-
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-
-/***/ }),
-/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

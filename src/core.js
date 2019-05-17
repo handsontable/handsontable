@@ -746,7 +746,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             current.col = start.col;
             cellMeta = instance.getCellMeta(current.row, current.col);
 
-            if ((source === 'CopyPaste.paste' || source === 'Autofill.autofill') && cellMeta.skipRowOnPaste) {
+            if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipRowOnPaste) {
               skippedRow += 1;
               current.row += 1;
               rlen += 1;

@@ -145,6 +145,43 @@ describe('WalkontableTable', () => {
     expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
   });
 
+  it('getCoords should return coords of TH', () => {
+
+    $wrapper.width(300);
+
+    const wt = new Walkontable.Core({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      columnHeaders: [function(col, TH) {
+        TH.innerHTML = col + 1;
+      }]
+    });
+    wt.draw();
+
+    const $th2 = $table.find('thead tr:first th:eq(1)');
+    expect(wt.wtTable.getCoords($th2[0])).toEqual(new Walkontable.CellCoords(-1, 1));
+  });
+
+  it('getCoords should return coords of TD (with fixedColumnsLeft)', () => {
+    const wt = new Walkontable.Core({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      fixedColumnsLeft: 2,
+      columnHeaders: [function(col, TH) {
+        TH.innerHTML = col + 1;
+      }]
+    });
+    wt.draw();
+
+    const $cloneLeft = $('.ht_clone_left');
+    const $td2 = $cloneLeft.find('tbody tr:eq(1) td:eq(1)');
+    expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
+  });
+
   it('getStretchedColumnWidth should return valid column width when stretchH is set as \'all\'', () => {
     const wt = new Walkontable.Core({
       table: $table[0],

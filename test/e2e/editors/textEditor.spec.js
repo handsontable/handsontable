@@ -1208,6 +1208,32 @@ describe('TextEditor', () => {
     expect(hot.getActiveEditor().TEXTAREA.value).toEqual('Ma\nserati');
   });
 
+  it('should exceed the editor height only for one line when pressing ALT + ENTER', () => {
+    const data = [
+      ['Maserati', 'Mazda'],
+      ['Honda', 'Mini']
+    ];
+
+    const hot = handsontable({
+      data
+    });
+
+    selectCell(0, 0);
+    keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
+
+    const $editorInput = $('.handsontableInput');
+
+    $editorInput.simulate('keydown', {
+      altKey: true,
+      keyCode: Handsontable.helper.KEY_CODES.ENTER
+    });
+
+    const height = hot.getActiveEditor().TEXTAREA.offsetHeight;
+    hot.getActiveEditor().TEXTAREA.style.height = '';
+
+    expect(hot.getActiveEditor().TEXTAREA.offsetHeight).toBe(height);
+  });
+
   it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', () => {
     const data = [
       ['', '', '', '', ''],
