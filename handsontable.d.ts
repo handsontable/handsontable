@@ -712,14 +712,14 @@ declare namespace Handsontable {
 
       constructor(hotInstance?: _Handsontable.Core);
 
-      addHook(name: string, callback: () => void): void;
+      addHook(name: string, callback: (...args: any[]) => any): void;
       callOnPluginsReady(callback: () => void): void;
       clearHooks(): void;
       destroy(): void;
       disablePlugin(): void;
       enablePlugin(): void;
       init(): void;
-      removeHook(name: string): void;
+      removeHooks(name: string): void;
     }
 
     interface AutoColumnSize extends Base {
@@ -1365,6 +1365,8 @@ declare namespace Handsontable {
 
       moveColumn(column: number, target: number): void;
       moveColumns(columns: number[], target: number): void;
+      persistentStateLoad(): void;
+      persistentStateSave(): void;
     }
 
     interface ManualColumnResize extends Base {
@@ -1791,7 +1793,7 @@ declare namespace Handsontable {
       afterCellMetaReset?: () => void;
       afterChange?: (changes: CellChange[] | null, source: ChangeSource) => void;
       afterChangesObserved?: () => void;
-      afterColumnMove?: (startColumn: number, endColumn: number) => void;
+      afterColumnMove?: (columns: number[], target: number) => void;
       afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
       afterColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void;
       afterContextMenuDefaultOptions?: (predefinedItems: (contextMenu.PredefinedMenuItemKey | contextMenu.MenuItemConfig)[]) => void;
@@ -1870,7 +1872,7 @@ declare namespace Handsontable {
       beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: wot.CellRange[], type: 'horizontal' | 'vertical', alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
       beforeChange?: (changes: CellChange[], source: ChangeSource) => void | boolean;
       beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
-      beforeColumnMove?: (columns: number[], target: number) => void;
+      beforeColumnMove?: (columns: number[], target: number) => void | boolean;
       beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void | number;
       beforeColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void | boolean;
       beforeContextMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
@@ -2225,7 +2227,7 @@ declare namespace Handsontable {
   interface Dom {
     HTML_CHARACTERS: RegExp;
     addClass: (element: HTMLElement, className: string | any[]) => void;
-    addEvent: (element: HTMLElement, event: string, callback: () => void) => void;
+    addEvent: (element: HTMLElement, event: string, callback: (event: Event) => void) => void;
     clearTextSelection: (rootWindow?: Window) => void;
     closest: (element: HTMLElement, nodes: any[], until?: HTMLElement) => HTMLElement | void;
     closestDown: (element: HTMLElement, nodes: any[], until?: HTMLElement) => HTMLElement | void;

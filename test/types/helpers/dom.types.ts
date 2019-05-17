@@ -5,7 +5,7 @@ const domEvent = new Event('foo');
 
 const htmlCharacters = Handsontable.dom.HTML_CHARACTERS;
 
-Handsontable.dom.addEvent(domElement, 'foo', () => {});
+Handsontable.dom.addEvent(domElement, 'foo', (event) => {});
 Handsontable.dom.addClass(domElement, ['foo', 'bar']);
 Handsontable.dom.clearTextSelection();
 Handsontable.dom.clearTextSelection(window);

@@ -105,10 +105,10 @@ class CollapsingUI extends BaseUI {
    * @param {Boolean} [doTrimming = true] `true` if the table should trim the provided rows.
    */
   collapseMultipleChildren(rows, forceRender = true, doTrimming = true) {
-    let rowsToTrim = [];
+    const rowsToTrim = [];
 
     arrayEach(rows, (elem) => {
-      rowsToTrim = rowsToTrim.concat(this.collapseChildren(elem, false, false));
+      rowsToTrim.push(...this.collapseChildren(elem, false, false));
     });
 
     if (doTrimming) {
@@ -292,10 +292,10 @@ class CollapsingUI extends BaseUI {
    * @param {Boolean} [doTrimming = true] `true` if the rows should be untrimmed after finishing the function.
    */
   expandMultipleChildren(rows, forceRender = true, doTrimming = true) {
-    let rowsToUntrim = [];
+    const rowsToUntrim = [];
 
     arrayEach(rows, (elem) => {
-      rowsToUntrim = rowsToUntrim.concat(this.expandChildren(elem, false, false));
+      rowsToUntrim.push(...this.expandChildren(elem, false, false));
     });
 
     if (doTrimming) {
