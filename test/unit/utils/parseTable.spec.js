@@ -1,35 +1,7 @@
-import { instanceToHTML, arrayToHTML, tableToSettings } from 'handsontable/utils/parseTable';
-import Handsontable from 'handsontable';
+import { arrayToHTML, tableToSettings } from 'handsontable/utils/parseTable';
 
-describe('instanceToHTML', () => {
-  it('should convert simle data into HTML table', () => {
-
-    const elem = document.createElement('div');
-
-    document.body.append(elem);
-    elem.innerHTML = '<p>test p</p>';
-    elem.innerText = 'qweqweqwe';
-
-    console.log(elem.innerHTML);
-    console.log(elem.innerText);
-    // const hot = new Handsontable(document.createElement('div'), {
-    //   data: [
-    //     ['A1', 'B1', 'C1'],
-    //     ['A2', 'B2', 'C2'],
-    //     ['A3', 'B3', 'C3'],
-    //   ]
-    // });
-
-    // const tableHTML = instanceToHTML(hot);
-
-    // expect(tableHTML).toBe([
-    //   '<table><tbody>',
-    //   '<tr><td >A1</td><td >B1</td><td >C1</td></tr>',
-    //   '<tr><td >A2</td><td >B2</td><td >C2</td></tr>',
-    //   '<tr><td >A3</td><td >B3</td><td >C3</td></tr>',
-    //   '</tbody></table>'
-    // ].join(''));
-  });
+xdescribe('instanceToHTML', () => {
+  // js-dom used in jest doesn't support innerHTML <-> innerText transformation in virtual
 });
 
 describe('arrayToHTML', () => {
