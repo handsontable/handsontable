@@ -1,7 +1,64 @@
-import { arrayToHTML, tableToSettings } from 'handsontable/utils/parseTable';
+import { instanceToHTML, arrayToHTML, tableToSettings } from 'handsontable/utils/parseTable';
+import Handsontable from 'handsontable';
 
-xdescribe('instanceToHTML', () => {
-  // js-dom used in jest doesn't support innerHTML <-> innerText transformation in virtual
+describe('instanceToHTML', () => {
+  it('should convert clear instance into HTML table', () => {
+    const hot = new Handsontable(document.createElement('div'), {});
+
+    expect(instanceToHTML(hot)).toBe([
+      '<table><tbody>',
+      '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
+      '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
+      '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
+      '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
+      '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
+      '</tbody></table>',
+    ].join(''));
+  });
+
+  it('should convert headers into HTML table', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      colHeaders: true,
+      rowHeaders: true,
+      data: [
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+      ],
+    });
+
+    expect(instanceToHTML(hot)).toBe([
+      '<table><thead>',
+      '<tr><th></th><th>A</th><th>B</th></tr>',
+      '</thead><tbody>',
+      '<tr><th>1</th><td >A1</td><td >B1</td></tr>',
+      '<tr><th>2</th><td >A2</td><td >B2</td></tr>',
+      '</tbody></table>',
+    ].join(''));
+  });
+
+  it('should convert merged instance into HTML table', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      colHeaders: true,
+      rowHeaders: true,
+      data: [
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+      ],
+      mergeCells: [
+        { row: 0, col: 0, colspan: 2, rowspan: 3 }
+      ],
+    });
+
+    expect(instanceToHTML(hot)).toBe([
+      '<table><thead>',
+      '<tr><th></th><th>A</th><th>B</th></tr>',
+      '</thead><tbody>',
+      '<tr><th>1</th><td >A1</td><td >B1</td></tr>',
+      '<tr><th>2</th><td >A2</td><td >B2</td></tr>',
+      '</tbody></table>',
+    ].join(''));
+  });
 });
 
 describe('arrayToHTML', () => {

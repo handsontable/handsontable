@@ -17,27 +17,23 @@ function isHTMLTable(element) {
  * @returns {String} outerHTML of the HTMLTableElement
  */
 export function instanceToHTML(instance) {
-  const doc = instance.rootDocument;
+  // const doc = instance.rootDocument;
   const hasColumnHeaders = instance.hasColHeaders();
   const hasRowHeaders = instance.hasRowHeaders();
-
   const coords = [
     hasColumnHeaders ? -1 : 0,
     hasRowHeaders ? -1 : 0,
     instance.countRows() - 1,
     instance.countCols() - 1,
   ];
-
   const data = instance.getData(...coords);
-
   const countRows = data.length;
   const countCols = countRows > 0 ? data[0].length : 0;
-
   const TABLE = ['<table>', '</table>'];
   const THEAD = hasColumnHeaders ? ['<thead>', '</thead>'] : [];
   const TBODY = ['<tbody>', '</tbody>'];
-
-  const TEMP_ELEM = doc.createElement('div');
+  const rowModifier = hasRowHeaders ? 1 : 0;
+  const columnModifier = hasColumnHeaders ? 1 : 0;
 
   for (let row = 0; row < countRows; row += 1) {
     const isColumnHeadersRow = hasColumnHeaders && row === 0;
@@ -48,16 +44,14 @@ export function instanceToHTML(instance) {
       let cell = '';
 
       if (isColumnHeadersRow) {
-        TEMP_ELEM.innerText = instance.getColHeader(hasRowHeaders ? column - 1 : column);
-        cell = `<th>${TEMP_ELEM.innerText}</th>`;
+        cell = `<th>${instance.getColHeader(column - rowModifier)}</th>`;
 
       } else if (isRowHeadersColumn) {
-        TEMP_ELEM.innerText = instance.getRowHeader(hasColumnHeaders ? row - 1 : row);
-        cell = `<th>${TEMP_ELEM.innerHTML}</th>`;
+        cell = `<th>${instance.getRowHeader(row - columnModifier)}</th>`;
 
       } else {
         const cellData = data[row][column];
-        const { hidden, rowspan, colspan } = instance.getCellMeta(row - (hasRowHeaders ? 1 : 0), column - (hasColumnHeaders ? 1 : 0));
+        const { hidden, rowspan, colspan } = instance.getCellMeta(row - rowModifier, column - columnModifier);
 
         if (!hidden) {
           const attrs = [];
@@ -68,12 +62,14 @@ export function instanceToHTML(instance) {
           if (colspan) {
             attrs.push(`colspan="${colspan}"`);
           }
-
           if (isEmpty(cellData)) {
             cell = `<td ${attrs.join(' ')}></td>`;
           } else {
-            TEMP_ELEM.innerText = cellData;
-            cell = `<td ${attrs.join(' ')}>${TEMP_ELEM.innerHTML}</td>`;
+            const value = cellData.toString()
+              .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
+              .replace(/\x20/gi, '&nbsp;')
+              .replace(/\t/gi, '&#9;');
+            cell = `<td ${attrs.join(' ')}>${value}</td>`;
           }
         }
       }
