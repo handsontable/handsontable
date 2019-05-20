@@ -36,7 +36,7 @@ describe('instanceToHTML', () => {
     ].join(''));
   });
 
-  it('should convert merged instance into HTML table', () => {
+  it('should convert merged cells into HTML table', () => {
     const hot = new Handsontable(document.createElement('div'), {
       colHeaders: true,
       rowHeaders: true,
@@ -52,10 +52,11 @@ describe('instanceToHTML', () => {
 
     expect(instanceToHTML(hot)).toBe([
       '<table><thead>',
-      '<tr><th></th><th>A</th><th>B</th></tr>',
+      '<tr><th></th><th>A</th><th>B</th><th>C</th></tr>',
       '</thead><tbody>',
-      '<tr><th>1</th><td >A1</td><td >B1</td></tr>',
-      '<tr><th>2</th><td >A2</td><td >B2</td></tr>',
+      '<tr><th>1</th><td rowspan="3" colspan="2">A1</td><td >C1</td></tr>',
+      '<tr><th>2</th><td >C2</td></tr>',
+      '<tr><th>3</th><td >C3</td></tr>',
       '</tbody></table>',
     ].join(''));
   });
@@ -174,7 +175,6 @@ describe('tableToSettings', () => {
 
     expect(config.nestedHeaders[0][0].label).toBe('A');
     expect(config.nestedHeaders[0][0].colspan).toBe(6);
-
     expect(config.nestedHeaders[1][0].label).toBe('B');
     expect(config.nestedHeaders[1][0].colspan).toBe(3);
     expect(config.nestedHeaders[1][1].label).toBe('C');
