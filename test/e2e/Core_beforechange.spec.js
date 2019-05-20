@@ -59,6 +59,65 @@ describe('Core_beforechange', () => {
     expect(getDataAtCell(1, 1)).toEqual('d');
   });
 
+  it('should drop change when beforeChange set single change to null and close editor autocomplete (date)', () => {
+    handsontable({
+      data: [['a', 'b'], ['c', 'd']],
+      columns: [
+        {
+          type: 'autocomplete',
+          source: ['Audi', 'BMW', 'Chrysler', 'Citroen', 'Mercedes', 'Nissan', 'Opel', 'Suzuki', 'Toyota', 'Volvo'],
+          strict: false
+        },
+        {
+          // 2nd cell is simple text, no special options here
+        },
+      ],
+      beforeChange(changes) {
+        changes[0] = null;
+      }
+    });
+
+    setDataAtCell([[0, 0, 'test']]);
+
+    expect(getDataAtCell(0, 0)).toEqual('a');
+
+    selectCell(0, 0);
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(isEditorVisible()).toBe(false);
+  });
+
+  it('should drop change when beforeChange remove single change close editor autocomplete (date)', () => {
+    handsontable({
+      data: [['a', 'b'], ['c', 'd']],
+      columns: [
+        {
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY',
+          correctFormat: true,
+          defaultDate: '01/01/1900',
+        },
+        {
+          // 2nd cell is simple text, no special options here
+        },
+      ],
+      beforeChange(changes) {
+        changes.splice(0, 1);
+      }
+    });
+
+    setDataAtCell([[0, 0, 'test']]);
+
+    expect(getDataAtCell(0, 0)).toEqual('a');
+
+    selectCell(0, 0);
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(isEditorVisible()).toBe(false);
+  });
+
   function beforechangeOnKeyFactory(keyCode) {
     return function() {
       let called = false;
