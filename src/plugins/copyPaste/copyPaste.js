@@ -9,7 +9,7 @@ import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
-import { arrayToHTML, tableToSettings } from './../../utils/parseTable';
+import { arrayToString, tableToSettings } from './../../utils/parseTable';
 
 import './copyPaste.css';
 
@@ -411,7 +411,7 @@ class CopyPaste extends BasePlugin {
       const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        const textHTML = arrayToHTML(rangedData, this.hot.rootDocument);
+        const textHTML = arrayToString(rangedData, this.hot.rootDocument);
 
         event.clipboardData.setData('text/plain', textPlain);
         event.clipboardData.setData('text/html', textHTML);
@@ -449,7 +449,7 @@ class CopyPaste extends BasePlugin {
       const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        const textHTML = arrayToHTML(rangedData, this.hot.rootDocument);
+        const textHTML = arrayToString(rangedData, this.hot.rootDocument);
 
         event.clipboardData.setData('text/plain', textPlain);
         event.clipboardData.setData('text/html', textHTML);

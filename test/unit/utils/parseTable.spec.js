@@ -1,11 +1,11 @@
-import { instanceToHTML, arrayToHTML, tableToSettings } from 'handsontable/utils/parseTable';
+import { instanceToString, arrayToString, tableToSettings } from 'handsontable/utils/parseTable';
 import Handsontable from 'handsontable';
 
-describe('instanceToHTML', () => {
+describe('instanceToString', () => {
   it('should convert clear instance into HTML table', () => {
     const hot = new Handsontable(document.createElement('div'), {});
 
-    expect(instanceToHTML(hot)).toBe([
+    expect(instanceToString(hot)).toBe([
       '<table><tbody>',
       '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
       '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
@@ -26,7 +26,7 @@ describe('instanceToHTML', () => {
       ],
     });
 
-    expect(instanceToHTML(hot)).toBe([
+    expect(instanceToString(hot)).toBe([
       '<table><thead>',
       '<tr><th></th><th>A</th><th>B</th></tr>',
       '</thead><tbody>',
@@ -50,7 +50,7 @@ describe('instanceToHTML', () => {
       ],
     });
 
-    expect(instanceToHTML(hot)).toBe([
+    expect(instanceToString(hot)).toBe([
       '<table><thead>',
       '<tr><th></th><th>A</th><th>B</th><th>C</th></tr>',
       '</thead><tbody>',
@@ -62,7 +62,7 @@ describe('instanceToHTML', () => {
   });
 });
 
-describe('arrayToHTML', () => {
+describe('arrayToString', () => {
   it('should parse two-dimensional array into HTML table', () => {
     const data = [
       ['A1', 'B1', 'C1'],
@@ -70,7 +70,7 @@ describe('arrayToHTML', () => {
       ['A3', 'B3', 'C3'],
     ];
 
-    expect(arrayToHTML(data)).toBe([
+    expect(arrayToString(data)).toBe([
       '<meta name="generator" content="Handsontable"/>',
       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
       '<table><tbody>',

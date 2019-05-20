@@ -12,6 +12,7 @@ import jQueryWrapper from './helpers/wrappers/jquery';
 import EventManager, { getListenersCounter } from './eventManager';
 import Hooks from './pluginHooks';
 import GhostTable from './utils/ghostTable';
+import * as parseTableHelpers from './utils/parseTable';
 import * as arrayHelpers from './helpers/array';
 import * as browserHelpers from './helpers/browser';
 import * as dataHelpers from './helpers/data';
@@ -32,7 +33,6 @@ import DefaultSettings from './defaultSettings';
 import { rootInstanceSymbol } from './utils/rootInstance';
 import { getTranslatedPhrase } from './i18n';
 import * as constants from './i18n/constants';
-import * as parseTableHelpers from './utils/parseTable';
 
 import { registerLanguageDictionary, getLanguagesDictionaries, getLanguageDictionary } from './i18n/dictionariesManager';
 
@@ -176,8 +176,8 @@ Handsontable.languages.getTranslatedPhrase = (...args) => getTranslatedPhrase(..
 /**
  * Prepares Handsontable configuration based on HTMLElement.
  *
- * @param {Node} element Node element to prepare Handsontable configuration.
- * @returns {DefaultSettings} Object with Handsontable configuration.
+ * @param {HTMLTableElement} element HTMLTableElement to prepare Handsontable configuration.
+ * @returns {GridSettings} Object with Handsontable configuration.
  */
 Handsontable.fromHTML = element => Handsontable.helper.tableToSettings(element);
 
@@ -185,7 +185,7 @@ Handsontable.fromHTML = element => Handsontable.helper.tableToSettings(element);
  * Prepares Handsontable configuration based on string.
  *
  * @param {String} htmlText Node element to prepare Handsontable configuration.
- * @returns {DefaultSettings} Object with Handsontable configuration.
+ * @returns {GridSettings} Object with Handsontable configuration.
  */
 Handsontable.fromString = htmlText => Handsontable.helper.tableToSettings(htmlText);
 

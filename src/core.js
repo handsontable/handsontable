@@ -18,7 +18,7 @@ import {
   objectEach
 } from './helpers/object';
 import { arrayFlatten, arrayMap, arrayEach, arrayReduce } from './helpers/array';
-import { instanceToHTML } from './utils/parseTable';
+import { instanceToString } from './utils/parseTable';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
 import { getValidator } from './validators';
@@ -3562,9 +3562,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function toString
    * @since 7.1.0
-   * @returns {HTMLTableElement}
+   * @returns {String}
    */
-  this.toString = () => instanceToHTML(this);
+  this.toString = () => instanceToString(this);
 
   /**
    * Converts instance into outerHTML of HTMLTableElement.
@@ -3576,7 +3576,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.toHTML = () => {
     const tempElement = this.rootDocument.createElement('div');
-    tempElement.insertAdjacentHTML('afterbegin', instanceToHTML(this));
+    tempElement.insertAdjacentHTML('afterbegin', instanceToString(this));
 
     return tempElement.firstElementChild;
   };

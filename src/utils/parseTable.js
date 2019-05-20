@@ -13,11 +13,9 @@ function isHTMLTable(element) {
  * Converts Handsontable into HTMLTableElement.
  *
  * @param {Core} instance
- *
  * @returns {String} outerHTML of the HTMLTableElement
  */
-export function instanceToHTML(instance) {
-  // const doc = instance.rootDocument;
+export function instanceToString(instance) {
   const hasColumnHeaders = instance.hasColHeaders();
   const hasRowHeaders = instance.hasRowHeaders();
   const coords = [
@@ -95,22 +93,16 @@ export function instanceToHTML(instance) {
  * Converts 2D array into HTMLTableElement.
  *
  * @param {Array} input Input array which will be converted to HTMLTable
- * @param {Document} [rootDocument]
- *
  * @returns {String} outerHTML of the HTMLTableElement
  */
 // eslint-disable-next-line no-restricted-globals
-export function arrayToHTML(input, rootDocument = document) {
+export function arrayToString(input) {
   const inputLen = input.length;
   const result = [
     '<meta name="generator" content="Handsontable"/>',
     '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
     '<table>',
   ];
-
-  const fragment = rootDocument.createDocumentFragment();
-  const tempElement = rootDocument.createElement('div');
-  fragment.appendChild(tempElement);
 
   for (let row = 0; row < inputLen; row += 1) {
     const rowData = input[row];

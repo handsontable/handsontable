@@ -112,6 +112,8 @@ declare namespace _Handsontable {
     toPhysicalRow(row: number): number;
     toVisualColumn(column: number): number;
     toVisualRow(row: number): number;
+    toHTML(): HTMLTableElement;
+    toString(): string;
     unlisten(): void;
     updateSettings(settings: Handsontable.GridSettings, init?: boolean): void;
     validateCells(callback?: (valid: boolean) => void): void;
@@ -2148,6 +2150,7 @@ declare namespace Handsontable {
     arrayMin(array: any[]): number,
     arrayReduce(array: any[], iteratee: (value: any, index: number, array: any[]) => void, accumulator: any, initFromArray: boolean): any,
     arraySum(array: any[]): number,
+    arrayToString(input: any[][]): string,
     arrayUnique(array: any[]): any[],
     cancelAnimationFrame(id: number): void,
     cellMethodLookupFactory(methodName: string, allowUndefined: boolean): void,
@@ -2175,6 +2178,7 @@ declare namespace Handsontable {
     getPrototypeOf(obj: object): any | void,
     hasCaptionProblem(): boolean | void,
     inherit(Child: object, Parent: object): object,
+    instanceToString(instance: _Handsontable.Core): string,
     isChrome(): boolean,
     isClassListSupported(): boolean;
     isCtrlKey(keyCode: number): boolean,
@@ -2216,6 +2220,7 @@ declare namespace Handsontable {
     stringify(value: any): string,
     stripTags(string: string): string,
     substitute(template: string, variables?: object): string,
+    tableToSettings(element: HTMLTableElement | string, rootDocument?: Document): GridSettings,
     throttle(func: () => void, wait?: number): () => void,
     throttleAfterHits(func: () => void, wait?: number, hits?: number): () => void,
     to2dArray(arr: any[]): void,
@@ -2604,6 +2609,8 @@ declare class Handsontable extends _Handsontable.Core {
   static Core: typeof _Handsontable.Core;
   static EventManager: Handsontable.EventManager;
   static DefaultSettings: Handsontable.DefaultSettings;
+  static fromHTML: (element: HTMLTableElement) => Handsontable.GridSettings;
+  static fromString: (element: string) => Handsontable.GridSettings;
 }
 
 export default Handsontable;

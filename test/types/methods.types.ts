@@ -110,6 +110,9 @@ hot.validateColumns([1, 2, 3], (valid: boolean) => {});
 hot.validateRows([1, 2, 3], (valid: boolean) => {});
 hot.isDestroyed === false;
 
+const testToHTML: HTMLTableElement = hot.toHTML();
+const testToString: string = hot.toString();
+
 const autoColumnSize: Handsontable.plugins.AutoColumnSize = hot.getPlugin('autoColumnSize');
 const autoRowSize: Handsontable.plugins.AutoRowSize = hot.getPlugin('autoRowSize');
 const autofill: Handsontable.plugins.Autofill = hot.getPlugin('autofill');
