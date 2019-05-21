@@ -18,7 +18,6 @@ const privatePool = new WeakMap();
  * ```
  *
  * @plugin ManualColumnFreeze
- * @dependencies ManualColumnMove
  */
 class ManualColumnFreeze extends BasePlugin {
   constructor(hotInstance) {
@@ -28,13 +27,6 @@ class ManualColumnFreeze extends BasePlugin {
       moveByFreeze: false,
       afterFirstUse: false,
     });
-    /**
-     * Original column positions
-     *
-     * @private
-     * @type {Array}
-     */
-    this.frozenColumnsBasePositions = [];
   }
 
   /**
@@ -140,30 +132,16 @@ class ManualColumnFreeze extends BasePlugin {
    */
   getBestColumnReturnPosition(column) {
     const settings = this.hot.getSettings();
-    let i = settings.fixedColumnsLeft;
-    let j = this.hot.toPhysicalColumn(i);
-    let initialCol;
+    let calculatedPosition = settings.fixedColumnsLeft;
+    let maxIndexBeforeFrozen = this.hot.toPhysicalColumn(calculatedPosition);
+    const unfrozenColumnIndex = this.hot.toPhysicalColumn(column);
 
-    if (this.frozenColumnsBasePositions[column] === null || this.frozenColumnsBasePositions[column] === void 0) {
-      initialCol = this.hot.toPhysicalColumn(column);
-
-      while (j !== null && j <= initialCol) {
-        i += 1;
-        j = this.hot.toPhysicalColumn(i);
-      }
-
-    } else {
-      initialCol = this.frozenColumnsBasePositions[column];
-      this.frozenColumnsBasePositions[column] = void 0;
-
-      while (j !== null && j <= initialCol) {
-        i += 1;
-        j = this.hot.toPhysicalColumn(i);
-      }
-      i = j;
+    while (maxIndexBeforeFrozen !== null && maxIndexBeforeFrozen <= unfrozenColumnIndex) {
+      calculatedPosition += 1;
+      maxIndexBeforeFrozen = this.hot.toPhysicalColumn(calculatedPosition);
     }
 
-    return i - 1;
+    return calculatedPosition - 1;
   }
 
   /**
@@ -212,14 +190,6 @@ class ManualColumnFreeze extends BasePlugin {
       priv.moveByFreeze = false;
     }
   }
-
-  /**
-   * Destroys the plugin instance.
-   */
-  destroy() {
-    super.destroy();
-  }
-
 }
 
 registerPlugin('manualColumnFreeze', ManualColumnFreeze);
