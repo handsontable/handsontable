@@ -344,38 +344,40 @@ class DataMap {
     let numberOfCreatedCols = 0;
     let currentIndex;
 
-    this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
+    const beforeCreateColHook = this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
 
     currentIndex = columnIndex;
 
-    const maxCols = this.instance.getSettings().maxCols;
-    while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
-      const constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
+    if (beforeCreateColHook !== false) {
+      const maxCols = this.instance.getSettings().maxCols;
+      while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
+        const constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
 
-      if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countCols()) {
-        if (rlen > 0) {
-          for (let r = 0; r < rlen; r++) {
-            if (typeof data[r] === 'undefined') {
-              data[r] = [];
+        if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countCols()) {
+          if (rlen > 0) {
+            for (let r = 0; r < rlen; r++) {
+              if (typeof data[r] === 'undefined') {
+                data[r] = [];
+              }
+              data[r].push(null);
             }
-            data[r].push(null);
+          } else {
+            data.push([null]);
           }
+          // Add new column constructor
+          this.priv.columnSettings.push(constructor);
+
         } else {
-          data.push([null]);
+          for (let row = 0; row < rlen; row++) {
+            data[row].splice(currentIndex, 0, null);
+          }
+          // Add new column constructor at given index
+          this.priv.columnSettings.splice(currentIndex, 0, constructor);
         }
-        // Add new column constructor
-        this.priv.columnSettings.push(constructor);
 
-      } else {
-        for (let row = 0; row < rlen; row++) {
-          data[row].splice(currentIndex, 0, null);
-        }
-        // Add new column constructor at given index
-        this.priv.columnSettings.splice(currentIndex, 0, constructor);
+        numberOfCreatedCols += 1;
+        currentIndex += 1;
       }
-
-      numberOfCreatedCols += 1;
-      currentIndex += 1;
     }
 
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
