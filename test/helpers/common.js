@@ -394,6 +394,14 @@ export function handsontableKeyTriggerFactory(type) {
           ev.keyCode = 65;
           break;
 
+        case 'y':
+          ev.keyCode = 89;
+          break;
+
+        case 'z':
+          ev.keyCode = 90;
+          break;
+
         default:
           throw new Error(`Unrecognised key name: ${keyToTrigger}`);
       }

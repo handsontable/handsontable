@@ -2438,7 +2438,7 @@ describe('UndoRedo', () => {
         selectCell(0, 0);
         setDataAtCell(0, 0, 'new value');
 
-        spec().$container.simulate('keydown', { ctrlKey: true, keyCode: 'Z'.charCodeAt(0) });
+        keyDown('ctrl+z');
         expect(getDataAtCell(0, 0)).toBe('A1');
       });
 
@@ -2456,7 +2456,7 @@ describe('UndoRedo', () => {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        spec().$container.simulate('keydown', { ctrlKey: true, keyCode: 'Y'.charCodeAt(0) });
+        keyDown('ctrl+y');
 
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
@@ -2475,8 +2475,27 @@ describe('UndoRedo', () => {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        spec().$container.simulate('keydown', { ctrlKey: true, shiftKey: true, keyCode: 'Z'.charCodeAt(0) });
+        keyDown('ctrl+shift+z');
 
+        expect(getDataAtCell(0, 0)).toBe('new value');
+      });
+
+      it('should be possible to block keyboard shortcuts', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(2, 2),
+          beforeKeyDown: (e) => {
+            const ctrlDown = (e.ctrlKey || e.metaKey) && !e.altKey;
+
+            if (ctrlDown && (e.keyCode === 90 || (e.shiftKey && e.keyCode === 90))) {
+              Handsontable.dom.stopImmediatePropagation(e);
+            }
+          }
+        });
+
+        selectCell(0, 0);
+        setDataAtCell(0, 0, 'new value');
+
+        keyDown('ctrl+z');
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
     });
