@@ -2442,27 +2442,24 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(0, 0)).toBe('A1');
       });
 
-      // Chrome opens chrome://history on this shortcut. This hoykey works properly in others browser.
-      if (!Handsontable.helper.isChrome()) {
-        it('should redo single change after hitting CTRL+Y', () => {
-          handsontable({
-            data: Handsontable.helper.createSpreadsheetData(2, 2)
-          });
-          const HOT = getInstance();
-
-          selectCell(0, 0);
-          setDataAtCell(0, 0, 'new value');
-
-          expect(getDataAtCell(0, 0)).toBe('new value');
-
-          HOT.undo();
-          expect(getDataAtCell(0, 0)).toBe('A1');
-
-          keyDown('ctrl+y');
-
-          expect(getDataAtCell(0, 0)).toBe('new value');
+      it('should redo single change after hitting CTRL+Y', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(2, 2)
         });
-      }
+        const HOT = getInstance();
+
+        selectCell(0, 0);
+        setDataAtCell(0, 0, 'new value');
+
+        expect(getDataAtCell(0, 0)).toBe('new value');
+
+        HOT.undo();
+        expect(getDataAtCell(0, 0)).toBe('A1');
+
+        keyDown('ctrl+y');
+
+        expect(getDataAtCell(0, 0)).toBe('new value');
+      });
 
       it('should redo single change after hitting CTRL+SHIFT+Z', () => {
         handsontable({

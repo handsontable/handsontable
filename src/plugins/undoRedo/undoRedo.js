@@ -648,7 +648,7 @@ function onBeforeKeyDown(event) {
     return;
   }
 
-  const isRedoHotkey = (!isChrome() && keyCode === 89) || (shiftKey && keyCode === 90);
+  const isRedoHotkey = keyCode === 89 || (shiftKey && keyCode === 90);
 
   if (isRedoHotkey) { // CTRL + Y or CTRL + SHIFT + Z
     instance.undoRedo.redo();
