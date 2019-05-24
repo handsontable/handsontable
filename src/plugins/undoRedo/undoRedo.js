@@ -7,7 +7,6 @@ import { rangeEach } from './../../helpers/number';
 import { inherit, deepClone } from './../../helpers/object';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from './../../helpers/dom/event';
 import { align } from './../contextMenu/utils';
-import { isChrome } from './../../helpers/browser';
 
 /**
  * @description
