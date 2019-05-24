@@ -1,4 +1,4 @@
-import { addClass, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
+import { addClass, empty, isChildOfWebComponentTable, removeClass, hasClass } from './helpers/dom/element';
 import { columnFactory } from './helpers/setting';
 import { isFunction } from './helpers/function';
 import { warn } from './helpers/console';
@@ -1437,6 +1437,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (changes.length > 0) {
       this.setDataAtCell(changes);
+
+      arrayEach(changes, (change) => {
+        const row = change[0];
+        const column = change[1];
+        const TD = this.getCell(row, column);
+        const input = TD.children[0];
+
+        if (input && hasClass(input, 'htBadValue')) {
+          TD.innerText = '';
+          this.setCellMeta(row, column, 'class', 'htWasBadValue');
+        }
+      });
     }
   };
 

@@ -79,7 +79,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
 
   TD.appendChild(input);
 
-  if (badValue) {
+  if (badValue && instance.getCellMeta(row, col).class !== 'htWasBadValue') {
     TD.appendChild(rootDocument.createTextNode('#bad-value#'));
   }
 
