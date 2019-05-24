@@ -32,14 +32,17 @@ function UndoRedo(instance) {
     if (!changes || ['UndoRedo.undo', 'UndoRedo.redo', 'MergeCells'].includes(source)) {
       return;
     }
-
+    const changesLen = changes && changes.length;
     let selected = [];
 
     if (source === 'CopyPaste.paste') {
       instance.addHookOnce('afterPaste', (...args) => selected.push(...args[1].map(range => [range.startRow, range.startCol, range.endRow, range.endCol])));
 
-    } else {
-      selected = changes.length > 1 ? this.getSelected() : [[changes[0][0], changes[0][1]]];
+    } else if (changesLen > 1) {
+      selected = this.getSelected();
+
+    } else if (changesLen) {
+      selected = [[changes[0][0], changes[0][1]]];
     }
 
     plugin.done(new UndoRedo.ChangeAction(changes, selected));
