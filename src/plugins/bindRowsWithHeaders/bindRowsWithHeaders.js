@@ -1,7 +1,6 @@
 import BasePlugin from '../../plugins/_base';
-import { rangeEach } from '../../helpers/number';
 import { registerPlugin } from '../../plugins';
-import BindStrategy from './bindStrategy';
+import { IndexToValueMap } from '../../translations';
 
 /**
  * @plugin BindRowsWithHeaders
@@ -26,19 +25,12 @@ class BindRowsWithHeaders extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Strategy object for binding rows with headers.
+     * Plugin indexes cache.
      *
      * @private
-     * @type {BindStrategy}
+     * @type {null|IndexMap}
      */
-    this.bindStrategy = new BindStrategy();
-    /**
-     * List of last removed row indexes.
-     *
-     * @private
-     * @type {Array}
-     */
-    this.removedRows = [];
+    this.indexesSequenceCache = null;
   }
 
   /**
@@ -58,37 +50,13 @@ class BindRowsWithHeaders extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    let bindStrategy = this.hot.getSettings().bindRowsWithHeaders;
 
-    if (typeof bindStrategy !== 'string') {
-      bindStrategy = BindStrategy.DEFAULT_STRATEGY;
-    }
-    this.bindStrategy.setStrategy(bindStrategy);
-    this.bindStrategy.createMap(this.hot.countSourceRows());
+    this.indexesSequenceCache = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey,
+      new IndexToValueMap({ strategy: 'physicallyIndexedUpdated', /* mapInsertedValues(visualIndex, position) { console.log(this.getLength() + position); return this.getLength() + position; } */ }));
 
     this.addHook('modifyRowHeader', row => this.onModifyRowHeader(row));
-    this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
-    this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
-    this.addHook('afterRemoveRow', () => this.onAfterRemoveRow());
-    this.addHook('afterLoadData', firstRun => this.onAfterLoadData(firstRun));
 
     super.enablePlugin();
-  }
-
-  /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
-   */
-  updatePlugin() {
-    super.updatePlugin();
-  }
-
-  /**
-   * Disables the plugin functionality for this Handsontable instance.
-   */
-  disablePlugin() {
-    this.removedRows.length = 0;
-    this.bindStrategy.clearMap();
-    super.disablePlugin();
   }
 
   /**
@@ -101,67 +69,7 @@ class BindRowsWithHeaders extends BasePlugin {
    * @fires Hooks#modifyRow
    */
   onModifyRowHeader(row) {
-    return this.bindStrategy.translate(this.hot.toPhysicalRow(row));
-  }
-
-  /**
-   * On after create row listener.
-   *
-   * @private
-   * @param {Number} index Row index.
-   * @param {Number} amount Defines how many rows removed.
-   */
-  onAfterCreateRow(index, amount) {
-    this.bindStrategy.createRow(index, amount);
-  }
-
-  /**
-   * On before remove row listener.
-   *
-   * @private
-   * @param {Number} index Row index.
-   * @param {Number} amount Defines how many rows removed.
-   *
-   * @fires Hooks#modifyRow
-   */
-  onBeforeRemoveRow(index, amount) {
-    this.removedRows.length = 0;
-
-    if (index !== false) {
-      // Collect physical row index.
-      rangeEach(index, index + amount - 1, (removedIndex) => {
-        this.removedRows.push(this.hot.toPhysicalRow(removedIndex));
-      });
-    }
-  }
-
-  /**
-   * On after remove row listener.
-   *
-   * @private
-   */
-  onAfterRemoveRow() {
-    this.bindStrategy.removeRow(this.removedRows);
-  }
-
-  /**
-   * On after load data listener.
-   *
-   * @private
-   * @param {Boolean} firstRun Indicates if hook was fired while Handsontable initialization.
-   */
-  onAfterLoadData(firstRun) {
-    if (!firstRun) {
-      this.bindStrategy.createMap(this.hot.countSourceRows());
-    }
-  }
-
-  /**
-   * Destroys the plugin instance.
-   */
-  destroy() {
-    this.bindStrategy.destroy();
-    super.destroy();
+    return this.indexesSequenceCache.getValueAtIndex(this.rowIndexMapper.getPhysicalIndex(row));
   }
 }
 

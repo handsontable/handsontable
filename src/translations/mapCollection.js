@@ -12,8 +12,8 @@ class MapCollection {
    * Register custom indexes map.
    *
    * @param {String} name Unique name of the indexes list.
-   * @param {BaseMap} map Map containing miscellaneous (i.e. meta data, indexes sequence), updated after remove and insert data actions.
-   * @returns {BaseMap}
+   * @param {IndexToValueMap} map Map containing miscellaneous (i.e. meta data, indexes sequence), updated after remove and insert data actions.
+   * @returns {IndexToValueMap}
    */
   register(name, map) {
     if (this.mappings.has(name) === false) {
@@ -54,9 +54,9 @@ class MapCollection {
    * @private
    * @param {Array} removedIndexes List of removed indexes.
    */
-  removeIndexes(removedIndexes) {
+  removeFromEvery(removedIndexes) {
     this.mappings.forEach((list) => {
-      list.removeValuesAndReorganize(removedIndexes);
+      list.remove(removedIndexes);
     });
   }
 
@@ -68,9 +68,9 @@ class MapCollection {
    * @param {Number} firstInsertedPhysicalIndex First inserted physical index.
    * @param {Number} amountOfIndexes Amount of inserted indexes.
    */
-  insertIndexes(insertionIndex, insertedIndexes) {
+  insertToEvery(insertionIndex, insertedIndexes) {
     this.mappings.forEach((list) => {
-      list.addValueAndReorganize(insertionIndex, insertedIndexes);
+      list.insert(insertionIndex, insertedIndexes);
     });
   }
 
@@ -79,7 +79,7 @@ class MapCollection {
    *
    * @param {Number} length Custom generated map length.
    */
-  initToLength(length) {
+  initEvery(length) {
     this.mappings.forEach((list) => {
       list.init(length);
     });

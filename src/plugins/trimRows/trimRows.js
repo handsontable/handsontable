@@ -1,6 +1,6 @@
 import BasePlugin from '../_base';
 import { registerPlugin } from '../../plugins';
-import { ValueMap } from '../../translations';
+import { IndexToValueMap } from '../../translations';
 import { arrayEach, arrayReduce } from '../../helpers/array';
 
 /**
@@ -68,7 +68,7 @@ class TrimRows extends BasePlugin {
       return;
     }
 
-    this.trimmedRowsMap = this.rowIndexMapper.skipCollection.register('trimRows', new ValueMap(false));
+    this.trimmedRowsMap = this.rowIndexMapper.skipCollection.register('trimRows', new IndexToValueMap({ initValueOrFn: false, strategy: 'physicallyIndexedNotUpdated' }));
     this.trimmedRowsMap.addLocalHook('init', () => this.onMapInit());
 
     super.enablePlugin();

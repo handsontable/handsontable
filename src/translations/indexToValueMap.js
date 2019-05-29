@@ -1,15 +1,18 @@
-import { rangeEach } from '../../helpers/number';
-import { mixin } from '../../helpers/object';
-import { isFunction } from '../../helpers/function';
-import localHooks from './../../mixins/localHooks';
+import { rangeEach } from '../helpers/number';
+import { mixin } from '../helpers/object';
+import { isFunction } from '../helpers/function';
+import { isDefined } from '../helpers/mixed';
+import localHooks from '../mixins/localHooks';
+import UpdateStrategy from './updateStrategy';
 
 /**
  * Map from index to value.
  */
-class BaseMap {
-  constructor(initValueOrFn = index => index) {
+class IndexToValueMap {
+  constructor(config = {}) {
     this.list = [];
-    this.initValueOrFn = initValueOrFn;
+    this.initValueOrFn = isDefined(config.initValueOrFn) ? config.initValueOrFn : (index => index);
+    this.updateStrategy = new UpdateStrategy(config.strategy);
   }
 
   /**
@@ -105,29 +108,31 @@ class BaseMap {
   }
 
   /**
-   * Add values to list and reorganize.
+   * Add values to the list.
    *
    * @private
    * @param {Number} insertionIndex Position inside actual list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
-  // eslint-disable-next-line no-unused-vars
-  addValueAndReorganize(insertionIndex, insertedIndexes) {
-    throw Error('Map addValueAndReorganize() method unimplemented');
+  insert(insertionIndex, insertedIndexes) {
+    this.list = this.updateStrategy.getItemsAfterInsertion(this.list, insertionIndex, insertedIndexes, this.initValueOrFn);
+
+    this.runLocalHooks('mapChanged');
   }
 
   /**
-   * Remove values from the list and reorganize.
+   * Remove values from the list.
    *
    * @private
    * @param {Array} removedIndexes List of removed indexes.
    */
-  // eslint-disable-next-line no-unused-vars
-  removeValuesAndReorganize(removedIndexes) {
-    throw Error('Map removeValuesAndReorganize() method unimplemented');
+  remove(removedIndexes) {
+    this.list = this.updateStrategy.getItemsAfterRemoval(this.list, removedIndexes);
+
+    this.runLocalHooks('mapChanged');
   }
 }
 
-mixin(BaseMap, localHooks);
+mixin(IndexToValueMap, localHooks);
 
-export default BaseMap;
+export default IndexToValueMap;
