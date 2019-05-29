@@ -299,31 +299,51 @@ describe('Core_setDataAtCell', () => {
     expect(getData()).toEqual([['bar', 1], ['b', 33], ['c', 3]]);
   });
 
-  it('shouldn\'t add new column when `beforeCreateCol` false', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
-      beforeCreateCol() {
-        return false;
-      }
+  describe('Coordinates out of dataset', () => {
+    it('should insert new column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 1)
+      });
+
+      setDataAtCell([[0, 1, 'new column']], 'customSource');
+      expect(countCols()).toBe(2);
     });
 
-    const countedColumns = countCols();
+    it('should insert new row', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 1)
+      });
 
-    setDataAtCell([[0, 1, 'new column']], 'customSource');
-    expect(countCols()).toBe(countedColumns);
-  });
-
-  it('shouldn\'t add new row when `beforeCreateRow` false', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
-      beforeCreateRow() {
-        return false;
-      }
+      setDataAtCell([[1, 0, 'new row']], 'customSource');
+      expect(countRows()).toBe(2);
     });
 
-    const countedRows = countRows();
+    it('should not insert new column if `beforeCreateCol` returns false', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        beforeCreateCol() {
+          return false;
+        }
+      });
 
-    setDataAtCell([[1, 0, 'new row']], 'customSource');
-    expect(countRows()).toBe(countedRows);
+      const countedColumns = countCols();
+
+      setDataAtCell([[0, 1, 'new column']], 'customSource');
+      expect(countCols()).toBe(countedColumns);
+    });
+
+    it('should not insert new row if `beforeCreateRow` returns false', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        beforeCreateRow() {
+          return false;
+        }
+      });
+
+      const countedRows = countRows();
+
+      setDataAtCell([[1, 0, 'new row']], 'customSource');
+      expect(countRows()).toBe(countedRows);
+    });
   });
 });

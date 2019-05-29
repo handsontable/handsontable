@@ -1130,7 +1130,7 @@ describe('Core_alter', () => {
       expect(outputAfter).toEqual([2, 1, 'customSource']);
     });
 
-    it('should not create columns when beforeCreateCol return false', () => {
+    it('should not create columns when beforeCreateCol returns false', () => {
       handsontable({
         data: arrayOfArrays(),
         beforeCreateCol() {
