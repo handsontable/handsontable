@@ -5,7 +5,7 @@ import Hooks from './../../pluginHooks';
 import { arrayMap, arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import { inherit, deepClone } from './../../helpers/object';
-import { stopImmediatePropagation } from './../../helpers/dom/event';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './../../helpers/dom/event';
 import { align } from './../contextMenu/utils';
 
 /**
@@ -629,18 +629,33 @@ function init() {
 }
 
 function onBeforeKeyDown(event) {
+  if (isImmediatePropagationStopped(event)) {
+    return;
+  }
+
   const instance = this;
+  const {
+    altKey,
+    ctrlKey,
+    keyCode,
+    metaKey,
+    shiftKey,
+  } = event;
+  const isCtrlDown = (ctrlKey || metaKey) && !altKey;
 
-  const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+  if (!isCtrlDown) {
+    return;
+  }
 
-  if (ctrlDown) {
-    if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { // CTRL + Y or CTRL + SHIFT + Z
-      instance.undoRedo.redo();
-      stopImmediatePropagation(event);
-    } else if (event.keyCode === 90) { // CTRL + Z
-      instance.undoRedo.undo();
-      stopImmediatePropagation(event);
-    }
+  const isRedoHotkey = keyCode === 89 || (shiftKey && keyCode === 90);
+
+  if (isRedoHotkey) { // CTRL + Y or CTRL + SHIFT + Z
+    instance.undoRedo.redo();
+    stopImmediatePropagation(event);
+
+  } else if (keyCode === 90) { // CTRL + Z
+    instance.undoRedo.undo();
+    stopImmediatePropagation(event);
   }
 }
 
