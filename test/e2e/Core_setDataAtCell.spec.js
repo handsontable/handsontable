@@ -298,4 +298,32 @@ describe('Core_setDataAtCell', () => {
     expect(getDataAtRowProp(1, 'id')).toBe(33);
     expect(getData()).toEqual([['bar', 1], ['b', 33], ['c', 3]]);
   });
+
+  it('shouldn\'t add new column when `beforeCreateCol` false', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      beforeCreateCol() {
+        return false;
+      }
+    });
+
+    const countedColumns = countCols();
+
+    setDataAtCell([[0, 1, 'new column']], 'customSource');
+    expect(countCols()).toBe(countedColumns);
+  });
+
+  it('shouldn\'t add new row when `beforeCreateRow` false', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      beforeCreateRow() {
+        return false;
+      }
+    });
+
+    const countedRows = countRows();
+
+    setDataAtCell([[1, 0, 'new row']], 'customSource');
+    expect(countRows()).toBe(countedRows);
+  });
 });
