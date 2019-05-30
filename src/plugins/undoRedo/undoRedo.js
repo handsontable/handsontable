@@ -29,19 +29,13 @@ function UndoRedo(instance) {
   this.ignoreNewActions = false;
 
   instance.addHook('afterChange', function(changes, source) {
-    if (!changes || ['UndoRedo.undo', 'UndoRedo.redo', 'MergeCells'].includes(source)) {
+    const changesLen = changes && changes.length;
+
+    if (!changesLen || ['UndoRedo.undo', 'UndoRedo.redo', 'MergeCells'].includes(source)) {
       return;
     }
 
-    const changesLen = changes.length;
-    let selected = [];
-
-    if (changesLen > 1) {
-      selected = this.getSelected();
-
-    } else {
-      selected = [[changes[0][0], changes[0][1]]];
-    }
+    const selected = changesLen > 1 ? this.getSelected() : [[changes[0][0], changes[0][1]]];
 
     plugin.done(new UndoRedo.ChangeAction(changes, selected));
   });
