@@ -32,16 +32,14 @@ function UndoRedo(instance) {
     if (!changes || ['UndoRedo.undo', 'UndoRedo.redo', 'MergeCells'].includes(source)) {
       return;
     }
-    const changesLen = changes && changes.length;
+
+    const changesLen = changes.length;
     let selected = [];
 
-    if (source === 'CopyPaste.paste') {
-      instance.addHookOnce('afterPaste', (...args) => selected.push(...args[1].map(range => [range.startRow, range.startCol, range.endRow, range.endCol])));
-
-    } else if (changesLen > 1) {
+    if (changesLen > 1) {
       selected = this.getSelected();
 
-    } else if (changesLen) {
+    } else {
       selected = [[changes[0][0], changes[0][1]]];
     }
 
@@ -311,7 +309,10 @@ UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
 
   instance.addHookOnce('afterChange', onFinishCallback);
   instance.setDataAtRowProp(data, null, null, 'UndoRedo.redo');
-  instance.selectCells(this.selected, false, false);
+
+  if (this.selected) {
+    instance.selectCells(this.selected, false, false);
+  }
 };
 
 /**
