@@ -117,7 +117,7 @@ class ColumnSorting extends BasePlugin {
      * Plugin indexes cache.
      *
      * @private
-     * @type {null|IndexMap}
+     * @type {null|IndexToValueMap}
      */
     this.indexesSequenceCache = null;
   }

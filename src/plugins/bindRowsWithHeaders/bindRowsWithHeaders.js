@@ -2,6 +2,17 @@ import BasePlugin from '../../plugins/_base';
 import { registerPlugin } from '../../plugins';
 import { IndexToValueMap } from '../../translations';
 
+const DEFAULT_BINDING = 'loose';
+
+const bindTypeToMapStrategy = new Map([
+  ['loose', 'physicallyIndexedUpdated'],
+  ['strict', 'physicallyIndexedNotUpdated']
+]);
+
+const bindTypeToProperFn = new Map([
+  ['strict', function(_, ordinalNumber) { return Math.max(...this.getValues()) + 1 + ordinalNumber; }]
+]);
+
 /**
  * @plugin BindRowsWithHeaders
  *
@@ -28,9 +39,9 @@ class BindRowsWithHeaders extends BasePlugin {
      * Plugin indexes cache.
      *
      * @private
-     * @type {null|IndexMap}
+     * @type {null|IndexToValueMap}
      */
-    this.indexesSequenceCache = null;
+    this.headerIndexes = null;
   }
 
   /**
@@ -51,8 +62,14 @@ class BindRowsWithHeaders extends BasePlugin {
       return;
     }
 
-    this.indexesSequenceCache = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey,
-      new IndexToValueMap({ strategy: 'physicallyIndexedUpdated', /* mapInsertedValues(visualIndex, position) { console.log(this.getLength() + position); return this.getLength() + position; } */ }));
+    let bindingType = this.hot.getSettings().bindRowsWithHeaders;
+
+    if (typeof bindingType !== 'string') {
+      bindingType = DEFAULT_BINDING;
+    }
+
+    this.headerIndexes = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey,
+      new IndexToValueMap({ strategy: bindTypeToMapStrategy.get(bindingType), insertedValuesMapping: bindTypeToProperFn.get(bindingType) }));
 
     this.addHook('modifyRowHeader', row => this.onModifyRowHeader(row));
 
@@ -69,7 +86,7 @@ class BindRowsWithHeaders extends BasePlugin {
    * @fires Hooks#modifyRow
    */
   onModifyRowHeader(row) {
-    return this.indexesSequenceCache.getValueAtIndex(this.rowIndexMapper.getPhysicalIndex(row));
+    return this.headerIndexes.getValueAtIndex(this.rowIndexMapper.getPhysicalIndex(row));
   }
 }
 

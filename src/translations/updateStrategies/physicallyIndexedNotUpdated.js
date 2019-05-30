@@ -18,8 +18,8 @@ class PhysicallyIndexedNotUpdatedStrategy {
    * @param {Array} insertedIndexes
    * List of inserted indexes.
    */
-  getItemsAfterInsertion(list, insertionIndex, insertedIndexes, initValueOrFn) {
-    return getListWithInsertedItems(list, insertionIndex, insertedIndexes, initValueOrFn);
+  getItemsAfterInsertion(list, insertionIndex, insertedIndexes, insertedValuesMapping) {
+    return getListWithInsertedItems(list, insertionIndex, insertedIndexes, insertedValuesMapping);
   }
 
   /**

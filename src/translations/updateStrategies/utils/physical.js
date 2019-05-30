@@ -8,17 +8,17 @@ import { arrayFilter } from '../../../helpers/array';
  * @param {Number} insertionIndex Position inside actual list.
  * @param {Array} insertedIndexes List of inserted indexes.
  */
-export function getListWithInsertedItems(list, insertionIndex, insertedIndexes, initValueOrFn) {
+export function getListWithInsertedItems(list, insertionIndex, insertedIndexes, insertedValuesMapping) {
   const firstInsertedIndex = insertedIndexes[0];
 
   return [
     ...list.slice(0, firstInsertedIndex),
-    ...insertedIndexes.map((insertedIndex) => {
-      if (isFunction(initValueOrFn)) {
-        return initValueOrFn(insertedIndex);
+    ...insertedIndexes.map((insertedIndex, ordinalNumber) => {
+      if (isFunction(insertedValuesMapping)) {
+        return insertedValuesMapping(insertedIndex, ordinalNumber);
       }
 
-      return initValueOrFn;
+      return insertedValuesMapping;
     }),
     ...list.slice(firstInsertedIndex)
   ];

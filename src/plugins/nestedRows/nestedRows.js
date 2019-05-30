@@ -545,11 +545,6 @@ class NestedRows extends BasePlugin {
    * @private
    */
   onAfterInit() {
-    // Workaround to fix an issue caused by the 'bindRowsWithHeaders' plugin loading before this one.
-    if (this.bindRowsWithHeadersPlugin.bindStrategy.strategy) {
-      this.bindRowsWithHeadersPlugin.bindStrategy.createMap(this.hot.countSourceRows());
-    }
-
     const deepestLevel = Math.max(...this.dataManager.cache.levels);
 
     if (deepestLevel > 0) {

@@ -12,6 +12,7 @@ class IndexToValueMap {
   constructor(config = {}) {
     this.list = [];
     this.initValueOrFn = isDefined(config.initValueOrFn) ? config.initValueOrFn : (index => index);
+    this.insertedValuesMapping = isDefined(config.insertedValuesMapping) ? config.insertedValuesMapping.bind(this) : this.initValueOrFn;
     this.updateStrategy = new UpdateStrategy(config.strategy);
   }
 
@@ -115,7 +116,7 @@ class IndexToValueMap {
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
-    this.list = this.updateStrategy.getItemsAfterInsertion(this.list, insertionIndex, insertedIndexes, this.initValueOrFn);
+    this.list = this.updateStrategy.getItemsAfterInsertion(this.list, insertionIndex, insertedIndexes, this.insertedValuesMapping);
 
     this.runLocalHooks('mapChanged');
   }
