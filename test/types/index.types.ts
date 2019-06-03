@@ -19,5 +19,3 @@ Handsontable.validators;
 new Handsontable.Core(elem, {});
 const defaultSettings: Handsontable.GridSettings = new Handsontable.DefaultSettings();
 new Handsontable.EventManager({});
-const testFromString: Handsontable.GridSettings = Handsontable.fromString('');
-const testFromHTML: Handsontable.GridSettings = Handsontable.fromHTML(document.createElement('table'));
