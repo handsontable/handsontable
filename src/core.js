@@ -1022,15 +1022,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         }
       }
 
+      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
+        while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
+          const numberOfCreatedColumns = datamap.createCol(void 0, void 0, source);
+
+          if (numberOfCreatedColumns === 0) {
+            skipThisChange = true;
+            break;
+          }
+        }
+      }
+
       if (skipThisChange) {
         /* eslint-disable no-continue */
         continue;
-      }
-
-      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
-        while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
-          datamap.createCol(void 0, void 0, source);
-        }
       }
 
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);

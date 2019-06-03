@@ -1878,7 +1878,7 @@ declare namespace Handsontable {
       beforeContextMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
       beforeContextMenuShow?: (context: plugins.ContextMenu) => void;
       beforeCopy?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
-      beforeCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
+      beforeCreateCol?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
       beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
       beforeCut?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
       beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
