@@ -1,11 +1,11 @@
-import { instanceToString, arrayToString, tableToSettings } from 'handsontable/utils/parseTable';
+import { instanceToHTML, _dataToHTML, htmlToGridSettings } from 'handsontable/utils/parseTable';
 import Handsontable from 'handsontable';
 
-describe('instanceToString', () => {
+describe('instanceToHTML', () => {
   it('should convert clear instance into HTML table', () => {
     const hot = new Handsontable(document.createElement('div'), {});
 
-    expect(instanceToString(hot)).toBe([
+    expect(instanceToHTML(hot)).toBe([
       '<table><tbody>',
       '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
       '<tr><td ></td><td ></td><td ></td><td ></td><td ></td></tr>',
@@ -26,7 +26,7 @@ describe('instanceToString', () => {
       ],
     });
 
-    expect(instanceToString(hot)).toBe([
+    expect(instanceToHTML(hot)).toBe([
       '<table><thead>',
       '<tr><th></th><th>A</th><th>B</th></tr>',
       '</thead><tbody>',
@@ -50,7 +50,7 @@ describe('instanceToString', () => {
       ],
     });
 
-    expect(instanceToString(hot)).toBe([
+    expect(instanceToHTML(hot)).toBe([
       '<table><thead>',
       '<tr><th></th><th>A</th><th>B</th><th>C</th></tr>',
       '</thead><tbody>',
@@ -62,7 +62,7 @@ describe('instanceToString', () => {
   });
 });
 
-describe('arrayToString', () => {
+describe('_dataToHTML', () => {
   it('should parse two-dimensional array into HTML table', () => {
     const data = [
       ['A1', 'B1', 'C1'],
@@ -70,9 +70,7 @@ describe('arrayToString', () => {
       ['A3', 'B3', 'C3'],
     ];
 
-    expect(arrayToString(data)).toBe([
-      '<meta name="generator" content="Handsontable"/>',
-      '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+    expect(_dataToHTML(data)).toBe([
       '<table><tbody>',
       '<tr><td>A1</td><td>B1</td><td>C1</td></tr>',
       '<tr><td>A2</td><td>B2</td><td>C2</td></tr>',
@@ -82,7 +80,7 @@ describe('arrayToString', () => {
   });
 });
 
-describe('tableToSettings', () => {
+describe('htmlToGridSettings', () => {
   it('should parse data from HTML table', () => {
     const tableInnerHTML = [
       '<table><tbody>',
@@ -92,7 +90,7 @@ describe('tableToSettings', () => {
       '<tr><td>A6</td><td>B6</td><td>C6</td></tr>',
       '</tbody></table>',
     ].join('');
-    const config = tableToSettings(tableInnerHTML);
+    const config = htmlToGridSettings(tableInnerHTML);
 
     expect(config.data.toString()).toBe('A3,B3,C3,A4,B4,C4,A5,B5,C5,A6,B6,C6');
   });
@@ -107,7 +105,7 @@ describe('tableToSettings', () => {
       '<tr><th>5</th><td>A5</td><td>B5</td><td>C5</td></tr>',
       '</tbody></table>',
     ].join('');
-    const config = tableToSettings(tableInnerHTML);
+    const config = htmlToGridSettings(tableInnerHTML);
 
     expect(config.colHeaders.toString()).toBe('A,B,C');
     expect(config.rowHeaders.toString()).toBe('3,4,5');
@@ -126,7 +124,7 @@ describe('tableToSettings', () => {
       '<tr><td>A6</td><td>B6</td><td>C6</td></tr>',
       '</tfoot></table>',
     ].join('');
-    const config = tableToSettings(tableInnerHTML);
+    const config = htmlToGridSettings(tableInnerHTML);
 
     expect(config.fixedRowsTop).toBe(2);
     expect(config.fixedRowsBottom).toBe(3);
@@ -144,7 +142,7 @@ describe('tableToSettings', () => {
       '<tr><td>H</td></tr>',
       '</tbody></table>',
     ].join('');
-    const config = tableToSettings(tableInnerHTML);
+    const config = htmlToGridSettings(tableInnerHTML);
 
     expect(config.mergeCells.length).toBe(2);
 
@@ -169,7 +167,7 @@ describe('tableToSettings', () => {
       '<tr><td>A1</td><td>B1</td><td>C1</td><td>D1</td><td>E1</td><td>F1</td></tr>',
       '</tbody></table>',
     ].join('');
-    const config = tableToSettings(tableInnerHTML);
+    const config = htmlToGridSettings(tableInnerHTML);
 
     expect(config.nestedHeaders.length).toBe(3);
 

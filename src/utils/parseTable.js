@@ -4,6 +4,7 @@ import { isEmpty } from './../helpers/mixed';
  * Verifies if node is an HTMLTable element.
  *
  * @param {Node} element Node to verify if it's an HTMLTable.
+ * @returns {Boolean}
  */
 function isHTMLTable(element) {
   return (element && element.nodeName || '') === 'TABLE';
@@ -15,7 +16,7 @@ function isHTMLTable(element) {
  * @param {Core} instance
  * @returns {String} outerHTML of the HTMLTableElement
  */
-export function instanceToString(instance) {
+export function instanceToHTML(instance) {
   const hasColumnHeaders = instance.hasColHeaders();
   const hasRowHeaders = instance.hasRowHeaders();
   const coords = [
@@ -96,13 +97,9 @@ export function instanceToString(instance) {
  * @returns {String} outerHTML of the HTMLTableElement
  */
 // eslint-disable-next-line no-restricted-globals
-export function arrayToString(input) {
+export function _dataToHTML(input) {
   const inputLen = input.length;
-  const result = [
-    '<meta name="generator" content="Handsontable"/>',
-    '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-    '<table>',
-  ];
+  const result = ['<table>'];
 
   for (let row = 0; row < inputLen; row += 1) {
     const rowData = input[row];
@@ -137,12 +134,12 @@ export function arrayToString(input) {
 /**
  * Converts HTMLTable or string into Handsontable configuration object.
  *
- * @param {Element|String} element Node element or string, which should contain `<table>...</table>`.
+ * @param {Element|String} element Node element which should contain `<table>...</table>`.
  * @param {Document} [rootDocument]
  * @returns {Object} Return configuration object. Contains keys as DefaultSettings.
  */
 // eslint-disable-next-line no-restricted-globals
-export function tableToSettings(element, rootDocument = document) {
+export function htmlToGridSettings(element, rootDocument = document) {
   const settingsObj = {};
   const fragment = rootDocument.createDocumentFragment();
   const tempElem = rootDocument.createElement('div');
@@ -168,7 +165,6 @@ export function tableToSettings(element, rootDocument = document) {
   }
 
   const styleSheetArr = Array.from(styleSheet.cssRules);
-
   const generator = tempElem.querySelector('meta[name$="enerator"]');
   const hasRowHeaders = checkElement.querySelector('tbody th') !== null;
   const countCols = Array.from(checkElement.querySelector('tr').cells).reduce((cols, cell) => cols + cell.colSpan, 0) - (hasRowHeaders ? 1 : 0);

@@ -9,7 +9,7 @@ import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
-import { arrayToString, tableToSettings } from './../../utils/parseTable';
+import { _dataToHTML, htmlToGridSettings } from './../../utils/parseTable';
 
 import './copyPaste.css';
 
@@ -25,6 +25,10 @@ Hooks.getSingleton().register('afterCopy');
 const ROWS_LIMIT = 1000;
 const COLUMNS_LIMIT = 1000;
 const privatePool = new WeakMap();
+const META_HEAD = [
+  '<meta name="generator" content="Handsontable"/>',
+  '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+].join('');
 
 /**
  * @description
@@ -411,10 +415,10 @@ class CopyPaste extends BasePlugin {
       const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        const textHTML = arrayToString(rangedData, this.hot.rootDocument);
+        const textHTML = _dataToHTML(rangedData, this.hot.rootDocument);
 
         event.clipboardData.setData('text/plain', textPlain);
-        event.clipboardData.setData('text/html', textHTML);
+        event.clipboardData.setData('text/html', [META_HEAD, textHTML].join(''));
 
       } else if (typeof ClipboardEvent === 'undefined') {
         this.hot.rootWindow.clipboardData.setData('Text', textPlain);
@@ -449,10 +453,10 @@ class CopyPaste extends BasePlugin {
       const textPlain = SheetClip.stringify(rangedData);
 
       if (event && event.clipboardData) {
-        const textHTML = arrayToString(rangedData, this.hot.rootDocument);
+        const textHTML = _dataToHTML(rangedData, this.hot.rootDocument);
 
         event.clipboardData.setData('text/plain', textPlain);
-        event.clipboardData.setData('text/html', textHTML);
+        event.clipboardData.setData('text/html', [META_HEAD, textHTML].join(''));
 
       } else if (typeof ClipboardEvent === 'undefined') {
         this.hot.rootWindow.clipboardData.setData('Text', textPlain);
@@ -486,7 +490,7 @@ class CopyPaste extends BasePlugin {
       const textHTML = event.clipboardData.getData('text/html');
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
-        const parsedConfig = tableToSettings(textHTML, this.hot.rootDocument);
+        const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);
         pastedData = parsedConfig.data;
       } else {
         pastedData = event.clipboardData.getData('text/plain');
