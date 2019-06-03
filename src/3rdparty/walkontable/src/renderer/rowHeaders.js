@@ -3,7 +3,7 @@ import BaseRenderer from './_base';
 
 export default class RowHeadersRenderer extends BaseRenderer {
   constructor() {
-    super('th');
+    super('TH');
     this.orderViews = new Map();
     this.sourceRowIndex = 0;
   }

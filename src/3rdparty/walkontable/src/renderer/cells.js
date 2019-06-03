@@ -6,7 +6,7 @@ import BaseRenderer from './_base';
 
 export default class CellsRenderer extends BaseRenderer {
   constructor() {
-    super('td');
+    super('TD');
     this.orderViews = new Map();
     this.sourceRowIndex = 0;
   }
@@ -31,7 +31,7 @@ export default class CellsRenderer extends BaseRenderer {
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
-      const hasStaleRowContent = rows.hasStaleContent(sourceRowIndex);
+      // const hasStaleRowContent = rows.hasStaleContent(sourceRowIndex);
       const TR = rows.getRenderedNode(visibleRowIndex);
 
       this.sourceRowIndex = sourceRowIndex;
@@ -52,14 +52,15 @@ export default class CellsRenderer extends BaseRenderer {
 
         const TD = orderView.getCurrentNode();
         const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
-        const hasStaleContent = hasStaleRowContent || orderView.hasStaleContent(sourceColumnIndex);
+        // const hasStaleContent = hasStaleRowContent || orderView.hasStaleContent(sourceColumnIndex);
+        const hasStaleContent = true;
 
-        // if (hasStaleContent) {
-        if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
-          TD.className = '';
+        if (hasStaleContent) {
+          if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
+            TD.className = '';
+          }
+          TD.removeAttribute('style');
         }
-        TD.removeAttribute('style');
-        // }
 
         this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD, hasStaleContent);
       }

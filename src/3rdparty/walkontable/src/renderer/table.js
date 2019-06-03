@@ -90,10 +90,10 @@ export default class TableRenderer {
   }
 
   render() {
+    this.colGroup.adjust();
     this.columnHeaders.adjust();
     this.rows.adjust();
     this.rowHeaders.adjust();
-    this.colGroup.adjust();
 
     this.columnHeaders.render();
     this.rows.render();

@@ -8,7 +8,7 @@ let performanceWarningAppeared = false;
 
 export default class RowsRenderer extends BaseRenderer {
   constructor(rootNode) {
-    super('tr', rootNode);
+    super('TR', rootNode);
     this.orderView = new OrderView(rootNode, (sourceRowIndex) => {
       return this.nodesPool.obtain(sourceRowIndex);
     });
@@ -35,7 +35,7 @@ export default class RowsRenderer extends BaseRenderer {
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {
         performanceWarningAppeared = true;
-        warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number
+        warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number\x20
           of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
       }
       if (visibleRowIndex === rowsToRender) {

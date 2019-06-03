@@ -387,14 +387,14 @@ class TableView {
       rowHeight: this.instance.getRowHeight,
       cellRenderer: (row, col, TD) => {
       // cellRenderer: (row, col, TD, needRecreateContent) => {
-        // const physicalColumn = this.instance.toPhysicalColumn(col);
-        // const physicalRow = this.instance.toPhysicalRow(row);
-        // const hasChangedByColumn = getStorage(this.instance).hasChangedByColumn(physicalColumn);
-        // const hasChangedByCoords = getStorage(this.instance).hasChangedByCoords(physicalRow, physicalColumn);
-        //
-        // if (!needRecreateContent && !(hasChangedByCoords || hasChangedByColumn)) {
-        //   return;
-        // }
+      //   const physicalColumn = this.instance.toPhysicalColumn(col);
+      //   const physicalRow = this.instance.toPhysicalRow(row);
+      //   const hasChangedByColumn = getStorage(this.instance).hasChangedByColumn(physicalColumn);
+      //   const hasChangedByCoords = getStorage(this.instance).hasChangedByCoords(physicalRow, physicalColumn);
+      //
+      //   if (!needRecreateContent && !(hasChangedByCoords || hasChangedByColumn)) {
+      //     return;
+      //   }
 
         const cellProperties = this.instance.getCellMeta(row, col);
         const prop = this.instance.colToProp(col);
@@ -549,7 +549,6 @@ class TableView {
             calc.endRow = Math.min(calc.endRow + offset, rows - 1);
           }
         }
-
         this.instance.runHooks('afterViewportRowCalculatorOverride', calc);
       },
       viewportColumnCalculatorOverride: (calc) => {
