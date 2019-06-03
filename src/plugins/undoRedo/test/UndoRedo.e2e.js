@@ -2498,6 +2498,20 @@ describe('UndoRedo', () => {
         keyDown('ctrl+z');
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
+
+      it('should not undo changes in the other cells if editor is open', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(2, 2),
+        });
+
+        selectCell(0, 0);
+        setDataAtCell(0, 0, 'new value');
+
+        selectCell(1, 0);
+        keyDownUp('enter');
+        keyDown('ctrl+z');
+        expect(getDataAtCell(0, 0)).toBe('new value');
+      });
     });
   });
 

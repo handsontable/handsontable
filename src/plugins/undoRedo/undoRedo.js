@@ -647,6 +647,12 @@ function onBeforeKeyDown(event) {
   }
 
   const instance = this;
+  const editor = instance.getActiveEditor();
+
+  if (editor && editor.isOpened()) {
+    return;
+  }
+
   const {
     altKey,
     ctrlKey,
