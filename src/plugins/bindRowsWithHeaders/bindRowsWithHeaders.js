@@ -1,16 +1,13 @@
 import BasePlugin from '../../plugins/_base';
 import { registerPlugin } from '../../plugins';
-import { IndexToValueMap } from '../../translations';
+import LooseBindsMap from './maps/looseBindsMap';
+import StrictBindsMap from './maps/strictBindsMap';
 
-const DEFAULT_BINDING = 'loose';
+const DEFAULT_BIND = 'loose';
 
 const bindTypeToMapStrategy = new Map([
-  ['loose', 'physicallyIndexedUpdated'],
-  ['strict', 'physicallyIndexedNotUpdated']
-]);
-
-const bindTypeToProperFn = new Map([
-  ['strict', function(_, ordinalNumber) { return Math.max(...this.getValues()) + 1 + ordinalNumber; }]
+  ['loose', LooseBindsMap],
+  ['strict', StrictBindsMap]
 ]);
 
 /**
@@ -62,14 +59,15 @@ class BindRowsWithHeaders extends BasePlugin {
       return;
     }
 
-    let bindingType = this.hot.getSettings().bindRowsWithHeaders;
+    let bindType = this.hot.getSettings().bindRowsWithHeaders;
 
-    if (typeof bindingType !== 'string') {
-      bindingType = DEFAULT_BINDING;
+    if (typeof bindType !== 'string') {
+      bindType = DEFAULT_BIND;
     }
 
-    this.headerIndexes = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey,
-      new IndexToValueMap({ strategy: bindTypeToMapStrategy.get(bindingType), insertedValuesMapping: bindTypeToProperFn.get(bindingType) }));
+    const MapStrategy = bindTypeToMapStrategy.get(bindType);
+
+    this.headerIndexes = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey, new MapStrategy());
 
     this.addHook('modifyRowHeader', row => this.onModifyRowHeader(row));
 

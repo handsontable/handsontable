@@ -17,7 +17,7 @@ import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
 import { CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERATION_OR_THEN_VARIABLE } from './constants';
-import { getTranslator, IndexToValueMap } from '../../translations';
+import { getTranslator, ValueMap } from '../../translations';
 
 import './filters.css';
 
@@ -127,7 +127,7 @@ class Filters extends BasePlugin {
       return;
     }
 
-    this.filtersRowsMap = this.rowIndexMapper.skipCollection.register('filters', new IndexToValueMap({ initValueOrFn: false, strategy: 'physicallyIndexedNotUpdated' }));
+    this.filtersRowsMap = this.rowIndexMapper.skipCollection.register('filters', new ValueMap(false));
 
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 

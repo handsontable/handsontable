@@ -3,17 +3,16 @@ import { mixin } from '../helpers/object';
 import localHooks from '../mixins/localHooks';
 
 class MapCollection {
-  constructor(entries, onSingleMapChange = () => {}) {
-    this.mappings = new Map(entries);
-    this.onSingleMapChange = onSingleMapChange;
+  constructor() {
+    this.mappings = new Map();
   }
 
   /**
    * Register custom indexes map.
    *
    * @param {String} name Unique name of the indexes list.
-   * @param {IndexToValueMap} map Map containing miscellaneous (i.e. meta data, indexes sequence), updated after remove and insert data actions.
-   * @returns {IndexToValueMap}
+   * @param {BaseMap} map Map containing miscellaneous (i.e. meta data, indexes sequence), updated after remove and insert data actions.
+   * @returns {BaseMap}
    */
   register(name, map) {
     if (this.mappings.has(name) === false) {

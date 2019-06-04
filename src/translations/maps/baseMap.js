@@ -1,19 +1,15 @@
-import { rangeEach } from '../helpers/number';
-import { mixin } from '../helpers/object';
-import { isFunction } from '../helpers/function';
-import { isDefined } from '../helpers/mixed';
-import localHooks from '../mixins/localHooks';
-import UpdateStrategy from './updateStrategy';
+import { rangeEach } from '../../helpers/number';
+import { mixin } from '../../helpers/object';
+import { isFunction } from '../../helpers/function';
+import localHooks from '../../mixins/localHooks';
 
 /**
  * Map from index to value.
  */
-class IndexToValueMap {
-  constructor(config = {}) {
+class BaseMap {
+  constructor(initValueOrFn = (index => index)) {
     this.list = [];
-    this.initValueOrFn = isDefined(config.initValueOrFn) ? config.initValueOrFn : (index => index);
-    this.insertedValuesMapping = isDefined(config.insertedValuesMapping) ? config.insertedValuesMapping.bind(this) : this.initValueOrFn;
-    this.updateStrategy = new UpdateStrategy(config.strategy);
+    this.initValueOrFn = initValueOrFn;
   }
 
   /**
@@ -115,10 +111,9 @@ class IndexToValueMap {
    * @param {Number} insertionIndex Position inside actual list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
+  // eslint-disable-next-line no-unused-vars
   insert(insertionIndex, insertedIndexes) {
-    this.list = this.updateStrategy.getItemsAfterInsertion(this.list, insertionIndex, insertedIndexes, this.insertedValuesMapping);
-
-    this.runLocalHooks('mapChanged');
+    throw Error('Map insert() method unimplemented');
   }
 
   /**
@@ -127,13 +122,12 @@ class IndexToValueMap {
    * @private
    * @param {Array} removedIndexes List of removed indexes.
    */
+  // eslint-disable-next-line no-unused-vars
   remove(removedIndexes) {
-    this.list = this.updateStrategy.getItemsAfterRemoval(this.list, removedIndexes);
-
-    this.runLocalHooks('mapChanged');
+    throw Error('Map remove() method unimplemented');
   }
 }
 
-mixin(IndexToValueMap, localHooks);
+mixin(BaseMap, localHooks);
 
-export default IndexToValueMap;
+export default BaseMap;

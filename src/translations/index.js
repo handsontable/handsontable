@@ -1,7 +1,11 @@
 import { getTranslator } from './recordTranslator';
-import IndexToValueMap from './indexToValueMap';
+import ValueMap from './maps/valueMap';
+import IndexMap from './maps/indexMap';
+import BaseMap from './maps/baseMap';
 
 export {
   getTranslator,
-  IndexToValueMap,
+  ValueMap,
+  IndexMap,
+  BaseMap
 };

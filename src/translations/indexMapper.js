@@ -1,11 +1,11 @@
 import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
 import { rangeEach } from '../helpers/number';
-import IndexToValueMap from './indexToValueMap';
+import IndexMap from './maps/indexMap';
 import MapCollection from './mapCollection';
 
 class IndexMapper {
   constructor() {
-    this.indexesSequence = new IndexToValueMap({ strategy: 'visuallyIndexedUpdated' });
+    this.indexesSequence = new IndexMap();
     this.skipCollection = new MapCollection();
     this.variousMappingsCollection = new MapCollection();
 

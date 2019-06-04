@@ -8,7 +8,7 @@ import { arrayMap } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import BasePlugin from '../_base';
 import { registerPlugin } from './../../plugins';
-import { IndexToValueMap } from '../../translations';
+import { IndexMap } from '../../translations';
 import Hooks from '../../pluginHooks';
 import { isPressedCtrlKey } from '../../utils/keyStateObserver';
 import { ColumnStatesManager } from './columnStatesManager';
@@ -117,7 +117,7 @@ class ColumnSorting extends BasePlugin {
      * Plugin indexes cache.
      *
      * @private
-     * @type {null|IndexToValueMap}
+     * @type {null|IndexMap}
      */
     this.indexesSequenceCache = null;
   }
@@ -144,7 +144,7 @@ class ColumnSorting extends BasePlugin {
       this.enableObserveChangesPlugin();
     }
 
-    this.indexesSequenceCache = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey, new IndexToValueMap({ strategy: 'visuallyIndexedUpdated' }));
+    this.indexesSequenceCache = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey, new IndexMap());
 
     this.addHook('afterGetColHeader', (column, TH) => this.onAfterGetColHeader(column, TH));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, controller) => this.onBeforeOnCellMouseDown(event, coords, TD, controller));
