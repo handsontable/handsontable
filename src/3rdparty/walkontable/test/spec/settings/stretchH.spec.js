@@ -70,7 +70,7 @@ describe('stretchH option', () => {
     evt.initCustomEvent('resize', false, false, null);
     window.dispatchEvent(evt);
 
-    await sleep(300);
+    await sleep(500);
 
     const currentTableWidth = $table.outerWidth();
     expect(currentTableWidth).toBeAroundValue($table[0].clientWidth);

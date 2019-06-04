@@ -34,6 +34,15 @@ function UndoRedo(instance) {
     if (!changesLen || ['UndoRedo.undo', 'UndoRedo.redo', 'MergeCells'].includes(source)) {
       return;
     }
+    const hasChanges = changes.find((change) => {
+      const [,, oldValue, newValue] = change;
+
+      return oldValue !== newValue;
+    });
+
+    if (!hasChanges) {
+      return;
+    }
 
     const selected = changesLen > 1 ? this.getSelected() : [[changes[0][0], changes[0][1]]];
 

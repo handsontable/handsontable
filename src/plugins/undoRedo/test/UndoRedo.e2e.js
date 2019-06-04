@@ -2171,6 +2171,20 @@ describe('UndoRedo', () => {
         });
       });
     });
+
+    it('should save the undo action only if a new value is different than the previous one', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2)
+      });
+
+      expect(getDataAtCell(0, 0)).toBe('A1');
+      setDataAtCell(0, 0, 'A1');
+
+      expect(hot.undoRedo.isUndoAvailable()).toBe(false);
+
+      setDataAtCell(0, 0, 'A');
+      expect(hot.undoRedo.isUndoAvailable()).toBe(true);
+    });
   });
 
   describe('plugin features', () => {
