@@ -28,10 +28,16 @@ function UndoRedo(instance) {
   this.undoneActions = [];
   this.ignoreNewActions = false;
 
-  instance.addHook('afterChange', (changes, source) => {
-    if (changes && source !== 'UndoRedo.undo' && source !== 'UndoRedo.redo' && source !== 'MergeCells') {
-      plugin.done(new UndoRedo.ChangeAction(changes));
+  instance.addHook('afterChange', function(changes, source) {
+    const changesLen = changes && changes.length;
+
+    if (!changesLen || ['UndoRedo.undo', 'UndoRedo.redo', 'MergeCells'].includes(source)) {
+      return;
     }
+
+    const selected = changesLen > 1 ? this.getSelected() : [[changes[0][0], changes[0][1]]];
+
+    plugin.done(new UndoRedo.ChangeAction(changes, selected));
   });
 
   instance.addHook('afterCreateRow', (index, amount, source) => {
@@ -248,8 +254,9 @@ UndoRedo.Action.prototype.redo = function() {};
  *
  * @private
  */
-UndoRedo.ChangeAction = function(changes) {
+UndoRedo.ChangeAction = function(changes, selected) {
   this.changes = changes;
+  this.selected = selected;
   this.actionType = 'change';
 };
 inherit(UndoRedo.ChangeAction, UndoRedo.Action);
@@ -268,22 +275,24 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
   instance.setDataAtRowProp(data, null, null, 'UndoRedo.undo');
 
   for (let i = 0, len = data.length; i < len; i++) {
-    if (instance.getSettings().minSpareRows && data[i][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
+    const [row, column] = data[i];
+
+    if (instance.getSettings().minSpareRows && row + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
       emptyRowsAtTheEnd === instance.getSettings().minSpareRows) {
 
-      instance.alter('remove_row', parseInt(data[i][0] + 1, 10), instance.getSettings().minSpareRows);
+      instance.alter('remove_row', parseInt(row + 1, 10), instance.getSettings().minSpareRows);
       instance.undoRedo.doneActions.pop();
-
     }
 
-    if (instance.getSettings().minSpareCols && data[i][1] + 1 + instance.getSettings().minSpareCols === instance.countCols() &&
+    if (instance.getSettings().minSpareCols && column + 1 + instance.getSettings().minSpareCols === instance.countCols() &&
       emptyColsAtTheEnd === instance.getSettings().minSpareCols) {
 
-      instance.alter('remove_col', parseInt(data[i][1] + 1, 10), instance.getSettings().minSpareCols);
+      instance.alter('remove_col', parseInt(column + 1, 10), instance.getSettings().minSpareCols);
       instance.undoRedo.doneActions.pop();
     }
   }
 
+  instance.selectCells(this.selected, false, false);
 };
 UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
   const data = deepClone(this.changes);
@@ -294,6 +303,10 @@ UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
 
   instance.addHookOnce('afterChange', onFinishCallback);
   instance.setDataAtRowProp(data, null, null, 'UndoRedo.redo');
+
+  if (this.selected) {
+    instance.selectCells(this.selected, false, false);
+  }
 };
 
 /**
@@ -634,6 +647,12 @@ function onBeforeKeyDown(event) {
   }
 
   const instance = this;
+  const editor = instance.getActiveEditor();
+
+  if (editor && editor.isOpened()) {
+    return;
+  }
+
   const {
     altKey,
     ctrlKey,

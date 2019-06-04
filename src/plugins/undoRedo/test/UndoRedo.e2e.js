@@ -2498,6 +2498,20 @@ describe('UndoRedo', () => {
         keyDown('ctrl+z');
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
+
+      it('should not undo changes in the other cells if editor is open', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(2, 2),
+        });
+
+        selectCell(0, 0);
+        setDataAtCell(0, 0, 'new value');
+
+        selectCell(1, 0);
+        keyDownUp('enter');
+        keyDown('ctrl+z');
+        expect(getDataAtCell(0, 0)).toBe('new value');
+      });
     });
   });
 
@@ -2583,6 +2597,42 @@ describe('UndoRedo', () => {
         expect(hookData.data).toEqual([['A2', 'B2']]);
         done();
       }, 100);
+    });
+  });
+
+  describe('selection', () => {
+    it('should keep saved selection state ater undo and redo data change', () => {
+      handsontable();
+
+      selectCell(0, 0);
+      setDataAtCell(0, 0, 'test');
+      selectCell(0, 1);
+      setDataAtCell(0, 1, 'test2');
+
+      selectCell(0, 2);
+      undo();
+      undo();
+
+      expect(getSelectedLast()).toEqual([0, 0, 0, 0]);
+
+      redo();
+      redo();
+
+      expect(getSelectedLast()).toEqual([0, 1, 0, 1]);
+    });
+
+    it('should keep saved selection state ater undoing non-contignous selected cells', () => {
+      handsontable();
+
+      selectCells([[0, 0, 1, 1], [1, 2, 2, 3]]);
+      emptySelectedCells();
+
+      selectCell(4, 0);
+      undo();
+
+      expect(getSelected().length).toBe(2);
+      expect(getSelected()[0]).toEqual([0, 0, 1, 1]);
+      expect(getSelected()[1]).toEqual([1, 2, 2, 3]);
     });
   });
 });
