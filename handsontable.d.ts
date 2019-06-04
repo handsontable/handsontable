@@ -108,11 +108,11 @@ declare namespace _Handsontable {
     setDataAtRowProp(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: string): void;
     spliceCol(col: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     spliceRow(row: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
+    toHTML(): string;
     toPhysicalColumn(column: number): number;
     toPhysicalRow(row: number): number;
     toVisualColumn(column: number): number;
     toVisualRow(row: number): number;
-    toHTML(): string;
     toTableElement(): HTMLTableElement;
     unlisten(): void;
     updateSettings(settings: Handsontable.GridSettings, init?: boolean): void;
