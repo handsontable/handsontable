@@ -733,8 +733,14 @@ class MergeCells extends BasePlugin {
   onAfterGetCellMeta(row, col, cellProperties) {
     const mergeParent = this.mergedCellsCollection.get(row, col);
 
-    if (mergeParent && (mergeParent.row !== row || mergeParent.col !== col)) {
-      cellProperties.copyable = false;
+    if (mergeParent) {
+      if (mergeParent.row !== row || mergeParent.col !== col) {
+        cellProperties.copyable = false;
+
+      } else {
+        cellProperties.rowspan = mergeParent.rowspan;
+        cellProperties.colspan = mergeParent.colspan;
+      }
     }
   }
 

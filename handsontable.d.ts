@@ -112,6 +112,8 @@ declare namespace _Handsontable {
     toPhysicalRow(row: number): number;
     toVisualColumn(column: number): number;
     toVisualRow(row: number): number;
+    toHTML(): string;
+    toTableElement(): HTMLTableElement;
     unlisten(): void;
     updateSettings(settings: Handsontable.GridSettings, init?: boolean): void;
     validateCells(callback?: (valid: boolean) => void): void;
@@ -2174,7 +2176,9 @@ declare namespace Handsontable {
     getProperty(object: object, name: string): any | void,
     getPrototypeOf(obj: object): any | void,
     hasCaptionProblem(): boolean | void,
+    htmlToGridSettings(element: HTMLTableElement | string, rootDocument?: Document): GridSettings,
     inherit(Child: object, Parent: object): object,
+    instanceToHTML(instance: _Handsontable.Core): string,
     isChrome(): boolean,
     isClassListSupported(): boolean;
     isCtrlKey(keyCode: number): boolean,

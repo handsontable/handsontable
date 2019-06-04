@@ -18,6 +18,7 @@ import {
   objectEach
 } from './helpers/object';
 import { arrayFlatten, arrayMap, arrayEach, arrayReduce } from './helpers/array';
+import { instanceToHTML } from './utils/parseTable';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
 import { getValidator } from './validators';
@@ -3558,6 +3559,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getTranslatedPhrase = function(dictionaryKey, extraArguments) {
     return getTranslatedPhrase(priv.settings.language, dictionaryKey, extraArguments);
+  };
+
+  /**
+   * Converts instance into outerHTML of HTMLTableElement.
+   *
+   * @memberof Core#
+   * @function toString
+   * @since 7.1.0
+   * @returns {String}
+   */
+  this.toString = () => instanceToHTML(this);
+
+  /**
+   * Converts instance into outerHTML of HTMLTableElement.
+   *
+   * @memberof Core#
+   * @function toHTML
+   * @since 7.1.0
+   * @returns {HTMLTableElement}
+   */
+  this.toHTML = () => {
+    const tempElement = this.rootDocument.createElement('div');
+    tempElement.insertAdjacentHTML('afterbegin', instanceToHTML(this));
+
+    return tempElement.firstElementChild;
   };
 
   this.timeouts = [];
