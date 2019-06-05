@@ -1,4 +1,5 @@
 import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
+import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/visuallyIndexed';
 import { rangeEach } from '../helpers/number';
 import IndexMap from './maps/indexMap';
 import MapCollection from './mapCollection';
@@ -127,9 +128,7 @@ class IndexMapper {
     }
 
     const physicalMovedIndexes = arrayMap(movedIndexes, row => this.getPhysicalIndex(row));
-    const sequenceOfIndexes = this.indexesSequence;
-
-    sequenceOfIndexes.remove(physicalMovedIndexes);
+    this.setIndexesSequence(getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes));
 
     // When item(s) are moved after the last item we assign new index.
     let indexNumber = this.getNumberOfIndexes();
@@ -149,7 +148,7 @@ class IndexMapper {
       return skippedRowsSum;
     }, 0);
 
-    sequenceOfIndexes.insert(finalIndex + skippedRowsToTargetIndex, physicalMovedIndexes);
+    this.setIndexesSequence(getListWithInsertedItems(this.getIndexesSequence(), finalIndex + skippedRowsToTargetIndex, physicalMovedIndexes));
 
     this.updateCache();
   }
