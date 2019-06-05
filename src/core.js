@@ -3565,21 +3565,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Converts instance into outerHTML of HTMLTableElement.
    *
    * @memberof Core#
-   * @function toString
+   * @function toHTML
    * @since 7.1.0
    * @returns {String}
    */
-  this.toString = () => instanceToHTML(this);
+  this.toHTML = () => instanceToHTML(this);
 
   /**
-   * Converts instance into outerHTML of HTMLTableElement.
+   * Converts instance into HTMLTableElement.
    *
    * @memberof Core#
-   * @function toHTML
+   * @function toTableElement
    * @since 7.1.0
    * @returns {HTMLTableElement}
    */
-  this.toHTML = () => {
+  this.toTableElement = () => {
     const tempElement = this.rootDocument.createElement('div');
     tempElement.insertAdjacentHTML('afterbegin', instanceToHTML(this));
 
