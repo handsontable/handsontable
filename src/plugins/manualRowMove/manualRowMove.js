@@ -12,7 +12,6 @@ import './manualRowMove.css';
 
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
-Hooks.getSingleton().register('unmodifyRow');
 
 const privatePool = new WeakMap();
 const CSS_PLUGIN = 'ht__manualRowMove';
@@ -62,13 +61,6 @@ class ManualRowMove extends BasePlugin {
       cachedDropIndex: void 0
     });
 
-    /**
-     * List of last removed row indexes.
-     *
-     * @private
-     * @type {Array}
-     */
-    this.removedRows = [];
     /**
      * Event Manager object.
      *
@@ -506,10 +498,10 @@ class ManualRowMove extends BasePlugin {
    * Change the behavior of selection / dragging.
    *
    * @private
-   * @param {MouseEvent} event
-   * @param {CellCoords} coords Visual coordinates.
-   * @param {HTMLElement} TD
-   * @param {Object} blockCalculations
+   * @param {MouseEvent} event `mousedown` event properties.
+   * @param {CellCoords} coords Visual cell coordinates where was fired event.
+   * @param {HTMLElement} TD Cell represented as HTMLElement.
+   * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     const { wtTable, wtViewport } = this.hot.view.wt;
