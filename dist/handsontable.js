@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.1.0
- * Release date: 11/06/2019 (built at 04/06/2019 12:25:10)
+ * Release date: 11/06/2019 (built at 05/06/2019 12:53:39)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -482,7 +482,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(46);
 
@@ -869,7 +869,7 @@ __webpack_require__(10);
 
 __webpack_require__(131);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(38);
 
@@ -928,7 +928,7 @@ exports.isOutsideInput = isOutsideInput;
 exports.selectElementIfAllowed = selectElementIfAllowed;
 exports.HTML_CHARACTERS = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _browser = __webpack_require__(72);
 
@@ -2468,7 +2468,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(39);
 
@@ -3697,7 +3697,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(277);
 
@@ -4386,6 +4386,22 @@ module.exports = function (name) {
 /* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
+var arrayWithoutHoles = __webpack_require__(270);
+
+var iterableToArray = __webpack_require__(196);
+
+var nonIterableSpread = __webpack_require__(271);
+
+function _toConsumableArray(arr) {
+  return arrayWithoutHoles(arr) || iterableToArray(arr) || nonIterableSpread();
+}
+
+module.exports = _toConsumableArray;
+
+/***/ }),
+/* 37 */
+/***/ (function(module, exports, __webpack_require__) {
+
 "use strict";
 
 var redefine = __webpack_require__(64);
@@ -4413,22 +4429,6 @@ if (NOT_GENERIC || INCORRECT_NAME) {
   }, { unsafe: true });
 }
 
-
-/***/ }),
-/* 37 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var arrayWithoutHoles = __webpack_require__(270);
-
-var iterableToArray = __webpack_require__(196);
-
-var nonIterableSpread = __webpack_require__(271);
-
-function _toConsumableArray(arr) {
-  return arrayWithoutHoles(arr) || iterableToArray(arr) || nonIterableSpread();
-}
-
-module.exports = _toConsumableArray;
 
 /***/ }),
 /* 38 */
@@ -8062,7 +8062,7 @@ __webpack_require__(12);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(39);
 
@@ -8337,7 +8337,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(107);
 
@@ -9361,7 +9361,7 @@ exports.__esModule = true;
 exports.default = staticRegister;
 exports.collection = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var collection = new Map();
 exports.collection = collection;
@@ -10480,7 +10480,7 @@ __webpack_require__(30);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _array = __webpack_require__(3);
 
@@ -15858,10 +15858,6 @@ __webpack_require__(80);
 
 __webpack_require__(81);
 
-__webpack_require__(10);
-
-__webpack_require__(36);
-
 __webpack_require__(14);
 
 __webpack_require__(39);
@@ -15877,7 +15873,7 @@ var _typeof2 = _interopRequireDefault(__webpack_require__(44));
 
 var _slicedToArray2 = _interopRequireDefault(__webpack_require__(18));
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _element = __webpack_require__(5);
 
@@ -19715,26 +19711,26 @@ function Core(rootElement, userSettings) {
    * Converts instance into outerHTML of HTMLTableElement.
    *
    * @memberof Core#
-   * @function toString
+   * @function toHTML
    * @since 7.1.0
    * @returns {String}
    */
 
 
-  this.toString = function () {
+  this.toHTML = function () {
     return (0, _parseTable.instanceToHTML)(_this);
   };
   /**
-   * Converts instance into outerHTML of HTMLTableElement.
+   * Converts instance into HTMLTableElement.
    *
    * @memberof Core#
-   * @function toHTML
+   * @function toTableElement
    * @since 7.1.0
    * @returns {HTMLTableElement}
    */
 
 
-  this.toHTML = function () {
+  this.toTableElement = function () {
     var tempElement = _this.rootDocument.createElement('div');
 
     tempElement.insertAdjacentHTML('afterbegin', (0, _parseTable.instanceToHTML)(_this));
@@ -19878,7 +19874,7 @@ __webpack_require__(30);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(38);
 
@@ -19893,7 +19889,7 @@ exports.instanceToHTML = instanceToHTML;
 exports._dataToHTML = _dataToHTML;
 exports.htmlToGridSettings = htmlToGridSettings;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _mixed = __webpack_require__(27);
 
@@ -20984,7 +20980,7 @@ __webpack_require__(10);
 
 __webpack_require__(131);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(39);
 
@@ -22627,7 +22623,7 @@ __webpack_require__(54);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 exports.__esModule = true;
 exports.getMixedMonthObject = getMixedMonthObject;
@@ -25883,7 +25879,7 @@ __webpack_require__(32);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
@@ -27123,7 +27119,7 @@ __webpack_require__(14);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _typeof2 = _interopRequireDefault(__webpack_require__(44));
 
@@ -34489,7 +34485,7 @@ __webpack_require__(17);
 exports.__esModule = true;
 exports.default = exports.CUSTOM_SELECTION = exports.HEADER_TYPE = exports.FILL_TYPE = exports.CELL_TYPE = exports.AREA_TYPE = exports.ACTIVE_HEADER_TYPE = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _objectSpread2 = _interopRequireDefault(__webpack_require__(234));
 
@@ -35174,7 +35170,7 @@ __webpack_require__(32);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _objectSpread2 = _interopRequireDefault(__webpack_require__(234));
 
@@ -37040,7 +37036,7 @@ exports.default = _default;
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 exports.__esModule = true;
 exports.applySpanProperties = applySpanProperties;
@@ -38287,7 +38283,7 @@ Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "04/06/2019 12:25:10";
+Handsontable.buildDate = "05/06/2019 12:53:39";
 Handsontable.version = "7.1.0"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -42000,7 +41996,7 @@ __webpack_require__(16);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(38);
 
@@ -49277,7 +49273,7 @@ __webpack_require__(32);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
@@ -51657,7 +51653,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 exports.__esModule = true;
 exports.default = mergeSort;
@@ -57887,7 +57883,7 @@ __webpack_require__(32);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
@@ -59666,7 +59662,7 @@ __webpack_require__(32);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
@@ -61414,7 +61410,7 @@ exports.default = void 0;
 
 var _slicedToArray2 = _interopRequireDefault(__webpack_require__(18));
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
@@ -62586,7 +62582,7 @@ exports.default = void 0;
 
 var _taggedTemplateLiteral2 = _interopRequireDefault(__webpack_require__(65));
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
@@ -65557,7 +65553,7 @@ __webpack_require__(30);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(38);
 
@@ -65568,7 +65564,7 @@ __webpack_require__(46);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
@@ -70593,7 +70589,7 @@ __webpack_require__(165);
 
 __webpack_require__(131);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(39);
 
@@ -71268,7 +71264,7 @@ __webpack_require__(53);
 
 __webpack_require__(131);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(46);
 
@@ -72471,7 +72467,7 @@ __webpack_require__(32);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
@@ -74533,7 +74529,7 @@ __webpack_require__(32);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
@@ -76181,7 +76177,7 @@ var _interopRequireDefault = __webpack_require__(0);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
@@ -77115,7 +77111,7 @@ __webpack_require__(16);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(14);
 
@@ -77197,7 +77193,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 exports.__esModule = true;
 exports.operate = operate;
@@ -77301,7 +77297,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 exports.__esModule = true;
 exports.operate = operate;
@@ -77405,7 +77401,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 exports.__esModule = true;
 exports.operate = operate;
@@ -77559,7 +77555,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 exports.__esModule = true;
 exports.operate = operate;
@@ -77718,7 +77714,7 @@ exports.default = void 0;
 
 var _slicedToArray2 = _interopRequireDefault(__webpack_require__(18));
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
@@ -79968,7 +79964,7 @@ __webpack_require__(19);
 
 __webpack_require__(10);
 
-__webpack_require__(36);
+__webpack_require__(37);
 
 __webpack_require__(32);
 
@@ -81593,7 +81589,7 @@ __webpack_require__(32);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
@@ -83072,7 +83068,7 @@ __webpack_require__(30);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(37));
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(36));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
