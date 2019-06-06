@@ -13,7 +13,7 @@ describe('manualColumnMove', () => {
   });
 
   describe('init', () => {
-    it('should change row order at init', () => {
+    it('should change column order at init', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 10),
         manualColumnMove: [1, 2, 0]
@@ -42,7 +42,7 @@ describe('manualColumnMove', () => {
       expect(spec().$container.hasClass('after-selection--rows')).toBeGreaterThan(0);
     });
 
-    it('should change the default row order with updateSettings', () => {
+    it('should change the default column order with updateSettings', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 10),
         manualColumnMove: true
@@ -61,7 +61,7 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
     });
 
-    it('should change row order with updateSettings', () => {
+    it('should change column order with updateSettings', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 10),
         manualColumnMove: [1, 2, 0]
@@ -80,7 +80,7 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
     });
 
-    it('should reset row order with updateSettings when `undefined` is passed', () => {
+    it('should reset column order with updateSettings when `undefined` is passed', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 10),
         manualColumnMove: [1, 2, 0]
@@ -99,7 +99,7 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
     });
 
-    it('should not change row order with updateSettings when `true` is passed', () => {
+    it('should not change column order with updateSettings when `true` is passed', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 10),
         manualColumnMove: [1, 2, 0]
@@ -164,7 +164,7 @@ describe('manualColumnMove', () => {
 
     describe('by API', () => {
       describe('the `moveColumn` method', () => {
-        it('should move single row from the bottom to the top', () => {
+        it('should move single column from the right to the left', () => {
           const hot = handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 10),
             colHeaders: true,
@@ -179,7 +179,7 @@ describe('manualColumnMove', () => {
           expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
         });
 
-        it('should move single row from the top to the bottom', () => {
+        it('should move single column from the left to the right', () => {
           const hot = handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 10),
             colHeaders: true,
@@ -212,7 +212,7 @@ describe('manualColumnMove', () => {
           expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
         });
 
-        it('should not move and not trigger the `afterColumnMove` hook after try of moving row, when `beforeColumnMove` return false', () => {
+        it('should not move and not trigger the `afterColumnMove` hook after try of moving column, when `beforeColumnMove` return false', () => {
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
           const hot = handsontable({
@@ -232,7 +232,7 @@ describe('manualColumnMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving row to final index, which is too high', () => {
+        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving column to final index, which is too high', () => {
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
           const hot = handsontable({
@@ -249,7 +249,7 @@ describe('manualColumnMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving row to final index, which is too low', () => {
+        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving column to final index, which is too low', () => {
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
           const hot = handsontable({
@@ -266,7 +266,7 @@ describe('manualColumnMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving too high row', () => {
+        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving too high column', () => {
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
           const hot = handsontable({
@@ -283,7 +283,7 @@ describe('manualColumnMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving too low row', () => {
+        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving too low column', () => {
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
           const hot = handsontable({
@@ -302,7 +302,7 @@ describe('manualColumnMove', () => {
       });
 
       describe('the `moveColumns` method', () => {
-        it('should move multiple rows from the bottom to the top #1', () => {
+        it('should move multiple columns from the right to the left #1', () => {
           const hot = handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 10),
             colHeaders: true,
@@ -317,7 +317,7 @@ describe('manualColumnMove', () => {
           expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('I1');
         });
 
-        it('should move multiple rows from the bottom to the top #2', () => {
+        it('should move multiple columns from the right to the left #2', () => {
           const hot = handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 10),
             colHeaders: true,
@@ -332,7 +332,7 @@ describe('manualColumnMove', () => {
           expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('I1');
         });
 
-        it('should move multiple rows with mixed indexes #1', () => {
+        it('should move multiple columns with mixed indexes #1', () => {
           const hot = handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 10),
             colHeaders: true,
@@ -347,7 +347,7 @@ describe('manualColumnMove', () => {
           expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('E1');
         });
 
-        it('should move multiple rows with mixed indexes #2', () => {
+        it('should move multiple columns with mixed indexes #2', () => {
           const hot = handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 10),
             colHeaders: true,
@@ -370,7 +370,7 @@ describe('manualColumnMove', () => {
       });
 
       describe('the `dragColumn` method', () => {
-        it('should not change order when dragging single row from the position of first row to the top of second row', () => {
+        it('should not change order when dragging single column from the position of first column to the left side of second column', () => {
           const hot = handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 10),
             colHeaders: true,
@@ -385,7 +385,7 @@ describe('manualColumnMove', () => {
           expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
         });
 
-        it('should not change order when dragging single row from the position of first row to the top of first row', () => {
+        it('should not change order when dragging single column from the position of first column to the left side of first column', () => {
           const hot = handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 10),
             colHeaders: true,
@@ -400,7 +400,7 @@ describe('manualColumnMove', () => {
           expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
         });
 
-        it('should change order properly when dragging single row from the position of first row to the top of fourth row', () => {
+        it('should change order properly when dragging single column from the position of first column to the left side of fourth column', () => {
           const hot = handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 10),
             colHeaders: true,
@@ -416,7 +416,7 @@ describe('manualColumnMove', () => {
           expect(spec().$container.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('D1');
         });
 
-        it('should change order properly when dragging single row from the position of fourth row to the top of first row', () => {
+        it('should change order properly when dragging single column from the position of fourth column to the left side of first column', () => {
           const hot = handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 10),
             colHeaders: true,
@@ -435,7 +435,7 @@ describe('manualColumnMove', () => {
       });
 
       describe('the `dragColumns` method', () => {
-        it('should not change order when dragging multiple rows to the specific position', () => {
+        it('should not change order when dragging multiple columns to the specific position', () => {
           const hot = handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 10),
             colHeaders: true,
@@ -452,7 +452,7 @@ describe('manualColumnMove', () => {
           expect(spec().$container.find('tbody tr:eq(0) td:eq(4)').text()).toEqual('E1');
         });
 
-        it('should change order properly when dragging multiple rows from the top to the bottom', () => {
+        it('should change order properly when dragging multiple columns from the left to the right', () => {
           const hot = handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 10),
             colHeaders: true,
@@ -469,7 +469,7 @@ describe('manualColumnMove', () => {
           expect(spec().$container.find('tbody tr:eq(0) td:eq(4)').text()).toEqual('E1');
         });
 
-        it('should change order properly when dragging multiple rows from the bottom to the top', () => {
+        it('should change order properly when dragging multiple columns from the right to the left', () => {
           const hot = handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 10),
             colHeaders: true,
@@ -485,7 +485,7 @@ describe('manualColumnMove', () => {
           expect(spec().$container.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('A1');
         });
 
-        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging rows to index, which is too high', () => {
+        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging columns to index, which is too high', () => {
           let movePossible;
           let orderChanged;
 
@@ -506,7 +506,7 @@ describe('manualColumnMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging rows to index, which is too low', () => {
+        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging columns to index, which is too low', () => {
           let movePossible;
           let orderChanged;
 
@@ -527,7 +527,7 @@ describe('manualColumnMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging too low rows to index, which is too high', () => {
+        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging too low columns to index, which is too high', () => {
           let movePossible;
           let orderChanged;
 
@@ -548,7 +548,7 @@ describe('manualColumnMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging too low rows to index, which is too low', () => {
+        it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging too low columns to index, which is too low', () => {
           let movePossible;
           let orderChanged;
 
@@ -572,7 +572,7 @@ describe('manualColumnMove', () => {
     });
 
     describe('by drag', () => {
-      describe('should trigger the `beforeColumnMove` and `afterColumnMove` hooks with proper parameters (moving single row)', () => {
+      describe('should trigger the `beforeColumnMove` and `afterColumnMove` hooks with proper parameters (moving single column)', () => {
         it('visual indexes as parameters', () => {
           const beforeColumnMoveCallback = jasmine.createSpy('beforeColumnMoveCallback');
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
@@ -595,7 +595,7 @@ describe('manualColumnMove', () => {
           expect(afterMoveColumnCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, true, void 0);
         });
 
-        describe('moving single row from the bottom to the top', () => {
+        describe('moving single column from the right to the left', () => {
           it('drag first column before the left side of the first header', () => {
             let finalIndex1;
             let dropIndex1;
