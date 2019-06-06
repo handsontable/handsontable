@@ -46,7 +46,9 @@ function Handsontable(rootElement, userSettings) {
 
 jQueryWrapper(Handsontable);
 
-Handsontable.Core = (rootElement, userSettings = {}) => new Core(rootElement, userSettings, rootInstanceSymbol);
+Handsontable.Core = function(rootElement, userSettings = {}) {
+  return new Core(rootElement, userSettings, rootInstanceSymbol);
+};
 Handsontable.DefaultSettings = DefaultSettings;
 Handsontable.EventManager = EventManager;
 Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
