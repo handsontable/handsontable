@@ -95,8 +95,7 @@ function UndoRedo(instance) {
       });
     }
 
-    const manualColumnMovePlugin = plugin.instance.getPlugin('manualColumnMove');
-    const columnsMap = manualColumnMovePlugin.isEnabled() ? manualColumnMovePlugin.columnsMapper.__arrayMap : [];
+    const columnsMap = plugin.instance.recordTranslator.getColumnIndexMapper().getIndexesSequence();
     const action = new UndoRedo.RemoveColumnAction(columnIndex, indexes, removedData, headers, columnsMap);
 
     plugin.done(action);
@@ -421,9 +420,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     });
   }
 
-  if (instance.getPlugin('manualColumnMove')) {
-    instance.getPlugin('manualColumnMove').columnsMapper.__arrayMap = this.columnPositions;
-  }
+  instance.recordTranslator.getColumnIndexMapper().setIndexesSequence(this.columnPositions);
 
   instance.addHookOnce('afterRender', undoneCallback);
 
