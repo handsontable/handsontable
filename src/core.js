@@ -927,8 +927,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (isFunction(beforeChangeResult)) {
       warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
 
-    } else if (beforeChangeResult === false || Array.isArray(beforeChangeResult) &&
-    (!beforeChangeResult.length || (beforeChangeResult.length === 1 && beforeChangeResult[0] === null))) {
+    } else if (beforeChangeResult === false) {
       const activeEditor = instance.getActiveEditor();
 
       if (activeEditor) {
