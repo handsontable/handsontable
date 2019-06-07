@@ -1,4 +1,4 @@
-import { addClass, empty, isChildOfWebComponentTable, removeClass, hasClass } from './helpers/dom/element';
+import { addClass, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
 import { columnFactory } from './helpers/setting';
 import { isFunction } from './helpers/function';
 import { warn } from './helpers/console';
@@ -954,6 +954,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           changes[i][3] = getParsedNumber(newValue);
         }
 
+        if (cellProperties.type === 'checkbox' && newValue === '' && (source === 'cut' || source === 'delete')) {
+          instance.setCellMeta(row, col, 'onCut', true);
+        }
+
         /* eslint-disable no-loop-func */
         if (instance.getCellValidator(cellProperties)) {
           waitingForValidator.addValidatorToQueue();
@@ -1416,7 +1420,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function emptySelectedCells
    * @since 0.36.0
    */
-  this.emptySelectedCells = function() {
+  this.emptySelectedCells = function(source) {
     if (!selection.isSelected()) {
       return;
     }
@@ -1436,19 +1440,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     });
 
     if (changes.length > 0) {
-      this.setDataAtCell(changes);
-
-      arrayEach(changes, (change) => {
-        const row = change[0];
-        const column = change[1];
-        const TD = this.getCell(row, column);
-        const input = TD.children[0];
-
-        if (input && hasClass(input, 'htBadValue')) {
-          TD.innerText = '';
-          this.setCellMeta(row, column, 'class', 'htWasBadValue');
-        }
-      });
+      this.setDataAtCell(changes, source);
     }
   };
 

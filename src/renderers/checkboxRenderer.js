@@ -51,14 +51,17 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
 
   } else {
     input.style.display = 'none';
-    addClass(input, BAD_VALUE_CLASS);
-    badValue = true;
+
+    if (cellProperties.onCut !== true) {
+      addClass(input, BAD_VALUE_CLASS);
+      badValue = true;
+    }
   }
 
   input.setAttribute('data-row', row);
   input.setAttribute('data-col', col);
 
-  if (!badValue && labelOptions) {
+  if (!badValue && !cellProperties.onCut && labelOptions) {
     let labelText = '';
 
     if (labelOptions.value) {
@@ -79,7 +82,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
 
   TD.appendChild(input);
 
-  if (badValue && instance.getCellMeta(row, col).class !== 'htWasBadValue') {
+  if (badValue) {
     TD.appendChild(rootDocument.createTextNode('#bad-value#'));
   }
 
