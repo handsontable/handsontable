@@ -135,7 +135,7 @@ export function _dataToHTML(input) {
  * Helper to verify and get CSSRules for the element.
  *
  * @param {Element} element Element to verify with selector text.
- * @param {*} selector Selector text from CSSRule.
+ * @param {String} selector Selector text from CSSRule.
  */
 function matchCSSRules(element, selector) {
   let result;
