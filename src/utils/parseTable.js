@@ -131,13 +131,20 @@ export function _dataToHTML(input) {
   return result.join('');
 }
 
-function matchCSSRules(elem, selector) {
+/**
+ * Helper to verify and get CSSRules for the element.
+ *
+ * @param {Element} element Element to verify with selector text.
+ * @param {*} selector Selector text from CSSRule.
+ */
+function matchCSSRules(element, selector) {
   let result;
 
-  if (elem.msMatchesSelector) {
-    result = elem.msMatchesSelector(selector);
-  } else if (elem.matches) {
-    result = elem.matches(selector);
+  if (element.msMatchesSelector) {
+    result = element.msMatchesSelector(selector);
+
+  } else if (element.matches) {
+    result = element.matches(selector);
   }
 
   return result;
