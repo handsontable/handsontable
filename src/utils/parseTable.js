@@ -182,8 +182,8 @@ export function htmlToGridSettings(element, rootDocument = document) {
   if (styleElem) {
     rootDocument.body.appendChild(styleElem);
     styleElem.disabled = true;
-    styleSheet = rootDocument.styleSheets.item(styleElem);
-    styleSheetArr = Array.from(styleSheet.cssRules);
+    styleSheet = styleElem.sheet;
+    styleSheetArr = styleSheet ? Array.from(styleSheet.cssRules) : [];
     rootDocument.body.removeChild(styleElem);
   }
 
