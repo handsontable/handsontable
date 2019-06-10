@@ -132,6 +132,25 @@ export function _dataToHTML(input) {
 }
 
 /**
+ * Helper to verify and get CSSRules for the element.
+ *
+ * @param {Element} element Element to verify with selector text.
+ * @param {String} selector Selector text from CSSRule.
+ */
+function matchCSSRules(element, selector) {
+  let result;
+
+  if (element.msMatchesSelector) {
+    result = element.msMatchesSelector(selector);
+
+  } else if (element.matches) {
+    result = element.matches(selector);
+  }
+
+  return result;
+}
+
+/**
  * Converts HTMLTable or string into Handsontable configuration object.
  *
  * @param {Element|String} element Node element which should contain `<table>...</table>`.
@@ -157,14 +176,17 @@ export function htmlToGridSettings(element, rootDocument = document) {
   }
 
   const styleElem = tempElem.querySelector('style');
-  const cssStyleGroups = styleElem ? styleElem.innerHTML.match(/[.@#]?\w*\s*?\{[\w\s-.,:;\\#()"']*}/g).reverse() : [];
-  const styleSheet = new CSSStyleSheet();
+  let styleSheet = null;
+  let styleSheetArr = [];
 
-  for (let g = 0; g < cssStyleGroups.length; g++) {
-    styleSheet.insertRule(cssStyleGroups[g]);
+  if (styleElem) {
+    rootDocument.body.appendChild(styleElem);
+    styleElem.disabled = true;
+    styleSheet = styleElem.sheet;
+    styleSheetArr = styleSheet ? Array.from(styleSheet.cssRules) : [];
+    rootDocument.body.removeChild(styleElem);
   }
 
-  const styleSheetArr = Array.from(styleSheet.cssRules);
   const generator = tempElem.querySelector('meta[name$="enerator"]');
   const hasRowHeaders = checkElement.querySelector('tbody th') !== null;
   const countCols = Array.from(checkElement.querySelector('tr').cells).reduce((cols, cell) => cols + cell.colSpan, 0) - (hasRowHeaders ? 1 : 0);
@@ -283,7 +305,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
         }
 
         const cellStyle = styleSheetArr.reduce((settings, cssRule) => {
-          if (cssRule.selectorText && cell.matches(cssRule.selectorText)) {
+          if (cssRule.selectorText && matchCSSRules(cell, cssRule.selectorText)) {
             const { whiteSpace } = cssRule.style;
 
             if (whiteSpace) {
