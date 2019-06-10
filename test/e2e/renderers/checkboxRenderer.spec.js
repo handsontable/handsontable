@@ -12,6 +12,30 @@ describe('CheckboxRenderer', () => {
     }
   });
 
+  class DataTransferObject {
+    constructor() {
+      this.data = {
+        'text/plain': '',
+        'text/html': ''
+      };
+    }
+    getData(type = 'text/plain') {
+      return this.data[type];
+    }
+    setData(type = 'text/plain', value) {
+      this.data[type] = value;
+    }
+  }
+
+  function getClipboardEvent() {
+    const event = {};
+
+    event.clipboardData = new DataTransferObject();
+    event.preventDefault = () => { };
+
+    return event;
+  }
+
   it('should render values as checkboxes', () => {
     handsontable({
       data: [[true], [false], [true]],
@@ -816,6 +840,84 @@ describe('CheckboxRenderer', () => {
     expect(labelFunction.calls.argsFor(0)).toEqual([0, 0, 'checked', true]);
     expect(labelFunction.calls.argsFor(1)).toEqual([1, 0, 'checked', false]);
     expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
+  });
+
+  it('should remove checkbox and do not add #bad-value# content after cut action', () => {
+    const hot = handsontable({
+      data: [
+        { car: 'Mercedes A 160', available: true, comesInBlack: 'yes' },
+        { car: 'Citroen C4 Coupe', available: false, comesInBlack: '' },
+        { car: 'Audi A4 Avant', available: true, comesInBlack: 'no' },
+      ],
+      colHeaders: ['Car model', 'Accepted', 'Comes in black'],
+      columns: [
+        {
+          data: 'car'
+        },
+        {
+          data: 'available',
+          type: 'checkbox',
+          label: {
+            position: 'after',
+            property: 'car'
+          },
+        },
+        {
+          data: 'comesInBlack',
+          type: 'checkbox',
+          checkedTemplate: 'yes',
+          uncheckedTemplate: 'no',
+        },
+      ],
+    });
+    const cutEvent = getClipboardEvent('cut');
+    const plugin = hot.getPlugin('CopyPaste');
+    const td = hot.getCell(0, 2);
+
+    selectCell(0, 2);
+
+    plugin.onCut(cutEvent);
+
+    expect(td.textContent).toBe('');
+  });
+
+  it('should remove #bad-value# content after cut action', () => {
+    const hot = handsontable({
+      data: [
+        { car: 'Mercedes A 160', available: true, comesInBlack: 'yes' },
+        { car: 'Citroen C4 Coupe', available: false, comesInBlack: '' },
+        { car: 'Audi A4 Avant', available: true, comesInBlack: 'no' },
+      ],
+      colHeaders: ['Car model', 'Accepted', 'Comes in black'],
+      columns: [
+        {
+          data: 'car'
+        },
+        {
+          data: 'available',
+          type: 'checkbox',
+          label: {
+            position: 'after',
+            property: 'car'
+          },
+        },
+        {
+          data: 'comesInBlack',
+          type: 'checkbox',
+          checkedTemplate: 'yes',
+          uncheckedTemplate: 'no',
+        },
+      ],
+    });
+    const cutEvent = getClipboardEvent('cut');
+    const plugin = hot.getPlugin('CopyPaste');
+    const td = hot.getCell(1, 2);
+
+    selectCell(1, 2);
+
+    plugin.onCut(cutEvent);
+
+    expect(td.textContent).toBe('');
   });
 
   describe('CheckboxRenderer with ContextMenu', () => {
