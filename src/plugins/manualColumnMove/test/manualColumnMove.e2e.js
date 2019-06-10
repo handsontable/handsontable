@@ -28,7 +28,7 @@ describe('manualColumnMove', () => {
   describe('updateSettings', () => {
     it('should be enabled after specifying it in updateSettings config', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 10),
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true
       });
 
@@ -36,10 +36,10 @@ describe('manualColumnMove', () => {
         manualColumnMove: true
       });
 
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseup');
 
-      expect(spec().$container.hasClass('after-selection--rows')).toBeGreaterThan(0);
+      expect(spec().$container.hasClass('after-selection--columns')).toBeGreaterThan(0);
     });
 
     it('should change the default column order with updateSettings', () => {
@@ -134,12 +134,12 @@ describe('manualColumnMove', () => {
 
       const htCore = getHtCore();
 
-      expect(htCore.find('tbody tr:eq(0) td:eq(1)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
+      expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
 
-      hot.getPlugin('manualColumnMove').moveColumn(1, 3);
+      hot.getPlugin('manualColumnMove').moveColumn(0, 2);
       hot.render();
 
-      expect(htCore.find('tbody tr:eq(0) td:eq(3)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
+      expect(htCore.find('tbody tr:eq(1) td:eq(2)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
     });
 
     it('should keep cell meta created using cell array', () => {
@@ -154,12 +154,12 @@ describe('manualColumnMove', () => {
 
       const htCore = getHtCore();
 
-      expect(htCore.find('tbody tr:eq(0) td:eq(1)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
+      expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
 
-      hot.getPlugin('manualColumnMove').moveColumn(3, 1);
+      hot.getPlugin('manualColumnMove').moveColumn(3, 0);
       hot.render();
 
-      expect(htCore.find('tbody tr:eq(0) td:eq(2)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
+      expect(htCore.find('tbody tr:eq(1) td:eq(1)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
     });
 
     describe('by API', () => {

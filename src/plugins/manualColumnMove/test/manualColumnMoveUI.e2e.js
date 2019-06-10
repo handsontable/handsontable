@@ -14,7 +14,7 @@ describe('manualColumnMove', () => {
   });
 
   describe('UI', () => {
-    it('should append UI elements to wtHider after click on row header', () => {
+    it('should append UI elements to wtHider after click on column header', () => {
       handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
