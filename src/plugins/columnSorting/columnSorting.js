@@ -79,8 +79,6 @@ Hooks.getSingleton().register('afterColumnSort');
  *     }
  *   }
  * }]```
- *
- * @dependencies ObserveChanges
  */
 class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
@@ -92,13 +90,6 @@ class ColumnSorting extends BasePlugin {
      * @type {ColumnStatesManager}
      */
     this.columnStatesManager = new ColumnStatesManager();
-    /**
-     * It blocks the plugin translation, this flag is checked inside `onModifyRow` callback.
-     *
-     * @private
-     * @type {Boolean}
-     */
-    this.blockPluginTranslation = true;
     /**
      * Cached column properties from plugin like i.e. `indicator`, `headerAction`.
      *
@@ -138,10 +129,6 @@ class ColumnSorting extends BasePlugin {
   enablePlugin() {
     if (this.enabled) {
       return;
-    }
-
-    if (isUndefined(this.hot.getSettings().observeChanges)) {
-      this.enableObserveChangesPlugin();
     }
 
     this.indexesSequenceCache = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey, new IndexMap());
@@ -500,17 +487,11 @@ class ColumnSorting extends BasePlugin {
   // column meta we call this function.
   getFirstCellSettings(column) {
     // TODO: Remove test named: "should not break the dataset when inserted new row" (#5431).
-    const actualBlockTranslationFlag = this.blockPluginTranslation;
-
-    this.blockPluginTranslation = true;
-
     if (this.columnMetaCache.size === 0 || this.columnMetaCache.size < this.hot.countCols()) {
       this.rebuildColumnMetaCache();
     }
 
     const cellMeta = this.hot.getCellMeta(0, column);
-
-    this.blockPluginTranslation = actualBlockTranslationFlag;
 
     const cellMetaCopy = Object.create(cellMeta);
     cellMetaCopy[this.pluginKey] = this.columnMetaCache.get(this.hot.toPhysicalColumn(column));
@@ -643,22 +624,6 @@ class ColumnSorting extends BasePlugin {
       // Extra render for headers. Their width may change.
       this.hot.render();
     }
-  }
-
-  /**
-   * Enables the ObserveChanges plugin.
-   *
-   * @private
-   */
-  enableObserveChangesPlugin() {
-    const _this = this;
-
-    this.hot._registerTimeout(
-      setTimeout(() => {
-        _this.hot.updateSettings({
-          observeChanges: true
-        });
-      }, 0));
   }
 
   /**
