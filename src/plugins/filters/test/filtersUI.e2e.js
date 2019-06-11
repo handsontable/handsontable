@@ -1216,7 +1216,7 @@ describe('Filters UI', () => {
 
       // moving column
 
-      manualColumnMove.moveColumn(0, 2);
+      manualColumnMove.moveColumn(0, 1);
       hot.render();
 
       // filtering first value of column (deselecting checkbox)
@@ -1277,7 +1277,7 @@ describe('Filters UI', () => {
 
       // moving column
 
-      manualColumnMove.moveColumn(0, 2);
+      manualColumnMove.moveColumn(0, 1);
       hot.render();
 
       // filtering second value of column (deselecting checkbox)

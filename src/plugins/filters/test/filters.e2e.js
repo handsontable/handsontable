@@ -343,7 +343,7 @@ describe('Filters', () => {
         manualColumnMove.moveColumn(0, 3);
         hot.render();
 
-        expect(this.$container.find('th:eq(2)').hasClass('htFiltersActive')).toEqual(true);
+        expect(this.$container.find('th:eq(3)').hasClass('htFiltersActive')).toEqual(true);
       });
 
       it('should show indicator at proper position when column order was changed - test no. 2', function() {
@@ -360,7 +360,7 @@ describe('Filters', () => {
         const filters = hot.getPlugin('filters');
         const manualColumnMove = hot.getPlugin('manualColumnMove');
 
-        manualColumnMove.moveColumn(0, 2);
+        manualColumnMove.moveColumn(0, 1);
         hot.render();
 
         filters.addCondition(1, 'not_empty', []);
@@ -386,7 +386,7 @@ describe('Filters', () => {
         filters.addCondition(0, 'not_empty', []);
         filters.filter();
 
-        manualColumnMove.moveColumn(0, 3);
+        manualColumnMove.moveColumn(0, 2);
         hot.render();
 
         dropdownMenu(2);
@@ -407,7 +407,7 @@ describe('Filters', () => {
 
         const manualColumnMove = hot.getPlugin('manualColumnMove');
 
-        manualColumnMove.moveColumn(0, 3);
+        manualColumnMove.moveColumn(0, 2);
         hot.render();
 
         dropdownMenu(2);
