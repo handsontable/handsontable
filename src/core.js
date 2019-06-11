@@ -18,6 +18,7 @@ import {
   objectEach
 } from './helpers/object';
 import { arrayFlatten, arrayMap, arrayEach, arrayReduce } from './helpers/array';
+import { instanceToHTML } from './utils/parseTable';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
 import { getValidator } from './validators';
@@ -1022,15 +1023,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         }
       }
 
+      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
+        while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
+          const numberOfCreatedColumns = datamap.createCol(void 0, void 0, source);
+
+          if (numberOfCreatedColumns === 0) {
+            skipThisChange = true;
+            break;
+          }
+        }
+      }
+
       if (skipThisChange) {
         /* eslint-disable no-continue */
         continue;
-      }
-
-      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
-        while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
-          datamap.createCol(void 0, void 0, source);
-        }
       }
 
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
@@ -3553,6 +3559,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getTranslatedPhrase = function(dictionaryKey, extraArguments) {
     return getTranslatedPhrase(priv.settings.language, dictionaryKey, extraArguments);
+  };
+
+  /**
+   * Converts instance into outerHTML of HTMLTableElement.
+   *
+   * @memberof Core#
+   * @function toHTML
+   * @since 7.1.0
+   * @returns {String}
+   */
+  this.toHTML = () => instanceToHTML(this);
+
+  /**
+   * Converts instance into HTMLTableElement.
+   *
+   * @memberof Core#
+   * @function toTableElement
+   * @since 7.1.0
+   * @returns {HTMLTableElement}
+   */
+  this.toTableElement = () => {
+    const tempElement = this.rootDocument.createElement('div');
+    tempElement.insertAdjacentHTML('afterbegin', instanceToHTML(this));
+
+    return tempElement.firstElementChild;
   };
 
   this.timeouts = [];
