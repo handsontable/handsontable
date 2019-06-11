@@ -1,6 +1,5 @@
 import { arrayEach } from '../../helpers/array';
 import { warn } from '../../helpers/console';
-import { getTranslator } from '../../translations';
 
 /**
  * Class used to make all endpoint-related operations.
@@ -56,12 +55,6 @@ class Endpoints {
      * @default {[]}
      */
     this.cellsToSetCache = [];
-    /**
-     * A `recordTranslator` instance.
-     * @private
-     * @type {Object}
-     */
-    this.recordTranslator = getTranslator(this.hot);
   }
 
   /**
@@ -338,10 +331,10 @@ class Endpoints {
       const newRange = [];
       if (range[1]) {
         for (let i = range[0]; i <= range[1]; i++) {
-          newRange.push(this.recordTranslator.toPhysicalRow(i));
+          newRange.push(this.plugin.rowIndexMapper.getPhysicalIndex(i));
         }
       } else {
-        newRange.push(this.recordTranslator.toPhysicalRow(range[0]));
+        newRange.push(this.plugin.rowIndexMapper.getPhysicalIndex(range[0]));
       }
 
       allIndexes.push(newRange);
@@ -487,7 +480,10 @@ class Endpoints {
   resetEndpointValue(endpoint, useOffset = true) {
     const alterRowOffset = endpoint.alterRowOffset || 0;
     const alterColOffset = endpoint.alterColumnOffset || 0;
-    const [visualRowIndex, visualColumnIndex] = this.recordTranslator.toVisual(endpoint.destinationRow, endpoint.destinationColumn);
+    const [visualRowIndex, visualColumnIndex] = [
+      this.plugin.rowIndexMapper.getVisualIndex(endpoint.destinationRow),
+      this.plugin.columnIndexMapper.getVisualIndex(endpoint.destinationColumn)
+    ];
 
     // Clear the meta on the "old" indexes
     const cellMeta = this.hot.getCellMeta(visualRowIndex, visualColumnIndex);
@@ -495,8 +491,8 @@ class Endpoints {
     cellMeta.className = '';
 
     this.cellsToSetCache.push([
-      this.recordTranslator.toVisualRow(endpoint.destinationRow + (useOffset ? alterRowOffset : 0)),
-      this.recordTranslator.toVisualColumn(endpoint.destinationColumn + (useOffset ? alterColOffset : 0)),
+      this.plugin.rowIndexMapper.getVisualIndex(endpoint.destinationRow + (useOffset ? alterRowOffset : 0)),
+      this.plugin.columnIndexMapper.getVisualIndex(endpoint.destinationColumn + (useOffset ? alterColOffset : 0)),
       ''
     ]);
   }
