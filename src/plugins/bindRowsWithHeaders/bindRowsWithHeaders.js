@@ -67,7 +67,7 @@ class BindRowsWithHeaders extends BasePlugin {
 
     const MapStrategy = bindTypeToMapStrategy.get(bindType);
 
-    this.headerIndexes = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey, new MapStrategy());
+    this.headerIndexes = this.rowIndexMapper.variousMappingsCollection.register('bindRowsWithHeaders', new MapStrategy());
 
     this.addHook('modifyRowHeader', row => this.onModifyRowHeader(row));
 
@@ -85,6 +85,15 @@ class BindRowsWithHeaders extends BasePlugin {
    */
   onModifyRowHeader(row) {
     return this.headerIndexes.getValueAtIndex(this.rowIndexMapper.getPhysicalIndex(row));
+  }
+
+  /**
+   * Destroys the plugin instance.
+   */
+  destroy() {
+    this.rowIndexMapper.skipCollection.unregister('bindRowsWithHeaders');
+
+    super.destroy();
   }
 }
 

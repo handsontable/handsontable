@@ -1,4 +1,4 @@
-import { isUndefined } from '../helpers/mixed';
+import { isUndefined, isDefined } from '../helpers/mixed';
 import { mixin } from '../helpers/object';
 import localHooks from '../mixins/localHooks';
 
@@ -22,6 +22,20 @@ class MapCollection {
     map.addLocalHook('mapChanged', () => this.runLocalHooks('collectionChanged'));
 
     return this.mappings.get(name);
+  }
+
+  /**
+   * Unregister custom indexes map.
+   *
+   * @param {String} name Unique name of the indexes list.
+   */
+  unregister(name) {
+    const map = this.mappings.get(name);
+
+    if (isDefined(map)) {
+      map.clearLocalHooks();
+      this.mappings.delete(name);
+    }
   }
 
   /**

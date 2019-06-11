@@ -238,6 +238,15 @@ class TrimRows extends BasePlugin {
       });
     }
   }
+
+  /**
+   * Destroys the plugin instance.
+   */
+  destroy() {
+    this.rowIndexMapper.skipCollection.unregister('trimRows');
+
+    super.destroy();
+  }
 }
 
 registerPlugin('trimRows', TrimRows);

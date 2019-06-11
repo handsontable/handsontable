@@ -780,6 +780,7 @@ class ColumnSorting extends BasePlugin {
    */
   destroy() {
     this.columnStatesManager.destroy();
+    this.rowIndexMapper.variousMappingsCollection.unregister(this.pluginKey);
 
     super.destroy();
   }

@@ -671,22 +671,6 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Destroys the plugin instance.
-   */
-  destroy() {
-    if (this.enabled) {
-      this.components.forEach((component) => {
-        component.destroy();
-      });
-
-      this.conditionCollection.destroy();
-      this.conditionUpdateObserver.destroy();
-      this.hiddenRowsCache.clear();
-    }
-    super.destroy();
-  }
-
-  /**
    * Creates DataFilter instance based on condition collection.
    *
    * @private
@@ -858,6 +842,23 @@ class Filters extends BasePlugin {
     this.changeComponentsVisibility(true, ...components);
   }
 
+  /**
+   * Destroys the plugin instance.
+   */
+  destroy() {
+    if (this.enabled) {
+      this.components.forEach((component) => {
+        component.destroy();
+      });
+
+      this.rowIndexMapper.skipCollection.unregister('filters');
+      this.conditionCollection.destroy();
+      this.conditionUpdateObserver.destroy();
+      this.hiddenRowsCache.clear();
+    }
+
+    super.destroy();
+  }
 }
 
 registerPlugin('filters', Filters);
