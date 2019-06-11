@@ -426,7 +426,7 @@ class CollapsingUI extends BaseUI {
    * @returns {Number} Base row index.
    */
   translateTrimmedRow(row) {
-    return this.trimRowsPlugin.rowsMapper.getPhysicalIndex(row);
+    return this.trimRowsPlugin.rowIndexMapper.getPhysicalIndex(row);
   }
 
   /**
