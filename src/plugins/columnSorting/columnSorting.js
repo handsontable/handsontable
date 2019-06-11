@@ -131,8 +131,6 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    this.indexesSequenceCache = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey, new IndexMap());
-
     this.addHook('afterGetColHeader', (column, TH) => this.onAfterGetColHeader(column, TH));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, controller) => this.onBeforeOnCellMouseDown(event, coords, TD, controller));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
@@ -169,7 +167,11 @@ class ColumnSorting extends BasePlugin {
       this.hot.removeHook('afterGetColHeader', clearColHeader);
     });
 
-    this.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
+    if (this.indexesSequenceCache !== null) {
+      this.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
+      // TODO: Should it be unregistered?
+      this.rowIndexMapper.variousMappingsCollection.unregister(this.pluginKey);
+    }
 
     super.disablePlugin();
   }
@@ -206,6 +208,11 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (currentSortConfig.length === 0) {
+      if (this.indexesSequenceCache === null) {
+        this.indexesSequenceCache = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey, new IndexMap(this.rowIndexMapper.getIndexesSequence()));
+      }
+      // TODO: Extra `else` should be added here, after `register` will initialize additionally (when there is a need).
+
       this.indexesSequenceCache.setValues(this.rowIndexMapper.getIndexesSequence());
     }
 
