@@ -17,7 +17,7 @@ import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
 import { CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERATION_OR_THEN_VARIABLE } from './constants';
-import { getTranslator, ValueMap } from '../../translations';
+import { ValueMap } from '../../translations';
 
 import './filters.css';
 

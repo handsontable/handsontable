@@ -1679,7 +1679,7 @@ DefaultSettings.prototype = {
   columnSorting: void 0,
 
   /**
-   * Turns on [Manual column move](http://docs.handsontable.com/demo-moving.html), if set to a boolean or define initial column order, if set to an array of column indexes.
+   * Turns on [Manual column move](https://docs.handsontable.com/demo-moving.html), if set to a boolean or define initial column order, if set to an array of column indexes.
    *
    * @type {Boolean|Number[]}
    * @default undefined
@@ -1698,7 +1698,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual column resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial column resized widths, if set to an array of numbers.
+   * Turns on [Manual column resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial column resized widths, if set to an array of numbers.
    *
    * @type {Boolean|Number[]}
    * @default undefined
@@ -1717,7 +1717,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual row move](http://docs.handsontable.com/demo-moving.html), if set to a boolean or define initial row order if set to an array of row indexes.
+   * Turns on [Manual row move](https://docs.handsontable.com/demo-moving.html), if set to a boolean or define initial row order if set to an array of row indexes.
    *
    * @type {Boolean|Number[]}
    * @default undefined
@@ -1735,7 +1735,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual row resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial row resized heights, if set to an array of numbers.
+   * Turns on [Manual row resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial row resized heights, if set to an array of numbers.
    *
    * @type {Boolean|Number[]}
    * @default undefined
