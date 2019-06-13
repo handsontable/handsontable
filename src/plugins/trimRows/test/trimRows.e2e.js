@@ -222,14 +222,13 @@ describe('TrimRows', () => {
     const plugin = getPlugin('trimRows');
 
     plugin.trimRows([1, 7, 3]); // physical row indexes after move
-    alter('insert_row', 2, 3); // visual row indexes
+    alter('insert_row', 0, 3); // visual row indexes
 
     expect(plugin.isTrimmed(1)).toBeTruthy();
-    expect(plugin.isTrimmed(10)).toBeTruthy(); // 7 -> 10
-    expect(plugin.isTrimmed(6)).toBeTruthy(); // 3 -> 6
+    expect(plugin.isTrimmed(3)).toBeTruthy();
 
     expect(plugin.isTrimmed(7)).toBeFalsy();
-    expect(plugin.isTrimmed(3)).toBeFalsy();
+    expect(plugin.isTrimmed(10)).toBeTruthy(); // 7 -> 10
   });
 
   it('should clear cache after loading new data by `loadData` function, when plugin `trimRows` is enabled #92', function(done) {

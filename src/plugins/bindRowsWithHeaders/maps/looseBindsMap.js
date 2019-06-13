@@ -16,7 +16,7 @@ class LooseBindsMap extends BaseMap {
   insert(insertionIndex, insertedIndexes) {
     const listAfterUpdate = getIncreasedIndexes(this.list, insertionIndex, insertedIndexes);
 
-    this.list = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes, this.initValueOrFn);
+    this.list = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes, this.initValuesOrFn);
 
     this.runLocalHooks('mapChanged');
   }

@@ -13,7 +13,7 @@ class IndexMap extends BaseMap {
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
-    this.list = getListWithInsertedItems(this.list, insertionIndex, insertedIndexes, this.initValueOrFn);
+    this.list = getListWithInsertedItems(this.list, insertionIndex, insertedIndexes, this.initValuesOrFn);
 
     this.runLocalHooks('mapChanged');
   }
