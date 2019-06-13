@@ -41,8 +41,8 @@ class MapCollection {
   /**
    * Get indexes list by it's name.
    *
-   * @param {String} name Name of the indexes list.
-   * @returns {IndexMap}
+   * @param {String} [name] Name of the indexes list.
+   * @returns {Array|IndexMap}
    */
   get(name) {
     if (isUndefined(name)) {
