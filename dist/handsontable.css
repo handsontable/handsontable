@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 7.0.0
- * Release date: 06/03/2019 (built at 05/03/2019 15:48:40)
+ * Version: 7.1.0
+ * Release date: 11/06/2019 (built at 10/06/2019 10:35:58)
  */
 /**
  * Fix for bootstrap styles
@@ -96,6 +96,7 @@
 .handsontable .table-striped > tbody > tr:nth-of-type(even) {
   background-color: #FFF;
 }
+
 .handsontable {
   position: relative;
 }
@@ -279,7 +280,7 @@
 
 /* row + column resizer*/
 .handsontable .manualColumnResizer {
-  position: fixed;
+  position: absolute;
   top: 0;
   cursor: col-resize;
   z-index: 110;
@@ -288,7 +289,7 @@
 }
 
 .handsontable .manualRowResizer {
-  position: fixed;
+  position: absolute;
   left: 0;
   cursor: row-resize;
   z-index: 110;
@@ -304,7 +305,7 @@
 }
 
 .handsontable .manualColumnResizerGuide {
-  position: fixed;
+  position: absolute;
   right: 0;
   top: 0;
   background-color: #34a9db;
@@ -315,7 +316,7 @@
 }
 
 .handsontable .manualRowResizerGuide {
-  position: fixed;
+  position: absolute;
   left: 0;
   bottom: 0;
   background-color: #34a9db;
@@ -609,12 +610,13 @@ CheckboxRenderer
 */
 .handsontable .htCheckboxRendererInput {
   display: inline-block;
-  vertical-align: middle;
 }
 .handsontable .htCheckboxRendererInput.noValue {
   opacity: 0.5;
 }
 .handsontable .htCheckboxRendererLabel {
+  font-size: inherit;
+  vertical-align: middle;
   cursor: pointer;
   display: inline-block;
   width: 100%;
@@ -862,6 +864,7 @@ thead .htCollapseButton:after {
 .ht_clone_bottom .wtHolder {
   overflow: hidden;
 }
+
 /*
 
  Handsontable Mobile Text Editor stylesheet
@@ -978,7 +981,7 @@ thead .htCollapseButton:after {
 }
 
 .htMobileEditorContainer .moveHandle:after {
-  content: "..\A..\A..\A..";
+  content: "..\a..\a..\a..";
   white-space: pre;
   line-height: 10px;
   font-size: 20pt;
@@ -1077,6 +1080,7 @@ thead .htCollapseButton:after {
   animation-fill-mode: forwards;
   -webkit-animation-fill-mode: forwards;
 }
+
 .htCommentCell {
     position: relative;
 }
@@ -1116,6 +1120,7 @@ thead .htCollapseButton:after {
     box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px, inset 0 0 0 1px #5292f7;
     border-left: 3px solid #5292f7;
 }
+
 /*!
  * Handsontable ContextMenu
  */
@@ -1203,6 +1208,7 @@ thead .htCollapseButton:after {
 .htContextMenu .ht_master .wtHolder {
   overflow: hidden;
 }
+
 textarea#HandsontableCopyPaste {
   position: fixed !important;
   top: 0 !important;
@@ -1211,10 +1217,12 @@ textarea#HandsontableCopyPaste {
   opacity: 0;
   outline: 0 none !important;
 }
+
 .htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_top_left_corner th:nth-child(2),
 .htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_left td:first-of-type {
   border-left: 0 none;
 }
+
 .handsontable .wtHider {
   position: relative;
 }
@@ -1258,6 +1266,7 @@ textarea#HandsontableCopyPaste {
 .handsontable.on-moving--columns .ht__manualColumnMove--backlight {
   display: block;
 }
+
 .handsontable .wtHider {
   position: relative;
 }
@@ -1301,6 +1310,7 @@ textarea#HandsontableCopyPaste {
 .handsontable.on-moving--rows .ht__manualRowMove--backlight {
   display: block;
 }
+
 .handsontable tbody td[rowspan][class*="area"][class*="highlight"]:not([class*="fullySelectedMergedCell"]):before {
     opacity: 0;
 }
@@ -1340,6 +1350,7 @@ textarea#HandsontableCopyPaste {
 .handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-7"]:before {
     opacity: 0.58;
 }
+
 /*!
  * Handsontable DropdownMenu
  */
@@ -1355,7 +1366,7 @@ textarea#HandsontableCopyPaste {
   float: right;
 }
 .handsontable .changeType:before {
-  content: '\25BC   ';
+  content: '\25BC\ ';
 }
 
 .handsontable .changeType:hover {
@@ -1446,6 +1457,7 @@ textarea#HandsontableCopyPaste {
 .htDropdownMenu .ht_master .wtHolder {
   overflow: hidden;
 }
+
 /* Column's number position */
 .handsontable span.colHeader.columnSorting::after {
   /* Centering start */
@@ -1506,6 +1518,7 @@ textarea#HandsontableCopyPaste {
 .htGhostTable th div button.changeType + span.colHeader.columnSorting:not(.indicatorDisabled) {
   padding-right: 5px;
 }
+
 /*!
  * Handsontable Filters
  */
@@ -1602,7 +1615,7 @@ textarea#HandsontableCopyPaste {
 
 /* Menu label */
 .handsontable .htFiltersMenuLabel {
-  font-size: 12px;
+  font-size: 0.75em;
 }
 
 /* Component action bar */
@@ -1629,6 +1642,8 @@ textarea#HandsontableCopyPaste {
 }
 .handsontable .htFiltersMenuCondition .htUIInput input,
 .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input {
+  font-family: inherit;
+  font-size: 0.75em;
   padding: 4px;
   box-sizing: border-box;
   width: 100%;
@@ -1654,7 +1669,7 @@ textarea#HandsontableCopyPaste {
 
 .handsontable .htUIClearAll a, .handsontable .htUISelectAll a {
   color: #3283D8;
-  font-size: 12px;
+  font-size: 0.75em;
 }
 
 .handsontable .htUISelectionControls {
@@ -1694,8 +1709,8 @@ textarea#HandsontableCopyPaste {
   background-color: #eee;
   color: #000;
   cursor: pointer;
-  font-family: arial, sans-serif;
-  font-size: 11px;
+  font-family: inherit;
+  font-size: 0.7em;
   font-weight: bold;
   height: 19px;
   min-width: 64px;
@@ -1727,8 +1742,8 @@ textarea#HandsontableCopyPaste {
   background-color: #e8e8e8;
   border-radius: 2px;
   border: 1px solid #d2d1d1;
-  font-family: arial, sans-serif;
-  font-size: 11px;
+  font-family: inherit;
+  font-size: 0.7em;
   font-weight: bold;
   padding: 3px 20px 3px 10px;
   text-overflow: ellipsis;
@@ -1782,9 +1797,14 @@ textarea#HandsontableCopyPaste {
   margin-right: 0.5ex;
 }
 
+.handsontable .htUIRadio label {
+  vertical-align: middle;
+}
+
 .handsontable .htFiltersMenuOperators {
   padding-bottom: 5px;
 }
+
 .handsontable.ganttChart tr:first-child th div.relative {
   padding-right: 21px;
 }
@@ -1811,9 +1831,11 @@ textarea#HandsontableCopyPaste {
 .handsontable.ganttChart td.rangeBar.area.partial {
   background: #A1D8AD;
 }
+
 .handsontable thead th.hiddenHeader:not(:first-of-type) {
   display: none;
 }
+
 .handsontable th.ht_nestingLevels {
     text-align: left;
     padding-left: 7px;
@@ -1858,17 +1880,18 @@ textarea#HandsontableCopyPaste {
 }
 
 .handsontable th div.ht_nestingButton.ht_nestingExpand::after {
-    content: "+";
+    content: "\002B";
 }
 
 .handsontable th div.ht_nestingButton.ht_nestingCollapse::after {
-    content: "-";
+    content: "\002D";
 }
 
 .handsontable.innerBorderLeft th div.ht_nestingButton,
 .handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingButton {
     right: 0;
-}/*
+}
+/*
  * Handsontable HiddenColumns
  */
 .handsontable th.beforeHiddenColumn {
@@ -1900,6 +1923,7 @@ textarea#HandsontableCopyPaste {
 .handsontable th.firstVisibleColumn {
   border-left: 1px solid #CCC;
 }
+
 /*!
  * Handsontable HiddenRows
  */
@@ -1934,5 +1958,6 @@ textarea#HandsontableCopyPaste {
 .handsontable th.afterHiddenRow.firstVisibleRow {
   border-top: 1px solid #CCC;
 }
+
 
 /*# sourceMappingURL=handsontable.css.map*/

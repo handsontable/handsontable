@@ -173,6 +173,16 @@ const REGISTERED_HOOKS = [
    * @param {Number} amount Number of newly created columns in the data source array.
    * @param {String} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {*} If `false` then creating columns is cancelled.
+   * @example
+   * ```js
+   * // Return `false` to cancel column inserting.
+   * new Handsontable(element, {
+   *   beforeCreateCol: function(data, coords) {
+   *     return false;
+   *   }
+   * });
+   * ```
    */
   'beforeCreateCol',
 

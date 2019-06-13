@@ -344,7 +344,11 @@ class DataMap {
     let numberOfCreatedCols = 0;
     let currentIndex;
 
-    this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
+    const continueProcess = this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
+
+    if (continueProcess === false) {
+      return 0;
+    }
 
     currentIndex = columnIndex;
 

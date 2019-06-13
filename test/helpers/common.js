@@ -88,6 +88,7 @@ export const getValue = handsontableMethodFactory('getValue');
 export const loadData = handsontableMethodFactory('loadData');
 export const populateFromArray = handsontableMethodFactory('populateFromArray');
 export const propToCol = handsontableMethodFactory('propToCol');
+export const redo = handsontableMethodFactory('redo');
 export const refreshDimensions = handsontableMethodFactory('refreshDimensions');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
 export const render = handsontableMethodFactory('render');
@@ -245,6 +246,7 @@ export function dropdownMenu(columnIndex) {
 
   if (button) {
     $(button).simulate('mousedown');
+    $(button).simulate('mouseup');
     $(button).simulate('click');
   }
 }
@@ -309,15 +311,15 @@ export function handsontableKeyTriggerFactory(type) {
     let keyToTrigger = key;
 
     if (typeof keyToTrigger === 'string') {
-      if (keyToTrigger.indexOf('shift+') > -1) {
-        keyToTrigger = keyToTrigger.substring(6);
-        ev.shiftKey = true;
-      }
-
       if (keyToTrigger.indexOf('ctrl+') > -1) {
         keyToTrigger = keyToTrigger.substring(5);
         ev.ctrlKey = true;
         ev.metaKey = true;
+      }
+
+      if (keyToTrigger.indexOf('shift+') > -1) {
+        keyToTrigger = keyToTrigger.substring(6);
+        ev.shiftKey = true;
       }
 
       switch (keyToTrigger) {
@@ -391,6 +393,14 @@ export function handsontableKeyTriggerFactory(type) {
 
         case 'a':
           ev.keyCode = 65;
+          break;
+
+        case 'y':
+          ev.keyCode = 89;
+          break;
+
+        case 'z':
+          ev.keyCode = 90;
           break;
 
         default:
