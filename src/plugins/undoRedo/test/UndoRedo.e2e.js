@@ -2185,6 +2185,20 @@ describe('UndoRedo', () => {
       setDataAtCell(0, 0, 'A');
       expect(hot.undoRedo.isUndoAvailable()).toBe(true);
     });
+
+    it('should not save the undo action if old and new values are not string, number or boolean', () => {
+      const hot = handsontable({
+        data: [
+          [{ key1: 'abc' }]
+        ]
+      });
+
+      expect(hot.undoRedo.isUndoAvailable()).toBe(false);
+      expect(getDataAtCell(0, 0)).toEqual({ key1: 'abc' });
+      setDataAtCell(0, 0, { key1: 'abc' });
+
+      expect(hot.undoRedo.isUndoAvailable()).toBe(true);
+    });
   });
 
   describe('plugin features', () => {
