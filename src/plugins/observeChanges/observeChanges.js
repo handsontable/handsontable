@@ -90,15 +90,19 @@ class ObserveChanges extends BasePlugin {
       const actions = {
         add: (patch) => {
           if (isNaN(patch.col)) {
+            this.rowIndexMapper.insertIndexes(patch.row, this.hot.toPhysicalRow(patch.row), 1);
             this.hot.runHooks('afterCreateRow', patch.row, 1, sourceName);
           } else {
+            this.columnIndexMapper.insertIndexes(patch.col, this.hot.toPhysicalColumn(patch.col), 1);
             this.hot.runHooks('afterCreateCol', patch.col, 1, sourceName);
           }
         },
         remove: (patch) => {
           if (isNaN(patch.col)) {
+            this.rowIndexMapper.removeIndexes([patch.row]);
             this.hot.runHooks('afterRemoveRow', patch.row, 1, sourceName);
           } else {
+            this.columnIndexMapper.removeIndexes([patch.col]);
             this.hot.runHooks('afterRemoveCol', patch.col, 1, sourceName);
           }
         },
