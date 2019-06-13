@@ -2529,7 +2529,7 @@ describe('Filters UI', () => {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toEqual(5);
-        expect(getDataAtCol(0).join()).toBe('24,10,1,6,21');
+        expect(getDataAtCol(0).join()).toBe('1,6,10,24,21'); // Elements 1, 6, 10 haven't been sorted.
         done();
       }, 1200);
     });
@@ -2720,7 +2720,7 @@ describe('Filters UI', () => {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toEqual(5);
-        expect(getDataAtCol(0).join()).toBe('24,10,1,6,21');
+        expect(getDataAtCol(0).join()).toBe('1,6,10,24,21'); // Elements 1, 6, 10 haven't been sorted.
         done();
       }, 1200);
     });
