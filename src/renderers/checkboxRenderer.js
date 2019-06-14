@@ -51,7 +51,6 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
 
   } else {
     input.style.display = 'none';
-    }
   }
 
   input.setAttribute('data-row', row);
