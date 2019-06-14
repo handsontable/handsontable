@@ -402,7 +402,7 @@ class EditorManager {
 
       case KEY_CODES.BACKSPACE:
       case KEY_CODES.DELETE:
-        this.instance.emptySelectedCells('delete');
+        this.instance.emptySelectedCells();
         this.prepareEditor();
         event.preventDefault();
         break;
