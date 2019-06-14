@@ -776,3 +776,27 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
 export function createSpreadsheetData(...args) {
   return Handsontable.helper.createSpreadsheetData(...args);
 }
+
+export class DataTransferObject {
+  constructor() {
+    this.data = {
+      'text/plain': '',
+      'text/html': ''
+    };
+  }
+  getData(type = 'text/plain') {
+    return this.data[type];
+  }
+  setData(type = 'text/plain', value) {
+    this.data[type] = value;
+  }
+}
+
+export function getClipboardEvent() {
+  const event = {};
+
+  event.clipboardData = new DataTransferObject();
+  event.preventDefault = () => { };
+
+  return event;
+}

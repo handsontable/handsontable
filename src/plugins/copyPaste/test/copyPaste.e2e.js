@@ -12,30 +12,6 @@ describe('CopyPaste', () => {
     }
   });
 
-  class DataTransferObject {
-    constructor() {
-      this.data = {
-        'text/plain': '',
-        'text/html': ''
-      };
-    }
-    getData(type = 'text/plain') {
-      return this.data[type];
-    }
-    setData(type = 'text/plain', value) {
-      this.data[type] = value;
-    }
-  }
-
-  function getClipboardEvent() {
-    const event = {};
-
-    event.clipboardData = new DataTransferObject();
-    event.preventDefault = () => {};
-
-    return event;
-  }
-
   const arrayOfArrays = function() {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
@@ -366,7 +342,7 @@ describe('CopyPaste', () => {
       expect(cutEvent.clipboardData.getData('text/plain')).toBe('A2');
       expect(cutEvent.clipboardData.getData('text/html')).toEqual('<table><tbody><tr><td>A2</td></tr></tbody></table>');
 
-      expect(hot.getDataAtCell(1, 0)).toBe('');
+      expect(hot.getDataAtCell(1, 0)).toBe(null);
     });
 
     it('should call beforeCut and afterCut during cutting out operation', () => {

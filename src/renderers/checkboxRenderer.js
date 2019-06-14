@@ -51,6 +51,8 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
 
   } else {
     input.style.display = 'none';
+    addClass(input, BAD_VALUE_CLASS);
+    badValue = true;
   }
 
   input.setAttribute('data-row', row);
@@ -63,8 +65,10 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
       labelText = typeof labelOptions.value === 'function' ? labelOptions.value.call(this, row, col, prop, value) : labelOptions.value;
 
     } else if (labelOptions.property) {
-      labelText = instance.getDataAtRowProp(row, labelOptions.property);
+      const labelValue = instance.getDataAtRowProp(row, labelOptions.property);
+      labelText = labelValue !== null ? labelValue : '';
     }
+
     const label = createLabel(rootDocument, labelText);
 
     if (labelOptions.position === 'before') {
