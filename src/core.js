@@ -954,7 +954,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           changes[i][3] = getParsedNumber(newValue);
         }
 
-
         /* eslint-disable no-loop-func */
         if (instance.getCellValidator(cellProperties)) {
           waitingForValidator.addValidatorToQueue();
