@@ -118,6 +118,27 @@ describe('Core_beforechange', () => {
     expect(isEditorVisible()).toBe(false);
   });
 
+  it('should drop change when beforeChange set to `true` and allowInvalid is `false` and do not close editor (which has validator)', () => {
+    handsontable({
+      data: [['a', 'b'], ['c', 'd']],
+      columns: () => ({
+        validator: (_, callback) => callback(false),
+        allowInvalid: false
+      }),
+      beforeChange: () => true
+    });
+
+    setDataAtCell([[0, 0, 'test']]);
+
+    expect(getDataAtCell(0, 0)).toEqual('a');
+
+    selectCell(0, 0);
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(isEditorVisible()).toBe(true);
+  });
+
   function beforechangeOnKeyFactory(keyCode) {
     return function() {
       let called = false;
