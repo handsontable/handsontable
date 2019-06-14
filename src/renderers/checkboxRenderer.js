@@ -51,7 +51,6 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
 
   } else {
     input.style.display = 'none';
-      addClass(input, BAD_VALUE_CLASS);
     }
   }
 
