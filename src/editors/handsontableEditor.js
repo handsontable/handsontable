@@ -45,7 +45,10 @@ class HandsontableEditor extends TextEditor {
    * Closes the editor.
    */
   close() {
-    this.htEditor.rootElement.style.display = 'none';
+    if (this.htEditor) {
+      this.htEditor.rootElement.style.display = 'none';
+    }
+
     this.removeHooksByKey('beforeKeyDown');
     super.close();
   }

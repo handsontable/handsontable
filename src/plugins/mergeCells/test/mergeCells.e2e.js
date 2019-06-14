@@ -1212,7 +1212,7 @@ describe('MergeCells', () => {
 
       hot.validateCells();
 
-      await sleep(150);
+      await sleep(300);
 
       expect(onAfterValidate).toHaveBeenCalled();
 

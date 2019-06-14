@@ -1130,6 +1130,21 @@ describe('Core_alter', () => {
       expect(outputAfter).toEqual([2, 1, 'customSource']);
     });
 
+    it('should not create columns when beforeCreateCol returns false', () => {
+      handsontable({
+        data: arrayOfArrays(),
+        beforeCreateCol() {
+          return false;
+        },
+      });
+
+      const countedColumns = countCols();
+
+      alter('insert_col', 2, 1, 'customSource');
+
+      expect(countCols()).toBe(countedColumns);
+    });
+
     it('should not create column header together with the column, if headers were NOT specified explicitly', () => {
 
       handsontable({
