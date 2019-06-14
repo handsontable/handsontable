@@ -954,7 +954,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           changes[i][3] = getParsedNumber(newValue);
         }
 
-        if (cellProperties.type === 'checkbox' && newValue === '' && (source === 'cut' || source === 'delete')) {
           instance.setCellMeta(row, col, 'onCut', true);
         }
 
