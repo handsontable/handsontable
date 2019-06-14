@@ -56,7 +56,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
   input.setAttribute('data-row', row);
   input.setAttribute('data-col', col);
 
-  if (!badValue && !cellProperties.onCut && labelOptions) {
+  if (!badValue && labelOptions) {
     let labelText = '';
 
     if (labelOptions.value) {
