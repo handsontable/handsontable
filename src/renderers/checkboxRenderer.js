@@ -51,7 +51,6 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
 
   } else {
     input.style.display = 'none';
-
     if (cellProperties.onCut !== true) {
       addClass(input, BAD_VALUE_CLASS);
       badValue = true;
