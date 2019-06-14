@@ -955,7 +955,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         }
 
           instance.setCellMeta(row, col, 'onCut', true);
-        }
 
         /* eslint-disable no-loop-func */
         if (instance.getCellValidator(cellProperties)) {
