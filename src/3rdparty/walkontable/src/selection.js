@@ -277,6 +277,13 @@ class Selection {
       this.getBorder(wotInstance).appear(corners);
     }
   }
+
+  /**
+   * Cleans up all the DOM state related to a Selection instance. Call this prior to deleting a Selection instance.
+   */
+  destroy() {
+    Object.values(this.instanceBorders).forEach(border => border.destroy());
+  }
 }
 
 export default Selection;

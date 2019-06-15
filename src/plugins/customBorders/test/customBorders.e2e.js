@@ -152,7 +152,7 @@ describe('CustomBorders', () => {
       });
 
       expect(countVisibleCustomBorders()).toBe(0);
-      expect(countCustomBorders()).toBe(5); // TODO this assertion checks current behavior that looks like a bug. I would expect 0
+      expect(countCustomBorders()).toBe(0);
     });
 
     it('should hide borders when disabled using disablePlugin', () => {
@@ -169,7 +169,7 @@ describe('CustomBorders', () => {
       hot.getPlugin('customBorders').disablePlugin();
 
       expect(countVisibleCustomBorders()).toBe(0);
-      expect(countCustomBorders()).toBe(5); // TODO this assertion checks current behavior that looks like a bug. I would expect 0
+      expect(countCustomBorders()).toBe(0);
     });
 
     it('should show initial borders when re-enabled using updateSettings', () => {
@@ -194,7 +194,7 @@ describe('CustomBorders', () => {
       expect(countCustomBorders()).toBe(5); // TODO this assertion checks current behavior that looks like a bug. I would expect 0
     });
 
-    it('should NOT show initial borders when re-enabled using disablePlugin', () => {
+    it('should show initial borders when re-enabled using disablePlugin', () => {
       const hot = handsontable({
         customBorders: [{
           row: 2,
@@ -209,7 +209,7 @@ describe('CustomBorders', () => {
       hot.getPlugin('customBorders').enablePlugin();
 
       expect(countVisibleCustomBorders()).toBe(0); // TODO this assertion checks current behavior that looks like a bug. I would expect 3
-      expect(countCustomBorders()).toBe(5);
+      expect(countCustomBorders()).toBe(0);
     });
   });
 
@@ -688,7 +688,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 3).borders.right).toEqual(MAGENTA_BORDER);
     expect(getCellMeta(3, 3).borders.bottom).toEqual(RED_BORDER);
     expect(countVisibleCustomBorders()).toBe(8);
-    expect(countCustomBorders()).toBe(9 * 5); // there are 9 cells in the provided range. TODO I was expecting 5 * 5
+    expect(countCustomBorders()).toBe(5 * 5);
   });
 
   it('should clear borders from area by use clearBorders method (while deselected)', () => {
@@ -753,7 +753,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 3).borders.right).toEqual(MAGENTA_BORDER);
     expect(getCellMeta(3, 3).borders.bottom).toEqual(RED_BORDER);
     expect(countVisibleCustomBorders()).toBe(8);
-    expect(countCustomBorders()).toBe(9 * 5); // there are 9 cells in the provided range. TODO I was expecting 5 * 5
+    expect(countCustomBorders()).toBe(5 * 5);
   });
 
   it('should clear all borders by use clearBorders method without parameter', () => {
@@ -800,7 +800,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 3).borders).toBeUndefined();
 
     expect(countVisibleCustomBorders()).toBe(0);
-    expect(countCustomBorders()).toBe(9 * 5); // there are 9 cells in the provided range. TODO I think this should be 0
+    expect(countCustomBorders()).toBe(0);
   });
 
   it('should draw borders from context menu options when was first cleared borders by the clearBorders method', async() => {
@@ -830,7 +830,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
     expect(countVisibleCustomBorders()).toBe(1);
-    expect(countCustomBorders()).toBe(2 * 5); // TODO it looks like a leak, I think this should be 1 * 5
+    expect(countCustomBorders()).toBe(5);
   });
 
   it('should clear all borders when first was cleared borders by the clearBorders method with selections,' +
@@ -859,7 +859,7 @@ describe('CustomBorders', () => {
     customBorders.clearBorders();
     expect(getCellMeta(0, 0).borders).toBeUndefined();
     expect(countVisibleCustomBorders()).toBe(0);
-    expect(countCustomBorders()).toBe(2 * 5); // TODO it looks like a leak, I think this should be 1 * 5
+    expect(countCustomBorders()).toBe(0);
   });
 
   it('should draw top border from context menu options', async() => {
@@ -962,7 +962,7 @@ describe('CustomBorders', () => {
 
     expect(getCellMeta(0, 0).borders).toBeUndefined();
     expect(countVisibleCustomBorders()).toBe(0);
-    expect(countCustomBorders()).toBe(5); // TODO this looks like a bug, I would expect 0
+    expect(countCustomBorders()).toBe(0);
   });
 
   it('should disable `Borders` context menu item when menu was triggered from corner header', () => {

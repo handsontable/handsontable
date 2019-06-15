@@ -25,7 +25,7 @@ class EventManager {
     this.context = context || this;
 
     if (!this.context.eventListeners) {
-      this.context.eventListeners = [];
+      this.context.eventListeners = []; // TODO perf It would be more performant if every instance of EventManager tracked its own listeners only
     }
   }
 
@@ -55,6 +55,7 @@ class EventManager {
       callback,
       callbackProxy,
       options,
+      eventManager: this
     });
 
     element.addEventListener(eventName, callbackProxy, options);
@@ -71,8 +72,9 @@ class EventManager {
    * @param {Element} element Target element.
    * @param {String} eventName Event name.
    * @param {Function} callback Function to remove from the event target. It must be the same as during registration listener.
+   * @param {Boolean} [onlyOwnEvents] Whether whould remove only events registered using this instance of EventManager
    */
-  removeEventListener(element, eventName, callback) {
+  removeEventListener(element, eventName, callback, onlyOwnEvents = false) {
     let len = this.context.eventListeners.length;
     let tmpEvent;
 
@@ -83,6 +85,9 @@ class EventManager {
       if (tmpEvent.event === eventName && tmpEvent.element === element) {
         if (callback && callback !== tmpEvent.callback) {
           /* eslint-disable no-continue */
+          continue;
+        }
+        if (onlyOwnEvents && tmpEvent.eventManager !== this) {
           continue;
         }
         this.context.eventListeners.splice(len, 1);
@@ -97,8 +102,9 @@ class EventManager {
    *
    * @private
    * @since 0.15.0-beta3
+   * @param {Boolean} [onlyOwnEvents] Whether whould remove only events registered using this instance of EventManager
    */
-  clearEvents() {
+  clearEvents(onlyOwnEvents = false) {
     if (!this.context) {
       return;
     }
@@ -109,7 +115,7 @@ class EventManager {
       const event = this.context.eventListeners[len];
 
       if (event) {
-        this.removeEventListener(event.element, event.event, event.callback);
+        this.removeEventListener(event.element, event.event, event.callback, onlyOwnEvents);
       }
     }
   }
@@ -122,10 +128,18 @@ class EventManager {
   }
 
   /**
-   * Destroy instance of EventManager.
+   * Destroy instance of EventManager, clearing all events of the context
    */
   destroy() {
     this.clearEvents();
+    this.context = null;
+  }
+
+  /**
+   * Destroy instance of EventManager, clearing only the own events
+   */
+  destroyWithOwnEventsOnly() {
+    this.clearEvents(true);
     this.context = null;
   }
 
