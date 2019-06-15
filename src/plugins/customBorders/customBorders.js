@@ -652,9 +652,6 @@ class CustomBorders extends BasePlugin {
 
     if (hideCount === 4) {
       this.removeAllBorders(border.row, border.col);
-      this.clearBordersFromSelectionSettings(border.id);
-      this.clearNullCellRange();
-
       check = true;
 
     } else {
