@@ -684,7 +684,7 @@ class Border {
    */
   destroy() {
     this.eventManager.destroyWithOwnEventsOnly();
-    this.main.remove();
+    this.main.parentNode.removeChild(this.main);
   }
 }
 
