@@ -777,7 +777,16 @@ export function createSpreadsheetData(...args) {
   return Handsontable.helper.createSpreadsheetData(...args);
 }
 
-export class DataTransferObject {
+export function getClipboardEvent() {
+  const event = {};
+
+  event.clipboardData = new DataTransferObject();
+  event.preventDefault = () => { };
+
+  return event;
+}
+
+class DataTransferObject {
   constructor() {
     this.data = {
       'text/plain': '',
@@ -790,13 +799,4 @@ export class DataTransferObject {
   setData(type = 'text/plain', value) {
     this.data[type] = value;
   }
-}
-
-export function getClipboardEvent() {
-  const event = {};
-
-  event.clipboardData = new DataTransferObject();
-  event.preventDefault = () => { };
-
-  return event;
 }

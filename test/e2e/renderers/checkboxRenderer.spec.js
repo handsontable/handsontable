@@ -848,13 +848,33 @@ describe('CheckboxRenderer', () => {
     });
     const cutEvent = getClipboardEvent('cut');
     const plugin = hot.getPlugin('CopyPaste');
-    const td = hot.getCell(0, 2);
+    const td = hot.getCell(0, 1);
+    const td2 = hot.getCell(0, 2);
+    const td3 = hot.getCell(1, 1);
+    const td4 = hot.getCell(1, 2);
+    const td5 = hot.getCell(2, 1);
+    const td6 = hot.getCell(2, 2);
 
-    selectCell(0, 2);
+    selectCell(0, 0, 2, 2);
 
     plugin.onCut(cutEvent);
 
     expect(td.textContent).toBe('');
+    expect(td2.textContent).toBe('');
+    expect(td3.textContent).toBe('');
+    expect(td4.textContent).toBe('');
+    expect(td5.textContent).toBe('');
+    expect(td6.textContent).toBe('');
+
+    expect(getDataAtCell(0, 0)).toEqual(null);
+    expect(getDataAtCell(0, 1)).toEqual(null);
+    expect(getDataAtCell(0, 2)).toEqual(null);
+    expect(getDataAtCell(1, 0)).toEqual(null);
+    expect(getDataAtCell(1, 1)).toEqual(null);
+    expect(getDataAtCell(1, 2)).toEqual(null);
+    expect(getDataAtCell(2, 0)).toEqual(null);
+    expect(getDataAtCell(2, 1)).toEqual(null);
+    expect(getDataAtCell(2, 2)).toEqual(null);
   });
 
   it('should remove #bad-value# content after cut action', () => {
