@@ -305,7 +305,7 @@ class DataMap {
       numberOfCreatedRows += 1;
     }
 
-    this.instance.recordTranslator.getRowIndexMapper().insertIndexes(rowIndex, physicalRowIndex, amount);
+    this.instance.recordTranslator.getRowIndexMapper().insertIndexes(rowIndex, physicalRowIndex, numberOfCreatedRows);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed

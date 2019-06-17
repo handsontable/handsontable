@@ -939,12 +939,10 @@ describe('Core_alter', () => {
       expect(spec().$container.find('tr:eq(6) td:eq(0)').html()).toEqual('b1');
     });
 
-    it('should not add more source rows than defined in maxRows when trimming rows using the modifyRow hook', () => {
+    it('should not add more source rows than defined in maxRows when trimming rows using the TrimRows plugin', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 4),
-        modifyRow(row) {
-          return [8, 9].indexOf(row) > -1 ? null : row;
-        },
+        trimRows: [8, 9],
         maxRows: 10
       });
 

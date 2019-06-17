@@ -408,7 +408,7 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(105); // -1px of cell border
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBeInArray([22, 42]); // -1px of cell border
 
-    plugin.moveColumn(0, 2);
+    plugin.moveColumn(0, 1);
     hot.render();
 
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22);
