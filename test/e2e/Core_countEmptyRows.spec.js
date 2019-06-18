@@ -86,11 +86,8 @@ describe('Core_countEmptyRows', () => {
   it('should count empty rows properly when rows was trimmed', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
+      trimRows: [8, 9],
       modifyRow(row) {
-        if (row === 9 || row === 8) {
-          return null;
-        }
-
         if (row >= 2) {
           return row + 2;
         }
