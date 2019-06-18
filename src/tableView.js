@@ -385,16 +385,20 @@ class TableView {
       },
       columnWidth: this.instance.getColWidth,
       rowHeight: this.instance.getRowHeight,
-      cellRenderer: (row, col, TD) => {
-      // cellRenderer: (row, col, TD, needRecreateContent) => {
-      //   const physicalColumn = this.instance.toPhysicalColumn(col);
-      //   const physicalRow = this.instance.toPhysicalRow(row);
-      //   const hasChangedByColumn = getStorage(this.instance).hasChangedByColumn(physicalColumn);
-      //   const hasChangedByCoords = getStorage(this.instance).hasChangedByCoords(physicalRow, physicalColumn);
-      //
-      //   if (!needRecreateContent && !(hasChangedByCoords || hasChangedByColumn)) {
-      //     return;
-      //   }
+      // cellRenderer: (row, col, TD) => {
+      cellRenderer: (row, col, TD, needRecreateContent) => {
+        // console.log('render', row, col);
+
+        if (this.settings.ecoRendering) {
+          const physicalColumn = this.instance.toPhysicalColumn(col);
+          const physicalRow = this.instance.toPhysicalRow(row);
+          const hasChangedByColumn = getStorage(this.instance).hasChangedByColumn(physicalColumn);
+          const hasChangedByCoords = getStorage(this.instance).hasChangedByCoords(physicalRow, physicalColumn);
+
+          if (!needRecreateContent && !(hasChangedByCoords || hasChangedByColumn)) {
+            return;
+          }
+        }
 
         const cellProperties = this.instance.getCellMeta(row, col);
         const prop = this.instance.colToProp(col);

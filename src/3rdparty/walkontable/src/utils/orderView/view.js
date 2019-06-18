@@ -57,7 +57,8 @@ export default class OrderView {
     collectedNodes.push(node);
 
     // Only nodes which are first time rendered (hasn't any inner content) mark as stale.
-    if (name !== 'none' && !node.firstChild) {
+    // if (name !== 'none' && !node.firstChild) {
+    if (name !== 'none') {
       this.staleNodeIndexes.push(nodeIndex);
     }
 

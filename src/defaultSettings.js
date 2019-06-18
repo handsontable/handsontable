@@ -2783,6 +2783,8 @@ DefaultSettings.prototype = {
    * @default false
    */
   nestedRows: void 0,
+
+  ecoRendering: true,
 };
 
 export default DefaultSettings;

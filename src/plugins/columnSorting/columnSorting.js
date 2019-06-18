@@ -22,6 +22,7 @@ import { getClassedToRemove, getClassesToAdd } from './domHelpers';
 import RowsMapper from './rowsMapper';
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
+import { getStorage } from '../../dataMap';
 
 const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
@@ -236,6 +237,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     this.hot.runHooks('afterColumnSort', currentSortConfig, this.getSortConfig(), sortPossible);
+    getStorage(this.hot).nextTick();
   }
 
   /**

@@ -13,31 +13,51 @@ class Storage {
   }
 
   hasChangedByCoords(row, column) {
+    let result;
+
     if (!this.ready || this.disableToNextCycle) {
-      return true;
+      result = true;
+    } else if (!this.collection.has(column)) {
+      result = false;
+    } else {
+      result = this.collection.get(column).has(row);
     }
 
-    if (!this.collection.has(column)) {
-      return false;
-    }
+    // console.log('changesFilter: hasChangedByCoords', result);
 
-    return this.collection.get(column).has(row);
+    return result;
   }
 
   hasChangedByColumn(column) {
+    let result;
+
     if (!this.ready || this.disableToNextCycle) {
-      return true;
+      result = true;
+    } else if (!this.collection.has(column)) {
+      result = false;
+    } else {
+      result = this.collection.get(column).has('all');
     }
 
-    if (!this.collection.has(column)) {
-      return false;
-    }
+    // console.log('changesFilter: hasChangedByColumn', result);
 
-    return this.collection.get(column).has('all');
+    return result;
+  }
+
+  markRangeAsChanged(rowStart, colStart, rowEnd, colEnd) {
+    if (this.ready) {
+      for (let row = rowStart; row < rowEnd; row++) {
+        for (let column = colStart; column < colEnd; column++) {
+          this.markCoordsAsChanged(row, column);
+        }
+      }
+    }
   }
 
   markCoordsAsChanged(row, column) {
     if (this.ready) {
+      // console.log('changesFilter: markCoordsAsChanged');
+
       if (this.collection.has(column)) {
         this.collection.get(column).set(row, true);
       } else {
@@ -48,6 +68,8 @@ class Storage {
 
   markColumnAsChanged(column) {
     if (this.ready) {
+      // console.log('changesFilter: markColumnAsChanged');
+
       if (this.collection.has(column)) {
         this.collection.get(column).set('all', true);
       } else {
@@ -63,6 +85,8 @@ class Storage {
   }
 
   clearChanges() {
+    // console.log('changesFilter: clearChanges');
+
     this.ready = true;
     this.disableToNextCycle = false;
     this.collection.clear();

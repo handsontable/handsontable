@@ -3,6 +3,7 @@ import { rangeEach } from '../../helpers/number';
 import { registerPlugin } from '../../plugins';
 import RowsMapper from './rowsMapper';
 import { arrayMap } from '../../helpers/array';
+import { getStorage } from '../../dataMap';
 
 /**
  * @plugin TrimRows
@@ -163,6 +164,7 @@ class TrimRows extends BasePlugin {
 
     this.hot.runHooks('afterTrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
       isValidConfig && destinationTrimConfig.length > currentTrimConfig.length);
+    getStorage(this.hot).nextTick();
   }
 
   /**
@@ -206,6 +208,7 @@ class TrimRows extends BasePlugin {
 
     this.hot.runHooks('afterUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
       isValidConfig && destinationTrimConfig.length < currentTrimConfig.length);
+    getStorage(this.hot).nextTick();
   }
 
   /**

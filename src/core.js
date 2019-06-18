@@ -4,7 +4,7 @@ import { isFunction } from './helpers/function';
 import { warn } from './helpers/console';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser } from './helpers/browser';
-import { DataMap, DataSource } from './dataMap';
+import { DataMap, DataSource, getStorage } from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {
@@ -36,7 +36,6 @@ import { hasLanguageDictionary } from './i18n/dictionariesManager';
 import { warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLanguageCode } from './i18n/utils';
 import { startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving } from './utils/keyStateObserver';
 import { Selection } from './selection';
-import { getStorage } from './dataMap/changesFilter';
 
 let activeGuid = null;
 
@@ -962,10 +961,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               if (typeof result !== 'boolean') {
                 throw new Error('Validation error: result is not boolean');
               }
+
+              console.log(result, cellPropertiesReference.allowInvalid);
+              // getStorage(instance).markCoordsAsChanged(cellPropertiesReference.row, cellPropertiesReference.col);
+
               if (result === false && cellPropertiesReference.allowInvalid === false) {
                 changes.splice(index, 1); // cancel the change
                 cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
+
                 const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
+
                 if (cell !== null) {
                   removeClass(cell, instance.getSettings().invalidCellClassName);
                 }
@@ -1575,6 +1580,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       priv.firstRun = [null, 'loadData'];
     } else {
       instance.runHooks('afterChange', null, 'loadData');
+      getStorage(instance).nextTick();
       instance.render();
     }
     priv.isPopulated = true;
@@ -1843,6 +1849,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       instance.runHooks('afterUpdateSettings', settings);
     }
+
+    getStorage(instance).nextTick();
 
     grid.adjustRowsAndCols();
     if (instance.view && !priv.firstRun) {
@@ -2668,6 +2676,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
       i -= 1;
     }
+
     waitingForValidator.checkIfQueueIsEmpty();
   };
 
