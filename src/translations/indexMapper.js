@@ -2,6 +2,7 @@ import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/visuallyIndexed';
 import { rangeEach } from '../helpers/number';
 import IndexMap from './maps/indexMap';
+import SkipMap from './maps/skipMap';
 import MapCollection from './mapCollection';
 
 class IndexMapper {
@@ -14,6 +15,37 @@ class IndexMapper {
     this.notSkippedIndexesCache = null;
 
     this.skipCollection.addLocalHook('collectionChanged', () => this.updateCache());
+  }
+
+  /**
+   * Register map.
+   *
+   * @param {String} name Name of the map. It should be unique.
+   * @param {ValueMap|IndexMap|SkipMap} mapper Register mapper updated on items removal and insertion.
+   * @returns {ValueMap|IndexMap|SkipMap}
+   */
+  registerMap(name, map) {
+    if (this.skipCollection.get(name) || this.variousMappingsCollection.get(name)) {
+      throw Error(`Mapper with name "${name}" is already registered.`);
+    }
+
+    map.init(this.getNumberOfIndexes());
+
+    if (map instanceof SkipMap === true) {
+      return this.skipCollection.register(name, map);
+    }
+
+    return this.variousMappingsCollection.register(name, map);
+  }
+
+  /**
+   * Unregister the map with given name.
+   *
+   * @param {String} name Name of the map.
+   */
+  unregisterMap(name) {
+    this.skipCollection.unregister(name);
+    this.variousMappingsCollection.unregister(name);
   }
 
   /**

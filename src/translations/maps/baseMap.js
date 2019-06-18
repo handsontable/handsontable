@@ -57,8 +57,6 @@ class BaseMap {
     if (index < values.length) {
       return values[index];
     }
-
-    return void 0;
   }
 
   /**

@@ -170,7 +170,7 @@ class ColumnSorting extends BasePlugin {
     if (this.indexesSequenceCache !== null) {
       this.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
       // TODO: Should it be unregistered?
-      this.rowIndexMapper.variousMappingsCollection.unregister(this.pluginKey);
+      this.rowIndexMapper.unregisterMap(this.pluginKey);
     }
 
     super.disablePlugin();
@@ -207,13 +207,8 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    if (currentSortConfig.length === 0) {
-      if (this.indexesSequenceCache === null) {
-        this.indexesSequenceCache = this.rowIndexMapper.variousMappingsCollection.register(this.pluginKey, new IndexMap(this.rowIndexMapper.getIndexesSequence()));
-      }
-      // TODO: Extra `else` should be added here, after `register` will initialize additionally (when there is a need).
-
-      this.indexesSequenceCache.setValues(this.rowIndexMapper.getIndexesSequence());
+    if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
+      this.indexesSequenceCache = this.rowIndexMapper.registerMap(this.pluginKey, new IndexMap());
     }
 
     if (sortPossible) {

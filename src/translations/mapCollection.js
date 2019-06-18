@@ -21,6 +21,8 @@ class MapCollection {
 
     map.addLocalHook('mapChanged', () => this.runLocalHooks('collectionChanged'));
 
+    this.runLocalHooks('collectionChanged');
+
     return this.mappings.get(name);
   }
 
@@ -36,6 +38,8 @@ class MapCollection {
       map.clearLocalHooks();
       this.mappings.delete(name);
     }
+
+    this.runLocalHooks('collectionChanged');
   }
 
   /**
