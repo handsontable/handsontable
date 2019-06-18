@@ -231,6 +231,17 @@ export function contextMenu(cell) {
   // $(cell).simulate('mouseup', { button: 2 });
 }
 
+export async function selectContextSubmenuOption(submenuName, optionName) {
+  contextMenu();
+  const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
+  item.simulate('mouseover');
+  await sleep(300);
+  const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+  const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
+  button.simulate('mousedown');
+  closeContextMenu();
+}
+
 export function closeContextMenu() {
   $(document).simulate('mousedown');
   // $(document).trigger('mousedown');

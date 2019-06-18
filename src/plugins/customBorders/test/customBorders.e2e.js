@@ -1,5 +1,44 @@
 describe('CustomBorders', () => {
   const id = 'testContainer';
+  const DEFAULT_BORDER = { color: '#000', width: 1 };
+  const GREEN_BORDER = { color: 'green', width: 1 };
+  const GREEN_THICK_BORDER = { color: 'green', width: 2 };
+  const RED_BORDER = { color: 'red', width: 2 };
+  const MAGENTA_BORDER = { color: 'magenta', width: 2 };
+  const BLUE_BORDER = { color: 'blue', width: 2 };
+  const ORANGE_BORDER = { color: 'orange', width: 2 };
+  const EMPTY = { hide: true };
+
+  const CUSTOM_BORDER_SELECTOR = '.wtBorder:not(.fill, .current, .area)';
+  /**
+   * Returns number of custom borders in DOM. There are 5 borders per
+   * cell (top, left, bottom right, corner), some of which are hidden
+   * TODO this seems redundant that we always render borders that are not visible
+   */
+  function countCustomBorders() {
+    return $(CUSTOM_BORDER_SELECTOR).length;
+  }
+  /**
+   * Returns number of visible custom borders in DOM
+   */
+  function countVisibleCustomBorders() {
+    return $(`${CUSTOM_BORDER_SELECTOR}:visible`).length;
+  }
+
+  function generateCustomBordersForAllRows(numRows) {
+    const bordersConfig = [];
+
+    for (let i = 0; i < numRows; i++) {
+      const cellBorder = {
+        row: i,
+        col: 0,
+        top: GREEN_BORDER
+      };
+      bordersConfig.push(cellBorder);
+    }
+
+    return bordersConfig;
+  }
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -21,6 +60,28 @@ describe('CustomBorders', () => {
   });
 
   describe('enabling/disabling plugin', () => {
+    it('should be defined by default', () => {
+      const hot = handsontable();
+
+      expect(hot.getPlugin('customBorders')).toBeDefined();
+    });
+
+    it('should be defined when disabled by configuration', () => {
+      const hot = handsontable({
+        customBorders: false
+      });
+
+      expect(hot.getPlugin('customBorders')).toBeDefined();
+    });
+
+    it('should be defined when enabled by configuration', () => {
+      const hot = handsontable({
+        customBorders: true
+      });
+
+      expect(hot.getPlugin('customBorders')).toBeDefined();
+    });
+
     it('should be disabled by default', () => {
       const hot = handsontable();
 
@@ -36,6 +97,7 @@ describe('CustomBorders', () => {
         customBorders: false
       });
 
+      expect(hot.getPlugin('customBorders')).toBeDefined();
       expect(hot.getPlugin('customBorders').isEnabled()).toBe(false);
     });
 
@@ -49,6 +111,105 @@ describe('CustomBorders', () => {
       });
 
       expect(hot.getPlugin('customBorders')).toBeDefined();
+      expect(hot.getPlugin('customBorders').isEnabled()).toBe(true);
+    });
+
+    it('should NOT disable plugin using disablePlugin', () => {
+      const hot = handsontable({
+        customBorders: true
+      });
+
+      hot.getPlugin('customBorders').disablePlugin();
+
+      expect(hot.getPlugin('customBorders')).toBeDefined();
+      expect(hot.getPlugin('customBorders').isEnabled()).toBe(true); // TODO this assertion checks current behavior that looks like a bug. I would expect false
+    });
+
+    it('should NOT enable plugin using enablePlugin', () => {
+      const hot = handsontable({
+        customBorders: false
+      });
+
+      hot.getPlugin('customBorders').enablePlugin();
+
+      expect(hot.getPlugin('customBorders')).toBeDefined();
+      expect(hot.getPlugin('customBorders').isEnabled()).toBe(false); // TODO this assertion checks current behavior that looks like a bug. I would expect true
+    });
+
+    it('should hide borders when disabled using updateSettings', () => {
+      const hot = handsontable({
+        customBorders: [{
+          row: 2,
+          col: 2,
+          left: RED_BORDER,
+          right: RED_BORDER,
+          top: GREEN_BORDER
+        }]
+      });
+
+      hot.updateSettings({
+        customBorders: false
+      });
+
+      expect(countVisibleCustomBorders()).toBe(0);
+      expect(countCustomBorders()).toBe(0);
+    });
+
+    it('should hide borders when disabled using disablePlugin', () => {
+      const hot = handsontable({
+        customBorders: [{
+          row: 2,
+          col: 2,
+          left: RED_BORDER,
+          right: RED_BORDER,
+          top: GREEN_BORDER
+        }]
+      });
+
+      hot.getPlugin('customBorders').disablePlugin();
+
+      expect(countVisibleCustomBorders()).toBe(0);
+      expect(countCustomBorders()).toBe(0);
+    });
+
+    it('should show initial borders when re-enabled using updateSettings', () => {
+      const hot = handsontable({
+        customBorders: [{
+          row: 2,
+          col: 2,
+          left: RED_BORDER,
+          right: RED_BORDER,
+          top: GREEN_BORDER
+        }]
+      });
+
+      hot.updateSettings({
+        customBorders: false
+      });
+      hot.updateSettings({
+        customBorders: true
+      });
+
+      expect(countVisibleCustomBorders()).toBe(3); // TODO this assertion checks current behavior that looks like a bug. I would expect 0
+      expect(countCustomBorders()).toBe(5); // TODO this assertion checks current behavior that looks like a bug. I would expect 0
+    });
+
+    it('should show initial borders when re-enabled using disablePlugin', () => {
+      const hot = handsontable({
+        customBorders: [{
+          row: 2,
+          col: 2,
+          left: RED_BORDER,
+          right: RED_BORDER,
+          top: GREEN_BORDER
+        }]
+      });
+
+      hot.getPlugin('customBorders').disablePlugin();
+      hot.getPlugin('customBorders').enablePlugin();
+
+      expect(countVisibleCustomBorders()).toBe(0); // TODO this assertion checks current behavior that looks like a bug. I would expect 3
+      expect(countCustomBorders()).toBe(0);
     });
   });
 
@@ -70,199 +231,265 @@ describe('CustomBorders', () => {
     expect(errors).toEqual(1);
   });
 
-  it('should draw borders by use setBorders method', () => {
+  it('should not draw any custom borders by default', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      customBorders: true
+    });
+
+    expect(countCustomBorders()).toBe(0);
+  });
+
+  it('should render specific borders provided in the configuration', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      customBorders: [{
+        row: 2,
+        col: 2,
+        left: RED_BORDER,
+        right: RED_BORDER,
+        top: GREEN_BORDER
+      }]
+    });
+
+    expect(getCellMeta(2, 2).borders.top).toEqual(GREEN_BORDER);
+    expect(getCellMeta(2, 2).borders.left).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.right).toEqual(RED_BORDER);
+
+    expect(getCellMeta(0, 0).borders).toBeUndefined();
+    expect(getCellMeta(0, 1).borders).toBeUndefined();
+    expect(getCellMeta(0, 2).borders).toBeUndefined();
+    expect(getCellMeta(0, 3).borders).toBeUndefined();
+
+    expect(getCellMeta(1, 0).borders).toBeUndefined();
+    expect(getCellMeta(1, 1).borders).toBeUndefined();
+    expect(getCellMeta(1, 2).borders).toBeUndefined();
+    expect(getCellMeta(1, 3).borders).toBeUndefined();
+
+    expect(getCellMeta(2, 0).borders).toBeUndefined();
+    expect(getCellMeta(2, 1).borders).toBeUndefined();
+    expect(getCellMeta(2, 3).borders).toBeUndefined();
+
+    expect(getCellMeta(3, 0).borders).toBeUndefined();
+    expect(getCellMeta(3, 1).borders).toBeUndefined();
+    expect(getCellMeta(3, 2).borders).toBeUndefined();
+    expect(getCellMeta(3, 3).borders).toBeUndefined();
+
+    expect(countVisibleCustomBorders()).toBe(3);
+    expect(countCustomBorders()).toBe(5);
+  });
+
+  it('should draw new borders by use setBorders method (while selected)', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: true
     });
 
-    const redBorder = { color: 'red', width: 2 };
-    const empty = { hide: true };
     const customBorders = hot.getPlugin('customBorders');
 
     selectCells([[1, 1, 2, 2]]);
-
     customBorders.setBorders(getSelected(), {
-      top: {
-        width: 2,
-        color: 'red'
-      },
-      bottom: {
-        width: 2,
-        color: 'red'
-      }
+      top: RED_BORDER,
+      bottom: RED_BORDER
     });
+    deselectCell();
 
-    expect(getCellMeta(1, 1).borders.top).toEqual(redBorder);
-    expect(getCellMeta(1, 1).borders.left).toEqual(empty);
-    expect(getCellMeta(1, 1).borders.bottom).toEqual(redBorder);
-    expect(getCellMeta(1, 1).borders.right).toEqual(empty);
+    expect(getCellMeta(1, 1).borders.top).toEqual(RED_BORDER);
+    expect(getCellMeta(1, 1).borders.left).toEqual(EMPTY);
+    expect(getCellMeta(1, 1).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(1, 1).borders.right).toEqual(EMPTY);
 
-    expect(getCellMeta(1, 2).borders.top).toEqual(redBorder);
-    expect(getCellMeta(1, 2).borders.left).toEqual(empty);
-    expect(getCellMeta(1, 2).borders.bottom).toEqual(redBorder);
-    expect(getCellMeta(1, 2).borders.right).toEqual(empty);
+    expect(getCellMeta(1, 2).borders.top).toEqual(RED_BORDER);
+    expect(getCellMeta(1, 2).borders.left).toEqual(EMPTY);
+    expect(getCellMeta(1, 2).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(1, 2).borders.right).toEqual(EMPTY);
 
-    expect(getCellMeta(2, 1).borders.top).toEqual(redBorder);
-    expect(getCellMeta(2, 1).borders.left).toEqual(empty);
-    expect(getCellMeta(2, 1).borders.bottom).toEqual(redBorder);
-    expect(getCellMeta(2, 1).borders.right).toEqual(empty);
+    expect(getCellMeta(2, 1).borders.top).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 1).borders.left).toEqual(EMPTY);
+    expect(getCellMeta(2, 1).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 1).borders.right).toEqual(EMPTY);
 
-    expect(getCellMeta(2, 2).borders.top).toEqual(redBorder);
-    expect(getCellMeta(2, 2).borders.left).toEqual(empty);
-    expect(getCellMeta(2, 2).borders.bottom).toEqual(redBorder);
-    expect(getCellMeta(2, 2).borders.right).toEqual(empty);
+    expect(getCellMeta(2, 2).borders.top).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.left).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.right).toEqual(EMPTY);
+
+    expect(countVisibleCustomBorders()).toBe(8);
+    expect(countCustomBorders()).toBe(4 * 5); // there are 4 cells in the provided range
   });
 
-  it('should redraw borders by use setBorders method', () => {
+  it('should draw new borders by use setBorders method (while deselected)', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      customBorders: true
+    });
+
+    const customBorders = hot.getPlugin('customBorders');
+
+    customBorders.setBorders([[1, 1, 2, 2]], {
+      top: RED_BORDER,
+      bottom: RED_BORDER
+    });
+
+    expect(getCellMeta(1, 1).borders.top).toEqual(RED_BORDER);
+    expect(getCellMeta(1, 1).borders.left).toEqual(EMPTY);
+    expect(getCellMeta(1, 1).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(1, 1).borders.right).toEqual(EMPTY);
+
+    expect(getCellMeta(1, 2).borders.top).toEqual(RED_BORDER);
+    expect(getCellMeta(1, 2).borders.left).toEqual(EMPTY);
+    expect(getCellMeta(1, 2).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(1, 2).borders.right).toEqual(EMPTY);
+
+    expect(getCellMeta(2, 1).borders.top).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 1).borders.left).toEqual(EMPTY);
+    expect(getCellMeta(2, 1).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 1).borders.right).toEqual(EMPTY);
+
+    expect(getCellMeta(2, 2).borders.top).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.left).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.right).toEqual(EMPTY);
+
+    expect(countVisibleCustomBorders()).toBe(8);
+    expect(countCustomBorders()).toBe(4 * 5); // there are 4 cells in the provided range
+  });
+
+  it('should redraw existing borders by use setBorders method (while selected)', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
         col: 2,
-        left: {
-          width: 2,
-          color: 'red'
-        },
-        right: {
-          width: 1,
-          color: 'green'
-        },
-        top: {
-          width: 2,
-          color: 'green'
-        }
+        left: RED_BORDER,
+        right: GREEN_BORDER,
+        top: GREEN_THICK_BORDER
       }]
     });
 
-    const redBorder = { color: 'red', width: 2 };
-    const greenBorder = { color: 'green', width: 1 };
     const customBorders = hot.getPlugin('customBorders');
 
     selectCell(2, 2);
-
     customBorders.setBorders(getSelectedRange(), {
-      top: {
-        width: 2,
-        color: 'red'
-      },
-      bottom: {
-        width: 2,
-        color: 'red'
-      }
+      top: RED_BORDER,
+      bottom: RED_BORDER
     });
+    deselectCell();
 
-    expect(getCellMeta(2, 2).borders.top).toEqual(redBorder);
-    expect(getCellMeta(2, 2).borders.left).toEqual(redBorder);
-    expect(getCellMeta(2, 2).borders.bottom).toEqual(redBorder);
-    expect(getCellMeta(2, 2).borders.right).toEqual(greenBorder);
+    expect(getCellMeta(2, 2).borders.top).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.left).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.right).toEqual(GREEN_BORDER);
+    expect(countVisibleCustomBorders()).toBe(4);
+    expect(countCustomBorders()).toBe(5);
   });
 
-  it('should hide only specific border by use setBorders method with {hide: true}', () => {
+  it('should redraw existing borders by use setBorders method (while deselected)', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
         col: 2,
-        left: {
-          width: 2,
-          color: 'red'
-        },
-        right: {
-          width: 2,
-          color: 'red'
-        },
-        top: {
-          width: 1,
-          color: 'green'
-        }
+        left: RED_BORDER,
+        right: GREEN_BORDER,
+        top: GREEN_THICK_BORDER
       }]
     });
 
-    const greenBorder = { color: 'green', width: 1 };
-    const redBorder = { color: 'red', width: 2 };
-    const empty = { hide: true };
     const customBorders = hot.getPlugin('customBorders');
 
-    expect(getCellMeta(2, 2).borders.top).toEqual(greenBorder);
-    expect(getCellMeta(2, 2).borders.left).toEqual(redBorder);
-    expect(getCellMeta(2, 2).borders.bottom).toEqual(empty);
-    expect(getCellMeta(2, 2).borders.right).toEqual(redBorder);
+    customBorders.setBorders([[2, 2]], {
+      top: RED_BORDER,
+      bottom: RED_BORDER
+    });
+
+    expect(getCellMeta(2, 2).borders.top).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.left).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.right).toEqual(GREEN_BORDER);
+    expect(countVisibleCustomBorders()).toBe(4);
+    expect(countCustomBorders()).toBe(5);
+  });
+
+  it('should hide only specific border by use setBorders method with {hide: true} (while selected)', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      customBorders: [{
+        row: 2,
+        col: 2,
+        left: RED_BORDER,
+        right: RED_BORDER,
+        top: GREEN_BORDER
+      }]
+    });
+
+    const customBorders = hot.getPlugin('customBorders');
 
     selectCell(2, 2);
-
     customBorders.setBorders(getSelected(), {
-      top: {
-        hide: true
-      }
+      top: EMPTY
     });
+    deselectCell();
 
-    expect(getCellMeta(2, 2).borders.top).toEqual(empty);
-    expect(getCellMeta(2, 2).borders.left).toEqual(redBorder);
-    expect(getCellMeta(2, 2).borders.bottom).toEqual(empty);
-    expect(getCellMeta(2, 2).borders.right).toEqual(redBorder);
+    expect(getCellMeta(2, 2).borders.top).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.left).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.right).toEqual(RED_BORDER);
+    expect(countVisibleCustomBorders()).toBe(2);
+    expect(countCustomBorders()).toBe(5);
   });
 
-  it('should hide all border by use setBorders method with eg. {top: false}', () => {
+  it('should hide only specific border by use setBorders method with {hide: true} (while deselected)', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
         col: 2,
-        left: {
-          width: 2,
-          color: 'red'
-        },
-        right: {
-          width: 2,
-          color: 'red'
-        },
-        top: {
-          width: 1,
-          color: 'green'
-        }
+        left: RED_BORDER,
+        right: RED_BORDER,
+        top: GREEN_BORDER
       }]
     });
 
-    const greenBorder = { color: 'green', width: 1 };
-    const redBorder = { color: 'red', width: 2 };
-    const empty = { hide: true };
     const customBorders = hot.getPlugin('customBorders');
 
-    expect(getCellMeta(2, 2).borders.top).toEqual(greenBorder);
-    expect(getCellMeta(2, 2).borders.left).toEqual(redBorder);
-    expect(getCellMeta(2, 2).borders.bottom).toEqual(empty);
-    expect(getCellMeta(2, 2).borders.right).toEqual(redBorder);
+    customBorders.setBorders([[2, 2]], {
+      top: EMPTY
+    });
 
-    expect(getCellMeta(0, 0).borders).toBeUndefined();
-    expect(getCellMeta(0, 1).borders).toBeUndefined();
-    expect(getCellMeta(0, 2).borders).toBeUndefined();
-    expect(getCellMeta(0, 3).borders).toBeUndefined();
+    expect(getCellMeta(2, 2).borders.top).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.left).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.right).toEqual(RED_BORDER);
+    expect(countVisibleCustomBorders()).toBe(2);
+    expect(countCustomBorders()).toBe(5);
+  });
 
-    expect(getCellMeta(1, 0).borders).toBeUndefined();
-    expect(getCellMeta(1, 1).borders).toBeUndefined();
-    expect(getCellMeta(1, 2).borders).toBeUndefined();
-    expect(getCellMeta(1, 3).borders).toBeUndefined();
+  it('should hide only specific border by use setBorders method with {top: false} (while selected)', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      customBorders: [{
+        row: 2,
+        col: 2,
+        left: RED_BORDER,
+        right: RED_BORDER,
+        top: GREEN_BORDER
+      }]
+    });
 
-    expect(getCellMeta(2, 0).borders).toBeUndefined();
-    expect(getCellMeta(2, 1).borders).toBeUndefined();
-    expect(getCellMeta(2, 3).borders).toBeUndefined();
-
-    expect(getCellMeta(3, 0).borders).toBeUndefined();
-    expect(getCellMeta(3, 1).borders).toBeUndefined();
-    expect(getCellMeta(3, 2).borders).toBeUndefined();
-    expect(getCellMeta(3, 3).borders).toBeUndefined();
+    const customBorders = hot.getPlugin('customBorders');
 
     selectCell(2, 2);
-
     customBorders.setBorders(getSelected(), {
       top: false
     });
+    deselectCell();
 
-    expect(getCellMeta(2, 2).borders.top).toEqual(empty);
-    expect(getCellMeta(2, 2).borders.left).toEqual(redBorder);
-    expect(getCellMeta(2, 2).borders.bottom).toEqual(empty);
-    expect(getCellMeta(2, 2).borders.right).toEqual(redBorder);
+    expect(getCellMeta(2, 2).borders.top).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.left).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.right).toEqual(RED_BORDER);
 
     expect(getCellMeta(0, 0).borders).toBeUndefined();
     expect(getCellMeta(0, 1).borders).toBeUndefined();
@@ -282,6 +509,55 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 1).borders).toBeUndefined();
     expect(getCellMeta(3, 2).borders).toBeUndefined();
     expect(getCellMeta(3, 3).borders).toBeUndefined();
+
+    expect(countVisibleCustomBorders()).toBe(2);
+    expect(countCustomBorders()).toBe(5);
+  });
+
+  it('should hide only specific border by use setBorders method with {top: false} (while deselected)', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      customBorders: [{
+        row: 2,
+        col: 2,
+        left: RED_BORDER,
+        right: RED_BORDER,
+        top: GREEN_BORDER
+      }]
+    });
+
+    const customBorders = hot.getPlugin('customBorders');
+
+    customBorders.setBorders([[2, 2]], {
+      top: false
+    });
+
+    expect(getCellMeta(2, 2).borders.top).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.left).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.right).toEqual(RED_BORDER);
+
+    expect(getCellMeta(0, 0).borders).toBeUndefined();
+    expect(getCellMeta(0, 1).borders).toBeUndefined();
+    expect(getCellMeta(0, 2).borders).toBeUndefined();
+    expect(getCellMeta(0, 3).borders).toBeUndefined();
+
+    expect(getCellMeta(1, 0).borders).toBeUndefined();
+    expect(getCellMeta(1, 1).borders).toBeUndefined();
+    expect(getCellMeta(1, 2).borders).toBeUndefined();
+    expect(getCellMeta(1, 3).borders).toBeUndefined();
+
+    expect(getCellMeta(2, 0).borders).toBeUndefined();
+    expect(getCellMeta(2, 1).borders).toBeUndefined();
+    expect(getCellMeta(2, 3).borders).toBeUndefined();
+
+    expect(getCellMeta(3, 0).borders).toBeUndefined();
+    expect(getCellMeta(3, 1).borders).toBeUndefined();
+    expect(getCellMeta(3, 2).borders).toBeUndefined();
+    expect(getCellMeta(3, 3).borders).toBeUndefined();
+
+    expect(countVisibleCustomBorders()).toBe(2);
+    expect(countCustomBorders()).toBe(5);
   });
 
   it('should return borders from the selected area by use getBorders method', () => {
@@ -290,35 +566,25 @@ describe('CustomBorders', () => {
       customBorders: [{
         row: 2,
         col: 2,
-        left: {
-          width: 2,
-          color: 'red'
-        },
-        right: {
-          width: 1,
-          color: 'green'
-        },
-        top: {
-          width: 1,
-          color: 'green'
-        }
+        left: RED_BORDER,
+        right: GREEN_BORDER,
+        top: GREEN_BORDER
       }]
     });
 
-    const redBorder = { color: 'red', width: 2 };
-    const greenBorder = { color: 'green', width: 1 };
-    const empty = { hide: true };
     const customBorders = hot.getPlugin('customBorders');
 
     hot.selectCells([[1, 1, 2, 2]]);
-
     const borders = customBorders.getBorders(getSelected());
+    deselectCell();
 
     expect(borders.length).toEqual(1);
-    expect(borders[0].top).toEqual(greenBorder);
-    expect(borders[0].left).toEqual(redBorder);
-    expect(borders[0].bottom).toEqual(empty);
-    expect(borders[0].right).toEqual(greenBorder);
+    expect(borders[0].top).toEqual(GREEN_BORDER);
+    expect(borders[0].left).toEqual(RED_BORDER);
+    expect(borders[0].bottom).toEqual(EMPTY);
+    expect(borders[0].right).toEqual(GREEN_BORDER);
+    expect(countVisibleCustomBorders()).toBe(3);
+    expect(countCustomBorders()).toBe(5);
   });
 
   it('should return all borders by use getBorders method without parameter', () => {
@@ -335,38 +601,17 @@ describe('CustomBorders', () => {
             col: 3
           }
         },
-        top: {
-          width: 2,
-          color: 'blue'
-        },
-        left: {
-          width: 2,
-          color: 'orange'
-        },
-        bottom: {
-          width: 2,
-          color: 'red'
-        },
-        right: {
-          width: 2,
-          color: 'magenta'
-        }
+        top: BLUE_BORDER,
+        left: ORANGE_BORDER,
+        bottom: RED_BORDER,
+        right: MAGENTA_BORDER
       },
       {
         row: 2,
         col: 2,
-        left: {
-          width: 2,
-          color: 'red'
-        },
-        right: {
-          width: 1,
-          color: 'green'
-        },
-        top: {
-          width: 2,
-          color: 'green'
-        }
+        left: RED_BORDER,
+        right: GREEN_BORDER,
+        top: GREEN_THICK_BORDER
       }]
     });
 
@@ -375,9 +620,11 @@ describe('CustomBorders', () => {
     const borders = customBorders.getBorders();
 
     expect(borders.length).toEqual(9);
+    expect(countVisibleCustomBorders()).toBe(15); // there are 9 cells in the provided range, some of which have 1, 2 or 3 rendered borders
+    expect(countCustomBorders()).toBe(9 * 5); // there are 9 cells in the provided range
   });
 
-  it('should clear borders from the selected area by use clearBorders method', () => {
+  it('should clear borders from area by use clearBorders method (while selected)', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: [{
@@ -391,64 +638,122 @@ describe('CustomBorders', () => {
             col: 3
           }
         },
-        top: {
-          width: 2,
-          color: 'blue'
-        },
-        left: {
-          width: 2,
-          color: 'orange'
-        },
-        bottom: {
-          width: 2,
-          color: 'red'
-        },
-        right: {
-          width: 2,
-          color: 'magenta'
-        }
+        top: BLUE_BORDER,
+        left: ORANGE_BORDER,
+        bottom: RED_BORDER,
+        right: MAGENTA_BORDER
       },
       {
         row: 2,
         col: 2,
-        left: {
-          width: 2,
-          color: 'red'
-        },
-        right: {
-          width: 1,
-          color: 'green'
-        },
-        top: {
-          width: 2,
-          color: 'green'
-        }
+        left: RED_BORDER,
+        right: GREEN_BORDER,
+        top: GREEN_THICK_BORDER
       }]
     });
 
-    const magentaBorder = { color: 'magenta', width: 2 };
-    const blueBorder = { color: 'blue', width: 2 };
-    const orangeBorder = { color: 'orange', width: 2 };
-    const redBorder = { color: 'red', width: 2 };
     const customBorders = hot.getPlugin('customBorders');
 
-    selectCells([[0, 0, 2, 2]]);
+    /*
+    Was:
+    0000
+    0111
+    0111
+    0111
+    */
 
+    selectCells([[0, 0, 2, 2]]);
     customBorders.clearBorders(getSelectedRange());
+    deselectCell();
+
+    /*
+    Is:
+    0000
+    0001
+    0001
+    0111
+    */
 
     expect(getCellMeta(1, 1).borders).toBeUndefined();
     expect(getCellMeta(1, 2).borders).toBeUndefined();
     expect(getCellMeta(2, 1).borders).toBeUndefined();
     expect(getCellMeta(2, 2).borders).toBeUndefined();
 
-    expect(getCellMeta(1, 3).borders.top).toEqual(blueBorder);
-    expect(getCellMeta(1, 3).borders.right).toEqual(magentaBorder);
-    expect(getCellMeta(2, 3).borders.right).toEqual(magentaBorder);
-    expect(getCellMeta(3, 1).borders.left).toEqual(orangeBorder);
-    expect(getCellMeta(3, 1).borders.bottom).toEqual(redBorder);
-    expect(getCellMeta(3, 2).borders.bottom).toEqual(redBorder);
-    expect(getCellMeta(3, 3).borders.right).toEqual(magentaBorder);
-    expect(getCellMeta(3, 3).borders.bottom).toEqual(redBorder);
+    expect(getCellMeta(1, 3).borders.top).toEqual(BLUE_BORDER);
+    expect(getCellMeta(1, 3).borders.right).toEqual(MAGENTA_BORDER);
+    expect(getCellMeta(2, 3).borders.right).toEqual(MAGENTA_BORDER);
+    expect(getCellMeta(3, 1).borders.left).toEqual(ORANGE_BORDER);
+    expect(getCellMeta(3, 1).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(3, 2).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(3, 3).borders.right).toEqual(MAGENTA_BORDER);
+    expect(getCellMeta(3, 3).borders.bottom).toEqual(RED_BORDER);
+    expect(countVisibleCustomBorders()).toBe(8);
+    expect(countCustomBorders()).toBe(5 * 5);
+  });
+
+  it('should clear borders from area by use clearBorders method (while deselected)', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      customBorders: [{
+        range: {
+          from: {
+            row: 1,
+            col: 1
+          },
+          to: {
+            row: 3,
+            col: 3
+          }
+        },
+        top: BLUE_BORDER,
+        left: ORANGE_BORDER,
+        bottom: RED_BORDER,
+        right: MAGENTA_BORDER
+      },
+      {
+        row: 2,
+        col: 2,
+        left: RED_BORDER,
+        right: GREEN_BORDER,
+        top: GREEN_THICK_BORDER
+      }]
+    });
+
+    const customBorders = hot.getPlugin('customBorders');
+
+    /*
+    Was:
+    0000
+    0111
+    0111
+    0111
+    */
+
+    customBorders.clearBorders([[0, 0, 2, 2]]);
+
+    /*
+    Is:
+    0000
+    0001
+    0001
+    0111
+    */
+
+    expect(getCellMeta(1, 1).borders).toBeUndefined();
+    expect(getCellMeta(1, 2).borders).toBeUndefined();
+    expect(getCellMeta(2, 1).borders).toBeUndefined();
+    expect(getCellMeta(2, 2).borders).toBeUndefined();
+
+    expect(getCellMeta(1, 3).borders.top).toEqual(BLUE_BORDER);
+    expect(getCellMeta(1, 3).borders.right).toEqual(MAGENTA_BORDER);
+    expect(getCellMeta(2, 3).borders.right).toEqual(MAGENTA_BORDER);
+    expect(getCellMeta(3, 1).borders.left).toEqual(ORANGE_BORDER);
+    expect(getCellMeta(3, 1).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(3, 2).borders.bottom).toEqual(RED_BORDER);
+    expect(getCellMeta(3, 3).borders.right).toEqual(MAGENTA_BORDER);
+    expect(getCellMeta(3, 3).borders.bottom).toEqual(RED_BORDER);
+    expect(countVisibleCustomBorders()).toBe(8);
+    expect(countCustomBorders()).toBe(5 * 5);
   });
 
   it('should clear all borders by use clearBorders method without parameter', () => {
@@ -465,38 +770,17 @@ describe('CustomBorders', () => {
             col: 3
           }
         },
-        top: {
-          width: 2,
-          color: 'blue'
-        },
-        left: {
-          width: 2,
-          color: 'orange'
-        },
-        bottom: {
-          width: 2,
-          color: 'red'
-        },
-        right: {
-          width: 2,
-          color: 'magenta'
-        }
+        top: BLUE_BORDER,
+        left: ORANGE_BORDER,
+        bottom: RED_BORDER,
+        right: MAGENTA_BORDER
       },
       {
         row: 2,
         col: 2,
-        left: {
-          width: 2,
-          color: 'red'
-        },
-        right: {
-          width: 1,
-          color: 'green'
-        },
-        top: {
-          width: 2,
-          color: 'green'
-        }
+        left: RED_BORDER,
+        right: GREEN_BORDER,
+        top: GREEN_THICK_BORDER
       }]
     });
 
@@ -514,6 +798,9 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 1).borders).toBeUndefined();
     expect(getCellMeta(3, 2).borders).toBeUndefined();
     expect(getCellMeta(3, 3).borders).toBeUndefined();
+
+    expect(countVisibleCustomBorders()).toBe(0);
+    expect(countCustomBorders()).toBe(0);
   });
 
   it('should draw borders from context menu options when was first cleared borders by the clearBorders method', async() => {
@@ -523,46 +810,27 @@ describe('CustomBorders', () => {
       customBorders: [{
         row: 0,
         col: 0,
-        left: {
-          width: 2,
-          color: 'red'
-        },
-        right: {
-          width: 1,
-          color: 'green'
-        },
-        top: {
-          width: 2,
-          color: 'green'
-        }
+        left: RED_BORDER,
+        right: GREEN_BORDER,
+        top: GREEN_THICK_BORDER
       }]
     });
 
-    const defaultBorder = { color: '#000', width: 1 };
-    const empty = { hide: true };
     const customBorders = hot.getPlugin('customBorders');
 
     selectCell(0, 0);
-
     customBorders.clearBorders(getSelectedRange());
+    deselectCell();
 
-    expect(getCellMeta(0, 0).borders).toBeUndefined();
+    await selectContextSubmenuOption('Borders', 'Top');
+    deselectCell();
 
-    contextMenu();
-    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
-    item.simulate('mouseover');
-
-    await sleep(300);
-
-    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
-
-    button.simulate('mousedown');
-
-    expect(getCellMeta(0, 0).borders.top).toEqual(defaultBorder);
-    expect(getCellMeta(0, 0).borders.left).toEqual(empty);
-    expect(getCellMeta(0, 0).borders.bottom).toEqual(empty);
-    expect(getCellMeta(0, 0).borders.right).toEqual(empty);
+    expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
+    expect(countVisibleCustomBorders()).toBe(1);
+    expect(countCustomBorders()).toBe(5);
   });
 
   it('should clear all borders when first was cleared borders by the clearBorders method with selections,' +
@@ -573,49 +841,25 @@ describe('CustomBorders', () => {
       customBorders: [{
         row: 0,
         col: 0,
-        left: {
-          width: 2,
-          color: 'red'
-        },
-        right: {
-          width: 1,
-          color: 'green'
-        },
-        top: {
-          width: 2,
-          color: 'green'
-        }
+        left: RED_BORDER,
+        right: GREEN_BORDER,
+        top: GREEN_THICK_BORDER
       }]
     });
 
-    const defaultBorder = { color: '#000', width: 1 };
-    const empty = { hide: true };
     const customBorders = hot.getPlugin('customBorders');
 
     selectCell(0, 0);
-
     customBorders.clearBorders(getSelectedRange());
+    deselectCell();
 
-    expect(getCellMeta(0, 0).borders).toBeUndefined();
-
-    contextMenu();
-    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
-    item.simulate('mouseover');
-
-    await sleep(300);
-
-    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
-
-    button.simulate('mousedown');
-
-    expect(getCellMeta(0, 0).borders.top).toEqual(defaultBorder);
-    expect(getCellMeta(0, 0).borders.left).toEqual(empty);
-    expect(getCellMeta(0, 0).borders.bottom).toEqual(empty);
-    expect(getCellMeta(0, 0).borders.right).toEqual(empty);
+    await selectContextSubmenuOption('Borders', 'Top');
+    deselectCell();
 
     customBorders.clearBorders();
     expect(getCellMeta(0, 0).borders).toBeUndefined();
+    expect(countVisibleCustomBorders()).toBe(0);
+    expect(countCustomBorders()).toBe(0);
   });
 
   it('should draw top border from context menu options', async() => {
@@ -625,25 +869,17 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const defaultBorder = { color: '#000', width: 1 };
-    const empty = { hide: true };
-
-    contextMenu();
-    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
-    item.simulate('mouseover');
-
-    await sleep(300);
-
-    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
-
-    button.simulate('mousedown');
+    await selectContextSubmenuOption('Borders', 'Top');
+    deselectCell();
 
     // expect(getCellMeta(0,0).borders.hasOwnProperty('top')).toBe(true);
-    expect(getCellMeta(0, 0).borders.top).toEqual(defaultBorder);
-    expect(getCellMeta(0, 0).borders.left).toEqual(empty);
-    expect(getCellMeta(0, 0).borders.bottom).toEqual(empty);
-    expect(getCellMeta(0, 0).borders.right).toEqual(empty);
+    expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
+
+    expect(countVisibleCustomBorders()).toBe(1);
+    expect(countCustomBorders()).toBe(5);
   });
 
   it('should draw left border from context menu options', async() => {
@@ -653,26 +889,17 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const defaultBorder = { color: '#000', width: 1 };
-    const empty = { hide: true };
-
-    contextMenu();
-    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
-    item.simulate('mouseover');
-
-    await sleep(300);
-
-    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
-
-    button.simulate('mousedown');
+    await selectContextSubmenuOption('Borders', 'Left');
+    deselectCell();
 
     /* eslint-disable no-prototype-builtins */
     expect(getCellMeta(0, 0).borders.hasOwnProperty('left')).toBe(true);
-    expect(getCellMeta(0, 0).borders.top).toEqual(empty);
-    expect(getCellMeta(0, 0).borders.left).toEqual(defaultBorder);
-    expect(getCellMeta(0, 0).borders.bottom).toEqual(empty);
-    expect(getCellMeta(0, 0).borders.right).toEqual(empty);
+    expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.left).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
+    expect(countVisibleCustomBorders()).toBe(1);
+    expect(countCustomBorders()).toBe(5);
   });
 
   it('should draw right border from context menu options', async() => {
@@ -682,26 +909,17 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const defaultBorder = { color: '#000', width: 1 };
-    const empty = { hide: true };
-
-    contextMenu();
-    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
-    item.simulate('mouseover');
-
-    await sleep(300);
-
-    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
-
-    button.simulate('mousedown');
+    await selectContextSubmenuOption('Borders', 'Right');
+    deselectCell();
 
     /* eslint-disable no-prototype-builtins */
-    expect(getCellMeta(0, 0).borders.hasOwnProperty('right')).toBe(true);
-    expect(getCellMeta(0, 0).borders.top).toEqual(empty);
-    expect(getCellMeta(0, 0).borders.left).toEqual(empty);
-    expect(getCellMeta(0, 0).borders.bottom).toEqual(empty);
-    expect(getCellMeta(0, 0).borders.right).toEqual(defaultBorder);
+    expect(getCellMeta(0, 0).borders.hasOwnProperty('right')).toBe(true); // TODO flaky test. sometimes I get this error on this line: 'Failed: Cannot read property 'hasOwnProperty' of undefined'
+    expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.right).toEqual(DEFAULT_BORDER);
+    expect(countVisibleCustomBorders()).toBe(1);
+    expect(countCustomBorders()).toBe(5);
   });
 
   it('should draw bottom border from context menu options', async() => {
@@ -711,26 +929,17 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const defaultBorder = { color: '#000', width: 1 };
-    const empty = { hide: true };
-
-    contextMenu();
-    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
-    item.simulate('mouseover');
-
-    await sleep(300);
-
-    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
-
-    button.simulate('mousedown');
+    await selectContextSubmenuOption('Borders', 'Bottom');
+    deselectCell();
 
     /* eslint-disable no-prototype-builtins */
     expect(getCellMeta(0, 0).borders.hasOwnProperty('right')).toBe(true);
-    expect(getCellMeta(0, 0).borders.top).toEqual(empty);
-    expect(getCellMeta(0, 0).borders.left).toEqual(empty);
-    expect(getCellMeta(0, 0).borders.bottom).toEqual(defaultBorder);
-    expect(getCellMeta(0, 0).borders.right).toEqual(empty);
+    expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.bottom).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
+    expect(countVisibleCustomBorders()).toBe(1);
+    expect(countCustomBorders()).toBe(5);
   });
 
   it('should remove all bottoms border from context menu options', async() => {
@@ -741,29 +950,19 @@ describe('CustomBorders', () => {
         {
           row: 0,
           col: 0,
-          left: {
-            width: 2,
-            color: 'red'
-          },
-          right: {
-            width: 1,
-            color: 'green'
-          }
+          left: RED_BORDER,
+          right: GREEN_BORDER
         }]
     });
+    expect(countVisibleCustomBorders()).toBe(2);
+    expect(countCustomBorders()).toBe(5);
 
-    contextMenu();
-    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
-    item.simulate('mouseover');
-
-    await sleep(300);
-
-    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
-
-    button.simulate('mousedown');
+    await selectContextSubmenuOption('Borders', 'Remove border');
+    deselectCell();
 
     expect(getCellMeta(0, 0).borders).toBeUndefined();
+    expect(countVisibleCustomBorders()).toBe(0);
+    expect(countCustomBorders()).toBe(0);
   });
 
   it('should disable `Borders` context menu item when menu was triggered from corner header', () => {
@@ -789,5 +988,67 @@ describe('CustomBorders', () => {
       'Alignment',
       'Borders',
     ].join(''));
+  });
+
+  describe('virtual rendering', () => {
+    // based on tests in Core_count.spec.js
+
+    it('should render borders only for rendered rows', () => {
+      const data = Handsontable.helper.createSpreadsheetData(10, 2);
+      const customBorders = generateCustomBordersForAllRows(data.length);
+      const instance = handsontable({
+        data,
+        customBorders,
+        height: 100,
+        viewportRowRenderingOffset: 0
+      });
+      expect(instance.countRenderedRows()).toEqual(5);
+      expect(countVisibleCustomBorders()).toEqual(5);
+      expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
+    });
+
+    it('should render borders only for rendered rows, after scrolling', async() => {
+      const data = Handsontable.helper.createSpreadsheetData(10, 2);
+      const customBorders = generateCustomBordersForAllRows(data.length);
+      const instance = handsontable({
+        data,
+        customBorders,
+        height: 100,
+        viewportRowRenderingOffset: 0
+      });
+      const mainHolder = instance.view.wt.wtTable.holder;
+      $(mainHolder).scrollTop(400);
+      await sleep(300);
+      expect(instance.countRenderedRows()).toEqual(5);
+      expect(countVisibleCustomBorders()).toEqual(5);
+      expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
+    });
+
+    it('should render borders only for rendered rows, including rows rendered because of viewportRowRenderingOffset', () => {
+      const data = Handsontable.helper.createSpreadsheetData(10, 2);
+      const customBorders = generateCustomBordersForAllRows(data.length);
+      const instance = handsontable({
+        data,
+        customBorders,
+        height: 100,
+        viewportRowRenderingOffset: 20
+      });
+      expect(instance.countRenderedRows()).toEqual(10);
+      expect(countVisibleCustomBorders()).toEqual(10);
+      expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
+    });
+
+    it('should not render borders when the table is not rendered', async() => {
+      spec().$container.remove();
+      const data = Handsontable.helper.createSpreadsheetData(10, 2);
+      const customBorders = generateCustomBordersForAllRows(data.length);
+      handsontable({
+        data,
+        customBorders,
+        width: 100
+      });
+      expect(countVisibleCustomBorders()).toEqual(0);
+      expect(countCustomBorders()).toEqual(0);
+    });
   });
 });

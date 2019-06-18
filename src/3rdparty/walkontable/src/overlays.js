@@ -96,8 +96,6 @@ class Overlays {
     this.horizontalScrolling = false;
     this.delegatedScrollCallback = false;
 
-    this.registeredListeners = [];
-
     this.browserLineHeight = BODY_LINE_HEIGHT || FALLBACK_BODY_LINE_HEIGHT;
 
     this.registerListeners();
@@ -201,71 +199,60 @@ class Overlays {
     const { rootDocument, rootWindow } = this.wot;
     const { mainTableScrollableElement: topOverlayScrollableElement } = this.topOverlay;
     const { mainTableScrollableElement: leftOverlayScrollableElement } = this.leftOverlay;
-    const listenersToRegister = [];
 
-    listenersToRegister.push([rootDocument.documentElement, 'keydown', event => this.onKeyDown(event)]);
-    listenersToRegister.push([rootDocument.documentElement, 'keyup', () => this.onKeyUp()]);
-    listenersToRegister.push([rootDocument, 'visibilitychange', () => this.onKeyUp()]);
-    listenersToRegister.push([topOverlayScrollableElement, 'scroll', event => this.onTableScroll(event), { passive: true }]);
+    this.eventManager.addEventListener(rootDocument.documentElement, 'keydown', event => this.onKeyDown(event));
+    this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
+    this.eventManager.addEventListener(rootDocument, 'visibilitychange', () => this.onKeyUp());
+    this.eventManager.addEventListener(topOverlayScrollableElement, 'scroll', event => this.onTableScroll(event), { passive: true });
 
     if (topOverlayScrollableElement !== leftOverlayScrollableElement) {
-      listenersToRegister.push([leftOverlayScrollableElement, 'scroll', event => this.onTableScroll(event), { passive: true }]);
+      this.eventManager.addEventListener(leftOverlayScrollableElement, 'scroll', event => this.onTableScroll(event), { passive: true });
     }
 
     const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
     const isScrollOnWindow = this.scrollableElement === rootWindow;
 
     if (isHighPixelRatio || !isChrome()) {
-      listenersToRegister.push([this.wot.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow }]);
+      this.eventManager.addEventListener(this.wot.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
 
     } else {
       if (this.topOverlay.needFullRender) {
-        listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow }]);
+        this.eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
       }
 
       if (this.bottomOverlay.needFullRender) {
-        listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow }]);
+        this.eventManager.addEventListener(this.bottomOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
       }
 
       if (this.leftOverlay.needFullRender) {
-        listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow }]);
+        this.eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
       }
 
       if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.needFullRender) {
-        listenersToRegister.push([this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow }]);
+        this.eventManager.addEventListener(this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
       }
 
       if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.needFullRender) {
-        listenersToRegister.push([this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow }]);
+        this.eventManager.addEventListener(this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
       }
     }
 
     let resizeTimeout;
 
-    listenersToRegister.push([rootWindow, 'resize', () => {
+    this.eventManager.addEventListener(rootWindow, 'resize', () => {
       clearTimeout(resizeTimeout);
 
       resizeTimeout = setTimeout(() => {
         this.wot.getSetting('onWindowResize');
       }, 200);
-    }]);
-
-    while (listenersToRegister.length) {
-      const listener = listenersToRegister.pop();
-      this.eventManager.addEventListener(...listener);
-
-      this.registeredListeners.push(listener);
-    }
+    });
   }
 
   /**
    * Deregister all previously registered listeners.
    */
   deregisterListeners() {
-    while (this.registeredListeners.length) {
-      const listener = this.registeredListeners.pop();
-      this.eventManager.removeEventListener(listener[0], listener[1], listener[2]);
-    }
+    this.eventManager.clearEvents(true);
   }
 
   /**
