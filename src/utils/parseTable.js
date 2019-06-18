@@ -262,10 +262,10 @@ export function htmlToGridSettings(element, rootDocument = document) {
 
   countRows = dataRows.length;
 
-  const dataArr = Array(countRows);
+  const dataArr = new Array(countRows);
 
   for (let r = 0; r < countRows; r++) {
-    dataArr[r] = Array(countCols);
+    dataArr[r] = new Array(countCols);
   }
 
   const mergeCells = [];
