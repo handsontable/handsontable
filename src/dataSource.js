@@ -1,6 +1,6 @@
-import { getProperty } from './../helpers/object';
-import { arrayEach } from './../helpers/array';
-import { rangeEach } from './../helpers/number';
+import { getProperty } from './helpers/object';
+import { arrayEach } from './helpers/array';
+import { rangeEach } from './helpers/number';
 
 /**
  * @class DataSource

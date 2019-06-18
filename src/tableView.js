@@ -14,7 +14,6 @@ import EventManager from './eventManager';
 import { stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
-import { getStorage } from './dataMap/changesFilter';
 
 const privatePool = new WeakMap();
 
@@ -385,21 +384,7 @@ class TableView {
       },
       columnWidth: this.instance.getColWidth,
       rowHeight: this.instance.getRowHeight,
-      // cellRenderer: (row, col, TD) => {
-      cellRenderer: (row, col, TD, needRecreateContent) => {
-        // console.log('render', row, col);
-
-        if (this.settings.ecoRendering) {
-          const physicalColumn = this.instance.toPhysicalColumn(col);
-          const physicalRow = this.instance.toPhysicalRow(row);
-          const hasChangedByColumn = getStorage(this.instance).hasChangedByColumn(physicalColumn);
-          const hasChangedByCoords = getStorage(this.instance).hasChangedByCoords(physicalRow, physicalColumn);
-
-          if (!needRecreateContent && !(hasChangedByCoords || hasChangedByColumn)) {
-            return;
-          }
-        }
-
+      cellRenderer: (row, col, TD) => {
         const cellProperties = this.instance.getCellMeta(row, col);
         const prop = this.instance.colToProp(col);
         let value = this.instance.getDataAtRowProp(row, prop);
@@ -705,8 +690,6 @@ class TableView {
     if (force) {
       // this.instance.forceFullRender = did Handsontable request full render?
       this.instance.runHooks('afterRender', this.instance.forceFullRender);
-
-      getStorage(this.instance).clearChanges();
     }
   }
 

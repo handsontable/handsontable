@@ -504,7 +504,7 @@ class Table {
     const highlights = Array.from(wot.selections);
     const len = highlights.length;
 
-    if (fastDraw || true) {
+    if (fastDraw) {
       const classesToRemove = [];
 
       for (let i = 0; i < len; i++) {

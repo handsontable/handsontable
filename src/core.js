@@ -4,7 +4,7 @@ import { isFunction } from './helpers/function';
 import { warn } from './helpers/console';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser } from './helpers/browser';
-import { DataMap, DataSource, getStorage } from './dataMap';
+import DataMap from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {
@@ -24,6 +24,7 @@ import { getValidator } from './validators';
 import { randomString } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
+import DataSource from './dataSource';
 import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
 import { getTranslator } from './utils/recordTranslator';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
@@ -962,9 +963,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 throw new Error('Validation error: result is not boolean');
               }
 
-              console.log(result, cellPropertiesReference.allowInvalid);
-              // getStorage(instance).markCoordsAsChanged(cellPropertiesReference.row, cellPropertiesReference.col);
-
               if (result === false && cellPropertiesReference.allowInvalid === false) {
                 changes.splice(index, 1); // cancel the change
                 cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
@@ -1159,9 +1157,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
       const physicalRow = recordTranslator.toPhysicalRow(input[i][0]);
-      const physicalColumn = recordTranslator.toPhysicalColumn(input[i][1]);
 
-      getStorage(instance).markCoordsAsChanged(physicalRow, physicalColumn);
       prop = datamap.colToProp(input[i][1]);
       changes.push([
         input[i][0],
@@ -1203,9 +1199,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const physicalRow = recordTranslator.toPhysicalRow(input[i][0]);
-      const physicalColumn = recordTranslator.toPhysicalColumn(input[i][1]);
-
-      getStorage(instance).markCoordsAsChanged(physicalRow, physicalColumn);
 
       changes.push([
         input[i][0],
@@ -1580,7 +1573,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       priv.firstRun = [null, 'loadData'];
     } else {
       instance.runHooks('afterChange', null, 'loadData');
-      getStorage(instance).nextTick();
       instance.render();
     }
     priv.isPopulated = true;
@@ -1849,8 +1841,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       instance.runHooks('afterUpdateSettings', settings);
     }
-
-    getStorage(instance).nextTick();
 
     grid.adjustRowsAndCols();
     if (instance.view && !priv.firstRun) {
@@ -3625,10 +3615,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     arrayEach(this.immediates, (handler) => {
       clearImmediate(handler);
     });
-  };
-
-  this.getStorage = function() {
-    return getStorage(instance);
   };
 
   /**
