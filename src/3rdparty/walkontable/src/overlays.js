@@ -213,8 +213,9 @@ class Overlays {
     const isScrollOnWindow = this.scrollableElement === rootWindow;
 
     if (isHighPixelRatio || !isChrome()) {
-      this.eventManager.addEventListener(this.wot.wtTable.wtRootElement.parentNode, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
-
+      // Resolves issue outline https://github.com/handsontable/handsontable/issues/5913
+      // We can keep this (removing .parentNode) to prevent stutter in retina https://github.com/handsontable/handsontable/issues/4498
+      this.eventManager.addEventListener(this.wot.wtTable.wtRootElement, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
     } else {
       if (this.topOverlay.needFullRender) {
         this.eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
