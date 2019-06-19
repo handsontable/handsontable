@@ -289,7 +289,7 @@ class BaseEditor {
       this.state = EditorState.WAITING;
       this.saveValue(val, ctrlDown);
 
-      if (this.hot.getCellValidator(this.cellProperties) && !this.hot.getSettings().beforeChange) {
+      if (this.hot.getCellValidator(this.cellProperties)) {
         this.hot.addHookOnce('postAfterValidate', (result) => {
           this.state = EditorState.FINISHED;
           this.discardEditor(result);

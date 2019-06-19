@@ -1203,7 +1203,7 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('edited cell should stay on screen until value is validated', (done) => {
+  it('edited cell should stay on screen until value is validated but should be closed before apply changes', (done) => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onAfterChange = jasmine.createSpy('onAfterChange');
     let isEditorVisibleBeforeChange;
@@ -1241,7 +1241,7 @@ describe('Core_validate', () => {
 
     setTimeout(() => {
       expect(isEditorVisibleBeforeChange).toBe(true);
-      expect(isEditorVisibleAfterChange).toBe(true);
+      expect(isEditorVisibleAfterChange).toBe(false);
       expect(isEditorVisible()).toBe(false);
       done();
     }, 200);
