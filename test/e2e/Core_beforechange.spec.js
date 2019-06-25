@@ -139,14 +139,14 @@ describe('Core_beforechange', () => {
     expect(isEditorVisible()).toBe(true);
   });
 
-  it('should drop change when beforeChange remove single change and allowInvalid is `false` and close editor (which has validator)', () => {
+  it('should drop change when beforeChange return `false` and allowInvalid is `false` and close editor (which has validator)', () => {
     handsontable({
       data: [['a', 'b'], ['c', 'd']],
       columns: () => ({
         validator: (_, callback) => callback(false),
         allowInvalid: false
       }),
-      beforeChange: changes => changes.splice(0, 1)
+      beforeChange: () => false
     });
 
     setDataAtCell([[0, 0, 'test']]);
