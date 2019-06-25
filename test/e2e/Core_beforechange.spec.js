@@ -88,7 +88,7 @@ describe('Core_beforechange', () => {
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should drop change when beforeChange remove single change close editor autocomplete (date)', () => {
+  it('should drop change when beforeChange remove single change and close editor autocomplete (date)', () => {
     handsontable({
       data: [['a', 'b'], ['c', 'd']],
       columns: [
@@ -137,6 +137,27 @@ describe('Core_beforechange', () => {
     keyDown('enter');
 
     expect(isEditorVisible()).toBe(true);
+  });
+
+  it('should drop change when beforeChange remove single change and allowInvalid is `false` and close editor (which has validator)', () => {
+    handsontable({
+      data: [['a', 'b'], ['c', 'd']],
+      columns: () => ({
+        validator: (_, callback) => callback(false),
+        allowInvalid: false
+      }),
+      beforeChange: changes => changes.splice(0, 1)
+    });
+
+    setDataAtCell([[0, 0, 'test']]);
+
+    expect(getDataAtCell(0, 0)).toEqual('a');
+
+    selectCell(0, 0);
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(isEditorVisible()).toBe(false);
   });
 
   function beforechangeOnKeyFactory(keyCode) {

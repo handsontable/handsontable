@@ -1247,6 +1247,50 @@ describe('Core_validate', () => {
     }, 200);
   });
 
+  it('edited cell should stay on screen until value is validated and should not be closed when validator does not pass', (done) => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterChange = jasmine.createSpy('onAfterChange');
+    let isEditorVisibleBeforeChange;
+    let isEditorVisibleAfterChange;
+
+    onAfterValidate.and.callFake(() => {
+      isEditorVisibleBeforeChange = isEditorVisible();
+    });
+    onAfterChange.and.callFake(() => {
+      isEditorVisibleAfterChange = isEditorVisible();
+    });
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      afterValidate: onAfterValidate,
+      afterChange: onAfterChange,
+      validator(value, callback) {
+        setTimeout(() => {
+          callback(false);
+        }, 100);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+    document.activeElement.value = 'Ted';
+
+    onAfterValidate.calls.reset();
+    onAfterChange.calls.reset();
+
+    keyDown('enter');
+
+    expect(document.activeElement.nodeName).toEqual('TEXTAREA');
+
+    setTimeout(() => {
+      expect(isEditorVisibleBeforeChange).toBe(true);
+      expect(isEditorVisibleAfterChange).toBe(false);
+      expect(isEditorVisible()).toBe(true);
+      done();
+    }, 200);
+  });
+
   it('should validate edited cell after selecting another cell', async() => {
     let validatedValue;
 
