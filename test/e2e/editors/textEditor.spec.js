@@ -815,7 +815,7 @@ describe('TextEditor', () => {
 
     keyDown(Handsontable.helper.KEY_CODES.BACKSPACE);
 
-    expect(getDataAtCell(0, 0)).toEqual('');
+    expect(getDataAtCell(0, 0)).toEqual(null);
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
@@ -835,7 +835,7 @@ describe('TextEditor', () => {
 
     keyDown(Handsontable.helper.KEY_CODES.DELETE);
 
-    expect(getDataAtCell(0, 0)).toEqual('');
+    expect(getDataAtCell(0, 0)).toEqual(null);
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
     keyDown(Handsontable.helper.KEY_CODES.ENTER);

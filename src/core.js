@@ -1428,9 +1428,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function emptySelectedCells
+   * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
    * @since 0.36.0
    */
-  this.emptySelectedCells = function() {
+  this.emptySelectedCells = function(source) {
     if (!selection.isSelected()) {
       return;
     }
@@ -1443,14 +1444,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       rangeEach(topLeft.row, bottomRight.row, (row) => {
         rangeEach(topLeft.col, bottomRight.col, (column) => {
           if (!this.getCellMeta(row, column).readOnly) {
-            changes.push([row, column, '']);
+            changes.push([row, column, null]);
           }
         });
       });
     });
 
     if (changes.length > 0) {
-      this.setDataAtCell(changes);
+      this.setDataAtCell(changes, source);
     }
   };
 

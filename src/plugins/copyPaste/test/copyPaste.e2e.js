@@ -12,30 +12,6 @@ describe('CopyPaste', () => {
     }
   });
 
-  class DataTransferObject {
-    constructor() {
-      this.data = {
-        'text/plain': '',
-        'text/html': ''
-      };
-    }
-    getData(type = 'text/plain') {
-      return this.data[type];
-    }
-    setData(type = 'text/plain', value) {
-      this.data[type] = value;
-    }
-  }
-
-  function getClipboardEvent() {
-    const event = {};
-
-    event.clipboardData = new DataTransferObject();
-    event.preventDefault = () => {};
-
-    return event;
-  }
-
   const arrayOfArrays = function() {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
@@ -380,7 +356,7 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody><tr><td>A2</td></tr></tbody></table>'].join(''));
 
-      expect(hot.getDataAtCell(1, 0)).toBe('');
+      expect(hot.getDataAtCell(1, 0)).toBe(null);
     });
 
     it('should call beforeCut and afterCut during cutting out operation', () => {
