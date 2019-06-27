@@ -40,6 +40,7 @@ describe('Core_validate', () => {
     hot.validateCells();
     await sleep(10);
     hot.destroy();
+    spec().$container.remove();
 
     expect(() => { validatorCallback(false); }).not.toThrow();
     expect(validatorCallback(false)).toBe(void 0);

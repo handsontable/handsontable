@@ -265,6 +265,7 @@ class Menu {
     this.close();
     this.parentMenu = null;
     this.eventManager.destroy();
+    this.container.remove();
   }
 
   /**

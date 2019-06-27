@@ -74,6 +74,7 @@ class DateEditor extends TextEditor {
    */
   destroyElements() {
     this.$datePicker.destroy();
+    this.datePicker.remove();
   }
 
   /**

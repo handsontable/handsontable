@@ -736,7 +736,7 @@ describe('ContextMenu', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('should open subMenu on the left of main menu if on the right there\'s no space left', () => {
+    it('should open subMenu on the left of main menu if on the right there\'s no space left', async() => {
       handsontable({
         data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
         contextMenu: true,
@@ -750,6 +750,8 @@ describe('ContextMenu', () => {
       const contextMenuRoot = $('.htContextMenu');
 
       item.simulate('mouseover');
+
+      await sleep(350);
 
       expect(item.text()).toBe('Alignment');
       expect(item.hasClass('htSubmenu')).toBe(true);

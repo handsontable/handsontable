@@ -403,7 +403,7 @@ describe('Core_view', () => {
       height: '50vh',
     });
 
-    expect(spec().$container.height()).toEqual(window.innerHeight / 2);
+    expect(spec().$container.height()).toEqual(Math.ceil(window.innerHeight / 2));
   });
 
   it('should allow width to be a number', () => {
