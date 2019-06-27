@@ -179,11 +179,12 @@ class Table {
       } else {
         const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
         const holderStyle = this.holder.style;
+        const holderHeight = parseInt(holderStyle.height, 10);
         const { scrollWidth, scrollHeight } = trimmingElement;
         let { width, height } = trimmingElement.getBoundingClientRect();
 
         width = Math.min(width, scrollWidth);
-        height = Math.min(height, scrollHeight);
+        height = holderHeight ? Math.min(height, scrollHeight, holderHeight) : Math.min(height, scrollHeight);
 
         holderStyle.width = `${width}px`;
         holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
