@@ -210,9 +210,9 @@ class ManualColumnMove extends BasePlugin {
 
       // after moving we have to clear columnsMapper from null entries
       this.columnsMapper.clearNull();
-    }
 
-    this.hot.runHooks('afterColumnMove', visualColumns, target);
+      this.hot.runHooks('afterColumnMove', visualColumns, target);
+    }
   }
 
   /**
