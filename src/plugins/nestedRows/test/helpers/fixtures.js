@@ -11,23 +11,27 @@ export function getDataForNestedRows() {
         },
         {
           a: 'a0-a1',
-          b: 'b0-b1',
+          b: 'b0-b1'
+        },
+        {
+          a: 'a0-a2',
+          b: 'b0-b2',
           __children: [
             {
-              a: 'a0-a1-a0',
-              b: 'b0-b1-b0',
+              a: 'a0-a2-a0',
+              b: 'b0-b2-b0',
               __children: [
                 {
-                  a: 'a0-a1-a0-a0',
-                  b: 'b0-b1-b0-b0'
+                  a: 'a0-a2-a0-a0',
+                  b: 'b0-b2-b0-b0'
                 }
               ]
             }
           ]
         },
         {
-          a: 'a0-a2',
-          b: 'b0-b2'
+          a: 'a0-a3',
+          b: 'b0-b3'
         }
       ]
     },

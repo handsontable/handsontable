@@ -87,7 +87,6 @@ class NestedRows extends BasePlugin {
   enablePlugin() {
     this.sourceData = this.hot.getSourceData();
     this.trimRowsPlugin = this.hot.getPlugin('trimRows');
-    this.manualRowMovePlugin = this.hot.getPlugin('manualRowMove');
     this.bindRowsWithHeadersPlugin = this.hot.getPlugin('bindRowsWithHeaders');
 
     this.dataManager = new DataManager(this, this.hot, this.sourceData);
@@ -162,6 +161,7 @@ class NestedRows extends BasePlugin {
     let toParent = null;
     let sameParent = null;
 
+    // We can't move rows when any of them is a parent
     for (i = 0; i < rowsLen; i++) {
       translatedStartIndexes.push(this.dataManager.translateTrimmedRow(rows[i]));
 
@@ -170,6 +170,7 @@ class NestedRows extends BasePlugin {
       }
     }
 
+    // We can't move rows when any of them is tried to be moved to the position of moved row
     if (translatedStartIndexes.indexOf(translatedTargetIndex) > -1 || !allowMove) {
       return false;
     }
@@ -177,15 +178,18 @@ class NestedRows extends BasePlugin {
     fromParent = this.dataManager.getRowParent(translatedStartIndexes[0]);
     toParent = this.dataManager.getRowParent(translatedTargetIndex);
 
+    // We move row to the first parent of destination row whether there was a try of moving it on the row being a parent
     if (toParent === null || toParent === void 0) {
       toParent = this.dataManager.getRowParent(translatedTargetIndex - 1);
     }
 
+    // We move row to "first group" whether there is no parent of destination row
     if (toParent === null || toParent === void 0) {
       toParent = this.dataManager.getDataObject(translatedTargetIndex - 1);
       priv.movedToFirstChild = true;
     }
 
+    // Can't move row whether there was a try of moving it on the row being a parent (and it has no other parent)
     if (!toParent) {
       return false;
     }
@@ -205,15 +209,6 @@ class NestedRows extends BasePlugin {
 
     priv.changeSelection = true;
 
-    if (translatedStartIndexes[rowsLen - 1] <= translatedTargetIndex && sameParent || priv.movedToFirstChild === true) {
-      rows.reverse();
-      translatedStartIndexes.reverse();
-
-      if (priv.movedToFirstChild !== true) {
-        translatedTargetIndex -= 1;
-      }
-    }
-
     for (i = 0; i < rowsLen; i++) {
       this.dataManager.moveRow(translatedStartIndexes[i], translatedTargetIndex);
     }
@@ -228,10 +223,6 @@ class NestedRows extends BasePlugin {
       for (i = 0; i < rowsLen; i++) {
         this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedTargetIndex);
       }
-    }
-
-    if ((translatedStartIndexes[rowsLen - 1] <= translatedTargetIndex && sameParent) || this.dataManager.isParent(translatedTargetIndex)) {
-      rows.reverse();
     }
 
     this.dataManager.rewriteCache();

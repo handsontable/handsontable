@@ -106,13 +106,13 @@ describe('NestedRows Collapsing UI', () => {
           data: getDataForNestedRows(),
           nestedRows: true,
           rowHeaders: true,
-          trimRows: [1, 2, 3, 4], // "collapse" rows using the trimRows plugin
+          trimRows: [1, 2, 3, 4, 5], // "collapse" rows using the trimRows plugin
         });
 
         expect(hot.countRows()).toEqual(8);
 
         const plugin = hot.getPlugin('nestedRows');
-        plugin.collapsingUI.expandRows([2], true, true);
+        plugin.collapsingUI.expandRows([3], true, true);
         hot.render();
 
         setTimeout(() => {
@@ -127,17 +127,17 @@ describe('NestedRows Collapsing UI', () => {
         const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true,
-          trimRows: [3, 4], // "collapse" rows using the trimRows plugin
+          trimRows: [4, 5], // "collapse" rows using the trimRows plugin
         });
 
-        expect(hot.countRows()).toEqual(10);
+        expect(hot.countRows()).toEqual(11);
 
         const plugin = hot.getPlugin('nestedRows');
-        plugin.collapsingUI.expandChildren(2);
+        plugin.collapsingUI.expandChildren(3);
         hot.render();
 
         setTimeout(() => {
-          expect(hot.countRows()).toEqual(12);
+          expect(hot.countRows()).toEqual(13);
           done();
         }, 100);
       });
@@ -146,17 +146,17 @@ describe('NestedRows Collapsing UI', () => {
         const hot = handsontable({
           data: getDataForNestedRows(),
           nestedRows: true,
-          trimRows: [3, 4], // "collapse" rows using the trimRows plugin
+          trimRows: [4, 5], // "collapse" rows using the trimRows plugin
         });
 
-        expect(hot.countRows()).toEqual(10);
+        expect(hot.countRows()).toEqual(11);
 
         const plugin = hot.getPlugin('nestedRows');
         plugin.collapsingUI.expandChildren(0);
         hot.render();
 
         setTimeout(() => {
-          expect(hot.countRows()).toEqual(12);
+          expect(hot.countRows()).toEqual(13);
           done();
         }, 100);
       });
