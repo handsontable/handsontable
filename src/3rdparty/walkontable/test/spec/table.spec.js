@@ -90,6 +90,7 @@ describe('WalkontableTable', () => {
   });
 
   it('getCell should only return cells from rendered rows and columns', function() {
+    createDataArray(20, 20);
     const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
@@ -104,9 +105,26 @@ describe('WalkontableTable', () => {
     expect(wt.wtTable.getCell(new Walkontable.CellCoords(25, 0))).toBe(-2); // exit code
     expect(wt.wtTable.getCell(new Walkontable.CellCoords(7, 5))).toBe(-4); // exit code - after rendered column
 
-    wt.scrollViewportHorizontally(getTotalColumns() - 1);
+    wt.scrollViewportHorizontally(6);
+    wt.scrollViewportVertically(10);
     wt.draw();
     expect(wt.wtTable.getCell(new Walkontable.CellCoords(7, 0))).toBe(-3); // exit code - before rendered column
+    expect(wt.wtTable.getCell(new Walkontable.CellCoords(7, 21))).toBe(-4); // exit code - after rendered column
+
+    let results = [];
+    for (let i = 0; i < 20; i++) {
+      const result = wt.wtTable.getCell(new Walkontable.CellCoords(10, i));
+      results.push(result instanceof HTMLElement ? HTMLElement : result);
+    }
+    expect(results).toEqual([-3, -3, -3, -3, -3, HTMLElement, HTMLElement, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4]);
+
+    results = [];
+    for (let i = 0; i < 20; i++) {
+      const result = wt.wtTable.getCell(new Walkontable.CellCoords(i, 6));
+      results.push(result instanceof HTMLElement ? HTMLElement : result);
+    }
+    expect(results).toEqual([-1, -1, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement,
+      HTMLElement, HTMLElement, -2, -2, -2, -2, -2, -2, -2, -2]);
   });
 
   it('getCoords should return coords of TD', () => {
