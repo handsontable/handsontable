@@ -261,11 +261,16 @@ class Menu {
    * Destroy instance.
    */
   destroy() {
+    const menuContainerParentElement = this.container.parentNode;
+
     this.clearLocalHooks();
     this.close();
     this.parentMenu = null;
     this.eventManager.destroy();
-    this.container.remove();
+
+    if (menuContainerParentElement) {
+      menuContainerParentElement.removeChild(this.container);
+    }
   }
 
   /**

@@ -44,7 +44,7 @@ describe('stretchH option', () => {
     expect($table.find('col:eq(2)').width() - $table.find('col:eq(1)').width()).toBeInArray([-1, 0, 1]);
   });
 
-  it('should stretch all visible columns when stretchH equals \'all\' and window is resized', async(done) => {
+  it('should stretch all visible columns when stretchH equals \'all\' and window is resized', async() => {
     createDataArray(20, 2);
 
     $wrapper.width(500).height(400);
@@ -76,8 +76,6 @@ describe('stretchH option', () => {
     const currentTableWidth = $table.outerWidth();
     expect(currentTableWidth).toBeAroundValue($table[0].clientWidth);
     expect(currentTableWidth).toBeGreaterThan(initialTableWidth);
-
-    done();
   });
 
   it('should stretch all visible columns when stretchH equals \'all\' (when rows are of variable height)', function() {

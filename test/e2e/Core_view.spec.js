@@ -372,6 +372,8 @@ describe('Core_view', () => {
     await sleep(250);
 
     expect(spec().$container.height()).toEqual(initHeight);
+
+    spec().$container.unwrap();
   });
 
   it('should allow height to be a number', () => {

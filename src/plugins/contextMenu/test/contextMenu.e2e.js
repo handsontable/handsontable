@@ -3496,4 +3496,24 @@ describe('ContextMenu', () => {
       Handsontable.hooks.remove('beforeContextMenuSetItems', hookListener);
     });
   });
+
+  describe('Cleaning up after the context menu', () => {
+    it('should not leave any context menu containers after destroying the Handsontable instance', () => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100
+      });
+
+      contextMenu();
+
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      item.simulate('mouseover');
+
+      destroy();
+
+      expect($('.htMenu').size()).toEqual(0);
+      expect($('.htMenu').size()).toEqual(0);
+    });
+  });
 });

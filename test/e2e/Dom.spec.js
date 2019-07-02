@@ -117,7 +117,7 @@ describe('Handsontable.Dom', () => {
 
       expect(Handsontable.dom.isVisible($table[0])).toBe(false);
 
-      $table.remove();
+      $div.remove();
     });
 
     it('should return false for something detached from DOM', () => {
