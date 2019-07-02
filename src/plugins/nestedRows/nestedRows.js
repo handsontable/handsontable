@@ -87,6 +87,7 @@ class NestedRows extends BasePlugin {
   enablePlugin() {
     this.sourceData = this.hot.getSourceData();
     this.trimRowsPlugin = this.hot.getPlugin('trimRows');
+    this.manualRowMovePlugin = this.hot.getPlugin('manualRowMove');
     this.bindRowsWithHeadersPlugin = this.hot.getPlugin('bindRowsWithHeaders');
 
     this.dataManager = new DataManager(this, this.hot, this.sourceData);
@@ -154,7 +155,7 @@ class NestedRows extends BasePlugin {
     const rowsLen = rows.length;
     const translatedStartIndexes = [];
 
-    let translatedTargetIndex = this.dataManager.translateTrimmedRow(target);
+    const translatedTargetIndex = this.dataManager.translateTrimmedRow(target);
     let allowMove = true;
     let i;
     let fromParent = null;
@@ -171,6 +172,7 @@ class NestedRows extends BasePlugin {
     }
 
     // We can't move rows when any of them is tried to be moved to the position of moved row
+    // TODO: Another work than the `ManualRowMove` plugin.
     if (translatedStartIndexes.indexOf(translatedTargetIndex) > -1 || !allowMove) {
       return false;
     }
@@ -183,13 +185,13 @@ class NestedRows extends BasePlugin {
       toParent = this.dataManager.getRowParent(translatedTargetIndex - 1);
     }
 
-    // We move row to "first group" whether there is no parent of destination row
+    // We add row to element as child whether there is no parent of final destination row
     if (toParent === null || toParent === void 0) {
       toParent = this.dataManager.getDataObject(translatedTargetIndex - 1);
       priv.movedToFirstChild = true;
     }
 
-    // Can't move row whether there was a try of moving it on the row being a parent (and it has no other parent)
+    // Can't move row whether there was a try of moving it on the row being a parent and it has no rows above.
     if (!toParent) {
       return false;
     }

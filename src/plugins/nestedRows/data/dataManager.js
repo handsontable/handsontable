@@ -359,6 +359,7 @@ class DataManager {
       rowObj = this.getDataObject(rowObj);
     }
 
+    // TODO: Bug? What about situation when an element has empty array under the `__children` key? Please take a look at another "TODO" inside test case.
     return !!(hasOwnProperty(rowObj, '__children'));
   }
 

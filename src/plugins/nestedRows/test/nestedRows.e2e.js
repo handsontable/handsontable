@@ -170,7 +170,7 @@ describe('NestedRows', () => {
       expect(getPlugin('nestedRows').dataManager.isParent(8)).toBeTruthy();
 
       expect(getDataAtCell(9, 0)).toEqual('a2-a0');
-      // expect(getPlugin('nestedRows').dataManager.isParent(9)).toBeFalsy(); // TODO: Bug?
+      // expect(getPlugin('nestedRows').dataManager.isParent(9)).toBeFalsy(); // TODO: Bug? Element has empty array under the `__children` key.
 
       // Previous parent of moved row.
       expect(getDataAtCell(10, 0)).toEqual('a2-a1');
@@ -179,7 +179,7 @@ describe('NestedRows', () => {
       expect(getPlugin('nestedRows').dataManager.countChildren(firstParent)).toBe(1);
 
       expect(getDataAtCell(11, 0)).toEqual('a2-a1-a0');
-      // expect(getPlugin('nestedRows').dataManager.isParent(11)).toBeFalsy(); // TODO: Bug?
+      // expect(getPlugin('nestedRows').dataManager.isParent(11)).toBeFalsy(); // TODO: Bug? Element has empty array under the `__children` key.
 
       // Moved row.
       expect(getDataAtCell(12, 0)).toEqual('a2-a1-a1');
@@ -187,7 +187,33 @@ describe('NestedRows', () => {
       expect(getPlugin('nestedRows').dataManager.isParent(12)).toBeFalsy();
     });
 
-    it('should not move row whether there was a try of moving it on the row being a parent (and it has no parent)', () => {
+    it('should add row to element as child whether there is no parent of final destination row', () => {
+      const hot = handsontable({
+        data: getDataForNestedRows(),
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true
+      });
+
+      expect(getPlugin('nestedRows').dataManager.isParent(8)).toBeTruthy();
+      expect(getPlugin('nestedRows').dataManager.isParent(7)).toBeFalsy();
+
+      // Row placed at index 8 is row being a parent.
+      getPlugin('manualRowMove').moveRow(1, 8);
+      hot.render();
+
+      const finalParent = getPlugin('nestedRows').dataManager.getRowParent(7);
+
+      // Row at index 6 is row which was primary placed at index 7.
+      expect(getDataAtCell(6, 0)).toEqual('a1');
+      expect(getPlugin('nestedRows').dataManager.isParent(6)).toBeTruthy();
+      expect(getPlugin('nestedRows').dataManager.countChildren(finalParent)).toBe(1);
+
+      // Row at index 7 is row which was primary placed at index 8.
+      expect(getDataAtCell(7, 0)).toEqual('a0-a0');
+    });
+
+    it('should not move row whether there was a try of moving it on the row being a parent and it has no rows above', () => {
       handsontable({
         data: getDataForNestedRows(),
         nestedRows: true,
