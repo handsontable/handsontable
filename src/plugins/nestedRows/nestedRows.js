@@ -9,7 +9,7 @@ import HeadersUI from './ui/headers';
 import ContextMenuUI from './ui/contextMenu';
 
 import './nestedRows.css';
-import {SkipMap} from '../../translations';
+import { SkipMap } from '../../translations';
 
 const privatePool = new WeakMap();
 
@@ -23,7 +23,6 @@ const privatePool = new WeakMap();
  * @dependencies BindRowsWithHeaders
  */
 class NestedRows extends BasePlugin {
-
   constructor(hotInstance) {
     super(hotInstance);
     /**
