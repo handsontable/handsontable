@@ -83,7 +83,6 @@ class ColumnSummary extends BasePlugin {
     this.addHook('afterCreateCol', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_col', index, amount, null, source));
     this.addHook('afterRemoveRow', (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_row', ...args));
     this.addHook('afterRemoveCol', (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_col', ...args));
-    this.addHook('afterRowMove', (...args) => this.onAfterRowMove(...args));
 
     super.enablePlugin();
   }
@@ -375,18 +374,8 @@ class ColumnSummary extends BasePlugin {
    * @private
    * @param {Array} rows Array of logical rows to be moved.
    */
-  onBeforeRowMove(rows) {
+  onBeforeRowMove(rows, target) {
     this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);
-  }
-
-  /**
-   * `afterRowMove` hook callback.
-   *
-   * @private
-   * @param {Array} rows Array of logical rows that were moved.
-   * @param {Number} target Index of the destination row.
-   */
-  onAfterRowMove(rows, target) {
     this.endpoints.resetSetupAfterStructureAlteration('move_row', target, rows.length, rows, this.pluginName);
   }
 }

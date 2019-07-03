@@ -229,17 +229,19 @@ class NestedRows extends BasePlugin {
 
     this.dataManager.rewriteCache();
 
+    this.selectCells(rows, target);
+
     return false;
   }
 
   /**
-   * `afterRowMove` hook callback.
+   * Select cells after the move.
    *
    * @private
    * @param {Array} rows Array of row indexes to be moved.
    * @param {Number} target Index of the target row.
    */
-  onAfterRowMove(rows, target) {
+  selectCells(rows, target) {
     const priv = privatePool.get(this);
 
     if (!priv.changeSelection) {
