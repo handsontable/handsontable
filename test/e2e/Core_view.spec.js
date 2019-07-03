@@ -834,6 +834,7 @@ describe('Core_view', () => {
         fixedColumnsLeft: 1
       });
 
+      expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(1)')[0])).toEqual(110);
       expect(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0]).toBe(undefined);
 
       hot.updateSettings({
@@ -841,7 +842,8 @@ describe('Core_view', () => {
         fixedColumnsLeft: 2
       });
 
-      expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(80);
+      expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(1)')[0])).toEqual(110);
+      expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(50);
     });
 
     it('should set the columns width correctly after changes made during updateSettings when columns is a function', () => {
@@ -884,6 +886,7 @@ describe('Core_view', () => {
         fixedColumnsLeft: 1
       });
 
+      expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(1)')[0])).toEqual(110);
       expect(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0]).toBe(undefined);
 
       hot.updateSettings({
@@ -891,7 +894,8 @@ describe('Core_view', () => {
         fixedColumnsLeft: 2
       });
 
-      expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(80);
+      expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(1)')[0])).toEqual(110);
+      expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(50);
     });
   });
 
