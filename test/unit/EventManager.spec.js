@@ -24,7 +24,7 @@ describe('EventManager', () => {
     expect(instance.subinstance.eventListeners.length).toEqual(1);
     expect(instance2.eventListeners.length).toEqual(2);
 
-    eM0.removeEventListener(window, 'click', test, true);
+    eM0.removeEventListener(window, 'click', test);
     expect(instance.eventListeners.length).toEqual(0);
 
     eM1.removeEventListener(window);
@@ -179,5 +179,107 @@ describe('EventManager', () => {
 
     expect(test.calls.count()).toEqual(1);
     expect(instance.eventListeners.length).toEqual(0);
+  });
+
+  it('should remove all events with the same context and callback by calling removeEventListener', () => {
+    const instance = {};
+    const em = new EventManager(instance);
+    const em2 = new EventManager(instance);
+
+    const test = jasmine.createSpy('test');
+
+    em.addEventListener(window, 'click', test);
+    em2.addEventListener(window, 'click', test);
+
+    expect(instance.eventListeners.length).toEqual(2);
+
+    em.removeEventListener(window, 'click', test);
+
+    expect(instance.eventListeners.length).toEqual(0);
+  });
+
+  it('should not remove event by calling removeEventListener(,,,true) if it was added by another instance', () => {
+    const instance = {};
+    const em = new EventManager(instance);
+    const em2 = new EventManager(instance);
+
+    const test = jasmine.createSpy('test');
+
+    em.addEventListener(window, 'click', test);
+    em2.addEventListener(window, 'click', test);
+
+    expect(instance.eventListeners.length).toEqual(2);
+
+    em.removeEventListener(window, 'click', test, true);
+
+    expect(instance.eventListeners.length).toEqual(1);
+  });
+
+  it('should remove all context events on clearEvents', () => {
+    const instance = {};
+    const em = new EventManager(instance);
+    const em2 = new EventManager(instance);
+
+    const test = jasmine.createSpy('test');
+
+    em.addEventListener(window, 'click', test);
+    em2.addEventListener(window, 'click', test);
+
+    expect(instance.eventListeners.length).toEqual(2);
+
+    em2.clearEvents();
+
+    expect(instance.eventListeners.length).toEqual(0);
+  });
+
+  it('should remove only own events on clearEvents(true)', () => {
+    const instance = {};
+    const em = new EventManager(instance);
+    const em2 = new EventManager(instance);
+
+    const test = jasmine.createSpy('test');
+
+    em.addEventListener(window, 'click', test);
+    em2.addEventListener(window, 'click', test);
+
+    expect(instance.eventListeners.length).toEqual(2);
+
+    em2.clearEvents(true);
+
+    expect(instance.eventListeners.length).toEqual(1);
+  });
+
+  it('should remove all context events on destroy', () => {
+    const instance = {};
+    const em = new EventManager(instance);
+    const em2 = new EventManager(instance);
+
+    const test = jasmine.createSpy('test');
+
+    em.addEventListener(window, 'click', test);
+    em2.addEventListener(window, 'click', test);
+
+    expect(instance.eventListeners.length).toEqual(2);
+
+    em2.destroy();
+
+    expect(instance.eventListeners.length).toEqual(0);
+  });
+
+  it('should remove only own events on destroyWithOwnEventsOnly', () => {
+    const instance = {};
+    const em = new EventManager(instance);
+    const em2 = new EventManager(instance);
+
+    const test = jasmine.createSpy('test');
+
+    em.addEventListener(window, 'click', test);
+    em2.addEventListener(window, 'click', test);
+
+    expect(instance.eventListeners.length).toEqual(2);
+
+    em2.destroyWithOwnEventsOnly();
+
+    expect(instance.eventListeners.length).toEqual(1);
   });
 });

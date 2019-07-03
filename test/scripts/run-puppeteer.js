@@ -32,6 +32,9 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
   });
 
   const page = await browser.newPage();
+  // To emulate slower CPU you can uncomment next two lines. Docs: https://chromedevtools.github.io/devtools-protocol/tot/Emulation#method-setCPUThrottlingRate
+  // const client = await page.target().createCDPSession();
+  // await client.send('Emulation.setCPUThrottlingRate', { rate: 2 });
 
   page.setCacheEnabled(false);
   page.setViewport({
