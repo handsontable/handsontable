@@ -115,7 +115,6 @@ class NestedRows extends BasePlugin {
     this.addHook('modifyRowHeaderWidth', (...args) => this.onModifyRowHeaderWidth(...args));
     this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
     this.addHook('beforeRowMove', (...args) => this.onBeforeRowMove(...args));
-    this.addHook('afterRowMove', (...args) => this.onAfterRowMove(...args));
 
     if (!this.trimRowsPlugin.isEnabled()) {
       // Workaround to prevent calling updateSetttings in the enablePlugin method, which causes many problems.
@@ -147,15 +146,20 @@ class NestedRows extends BasePlugin {
    * `beforeRowMove` hook callback.
    *
    * @private
-   * @param {Array} rows Array of row indexes to be moved.
-   * @param {Number} target Index of the target row.
+   * @param {Array} rows Array of visual row indexes to be moved.
+   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
+   * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Boolean} movePossible Indicates if it's possible to move rows to the desired position.
+   * @fires Hooks#afterRowMove
    */
-  onBeforeRowMove(rows, target) {
+  onBeforeRowMove(rows, finalIndex, dropIndex, movePossible) {
     const priv = privatePool.get(this);
     const rowsLen = rows.length;
     const translatedStartIndexes = [];
 
-    const translatedTargetIndex = this.dataManager.translateTrimmedRow(target);
+    const translatedFinaltIndex = this.dataManager.translateTrimmedRow(finalIndex);
     let allowMove = true;
     let i;
     let fromParent = null;
@@ -173,21 +177,21 @@ class NestedRows extends BasePlugin {
 
     // We can't move rows when any of them is tried to be moved to the position of moved row
     // TODO: Another work than the `ManualRowMove` plugin.
-    if (translatedStartIndexes.indexOf(translatedTargetIndex) > -1 || !allowMove) {
+    if (translatedStartIndexes.indexOf(translatedFinaltIndex) > -1 || !allowMove) {
       return false;
     }
 
     fromParent = this.dataManager.getRowParent(translatedStartIndexes[0]);
-    toParent = this.dataManager.getRowParent(translatedTargetIndex);
+    toParent = this.dataManager.getRowParent(translatedFinaltIndex);
 
     // We move row to the first parent of destination row whether there was a try of moving it on the row being a parent
     if (toParent === null || toParent === void 0) {
-      toParent = this.dataManager.getRowParent(translatedTargetIndex - 1);
+      toParent = this.dataManager.getRowParent(translatedFinaltIndex - 1);
     }
 
     // We add row to element as child whether there is no parent of final destination row
     if (toParent === null || toParent === void 0) {
-      toParent = this.dataManager.getDataObject(translatedTargetIndex - 1);
+      toParent = this.dataManager.getDataObject(translatedFinaltIndex - 1);
       priv.movedToFirstChild = true;
     }
 
@@ -201,47 +205,65 @@ class NestedRows extends BasePlugin {
     this.collapsingUI.collapsedRowsStash.stash();
 
     if (!sameParent) {
-      if (Math.max(...translatedStartIndexes) <= translatedTargetIndex) {
+      if (Math.max(...translatedStartIndexes) <= translatedFinaltIndex) {
         this.collapsingUI.collapsedRowsStash.shiftStash(translatedStartIndexes[0], (-1) * rows.length);
 
       } else {
-        this.collapsingUI.collapsedRowsStash.shiftStash(translatedTargetIndex, rows.length);
+        this.collapsingUI.collapsedRowsStash.shiftStash(translatedFinaltIndex, rows.length);
       }
     }
 
     priv.changeSelection = true;
 
     for (i = 0; i < rowsLen; i++) {
-      this.dataManager.moveRow(translatedStartIndexes[i], translatedTargetIndex);
+      this.dataManager.moveRow(translatedStartIndexes[i], translatedFinaltIndex);
     }
 
-    const movingDown = translatedStartIndexes[translatedStartIndexes.length - 1] < translatedTargetIndex;
+    const movingDown = translatedStartIndexes[translatedStartIndexes.length - 1] < translatedFinaltIndex;
 
     if (movingDown) {
       for (i = rowsLen - 1; i >= 0; i--) {
-        this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedTargetIndex);
+        this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedFinaltIndex);
       }
     } else {
       for (i = 0; i < rowsLen; i++) {
-        this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedTargetIndex);
+        this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedFinaltIndex);
       }
     }
 
     this.dataManager.rewriteCache();
 
-    this.selectCells(rows, target);
+    // TODO: Trying to mock real work of the `ManualRowMove` plugin. It was blocked by returning `false` below.
+    this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePossible && this.isRowOrderChanged(rows, finalIndex));
+
+    this.selectCells(rows, finalIndex);
 
     return false;
+  }
+
+  // TODO: Reimplementation of function which is inside the `ManualRowMove` plugin.
+  /**
+   * Indicates if order of rows was changed.
+   *
+   * @private
+   * @param {Array} movedRows Array of visual row indexes to be moved.
+   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @returns {Boolean}
+   */
+  isRowOrderChanged(movedRows, finalIndex) {
+    return movedRows.some((row, nrOfMovedElement) => row - nrOfMovedElement !== finalIndex);
   }
 
   /**
    * Select cells after the move.
    *
    * @private
-   * @param {Array} rows Array of row indexes to be moved.
-   * @param {Number} target Index of the target row.
+   * @param {Array} rows Array of visual row indexes to be moved.
+   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    */
-  selectCells(rows, target) {
+  selectCells(rows, finalIndex) {
     const priv = privatePool.get(this);
 
     if (!priv.changeSelection) {
@@ -251,41 +273,41 @@ class NestedRows extends BasePlugin {
     const rowsLen = rows.length;
     let startRow = 0;
     let endRow = 0;
-    let translatedTargetIndex = null;
+    let translatedFinaltIndex = null;
     let selection = null;
     let lastColIndex = null;
 
     this.collapsingUI.collapsedRowsStash.applyStash();
 
-    translatedTargetIndex = this.dataManager.translateTrimmedRow(target);
+    translatedFinaltIndex = this.dataManager.translateTrimmedRow(finalIndex);
 
     if (priv.movedToFirstChild) {
       priv.movedToFirstChild = false;
 
-      startRow = target;
-      endRow = target + rowsLen - 1;
+      startRow = finalIndex;
+      endRow = finalIndex + rowsLen - 1;
 
-      if (target >= Math.max(...rows)) {
+      if (finalIndex >= Math.max(...rows)) {
         startRow -= rowsLen;
         endRow -= rowsLen;
       }
 
     } else if (priv.movedToCollapsed) {
-      let parentObject = this.dataManager.getRowParent(translatedTargetIndex - 1);
+      let parentObject = this.dataManager.getRowParent(translatedFinaltIndex - 1);
       if (parentObject === null || parentObject === void 0) {
-        parentObject = this.dataManager.getDataObject(translatedTargetIndex - 1);
+        parentObject = this.dataManager.getDataObject(translatedFinaltIndex - 1);
       }
       const parentIndex = this.dataManager.getRowIndex(parentObject);
 
       startRow = parentIndex;
       endRow = startRow;
 
-    } else if (rows[rowsLen - 1] < target) {
-      endRow = target - 1;
+    } else if (rows[rowsLen - 1] < finalIndex) {
+      endRow = finalIndex - 1;
       startRow = endRow - rowsLen + 1;
 
     } else {
-      startRow = target;
+      startRow = finalIndex;
       endRow = startRow + rowsLen - 1;
     }
 
