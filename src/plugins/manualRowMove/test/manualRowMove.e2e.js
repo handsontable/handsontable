@@ -87,12 +87,12 @@ describe('manualRowMove', () => {
         manualRowMove: [2, 1, 0]
       });
 
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
-      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
+      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
     });
 
-    it('should reset row order with updateSettings when `undefined` is passed', () => {
+    it('should not change row order with updateSettings when `undefined` is passed', () => {
       handsontable({
         data: arrayOfObjects,
         manualRowMove: [1, 2, 0]
@@ -106,9 +106,9 @@ describe('manualRowMove', () => {
         manualRowMove: void 0
       });
 
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
+      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
     });
 
     it('should not change row order with updateSettings when `true` is passed', () => {

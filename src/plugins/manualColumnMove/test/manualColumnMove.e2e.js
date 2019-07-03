@@ -75,12 +75,12 @@ describe('manualColumnMove', () => {
         manualColumnMove: [2, 1, 0]
       });
 
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
     });
 
-    it('should reset column order with updateSettings when `undefined` is passed', () => {
+    it('should not change column order with updateSettings when `undefined` is passed', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 10),
         manualColumnMove: [1, 2, 0]
@@ -94,9 +94,9 @@ describe('manualColumnMove', () => {
         manualColumnMove: void 0
       });
 
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
     });
 
     it('should not change column order with updateSettings when `true` is passed', () => {
