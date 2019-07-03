@@ -169,7 +169,6 @@ class ColumnSorting extends BasePlugin {
 
     if (this.indexesSequenceCache !== null) {
       this.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
-      // TODO: Should it be unregistered?
       this.rowIndexMapper.unregisterMap(this.pluginKey);
     }
 
@@ -782,7 +781,7 @@ class ColumnSorting extends BasePlugin {
    */
   destroy() {
     this.columnStatesManager.destroy();
-    this.rowIndexMapper.variousMappingsCollection.unregister(this.pluginKey);
+    this.rowIndexMapper.unregisterMap(this.pluginKey);
 
     super.destroy();
   }

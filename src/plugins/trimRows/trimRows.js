@@ -100,7 +100,8 @@ class TrimRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.trimmedRowsMap.clear();
+    this.rowIndexMapper.unregisterMap('trimRows');
+
     super.disablePlugin();
   }
 
@@ -248,7 +249,7 @@ class TrimRows extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.rowIndexMapper.skipCollection.unregister('trimRows');
+    this.rowIndexMapper.unregisterMap('trimRows');
 
     super.destroy();
   }

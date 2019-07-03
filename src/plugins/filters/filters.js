@@ -219,8 +219,9 @@ class Filters extends BasePlugin {
 
       this.conditionCollection.clean();
 
-      this.filtersRowsMap.clear();
+      this.rowIndexMapper.unregisterMap('filters');
     }
+
     super.disablePlugin();
   }
 
@@ -855,7 +856,7 @@ class Filters extends BasePlugin {
         component.destroy();
       });
 
-      this.rowIndexMapper.skipCollection.unregister('filters');
+      this.rowIndexMapper.unregisterMap('filters');
       this.conditionCollection.destroy();
       this.conditionUpdateObserver.destroy();
       this.hiddenRowsCache.clear();

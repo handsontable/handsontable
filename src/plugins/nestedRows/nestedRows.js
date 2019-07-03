@@ -121,6 +121,8 @@ class NestedRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.rowIndexMapper.unregisterMap('nestedRows');
+
     super.disablePlugin();
   }
 
@@ -574,6 +576,15 @@ class NestedRows extends BasePlugin {
     if (priv.skipRender) {
       skipRender.skipRender = true;
     }
+  }
+
+  /**
+   * Destroys the plugin instance.
+   */
+  destroy() {
+    this.rowIndexMapper.unregisterMap('nestedRows');
+
+    super.destroy();
   }
 }
 
