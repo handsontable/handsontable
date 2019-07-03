@@ -529,7 +529,13 @@ describe('Core_view', () => {
         deltaY: 400,
       });
 
-      spec().$container.find('.ht_clone_top_left_corner .wtHolder')[0].dispatchEvent(wheelEvt);
+      // If run on a higher density display, the event is listened on a different element (https://github.com/handsontable/handsontable/pull/5921)
+      if (hot.view.wt.rootWindow.devicePixelRatio && hot.view.wt.rootWindow.devicePixelRatio > 1) {
+        hot.view.wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
+
+      } else {
+        spec().$container.find('.ht_clone_top_left_corner .wtHolder')[0].dispatchEvent(wheelEvt);
+      }
 
       await sleep(100);
 
@@ -547,7 +553,7 @@ describe('Core_view', () => {
 
       window.scrollTo(0, 0);
 
-      handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 50),
         colHeaders: true,
         rowHeaders: true,
@@ -562,7 +568,13 @@ describe('Core_view', () => {
         deltaY: 400,
       });
 
-      spec().$container.find('.ht_clone_top_left_corner .wtHolder')[0].dispatchEvent(wheelEvt);
+      // If run on a higher density display, the event is listened on a different element (https://github.com/handsontable/handsontable/pull/5921)
+      if (hot.view.wt.rootWindow.devicePixelRatio && hot.view.wt.rootWindow.devicePixelRatio > 1) {
+        hot.view.wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
+
+      } else {
+        spec().$container.find('.ht_clone_top_left_corner .wtHolder')[0].dispatchEvent(wheelEvt);
+      }
 
       await sleep(100);
       const masterHolder = spec().$container.find('.ht_master .wtHolder')[0];
