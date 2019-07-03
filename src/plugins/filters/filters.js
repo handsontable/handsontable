@@ -101,7 +101,11 @@ class Filters extends BasePlugin {
      * @type {Map}
      */
     this.hiddenRowsCache = new Map();
-
+    /**
+     * Map of skipped rows by plugin.
+     *
+     * @type {null|SkipMap}
+     */
     this.filtersRowsMap = null;
 
     // One listener for the enable/disable functionality

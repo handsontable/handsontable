@@ -48,6 +48,11 @@ import { arrayEach, arrayReduce } from '../../helpers/array';
 class TrimRows extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
+    /**
+     * Map of skipped rows by plugin.
+     *
+     * @type {null|SkipMap}
+     */
     this.trimmedRowsMap = null;
   }
   /**

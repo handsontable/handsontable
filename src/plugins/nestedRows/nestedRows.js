@@ -9,6 +9,7 @@ import HeadersUI from './ui/headers';
 import ContextMenuUI from './ui/contextMenu';
 
 import './nestedRows.css';
+import {SkipMap} from '../../translations';
 
 const privatePool = new WeakMap();
 
@@ -19,7 +20,7 @@ const privatePool = new WeakMap();
  * @description
  * Plugin responsible for displaying and operating on data sources with nested structures.
  *
- * @dependencies TrimRows BindRowsWithHeaders
+ * @dependencies BindRowsWithHeaders
  */
 class NestedRows extends BasePlugin {
 
@@ -32,13 +33,6 @@ class NestedRows extends BasePlugin {
      * @type {Object}
      */
     this.sourceData = null;
-    /**
-     * Reference to the Trim Rows plugin.
-     *
-     * @private
-     * @type {Object}
-     */
-    this.trimRowsPlugin = null;
     /**
      * Reference to the BindRowsWithHeaders plugin.
      *
@@ -62,6 +56,12 @@ class NestedRows extends BasePlugin {
      * @type {Object}
      */
     this.headersUI = null;
+    /**
+     * Map of skipped rows by plugin.
+     *
+     * @type {null|SkipMap}
+     */
+    this.collapsedRowsMap = null;
 
     privatePool.set(this, {
       changeSelection: false,
@@ -86,12 +86,11 @@ class NestedRows extends BasePlugin {
    */
   enablePlugin() {
     this.sourceData = this.hot.getSourceData();
-    this.trimRowsPlugin = this.hot.getPlugin('trimRows');
-    this.manualRowMovePlugin = this.hot.getPlugin('manualRowMove');
     this.bindRowsWithHeadersPlugin = this.hot.getPlugin('bindRowsWithHeaders');
+    this.collapsedRowsMap = this.rowIndexMapper.registerMap('nestedRows', new SkipMap());
 
     this.dataManager = new DataManager(this, this.hot, this.sourceData);
-    this.collapsingUI = new CollapsingUI(this, this.hot, this.trimRowsPlugin);
+    this.collapsingUI = new CollapsingUI(this, this.hot);
     this.headersUI = new HeadersUI(this, this.hot);
     this.contextMenuUI = new ContextMenuUI(this, this.hot);
 
@@ -115,12 +114,6 @@ class NestedRows extends BasePlugin {
     this.addHook('modifyRowHeaderWidth', (...args) => this.onModifyRowHeaderWidth(...args));
     this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
     this.addHook('beforeRowMove', (...args) => this.onBeforeRowMove(...args));
-
-    if (!this.trimRowsPlugin.isEnabled()) {
-      // Workaround to prevent calling updateSetttings in the enablePlugin method, which causes many problems.
-      this.trimRowsPlugin.enablePlugin();
-      this.hot.getSettings().trimRows = true;
-    }
 
     super.enablePlugin();
   }
@@ -159,7 +152,7 @@ class NestedRows extends BasePlugin {
     const rowsLen = rows.length;
     const translatedStartIndexes = [];
 
-    const translatedFinaltIndex = this.dataManager.translateTrimmedRow(finalIndex);
+    const translatedFinalIndex = this.dataManager.translateTrimmedRow(finalIndex);
     let allowMove = true;
     let i;
     let fromParent = null;
@@ -177,21 +170,21 @@ class NestedRows extends BasePlugin {
 
     // We can't move rows when any of them is tried to be moved to the position of moved row
     // TODO: Another work than the `ManualRowMove` plugin.
-    if (translatedStartIndexes.indexOf(translatedFinaltIndex) > -1 || !allowMove) {
+    if (translatedStartIndexes.indexOf(translatedFinalIndex) > -1 || !allowMove) {
       return false;
     }
 
     fromParent = this.dataManager.getRowParent(translatedStartIndexes[0]);
-    toParent = this.dataManager.getRowParent(translatedFinaltIndex);
+    toParent = this.dataManager.getRowParent(translatedFinalIndex);
 
     // We move row to the first parent of destination row whether there was a try of moving it on the row being a parent
     if (toParent === null || toParent === void 0) {
-      toParent = this.dataManager.getRowParent(translatedFinaltIndex - 1);
+      toParent = this.dataManager.getRowParent(translatedFinalIndex - 1);
     }
 
     // We add row to element as child whether there is no parent of final destination row
     if (toParent === null || toParent === void 0) {
-      toParent = this.dataManager.getDataObject(translatedFinaltIndex - 1);
+      toParent = this.dataManager.getDataObject(translatedFinalIndex - 1);
       priv.movedToFirstChild = true;
     }
 
@@ -205,29 +198,29 @@ class NestedRows extends BasePlugin {
     this.collapsingUI.collapsedRowsStash.stash();
 
     if (!sameParent) {
-      if (Math.max(...translatedStartIndexes) <= translatedFinaltIndex) {
+      if (Math.max(...translatedStartIndexes) <= translatedFinalIndex) {
         this.collapsingUI.collapsedRowsStash.shiftStash(translatedStartIndexes[0], (-1) * rows.length);
 
       } else {
-        this.collapsingUI.collapsedRowsStash.shiftStash(translatedFinaltIndex, rows.length);
+        this.collapsingUI.collapsedRowsStash.shiftStash(translatedFinalIndex, rows.length);
       }
     }
 
     priv.changeSelection = true;
 
     for (i = 0; i < rowsLen; i++) {
-      this.dataManager.moveRow(translatedStartIndexes[i], translatedFinaltIndex);
+      this.dataManager.moveRow(translatedStartIndexes[i], translatedFinalIndex);
     }
 
-    const movingDown = translatedStartIndexes[translatedStartIndexes.length - 1] < translatedFinaltIndex;
+    const movingDown = translatedStartIndexes[translatedStartIndexes.length - 1] < translatedFinalIndex;
 
     if (movingDown) {
       for (i = rowsLen - 1; i >= 0; i--) {
-        this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedFinaltIndex);
+        this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedFinalIndex);
       }
     } else {
       for (i = 0; i < rowsLen; i++) {
-        this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedFinaltIndex);
+        this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedFinalIndex);
       }
     }
 
@@ -273,13 +266,13 @@ class NestedRows extends BasePlugin {
     const rowsLen = rows.length;
     let startRow = 0;
     let endRow = 0;
-    let translatedFinaltIndex = null;
+    let translatedFinalIndex = null;
     let selection = null;
     let lastColIndex = null;
 
     this.collapsingUI.collapsedRowsStash.applyStash();
 
-    translatedFinaltIndex = this.dataManager.translateTrimmedRow(finalIndex);
+    translatedFinalIndex = this.dataManager.translateTrimmedRow(finalIndex);
 
     if (priv.movedToFirstChild) {
       priv.movedToFirstChild = false;
@@ -293,9 +286,9 @@ class NestedRows extends BasePlugin {
       }
 
     } else if (priv.movedToCollapsed) {
-      let parentObject = this.dataManager.getRowParent(translatedFinaltIndex - 1);
+      let parentObject = this.dataManager.getRowParent(translatedFinalIndex - 1);
       if (parentObject === null || parentObject === void 0) {
-        parentObject = this.dataManager.getDataObject(translatedFinaltIndex - 1);
+        parentObject = this.dataManager.getDataObject(translatedFinalIndex - 1);
       }
       const parentIndex = this.dataManager.getRowIndex(parentObject);
 
