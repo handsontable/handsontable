@@ -53,6 +53,7 @@ class Table {
     this.rowFilter = null;
     this.columnFilter = null;
     this.correctHeaderWidth = false;
+    this.hasOverlayHeight = true;
 
     const origRowHeaderWidth = this.wot.wtSettings.settings.rowHeaderWidth;
 
@@ -166,7 +167,7 @@ class Table {
     const trimmingElement = getTrimmingContainer(this.wtRootElement);
 
     if (!this.isWorkingOnClone()) {
-      const { rootWindow } = this.wot;
+      const { rootWindow, rootDocument, wtOverlays } = this.wot;
       this.holder.parentNode.style.position = 'relative';
 
       if (trimmingElement === rootWindow) {
@@ -178,16 +179,35 @@ class Table {
         }
       } else {
         const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
+        const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow);
         const holderStyle = this.holder.style;
-        const holderHeight = parseInt(holderStyle.height, 10);
         const { scrollWidth, scrollHeight } = trimmingElement;
         let { width, height } = trimmingElement.getBoundingClientRect();
 
-        width = Math.min(width, scrollWidth);
-        height = holderHeight ? Math.min(height, scrollHeight, holderHeight) : Math.min(height, scrollHeight);
+        const overflow = ['auto', 'hidden', 'scroll'];
 
+        if (overflow.includes(trimmingOverflow)) {
+          const cloneNode = trimmingElement.cloneNode(false);
+          rootDocument.body.appendChild(cloneNode);
+
+          const cloneHeight = getStyle(cloneNode, 'height', rootWindow);
+          rootDocument.body.removeChild(cloneNode);
+
+          if (!parseInt(cloneHeight, 10)) {
+            height = 0;
+            holderStyle.height = '0px';
+
+            if (wtOverlays) {
+              this.hasOverlayHeight = false;
+            }
+          } else {
+            height = Math.min(height, scrollHeight);
+            holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
+          }
+        }
+
+        width = Math.min(width, scrollWidth);
         holderStyle.width = `${width}px`;
-        holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
         holderStyle.overflow = '';
       }
     }
@@ -278,7 +298,7 @@ class Table {
     }
     this.refreshSelections(runFastDraw);
 
-    if (!this.isWorkingOnClone()) {
+    if (!this.isWorkingOnClone() && this.hasOverlayHeight) {
       wtOverlays.topOverlay.resetFixedPosition();
 
       if (wtOverlays.bottomOverlay.clone) {
@@ -307,7 +327,7 @@ class Table {
   _doDraw() {
     const wtRenderer = new TableRenderer(this);
 
-    wtRenderer.render();
+    wtRenderer.render(this.hasOverlayHeight);
   }
 
   removeClassFromCells(className) {

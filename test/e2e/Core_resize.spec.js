@@ -2,7 +2,7 @@ describe('Core resize', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$wrapper = $('<div></div>').css({ overflow: 'auto' });
+    this.$wrapper = $('<div style=""></div>').css({ overflow: 'auto' });
     this.$container = $(`<div id="${id}"></div>`);
 
     this.$wrapper.append(this.$container);
@@ -35,5 +35,7 @@ describe('Core resize', () => {
 
     const currentTableHeight = table.clientHeight;
     expect(currentTableHeight).toEqual(initialTableHeight);
+    expect(initialTableHeight).toEqual(0);
+    expect(currentTableHeight).toEqual(0);
   });
 });

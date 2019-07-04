@@ -43,9 +43,9 @@ class TableRenderer {
   }
 
   /**
-   *
+   * @param {Boolean} hasOverlayHeight If true is sign to render overlays.
    */
-  render() {
+  render(hasOverlayHeight) {
     if (!this.wtTable.isWorkingOnClone()) {
       const skipRender = {};
       this.wot.getSetting('beforeDraw', true, skipRender);
@@ -110,7 +110,7 @@ class TableRenderer {
       this.wot.wtViewport.createVisibleCalculators();
       this.wot.wtOverlays.refresh(false);
 
-      this.wot.wtOverlays.applyToDOM();
+      this.wot.wtOverlays.applyToDOM(hasOverlayHeight);
 
       const hiderWidth = outerWidth(this.wtTable.hider);
       const tableWidth = outerWidth(this.wtTable.TABLE);

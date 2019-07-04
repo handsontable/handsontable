@@ -548,12 +548,17 @@ class Overlays {
   }
 
   /**
-   *
+   * @param {Boolean} hasOverlayHeight If true is sign to render overlays.
    */
-  applyToDOM() {
+  applyToDOM(hasOverlayHeight) {
+    if (!hasOverlayHeight) {
+      return;
+    }
+
     if (!this.topOverlay.areElementSizesAdjusted || !this.leftOverlay.areElementSizesAdjusted) {
       this.adjustElementsSize();
     }
+
     this.topOverlay.applyToDOM();
 
     if (this.bottomOverlay.clone) {
