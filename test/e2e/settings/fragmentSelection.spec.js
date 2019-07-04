@@ -1,5 +1,6 @@
 describe('settings', () => {
-  describe('fragmentSelection', () => {
+
+  xdescribe('fragmentSelection', () => {
     const id = 'testContainer';
 
     beforeEach(function() {
@@ -164,7 +165,7 @@ describe('settings', () => {
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: true
         });
-        updateSettings({ fragmentSelection: false });
+        // updateSettings({ fragmentSelection: false });
         selectElementText(spec().$container.find('tr:eq(0) td:eq(1)')[0], 3);
 
         mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));
@@ -191,5 +192,5 @@ describe('settings', () => {
         expect(sel).toEqual('B1C1D1');
       });
     });
-  });
+  }).pend('Temporarily disabled, due to #6083, needs to be rewritten to work properly.');
 });

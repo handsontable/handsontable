@@ -529,8 +529,9 @@ describe('Core_view', () => {
         deltaY: 400,
       });
 
-      // If run on a higher density display, the event is listened on a different element (https://github.com/handsontable/handsontable/pull/5921)
-      if (hot.view.wt.rootWindow.devicePixelRatio && hot.view.wt.rootWindow.devicePixelRatio > 1) {
+      // If run on a browser different than Chrome or a higher density display, the event is listened on a different element (https://github.com/handsontable/handsontable/pull/5921)
+      if (!(/Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor))
+        || hot.view.wt.rootWindow.devicePixelRatio && hot.view.wt.rootWindow.devicePixelRatio > 1) {
         hot.view.wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
 
       } else {
@@ -568,8 +569,9 @@ describe('Core_view', () => {
         deltaY: 400,
       });
 
-      // If run on a higher density display, the event is listened on a different element (https://github.com/handsontable/handsontable/pull/5921)
-      if (hot.view.wt.rootWindow.devicePixelRatio && hot.view.wt.rootWindow.devicePixelRatio > 1) {
+      // If run on a browser different than Chrome or a higher density display, the event is listened on a different element (https://github.com/handsontable/handsontable/pull/5921)
+      if (!(/Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor))
+        || hot.view.wt.rootWindow.devicePixelRatio && hot.view.wt.rootWindow.devicePixelRatio > 1) {
         hot.view.wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
 
       } else {
