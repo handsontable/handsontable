@@ -216,26 +216,25 @@ class Overlays {
       // Resolves issue outline https://github.com/handsontable/handsontable/issues/5913
       // We can keep this (removing .parentNode) to prevent stutter in retina https://github.com/handsontable/handsontable/issues/4498
       this.eventManager.addEventListener(this.wot.wtTable.wtRootElement, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
-    } else {
-      if (this.topOverlay.needFullRender) {
-        this.eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
-      }
+    }
+    if (this.topOverlay.needFullRender) {
+      this.eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
+    }
 
-      if (this.bottomOverlay.needFullRender) {
-        this.eventManager.addEventListener(this.bottomOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
-      }
+    if (this.bottomOverlay.needFullRender) {
+      this.eventManager.addEventListener(this.bottomOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
+    }
 
-      if (this.leftOverlay.needFullRender) {
-        this.eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
-      }
+    if (this.leftOverlay.needFullRender) {
+      this.eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
+    }
 
-      if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.needFullRender) {
-        this.eventManager.addEventListener(this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
-      }
+    if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.needFullRender) {
+      this.eventManager.addEventListener(this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
+    }
 
-      if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.needFullRender) {
-        this.eventManager.addEventListener(this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
-      }
+    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.needFullRender) {
+      this.eventManager.addEventListener(this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
     }
 
     let resizeTimeout;
@@ -289,10 +288,6 @@ class Overlays {
   onCloneWheel(event) {
     const { rootWindow } = this.wot;
 
-    if (this.scrollableElement !== rootWindow) {
-      event.preventDefault();
-    }
-
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
 
@@ -309,7 +304,11 @@ class Overlays {
       return;
     }
 
-    this.translateMouseWheelToScroll(event);
+    const isScrollPossible = this.translateMouseWheelToScroll(event);
+
+    if (this.wot.getSetting('preventWheel') || (this.scrollableElement !== rootWindow && isScrollPossible)) {
+      event.preventDefault();
+    }
   }
 
   /**
@@ -343,8 +342,10 @@ class Overlays {
       deltaY += deltaY * browserLineHeight;
     }
 
-    this.scrollVertically(deltaY);
-    this.scrollHorizontally(deltaX);
+    const isScrollVerticallyPossible = this.scrollVertically(deltaY);
+    const isScrollHorizontallyPossible = this.scrollHorizontally(deltaX);
+
+    return isScrollVerticallyPossible || isScrollHorizontallyPossible;
   }
 
   /**
@@ -353,7 +354,11 @@ class Overlays {
    * @param {Number} delta Relative value to scroll.
    */
   scrollVertically(delta) {
+    const previousScroll = this.scrollableElement.scrollTop;
+
     this.scrollableElement.scrollTop += delta;
+
+    return previousScroll !== this.scrollableElement.scrollTop;
   }
 
   /**
@@ -362,7 +367,11 @@ class Overlays {
    * @param {Number} delta Relative value to scroll.
    */
   scrollHorizontally(delta) {
+    const previousScroll = this.scrollableElement.scrollLeft;
+
     this.scrollableElement.scrollLeft += delta;
+
+    return previousScroll !== this.scrollableElement.scrollLeft;
   }
 
   /**

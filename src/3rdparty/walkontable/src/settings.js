@@ -28,6 +28,9 @@ class Settings {
       preventOverflow() {
         return false;
       },
+      preventWheel() {
+        return false;
+      },
 
       // data source
       data: void 0,
