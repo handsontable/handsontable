@@ -1875,7 +1875,7 @@ declare namespace Handsontable {
       beforeChange?: (changes: CellChange[], source: ChangeSource) => void | boolean;
       beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
       beforeColumnMove?: (columns: number[], target: number) => void | boolean;
-      beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void | number;
+      beforeColumnResize?: (newSize: number, selectedCol: number, isDoubleClick: boolean) => void | number;
       beforeColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void | boolean;
       beforeContextMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
       beforeContextMenuShow?: (context: plugins.ContextMenu) => void;
@@ -1911,7 +1911,7 @@ declare namespace Handsontable {
       beforeRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
       beforeRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
       beforeRowMove?: (columns: number[], target: number) => void;
-      beforeRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => number | void;
+      beforeRowResize?: (newSize: number, selectedRow: number, isDoubleClick: boolean) => number | void;
       beforeSetRangeEnd?: (coords: wot.CellCoords) => void;
       beforeSetRangeStart?: (coords: wot.CellCoords) => void;
       beforeSetRangeStartOnly?: (coords: wot.CellCoords) => void;

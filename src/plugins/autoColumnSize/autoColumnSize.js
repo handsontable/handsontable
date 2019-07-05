@@ -136,7 +136,7 @@ class AutoColumnSize extends BasePlugin {
     this.inProgress = false;
 
     // moved to constructor to allow auto-sizing the columns when the plugin is disabled
-    this.addHook('beforeColumnResize', (col, size, isDblClick) => this.onBeforeColumnResize(col, size, isDblClick));
+    this.addHook('beforeColumnResize', (size, col, isDblClick) => this.onBeforeColumnResize(size, col, isDblClick));
   }
 
   /**
@@ -502,12 +502,12 @@ class AutoColumnSize extends BasePlugin {
    * On before column resize listener.
    *
    * @private
-   * @param {Number} col
    * @param {Number} size
+   * @param {Number} col
    * @param {Boolean} isDblClick
    * @returns {Number}
    */
-  onBeforeColumnResize(col, size, isDblClick) {
+  onBeforeColumnResize(size, col, isDblClick) {
     let newSize = size;
 
     if (isDblClick) {

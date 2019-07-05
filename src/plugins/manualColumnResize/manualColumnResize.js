@@ -69,7 +69,7 @@ class ManualColumnResize extends BasePlugin {
 
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
     this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
-    this.addHook('beforeColumnResize', (currentColumn, newSize, isDoubleClick) => this.onBeforeColumnResize(currentColumn, newSize, isDoubleClick));
+    this.addHook('beforeColumnResize', (newSize, selectedCol, isDoubleClick) => this.onBeforeColumnResize(newSize, selectedCol, isDoubleClick));
 
     if (typeof loadedManualColumnWidths !== 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
@@ -321,7 +321,7 @@ class ManualColumnResize extends BasePlugin {
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
     const resize = (selectedCol, forceRender) => {
-      const hookNewSize = this.hot.runHooks('beforeColumnResize', selectedCol, this.newSize, true);
+      const hookNewSize = this.hot.runHooks('beforeColumnResize', this.newSize, selectedCol, true);
 
       if (hookNewSize !== void 0) {
         this.newSize = hookNewSize;
@@ -417,7 +417,7 @@ class ManualColumnResize extends BasePlugin {
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
     const resize = (selectedCol, forceRender) => {
-      this.hot.runHooks('beforeColumnResize', selectedCol, this.newSize, false);
+      this.hot.runHooks('beforeColumnResize', this.newSize, selectedCol, false);
 
       if (forceRender) {
         render();
@@ -425,7 +425,7 @@ class ManualColumnResize extends BasePlugin {
 
       this.saveManualColumnWidths();
 
-      this.hot.runHooks('afterColumnResize', selectedCol, this.newSize);
+      this.hot.runHooks('afterColumnResize', selectedCol, this.newSize, false);
     };
 
     if (this.pressed) {

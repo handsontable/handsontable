@@ -115,7 +115,7 @@ class AutoRowSize extends BasePlugin {
     this.inProgress = false;
 
     // moved to constructor to allow auto-sizing the rows when the plugin is disabled
-    this.addHook('beforeRowResize', (row, size, isDblClick) => this.onBeforeRowResize(row, size, isDblClick));
+    this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
   }
 
   /**
@@ -442,7 +442,7 @@ class AutoRowSize extends BasePlugin {
    * @param {Boolean} isDblClick
    * @returns {Number}
    */
-  onBeforeRowResize(row, size, isDblClick) {
+  onBeforeRowResize(size, row, isDblClick) {
     let newSize = size;
 
     if (isDblClick) {
