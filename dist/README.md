@@ -20,9 +20,9 @@ You can also use minified files:
 If you are a "Bob the Builder" kind of hacker, you will need to load Handsontable JS, CSS and their dependencies:
 ```html
 <!-- Required dependencies (as external scripts) -->
-<link href="https://cdn.jsdelivr.net/npm/pikaday@1.5.1/css/pikaday.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/pikaday-time@1.6.1/css/pikaday.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/moment@2.20.1/moment.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pikaday@1.5.1/pikaday.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pikaday-time@1.6.1/pikaday.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/numbro@2/dist/numbro.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hot-formula-parser@3.0.0/dist/formula-parser.min.js"></script>
 
@@ -31,7 +31,7 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 <link href="dist/handsontable.css" rel="stylesheet">
 ```
 
-**handsontable.js** and **handsontable.css** are compiled ___without___ the needed dependencies. You will have to include `pikaday.js`, `moment.js`, `numbro.js` and `hot-formula-parser.js` on your own ie. from JSDelivr CDN.
+**handsontable.js** and **handsontable.css** are compiled ___without___ the needed dependencies. You will have to include `pikaday-time.js`, `moment.js`, `numbro.js` and `hot-formula-parser.js` on your own ie. from JSDelivr CDN.
 
 ## Internationalization
 It is possible to include files which will register languages dictionaries. They allow to translate parts of Handsontable UI. You can either use only particular languages files or include all of them at once as a single file.

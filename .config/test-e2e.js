@@ -23,7 +23,7 @@ module.exports.create = function create(envArgs) {
     c.module.rules.unshift({
       test: [
          // Disable loading css files from pikaday module
-        /pikaday\/css/,
+        /pikaday-time\/css/,
       ],
       loader: path.resolve(__dirname, 'loader/empty-loader.js'),
     });
@@ -50,7 +50,7 @@ module.exports.create = function create(envArgs) {
           '../node_modules/numbro/dist/numbro.js',
           '../node_modules/numbro/dist/languages.min.js',
           '../node_modules/moment/moment.js',
-          '../node_modules/pikaday/pikaday.js',
+          '../node_modules/pikaday-time/pikaday.js',
           '../node_modules/hot-formula-parser/dist/formula-parser.js',
           '../dist/handsontable.js',
           '../dist/languages/all.js',

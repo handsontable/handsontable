@@ -6034,10 +6034,10 @@ pify@^4.0.1:
   resolved "https://registry.yarnpkg.com/pify/-/pify-4.0.1.tgz#4b2cd25c50d598735c50292224fd8c6df41e3231"
   integrity sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==
 
-pikaday@1.5.1:
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/pikaday/-/pikaday-1.5.1.tgz#0a48549bc1a14ea1d08c44074d761bc2f2bfcfd3"
-  integrity sha1-CkhUm8GhTqHQjEQHTXYbwvK/z9M=
+pikaday-time@1.6.1:
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/pikaday-time/-/pikaday-time-1.6.1.tgz#3274b44b9edc058869949f9d51d1cf6364c98953"
+  integrity sha512-J8/e/1wg91BQH5mo5LFYa8z3jN+v1VluTe3LY7qojXC7EeEZ2MJB/dGVraYQXA+YzrXM/eEC9w6gmhK9dCUq3w==
   optionalDependencies:
     moment "2.x"
 

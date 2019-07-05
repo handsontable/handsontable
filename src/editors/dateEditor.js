@@ -1,6 +1,6 @@
 import moment from 'moment';
-import Pikaday from 'pikaday';
-import 'pikaday/css/pikaday.css';
+import Pikaday from 'pikaday-time';
+import 'pikaday-time/css/pikaday.css';
 import { addClass, outerHeight } from './../helpers/dom/element';
 import { deepExtend } from './../helpers/object';
 import EventManager from './../eventManager';

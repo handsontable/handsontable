@@ -66,7 +66,7 @@
     "hot-formula-parser": "^3.0.1",
     "moment": "2.20.1",
     "numbro": "2.1.1",
-    "pikaday": "1.5.1"
+    "pikaday-time": "1.6.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",

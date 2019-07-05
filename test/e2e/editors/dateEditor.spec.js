@@ -22,7 +22,7 @@ describe('DateEditor', () => {
     ];
   }
 
-  it('should display Pikday calendar', () => {
+  it('should display Pikaday calendar', () => {
     handsontable({
       data: getDates(),
       columns: [
@@ -40,7 +40,7 @@ describe('DateEditor', () => {
     expect($('.pika-single').is(':visible')).toBe(true);
   });
 
-  it('should pass date picker config object to Pikday', () => {
+  it('should pass date picker config object to Pikaday', () => {
     const onOpenSpy = jasmine.createSpy('open');
     const onCloseSpy = jasmine.createSpy('close');
     const hot = handsontable({

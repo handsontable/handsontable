@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.1.0
- * Release date: 11/06/2019 (built at 10/06/2019 10:35:58)
+ * Release date: 11/06/2019 (built at 12/07/2019 17:13:51)
  */
 /**
  * Fix for bootstrap styles
@@ -1165,8 +1165,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     padding: 0;
     width: 20px;
     height: 30px;
-    /* hide text using text-indent trick, using width value (it's enough) */
-    text-indent: 20px;
+    color: rgba(0, 0, 0, 0);
     white-space: nowrap;
     overflow: hidden;
     background-color: transparent;
@@ -1256,7 +1255,8 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     font-weight: bold;
 }
 
-.is-selected .pika-button {
+.is-selected .pika-button,
+.has-event .pika-button {
     color: #fff;
     font-weight: bold;
     background: #33aaff;
@@ -1264,6 +1264,12 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     border-radius: 3px;
 }
 
+.has-event .pika-button {
+    background: #005da9;
+    box-shadow: inset 0 1px 3px #0076c9;
+}
+
+.is-disabled .pika-button,
 .is-inrange .pika-button {
     background: #D5E9F7;
 }
@@ -1282,15 +1288,25 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     border-radius: 3px;
 }
 
-.is-disabled .pika-button,
-.is-outside-current-month .pika-button {
+.is-disabled .pika-button {
     pointer-events: none;
     cursor: default;
     color: #999;
     opacity: .3;
 }
 
-.pika-button:hover {
+.is-outside-current-month .pika-button {
+    color: #999;
+    opacity: .3;
+}
+
+.is-selection-disabled {
+    pointer-events: none;
+    cursor: default;
+}
+
+.pika-button:hover,
+.pika-row.pick-whole-week:hover .pika-button {
     color: #fff;
     background: #ff8000;
     box-shadow: none;
@@ -1303,6 +1319,20 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     cursor: help;
 }
 
+.pika-time-container {
+    clear: both;
+}
+
+.pika-time {
+    margin: 7px auto 7px;
+}
+
+.pika-time .pika-time-label {
+    font-weight: bold;
+    font-size: 11px;
+    color: #666;
+    padding-right: 0.33em;
+}
 
 .htCommentCell {
     position: relative;

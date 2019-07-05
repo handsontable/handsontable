@@ -82,10 +82,10 @@ module.exports.create = function create(envArgs) {
             from: {glob: 'node_modules/numbro/dist/languages/*.js'}, to: 'numbro/languages', flatten: true
           },
           { // pikaday
-            from: {glob: 'node_modules/pikaday/@(LICENSE|pikaday.js)'}, to: 'pikaday', flatten: true
+            from: {glob: 'node_modules/pikaday-time/@(LICENSE|pikaday.js)'}, to: 'pikaday', flatten: true
           },
           {
-            from: {glob: 'node_modules/pikaday/css/pikaday.css'}, to: 'pikaday', flatten: true
+            from: {glob: 'node_modules/pikaday-time/css/pikaday.css'}, to: 'pikaday', flatten: true
           },
         ])
       );

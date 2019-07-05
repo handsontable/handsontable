@@ -46,7 +46,7 @@ module.exports.create = function create(envArgs) {
     c.module.rules.unshift({
       test: [
          // Disable loading css files from pikaday module
-        /pikaday\/css/,
+        /pikaday-time\/css/,
       ],
       loader: path.resolve(__dirname, 'loader/empty-loader.js'),
     });
