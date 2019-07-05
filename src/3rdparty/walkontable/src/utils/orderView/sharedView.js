@@ -1,5 +1,10 @@
 import OrderView from './view';
 
+/**
+ * Executive model for TR root nodes.
+ *
+ * @class {SharedOrderView}
+ */
 export default class SharedOrderView extends OrderView {
   /**
    * The method results in merging external order view into the current order. This happens only for order views which
@@ -13,8 +18,8 @@ export default class SharedOrderView extends OrderView {
    * @return {SharedOrderView}
    */
   prependView(orderView) {
-    this.viewDiffer.prependSize(orderView.viewDiffer.getSizeSet());
-    orderView.viewDiffer.appendSize(this.viewDiffer.getSizeSet());
+    this.sizeSet.prepend(orderView.sizeSet);
+    orderView.sizeSet.append(this.sizeSet);
 
     return this;
   }
@@ -31,8 +36,8 @@ export default class SharedOrderView extends OrderView {
    * @return {SharedOrderView}
    */
   appendView(orderView) {
-    this.viewDiffer.appendSize(orderView.viewDiffer.getSizeSet());
-    orderView.viewDiffer.prependSize(this.viewDiffer.getSizeSet());
+    this.sizeSet.append(orderView.sizeSet);
+    orderView.sizeSet.prepend(this.sizeSet);
 
     return this;
   }

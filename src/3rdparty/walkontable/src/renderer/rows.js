@@ -3,25 +3,48 @@ import { toSingleLine } from './../../../../helpers/templateLiteralTag';
 import { OrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
 
-// TODO: After moving class to one instance check if this warning works!
 let performanceWarningAppeared = false;
 
+/**
+ * Rows renderer responsible for managing (inserting, tracking, rendering) TR elements belongs to TBODY.
+ *
+ *   <tbody> (root node)
+ *     ├ <tr>   \
+ *     ├ <tr>    \
+ *     ├ <tr>     - RowsRenderer
+ *     ├ <tr>    /
+ *     └ <tr>   /
+ *
+ * @class {RowsRenderer}
+ */
 export default class RowsRenderer extends BaseRenderer {
   constructor(rootNode) {
     super('TR', rootNode);
-    this.orderView = new OrderView(rootNode, (sourceRowIndex) => {
-      return this.nodesPool.obtain(sourceRowIndex);
-    });
+    /**
+     * Cache for OrderView classes connected to specified node.
+     *
+     * @type {WeakMap}
+     */
+    this.orderView = new OrderView(
+      rootNode,
+      sourceRowIndex => this.nodesPool.obtain(sourceRowIndex),
+      this.nodeType,
+    );
   }
 
+  /**
+   * Returns currently rendered node.
+   *
+   * @param {String} visualIndex Visual index of the rendered node (it always goeas from 0 to N).
+   * @return {HTMLTableRowElement}
+   */
   getRenderedNode(visualIndex) {
     return this.orderView.getNode(visualIndex);
   }
 
-  hasStaleContent(visualIndex) {
-    return this.orderView.hasStaleContent(visualIndex);
-  }
-
+  /**
+   * Renders the cells.
+   */
   render() {
     const { totalRows, rowsToRender } = this.table;
     let visibleRowIndex = 0;

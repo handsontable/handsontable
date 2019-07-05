@@ -6,64 +6,94 @@ import CellsRenderer from './cells';
 import TableRenderer from './table';
 
 /**
- * @class TableRenderer
+ * Content renderer.
+ *
+ * @class Renderer
  */
 export default class Renderer {
-  /**
-   * @param {WalkontableTable} wtTable
-   */
   constructor(wot, wtTable) {
-    this.table = new TableRenderer(wtTable.TABLE, {
+    /**
+     * General renderer class used to render Walkontable content on screen.
+     *
+     * @type {TableRenderer}
+     */
+    this.renderer = new TableRenderer(wtTable.TABLE, {
       cellRenderer: wot.wtSettings.settings.cellRenderer,
     });
-    this.table
-      .setRenderers({
-        rowHeaders: new RowHeadersRenderer(),
-        columnHeaders: new ColumnHeadersRenderer(wtTable.THEAD),
-        colGroup: new ColGroupRenderer(wtTable.COLGROUP),
-        rows: new RowsRenderer(wtTable.TBODY),
-        cells: new CellsRenderer(),
-      })
-      .setSize(wot.getSetting('totalRows'), wot.getSetting('totalColumns'))
-      .setAxisUtils(wtTable.rowUtils, wtTable.columnUtils);
+    this.renderer.setRenderers({
+      rowHeaders: new RowHeadersRenderer(),
+      columnHeaders: new ColumnHeadersRenderer(wtTable.THEAD),
+      colGroup: new ColGroupRenderer(wtTable.COLGROUP),
+      rows: new RowsRenderer(wtTable.TBODY),
+      cells: new CellsRenderer(),
+    });
+    this.renderer.setAxisUtils(wtTable.rowUtils, wtTable.columnUtils);
   }
 
   /**
-   * Set filter calculators for newly calculated row and column position. The filters are used to transform visual
+   * Sets filter calculators for newly calculated row and column position. The filters are used to transform visual
    * indexes (0 to N) to source indexes provided by Handsontable.
    *
    * @param {RowFilter} rowFilter
    * @param {ColumnFilter} columnFilter
+   * @returns {Renderer}
    */
   setFilters(rowFilter, columnFilter) {
-    this.table.setFilters(rowFilter, columnFilter);
+    this.renderer.setFilters(rowFilter, columnFilter);
 
     return this;
   }
 
   /**
-   * Set the viewport size of the rendered table.
+   * Sets the viewport size of the rendered table.
    *
    * @param {Number} rowsCount An amount of rows to render.
    * @param {Number} columnsCount An amount of columns to render.
+   * @return {Renderer}
    */
   setViewportSize(rowsCount, columnsCount) {
-    this.table.setViewportSize(rowsCount, columnsCount);
+    this.renderer.setViewportSize(rowsCount, columnsCount);
 
     return this;
   }
 
+  /**
+   * Sets total size of the table.
+   *
+   * @param {Number} totalRows Total rows of the table.
+   * @param {Number} totalColumns Total column of the table.
+   * @returns {Renderer}
+   */
+  setTotalSize(totalRows, totalColumns) {
+    this.renderer.setTotalSize(totalRows, totalColumns);
+
+    return this;
+  }
+
+  /**
+   * Sets row and column header functions.
+   *
+   * @param {Function[]} rowHeaders Row header functions. Factories for creating content for row headers.
+   * @param {Function[]} columnHeaders Column header functions. Factories for creating content for column headers.
+   * @returns {Renderer}
+   */
   setHeaderContentRenderers(rowHeaders, columnHeaders) {
-    this.table.setHeaderContentRenderers(rowHeaders, columnHeaders);
+    this.renderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
 
     return this;
   }
 
+  /**
+   * Adjusts the table (preparing for render).
+   */
   adjust() {
-    this.table.adjust();
+    this.renderer.adjust();
   }
 
+  /**
+   * Renders the table.
+   */
   render() {
-    this.table.render();
+    this.renderer.render();
   }
 }

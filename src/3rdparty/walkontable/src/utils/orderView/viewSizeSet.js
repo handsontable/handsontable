@@ -1,40 +1,110 @@
 import ViewSize from './viewSize';
-import { SHARED_WORKING_SPACE_UNSET, SHARED_WORKING_SPACE_TOP, SHARED_WORKING_SPACE_BOTTOM } from './constants';
+import { WORKING_SPACE_ALL, WORKING_SPACE_TOP, WORKING_SPACE_BOTTOM } from './constants';
 
+/**
+ * The class is a source of the truth of information about the current and
+ * next size of the rendered DOM elements and current and next offset of
+ * the view. That information allows us to calculate diff between current
+ * DOM order and this which should be rendered without touching the DOM API at all.
+ *
+ * Mostly the ViewSizeSet is created for each individual renderer. But in
+ * the table, there is one case where this size information should be shared
+ * between two different instances (different table renderers). This is a TR
+ * element which can contain TH elements - managed by own renderer and
+ * TD elements - managed by another renderer. To generate correct DOM order
+ * for them it is required to connect these two instances by reference
+ * through `sharedSize`.
+ *
+ * @class {ViewSizeSet}
+ */
 export default class ViewSizeSet {
   constructor() {
+    /**
+     * Holder for current and next view size and offset.
+     *
+     * @type {ViewSize}
+     */
     this.size = new ViewSize();
-    this.sharedSizeWorkingSpace = SHARED_WORKING_SPACE_UNSET;
+    /**
+     * Defines if this instance shares its size with another instance. If it's in the shared
+     * mode it defines what space it occupies ('top' or 'bottom').
+     *
+     * @type {Number}
+     */
+    this.workingSpace = WORKING_SPACE_ALL;
+    /**
+     * Shared Size instance.
+     *
+     * @type {ViewSize}
+     */
     this.sharedSize = null;
   }
 
+  /**
+   * Sets the size for rendered elements. It can be a size for rows, cells or size for row
+   * headers etc.
+   *
+   * @param {Number} size
+   */
   setSize(size) {
     this.size.setSize(size);
   }
 
+  /**
+   * Sets the offset for rendered elements. The offset describes the shift between 0 and
+   * the first rendered element according to the scroll position.
+   *
+   * @param {Number} offset
+   */
   setOffset(offset) {
     this.size.setOffset(offset);
   }
 
-  getSize() {
-    return this.size.getSize();
+  /**
+   * Returns ViewSize instance.
+   *
+   * @returns {ViewSize}
+   */
+  getViewSize() {
+    return this.size;
   }
 
-  canAppend(index) {
-    if (this.sharedSizeWorkingSpace === SHARED_WORKING_SPACE_BOTTOM) {
-      return index < this.sharedSize.nextOffset;
-    }
-
-    return true;
+  /**
+   * Checks if this ViewSizeSet is sharing the size with another instance.
+   *
+   * @returns {Boolean}
+   */
+  isShared() {
+    return this.sharedSize instanceof ViewSize;
   }
 
-  append(size) {
-    this.sharedSizeWorkingSpace = SHARED_WORKING_SPACE_BOTTOM;
-    this.sharedSize = size;
+  /**
+   * Checks what working space describes this size instance.
+   *
+   * @param {Number} workingSpace The number which describes the type of the working space (see constants.js).
+   * @returns {Boolean}
+   */
+  isPlaceOn(workingSpace) {
+    return this.workingSpace === workingSpace;
   }
 
-  prepend(size) {
-    this.sharedSizeWorkingSpace = SHARED_WORKING_SPACE_TOP;
-    this.sharedSize = size;
+  /**
+   * Appends the ViewSizeSet instance to this instance that turns it into a shared mode.
+   *
+   * @param {ViewSizeSet} viewSizeSet
+   */
+  append(viewSize) {
+    this.workingSpace = WORKING_SPACE_TOP;
+    this.sharedSize = viewSize.getViewSize();
+  }
+
+  /**
+   * Prepends the ViewSize instance to this instance that turns it into a shared mode.
+   *
+   * @param {ViewSizeSet} viewSizeSet
+   */
+  prepend(viewSize) {
+    this.workingSpace = WORKING_SPACE_BOTTOM;
+    this.sharedSize = viewSize.getViewSize();
   }
 }

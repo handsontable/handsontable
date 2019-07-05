@@ -1,11 +1,26 @@
 import BaseRenderer from './_base';
 import { addClass } from './../../../../helpers/dom/element';
 
+/**
+ * Colgrpup renderer responsible for managing (inserting, tracking, rendering) COL elements.
+ *
+ *   <colgroup> (root node)
+ *     ├ <col>   \
+ *     ├ <col>    \
+ *     ├ <col>     - ColGroupRenderer
+ *     ├ <col>    /
+ *     └ <col>   /
+ *
+ * @class {ColGroupRenderer}
+ */
 export default class ColGroupRenderer extends BaseRenderer {
   constructor(rootNode) {
     super(null, rootNode); // NodePool is not implemented for this renderer yet
   }
 
+  /**
+   * Adjusts the count of the rendered elements.
+   */
   adjust() {
     const { columnsToRender, rowHeadersCount } = this.table;
 
@@ -19,6 +34,9 @@ export default class ColGroupRenderer extends BaseRenderer {
     }
   }
 
+  /**
+   * Renders the col group elements.
+   */
   render() {
     this.adjust();
 

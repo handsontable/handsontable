@@ -2,32 +2,49 @@ import {
   getScrollbarWidth,
 } from './../../../../helpers/dom/element';
 
+/**
+ * Column utils class contains all necessary information about sizes of the columns.
+ *
+ * @class {ColumnUtils}
+ */
 export default class ColumnUtils {
   constructor(wot) {
     this.wot = wot;
     this.headerWidths = new Map();
   }
 
-  getWidth(sourceColumnIndex) {
+  /**
+   * Returns column width based on passed source index.
+   *
+   * @param {Number} sourceIndex Column source index.
+   * @return {Number}
+   */
+  getWidth(sourceIndex) {
     let width = this.wot.wtSettings.settings.columnWidth;
 
     if (typeof width === 'function') {
-      width = width(sourceColumnIndex);
+      width = width(sourceIndex);
 
     } else if (typeof width === 'object') {
-      width = width[sourceColumnIndex];
+      width = width[sourceIndex];
     }
 
     return width || this.wot.wtSettings.settings.defaultColumnWidth;
   }
 
-  getStretchedColumnWidth(sourceColumnIndex) {
-    const columnWidth = this.getWidth(sourceColumnIndex);
+  /**
+   * Returns stretched column width based on passed source index.
+   *
+   * @param {Number} sourceIndex Column source index.
+   * @return {Number}
+   */
+  getStretchedColumnWidth(sourceIndex) {
+    const columnWidth = this.getWidth(sourceIndex);
     const calculator = this.wot.wtViewport.columnsRenderCalculator;
     let width = (columnWidth === null || columnWidth === void 0) ? this.wot.wtSettings.settings.defaultColumnWidth : columnWidth;
 
     if (calculator) {
-      const stretchedWidth = calculator.getStretchedColumnWidth(sourceColumnIndex, width);
+      const stretchedWidth = calculator.getStretchedColumnWidth(sourceIndex, width);
 
       if (stretchedWidth) {
         width = stretchedWidth;
@@ -37,6 +54,12 @@ export default class ColumnUtils {
     return width;
   }
 
+  /**
+   * Returns column header height based on passed header level.
+   *
+   * @param {Number} level Column header level.
+   * @return {Number}
+   */
   getHeaderHeight(level) {
     let height = this.wot.wtSettings.settings.defaultRowHeight;
     const oversizedHeight = this.wot.wtViewport.oversizedColumnHeaders[level];
@@ -48,10 +71,19 @@ export default class ColumnUtils {
     return height;
   }
 
-  getHeaderWidth(sourceColumnIndex) {
-    return this.headerWidths.get(this.wot.wtTable.columnFilter.sourceToRendered(sourceColumnIndex));
+  /**
+   * Returns column header width based on passed source index.
+   *
+   * @param {Number} sourceIndex Column source index.
+   * @return {Number}
+   */
+  getHeaderWidth(sourceIndex) {
+    return this.headerWidths.get(this.wot.wtTable.columnFilter.sourceToRendered(sourceIndex));
   }
 
+  /**
+   * Calculates column header widths that can be retrieved from the cache.
+   */
   calculateWidths() {
     const { wot } = this;
     const { wtTable, wtViewport, cloneSource } = wot;

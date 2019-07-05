@@ -1,11 +1,26 @@
 import { empty } from './../../../../helpers/dom/element';
 import BaseRenderer from './_base';
 
+/**
+ * Column headers renderer responsible for managing (inserting, tracking, rendering) TR and TH elements.
+ *
+ *   <thead> (root node)
+ *     ├ <tr>   \
+ *     ├ <tr>    \
+ *     ├ <tr>     - ColumnHeadersRenderer
+ *     ├ <tr>    /
+ *     └ <tr>   /
+ *
+ * @class {ColumnHeadersRenderer}
+ */
 export default class ColumnHeadersRenderer extends BaseRenderer {
   constructor(rootNode) {
     super(null, rootNode); // NodePool is not implemented for this renderer yet
   }
 
+  /**
+   * Adjusts the count of the rendered elements.
+   */
   adjust() {
     const { columnHeadersCount, rowHeadersCount } = this.table;
     let TR = this.rootNode.firstChild;
@@ -43,6 +58,9 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
     }
   }
 
+  /**
+   * Renders the TH elements.
+   */
   render() {
     const { columnHeadersCount } = this.table;
 

@@ -12,15 +12,15 @@ or monetary compensation (commercial purposes), or not.
 
 If your use involves only such purposes as research, private study,
 evaluation and the like, you agree to be bound by the terms included
-in the “handsontable-non-commercial-license.pdf” file, available
+in the "handsontable-non-commercial-license.pdf" file, available
 in the main directory of this software repository.
 
 By installing, copying, or otherwise using this software for
 commercial purposes, you agree to be bound by the terms included
-in the “handsontable-general-terms.pdf” file, available in the main
+in the "handsontable-general-terms.pdf" file, available in the main
 directory of this software repository.
 
-HANDSONCODE PROVIDES THIS SOFTWARE ON AN “AS IS” BASIS,
+HANDSONCODE PROVIDES THIS SOFTWARE ON AN "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND. IN NO EVENT
 AND UNDER NO LEGAL THEORY, SHALL HANDSONCODE BE LIABLE
 TO YOU FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT, SPECIAL,

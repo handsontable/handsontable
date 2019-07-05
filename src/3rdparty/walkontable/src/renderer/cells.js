@@ -4,28 +4,62 @@ import {
 import { SharedOrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
 
+/**
+ * Cell renderer responsible for managing (inserting, tracking, rendering) TD elements.
+ *
+ *   <tr> (root node)
+ *     ├ <th>   --- RowHeadersRenderer
+ *     ├ <td>   \
+ *     ├ <td>    \
+ *     ├ <td>     - CellsRenderer
+ *     ├ <td>    /
+ *     └ <td>   /
+ *
+ * @class {CellsRenderer}
+ */
 export default class CellsRenderer extends BaseRenderer {
   constructor() {
     super('TD');
-    this.orderViews = new Map();
+    /**
+     * Cache for OrderView classes connected to specified node.
+     *
+     * @type {WeakMap}
+     */
+    this.orderViews = new WeakMap();
+    /**
+     * Row index which specifies the row position of the processed cell.
+     *
+     * @type {Number}
+     */
     this.sourceRowIndex = 0;
   }
 
-  obtainOrderView(sourceIndex, rootNode = null) {
+  /**
+   * Obtains the instance of the SharedOrderView class which is responsible for rendering the nodes to the root node.
+   *
+   * @param {HTMLTableRowElement} rootNode The TR element, which is root element for cells (TD).
+   * @return {SharedOrderView}
+   */
+  obtainOrderView(rootNode) {
     let orderView;
 
-    if (this.orderViews.has(sourceIndex)) {
-      orderView = this.orderViews.get(sourceIndex);
+    if (this.orderViews.has(rootNode)) {
+      orderView = this.orderViews.get(rootNode);
     } else {
-      orderView = new SharedOrderView(rootNode, (sourceColumnIndex) => {
-        return this.nodesPool.obtain(this.sourceRowIndex, sourceColumnIndex);
-      });
-      this.orderViews.set(sourceIndex, orderView);
+      orderView = new SharedOrderView(
+        rootNode,
+        sourceColumnIndex => this.nodesPool.obtain(this.sourceRowIndex, sourceColumnIndex),
+        this.nodeType,
+      );
+      this.orderViews.set(rootNode, orderView);
     }
 
     return orderView;
   }
 
+  /**
+   * Renders the cells.
+   */
   render() {
     const { rowsToRender, columnsToRender, rows, rowHeaders } = this.table;
 
@@ -35,8 +69,8 @@ export default class CellsRenderer extends BaseRenderer {
 
       this.sourceRowIndex = sourceRowIndex;
 
-      const orderView = this.obtainOrderView(sourceRowIndex, TR);
-      const rowHeadersView = rowHeaders.obtainOrderView(sourceRowIndex, TR);
+      const orderView = this.obtainOrderView(TR);
+      const rowHeadersView = rowHeaders.obtainOrderView(TR);
 
       // @TODO(perf-tip): For cells other than "visual 0" generating diff leads/commands can be skipped. New order view
       // shoule share state between next orderViews.

@@ -1,11 +1,22 @@
+/**
+ * Row utils class contains all necessary information about sizes of the rows.
+ *
+ * @class {RowUtils}
+ */
 export default class RowUtils {
   constructor(wot) {
     this.wot = wot;
   }
 
-  getHeight(sourceRowIndex) {
-    let height = this.wot.wtSettings.settings.rowHeight(sourceRowIndex);
-    const oversizedHeight = this.wot.wtViewport.oversizedRows[sourceRowIndex];
+  /**
+   * Returns row height based on passed source index.
+   *
+   * @param {Number} sourceIndex Row source index.
+   * @return {Number}
+   */
+  getHeight(sourceIndex) {
+    let height = this.wot.wtSettings.settings.rowHeight(sourceIndex);
+    const oversizedHeight = this.wot.wtViewport.oversizedRows[sourceIndex];
 
     if (oversizedHeight !== void 0) {
       height = height === void 0 ? oversizedHeight : Math.max(height, oversizedHeight);
