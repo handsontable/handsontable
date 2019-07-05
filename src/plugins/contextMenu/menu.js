@@ -130,7 +130,6 @@ class Menu {
       data: filteredItems,
       colHeaders: false,
       autoColumnSize: true,
-      ecoRendering: false,
       modifyColWidth(width) {
         if (isDefined(width) && width < minWidthOfMenu) {
           return minWidthOfMenu;

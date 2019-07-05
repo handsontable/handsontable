@@ -69,7 +69,6 @@ class HandsontableEditor extends TextEditor {
       startCols: 0,
       minRows: 0,
       minCols: 0,
-      ecoRendering: false,
       className: 'listbox',
       copyPaste: false,
       autoColumnSize: false,
