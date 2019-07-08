@@ -372,6 +372,8 @@ describe('Core_view', () => {
     await sleep(250);
 
     expect(spec().$container.height()).toEqual(initHeight);
+
+    spec().$container.unwrap();
   });
 
   it('should allow height to be a number', () => {
@@ -403,7 +405,7 @@ describe('Core_view', () => {
       height: '50vh',
     });
 
-    expect(spec().$container.height()).toEqual(window.innerHeight / 2);
+    expect(spec().$container.height()).toEqual(Math.ceil(window.innerHeight / 2));
   });
 
   it('should allow width to be a number', () => {
@@ -527,7 +529,14 @@ describe('Core_view', () => {
         deltaY: 400,
       });
 
-      spec().$container.find('.ht_clone_top_left_corner .wtHolder')[0].dispatchEvent(wheelEvt);
+      // If run on a browser different than Chrome or a higher density display, the event is listened on a different element (https://github.com/handsontable/handsontable/pull/5921)
+      if (!(/Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor))
+        || hot.view.wt.rootWindow.devicePixelRatio && hot.view.wt.rootWindow.devicePixelRatio > 1) {
+        hot.view.wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
+
+      } else {
+        spec().$container.find('.ht_clone_top_left_corner .wtHolder')[0].dispatchEvent(wheelEvt);
+      }
 
       await sleep(100);
 
@@ -545,7 +554,7 @@ describe('Core_view', () => {
 
       window.scrollTo(0, 0);
 
-      handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 50),
         colHeaders: true,
         rowHeaders: true,
@@ -560,7 +569,14 @@ describe('Core_view', () => {
         deltaY: 400,
       });
 
-      spec().$container.find('.ht_clone_top_left_corner .wtHolder')[0].dispatchEvent(wheelEvt);
+      // If run on a browser different than Chrome or a higher density display, the event is listened on a different element (https://github.com/handsontable/handsontable/pull/5921)
+      if (!(/Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor))
+        || hot.view.wt.rootWindow.devicePixelRatio && hot.view.wt.rootWindow.devicePixelRatio > 1) {
+        hot.view.wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
+
+      } else {
+        spec().$container.find('.ht_clone_top_left_corner .wtHolder')[0].dispatchEvent(wheelEvt);
+      }
 
       await sleep(100);
       const masterHolder = spec().$container.find('.ht_master .wtHolder')[0];

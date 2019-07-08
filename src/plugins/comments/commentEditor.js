@@ -24,6 +24,7 @@ class CommentEditor {
   }
 
   constructor(rootDocument) {
+    this.container = null;
     this.rootDocument = rootDocument;
     this.editor = this.createEditor();
     this.editorStyle = this.editor.style;
@@ -149,19 +150,19 @@ class CommentEditor {
   createEditor() {
     const editor = this.rootDocument.createElement('div');
     const textArea = this.rootDocument.createElement('textarea');
-    let container = this.rootDocument.querySelector(`.${CommentEditor.CLASS_EDITOR_CONTAINER}`);
+    this.container = this.rootDocument.querySelector(`.${CommentEditor.CLASS_EDITOR_CONTAINER}`);
 
-    if (!container) {
-      container = this.rootDocument.createElement('div');
-      addClass(container, CommentEditor.CLASS_EDITOR_CONTAINER);
-      this.rootDocument.body.appendChild(container);
+    if (!this.container) {
+      this.container = this.rootDocument.createElement('div');
+      addClass(this.container, CommentEditor.CLASS_EDITOR_CONTAINER);
+      this.rootDocument.body.appendChild(this.container);
     }
 
     addClass(editor, CommentEditor.CLASS_EDITOR);
     addClass(textArea, CommentEditor.CLASS_INPUT);
 
     editor.appendChild(textArea);
-    container.appendChild(editor);
+    this.container.appendChild(editor);
 
     return editor;
   }
@@ -179,9 +180,15 @@ class CommentEditor {
    * Destroy the comments editor.
    */
   destroy() {
+    const containerParentElement = this.container ? this.container.parentNode : null;
+
     this.editor.parentNode.removeChild(this.editor);
     this.editor = null;
     this.editorStyle = null;
+
+    if (containerParentElement) {
+      containerParentElement.removeChild(this.container);
+    }
   }
 }
 
