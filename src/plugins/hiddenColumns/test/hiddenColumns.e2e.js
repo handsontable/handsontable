@@ -95,8 +95,6 @@ describe('HiddenColumns', () => {
       height: 300
     });
 
-    window.hot = hot;
-
     hot.getPlugin('hiddenColumns').disablePlugin();
     hot.render();
     hot.getPlugin('hiddenColumns').enablePlugin();

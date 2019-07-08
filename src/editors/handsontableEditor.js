@@ -116,8 +116,8 @@ class HandsontableEditor extends TextEditor {
   /**
    * Sets focus state on the select element.
    */
-  focus() {
-    super.focus();
+  focus(safeFocus) {
+    super.focus(safeFocus);
   }
 
   /**

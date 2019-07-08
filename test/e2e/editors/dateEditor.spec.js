@@ -478,4 +478,25 @@ describe('DateEditor', () => {
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
   });
+
+  describe('Cleaning up after the editor', () => {
+    it('should not leave any editor containers after destroying the Handsontable instance', () => {
+      handsontable({
+        data: [['02/02/2015 8:00 AM']],
+        columns: [
+          {
+            type: 'date'
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDown('enter');
+      keyDown('enter');
+
+      destroy();
+
+      expect($('.htDatepickerHolder').size()).toEqual(0);
+    });
+  });
 });
