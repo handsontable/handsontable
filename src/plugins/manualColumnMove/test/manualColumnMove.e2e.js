@@ -285,6 +285,33 @@ describe('manualColumnMove', () => {
       expect(afterMoveColumnCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
     });
 
+    it('should not trigger an afterColumnMove event after column move when beforeColumnMove returns false', () => {
+      const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
+
+      spec().$container.height(150);
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        manualColumnMove: true,
+        beforeColumnMove: () => false,
+        afterColumnMove: afterMoveColumnCallback
+      });
+
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+
+      hot.getPlugin('manualColumnMove').moveColumns([8, 9, 7], 0);
+      hot.render();
+
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+
+      expect(afterMoveColumnCallback).not.toHaveBeenCalled();
+    });
+
     it('should move the second column to the first column', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
