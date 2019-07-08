@@ -139,6 +139,10 @@ class ManualColumnFreeze extends BasePlugin {
     settings.fixedColumnsLeft -= 1;
 
     this.columnIndexMapper.moveIndexes(column, returnCol);
+
+    const frozenMap = this.frozenColumnsBasePositions.getValues();
+
+    this.frozenColumnsBasePositions.setValues([...frozenMap.slice(0, column), ...frozenMap.slice(column + 1, returnCol), -1, ...frozenMap.slice(returnCol)]);
   }
 
   /**
