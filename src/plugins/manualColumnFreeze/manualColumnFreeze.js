@@ -5,7 +5,6 @@ import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 
 import './manualColumnFreeze.css';
-import { IndexMap } from '../../translations';
 
 const privatePool = new WeakMap();
 /**
@@ -23,13 +22,6 @@ const privatePool = new WeakMap();
 class ManualColumnFreeze extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * Frozen indexes position.
-     *
-     * @private
-     * @type {null|IndexMap}
-     */
-    this.frozenColumnsBasePositions = null;
 
     privatePool.set(this, {
       moveByFreeze: false,
@@ -57,8 +49,6 @@ class ManualColumnFreeze extends BasePlugin {
 
     this.addHook('afterContextMenuDefaultOptions', options => this.addContextMenuEntry(options));
     this.addHook('beforeColumnMove', (rows, target) => this.onBeforeColumnMove(rows, target));
-
-    this.frozenColumnsBasePositions = this.columnIndexMapper.registerMap('manualColumnFreeze', new IndexMap(-1));
 
     super.enablePlugin();
   }
@@ -106,11 +96,6 @@ class ManualColumnFreeze extends BasePlugin {
 
     priv.moveByFreeze = true;
 
-    // TODO: Previous work of the plugin. I haven't changed this `if`, but probably it should be removed.
-    if (this.columnIndexMapper.getPhysicalIndex(column) !== column) {
-      this.frozenColumnsBasePositions.setValueAtIndex(settings.fixedColumnsLeft, column);
-    }
-
     this.columnIndexMapper.moveIndexes(column, settings.fixedColumnsLeft);
 
     settings.fixedColumnsLeft += 1;
@@ -133,57 +118,10 @@ class ManualColumnFreeze extends BasePlugin {
       return; // not fixed
     }
 
-    const returnCol = this.getBestColumnReturnPosition(column);
-
     priv.moveByFreeze = true;
     settings.fixedColumnsLeft -= 1;
 
-    this.columnIndexMapper.moveIndexes(column, returnCol);
-
-    const frozenMap = this.frozenColumnsBasePositions.getValues();
-
-    this.frozenColumnsBasePositions.setValues([...frozenMap.slice(0, column), ...frozenMap.slice(column + 1, returnCol), -1, ...frozenMap.slice(returnCol)]);
-  }
-
-  /**
-   * Estimates the most fitting return position for unfrozen column.
-   *
-   * @private
-   * @param {Number} column Visual column index.
-   */
-  getBestColumnReturnPosition(column) {
-    const unfrozenColumnIndex = this.frozenColumnsBasePositions.getValueAtIndex(column);
-
-    if (this.frozenColumnsBasePositions.getValueAtIndex(column) !== -1) {
-      return this.getCalculatedPosition(unfrozenColumnIndex, true);
-    }
-
-    return this.getCalculatedPosition(this.columnIndexMapper.getPhysicalIndex(column), false);
-  }
-
-  /**
-   * Get calculated return position for for unfrozen column basing on its physical index.
-   *
-   * @param {Number} unfrozenColumnIndex Physical column of the unfrozen column.
-   * @param {Boolean} returnPhysical Indicate if returned index should be physical index. Return physical index when variable is equal to `true`, visual index otherwise.
-   * @returns {Number}
-   */
-  getCalculatedPosition(unfrozenColumnIndex, returnPhysical) {
-    const settings = this.hot.getSettings();
-    let calculatedPosition = settings.fixedColumnsLeft;
-    let nextIndexBeforeDestination = this.columnIndexMapper.getPhysicalIndex(calculatedPosition);
-
-    // Moving unfrozen column towards to it's physical position, unless column index at next position is bigger than index of moved column.
-    while (nextIndexBeforeDestination !== null && nextIndexBeforeDestination <= unfrozenColumnIndex) {
-      calculatedPosition += 1;
-      nextIndexBeforeDestination = this.columnIndexMapper.getPhysicalIndex(calculatedPosition);
-    }
-
-    if (returnPhysical) {
-      calculatedPosition = nextIndexBeforeDestination;
-    }
-
-    return calculatedPosition - 1;
+    this.columnIndexMapper.moveIndexes(column, settings.fixedColumnsLeft);
   }
 
   /**
