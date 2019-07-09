@@ -1,34 +1,32 @@
 describe('stretchH option', () => {
-  let $table;
-  let $container;
-  let $wrapper;
   const debug = false;
 
-  beforeEach(() => {
-    $wrapper = $('<div></div>').css({ overflow: 'hidden', position: 'relative' });
-    $wrapper.width(500).height(201);
-    $container = $('<div></div>');
-    $table = $('<table></table>'); // create a table that is not attached to document
-    $wrapper.append($container);
-    $container.append($table);
-    $wrapper.appendTo('body');
-    createDataArray();
+  beforeEach(function() {
+    this.$wrapper = $('<div></div>').css({ overflow: 'hidden' });
+    this.$wrapper.width(500).height(201);
+    this.$container = $('<div></div>');
+    this.$table = $('<table></table>'); // create a table that is not attached to document
+    this.$wrapper.append(this.$container);
+    this.$container.append(this.$table);
+    this.$wrapper.appendTo('body');
+    createDataArray(100, 4);
   });
 
-  afterEach(() => {
+  afterEach(function() {
     if (!debug) {
       $('.wtHolder').remove();
     }
-    $wrapper.remove();
+
+    this.$wrapper.remove();
+    this.wotInstance.destroy();
   });
 
   it('should stretch all visible columns when stretchH equals \'all\'', () => {
     createDataArray(20, 2);
 
-    $wrapper.width(500).height(400);
+    spec().$wrapper.width(500).height(400);
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -39,18 +37,17 @@ describe('stretchH option', () => {
     });
     wt.draw();
 
-    expect($table.outerWidth()).toBeAroundValue(wt.wtTable.holder.clientWidth);
+    expect(spec().$table.outerWidth()).toBeAroundValue(wt.wtTable.holder.clientWidth);
     // fix differences between Mac and Linux PhantomJS
-    expect($table.find('col:eq(2)').width() - $table.find('col:eq(1)').width()).toBeInArray([-1, 0, 1]);
+    expect(spec().$table.find('col:eq(2)').width() - spec().$table.find('col:eq(1)').width()).toBeInArray([-1, 0, 1]);
   });
 
   it('should stretch all visible columns when stretchH equals \'all\' and window is resized', async() => {
     createDataArray(20, 2);
 
-    $wrapper.width(500).height(400);
+    spec().$wrapper.width(500).height(400);
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -61,10 +58,10 @@ describe('stretchH option', () => {
     });
     wt.draw();
 
-    const initialTableWidth = $table.outerWidth();
-    expect(initialTableWidth).toBeAroundValue($table[0].clientWidth);
+    const initialTableWidth = spec().$table.outerWidth();
+    expect(initialTableWidth).toBeAroundValue(spec().$table[0].clientWidth);
 
-    $wrapper.width(600).height(500);
+    spec().$wrapper.width(600).height(500);
 
     const evt = document.createEvent('CustomEvent'); // MUST be 'CustomEvent'
     evt.initCustomEvent('resize', false, false, null);
@@ -73,8 +70,8 @@ describe('stretchH option', () => {
 
     await sleep(300);
 
-    const currentTableWidth = $table.outerWidth();
-    expect(currentTableWidth).toBeAroundValue($table[0].clientWidth);
+    const currentTableWidth = spec().$table.outerWidth();
+    expect(currentTableWidth).toBeAroundValue(spec().$table[0].clientWidth);
     expect(currentTableWidth).toBeGreaterThan(initialTableWidth);
   });
 
@@ -87,13 +84,12 @@ describe('stretchH option', () => {
       }
     }
 
-    $wrapper.width(300);
-    $wrapper.css({
+    spec().$wrapper.width(300);
+    spec().$wrapper.css({
       overflow: 'hidden'
     });
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -104,7 +100,7 @@ describe('stretchH option', () => {
     let expectedColWidth = ((300 - getScrollbarWidth()) / 2);
     expectedColWidth = Math.floor(expectedColWidth);
 
-    const wtHider = $table.parents('.wtHider');
+    const wtHider = spec().$table.parents('.wtHider');
     expect(wtHider.find('col:eq(0)').width()).toBeAroundValue(expectedColWidth);
     expect(wtHider.find('col:eq(1)').width() - expectedColWidth).toBeInArray([0, 1]); // fix differences between Mac and Linux PhantomJS
   });
@@ -112,10 +108,9 @@ describe('stretchH option', () => {
   it('should stretch last visible column when stretchH equals \'last\' (vertical scroll)', () => {
     createDataArray(20, 2);
 
-    $wrapper.width(300).height(201);
+    spec().$wrapper.width(300).height(201);
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -126,19 +121,18 @@ describe('stretchH option', () => {
     });
     wt.draw();
 
-    const wtHider = $table.parents('.wtHider');
-    expect(wtHider.outerWidth()).toBe(getTableWidth($table));
+    const wtHider = spec().$table.parents('.wtHider');
+    expect(wtHider.outerWidth()).toBe(getTableWidth(spec().$table));
     expect(wtHider.find('col:eq(1)').width()).toBeLessThan(wtHider.find('col:eq(2)').width());
   });
 
   it('should stretch last column when stretchH equals \'last\' (horizontal scroll)', () => {
     createDataArray(5, 20);
 
-    $wrapper.width(400).height(201);
+    spec().$wrapper.width(400).height(201);
     spec().data[0][19] = 'longer text';
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -155,7 +149,7 @@ describe('stretchH option', () => {
     wt.scrollViewportHorizontally(19);
     wt.draw();
 
-    const wtHider = $table.parents('.wtHider');
+    const wtHider = spec().$table.parents('.wtHider');
 
     expect(wtHider.find('col:eq(6)').width()).toBe(100);
   });
@@ -163,10 +157,9 @@ describe('stretchH option', () => {
   it('should stretch last visible column when stretchH equals \'last\' (no scrolls)', () => {
     createDataArray(2, 2);
 
-    $wrapper.width(300).height(201);
+    spec().$wrapper.width(300).height(201);
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -177,17 +170,16 @@ describe('stretchH option', () => {
     });
     wt.draw();
 
-    const wtHider = $table.parents('.wtHider');
-    expect(wtHider.outerWidth()).toBe(getTableWidth($table));
+    const wtHider = spec().$table.parents('.wtHider');
+    expect(wtHider.outerWidth()).toBe(getTableWidth(spec().$table));
     expect(wtHider.find('col:eq(1)').width()).toBeLessThan(wtHider.find('col:eq(2)').width());
   });
 
   it('should not stretch when stretchH equals \'none\'', () => {
     createDataArray(20, 2);
-    $wrapper.width(300).height(201);
+    spec().$wrapper.width(300).height(201);
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -198,8 +190,8 @@ describe('stretchH option', () => {
     });
     wt.draw();
 
-    expect($table.width()).toBeLessThan($wrapper.width());
-    expect($table.find('col:eq(1)').width()).toBe($table.find('col:eq(2)').width());
+    expect(spec().$table.width()).toBeLessThan(spec().$wrapper.width());
+    expect(spec().$table.find('col:eq(1)').width()).toBe(spec().$table.find('col:eq(2)').width());
   });
 
 });

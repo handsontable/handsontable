@@ -10,10 +10,24 @@ export function sleep(delay = 100) {
   });
 }
 
-let currentSpec;
+const specContext = {};
 
 export function spec() {
-  return currentSpec;
+  return specContext.spec;
+}
+
+export function walkontable(options, table) {
+  const currentSpec = spec();
+
+  if (!table) {
+    table = currentSpec.$table[0];
+  }
+
+  options.table = table;
+
+  currentSpec.wotInstance = new Walkontable.Core(options);
+
+  return currentSpec.wotInstance;
 }
 
 export function createDataArray(rows = 100, cols = 4) {
@@ -48,7 +62,7 @@ export function getTotalColumns() {
 }
 
 beforeEach(function() {
-  currentSpec = this;
+  specContext.spec = this;
 
   const matchers = {
     toBeInArray() {
@@ -92,6 +106,7 @@ beforeEach(function() {
 });
 
 afterEach(() => {
+  specContext.spec = null;
   window.scrollTo(0, 0);
 });
 
