@@ -155,19 +155,20 @@ class ManualColumnFreeze extends BasePlugin {
     const unfrozenColumnIndex = this.frozenColumnsBasePositions.getValueAtIndex(column);
 
     if (this.frozenColumnsBasePositions.getValueAtIndex(column) !== -1) {
-      return this.getCalculatedPosition(unfrozenColumnIndex);
+      return this.getCalculatedPosition(unfrozenColumnIndex, true);
     }
 
-    return this.getCalculatedPosition(this.columnIndexMapper.getPhysicalIndex(column));
+    return this.getCalculatedPosition(this.columnIndexMapper.getPhysicalIndex(column), false);
   }
 
   /**
    * Get calculated return position for for unfrozen column basing on its physical index.
    *
    * @param {Number} unfrozenColumnIndex Physical column of the unfrozen column.
+   * @param {Boolean} returnPhysical Indicate if returned index should be physical index. Return physical index when variable is equal to `true`, visual index otherwise.
    * @returns {Number}
    */
-  getCalculatedPosition(unfrozenColumnIndex) {
+  getCalculatedPosition(unfrozenColumnIndex, returnPhysical) {
     const settings = this.hot.getSettings();
     let calculatedPosition = settings.fixedColumnsLeft;
     let nextIndexBeforeDestination = this.columnIndexMapper.getPhysicalIndex(calculatedPosition);
@@ -176,6 +177,10 @@ class ManualColumnFreeze extends BasePlugin {
     while (nextIndexBeforeDestination !== null && nextIndexBeforeDestination <= unfrozenColumnIndex) {
       calculatedPosition += 1;
       nextIndexBeforeDestination = this.columnIndexMapper.getPhysicalIndex(calculatedPosition);
+    }
+
+    if (returnPhysical) {
+      calculatedPosition = nextIndexBeforeDestination;
     }
 
     return calculatedPosition - 1;
