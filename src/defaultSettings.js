@@ -2360,6 +2360,19 @@ DefaultSettings.prototype = {
   preventOverflow: false,
 
   /**
+   * Prevents wheel event on overlays for doing default action.
+   *
+   * @type {Boolean}
+   * @default false
+   *
+   * @example
+   * ```js
+   * preventWheel: false,
+   * ```
+   */
+  preventWheel: false,
+
+  /**
    * @description
    * Enables the functionality of the {@link BindRowsWithHeaders} plugin which allows binding the table rows with their headers.
    * If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,

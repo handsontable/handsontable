@@ -57,40 +57,40 @@ class Overlays {
       width: null,
       height: null,
     };
-    this.overlayScrollPositions = {
-      master: {
-        top: 0,
-        left: 0,
-      },
-      top: {
-        top: null,
-        left: 0,
-      },
-      bottom: {
-        top: null,
-        left: 0
-      },
-      left: {
-        top: 0,
-        left: null
-      }
-    };
+    // this.overlayScrollPositions = {
+    //   master: {
+    //     top: 0,
+    //     left: 0,
+    //   },
+    //   top: {
+    //     top: null,
+    //     left: 0,
+    //   },
+    //   bottom: {
+    //     top: null,
+    //     left: 0
+    //   },
+    //   left: {
+    //     top: 0,
+    //     left: null
+    //   }
+    // };
 
-    this.pendingScrollCallbacks = {
-      master: {
-        top: 0,
-        left: 0,
-      },
-      top: {
-        left: 0,
-      },
-      bottom: {
-        left: 0,
-      },
-      left: {
-        top: 0,
-      }
-    };
+    // this.pendingScrollCallbacks = {
+    //   master: {
+    //     top: 0,
+    //     left: 0,
+    //   },
+    //   top: {
+    //     left: 0,
+    //   },
+    //   bottom: {
+    //     left: 0,
+    //   },
+    //   left: {
+    //     top: 0,
+    //   }
+    // };
 
     this.verticalScrolling = false;
     this.horizontalScrolling = false;
@@ -211,31 +211,26 @@ class Overlays {
 
     const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
     const isScrollOnWindow = this.scrollableElement === rootWindow;
-
-    if (isHighPixelRatio || !isChrome()) {
-      // Resolves issue outline https://github.com/handsontable/handsontable/issues/5913
-      // We can keep this (removing .parentNode) to prevent stutter in retina https://github.com/handsontable/handsontable/issues/4498
-      this.eventManager.addEventListener(this.wot.wtTable.wtRootElement, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
-    }
-    if (this.topOverlay.needFullRender) {
-      this.eventManager.addEventListener(this.topOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
+    const preventWheel = this.wot.wtSettings.getSetting('preventWheel');
+    const wheelEventOptions = { passive: isScrollOnWindow };
+    if (preventWheel || isHighPixelRatio || !isChrome()) {
+      this.eventManager.addEventListener(this.wot.wtTable.wtRootElement, 'wheel', event => this.onCloneWheel(event, preventWheel), wheelEventOptions);
     }
 
-    if (this.bottomOverlay.needFullRender) {
-      this.eventManager.addEventListener(this.bottomOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
-    }
+    const overlays = [
+      this.topOverlay,
+      this.bottomOverlay,
+      this.leftOverlay,
+      this.topLeftCornerOverlay,
+      this.bottomLeftCornerOverlay,
+    ];
 
-    if (this.leftOverlay.needFullRender) {
-      this.eventManager.addEventListener(this.leftOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
-    }
-
-    if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.needFullRender) {
-      this.eventManager.addEventListener(this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
-    }
-
-    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.needFullRender) {
-      this.eventManager.addEventListener(this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onCloneWheel(event), { passive: isScrollOnWindow });
-    }
+    overlays.forEach((overlay) => {
+      if (overlay && overlay.needFullRender) {
+        const { holder } = overlay.clone.wtTable;
+        this.eventManager.addEventListener(holder, 'wheel', event => this.onCloneWheel(event, preventWheel), wheelEventOptions);
+      }
+    });
 
     let resizeTimeout;
 
@@ -285,7 +280,7 @@ class Overlays {
    *
    * @param {Event} event
    */
-  onCloneWheel(event) {
+  onCloneWheel(event, preventDefault) {
     const { rootWindow } = this.wot;
 
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
@@ -306,7 +301,7 @@ class Overlays {
 
     const isScrollPossible = this.translateMouseWheelToScroll(event);
 
-    if (this.wot.getSetting('preventWheel') || (this.scrollableElement !== rootWindow && isScrollPossible)) {
+    if (preventDefault || (this.scrollableElement !== rootWindow && isScrollPossible)) {
       event.preventDefault();
     }
   }

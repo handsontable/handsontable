@@ -496,6 +496,13 @@ class Viewport {
       object[key] = void 0;
     });
   }
+
+  /**
+   * Cleans up registered events' callbacks.
+   */
+  destroy() {
+    this.eventManager.destroy();
+  }
 }
 
 export default Viewport;
