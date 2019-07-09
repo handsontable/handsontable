@@ -62,8 +62,6 @@ class ManualColumnFreeze extends BasePlugin {
     priv.afterFirstUse = false;
     priv.moveByFreeze = false;
 
-    this.columnIndexMapper.unregisterMap('manualColumnFreeze');
-
     super.disablePlugin();
   }
 
