@@ -10,12 +10,27 @@ export function sleep(delay = 100) {
   });
 }
 
+/**
+ * Test context object.
+ *
+ * @type {Object}
+ */
 const specContext = {};
 
+/**
+ * Get the test case context.
+ *
+ * @returns {Object|null}
+ */
 export function spec() {
   return specContext.spec;
 }
 
+/**
+ * Create the Walkontable instance with the provided options and cache it as `wotInstance` in the test context.
+ * @param {Object} options Walkontable options.
+ * @param {HTMLTableElement} [table] The table element to base the instance on.
+ */
 export function walkontable(options, table) {
   const currentSpec = spec();
 
