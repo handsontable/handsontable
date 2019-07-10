@@ -501,13 +501,13 @@ describe('AutoColumnSize', () => {
 
     const cloneTopHider = spec().$container.find('.ht_clone_top .wtHider');
 
-    expect(cloneTopHider.width()).toEqual(140);
+    expect(cloneTopHider.width()).toBeAroundValue(140);
 
     selectCell(0, 0);
 
     await sleep(300);
 
-    expect(cloneTopHider.width()).toEqual(140);
+    expect(cloneTopHider.width()).toBeAroundValue(140);
   });
 
   it('should not calculate any column widths, if there are no columns in the dataset', () => {

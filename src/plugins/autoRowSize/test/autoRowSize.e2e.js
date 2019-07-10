@@ -476,7 +476,7 @@ describe('AutoRowSize', () => {
       height: 300
     });
 
-    expect(rowHeight(spec().$container, -1)).toBe(75);
+    expect(rowHeight(spec().$container, -1)).toBeAroundValue(75, 2);
   });
 
   it('should properly count height', async() => {
