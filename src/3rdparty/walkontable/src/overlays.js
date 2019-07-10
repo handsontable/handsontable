@@ -40,11 +40,15 @@ class Overlays {
     this.wot.update('scrollbarWidth', this.scrollbarSize);
     this.wot.update('scrollbarHeight', this.scrollbarSize);
 
-    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
-      this.scrollableElement = wtTable.holder;
-    } else {
-      this.scrollableElement = getScrollableElement(wtTable.TABLE);
-    }
+    const isOverflowHidden = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden';
+
+    this.scrollableElement = isOverflowHidden ? wtTable.holder : getScrollableElement(wtTable.TABLE);
+
+    this.topOverlay = void 0;
+    this.bottomOverlay = void 0;
+    this.leftOverlay = void 0;
+    this.topLeftCornerOverlay = void 0;
+    this.bottomLeftCornerOverlay = void 0;
 
     this.prepareOverlays();
 
@@ -57,44 +61,9 @@ class Overlays {
       width: null,
       height: null,
     };
-    // this.overlayScrollPositions = {
-    //   master: {
-    //     top: 0,
-    //     left: 0,
-    //   },
-    //   top: {
-    //     top: null,
-    //     left: 0,
-    //   },
-    //   bottom: {
-    //     top: null,
-    //     left: 0
-    //   },
-    //   left: {
-    //     top: 0,
-    //     left: null
-    //   }
-    // };
-
-    // this.pendingScrollCallbacks = {
-    //   master: {
-    //     top: 0,
-    //     left: 0,
-    //   },
-    //   top: {
-    //     left: 0,
-    //   },
-    //   bottom: {
-    //     left: 0,
-    //   },
-    //   left: {
-    //     top: 0,
-    //   }
-    // };
 
     this.verticalScrolling = false;
     this.horizontalScrolling = false;
-    this.delegatedScrollCallback = false;
 
     this.browserLineHeight = BODY_LINE_HEIGHT || FALLBACK_BODY_LINE_HEIGHT;
 
@@ -213,6 +182,7 @@ class Overlays {
     const isScrollOnWindow = this.scrollableElement === rootWindow;
     const preventWheel = this.wot.wtSettings.getSetting('preventWheel');
     const wheelEventOptions = { passive: isScrollOnWindow };
+
     if (preventWheel || isHighPixelRatio || !isChrome()) {
       this.eventManager.addEventListener(this.wot.wtTable.wtRootElement, 'wheel', event => this.onCloneWheel(event, preventWheel), wheelEventOptions);
     }

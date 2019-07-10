@@ -262,7 +262,6 @@ class Walkontable {
    */
   destroy() {
     this.wtOverlays.destroy();
-    this.wtViewport.destroy();
     this.wtEvent.destroy();
   }
 }
