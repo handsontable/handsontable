@@ -2,7 +2,7 @@ describe('WalkontableScroll', () => {
   const debug = false;
 
   beforeEach(function() {
-    this.$wrapper = $('<div></div>').css({ overflow: 'hidden' });
+    this.$wrapper = $('<div></div>').css({ overflow: 'hidden', position: 'relative' });
     this.$container = $('<div></div>');
     this.$table = $('<table></table>'); // create a table that is not attached to document
     this.$wrapper.append(this.$container);
@@ -392,7 +392,7 @@ describe('WalkontableScroll', () => {
       wt.scrollViewportVertically(getTotalRows() - 1);
       wt.draw();
 
-      expect(spec().$table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell(new Walkontable.CellCoords(this.data.length - 1, 0))); // last rendered row should be last data row
+      expect(spec().$table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell(new Walkontable.CellCoords(spec().data.length - 1, 0))); // last rendered row should be last data row
     });
 
     xit('should scroll to last row with very high rows (respecting fixedRows)', () => {
@@ -585,7 +585,7 @@ describe('WalkontableScroll', () => {
       wheelOnElement(topLeftCornerOverlayHolder, 400);
       wt.draw();
 
-      await sleep(100);
+      await sleep(200);
 
       expect(masterCallback.calls.count()).toEqual(1);
       expect(topCallback.calls.count()).toEqual(1);
@@ -595,7 +595,7 @@ describe('WalkontableScroll', () => {
       wheelOnElement(topLeftCornerOverlayHolder, 0, 400);
       wt.draw();
 
-      await sleep(100);
+      await sleep(200);
 
       expect(masterCallback.calls.count()).toEqual(2);
       expect(topCallback.calls.count()).toEqual(1);
@@ -610,15 +610,14 @@ describe('WalkontableScroll', () => {
 
     it('should scroll the table when the `wheel` event is triggered on the bottom-left corner overlay', async() => {
       createDataArray(100, 100);
-      $wrapper.width(260).height(201);
+      spec().$wrapper.width(260).height(201);
 
       const masterCallback = jasmine.createSpy('masterCallback');
       const topCallback = jasmine.createSpy('topCallback');
       const bottomCallback = jasmine.createSpy('bottomCallback');
       const leftCallback = jasmine.createSpy('leftCallback');
 
-      const wt = new Walkontable.Core({
-        table: $table[0],
+      const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
@@ -644,7 +643,7 @@ describe('WalkontableScroll', () => {
       wheelOnElement(bottomLeftCornerOverlayHolder, 400);
       wt.draw();
 
-      await sleep(100);
+      await sleep(200);
 
       expect(masterCallback.calls.count()).toEqual(1);
       expect(topCallback.calls.count()).toEqual(1);
@@ -654,7 +653,7 @@ describe('WalkontableScroll', () => {
       wheelOnElement(bottomLeftCornerOverlayHolder, 0, 400);
       wt.draw();
 
-      await sleep(100);
+      await sleep(200);
 
       expect(masterCallback.calls.count()).toEqual(2);
       expect(topCallback.calls.count()).toEqual(1);
@@ -669,15 +668,14 @@ describe('WalkontableScroll', () => {
 
     it('should scroll the table when the `wheel` event is triggered on the left overlay', async() => {
       createDataArray(100, 100);
-      $wrapper.width(260).height(201);
+      spec().$wrapper.width(260).height(201);
 
       const masterCallback = jasmine.createSpy('masterCallback');
       const topCallback = jasmine.createSpy('topCallback');
       const bottomCallback = jasmine.createSpy('bottomCallback');
       const leftCallback = jasmine.createSpy('leftCallback');
 
-      const wt = new Walkontable.Core({
-        table: $table[0],
+      const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
@@ -702,7 +700,7 @@ describe('WalkontableScroll', () => {
       wheelOnElement(leftHolder, 400);
       wt.draw();
 
-      await sleep(100);
+      await sleep(200);
 
       expect(masterCallback.calls.count()).toEqual(1);
       expect(topCallback.calls.count()).toEqual(1);
@@ -712,7 +710,7 @@ describe('WalkontableScroll', () => {
       wheelOnElement(leftHolder, 0, 400);
       wt.draw();
 
-      await sleep(100);
+      await sleep(200);
 
       expect(masterCallback.calls.count()).toEqual(2);
       expect(topCallback.calls.count()).toEqual(1);
@@ -727,15 +725,14 @@ describe('WalkontableScroll', () => {
 
     it('should scroll the table when the `wheel` event is triggered on the top overlay', async() => {
       createDataArray(100, 100);
-      $wrapper.width(260).height(201);
+      spec().$wrapper.width(260).height(201);
 
       const masterCallback = jasmine.createSpy('masterCallback');
       const topCallback = jasmine.createSpy('topCallback');
       const bottomCallback = jasmine.createSpy('bottomCallback');
       const leftCallback = jasmine.createSpy('leftCallback');
 
-      const wt = new Walkontable.Core({
-        table: $table[0],
+      const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
@@ -760,7 +757,7 @@ describe('WalkontableScroll', () => {
       wheelOnElement(topHolder, 400);
       wt.draw();
 
-      await sleep(100);
+      await sleep(200);
 
       expect(masterCallback.calls.count()).toEqual(1);
       expect(topCallback.calls.count()).toEqual(1);
@@ -770,7 +767,7 @@ describe('WalkontableScroll', () => {
       wheelOnElement(topHolder, 0, 400);
       wt.draw();
 
-      await sleep(100);
+      await sleep(200);
 
       expect(masterCallback.calls.count()).toEqual(2);
       expect(topCallback.calls.count()).toEqual(1);
@@ -785,15 +782,14 @@ describe('WalkontableScroll', () => {
 
     it('should scroll the table when the `wheel` event is triggered on the bottom overlay', async() => {
       createDataArray(100, 100);
-      $wrapper.width(260).height(201);
+      spec().$wrapper.width(260).height(201);
 
       const masterCallback = jasmine.createSpy('masterCallback');
       const topCallback = jasmine.createSpy('topCallback');
       const bottomCallback = jasmine.createSpy('bottomCallback');
       const leftCallback = jasmine.createSpy('leftCallback');
 
-      const wt = new Walkontable.Core({
-        table: $table[0],
+      const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
@@ -818,7 +814,7 @@ describe('WalkontableScroll', () => {
       wheelOnElement(bottomHolder, 400);
       wt.draw();
 
-      await sleep(100);
+      await sleep(200);
 
       expect(masterCallback.calls.count()).toEqual(1);
       expect(topCallback.calls.count()).toEqual(1);
@@ -828,7 +824,7 @@ describe('WalkontableScroll', () => {
       wheelOnElement(bottomHolder, 0, 400);
       wt.draw();
 
-      await sleep(100);
+      await sleep(200);
 
       expect(masterCallback.calls.count()).toEqual(2);
       expect(topCallback.calls.count()).toEqual(1);

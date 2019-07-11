@@ -25,9 +25,9 @@ if (flags) {
     params.push(`seed=${seed[0].replace('--seed=', '')}`);
   }
   if (seed || random) {
-    params.push(`random=true`);
+    params.push('random=true');
   }
-  
+
   path = `${path}?${params.join('&')}`;
 }
 
