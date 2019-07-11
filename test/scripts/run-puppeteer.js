@@ -21,7 +21,6 @@ if (flags) {
 
   if (random) {
     path = `${path}?random=true`;
-
   }
 }
 

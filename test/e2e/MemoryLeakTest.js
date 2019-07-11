@@ -13,6 +13,6 @@ describe('MemoryLeakTest', () => {
       }
     });
 
-    expect(leftoverNodesCount).toEqual(0);
+    expect(leftoverNodesCount).toBe(0);
   });
 });

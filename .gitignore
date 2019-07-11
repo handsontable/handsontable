@@ -6,6 +6,7 @@ test/E2ERunner.html
 test/UnitRunner.html
 test/MobileRunner.html
 test/dist/
+src/3rdparty/walkontable/test/SpecRunner.html
 src/3rdparty/walkontable/test/dist/
 src/3rdparty/walkontable/dist/
 dev*.html
