@@ -2650,7 +2650,9 @@ describe('UndoRedo', () => {
     });
 
     it('should keep saved selection state ater undoing non-contignous selected cells', () => {
-      handsontable();
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+      });
 
       selectCells([[0, 0, 1, 1], [1, 2, 2, 3]]);
       emptySelectedCells();
