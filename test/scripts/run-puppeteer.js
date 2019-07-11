@@ -18,10 +18,17 @@ if (!originalPath) {
 
 if (flags) {
   const seed = flags.match(/(--seed=)\d{1,}/g);
+  const random = flags.includes('random');
+  const params = [];
 
   if (seed) {
-    path = `${path}?seed=${seed[0].replace('--seed=', '')}`;
+    params.push(`seed=${seed[0].replace('--seed=', '')}`);
   }
+  if (seed || random) {
+    params.push(`random=true`);
+  }
+  
+  path = `${path}?${params.join('&')}`;
 }
 
 const cleanupFactory = (browser, server) => async(exitCode) => {
