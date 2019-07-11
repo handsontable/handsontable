@@ -10,10 +10,39 @@ export function sleep(delay = 100) {
   });
 }
 
-let currentSpec;
+/**
+ * Test context object.
+ *
+ * @type {Object}
+ */
+const specContext = {};
 
+/**
+ * Get the test case context.
+ *
+ * @returns {Object|null}
+ */
 export function spec() {
-  return currentSpec;
+  return specContext.spec;
+}
+
+/**
+ * Create the Walkontable instance with the provided options and cache it as `wotInstance` in the test context.
+ * @param {Object} options Walkontable options.
+ * @param {HTMLTableElement} [table] The table element to base the instance on.
+ */
+export function walkontable(options, table) {
+  const currentSpec = spec();
+
+  if (!table) {
+    table = currentSpec.$table[0];
+  }
+
+  options.table = table;
+
+  currentSpec.wotInstance = new Walkontable.Core(options);
+
+  return currentSpec.wotInstance;
 }
 
 export function createDataArray(rows = 100, cols = 4) {
@@ -48,7 +77,7 @@ export function getTotalColumns() {
 }
 
 beforeEach(function() {
-  currentSpec = this;
+  specContext.spec = this;
 
   const matchers = {
     toBeInArray() {
@@ -92,6 +121,7 @@ beforeEach(function() {
 });
 
 afterEach(() => {
+  specContext.spec = null;
   window.scrollTo(0, 0);
 });
 
