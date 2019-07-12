@@ -201,7 +201,7 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    expect(getActiveEditor().originalValue).toEqual('');
+    expect(getActiveEditor().originalValue).toEqual(null);
   });
 
   it('should not validate string input data containing numbers ', async() => {

@@ -112,7 +112,8 @@ class AutoColumnSize extends BasePlugin {
           labelText = typeof labelValue === 'function' ? labelValue(row, column, this.hot.colToProp(column), cellValue) : labelValue;
 
         } else if (labelProperty) {
-          labelText = this.hot.getDataAtRowProp(row, labelProperty);
+          const labelData = this.hot.getDataAtRowProp(row, labelProperty);
+          labelText = labelData !== null ? labelData : '';
         }
 
         bundleCountSeed = labelText.length;

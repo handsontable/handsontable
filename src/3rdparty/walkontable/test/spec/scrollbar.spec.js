@@ -1,44 +1,41 @@
 describe('WalkontableScrollbar', () => {
-  let $table;
-  let $container;
-  let $wrapper;
   const debug = false;
 
-  beforeEach(() => {
-    $wrapper = $('<div></div>').css({ overflow: 'hidden' });
-    $container = $('<div></div>');
-    $table = $('<table></table>'); // create a table that is not attached to document
-    $wrapper.append($container);
-    $container.append($table);
-    $wrapper.appendTo('body');
-    createDataArray();
+  beforeEach(function() {
+    this.$wrapper = $('<div></div>').css({ overflow: 'hidden' });
+    this.$container = $('<div></div>');
+    this.$table = $('<table></table>'); // create a table that is not attached to document
+    this.$wrapper.append(this.$container);
+    this.$container.append(this.$table);
+    this.$wrapper.appendTo('body');
+    createDataArray(100, 4);
   });
 
-  afterEach(() => {
+  afterEach(function() {
     if (!debug) {
       $('.wtHolder').remove();
     }
-    $wrapper.remove();
+
+    this.$wrapper.remove();
+    this.wotInstance.destroy();
   });
 
   it('should table in DIV.wtHolder that contains 2 scrollbars', () => {
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
     wt.draw();
 
-    expect($table.parents('.wtHolder').length).toEqual(1);
+    expect(spec().$table.parents('.wtHolder').length).toEqual(1);
   });
 
   it('scrolling should have no effect when totalRows is smaller than height', function() {
     this.data.splice(5, this.data.length - 5);
 
     try {
-      const wt = new Walkontable.Core({
-        table: $table[0],
+      const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns

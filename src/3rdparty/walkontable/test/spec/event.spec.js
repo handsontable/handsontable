@@ -1,24 +1,29 @@
 describe('WalkontableEvent', () => {
-  let $table;
   const debug = false;
 
-  beforeEach(() => {
-    $table = $('<table></table>'); // create a table that is not attached to document
-    $table.appendTo('body');
-    createDataArray();
+  beforeEach(function() {
+    this.$wrapper = $('<div></div>').css({ overflow: 'hidden' });
+    this.$container = $('<div></div>');
+    this.$table = $('<table></table>'); // create a table that is not attached to document
+    this.$wrapper.append(this.$container);
+    this.$container.append(this.$table);
+    this.$wrapper.appendTo('body');
+    createDataArray(100, 4);
   });
 
-  afterEach(() => {
+  afterEach(function() {
     if (!debug) {
       $('.wtHolder').remove();
     }
+
+    this.$wrapper.remove();
+    this.wotInstance.destroy();
   });
 
   it('should call `onCellMouseDown` callback', () => {
     let myCoords = null;
     let myTD = null;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -30,7 +35,7 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    const $td = $table.find('tbody tr:eq(1) td:eq(1)');
+    const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
 
     $td.simulate('mousedown');
 
@@ -41,8 +46,7 @@ describe('WalkontableEvent', () => {
   it('should call `onCellContextMenu` callback', () => {
     let myCoords = null;
     let myTD = null;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -54,7 +58,7 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    const $td = $table.find('tbody tr:eq(1) td:eq(1)');
+    const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
 
     $td.simulate('contextmenu');
 
@@ -65,8 +69,7 @@ describe('WalkontableEvent', () => {
   it('should call `onCellMouseOver` callback', () => {
     let myCoords = null;
     let myTD = null;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -78,7 +81,7 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    const $td = $table.find('tbody tr:eq(1) td:eq(1)');
+    const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
 
     $td.simulate('mouseover');
 
@@ -88,8 +91,7 @@ describe('WalkontableEvent', () => {
 
   it('should call `onCellMouseOver` callback with correctly passed TD element when cell contains another table', () => {
     const fn = jasmine.createSpy();
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: [['<table style="width: 50px;"><tr><td class="test">TEST</td></tr></table>']],
       totalRows: 1,
       totalColumns: 1,
@@ -101,8 +103,8 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    const outerTD = $table.find('tbody td:not(td.test)');
-    const innerTD = $table.find('tbody td.test');
+    const outerTD = spec().$table.find('tbody td:not(td.test)');
+    const innerTD = spec().$table.find('tbody td.test');
 
     innerTD.simulate('mouseover');
 
@@ -112,8 +114,7 @@ describe('WalkontableEvent', () => {
   it('should call `onCellMouseOut` callback', () => {
     let myCoords = null;
     let myTD = null;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -125,7 +126,7 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    const $td = $table.find('tbody tr:eq(1) td:eq(1)');
+    const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
 
     $td.simulate('mouseover')
       .simulate('mouseout');
@@ -136,8 +137,7 @@ describe('WalkontableEvent', () => {
 
   it('should call `onCellMouseOut` callback with correctly passed TD element when cell contains another table', () => {
     const fn = jasmine.createSpy();
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: [['<table style="width: 50px;"><tr><td class="test">TEST</td></tr></table>']],
       totalRows: 1,
       totalColumns: 1,
@@ -149,9 +149,9 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    const outerTD = $table.find('tbody td:not(td.test)');
+    const outerTD = spec().$table.find('tbody td:not(td.test)');
 
-    $table.find('tbody td.test')
+    spec().$table.find('tbody td.test')
       .simulate('mouseover')
       .simulate('mouseout');
 
@@ -161,8 +161,7 @@ describe('WalkontableEvent', () => {
   it('should call `onCellDblClick` callback', () => {
     let myCoords = null;
     let myTD = null;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -174,7 +173,7 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    const $td = $table.find('tbody tr:eq(1) td:eq(1)');
+    const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
 
     $td.simulate('mousedown')
       .simulate('mouseup')
@@ -188,8 +187,7 @@ describe('WalkontableEvent', () => {
   it('should call `onCellDblClick` callback, even when it is set only after first click', () => {
     let myCoords = null;
     let myTD = null;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
@@ -197,7 +195,7 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    const $td = $table.find('tbody tr:eq(1) td:eq(1)');
+    const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
 
     $td.simulate('mousedown')
       .simulate('mouseup')
@@ -214,8 +212,7 @@ describe('WalkontableEvent', () => {
 
   it('should call `onCellMouseDown` callback when clicked on TH', () => {
     let called = false;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -229,7 +226,7 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    $table.find('th:first').simulate('mousedown');
+    spec().$table.find('th:first').simulate('mousedown');
 
     expect(called).toEqual(true);
   });
@@ -237,8 +234,7 @@ describe('WalkontableEvent', () => {
   it('should not call `onCellMouseDown` callback when clicked on the focusable element (column headers)', () => {
     const opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(value => `<option value="${value}">${value}</option>`).join('');
     let called = false;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -252,7 +248,7 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    $table.find('th:first select')
+    spec().$table.find('th:first select')
       .focus()
       .simulate('mousedown');
 
@@ -262,8 +258,7 @@ describe('WalkontableEvent', () => {
   it('should not call `onCellMouseDown` callback when clicked on the focusable element (cell renderer)', () => {
     const opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(value => `<option value="${value}">${value}</option>`).join('');
     let called = false;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -277,7 +272,7 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    $table.find('td:first select')
+    spec().$table.find('td:first select')
       .focus()
       .simulate('mousedown');
 
@@ -286,8 +281,7 @@ describe('WalkontableEvent', () => {
 
   it('should call `onCellMouseOver` callback when clicked on TH', () => {
     let called = false;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -301,7 +295,7 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    $table.find('th:first').simulate('mouseover');
+    spec().$table.find('th:first').simulate('mouseover');
 
     expect(called.row).toEqual(-1);
     expect(called.col).toEqual(0);
@@ -309,8 +303,7 @@ describe('WalkontableEvent', () => {
 
   it('should call `onCellDblClick` callback when clicked on TH', () => {
     let called = false;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -324,7 +317,7 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    $table.find('th:first')
+    spec().$table.find('th:first')
       .simulate('mousedown')
       .simulate('mouseup')
       .simulate('mousedown')
@@ -335,8 +328,7 @@ describe('WalkontableEvent', () => {
 
   it('should not call `onCellDblClick` callback when right-clicked', () => {
     let called = false;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -351,7 +343,7 @@ describe('WalkontableEvent', () => {
       button: 2
     };
 
-    $table.find('tbody tr:first td:first')
+    spec().$table.find('tbody tr:first td:first')
       .simulate('mousedown', options)
       .simulate('mouseup', options)
       .simulate('mousedown', options)
@@ -362,8 +354,7 @@ describe('WalkontableEvent', () => {
 
   it('should not call `onCellDblClick` when first mouse up came from mouse drag', () => {
     let called = false;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -374,8 +365,8 @@ describe('WalkontableEvent', () => {
 
     wt.draw();
 
-    $table.find('tbody tr:first td:eq(1)').simulate('mousedown');
-    $table.find('tbody tr:first td:first')
+    spec().$table.find('tbody tr:first td:eq(1)').simulate('mousedown');
+    spec().$table.find('tbody tr:first td:first')
       .simulate('mouseup')
       .simulate('mousedown')
       .simulate('mouseup');
@@ -386,8 +377,7 @@ describe('WalkontableEvent', () => {
   it('border click should call `onCellMouseDown` callback', () => {
     let myCoords = null;
     let myTD = null;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -410,9 +400,9 @@ describe('WalkontableEvent', () => {
     wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
     wt.draw();
 
-    const $td = $table.find('tbody tr:eq(1) td:eq(1)');
+    const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
 
-    $table.parents('.wtHolder')
+    spec().$table.parents('.wtHolder')
       .find('.current:first')
       .simulate('mousedown');
 
@@ -423,8 +413,7 @@ describe('WalkontableEvent', () => {
   it('border click should call `onCellDblClick` callback', () => {
     let myCoords = null;
     let myTD = null;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -447,9 +436,9 @@ describe('WalkontableEvent', () => {
     wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
     wt.draw();
 
-    const $td = $table.find('tbody tr:eq(1) td:eq(1)');
+    const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
 
-    $table.parents('.wtHolder')
+    spec().$table.parents('.wtHolder')
       .find('.current:first')
       .simulate('mousedown')
       .simulate('mouseup')
@@ -463,8 +452,7 @@ describe('WalkontableEvent', () => {
   // corner
   it('should call `onCellCornerMouseDown` callback', () => {
     let clicked = false;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -486,7 +474,7 @@ describe('WalkontableEvent', () => {
     wt.selections.getCell().add(new Walkontable.CellCoords(10, 2));
     wt.draw();
 
-    $table.parents('.wtHolder')
+    spec().$table.parents('.wtHolder')
       .find('.current.corner')
       .simulate('mousedown');
 
@@ -495,8 +483,7 @@ describe('WalkontableEvent', () => {
 
   it('should call `onCellCornerDblClick` callback, even when it is set only after first click', () => {
     let clicked = false;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -515,7 +502,7 @@ describe('WalkontableEvent', () => {
     wt.selections.getCell().add(new Walkontable.CellCoords(10, 2));
     wt.draw();
 
-    const $td = $table.parents('.wtHolder').find('.current.corner');
+    const $td = spec().$table.parents('.wtHolder').find('.current.corner');
 
     $td.simulate('mousedown')
       .simulate('mouseup')
@@ -530,8 +517,7 @@ describe('WalkontableEvent', () => {
 
   it('should call `onDraw` callback after render', () => {
     let count = 0;
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
