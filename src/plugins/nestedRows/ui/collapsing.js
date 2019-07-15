@@ -4,7 +4,6 @@ import { rangeEach } from '../../../helpers/number';
 import { hasClass } from '../../../helpers/dom/element';
 import BaseUI from './_base';
 import HeadersUI from './headers';
-import { SkipMap } from '../../../translations';
 
 /**
  * Class responsible for the UI for collapsing and expanding groups.

@@ -1,5 +1,3 @@
-import {getDataAtRow} from '../../../../test/helpers/common';
-
 describe('manualColumnFreeze', () => {
   const id = 'testContainer';
 
