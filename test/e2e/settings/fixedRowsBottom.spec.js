@@ -129,5 +129,19 @@ describe('settings', () => {
 
       expect(getBottomClone().find('.wtHolder').scrollLeft()).toBe(getMaster().find('.wtHolder').scrollLeft());
     });
+
+    it('should overwrite td value in fixed bottom rows when fixedRowsBottom is equal to one', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 10),
+        fixedRowsBottom: 1
+      });
+
+      expect(getBottomClone().find('tbody tr:eq(0) td:eq(0)').html()).toEqual('A20');
+
+      const td = hot.getCell(19, 0, true);
+      td.innerHTML = 'test';
+
+      expect(getBottomClone().find('tbody tr:eq(0) td:eq(0)').html()).toEqual('test');
+    });
   });
 });

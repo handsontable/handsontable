@@ -12,6 +12,7 @@ import jQueryWrapper from './helpers/wrappers/jquery';
 import EventManager, { getListenersCounter } from './eventManager';
 import Hooks from './pluginHooks';
 import GhostTable from './utils/ghostTable';
+import * as parseTableHelpers from './utils/parseTable';
 import * as arrayHelpers from './helpers/array';
 import * as browserHelpers from './helpers/browser';
 import * as dataHelpers from './helpers/data';
@@ -32,6 +33,7 @@ import DefaultSettings from './defaultSettings';
 import { rootInstanceSymbol } from './utils/rootInstance';
 import { getTranslatedPhrase } from './i18n';
 import * as constants from './i18n/constants';
+
 import { registerLanguageDictionary, getLanguagesDictionaries, getLanguageDictionary } from './i18n/dictionariesManager';
 
 function Handsontable(rootElement, userSettings) {
@@ -44,7 +46,9 @@ function Handsontable(rootElement, userSettings) {
 
 jQueryWrapper(Handsontable);
 
-Handsontable.Core = Core;
+Handsontable.Core = function(rootElement, userSettings = {}) {
+  return new Core(rootElement, userSettings, rootInstanceSymbol);
+};
 Handsontable.DefaultSettings = DefaultSettings;
 Handsontable.EventManager = EventManager;
 Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
@@ -74,6 +78,7 @@ const HELPERS = [
   settingHelpers,
   stringHelpers,
   unicodeHelpers,
+  parseTableHelpers,
 ];
 const DOM = [
   domHelpers,

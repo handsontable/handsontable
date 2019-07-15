@@ -18,6 +18,7 @@ import {
   objectEach
 } from './helpers/object';
 import { arrayFlatten, arrayMap, arrayEach, arrayReduce } from './helpers/array';
+import { instanceToHTML } from './utils/parseTable';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
 import { getValidator } from './validators';
@@ -922,13 +923,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return;
     }
 
+    const activeEditor = instance.getActiveEditor();
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
+    let shouldBeCanceled = true;
 
     if (isFunction(beforeChangeResult)) {
       warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
 
     } else if (beforeChangeResult === false) {
-      const activeEditor = instance.getActiveEditor();
 
       if (activeEditor) {
         activeEditor.cancelChanges();
@@ -940,7 +942,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const waitingForValidator = new ValidatorsQueue();
     const isNumericData = value => value.length > 0 && /^\s*[+-.]?\s*(?:(?:\d+(?:(\.|,)\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/.test(value);
 
-    waitingForValidator.onQueueEmpty = callback; // called when async validators are resolved and beforeChange was not async
+    waitingForValidator.onQueueEmpty = (isValid) => {
+      if (activeEditor && shouldBeCanceled) {
+        activeEditor.cancelChanges();
+      }
+
+      callback(isValid); // called when async validators are resolved and beforeChange was not async
+    };
 
     for (let i = changes.length - 1; i >= 0; i--) {
       if (changes[i] === null) {
@@ -964,6 +972,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               }
 
               if (result === false && cellPropertiesReference.allowInvalid === false) {
+                shouldBeCanceled = false;
                 changes.splice(index, 1); // cancel the change
                 cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
 
@@ -1025,15 +1034,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         }
       }
 
+      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
+        while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
+          const numberOfCreatedColumns = datamap.createCol(void 0, void 0, source);
+
+          if (numberOfCreatedColumns === 0) {
+            skipThisChange = true;
+            break;
+          }
+        }
+      }
+
       if (skipThisChange) {
         /* eslint-disable no-continue */
         continue;
-      }
-
-      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
-        while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
-          datamap.createCol(void 0, void 0, source);
-        }
       }
 
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
@@ -1421,9 +1435,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function emptySelectedCells
+   * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
    * @since 0.36.0
    */
-  this.emptySelectedCells = function() {
+  this.emptySelectedCells = function(source) {
     if (!selection.isSelected()) {
       return;
     }
@@ -1436,14 +1451,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       rangeEach(topLeft.row, bottomRight.row, (row) => {
         rangeEach(topLeft.col, bottomRight.col, (column) => {
           if (!this.getCellMeta(row, column).readOnly) {
-            changes.push([row, column, '']);
+            changes.push([row, column, null]);
           }
         });
       });
     });
 
     if (changes.length > 0) {
-      this.setDataAtCell(changes);
+      this.setDataAtCell(changes, source);
     }
   };
 
@@ -3561,6 +3576,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getTranslatedPhrase = function(dictionaryKey, extraArguments) {
     return getTranslatedPhrase(priv.settings.language, dictionaryKey, extraArguments);
+  };
+
+  /**
+   * Converts instance into outerHTML of HTMLTableElement.
+   *
+   * @memberof Core#
+   * @function toHTML
+   * @since 7.1.0
+   * @returns {String}
+   */
+  this.toHTML = () => instanceToHTML(this);
+
+  /**
+   * Converts instance into HTMLTableElement.
+   *
+   * @memberof Core#
+   * @function toTableElement
+   * @since 7.1.0
+   * @returns {HTMLTableElement}
+   */
+  this.toTableElement = () => {
+    const tempElement = this.rootDocument.createElement('div');
+    tempElement.insertAdjacentHTML('afterbegin', instanceToHTML(this));
+
+    return tempElement.firstElementChild;
   };
 
   this.timeouts = [];

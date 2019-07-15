@@ -6,13 +6,22 @@ const JasmineReporter = require('jasmine-terminal-reporter');
 const PORT = 8086;
 const DEFAULT_INACTIVITY_TIMEOUT = 10000;
 
-const [,, path] = process.argv;
+const [,, originalPath, flags] = process.argv;
+let path = originalPath;
 
 if (!path) {
   /* eslint-disable no-console */
   console.log('The `path` argument is missing.');
 
   return;
+}
+
+if (flags) {
+  const random = flags.includes('random');
+
+  if (random) {
+    path = `${path}?random=true`;
+  }
 }
 
 const cleanupFactory = (browser, server) => async(exitCode) => {

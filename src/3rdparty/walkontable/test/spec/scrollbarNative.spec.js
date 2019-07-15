@@ -1,66 +1,62 @@
 describe('WalkontableScrollbarNative', () => {
-  let $table;
-  let $container;
-  let $wrapper;
   const debug = false;
 
-  beforeEach(() => {
-    $wrapper = $('<div></div>').css({ overflow: 'hidden' });
-    $wrapper.width(100).height(200);
-    $container = $('<div></div>');
-    $table = $('<table></table>'); // create a table that is not attached to document
-    $wrapper.append($container);
-    $container.append($table);
-    $wrapper.appendTo('body');
-    createDataArray();
+  beforeEach(function() {
+    this.$wrapper = $('<div></div>').css({ overflow: 'hidden' });
+    this.$wrapper.width(100).height(200);
+    this.$container = $('<div></div>');
+    this.$table = $('<table></table>'); // create a table that is not attached to document
+    this.$wrapper.append(this.$container);
+    this.$container.append(this.$table);
+    this.$wrapper.appendTo('body');
+    createDataArray(100, 4);
   });
 
-  afterEach(() => {
+  afterEach(function() {
     if (!debug) {
       $('.wtHolder').remove();
     }
-    $wrapper.remove();
+
+    this.$wrapper.remove();
+    this.wotInstance.destroy();
   });
 
   it('initial render should be no different than the redraw (vertical)', () => {
     createDataArray(100, 1);
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
     wt.draw();
 
-    const tds = $table.find('td').length;
+    const tds = spec().$table.find('td').length;
     wt.draw();
 
-    expect($table.find('td').length).toEqual(tds);
+    expect(spec().$table.find('td').length).toEqual(tds);
   });
 
   it('initial render should be no different than the redraw (horizontal)', () => {
     createDataArray(1, 50);
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
     wt.draw();
 
-    const tds = $table.find('td').length;
+    const tds = spec().$table.find('td').length;
     wt.draw();
 
-    expect($table.find('td').length).toEqual(tds);
+    expect(spec().$table.find('td').length).toEqual(tds);
   });
 
   it('scrolling 50px down should render 2 more rows', () => {
     createDataArray(20, 4);
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
@@ -76,14 +72,13 @@ describe('WalkontableScrollbarNative', () => {
   });
 
   it('should recognize the scrollHandler properly, even if the \'overflow\' property is assigned in an external stylesheet', () => {
-    $wrapper.css({
+    spec().$wrapper.css({
       overflow: ''
     });
-    $wrapper.addClass('testOverflowHidden');
+    spec().$wrapper.addClass('testOverflowHidden');
 
     createDataArray(20, 4);
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns

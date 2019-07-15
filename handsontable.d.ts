@@ -108,10 +108,12 @@ declare namespace _Handsontable {
     setDataAtRowProp(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: string): void;
     spliceCol(col: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     spliceRow(row: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
+    toHTML(): string;
     toPhysicalColumn(column: number): number;
     toPhysicalRow(row: number): number;
     toVisualColumn(column: number): number;
     toVisualRow(row: number): number;
+    toTableElement(): HTMLTableElement;
     unlisten(): void;
     updateSettings(settings: Handsontable.GridSettings, init?: boolean): void;
     validateCells(callback?: (valid: boolean) => void): void;
@@ -1878,7 +1880,7 @@ declare namespace Handsontable {
       beforeContextMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
       beforeContextMenuShow?: (context: plugins.ContextMenu) => void;
       beforeCopy?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
-      beforeCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
+      beforeCreateCol?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
       beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
       beforeCut?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
       beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
@@ -2174,7 +2176,9 @@ declare namespace Handsontable {
     getProperty(object: object, name: string): any | void,
     getPrototypeOf(obj: object): any | void,
     hasCaptionProblem(): boolean | void,
+    htmlToGridSettings(element: HTMLTableElement | string, rootDocument?: Document): GridSettings,
     inherit(Child: object, Parent: object): object,
+    instanceToHTML(instance: _Handsontable.Core): string,
     isChrome(): boolean,
     isClassListSupported(): boolean;
     isCtrlKey(keyCode: number): boolean,

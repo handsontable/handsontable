@@ -88,6 +88,7 @@ export const getValue = handsontableMethodFactory('getValue');
 export const loadData = handsontableMethodFactory('loadData');
 export const populateFromArray = handsontableMethodFactory('populateFromArray');
 export const propToCol = handsontableMethodFactory('propToCol');
+export const redo = handsontableMethodFactory('redo');
 export const refreshDimensions = handsontableMethodFactory('refreshDimensions');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
 export const render = handsontableMethodFactory('render');
@@ -230,6 +231,17 @@ export function contextMenu(cell) {
   // $(cell).simulate('mouseup', { button: 2 });
 }
 
+export async function selectContextSubmenuOption(submenuName, optionName) {
+  contextMenu();
+  const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
+  item.simulate('mouseover');
+  await sleep(300);
+  const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+  const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
+  button.simulate('mousedown');
+  closeContextMenu();
+}
+
 export function closeContextMenu() {
   $(document).simulate('mousedown');
   // $(document).trigger('mousedown');
@@ -310,15 +322,15 @@ export function handsontableKeyTriggerFactory(type) {
     let keyToTrigger = key;
 
     if (typeof keyToTrigger === 'string') {
-      if (keyToTrigger.indexOf('shift+') > -1) {
-        keyToTrigger = keyToTrigger.substring(6);
-        ev.shiftKey = true;
-      }
-
       if (keyToTrigger.indexOf('ctrl+') > -1) {
         keyToTrigger = keyToTrigger.substring(5);
         ev.ctrlKey = true;
         ev.metaKey = true;
+      }
+
+      if (keyToTrigger.indexOf('shift+') > -1) {
+        keyToTrigger = keyToTrigger.substring(6);
+        ev.shiftKey = true;
       }
 
       switch (keyToTrigger) {
@@ -392,6 +404,14 @@ export function handsontableKeyTriggerFactory(type) {
 
         case 'a':
           ev.keyCode = 65;
+          break;
+
+        case 'y':
+          ev.keyCode = 89;
+          break;
+
+        case 'z':
+          ev.keyCode = 90;
           break;
 
         default:
@@ -775,4 +795,28 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
 
 export function createSpreadsheetData(...args) {
   return Handsontable.helper.createSpreadsheetData(...args);
+}
+
+export function getClipboardEvent() {
+  const event = {};
+
+  event.clipboardData = new DataTransferObject();
+  event.preventDefault = () => { };
+
+  return event;
+}
+
+class DataTransferObject {
+  constructor() {
+    this.data = {
+      'text/plain': '',
+      'text/html': ''
+    };
+  }
+  getData(type = 'text/plain') {
+    return this.data[type];
+  }
+  setData(type = 'text/plain', value) {
+    this.data[type] = value;
+  }
 }

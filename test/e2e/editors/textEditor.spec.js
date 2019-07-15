@@ -815,7 +815,7 @@ describe('TextEditor', () => {
 
     keyDown(Handsontable.helper.KEY_CODES.BACKSPACE);
 
-    expect(getDataAtCell(0, 0)).toEqual('');
+    expect(getDataAtCell(0, 0)).toEqual(null);
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
@@ -835,7 +835,7 @@ describe('TextEditor', () => {
 
     keyDown(Handsontable.helper.KEY_CODES.DELETE);
 
-    expect(getDataAtCell(0, 0)).toEqual('');
+    expect(getDataAtCell(0, 0)).toEqual(null);
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
@@ -1228,10 +1228,12 @@ describe('TextEditor', () => {
       keyCode: Handsontable.helper.KEY_CODES.ENTER
     });
 
-    const height = hot.getActiveEditor().TEXTAREA.offsetHeight;
-    hot.getActiveEditor().TEXTAREA.style.height = '';
+    const editorTextarea = hot.getActiveEditor().TEXTAREA;
+    const editorComputedStyle = getComputedStyle(editorTextarea);
+    const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
+    const editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
 
-    expect(hot.getActiveEditor().TEXTAREA.offsetHeight).toBe(height);
+    expect(editorTextareaHeight).toBe(2 * editorTextareaLineHeight);
   });
 
   it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', () => {

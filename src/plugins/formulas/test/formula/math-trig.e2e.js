@@ -532,7 +532,7 @@ describe('Formulas -> math trig functions', () => {
     expect(hot.getDataAtCell(2, 1)).toBe(7.38905609893065);
     expect(hot.getDataAtCell(3, 1)).toBe('#ERROR!');
     expect(hot.getDataAtCell(4, 1)).toBe('#ERROR!');
-    expect(hot.getDataAtCell(5, 1)).toBe(2.718281828459045);
+    expect(hot.getDataAtCell(5, 1)).toBeCloseTo(2.718281828459045, 15);
   });
 
   it('FACT', () => {

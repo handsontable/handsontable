@@ -23,6 +23,7 @@ import Settings from './settings';
 import Table from './table';
 import * as Renderer from './renderer';
 import Viewport from './viewport';
+import { getListenersCounter } from './../../../eventManager';
 
 export {
   ViewportColumnsCalculator,
@@ -51,4 +52,6 @@ export {
   Table,
   Renderer,
   Viewport,
+
+  getListenersCounter
 };

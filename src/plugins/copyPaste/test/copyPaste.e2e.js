@@ -12,30 +12,6 @@ describe('CopyPaste', () => {
     }
   });
 
-  class DataTransferObject {
-    constructor() {
-      this.data = {
-        'text/plain': '',
-        'text/html': ''
-      };
-    }
-    getData(type = 'text/plain') {
-      return this.data[type];
-    }
-    setData(type = 'text/plain', value) {
-      this.data[type] = value;
-    }
-  }
-
-  function getClipboardEvent() {
-    const event = {};
-
-    event.clipboardData = new DataTransferObject();
-    event.preventDefault = () => {};
-
-    return event;
-  }
-
   const arrayOfArrays = function() {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
@@ -62,31 +38,33 @@ describe('CopyPaste', () => {
     });
   });
 
-  it('should reuse focusable element by borrowing an element from cell editor', async() => {
-    handsontable();
-    selectCell(0, 0);
+  describe('focusable element', () => {
+    it('should reuse focusable element by borrowing an element from cell editor', async() => {
+      handsontable();
+      selectCell(0, 0);
 
-    await sleep(150);
+      await sleep(150);
 
-    expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
-    expect($('#HandsontableCopyPaste').length).toBe(0);
-  });
-
-  it('should create focusable element when cell editor doesn\'t exist', () => {
-    handsontable({
-      editor: false,
+      expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+      expect($('#HandsontableCopyPaste').length).toBe(0);
     });
-    selectCell(0, 0);
 
-    expect($('#HandsontableCopyPaste').length).toEqual(1);
-  });
+    it('should create focusable element when cell editor doesn\'t exist', () => {
+      handsontable({
+        editor: false,
+      });
+      selectCell(0, 0);
 
-  it('should keep focusable element if updateSettings occurred after the end of the selection', () => {
-    handsontable();
-    selectCell(0, 0, 2, 2);
-    updateSettings({});
+      expect($('#HandsontableCopyPaste').length).toEqual(1);
+    });
 
-    expect(getPlugin('CopyPaste').focusableElement.mainElement).not.toBe(null);
+    it('should keep focusable element if updateSettings occurred after the end of the selection', () => {
+      handsontable();
+      selectCell(0, 0, 2, 2);
+      updateSettings({});
+
+      expect(getPlugin('CopyPaste').focusableElement.mainElement).not.toBe(null);
+    });
   });
 
   describe('working with multiple tables', () => {
@@ -179,7 +157,7 @@ describe('CopyPaste', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
       });
-      const copyEvent = getClipboardEvent('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
 
       selectCell(1, 0);
@@ -187,7 +165,9 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent);
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('A2');
-      expect(copyEvent.clipboardData.getData('text/html')).toBe('<table><tbody><tr><td>A2</td></tr></tbody></table>');
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style><table>',
+        '<tbody><tr><td>A2</td></tr></tbody></table>'].join(''));
     });
 
     it('should call beforeCopy and afterCopy during copying operation', () => {
@@ -200,7 +180,7 @@ describe('CopyPaste', () => {
         afterCopy: afterCopySpy,
       });
 
-      const copyEvent = getClipboardEvent('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
 
       selectCell(0, 0);
@@ -226,7 +206,7 @@ describe('CopyPaste', () => {
         afterCopy: afterCopySpy,
       });
 
-      const copyEvent = getClipboardEvent('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
 
       selectCell(0, 0);
@@ -245,14 +225,16 @@ describe('CopyPaste', () => {
         },
       });
 
-      const copyEvent = getClipboardEvent('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
       selectCell(0, 0, 1, 0);
 
       plugin.onCopy(copyEvent);
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('A2');
-      expect(copyEvent.clipboardData.getData('text/html')).toEqual('<table><tbody><tr><td>A2</td></tr></tbody></table>');
+      expect(copyEvent.clipboardData.getData('text/html')).toEqual([
+        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style><table>',
+        '<tbody><tr><td>A2</td></tr></tbody></table>'].join(''));
     });
 
     it('should be possible to copy multiline text', () => {
@@ -262,7 +244,7 @@ describe('CopyPaste', () => {
         ],
       });
 
-      const copyEvent = getClipboardEvent('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
       selectCell(0, 0, 0, 1);
@@ -270,7 +252,10 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent);
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('"A\nB"\tC');
-      expect(copyEvent.clipboardData.getData('text/html')).toEqual('<table><tbody><tr><td>A<br>B</td><td>C</td></tr></tbody></table>');
+      expect(copyEvent.clipboardData.getData('text/html')).toEqual([
+        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style><table><tbody><tr><td>A<br>',
+        'B</td><td>C</td></tr></tbody></table>'
+      ].join('\r\n'));
     });
 
     it('should be possible to copy special chars', () => {
@@ -280,7 +265,7 @@ describe('CopyPaste', () => {
         ],
       });
 
-      const copyEvent = getClipboardEvent('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
       selectCell(0, 0, 0, 1);
@@ -289,8 +274,9 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~');
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
-        '<table><tbody><tr><td>!@#$%^&amp;*()_+-={[</td>',
-        '<td>]};:\'"\\|,&lt;.&gt;/?~</td></tr></tbody></table>'
+        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table><tbody><tr><td>!@#$%^&*()_+-={[</td>',
+        '<td>]};:\'"\\|,<.>/?~</td></tr></tbody></table>'
       ].join(''));
     });
 
@@ -303,7 +289,7 @@ describe('CopyPaste', () => {
         ],
       });
 
-      const copyEvent = getClipboardEvent('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
       selectCell(0, 0, 2, 0);
@@ -312,8 +298,9 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('{"test": "value"}\n{"test2": {"testtest": ""}}\n{"test3": ""}');
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
-        '<table><tbody><tr><td>{"test": "value"}</td></tr><tr><td>{"test2": {"testtest": ""}}</td>',
-        '</tr><tr><td>{"test3": ""}</td></tr></tbody></table>'
+        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table><tbody><tr><td>{"test":&nbsp;"value"}</td></tr><tr><td>{"test2":&nbsp;{"testtest":&nbsp;""}}</td>',
+        '</tr><tr><td>{"test3":&nbsp;""}</td></tr></tbody></table>'
       ].join(''));
     });
 
@@ -328,7 +315,7 @@ describe('CopyPaste', () => {
         ],
       });
 
-      const copyEvent = getClipboardEvent('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
       selectCell(0, 0, 4, 0);
@@ -337,6 +324,7 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('\n0\nfalse\n\n');
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
+        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody><tr><td></td></tr><tr><td>0</td></tr><tr><td>false</td></tr>',
         '<tr><td></td></tr><tr><td></td></tr></tbody></table>'
       ].join(''));
@@ -356,7 +344,7 @@ describe('CopyPaste', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
       });
-      const cutEvent = getClipboardEvent('cut');
+      const cutEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
 
       selectCell(1, 0);
@@ -364,9 +352,11 @@ describe('CopyPaste', () => {
       plugin.onCut(cutEvent);
 
       expect(cutEvent.clipboardData.getData('text/plain')).toBe('A2');
-      expect(cutEvent.clipboardData.getData('text/html')).toEqual('<table><tbody><tr><td>A2</td></tr></tbody></table>');
+      expect(cutEvent.clipboardData.getData('text/html')).toEqual([
+        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table><tbody><tr><td>A2</td></tr></tbody></table>'].join(''));
 
-      expect(hot.getDataAtCell(1, 0)).toBe('');
+      expect(hot.getDataAtCell(1, 0)).toBe(null);
     });
 
     it('should call beforeCut and afterCut during cutting out operation', () => {
@@ -378,7 +368,7 @@ describe('CopyPaste', () => {
         beforeCut: beforeCutSpy,
         afterCut: afterCutSpy
       });
-      const cutEvent = getClipboardEvent('cut');
+      const cutEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
 
       selectCell(0, 0);
@@ -467,7 +457,7 @@ describe('CopyPaste', () => {
       expect(getDataAtRow(1)).toEqual(['Kia', 'Nissan', 'Toyota', '2008', 10]);
     });
 
-    it('should shift right insert instead of overwrite when paste (minSpareCols > 0)', (done) => {
+    it('should shift right insert instead of overwrite when paste (minSpareCols > 0)', async() => {
       handsontable({
         data: arrayOfArrays(),
         copyPaste: {
@@ -479,11 +469,9 @@ describe('CopyPaste', () => {
       selectCell(1, 0); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      setTimeout(() => {
-        expect(getData()[0].length).toEqual(9);
-        expect(getDataAtRow(1)).toEqual(['Kia', 'Nissan', 'Toyota', '2008', 10, 11, 12, 13, null]);
-        done();
-      }, 60);
+      await sleep(60);
+      expect(getData()[0].length).toEqual(9);
+      expect(getDataAtRow(1)).toEqual(['Kia', 'Nissan', 'Toyota', '2008', 10, 11, 12, 13, null]);
     });
 
     it('should not throw an error when changes are null in `once` hook', async() => {
@@ -513,7 +501,7 @@ describe('CopyPaste', () => {
       expect(errors).toEqual(0);
     });
 
-    it('should not paste any data, if no cell is selected', (done) => {
+    it('should not paste any data, if no cell is selected', async() => {
       const copiedData1 = 'foo';
       const copiedData2 = 'bar';
 
@@ -528,24 +516,19 @@ describe('CopyPaste', () => {
 
       triggerPaste(copiedData1);
 
-      setTimeout(() => {
-        expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-        expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
-        expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
-      }, 100);
+      await sleep(100);
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
+      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
 
-      setTimeout(() => {
-        selectCell(1, 0, 2, 0);
+      await sleep(100);
+      selectCell(1, 0, 2, 0);
+      triggerPaste(copiedData2);
 
-        triggerPaste(copiedData2);
-      }, 200);
-
-      setTimeout(() => {
-        expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-        expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual(copiedData2);
-        expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual(copiedData2);
-        done();
-      }, 300);
+      await sleep(100);
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual(copiedData2);
+      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual(copiedData2);
     });
 
     it('should not paste any data, if no cell is selected (select/deselect cell using mouse)', async() => {
@@ -645,7 +628,7 @@ describe('CopyPaste', () => {
 
       expect(getDataAtCell(3, 1, 3, 1)).toEqual('B4');
 
-      const copyEvent = getClipboardEvent('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
       selectCell(0, 0, 1, 4);
@@ -671,7 +654,7 @@ describe('CopyPaste', () => {
         ],
       });
 
-      const copyEvent = getClipboardEvent('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
       selectCell(0, 1, 2, 1);
@@ -694,7 +677,7 @@ describe('CopyPaste', () => {
         ],
       });
 
-      const copyEvent = getClipboardEvent('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
       selectCell(0, 0, 2, 0);
@@ -721,6 +704,70 @@ describe('CopyPaste', () => {
 
       expect(afterChangeSpy)
         .toHaveBeenCalledWith([[0, 0, null, 'Kia'], [1, 0, null, 'Nissan'], [2, 0, null, 'Toyota']], 'CopyPaste.paste', void 0, void 0, void 0, void 0);
+    });
+
+    it('should properly paste data with multiline text', async() => {
+      handsontable();
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table><tbody><tr><td>very<br>',
+        'long<br>',
+        '<br>',
+        'text</td></tr></tbody></table>'
+      ].join('\r\n'));
+
+      selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      expect(getDataAtCell(0, 0)).toEqual('very\r\nlong\r\n\r\ntext');
+    });
+
+    it('should properly paste data with merged cells', async() => {
+      handsontable();
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table><tbody><tr><td colspan="2" rowspan="2">A1</td><td>C1</td></tr><tr><td>C2</td></tr></tbody></table>'
+      ].join('\r\n'));
+
+      selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      expect(getDataAtCell(0, 0)).toEqual('A1');
+      expect(getDataAtCell(0, 1)).toEqual(null);
+      expect(getDataAtCell(0, 2)).toEqual('C1');
+      expect(getDataAtCell(1, 0)).toEqual(null);
+      expect(getDataAtCell(1, 1)).toEqual(null);
+      expect(getDataAtCell(1, 2)).toEqual('C2');
+    });
+
+    it('should properly paste data with overlapped cells', async() => {
+      handsontable();
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table><tbody><tr><td colspan="2" rowspan="2">A1</td><td>C1</td></tr><tr><td>C2</td></tr></tbody></table>'
+      ].join('\r\n'));
+
+      selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      expect(getDataAtCell(0, 0)).toEqual('A1');
+      expect(getDataAtCell(0, 1)).toEqual(null);
+      expect(getDataAtCell(0, 2)).toEqual('C1');
+      expect(getDataAtCell(1, 0)).toEqual(null);
+      expect(getDataAtCell(1, 1)).toEqual(null);
+      expect(getDataAtCell(1, 2)).toEqual('C2');
     });
   });
 });
