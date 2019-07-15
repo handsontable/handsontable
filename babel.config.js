@@ -1,6 +1,8 @@
 const allowedE2EModules = [
   'window',
   'jasmine-co',
+  'pretty',
+  'jest-matcher-utils',
   'core-js/*',
   'regenerator-runtime/runtime',
   '@babel/runtime/*',

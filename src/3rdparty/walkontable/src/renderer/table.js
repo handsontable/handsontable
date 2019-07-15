@@ -147,18 +147,6 @@ export default class TableRenderer {
      */
     this.columnHeadersCount = 0;
     /**
-     * Total rows of the table.
-     *
-     * @type {Number}
-     */
-    this.totalRows = 0;
-    /**
-     * Total columns of the table.
-     *
-     * @type {Number}
-     */
-    this.totalColumns = 0;
-    /**
      * Cell renderer used to render cells content.
      *
      * @type {Function}
@@ -175,17 +163,6 @@ export default class TableRenderer {
   setAxisUtils(rowUtils, columnUtils) {
     this.rowUtils = rowUtils;
     this.columnUtils = columnUtils;
-  }
-
-  /**
-   * Sets total size of the table.
-   *
-   * @param {Number} totalRows Sets total size for rows.
-   * @param {Number} totalColumns Sets total size for columns.
-   */
-  setTotalSize(totalRows, totalColumns) {
-    this.totalRows = totalRows;
-    this.totalColumns = totalColumns;
   }
 
   /**

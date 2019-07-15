@@ -15,7 +15,7 @@ import { isFunction } from './../../../helpers/function';
 import CellCoords from './cell/coords';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
-import TableRenderer from './renderer';
+import { Renderer } from './renderer';
 import Overlay from './overlay/_base';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
@@ -59,9 +59,17 @@ class Table {
     // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
     this.wot.wtSettings.settings.rowHeaderWidth = () => this._modifyRowHeaderWidth(origRowHeaderWidth);
 
-    this.columnUtils = new ColumnUtils(this.wot);
     this.rowUtils = new RowUtils(this.wot);
-    this.tableRenderer = new TableRenderer(this.wot, this);
+    this.columnUtils = new ColumnUtils(this.wot);
+    this.tableRenderer = new Renderer({
+      TABLE: this.TABLE,
+      THEAD: this.THEAD,
+      COLGROUP: this.COLGROUP,
+      TBODY: this.TBODY,
+      rowUtils: this.rowUtils,
+      columnUtils: this.columnUtils,
+      cellRenderer: this.wot.wtSettings.settings.cellRenderer,
+    });
   }
 
   /**
@@ -317,7 +325,6 @@ class Table {
         // end
 
         this.tableRenderer
-          .setTotalSize(totalRows, totalColumns)
           .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
           .setFilters(this.rowFilter, this.columnFilter)
           .render();

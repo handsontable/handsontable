@@ -21,7 +21,7 @@ import Scroll from './scroll';
 import Selection from './selection';
 import Settings from './settings';
 import Table from './table';
-import * as TableRenderer from './renderer';
+import * as Renderer from './renderer';
 import Viewport from './viewport';
 
 export {
@@ -49,6 +49,6 @@ export {
   Selection,
   Settings,
   Table,
-  TableRenderer,
+  Renderer,
   Viewport,
 };

@@ -46,30 +46,21 @@ export default class RowsRenderer extends BaseRenderer {
    * Renders the cells.
    */
   render() {
-    const { totalRows, rowsToRender } = this.table;
-    let visibleRowIndex = 0;
-    let sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
+    const { rowsToRender } = this.table;
+
+    if (!performanceWarningAppeared && rowsToRender > 1000) {
+      performanceWarningAppeared = true;
+      warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number\x20
+        of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
+    }
 
     this.orderView
       .setSize(rowsToRender)
-      .setOffset(sourceRowIndex)
+      .setOffset(this.table.renderedRowToSource(0))
       .start();
 
-    while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
-      if (!performanceWarningAppeared && visibleRowIndex > 1000) {
-        performanceWarningAppeared = true;
-        warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number\x20
-          of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
-      }
-      if (visibleRowIndex === rowsToRender) {
-        // We have as much rows as needed for this clone
-        break;
-      }
-
+    for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       this.orderView.render();
-
-      visibleRowIndex += 1;
-      sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
     }
 
     this.orderView.end();

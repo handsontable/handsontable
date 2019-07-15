@@ -10,24 +10,22 @@ import TableRenderer from './table';
  *
  * @class Renderer
  */
-export default class Renderer {
-  constructor(wot, wtTable) {
+class Renderer {
+  constructor({ TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer } = {}) {
     /**
      * General renderer class used to render Walkontable content on screen.
      *
      * @type {TableRenderer}
      */
-    this.renderer = new TableRenderer(wtTable.TABLE, {
-      cellRenderer: wot.wtSettings.settings.cellRenderer,
-    });
+    this.renderer = new TableRenderer(TABLE, { cellRenderer });
     this.renderer.setRenderers({
       rowHeaders: new RowHeadersRenderer(),
-      columnHeaders: new ColumnHeadersRenderer(wtTable.THEAD),
-      colGroup: new ColGroupRenderer(wtTable.COLGROUP),
-      rows: new RowsRenderer(wtTable.TBODY),
+      columnHeaders: new ColumnHeadersRenderer(THEAD),
+      colGroup: new ColGroupRenderer(COLGROUP),
+      rows: new RowsRenderer(TBODY),
       cells: new CellsRenderer(),
     });
-    this.renderer.setAxisUtils(wtTable.rowUtils, wtTable.columnUtils);
+    this.renderer.setAxisUtils(rowUtils, columnUtils);
   }
 
   /**
@@ -53,19 +51,6 @@ export default class Renderer {
    */
   setViewportSize(rowsCount, columnsCount) {
     this.renderer.setViewportSize(rowsCount, columnsCount);
-
-    return this;
-  }
-
-  /**
-   * Sets total size of the table.
-   *
-   * @param {Number} totalRows Total rows of the table.
-   * @param {Number} totalColumns Total column of the table.
-   * @returns {Renderer}
-   */
-  setTotalSize(totalRows, totalColumns) {
-    this.renderer.setTotalSize(totalRows, totalColumns);
 
     return this;
   }
@@ -97,3 +82,13 @@ export default class Renderer {
     this.renderer.render();
   }
 }
+
+export {
+  RowHeadersRenderer,
+  ColumnHeadersRenderer,
+  ColGroupRenderer,
+  RowsRenderer,
+  CellsRenderer,
+  TableRenderer,
+  Renderer,
+};
