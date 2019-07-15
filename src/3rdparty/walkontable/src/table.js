@@ -534,22 +534,28 @@ class Table {
   }
 
   /**
-   * @returns {Number} Returns -1 if no row is visible
+   * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
    */
   getLastRenderedRow() {
     return this.wot.wtViewport.rowsRenderCalculator.endRow;
   }
 
+  /**
+   * @returns {Number} Returns source index of last visible row
+   */
   getLastVisibleRow() {
     return this.wot.wtViewport.rowsVisibleCalculator.endRow;
   }
 
+  /**
+   * @returns {Number} Returns source index of last rendered column
+   */
   getLastRenderedColumn() {
     return this.wot.wtViewport.columnsRenderCalculator.endColumn;
   }
 
   /**
-   * @returns {Number} Returns -1 if no column is visible
+   * @returns {Number} Returns -1 if no column is visible, otherwise source index of the last visible column
    */
   getLastVisibleColumn() {
     return this.wot.wtViewport.columnsVisibleCalculator.endColumn;
@@ -560,11 +566,11 @@ class Table {
   }
 
   isRowAfterViewport(row) {
-    return this.rowFilter && (this.rowFilter.sourceToRendered(row) > this.getLastVisibleRow());
+    return this.rowFilter && (row > this.getLastVisibleRow());
   }
 
   isRowAfterRenderedRows(row) {
-    return this.rowFilter && (this.rowFilter.sourceToRendered(row) > this.getLastRenderedRow());
+    return this.rowFilter && (row > this.getLastRenderedRow());
   }
 
   isColumnBeforeViewport(column) {
@@ -576,11 +582,11 @@ class Table {
   }
 
   isColumnAfterViewport(column) {
-    return this.columnFilter && (this.columnFilter.sourceToRendered(column) > this.getLastVisibleColumn());
+    return this.columnFilter && (column > this.getLastVisibleColumn());
   }
 
   isColumnAfterRenderedColumns(column) {
-    return this.columnFilter && (this.columnFilter.sourceToRendered(column) > this.getLastRenderedColumn());
+    return this.columnFilter && (column > this.getLastRenderedColumn());
   }
 
   isLastRowFullyVisible() {

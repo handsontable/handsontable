@@ -84,6 +84,7 @@ describe('WalkontableTable', () => {
   });
 
   it('getCell should only return cells from rendered rows and columns', function() {
+    createDataArray(20, 20);
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -97,9 +98,26 @@ describe('WalkontableTable', () => {
     expect(wt.wtTable.getCell(new Walkontable.CellCoords(25, 0))).toBe(-2); // exit code
     expect(wt.wtTable.getCell(new Walkontable.CellCoords(7, 5))).toBe(-4); // exit code - after rendered column
 
-    wt.scrollViewportHorizontally(getTotalColumns() - 1);
+    wt.scrollViewportHorizontally(6);
+    wt.scrollViewportVertically(10);
     wt.draw();
     expect(wt.wtTable.getCell(new Walkontable.CellCoords(7, 0))).toBe(-3); // exit code - before rendered column
+    expect(wt.wtTable.getCell(new Walkontable.CellCoords(7, 21))).toBe(-4); // exit code - after rendered column
+
+    let results = [];
+    for (let i = 0; i < 20; i++) {
+      const result = wt.wtTable.getCell(new Walkontable.CellCoords(10, i));
+      results.push(result instanceof HTMLElement ? HTMLElement : result);
+    }
+    expect(results).toEqual([-3, -3, -3, -3, -3, HTMLElement, HTMLElement, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4]);
+
+    results = [];
+    for (let i = 0; i < 20; i++) {
+      const result = wt.wtTable.getCell(new Walkontable.CellCoords(i, 6));
+      results.push(result instanceof HTMLElement ? HTMLElement : result);
+    }
+    expect(results).toEqual([-1, -1, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement,
+      HTMLElement, HTMLElement, -2, -2, -2, -2, -2, -2, -2, -2]);
   });
 
   it('getCoords should return coords of TD', () => {
@@ -115,7 +133,6 @@ describe('WalkontableTable', () => {
   });
 
   it('getCoords should return coords of TD (with row header)', () => {
-
     spec().$wrapper.width(300);
 
     function plusOne(i) {
@@ -137,7 +154,6 @@ describe('WalkontableTable', () => {
   });
 
   it('getCoords should return coords of TH', () => {
-
     spec().$wrapper.width(300);
 
     const wt = walkontable({
@@ -288,7 +304,6 @@ describe('WalkontableTable', () => {
   });
 
   it('should use column width function to get column width', () => {
-
     spec().$wrapper.width(600);
 
     const wt = walkontable({
@@ -313,7 +328,6 @@ describe('WalkontableTable', () => {
   });
 
   it('should use column width array to get column width', () => {
-
     spec().$wrapper.width(600);
 
     const wt = walkontable({
@@ -336,7 +350,6 @@ describe('WalkontableTable', () => {
   });
 
   it('should use column width integer to get column width', () => {
-
     spec().$wrapper.width(600);
 
     const wt = walkontable({
@@ -392,6 +405,7 @@ describe('WalkontableTable', () => {
     wt.draw();
     spec().$table.find('tbody td').html('');
     wt.draw();
+
     expect(spec().$table.find('tbody tr:first td').length).toBe(2);
   });
 
@@ -409,6 +423,7 @@ describe('WalkontableTable', () => {
     wt.draw();
     const oldCount = count;
     wt.draw(true);
+
     expect(count).toBe(oldCount);
   });
 
@@ -453,10 +468,12 @@ describe('WalkontableTable', () => {
 
     wt.scrollViewportVertically(10);
     wt.draw(true);
+
     expect(count).not.toBeGreaterThan(oldCount);
 
     wt.scrollViewportVertically(getTotalRows() - 1);
     wt.draw(true);
+
     expect(count).toBeGreaterThan(oldCount);
   });
 
@@ -505,10 +522,12 @@ describe('WalkontableTable', () => {
 
     wt.scrollViewportHorizontally(10);
     wt.draw(true);
+
     expect(count).not.toBeGreaterThan(oldCount);
 
     wt.scrollViewportHorizontally(11);
     wt.draw(true);
+
     expect(count).toBeGreaterThan(oldCount);
   });
 
@@ -537,7 +556,6 @@ describe('WalkontableTable', () => {
   describe('isLastRowFullyVisible', () => {
     it('should be false because it is only partially visible', () => {
       createDataArray(8, 4);
-
       spec().$wrapper.width(185).height(175);
 
       const wt = walkontable({
@@ -547,12 +565,11 @@ describe('WalkontableTable', () => {
       });
       wt.draw();
 
-      expect(wt.wtTable.isLastRowFullyVisible()).toEqual(false);
+      expect(wt.wtTable.isLastRowFullyVisible()).toBe(false);
     });
 
     it('should be true because it is fully visible', () => {
       createDataArray(8, 4);
-
       spec().$wrapper.width(185).height(185);
 
       const wt = walkontable({
@@ -564,14 +581,13 @@ describe('WalkontableTable', () => {
       wt.scrollViewportVertically(7);
       wt.draw();
 
-      expect(wt.wtTable.isLastRowFullyVisible()).toEqual(true);
+      expect(wt.wtTable.isLastRowFullyVisible()).toBe(true);
     });
   });
 
-  xdescribe('isLastColumnFullyVisible', () => {
+  describe('isLastColumnFullyVisible', () => {
     it('should be false because it is only partially visible', () => {
       createDataArray(18, 4);
-
       spec().$wrapper.width(209).height(185);
 
       const wt = walkontable({
@@ -581,12 +597,11 @@ describe('WalkontableTable', () => {
       });
       wt.draw();
 
-      expect(wt.wtTable.isLastColumnFullyVisible()).toEqual(false); // few pixels are obstacled by scrollbar
+      expect(wt.wtTable.isLastColumnFullyVisible()).toBe(false);
     });
 
     it('should be true because it is fully visible', () => {
       createDataArray(18, 4);
-
       spec().$wrapper.width(180).height(185);
 
       const wt = walkontable({
@@ -594,10 +609,376 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
-      wt.draw();
-      wt.scrollHorizontal(1);
 
-      expect(wt.wtTable.isLastColumnFullyVisible()).toEqual(true);
+      wt.draw();
+      wt.scrollViewportHorizontally(3);
+      wt.draw();
+
+      expect(wt.wtTable.isLastColumnFullyVisible()).toBe(true);
+    });
+  });
+
+  describe('getFirstVisibleRow', () => {
+    it('should return source index only for fully visible row (the first row is fully visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(185).height(175);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(0);
+    });
+
+    it('should return source index only for fully visible row (the first row is partially visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(185).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+      wt.scrollViewportVertically(10);
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(4);
+    });
+  });
+
+  describe('getLastVisibleRow', () => {
+    it('should return source index only for fully visible row (the last row is partially visible)', () => {
+      createDataArray(8, 4);
+      spec().$wrapper.width(185).height(175);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+
+      expect(wt.wtTable.getLastVisibleRow()).toBe(5);
+    });
+
+    it('should return source index only for fully visible row (the last row is fully visible)', () => {
+      createDataArray(8, 4);
+      spec().$wrapper.width(185).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+      wt.scrollViewportVertically(7);
+      wt.draw();
+
+      expect(wt.wtTable.getLastVisibleRow()).toBe(7);
+    });
+  });
+
+  describe('getFirstVisibleColumn', () => {
+    it('should return source index only for fully visible column (the first column is fully visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(209).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleColumn()).toBe(0);
+    });
+
+    it('should return source index only for fully visible column (the first column is partially visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(209).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+      wt.scrollViewportHorizontally(7);
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleColumn()).toBe(5);
+    });
+  });
+
+  describe('getLastVisibleColumn', () => {
+    it('should return source index only for fully visible column (the last column is partially visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(209).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+
+      expect(wt.wtTable.getLastVisibleColumn()).toBe(2);
+    });
+
+    it('should return source index only for fully visible column (the last column is fully visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(209).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+      wt.scrollViewportHorizontally(7);
+      wt.draw();
+
+      expect(wt.wtTable.getLastVisibleColumn()).toBe(7);
+    });
+  });
+
+  describe('getFirstRenderedRow', () => {
+    it('should return source index even for partially visible row (the first row is fully visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(185).height(175);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+
+      expect(wt.wtTable.getFirstRenderedRow()).toBe(0);
+    });
+
+    it('should return source index even for partially visible row (the first row is partially visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(185).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+      wt.scrollViewportVertically(10);
+      wt.draw();
+
+      expect(wt.wtTable.getFirstRenderedRow()).toBe(3);
+    });
+  });
+
+  describe('getLastRenderedRow', () => {
+    it('should return source index even for partially visible row (the first row is fully visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(185).height(175);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+
+      expect(wt.wtTable.getFirstRenderedRow()).toBe(0);
+    });
+
+    it('should return source index even for partially visible row (the first row is partially visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(185).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+      wt.scrollViewportVertically(10);
+      wt.draw();
+
+      expect(wt.wtTable.getFirstRenderedRow()).toBe(3);
+    });
+  });
+
+  describe('getFirstRenderedColumn', () => {
+    it('should return source index even for partially visible column (the first column is fully visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(209).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+
+      expect(wt.wtTable.getFirstRenderedColumn()).toBe(0);
+    });
+
+    it('should return source index even for partially visible column (the first column is partially visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(209).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+      wt.scrollViewportHorizontally(7);
+      wt.draw();
+
+      expect(wt.wtTable.getFirstRenderedColumn()).toBe(4);
+    });
+  });
+
+  describe('getLastRenderedColumn', () => {
+    it('should return source index even for partially visible column (the first column is fully visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(209).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+
+      expect(wt.wtTable.getLastRenderedColumn()).toBe(4);
+    });
+
+    it('should return source index even for partially visible column (the first column is partially visible)', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(209).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+      wt.scrollViewportHorizontally(7);
+      wt.draw();
+
+      expect(wt.wtTable.getLastRenderedColumn()).toBe(7);
+    });
+  });
+
+  describe('getVisibleRowsCount', () => {
+    it('should return rows count only for fully visible rows', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(209).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+
+      expect(wt.wtTable.getVisibleRowsCount()).toBe(7);
+
+      wt.scrollViewportVertically(10);
+      wt.draw();
+
+      expect(wt.wtTable.getVisibleRowsCount()).toBe(7);
+
+      // Scroll the table in that way that the first and last row i partially visible
+      wt.wtOverlays.topOverlay.setScrollPosition(20);
+      wt.draw();
+
+      expect(wt.wtTable.getVisibleRowsCount()).toBe(7);
+    });
+  });
+
+  describe('getVisibleColumnsCount', () => {
+    it('should return columns count only for fully visible columns', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(209).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+
+      expect(wt.wtTable.getVisibleColumnsCount()).toBe(3);
+
+      wt.scrollViewportHorizontally(10);
+      wt.draw();
+
+      expect(wt.wtTable.getVisibleColumnsCount()).toBe(3);
+
+      // Scroll the table in that way that the first and last row i partially visible
+      wt.wtOverlays.leftOverlay.setScrollPosition(20);
+      wt.draw();
+
+      expect(wt.wtTable.getVisibleColumnsCount()).toBe(3);
+    });
+  });
+
+  describe('getRenderedRowsCount', () => {
+    it('should return rows count only for fully visible rows', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(209).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+
+      expect(wt.wtTable.getRenderedRowsCount()).toBe(9);
+
+      wt.scrollViewportVertically(10);
+      wt.draw();
+
+      expect(wt.wtTable.getRenderedRowsCount()).toBe(9);
+
+      // Scroll the table in that way that the first and last row i partially visible
+      wt.wtOverlays.topOverlay.setScrollPosition(20);
+      wt.draw();
+
+      expect(wt.wtTable.getRenderedRowsCount()).toBe(9);
+    });
+  });
+
+  describe('getRenderedColumnsCount', () => {
+    it('should return columns count only for fully visible columns', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(209).height(185);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+      wt.draw();
+
+      expect(wt.wtTable.getRenderedColumnsCount()).toBe(5);
+
+      wt.scrollViewportHorizontally(10);
+      wt.draw();
+
+      expect(wt.wtTable.getRenderedColumnsCount()).toBe(4);
+
+      // Scroll the table in that way that the first and last row i partially visible
+      wt.wtOverlays.leftOverlay.setScrollPosition(20);
+      wt.draw();
+
+      expect(wt.wtTable.getRenderedColumnsCount()).toBe(5);
     });
   });
 });
