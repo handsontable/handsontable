@@ -10,7 +10,7 @@ export default class NodesPool {
      *
      * @type {String}
      */
-    this.nodeType = nodeType;
+    this.nodeType = nodeType.toUpperCase();
   }
 
   /**

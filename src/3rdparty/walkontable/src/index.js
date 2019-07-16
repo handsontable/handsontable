@@ -22,6 +22,7 @@ import Selection from './selection';
 import Settings from './settings';
 import Table from './table';
 import * as Renderer from './renderer';
+import { OrderView, SharedOrderView } from './utils/orderView';
 import Viewport from './viewport';
 import { getListenersCounter } from './../../../eventManager';
 
@@ -51,6 +52,8 @@ export {
   Settings,
   Table,
   Renderer,
+  OrderView,
+  SharedOrderView,
   Viewport,
 
   getListenersCounter

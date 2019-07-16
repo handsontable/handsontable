@@ -329,21 +329,6 @@ class Table {
           .setFilters(this.rowFilter, this.columnFilter)
           .render();
 
-        // Necessary to refresh oversized row heights after editing cell in overlays
-        if (!this.wot.getSetting('externalRowCalculator') && (!isClone || this.wot.isOverlayName(Overlay.CLONE_BOTTOM))) {
-          const rowsToRender = this.getRenderedRowsCount();
-
-          // Reset the oversized row cache for rendered rows
-          for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
-            const sourceRow = this.rowFilter.renderedToSource(visibleRowIndex);
-
-            if (this.wot.wtViewport.oversizedRows && this.wot.wtViewport.oversizedRows[sourceRow]) {
-              this.wot.wtViewport.oversizedRows[sourceRow] = void 0;
-            }
-          }
-        }
-        // end
-
         let workspaceWidth;
 
         if (!isClone) {

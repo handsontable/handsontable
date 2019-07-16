@@ -10,7 +10,7 @@ import ViewSizeSet from './viewSizeSet';
  * @class {OrderView}
  */
 export default class OrderView {
-  constructor(rootNode, nodesPool, nodeType) {
+  constructor(rootNode, nodesPool, childNodeType) {
     /**
      * The root node to manage with.
      *
@@ -20,7 +20,7 @@ export default class OrderView {
     /**
      * Factory for newly created DOM elements.
      *
-     * @type {NodesPool}
+     * @type {Function}
      */
     this.nodesPool = nodesPool;
     /**
@@ -34,7 +34,7 @@ export default class OrderView {
      *
      * @type {String}
      */
-    this.nodeType = nodeType;
+    this.childNodeType = childNodeType.toUpperCase();
     /**
      * The visual index of currently processed row.
      *
@@ -120,7 +120,7 @@ export default class OrderView {
       let element = rootNode.firstElementChild;
 
       while (element) {
-        if (element.tagName === this.nodeType) {
+        if (element.tagName === this.childNodeType) {
           childElementCount += 1;
 
         } else if (sizeSet.isPlaceOn(WORKING_SPACE_TOP)) {
@@ -160,8 +160,10 @@ export default class OrderView {
       childElementCount += 1;
     }
 
+    const isSharedPlacedOnTop = (isShared && sizeSet.isPlaceOn(WORKING_SPACE_TOP));
+
     while (childElementCount > nextSize) {
-      rootNode.removeChild(rootNode.lastChild);
+      rootNode.removeChild(isSharedPlacedOnTop ? rootNode.firstChild : rootNode.lastChild);
       childElementCount -= 1;
     }
   }
@@ -180,7 +182,7 @@ export default class OrderView {
 
     let node = rootNode.childNodes[visualIndex];
 
-    if (node.tagName !== this.nodeType) {
+    if (node.tagName !== this.childNodeType) {
       const newNode = this.nodesPool();
 
       rootNode.replaceChild(newNode, node);

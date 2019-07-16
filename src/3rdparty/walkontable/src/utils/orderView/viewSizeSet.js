@@ -95,6 +95,7 @@ export default class ViewSizeSet {
    */
   append(viewSize) {
     this.workingSpace = WORKING_SPACE_TOP;
+    viewSize.workingSpace = WORKING_SPACE_BOTTOM;
     this.sharedSize = viewSize.getViewSize();
   }
 
@@ -105,6 +106,7 @@ export default class ViewSizeSet {
    */
   prepend(viewSize) {
     this.workingSpace = WORKING_SPACE_BOTTOM;
+    viewSize.workingSpace = WORKING_SPACE_TOP;
     this.sharedSize = viewSize.getViewSize();
   }
 }
