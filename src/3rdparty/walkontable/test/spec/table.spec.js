@@ -171,27 +171,6 @@ describe('WalkontableTable', () => {
     expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
   });
 
-  it('getCoords should return coords of TD (with fixedRowsBottom)', () => {
-    createDataArray(100, 20);
-
-    const wt = walkontable({
-      data: getData,
-      totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      fixedRowsBottom: 2,
-      rowHeaders: [function(row, TH) {
-        TH.innerHTML = row + 1;
-      }]
-    });
-
-    wt.scrollViewportHorizontally(getTotalColumns() - 1);
-    wt.draw(true);
-
-    const $cloneBottom = $('.ht_clone_bottom');
-    const $tdLast = $cloneBottom.find('tbody tr:eq(1) td:eq(99)');
-    expect(wt.wtTable.getCoords($tdLast[0])).toBe(wt.wtTable.getCell(new Walkontable.CellCoords(getTotalColumns() - 1)));
-  });
-
   it('getStretchedColumnWidth should return valid column width when stretchH is set as \'all\'', () => {
     const wt = walkontable({
       data: getData,
