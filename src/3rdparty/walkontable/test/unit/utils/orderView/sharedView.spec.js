@@ -1,4 +1,4 @@
-import SharedOrderView from 'walkontable/utils/orderView/sharedview';
+import SharedOrderView from 'walkontable/utils/orderView/sharedView';
 import ViewSizeSet from 'walkontable/utils/orderView/viewSizeSet';
 
 function createOrderView() {
