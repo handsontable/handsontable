@@ -304,8 +304,7 @@ describe('WalkontableBorder', () => {
 
   it('should move the fill handle / corner border to the top, if in the position it would overlap the container (e.g.: far-bottom)', () => {
     spec().$container.css({
-      overflow: 'hidden',
-      height: 'auto',
+      height: '',
       marginTop: '2000px',
     });
 
@@ -351,8 +350,7 @@ describe('WalkontableBorder', () => {
 
   it('should move the corner border to the top-left, if is not enough area on the bottom-right corner of container', () => {
     spec().$container.css({
-      overflow: 'hidden',
-      height: 'auto',
+      height: '',
       width: '50px',
       marginTop: '2000px',
       marginLeft: '2000px',
