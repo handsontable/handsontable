@@ -27,7 +27,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.render();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <th></th>
         <th></th>
@@ -59,7 +59,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.render();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <th></th>
         <th></th>
@@ -82,7 +82,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.render();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <th></th>
         <td></td>
@@ -103,7 +103,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.render();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <td></td>
         <td></td>
@@ -131,7 +131,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.render();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <td></td>
         <td></td>
@@ -152,7 +152,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.render();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <th></th>
         <td></td>
@@ -176,7 +176,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.render();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <th></th>
         <th></th>
@@ -209,7 +209,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.render();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <th></th>
         <th></th>
@@ -231,7 +231,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.render();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <th></th>
         <th></th>
@@ -250,7 +250,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.start();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <th></th>
         <th></th>
@@ -276,7 +276,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.start();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <th></th>
         <th></th>
@@ -295,7 +295,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.render();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <th></th>
         <th></th>
@@ -317,7 +317,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.render();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <th></th>
         <th></th>
@@ -431,7 +431,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.render();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <div>
         <p></p>
         <p></p>
@@ -454,7 +454,7 @@ describe('Walkontable.SharedOrderView', () => {
     secondOrderView.render();
     secondOrderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <div>
         <p></p>
         <p></p>

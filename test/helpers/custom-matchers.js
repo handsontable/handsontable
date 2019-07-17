@@ -81,7 +81,7 @@ beforeEach(function() {
         }
       };
     },
-    toBeMatchHTML() {
+    toMatchHTML() {
       return {
         compare(actual, expected) {
           const actualHTML = pretty(actual);

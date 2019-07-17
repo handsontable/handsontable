@@ -32,7 +32,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
           <th class="">1</th>
@@ -57,7 +57,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
           <th class="">2</th>
@@ -76,7 +76,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
           <th class="">3</th>
@@ -93,7 +93,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr></tr>
       </thead>
@@ -110,7 +110,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
           <th class="">4</th>
@@ -138,7 +138,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
           <th class="">1</th>
@@ -185,7 +185,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
           <th class=""></th>

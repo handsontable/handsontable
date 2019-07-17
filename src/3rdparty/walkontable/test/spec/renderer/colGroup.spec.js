@@ -38,7 +38,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <colgroup>
         <col class="rowHeader" style="width: 100px;">
         <col style="width: 100px;">
@@ -55,7 +55,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <colgroup>
         <col class="rowHeader" style="width: 100px;">
         <col style="width: 100px;">
@@ -70,7 +70,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <colgroup>
         <col class="rowHeader" style="width: 100px;">
         <col style="width: 100px;">
@@ -84,7 +84,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <colgroup></colgroup>
       `);
 
@@ -94,7 +94,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <colgroup>
         <col class="rowHeader" style="width: 100px;">
       </colgroup>
@@ -110,7 +110,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <colgroup>
         <col class="rowHeader" style="width: 100px;">
         <col style="width: 100px;">
@@ -143,7 +143,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <colgroup>
         <col class="rowHeader" style="width: 100px;">
         <col style="width: 100px;">
@@ -181,7 +181,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <colgroup>
         <col class="rowHeader" style="width: 100px;">
         <col style="width: 101px;">
@@ -210,7 +210,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     renderer.adjust();
     renderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <colgroup>
         <col class="rowHeader" style="width: 110px;">
         <col style="width: 111px;">

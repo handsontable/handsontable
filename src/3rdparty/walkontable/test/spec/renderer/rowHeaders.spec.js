@@ -43,7 +43,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     rowHeadersRenderer.render();
     cellsRenderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr></tr>
         <tr></tr>
@@ -75,7 +75,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     rowHeadersRenderer.render();
     cellsRenderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
           <th class=""></th>
@@ -113,7 +113,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     rowHeadersRenderer.render();
     cellsRenderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr></tr>
         <tr></tr>
@@ -134,7 +134,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     rowHeadersRenderer.render();
     cellsRenderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
           <th class=""></th>
@@ -172,7 +172,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     rowHeadersRenderer.render();
     cellsRenderer.render();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
           <th class=""></th>

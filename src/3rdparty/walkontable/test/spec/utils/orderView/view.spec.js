@@ -18,7 +18,7 @@ describe('Walkontable.OrderView', () => {
     orderView.render();
     orderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <tr>
         <td></td>
         <td></td>
@@ -38,7 +38,7 @@ describe('Walkontable.OrderView', () => {
     orderView.render();
     orderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <div>
         <p></p>
         <p></p>
@@ -51,7 +51,7 @@ describe('Walkontable.OrderView', () => {
     orderView.start();
     orderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <div></div>
       `);
 
@@ -62,7 +62,7 @@ describe('Walkontable.OrderView', () => {
     orderView.render();
     orderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <div>
         <p></p>
         <p></p>
@@ -76,7 +76,7 @@ describe('Walkontable.OrderView', () => {
     orderView.render();
     orderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <div>
         <p></p>
         <p></p>
@@ -142,7 +142,7 @@ describe('Walkontable.OrderView', () => {
     orderView.render();
     orderView.end();
 
-    expect(rootNode.outerHTML).toBeMatchHTML(`
+    expect(rootNode.outerHTML).toMatchHTML(`
       <colgroup>
         <col>
         <col>
