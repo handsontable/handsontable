@@ -455,8 +455,8 @@ DefaultSettings.prototype = {
    *   date: getData(),
    *   comments: true,
    *   cell: [
-   *     {row: 1, col: 1, comment: {value: 'Foo'}},
-   *     {row: 2, col: 2, comment: {value: 'Bar'}}
+   *     { row: 1, col: 1, comment: { value: 'Foo' } },
+   *     { row: 2, col: 2, comment: { value: 'Bar' } }
    *   ]
    * });
    * ```
