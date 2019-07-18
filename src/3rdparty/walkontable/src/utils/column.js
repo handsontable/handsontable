@@ -75,7 +75,7 @@ export default class ColumnUtils {
    * Returns column header width based on passed source index.
    *
    * @param {Number} sourceIndex Column source index.
-   * @return {Number}
+   * @returns {Number}
    */
   getHeaderWidth(sourceIndex) {
     return this.headerWidths.get(this.wot.wtTable.columnFilter.sourceToRendered(sourceIndex));
