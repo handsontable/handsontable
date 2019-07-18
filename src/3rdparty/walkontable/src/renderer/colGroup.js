@@ -2,7 +2,7 @@ import BaseRenderer from './_base';
 import { addClass } from './../../../../helpers/dom/element';
 
 /**
- * Colgrpup renderer responsible for managing (inserting, tracking, rendering) COL elements.
+ * Colgroup renderer responsible for managing (inserting, tracking, rendering) COL elements.
  *
  *   <colgroup> (root node)
  *     ├ <col>   \
