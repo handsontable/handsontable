@@ -309,20 +309,7 @@ class Table {
           this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
         }
 
-        // Necessary to refresh oversized row heights after editing cell in overlays
-        if (!this.wot.getSetting('externalRowCalculator') && (!isClone || this.wot.isOverlayName(Overlay.CLONE_BOTTOM))) {
-          const rowsToRender = this.getRenderedRowsCount();
-
-          // Reset the oversized row cache for rendered rows
-          for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
-            const sourceRow = this.rowFilter.renderedToSource(visibleRowIndex);
-
-            if (this.wot.wtViewport.oversizedRows && this.wot.wtViewport.oversizedRows[sourceRow]) {
-              this.wot.wtViewport.oversizedRows[sourceRow] = void 0;
-            }
-          }
-        }
-        // end
+        this.resetOversizedRows();
 
         this.tableRenderer
           .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
@@ -336,37 +323,8 @@ class Table {
           this.wot.wtViewport.containerWidth = null;
         }
 
-        // Moved from this.markOversizedColumnHeaders of the tableRenderer.js file
-        const overlayName = this.wot.getOverlayName();
-
-        if (columnHeadersCount && !this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] && !isClone) {
-          const columnCount = this.getRenderedColumnsCount();
-          const rowHeaderCount = rowHeaders.length;
-
-          for (let i = 0; i < columnHeadersCount; i++) {
-            for (let renderedColumnIndex = (-1) * rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
-              this.markIfOversizedColumnHeader(renderedColumnIndex);
-            }
-          }
-          this.wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] = true;
-        }
-        // end
-
-        // Moved from this.adjustColumnHeaderHeights of the tableRenderer.js file
-        {
-          const children = this.wot.wtTable.THEAD.childNodes;
-          const oversizedColumnHeaders = this.wot.wtViewport.oversizedColumnHeaders;
-
-          for (let i = 0, len = columnHeaders.length; i < len; i++) {
-            if (oversizedColumnHeaders[i]) {
-              if (!children[i] || children[i].childNodes.length === 0) {
-                return;
-              }
-              children[i].childNodes[0].style.height = `${oversizedColumnHeaders[i]}px`;
-            }
-          }
-        }
-        // end
+        this.markOversizedColumnHeaders();
+        this.adjustColumnHeaderHeights();
 
         if (!isClone || this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
           this.markOversizedRows();
@@ -464,6 +422,64 @@ class Table {
 
       if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] || columnHeaderHeightSetting)) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting);
+      }
+    }
+  }
+
+  markOversizedColumnHeaders() {
+    const { wot } = this;
+    const isClone = this.isWorkingOnClone();
+    const overlayName = wot.getOverlayName();
+    const columnHeaders = wot.getSetting('columnHeaders');
+    const columnHeadersCount = columnHeaders.length;
+
+    if (columnHeadersCount && !wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] && !isClone) {
+      const rowHeaders = wot.getSetting('rowHeaders');
+      const rowHeaderCount = rowHeaders.length;
+      const columnCount = this.getRenderedColumnsCount();
+
+      for (let i = 0; i < columnHeadersCount; i++) {
+        for (let renderedColumnIndex = (-1) * rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
+          this.markIfOversizedColumnHeader(renderedColumnIndex);
+        }
+      }
+      wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] = true;
+    }
+  }
+
+  adjustColumnHeaderHeights() {
+    const { wot } = this;
+    const children = wot.wtTable.THEAD.childNodes;
+    const oversizedColumnHeaders = wot.wtViewport.oversizedColumnHeaders;
+    const columnHeaders = wot.getSetting('columnHeaders');
+
+    for (let i = 0, len = columnHeaders.length; i < len; i++) {
+      if (oversizedColumnHeaders[i]) {
+        if (!children[i] || children[i].childNodes.length === 0) {
+          return;
+        }
+        children[i].childNodes[0].style.height = `${oversizedColumnHeaders[i]}px`;
+      }
+    }
+  }
+
+  /**
+   * Resets cache of row heights. The cache should be cached for each render cycle in a case
+   * when new cell values have content which increases/decreases cell height.
+   */
+  resetOversizedRows() {
+    const { wot } = this;
+
+    if (!wot.getSetting('externalRowCalculator') && (!this.isWorkingOnClone() || wot.isOverlayName(Overlay.CLONE_BOTTOM))) {
+      const rowsToRender = this.getRenderedRowsCount();
+
+      // Reset the oversized row cache for rendered rows
+      for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
+        const sourceRow = this.rowFilter.renderedToSource(visibleRowIndex);
+
+        if (wot.wtViewport.oversizedRows && wot.wtViewport.oversizedRows[sourceRow]) {
+          wot.wtViewport.oversizedRows[sourceRow] = void 0;
+        }
       }
     }
   }

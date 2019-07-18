@@ -27,6 +27,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
 
     if (columnHeadersCount) {
       const { columnsToRender } = this.table;
+      const allColumnsToRender = columnsToRender + rowHeadersCount;
 
       for (let i = 0, len = columnHeadersCount; i < len; i++) {
         TR = this.rootNode.childNodes[i];
@@ -37,11 +38,11 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
         }
         this.renderedNodes = TR.childNodes.length;
 
-        while (this.renderedNodes < columnsToRender + rowHeadersCount) {
+        while (this.renderedNodes < allColumnsToRender) {
           TR.appendChild(this.table.rootDocument.createElement('th'));
           this.renderedNodes += 1;
         }
-        while (this.renderedNodes > columnsToRender + rowHeadersCount) {
+        while (this.renderedNodes > allColumnsToRender) {
           TR.removeChild(TR.lastChild);
           this.renderedNodes -= 1;
         }
