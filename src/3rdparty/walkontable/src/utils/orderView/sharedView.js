@@ -15,7 +15,7 @@ export default class SharedOrderView extends OrderView {
    * information about their order sizes to make proper diff calculations.
    *
    * @param {OrderView} orderView The order view to merging with. The view will be added at the beginning of the list.
-   * @return {SharedOrderView}
+   * @returns {SharedOrderView}
    */
   prependView(orderView) {
     this.sizeSet.prepend(orderView.sizeSet);
