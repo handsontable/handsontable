@@ -19,7 +19,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
   }
 
   /**
-   * Adjusts the count of the rendered elements.
+   * Adjusts the number of the rendered elements.
    */
   adjust() {
     const { columnHeadersCount, rowHeadersCount } = this.table;
