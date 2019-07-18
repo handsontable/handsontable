@@ -36,7 +36,7 @@ export default class ColumnUtils {
    * Returns stretched column width based on passed source index.
    *
    * @param {Number} sourceIndex Column source index.
-   * @return {Number}
+   * @returns {Number}
    */
   getStretchedColumnWidth(sourceIndex) {
     const columnWidth = this.getWidth(sourceIndex);
