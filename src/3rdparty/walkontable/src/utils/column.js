@@ -58,7 +58,7 @@ export default class ColumnUtils {
    * Returns column header height based on passed header level.
    *
    * @param {Number} level Column header level.
-   * @return {Number}
+   * @returns {Number}
    */
   getHeaderHeight(level) {
     let height = this.wot.wtSettings.settings.defaultRowHeight;
