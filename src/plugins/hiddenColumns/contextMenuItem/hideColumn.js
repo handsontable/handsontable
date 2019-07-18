@@ -22,8 +22,10 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
       const { from, to } = this.getSelectedRangeLast();
       const start = Math.min(from.col, to.col);
       const end = Math.max(from.col, to.col);
+      const columnsToHide = [];
+      rangeEach(start, end, column => columnsToHide.push(column));
 
-      rangeEach(start, end, column => hiddenColumnsPlugin.hideColumn(column));
+      hiddenColumnsPlugin.hideColumns(columnsToHide);
 
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);

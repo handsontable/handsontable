@@ -2,57 +2,29 @@ import { rangeEach } from '../../../helpers/number';
 import * as C from '../../../i18n/constants';
 
 export default function showColumnItem(hiddenColumnsPlugin) {
-  const beforeHiddenColumns = [];
-  const afterHiddenColumns = [];
+  const hiddenBefore = [];
+  const hiddenBetween = [];
+  const hiddenAfter = [];
 
   return {
     key: 'hidden_columns_show',
     name() {
-      const selection = this.getSelectedLast();
-      let pluralForm = 0;
-
-      if (Array.isArray(selection)) {
-        let [, fromColumn, , toColumn] = selection;
-
-        if (fromColumn > toColumn) {
-          [fromColumn, toColumn] = [toColumn, fromColumn];
-        }
-
-        let hiddenColumns = 0;
-
-        if (fromColumn === toColumn) {
-          hiddenColumns = beforeHiddenColumns.length + afterHiddenColumns.length;
-
-        } else {
-          rangeEach(fromColumn, toColumn, (column) => {
-            if (hiddenColumnsPlugin.isHidden(column)) {
-              hiddenColumns += 1;
-            }
-          });
-        }
-
-        pluralForm = hiddenColumns <= 1 ? 0 : 1;
-      }
+      const hiddenColumnsLength = hiddenBefore.length + hiddenBetween.length + hiddenAfter.length;
+      const pluralForm = hiddenColumnsLength <= 1 ? 0 : 1;
 
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN, pluralForm);
     },
     callback() {
-      const { from, to } = this.getSelectedRangeLast();
-      const start = Math.min(from.col, to.col);
-      const end = Math.max(from.col, to.col);
-
-      if (start === end) {
-        if (beforeHiddenColumns.length === start) {
-          hiddenColumnsPlugin.showColumns(beforeHiddenColumns);
-          beforeHiddenColumns.length = 0;
-        }
-        if (afterHiddenColumns.length === this.countSourceCols() - (start + 1)) {
-          hiddenColumnsPlugin.showColumns(afterHiddenColumns);
-          afterHiddenColumns.length = 0;
-        }
+      if (hiddenBetween.length) {
+        hiddenColumnsPlugin.showColumns(hiddenBetween);
 
       } else {
-        rangeEach(start, end, column => hiddenColumnsPlugin.showColumn(column));
+        if (hiddenBefore.length) {
+          hiddenColumnsPlugin.showColumns(hiddenBefore);
+        }
+        if (hiddenAfter.length) {
+          hiddenColumnsPlugin.showColumns(hiddenAfter);
+        }
       }
 
       this.render();
@@ -60,54 +32,53 @@ export default function showColumnItem(hiddenColumnsPlugin) {
     },
     disabled: false,
     hidden() {
-      if (!hiddenColumnsPlugin.hiddenColumns.length || !this.selection.isSelectedByColumnHeader()) {
+      if (!this.selection.isSelectedByColumnHeader() || !hiddenColumnsPlugin.areColumnsVisible('all')) {
         return true;
       }
 
-      beforeHiddenColumns.length = 0;
-      afterHiddenColumns.length = 0;
+      hiddenBefore.length = 0;
+      hiddenBetween.length = 0;
+      hiddenAfter.length = 0;
 
-      const { from, to } = this.getSelectedRangeLast();
-      const start = Math.min(from.col, to.col);
-      const end = Math.max(from.col, to.col);
-      let hiddenInSelection = false;
+      let shouldBeHidden = true;
+      let [, start, , end] = this.getSelectedLast();
+      [start, end] = [Math.min(start, end), Math.max(start, end)];
 
       if (start === end) {
-        let totalColumnLength = this.countSourceCols();
+        rangeEach(0, start - 1, (column) => {
+          if (hiddenColumnsPlugin.isHidden(column)) {
+            hiddenBefore.push(column);
 
-        rangeEach(0, totalColumnLength, (column) => {
-          const partedHiddenLength = beforeHiddenColumns.length + afterHiddenColumns.length;
+          } else {
+            hiddenBefore.length = 0;
 
-          if (partedHiddenLength === hiddenColumnsPlugin.hiddenColumns.length) {
             return false;
           }
+        });
+        rangeEach(end, this.countCols(), (column) => {
+          if (hiddenColumnsPlugin.isHidden(column)) {
+            hiddenAfter.push(column);
 
-          if (column < start && hiddenColumnsPlugin.isHidden(column)) {
-            beforeHiddenColumns.push(column);
+          } else {
+            hiddenAfter.length = 0;
 
-          } else if (hiddenColumnsPlugin.isHidden(column)) {
-            afterHiddenColumns.push(column);
+            return false;
           }
         });
 
-        totalColumnLength -= 1;
-
-        if ((beforeHiddenColumns.length === start && start > 0) ||
-          (afterHiddenColumns.length === totalColumnLength - start && start < totalColumnLength)) {
-          hiddenInSelection = true;
-        }
+        shouldBeHidden = hiddenBefore.length + hiddenAfter.length === 0;
 
       } else {
         rangeEach(start, end, (column) => {
           if (hiddenColumnsPlugin.isHidden(column)) {
-            hiddenInSelection = true;
-
-            return false;
+            hiddenBetween.push(column);
           }
         });
+
+        shouldBeHidden = hiddenBetween.length === 0;
       }
 
-      return !hiddenInSelection;
+      return shouldBeHidden;
     }
   };
 }
