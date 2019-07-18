@@ -455,7 +455,6 @@ class CollapsibleColumns extends BasePlugin {
     }
 
     const currentCollapsedColumns = this.collapsedColumns;
-    const hiddenColumns = this.hiddenColumnsPlugin.hiddenColumns;
     const cloneCollapsedSections = new Map(deepClone(Array.from(this.collapsedSections)));
     let collapsePossible;
 
@@ -496,7 +495,7 @@ class CollapsibleColumns extends BasePlugin {
         switch (action) {
           case 'collapse':
             if (!this.hiddenColumnsPlugin.isHidden(colToHide)) {
-              hiddenColumns.push(colToHide);
+              this.hiddenColumnsPlugin.hideColumn(colToHide);
             }
 
             this.markSectionAs('collapsed', currentCoords.row, currentCoords.col, true);
@@ -504,7 +503,7 @@ class CollapsibleColumns extends BasePlugin {
             break;
           case 'expand':
             if (this.hiddenColumnsPlugin.isHidden(colToHide)) {
-              hiddenColumns.splice(hiddenColumns.indexOf(colToHide), 1);
+              this.hiddenColumnsPlugin.showColumn(colToHide);
             }
 
             this.markSectionAs('expanded', currentCoords.row, currentCoords.col, true);
@@ -516,13 +515,16 @@ class CollapsibleColumns extends BasePlugin {
       });
     });
 
-    const destinationCollapsedColumns = Array.from(hiddenColumns);
+    // Added by @wszymanski, this code around was absent, when the original commit was performed.
+    const destinationCollapsedColumns = this.hiddenColumnsPlugin.getHiddenColumns();
 
     if (action === 'collapse') {
       const allowColumnCollapse = this.hot.runHooks('beforeColumnCollapse', currentCollapsedColumns, destinationCollapsedColumns, collapsePossible);
 
       if (allowColumnCollapse === false) {
-        this.hiddenColumnsPlugin.hiddenColumns = Array.from(this.collapsedColumns);
+        // Added by @wszymanski, this code around was absent, when the original commit was performed.
+        this.hiddenColumnsPlugin.showColumns(this.hiddenColumnsPlugin.getHiddenColumns());
+        this.hiddenColumnsPlugin.hideColumns(this.collapsedColumns);
         this.collapsedSections = cloneCollapsedSections;
 
         return;
@@ -531,7 +533,9 @@ class CollapsibleColumns extends BasePlugin {
       const allowColumnExpand = this.hot.runHooks('beforeColumnExpand', currentCollapsedColumns, destinationCollapsedColumns, collapsePossible);
 
       if (allowColumnExpand === false) {
-        this.hiddenColumnsPlugin.hiddenColumns = Array.from(this.collapsedColumns);
+        // Added by @wszymanski, this code around was absent, when original commit was performed.
+        this.hiddenColumnsPlugin.showColumns(this.hiddenColumnsPlugin.getHiddenColumns());
+        this.hiddenColumnsPlugin.hideColumns(this.collapsedColumns);
         this.collapsedSections = cloneCollapsedSections;
 
         return;
