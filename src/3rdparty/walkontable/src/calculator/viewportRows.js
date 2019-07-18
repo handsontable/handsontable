@@ -153,7 +153,7 @@ class ViewportRowsCalculator {
       this.startPosition = null;
     }
 
-    // If endRow exceeded its total rows size set endRow to the latest item
+    // If totalRows exceeded its total rows size set endRow to the latest item
     if (totalRows < this.endRow) {
       this.endRow = totalRows - 1;
     }
