@@ -632,7 +632,7 @@ class CustomBorders extends BasePlugin {
 
     arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
       if (border.id === customSelection.settings.id) {
-        objectEach(customSelection.instanceBorders, (borderObject) => {
+        objectEach(customSelection.instanceSelectionHandles, (borderObject) => {
           borderObject.toggleHiddenClass(place, remove); // TODO this also bad?
         });
 
@@ -669,7 +669,7 @@ class CustomBorders extends BasePlugin {
           customSelection.cellRange = cellRange;
 
           if (place) {
-            objectEach(customSelection.instanceBorders, (borderObject) => {
+            objectEach(customSelection.instanceSelectionHandles, (borderObject) => {
               borderObject.changeBorderStyle(place, border);
             });
           }

@@ -295,12 +295,12 @@ class TopOverlay extends Overlay {
    * @param {WalkontableSelection} selection Selection for redraw.
    */
   redrawSelectionBorders(selection) {
-    if (selection && selection.cellRange) {
-      const border = selection.getBorder(this.wot);
+    if (selection && selection.cellRange && selection.hasSelectionHandle()) {
+      const selectionHandle = selection.getSelectionHandle(this.wot);
       const corners = selection.getCorners();
 
-      border.disappear();
-      border.appear(corners);
+      selectionHandle.disappear();
+      selectionHandle.appear(corners);
     }
 
     // draw SVG rectangles here

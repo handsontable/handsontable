@@ -1,5 +1,5 @@
 import { addClass, hasClass } from './../../../helpers/dom/element';
-import Border from './border';
+import SelectionHandle from './selectionHandle';
 import CellCoords from './cell/coords';
 import CellRange from './cell/range';
 
@@ -14,24 +14,31 @@ class Selection {
   constructor(settings, cellRange) {
     this.settings = settings;
     this.cellRange = cellRange || null;
-    this.instanceBorders = {};
+    this.instanceSelectionHandles = {};
     this.classNames = [this.settings.className];
     this.classNameGenerator = this.linearClassNameGenerator(this.settings.className, this.settings.layerLevel);
   }
 
   /**
-   * Each Walkontable clone requires it's own border for every selection. This method creates and returns selection
-   * borders per instance
+   * Returns information if the current selection is configured to display a corner or a selection handle
+   */
+  hasSelectionHandle() {
+    return this.settings.border && this.settings.border.cornerVisible !== undefined;
+  }
+
+  /**
+   * Each Walkontable clone requires it's own selection handle for every selection. This method creates and returns selection
+   * handles per instance
    *
    * @param {Walkontable} wotInstance
    * @returns {Border}
    */
-  getBorder(wotInstance) {
-    if (!this.instanceBorders[wotInstance.guid]) {
-      this.instanceBorders[wotInstance.guid] = new Border(wotInstance, this.settings);
+  getSelectionHandle(wotInstance) {
+    if (!this.instanceSelectionHandles[wotInstance.guid]) {
+      this.instanceSelectionHandles[wotInstance.guid] = new SelectionHandle(wotInstance, this.settings);
     }
 
-    return this.instanceBorders[wotInstance.guid];
+    return this.instanceSelectionHandles[wotInstance.guid];
   }
 
   /**
@@ -185,8 +192,8 @@ class Selection {
    */
   draw(wotInstance) {
     if (this.isEmpty()) {
-      if (this.settings.border) {
-        this.getBorder(wotInstance).disappear();
+      if (this.hasSelectionHandle()) {
+        this.getSelectionHandle(wotInstance).disappear();
       }
 
       return;
@@ -272,9 +279,9 @@ class Selection {
 
     wotInstance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
 
-    if (this.settings.border && this.settings.border.cornerVisible) {
-      // warning! border.appear modifies corners!
-      this.getBorder(wotInstance).appear(corners);
+    if (this.hasSelectionHandle()) {
+      // warning! selectionHandle.appear modifies corners!
+      this.getSelectionHandle(wotInstance).appear(corners);
     }
   }
 
@@ -282,7 +289,7 @@ class Selection {
    * Cleans up all the DOM state related to a Selection instance. Call this prior to deleting a Selection instance.
    */
   destroy() {
-    Object.values(this.instanceBorders).forEach(border => border.destroy());
+    Object.values(this.instanceSelectionHandles).forEach(border => border.destroy());
   }
 }
 

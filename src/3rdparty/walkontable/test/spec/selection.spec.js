@@ -112,15 +112,15 @@ describe('Walkontable.Selection', () => {
     setTimeout(() => {
       const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
       const $td2 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
-      const $top = $(wt.selections.getCell().getBorder(wt).top); // cheat... get border for ht_master
+      const $corner = $(wt.selections.getCell().getSelectionHandle(wt).corner); // cheat... get border for ht_master
       $td1.simulate('mousedown');
 
-      const pos1 = $top.position();
+      const pos1 = $corner.position();
       expect(pos1.top).toBeGreaterThan(0);
-      expect(pos1.left).toBe(0);
+      expect(pos1.left).toBe(45);
 
       $td2.simulate('mousedown');
-      const pos2 = $top.position();
+      const pos2 = $corner.position();
 
       expect(pos2.top).toBeGreaterThan(pos1.top);
       expect(pos2.left).toBeGreaterThan(pos1.left);

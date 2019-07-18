@@ -9,17 +9,17 @@ import {
   offset,
   outerHeight,
   outerWidth,
-} from './../../../helpers/dom/element';
-import { stopImmediatePropagation } from './../../../helpers/dom/event';
-import { objectEach } from './../../../helpers/object';
-import { isMobileBrowser } from './../../../helpers/browser';
-import EventManager from './../../../eventManager';
+} from '../../../helpers/dom/element';
+import { stopImmediatePropagation } from '../../../helpers/dom/event';
+import { objectEach } from '../../../helpers/object';
+import { isMobileBrowser } from '../../../helpers/browser';
+import EventManager from '../../../eventManager';
 import CellCoords from './cell/coords';
 
 /**
  *
  */
-class Border {
+class SelectionHandle {
   /**
    * @param {Walkontable} wotInstance
    * @param {Object} settings
@@ -640,4 +640,4 @@ class Border {
   }
 }
 
-export default Border;
+export default SelectionHandle;

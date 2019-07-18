@@ -187,6 +187,9 @@ export function createSelectionController({ current, area, fill, custom } = {}) 
     border: {
       width: 2,
       color: '#4b89ff',
+      cornerVisible() {
+        return true;
+      }
     },
   });
   const areaCtrl = area || new Walkontable.Selection({

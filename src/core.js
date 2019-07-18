@@ -222,6 +222,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     // @TODO: These CSS classes are no longer needed anymore. They are used only as a indicator of the selected
     // rows/columns in the MergedCells plugin (via border.js#L520 in the walkontable module). After fixing
     // the Border class this should be removed.
+    // NOTE: border.js does not exist anymore. It's successor is selectionHandle.js
     if (isSelectedByRowHeader && isSelectedByColumnHeader) {
       addClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
 
