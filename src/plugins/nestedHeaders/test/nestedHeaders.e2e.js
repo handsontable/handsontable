@@ -532,25 +532,8 @@ describe('NestedHeaders', () => {
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseup');
 
-      const $headerLvl3 = this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)');
-      const $firstRow = this.$container.find('.ht_master tbody tr:eq(0)');
-      const $lastRow = this.$container.find('.ht_master tbody tr:eq(3)');
-      const $tbody = this.$container.find('.ht_master tbody');
-
-      const $topBorder = this.$container.find('.wtBorder.area').eq(0);
-      const $bottomBorder = this.$container.find('.wtBorder.area').eq(2);
-      const $leftBorder = this.$container.find('.wtBorder.area').eq(1);
-      const $rightBorder = this.$container.find('.wtBorder.area').eq(3);
-
-      expect($topBorder.offset().top).toEqual($firstRow.offset().top - 1);
-      expect($bottomBorder.offset().top).toEqual($lastRow.offset().top + $lastRow.height() - 1);
-      expect($topBorder.width()).toEqual($headerLvl3.width());
-      expect($bottomBorder.width()).toEqual($headerLvl3.width());
-
-      expect($leftBorder.offset().left).toEqual($headerLvl3.offset().left);
-      expect($rightBorder.offset().left).toEqual($headerLvl3.offset().left + $headerLvl3.width());
-      expect($leftBorder.height()).toEqual($tbody.height());
-      expect($rightBorder.height()).toEqual($tbody.height() + 1);
+      const svgPath = spec().$container.find('svg:eq(0) path[stroke-width="2px"]')[0];
+      expect(svgPath.getAttribute('d')).toBe('M 50 24 H 100 V 47 H 50 V 24 ');
     });
   });
 });

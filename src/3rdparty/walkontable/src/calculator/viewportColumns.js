@@ -163,6 +163,9 @@ class ViewportColumnsCalculator {
     if (this.startColumn !== null) {
       this.count = this.endColumn - this.startColumn + 1;
     }
+
+    this.startPositions = startPositions;
+    this.endPosition = sum;
   }
 
   /**

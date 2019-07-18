@@ -23,7 +23,7 @@ class Selection {
    * Returns information if the current selection is configured to display a corner or a selection handle
    */
   hasSelectionHandle() {
-    return this.settings.border && this.settings.border.cornerVisible !== undefined;
+    return this.settings.border && typeof this.settings.border.cornerVisible === 'function';
   }
 
   /**
@@ -190,7 +190,7 @@ class Selection {
   /**
    * @param wotInstance
    */
-  draw(wotInstance) {
+  draw(wotInstance, selectedCellFn) {
     if (this.isEmpty()) {
       if (this.hasSelectionHandle()) {
         this.getSelectionHandle(wotInstance).disappear();
@@ -249,12 +249,12 @@ class Selection {
 
       for (let column = 0; column < renderedColumns; column += 1) {
         const sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column);
-
         if (sourceRow >= topRow && sourceRow <= bottomRow && sourceCol >= topColumn && sourceCol <= bottomColumn) {
           // selected cell
           if (this.settings.className) {
             this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.className, this.settings.markIntersections);
           }
+          selectedCellFn(this, corners);
 
         } else if (sourceRow >= topRow && sourceRow <= bottomRow) {
           // selection is in this row

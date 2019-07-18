@@ -302,8 +302,6 @@ class TopOverlay extends Overlay {
       selectionHandle.disappear();
       selectionHandle.appear(corners);
     }
-
-    // draw SVG rectangles here
   }
 
   /**
@@ -320,6 +318,8 @@ class TopOverlay extends Overlay {
     this.redrawSelectionBorders(selections.getFill());
 
     this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
+
+    // draw SVG rectangles here
   }
 
   /**

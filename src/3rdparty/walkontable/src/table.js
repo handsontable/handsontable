@@ -21,6 +21,7 @@ import { Renderer } from './renderer';
 import Overlay from './overlay/_base';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
+import getSvgRectangleRenderer from './svgRectangles';
 
 /**
  *
@@ -91,6 +92,17 @@ class Table {
       columnUtils: this.columnUtils,
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
+
+    this.svg = this.holder.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this.svg.style.top = '0';
+    this.svg.style.left = '0';
+    this.svg.style.width = '0';
+    this.svg.style.height = '0';
+    this.svg.style.position = 'absolute';
+    this.svg.style.zIndex = '5';
+    this.svg.setAttribute('pointer-events', 'none');
+    this.hider.appendChild(this.svg);
+    this.renderSvgRectangles = getSvgRectangleRenderer(this.svg);
   }
 
   /**
@@ -594,10 +606,70 @@ class Table {
       }
     }
 
+    const rightAndBottomTableBorderWidth = 1;
+    const totalWidth = wot.wtViewport.columnsVisibleCalculator.endPosition + rightAndBottomTableBorderWidth;
+    const totalHeight = wot.wtViewport.rowsVisibleCalculator.endPosition + rightAndBottomTableBorderWidth;
+
+    const rects = [];
     for (let i = 0; i < len; i++) {
-      highlights[i].draw(wot, fastDraw);
+      highlights[i].draw(wot, (highlight, corners) => {
+        if (highlights[i].settings.border) {
+          this.addBorderLinesToStrokes(rects, highlight, corners, totalWidth, totalHeight);
+        }
+      });
     }
-    // draw SVG rectangles here
+
+    this.repositionSvg();
+    this.renderSvgRectangles(totalWidth, totalHeight, rects);
+  }
+
+  repositionSvg() {
+    const topDelta = this.wot.wtViewport.getColumnHeaderHeight(); // TODO this can be cached
+    const leftDelta = this.wot.wtViewport.getRowHeaderWidth();
+
+    this.svg.style.marginLeft = `${leftDelta || 0}px`;
+    this.svg.style.marginTop = `${topDelta || 0}px`;
+  }
+
+  addBorderLinesToStrokes(rects, selection, corners, totalWidth, totalHeight) {
+    const { columnsVisibleCalculator, rowsVisibleCalculator } = this.wot.wtViewport;
+    const [topRow, leftColumn, bottomRow, rightColumn] = corners;
+    const columnAfterRightColumn = rightColumn + 1;
+    const rowAfterBottomRow = bottomRow + 1;
+    const rect = {
+      x1: columnsVisibleCalculator.startPositions[leftColumn],
+      y1: rowsVisibleCalculator.startPositions[topRow],
+      x2: columnAfterRightColumn < columnsVisibleCalculator.startPositions.length ? columnsVisibleCalculator.startPositions[columnAfterRightColumn] : totalWidth,
+      y2: rowAfterBottomRow < rowsVisibleCalculator.startPositions.length ? rowsVisibleCalculator.startPositions[rowAfterBottomRow] : totalHeight,
+    };
+    if (rect.x1 === undefined) {
+      // x1 is beyond visible viewport
+      return;
+    }
+    if (rect.y1 === undefined) {
+      // y1 is beyond visible viewport
+      return;
+    }
+    rect.x1 -= 1; // go over preceding border
+    rect.x2 -= 1; // go over preceding border
+    if (selection.settings.className === 'current') {
+      // the current cell has slightly abnormal positioning, inset in a cell
+      rect.x1 += 1;
+      rect.y1 += 1;
+    }
+    this.getStroke(rect, selection.settings, 'left');
+    this.getStroke(rect, selection.settings, 'top');
+    this.getStroke(rect, selection.settings, 'right');
+    this.getStroke(rect, selection.settings, 'bottom');
+    rects.push(rect);
+  }
+
+  getStroke(rect, borderSetting, edge) {
+    if (!(borderSetting[edge] && borderSetting[edge].hide)) {
+      const width = (borderSetting[edge] && borderSetting[edge].width) || (borderSetting.border && borderSetting.border.width) || 1;
+      const color = (borderSetting[edge] && borderSetting[edge].color) || (borderSetting.border && borderSetting.border.color) || 'black';
+      rect[`${edge}Stroke`] = `${width}px ${color}`;
+    }
   }
 
   /**

@@ -1056,24 +1056,24 @@ describe('Core_selection', () => {
       width: 400,
       height: 200
     });
-    let cellVerticalPosition;
+    let cell;
     const borderOffsetInPixels = 1;
-    let topBorder;
+    let currentSelection;
 
     selectCell(5, 5);
     hot.view.wt.wtOverlays.topOverlay.scrollTo(2);
 
     await sleep(100);
 
-    cellVerticalPosition = hot.getCell(5, 5).offsetTop;
-    topBorder = $('.wtBorder.current')[0];
-    expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+    cell = hot.getCell(5, 5);
+    currentSelection = $('.wtBorder.current')[0];
+    expect(currentSelection.offsetTop).toEqual(cell.offsetHeight + cell.offsetTop - (currentSelection.offsetHeight / 2) - borderOffsetInPixels);
     hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
 
     await sleep(100);
-    cellVerticalPosition = hot.getCell(5, 5).offsetTop;
-    topBorder = $('.wtBorder.current')[0];
-    expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+    cell = hot.getCell(5, 5);
+    currentSelection = $('.wtBorder.current')[0];
+    expect(currentSelection.offsetTop).toEqual(cell.offsetHeight + cell.offsetTop - (currentSelection.offsetHeight / 2) - borderOffsetInPixels);
   });
 
   it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled', async() => {
@@ -1086,23 +1086,23 @@ describe('Core_selection', () => {
       width: 400,
       height: 200
     });
-    let cellVerticalPosition;
+    let cell;
     const borderOffsetInPixels = 1;
-    let topBorder;
+    let currentSelection;
 
     selectCell(1, 0);
     hot.view.wt.wtOverlays.topOverlay.scrollTo(5);
 
     await sleep(100);
-    cellVerticalPosition = hot.getCell(1, 0).offsetTop;
-    topBorder = $('.wtBorder.current')[0];
-    expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+    cell = hot.getCell(1, 0);
+    currentSelection = $('.wtBorder.current')[0];
+    expect(currentSelection.offsetTop).toEqual(cell.offsetHeight + cell.offsetTop - (currentSelection.offsetHeight / 2) - borderOffsetInPixels);
     hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
 
     await sleep(100);
-    cellVerticalPosition = hot.getCell(1, 0).offsetTop;
-    topBorder = $('.wtBorder.current')[0];
-    expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+    cell = hot.getCell(1, 0);
+    currentSelection = $('.wtBorder.current')[0];
+    expect(currentSelection.offsetTop).toEqual(cell.offsetHeight + cell.offsetTop - (currentSelection.offsetHeight / 2) - borderOffsetInPixels);
   });
 
   describe('multiple selection mode', () => {
