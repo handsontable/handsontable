@@ -272,7 +272,7 @@ class Selection {
 
     wotInstance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
 
-    if (this.settings.border) {
+    if (this.settings.border && this.settings.border.cornerVisible) {
       // warning! border.appear modifies corners!
       this.getBorder(wotInstance).appear(corners);
     }

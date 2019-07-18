@@ -35,16 +35,6 @@ class Border {
     this.mouseDown = false;
     this.main = null;
 
-    this.top = null;
-    this.left = null;
-    this.bottom = null;
-    this.right = null;
-
-    this.topStyle = null;
-    this.leftStyle = null;
-    this.bottomStyle = null;
-    this.rightStyle = null;
-
     this.cornerDefaultStyle = {
       width: '6px',
       height: '6px',
@@ -145,39 +135,27 @@ class Border {
     const { rootDocument } = this.wot;
     this.main = rootDocument.createElement('div');
 
-    const borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
     let style = this.main.style;
     style.position = 'absolute';
     style.top = 0;
     style.left = 0;
 
-    for (let i = 0; i < 5; i++) {
-      const position = borderDivs[i];
-      const div = rootDocument.createElement('div');
+    const position = 'corner';
+    const div = rootDocument.createElement('div');
 
-      div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
+    div.className = `wtBorder ${this.settings.className || ''}`;
 
-      if (this.settings[position] && this.settings[position].hide) {
-        div.className += ' hidden';
-      }
-      style = div.style;
-      style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
-      style.height = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
-      style.width = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
-
-      this.main.appendChild(div);
+    if (this.settings[position] && this.settings[position].hide) {
+      div.className += ' hidden';
     }
-    this.top = this.main.childNodes[0];
-    this.left = this.main.childNodes[1];
-    this.bottom = this.main.childNodes[2];
-    this.right = this.main.childNodes[3];
+    style = div.style;
+    style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
+    style.height = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
+    style.width = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
 
-    this.topStyle = this.top.style;
-    this.leftStyle = this.left.style;
-    this.bottomStyle = this.bottom.style;
-    this.rightStyle = this.right.style;
+    this.main.appendChild(div);
 
-    this.corner = this.main.childNodes[4];
+    this.corner = div;
     this.corner.className += ' corner';
     this.cornerStyle = this.corner.style;
     this.cornerStyle.width = this.cornerDefaultStyle.width;
@@ -431,28 +409,6 @@ class Border {
       width = width > 0 ? width - 1 : 0;
     }
 
-    this.topStyle.top = `${top}px`;
-    this.topStyle.left = `${left}px`;
-    this.topStyle.width = `${width}px`;
-    this.topStyle.display = 'block';
-
-    this.leftStyle.top = `${top}px`;
-    this.leftStyle.left = `${left}px`;
-    this.leftStyle.height = `${height}px`;
-    this.leftStyle.display = 'block';
-
-    const delta = Math.floor(this.settings.border.width / 2);
-
-    this.bottomStyle.top = `${top + height - delta}px`;
-    this.bottomStyle.left = `${left}px`;
-    this.bottomStyle.width = `${width}px`;
-    this.bottomStyle.display = 'block';
-
-    this.rightStyle.top = `${top}px`;
-    this.rightStyle.left = `${left + width - delta}px`;
-    this.rightStyle.height = `${height + 1}px`;
-    this.rightStyle.display = 'block';
-
     let cornerVisibleSetting = this.settings.border.cornerVisible;
     cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ? cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
 
@@ -667,10 +623,6 @@ class Border {
    * Hide border
    */
   disappear() {
-    this.topStyle.display = 'none';
-    this.leftStyle.display = 'none';
-    this.bottomStyle.display = 'none';
-    this.rightStyle.display = 'none';
     this.cornerStyle.display = 'none';
 
     if (isMobileBrowser()) {

@@ -302,6 +302,8 @@ class TopOverlay extends Overlay {
       border.disappear();
       border.appear(corners);
     }
+
+    // draw SVG rectangles here
   }
 
   /**

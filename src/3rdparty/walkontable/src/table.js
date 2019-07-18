@@ -597,6 +597,7 @@ class Table {
     for (let i = 0; i < len; i++) {
       highlights[i].draw(wot, fastDraw);
     }
+    // draw SVG rectangles here
   }
 
   /**
