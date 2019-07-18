@@ -17,7 +17,7 @@ export default class ColumnUtils {
    * Returns column width based on passed source index.
    *
    * @param {Number} sourceIndex Column source index.
-   * @return {Number}
+   * @returns {Number}
    */
   getWidth(sourceIndex) {
     let width = this.wot.wtSettings.settings.columnWidth;
