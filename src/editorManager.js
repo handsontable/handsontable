@@ -175,7 +175,7 @@ class EditorManager {
     if (readOnly) {
       // move the selection after opening the editor with ENTER key
       if (event && event.keyCode === KEY_CODES.ENTER) {
-        this.moveSelectionAfterEnter();
+        this.moveSelectionAfterEnter(event);
       }
     } else {
       this.activeEditor.beginEditing(newInitialValue, event);
@@ -220,12 +220,12 @@ class EditorManager {
    * Controls selection's behaviour after clicking `Enter`.
    *
    * @private
-   * @param {Boolean} isShiftPressed
+   * @param {Event} event
    */
-  moveSelectionAfterEnter(isShiftPressed) {
+  moveSelectionAfterEnter(event) {
     const enterMoves = typeof this.priv.settings.enterMoves === 'function' ? this.priv.settings.enterMoves(event) : this.priv.settings.enterMoves;
 
-    if (isShiftPressed) {
+    if (event.shiftKey) {
       // move selection up
       this.selection.transformStart(-enterMoves.row, -enterMoves.col);
     } else {
@@ -424,7 +424,7 @@ class EditorManager {
           if (this.activeEditor && this.activeEditor.state !== EditorState.WAITING) {
             this.closeEditorAndSaveChanges(isCtrlPressed);
           }
-          this.moveSelectionAfterEnter(isShiftPressed);
+          this.moveSelectionAfterEnter(event);
 
         } else if (this.instance.getSettings().enterBeginsEditing) {
           if (this.activeEditor) {
@@ -433,7 +433,7 @@ class EditorManager {
           this.openEditor(null, event);
 
         } else {
-          this.moveSelectionAfterEnter(isShiftPressed);
+          this.moveSelectionAfterEnter(event);
         }
         event.preventDefault(); // don't add newline to field
         stopImmediatePropagation(event); // required by HandsontableEditor
