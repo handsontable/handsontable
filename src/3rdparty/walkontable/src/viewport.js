@@ -10,7 +10,6 @@ import EventManager from './../../../eventManager';
 import {
   RENDER_TYPE,
   FULLY_VISIBLE_TYPE,
-  PARTIALLY_VISIBLE_TYPE,
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 } from './calculator';
@@ -408,8 +407,8 @@ class Viewport {
     let runFastDraw = fastDraw;
 
     if (runFastDraw) {
-      const proposedRowsVisibleCalculator = this.createRowsCalculator(PARTIALLY_VISIBLE_TYPE);
-      const proposedColumnsVisibleCalculator = this.createColumnsCalculator(PARTIALLY_VISIBLE_TYPE);
+      const proposedRowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
+      const proposedColumnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
 
       if (!(this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) &&
           this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator))) {
@@ -450,10 +449,14 @@ class Viewport {
       return false;
     }
 
-    if (proposedRowsVisibleCalculator.startRow < this.rowsRenderCalculator.startRow) {
+    const { startRow, endRow } = proposedRowsVisibleCalculator;
+    const { startRow: renderedStartRow, endRow: renderedEndRow } = this.rowsRenderCalculator;
+
+    if (startRow < renderedStartRow || (startRow === renderedStartRow && startRow > 0)) {
       return false;
 
-    } else if (proposedRowsVisibleCalculator.endRow > this.rowsRenderCalculator.endRow) {
+    } else if (endRow > renderedEndRow ||
+              (endRow === renderedEndRow && endRow < this.wot.getSetting('totalRows') - 1)) {
       return false;
     }
 
@@ -461,22 +464,26 @@ class Viewport {
   }
 
   /**
-   * Returns information whether proposedRowsVisibleCalculator viewport
+   * Returns information whether proposedColumnsVisibleCalculator viewport
    * is contained inside column rendered in previous draw (cached in columnsRenderCalculator)
    *
-   * @param {Object} proposedRowsVisibleCalculator
+   * @param {Object} proposedColumnsVisibleCalculator
    * @returns {Boolean} Returns `true` if all proposed visible columns are already rendered (meaning: redraw is not needed).
    *                    Returns `false` if at least one proposed visible column is not already rendered (meaning: redraw is needed)
    */
-  areAllProposedVisibleColumnsAlreadyRendered(proposedRowsVisibleCalculator) {
+  areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator) {
     if (!this.columnsVisibleCalculator) {
       return false;
     }
 
-    if (proposedRowsVisibleCalculator.startColumn < this.columnsRenderCalculator.startColumn) {
+    const { startColumn, endColumn } = proposedColumnsVisibleCalculator;
+    const { startColumn: renderedStartColumn, endColumn: renderedEndColumn } = this.columnsRenderCalculator;
+
+    if (startColumn < renderedStartColumn || (startColumn === renderedStartColumn && startColumn > 0)) {
       return false;
 
-    } else if (proposedRowsVisibleCalculator.endColumn > this.columnsRenderCalculator.endColumn) {
+    } else if (endColumn > renderedEndColumn ||
+              (endColumn === renderedEndColumn && endColumn < this.wot.getSetting('totalColumns') - 1)) {
       return false;
     }
 

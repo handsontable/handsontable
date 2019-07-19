@@ -528,7 +528,7 @@ describe('WalkontableTable', () => {
 
     expect(count).not.toBeGreaterThan(oldCount);
 
-    wt.scrollViewportHorizontally(12);
+    wt.scrollViewportHorizontally(11);
     wt.draw(true);
 
     expect(count).toBeGreaterThan(oldCount);
