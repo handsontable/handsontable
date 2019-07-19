@@ -419,7 +419,6 @@ class CollapsibleColumns extends BasePlugin {
       coords.col = parseInt(coords.col, 10);
     }
 
-    const hiddenColumns = this.hiddenColumnsPlugin.hiddenColumns;
     const colspanArray = this.nestedHeadersPlugin.colspanArray;
     const level = this.nestedHeadersPlugin.rowCoordsToLevel(coords.row);
     const currentHeaderColspan = colspanArray[level][coords.col].colspan;
@@ -440,13 +439,13 @@ class CollapsibleColumns extends BasePlugin {
       switch (action) {
         case 'collapse':
           if (!this.hiddenColumnsPlugin.isHidden(colToHide)) {
-            hiddenColumns.push(colToHide);
+            this.hiddenColumnsPlugin.hideColumn(colToHide);
           }
 
           break;
         case 'expand':
           if (this.hiddenColumnsPlugin.isHidden(colToHide)) {
-            hiddenColumns.splice(hiddenColumns.indexOf(colToHide), 1);
+            this.hiddenColumnsPlugin.showColumn(colToHide);
           }
 
           break;

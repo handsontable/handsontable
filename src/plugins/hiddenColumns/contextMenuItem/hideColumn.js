@@ -27,6 +27,7 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
 
       hiddenColumnsPlugin.hideColumns(columnsToHide);
 
+      this.deselectCell();
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
 

@@ -32,7 +32,7 @@ export default function showColumnItem(hiddenColumnsPlugin) {
     },
     disabled: false,
     hidden() {
-      if (!this.selection.isSelectedByColumnHeader() || !hiddenColumnsPlugin.areColumnsVisible('all')) {
+      if (!this.selection.isSelectedByColumnHeader() || hiddenColumnsPlugin.getHiddenColumns().length < 1) {
         return true;
       }
 
@@ -55,7 +55,7 @@ export default function showColumnItem(hiddenColumnsPlugin) {
             return false;
           }
         });
-        rangeEach(end, this.countCols(), (column) => {
+        rangeEach(end + 1, this.countCols() - 1, (column) => {
           if (hiddenColumnsPlugin.isHidden(column)) {
             hiddenAfter.push(column);
 
