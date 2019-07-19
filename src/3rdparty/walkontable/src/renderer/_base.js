@@ -56,7 +56,7 @@ export default class BaseRenderer {
   }
 
   /**
-   * Adjusts the count of rendered nodes.
+   * Adjusts the number of rendered nodes.
    */
   adjust() { }
 

@@ -25,7 +25,7 @@ export default class NodesPool {
   /**
    * Obtains an element. The returned elements in the feature can be cached.
    *
-   * @return {HTMLElement}
+   * @returns {HTMLElement}
    */
   obtain() {
     return this.rootDocument.createElement(this.nodeType);

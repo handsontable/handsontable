@@ -12,7 +12,7 @@ export default class RowUtils {
    * Returns row height based on passed source index.
    *
    * @param {Number} sourceIndex Row source index.
-   * @return {Number}
+   * @returns {Number}
    */
   getHeight(sourceIndex) {
     let height = this.wot.wtSettings.settings.rowHeight(sourceIndex);

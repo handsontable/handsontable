@@ -2,7 +2,7 @@ import BaseRenderer from './_base';
 import { addClass } from './../../../../helpers/dom/element';
 
 /**
- * Colgrpup renderer responsible for managing (inserting, tracking, rendering) COL elements.
+ * Colgroup renderer responsible for managing (inserting, tracking, rendering) COL elements.
  *
  *   <colgroup> (root node)
  *     ├ <col>   \
@@ -19,16 +19,17 @@ export default class ColGroupRenderer extends BaseRenderer {
   }
 
   /**
-   * Adjusts the count of the rendered elements.
+   * Adjusts the number of the rendered elements.
    */
   adjust() {
     const { columnsToRender, rowHeadersCount } = this.table;
+    const allColumnsToRender = columnsToRender + rowHeadersCount;
 
-    while (this.renderedNodes < columnsToRender + rowHeadersCount) {
+    while (this.renderedNodes < allColumnsToRender) {
       this.rootNode.appendChild(this.table.rootDocument.createElement('col'));
       this.renderedNodes += 1;
     }
-    while (this.renderedNodes > columnsToRender + rowHeadersCount) {
+    while (this.renderedNodes > allColumnsToRender) {
       this.rootNode.removeChild(this.rootNode.lastChild);
       this.renderedNodes -= 1;
     }

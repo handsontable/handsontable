@@ -200,7 +200,7 @@ class Walkontable {
   /**
    * Check if this instance acts as an overlay (internally called as "clone" of the master table).
    *
-   * @returns {String}
+   * @returns {Boolean}
    */
   isClone() {
     return !this.cloneSource;
