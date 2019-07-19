@@ -779,7 +779,7 @@ class TableView {
     if (element.parentNode) {
       if (hasClass(element, 'colHeader')) {
         renderedIndex = parentOverlay.wtTable.columnFilter.sourceToRendered(index);
-        // console.log('renderedIndex', renderedIndex, index);
+
       } else if (hasClass(element, 'rowHeader')) {
         renderedIndex = parentOverlay.wtTable.rowFilter.sourceToRendered(index);
       }
