@@ -840,6 +840,7 @@ declare namespace Handsontable {
 
       clearRange(): void;
       getComment(): string;
+      getCommentAtCell(row: number, column: number): string | undefined;
       getCommentMeta(row: number, column: number, property: string): any;
       hide(): void;
       refreshEditor(force?: boolean): void;
