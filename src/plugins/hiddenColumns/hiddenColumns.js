@@ -113,8 +113,9 @@ class HiddenColumns extends BasePlugin {
       return;
     }
 
-    this.hiddenColumnsMap = this.columnIndexMapper.registerMap('hiddenColumn', new ValueMap(false));
+    this.hiddenColumnsMap = new ValueMap(false);
     this.hiddenColumnsMap.addLocalHook('init', () => this.onMapInit());
+    this.columnIndexMapper.registerMap('hiddenColumns', this.hiddenColumnsMap);
 
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
     this.addHook('afterGetCellMeta', (...args) => this.onAfterGetCellMeta(...args));
@@ -133,10 +134,7 @@ class HiddenColumns extends BasePlugin {
    */
   updatePlugin() {
     this.disablePlugin();
-    this.hiddenColumnsMap.clear();
     this.enablePlugin();
-    // For some reason hiddenColumnsMap doesn't call it during updatePlugin.
-    this.onMapInit();
 
     super.updatePlugin();
   }
@@ -145,11 +143,10 @@ class HiddenColumns extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.columnIndexMapper.unregisterMap('hiddenColumn');
+    this.columnIndexMapper.unregisterMap('hiddenColumns');
     this.settings = {};
     this.lastSelectedColumn = -1;
 
-    // this.hot.render();
     super.disablePlugin();
     this.resetCellsMeta();
   }
@@ -165,11 +162,7 @@ class HiddenColumns extends BasePlugin {
     let destinationHideConfig = currentHideConfig;
 
     if (validColumns) {
-      destinationHideConfig = currentHideConfig.filter(hiddenColumn => columns.includes(hiddenColumn) === false);
-
-      columns.forEach((visualColumn) => {
-        this.hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), false);
-      });
+      destinationHideConfig = currentHideConfig.filter(column => !columns.includes(column));
     }
 
     const continueHiding = this.hot.runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, validColumns);
@@ -179,7 +172,11 @@ class HiddenColumns extends BasePlugin {
     }
 
     if (validColumns) {
-      this.hiddenColumns = destinationHideConfig;
+      destinationHideConfig = currentHideConfig.filter(hiddenColumn => columns.includes(hiddenColumn) === false);
+
+      columns.forEach((visualColumn) => {
+        this.hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), false);
+      });
     }
 
     this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig, validColumns,
@@ -343,7 +340,7 @@ class HiddenColumns extends BasePlugin {
    * @fires Hooks#unmodifyCol
    */
   onAfterGetCellMeta(row, col, cellProperties) {
-    const colIndex = this.hot.toVisualColumn(col);
+    const colIndex = col;
 
     if (this.settings.copyPasteEnabled === false && this.isHidden(col)) {
       cellProperties.skipColumnOnPaste = true;
@@ -595,6 +592,8 @@ class HiddenColumns extends BasePlugin {
         this.addHook('modifyCopyableRange', ranges => this.onModifyCopyableRange(ranges));
       }
     }
+
+    return 'hiddenColumn';
   }
 
   /**

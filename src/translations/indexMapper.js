@@ -55,7 +55,7 @@ class IndexMapper {
    * @return {Number|null} Returns translated index mapped by passed visual index.
    */
   getPhysicalIndex(visualIndex) {
-    const visibleIndexes = this.getNotSkippedIndexes() || [];
+    const visibleIndexes = this.getNotSkippedIndexes();
     const numberOfVisibleIndexes = visibleIndexes.length;
     let physicalIndex = visualIndex;
 
@@ -73,7 +73,7 @@ class IndexMapper {
    * @returns {Number|null} Returns a visual index of the index mapper.
    */
   getVisualIndex(physicalIndex) {
-    const visibleIndexes = this.getNotSkippedIndexes() || [];
+    const visibleIndexes = this.getNotSkippedIndexes();
     const visualIndex = visibleIndexes.indexOf(physicalIndex);
 
     if (visualIndex !== -1) {
