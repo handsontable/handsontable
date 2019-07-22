@@ -914,9 +914,9 @@ declare namespace Handsontable {
       setCopyableText(): void;
       getRangedCopyableData(ranges: RangeType[]): string;
       getRangedData(ranges: RangeType[]): any[];
-      copy(triggeredByClick?: boolean): void;
-      cut(triggeredByClick?: boolean): void;
-      paste(triggeredByClick?: boolean): void;
+      copy(): void;
+      cut(): void;
+      paste(pastableText: string, pastableHtml?: string): void;
     }
 
     interface CustomBorders extends Base {
