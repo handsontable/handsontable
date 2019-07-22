@@ -495,7 +495,7 @@ describe('HiddenColumns', () => {
       manualColumnMove.moveColumns([0, 1], 4);
       hot.render();
 
-      expect(hiddenColumns.hiddenColumns[0]).toEqual(3);
+      expect(hiddenColumns.getHiddenColumns()[0]).toEqual(3);
       expect(hot.getColWidth(1)).toEqual(0.1);
     });
   });
