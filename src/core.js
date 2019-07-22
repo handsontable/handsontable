@@ -2443,15 +2443,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterGetCellMeta
    */
   this.getCellMeta = function(row, column) {
-    let physicalRow = row;
-    let physicalColumn = column;
+    let physicalRow = recordTranslator.toPhysicalRow(row);
+    let physicalColumn = recordTranslator.toPhysicalColumn(column);
 
-    if (row < this.countRows()) {
-      physicalRow = recordTranslator.toPhysicalRow(row);
+    if (physicalRow === null) {
+      physicalRow = row;
     }
 
-    if (column < this.countCols()) {
-      physicalColumn = recordTranslator.toPhysicalColumn(column);
+    if (physicalColumn === null) {
+      physicalColumn = column;
     }
 
     const prop = datamap.colToProp(column);

@@ -11,8 +11,8 @@ class IndexMapper {
     this.skipCollection = new MapCollection();
     this.variousMappingsCollection = new MapCollection();
 
-    this.flattenSkipList = null;
-    this.notSkippedIndexesCache = null;
+    this.flattenSkipList = [];
+    this.notSkippedIndexesCache = [];
 
     this.skipCollection.addLocalHook('collectionChanged', () => this.updateCache());
   }
@@ -89,6 +89,9 @@ class IndexMapper {
    * @param {Number} [length] Custom generated map length.
    */
   initToLength(length = this.getNumberOfIndexes()) {
+    this.flattenSkipList = [];
+    this.notSkippedIndexesCache = [];
+
     this.indexesSequence.init(length);
     this.skipCollection.initEvery(length);
     this.variousMappingsCollection.initEvery(length);

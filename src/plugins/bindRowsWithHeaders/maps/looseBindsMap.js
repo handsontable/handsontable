@@ -3,7 +3,7 @@ import { getListWithInsertedItems, getListWithRemovedItems } from '../../../tran
 import { getDecreasedIndexes, getIncreasedIndexes } from '../../../translations/maps/utils/actionsOnIndexes';
 
 /**
- * Map from visual index to physical index.
+ * Map from physical index to another index.
  */
 class LooseBindsMap extends BaseMap {
   /**

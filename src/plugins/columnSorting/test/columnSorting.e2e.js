@@ -667,13 +667,13 @@ describe('ColumnSorting', () => {
 
     const plugin = getPlugin('columnSorting');
 
-    expect(plugin.columnMetaCache.size).toEqual(1);
+    expect(plugin.columnMetaCache.getLength()).toEqual(1);
 
     updateSettings({
       data: [['first columns', 'second column', 'third column']]
     });
 
-    expect(plugin.columnMetaCache.size).toEqual(3);
+    expect(plugin.columnMetaCache.getLength()).toEqual(3);
   });
 
   describe('isSorted', () => {

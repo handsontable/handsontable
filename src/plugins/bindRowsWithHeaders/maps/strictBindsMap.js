@@ -2,7 +2,7 @@ import { BaseMap } from '../../../translations';
 import { getListWithInsertedItems, getListWithRemovedItems } from '../../../translations/maps/utils/physicallyIndexed';
 
 /**
- * Map from visual index to physical index.
+ * Map from physical index to another index.
  */
 class StrictBindsMap extends BaseMap {
   /**
