@@ -27,7 +27,7 @@ class BaseMap {
       this.list = this.initValuesOrFn.slice();
 
     } else {
-      this.list = Array.from({ length }, () => (this.initValuesOrFn));
+      rangeEach(length - 1, () => this.list.push(this.initValuesOrFn));
     }
 
     this.runLocalHooks('mapChanged');
