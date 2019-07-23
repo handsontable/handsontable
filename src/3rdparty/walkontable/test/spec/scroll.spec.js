@@ -453,7 +453,7 @@ describe('WalkontableScroll', () => {
       wt.scrollViewport(new Walkontable.CellCoords(8, 1));
       wt.draw();
 
-      await sleep(20);
+      await sleep(50);
 
       expect(wt.wtTable.getLastVisibleRow()).toBe(8);
     });

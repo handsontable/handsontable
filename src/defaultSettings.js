@@ -443,17 +443,22 @@ DefaultSettings.prototype = {
    * // enable comments plugin
    * comments: true,
    *
+   * // or an object with extra predefined plugin config:
+   *
+   * comments: {
+   *   displayDelay: 1000
+   * }
+   *
    * // or
    * // enable comments plugin and add predefined comments
-   * comments: [
-   *   {
-   *     row: 1,
-   *     col: 1,
-   *     comment: {
-   *       value: "Test comment"
-   *     }
-   *   }
-   * ],
+   * const hot = new Handsontable(document.getElementById('example'), {
+   *   date: getData(),
+   *   comments: true,
+   *   cell: [
+   *     { row: 1, col: 1, comment: { value: 'Foo' } },
+   *     { row: 2, col: 2, comment: { value: 'Bar' } }
+   *   ]
+   * });
    * ```
    */
   comments: false,

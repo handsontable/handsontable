@@ -560,9 +560,6 @@ class Menu {
       className = `${this.options.className}Sub_${className}`;
 
       container = rootDocument.querySelector(`.${this.options.className}.${className}`);
-
-    } else {
-      container = rootDocument.querySelector(`.${this.options.className}`);
     }
 
     if (!container) {
