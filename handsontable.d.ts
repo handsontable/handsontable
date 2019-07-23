@@ -2448,7 +2448,7 @@ declare namespace Handsontable {
   namespace autoColumnSize {
     interface Settings {
       syncLimit?: string | number;
-      userHeaders?: boolean;
+      useHeaders?: boolean;
     }
   }
 
