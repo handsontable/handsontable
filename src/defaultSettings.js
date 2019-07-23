@@ -2367,6 +2367,7 @@ DefaultSettings.prototype = {
   /**
    * Prevents wheel event on overlays for doing default action.
    *
+   * @private
    * @type {Boolean}
    * @default false
    *

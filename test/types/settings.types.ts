@@ -295,6 +295,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
   preventOverflow: oneOf(true, 'vertical', 'horizontal'),
+  preventWheel: true,
   readOnly: true,
   readOnlyCellClassName: 'foo',
   renderAllRows: true,

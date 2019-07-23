@@ -1755,6 +1755,7 @@ declare namespace Handsontable {
     placeholder?: string;
     placeholderCellClassName?: string;
     preventOverflow?: string | boolean;
+    preventWheel?: boolean;
     readOnly?: boolean;
     readOnlyCellClassName?: string;
     renderAllRows?: boolean;
