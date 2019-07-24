@@ -724,6 +724,10 @@ declare namespace Handsontable {
       removeHooks(name: string): void;
     }
 
+    interface Base {
+      new(): Base;
+    }
+
     interface AutoColumnSize extends Base {
       firstCalculation: boolean;
       ghostTable: GhostTable;
