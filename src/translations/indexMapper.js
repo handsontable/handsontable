@@ -14,7 +14,26 @@ class IndexMapper {
     this.flattenSkipList = [];
     this.notSkippedIndexesCache = [];
 
+    this.isBatched = false;
+
     this.skipCollection.addLocalHook('collectionChanged', () => this.updateCache());
+  }
+
+  /**
+   * Execute batch operations with updating cache.
+   *
+   * @param {Function} curriedBatchOperations Batched operations curried in a function.
+   */
+  executeBatchOperations(curriedBatchOperations) {
+    const actualFlag = this.isBatched;
+
+    this.isBatched = true;
+
+    curriedBatchOperations(this);
+
+    this.isBatched = actualFlag;
+
+    this.updateCache();
   }
 
   /**
@@ -90,7 +109,7 @@ class IndexMapper {
    */
   initToLength(length = this.getNumberOfIndexes()) {
     this.flattenSkipList = [];
-    this.notSkippedIndexesCache = [];
+    this.notSkippedIndexesCache = [...new Array(length).keys()];
 
     this.indexesSequence.init(length);
     this.skipCollection.initEvery(length);
@@ -264,9 +283,11 @@ class IndexMapper {
    *
    * @private
    */
-  updateCache() {
-    this.flattenSkipList = this.getFlattenSkipList(false);
-    this.notSkippedIndexesCache = this.getNotSkippedIndexes(false);
+  updateCache(force = false) {
+    if (force === true || this.isBatched === false) {
+      this.flattenSkipList = this.getFlattenSkipList(false);
+      this.notSkippedIndexesCache = this.getNotSkippedIndexes(false);
+    }
   }
 }
 

@@ -19,7 +19,6 @@ class BaseMap {
    */
   init(length) {
     this.list.length = 0;
-
     if (isFunction(this.initValuesOrFn)) {
       rangeEach(length - 1, index => this.list.push(this.initValuesOrFn(index)));
 
