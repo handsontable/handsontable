@@ -13,12 +13,13 @@ class BaseMap {
   }
 
   /**
-   * Initialize list with default values for particular indexes.
+   * Set default values for elements from `0` to `n`, where `n` is equal to the handled variable.
    *
-   * @param {Number} length New length of list.
+   * @param {Number} [length] Length of list.
    */
-  init(length) {
+  setDefaultValues(length = this.list.length) {
     this.list.length = 0;
+
     if (isFunction(this.initValuesOrFn)) {
       rangeEach(length - 1, index => this.list.push(this.initValuesOrFn(index)));
 
@@ -30,6 +31,16 @@ class BaseMap {
     }
 
     this.runLocalHooks('mapChanged');
+  }
+
+  /**
+   * Initialize list with default values for particular indexes.
+   *
+   * @param {Number} length New length of list.
+   */
+  init(length) {
+    this.setDefaultValues(length);
+
     this.runLocalHooks('init');
 
     return this;
@@ -92,7 +103,7 @@ class BaseMap {
    * Clear all values.
    */
   clear() {
-    this.init(this.list.length);
+    this.setDefaultValues();
   }
 
   /**
