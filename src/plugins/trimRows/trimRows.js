@@ -73,10 +73,8 @@ class TrimRows extends BasePlugin {
       return;
     }
 
-    this.rowIndexMapper.executeBatchOperations(() => {
-      this.trimmedRowsMap = this.rowIndexMapper.registerMap('trimRows', new SkipMap());
-      this.trimmedRowsMap.addLocalHook('init', () => this.onMapInit());
-    });
+    this.trimmedRowsMap = this.rowIndexMapper.registerMap('trimRows', new SkipMap());
+    this.trimmedRowsMap.addLocalHook('init', () => this.onMapInit());
 
     super.enablePlugin();
   }
@@ -243,10 +241,8 @@ class TrimRows extends BasePlugin {
     const trimmedRows = this.hot.getSettings().trimRows;
 
     if (Array.isArray(trimmedRows)) {
-      this.rowIndexMapper.executeBatchOperations(() => {
-        arrayEach(trimmedRows, (physicalRow) => {
-          this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
-        });
+      arrayEach(trimmedRows, (physicalRow) => {
+        this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
       });
     }
   }

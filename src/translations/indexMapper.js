@@ -121,13 +121,13 @@ class IndexMapper {
     this.flattenSkipList = [];
     this.notSkippedIndexesCache = [...new Array(length).keys()];
 
-    this.indexesSequence.init(length);
-    this.skipCollection.initEvery(length);
-    this.variousMappingsCollection.initEvery(length);
+    this.executeBatchOperations(() => {
+      this.indexesSequence.init(length);
+      this.skipCollection.initEvery(length);
+      this.variousMappingsCollection.initEvery(length);
 
-    this.updateCache();
-
-    this.runLocalHooks('init');
+      this.runLocalHooks('init');
+    });
   }
 
   /**
@@ -194,29 +194,32 @@ class IndexMapper {
     }
 
     const physicalMovedIndexes = arrayMap(movedIndexes, row => this.getPhysicalIndex(row));
-    this.setIndexesSequence(getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes));
 
-    // When item(s) are moved after the last item we assign new index.
-    let indexNumber = this.getNumberOfIndexes();
+    this.executeBatchOperations(() => {
+      this.setIndexesSequence(getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes));
 
-    // Otherwise, we find proper index for inserted item(s).
-    if (finalIndex < this.getNotSkippedIndexesLength()) {
-      const physicalIndex = this.getPhysicalIndex(finalIndex);
-      indexNumber = this.getIndexesSequence().indexOf(physicalIndex);
-    }
+      // When item(s) are moved after the last item we assign new index.
+      let indexNumber = this.getNumberOfIndexes();
 
-    // We count number of skipped rows from the start to the position of inserted item(s).
-    const skippedRowsToTargetIndex = arrayReduce(this.getIndexesSequence().slice(0, indexNumber), (skippedRowsSum, currentValue) => {
-      if (this.isSkipped(currentValue)) {
-        return skippedRowsSum + 1;
+      // Otherwise, we find proper index for inserted item(s).
+      if (finalIndex < this.getNotSkippedIndexesLength()) {
+        const physicalIndex = this.getPhysicalIndex(finalIndex);
+        indexNumber = this.getIndexesSequence()
+          .indexOf(physicalIndex);
       }
 
-      return skippedRowsSum;
-    }, 0);
+      // We count number of skipped rows from the start to the position of inserted item(s).
+      const skippedRowsToTargetIndex = arrayReduce(this.getIndexesSequence()
+        .slice(0, indexNumber), (skippedRowsSum, currentValue) => {
+        if (this.isSkipped(currentValue)) {
+          return skippedRowsSum + 1;
+        }
 
-    this.setIndexesSequence(getListWithInsertedItems(this.getIndexesSequence(), finalIndex + skippedRowsToTargetIndex, physicalMovedIndexes));
+        return skippedRowsSum;
+      }, 0);
 
-    this.updateCache();
+      this.setIndexesSequence(getListWithInsertedItems(this.getIndexesSequence(), finalIndex + skippedRowsToTargetIndex, physicalMovedIndexes));
+    });
   }
 
   /**
@@ -269,11 +272,11 @@ class IndexMapper {
     const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
-    this.indexesSequence.insert(insertionIndex, insertedIndexes);
-    this.skipCollection.insertToEvery(insertionIndex, insertedIndexes);
-    this.variousMappingsCollection.insertToEvery(insertionIndex, insertedIndexes);
-
-    this.updateCache();
+    this.executeBatchOperations(() => {
+      this.indexesSequence.insert(insertionIndex, insertedIndexes);
+      this.skipCollection.insertToEvery(insertionIndex, insertedIndexes);
+      this.variousMappingsCollection.insertToEvery(insertionIndex, insertedIndexes);
+    });
   }
 
   /**
@@ -283,11 +286,11 @@ class IndexMapper {
    * @param {Array} removedIndexes List of removed indexes.
    */
   removeIndexes(removedIndexes) {
-    this.indexesSequence.remove(removedIndexes);
-    this.skipCollection.removeFromEvery(removedIndexes);
-    this.variousMappingsCollection.removeFromEvery(removedIndexes);
-
-    this.updateCache();
+    this.executeBatchOperations(() => {
+      this.indexesSequence.remove(removedIndexes);
+      this.skipCollection.removeFromEvery(removedIndexes);
+      this.variousMappingsCollection.removeFromEvery(removedIndexes);
+    });
   }
 
   /**
