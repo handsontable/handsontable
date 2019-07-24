@@ -4,6 +4,8 @@ import { rangeEach } from '../helpers/number';
 import IndexMap from './maps/indexMap';
 import SkipMap from './maps/skipMap';
 import MapCollection from './mapCollection';
+import localHooks from '../mixins/localHooks';
+import { mixin } from '../helpers/object';
 
 class IndexMapper {
   constructor() {
@@ -16,7 +18,15 @@ class IndexMapper {
 
     this.isBatched = false;
 
-    this.skipCollection.addLocalHook('collectionChanged', () => this.updateCache());
+    this.skipCollection.addLocalHook('collectionChanged', () => {
+      // Number of visible indexes might change.
+      this.updateCache();
+      this.runLocalHooks('collectionChanged', this.skipCollection);
+    });
+
+    this.variousMappingsCollection.addLocalHook('collectionChanged', () => {
+      this.runLocalHooks('collectionChanged', this.variousMappingsCollection);
+    });
   }
 
   /**
@@ -116,6 +126,8 @@ class IndexMapper {
     this.variousMappingsCollection.initEvery(length);
 
     this.updateCache();
+
+    this.runLocalHooks('init');
   }
 
   /**
@@ -290,5 +302,7 @@ class IndexMapper {
     }
   }
 }
+
+mixin(IndexMapper, localHooks);
 
 export default IndexMapper;
