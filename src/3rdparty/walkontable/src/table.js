@@ -1,5 +1,6 @@
 import {
   getStyle,
+  getComputedStyle,
   getTrimmingContainer,
   hasClass,
   index,
@@ -223,7 +224,7 @@ class Table {
 
         trimmingElementParent.insertBefore(cloneNode, trimmingElement);
 
-        const cloneHeight = getStyle(cloneNode, 'height', rootWindow);
+        const cloneHeight = getComputedStyle(cloneNode, rootWindow).height;
 
         trimmingElementParent.removeChild(cloneNode);
 
