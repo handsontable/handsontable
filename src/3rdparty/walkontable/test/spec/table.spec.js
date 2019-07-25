@@ -984,4 +984,45 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.getRenderedColumnsCount()).toBe(5);
     });
   });
+
+  describe('isVisible', () => {
+    it('should return `false` when holder element is hidden', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+      wt.draw();
+
+      expect(wt.wtTable.isVisible()).toBe(true);
+
+      spec().$wrapper.css({ display: 'none' });
+      wt.draw();
+
+      expect(wt.wtTable.isVisible()).toBe(false);
+    });
+  });
+
+  describe('hasDefinedSize', () => {
+    it('should return `false` when the table is initialized in the container which the size doesn\'t set.', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+      wt.draw();
+
+      expect(wt.wtTable.hasDefinedSize()).toBe(true);
+
+      spec().$wrapper.css({ width: '', height: '' });
+      wt.draw();
+
+      expect(wt.wtTable.hasDefinedSize()).toBe(false);
+
+      spec().$wrapper.css({ width: '100px', height: '100px' });
+      wt.draw();
+
+      expect(wt.wtTable.hasDefinedSize()).toBe(true);
+    });
+  });
 });

@@ -167,6 +167,7 @@ class LeftOverlay extends Overlay {
     this.clone.wtTable.holder.style.height = overlayRootStyle.height;
 
     const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+
     overlayRootStyle.width = `${tableWidth === 0 ? tableWidth : tableWidth + 4}px`;
   }
 

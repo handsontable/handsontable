@@ -1,5 +1,6 @@
 import {
   getStyle,
+  getComputedStyle,
   getTrimmingContainer,
   hasClass,
   index,
@@ -10,6 +11,7 @@ import {
   closest,
   outerWidth,
   innerHeight,
+  isVisible,
 } from './../../../helpers/dom/element';
 import { isFunction } from './../../../helpers/function';
 import CellCoords from './cell/coords';
@@ -39,6 +41,25 @@ class Table {
     this.COLGROUP = null;
     this.tableOffset = 0;
     this.holderOffset = 0;
+    /**
+     * Indicates if the table has height bigger than 0px.
+     *
+     * @type {Boolean}
+     */
+    this.hasTableHeight = true;
+    /**
+     * Indicates if the table has width bigger than 0px.
+     *
+     * @type {Boolean}
+     */
+    this.hasTableWidth = true;
+    /**
+     * Indicates if the table is visible. By visible, it means that the holder
+     * element has CSS 'display' property different than 'none'.
+     *
+     * @type {Boolean}
+     */
+    this.isTableVisible = false;
 
     removeTextNodes(this.TABLE);
 
@@ -175,33 +196,55 @@ class Table {
   }
 
   alignOverlaysWithTrimmingContainer() {
-    if (!this.isWorkingOnClone()) {
-      const trimmingElement = getTrimmingContainer(this.wtRootElement);
-      const { rootWindow } = this.wot;
-
-      this.holder.parentNode.style.position = 'relative';
-
-      if (trimmingElement === rootWindow) {
-        const preventOverflow = this.wot.getSetting('preventOverflow');
-
-        if (!preventOverflow) {
-          this.holder.style.overflow = 'visible';
-          this.wtRootElement.style.overflow = 'visible';
-        }
-      } else {
-        const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
-        const holderStyle = this.holder.style;
-        const { scrollWidth, scrollHeight } = trimmingElement;
-        let { width, height } = trimmingElement.getBoundingClientRect();
-
-        width = Math.min(width, scrollWidth);
-        height = Math.min(height, scrollHeight);
-
-        holderStyle.width = `${width}px`;
-        holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
-        holderStyle.overflow = '';
-      }
+    if (this.isWorkingOnClone()) {
+      return;
     }
+
+    const trimmingElement = getTrimmingContainer(this.wtRootElement);
+    const { rootWindow } = this.wot;
+
+    if (trimmingElement === rootWindow) {
+      const preventOverflow = this.wot.getSetting('preventOverflow');
+
+      if (!preventOverflow) {
+        this.holder.style.overflow = 'visible';
+        this.wtRootElement.style.overflow = 'visible';
+      }
+    } else {
+      const trimmingElementParent = trimmingElement.parentElement;
+      const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
+      const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow);
+      const holderStyle = this.holder.style;
+      const { scrollWidth, scrollHeight } = trimmingElement;
+      let { width, height } = trimmingElement.getBoundingClientRect();
+      const overflow = ['auto', 'hidden', 'scroll'];
+
+      if (trimmingElementParent && overflow.includes(trimmingOverflow)) {
+        const cloneNode = trimmingElement.cloneNode(false);
+
+        trimmingElementParent.insertBefore(cloneNode, trimmingElement);
+
+        const cloneHeight = getComputedStyle(cloneNode, rootWindow).height;
+
+        trimmingElementParent.removeChild(cloneNode);
+
+        if (parseInt(cloneHeight, 10) === 0) {
+          height = 0;
+        }
+      }
+
+      height = Math.min(height, scrollHeight);
+      holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
+
+      width = Math.min(width, scrollWidth);
+      holderStyle.width = `${width}px`;
+
+      holderStyle.overflow = '';
+      this.hasTableHeight = height > 0;
+      this.hasTableWidth = width > 0;
+    }
+
+    this.isTableVisible = isVisible(this.TABLE);
   }
 
   isWorkingOnClone() {
@@ -883,6 +926,26 @@ class Table {
 
   getStretchedColumnWidth(sourceColumn) {
     return this.columnUtils.getStretchedColumnWidth(sourceColumn);
+  }
+
+  /**
+   * Checks if the table has defined size. It returns `true` when the table has width and height
+   * set bigger than `0px`.
+   *
+   * @returns {Boolean}
+   */
+  hasDefinedSize() {
+    return this.hasTableHeight && this.hasTableWidth;
+  }
+
+  /**
+   * Checks if the table is visible. It returns `true` when the holder element (or its parents)
+   * has CSS 'display' property different than 'none'.
+   *
+   * @returns {Boolean}
+   */
+  isVisible() {
+    return isVisible(this.TABLE);
   }
 
   /**

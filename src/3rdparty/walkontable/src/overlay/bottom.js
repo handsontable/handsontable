@@ -182,7 +182,12 @@ class BottomOverlay extends Overlay {
 
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
-    const tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
+
+    if (!this.wot.wtTable.hasDefinedSize()) {
+      tableHeight = 0;
+    }
+
     overlayRootStyle.height = `${tableHeight === 0 ? tableHeight : tableHeight}px`;
   }
 

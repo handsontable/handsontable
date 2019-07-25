@@ -551,9 +551,16 @@ class Overlays {
    *
    */
   applyToDOM() {
+    const { wtTable } = this.wot;
+
+    if (!wtTable.isVisible()) {
+      return;
+    }
+
     if (!this.topOverlay.areElementSizesAdjusted || !this.leftOverlay.areElementSizesAdjusted) {
       this.adjustElementsSize();
     }
+
     this.topOverlay.applyToDOM();
 
     if (this.bottomOverlay.clone) {

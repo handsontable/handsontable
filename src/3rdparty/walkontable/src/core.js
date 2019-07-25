@@ -1,7 +1,6 @@
 import {
   addClass,
   fastInnerText,
-  isVisible,
   removeClass,
 } from './../../../helpers/dom/element';
 import { objectEach } from './../../../helpers/object';
@@ -77,7 +76,7 @@ class Walkontable {
   draw(fastDraw = false) {
     this.drawInterrupted = false;
 
-    if (!fastDraw && !isVisible(this.wtTable.TABLE)) {
+    if (!fastDraw && !this.wtTable.isVisible()) {
       // draw interrupted because TABLE is not visible
       this.drawInterrupted = true;
     } else {
