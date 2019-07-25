@@ -200,7 +200,7 @@ class Table {
     }
 
     const trimmingElement = getTrimmingContainer(this.wtRootElement);
-    const { rootWindow, rootDocument } = this.wot;
+    const { rootWindow } = this.wot;
 
     if (trimmingElement === rootWindow) {
       const preventOverflow = this.wot.getSetting('preventOverflow');
