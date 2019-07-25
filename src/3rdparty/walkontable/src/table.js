@@ -210,6 +210,7 @@ class Table {
         this.wtRootElement.style.overflow = 'visible';
       }
     } else {
+      const trimmingElementParent = trimmingElement.parentElement;
       const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
       const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow);
       const holderStyle = this.holder.style;
@@ -217,9 +218,8 @@ class Table {
       let { width, height } = trimmingElement.getBoundingClientRect();
       const overflow = ['auto', 'hidden', 'scroll'];
 
-      if (overflow.includes(trimmingOverflow)) {
+      if (trimmingElementParent && overflow.includes(trimmingOverflow)) {
         const cloneNode = trimmingElement.cloneNode(false);
-        const trimmingElementParent = trimmingElement.parentElement;
 
         trimmingElementParent.insertBefore(cloneNode, trimmingElement);
 
