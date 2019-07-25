@@ -840,6 +840,7 @@ declare namespace Handsontable {
 
       clearRange(): void;
       getComment(): string;
+      getCommentAtCell(row: number, column: number): string | undefined;
       getCommentMeta(row: number, column: number, property: string): any;
       hide(): void;
       refreshEditor(force?: boolean): void;
@@ -2447,7 +2448,7 @@ declare namespace Handsontable {
   namespace autoColumnSize {
     interface Settings {
       syncLimit?: string | number;
-      userHeaders?: boolean;
+      useHeaders?: boolean;
     }
   }
 

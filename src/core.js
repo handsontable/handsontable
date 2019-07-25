@@ -970,11 +970,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               if (typeof result !== 'boolean') {
                 throw new Error('Validation error: result is not boolean');
               }
+
               if (result === false && cellPropertiesReference.allowInvalid === false) {
                 shouldBeCanceled = false;
                 changes.splice(index, 1); // cancel the change
                 cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
+
                 const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
+
                 if (cell !== null) {
                   removeClass(cell, instance.getSettings().invalidCellClassName);
                 }
@@ -1167,11 +1170,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (typeof input[i][1] !== 'number') {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
+      const physicalRow = recordTranslator.toPhysicalRow(input[i][0]);
+
       prop = datamap.colToProp(input[i][1]);
       changes.push([
         input[i][0],
         prop,
-        dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]),
+        dataSource.getAtCell(physicalRow, input[i][1]),
         input[i][2],
       ]);
     }
@@ -1207,10 +1212,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let ilen;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
+      const physicalRow = recordTranslator.toPhysicalRow(input[i][0]);
+
       changes.push([
         input[i][0],
         input[i][1],
-        dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]),
+        dataSource.getAtCell(physicalRow, input[i][1]),
         input[i][2],
       ]);
     }
@@ -2674,6 +2681,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
       i -= 1;
     }
+
     waitingForValidator.checkIfQueueIsEmpty();
   };
 

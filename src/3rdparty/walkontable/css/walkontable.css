@@ -162,3 +162,7 @@
 .testOverflowHidden {
   overflow: hidden;
 }
+
+.wtSpreader {
+  width: 0; /* must be 0, otherwise, while scrolling replacing nodes triggers new scroll position before table render is finished */
+}

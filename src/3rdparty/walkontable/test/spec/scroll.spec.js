@@ -456,7 +456,7 @@ describe('WalkontableScroll', () => {
       setTimeout(() => {
         expect(wt.wtTable.getLastVisibleRow()).toBe(8);
         done();
-      }, 20);
+      }, 50);
     });
 
     it('should update the scroll position of overlays only once, when scrolling the master table', (done) => {
@@ -494,7 +494,7 @@ describe('WalkontableScroll', () => {
         topOverlayHolder.removeEventListener('scroll', topOverlayCallback);
         leftOverlayHolder.removeEventListener('scroll', leftOverlayCallback);
         done();
-      }, 20);
+      }, 50);
     });
 
     it('should call onScrollVertically hook, if scrollTop was changed', (done) => {
@@ -603,14 +603,14 @@ describe('WalkontableScroll', () => {
 
         topLeftCornerOverlayHolder.dispatchEvent(wheelEvent);
         wt.draw();
-      }, 20);
+      }, 50);
 
       setTimeout(() => {
         expect(masterCallback.callCount).toEqual(2);
         expect(topCallback.callCount).toEqual(1);
         expect(leftCallback.callCount).toEqual(1);
         done();
-      }, 40);
+      }, 100);
     });
   });
 
