@@ -219,12 +219,13 @@ class Table {
 
       if (overflow.includes(trimmingOverflow)) {
         const cloneNode = trimmingElement.cloneNode(false);
+        const trimmingElementParent = trimmingElement.parentElement;
 
-        rootDocument.body.appendChild(cloneNode);
+        trimmingElementParent.insertBefore(cloneNode, trimmingElement);
 
         const cloneHeight = getStyle(cloneNode, 'height', rootWindow);
 
-        rootDocument.body.removeChild(cloneNode);
+        trimmingElementParent.removeChild(cloneNode);
 
         if (parseInt(cloneHeight, 10) === 0) {
           height = 0;
@@ -927,13 +928,23 @@ class Table {
   }
 
   /**
-   * Checks if the table is visible. By visible, it means that the holder element has CSS 'display' property
-   * different than 'none' and the table width and height is bigger than 0px.
+   * Checks if the table has defined size. It returns `true` when the table has width and height
+   * set bigger than `0px`.
+   *
+   * @returns {Boolean}
+   */
+  hasDefinedSize() {
+    return this.hasTableHeight && this.hasTableWidth;
+  }
+
+  /**
+   * Checks if the table is visible. It returns `true` when the holder element (or its parents)
+   * has CSS 'display' property different than 'none'.
    *
    * @returns {Boolean}
    */
   isVisible() {
-    return this.isTableVisible && this.hasTableHeight && this.hasTableWidth;
+    return isVisible(this.TABLE);
   }
 
   /**

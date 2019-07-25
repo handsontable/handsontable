@@ -95,7 +95,7 @@ class BottomLeftCornerOverlay extends Overlay {
     let tableHeight = outerHeight(this.clone.wtTable.TABLE);
     const tableWidth = outerWidth(this.clone.wtTable.TABLE);
 
-    if (!this.wot.wtTable.isVisible()) {
+    if (!this.wot.wtTable.hasDefinedSize()) {
       tableHeight = 0;
     }
 
