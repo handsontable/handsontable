@@ -247,9 +247,9 @@ describe('Core_loadData', () => {
       data: arrayOfNestedObjects(),
       colWidths: [90, 90, 90, 90],
       rowHeights: [23, 23, 23, 23],
-      cells: cellsSpy
+      cells: cellsSpy,
     });
-    //
+
     expect(cellsSpy.calls.count()).toEqual(43);
   });
 

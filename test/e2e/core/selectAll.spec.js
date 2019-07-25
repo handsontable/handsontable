@@ -22,8 +22,8 @@ describe('Core.selectAll', () => {
 
     selectCells([[1, 1, 2, 2], [2, 2, 4, 4]]);
 
-    hot.view.wt.wtTable.holder.scrollTop = 100;
-    hot.view.wt.wtTable.holder.scrollLeft = 100;
+    hot.view.wt.wtTable.holder.scrollTop = 150;
+    hot.view.wt.wtTable.holder.scrollLeft = 150;
 
     selectAll();
 
@@ -42,9 +42,12 @@ describe('Core.selectAll', () => {
       | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
       | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
       | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
     // "Select all" shouldn't scroll te table.
-    expect(hot.view.wt.wtTable.holder.scrollTop).toBe(100);
-    expect(hot.view.wt.wtTable.holder.scrollLeft).toBe(100);
+    expect(hot.view.wt.wtTable.holder.scrollTop).toBe(150);
+    expect(hot.view.wt.wtTable.holder.scrollLeft).toBe(150);
   });
 });

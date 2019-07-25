@@ -1,3 +1,5 @@
+import pretty from 'pretty';
+
 export function sleep(delay = 100) {
   return Promise.resolve({
     then(resolve) {
@@ -95,6 +97,22 @@ beforeEach(function() {
           return {
             pass: typeof actual === 'function'
           };
+        }
+      };
+    },
+    toMatchHTML() {
+      return {
+        compare(actual, expected) {
+          const actualHTML = pretty(actual);
+          const expectedHTML = pretty(expected);
+
+          const result = {
+            pass: actualHTML === expectedHTML,
+          };
+
+          result.message = `Expected ${actualHTML} NOT to be ${expectedHTML}`;
+
+          return result;
         }
       };
     },

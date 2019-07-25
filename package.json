@@ -105,12 +105,13 @@
     "jasmine-co": "^1.2.2",
     "jasmine-core": "^3.4.0",
     "jasmine-terminal-reporter": "^1.0.3",
-    "jest": "^24.7.1",
+    "jest": "^24.8.0",
     "jest-cli": "^24.7.1",
     "loader-utils": "^1.1.0",
     "mini-css-extract-plugin": "^0.5.0",
     "on-build-webpack": "^0.1.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
+    "pretty": "^2.0.0",
     "progress-bar-webpack-plugin": "^1.10.0",
     "puppeteer": "^1.15.0",
     "rimraf": "^2.5.4",
@@ -131,7 +132,8 @@
   "jest": {
     "roots": [
       "./test/unit",
-      "./src/plugins"
+      "./src/plugins",
+      "./src/3rdparty/walkontable/test/unit"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/test/bootstrap.js"
