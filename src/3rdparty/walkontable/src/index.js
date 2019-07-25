@@ -7,7 +7,6 @@ import CellRange from './cell/range';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 
-import DebugOverlay from './overlay/debug';
 import LeftOverlay from './overlay/left';
 import TopOverlay from './overlay/top';
 import TopLeftCornerOverlay from './overlay/topLeftCorner';
@@ -22,7 +21,8 @@ import Scroll from './scroll';
 import Selection from './selection';
 import Settings from './settings';
 import Table from './table';
-import TableRenderer from './tableRenderer';
+import * as Renderer from './renderer';
+import { OrderView, SharedOrderView } from './utils/orderView';
 import Viewport from './viewport';
 import { getListenersCounter } from './../../../eventManager';
 
@@ -36,7 +36,6 @@ export {
   ColumnFilter,
   RowFilter,
 
-  DebugOverlay,
   LeftOverlay,
   TopOverlay,
   TopLeftCornerOverlay,
@@ -52,7 +51,9 @@ export {
   Selection,
   Settings,
   Table,
-  TableRenderer,
+  Renderer,
+  OrderView,
+  SharedOrderView,
   Viewport,
 
   getListenersCounter

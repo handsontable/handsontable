@@ -64,6 +64,7 @@ describe('stretchH option', () => {
     spec().$wrapper.width(600).height(500);
 
     const evt = document.createEvent('CustomEvent'); // MUST be 'CustomEvent'
+
     evt.initCustomEvent('resize', false, false, null);
     window.dispatchEvent(evt);
     wt.draw();
