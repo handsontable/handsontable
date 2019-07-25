@@ -548,10 +548,12 @@ class Overlays {
   }
 
   /**
-   * @param {Boolean} hasOverlayHeight If true is sign to render overlays.
+   *
    */
-  applyToDOM(hasOverlayHeight) {
-    if (!hasOverlayHeight) {
+  applyToDOM() {
+    const { wtTable } = this.wot;
+
+    if (!wtTable.isVisible()) {
       return;
     }
 

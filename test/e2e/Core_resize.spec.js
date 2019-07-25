@@ -21,21 +21,46 @@ describe('Core resize', () => {
     }
   });
 
-  it('should not change table height after window is resized and when a handsontable has a parent at any level that has the `overflow: auto`', () => {
+  it('should not change table height after window is resized when a handsontable parent elements have not defined height', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 2),
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
+      fixedRowsBottom: 1,
     });
-
-    const table = spec().$container.find('.ht_master .wtHolder')[0];
-    const initialTableHeight = table.clientHeight;
 
     refreshDimensions();
 
-    const currentTableHeight = table.clientHeight;
-    expect(currentTableHeight).toEqual(initialTableHeight);
-    expect(initialTableHeight).toEqual(0);
-    expect(currentTableHeight).toEqual(0);
+    expect(getMaster().height()).toBe(0);
+    expect(getTopClone().height()).toBe(0);
+    expect(getBottomClone().height()).toBe(0);
+    expect(getLeftClone().height()).toBe(0);
+    expect(getBottomLeftClone().height()).toBe(0);
+  });
+
+  it('should change table height after changing parent element height', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsBottom: 1,
+    });
+
+    spec().$wrapper.css('height', 200);
+    hot().render();
+
+    expect(getMaster().height()).toBe(200);
+    expect(getTopClone().height()).toBe(30);
+    expect(getBottomClone().height()).toBe(24);
+    expect(getLeftClone().height()).toBe(200);
+    expect(getBottomLeftClone().height()).toBe(24);
+
+    refreshDimensions();
+
+    expect(getMaster().height()).toBe(200);
+    expect(getTopClone().height()).toBe(30);
+    expect(getBottomClone().height()).toBe(24);
+    expect(getLeftClone().height()).toBe(200);
+    expect(getBottomLeftClone().height()).toBe(24);
   });
 });

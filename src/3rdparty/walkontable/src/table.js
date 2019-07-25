@@ -8,6 +8,7 @@ import {
   removeTextNodes,
   overlayContainsElement,
   closest,
+  isVisible,
 } from './../../../helpers/dom/element';
 import { isFunction } from './../../../helpers/function';
 import CellCoords from './cell/coords';
@@ -35,6 +36,25 @@ class Table {
     this.COLGROUP = null;
     this.tableOffset = 0;
     this.holderOffset = 0;
+    /**
+     * Indicates if the table has height bigger than 0px.
+     *
+     * @type {Boolean}
+     */
+    this.hasTableHeight = true;
+    /**
+     * Indicates if the table has width bigger than 0px.
+     *
+     * @type {Boolean}
+     */
+    this.hasTableWidth = true;
+    /**
+     * Indicates if the table is visible. By visible, it means that the holder
+     * element has CSS 'display' property different than 'none'.
+     *
+     * @type {Boolean}
+     */
+    this.isTableVisible = false;
 
     removeTextNodes(this.TABLE);
 
@@ -53,7 +73,6 @@ class Table {
     this.rowFilter = null;
     this.columnFilter = null;
     this.correctHeaderWidth = false;
-    this.hasOverlayHeight = true;
 
     const origRowHeaderWidth = this.wot.wtSettings.settings.rowHeaderWidth;
 
@@ -164,53 +183,56 @@ class Table {
   }
 
   alignOverlaysWithTrimmingContainer() {
-    const trimmingElement = getTrimmingContainer(this.wtRootElement);
-
-    if (!this.isWorkingOnClone()) {
-      const { rootWindow, rootDocument, wtOverlays } = this.wot;
-      this.holder.parentNode.style.position = 'relative';
-
-      if (trimmingElement === rootWindow) {
-        const preventOverflow = this.wot.getSetting('preventOverflow');
-
-        if (!preventOverflow) {
-          this.holder.style.overflow = 'visible';
-          this.wtRootElement.style.overflow = 'visible';
-        }
-      } else {
-        const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
-        const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow);
-        const holderStyle = this.holder.style;
-        const { scrollWidth, scrollHeight } = trimmingElement;
-        let { width, height } = trimmingElement.getBoundingClientRect();
-
-        const overflow = ['auto', 'hidden', 'scroll'];
-
-        if (overflow.includes(trimmingOverflow)) {
-          const cloneNode = trimmingElement.cloneNode(false);
-          rootDocument.body.appendChild(cloneNode);
-
-          const cloneHeight = getStyle(cloneNode, 'height', rootWindow);
-          rootDocument.body.removeChild(cloneNode);
-
-          if (!parseInt(cloneHeight, 10)) {
-            height = 0;
-            holderStyle.height = '0px';
-
-            if (wtOverlays) {
-              this.hasOverlayHeight = false;
-            }
-          } else {
-            height = Math.min(height, scrollHeight);
-            holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
-          }
-        }
-
-        width = Math.min(width, scrollWidth);
-        holderStyle.width = `${width}px`;
-        holderStyle.overflow = '';
-      }
+    if (this.isWorkingOnClone()) {
+      return;
     }
+
+    const trimmingElement = getTrimmingContainer(this.wtRootElement);
+    const { rootWindow, rootDocument } = this.wot;
+
+    this.holder.parentNode.style.position = 'relative';
+
+    if (trimmingElement === rootWindow) {
+      const preventOverflow = this.wot.getSetting('preventOverflow');
+
+      if (!preventOverflow) {
+        this.holder.style.overflow = 'visible';
+        this.wtRootElement.style.overflow = 'visible';
+      }
+    } else {
+      const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
+      const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow);
+      const holderStyle = this.holder.style;
+      const { scrollWidth, scrollHeight } = trimmingElement;
+      let { width, height } = trimmingElement.getBoundingClientRect();
+      const overflow = ['auto', 'hidden', 'scroll'];
+
+      if (overflow.includes(trimmingOverflow)) {
+        const cloneNode = trimmingElement.cloneNode(false);
+
+        rootDocument.body.appendChild(cloneNode);
+
+        const cloneHeight = getStyle(cloneNode, 'height', rootWindow);
+
+        rootDocument.body.removeChild(cloneNode);
+
+        if (parseInt(cloneHeight, 10) === 0) {
+          height = 0;
+        }
+      }
+
+      height = Math.min(height, scrollHeight);
+      holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
+
+      width = Math.min(width, scrollWidth);
+      holderStyle.width = `${width}px`;
+
+      holderStyle.overflow = '';
+      this.hasTableHeight = height > 0;
+      this.hasTableWidth = width > 0;
+    }
+
+    this.isTableVisible = isVisible(this.TABLE);
   }
 
   isWorkingOnClone() {
@@ -298,7 +320,7 @@ class Table {
     }
     this.refreshSelections(runFastDraw);
 
-    if (!this.isWorkingOnClone() && this.hasOverlayHeight) {
+    if (!this.isWorkingOnClone()) {
       wtOverlays.topOverlay.resetFixedPosition();
 
       if (wtOverlays.bottomOverlay.clone) {
@@ -327,7 +349,7 @@ class Table {
   _doDraw() {
     const wtRenderer = new TableRenderer(this);
 
-    wtRenderer.render(this.hasOverlayHeight);
+    wtRenderer.render();
   }
 
   removeClassFromCells(className) {
@@ -721,6 +743,16 @@ class Table {
     }
 
     return width;
+  }
+
+  /**
+   * Checks if the table is visible. By visible, it means that the holder element has CSS 'display' property
+   * different than 'none' and the table width and height is bigger than 0px.
+   *
+   * @returns {Boolean}
+   */
+  isVisible() {
+    return this.isTableVisible && this.hasTableHeight && this.hasTableWidth;
   }
 
   /**
