@@ -110,7 +110,7 @@ beforeEach(function() {
             pass: actualHTML === expectedHTML,
           };
 
-          result.message = `Expected ${(actualHTML)} NOT to be ${(expectedHTML)}`;
+          result.message = `Expected ${actualHTML} NOT to be ${expectedHTML}`;
 
           if (typeof jest === 'object') {
             /* eslint-disable global-require */
