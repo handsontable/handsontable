@@ -6,7 +6,6 @@ import {
 import { rangeEach } from './../../helpers/number';
 import {
   arrayEach,
-  arrayReduce,
   arrayMap } from './../../helpers/array';
 import { CellRange } from './../../3rdparty/walkontable/src';
 import * as C from './../../i18n/constants';
@@ -92,6 +91,14 @@ class CustomBorders extends BasePlugin {
      * @type {Array}
      */
     this.savedBorders = [];
+
+    /**
+     * Object containing border id as the key and the border object as the value
+     *
+     * @private
+     * @type {Object}
+     */
+    this.savedBordersById = {};
   }
 
   /**
@@ -259,6 +266,7 @@ class CustomBorders extends BasePlugin {
       });
 
       this.savedBorders.length = 0;
+      this.savedBordersById = {};
     }
   }
 
@@ -270,11 +278,14 @@ class CustomBorders extends BasePlugin {
    * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
    */
   insertBorderIntoSettings(border, place) {
-    const hasSavedBorders = this.checkSavedBorders(border);
-
-    if (!hasSavedBorders) {
+    if (this.savedBordersById[border.id]) {
+      const index = this.savedBorders.indexOf(border);
+      this.savedBorders[index] = border;
+    }
+    else {
       this.savedBorders.push(border);
     }
+    this.savedBordersById[border.id] = border;
 
     const coordinates = {
       row: border.row,
@@ -408,9 +419,9 @@ class CustomBorders extends BasePlugin {
     if (remove) {
       bordersMeta[place] = createSingleEmptyBorder();
 
-      const hideCount = this.countHide(bordersMeta);
+      const hidden = this.areAllEdgesHidden(bordersMeta);
 
-      if (hideCount === 4) {
+      if (hidden) {
         this.removeAllBorders(row, column);
 
       } else {
@@ -511,23 +522,33 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-  * Count hide property in border object.
+  * Returns information if all of the border edges are hidden
   *
   * @private
   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
   */
-  countHide(border) {
-    const values = Object.values(border);
+  areAllEdgesHidden(border) {
+    if (this.isEdgeVisible(border.left)) {
+      return false;
+    }
+    if (this.isEdgeVisible(border.right)) {
+      return false;
+    }
+    if (this.isEdgeVisible(border.top)) {
+      return false;
+    }
+    if (this.isEdgeVisible(border.bottom)) {
+      return false;
+    }
+    return true;
+  }
 
-    return arrayReduce(values, (accumulator, value) => {
-      let result = accumulator;
+  isEdgeVisible(edge) {
+    if (edge !== undefined && edge.hide !== undefined) {
+      return !edge.hide;
+    }
 
-      if (value.hide) {
-        result += 1;
-      }
-
-      return result;
-    }, 0);
+    return true;
   }
 
   /**
@@ -579,42 +600,14 @@ class CustomBorders extends BasePlugin {
   * @param {String} borderId Border id name as string.
   */
   spliceBorder(borderId) {
-    const index = arrayMap(this.savedBorders, border => border.id).indexOf(borderId);
+    const border = this.savedBordersById[borderId];
 
-    if (index > -1) {
+    if (border) {
+      const index = this.savedBorders.indexOf(border);
       this.savedBorders.splice(index, 1);
     }
-  }
 
-  /**
-  * Check if an border already exists in the savedBorders array, and if true update border in savedBorders.
-  *
-  * @private
-  * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
-  *
-  * @return {Boolean}
-  */
-  checkSavedBorders(border) {
-    let check = false;
-
-    const hideCount = this.countHide(border);
-
-    if (hideCount === 4) {
-      this.spliceBorder(border.id);
-      check = true;
-
-    } else {
-      arrayEach(this.savedBorders, (savedBorder, index) => {
-        if (border.id === savedBorder.id) {
-          this.savedBorders[index] = border;
-          check = true;
-
-          return false; // breaks forAll
-        }
-      });
-    }
-
-    return check;
+    this.savedBordersById[borderId] = undefined;
   }
 
   /**
@@ -656,10 +649,10 @@ class CustomBorders extends BasePlugin {
   * @return {Boolean}
   */
   checkCustomSelections(border, cellRange, place) {
-    const hideCount = this.countHide(border);
+    const hidden = this.areAllEdgesHidden(border);
     let check = false;
 
-    if (hideCount === 4) {
+    if (hidden) {
       this.removeAllBorders(border.row, border.col);
       check = true;
 
