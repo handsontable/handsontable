@@ -666,7 +666,12 @@ class Table {
 
   getStroke(rect, borderSetting, edge) {
     if (!(borderSetting[edge] && borderSetting[edge].hide)) {
-      const width = (borderSetting[edge] && borderSetting[edge].width) || (borderSetting.border && borderSetting.border.width) || 1;
+      let width = 1;
+      if (borderSetting[edge] && borderSetting[edge].width !== undefined) {
+        width = borderSetting[edge].width;
+      } else if (borderSetting.border && borderSetting.border.width !== undefined) {
+        width = borderSetting.border.width;
+      }
       const color = (borderSetting[edge] && borderSetting[edge].color) || (borderSetting.border && borderSetting.border.color) || 'black';
       rect[`${edge}Stroke`] = `${width}px ${color}`;
     }

@@ -576,10 +576,6 @@ CheckboxRenderer
   font-style: inherit;
 }
 
-.handsontable.listbox .wtBorder {
-  visibility: hidden;
-}
-
 .handsontable.listbox tr td.current,
 .handsontable.listbox tr:hover td {
   background: #eee;
