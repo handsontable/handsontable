@@ -31,13 +31,23 @@ class Selection {
    * handles per instance
    *
    * @param {Walkontable} wotInstance
-   * @returns {Border}
+   * @returns {SelectionHandle}
    */
   getSelectionHandle(wotInstance) {
     if (!this.instanceSelectionHandles[wotInstance.guid]) {
       this.instanceSelectionHandles[wotInstance.guid] = new SelectionHandle(wotInstance, this.settings);
     }
 
+    return this.instanceSelectionHandles[wotInstance.guid];
+  }
+
+  /**
+   * Return an existing intance of Border class if defined for a given Walkontable instance
+   *
+   * @param {Walkontable} wotInstance
+   * @returns {SelectionHandle|undefined}
+   */
+  getSelectionHandleIfExists(wotInstance) {
     return this.instanceSelectionHandles[wotInstance.guid];
   }
 
@@ -193,14 +203,25 @@ class Selection {
   draw(wotInstance, selectedCellFn) {
     if (this.isEmpty()) {
       if (this.hasSelectionHandle()) {
-        this.getSelectionHandle(wotInstance).disappear();
+        const found = this.getSelectionHandleIfExists(wotInstance);
+        if (found) {
+          found.disappear();
+        }
       }
 
       return;
     }
 
     const renderedRows = wotInstance.wtTable.getRenderedRowsCount();
+    if (renderedRows === 0) {
+      return;
+    }
+
     const renderedColumns = wotInstance.wtTable.getRenderedColumnsCount();
+    if (renderedColumns === 0) {
+      return;
+    }
+
     const corners = this.getCorners();
     const [topRow, topColumn, bottomRow, bottomColumn] = corners;
 
@@ -289,7 +310,7 @@ class Selection {
    * Cleans up all the DOM state related to a Selection instance. Call this prior to deleting a Selection instance.
    */
   destroy() {
-    Object.values(this.instanceSelectionHandles).forEach(border => border.destroy());
+    Object.values(this.instanceSelectionHandles).forEach(selectionHandle => selectionHandle.destroy());
   }
 }
 
