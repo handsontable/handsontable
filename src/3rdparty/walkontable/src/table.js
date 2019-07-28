@@ -612,9 +612,9 @@ class Table {
 
     const rects = [];
     for (let i = 0; i < len; i++) {
-      highlights[i].draw(wot, (highlight, corners) => {
+      highlights[i].draw(wot, (highlight, sourceRow, sourceColumn) => {
         if (highlights[i].settings.border) {
-          this.addBorderLinesToStrokes(rects, highlight, corners, totalWidth, totalHeight);
+          this.addBorderLinesToStrokes(rects, highlight, sourceRow, sourceColumn, totalWidth, totalHeight);
         }
       });
     }
@@ -631,16 +631,15 @@ class Table {
     this.svg.style.marginTop = `${topDelta || 0}px`;
   }
 
-  addBorderLinesToStrokes(rects, selection, corners, totalWidth, totalHeight) {
+  addBorderLinesToStrokes(rects, selection, sourceRow, sourceColumn, totalWidth, totalHeight) {
     const { columnsVisibleCalculator, rowsVisibleCalculator } = this.wot.wtViewport;
-    const [topRow, leftColumn, bottomRow, rightColumn] = corners;
-    const columnAfterRightColumn = rightColumn + 1;
-    const rowAfterBottomRow = bottomRow + 1;
+    const columnAfterSourceColumn = sourceColumn + 1;
+    const columnAfterSourceRow = sourceRow + 1;
     const rect = {
-      x1: columnsVisibleCalculator.startPositions[leftColumn],
-      y1: rowsVisibleCalculator.startPositions[topRow],
-      x2: columnAfterRightColumn < columnsVisibleCalculator.startPositions.length ? columnsVisibleCalculator.startPositions[columnAfterRightColumn] : totalWidth,
-      y2: rowAfterBottomRow < rowsVisibleCalculator.startPositions.length ? rowsVisibleCalculator.startPositions[rowAfterBottomRow] : totalHeight,
+      x1: columnsVisibleCalculator.startPositions[sourceColumn],
+      y1: rowsVisibleCalculator.startPositions[sourceRow],
+      x2: columnAfterSourceColumn < columnsVisibleCalculator.startPositions.length ? columnsVisibleCalculator.startPositions[columnAfterSourceColumn] : totalWidth,
+      y2: columnAfterSourceRow < rowsVisibleCalculator.startPositions.length ? rowsVisibleCalculator.startPositions[columnAfterSourceRow] : totalHeight,
     };
     if (rect.x1 === undefined) {
       // x1 is beyond visible viewport
