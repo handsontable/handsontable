@@ -281,8 +281,7 @@ class CustomBorders extends BasePlugin {
     if (this.savedBordersById[border.id]) {
       const index = this.savedBorders.indexOf(border);
       this.savedBorders[index] = border;
-    }
-    else {
+    } else {
       this.savedBorders.push(border);
     }
     this.savedBordersById[border.id] = border;
@@ -296,6 +295,8 @@ class CustomBorders extends BasePlugin {
 
     if (!hasCustomSelections) {
       this.hot.selection.highlight.addCustomSelection({ border, cellRange });
+      const index = this.hot.selection.highlight.customSelections.length - 1;
+      border.customSelection = this.hot.selection.highlight.customSelections[index];
     }
   }
 
@@ -621,21 +622,15 @@ class CustomBorders extends BasePlugin {
   * @return {Boolean}
   */
   checkCustomSelectionsFromContextMenu(border, place, remove) {
-    let check = false;
+    if (border.customSelection) {
+      objectEach(border.customSelection.instanceSelectionHandles, (borderObject) => {
+        borderObject.toggleHiddenClass(place, remove); // TODO this also bad?
+      });
 
-    arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
-      if (border.id === customSelection.settings.id) {
-        objectEach(customSelection.instanceSelectionHandles, (borderObject) => {
-          borderObject.toggleHiddenClass(place, remove); // TODO this also bad?
-        });
+      return true;
+    }
 
-        check = true;
-
-        return false; // breaks forAll
-      }
-    });
-
-    return check;
+    return false;
   }
 
   /**
@@ -650,31 +645,24 @@ class CustomBorders extends BasePlugin {
   */
   checkCustomSelections(border, cellRange, place) {
     const hidden = this.areAllEdgesHidden(border);
-    let check = false;
 
     if (hidden) {
       this.removeAllBorders(border.row, border.col);
-      check = true;
+      return true;
 
-    } else {
-      arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
-        if (border.id === customSelection.settings.id) {
-          customSelection.cellRange = cellRange;
+    } else if (border.customSelection) {
+      border.customSelection.cellRange = cellRange;
 
-          if (place) {
-            objectEach(customSelection.instanceSelectionHandles, (borderObject) => {
-              borderObject.changeBorderStyle(place, border);
-            });
-          }
+      if (place) {
+        objectEach(border.customSelection.instanceSelectionHandles, (selectionHandleObject) => {
+          selectionHandleObject.changeBorderStyle(place, border);
+        });
+      }
 
-          check = true;
-
-          return false; // breaks forAll
-        }
-      });
+      return true;
     }
 
-    return check;
+    return false;
   }
 
   /**
