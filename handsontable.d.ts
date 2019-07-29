@@ -1703,7 +1703,6 @@ declare namespace Handsontable {
     dataSchema?: RowObject | CellValue[] | ((row: number) => RowObject | CellValue[]);
     dateFormat?: string;
     datePickerConfig?: PikadayOptions;
-    numericFormat?: NumericFormatOptions;
     debug?: boolean;
     defaultDate?: string;
     disableVisualSelection?: boolean | 'current' | 'area' | 'header' | ('current' | 'area' | 'header')[];
@@ -1748,6 +1747,7 @@ declare namespace Handsontable {
     nestedHeaders?: (string | nestedHeaders.NestedHeader)[][];
     nestedRows?: boolean;
     noWordWrapClassName?: string;
+    numericFormat?: NumericFormatOptions;                                   
     observeChanges?: boolean;
     observeDOMVisibility?: boolean;
     outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
