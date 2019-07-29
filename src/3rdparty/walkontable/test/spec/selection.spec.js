@@ -37,10 +37,15 @@ describe('Walkontable.Selection', () => {
 
     const $td1 = spec().$table.find('tbody td:eq(0)');
     const $td2 = spec().$table.find('tbody td:eq(1)');
+
+    expect($td1.hasClass('current')).toEqual(false);
+
     $td1.simulate('mousedown');
+
     expect($td1.hasClass('current')).toEqual(true);
 
     $td2.simulate('mousedown');
+
     expect($td1.hasClass('current')).toEqual(false);
     expect($td2.hasClass('current')).toEqual(true);
   });

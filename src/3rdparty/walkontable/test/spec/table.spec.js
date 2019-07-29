@@ -435,17 +435,19 @@ describe('WalkontableTable', () => {
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
         count += 1;
-        return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+        wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportRowCalculatorOverride(calc) {
         calc.endRow += 10;
       }
     });
     wt.draw();
+
     const oldCount = count;
 
     wt.scrollViewportVertically(8);
     wt.draw(true);
+
     expect(count).not.toBeGreaterThan(oldCount);
   });
 
@@ -457,13 +459,14 @@ describe('WalkontableTable', () => {
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
         count += 1;
-        return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+        wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportRowCalculatorOverride(calc) {
         calc.endRow += 10;
       }
     });
     wt.draw();
+
     const oldCount = count;
 
     wt.scrollViewportVertically(10);
@@ -486,7 +489,7 @@ describe('WalkontableTable', () => {
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
         count += 1;
-        return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+        wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportColumnCalculatorOverride(calc) {
         calc.endColumn += 10;
@@ -510,14 +513,14 @@ describe('WalkontableTable', () => {
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
         count += 1;
-
-        return wt.wtSettings.defaults.cellRenderer(row, column, TD);
+        wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportColumnCalculatorOverride(calc) {
         calc.endColumn += 10;
       }
     });
     wt.draw();
+
     const oldCount = count;
 
     wt.scrollViewportHorizontally(10);
@@ -979,6 +982,47 @@ describe('WalkontableTable', () => {
       wt.draw();
 
       expect(wt.wtTable.getRenderedColumnsCount()).toBe(5);
+    });
+  });
+
+  describe('isVisible', () => {
+    it('should return `false` when holder element is hidden', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+      wt.draw();
+
+      expect(wt.wtTable.isVisible()).toBe(true);
+
+      spec().$wrapper.css({ display: 'none' });
+      wt.draw();
+
+      expect(wt.wtTable.isVisible()).toBe(false);
+    });
+  });
+
+  describe('hasDefinedSize', () => {
+    it('should return `false` when the table is initialized in the container which the size doesn\'t set.', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+      wt.draw();
+
+      expect(wt.wtTable.hasDefinedSize()).toBe(true);
+
+      spec().$wrapper.css({ width: '', height: '' });
+      wt.draw();
+
+      expect(wt.wtTable.hasDefinedSize()).toBe(false);
+
+      spec().$wrapper.css({ width: '100px', height: '100px' });
+      wt.draw();
+
+      expect(wt.wtTable.hasDefinedSize()).toBe(true);
     });
   });
 });

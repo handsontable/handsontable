@@ -1,7 +1,6 @@
 import BasePlugin from './../_base';
 import { arrayEach, arrayFilter, arrayReduce, arrayMap } from './../../helpers/array';
 import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
-import { isVisible } from './../../helpers/dom/element';
 import GhostTable from './../../utils/ghostTable';
 import { isObject, hasOwnProperty } from './../../helpers/object';
 import { valueAccordingPercent, rangeEach } from './../../helpers/number';
@@ -299,7 +298,7 @@ class AutoColumnSize extends BasePlugin {
    * Recalculates all columns width (overwrite cache values).
    */
   recalculateAllColumnsWidth() {
-    if (this.hot.view && isVisible(this.hot.view.wt.wtTable.TABLE)) {
+    if (this.hot.view && this.hot.view.wt.wtTable.isVisible()) {
       this.clearCache();
       this.calculateAllColumnsWidth();
     }
