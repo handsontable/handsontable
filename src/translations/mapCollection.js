@@ -19,9 +19,9 @@ class MapCollection {
       this.mappings.set(name, map);
     }
 
-    map.addLocalHook('mapChanged', () => this.runLocalHooks('collectionChanged'));
+    map.addLocalHook('change', () => this.runLocalHooks('change', map));
 
-    this.runLocalHooks('collectionChanged');
+    this.runLocalHooks('change', map);
 
     return this.mappings.get(name);
   }
@@ -39,7 +39,7 @@ class MapCollection {
       this.mappings.delete(name);
     }
 
-    this.runLocalHooks('collectionChanged');
+    this.runLocalHooks('change', map);
   }
 
   /**

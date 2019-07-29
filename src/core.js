@@ -861,7 +861,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.init = function() {
     dataSource.setData(priv.settings.data);
 
-    instance.runHooks('beforeInit');
+    recordTranslator.getColumnIndexMapper().executeBatchOperations(() => {
+      recordTranslator.getRowIndexMapper().executeBatchOperations(() => {
+        instance.runHooks('beforeInit');
+      });
+    });
 
     if (isMobileBrowser()) {
       addClass(instance.rootElement, 'mobile');

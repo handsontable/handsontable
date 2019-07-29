@@ -18,14 +18,20 @@ class IndexMapper {
 
     this.isBatched = false;
 
-    this.skipCollection.addLocalHook('collectionChanged', () => {
-      // Number of visible indexes might change.
+    this.indexesSequence.addLocalHook('change', () => {
+      // Sequence of visible indexes might change.
       this.updateCache();
-      this.runLocalHooks('collectionChanged', this.skipCollection);
+      this.runLocalHooks('change', this.indexesSequence, null);
     });
 
-    this.variousMappingsCollection.addLocalHook('collectionChanged', () => {
-      this.runLocalHooks('collectionChanged', this.variousMappingsCollection);
+    this.skipCollection.addLocalHook('change', (changedMap) => {
+      // Number of visible indexes might change.
+      this.updateCache();
+      this.runLocalHooks('change', changedMap, this.skipCollection);
+    });
+
+    this.variousMappingsCollection.addLocalHook('change', (changedMap) => {
+      this.runLocalHooks('change', changedMap, this.variousMappingsCollection);
     });
   }
 
@@ -35,7 +41,12 @@ class IndexMapper {
    * @param {Function} curriedBatchOperations Batched operations curried in a function.
    */
   executeBatchOperations(curriedBatchOperations) {
+    let changes = 0;
     const actualFlag = this.isBatched;
+
+    this.addLocalHook('change', () => {
+      changes += 1;
+    });
 
     this.isBatched = true;
 
@@ -43,7 +54,9 @@ class IndexMapper {
 
     this.isBatched = actualFlag;
 
-    this.updateCache();
+    if (changes > 0) {
+      this.updateCache();
+    }
   }
 
   /**
@@ -146,8 +159,6 @@ class IndexMapper {
    */
   setIndexesSequence(indexes) {
     this.indexesSequence.setValues(indexes);
-
-    this.updateCache();
   }
 
   /**

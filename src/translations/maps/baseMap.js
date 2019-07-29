@@ -30,7 +30,7 @@ class BaseMap {
       rangeEach(length - 1, () => this.list.push(this.initValuesOrFn));
     }
 
-    this.runLocalHooks('mapChanged');
+    this.runLocalHooks('change');
   }
 
   /**
@@ -77,7 +77,7 @@ class BaseMap {
   setValues(values) {
     this.list = values.slice();
 
-    this.runLocalHooks('mapChanged');
+    this.runLocalHooks('change');
   }
 
   /**
@@ -91,7 +91,7 @@ class BaseMap {
     if (index < this.getLength()) {
       this.list[index] = value;
 
-      this.runLocalHooks('mapChanged');
+      this.runLocalHooks('change');
 
       return true;
     }
@@ -119,23 +119,18 @@ class BaseMap {
    * Add values to the list.
    *
    * @private
-   * @param {Number} insertionIndex Position inside actual list.
-   * @param {Array} insertedIndexes List of inserted indexes.
    */
-  // eslint-disable-next-line no-unused-vars
-  insert(insertionIndex, insertedIndexes) {
-    throw Error('Map insert() method unimplemented');
+  insert() {
+    this.runLocalHooks('change');
   }
 
   /**
    * Remove values from the list.
    *
    * @private
-   * @param {Array} removedIndexes List of removed indexes.
    */
-  // eslint-disable-next-line no-unused-vars
-  remove(removedIndexes) {
-    throw Error('Map remove() method unimplemented');
+  remove() {
+    this.runLocalHooks('change');
   }
 }
 

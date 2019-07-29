@@ -18,7 +18,7 @@ class IndexMap extends BaseMap {
 
     this.list = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes);
 
-    this.runLocalHooks('mapChanged');
+    super.insert(insertionIndex, insertedIndexes);
   }
 
   /**
@@ -32,7 +32,7 @@ class IndexMap extends BaseMap {
 
     this.list = getDecreasedIndexes(listAfterUpdate, removedIndexes);
 
-    this.runLocalHooks('mapChanged');
+    super.remove(removedIndexes);
   }
 }
 

@@ -18,7 +18,7 @@ class LooseBindsMap extends BaseMap {
 
     this.list = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes, this.initValuesOrFn);
 
-    this.runLocalHooks('mapChanged');
+    super.insert(insertionIndex, insertedIndexes);
   }
 
   /**
@@ -32,7 +32,7 @@ class LooseBindsMap extends BaseMap {
 
     this.list = getDecreasedIndexes(listAfterUpdate, removedIndexes);
 
-    this.runLocalHooks('mapChanged');
+    super.remove(removedIndexes);
   }
 }
 
