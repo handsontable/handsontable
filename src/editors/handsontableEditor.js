@@ -88,7 +88,8 @@ class HandsontableEditor extends TextEditor {
           parent.setValue(sourceValue);
         }
         parent.instance.destroyEditor();
-      }
+      },
+      preventWheel: true,
     };
 
     if (this.cellProperties.handsontable) {
