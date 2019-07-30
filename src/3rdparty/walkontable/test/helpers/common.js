@@ -1,4 +1,4 @@
-import pretty from 'pretty';
+import { normalize, pretty } from './htmlNormalize';
 
 export function sleep(delay = 100) {
   return Promise.resolve({
@@ -114,14 +114,21 @@ beforeEach(function() {
     toMatchHTML() {
       return {
         compare(actual, expected) {
-          const actualHTML = pretty(actual);
-          const expectedHTML = pretty(expected);
+          const actualHTML = pretty(normalize(actual));
+          const expectedHTML = pretty(normalize(expected));
 
           const result = {
             pass: actualHTML === expectedHTML,
           };
 
           result.message = `Expected ${actualHTML} NOT to be ${expectedHTML}`;
+
+          if (typeof jest === 'object') {
+            /* eslint-disable global-require */
+            const jestMatcherUtils = require('jest-matcher-utils');
+
+            result.message = () => jestMatcherUtils.diff(expectedHTML, actualHTML);
+          }
 
           return result;
         }
