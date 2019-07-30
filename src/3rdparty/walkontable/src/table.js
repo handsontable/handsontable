@@ -786,6 +786,10 @@ class Table {
   }
 
   isRowAfterRenderedRows(row) {
+    if (this.wot.getSetting('fixedRowsBottom')) {
+      return this.rowFilter && (this.rowFilter.sourceToRendered(row) > this.getLastRenderedRow());
+    }
+
     return this.rowFilter && (row > this.getLastRenderedRow());
   }
 
