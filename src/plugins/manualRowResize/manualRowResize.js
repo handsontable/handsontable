@@ -47,11 +47,11 @@ class ManualRowResize extends BasePlugin {
     this.manualRowHeights = [];
 
     /**
-     * ValueMap to keep and track widths for physical column indexes.
+     * ValueMap to keep and track widths for physical row indexes.
      *
      * @type {ValueMap}
      */
-    this.columnWidthsMap = void 0;
+    this.rowHeightsMap = void 0;
     /**
      * Private pool to save configuration from updateSettings.
      */
@@ -142,8 +142,6 @@ class ManualRowResize extends BasePlugin {
    * @param {Number} row Visual row index.
    * @param {Number} height Row height.
    * @returns {Number} Returns new height.
-   *
-   * @fires Hooks#modifyRow
    */
   setManualSize(row, height) {
     const physicalRow = this.hot.toPhysicalRow(row);
