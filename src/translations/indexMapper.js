@@ -12,31 +12,33 @@ class IndexMapper {
     this.indexesSequence = new IndexMap();
     this.skipCollection = new MapCollection();
     this.variousMappingsCollection = new MapCollection();
-    this.isChanged = false;
 
     this.flattenSkipList = [];
     this.notSkippedIndexesCache = [];
 
     this.isBatched = false;
+    this.cachedIndexesChange = false;
 
     this.indexesSequence.addLocalHook('change', () => {
+      this.cachedIndexesChange = true;
+
       // Sequence of visible indexes might change.
       this.updateCache();
+
       this.runLocalHooks('change', this.indexesSequence, null);
     });
 
     this.skipCollection.addLocalHook('change', (changedMap) => {
+      this.cachedIndexesChange = true;
+
       // Number of visible indexes might change.
       this.updateCache();
+
       this.runLocalHooks('change', changedMap, this.skipCollection);
     });
 
     this.variousMappingsCollection.addLocalHook('change', (changedMap) => {
       this.runLocalHooks('change', changedMap, this.variousMappingsCollection);
-    });
-
-    this.addLocalHook('change', () => {
-      this.isChanged = true;
     });
   }
 
@@ -308,10 +310,12 @@ class IndexMapper {
    * @private
    */
   updateCache(force = false) {
-    if (force === true || (this.isBatched === false && this.isChanged === true)) {
+    if (force === true || (this.isBatched === false && this.cachedIndexesChange === true)) {
       this.flattenSkipList = this.getFlattenSkipList(false);
       this.notSkippedIndexesCache = this.getNotSkippedIndexes(false);
-      this.isChanged = false;
+      this.cachedIndexesChange = false;
+
+      this.runLocalHooks('cacheUpdated');
     }
   }
 }
