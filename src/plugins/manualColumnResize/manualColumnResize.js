@@ -145,10 +145,6 @@ class ManualColumnResize extends BasePlugin {
    */
   setManualSize(column, width) {
     const newWidth = Math.max(width, 20);
-    /**
-     *  We need to run col through modifyCol hook, in case the order of displayed columns is different than the order
-     *  in data source. For instance, this order can be modified by manualColumnMove plugin.
-     */
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.columnWidthsMap.setValueAtIndex(physicalColumn, newWidth);
