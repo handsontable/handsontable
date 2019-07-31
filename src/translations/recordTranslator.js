@@ -116,6 +116,19 @@ export class RecordTranslator {
   getColumnIndexMapper() {
     return this.columnIndexMapper;
   }
+
+  /**
+   * Execute batch operations on column index mapper and row index mapper with updating cache.
+   *
+   * @param {Function} curriedBatchOperations Batched operations curried in a function.
+   */
+  executeBatchOperations(curriedBatchOperations) {
+    this.getColumnIndexMapper().executeBatchOperations(() => {
+      this.getRowIndexMapper().executeBatchOperations(() => {
+        curriedBatchOperations();
+      });
+    });
+  }
 }
 
 const identities = new WeakMap();
