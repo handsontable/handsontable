@@ -74,9 +74,9 @@ class IndexMapper {
     const numberOfIndexes = this.getNumberOfIndexes();
 
     /*
-      We initialize map ony when we have full information about number of indexes and dataset is not empty. Otherwise it's unnecessary. Initialization of empty array
-      would not give any positive changes. After initialization with number of indexes equal to 0 the map would be still empty. What's more there would be triggered
-      not needed hook (no real change). Number of indexes is known after loading data (`loadData` function from `Core`).
+      We initialize map ony when we have full information about number of indexes and the dataset is not empty. Otherwise it's unnecessary. Initialization of empty array
+      would not give any positive changes. After initializing it with number of indexes equal to 0 the map would be still empty. What's more there would be triggered
+      not needed hook (no real change have occurred). Number of indexes is known after loading data (the `loadData` function from the `Core`).
      */
     if (numberOfIndexes > 0) {
       map.init(numberOfIndexes);
@@ -147,9 +147,9 @@ class IndexMapper {
       this.indexesSequence.init(length);
       this.skipCollection.initEvery(length);
       this.variousMappingsCollection.initEvery(length);
-
-      this.runLocalHooks('init');
     });
+
+    this.runLocalHooks('init');
   }
 
   /**
