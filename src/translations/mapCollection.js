@@ -21,8 +21,6 @@ class MapCollection {
 
     map.addLocalHook('change', () => this.runLocalHooks('change', map));
 
-    this.runLocalHooks('change', map);
-
     return this.mappings.get(name);
   }
 

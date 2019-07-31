@@ -245,8 +245,10 @@ class TrimRows extends BasePlugin {
     const trimmedRows = this.hot.getSettings().trimRows;
 
     if (Array.isArray(trimmedRows)) {
-      arrayEach(trimmedRows, (physicalRow) => {
-        this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
+      this.hot.executeBatchOperations(() => {
+        arrayEach(trimmedRows, (physicalRow) => {
+          this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
+        });
       });
     }
   }

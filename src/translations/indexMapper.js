@@ -71,7 +71,16 @@ class IndexMapper {
       throw Error(`Mapper with name "${name}" is already registered.`);
     }
 
-    map.init(this.getNumberOfIndexes());
+    const numberOfIndexes = this.getNumberOfIndexes();
+
+    /*
+      We initialize map ony when we have full information about number of indexes and dataset is not empty. Otherwise it's unnecessary. Initialization of empty array
+      would not give any positive changes. After initialization with number of indexes equal to 0 the map would be still empty. What's more there would be triggered
+      not needed hook (no real change). Number of indexes is known after loading data (`loadData` function from `Core`).
+     */
+    if (numberOfIndexes > 0) {
+      map.init(numberOfIndexes);
+    }
 
     if (map instanceof SkipMap === true) {
       return this.skipCollection.register(name, map);
