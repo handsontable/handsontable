@@ -95,7 +95,7 @@ describe('Walkontable.Selection', () => {
     expect($td1.hasClass('current')).toEqual(true);
   });
 
-  it('should add/remove border to selection when cell is clicked', (done) => {
+  it('should add/remove border to selection when cell is clicked', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -109,23 +109,21 @@ describe('Walkontable.Selection', () => {
     });
     wt.draw();
 
-    setTimeout(() => {
-      const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
-      const $td2 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
-      const $top = $(wt.selections.getCell().getBorder(wt).top); // cheat... get border for ht_master
-      $td1.simulate('mousedown');
+    await sleep(1500);
+    const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
+    const $td2 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
+    const $top = $(wt.selections.getCell().getBorder(wt).top); // cheat... get border for ht_master
+    $td1.simulate('mousedown');
 
-      const pos1 = $top.position();
-      expect(pos1.top).toBeGreaterThan(0);
-      expect(pos1.left).toBe(0);
+    const pos1 = $top.position();
+    expect(pos1.top).toBeGreaterThan(0);
+    expect(pos1.left).toBe(0);
 
-      $td2.simulate('mousedown');
-      const pos2 = $top.position();
+    $td2.simulate('mousedown');
+    const pos2 = $top.position();
 
-      expect(pos2.top).toBeGreaterThan(pos1.top);
-      expect(pos2.left).toBeGreaterThan(pos1.left);
-      done();
-    }, 1500);
+    expect(pos2.top).toBeGreaterThan(pos1.top);
+    expect(pos2.left).toBeGreaterThan(pos1.left);
   });
 
   it('should add a selection that is outside of the viewport', () => {

@@ -1,4 +1,4 @@
-import pretty from 'pretty';
+import { normalize, pretty } from './htmlNormalize';
 
 export function sleep(delay = 100) {
   return Promise.resolve({
@@ -78,6 +78,17 @@ export function getTotalColumns() {
   return spec().data[0] ? spec().data[0].length : 0;
 }
 
+/**
+ * Simulates WheelEvent on the element.
+ *
+ * @param {Element} elem Element to dispatch event.
+ * @param {Number} deltaX Relative distance in px to scroll horizontally.
+ * @param {Number} deltaY Relative distance in px to scroll vertically.
+ */
+export function wheelOnElement(elem, deltaX = 0, deltaY = 0) {
+  elem.dispatchEvent(new WheelEvent('wheel', { deltaX, deltaY }));
+}
+
 beforeEach(function() {
   specContext.spec = this;
 
@@ -103,14 +114,21 @@ beforeEach(function() {
     toMatchHTML() {
       return {
         compare(actual, expected) {
-          const actualHTML = pretty(actual);
-          const expectedHTML = pretty(expected);
+          const actualHTML = pretty(normalize(actual));
+          const expectedHTML = pretty(normalize(expected));
 
           const result = {
             pass: actualHTML === expectedHTML,
           };
 
           result.message = `Expected ${actualHTML} NOT to be ${expectedHTML}`;
+
+          if (typeof jest === 'object') {
+            /* eslint-disable global-require */
+            const jestMatcherUtils = require('jest-matcher-utils');
+
+            result.message = () => jestMatcherUtils.diff(expectedHTML, actualHTML);
+          }
 
           return result;
         }

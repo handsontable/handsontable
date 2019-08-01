@@ -58,8 +58,6 @@ class BottomLeftCornerOverlay extends Overlay {
       return;
     }
     const overlayRoot = this.clone.wtTable.holder.parentNode;
-    const tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
 
     overlayRoot.style.top = '';
 
@@ -93,6 +91,14 @@ class BottomLeftCornerOverlay extends Overlay {
       resetCssTransform(overlayRoot);
       this.repositionOverlay();
     }
+
+    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+
+    if (!this.wot.wtTable.hasDefinedSize()) {
+      tableHeight = 0;
+    }
+
     overlayRoot.style.height = `${tableHeight === 0 ? tableHeight : tableHeight}px`;
     overlayRoot.style.width = `${tableWidth === 0 ? tableWidth : tableWidth}px`;
   }

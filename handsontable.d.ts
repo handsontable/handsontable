@@ -1703,7 +1703,6 @@ declare namespace Handsontable {
     dataSchema?: RowObject | CellValue[] | ((row: number) => RowObject | CellValue[]);
     dateFormat?: string;
     datePickerConfig?: PikadayOptions;
-    numericFormat?: NumericFormatOptions;
     debug?: boolean;
     defaultDate?: string;
     disableVisualSelection?: boolean | 'current' | 'area' | 'header' | ('current' | 'area' | 'header')[];
@@ -1748,13 +1747,15 @@ declare namespace Handsontable {
     nestedHeaders?: (string | nestedHeaders.NestedHeader)[][];
     nestedRows?: boolean;
     noWordWrapClassName?: string;
+    numericFormat?: NumericFormatOptions;                                   
     observeChanges?: boolean;
     observeDOMVisibility?: boolean;
     outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
     persistentState?: boolean;
     placeholder?: string;
     placeholderCellClassName?: string;
-    preventOverflow?: string | boolean;
+    preventOverflow?: boolean | 'vertical' | 'horizontal';
+    preventWheel?: boolean;
     readOnly?: boolean;
     readOnlyCellClassName?: string;
     renderAllRows?: boolean;
@@ -1767,7 +1768,7 @@ declare namespace Handsontable {
     selectOptions?: string[];
     skipColumnOnPaste?: boolean;
     sortByRelevance?: boolean;
-    source?: string[] | ((this: CellProperties, query: string, callback: (items: string[]) => void) => void);
+    source?: string[] | number[] | ((this: CellProperties, query: string, callback: (items: string[]) => void) => void);
     startCols?: number;
     startRows?: number;
     stretchH?: 'none' | 'all' | 'last';
