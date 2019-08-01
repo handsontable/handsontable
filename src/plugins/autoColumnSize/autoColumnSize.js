@@ -9,8 +9,10 @@ import { registerPlugin } from './../../plugins';
 import SamplesGenerator from './../../utils/samplesGenerator';
 import { isPercentValue } from './../../helpers/string';
 import { ViewportColumnsCalculator } from './../../3rdparty/walkontable/src';
+import { ValueMap } from './../../translations';
 
 const privatePool = new WeakMap();
+const COLUMN_SIZE_MAP_NAME = 'autoColumnWidths';
 
 /**
  * @plugin AutoColumnSize
@@ -76,11 +78,11 @@ class AutoColumnSize extends BasePlugin {
       cachedColumnHeaders: [],
     });
     /**
-     * Cached columns widths.
+     * ValueMap to keep and track widths for physical column indexes.
      *
-     * @type {Number[]}
+     * @type {ValueMap}
      */
-    this.widths = [];
+    this.columnWidthsMap = void 0;
     /**
      * Instance of {@link GhostTable} for rows and columns size calculations.
      *
@@ -163,6 +165,9 @@ class AutoColumnSize extends BasePlugin {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
 
+    this.columnWidthsMap = new ValueMap(() => void 0);
+    this.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
+
     this.setSamplingOptions();
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
@@ -189,6 +194,8 @@ class AutoColumnSize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.columnIndexMapper.unregisterMap(COLUMN_SIZE_MAP_NAME);
+
     super.disablePlugin();
   }
 
@@ -204,7 +211,7 @@ class AutoColumnSize extends BasePlugin {
     const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
 
     rangeEach(columnsRange.from, columnsRange.to, (col) => {
-      if (force || (this.widths[col] === void 0 && !this.hot._getColWidthFromSettings(col))) {
+      if (force || (this.columnWidthsMap.getValueAtIndex(col) === void 0 && !this.hot._getColWidthFromSettings(col))) {
         const samples = this.samplesGenerator.generateColumnSamples(col, rowsRange);
 
         arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
@@ -213,7 +220,7 @@ class AutoColumnSize extends BasePlugin {
 
     if (this.ghostTable.columns.length) {
       this.ghostTable.getWidths((col, width) => {
-        this.widths[col] = width;
+        this.columnWidthsMap.setValueAtIndex(col, width);
       });
       this.ghostTable.clean();
     }
@@ -342,7 +349,7 @@ class AutoColumnSize extends BasePlugin {
     let width = defaultWidth;
 
     if (width === void 0) {
-      width = this.widths[column];
+      width = this.columnWidthsMap.getValueAtIndex(column);
 
       if (keepMinimum && typeof width === 'number') {
         width = Math.max(width, ViewportColumnsCalculator.DEFAULT_WIDTH);
@@ -425,10 +432,10 @@ class AutoColumnSize extends BasePlugin {
   clearCache(columns = []) {
     if (columns.length) {
       arrayEach(columns, (physicalIndex) => {
-        this.widths[physicalIndex] = void 0;
+        this.columnWidthsMap.setValueAtIndex(physicalIndex, void 0);
       });
     } else {
-      this.widths.length = 0;
+      this.columnWidthsMap.setDefaultValues();
     }
   }
 
@@ -438,7 +445,7 @@ class AutoColumnSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.widths, item => (item === void 0)).length;
+    return !!arrayFilter(this.columnWidthsMap.getValues(), item => (item === void 0)).length;
   }
 
   /**

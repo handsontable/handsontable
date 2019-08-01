@@ -126,11 +126,11 @@ class AutocompleteEditor extends HandsontableEditor {
         const autoColumnSize = this.getPlugin('autoColumnSize');
         let columnWidth = width;
 
-        if (autoColumnSize) {
-          const autoWidths = autoColumnSize.widths;
+        if (autoColumnSize && autoColumnSize.columnWidthsMap) {
+          const cachedWidth = autoColumnSize.getColumnWidth(col, void 0, false);
 
-          if (autoWidths[col]) {
-            columnWidth = autoWidths[col];
+          if (cachedWidth) {
+            columnWidth = cachedWidth;
           }
         }
 
