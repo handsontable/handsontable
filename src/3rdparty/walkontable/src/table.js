@@ -220,7 +220,6 @@ class Table {
     const { wtOverlays, wtViewport } = wot;
     const isClone = this.isWorkingOnClone();
     const totalRows = this.instance.getSetting('totalRows');
-    const totalColumns = this.instance.getSetting('totalColumns');
     const rowHeaders = wot.getSetting('rowHeaders');
     const rowHeadersCount = rowHeaders.length;
     const columnHeaders = wot.getSetting('columnHeaders');
@@ -284,8 +283,9 @@ class Table {
       } else {
         startColumn = wtViewport.columnsRenderCalculator.startColumn;
       }
-      this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
-      this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
+
+      this.rowFilter = new RowFilter(startRow, this.getRenderedRowsCount(), columnHeadersCount);
+      this.columnFilter = new ColumnFilter(startColumn, this.getRenderedColumnsCount(), rowHeadersCount);
 
       this.alignOverlaysWithTrimmingContainer();
 
@@ -786,11 +786,7 @@ class Table {
   }
 
   isRowAfterRenderedRows(row) {
-    if (this.wot.getSetting('fixedRowsBottom')) {
-      return this.rowFilter && (this.rowFilter.sourceToRendered(row) > this.getLastRenderedRow());
-    }
-
-    return this.rowFilter && (row > this.getLastRenderedRow());
+    return this.rowFilter && (this.rowFilter.sourceToRendered(row) > this.getLastRenderedRow());
   }
 
   isColumnBeforeViewport(column) {
