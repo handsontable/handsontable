@@ -484,7 +484,7 @@ class ManualRowResize extends BasePlugin {
   onModifyRowHeight(height, row) {
     if (this.enabled) {
       const autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
-      const autoRowHeightResult = autoRowSizePlugin ? autoRowSizePlugin.heights[row] : null;
+      const autoRowHeightResult = autoRowSizePlugin && autoRowSizePlugin.rowHeightsMap ? autoRowSizePlugin.getRowHeight(row) : null;
       const physicalRow = this.hot.toPhysicalRow(row);
       const manualRowHeight = this.manualRowHeights[physicalRow];
 
