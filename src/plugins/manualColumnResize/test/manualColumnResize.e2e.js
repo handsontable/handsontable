@@ -338,6 +338,26 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 0)).toEqual(100);
   });
 
+  it('should appropriate resize colWidth after beforeColumnResize call a few times', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true
+    });
+
+    expect(colWidth(spec().$container, 0)).toEqual(50);
+
+    hot.addHook('beforeColumnResize', () => 100);
+
+    hot.addHook('beforeColumnResize', () => 200);
+
+    hot.addHook('beforeColumnResize', () => {});
+
+    resizeColumn(0, 60);
+
+    expect(colWidth(spec().$container, 0)).toEqual(60);
+  });
+
   it('should trigger an afterColumnResize event after column size changes', () => {
     const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 

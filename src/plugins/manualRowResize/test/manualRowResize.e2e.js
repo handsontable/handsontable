@@ -150,6 +150,26 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(101);
   });
 
+  it('should appropriate resize rowHeight after beforeRowResize call a few times', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      rowHeaders: true,
+      manualRowResize: true
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(24);
+
+    hot.addHook('beforeRowResize', () => 100);
+
+    hot.addHook('beforeRowResize', () => 200);
+
+    hot.addHook('beforeRowResize', () => {});
+
+    resizeRow(0, 60);
+
+    expect(rowHeight(spec().$container, 0)).toEqual(61);
+  });
+
   it('should trigger afterRowResize event after row height changes', () => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
