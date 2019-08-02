@@ -120,6 +120,21 @@ describe('WalkontableTable', () => {
       HTMLElement, HTMLElement, -2, -2, -2, -2, -2, -2, -2, -2]);
   });
 
+  it('getCell should only return cells from rendered rows and columns (with fixedRowsBottom)', () => {
+    createDataArray(20, 20);
+    const wt = walkontable({
+      data: getData,
+      fixedRowsBottom: 2,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+    wt.draw();
+
+    const bottomTable = wt.wtOverlays.bottomOverlay.clone.wtTable;
+    expect(bottomTable.getCell(new Walkontable.CellCoords(18, 0)) instanceof HTMLTableCellElement).toBe(true);
+    expect(bottomTable.getCell(new Walkontable.CellCoords(19, 0)) instanceof HTMLTableCellElement).toBe(true);
+  });
+
   it('getCoords should return coords of TD', () => {
     const wt = walkontable({
       data: getData,

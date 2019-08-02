@@ -717,8 +717,7 @@ class Table {
 
     if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement)
       || overlayContainsElement(Overlay.CLONE_LEFT, cellElement, this.wtRootElement)
-      || overlayContainsElement(Overlay.CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)
-      || overlayContainsElement(Overlay.CLONE_BOTTOM, cellElement, this.wtRootElement)) {
+      || overlayContainsElement(Overlay.CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)) {
       col = this.columnFilter.offsettedTH(col);
 
     } else {
@@ -830,6 +829,11 @@ class Table {
   }
 
   isRowAfterRenderedRows(row) {
+    if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM)
+      || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      return false;
+    }
+
     return this.rowFilter && (row > this.getLastRenderedRow());
   }
 
