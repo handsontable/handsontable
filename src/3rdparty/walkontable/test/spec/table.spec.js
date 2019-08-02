@@ -131,7 +131,7 @@ describe('WalkontableTable', () => {
     wt.draw();
 
     const bottomTable = wt.wtOverlays.bottomOverlay.clone.wtTable;
-    expect(bottomTable.getCell(new Walkontable.CellCoords(18, 0)) instanceof HTMLElement).toBe(true);
+    expect(bottomTable.getCell(new Walkontable.CellCoords(18, 0)) instanceof HTMLTableCellElement).toBe(true);
     expect(bottomTable.getCell(new Walkontable.CellCoords(19, 0)) instanceof HTMLElement).toBe(true);
   });
 
