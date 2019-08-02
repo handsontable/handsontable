@@ -343,20 +343,22 @@ class Filters extends BasePlugin {
       if (needToFilter) {
         const trimmedRows = [];
 
-        this.filtersRowsMap.clear();
+        this.hot.executeBatchOperations(() => {
+          this.filtersRowsMap.clear();
 
-        visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
+          visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
 
-        const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
+          const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
 
-        rangeEach(this.hot.countSourceRows() - 1, (row) => {
-          if (!visibleVisualRowsAssertion(row)) {
-            trimmedRows.push(row);
-          }
-        });
+          rangeEach(this.hot.countSourceRows() - 1, (row) => {
+            if (!visibleVisualRowsAssertion(row)) {
+              trimmedRows.push(row);
+            }
+          });
 
-        arrayEach(trimmedRows, (physicalRow) => {
-          this.filtersRowsMap.setValueAtIndex(physicalRow, true);
+          arrayEach(trimmedRows, (physicalRow) => {
+            this.filtersRowsMap.setValueAtIndex(physicalRow, true);
+          });
         });
 
         if (!visibleVisualRows.length) {

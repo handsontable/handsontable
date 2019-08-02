@@ -6,6 +6,7 @@ import SkipMap from './maps/skipMap';
 import MapCollection from './mapCollection';
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
+import { isUndefined } from '../helpers/mixed';
 
 class IndexMapper {
   constructor() {
@@ -90,13 +91,31 @@ class IndexMapper {
   }
 
   /**
-   * Unregister the map with given name.
+   * Unregister a map with given name.
    *
    * @param {String} name Name of the map.
    */
   unregisterMap(name) {
     this.skipCollection.unregister(name);
     this.variousMappingsCollection.unregister(name);
+  }
+
+  /**
+   * Get a map with given name.
+   *
+   * @param {String} name Name of the map.
+   * @return {Array|ValueMap|IndexMap|SkipMap}
+   */
+  getMap(name) {
+    if (isUndefined(name)) {
+      return this.skipCollection.get().concat(this.variousMappingsCollection.get());
+    }
+
+    if (this.skipCollection.has(name)) {
+      return this.skipCollection.get(name);
+    }
+
+    return this.variousMappingsCollection.get(name);
   }
 
   /**
