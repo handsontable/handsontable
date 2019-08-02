@@ -3342,11 +3342,17 @@ describe('Filters UI', () => {
     const htUISelectCaption = document.querySelector('.htUISelectCaption');
     const compStyleHtUISelectCaption = Handsontable.dom.getComputedStyle(htUISelectCaption);
 
+    const htUIRadioLabel = document.querySelector('.htUIRadio label');
+    const compStyleHtUIRadioLabel = Handsontable.dom.getComputedStyle(htUIRadioLabel);
+
     expect(compStyleHtItemWrapper.fontFamily).toBe('Helvetica');
     expect(compStyleHtItemWrapper.fontSize).toBe('24px');
 
     expect(compStyleHtFiltersMenuLabel.fontFamily).toBe('Helvetica');
     expect(compStyleHtFiltersMenuLabel.fontSize).toBe('18px');
+
+    expect(compStyleHtUIRadioLabel.fontFamily).toBe('Helvetica');
+    expect(compStyleHtUIRadioLabel.fontSize).toBe('18px');
 
     expect(compStyleHtUISelectCaption.fontFamily).toBe('Helvetica');
     expect(compStyleHtUISelectCaption.fontSize).toBe('16.8px');

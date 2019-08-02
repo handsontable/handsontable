@@ -278,6 +278,7 @@
 
 .handsontable .htUIRadio label {
   vertical-align: middle;
+  font-size: 0.75em;
 }
 
 .handsontable .htFiltersMenuOperators {
