@@ -23,9 +23,6 @@ class BaseMap {
     if (isFunction(this.initValuesOrFn)) {
       rangeEach(length - 1, index => this.list.push(this.initValuesOrFn(index)));
 
-    } else if (Array.isArray(this.initValuesOrFn)) {
-      this.list = this.initValuesOrFn.slice();
-
     } else {
       rangeEach(length - 1, () => this.list.push(this.initValuesOrFn));
     }
