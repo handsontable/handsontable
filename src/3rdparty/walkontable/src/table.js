@@ -643,8 +643,7 @@ class Table {
       lastTdOffset = firstTdOffset;
       lastTdWidth = outerWidth(firstTd);
       lastTdHeight = outerHeight(firstTd);
-    }
-    else {
+    } else {
       const lastTd = this.getCell({ row: lastRow, col: lastColumn });
       lastTdOffset = offset(lastTd);
       lastTdWidth = outerWidth(lastTd);
@@ -888,8 +887,7 @@ class Table {
     if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM)
         || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       return this.instance.getSetting('totalRows') - this.instance.getSetting('fixedRowsBottom') - 1;
-    }
-    else if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP)
+    } else if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP)
         || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
       return 0;
     }
@@ -924,8 +922,7 @@ class Table {
     if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM)
         || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       return this.instance.getSetting('totalRows') - 1;
-    }
-    else if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP)
+    } else if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP)
       || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
       return this.wot.getSetting('fixedRowsTop') - 1;
     }
