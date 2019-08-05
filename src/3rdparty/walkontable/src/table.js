@@ -695,43 +695,14 @@ class Table {
   }
 
   /**
-   * Checks if coords are beyond the rendered fragment of the table
-   *
-   * @param {Number} row
-   * @param {Number} column
-   * @returns {Number} 0 if coords are within the rendered fragment of the table,
-   * or one of the negative number values coords are beyond the rendered fragment:
-   *  -1 row before rendered
-   *  -2 row after rendered
-   *  -3 column before rendered
-   *  -4 column after rendered
-   */
-  areCoordsBeyondRendered(row, column) {
-    if (this.isRowBeforeRenderedRows(row)) {
-      // row before rendered rows
-      return -1;
-    } else if (this.isRowAfterRenderedRows(row)) {
-      // row after rendered rows
-      return -2;
-    } else if (this.isColumnBeforeRenderedColumns(column)) {
-      // column before rendered columns
-      return -3;
-    } else if (this.isColumnAfterRenderedColumns(column)) {
-      // column after rendered columns
-      return -4;
-    }
-    return 1;
-  }
-
-  /**
    * Get cell element at coords.
    *
    * @param {CellCoords} coords
-   * @returns {HTMLElement|Number|undefined} HTMLElement on success or Undefined if technically rendered but on a different overlay Number one of the exit codes on error:
-   *  -1 row before rendered
-   *  -2 row after rendered
-   *  -3 column before rendered
-   *  -4 column after rendered
+   * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:
+   *  -1 row before viewport
+   *  -2 row after viewport
+   *  -3 column before viewport
+   *  -4 column after viewport
    */
   getCell(coords) {
     let row = coords.row;
@@ -742,9 +713,21 @@ class Table {
       [row, column] = hookResult;
     }
 
-    const renderedExitCode = this.areCoordsBeyondRendered(row, column);
-    if (renderedExitCode < 0) {
-      return renderedExitCode;
+    if (this.isRowBeforeRenderedRows(row)) {
+      // row before rendered rows
+      return -1;
+
+    } else if (this.isRowAfterRenderedRows(row)) {
+      // row after rendered rows
+      return -2;
+
+    } else if (this.isColumnBeforeRenderedColumns(column)) {
+      // column before rendered columns
+      return -3;
+
+    } else if (this.isColumnAfterRenderedColumns(column)) {
+      // column after rendered columns
+      return -4;
     }
 
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
