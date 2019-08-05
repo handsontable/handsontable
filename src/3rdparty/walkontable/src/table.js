@@ -610,10 +610,10 @@ class Table {
     const containerOffset = offset(this.TABLE);
     const argArrays = [];
     for (let i = 0; i < len; i++) {
-      highlights[i].draw(wot, (highlight, sourceRow, sourceColumn) => { // makes DOM writes
+      highlights[i].draw(wot, (highlight, firstRow, firstColumn, lastRow, lastColumn, isTopClean, isRightClean, isBottomClean, isLeftClean) => { // makes DOM writes
         if (highlights[i].settings.border) {
           // push arguments to a temporary array to separate bulk DOM writes from DOM reads
-          argArrays.push([highlight, sourceRow, sourceColumn, containerOffset]);
+          argArrays.push([containerOffset, highlight, firstRow, firstColumn, lastRow, lastColumn, isTopClean, isRightClean, isBottomClean, isLeftClean]);
         }
       });
     }
@@ -633,20 +633,30 @@ class Table {
    * @param {Number} sourceRow
    * @param {Number} sourceColumn
    */
-  addBorderLinesToStrokes(rects, selection, sourceRow, sourceColumn, containerOffset) {
-    const TD = this.getCell({ row: sourceRow, col: sourceColumn });
-    if (TD < 0) {
-      return;
+  addBorderLinesToStrokes(rects, containerOffset, selection, firstRow, firstColumn, lastRow, lastColumn, isTopClean, isRightClean, isBottomClean, isLeftClean) {
+    const firstTd = this.getCell({ row: firstRow, col: firstColumn });
+    const firstTdOffset = offset(firstTd);
+    let lastTdOffset;
+    let lastTdWidth;
+    let lastTdHeight;
+    if (firstRow === lastRow && firstColumn === lastColumn) {
+      lastTdOffset = firstTdOffset;
+      lastTdWidth = outerWidth(firstTd);
+      lastTdHeight = outerHeight(firstTd);
     }
-    const tdOffset = offset(TD);
-    const width = outerWidth(TD);
-    const height = outerHeight(TD);
+    else {
+      const lastTd = this.getCell({ row: lastRow, col: lastColumn });
+      lastTdOffset = offset(lastTd);
+      lastTdWidth = outerWidth(lastTd);
+      lastTdHeight = outerHeight(lastTd);
+    }
     const rect = {
-      x1: tdOffset.left - containerOffset.left,
-      y1: tdOffset.top - containerOffset.top,
-      x2: tdOffset.left - containerOffset.left + width,
-      y2: tdOffset.top - containerOffset.top + height,
+      x1: firstTdOffset.left - containerOffset.left,
+      y1: firstTdOffset.top - containerOffset.top,
+      x2: lastTdOffset.left - containerOffset.left + lastTdWidth,
+      y2: lastTdOffset.top - containerOffset.top + lastTdHeight,
     };
+
     const offsetToOverLapPrecedingBorder = -1;
     rect.x1 += offsetToOverLapPrecedingBorder;
     rect.y1 += offsetToOverLapPrecedingBorder;
@@ -657,10 +667,18 @@ class Table {
       rect.x1 += insetPositioningForCurrentCellHighlight;
       rect.y1 += insetPositioningForCurrentCellHighlight;
     }
-    this.getStroke(rect, selection.settings, 'left');
-    this.getStroke(rect, selection.settings, 'top');
-    this.getStroke(rect, selection.settings, 'right');
-    this.getStroke(rect, selection.settings, 'bottom');
+    if (isTopClean) {
+      this.getStroke(rect, selection.settings, 'top');
+    }
+    if (isRightClean) {
+      this.getStroke(rect, selection.settings, 'right');
+    }
+    if (isBottomClean) {
+      this.getStroke(rect, selection.settings, 'bottom');
+    }
+    if (isLeftClean) {
+      this.getStroke(rect, selection.settings, 'left');
+    }
     rects.push(rect);
   }
 
@@ -693,33 +711,14 @@ class Table {
     if (this.isRowBeforeRenderedRows(row)) {
       // row before rendered rows
       return -1;
-    } else if (
-      (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM)
-        || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER))
-      && row < this.instance.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom')) {
-      // row after rendered rows in bottom overlay
-      // fixes https://github.com/handsontable/handsontable/issues/6043
-      return -1;
     } else if (this.isRowAfterRenderedRows(row)) {
       // row after rendered rows
-      return -2;
-    } else if ((Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP)
-        || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER))
-      && row >= this.wot.getSetting('fixedRowsTop')) {
-      // row after rendered rows in top overlay
-      // fixes https://github.com/handsontable/handsontable/issues/6043
       return -2;
     } else if (this.isColumnBeforeRenderedColumns(column)) {
       // column before rendered columns
       return -3;
     } else if (this.isColumnAfterRenderedColumns(column)) {
       // column after rendered columns
-      return -4;
-    } else if ((Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_LEFT)
-        || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER))
-      && column >= this.wot.getSetting('fixedColumnsLeft')) {
-      // column after rendered columns in left overlay
-      // fixes https://github.com/handsontable/handsontable/issues/6043
       return -4;
     }
     return 1;
@@ -887,6 +886,15 @@ class Table {
   }
 
   getFirstRenderedRow() {
+    if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM)
+        || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      return this.instance.getSetting('totalRows') - this.instance.getSetting('fixedRowsBottom') - 1;
+    }
+    else if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP)
+        || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
+      return 0;
+    }
+
     return this.wot.wtViewport.rowsRenderCalculator.startRow;
   }
 
@@ -895,6 +903,11 @@ class Table {
   }
 
   getFirstRenderedColumn() {
+    if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_LEFT)
+        || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
+      return 0;
+    }
+
     return this.wot.wtViewport.columnsRenderCalculator.startColumn;
   }
 
@@ -909,6 +922,15 @@ class Table {
    * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
    */
   getLastRenderedRow() {
+    if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM)
+        || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      return this.instance.getSetting('totalRows') - 1;
+    }
+    else if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP)
+      || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
+      return this.wot.getSetting('fixedRowsTop') - 1;
+    }
+
     return this.wot.wtViewport.rowsRenderCalculator.endRow;
   }
 
@@ -923,6 +945,11 @@ class Table {
    * @returns {Number} Returns source index of last rendered column
    */
   getLastRenderedColumn() {
+    if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_LEFT)
+        || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
+      return this.wot.getSetting('fixedColumnsLeft') - 1;
+    }
+
     return this.wot.wtViewport.columnsRenderCalculator.endColumn;
   }
 
@@ -934,7 +961,7 @@ class Table {
   }
 
   isRowBeforeRenderedRows(row) {
-    return this.rowFilter && (this.rowFilter.sourceToRendered(row) < 0 && row >= 0);
+    return row < this.getFirstRenderedRow();
   }
 
   isRowAfterViewport(row) {
@@ -942,7 +969,7 @@ class Table {
   }
 
   isRowAfterRenderedRows(row) {
-    return this.rowFilter && (row > this.getLastRenderedRow());
+    return row > this.getLastRenderedRow();
   }
 
   isColumnBeforeViewport(column) {
@@ -950,7 +977,7 @@ class Table {
   }
 
   isColumnBeforeRenderedColumns(column) {
-    return this.columnFilter && (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column) < 0 && column >= 0);
+    return column < this.getFirstRenderedColumn();
   }
 
   isColumnAfterViewport(column) {
@@ -958,7 +985,7 @@ class Table {
   }
 
   isColumnAfterRenderedColumns(column) {
-    return this.columnFilter && (column > this.getLastRenderedColumn());
+    return column > this.getLastRenderedColumn();
   }
 
   isLastRowFullyVisible() {

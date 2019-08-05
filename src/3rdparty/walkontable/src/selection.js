@@ -257,6 +257,25 @@ class Selection {
       }
     }
 
+    const tableFirstRenderedRow = wotInstance.wtTable.getFirstRenderedRow();
+    const tableFirstRenderedColumn = wotInstance.wtTable.getFirstRenderedColumn();
+    const tableLastRenderedRow = wotInstance.wtTable.getLastRenderedRow();
+    const tableLastRenderedColumn = wotInstance.wtTable.getLastRenderedColumn();
+
+    const highlightFirstRenderedRow = Math.max(firstRow, tableFirstRenderedRow);
+    const highlightFirstRenderedColumn = Math.max(firstColumn, tableFirstRenderedColumn);
+    const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow);
+    const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn);
+
+    if (highlightFirstRenderedRow <= highlightLastRenderedRow && highlightFirstRenderedColumn <= highlightLastRenderedColumn) {
+      selectedCellFn(this,
+        highlightFirstRenderedRow, highlightFirstRenderedColumn, highlightLastRenderedRow, highlightLastRenderedColumn,
+        highlightFirstRenderedRow === firstRow,
+        highlightLastRenderedColumn === lastColumn,
+        highlightLastRenderedRow === lastRow,
+        highlightFirstRenderedColumn === firstColumn);
+    }
+
     for (let sourceRow = firstRow; sourceRow <= lastRow; sourceRow += 1) {
       for (let sourceColumn = firstColumn; sourceColumn <= lastColumn; sourceColumn += 1) {
 
@@ -265,7 +284,6 @@ class Selection {
           if (this.settings.className) {
             this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, this.settings.className, this.settings.markIntersections);
           }
-          selectedCellFn(this, sourceRow, sourceColumn);
         }
 
         if (this.settings.className) {
