@@ -1,5 +1,5 @@
-import pretty from 'pretty';
 import { generateASCIITable } from './asciiTable';
+import { normalize, pretty } from './htmlNormalize';
 
 // http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 const scrollbarWidth = (function calculateScrollbarWidth() {
@@ -84,8 +84,8 @@ beforeEach(function() {
     toMatchHTML() {
       return {
         compare(actual, expected) {
-          const actualHTML = pretty(actual);
-          const expectedHTML = pretty(expected);
+          const actualHTML = pretty(normalize(actual));
+          const expectedHTML = pretty(normalize(expected));
 
           const result = {
             pass: actualHTML === expectedHTML,

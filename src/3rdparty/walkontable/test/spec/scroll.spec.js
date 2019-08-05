@@ -2,7 +2,7 @@ describe('WalkontableScroll', () => {
   const debug = false;
 
   beforeEach(function() {
-    this.$wrapper = $('<div></div>').css({ overflow: 'hidden' });
+    this.$wrapper = $('<div></div>').css({ overflow: 'hidden', position: 'relative' });
     this.$container = $('<div></div>');
     this.$table = $('<table></table>'); // create a table that is not attached to document
     this.$wrapper.append(this.$container);
@@ -373,11 +373,11 @@ describe('WalkontableScroll', () => {
       expect(spec().$table.find('tbody tr:first td').length).toBeGreaterThan(3);
     });
 
-    it('should scroll to last row with very high rows', function() {
+    it('should scroll to last row with very high rows', () => {
       createDataArray(20, 100);
 
-      for (let i = 0, ilen = this.data.length; i < ilen; i++) {
-        this.data[i][0] += '\n this \nis \na \nmultiline \ncell';
+      for (let i = 0, ilen = spec().data.length; i < ilen; i++) {
+        spec().data[i][0] += '\n this \nis \na \nmultiline \ncell';
       }
 
       spec().$wrapper.width(260).height(201);
@@ -392,7 +392,7 @@ describe('WalkontableScroll', () => {
       wt.scrollViewportVertically(getTotalRows() - 1);
       wt.draw();
 
-      expect(spec().$table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell(new Walkontable.CellCoords(this.data.length - 1, 0))); // last rendered row should be last data row
+      expect(spec().$table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell(new Walkontable.CellCoords(spec().data.length - 1, 0))); // last rendered row should be last data row
     });
 
     xit('should scroll to last row with very high rows (respecting fixedRows)', () => {
@@ -438,7 +438,7 @@ describe('WalkontableScroll', () => {
       expect(spec().$table.find('tbody tr:first td').length).toBeGreaterThan(3);
     });
 
-    it('should scroll the desired cell to the bottom edge even if it\'s located in a fixed column', (done) => {
+    it('should scroll the desired cell to the bottom edge even if it\'s located in a fixed column', async() => {
       createDataArray(20, 100);
       spec().$wrapper.width(260).height(201);
 
@@ -453,13 +453,12 @@ describe('WalkontableScroll', () => {
       wt.scrollViewport(new Walkontable.CellCoords(8, 1));
       wt.draw();
 
-      setTimeout(() => {
-        expect(wt.wtTable.getLastVisibleRow()).toBe(8);
-        done();
-      }, 50);
+      await sleep(50);
+
+      expect(wt.wtTable.getLastVisibleRow()).toBe(8);
     });
 
-    it('should update the scroll position of overlays only once, when scrolling the master table', (done) => {
+    it('should update the scroll position of overlays only once, when scrolling the master table', async() => {
       createDataArray(100, 100);
       spec().$wrapper.width(260).height(201);
 
@@ -484,20 +483,18 @@ describe('WalkontableScroll', () => {
       wt.scrollViewport(new Walkontable.CellCoords(50, 50));
       wt.draw();
 
-      setTimeout(() => {
-        expect(topOverlayCallback.calls.count()).toEqual(1);
-        expect(leftOverlayCallback.calls.count()).toEqual(1);
+      await sleep(100);
+      expect(topOverlayCallback.calls.count()).toEqual(1);
+      expect(leftOverlayCallback.calls.count()).toEqual(1);
 
-        expect(topOverlayHolder.scrollLeft).toEqual(masterHolder.scrollLeft);
-        expect(leftOverlayHolder.scrollTop).toEqual(masterHolder.scrollTop);
+      expect(topOverlayHolder.scrollLeft).toEqual(masterHolder.scrollLeft);
+      expect(leftOverlayHolder.scrollTop).toEqual(masterHolder.scrollTop);
 
-        topOverlayHolder.removeEventListener('scroll', topOverlayCallback);
-        leftOverlayHolder.removeEventListener('scroll', leftOverlayCallback);
-        done();
-      }, 50);
+      topOverlayHolder.removeEventListener('scroll', topOverlayCallback);
+      leftOverlayHolder.removeEventListener('scroll', leftOverlayCallback);
     });
 
-    it('should call onScrollVertically hook, if scrollTop was changed', (done) => {
+    it('should call onScrollVertically hook, if scrollTop was changed', async() => {
       createDataArray(100, 100);
       spec().$wrapper.width(260).height(201);
 
@@ -519,14 +516,13 @@ describe('WalkontableScroll', () => {
 
       wt.draw();
 
-      setTimeout(() => {
-        expect(scrollVertically.calls.count()).toEqual(1);
-        expect(scrollHorizontally.calls.count()).toEqual(0);
-        done();
-      }, 50);
+      await sleep(50);
+
+      expect(scrollVertically.calls.count()).toEqual(1);
+      expect(scrollHorizontally.calls.count()).toEqual(0);
     });
 
-    it('should call onScrollHorizontally hook, if scrollLeft was changed', (done) => {
+    it('should call onScrollHorizontally hook, if scrollLeft was changed', async() => {
       createDataArray(100, 100);
       spec().$wrapper.width(260).height(201);
 
@@ -548,69 +544,297 @@ describe('WalkontableScroll', () => {
 
       wt.draw();
 
-      setTimeout(() => {
-        expect(scrollVertically.calls.count()).toEqual(0);
-        expect(scrollHorizontally.calls.count()).toEqual(1);
+      await sleep(50);
 
-        done();
-      }, 50);
+      expect(scrollVertically.calls.count()).toEqual(0);
+      expect(scrollHorizontally.calls.count()).toEqual(1);
     });
 
-    // Commented due to PhantomJS WheelEvent problem.
-    // Throws an error: TypeError: '[object WheelEventConstructor]' is not a constructor
-    xit('should scroll the table when the `wheel` event is triggered on the corner overlay', (done) => {
+    it('should scroll the table when the `wheel` event is triggered on the top-left corner overlay', async() => {
       createDataArray(100, 100);
       spec().$wrapper.width(260).height(201);
 
       const masterCallback = jasmine.createSpy('masterCallback');
       const topCallback = jasmine.createSpy('topCallback');
+      const bottomCallback = jasmine.createSpy('bottomCallback');
       const leftCallback = jasmine.createSpy('leftCallback');
+
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         fixedColumnsLeft: 2,
-        fixedRowsTop: 2
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
       });
 
       wt.draw();
 
       const topLeftCornerOverlayHolder = wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder;
       const topHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
+      const bottomHolder = wt.wtOverlays.bottomOverlay.clone.wtTable.holder;
       const leftHolder = wt.wtOverlays.leftOverlay.clone.wtTable.holder;
       const masterHolder = wt.wtTable.holder;
 
       masterHolder.addEventListener('scroll', masterCallback);
       topHolder.addEventListener('scroll', topCallback);
+      bottomHolder.addEventListener('scroll', bottomCallback);
       leftHolder.addEventListener('scroll', leftCallback);
 
-      let wheelEvent = new WheelEvent('wheel', {
-        deltaX: 400
-      });
+      // wheel + shift
+      wheelOnElement(topLeftCornerOverlayHolder, 400);
+      wt.draw();
 
-      topLeftCornerOverlayHolder.dispatchEvent(wheelEvent);
+      await sleep(200);
+
+      expect(masterCallback.calls.count()).toEqual(1);
+      expect(topCallback.calls.count()).toEqual(1);
+      expect(bottomCallback.calls.count()).toEqual(1);
+      expect(leftCallback.calls.count()).toEqual(0);
+
+      wheelOnElement(topLeftCornerOverlayHolder, 0, 400);
+      wt.draw();
+
+      await sleep(200);
+
+      expect(masterCallback.calls.count()).toEqual(2);
+      expect(topCallback.calls.count()).toEqual(1);
+      expect(bottomCallback.calls.count()).toEqual(1);
+      expect(leftCallback.calls.count()).toEqual(1);
+
+      masterHolder.removeEventListener('scroll', masterCallback);
+      topHolder.removeEventListener('scroll', topCallback);
+      bottomHolder.removeEventListener('scroll', bottomCallback);
+      leftHolder.removeEventListener('scroll', leftCallback);
+    });
+
+    it('should scroll the table when the `wheel` event is triggered on the bottom-left corner overlay', async() => {
+      createDataArray(100, 100);
+      spec().$wrapper.width(260).height(201);
+
+      const masterCallback = jasmine.createSpy('masterCallback');
+      const topCallback = jasmine.createSpy('topCallback');
+      const bottomCallback = jasmine.createSpy('bottomCallback');
+      const leftCallback = jasmine.createSpy('leftCallback');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+      });
 
       wt.draw();
 
-      setTimeout(() => {
-        expect(masterCallback.callCount).toEqual(1);
-        expect(topCallback.callCount).toEqual(1);
-        expect(leftCallback.callCount).toEqual(0);
+      const bottomLeftCornerOverlayHolder = wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder;
+      const topHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
+      const bottomHolder = wt.wtOverlays.bottomOverlay.clone.wtTable.holder;
+      const leftHolder = wt.wtOverlays.leftOverlay.clone.wtTable.holder;
+      const masterHolder = wt.wtTable.holder;
 
-        wheelEvent = new WheelEvent('wheel', {
-          deltaY: 400
-        });
+      masterHolder.addEventListener('scroll', masterCallback);
+      topHolder.addEventListener('scroll', topCallback);
+      bottomHolder.addEventListener('scroll', bottomCallback);
+      leftHolder.addEventListener('scroll', leftCallback);
 
-        topLeftCornerOverlayHolder.dispatchEvent(wheelEvent);
-        wt.draw();
-      }, 50);
+      // wheel + shift
+      wheelOnElement(bottomLeftCornerOverlayHolder, 400);
+      wt.draw();
 
-      setTimeout(() => {
-        expect(masterCallback.callCount).toEqual(2);
-        expect(topCallback.callCount).toEqual(1);
-        expect(leftCallback.callCount).toEqual(1);
-        done();
-      }, 100);
+      await sleep(200);
+
+      expect(masterCallback.calls.count()).toEqual(1);
+      expect(topCallback.calls.count()).toEqual(1);
+      expect(bottomCallback.calls.count()).toEqual(1);
+      expect(leftCallback.calls.count()).toEqual(0);
+
+      wheelOnElement(bottomLeftCornerOverlayHolder, 0, 400);
+      wt.draw();
+
+      await sleep(200);
+
+      expect(masterCallback.calls.count()).toEqual(2);
+      expect(topCallback.calls.count()).toEqual(1);
+      expect(bottomCallback.calls.count()).toEqual(1);
+      expect(leftCallback.calls.count()).toEqual(1);
+
+      masterHolder.removeEventListener('scroll', masterCallback);
+      topHolder.removeEventListener('scroll', topCallback);
+      bottomHolder.removeEventListener('scroll', bottomCallback);
+      leftHolder.removeEventListener('scroll', leftCallback);
+    });
+
+    it('should scroll the table when the `wheel` event is triggered on the left overlay', async() => {
+      createDataArray(100, 100);
+      spec().$wrapper.width(260).height(201);
+
+      const masterCallback = jasmine.createSpy('masterCallback');
+      const topCallback = jasmine.createSpy('topCallback');
+      const bottomCallback = jasmine.createSpy('bottomCallback');
+      const leftCallback = jasmine.createSpy('leftCallback');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+
+      const topHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
+      const bottomHolder = wt.wtOverlays.bottomOverlay.clone.wtTable.holder;
+      const leftHolder = wt.wtOverlays.leftOverlay.clone.wtTable.holder;
+      const masterHolder = wt.wtTable.holder;
+
+      masterHolder.addEventListener('scroll', masterCallback);
+      topHolder.addEventListener('scroll', topCallback);
+      bottomHolder.addEventListener('scroll', bottomCallback);
+      leftHolder.addEventListener('scroll', leftCallback);
+
+      // wheel + shift
+      wheelOnElement(leftHolder, 400);
+      wt.draw();
+
+      await sleep(200);
+
+      expect(masterCallback.calls.count()).toEqual(1);
+      expect(topCallback.calls.count()).toEqual(1);
+      expect(bottomCallback.calls.count()).toEqual(1);
+      expect(leftCallback.calls.count()).toEqual(0);
+
+      wheelOnElement(leftHolder, 0, 400);
+      wt.draw();
+
+      await sleep(200);
+
+      expect(masterCallback.calls.count()).toEqual(2);
+      expect(topCallback.calls.count()).toEqual(1);
+      expect(bottomCallback.calls.count()).toEqual(1);
+      expect(leftCallback.calls.count()).toEqual(1);
+
+      masterHolder.removeEventListener('scroll', masterCallback);
+      topHolder.removeEventListener('scroll', topCallback);
+      bottomHolder.removeEventListener('scroll', bottomCallback);
+      leftHolder.removeEventListener('scroll', leftCallback);
+    });
+
+    it('should scroll the table when the `wheel` event is triggered on the top overlay', async() => {
+      createDataArray(100, 100);
+      spec().$wrapper.width(260).height(201);
+
+      const masterCallback = jasmine.createSpy('masterCallback');
+      const topCallback = jasmine.createSpy('topCallback');
+      const bottomCallback = jasmine.createSpy('bottomCallback');
+      const leftCallback = jasmine.createSpy('leftCallback');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+
+      const topHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
+      const bottomHolder = wt.wtOverlays.bottomOverlay.clone.wtTable.holder;
+      const leftHolder = wt.wtOverlays.leftOverlay.clone.wtTable.holder;
+      const masterHolder = wt.wtTable.holder;
+
+      masterHolder.addEventListener('scroll', masterCallback);
+      topHolder.addEventListener('scroll', topCallback);
+      bottomHolder.addEventListener('scroll', bottomCallback);
+      leftHolder.addEventListener('scroll', leftCallback);
+
+      // wheel + shift
+      wheelOnElement(topHolder, 400);
+      wt.draw();
+
+      await sleep(200);
+
+      expect(masterCallback.calls.count()).toEqual(1);
+      expect(topCallback.calls.count()).toEqual(1);
+      expect(bottomCallback.calls.count()).toEqual(1);
+      expect(leftCallback.calls.count()).toEqual(0);
+
+      wheelOnElement(topHolder, 0, 400);
+      wt.draw();
+
+      await sleep(200);
+
+      expect(masterCallback.calls.count()).toEqual(2);
+      expect(topCallback.calls.count()).toEqual(1);
+      expect(bottomCallback.calls.count()).toEqual(1);
+      expect(leftCallback.calls.count()).toEqual(1);
+
+      masterHolder.removeEventListener('scroll', masterCallback);
+      topHolder.removeEventListener('scroll', topCallback);
+      bottomHolder.removeEventListener('scroll', bottomCallback);
+      leftHolder.removeEventListener('scroll', leftCallback);
+    });
+
+    it('should scroll the table when the `wheel` event is triggered on the bottom overlay', async() => {
+      createDataArray(100, 100);
+      spec().$wrapper.width(260).height(201);
+
+      const masterCallback = jasmine.createSpy('masterCallback');
+      const topCallback = jasmine.createSpy('topCallback');
+      const bottomCallback = jasmine.createSpy('bottomCallback');
+      const leftCallback = jasmine.createSpy('leftCallback');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+
+      const topHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
+      const bottomHolder = wt.wtOverlays.bottomOverlay.clone.wtTable.holder;
+      const leftHolder = wt.wtOverlays.leftOverlay.clone.wtTable.holder;
+      const masterHolder = wt.wtTable.holder;
+
+      masterHolder.addEventListener('scroll', masterCallback);
+      topHolder.addEventListener('scroll', topCallback);
+      bottomHolder.addEventListener('scroll', bottomCallback);
+      leftHolder.addEventListener('scroll', leftCallback);
+
+      // wheel + shift
+      wheelOnElement(bottomHolder, 400);
+      wt.draw();
+
+      await sleep(200);
+
+      expect(masterCallback.calls.count()).toEqual(1);
+      expect(topCallback.calls.count()).toEqual(1);
+      expect(bottomCallback.calls.count()).toEqual(1);
+      expect(leftCallback.calls.count()).toEqual(0);
+
+      wheelOnElement(bottomHolder, 0, 400);
+      wt.draw();
+
+      await sleep(200);
+
+      expect(masterCallback.calls.count()).toEqual(2);
+      expect(topCallback.calls.count()).toEqual(1);
+      expect(bottomCallback.calls.count()).toEqual(1);
+      expect(leftCallback.calls.count()).toEqual(1);
+
+      masterHolder.removeEventListener('scroll', masterCallback);
+      topHolder.removeEventListener('scroll', topCallback);
+      bottomHolder.removeEventListener('scroll', bottomCallback);
+      leftHolder.removeEventListener('scroll', leftCallback);
     });
   });
 
