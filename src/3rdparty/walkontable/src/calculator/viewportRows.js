@@ -161,9 +161,6 @@ class ViewportRowsCalculator {
     if (this.startRow !== null) {
       this.count = this.endRow - this.startRow + 1;
     }
-
-    this.startPositions = startPositions;
-    this.endPosition = sum;
   }
 }
 

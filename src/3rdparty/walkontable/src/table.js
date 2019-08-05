@@ -10,6 +10,7 @@ import {
   overlayContainsElement,
   closest,
   outerWidth,
+  outerHeight,
   innerHeight,
   isVisible,
 } from './../../../helpers/dom/element';
@@ -101,7 +102,7 @@ class Table {
     this.svg.style.position = 'absolute';
     this.svg.style.zIndex = '5';
     this.svg.setAttribute('pointer-events', 'none');
-    this.hider.appendChild(this.svg);
+    this.spreader.appendChild(this.svg);
     this.renderSvgRectangles = getSvgRectangleRenderer(this.svg);
   }
 
@@ -606,55 +607,55 @@ class Table {
       }
     }
 
-    const rightAndBottomTableBorderWidth = 1;
-    const totalWidth = wot.wtViewport.columnsVisibleCalculator.endPosition + rightAndBottomTableBorderWidth;
-    const totalHeight = wot.wtViewport.rowsVisibleCalculator.endPosition + rightAndBottomTableBorderWidth;
-
-    const rects = [];
+    const containerOffset = offset(this.TABLE);
+    const argArrays = [];
     for (let i = 0; i < len; i++) {
-      highlights[i].draw(wot, (highlight, sourceRow, sourceColumn) => {
+      highlights[i].draw(wot, (highlight, sourceRow, sourceColumn) => { // makes DOM writes
         if (highlights[i].settings.border) {
-          this.addBorderLinesToStrokes(rects, highlight, sourceRow, sourceColumn, totalWidth, totalHeight);
+          // push arguments to a temporary array to separate bulk DOM writes from DOM reads
+          argArrays.push([highlight, sourceRow, sourceColumn, containerOffset]);
         }
       });
     }
+    const rects = [];
+    argArrays.forEach(argArray => this.addBorderLinesToStrokes(rects, ...argArray)); // makes DOM reads
 
-    this.repositionSvg();
-    this.renderSvgRectangles(totalWidth, totalHeight, rects);
+    const marginForSafeRenderingOfTheRightBottomEdge = 1;
+    const totalWidth = rects.reduce((accumulator, rect) => Math.max(accumulator, rect.x2), 0) + marginForSafeRenderingOfTheRightBottomEdge;
+    const totalHeight = rects.reduce((accumulator, rect) => Math.max(accumulator, rect.y2), 0) + marginForSafeRenderingOfTheRightBottomEdge;
+    this.renderSvgRectangles(totalWidth, totalHeight, rects); // makes DOM writes
   }
 
-  repositionSvg() {
-    const topDelta = this.wot.wtViewport.getColumnHeaderHeight(); // TODO this can be cached
-    const leftDelta = this.wot.wtViewport.getRowHeaderWidth();
-
-    this.svg.style.marginLeft = `${leftDelta || 0}px`;
-    this.svg.style.marginTop = `${topDelta || 0}px`;
-  }
-
-  addBorderLinesToStrokes(rects, selection, sourceRow, sourceColumn, totalWidth, totalHeight) {
-    const { columnsVisibleCalculator, rowsVisibleCalculator } = this.wot.wtViewport;
-    const columnAfterSourceColumn = sourceColumn + 1;
-    const columnAfterSourceRow = sourceRow + 1;
+  /**
+   * This method tries to be as easy on performance on possible. It only reads from DOM (getBoundingClientRect)
+   * @param {Array} rects
+   * @param {Selection} selection
+   * @param {Number} sourceRow
+   * @param {Number} sourceColumn
+   */
+  addBorderLinesToStrokes(rects, selection, sourceRow, sourceColumn, containerOffset) {
+    const TD = this.getCell({ row: sourceRow, col: sourceColumn });
+    if (TD < 0) {
+      return;
+    }
+    const tdOffset = offset(TD);
+    const width = outerWidth(TD);
+    const height = outerHeight(TD);
     const rect = {
-      x1: columnsVisibleCalculator.startPositions[sourceColumn],
-      y1: rowsVisibleCalculator.startPositions[sourceRow],
-      x2: columnAfterSourceColumn < columnsVisibleCalculator.startPositions.length ? columnsVisibleCalculator.startPositions[columnAfterSourceColumn] : totalWidth,
-      y2: columnAfterSourceRow < rowsVisibleCalculator.startPositions.length ? rowsVisibleCalculator.startPositions[columnAfterSourceRow] : totalHeight,
+      x1: tdOffset.left - containerOffset.left,
+      y1: tdOffset.top - containerOffset.top,
+      x2: tdOffset.left - containerOffset.left + width,
+      y2: tdOffset.top - containerOffset.top + height,
     };
-    if (rect.x1 === undefined) {
-      // x1 is beyond visible viewport
-      return;
-    }
-    if (rect.y1 === undefined) {
-      // y1 is beyond visible viewport
-      return;
-    }
-    rect.x1 -= 1; // go over preceding border
-    rect.x2 -= 1; // go over preceding border
+    const offsetToOverLapPrecedingBorder = -1;
+    rect.x1 += offsetToOverLapPrecedingBorder;
+    rect.y1 += offsetToOverLapPrecedingBorder;
+    rect.x2 += offsetToOverLapPrecedingBorder;
+    rect.y2 += offsetToOverLapPrecedingBorder;
     if (selection.settings.className === 'current') {
-      // the current cell has slightly abnormal positioning, inset in a cell
-      rect.x1 += 1;
-      rect.y1 += 1;
+      const insetPositioningForCurrentCellHighlight = 1;
+      rect.x1 += insetPositioningForCurrentCellHighlight;
+      rect.y1 += insetPositioningForCurrentCellHighlight;
     }
     this.getStroke(rect, selection.settings, 'left');
     this.getStroke(rect, selection.settings, 'top');
@@ -677,14 +678,62 @@ class Table {
   }
 
   /**
+   * Checks if coords are beyond the rendered fragment of the table
+   *
+   * @param {Number} row
+   * @param {Number} column
+   * @returns {Number} 0 if coords are within the rendered fragment of the table,
+   * or one of the negative number values coords are beyond the rendered fragment:
+   *  -1 row before rendered
+   *  -2 row after rendered
+   *  -3 column before rendered
+   *  -4 column after rendered
+   */
+  areCoordsBeyondRendered(row, column) {
+    if (this.isRowBeforeRenderedRows(row)) {
+      // row before rendered rows
+      return -1;
+    } else if (
+      (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM)
+        || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER))
+      && row < this.instance.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom')) {
+      // row after rendered rows in bottom overlay
+      // fixes https://github.com/handsontable/handsontable/issues/6043
+      return -1;
+    } else if (this.isRowAfterRenderedRows(row)) {
+      // row after rendered rows
+      return -2;
+    } else if ((Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP)
+        || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER))
+      && row >= this.wot.getSetting('fixedRowsTop')) {
+      // row after rendered rows in top overlay
+      // fixes https://github.com/handsontable/handsontable/issues/6043
+      return -2;
+    } else if (this.isColumnBeforeRenderedColumns(column)) {
+      // column before rendered columns
+      return -3;
+    } else if (this.isColumnAfterRenderedColumns(column)) {
+      // column after rendered columns
+      return -4;
+    } else if ((Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_LEFT)
+        || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER))
+      && column >= this.wot.getSetting('fixedColumnsLeft')) {
+      // column after rendered columns in left overlay
+      // fixes https://github.com/handsontable/handsontable/issues/6043
+      return -4;
+    }
+    return 1;
+  }
+
+  /**
    * Get cell element at coords.
    *
    * @param {CellCoords} coords
-   * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:
-   *  -1 row before viewport
-   *  -2 row after viewport
-   *  -3 column before viewport
-   *  -4 column after viewport
+   * @returns {HTMLElement|Number|undefined} HTMLElement on success or Undefined if technically rendered but on a different overlay Number one of the exit codes on error:
+   *  -1 row before rendered
+   *  -2 row after rendered
+   *  -3 column before rendered
+   *  -4 column after rendered
    */
   getCell(coords) {
     let row = coords.row;
@@ -695,28 +744,14 @@ class Table {
       [row, column] = hookResult;
     }
 
-    if (this.isRowBeforeRenderedRows(row)) {
-      // row before rendered rows
-      return -1;
-
-    } else if (this.isRowAfterRenderedRows(row)) {
-      // row after rendered rows
-      return -2;
-
-    } else if (this.isColumnBeforeRenderedColumns(column)) {
-      // column before rendered columns
-      return -3;
-
-    } else if (this.isColumnAfterRenderedColumns(column)) {
-      // column after rendered columns
-      return -4;
+    const renderedExitCode = this.areCoordsBeyondRendered(row, column);
+    if (renderedExitCode < 0) {
+      return renderedExitCode;
     }
 
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
 
-    if (TR) {
-      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
-    }
+    return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
   }
 
   /**
