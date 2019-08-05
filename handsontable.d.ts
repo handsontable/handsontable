@@ -62,7 +62,7 @@ declare namespace _Handsontable {
     getSchema(): Handsontable.RowObject;
     getSelected(): Array<[number, number, number, number]> | undefined;
     getSelectedLast(): number[] | undefined;
-    getSelectedRange():  Handsontable.wot.CellRange[] | undefined;
+    getSelectedRange(): Handsontable.wot.CellRange[] | undefined;
     getSelectedRangeLast(): Handsontable.wot.CellRange | undefined;
     getSettings(): Handsontable.GridSettings;
     getSourceData(row?: number, column?: number, row2?: number, column2?: number): Handsontable.CellValue[][] | Handsontable.RowObject[];
@@ -270,7 +270,7 @@ declare namespace Handsontable {
 
       beginEditing(initialValue?: any, event?: Event): void;
       cancelChanges(): void;
-      checkEditorSection(): 'top-left-corner' | 'top' | 'bottom-left-corner' | 'bottom' | 'left' | '' ;
+      checkEditorSection(): 'top-left-corner' | 'top' | 'bottom-left-corner' | 'bottom' | 'left' | '';
       abstract close(): void;
       discardEditor(validationResult?: boolean): void;
       enableFullEditMode(): void;
@@ -358,9 +358,9 @@ declare namespace Handsontable {
       assignHooks(): void;
     }
 
-    class Numeric extends Text {}
+    class Numeric extends Text { }
 
-    class Password extends Text {}
+    class Password extends Text { }
 
     class Autocomplete extends Handsontable {
       allowKeyEventPropagation(keyCode?: number): boolean;
@@ -377,7 +377,7 @@ declare namespace Handsontable {
       updateDropdownHeight(): void;
     }
 
-    class Dropdown extends Autocomplete {}
+    class Dropdown extends Autocomplete { }
   }
 
   namespace plugins {
@@ -470,7 +470,7 @@ declare namespace Handsontable {
         show(): void;
         update(): void;
       }
-      interface InputUI extends BaseUI {}
+      interface InputUI extends BaseUI { }
       interface MultipleSelectUI extends BaseUI {
         clearAllUI: BaseUI;
         items: any[];
@@ -711,8 +711,9 @@ declare namespace Handsontable {
       isPluginsReady: boolean;
       enabled: boolean;
       initialized: boolean;
+      hot: any;
 
-      constructor(hotInstance?: _Handsontable.Core);
+      constructor(hotInstance?: _Handsontable.Core)
 
       addHook(name: string, callback: (...args: any[]) => any): void;
       callOnPluginsReady(callback: () => void): void;
@@ -720,12 +721,13 @@ declare namespace Handsontable {
       destroy(): void;
       disablePlugin(): void;
       enablePlugin(): void;
+      updatePlugin(): void;
       init(): void;
       removeHooks(name: string): void;
     }
 
     interface BasePlugin {
-      new(): BasePlugin;
+      new(hotInstance?: _Handsontable.Core): BasePlugin;
     }
 
     interface AutoColumnSize extends BasePlugin {
@@ -1046,7 +1048,7 @@ declare namespace Handsontable {
       toString(): string;
       translateTo(rowOffset: number, columnOffset: number): void;
     }
-    interface CellReference extends BaseCell {}
+    interface CellReference extends BaseCell { }
 
     interface CellValue extends BaseCell {
       error: string | void;
@@ -1295,8 +1297,8 @@ declare namespace Handsontable {
         setSize(width: number, height: number): void;
       }
 
-      interface BacklightUI extends BaseUI {}
-      interface GuidelineUI extends BaseUI {}
+      interface BacklightUI extends BaseUI { }
+      interface GuidelineUI extends BaseUI { }
     }
 
     interface MergeCells extends BasePlugin {
@@ -1591,17 +1593,17 @@ declare namespace Handsontable {
       (instance: _Handsontable.Core, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties): HTMLTableCellElement | void;
     }
 
-    interface Autocomplete extends Base {}
+    interface Autocomplete extends Base { }
 
-    interface Checkbox extends Base {}
+    interface Checkbox extends Base { }
 
-    interface Html extends Base {}
+    interface Html extends Base { }
 
-    interface Numeric extends Base {}
+    interface Numeric extends Base { }
 
-    interface Password extends Base {}
+    interface Password extends Base { }
 
-    interface Text extends Base {}
+    interface Text extends Base { }
   }
 
   namespace validators {
@@ -1609,13 +1611,13 @@ declare namespace Handsontable {
       (this: CellProperties, value: CellValue, callback: (valid: boolean) => void): void;
     }
 
-    interface Autocomplete extends Base {}
+    interface Autocomplete extends Base { }
 
-    interface Date extends Base {}
+    interface Date extends Base { }
 
-    interface Numeric extends Base {}
+    interface Numeric extends Base { }
 
-    interface Time extends Base {}
+    interface Time extends Base { }
   }
 
   interface DefaultSettings {
