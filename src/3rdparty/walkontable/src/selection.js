@@ -197,7 +197,7 @@ class Selection {
     };
   }
 
-  addClassAtElem(elem, classNames) {
+  addClassIfElemExists(elem, classNames) {
     if (elem) {
       addClass(elem, classNames);
     }
@@ -233,7 +233,7 @@ class Selection {
 
     if (this.settings.highlightHeaderClassName || this.settings.highlightColumnClassName) {
       for (let sourceColumn = firstColumn; sourceColumn <= lastColumn; sourceColumn += 1) {
-        this.addClassAtElem(wotInstance.wtTable.getColumnHeader(sourceColumn), this.settings.highlightHeaderClassName, this.settings.highlightColumnClassName);
+        this.addClassIfElemExists(wotInstance.wtTable.getColumnHeader(sourceColumn), this.settings.highlightHeaderClassName, this.settings.highlightColumnClassName);
 
         if (this.settings.highlightColumnClassName) {
           for (let renderedRow = 0; renderedRow < renderedRows; renderedRow += 1) {
@@ -246,7 +246,7 @@ class Selection {
 
     if (this.settings.highlightHeaderClassName || this.settings.highlightRowClassName) {
       for (let sourceRow = firstRow; sourceRow <= lastRow; sourceRow += 1) {
-        this.addClassAtElem(wotInstance.wtTable.getRowHeader(sourceRow), this.settings.highlightHeaderClassName, this.settings.highlightColumnClassName);
+        this.addClassIfElemExists(wotInstance.wtTable.getRowHeader(sourceRow), this.settings.highlightHeaderClassName, this.settings.highlightColumnClassName);
 
         if (this.settings.highlightRowClassName) {
           for (let renderedColumn = 0; renderedColumn < renderedColumns; renderedColumn += 1) {
@@ -258,8 +258,6 @@ class Selection {
     }
 
     for (let sourceRow = firstRow; sourceRow <= lastRow; sourceRow += 1) {
-      this.addClassAtElem(wotInstance.wtTable.getRowHeader(sourceRow), this.settings.highlightHeaderClassName, this.settings.highlightRowClassName);
-
       for (let sourceColumn = firstColumn; sourceColumn <= lastColumn; sourceColumn += 1) {
 
         if (sourceRow >= firstRow && sourceRow <= lastRow && sourceColumn >= firstColumn && sourceColumn <= lastColumn) {
