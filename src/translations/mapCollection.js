@@ -55,16 +55,6 @@ class MapCollection {
   }
 
   /**
-   * Determines if there is registered map under given name.
-   *
-   * @param {String} name Unique name of the indexes list.
-   * @returns {Boolean}
-   */
-  has(name) {
-    return this.mappings.has(name);
-  }
-
-  /**
    * Get collection size.
    *
    * @returns {Number}

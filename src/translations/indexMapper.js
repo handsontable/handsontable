@@ -101,24 +101,6 @@ class IndexMapper {
   }
 
   /**
-   * Get a map with given name.
-   *
-   * @param {String} name Name of the map.
-   * @return {Array|ValueMap|IndexMap|SkipMap}
-   */
-  getMap(name) {
-    if (isUndefined(name)) {
-      return this.skipCollection.get().concat(this.variousMappingsCollection.get());
-    }
-
-    if (this.skipCollection.has(name)) {
-      return this.skipCollection.get(name);
-    }
-
-    return this.variousMappingsCollection.get(name);
-  }
-
-  /**
    * Get physical index by its visual index.
    *
    * @param {Number} visualIndex Visual index.
