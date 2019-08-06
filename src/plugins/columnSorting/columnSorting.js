@@ -175,12 +175,14 @@ class ColumnSorting extends BasePlugin {
       this.hot.removeHook('afterGetColHeader', clearColHeader);
     });
 
-    if (this.indexesSequenceCache !== null) {
-      this.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
-      this.rowIndexMapper.unregisterMap(this.pluginKey);
-    }
+    this.hot.executeBatchOperations(() => {
+      if (this.indexesSequenceCache !== null) {
+        this.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
+        this.rowIndexMapper.unregisterMap(this.pluginKey);
+      }
 
-    this.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
+      this.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
+    });
 
     super.disablePlugin();
   }

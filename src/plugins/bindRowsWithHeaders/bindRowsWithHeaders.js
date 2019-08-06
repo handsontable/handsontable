@@ -75,6 +75,15 @@ class BindRowsWithHeaders extends BasePlugin {
   }
 
   /**
+   * Disables the plugin functionality for this Handsontable instance.
+   */
+  disablePlugin() {
+    this.rowIndexMapper.unregisterMap('bindRowsWithHeaders');
+
+    super.disablePlugin();
+  }
+
+  /**
    * On modify row header listener.
    *
    * @private
