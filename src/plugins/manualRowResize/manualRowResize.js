@@ -510,19 +510,27 @@ class ManualRowResize extends BasePlugin {
     const loadedManualRowHeights = this.loadManualRowHeights();
 
     if (typeof loadedManualColumnWidths !== 'undefined') {
-      loadedManualRowHeights.forEach((height, index) => {
-        this.rowHeightsMap.setValueAtIndex(index, height);
+      this.hot.executeBatchOperations(() => {
+        loadedManualRowHeights.forEach((height, index) => {
+          this.rowHeightsMap.setValueAtIndex(index, height);
+        });
       });
 
     } else if (Array.isArray(initialSetting)) {
-      initialSetting.forEach((height, index) => {
-        this.rowHeightsMap.setValueAtIndex(index, height);
+
+      this.hot.executeBatchOperations(() => {
+        initialSetting.forEach((height, index) => {
+          this.rowHeightsMap.setValueAtIndex(index, height);
+        });
       });
+
       priv.config = initialSetting;
 
     } else if (initialSetting === true && Array.isArray(priv.config)) {
-      priv.config.forEach((height, index) => {
-        this.rowHeightsMap.setValueAtIndex(index, height);
+      this.hot.executeBatchOperations(() => {
+        priv.config.forEach((height, index) => {
+          this.rowHeightsMap.setValueAtIndex(index, height);
+        });
       });
     }
   }
