@@ -158,4 +158,132 @@ describe('IndexMapper', () => {
     expect(indexMapper.getVisualIndex(5)).toBe(null);
     expect(indexMapper.getPhysicalIndex(5)).toBe(8);
   });
+
+  describe('moving indexes', () => {
+    it('should move single, given index', () => {
+      const indexMapper = new IndexMapper();
+      indexMapper.initToLength(10);
+
+      indexMapper.moveIndexes([8], 0); // [8, 0, 1, 2, 3, 4, 5, 6, 7, 9]
+      indexMapper.moveIndexes([3], 1); // [8, 2, 0, 1, 3, 4, 5, 6, 7, 9]
+      indexMapper.moveIndexes([5], 2);
+
+      expect(indexMapper.getIndexesSequence()).toEqual([8, 2, 4, 0, 1, 3, 5, 6, 7, 9]);
+    });
+
+    it('should not change order of indexes after specific move', () => {
+      const indexMapper = new IndexMapper();
+      indexMapper.initToLength(10);
+
+      indexMapper.moveIndexes([0], 0);
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      indexMapper.moveIndexes([9], 9);
+
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      indexMapper.moveIndexes([0, 1, 2], 0);
+
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      // move full array
+      indexMapper.moveIndexes([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 0);
+
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      // too high destination index
+      indexMapper.moveIndexes([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 100);
+
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      // too low destination index
+      indexMapper.moveIndexes([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], -1);
+    });
+
+    it('should change order of indexes in place', () => {
+      const indexMapper = new IndexMapper();
+      indexMapper.initToLength(10);
+
+      indexMapper.moveIndexes([9, 8, 7, 6, 5, 4, 3, 0, 1, 2], 0);
+      expect(indexMapper.getIndexesSequence()).toEqual([9, 8, 7, 6, 5, 4, 3, 0, 1, 2]);
+    });
+
+    describe('should move given indexes properly from the top to the bottom', () => {
+      it('ascending order of moved indexes', () => {
+        const indexMapper = new IndexMapper();
+        indexMapper.initToLength(10);
+
+        indexMapper.moveIndexes([0, 1, 2, 3], 5);
+        expect(indexMapper.getIndexesSequence()).toEqual([4, 5, 6, 7, 8, 0, 1, 2, 3, 9]);
+      });
+
+      it('descending order of moved indexes', () => {
+        const indexMapper = new IndexMapper();
+        indexMapper.initToLength(10);
+
+        indexMapper.moveIndexes([3, 2, 1, 0], 5);
+        expect(indexMapper.getIndexesSequence()).toEqual([4, 5, 6, 7, 8, 3, 2, 1, 0, 9]);
+      });
+
+      it('mixed order of moved indexes', () => {
+        const indexMapper = new IndexMapper();
+        indexMapper.initToLength(10);
+
+        indexMapper.moveIndexes([1, 3, 2, 0], 5);
+        expect(indexMapper.getIndexesSequence()).toEqual([4, 5, 6, 7, 8, 1, 3, 2, 0, 9]);
+      });
+    });
+
+    describe('should move given indexes properly from the bottom to the top', () => {
+      it('ascending order of moved indexes', () => {
+        const indexMapper = new IndexMapper();
+        indexMapper.initToLength(10);
+
+        indexMapper.moveIndexes([4, 5, 6, 7], 2);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 4, 5, 6, 7, 2, 3, 8, 9]);
+      });
+
+      it('descending order of moved indexes', () => {
+        const indexMapper = new IndexMapper();
+        indexMapper.initToLength(10);
+
+        indexMapper.moveIndexes([7, 6, 5, 4], 2);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 7, 6, 5, 4, 2, 3, 8, 9]);
+      });
+
+      it('mixed order of moved indexes', () => {
+        const indexMapper = new IndexMapper();
+        indexMapper.initToLength(10);
+
+        indexMapper.moveIndexes([7, 5, 4, 6], 2);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 7, 5, 4, 6, 2, 3, 8, 9]);
+      });
+    });
+
+    describe('should move given indexes properly when sequence of moves is mixed', () => {
+      it('ascending order of moved indexes', () => {
+        const indexMapper = new IndexMapper();
+        indexMapper.initToLength(10);
+
+        indexMapper.moveIndexes([1, 2, 6, 7], 4);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 3, 4, 5, 1, 2, 6, 7, 8, 9]);
+      });
+
+      it('descending order of moved indexes', () => {
+        const indexMapper = new IndexMapper();
+        indexMapper.initToLength(10);
+
+        indexMapper.moveIndexes([7, 6, 2, 1], 4);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 3, 4, 5, 7, 6, 2, 1, 8, 9]);
+      });
+
+      it('mixed order of moved indexes', () => {
+        const indexMapper = new IndexMapper();
+        indexMapper.initToLength(10);
+
+        indexMapper.moveIndexes([7, 2, 1, 6], 4);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 3, 4, 5, 7, 2, 1, 6, 8, 9]);
+      });
+    });
+  });
 });
