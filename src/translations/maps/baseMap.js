@@ -13,27 +13,6 @@ class BaseMap {
   }
 
   /**
-   * Set default values for elements from `0` to `n`, where `n` is equal to the handled variable.
-   *
-   * @param {Number} [length] Length of list.
-   */
-  setDefaultValues(length = this.list.length) {
-    this.list.length = 0;
-
-    if (isFunction(this.initValuesOrFn)) {
-      rangeEach(length - 1, index => this.list.push(this.initValuesOrFn(index)));
-
-    } else if (Array.isArray(this.initValuesOrFn)) {
-      this.list = this.initValuesOrFn.slice();
-
-    } else {
-      rangeEach(length - 1, () => this.list.push(this.initValuesOrFn));
-    }
-
-    this.runLocalHooks('change');
-  }
-
-  /**
    * Initialize list with default values for particular indexes.
    *
    * @param {Number} length New length of list.
@@ -113,6 +92,25 @@ class BaseMap {
    */
   getLength() {
     return this.getValues().length;
+  }
+
+  /**
+   * Set default values for elements from `0` to `n`, where `n` is equal to the handled variable.
+   *
+   * @private
+   * @param {Number} [length] Length of list.
+   */
+  setDefaultValues(length = this.list.length) {
+    this.list.length = 0;
+
+    if (isFunction(this.initValuesOrFn)) {
+      rangeEach(length - 1, index => this.list.push(this.initValuesOrFn(index)));
+
+    } else {
+      rangeEach(length - 1, () => this.list.push(this.initValuesOrFn));
+    }
+
+    this.runLocalHooks('change');
   }
 
   /**

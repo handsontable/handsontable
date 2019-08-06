@@ -35,9 +35,9 @@ class MapCollection {
     if (isDefined(map)) {
       map.clearLocalHooks();
       this.mappings.delete(name);
-    }
 
-    this.runLocalHooks('change', map);
+      this.runLocalHooks('change', map);
+    }
   }
 
   /**
@@ -48,7 +48,7 @@ class MapCollection {
    */
   get(name) {
     if (isUndefined(name)) {
-      return this.mappings.values();
+      return Array.from(this.mappings.values());
     }
 
     return this.mappings.get(name);

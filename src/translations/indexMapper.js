@@ -71,8 +71,14 @@ class IndexMapper {
       throw Error(`Mapper with name "${name}" is already registered.`);
     }
 
-    const numberOfIndexes = this.getNumberOfIndexes();
+    if (map instanceof SkipMap === true) {
+      this.skipCollection.register(name, map);
 
+    } else {
+      this.variousMappingsCollection.register(name, map);
+    }
+
+    const numberOfIndexes = this.getNumberOfIndexes();
     /*
       We initialize map ony when we have full information about number of indexes and the dataset is not empty. Otherwise it's unnecessary. Initialization of empty array
       would not give any positive changes. After initializing it with number of indexes equal to 0 the map would be still empty. What's more there would be triggered
@@ -82,15 +88,11 @@ class IndexMapper {
       map.init(numberOfIndexes);
     }
 
-    if (map instanceof SkipMap === true) {
-      return this.skipCollection.register(name, map);
-    }
-
-    return this.variousMappingsCollection.register(name, map);
+    return map;
   }
 
   /**
-   * Unregister the map with given name.
+   * Unregister a map with given name.
    *
    * @param {String} name Name of the map.
    */
