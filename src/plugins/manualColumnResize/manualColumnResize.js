@@ -175,19 +175,26 @@ class ManualColumnResize extends BasePlugin {
     const loadedManualColumnWidths = this.loadManualColumnWidths();
 
     if (typeof loadedManualColumnWidths !== 'undefined') {
-      loadedManualColumnWidths.forEach((width, index) => {
-        this.columnWidthsMap.setValueAtIndex(index, width);
+      this.hot.executeBatchOperations(() => {
+        loadedManualColumnWidths.forEach((width, index) => {
+          this.columnWidthsMap.setValueAtIndex(index, width);
+        });
       });
 
     } else if (Array.isArray(initialSetting)) {
-      initialSetting.forEach((width, index) => {
-        this.columnWidthsMap.setValueAtIndex(index, width);
+      this.hot.executeBatchOperations(() => {
+        initialSetting.forEach((width, index) => {
+          this.columnWidthsMap.setValueAtIndex(index, width);
+        });
       });
+
       priv.config = initialSetting;
 
     } else if (initialSetting === true && Array.isArray(priv.config)) {
-      priv.config.forEach((width, index) => {
-        this.columnWidthsMap.setValueAtIndex(index, width);
+      this.hot.executeBatchOperations(() => {
+        priv.config.forEach((width, index) => {
+          this.columnWidthsMap.setValueAtIndex(index, width);
+        });
       });
     }
   }
