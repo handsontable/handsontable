@@ -17,6 +17,7 @@ declare namespace _Handsontable {
     clear(): void;
     colOffset(): number;
     colToProp(col: number): string | number;
+    container: HTMLElement;
     countCols(): number;
     countEmptyCols(ending?: boolean): number;
     countEmptyRows(ending?: boolean): number;
@@ -31,6 +32,7 @@ declare namespace _Handsontable {
     destroy(): void;
     destroyEditor(revertOriginal?: boolean, prepareEditorIfNeeded?: boolean): void;
     emptySelectedCells(): void;
+    forceFullRender: boolean;
     getActiveEditor<T extends Handsontable._editors.Base>(): T | undefined;
     getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
     getCellEditor<T extends Handsontable._editors.Base>(row: number, col: number): T;
@@ -78,6 +80,7 @@ declare namespace _Handsontable {
     isColumnModificationAllowed(): boolean;
     isEmptyCol(col: number): boolean;
     isEmptyRow(row: number): boolean;
+    isDestroyed: boolean;
     isListening(): boolean;
     listen(): void;
     loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[]): void;
@@ -88,6 +91,10 @@ declare namespace _Handsontable {
     removeCellMeta(row: number, col: number, key: keyof Handsontable.CellMeta): void;
     removeHook<K extends keyof Handsontable.Hooks.Events>(key: K, callback: Handsontable.Hooks.Events[K]): void;
     render(): void;
+    renderCall: boolean;
+    rootDocument: Document;
+    rootElement: HTMLElement;
+    rootWindow: Window;
     rowOffset(): number;
     runHooks(key: keyof Handsontable.Hooks.Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
     // Requires TS 3.0:
@@ -108,6 +115,7 @@ declare namespace _Handsontable {
     setDataAtRowProp(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: string): void;
     spliceCol(col: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     spliceRow(row: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
+    table: HTMLTableElement;
     toHTML(): string;
     toPhysicalColumn(column: number): number;
     toPhysicalRow(row: number): number;
@@ -119,7 +127,6 @@ declare namespace _Handsontable {
     validateCells(callback?: (valid: boolean) => void): void;
     validateColumns(columns: number[], callback?: (valid: boolean) => void): void;
     validateRows(rows: number[], callback?: (valid: boolean) => void): void;
-    isDestroyed: boolean;
   }
 }
 
@@ -711,7 +718,8 @@ declare namespace Handsontable {
       isPluginsReady: boolean;
       enabled: boolean;
       initialized: boolean;
-      hot: any;
+      hot: _Handsontable.Core;
+      t: RecordTranslator;
 
       constructor(hotInstance?: _Handsontable.Core)
 
