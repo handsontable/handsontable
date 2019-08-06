@@ -133,6 +133,42 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1);
   });
 
+  it('should keep proper row heights after inserting row', () => {
+    handsontable({
+      manualRowResize: [void 0, void 0, 120]
+    });
+
+    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 1)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 2)).toBe(120);
+    expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight + 1);
+
+    alter('insert_row', 0);
+
+    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 1)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 2)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 3)).toBe(120);
+  });
+
+  it('should keep proper row heights after removing row', () => {
+    handsontable({
+      manualRowResize: [void 0, void 0, 120]
+    });
+
+    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 1)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 2)).toBe(120);
+    expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight + 1);
+
+    alter('remove_row', 0);
+
+    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 1)).toBe(120);
+    expect(rowHeight(spec().$container, 2)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight + 1);
+  });
+
   it('should trigger afterRowResize event after row height changes', () => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
