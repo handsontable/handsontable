@@ -102,7 +102,7 @@ class AutocompleteEditor extends HandsontableEditor {
     choicesListHot.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth + 2 : void 0,
-      afterRenderer: (TD, row, col, prop, value) => {
+      renderer: (instance, TD, row, col, prop, value) => {
         const { filteringCaseSensitive, allowHtml } = this.cellProperties;
         const query = this.query;
         let cellValue = stringify(value);
@@ -121,21 +121,6 @@ class AutocompleteEditor extends HandsontableEditor {
         TD.innerHTML = cellValue;
       },
       autoColumnSize: true,
-      modifyColWidth(width, col) {
-        // workaround for <strong> text overlapping the dropdown, not really accurate
-        const autoColumnSize = this.getPlugin('autoColumnSize');
-        let columnWidth = width;
-
-        if (autoColumnSize && autoColumnSize.columnWidthsMap) {
-          const cachedWidth = autoColumnSize.getColumnWidth(col, void 0, false);
-
-          if (cachedWidth) {
-            columnWidth = cachedWidth;
-          }
-        }
-
-        return trimDropdown ? columnWidth : columnWidth + 15;
-      }
     });
 
     // Add additional space for autocomplete holder

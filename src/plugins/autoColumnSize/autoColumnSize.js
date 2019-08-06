@@ -12,7 +12,7 @@ import { ViewportColumnsCalculator } from './../../3rdparty/walkontable/src';
 import { ValueMap } from './../../translations';
 
 const privatePool = new WeakMap();
-const COLUMN_SIZE_MAP_NAME = 'autoColumnWidths';
+const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
 
 /**
  * @plugin AutoColumnSize
@@ -219,8 +219,10 @@ class AutoColumnSize extends BasePlugin {
     });
 
     if (this.ghostTable.columns.length) {
-      this.ghostTable.getWidths((col, width) => {
-        this.columnWidthsMap.setValueAtIndex(col, width);
+      this.hot.executeBatchOperations(() => {
+        this.ghostTable.getWidths((col, width) => {
+          this.columnWidthsMap.setValueAtIndex(col, width);
+        });
       });
       this.ghostTable.clean();
     }
@@ -340,7 +342,7 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Gets the calculated column width.
    *
-   * @param {Number} column Column index.
+   * @param {Number} column Visual column index.
    * @param {Number} [defaultWidth] Default column width. It will be picked up if no calculated width found.
    * @param {Boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
    * @returns {Number}
@@ -349,7 +351,7 @@ class AutoColumnSize extends BasePlugin {
     let width = defaultWidth;
 
     if (width === void 0) {
-      width = this.columnWidthsMap.getValueAtIndex(column);
+      width = this.columnWidthsMap.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
       if (keepMinimum && typeof width === 'number') {
         width = Math.max(width, ViewportColumnsCalculator.DEFAULT_WIDTH);
@@ -431,11 +433,14 @@ class AutoColumnSize extends BasePlugin {
    */
   clearCache(columns = []) {
     if (columns.length) {
-      arrayEach(columns, (physicalIndex) => {
-        this.columnWidthsMap.setValueAtIndex(physicalIndex, void 0);
+      this.hot.executeBatchOperations(() => {
+        arrayEach(columns, (physicalIndex) => {
+          this.columnWidthsMap.setValueAtIndex(physicalIndex, void 0);
+        });
       });
+
     } else {
-      this.columnWidthsMap.setDefaultValues();
+      this.columnWidthsMap.clear();
     }
   }
 
@@ -509,9 +514,9 @@ class AutoColumnSize extends BasePlugin {
    * On before column resize listener.
    *
    * @private
-   * @param {Number} col
-   * @param {Number} size
-   * @param {Boolean} isDblClick
+   * @param {Number} col Visual index of the resized column.
+   * @param {Number} size Calculated new column width.
+   * @param {Boolean} isDblClick Flag that determines whether there was a double-click.
    * @returns {Number}
    */
   onBeforeColumnResize(col, size, isDblClick) {
