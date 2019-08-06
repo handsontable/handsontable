@@ -9,7 +9,7 @@ import { ValueMap } from './../../translations';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
-const COLUMN_WIDTHS_MAP_NAME = 'columnWidths';
+const COLUMN_WIDTHS_MAP_NAME = 'ManualColumnResize';
 const PERSISTENT_STATE_KEY = 'manualColumnWidths';
 const privatePool = new WeakMap();
 /**
