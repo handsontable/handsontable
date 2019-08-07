@@ -28,30 +28,14 @@ it('should work with get, and set functions properly', () => {
   expect(indexMap.getLength()).toEqual(3);
 });
 
-it('should init map properly when passing function as initialization property', () => {
-  const indexMap = new IndexMap(index => index + 10);
-
-  indexMap.init(3);
-
-  expect(indexMap.getValues()).toEqual([10, 11, 12]);
-});
-
-it('should init map properly when passing value as initialization property', () => {
-  const indexMap = new IndexMap(1);
-
-  indexMap.init(3);
-
-  expect(indexMap.getValues()).toEqual([1, 1, 1]);
-});
-
 it('should clear values properly', () => {
-  const indexMap = new IndexMap(index => index + 5);
+  const indexMap = new IndexMap();
 
   indexMap.init(3);
   indexMap.setValues([1, 2, 0]);
   indexMap.clear();
 
-  expect(indexMap.getValues()).toEqual([5, 6, 7]);
+  expect(indexMap.getValues()).toEqual([0, 1, 2]);
 });
 
 describe('Triggering `change` hook', () => {

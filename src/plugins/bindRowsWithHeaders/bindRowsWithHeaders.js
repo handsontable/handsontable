@@ -67,7 +67,7 @@ class BindRowsWithHeaders extends BasePlugin {
 
     const MapStrategy = bindTypeToMapStrategy.get(bindType);
 
-    this.headerIndexes = this.rowIndexMapper.registerMap('bindRowsWithHeaders', new MapStrategy());
+    this.headerIndexes = this.rowIndexMapper.registerMap('bindRowsWithHeaders', new MapStrategy(index => index));
 
     this.addHook('modifyRowHeader', row => this.onModifyRowHeader(row));
 

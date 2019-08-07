@@ -7,7 +7,7 @@ import localHooks from '../../mixins/localHooks';
  * Map from index to value.
  */
 class BaseMap {
-  constructor(initValueOrFn = (index => index)) {
+  constructor(initValueOrFn) {
     this.list = [];
     this.initValueOrFn = initValueOrFn;
   }

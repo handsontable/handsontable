@@ -81,7 +81,7 @@ class ManualRowResize extends BasePlugin {
       return;
     }
 
-    this.rowHeightsMap = new ValueMap(() => void 0);
+    this.rowHeightsMap = new ValueMap();
     this.rowHeightsMap.addLocalHook('init', () => this.onMapInit());
     this.rowIndexMapper.registerMap(ROW_HEIGHTS_MAP_NAME, this.rowHeightsMap);
 

@@ -5,7 +5,7 @@ describe('MemoryLeakTest', () => {
   });
 
   it('after all Handsontable instances are destroy()\'d, there should be no more registered maps for index mappers', () => {
-    expect(Handsontable._getRegisteredMapsCounter()).toEqual([]);
+    expect(Handsontable._getRegisteredMapsCounter()).toBe(0);
   });
 
   it('should not leave any `testContainer`s (created in `beforeEach`) after all the tests have finished', () => {

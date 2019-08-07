@@ -79,7 +79,7 @@ class ManualColumnResize extends BasePlugin {
       return;
     }
 
-    this.columnWidthsMap = new ValueMap(() => void 0);
+    this.columnWidthsMap = new ValueMap();
     this.columnWidthsMap.addLocalHook('init', () => this.onMapInit());
     this.columnIndexMapper.registerMap(COLUMN_WIDTHS_MAP_NAME, this.columnWidthsMap);
 

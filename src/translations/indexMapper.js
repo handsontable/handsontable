@@ -218,6 +218,7 @@ class IndexMapper {
     const physicalMovedIndexes = arrayMap(movedIndexes, row => this.getPhysicalIndex(row));
 
     this.executeBatchOperations(() => {
+      // Removing indexes without re-indexing.
       this.setIndexesSequence(getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes));
 
       // When item(s) are moved after the last item we assign new index.
@@ -240,6 +241,7 @@ class IndexMapper {
         return skippedRowsSum;
       }, 0);
 
+      // Adding indexes without re-indexing.
       this.setIndexesSequence(getListWithInsertedItems(this.getIndexesSequence(), finalIndex + skippedRowsToTargetIndex, physicalMovedIndexes));
     });
   }
