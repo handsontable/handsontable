@@ -1,5 +1,5 @@
 import IndexMapper from 'handsontable/translations/indexMapper';
-import { SkipMap, ValueMap } from 'handsontable/translations';
+import { SkipMap, ValueMap, IndexMap } from 'handsontable/translations';
 
 describe('IndexMapper', () => {
   it('should fill mappers with initial values at start', () => {
@@ -164,6 +164,158 @@ describe('IndexMapper', () => {
     expect(indexMapper.getPhysicalIndex(5)).toBe(8);
 
     indexMapper.unregisterMap('skipMap', skipMap);
+  });
+
+  describe('removing indexes', () => {
+    it('removing multiple indexes from the start', () => {
+      const indexMapper = new IndexMapper();
+      const indexMap = new IndexMap();
+      const valueMap = new ValueMap(index => index + 2);
+      const skipMap = new SkipMap();
+
+      indexMapper.registerMap('indexMap', indexMap);
+      indexMapper.registerMap('valueMap', valueMap);
+      indexMapper.registerMap('skipMap', skipMap);
+      indexMapper.initToLength(10);
+      skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+
+      indexMapper.removeIndexes([0, 1, 2]);
+
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6]);
+      expect(indexMapper.getNotSkippedIndexes()).toEqual([0, 2, 4, 6]);
+      expect(indexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6]);
+      expect(valueMap.getValues()).toEqual([5, 6, 7, 8, 9, 10, 11]);
+      expect(skipMap.getValues()).toEqual([false, true, false, true, false, true, false]);
+
+      indexMapper.unregisterMap('indexMap');
+      indexMapper.unregisterMap('valueMap');
+      indexMapper.unregisterMap('skipMap');
+    });
+
+    it('removing multiple indexes from the middle', () => {
+      const indexMapper = new IndexMapper();
+      const indexMap = new IndexMap();
+      const valueMap = new ValueMap(index => index + 2);
+      const skipMap = new SkipMap();
+
+      indexMapper.registerMap('indexMap', indexMap);
+      indexMapper.registerMap('valueMap', valueMap);
+      indexMapper.registerMap('skipMap', skipMap);
+      indexMapper.initToLength(10);
+      skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+
+      indexMapper.removeIndexes([4, 5]);
+
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+      expect(indexMapper.getNotSkippedIndexes()).toEqual([1, 3, 5, 7]);
+      expect(indexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+      expect(valueMap.getValues()).toEqual([2, 3, 4, 5, 8, 9, 10, 11]);
+      expect(skipMap.getValues()).toEqual([true, false, true, false, true, false, true, false]);
+
+      indexMapper.unregisterMap('indexMap');
+      indexMapper.unregisterMap('valueMap');
+      indexMapper.unregisterMap('skipMap');
+    });
+
+    it('removing multiple indexes from the end', () => {
+      const indexMapper = new IndexMapper();
+      const indexMap = new IndexMap();
+      const valueMap = new ValueMap(index => index + 2);
+      const skipMap = new SkipMap();
+
+      indexMapper.registerMap('indexMap', indexMap);
+      indexMapper.registerMap('valueMap', valueMap);
+      indexMapper.registerMap('skipMap', skipMap);
+      indexMapper.initToLength(10);
+      skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+
+      indexMapper.removeIndexes([8, 9]);
+
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+      expect(indexMapper.getNotSkippedIndexes()).toEqual([1, 3, 5, 7]);
+      expect(indexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+      expect(valueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 8, 9]);
+      expect(skipMap.getValues()).toEqual([true, false, true, false, true, false, true, false]);
+
+      indexMapper.unregisterMap('indexMap');
+      indexMapper.unregisterMap('valueMap');
+      indexMapper.unregisterMap('skipMap');
+    });
+
+    it('removing multiple indexes with mixed order #1', () => {
+      const indexMapper = new IndexMapper();
+      const indexMap = new IndexMap();
+      const valueMap = new ValueMap(index => index + 2);
+      const skipMap = new SkipMap();
+
+      indexMapper.registerMap('indexMap', indexMap);
+      indexMapper.registerMap('valueMap', valueMap);
+      indexMapper.registerMap('skipMap', skipMap);
+      indexMapper.initToLength(10);
+      skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+
+      indexMapper.removeIndexes([0, 1, 3, 5]);
+
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
+      expect(indexMapper.getNotSkippedIndexes()).toEqual([3, 5]);
+      expect(indexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
+      expect(valueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
+      expect(skipMap.getValues()).toEqual([true, true, true, false, true, false]);
+
+      indexMapper.unregisterMap('indexMap');
+      indexMapper.unregisterMap('valueMap');
+      indexMapper.unregisterMap('skipMap');
+    });
+
+    it('removing multiple indexes with mixed order #2', () => {
+      const indexMapper = new IndexMapper();
+      const indexMap = new IndexMap();
+      const valueMap = new ValueMap(index => index + 2);
+      const skipMap = new SkipMap();
+
+      indexMapper.registerMap('indexMap', indexMap);
+      indexMapper.registerMap('valueMap', valueMap);
+      indexMapper.registerMap('skipMap', skipMap);
+      indexMapper.initToLength(10);
+      skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+
+      indexMapper.removeIndexes([5, 3, 1, 0]);
+
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
+      expect(indexMapper.getNotSkippedIndexes()).toEqual([3, 5]);
+      expect(indexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
+      expect(valueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
+      expect(skipMap.getValues()).toEqual([true, true, true, false, true, false]);
+
+      indexMapper.unregisterMap('indexMap');
+      indexMapper.unregisterMap('valueMap');
+      indexMapper.unregisterMap('skipMap');
+    });
+
+    it('removing multiple indexes with mixed order #3', () => {
+      const indexMapper = new IndexMapper();
+      const indexMap = new IndexMap();
+      const valueMap = new ValueMap(index => index + 2);
+      const skipMap = new SkipMap();
+
+      indexMapper.registerMap('indexMap', indexMap);
+      indexMapper.registerMap('valueMap', valueMap);
+      indexMapper.registerMap('skipMap', skipMap);
+      indexMapper.initToLength(10);
+      skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+
+      indexMapper.removeIndexes([0, 5, 3, 1]);
+
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
+      expect(indexMapper.getNotSkippedIndexes()).toEqual([3, 5]);
+      expect(indexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
+      expect(valueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
+      expect(skipMap.getValues()).toEqual([true, true, true, false, true, false]);
+
+      indexMapper.unregisterMap('indexMap');
+      indexMapper.unregisterMap('valueMap');
+      indexMapper.unregisterMap('skipMap');
+    });
   });
 
   describe('moving indexes', () => {
