@@ -10,7 +10,7 @@ import SamplesGenerator from './../../utils/samplesGenerator';
 import { isPercentValue } from './../../helpers/string';
 import { ValueMap } from './../../translations';
 
-const ROW_WIDTHS_MAP_NAME = 'autoColumnWidths';
+const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 
 /**
  * @plugin AutoRowSize
@@ -79,7 +79,7 @@ class AutoRowSize extends BasePlugin {
      */
     this.rowHeightsMap = void 0;
     /**
-     * 
+     * Columns header's height cache.
      */
     this.headerRowsHeights = new Map();
     /**
@@ -122,7 +122,7 @@ class AutoRowSize extends BasePlugin {
     this.inProgress = false;
 
     // moved to constructor to allow auto-sizing the rows when the plugin is disabled
-    // this.addHook('beforeRowResize', (row, size, isDblClick) => this.onBeforeRowResize(row, size, isDblClick));
+    this.addHook('beforeRowResize', (row, size, isDblClick) => this.onBeforeRowResize(row, size, isDblClick));
   }
 
   /**
@@ -143,20 +143,18 @@ class AutoRowSize extends BasePlugin {
       return;
     }
 
-    this.rowHeightsMap = new ValueMap(() => void 0);
+    this.rowHeightsMap = new ValueMap();
     this.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
 
     this.setSamplingOptions();
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', changes => this.onBeforeChange(changes));
-    this.addHook('beforeColumnMove', () => this.recalculateAllRowsHeight());
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
-    // this.addHook('beforeColumnSort', () => this.clearCache());
     this.addHook('beforeRender', force => this.onBeforeRender(force));
-    // this.addHook('beforeRowMove', (rowStart, rowEnd) => this.onBeforeRowMove(rowStart, rowEnd));
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
+
     super.enablePlugin();
   }
 
@@ -197,13 +195,14 @@ class AutoRowSize extends BasePlugin {
       }
     });
     if (this.ghostTable.rows.length) {
-      this.ghostTable.getHeights((row, height) => {
-        if (row < 0) {
-          this.headerRowsHeights.set(row, height);
-        } else {
-          this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), height);
-        }
-
+      this.hot.executeBatchOperations(() => {
+        this.ghostTable.getHeights((row, height) => {
+          if (row < 0) {
+            this.headerRowsHeights.set(row, height);
+          } else {
+            this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), height);
+          }
+        });
       });
       this.ghostTable.clean();
     }
@@ -466,10 +465,10 @@ class AutoRowSize extends BasePlugin {
   onBeforeRowResize(row, size, isDblClick) {
     let newSize = size;
 
-    if (isDblClick) {
+    if (this.isEnabled() && isDblClick) {
       this.calculateRowsHeight(row, void 0, true);
 
-      newSize = this.getRowHeight(row);
+      newSize = this.getRowHeight(row, void 0);
     }
 
     return newSize;
@@ -519,6 +518,7 @@ class AutoRowSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.rowIndexMapper.unregisterMap(ROW_WIDTHS_MAP_NAME);
     this.headerRowsHeights.clear();
     this.ghostTable.clean();
     super.destroy();
