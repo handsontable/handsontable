@@ -264,6 +264,7 @@ declare namespace Handsontable {
       'STATE_FINISHED';
 
     abstract class Base {
+      hot: _Handsontable.Core;
       instance: _Handsontable.Core;
       row: number;
       col: number;
