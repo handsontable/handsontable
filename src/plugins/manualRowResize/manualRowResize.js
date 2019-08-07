@@ -534,6 +534,15 @@ class ManualRowResize extends BasePlugin {
       });
     }
   }
+
+  /**
+   * Destroys the plugin instance.
+   */
+  destroy() {
+    this.rowIndexMapper.unregisterMap(ROW_HEIGHTS_MAP_NAME);
+
+    super.destroy();
+  }
 }
 
 registerPlugin('manualRowResize', ManualRowResize);
