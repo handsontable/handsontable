@@ -155,11 +155,19 @@ describe('Walkontable.Selection', () => {
 
     wt.scrollViewportVertically(17);
     wt.draw();
-    expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
+
+    let expectedFirstVisibleRow = 10;
+    if(wt.wtSettings.getSetting("scrollbarHeight") >= 17) {
+      // on Windows scrollbar is 17px, on macOS it is 15px
+      // taller scrollbar means less space for rows
+      expectedFirstVisibleRow = 11;
+    }
+
+    expect(wt.wtTable.getFirstVisibleRow()).toEqual(expectedFirstVisibleRow);
     expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);
 
     wt.selections.getCell().clear();
-    expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
+    expect(wt.wtTable.getFirstVisibleRow()).toEqual(expectedFirstVisibleRow);
     expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);
   });
 

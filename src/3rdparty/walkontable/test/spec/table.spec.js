@@ -116,8 +116,18 @@ describe('WalkontableTable', () => {
       const result = wt.wtTable.getCell(new Walkontable.CellCoords(i, 6));
       results.push(result instanceof HTMLElement ? HTMLElement : result);
     }
-    expect(results).toEqual([-1, -1, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement,
-      HTMLElement, HTMLElement, -2, -2, -2, -2, -2, -2, -2, -2]);
+
+    let expectedGetCellOutputForRowsInFirstColumn = [-1, -1, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement,
+      HTMLElement, HTMLElement, -2, -2, -2, -2, -2, -2, -2, -2];
+    if(wt.wtSettings.getSetting("scrollbarHeight") >= 17) {
+      // on Windows scrollbar is 17px, on macOS it is 15px
+      // taller scrollbar means less space for rows
+      expectedGetCellOutputForRowsInFirstColumn = [-1, -1, -1, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement,
+        HTMLElement, HTMLElement, -2, -2, -2, -2, -2, -2, -2, -2];
+    }
+
+    expect(results).toEqual(expectedGetCellOutputForRowsInFirstColumn);
+
   });
 
   it('getCell should only return cells from rendered rows and columns (with fixedRowsBottom)', () => {
