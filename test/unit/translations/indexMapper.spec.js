@@ -60,6 +60,9 @@ describe('IndexMapper', () => {
 
     expect(indexMapper.variousMappingsCollection.get('uniqueName2')).toBe(valueMap);
     expect(indexMapper.variousMappingsCollection.getLength()).toBe(1);
+
+    indexMapper.unregisterMap('uniqueName');
+    indexMapper.unregisterMap('uniqueName2');
   });
 
   it('should unregister map', () => {
@@ -126,6 +129,8 @@ describe('IndexMapper', () => {
 
     // 2 maps were initialized and 3 `setValueAtIndex` functions were called.
     expect(changeCallback.calls.count()).toEqual(5);
+
+    indexMapper.unregisterMap('uniqueName');
   });
 
   it('should translate indexes from visual to physical and the other way round properly', () => {
@@ -157,6 +162,8 @@ describe('IndexMapper', () => {
     expect(indexMapper.getPhysicalIndex(2)).toBe(4);
     expect(indexMapper.getVisualIndex(5)).toBe(null);
     expect(indexMapper.getPhysicalIndex(5)).toBe(8);
+
+    indexMapper.unregisterMap('skipMap', skipMap);
   });
 
   describe('moving indexes', () => {

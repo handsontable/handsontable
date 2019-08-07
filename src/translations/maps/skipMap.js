@@ -4,8 +4,8 @@ import ValueMap from './valueMap';
  * Map from physical indexes to boolean value.
  */
 class SkipMap extends ValueMap {
-  constructor() {
-    super(false);
+  constructor(initValueOrFn = false) {
+    super(initValueOrFn);
   }
 }
 

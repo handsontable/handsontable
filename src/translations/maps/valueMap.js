@@ -13,7 +13,7 @@ class ValueMap extends BaseMap {
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
-    this.list = getListWithInsertedItems(this.list, insertionIndex, insertedIndexes, this.initValuesOrFn);
+    this.list = getListWithInsertedItems(this.list, insertionIndex, insertedIndexes, this.initValueOrFn);
 
     super.insert(insertionIndex, insertedIndexes);
   }

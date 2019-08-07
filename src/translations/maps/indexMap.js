@@ -6,6 +6,11 @@ import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndex
  * Map from visual index to physical index.
  */
 class IndexMap extends BaseMap {
+  constructor() {
+    // Not handling custom init function or init value.
+    super(index => index);
+  }
+
   /**
    * Add values to list and reorganize.
    *
