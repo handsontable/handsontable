@@ -30,9 +30,9 @@ class MapCollection {
    * @param {String} name Unique name of the indexes list.
    */
   unregister(name) {
-    if (this.has(name)) {
-      const map = this.mappings.get(name);
+    const map = this.mappings.get(name);
 
+    if (isDefined(map)) {
       map.clearLocalHooks();
       this.mappings.delete(name);
 
@@ -52,16 +52,6 @@ class MapCollection {
     }
 
     return this.mappings.get(name);
-  }
-
-  /**
-   * Determines if there is registered map under given name.
-   *
-   * @param {String} name Unique name of the indexes list.
-   * @returns {Boolean}
-   */
-  has(name) {
-    return this.mappings.has(name);
   }
 
   /**
