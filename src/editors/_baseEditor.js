@@ -367,6 +367,66 @@ class BaseEditor {
   }
 
   /**
+   * Gets HTMLTableCellElement of the edited cell if exist.
+   *
+   * @public
+   * @returns {string}
+   */
+  getEditedCellsZIndex() {
+    const editorSection = this.checkEditorSection();
+
+    switch (editorSection) {
+      case 'top':
+        return '101';
+      case 'top-left-corner':
+      case 'bottom-left-corner':
+        return '103';
+      case 'left':
+      case 'bottom':
+        return '102';
+      default:
+        // return '-1'; // 'auto' would be preferable but -1 was introduced in c78dc0c for some reason
+        return 'auto'; // 'auto' would be preferable but -1 was introduced in c78dc0c for some reason
+    }
+  }
+
+  /**
+   * Gets HTMLTableCellElement of the edited cell if exist.
+   *
+   * @public
+   * @returns {HTMLTableCellElement|undefined}
+   */
+  getEditedCell() {
+    const { wtOverlays, wtTable } = this.hot.view.wt;
+    const editorSection = this.checkEditorSection();
+    const coords = new CellCoords(this.row, this.col);
+    let editedCell;
+
+    switch (editorSection) {
+      case 'top':
+        editedCell = wtOverlays.topOverlay.clone.wtTable.getCell(coords);
+        break;
+      case 'top-left-corner':
+        editedCell = wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell(coords);
+        break;
+      case 'bottom-left-corner':
+        editedCell = wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
+        break;
+      case 'left':
+        editedCell = wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
+        break;
+      case 'bottom':
+        editedCell = wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
+        break;
+      default:
+        editedCell = wtTable.getCell(coords);
+        break;
+    }
+
+    return editedCell < 0 ? void 0 : editedCell;
+  }
+
+  /**
    * Returns name of the overlay, where editor is placed.
    *
    * @private
