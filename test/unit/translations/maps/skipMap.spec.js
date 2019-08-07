@@ -45,13 +45,13 @@ it('should init map properly when passing value as initialization property', () 
 });
 
 it('should clear values properly', () => {
-  const skipMap = new SkipMap(index => index % 2 === 0);
+  const skipMap = new SkipMap(index => index % 3 === 0);
 
   skipMap.init(3);
   skipMap.setValues([false, false, true]);
   skipMap.clear();
 
-  expect(skipMap.getValues()).toEqual([true, false, true]);
+  expect(skipMap.getValues()).toEqual([true, false, false]);
 });
 
 describe('Triggering `change` hook', () => {

@@ -100,7 +100,7 @@ class BindRowsWithHeaders extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.rowIndexMapper.skipCollection.unregister('bindRowsWithHeaders');
+    this.rowIndexMapper.unregisterMap('bindRowsWithHeaders');
 
     super.destroy();
   }
