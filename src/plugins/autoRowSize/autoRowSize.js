@@ -327,7 +327,6 @@ class AutoRowSize extends BasePlugin {
    * @returns {Number}
    */
   getRowHeight(row, defaultHeight = void 0) {
-    // const cachedHeight = this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));
     const cachedHeight = row < 0 ? this.headerRowsHeights.get(row) : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));
     let height = defaultHeight;
 
