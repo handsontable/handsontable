@@ -1,5 +1,59 @@
 import { SkipMap } from 'handsontable/translations';
 
+it('should work with get, and set functions properly', () => {
+  const skipMap = new SkipMap();
+
+  skipMap.setValueAtIndex(0, true);
+  skipMap.setValueAtIndex(1, true);
+  skipMap.setValueAtIndex(2, false);
+
+  expect(skipMap.getValues()).toEqual([]);
+  expect(skipMap.getLength()).toEqual(0);
+
+  skipMap.init(3);
+
+  expect(skipMap.getValues()).toEqual([false, false, false]);
+  expect(skipMap.getLength()).toEqual(3);
+
+  skipMap.setValueAtIndex(0, false);
+  skipMap.setValueAtIndex(1, false);
+  skipMap.setValueAtIndex(2, true);
+
+  expect(skipMap.getValues()).toEqual([false, false, true]);
+  expect(skipMap.getLength()).toEqual(3);
+
+  skipMap.setValues([true, false, true]);
+
+  expect(skipMap.getValues()).toEqual([true, false, true]);
+  expect(skipMap.getLength()).toEqual(3);
+});
+
+it('should init map properly when passing function as initialization property', () => {
+  const skipMap = new SkipMap(index => index % 2 === 0);
+
+  skipMap.init(3);
+
+  expect(skipMap.getValues()).toEqual([true, false, true]);
+});
+
+it('should init map properly when passing value as initialization property', () => {
+  const skipMap = new SkipMap(true);
+
+  skipMap.init(3);
+
+  expect(skipMap.getValues()).toEqual([true, true, true]);
+});
+
+it('should clear values properly', () => {
+  const skipMap = new SkipMap(index => index % 2 === 0);
+
+  skipMap.init(3);
+  skipMap.setValues([false, false, true]);
+  skipMap.clear();
+
+  expect(skipMap.getValues()).toEqual([true, false, true]);
+});
+
 describe('Triggering `change` hook', () => {
   it('should trigger `change` hook on initialization once', () => {
     const skipMap = new SkipMap();

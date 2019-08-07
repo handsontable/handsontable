@@ -7,9 +7,9 @@ import localHooks from '../../mixins/localHooks';
  * Map from index to value.
  */
 class BaseMap {
-  constructor(initValuesOrFn = (index => index)) {
+  constructor(initValueOrFn = (index => index)) {
     this.list = [];
-    this.initValuesOrFn = initValuesOrFn;
+    this.initValueOrFn = initValueOrFn;
   }
 
   /**
@@ -103,11 +103,11 @@ class BaseMap {
   setDefaultValues(length = this.list.length) {
     this.list.length = 0;
 
-    if (isFunction(this.initValuesOrFn)) {
-      rangeEach(length - 1, index => this.list.push(this.initValuesOrFn(index)));
+    if (isFunction(this.initValueOrFn)) {
+      rangeEach(length - 1, index => this.list.push(this.initValueOrFn(index)));
 
     } else {
-      rangeEach(length - 1, () => this.list.push(this.initValuesOrFn));
+      rangeEach(length - 1, () => this.list.push(this.initValueOrFn));
     }
 
     this.runLocalHooks('change');
