@@ -119,7 +119,7 @@ describe('WalkontableTable', () => {
 
     let expectedGetCellOutputForRowsInFirstColumn = [-1, -1, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement,
       HTMLElement, HTMLElement, -2, -2, -2, -2, -2, -2, -2, -2];
-    if(wt.wtSettings.getSetting("scrollbarHeight") >= 17) {
+    if (wt.wtSettings.getSetting('scrollbarHeight') >= 17) {
       // on Windows scrollbar is 17px, on macOS it is 15px
       // taller scrollbar means less space for rows
       expectedGetCellOutputForRowsInFirstColumn = [-1, -1, -1, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement,

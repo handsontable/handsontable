@@ -157,7 +157,7 @@ describe('Walkontable.Selection', () => {
     wt.draw();
 
     let expectedFirstVisibleRow = 10;
-    if(wt.wtSettings.getSetting("scrollbarHeight") >= 17) {
+    if (wt.wtSettings.getSetting('scrollbarHeight') >= 17) {
       // on Windows scrollbar is 17px, on macOS it is 15px
       // taller scrollbar means less space for rows
       expectedFirstVisibleRow = 11;
