@@ -6,6 +6,7 @@ import SkipMap from './maps/skipMap';
 import MapCollection from './mapCollection';
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
+import { isDefined } from '../helpers/mixed';
 
 class IndexMapper {
   constructor() {
@@ -288,11 +289,11 @@ class IndexMapper {
    *
    * @private
    * @param {Number} firstInsertedVisualIndex First inserted visual index.
-   * @param {Number} firstInsertedPhysicalIndex First inserted physical index.
    * @param {Number} amountOfIndexes Amount of inserted indexes.
    */
-  insertIndexes(firstInsertedVisualIndex, firstInsertedPhysicalIndex, amountOfIndexes) {
+  insertIndexes(firstInsertedVisualIndex, amountOfIndexes) {
     const nthVisibleIndex = this.getNotSkippedIndexes()[firstInsertedVisualIndex];
+    const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex) ? nthVisibleIndex : this.getNumberOfIndexes();
     const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
