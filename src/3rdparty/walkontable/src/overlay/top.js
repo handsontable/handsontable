@@ -10,6 +10,7 @@ import {
   resetCssTransform,
 } from './../../../../helpers/dom/element';
 import { arrayEach } from './../../../../helpers/array';
+import TopOverlayTable from './table/top';
 import Overlay from './_base';
 
 /**
@@ -22,6 +23,10 @@ class TopOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_TOP);
+  }
+
+  createTable(...args) {
+    return new TopOverlayTable(...args);
   }
 
   /**

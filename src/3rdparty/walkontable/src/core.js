@@ -32,7 +32,7 @@ class Walkontable {
       this.cloneSource = settings.cloneSource;
       this.cloneOverlay = settings.cloneOverlay;
       this.wtSettings = settings.cloneSource.wtSettings;
-      this.wtTable = new Table(this, settings.table, settings.wtRootElement);
+      this.wtTable = this.cloneOverlay.createTable(this, settings.table);
       this.wtScroll = new Scroll(this);
       this.wtViewport = settings.cloneSource.wtViewport;
       this.wtEvent = new Event(this);

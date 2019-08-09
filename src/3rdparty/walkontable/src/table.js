@@ -21,6 +21,7 @@ import { Renderer } from './renderer';
 import Overlay from './overlay/_base';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
+import OverlayTable from './overlay/table/_base';
 
 /**
  *
@@ -31,6 +32,7 @@ class Table {
    * @param {HTMLTableElement} table
    */
   constructor(wotInstance, table) {
+    this.isClone = this instanceof OverlayTable;
     this.wot = wotInstance;
 
     // legacy support
@@ -186,7 +188,7 @@ class Table {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
         parent.insertBefore(holder, hider);
       }
-      if (!this.isWorkingOnClone()) {
+      if (!this.isClone) {
         holder.parentNode.className += 'ht_master handsontable';
       }
       holder.appendChild(hider);
@@ -196,7 +198,7 @@ class Table {
   }
 
   alignOverlaysWithTrimmingContainer() {
-    if (this.isWorkingOnClone()) {
+    if (this.isClone) {
       return;
     }
 
@@ -247,10 +249,6 @@ class Table {
     this.isTableVisible = isVisible(this.TABLE);
   }
 
-  isWorkingOnClone() {
-    return !!this.wot.cloneSource;
-  }
-
   /**
    * Redraws the table
    *
@@ -261,7 +259,6 @@ class Table {
   draw(fastDraw = false) {
     const { wot } = this;
     const { wtOverlays, wtViewport } = wot;
-    const isClone = this.isWorkingOnClone();
     const totalRows = this.instance.getSetting('totalRows');
     const totalColumns = this.instance.getSetting('totalColumns');
     const rowHeaders = wot.getSetting('rowHeaders');
@@ -271,7 +268,7 @@ class Table {
     let syncScroll = false;
     let runFastDraw = fastDraw;
 
-    if (!isClone) {
+    if (!this.isClone) {
       this.holderOffset = offset(this.holder);
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
@@ -287,12 +284,12 @@ class Table {
       }
     }
 
-    if (!isClone) {
+    if (!this.isClone) {
       syncScroll = wtOverlays.prepareOverlays();
     }
 
     if (runFastDraw) {
-      if (!isClone) {
+      if (!this.isClone) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
         wtViewport.createVisibleCalculators();
       }
@@ -302,7 +299,7 @@ class Table {
     } else {
       const { cloneOverlay } = wot;
 
-      if (isClone) {
+      if (this.isClone) {
         this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
       } else {
         this.tableOffset = offset(this.TABLE);
@@ -332,10 +329,10 @@ class Table {
 
       this.alignOverlaysWithTrimmingContainer();
 
-      let performRedraw = isClone;
+      let performRedraw = this.isClone;
 
       // Only master table rendering can be skipped
-      if (!isClone) {
+      if (!this.isClone) {
         const skipRender = {};
 
         this.wot.getSetting('beforeDraw', true, skipRender);
@@ -361,7 +358,7 @@ class Table {
 
         let workspaceWidth;
 
-        if (!isClone) {
+        if (!this.isClone) {
           workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
           this.wot.wtViewport.containerWidth = null;
         }
@@ -369,11 +366,11 @@ class Table {
         this.markOversizedColumnHeaders();
         this.adjustColumnHeaderHeights();
 
-        if (!isClone || this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
+        if (!this.isClone || this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
           this.markOversizedRows();
         }
 
-        if (!isClone) {
+        if (!this.isClone) {
           this.wot.wtViewport.createVisibleCalculators();
           this.wot.wtOverlays.refresh(false);
           this.wot.wtOverlays.applyToDOM();
@@ -403,7 +400,7 @@ class Table {
     }
     this.refreshSelections(runFastDraw);
 
-    if (!isClone) {
+    if (!this.isClone) {
       wtOverlays.topOverlay.resetFixedPosition();
 
       if (wtOverlays.bottomOverlay.clone) {
@@ -471,12 +468,11 @@ class Table {
 
   markOversizedColumnHeaders() {
     const { wot } = this;
-    const isClone = this.isWorkingOnClone();
     const overlayName = wot.getOverlayName();
     const columnHeaders = wot.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
 
-    if (columnHeadersCount && !wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] && !isClone) {
+    if (columnHeadersCount && !wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] && !this.isClone) {
       const rowHeaders = wot.getSetting('rowHeaders');
       const rowHeaderCount = rowHeaders.length;
       const columnCount = this.getRenderedColumnsCount();
@@ -513,7 +509,7 @@ class Table {
   resetOversizedRows() {
     const { wot } = this;
 
-    if (!wot.getSetting('externalRowCalculator') && (!this.isWorkingOnClone() || wot.isOverlayName(Overlay.CLONE_BOTTOM))) {
+    if (!wot.getSetting('externalRowCalculator') && (!this.isClone || wot.isOverlayName(Overlay.CLONE_BOTTOM))) {
       const rowsToRender = this.getRenderedRowsCount();
 
       // Reset the oversized row cache for rendered rows
@@ -796,14 +792,6 @@ class Table {
    * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
    */
   getLastRenderedRow() {
-    if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM)
-          || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      return this.instance.getSetting('totalRows') - 1;
-    } else if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP)
-          || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
-      return this.wot.getSetting('fixedRowsTop') - 1;
-    }
-
     return this.wot.wtViewport.rowsRenderCalculator.endRow;
   }
 
@@ -811,14 +799,6 @@ class Table {
    * @returns {Number} Returns source index of last visible row
    */
   getLastVisibleRow() {
-    if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM)
-          || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      return this.instance.getSetting('totalRows') - 1;
-    } else if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP)
-          || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
-      return this.wot.getSetting('fixedRowsTop') - 1;
-    }
-
     return this.wot.wtViewport.rowsVisibleCalculator.endRow;
   }
 
