@@ -14,6 +14,11 @@ class BottomOverlayTable extends OverlayTable {
   getLastVisibleRow() {
     return this.instance.getSetting('totalRows') - 1;
   }
+
+  getRenderedRowsCount() {
+    const totalRows = this.wot.getSetting('totalRows');
+    return Math.min(this.wot.getSetting('fixedRowsBottom'), totalRows);
+  }
 }
 
 export default BottomOverlayTable;

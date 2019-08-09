@@ -863,22 +863,7 @@ class Table {
   }
 
   getRenderedRowsCount() {
-    let rowsCount = this.wot.wtViewport.rowsRenderCalculator.count;
-
-    if (this.wot.isOverlayName(Overlay.CLONE_TOP) ||
-        this.wot.isOverlayName(Overlay.CLONE_TOP_LEFT_CORNER)) {
-      const totalRows = this.wot.getSetting('totalRows');
-
-      rowsCount = Math.min(this.wot.getSetting('fixedRowsTop'), totalRows);
-
-    } else if (this.wot.isOverlayName(Overlay.CLONE_BOTTOM) ||
-               this.wot.isOverlayName(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      const totalRows = this.wot.getSetting('totalRows');
-
-      rowsCount = Math.min(this.wot.getSetting('fixedRowsBottom'), totalRows);
-    }
-
-    return rowsCount;
+    return this.wot.wtViewport.rowsRenderCalculator.count;
   }
 
   getVisibleRowsCount() {
