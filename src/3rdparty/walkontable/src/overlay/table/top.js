@@ -12,12 +12,16 @@ class TopOverlayTable extends OverlayTable {
    * @returns {Number} Returns source index of last visible row
    */
   getLastVisibleRow() {
-    return this.wot.getSetting('fixedRowsTop') - 1;
+    return this.getLastRenderedRow();
   }
 
   getRenderedRowsCount() {
     const totalRows = this.wot.getSetting('totalRows');
     return Math.min(this.wot.getSetting('fixedRowsTop'), totalRows);
+  }
+
+  getVisibleRowsCount() {
+    return this.getRenderedRowsCount();
   }
 }
 

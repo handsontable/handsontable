@@ -12,7 +12,7 @@ class TopLeftCornerOverlayTable extends OverlayTable {
    * @returns {Number} Returns source index of last visible row
    */
   getLastVisibleRow() {
-    return this.wot.getSetting('fixedRowsTop') - 1;
+    return this.getLastRenderedRow();
   }
 
   getRenderedColumnsCount() {
@@ -23,6 +23,10 @@ class TopLeftCornerOverlayTable extends OverlayTable {
   getRenderedRowsCount() {
     const totalRows = this.wot.getSetting('totalRows');
     return Math.min(this.wot.getSetting('fixedRowsTop'), totalRows);
+  }
+
+  getVisibleRowsCount() {
+    return this.getRenderedRowsCount();
   }
 }
 
