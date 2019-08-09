@@ -811,6 +811,14 @@ class Table {
    * @returns {Number} Returns source index of last visible row
    */
   getLastVisibleRow() {
+    if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM)
+          || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      return this.instance.getSetting('totalRows') - 1;
+    } else if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP)
+          || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
+      return this.wot.getSetting('fixedRowsTop') - 1;
+    }
+
     return this.wot.wtViewport.rowsVisibleCalculator.endRow;
   }
 

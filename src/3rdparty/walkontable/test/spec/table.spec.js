@@ -698,6 +698,28 @@ describe('WalkontableTable', () => {
 
       expect(wt.wtTable.getLastVisibleRow()).toBe(7);
     });
+
+    it('should return source index that is relevant to a given overlay', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(250).height(170);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+        fixedColumnsLeft: 2
+      });
+      wt.draw();
+
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'master').toBe(4);
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'bottomLeftCorner').toBe(17);
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'bottom').toBe(17);
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'left').toBe(4);
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'topLeftCorner').toBe(1);
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'top').toBe(1);
+    });
   });
 
   describe('getFirstVisibleColumn', () => {
