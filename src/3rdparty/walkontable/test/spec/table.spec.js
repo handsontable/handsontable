@@ -797,9 +797,9 @@ describe('WalkontableTable', () => {
   });
 
   describe('getLastRenderedRow', () => {
-    it('should return source index even for partially visible row (the first row is fully visible)', () => {
+    it('should return source index even for partially visible row (the last row is partially visible)', () => {
       createDataArray(18, 18);
-      spec().$wrapper.width(185).height(175);
+      spec().$wrapper.width(185).height(170);
 
       const wt = walkontable({
         data: getData,
@@ -808,12 +808,12 @@ describe('WalkontableTable', () => {
       });
       wt.draw();
 
-      expect(wt.wtTable.getFirstRenderedRow()).toBe(0);
+      expect(wt.wtTable.getLastRenderedRow()).toBe(7);
     });
 
-    it('should return source index even for partially visible row (the first row is partially visible)', () => {
+    it('should return source index even for partially visible row (the last row is fully visible)', () => {
       createDataArray(18, 18);
-      spec().$wrapper.width(185).height(185);
+      spec().$wrapper.width(185).height(170);
 
       const wt = walkontable({
         data: getData,
@@ -824,7 +824,8 @@ describe('WalkontableTable', () => {
       wt.scrollViewportVertically(10);
       wt.draw();
 
-      expect(wt.wtTable.getFirstRenderedRow()).toBe(3);
+      expect(wt.wtTable.getLastRenderedRow()).toBe(11); // TODO I think this should be 10, investigate
+    });
     });
   });
 
