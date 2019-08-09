@@ -28,6 +28,10 @@ class BottomLeftCornerOverlayTable extends OverlayTable {
   getVisibleRowsCount() {
     return this.getRenderedRowsCount();
   }
+
+  getVisibleColumnsCount() {
+    return this.getRenderedColumnsCount();
+  }
 }
 
 export default BottomLeftCornerOverlayTable;

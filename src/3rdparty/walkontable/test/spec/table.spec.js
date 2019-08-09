@@ -1010,6 +1010,28 @@ describe('WalkontableTable', () => {
 
       expect(wt.wtTable.getVisibleColumnsCount()).toBe(3);
     });
+
+    it('should return sum that is relevant to a given overlay', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(250).height(170);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+        fixedColumnsLeft: 2
+      });
+      wt.draw();
+
+      expectWtTable(wt, wtTable => wtTable.getVisibleColumnsCount(), 'master').toBe(3);
+      expectWtTable(wt, wtTable => wtTable.getVisibleColumnsCount(), 'bottomLeftCorner').toBe(2);
+      expectWtTable(wt, wtTable => wtTable.getVisibleColumnsCount(), 'bottom').toBe(3);
+      expectWtTable(wt, wtTable => wtTable.getVisibleColumnsCount(), 'left').toBe(2);
+      expectWtTable(wt, wtTable => wtTable.getVisibleColumnsCount(), 'topLeftCorner').toBe(2);
+      expectWtTable(wt, wtTable => wtTable.getVisibleColumnsCount(), 'top').toBe(3);
+    });
   });
 
   describe('getRenderedRowsCount', () => {
