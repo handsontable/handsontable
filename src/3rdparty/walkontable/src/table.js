@@ -198,10 +198,6 @@ class Table {
   }
 
   alignOverlaysWithTrimmingContainer() {
-    if (this.isClone) {
-      return;
-    }
-
     const trimmingElement = getTrimmingContainer(this.wtRootElement);
     const { rootWindow } = this.wot;
 
@@ -472,7 +468,7 @@ class Table {
     const columnHeaders = wot.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
 
-    if (columnHeadersCount && !wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] && !this.isClone) {
+    if (columnHeadersCount && !wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName]) {
       const rowHeaders = wot.getSetting('rowHeaders');
       const rowHeaderCount = rowHeaders.length;
       const columnCount = this.getRenderedColumnsCount();
