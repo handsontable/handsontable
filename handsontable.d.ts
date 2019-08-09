@@ -277,6 +277,8 @@ declare namespace Handsontable {
       extend<T extends _editors.Base>(): T;
       finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
       abstract focus(): void;
+      getEditedCell(): HTMLTableCellElement | undefined;
+      getEditedCellsZIndex(): string;
       abstract getValue(): any;
       init(): void;
       isInFullEditMode(): boolean;
@@ -319,7 +321,6 @@ declare namespace Handsontable {
       open(): void;
       setValue(newValue?: any): void;
 
-      getEditedCell(): HTMLTableCellElement | undefined;
       prepareOptions(optionsToPrepare?: RowObject | CellValue[]): void;
       refreshDimensions(): void;
       refreshValue(): void;
@@ -338,7 +339,6 @@ declare namespace Handsontable {
       destroy(): void;
       hideEditableElement(): void;
       showEditableElement(): void;
-      getEditedCell(): HTMLTableCellElement | undefined;
       refreshDimensions(force?: boolean): void;
       refreshValue(): void;
       TEXTAREA: HTMLInputElement;
@@ -1747,7 +1747,7 @@ declare namespace Handsontable {
     nestedHeaders?: (string | nestedHeaders.NestedHeader)[][];
     nestedRows?: boolean;
     noWordWrapClassName?: string;
-    numericFormat?: NumericFormatOptions;                                   
+    numericFormat?: NumericFormatOptions;
     observeChanges?: boolean;
     observeDOMVisibility?: boolean;
     outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
