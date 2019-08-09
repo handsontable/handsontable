@@ -369,7 +369,6 @@ class BaseEditor {
   /**
    * Gets HTMLTableCellElement of the edited cell if exist.
    *
-   * @public
    * @returns {string}
    */
   getEditedCellsZIndex() {
@@ -385,15 +384,13 @@ class BaseEditor {
       case 'bottom':
         return '102';
       default:
-        // return '-1'; // 'auto' would be preferable but -1 was introduced in c78dc0c for some reason
-        return 'auto'; // 'auto' would be preferable but -1 was introduced in c78dc0c for some reason
+        return 'auto';
     }
   }
 
   /**
    * Gets HTMLTableCellElement of the edited cell if exist.
    *
-   * @public
    * @returns {HTMLTableCellElement|undefined}
    */
   getEditedCell() {
