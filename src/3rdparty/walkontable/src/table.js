@@ -849,17 +849,7 @@ class Table {
   }
 
   getRenderedColumnsCount() {
-    const columnsCount = this.wot.wtViewport.columnsRenderCalculator.count;
-
-    if (this.wot.isOverlayName(Overlay.CLONE_LEFT) ||
-        this.wot.isOverlayName(Overlay.CLONE_TOP_LEFT_CORNER) ||
-        this.wot.isOverlayName(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      const totalColumns = this.wot.getSetting('totalColumns');
-
-      return Math.min(this.wot.getSetting('fixedColumnsLeft'), totalColumns);
-    }
-
-    return columnsCount;
+    return this.wot.wtViewport.columnsRenderCalculator.count;
   }
 
   getRenderedRowsCount() {

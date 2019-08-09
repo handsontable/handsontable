@@ -15,6 +15,11 @@ class TopLeftCornerOverlayTable extends OverlayTable {
     return this.wot.getSetting('fixedRowsTop') - 1;
   }
 
+  getRenderedColumnsCount() {
+    const totalColumns = this.wot.getSetting('totalColumns');
+    return Math.min(this.wot.getSetting('fixedColumnsLeft'), totalColumns);
+  }
+
   getRenderedRowsCount() {
     const totalRows = this.wot.getSetting('totalRows');
     return Math.min(this.wot.getSetting('fixedRowsTop'), totalRows);
