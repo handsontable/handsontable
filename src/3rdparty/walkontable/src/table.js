@@ -21,7 +21,6 @@ import { Renderer } from './renderer';
 import Overlay from './overlay/_base';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
-import OverlayTable from './overlay/table/_base';
 
 /**
  *
@@ -32,7 +31,7 @@ class Table {
    * @param {HTMLTableElement} table
    */
   constructor(wotInstance, table) {
-    this.isClone = this instanceof OverlayTable;
+    this.isOverlay = !!wotInstance.cloneOverlay;
     this.wot = wotInstance;
 
     // legacy support
@@ -93,6 +92,10 @@ class Table {
       columnUtils: this.columnUtils,
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
+  }
+
+  is(overlayClass) {
+    return Overlay.isOverlayTypeOf(this.wot.cloneOverlay, overlayClass);
   }
 
   /**
@@ -188,7 +191,7 @@ class Table {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
         parent.insertBefore(holder, hider);
       }
-      if (!this.isClone) {
+      if (!this.isOverlay) {
         holder.parentNode.className += 'ht_master handsontable';
       }
       holder.appendChild(hider);
@@ -264,7 +267,7 @@ class Table {
     let syncScroll = false;
     let runFastDraw = fastDraw;
 
-    if (!this.isClone) {
+    if (!this.isOverlay) {
       this.holderOffset = offset(this.holder);
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
@@ -280,12 +283,12 @@ class Table {
       }
     }
 
-    if (!this.isClone) {
+    if (!this.isOverlay) {
       syncScroll = wtOverlays.prepareOverlays();
     }
 
     if (runFastDraw) {
-      if (!this.isClone) {
+      if (!this.isOverlay) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
         wtViewport.createVisibleCalculators();
       }
@@ -293,29 +296,27 @@ class Table {
         wtOverlays.refresh(true);
       }
     } else {
-      const { cloneOverlay } = wot;
-
-      if (this.isClone) {
+      if (this.isOverlay) {
         this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
       } else {
         this.tableOffset = offset(this.TABLE);
       }
       let startRow;
 
-      if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP) ||
-          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
+      if (this.is(Overlay.CLONE_TOP) ||
+          this.is(Overlay.CLONE_TOP_LEFT_CORNER)) {
         startRow = 0;
-      } else if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM) ||
-                 Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      } else if (this.is(Overlay.CLONE_BOTTOM) ||
+                 this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startRow = Math.max(totalRows - wot.getSetting('fixedRowsBottom'), 0);
       } else {
         startRow = wtViewport.rowsRenderCalculator.startRow;
       }
       let startColumn;
 
-      if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_LEFT) ||
-          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER) ||
-          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      if (this.is(Overlay.CLONE_LEFT) ||
+          this.is(Overlay.CLONE_TOP_LEFT_CORNER) ||
+          this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startColumn = 0;
       } else {
         startColumn = wtViewport.columnsRenderCalculator.startColumn;
@@ -325,10 +326,10 @@ class Table {
 
       this.alignOverlaysWithTrimmingContainer();
 
-      let performRedraw = this.isClone;
+      let performRedraw = this.isOverlay;
 
       // Only master table rendering can be skipped
-      if (!this.isClone) {
+      if (!this.isOverlay) {
         const skipRender = {};
 
         this.wot.getSetting('beforeDraw', true, skipRender);
@@ -339,8 +340,8 @@ class Table {
       if (performRedraw) {
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
 
-        if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM) ||
-            Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+        if (this.is(Overlay.CLONE_BOTTOM) ||
+            this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
           // do NOT render headers on the bottom or bottom-left corner overlay
           this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
         }
@@ -354,7 +355,7 @@ class Table {
 
         let workspaceWidth;
 
-        if (!this.isClone) {
+        if (!this.isOverlay) {
           workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
           this.wot.wtViewport.containerWidth = null;
         }
@@ -362,11 +363,11 @@ class Table {
         this.markOversizedColumnHeaders();
         this.adjustColumnHeaderHeights();
 
-        if (!this.isClone || this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
+        if (!this.isOverlay || this.is(Overlay.CLONE_BOTTOM)) {
           this.markOversizedRows();
         }
 
-        if (!this.isClone) {
+        if (!this.isOverlay) {
           this.wot.wtViewport.createVisibleCalculators();
           this.wot.wtOverlays.refresh(false);
           this.wot.wtOverlays.applyToDOM();
@@ -389,14 +390,14 @@ class Table {
 
           this.wot.getSetting('onDraw', true);
 
-        } else if (this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
+        } else if (this.is(Overlay.CLONE_BOTTOM)) {
           this.wot.cloneSource.wtOverlays.adjustElementsSize();
         }
       }
     }
     this.refreshSelections(runFastDraw);
 
-    if (!this.isClone) {
+    if (!this.isOverlay) {
       wtOverlays.topOverlay.resetFixedPosition();
 
       if (wtOverlays.bottomOverlay.clone) {
@@ -504,8 +505,11 @@ class Table {
    */
   resetOversizedRows() {
     const { wot } = this;
+    if (this.isOverlay && !this.is(Overlay.CLONE_BOTTOM)) {
+      return;
+    }
 
-    if (!wot.getSetting('externalRowCalculator') && (!this.isClone || wot.isOverlayName(Overlay.CLONE_BOTTOM))) {
+    if (!wot.getSetting('externalRowCalculator')) {
       const rowsToRender = this.getRenderedRowsCount();
 
       // Reset the oversized row cache for rendered rows
