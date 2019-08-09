@@ -1747,7 +1747,7 @@ declare namespace Handsontable {
     nestedHeaders?: (string | nestedHeaders.NestedHeader)[][];
     nestedRows?: boolean;
     noWordWrapClassName?: string;
-    numericFormat?: NumericFormatOptions;                                   
+    numericFormat?: NumericFormatOptions;
     observeChanges?: boolean;
     observeDOMVisibility?: boolean;
     outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
@@ -1797,6 +1797,8 @@ declare namespace Handsontable {
       afterCellMetaReset?: () => void;
       afterChange?: (changes: CellChange[] | null, source: ChangeSource) => void;
       afterChangesObserved?: () => void;
+      afterColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean, successfullyCollapsed: boolean) => void;
+      afterColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean, successfullyExpanded: boolean) => void;
       afterColumnMove?: (columns: number[], target: number) => void;
       afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
       afterColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void;
@@ -1876,6 +1878,8 @@ declare namespace Handsontable {
       beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: wot.CellRange[], type: 'horizontal' | 'vertical', alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
       beforeChange?: (changes: CellChange[], source: ChangeSource) => void | boolean;
       beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
+      beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean) => void | boolean;
+      beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean) => void | boolean;
       beforeColumnMove?: (columns: number[], target: number) => void | boolean;
       beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void | number;
       beforeColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void | boolean;

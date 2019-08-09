@@ -104,6 +104,13 @@ class CollapsibleColumns extends BasePlugin {
      * @type {EventManager}
      */
     this.eventManager = null;
+    /**
+     * List of currently collapsed columns
+     *
+     * @private
+     * @type {Number[]}
+     */
+    this.collapsedColumns = [];
   }
 
   /**
@@ -428,8 +435,6 @@ class CollapsibleColumns extends BasePlugin {
     const level = this.nestedHeadersPlugin.rowCoordsToLevel(coords.row);
     const currentHeaderColspan = colspanArray[level][coords.col].colspan;
     const childHeaders = this.nestedHeadersPlugin.getChildHeaders(coords.row, coords.col);
-    const currentCollapsedColumn = hiddenColumns;
-    let destinationCollapsedColumns = currentCollapsedColumn;
     let nextLevel = level + 1;
     let childColspanLevel = colspanArray[nextLevel];
     let firstChildColspan = childColspanLevel ? childColspanLevel[childHeaders[0]].colspan || 1 : 1;
@@ -443,13 +448,15 @@ class CollapsibleColumns extends BasePlugin {
     rangeEach(firstChildColspan, currentHeaderColspan - 1, (i) => {
       const colToHide = coords.col + i;
       const collapsePossible = !this.hiddenColumnsPlugin.isHidden(colToHide);
-      const expandPossible = this.hiddenColumnsPlugin.isHidden(colToHide);
+      const successfullyCollapsed = this.collapsedSections[coords.row][coords.col];
+      const currentCollapsedColumns = this.collapsedColumns;
+      let destinationCollapsedColumns = currentCollapsedColumns;
       let allowColumnCollpase;
       let allowColumnExpand;
 
       switch (action) {
         case 'collapse':
-          allowColumnCollpase = this.hot.runHooks('beforeColumnCollapse', currentCollapsedColumn, destinationCollapsedColumns, !collapsePossible);
+          allowColumnCollpase = this.hot.runHooks('beforeColumnCollapse', currentCollapsedColumns, destinationCollapsedColumns, collapsePossible);
 
           if (allowColumnCollpase === false) {
             return;
@@ -459,12 +466,16 @@ class CollapsibleColumns extends BasePlugin {
             hiddenColumns.push(colToHide);
           }
 
-          this.hot.runHooks('afterColumnCollapse', currentCollapsedColumn, destinationCollapsedColumns, !collapsePossible,
-            collapsePossible && destinationCollapsedColumns.length > currentCollapsedColumn.length);
+          destinationCollapsedColumns = hiddenColumns;
+
+          this.collapsedColumns = destinationCollapsedColumns;
+
+          this.hot.runHooks('afterColumnCollapse', currentCollapsedColumns, destinationCollapsedColumns, collapsePossible,
+            collapsePossible && successfullyCollapsed);
 
           break;
         case 'expand':
-          allowColumnExpand = this.hot.runHooks('beforeColumnExpand', currentCollapsedColumn, destinationCollapsedColumns, expandPossible);
+          allowColumnExpand = this.hot.runHooks('beforeColumnExpand', currentCollapsedColumns, destinationCollapsedColumns, !collapsePossible);
 
           if (allowColumnExpand === false) {
             return;
@@ -474,8 +485,12 @@ class CollapsibleColumns extends BasePlugin {
             hiddenColumns.splice(hiddenColumns.indexOf(colToHide), 1);
           }
 
-          this.hot.runHooks('afterColumnExpand', currentCollapsedColumn, destinationCollapsedColumns, expandPossible,
-            collapsePossible && destinationCollapsedColumns.length < currentCollapsedColumn.length);
+          destinationCollapsedColumns = hiddenColumns;
+
+          this.collapsedColumns = destinationCollapsedColumns;
+
+          this.hot.runHooks('afterColumnExpand', currentCollapsedColumns, destinationCollapsedColumns, !collapsePossible,
+            !collapsePossible && !successfullyCollapsed);
 
           break;
         default:
@@ -512,9 +527,14 @@ class CollapsibleColumns extends BasePlugin {
    * @param {Object} coords Event coordinates.
    */
   onBeforeOnCellMouseDown(event, coords) {
+    const colToHide = parseInt(coords.col, 10);
+    const collapsePossible = !this.hiddenColumnsPlugin.isHidden(colToHide);
+    const currentCollapsedColumns = this.collapsedColumns;
+    const destinationCollapsedColumns = currentCollapsedColumns;
+
     if (hasClass(event.target, 'collapsibleIndicator')) {
       if (hasClass(event.target, 'expanded')) {
-        const beforeColumnCollapse = this.hot.runHooks('beforeColumnCollapse');
+        const beforeColumnCollapse = this.hot.runHooks('beforeColumnCollapse', currentCollapsedColumns, destinationCollapsedColumns, collapsePossible);
 
         if (beforeColumnCollapse !== false) {
           // mark section as collapsed
@@ -528,7 +548,7 @@ class CollapsibleColumns extends BasePlugin {
         }
 
       } else if (hasClass(event.target, 'collapsed')) {
-        const beforeColumnExpand = this.hot.runHooks('beforeColumnExpand');
+        const beforeColumnExpand = this.hot.runHooks('beforeColumnExpand', currentCollapsedColumns, destinationCollapsedColumns, !collapsePossible);
 
         if (beforeColumnExpand !== false) {
           this.markSectionAs('expanded', coords.row, coords.col, true);

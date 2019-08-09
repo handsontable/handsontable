@@ -1826,7 +1826,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CollapsibleColumns} plugin before collapsible columns. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#beforeColumnCollapse
-   * @param {Array} currentCollapsedColumn Current collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
    * @param {Boolean} collapsePossible `true`, if all of the col indexes aren't withing the hidden columns, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the trimming action will not be completed.
@@ -1836,8 +1836,8 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link CollapsibleColumns} plugin before collapsible columns. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
-   * @event Hooks#beforeColumnCollapse
-   * @param {Array} currentCollapsedColumn Current collapsible configuration - a list of collapsible physical column indexes.
+   * @event Hooks#afterColumnCollapse
+   * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
    * @param {Boolean} collapsePossible `true`, if all of the col indexes aren't withing the hidden columns, `false` otherwise.
    * @param {Boolean} successfullyCollapsed `true`, if the action affected any non-collapsible column, `false` otherwise.
@@ -1848,7 +1848,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CollapsibleColumns} plugin before collapsible columns. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#beforeColumnExpand
-   * @param {Array} currentCollapsedColumn Current collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
    * @param {Boolean} expandPossible `true`, if all of the col indexes are withing the hidden columns, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the trimming action will not be completed.
@@ -1859,7 +1859,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CollapsibleColumns} plugin before collapsible columns. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#afterColumnExpand
-   * @param {Array} currentCollapsedColumn Current collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
    * @param {Boolean} expandPossible `true`, if all of the col indexes are withing the hidden columns, `false` otherwise.
    * @param {Boolean} successfullyExpanded `true`, if the action affected any non-collapsible column, `false` otherwise.

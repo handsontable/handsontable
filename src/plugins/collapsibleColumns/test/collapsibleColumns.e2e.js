@@ -182,6 +182,87 @@ describe('CollapsibleColumns', () => {
       expect(parseInt(colgroupArray.eq(6).width(), 10)).toBeGreaterThan(0);
     });
 
+    it('should trigger an beforeColumnCollapse event after collapsed column', () => {
+      const beforeColumnCollapseCallback = jasmine.createSpy('beforeColumnCollapseCallback');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'b', colspan: 2 }, { label: 'c', colspan: 2 }, 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
+        ],
+        collapsibleColumns: true,
+        beforeColumnCollapse: beforeColumnCollapseCallback
+      });
+
+      const button = $('.collapsibleIndicator').first();
+
+      button.simulate('mousedown');
+
+      expect(beforeColumnCollapseCallback).toHaveBeenCalledWith([3, 4], [3, 4], true, void 0, void 0, void 0);
+    });
+
+    it('should trigger an afterColumnCollapse event after collapsed column', () => {
+      const afterColumnCollapseCallback = jasmine.createSpy('afterColumnCollapseCallback');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'b', colspan: 2 }, { label: 'c', colspan: 2 }, 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
+        ],
+        collapsibleColumns: true,
+        afterColumnCollapse: afterColumnCollapseCallback
+      });
+
+      const button = $('.collapsibleIndicator').first();
+
+      button.simulate('mousedown');
+
+      expect(afterColumnCollapseCallback).toHaveBeenCalledWith([3, 4], [3, 4], true, true, void 0, void 0);
+    });
+
+    it('should not trigger an afterColumnCollapse event after column move when beforeColumnCollapse returns false', () => {
+      const afterColumnCollapseCallback = jasmine.createSpy('afterColumnCollapseCallback');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'b', colspan: 2 }, { label: 'c', colspan: 2 }, 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
+        ],
+        collapsibleColumns: true,
+        beforeColumnCollapse: () => false,
+        afterColumnCollapse: afterColumnCollapseCallback
+      });
+
+      const button = $('.collapsibleIndicator').first();
+      const colgroupArray = $('colgroup col');
+
+      expect(parseInt(colgroupArray.eq(0).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(1).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(2).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(3).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(4).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(5).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(6).width(), 10)).toBeGreaterThan(0);
+
+      button.simulate('mousedown');
+
+      expect(parseInt(colgroupArray.eq(0).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(1).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(2).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(3).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(4).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(5).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(6).width(), 10)).toBeGreaterThan(0);
+
+      expect(afterColumnCollapseCallback).not.toHaveBeenCalled();
+    });
+
     xit('should maintain the collapse functionality, when the table has been scrolled', function() {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
@@ -335,6 +416,102 @@ describe('CollapsibleColumns', () => {
 
       expect(cloneWtHider.width()).toBe(hiderWidthBefore);
       expect(cloneWtHider.width()).toBe(masterWtHider.width());
+    });
+
+    it('should trigger an beforeColumnExpand event after expanded column', () => {
+      const beforeColumnExpandCallback = jasmine.createSpy('beforeColumnExpandCallback');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'b', colspan: 2 }, { label: 'c', colspan: 2 }, 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
+        ],
+        collapsibleColumns: true,
+        beforeColumnExpand: beforeColumnExpandCallback
+      });
+
+      let button = $('.collapsibleIndicator').first();
+      button.simulate('mousedown');
+
+      button = $('.collapsibleIndicator').first();
+      button.simulate('mousedown');
+
+      expect(beforeColumnExpandCallback).toHaveBeenCalledWith([3, 4], [3, 4], true, void 0, void 0, void 0);
+    });
+
+    it('should trigger an afterColumnExpand event after expanded column', () => {
+      const afterColumnExpandCallback = jasmine.createSpy('afterColumnExpandCallback');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'b', colspan: 2 }, { label: 'c', colspan: 2 }, 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
+        ],
+        collapsibleColumns: true,
+        afterColumnExpand: afterColumnExpandCallback
+      });
+
+      let button = $('.collapsibleIndicator').first();
+      button.simulate('mousedown');
+
+      button = $('.collapsibleIndicator').first();
+      button.simulate('mousedown');
+
+      expect(afterColumnExpandCallback).toHaveBeenCalledWith([], [], true, true, void 0, void 0);
+    });
+
+    it('should not trigger an afterColumnExpand event after column move when beforeColumnExpand returns false', () => {
+      const afterColumnExpandCallback = jasmine.createSpy('afterColumnExpandCallback');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'b', colspan: 2 }, { label: 'c', colspan: 2 }, 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
+        ],
+        collapsibleColumns: true,
+        beforeColumnExpand: () => false,
+        afterColumnExpand: afterColumnExpandCallback
+      });
+
+      let button = $('.collapsibleIndicator').first();
+      const colgroupArray = $('colgroup col');
+
+      expect(parseInt(colgroupArray.eq(0).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(1).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(2).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(3).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(4).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(5).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(6).width(), 10)).toBeGreaterThan(0);
+
+      button.simulate('mousedown');
+
+      expect(parseInt(colgroupArray.eq(0).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(1).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(2).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(3).width(), 10)).toEqual(0);
+      expect(parseInt(colgroupArray.eq(4).width(), 10)).toEqual(0);
+      expect(parseInt(colgroupArray.eq(5).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(6).width(), 10)).toBeGreaterThan(0);
+
+      button = $('.collapsibleIndicator').first();
+      button.simulate('mousedown');
+
+      expect(parseInt(colgroupArray.eq(0).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(1).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(2).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(3).width(), 10)).toEqual(0);
+      expect(parseInt(colgroupArray.eq(4).width(), 10)).toEqual(0);
+      expect(parseInt(colgroupArray.eq(5).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(6).width(), 10)).toBeGreaterThan(0);
+
+      expect(afterColumnExpandCallback).not.toHaveBeenCalled();
     });
   });
 });
