@@ -796,6 +796,14 @@ class Table {
    * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
    */
   getLastRenderedRow() {
+    if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM)
+          || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      return this.instance.getSetting('totalRows') - 1;
+    } else if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP)
+          || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
+      return this.wot.getSetting('fixedRowsTop') - 1;
+    }
+
     return this.wot.wtViewport.rowsRenderCalculator.endRow;
   }
 
@@ -829,12 +837,7 @@ class Table {
   }
 
   isRowAfterRenderedRows(row) {
-    if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM)
-      || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      return false;
-    }
-
-    return this.rowFilter && (row > this.getLastRenderedRow());
+    return row > this.getLastRenderedRow();
   }
 
   isColumnBeforeViewport(column) {

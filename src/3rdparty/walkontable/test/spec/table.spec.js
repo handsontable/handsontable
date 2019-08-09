@@ -826,6 +826,21 @@ describe('WalkontableTable', () => {
 
       expect(wt.wtTable.getLastRenderedRow()).toBe(11); // TODO I think this should be 10, investigate
     });
+
+    it('should return source index of last fixed row for the top overlay', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(185).height(170);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2
+      });
+      wt.draw();
+
+      expect(wt.wtTable.getLastRenderedRow()).toBe(7);
+      expect(wt.wtOverlays.topOverlay.clone.wtTable.getLastRenderedRow()).toBe(1);
     });
   });
 
