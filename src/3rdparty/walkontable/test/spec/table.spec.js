@@ -827,20 +827,26 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.getLastRenderedRow()).toBe(11); // TODO I think this should be 10, investigate
     });
 
-    it('should return source index of last fixed row for the top overlay', () => {
+    it('should return source index that is relevant to a given overlay', () => {
       createDataArray(18, 18);
-      spec().$wrapper.width(185).height(170);
+      spec().$wrapper.width(250).height(170);
 
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedRowsTop: 2
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+        fixedColumnsLeft: 2
       });
       wt.draw();
 
-      expect(wt.wtTable.getLastRenderedRow()).toBe(7);
-      expect(wt.wtOverlays.topOverlay.clone.wtTable.getLastRenderedRow()).toBe(1);
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'master').toBe(5);
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'bottomLeftCorner').toBe(17);
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'bottom').toBe(17);
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'left').toBe(5);
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'topLeftCorner').toBe(1);
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'top').toBe(1);
     });
   });
 
