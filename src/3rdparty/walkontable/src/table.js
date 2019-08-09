@@ -31,7 +31,7 @@ class Table {
    * @param {HTMLTableElement} table
    */
   constructor(wotInstance, table) {
-    this.isOverlay = !!wotInstance.cloneOverlay;
+    this.isMaster = !wotInstance.cloneOverlay;
     this.wot = wotInstance;
 
     // legacy support
@@ -191,7 +191,7 @@ class Table {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
         parent.insertBefore(holder, hider);
       }
-      if (!this.isOverlay) {
+      if (this.isMaster) {
         holder.parentNode.className += 'ht_master handsontable';
       }
       holder.appendChild(hider);
@@ -267,7 +267,7 @@ class Table {
     let syncScroll = false;
     let runFastDraw = fastDraw;
 
-    if (!this.isOverlay) {
+    if (this.isMaster) {
       this.holderOffset = offset(this.holder);
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
@@ -283,12 +283,12 @@ class Table {
       }
     }
 
-    if (!this.isOverlay) {
+    if (this.isMaster) {
       syncScroll = wtOverlays.prepareOverlays();
     }
 
     if (runFastDraw) {
-      if (!this.isOverlay) {
+      if (this.isMaster) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
         wtViewport.createVisibleCalculators();
       }
@@ -296,10 +296,10 @@ class Table {
         wtOverlays.refresh(true);
       }
     } else {
-      if (this.isOverlay) {
-        this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
-      } else {
+      if (this.isMaster) {
         this.tableOffset = offset(this.TABLE);
+      } else {
+        this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
       }
       let startRow;
 
@@ -326,10 +326,10 @@ class Table {
 
       this.alignOverlaysWithTrimmingContainer();
 
-      let performRedraw = this.isOverlay;
+      let performRedraw = true;
 
       // Only master table rendering can be skipped
-      if (!this.isOverlay) {
+      if (this.isMaster) {
         const skipRender = {};
 
         this.wot.getSetting('beforeDraw', true, skipRender);
@@ -355,7 +355,7 @@ class Table {
 
         let workspaceWidth;
 
-        if (!this.isOverlay) {
+        if (this.isMaster) {
           workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
           this.wot.wtViewport.containerWidth = null;
         }
@@ -363,11 +363,11 @@ class Table {
         this.markOversizedColumnHeaders();
         this.adjustColumnHeaderHeights();
 
-        if (!this.isOverlay || this.is(Overlay.CLONE_BOTTOM)) {
+        if (this.isMaster || this.is(Overlay.CLONE_BOTTOM)) {
           this.markOversizedRows();
         }
 
-        if (!this.isOverlay) {
+        if (this.isMaster) {
           this.wot.wtViewport.createVisibleCalculators();
           this.wot.wtOverlays.refresh(false);
           this.wot.wtOverlays.applyToDOM();
@@ -397,7 +397,7 @@ class Table {
     }
     this.refreshSelections(runFastDraw);
 
-    if (!this.isOverlay) {
+    if (this.isMaster) {
       wtOverlays.topOverlay.resetFixedPosition();
 
       if (wtOverlays.bottomOverlay.clone) {
@@ -505,7 +505,7 @@ class Table {
    */
   resetOversizedRows() {
     const { wot } = this;
-    if (this.isOverlay && !this.is(Overlay.CLONE_BOTTOM)) {
+    if (!this.isMaster && !this.is(Overlay.CLONE_BOTTOM)) {
       return;
     }
 
