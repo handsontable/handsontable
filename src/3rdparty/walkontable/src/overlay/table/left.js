@@ -9,6 +9,10 @@ class LeftOverlayTable extends OverlayTable {
     return 0;
   }
 
+  getFirstVisibleColumn() {
+    return this.getFirstRenderedColumn();
+  }
+
   getLastRenderedColumn() {
     return this.getRenderedColumnsCount() - 1;
   }

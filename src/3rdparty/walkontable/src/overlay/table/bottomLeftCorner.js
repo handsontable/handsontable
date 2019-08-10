@@ -21,6 +21,10 @@ class BottomLeftCornerOverlayTable extends OverlayTable {
     return 0;
   }
 
+  getFirstVisibleColumn() {
+    return this.getFirstRenderedColumn();
+  }
+
   /**
    * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
    */
