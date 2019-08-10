@@ -5,7 +5,7 @@ class TopLeftCornerOverlayTable extends OverlayTable {
    * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
    */
   getLastRenderedRow() {
-    return this.wot.getSetting('fixedRowsTop') - 1;
+    return this.getRenderedRowsCount() - 1;
   }
 
   /**
