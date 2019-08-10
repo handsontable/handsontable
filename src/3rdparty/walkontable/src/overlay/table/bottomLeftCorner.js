@@ -15,6 +15,10 @@ class BottomLeftCornerOverlayTable extends OverlayTable {
     return this.getLastRenderedRow();
   }
 
+  getLastRenderedColumn() {
+    return this.getRenderedColumnsCount() - 1;
+  }
+
   getRenderedColumnsCount() {
     const totalColumns = this.wot.getSetting('totalColumns');
     return Math.min(this.wot.getSetting('fixedColumnsLeft'), totalColumns);

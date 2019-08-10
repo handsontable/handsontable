@@ -1,6 +1,10 @@
 import OverlayTable from './_base';
 
 class LeftOverlayTable extends OverlayTable {
+  getLastRenderedColumn() {
+    return this.getRenderedColumnsCount() - 1;
+  }
+
   getRenderedColumnsCount() {
     const totalColumns = this.wot.getSetting('totalColumns');
     return Math.min(this.wot.getSetting('fixedColumnsLeft'), totalColumns);
