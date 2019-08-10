@@ -258,8 +258,8 @@ class Table {
   draw(fastDraw = false) {
     const { wot } = this;
     const { wtOverlays, wtViewport } = wot;
-    const totalRows = this.instance.getSetting('totalRows');
-    const totalColumns = this.instance.getSetting('totalColumns');
+    const totalRows = wot.getSetting('totalRows');
+    const totalColumns = wot.getSetting('totalColumns');
     const rowHeaders = wot.getSetting('rowHeaders');
     const rowHeadersCount = rowHeaders.length;
     const columnHeaders = wot.getSetting('columnHeaders');

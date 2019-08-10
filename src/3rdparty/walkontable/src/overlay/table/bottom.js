@@ -5,7 +5,7 @@ class BottomOverlayTable extends OverlayTable {
    * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
    */
   getLastRenderedRow() {
-    return this.instance.getSetting('totalRows') - 1;
+    return this.wot.getSetting('totalRows') - 1;
   }
 
   /**
