@@ -9,6 +9,10 @@ class TopOverlayTable extends OverlayTable {
     return 0;
   }
 
+  getFirstVisibleRow() {
+    return this.getFirstRenderedRow();
+  }
+
   /**
    * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
    */

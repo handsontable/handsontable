@@ -9,6 +9,10 @@ class BottomOverlayTable extends OverlayTable {
     return index;
   }
 
+  getFirstVisibleRow() {
+    return this.getFirstRenderedRow();
+  }
+
   /**
    * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
    */
