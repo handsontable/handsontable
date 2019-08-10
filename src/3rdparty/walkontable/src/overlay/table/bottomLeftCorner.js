@@ -1,6 +1,14 @@
 import OverlayTable from './_base';
 
 class BottomLeftCornerOverlayTable extends OverlayTable {
+  getFirstRenderedRow() {
+    const index = this.wot.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom') - 1;
+    if (index < 0) {
+      return -1;
+    }
+    return index;
+  }
+
   /**
    * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
    */

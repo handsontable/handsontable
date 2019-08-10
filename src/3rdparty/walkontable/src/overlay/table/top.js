@@ -1,6 +1,14 @@
 import OverlayTable from './_base';
 
 class TopOverlayTable extends OverlayTable {
+  getFirstRenderedRow() {
+    const totalRows = this.wot.getSetting('totalRows');
+    if (totalRows === 0) {
+      return -1;
+    }
+    return 0;
+  }
+
   /**
    * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
    */
