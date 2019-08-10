@@ -5,6 +5,10 @@ class LeftOverlayTable extends OverlayTable {
     return this.getRenderedColumnsCount() - 1;
   }
 
+  getLastVisibleColumn() {
+    return this.getLastRenderedColumn();
+  }
+
   getRenderedColumnsCount() {
     const totalColumns = this.wot.getSetting('totalColumns');
     return Math.min(this.wot.getSetting('fixedColumnsLeft'), totalColumns);

@@ -784,6 +784,28 @@ describe('WalkontableTable', () => {
 
       expect(wt.wtTable.getLastVisibleColumn()).toBe(7);
     });
+
+    it('should return source index that is relevant to a given overlay', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(250).height(170);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+        fixedColumnsLeft: 2
+      });
+      wt.draw();
+
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleColumn(), 'master').toBe(4); // TODO I think this should be 3 not 4, because 4 is only partially visible, but for now I am only testing actual behavior
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleColumn(), 'bottomLeftCorner').toBe(1);
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleColumn(), 'bottom').toBe(4);
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleColumn(), 'left').toBe(1);
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleColumn(), 'topLeftCorner').toBe(1);
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleColumn(), 'top').toBe(4);
+    });
   });
 
   describe('getFirstRenderedRow', () => {
