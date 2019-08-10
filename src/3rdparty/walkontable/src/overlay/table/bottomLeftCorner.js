@@ -13,6 +13,14 @@ class BottomLeftCornerOverlayTable extends OverlayTable {
     return this.getFirstRenderedRow();
   }
 
+  getFirstRenderedColumn() {
+    const totalColumns = this.wot.getSetting('totalColumns');
+    if (totalColumns === 0) {
+      return -1;
+    }
+    return 0;
+  }
+
   /**
    * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
    */

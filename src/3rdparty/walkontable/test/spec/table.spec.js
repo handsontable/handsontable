@@ -968,6 +968,28 @@ describe('WalkontableTable', () => {
 
       expect(wt.wtTable.getFirstRenderedColumn()).toBe(4);
     });
+
+    it('should return source index that is relevant to a given overlay', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(250).height(170);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+        fixedColumnsLeft: 2
+      });
+      wt.draw();
+
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedColumn(), 'master').toBe(2);
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedColumn(), 'bottomLeftCorner').toBe(0);
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedColumn(), 'bottom').toBe(2);
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedColumn(), 'left').toBe(0);
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedColumn(), 'topLeftCorner').toBe(0);
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedColumn(), 'top').toBe(2);
+    });
   });
 
   describe('getLastRenderedColumn', () => {
