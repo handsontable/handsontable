@@ -990,6 +990,49 @@ describe('WalkontableTable', () => {
     });
   });
 
+  describe('isRowAfterRenderedRows', () => {
+    it('should return value that is relevant to a given overlay', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(250).height(170);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+        fixedColumnsLeft: 2
+      });
+      wt.draw();
+      wt.scrollViewportVertically(10);
+      wt.draw();
+
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'master').toBe(11);
+      expectWtTable(wt, wtTable => wtTable.isRowAfterRenderedRows(11), 'master').toBe(false);
+      expectWtTable(wt, wtTable => wtTable.isRowAfterRenderedRows(12), 'master').toBe(true);
+
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'bottomLeftCorner').toBe(17);
+      expectWtTable(wt, wtTable => wtTable.isRowAfterRenderedRows(17), 'bottomLeftCorner').toBe(false);
+      expectWtTable(wt, wtTable => wtTable.isRowAfterRenderedRows(18), 'bottomLeftCorner').toBe(true);
+
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'bottom').toBe(17);
+      expectWtTable(wt, wtTable => wtTable.isRowAfterRenderedRows(17), 'bottom').toBe(false);
+      expectWtTable(wt, wtTable => wtTable.isRowAfterRenderedRows(18), 'bottom').toBe(true);
+
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'left').toBe(11);
+      expectWtTable(wt, wtTable => wtTable.isRowAfterRenderedRows(11), 'left').toBe(false);
+      expectWtTable(wt, wtTable => wtTable.isRowAfterRenderedRows(12), 'left').toBe(true);
+
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'topLeftCorner').toBe(1);
+      expectWtTable(wt, wtTable => wtTable.isRowAfterRenderedRows(1), 'topLeftCorner').toBe(false);
+      expectWtTable(wt, wtTable => wtTable.isRowAfterRenderedRows(2), 'topLeftCorner').toBe(true);
+
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'top').toBe(1);
+      expectWtTable(wt, wtTable => wtTable.isRowAfterRenderedRows(1), 'top').toBe(false);
+      expectWtTable(wt, wtTable => wtTable.isRowAfterRenderedRows(2), 'top').toBe(true);
+    });
+  });
+
   describe('getLastRenderedRow', () => {
     it('should return source index even for partially visible row (the last row is partially visible)', () => {
       createDataArray(18, 18);
