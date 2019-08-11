@@ -2,7 +2,7 @@ import OverlayTable from './_base';
 
 class BottomOverlayTable extends OverlayTable {
   getFirstRenderedRow() {
-    const index = this.wot.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom') - 1;
+    const index = this.wot.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom');
     if (index < 0) {
       return -1;
     }

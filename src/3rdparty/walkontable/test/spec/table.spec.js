@@ -682,8 +682,8 @@ describe('WalkontableTable', () => {
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'master').toBe(2);
-      expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'bottomLeftCorner').toBe(15);
-      expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'bottom').toBe(15);
+      expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'bottomLeftCorner').toBe(16);
+      expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'bottom').toBe(16);
       expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'left').toBe(2);
       expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'topLeftCorner').toBe(0);
       expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'top').toBe(0);
@@ -898,8 +898,8 @@ describe('WalkontableTable', () => {
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'master').toBe(2);
-      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottomLeftCorner').toBe(15);
-      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottom').toBe(15);
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottomLeftCorner').toBe(16);
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottom').toBe(16);
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'left').toBe(2);
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'topLeftCorner').toBe(0);
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'top').toBe(0);
@@ -927,13 +927,13 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(7), 'master').toBe(true);
       expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(8), 'master').toBe(false);
 
-      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottomLeftCorner').toBe(15);
-      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(14), 'bottomLeftCorner').toBe(true);
-      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(15), 'bottomLeftCorner').toBe(false);
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottomLeftCorner').toBe(16);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(15), 'bottomLeftCorner').toBe(true);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(16), 'bottomLeftCorner').toBe(false);
 
-      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottom').toBe(15);
-      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(14), 'bottom').toBe(true);
-      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(15), 'bottom').toBe(false);
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottom').toBe(16);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(15), 'bottom').toBe(true);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(16), 'bottom').toBe(false);
 
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'left').toBe(8);
       expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(7), 'left').toBe(true);
