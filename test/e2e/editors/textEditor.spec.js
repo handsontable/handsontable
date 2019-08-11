@@ -224,7 +224,7 @@ describe('TextEditor', () => {
     }, 200);
   });
 
-  it('should hide whole editor when it is higher then header', (done) => {
+  it('should hide whole editor when it is higher then header and TD is not rendered anymore', (done) => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       rowHeaders: true,
@@ -243,8 +243,33 @@ describe('TextEditor', () => {
     mainHolder.scrollLeft = 150;
 
     setTimeout(() => {
+      expect(parseInt(hot.getActiveEditor().textareaParentStyle.opacity, 10)).toBe(0); // result of textEditor .close()
+      done();
+    }, 200);
+  });
+
+  it('should hide whole editor when it is higher then header and TD is still rendered', (done) => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(50, 50),
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    setDataAtCell(2, 2, 'string\nstring\nstring');
+    selectCell(2, 2);
+
+    keyDown('enter');
+    keyUp('enter');
+
+    const mainHolder = hot.view.wt.wtTable.holder;
+
+    mainHolder.scrollTop = 150;
+    mainHolder.scrollLeft = 100;
+
+    setTimeout(() => {
+      expect(parseInt(hot.getActiveEditor().textareaParentStyle.opacity, 10)).toBe(1);
       expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).toBeAroundValue(-77);
-      expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBeAroundValue(-1);
+      expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBeAroundValue(50);
       done();
     }, 200);
   });

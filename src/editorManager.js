@@ -142,7 +142,11 @@ class EditorManager {
 
     if (editorClass) {
       this.activeEditor = getEditorInstance(editorClass, this.instance);
+      this.activeEditor.row = row; // pre-preparation needed by getEditedCell
+      this.activeEditor.col = col;
       const td = this.activeEditor.getEditedCell();
+      this.activeEditor.row = null; // restore the un-initialized state
+      this.activeEditor.col = null;
       this.activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
 
     } else {

@@ -286,7 +286,7 @@ class TextEditor extends BaseEditor {
     // TD is outside of the viewport.
     if (!this.TD) {
       if (!force) {
-        this.close();
+        this.close(); // TODO shouldn't it be this.finishEditing() ?
       }
 
       return;

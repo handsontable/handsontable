@@ -597,6 +597,7 @@ class Table {
 
   /**
    * Get cell element at coords.
+   * Negative coords.row or coords.cell are used to retrieve header cells
    *
    * @param {CellCoords} coords
    * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:
@@ -614,28 +615,36 @@ class Table {
       [row, column] = hookResult;
     }
 
-    if (this.isRowBeforeRenderedRows(row)) {
+    if (row >= 0 && this.isRowBeforeRenderedRows(row)) {
       // row before rendered rows
       return -1;
 
-    } else if (this.isRowAfterRenderedRows(row)) {
+    } else if (row >= 0 && this.isRowAfterRenderedRows(row)) {
       // row after rendered rows
       return -2;
 
-    } else if (this.isColumnBeforeRenderedColumns(column)) {
+    } else if (column >= 0 && this.isColumnBeforeRenderedColumns(column)) {
       // column before rendered columns
       return -3;
 
-    } else if (this.isColumnAfterRenderedColumns(column)) {
+    } else if (column >= 0 && this.isColumnAfterRenderedColumns(column)) {
       // column after rendered columns
       return -4;
     }
 
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
 
-    if (TR) {
-      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
+    if (!TR && row >= 0) {
+      throw new Error('TR was expected to be rendered but is not');
     }
+
+    const TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
+
+    if (!TD && column >= 0) {
+      throw new Error('TD was expected to be rendered but is not');
+    }
+
+    return TD;
   }
 
   /**
@@ -770,7 +779,11 @@ class Table {
   }
 
   getFirstRenderedRow() {
-    return this.wot.wtViewport.rowsRenderCalculator.startRow;
+    const startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
+    if (startRow === null) {
+      return -1;
+    }
+    return startRow;
   }
 
   getFirstVisibleRow() {
@@ -778,7 +791,11 @@ class Table {
   }
 
   getFirstRenderedColumn() {
-    return this.wot.wtViewport.columnsRenderCalculator.startColumn;
+    const startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
+    if (startColumn === null) {
+      return -1;
+    }
+    return startColumn;
   }
 
   /**
@@ -817,7 +834,11 @@ class Table {
   }
 
   isRowBeforeRenderedRows(row) {
-    return row < this.getFirstRenderedRow();
+    const first = this.getFirstRenderedRow();
+    if (first === -1) {
+      return true;
+    }
+    return row < first;
   }
 
   isRowAfterViewport(row) {
@@ -833,7 +854,11 @@ class Table {
   }
 
   isColumnBeforeRenderedColumns(column) {
-    return this.columnFilter && (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column) < 0 && column >= 0);
+    const first = this.getFirstRenderedColumn();
+    if (first === -1) {
+      return true;
+    }
+    return column < first;
   }
 
   isColumnAfterViewport(column) {
