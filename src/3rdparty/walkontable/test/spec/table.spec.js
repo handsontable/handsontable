@@ -906,6 +906,47 @@ describe('WalkontableTable', () => {
     });
   });
 
+  describe('isRowBeforeRenderedRows', () => {
+    it('should return value that is relevant to a given overlay', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(250).height(170);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+        fixedColumnsLeft: 2
+      });
+      wt.draw();
+      wt.scrollViewportVertically(10);
+      wt.draw();
+
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'master').toBe(8);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(7), 'master').toBe(true);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(8), 'master').toBe(false);
+
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottomLeftCorner').toBe(15);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(14), 'bottomLeftCorner').toBe(true);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(15), 'bottomLeftCorner').toBe(false);
+
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottom').toBe(15);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(14), 'bottom').toBe(true);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(15), 'bottom').toBe(false);
+
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'left').toBe(8);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(7), 'left').toBe(true);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(8), 'left').toBe(false);
+
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'topLeftCorner').toBe(0);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(0), 'topLeftCorner').toBe(false);
+
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'top').toBe(0);
+      expectWtTable(wt, wtTable => wtTable.isRowBeforeRenderedRows(0), 'top').toBe(false);
+    });
+  });
+
   describe('getLastRenderedRow', () => {
     it('should return source index even for partially visible row (the last row is partially visible)', () => {
       createDataArray(18, 18);

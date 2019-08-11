@@ -817,7 +817,7 @@ class Table {
   }
 
   isRowBeforeRenderedRows(row) {
-    return this.rowFilter && (this.rowFilter.sourceToRendered(row) < 0 && row >= 0);
+    return row < this.getFirstRenderedRow();
   }
 
   isRowAfterViewport(row) {
