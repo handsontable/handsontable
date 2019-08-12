@@ -42,7 +42,7 @@ export default function showColumnItem(hiddenColumnsPlugin) {
 
       let shouldBeHidden = true;
       let [, start, , end] = this.getSelectedLast();
-      [start, end] = [Math.min(start, end), Math.max(start, end)];
+      start = Math.min(start, end);
 
       if (start === end) {
         rangeEach(0, start - 1, (column) => {
