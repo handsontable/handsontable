@@ -200,6 +200,12 @@ describe('DomElement helper', () => {
 
       expect(elementMock.classList.add).not.toHaveBeenCalled();
     });
+
+    it('should filter empty and falsy classNames', () => {
+      addClass(element, [undefined, null, '', false, 'false']); // only the last one is not filtered
+
+      expect(element.className).toBe('false');
+    });
   });
 
   /**

@@ -219,20 +219,11 @@ let _addClass;
 let _removeClass;
 
 function filterEmptyClassNames(classNames) {
-  const result = [];
-
   if (!classNames || !classNames.length) {
-    return result;
+    return [];
   }
 
-  let len = 0;
-
-  while (classNames[len]) {
-    result.push(classNames[len]);
-    len += 1;
-  }
-
-  return result;
+  return classNames.filter(x => !!x);
 }
 
 if (isClassListSupported()) {

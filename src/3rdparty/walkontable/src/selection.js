@@ -219,43 +219,10 @@ class Selection {
     }
 
     const renderedRows = wotInstance.wtTable.getRenderedRowsCount();
-    if (renderedRows === 0) {
-      return;
-    }
-
     const renderedColumns = wotInstance.wtTable.getRenderedColumnsCount();
-    if (renderedColumns === 0) {
-      return;
-    }
 
     const corners = this.getCorners();
     const [firstRow, firstColumn, lastRow, lastColumn] = corners;
-
-    if (this.settings.highlightHeaderClassName || this.settings.highlightColumnClassName) {
-      for (let sourceColumn = firstColumn; sourceColumn <= lastColumn; sourceColumn += 1) {
-        this.addClassIfElemExists(wotInstance.wtTable.getColumnHeader(sourceColumn), this.settings.highlightHeaderClassName, this.settings.highlightColumnClassName);
-
-        if (this.settings.highlightColumnClassName) {
-          for (let renderedRow = 0; renderedRow < renderedRows; renderedRow += 1) {
-            const sourceRow = wotInstance.wtTable.rowFilter.renderedToSource(renderedRow);
-            this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, this.settings.highlightColumnClassName);
-          }
-        }
-      }
-    }
-
-    if (this.settings.highlightHeaderClassName || this.settings.highlightRowClassName) {
-      for (let sourceRow = firstRow; sourceRow <= lastRow; sourceRow += 1) {
-        this.addClassIfElemExists(wotInstance.wtTable.getRowHeader(sourceRow), this.settings.highlightHeaderClassName, this.settings.highlightColumnClassName);
-
-        if (this.settings.highlightRowClassName) {
-          for (let renderedColumn = 0; renderedColumn < renderedColumns; renderedColumn += 1) {
-            const sourceColumn = wotInstance.wtTable.columnFilter.renderedToSource(renderedColumn);
-            this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, this.settings.highlightRowClassName);
-          }
-        }
-      }
-    }
 
     const tableFirstRenderedRow = wotInstance.wtTable.getFirstRenderedRow();
     const tableFirstRenderedColumn = wotInstance.wtTable.getFirstRenderedColumn();
@@ -266,6 +233,36 @@ class Selection {
     const highlightFirstRenderedColumn = Math.max(firstColumn, tableFirstRenderedColumn);
     const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow);
     const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn);
+
+    if (this.settings.highlightHeaderClassName || this.settings.highlightColumnClassName) {
+      for (let sourceColumn = firstColumn; sourceColumn <= lastColumn; sourceColumn += 1) {
+        this.addClassIfElemExists(wotInstance.wtTable.getColumnHeader(sourceColumn), [this.settings.highlightHeaderClassName, this.settings.highlightColumnClassName]);
+
+        if (this.settings.highlightColumnClassName) {
+          for (let renderedRow = 0; renderedRow < renderedRows; renderedRow += 1) {
+            if (renderedRow < highlightFirstRenderedRow || renderedRow > highlightLastRenderedRow) {
+              const sourceRow = wotInstance.wtTable.rowFilter.renderedToSource(renderedRow);
+              this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, this.settings.highlightColumnClassName);
+            }
+          }
+        }
+      }
+    }
+
+    if (this.settings.highlightHeaderClassName || this.settings.highlightRowClassName) {
+      for (let sourceRow = firstRow; sourceRow <= lastRow; sourceRow += 1) {
+        this.addClassIfElemExists(wotInstance.wtTable.getRowHeader(sourceRow), [this.settings.highlightHeaderClassName, this.settings.highlightRowClassName]);
+
+        if (this.settings.highlightRowClassName) {
+          for (let renderedColumn = 0; renderedColumn < renderedColumns; renderedColumn += 1) {
+            if (renderedColumn < highlightFirstRenderedColumn || renderedColumn > highlightLastRenderedColumn) {
+              const sourceColumn = wotInstance.wtTable.columnFilter.renderedToSource(renderedColumn);
+              this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, this.settings.highlightRowClassName);
+            }
+          }
+        }
+      }
+    }
 
     if (highlightFirstRenderedRow <= highlightLastRenderedRow && highlightFirstRenderedColumn <= highlightLastRenderedColumn) {
       selectedCellFn(this,
