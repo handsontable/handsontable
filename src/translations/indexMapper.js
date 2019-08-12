@@ -4,6 +4,9 @@ import { rangeEach } from '../helpers/number';
 import IndexMap from './maps/indexMap';
 import SkipMap from './maps/skipMap';
 import MapCollection from './mapCollection';
+import localHooks from '../mixins/localHooks';
+import { mixin } from '../helpers/object';
+import { isDefined } from '../helpers/mixed';
 
 class IndexMapper {
   constructor() {
@@ -14,7 +17,47 @@ class IndexMapper {
     this.flattenSkipList = [];
     this.notSkippedIndexesCache = [];
 
-    this.skipCollection.addLocalHook('collectionChanged', () => this.updateCache());
+    this.isBatched = false;
+    this.cachedIndexesChange = false;
+
+    this.indexesSequence.addLocalHook('change', () => {
+      this.cachedIndexesChange = true;
+
+      // Sequence of visible indexes might change.
+      this.updateCache();
+
+      this.runLocalHooks('change', this.indexesSequence, null);
+    });
+
+    this.skipCollection.addLocalHook('change', (changedMap) => {
+      this.cachedIndexesChange = true;
+
+      // Number of visible indexes might change.
+      this.updateCache();
+
+      this.runLocalHooks('change', changedMap, this.skipCollection);
+    });
+
+    this.variousMappingsCollection.addLocalHook('change', (changedMap) => {
+      this.runLocalHooks('change', changedMap, this.variousMappingsCollection);
+    });
+  }
+
+  /**
+   * Execute batch operations with updating cache.
+   *
+   * @param {Function} curriedBatchOperations Batched operations curried in a function.
+   */
+  executeBatchOperations(curriedBatchOperations) {
+    const actualFlag = this.isBatched;
+
+    this.isBatched = true;
+
+    curriedBatchOperations(this);
+
+    this.isBatched = actualFlag;
+
+    this.updateCache();
   }
 
   /**
@@ -29,17 +72,28 @@ class IndexMapper {
       throw Error(`Mapper with name "${name}" is already registered.`);
     }
 
-    map.init(this.getNumberOfIndexes());
-
     if (map instanceof SkipMap === true) {
-      return this.skipCollection.register(name, map);
+      this.skipCollection.register(name, map);
+
+    } else {
+      this.variousMappingsCollection.register(name, map);
     }
 
-    return this.variousMappingsCollection.register(name, map);
+    const numberOfIndexes = this.getNumberOfIndexes();
+    /*
+      We initialize map ony when we have full information about number of indexes and the dataset is not empty. Otherwise it's unnecessary. Initialization of empty array
+      would not give any positive changes. After initializing it with number of indexes equal to 0 the map would be still empty. What's more there would be triggered
+      not needed hook (no real change have occurred). Number of indexes is known after loading data (the `loadData` function from the `Core`).
+     */
+    if (numberOfIndexes > 0) {
+      map.init(numberOfIndexes);
+    }
+
+    return map;
   }
 
   /**
-   * Unregister the map with given name.
+   * Unregister a map with given name.
    *
    * @param {String} name Name of the map.
    */
@@ -90,13 +144,15 @@ class IndexMapper {
    */
   initToLength(length = this.getNumberOfIndexes()) {
     this.flattenSkipList = [];
-    this.notSkippedIndexesCache = [];
+    this.notSkippedIndexesCache = [...new Array(length).keys()];
 
-    this.indexesSequence.init(length);
-    this.skipCollection.initEvery(length);
-    this.variousMappingsCollection.initEvery(length);
+    this.executeBatchOperations(() => {
+      this.indexesSequence.init(length);
+      this.skipCollection.initEvery(length);
+      this.variousMappingsCollection.initEvery(length);
+    });
 
-    this.updateCache();
+    this.runLocalHooks('init');
   }
 
   /**
@@ -115,8 +171,6 @@ class IndexMapper {
    */
   setIndexesSequence(indexes) {
     this.indexesSequence.setValues(indexes);
-
-    this.updateCache();
   }
 
   /**
@@ -163,29 +217,34 @@ class IndexMapper {
     }
 
     const physicalMovedIndexes = arrayMap(movedIndexes, row => this.getPhysicalIndex(row));
-    this.setIndexesSequence(getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes));
 
-    // When item(s) are moved after the last item we assign new index.
-    let indexNumber = this.getNumberOfIndexes();
+    this.executeBatchOperations(() => {
+      // Removing indexes without re-indexing.
+      this.setIndexesSequence(getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes));
 
-    // Otherwise, we find proper index for inserted item(s).
-    if (finalIndex < this.getNotSkippedIndexesLength()) {
-      const physicalIndex = this.getPhysicalIndex(finalIndex);
-      indexNumber = this.getIndexesSequence().indexOf(physicalIndex);
-    }
+      // When item(s) are moved after the last item we assign new index.
+      let indexNumber = this.getNumberOfIndexes();
 
-    // We count number of skipped rows from the start to the position of inserted item(s).
-    const skippedRowsToTargetIndex = arrayReduce(this.getIndexesSequence().slice(0, indexNumber), (skippedRowsSum, currentValue) => {
-      if (this.isSkipped(currentValue)) {
-        return skippedRowsSum + 1;
+      // Otherwise, we find proper index for inserted item(s).
+      if (finalIndex < this.getNotSkippedIndexesLength()) {
+        const physicalIndex = this.getPhysicalIndex(finalIndex);
+        indexNumber = this.getIndexesSequence()
+          .indexOf(physicalIndex);
       }
 
-      return skippedRowsSum;
-    }, 0);
+      // We count number of skipped rows from the start to the position of inserted item(s).
+      const skippedRowsToTargetIndex = arrayReduce(this.getIndexesSequence()
+        .slice(0, indexNumber), (skippedRowsSum, currentValue) => {
+        if (this.isSkipped(currentValue)) {
+          return skippedRowsSum + 1;
+        }
 
-    this.setIndexesSequence(getListWithInsertedItems(this.getIndexesSequence(), finalIndex + skippedRowsToTargetIndex, physicalMovedIndexes));
+        return skippedRowsSum;
+      }, 0);
 
-    this.updateCache();
+      // Adding indexes without re-indexing.
+      this.setIndexesSequence(getListWithInsertedItems(this.getIndexesSequence(), finalIndex + skippedRowsToTargetIndex, physicalMovedIndexes));
+    });
   }
 
   /**
@@ -230,19 +289,19 @@ class IndexMapper {
    *
    * @private
    * @param {Number} firstInsertedVisualIndex First inserted visual index.
-   * @param {Number} firstInsertedPhysicalIndex First inserted physical index.
    * @param {Number} amountOfIndexes Amount of inserted indexes.
    */
-  insertIndexes(firstInsertedVisualIndex, firstInsertedPhysicalIndex, amountOfIndexes) {
+  insertIndexes(firstInsertedVisualIndex, amountOfIndexes) {
     const nthVisibleIndex = this.getNotSkippedIndexes()[firstInsertedVisualIndex];
+    const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex) ? nthVisibleIndex : this.getNumberOfIndexes();
     const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
-    this.indexesSequence.insert(insertionIndex, insertedIndexes);
-    this.skipCollection.insertToEvery(insertionIndex, insertedIndexes);
-    this.variousMappingsCollection.insertToEvery(insertionIndex, insertedIndexes);
-
-    this.updateCache();
+    this.executeBatchOperations(() => {
+      this.indexesSequence.insert(insertionIndex, insertedIndexes);
+      this.skipCollection.insertToEvery(insertionIndex, insertedIndexes);
+      this.variousMappingsCollection.insertToEvery(insertionIndex, insertedIndexes);
+    });
   }
 
   /**
@@ -252,11 +311,11 @@ class IndexMapper {
    * @param {Array} removedIndexes List of removed indexes.
    */
   removeIndexes(removedIndexes) {
-    this.indexesSequence.remove(removedIndexes);
-    this.skipCollection.removeFromEvery(removedIndexes);
-    this.variousMappingsCollection.removeFromEvery(removedIndexes);
-
-    this.updateCache();
+    this.executeBatchOperations(() => {
+      this.indexesSequence.remove(removedIndexes);
+      this.skipCollection.removeFromEvery(removedIndexes);
+      this.variousMappingsCollection.removeFromEvery(removedIndexes);
+    });
   }
 
   /**
@@ -264,10 +323,17 @@ class IndexMapper {
    *
    * @private
    */
-  updateCache() {
-    this.flattenSkipList = this.getFlattenSkipList(false);
-    this.notSkippedIndexesCache = this.getNotSkippedIndexes(false);
+  updateCache(force = false) {
+    if (force === true || (this.isBatched === false && this.cachedIndexesChange === true)) {
+      this.flattenSkipList = this.getFlattenSkipList(false);
+      this.notSkippedIndexesCache = this.getNotSkippedIndexes(false);
+      this.cachedIndexesChange = false;
+
+      this.runLocalHooks('cacheUpdated');
+    }
   }
 }
+
+mixin(IndexMapper, localHooks);
 
 export default IndexMapper;

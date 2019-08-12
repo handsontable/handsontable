@@ -7,9 +7,9 @@ import localHooks from '../../mixins/localHooks';
  * Map from index to value.
  */
 class BaseMap {
-  constructor(initValuesOrFn = (index => index)) {
+  constructor(initValueOrFn) {
     this.list = [];
-    this.initValuesOrFn = initValuesOrFn;
+    this.initValueOrFn = initValueOrFn;
   }
 
   /**
@@ -18,19 +18,8 @@ class BaseMap {
    * @param {Number} length New length of list.
    */
   init(length) {
-    this.list.length = 0;
+    this.setDefaultValues(length);
 
-    if (isFunction(this.initValuesOrFn)) {
-      rangeEach(length - 1, index => this.list.push(this.initValuesOrFn(index)));
-
-    } else if (Array.isArray(this.initValuesOrFn)) {
-      this.list = this.initValuesOrFn.slice();
-
-    } else {
-      rangeEach(length - 1, () => this.list.push(this.initValuesOrFn));
-    }
-
-    this.runLocalHooks('mapChanged');
     this.runLocalHooks('init');
 
     return this;
@@ -67,7 +56,7 @@ class BaseMap {
   setValues(values) {
     this.list = values.slice();
 
-    this.runLocalHooks('mapChanged');
+    this.runLocalHooks('change');
   }
 
   /**
@@ -81,7 +70,7 @@ class BaseMap {
     if (index < this.getLength()) {
       this.list[index] = value;
 
-      this.runLocalHooks('mapChanged');
+      this.runLocalHooks('change');
 
       return true;
     }
@@ -93,7 +82,7 @@ class BaseMap {
    * Clear all values.
    */
   clear() {
-    this.init(this.list.length);
+    this.setDefaultValues();
   }
 
   /**
@@ -106,26 +95,40 @@ class BaseMap {
   }
 
   /**
+   * Set default values for elements from `0` to `n`, where `n` is equal to the handled variable.
+   *
+   * @private
+   * @param {Number} [length] Length of list.
+   */
+  setDefaultValues(length = this.list.length) {
+    this.list.length = 0;
+
+    if (isFunction(this.initValueOrFn)) {
+      rangeEach(length - 1, index => this.list.push(this.initValueOrFn(index)));
+
+    } else {
+      rangeEach(length - 1, () => this.list.push(this.initValueOrFn));
+    }
+
+    this.runLocalHooks('change');
+  }
+
+  /**
    * Add values to the list.
    *
    * @private
-   * @param {Number} insertionIndex Position inside actual list.
-   * @param {Array} insertedIndexes List of inserted indexes.
    */
-  // eslint-disable-next-line no-unused-vars
-  insert(insertionIndex, insertedIndexes) {
-    throw Error('Map insert() method unimplemented');
+  insert() {
+    this.runLocalHooks('change');
   }
 
   /**
    * Remove values from the list.
    *
    * @private
-   * @param {Array} removedIndexes List of removed indexes.
    */
-  // eslint-disable-next-line no-unused-vars
-  remove(removedIndexes) {
-    throw Error('Map remove() method unimplemented');
+  remove() {
+    this.runLocalHooks('change');
   }
 }
 

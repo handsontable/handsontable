@@ -858,10 +858,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   }
 
+  /**
+   * Execute batch operations on Handsontable instance with updating cache.
+   *
+   * @param {Function} curriedBatchOperations Batched operations curried in a function.
+   */
+  this.executeBatchOperations = function(curriedBatchOperations) {
+    recordTranslator.executeBatchOperations(() => {
+      curriedBatchOperations();
+    });
+  };
+
   this.init = function() {
     dataSource.setData(priv.settings.data);
 
-    instance.runHooks('beforeInit');
+    instance.executeBatchOperations(() => {
+      instance.runHooks('beforeInit');
+    });
 
     if (isMobileBrowser()) {
       addClass(instance.rootElement, 'mobile');

@@ -5,8 +5,13 @@ import { pageY } from './../../helpers/dom/event';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import { registerPlugin } from './../../plugins';
+import { ValueMap } from './../../translations';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
+
+const ROW_HEIGHTS_MAP_NAME = 'manualRowResize';
+const PERSISTENT_STATE_KEY = 'manualRowHeights';
+const privatePool = new WeakMap();
 
 /**
  * @description
@@ -41,6 +46,19 @@ class ManualRowResize extends BasePlugin {
     this.autoresizeTimeout = null;
     this.manualRowHeights = [];
 
+    /**
+     * ValueMap to keep and track widths for physical row indexes.
+     *
+     * @type {ValueMap}
+     */
+    this.rowHeightsMap = void 0;
+    /**
+     * Private pool to save configuration from updateSettings.
+     */
+    privatePool.set(this, {
+      config: void 0,
+    });
+
     addClass(this.handle, 'manualRowResizer');
     addClass(this.guide, 'manualRowResizerGuide');
   }
@@ -63,23 +81,11 @@ class ManualRowResize extends BasePlugin {
       return;
     }
 
-    this.manualRowHeights = [];
-
-    const initialRowHeights = this.hot.getSettings().manualRowResize;
-    const loadedManualRowHeights = this.loadManualRowHeights();
-
-    if (typeof loadedManualRowHeights !== 'undefined') {
-      this.manualRowHeights = loadedManualRowHeights;
-    } else if (Array.isArray(initialRowHeights)) {
-      this.manualRowHeights = initialRowHeights;
-    } else {
-      this.manualRowHeights = [];
-    }
+    this.rowHeightsMap = new ValueMap();
+    this.rowHeightsMap.addLocalHook('init', () => this.onMapInit());
+    this.rowIndexMapper.registerMap(ROW_HEIGHTS_MAP_NAME, this.rowHeightsMap);
 
     this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
-
-    // Handsontable.hooks.register('beforeRowResize');
-    // Handsontable.hooks.register('afterRowResize');
 
     this.bindEvents();
 
@@ -90,30 +96,30 @@ class ManualRowResize extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    const initialRowHeights = this.hot.getSettings().manualRowResize;
+    this.disablePlugin();
+    this.enablePlugin();
 
-    if (Array.isArray(initialRowHeights)) {
-      this.manualRowHeights = initialRowHeights;
-
-    } else if (!initialRowHeights) {
-      this.manualRowHeights = [];
-    }
+    super.updatePlugin();
   }
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    const priv = privatePool.get(this);
+    priv.config = this.rowHeightsMap.getValues();
+
+    this.rowIndexMapper.unregisterMap(ROW_HEIGHTS_MAP_NAME);
     super.disablePlugin();
   }
 
   /**
    * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   *
    * @fires Hooks#persistentStateSave
-   * @fires Hooks#manualRowHeights
    */
   saveManualRowHeights() {
-    this.hot.runHooks('persistentStateSave', 'manualRowHeights', this.manualRowHeights);
+    this.hot.runHooks('persistentStateSave', PERSISTENT_STATE_KEY, this.rowHeightsMap.getValues());
   }
 
   /**
@@ -121,14 +127,28 @@ class ManualRowResize extends BasePlugin {
    *
    * @returns {Array}
    * @fires Hooks#persistentStateLoad
-   * @fires Hooks#manualRowHeights
    */
   loadManualRowHeights() {
     const storedState = {};
 
-    this.hot.runHooks('persistentStateLoad', 'manualRowHeights', storedState);
+    this.hot.runHooks('persistentStateLoad', PERSISTENT_STATE_KEY, storedState);
 
     return storedState.value;
+  }
+
+  /**
+   * Sets the new height for specified row index.
+   *
+   * @param {Number} row Visual row index.
+   * @param {Number} height Row height.
+   * @returns {Number} Returns new height.
+   */
+  setManualSize(row, height) {
+    const physicalRow = this.hot.toPhysicalRow(row);
+
+    this.rowHeightsMap.setValueAtIndex(physicalRow, height);
+
+    return height;
   }
 
   /**
@@ -455,23 +475,6 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Sets the new height for specified row index.
-   *
-   * @param {Number} row Visual row index.
-   * @param {Number} height Row height.
-   * @returns {Number} Returns new height.
-   *
-   * @fires Hooks#modifyRow
-   */
-  setManualSize(row, height) {
-    const physicalRow = this.hot.toPhysicalRow(row);
-
-    this.manualRowHeights[physicalRow] = height;
-
-    return height;
-  }
-
-  /**
    * Modifies the provided row height, based on the plugin settings.
    *
    * @private
@@ -486,7 +489,7 @@ class ManualRowResize extends BasePlugin {
       const autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
       const autoRowHeightResult = autoRowSizePlugin ? autoRowSizePlugin.heights[row] : null;
       const physicalRow = this.hot.toPhysicalRow(row);
-      const manualRowHeight = this.manualRowHeights[physicalRow];
+      const manualRowHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
 
       if (manualRowHeight !== void 0 && (manualRowHeight === autoRowHeightResult || manualRowHeight > (height || 0))) {
         return manualRowHeight;
@@ -494,6 +497,51 @@ class ManualRowResize extends BasePlugin {
     }
 
     return height;
+  }
+
+  /**
+   * Callback to call on map's `init` local hook.
+   *
+   * @private
+   */
+  onMapInit() {
+    const priv = privatePool.get(this);
+    const initialSetting = this.hot.getSettings().manualRowResize;
+    const loadedManualRowHeights = this.loadManualRowHeights();
+
+    if (typeof loadedManualColumnWidths !== 'undefined') {
+      this.hot.executeBatchOperations(() => {
+        loadedManualRowHeights.forEach((height, index) => {
+          this.rowHeightsMap.setValueAtIndex(index, height);
+        });
+      });
+
+    } else if (Array.isArray(initialSetting)) {
+
+      this.hot.executeBatchOperations(() => {
+        initialSetting.forEach((height, index) => {
+          this.rowHeightsMap.setValueAtIndex(index, height);
+        });
+      });
+
+      priv.config = initialSetting;
+
+    } else if (initialSetting === true && Array.isArray(priv.config)) {
+      this.hot.executeBatchOperations(() => {
+        priv.config.forEach((height, index) => {
+          this.rowHeightsMap.setValueAtIndex(index, height);
+        });
+      });
+    }
+  }
+
+  /**
+   * Destroys the plugin instance.
+   */
+  destroy() {
+    this.rowIndexMapper.unregisterMap(ROW_HEIGHTS_MAP_NAME);
+
+    super.destroy();
   }
 }
 

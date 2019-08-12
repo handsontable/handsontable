@@ -13,9 +13,9 @@ class ValueMap extends BaseMap {
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
-    this.list = getListWithInsertedItems(this.list, insertionIndex, insertedIndexes, this.initValuesOrFn);
+    this.list = getListWithInsertedItems(this.list, insertionIndex, insertedIndexes, this.initValueOrFn);
 
-    this.runLocalHooks('mapChanged');
+    super.insert(insertionIndex, insertedIndexes);
   }
 
   /**
@@ -27,7 +27,7 @@ class ValueMap extends BaseMap {
   remove(removedIndexes) {
     this.list = getListWithRemovedItems(this.list, removedIndexes);
 
-    this.runLocalHooks('mapChanged');
+    super.remove(removedIndexes);
   }
 }
 

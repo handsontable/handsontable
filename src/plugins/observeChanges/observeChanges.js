@@ -91,23 +91,14 @@ class ObserveChanges extends BasePlugin {
         add: (patch) => {
           if (isNaN(patch.col)) {
             const visualRow = patch.row;
-            let physicalRow = visualRow;
 
-            if (visualRow < this.hot.countRows()) {
-              physicalRow = this.hot.toPhysicalRow(visualRow);
-            }
-
-            this.rowIndexMapper.insertIndexes(visualRow, physicalRow, 1);
+            this.rowIndexMapper.insertIndexes(visualRow, 1);
             this.hot.runHooks('afterCreateRow', visualRow, 1, sourceName);
 
           } else {
             const visualColumn = patch.col;
-            let physicalColumn = visualColumn;
 
-            if (visualColumn < this.hot.countCols()) {
-              physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-            }
-            this.columnIndexMapper.insertIndexes(visualColumn, physicalColumn, 1);
+            this.columnIndexMapper.insertIndexes(visualColumn, 1);
             this.hot.runHooks('afterCreateCol', visualColumn, 1, sourceName);
           }
         },
@@ -130,6 +121,7 @@ class ObserveChanges extends BasePlugin {
           actions[patch.op](patch);
         }
       });
+
       this.hot.render();
     }
 
