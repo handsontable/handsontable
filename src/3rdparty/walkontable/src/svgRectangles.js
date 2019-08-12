@@ -11,8 +11,6 @@ export default function getSvgRectangleRenderer(svg) {
 
   svg.setAttribute('fill', 'none');
 
-  // todo copy retina solutions from hot
-
   let lastTotalWidth;
   let lastTotalHeight;
 
