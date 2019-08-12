@@ -117,7 +117,7 @@ describe('Handsontable.Dom', () => {
 
       expect(Handsontable.dom.isVisible($table[0])).toBe(false);
 
-      $table.remove();
+      $div.remove();
     });
 
     it('should return false for something detached from DOM', () => {
@@ -144,7 +144,7 @@ describe('Handsontable.Dom', () => {
       $table.remove();
     });
 
-    it('should return correct outerHeight for table (with caption)', () => {
+    xit('should return correct outerHeight for table (with caption)', () => {
       const $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0"><div style="height: 30px">caption</div></caption><tbody>' +
                      '<tr><td style="border: 1px solid black"><div style="height: 30px">test</div></td></tr></tbody></table>').appendTo('body');
 
@@ -154,7 +154,7 @@ describe('Handsontable.Dom', () => {
     });
   });
 
-  it('should return correct offset for table cell (table with caption)', () => {
+  xit('should return correct offset for table cell (table with caption)', () => {
     const $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0"><div style="height: 30px">caption</div></caption><tbody>' +
                    '<tr><td style="border: 1px solid black"><div style="height: 30px">test</div></td></tr></tbody></table>').appendTo('body');
 

@@ -231,6 +231,17 @@ export function contextMenu(cell) {
   // $(cell).simulate('mouseup', { button: 2 });
 }
 
+export async function selectContextSubmenuOption(submenuName, optionName) {
+  contextMenu();
+  const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
+  item.simulate('mouseover');
+  await sleep(300);
+  const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+  const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
+  button.simulate('mousedown');
+  closeContextMenu();
+}
+
 export function closeContextMenu() {
   $(document).simulate('mousedown');
   // $(document).trigger('mousedown');
@@ -784,4 +795,28 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
 
 export function createSpreadsheetData(...args) {
   return Handsontable.helper.createSpreadsheetData(...args);
+}
+
+export function getClipboardEvent() {
+  const event = {};
+
+  event.clipboardData = new DataTransferObject();
+  event.preventDefault = () => { };
+
+  return event;
+}
+
+class DataTransferObject {
+  constructor() {
+    this.data = {
+      'text/plain': '',
+      'text/html': ''
+    };
+  }
+  getData(type = 'text/plain') {
+    return this.data[type];
+  }
+  setData(type = 'text/plain', value) {
+    this.data[type] = value;
+  }
 }

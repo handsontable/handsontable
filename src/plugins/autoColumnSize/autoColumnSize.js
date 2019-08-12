@@ -1,7 +1,6 @@
 import BasePlugin from './../_base';
 import { arrayEach, arrayFilter, arrayReduce, arrayMap } from './../../helpers/array';
 import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
-import { isVisible } from './../../helpers/dom/element';
 import GhostTable from './../../utils/ghostTable';
 import { isObject, hasOwnProperty } from './../../helpers/object';
 import { valueAccordingPercent, rangeEach } from './../../helpers/number';
@@ -112,7 +111,8 @@ class AutoColumnSize extends BasePlugin {
           labelText = typeof labelValue === 'function' ? labelValue(row, column, this.hot.colToProp(column), cellValue) : labelValue;
 
         } else if (labelProperty) {
-          labelText = this.hot.getDataAtRowProp(row, labelProperty);
+          const labelData = this.hot.getDataAtRowProp(row, labelProperty);
+          labelText = labelData !== null ? labelData : '';
         }
 
         bundleCountSeed = labelText.length;
@@ -298,7 +298,7 @@ class AutoColumnSize extends BasePlugin {
    * Recalculates all columns width (overwrite cache values).
    */
   recalculateAllColumnsWidth() {
-    if (this.hot.view && isVisible(this.hot.view.wt.wtTable.TABLE)) {
+    if (this.hot.view && this.hot.view.wt.wtTable.isVisible()) {
       this.clearCache();
       this.calculateAllColumnsWidth();
     }

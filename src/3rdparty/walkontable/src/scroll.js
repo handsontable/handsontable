@@ -5,7 +5,6 @@ import {
   getScrollTop,
   offset,
 } from './../../../helpers/dom/element';
-import { rangeEach, rangeEachReverse } from './../../../helpers/number';
 
 /**
  * @class Scroll
@@ -16,9 +15,6 @@ class Scroll {
    */
   constructor(wotInstance) {
     this.wot = wotInstance;
-
-    // legacy support
-    this.instance = wotInstance;
   }
 
   /**
@@ -130,16 +126,15 @@ class Scroll {
 
         rowsHeight += topOverlay.sumCellSizes(0, fixedRowsTop);
 
-        rangeEachReverse(totalRows, 1, (row) => {
+        for (let row = totalRows; row > 0; row--) {
           rowsHeight += topOverlay.sumCellSizes(row - 1, row);
 
           if (rootElementOffset.top + totalTableHeight - rowsHeight <= windowScrollTop) {
             // Return physical row + 1
             firstVisibleRow = row;
-
-            return false;
+            break;
           }
-        });
+        }
       }
     }
 
@@ -163,23 +158,22 @@ class Scroll {
 
     if (topOverlay.mainTableScrollableElement === rootWindow) {
       const rootElementOffset = offset(wtTable.wtRootElement);
-      const windowHeight = innerHeight(rootWindow);
       const windowScrollTop = getScrollTop(rootWindow, rootWindow);
 
       // Only calculate lastVisibleRow when table didn't filled (from bottom) whole viewport space
       if (rootElementOffset.top > windowScrollTop) {
+        const windowHeight = innerHeight(rootWindow);
         let rowsHeight = wtViewport.getColumnHeaderHeight();
 
-        rangeEach(1, totalRows, (row) => {
+        for (let row = 1; row <= totalRows; row++) {
           rowsHeight += topOverlay.sumCellSizes(row - 1, row);
 
           if (rootElementOffset.top + rowsHeight - windowScrollTop >= windowHeight) {
             // Return physical row - 1 (-2 because rangeEach gives row index + 1 - sumCellSizes requirements)
             lastVisibleRow = row - 2;
-
-            return false;
+            break;
           }
-        });
+        }
       }
     }
 
@@ -212,16 +206,15 @@ class Scroll {
       if (rootElementOffset.left + totalTableWidth - windowWidth <= windowScrollLeft) {
         let columnsWidth = wtViewport.getRowHeaderWidth();
 
-        rangeEachReverse(totalColumns, 1, (column) => {
+        for (let column = totalColumns; column > 0; column--) {
           columnsWidth += leftOverlay.sumCellSizes(column - 1, column);
 
           if (rootElementOffset.left + totalTableWidth - columnsWidth <= windowScrollLeft) {
             // Return physical column + 1
             firstVisibleColumn = column;
-
-            return false;
+            break;
           }
-        });
+        }
       }
     }
 
@@ -246,23 +239,22 @@ class Scroll {
 
     if (leftOverlay.mainTableScrollableElement === rootWindow) {
       const rootElementOffset = offset(wtTable.wtRootElement);
-      const windowWidth = innerWidth(rootWindow);
       const windowScrollLeft = getScrollLeft(rootWindow, rootWindow);
 
       // Only calculate lastVisibleColumn when table didn't filled (from right) whole viewport space
       if (rootElementOffset.left > windowScrollLeft) {
+        const windowWidth = innerWidth(rootWindow);
         let columnsWidth = wtViewport.getRowHeaderWidth();
 
-        rangeEach(1, totalColumns, (column) => {
+        for (let column = 1; column <= totalColumns; column++) {
           columnsWidth += leftOverlay.sumCellSizes(column - 1, column);
 
           if (rootElementOffset.left + columnsWidth - windowScrollLeft >= windowWidth) {
             // Return physical column - 1 (-2 because rangeEach gives column index + 1 - sumCellSizes requirements)
             lastVisibleColumn = column - 2;
-
-            return false;
+            break;
           }
-        });
+        }
       }
     }
 

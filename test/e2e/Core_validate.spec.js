@@ -40,6 +40,7 @@ describe('Core_validate', () => {
     hot.validateCells();
     await sleep(10);
     hot.destroy();
+    spec().$container.remove();
 
     expect(() => { validatorCallback(false); }).not.toThrow();
     expect(validatorCallback(false)).toBe(void 0);
@@ -1203,7 +1204,7 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('edited cell should stay on screen until value is validated', (done) => {
+  it('edited cell should stay on screen until value is validated but should be closed before apply changes', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onAfterChange = jasmine.createSpy('onAfterChange');
     let isEditorVisibleBeforeChange;
@@ -1239,12 +1240,54 @@ describe('Core_validate', () => {
 
     expect(document.activeElement.nodeName).toEqual('TEXTAREA');
 
-    setTimeout(() => {
-      expect(isEditorVisibleBeforeChange).toBe(true);
-      expect(isEditorVisibleAfterChange).toBe(true);
-      expect(isEditorVisible()).toBe(false);
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(isEditorVisibleBeforeChange).toBe(true);
+    expect(isEditorVisibleAfterChange).toBe(false);
+    expect(isEditorVisible()).toBe(false);
+  });
+
+  it('edited cell should stay on screen until value is validated and should not be closed when validator does not pass', async() => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterChange = jasmine.createSpy('onAfterChange');
+    let isEditorVisibleBeforeChange;
+    let isEditorVisibleAfterChange;
+
+    onAfterValidate.and.callFake(() => {
+      isEditorVisibleBeforeChange = isEditorVisible();
+    });
+    onAfterChange.and.callFake(() => {
+      isEditorVisibleAfterChange = isEditorVisible();
+    });
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      afterValidate: onAfterValidate,
+      afterChange: onAfterChange,
+      validator(value, callback) {
+        setTimeout(() => {
+          callback(false);
+        }, 100);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+    document.activeElement.value = 'Ted';
+
+    onAfterValidate.calls.reset();
+    onAfterChange.calls.reset();
+
+    keyDown('enter');
+
+    expect(document.activeElement.nodeName).toEqual('TEXTAREA');
+
+    await sleep(200);
+
+    expect(isEditorVisibleBeforeChange).toBe(true);
+    expect(isEditorVisibleAfterChange).toBe(false);
+    expect(isEditorVisible()).toBe(true);
   });
 
   it('should validate edited cell after selecting another cell', async() => {
