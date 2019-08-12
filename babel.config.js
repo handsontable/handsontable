@@ -13,6 +13,8 @@ const allowedE2EModules = [
   './asciiTable',
   './MemoryLeakTest',
   '../MemoryLeakTest',
+  './svgToAscii',
+  '../../src/svgRectangles',
 ];
 
 const babelPresetConfig = () => ({

@@ -1,4 +1,7 @@
 import { normalize, pretty } from './htmlNormalize';
+import svgToAscii from './svgToAscii';
+
+export { default as getSvgRectangleRenderer } from '../../src/svgRectangles';
 
 export function sleep(delay = 100) {
   return Promise.resolve({
@@ -353,4 +356,35 @@ export function expectWtTable(wt, callb, name) {
   }
 
   return expect(callb(wt.wtOverlays[`${name}Overlay`].clone.wtTable)).withContext(name);
+}
+
+export async function testSvgAsAsciiArt(svg, expectedAsciiArt) {
+  return new Promise((resolve) => {
+    const whenConverted = svgToAscii(svg);
+    whenConverted.then((resultAsciiArt) => {
+      const scaleFactor = window.devicePixelRatio || 1;
+      expectedAsciiArt = expectedAsciiArt.trim();
+      expectedAsciiArt = multiplyStringChars2D(expectedAsciiArt, scaleFactor);
+      expect(`\n${resultAsciiArt}\n`).toBe(`\n${expectedAsciiArt}\n`);
+      resolve();
+    });
+  });
+}
+
+function multiplyStringChars2D(str, factor) {
+  const lines = str.split('\n');
+  let out = '';
+  for (let ll = 0; ll < lines.length; ll++) {
+    for (let ii = 0; ii < factor; ii++) {
+      if (out !== '') {
+        out += '\n';
+      }
+      for (let cc = 0; cc < lines[ll].length; cc++) {
+        for (let jj = 0; jj < factor; jj++) {
+          out += lines[ll][cc];
+        }
+      }
+    }
+  }
+  return out;
 }
