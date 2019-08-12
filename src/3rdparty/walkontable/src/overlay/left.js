@@ -9,6 +9,7 @@ import {
   setOverlayPosition,
   resetCssTransform,
 } from './../../../../helpers/dom/element';
+import LeftOverlayTable from './table/left';
 import Overlay from './_base';
 
 /**
@@ -21,6 +22,10 @@ class LeftOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_LEFT);
+  }
+
+  createTable(...args) {
+    return new LeftOverlayTable(...args);
   }
 
   /**

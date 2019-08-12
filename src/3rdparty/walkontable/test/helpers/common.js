@@ -340,3 +340,17 @@ export function getScrollbarWidth() {
 
   return cachedScrollbarWidth;
 }
+
+/**
+ * Run expectation towards a certain WtTable overlay
+ * @param {*} wt WOT instance
+ * @param {*} name Name of the overlay
+ * @param {*} callb Callback that will receive wtTable of that overlay
+ */
+export function expectWtTable(wt, callb, name) {
+  if (name === 'master') {
+    return expect(callb(wt.wtTable)).withContext(name);
+  }
+
+  return expect(callb(wt.wtOverlays[`${name}Overlay`].clone.wtTable)).withContext(name);
+}

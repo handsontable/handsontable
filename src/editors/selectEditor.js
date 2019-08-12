@@ -234,48 +234,7 @@ class SelectEditor extends BaseEditor {
     selectStyle.top = `${editTop}px`;
     selectStyle.left = `${editLeft}px`;
     selectStyle.margin = '0px';
-  }
-
-  /**
-   * Gets HTMLTableCellElement of the edited cell if exist.
-   *
-   * @private
-   * @returns {HTMLTableCellElement|undefined}
-   */
-  getEditedCell() {
-    const { wtOverlays } = this.hot.view.wt;
-    const editorSection = this.checkEditorSection();
-    let editedCell;
-
-    switch (editorSection) {
-      case 'top':
-        editedCell = wtOverlays.topOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.select.style.zIndex = 101;
-        break;
-      case 'corner':
-        editedCell = wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.select.style.zIndex = 103;
-        break;
-      case 'left':
-        editedCell = wtOverlays.leftOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.select.style.zIndex = 102;
-        break;
-      default:
-        editedCell = this.hot.getCell(this.row, this.col);
-        this.select.style.zIndex = '';
-        break;
-    }
-
-    return editedCell < 0 ? void 0 : editedCell;
+    selectStyle.zIndex = this.getEditedCellsZIndex();
   }
 
   /**

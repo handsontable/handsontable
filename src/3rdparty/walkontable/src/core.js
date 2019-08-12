@@ -32,7 +32,7 @@ class Walkontable {
       this.cloneSource = settings.cloneSource;
       this.cloneOverlay = settings.cloneOverlay;
       this.wtSettings = settings.cloneSource.wtSettings;
-      this.wtTable = new Table(this, settings.table, settings.wtRootElement);
+      this.wtTable = this.cloneOverlay.createTable(this, settings.table);
       this.wtScroll = new Scroll(this);
       this.wtViewport = settings.cloneSource.wtViewport;
       this.wtEvent = new Event(this);
@@ -194,29 +194,6 @@ class Walkontable {
    */
   getOverlayName() {
     return this.cloneOverlay ? this.cloneOverlay.type : 'master';
-  }
-
-  /**
-   * Check if this instance acts as an overlay (internally called as "clone" of the master table).
-   *
-   * @returns {Boolean}
-   */
-  isClone() {
-    return !this.cloneSource;
-  }
-
-  /**
-   * Check overlay type of this Walkontable instance.
-   *
-   * @param {String} name Clone type @see {Overlay.CLONE_TYPES}.
-   * @returns {Boolean}
-   */
-  isOverlayName(name) {
-    if (this.cloneOverlay) {
-      return this.cloneOverlay.type === name;
-    }
-
-    return false;
   }
 
   /**
