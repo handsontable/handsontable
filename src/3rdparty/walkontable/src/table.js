@@ -301,26 +301,8 @@ class Table {
       } else {
         this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
       }
-      let startRow;
-
-      if (this.is(Overlay.CLONE_TOP) ||
-          this.is(Overlay.CLONE_TOP_LEFT_CORNER)) {
-        startRow = 0;
-      } else if (this.is(Overlay.CLONE_BOTTOM) ||
-                 this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-        startRow = Math.max(totalRows - wot.getSetting('fixedRowsBottom'), 0);
-      } else {
-        startRow = wtViewport.rowsRenderCalculator.startRow;
-      }
-      let startColumn;
-
-      if (this.is(Overlay.CLONE_LEFT) ||
-          this.is(Overlay.CLONE_TOP_LEFT_CORNER) ||
-          this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-        startColumn = 0;
-      } else {
-        startColumn = wtViewport.columnsRenderCalculator.startColumn;
-      }
+      const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
+      const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
