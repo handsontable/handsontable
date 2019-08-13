@@ -1,8 +1,6 @@
 import BasePlugin from './../_base';
 import { registerPlugin } from './../../plugins';
-import {
-  hasOwnProperty,
-  objectEach } from './../../helpers/object';
+import { hasOwnProperty } from './../../helpers/object';
 import { rangeEach } from './../../helpers/number';
 import {
   arrayEach,
@@ -629,8 +627,8 @@ class CustomBorders extends BasePlugin {
   */
   checkCustomSelectionsFromContextMenu(border, place, remove) {
     if (border.customSelection) {
-      objectEach(border.customSelection.instanceSelectionHandles, (borderObject) => {
-        borderObject.toggleHiddenClass(place, remove); // TODO this also bad?
+      border.customSelection.instanceSelectionHandles.forEach((selectionHandleObject) => {
+        selectionHandleObject.toggleHiddenClass(place, remove); // TODO this also bad?
       });
 
       return true;
@@ -660,7 +658,7 @@ class CustomBorders extends BasePlugin {
       border.customSelection.cellRange = cellRange;
 
       if (place) {
-        objectEach(border.customSelection.instanceSelectionHandles, (selectionHandleObject) => {
+        border.customSelection.instanceSelectionHandles.forEach((selectionHandleObject) => {
           selectionHandleObject.changeBorderStyle(place, border);
         });
       }

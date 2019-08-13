@@ -14,7 +14,7 @@ class Selection {
   constructor(settings, cellRange) {
     this.settings = settings;
     this.cellRange = cellRange || null;
-    this.instanceSelectionHandles = {};
+    this.instanceSelectionHandles = new Map();
     this.classNames = [this.settings.className];
     this.classNameGenerator = this.linearClassNameGenerator(this.settings.className, this.settings.layerLevel);
   }
@@ -34,11 +34,15 @@ class Selection {
    * @returns {SelectionHandle}
    */
   getSelectionHandle(wotInstance) {
-    if (!this.instanceSelectionHandles[wotInstance.guid]) {
-      this.instanceSelectionHandles[wotInstance.guid] = new SelectionHandle(wotInstance, this.settings);
+    const found = this.getSelectionHandleIfExists(wotInstance);
+
+    if (found) {
+      return found;
     }
 
-    return this.instanceSelectionHandles[wotInstance.guid];
+    const selectionHandle = new SelectionHandle(wotInstance, this.settings);
+    this.instanceSelectionHandles.set(wotInstance, selectionHandle);
+    return selectionHandle;
   }
 
   /**
@@ -48,7 +52,7 @@ class Selection {
    * @returns {SelectionHandle|undefined}
    */
   getSelectionHandleIfExists(wotInstance) {
-    return this.instanceSelectionHandles[wotInstance.guid];
+    return this.instanceSelectionHandles.get(wotInstance);
   }
 
   /**
@@ -313,7 +317,7 @@ class Selection {
    * Cleans up all the DOM state related to a Selection instance. Call this prior to deleting a Selection instance.
    */
   destroy() {
-    Object.values(this.instanceSelectionHandles).forEach(selectionHandle => selectionHandle.destroy());
+    this.instanceSelectionHandles.forEach(selectionHandle => selectionHandle.destroy());
   }
 }
 
