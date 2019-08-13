@@ -59,13 +59,13 @@ describe('Core_render', () => {
     const currentSelection = spec().$container.find('.wtBorder.current')[0];
     const svgPath = spec().$container.find('svg:eq(0) path')[0];
     const left = currentSelection.offsetLeft;
-    expect(svgPath.getAttribute('d')).toBe('M 50 24 H 100 V 47 H 50 V 24 ');
+    expect(svgPath.getAttribute('d')).toBe('M 50 24 H 99 V 46 H 50 V 24 z');
 
     data[1][1] = 'dddddddddddddddddddd';
     render();
 
     expect(currentSelection.offsetLeft).toBeGreaterThan(left);
-    expect(svgPath.getAttribute('d')).toBe('M 50 24 H 100 V 47 H 50 V 24 '); // TODO I think this is wrong that the border is not reszed while the cell is. But this is the fault of viewportCalculator
+    expect(svgPath.getAttribute('d')).toBe('M 50 24 H 237 V 46 H 50 V 24 z');
   });
 
   it('should not render table twice', () => {

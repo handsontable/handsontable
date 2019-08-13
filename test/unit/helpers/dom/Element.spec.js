@@ -204,7 +204,7 @@ describe('DomElement helper', () => {
     it('should filter empty and falsy classNames', () => {
       addClass(element, [undefined, null, '', false, 'false']); // only the last one is not filtered
 
-      expect(element.className).toBe('false');
+      expect(element.className).toBe('test1 false');
     });
   });
 

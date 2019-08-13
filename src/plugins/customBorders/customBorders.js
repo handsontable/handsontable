@@ -130,6 +130,7 @@ class CustomBorders extends BasePlugin {
    */
   disablePlugin() {
     this.hideBorders();
+    this.render();
 
     super.disablePlugin();
   }
@@ -180,6 +181,10 @@ class CustomBorders extends BasePlugin {
       }
     });
 
+    this.render();
+  }
+
+  render() {
     /*
     The line below triggers a re-render of Handsontable. This will be a "fastDraw"
     render, because that is the default for the TableView class.
@@ -268,6 +273,7 @@ class CustomBorders extends BasePlugin {
       this.savedBorders.length = 0;
       this.savedBordersById = {};
     }
+    this.render();
   }
 
   /**

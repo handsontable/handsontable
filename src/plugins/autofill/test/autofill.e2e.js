@@ -46,7 +46,6 @@ describe('AutoFill', () => {
 
     expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex).toBe('10');
     expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex).toBe('8');
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .fill')).zIndex).toBe('6');
   });
 
   it('should not change cell value (drag vertically when fillHandle option is set to `horizontal`)', () => {

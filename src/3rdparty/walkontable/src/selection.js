@@ -224,17 +224,17 @@ class Selection {
     const corners = this.getCorners();
     const [firstRow, firstColumn, lastRow, lastColumn] = corners; // row/column values can be negative if row/column header was clicked
 
-    const tableFirstRenderedRow = wotInstance.wtTable.getFirstRenderedRow();
-    const tableFirstRenderedColumn = wotInstance.wtTable.getFirstRenderedColumn();
-    const tableLastRenderedRow = wotInstance.wtTable.getLastRenderedRow();
-    const tableLastRenderedColumn = wotInstance.wtTable.getLastRenderedColumn();
+    const tableFirstRenderedRow = wotInstance.wtTable.getFirstRenderedRow(); // -1 when there are no rendered rows
+    const tableFirstRenderedColumn = wotInstance.wtTable.getFirstRenderedColumn(); // -1 when there are no rendered columns
+    const tableLastRenderedRow = wotInstance.wtTable.getLastRenderedRow(); // null when there are no rendered rows
+    const tableLastRenderedColumn = wotInstance.wtTable.getLastRenderedColumn(); // null when there are no rendered columns
 
     const highlightFirstRenderedRow = Math.max(firstRow, tableFirstRenderedRow);
     const highlightFirstRenderedColumn = Math.max(firstColumn, tableFirstRenderedColumn);
     const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow);
     const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn);
 
-    if (this.settings.highlightHeaderClassName || this.settings.highlightColumnClassName) {
+    if (renderedColumns && (this.settings.highlightHeaderClassName || this.settings.highlightColumnClassName)) {
       for (let sourceColumn = highlightFirstRenderedColumn; sourceColumn <= highlightLastRenderedColumn; sourceColumn += 1) {
         this.addClassIfElemExists(wotInstance.wtTable.getColumnHeader(sourceColumn), [this.settings.highlightHeaderClassName, this.settings.highlightColumnClassName]);
 
@@ -249,7 +249,7 @@ class Selection {
       }
     }
 
-    if (this.settings.highlightHeaderClassName || this.settings.highlightRowClassName) {
+    if (renderedRows && (this.settings.highlightHeaderClassName || this.settings.highlightRowClassName)) {
       for (let sourceRow = highlightFirstRenderedRow; sourceRow <= highlightLastRenderedRow; sourceRow += 1) {
         this.addClassIfElemExists(wotInstance.wtTable.getRowHeader(sourceRow), [this.settings.highlightHeaderClassName, this.settings.highlightRowClassName]);
 
@@ -264,35 +264,40 @@ class Selection {
       }
     }
 
-    if (highlightFirstRenderedRow <= highlightLastRenderedRow && highlightFirstRenderedColumn <= highlightLastRenderedColumn) {
-      selectedCellFn(this,
-        highlightFirstRenderedRow, highlightFirstRenderedColumn, highlightLastRenderedRow, highlightLastRenderedColumn,
-        highlightFirstRenderedRow === firstRow,
-        highlightLastRenderedColumn === lastColumn,
-        highlightLastRenderedRow === lastRow,
-        highlightFirstRenderedColumn === firstColumn);
-    }
+    if (renderedRows && renderedColumns) {
+      if (highlightFirstRenderedRow <= highlightLastRenderedRow && highlightFirstRenderedColumn <= highlightLastRenderedColumn) {
+        selectedCellFn(this,
+          highlightFirstRenderedRow, highlightFirstRenderedColumn, highlightLastRenderedRow, highlightLastRenderedColumn,
+          highlightFirstRenderedRow === firstRow,
+          highlightLastRenderedColumn === lastColumn,
+          highlightLastRenderedRow === lastRow,
+          highlightFirstRenderedColumn === firstColumn);
+      }
 
-    for (let sourceRow = highlightFirstRenderedRow; sourceRow <= highlightLastRenderedRow; sourceRow += 1) {
-      for (let sourceColumn = highlightFirstRenderedColumn; sourceColumn <= highlightLastRenderedColumn; sourceColumn += 1) {
+      for (let sourceRow = highlightFirstRenderedRow; sourceRow <= highlightLastRenderedRow; sourceRow += 1) {
+        for (let sourceColumn = highlightFirstRenderedColumn; sourceColumn <= highlightLastRenderedColumn; sourceColumn += 1) {
 
-        if (sourceRow >= highlightFirstRenderedRow && sourceRow <= highlightLastRenderedRow && sourceColumn >= highlightFirstRenderedColumn && sourceColumn <= highlightLastRenderedColumn) {
-          // selected cell
+          if (sourceRow >= highlightFirstRenderedRow
+              && sourceRow <= highlightLastRenderedRow
+              && sourceColumn >= highlightFirstRenderedColumn
+              && sourceColumn <= highlightLastRenderedColumn) {
+            // selected cell
+            if (this.settings.className) {
+              this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, this.settings.className, this.settings.markIntersections);
+            }
+          }
+
           if (this.settings.className) {
-            this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, this.settings.className, this.settings.markIntersections);
+            // This has a big perf cost. Don't perform this for custom borders
+
+            const additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceColumn, corners, this.settings.layerLevel);
+
+            if (typeof additionalSelectionClass === 'string') {
+              this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, additionalSelectionClass);
+            }
           }
+
         }
-
-        if (this.settings.className) {
-          // This has a big perf cost. Don't perform this for custom borders
-
-          const additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceColumn, corners, this.settings.layerLevel);
-
-          if (typeof additionalSelectionClass === 'string') {
-            this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, additionalSelectionClass);
-          }
-        }
-
       }
     }
 

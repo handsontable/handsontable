@@ -640,11 +640,12 @@ describe('NumericEditor', () => {
       const moveToRow = settings.moveToRow;
       const moveToCol = settings.moveToCol;
       const doneFunc = settings.doneFunc;
-      const $corner = settings.$container.find('.wtBorder.current.corner');
 
       selectCell(moveFromRow, moveFromCol);
       keyDown('enter');
       selectCell(moveToRow, moveToCol);
+
+      const $corner = settings.$container.find('.wtBorder.current.corner');
 
       setTimeout(() => {
         expect($corner.css('display')).toEqual('block');

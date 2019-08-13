@@ -9,20 +9,21 @@ describe('CustomBorders', () => {
   const ORANGE_BORDER = { color: 'orange', width: 2 };
   const EMPTY = { hide: true };
 
-  const CUSTOM_BORDER_SELECTOR = '.wtBorder:not(.fill, .current, .area)';
-  /**
-   * Returns number of custom borders in DOM. There are 5 borders per
-   * cell (top, left, bottom right, corner), some of which are hidden
-   * TODO this seems redundant that we always render borders that are not visible
-   */
-  function countCustomBorders() {
-    return $(CUSTOM_BORDER_SELECTOR).length;
-  }
   /**
    * Returns number of visible custom borders in DOM
    */
   function countVisibleCustomBorders() {
-    return $(`${CUSTOM_BORDER_SELECTOR}:visible`).length;
+    const paths = Array.from(document.querySelectorAll('.wtSpreader svg path'));
+    const total = paths.reduce((acc, path) => {
+      const d = path.getAttribute('d');
+      const horizontalLines = d.match(/ H /g);
+      const verticalLines = d.match(/ V /g);
+      const horizontalLinesCount = horizontalLines === null ? 0 : horizontalLines.length;
+      const verticalLinesCount = verticalLines === null ? 0 : verticalLines.length;
+      return acc + horizontalLinesCount + verticalLinesCount;
+    }, 0);
+
+    return total;
   }
 
   function generateCustomBordersForAllRows(numRows) {
@@ -152,7 +153,6 @@ describe('CustomBorders', () => {
       });
 
       expect(countVisibleCustomBorders()).toBe(0);
-      expect(countCustomBorders()).toBe(0);
     });
 
     it('should hide borders when disabled using disablePlugin', () => {
@@ -169,7 +169,6 @@ describe('CustomBorders', () => {
       hot.getPlugin('customBorders').disablePlugin();
 
       expect(countVisibleCustomBorders()).toBe(0);
-      expect(countCustomBorders()).toBe(0);
     });
 
     it('should show initial borders when re-enabled using updateSettings', () => {
@@ -191,7 +190,6 @@ describe('CustomBorders', () => {
       });
 
       expect(countVisibleCustomBorders()).toBe(3); // TODO this assertion checks current behavior that looks like a bug. I would expect 0
-      expect(countCustomBorders()).toBe(5); // TODO this assertion checks current behavior that looks like a bug. I would expect 0
     });
 
     it('should show initial borders when re-enabled using disablePlugin', () => {
@@ -209,7 +207,6 @@ describe('CustomBorders', () => {
       hot.getPlugin('customBorders').enablePlugin();
 
       expect(countVisibleCustomBorders()).toBe(0); // TODO this assertion checks current behavior that looks like a bug. I would expect 3
-      expect(countCustomBorders()).toBe(0);
     });
   });
 
@@ -237,7 +234,7 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    expect(countCustomBorders()).toBe(0);
+    expect(countVisibleCustomBorders()).toBe(0);
   });
 
   it('should render specific borders provided in the configuration', () => {
@@ -277,7 +274,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 3).borders).toBeUndefined();
 
     expect(countVisibleCustomBorders()).toBe(3);
-    expect(countCustomBorders()).toBe(5);
   });
 
   it('should draw new borders by use setBorders method (while selected)', () => {
@@ -316,7 +312,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.right).toEqual(EMPTY);
 
     expect(countVisibleCustomBorders()).toBe(8);
-    expect(countCustomBorders()).toBe(4 * 5); // there are 4 cells in the provided range
   });
 
   it('should draw new borders by use setBorders method (while deselected)', () => {
@@ -353,7 +348,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.right).toEqual(EMPTY);
 
     expect(countVisibleCustomBorders()).toBe(8);
-    expect(countCustomBorders()).toBe(4 * 5); // there are 4 cells in the provided range
   });
 
   it('should redraw existing borders by use setBorders method (while selected)', () => {
@@ -382,7 +376,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.bottom).toEqual(RED_BORDER);
     expect(getCellMeta(2, 2).borders.right).toEqual(GREEN_BORDER);
     expect(countVisibleCustomBorders()).toBe(4);
-    expect(countCustomBorders()).toBe(5);
   });
 
   it('should redraw existing borders by use setBorders method (while deselected)', () => {
@@ -409,7 +402,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.bottom).toEqual(RED_BORDER);
     expect(getCellMeta(2, 2).borders.right).toEqual(GREEN_BORDER);
     expect(countVisibleCustomBorders()).toBe(4);
-    expect(countCustomBorders()).toBe(5);
   });
 
   it('should hide only specific border by use setBorders method with {hide: true} (while selected)', () => {
@@ -437,7 +429,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(2, 2).borders.right).toEqual(RED_BORDER);
     expect(countVisibleCustomBorders()).toBe(2);
-    expect(countCustomBorders()).toBe(5);
   });
 
   it('should hide only specific border by use setBorders method with {hide: true} (while deselected)', () => {
@@ -463,7 +454,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(2, 2).borders.right).toEqual(RED_BORDER);
     expect(countVisibleCustomBorders()).toBe(2);
-    expect(countCustomBorders()).toBe(5);
   });
 
   it('should hide only specific border by use setBorders method with {top: false} (while selected)', () => {
@@ -511,7 +501,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 3).borders).toBeUndefined();
 
     expect(countVisibleCustomBorders()).toBe(2);
-    expect(countCustomBorders()).toBe(5);
   });
 
   it('should hide only specific border by use setBorders method with {top: false} (while deselected)', () => {
@@ -557,7 +546,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 3).borders).toBeUndefined();
 
     expect(countVisibleCustomBorders()).toBe(2);
-    expect(countCustomBorders()).toBe(5);
   });
 
   it('should return borders from the selected area by use getBorders method', () => {
@@ -584,7 +572,6 @@ describe('CustomBorders', () => {
     expect(borders[0].bottom).toEqual(EMPTY);
     expect(borders[0].right).toEqual(GREEN_BORDER);
     expect(countVisibleCustomBorders()).toBe(3);
-    expect(countCustomBorders()).toBe(5);
   });
 
   it('should return all borders by use getBorders method without parameter', () => {
@@ -621,7 +608,6 @@ describe('CustomBorders', () => {
 
     expect(borders.length).toEqual(9);
     expect(countVisibleCustomBorders()).toBe(15); // there are 9 cells in the provided range, some of which have 1, 2 or 3 rendered borders
-    expect(countCustomBorders()).toBe(9 * 5); // there are 9 cells in the provided range
   });
 
   it('should clear borders from area by use clearBorders method (while selected)', () => {
@@ -688,7 +674,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 3).borders.right).toEqual(MAGENTA_BORDER);
     expect(getCellMeta(3, 3).borders.bottom).toEqual(RED_BORDER);
     expect(countVisibleCustomBorders()).toBe(8);
-    expect(countCustomBorders()).toBe(5 * 5);
   });
 
   it('should clear borders from area by use clearBorders method (while deselected)', () => {
@@ -753,7 +738,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 3).borders.right).toEqual(MAGENTA_BORDER);
     expect(getCellMeta(3, 3).borders.bottom).toEqual(RED_BORDER);
     expect(countVisibleCustomBorders()).toBe(8);
-    expect(countCustomBorders()).toBe(5 * 5);
   });
 
   it('should clear all borders by use clearBorders method without parameter', () => {
@@ -800,7 +784,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 3).borders).toBeUndefined();
 
     expect(countVisibleCustomBorders()).toBe(0);
-    expect(countCustomBorders()).toBe(0);
   });
 
   it('should draw borders from context menu options when was first cleared borders by the clearBorders method', async() => {
@@ -830,7 +813,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
     expect(countVisibleCustomBorders()).toBe(1);
-    expect(countCustomBorders()).toBe(5);
   });
 
   it('should clear all borders when first was cleared borders by the clearBorders method with selections,' +
@@ -859,7 +841,6 @@ describe('CustomBorders', () => {
     customBorders.clearBorders();
     expect(getCellMeta(0, 0).borders).toBeUndefined();
     expect(countVisibleCustomBorders()).toBe(0);
-    expect(countCustomBorders()).toBe(0);
   });
 
   it('should draw top border from context menu options', async() => {
@@ -879,7 +860,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
 
     expect(countVisibleCustomBorders()).toBe(1);
-    expect(countCustomBorders()).toBe(5);
   });
 
   it('should draw left border from context menu options', async() => {
@@ -899,7 +879,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
     expect(countVisibleCustomBorders()).toBe(1);
-    expect(countCustomBorders()).toBe(5);
   });
 
   it('should draw right border from context menu options', async() => {
@@ -919,7 +898,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.right).toEqual(DEFAULT_BORDER);
     expect(countVisibleCustomBorders()).toBe(1);
-    expect(countCustomBorders()).toBe(5);
   });
 
   it('should draw bottom border from context menu options', async() => {
@@ -939,7 +917,6 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.bottom).toEqual(DEFAULT_BORDER);
     expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
     expect(countVisibleCustomBorders()).toBe(1);
-    expect(countCustomBorders()).toBe(5);
   });
 
   it('should remove all bottoms border from context menu options', async() => {
@@ -955,14 +932,12 @@ describe('CustomBorders', () => {
         }]
     });
     expect(countVisibleCustomBorders()).toBe(2);
-    expect(countCustomBorders()).toBe(5);
 
     await selectContextSubmenuOption('Borders', 'Remove border');
     deselectCell();
 
     expect(getCellMeta(0, 0).borders).toBeUndefined();
     expect(countVisibleCustomBorders()).toBe(0);
-    expect(countCustomBorders()).toBe(0);
   });
 
   it('should disable `Borders` context menu item when menu was triggered from corner header', () => {
@@ -1004,7 +979,6 @@ describe('CustomBorders', () => {
       });
       expect(instance.countRenderedRows()).toEqual(5);
       expect(countVisibleCustomBorders()).toEqual(5);
-      expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
     });
 
     it('should render borders only for rendered rows, after scrolling', async() => {
@@ -1021,7 +995,6 @@ describe('CustomBorders', () => {
       await sleep(300);
       expect(instance.countRenderedRows()).toEqual(5);
       expect(countVisibleCustomBorders()).toEqual(5);
-      expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
     });
 
     it('should render borders only for rendered rows, including rows rendered because of viewportRowRenderingOffset', () => {
@@ -1035,7 +1008,6 @@ describe('CustomBorders', () => {
       });
       expect(instance.countRenderedRows()).toEqual(10);
       expect(countVisibleCustomBorders()).toEqual(10);
-      expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
     });
 
     it('should not render borders when the table is not rendered', async() => {
@@ -1048,7 +1020,6 @@ describe('CustomBorders', () => {
         width: 100
       });
       expect(countVisibleCustomBorders()).toEqual(0);
-      expect(countCustomBorders()).toEqual(0);
     });
   });
 });
