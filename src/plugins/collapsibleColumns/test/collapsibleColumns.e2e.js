@@ -200,7 +200,7 @@ describe('CollapsibleColumns', () => {
 
       button.simulate('mousedown');
 
-      expect(beforeColumnCollapseCallback).toHaveBeenCalledWith([3, 4], [3, 4], true, void 0, void 0, void 0);
+      expect(beforeColumnCollapseCallback).toHaveBeenCalledWith([], [], true, void 0, void 0, void 0);
     });
 
     it('should trigger an afterColumnCollapse event after collapsed column', () => {
@@ -221,7 +221,7 @@ describe('CollapsibleColumns', () => {
 
       button.simulate('mousedown');
 
-      expect(afterColumnCollapseCallback).toHaveBeenCalledWith([3, 4], [3, 4], true, true, void 0, void 0);
+      expect(afterColumnCollapseCallback).toHaveBeenCalledWith([3], [3, 4], true, true, void 0, void 0);
     });
 
     it('should not trigger an afterColumnCollapse event after column move when beforeColumnCollapse returns false', () => {
@@ -461,7 +461,7 @@ describe('CollapsibleColumns', () => {
       button = $('.collapsibleIndicator').first();
       button.simulate('mousedown');
 
-      expect(afterColumnExpandCallback).toHaveBeenCalledWith([], [], true, true, void 0, void 0);
+      expect(afterColumnExpandCallback).toHaveBeenCalledWith([4], [], true, true, void 0, void 0);
     });
 
     it('should not trigger an afterColumnExpand event after column move when beforeColumnExpand returns false', () => {
