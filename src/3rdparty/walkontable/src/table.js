@@ -1,7 +1,4 @@
 import {
-  getStyle,
-  getComputedStyle,
-  getTrimmingContainer,
   hasClass,
   index,
   offset,
@@ -69,7 +66,9 @@ class Table {
     this.holder = this.createHolder(this.hider);
 
     this.wtRootElement = this.holder.parentNode;
-    this.alignOverlaysWithTrimmingContainer();
+    if (this.isMaster) {
+      this.alignOverlaysWithTrimmingContainer();
+    }
     this.fixTableDomTree();
 
     this.rowFilter = null;
@@ -200,54 +199,6 @@ class Table {
     return holder;
   }
 
-  alignOverlaysWithTrimmingContainer() {
-    const trimmingElement = getTrimmingContainer(this.wtRootElement);
-    const { rootWindow } = this.wot;
-
-    if (trimmingElement === rootWindow) {
-      const preventOverflow = this.wot.getSetting('preventOverflow');
-
-      if (!preventOverflow) {
-        this.holder.style.overflow = 'visible';
-        this.wtRootElement.style.overflow = 'visible';
-      }
-    } else {
-      const trimmingElementParent = trimmingElement.parentElement;
-      const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
-      const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow);
-      const holderStyle = this.holder.style;
-      const { scrollWidth, scrollHeight } = trimmingElement;
-      let { width, height } = trimmingElement.getBoundingClientRect();
-      const overflow = ['auto', 'hidden', 'scroll'];
-
-      if (trimmingElementParent && overflow.includes(trimmingOverflow)) {
-        const cloneNode = trimmingElement.cloneNode(false);
-
-        trimmingElementParent.insertBefore(cloneNode, trimmingElement);
-
-        const cloneHeight = getComputedStyle(cloneNode, rootWindow).height;
-
-        trimmingElementParent.removeChild(cloneNode);
-
-        if (parseInt(cloneHeight, 10) === 0) {
-          height = 0;
-        }
-      }
-
-      height = Math.min(height, scrollHeight);
-      holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
-
-      width = Math.min(width, scrollWidth);
-      holderStyle.width = `${width}px`;
-
-      holderStyle.overflow = '';
-      this.hasTableHeight = height > 0;
-      this.hasTableWidth = width > 0;
-    }
-
-    this.isTableVisible = isVisible(this.TABLE);
-  }
-
   /**
    * Redraws the table
    *
@@ -306,16 +257,12 @@ class Table {
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
-      this.alignOverlaysWithTrimmingContainer();
-
       let performRedraw = true;
-
       // Only master table rendering can be skipped
       if (this.isMaster) {
+        this.alignOverlaysWithTrimmingContainer();
         const skipRender = {};
-
         this.wot.getSetting('beforeDraw', true, skipRender);
-
         performRedraw = skipRender.skipRender !== true;
       }
 
@@ -340,9 +287,9 @@ class Table {
         if (this.isMaster) {
           workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
           this.wot.wtViewport.containerWidth = null;
+          this.markOversizedColumnHeaders();
         }
 
-        this.markOversizedColumnHeaders();
         this.adjustColumnHeaderHeights();
 
         if (this.isMaster || this.is(Overlay.CLONE_BOTTOM)) {
@@ -442,26 +389,6 @@ class Table {
       if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] || columnHeaderHeightSetting)) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting);
       }
-    }
-  }
-
-  markOversizedColumnHeaders() {
-    const { wot } = this;
-    const overlayName = wot.getOverlayName();
-    const columnHeaders = wot.getSetting('columnHeaders');
-    const columnHeadersCount = columnHeaders.length;
-
-    if (columnHeadersCount && !wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName]) {
-      const rowHeaders = wot.getSetting('rowHeaders');
-      const rowHeaderCount = rowHeaders.length;
-      const columnCount = this.getRenderedColumnsCount();
-
-      for (let i = 0; i < columnHeadersCount; i++) {
-        for (let renderedColumnIndex = (-1) * rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
-          this.markIfOversizedColumnHeader(renderedColumnIndex);
-        }
-      }
-      wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] = true;
     }
   }
 
