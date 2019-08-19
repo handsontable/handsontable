@@ -9,7 +9,7 @@ import Event from './event';
 import Overlays from './overlays';
 import Scroll from './scroll';
 import Settings from './settings';
-import Table from './table';
+import MasterTable from './overlay/table/master';
 import Viewport from './viewport';
 
 /**
@@ -39,7 +39,7 @@ class Walkontable {
       this.selections = this.cloneSource.selections;
     } else {
       this.wtSettings = new Settings(this, settings);
-      this.wtTable = new Table(this, settings.table);
+      this.wtTable = new MasterTable(this, settings.table);
       this.wtScroll = new Scroll(this);
       this.wtViewport = new Viewport(this);
       this.wtEvent = new Event(this);
