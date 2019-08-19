@@ -8,7 +8,7 @@ import {
   removeClass,
   resetCssTransform
 } from './../../../../helpers/dom/element';
-import BottomOverlayTable from './table/bottom';
+import BottomOverlayTable from './../table/bottom';
 import Overlay from './_base';
 
 /**

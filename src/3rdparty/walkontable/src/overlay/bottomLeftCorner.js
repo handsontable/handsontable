@@ -4,7 +4,7 @@ import {
   outerWidth,
   resetCssTransform
 } from './../../../../helpers/dom/element';
-import BottomLeftCornerOverlayTable from './table/bottomLeftCorner';
+import BottomLeftCornerOverlayTable from './../table/bottomLeftCorner';
 import Overlay from './_base';
 
 /**

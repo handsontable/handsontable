@@ -5,7 +5,7 @@ import {
   setOverlayPosition,
   resetCssTransform
 } from './../../../../helpers/dom/element';
-import TopLeftCornerOverlayTable from './table/topLeftCorner';
+import TopLeftCornerOverlayTable from './../table/topLeftCorner';
 import Overlay from './_base';
 
 /**

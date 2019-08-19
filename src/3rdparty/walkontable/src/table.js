@@ -760,18 +760,6 @@ class Table {
     return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
   }
 
-  getFirstRenderedRow() {
-    const startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
-    if (startRow === null) {
-      return -1;
-    }
-    return startRow;
-  }
-
-  getFirstVisibleRow() {
-    return this.wot.wtViewport.rowsVisibleCalculator.startRow;
-  }
-
   getFirstRenderedColumn() {
     const startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
     if (startColumn === null) {
@@ -785,20 +773,6 @@ class Table {
    */
   getFirstVisibleColumn() {
     return this.wot.wtViewport.columnsVisibleCalculator.startColumn;
-  }
-
-  /**
-   * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
-   */
-  getLastRenderedRow() {
-    return this.wot.wtViewport.rowsRenderCalculator.endRow;
-  }
-
-  /**
-   * @returns {Number} Returns source index of last visible row
-   */
-  getLastVisibleRow() {
-    return this.wot.wtViewport.rowsVisibleCalculator.endRow;
   }
 
   /**
@@ -861,14 +835,6 @@ class Table {
 
   getRenderedColumnsCount() {
     return this.wot.wtViewport.columnsRenderCalculator.count;
-  }
-
-  getRenderedRowsCount() {
-    return this.wot.wtViewport.rowsRenderCalculator.count;
-  }
-
-  getVisibleRowsCount() {
-    return this.wot.wtViewport.rowsVisibleCalculator.count;
   }
 
   allRowsInViewport() {

@@ -10,7 +10,7 @@ import {
   resetCssTransform,
 } from './../../../../helpers/dom/element';
 import { arrayEach } from './../../../../helpers/array';
-import TopOverlayTable from './table/top';
+import TopOverlayTable from './../table/top';
 import Overlay from './_base';
 
 /**

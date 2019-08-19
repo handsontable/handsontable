@@ -1,4 +1,6 @@
 import OverlayTable from './_base';
+import calculatedRows from './mixin/calculatedRows';
+import { mixin } from './../../../../helpers/object';
 
 class LeftOverlayTable extends OverlayTable {
   getFirstRenderedColumn() {
@@ -30,5 +32,7 @@ class LeftOverlayTable extends OverlayTable {
     return this.getRenderedColumnsCount();
   }
 }
+
+mixin(LeftOverlayTable, calculatedRows);
 
 export default LeftOverlayTable;

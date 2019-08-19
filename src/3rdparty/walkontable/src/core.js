@@ -9,7 +9,7 @@ import Event from './event';
 import Overlays from './overlays';
 import Scroll from './scroll';
 import Settings from './settings';
-import MasterTable from './overlay/table/master';
+import MasterTable from './table/master';
 import Viewport from './viewport';
 
 /**

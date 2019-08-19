@@ -7,7 +7,7 @@ import CellRange from './cell/range';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 
-import MasterTable from './overlay/table/master';
+import MasterTable from './table/master';
 import LeftOverlay from './overlay/left';
 import TopOverlay from './overlay/top';
 import TopLeftCornerOverlay from './overlay/topLeftCorner';

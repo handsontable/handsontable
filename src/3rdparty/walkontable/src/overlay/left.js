@@ -9,7 +9,7 @@ import {
   setOverlayPosition,
   resetCssTransform,
 } from './../../../../helpers/dom/element';
-import LeftOverlayTable from './table/left';
+import LeftOverlayTable from './../table/left';
 import Overlay from './_base';
 
 /**
