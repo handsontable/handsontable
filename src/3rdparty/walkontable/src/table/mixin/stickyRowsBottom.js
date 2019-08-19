@@ -7,7 +7,10 @@ const MIXIN_NAME = 'stickyRowsBottom';
  */
 const stickyRowsBottom = {
   getFirstRenderedRow() {
-    const index = this.wot.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom');
+    const totalRows = this.wot.getSetting('totalRows');
+    const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
+    const index = totalRows - fixedRowsBottom;
+
     if (index < 0) {
       return -1;
     }
@@ -34,6 +37,7 @@ const stickyRowsBottom = {
 
   getRenderedRowsCount() {
     const totalRows = this.wot.getSetting('totalRows');
+
     return Math.min(this.wot.getSetting('fixedRowsBottom'), totalRows);
   },
 

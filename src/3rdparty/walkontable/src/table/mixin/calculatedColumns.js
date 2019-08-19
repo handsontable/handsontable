@@ -8,6 +8,7 @@ const MIXIN_NAME = 'calculatedColumns';
 const calculatedColumns = {
   getFirstRenderedColumn() {
     const startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
+
     if (startColumn === null) {
       return -1;
     }

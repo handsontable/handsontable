@@ -579,7 +579,7 @@ class Table {
 
   /**
    * Get cell element at coords.
-   * Negative coords.row or coords.cell are used to retrieve header cells
+   * Negative coords.row or coords.col are used to retrieve header cells
    *
    * @param {CellCoords} coords
    * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:

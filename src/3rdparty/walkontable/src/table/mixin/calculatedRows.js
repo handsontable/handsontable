@@ -8,6 +8,7 @@ const MIXIN_NAME = 'calculatedRows';
 const calculatedRows = {
   getFirstRenderedRow() {
     const startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
+
     if (startRow === null) {
       return -1;
     }

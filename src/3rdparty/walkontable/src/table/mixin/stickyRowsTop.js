@@ -8,6 +8,7 @@ const MIXIN_NAME = 'stickyRowsTop';
 const stickyRowsTop = {
   getFirstRenderedRow() {
     const totalRows = this.wot.getSetting('totalRows');
+
     if (totalRows === 0) {
       return -1;
     }
@@ -34,6 +35,7 @@ const stickyRowsTop = {
 
   getRenderedRowsCount() {
     const totalRows = this.wot.getSetting('totalRows');
+
     return Math.min(this.wot.getSetting('fixedRowsTop'), totalRows);
   },
 

@@ -8,6 +8,7 @@ const MIXIN_NAME = 'stickyColumnsLeft';
 const stickyColumnsLeft = {
   getFirstRenderedColumn() {
     const totalColumns = this.wot.getSetting('totalColumns');
+
     if (totalColumns === 0) {
       return -1;
     }
@@ -28,6 +29,7 @@ const stickyColumnsLeft = {
 
   getRenderedColumnsCount() {
     const totalColumns = this.wot.getSetting('totalColumns');
+
     return Math.min(this.wot.getSetting('fixedColumnsLeft'), totalColumns);
   },
 
