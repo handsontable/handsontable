@@ -760,35 +760,6 @@ class Table {
     return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
   }
 
-  getFirstRenderedColumn() {
-    const startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
-    if (startColumn === null) {
-      return -1;
-    }
-    return startColumn;
-  }
-
-  /**
-   * @returns {Number} Returns -1 if no row is visible
-   */
-  getFirstVisibleColumn() {
-    return this.wot.wtViewport.columnsVisibleCalculator.startColumn;
-  }
-
-  /**
-   * @returns {Number} Returns source index of last rendered column
-   */
-  getLastRenderedColumn() {
-    return this.wot.wtViewport.columnsRenderCalculator.endColumn;
-  }
-
-  /**
-   * @returns {Number} Returns -1 if no column is visible, otherwise source index of the last visible column
-   */
-  getLastVisibleColumn() {
-    return this.wot.wtViewport.columnsVisibleCalculator.endColumn;
-  }
-
   isRowBeforeRenderedRows(row) {
     const first = this.getFirstRenderedRow();
     if (first === -1) {
@@ -833,16 +804,8 @@ class Table {
     return this.getLastVisibleColumn() === this.getLastRenderedColumn();
   }
 
-  getRenderedColumnsCount() {
-    return this.wot.wtViewport.columnsRenderCalculator.count;
-  }
-
   allRowsInViewport() {
     return this.wot.getSetting('totalRows') === this.getVisibleRowsCount();
-  }
-
-  getVisibleColumnsCount() {
-    return this.wot.wtViewport.columnsVisibleCalculator.count;
   }
 
   allColumnsInViewport() {
