@@ -429,7 +429,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  bottom: -100%\9; /* Fix for IE9 to spread the ":before" pseudo element to 100% height of the parent element */
+  bottom: -100%; /* Fix for IE9 to spread the ":before" pseudo element to 100% height of the parent element */
   background: #005eff;
 }
 
