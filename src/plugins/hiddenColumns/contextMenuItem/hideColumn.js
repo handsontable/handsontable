@@ -27,7 +27,10 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
 
       hiddenColumnsPlugin.hideColumns(columnsToHide);
 
-      this.deselectCell();
+      const contedRenderableColumns = this.countRenderableColumns();
+      const columnToSelect = start >= contedRenderableColumns ? contedRenderableColumns - 1 : start;
+
+      this.selectColumns(columnToSelect);
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
 

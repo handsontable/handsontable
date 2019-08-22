@@ -149,7 +149,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   let selection = new Selection(priv.settings, {
-    countCols: () => instance.countCols(),
+    countCols: () => instance.countRenderableColumns(),
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
@@ -2105,6 +2105,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.toPhysicalColumn = column => recordTranslator.toPhysicalColumn(column);
 
+  /**
+   * @TODO Description
+   */
+  this.toRenderableColumn = column => recordTranslator.toRenderableColumn(column);
+
   this.recordTranslator = recordTranslator;
 
   /**
@@ -2121,6 +2126,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getDataAtCell = function(row, column) {
     return datamap.get(row, datamap.colToProp(column));
+  };
+
+  /**
+   * @TODO Description
+   */
+  this.getRenderableDataAtCell = function(row, column) {
+    return datamap.get(row, this.getColumnProperty(column));
+  };
+
+  /**
+   * @TODO Description
+   */
+  this.getColumnProperty = function(column) {
+    const columnIndex = this.toRenderableColumn(column);
+    const prop = datamap.colToPropCache[columnIndex];
+
+    return prop !== void 0 ? prop : columnIndex;
   };
 
   /**
@@ -3011,6 +3033,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countRows = function() {
     return datamap.getLength();
+  };
+
+  /**
+   * Returns the number of renderable columns.
+   *
+   * @memberof Core#
+   * @function countRenderableColumns
+   * @returns {Number}
+   */
+  this.countRenderableColumns = function() {
+    const { columns, maxCols } = this.getSettings();
+    const cachedCols = recordTranslator.columnIndexMapper.getNotHiddenIndexesLength();
+    const columnsLen = Array.isArray(columns) ? columns.length : cachedCols;
+
+    return Math.min(maxCols, cachedCols, columnsLen);
   };
 
   /**

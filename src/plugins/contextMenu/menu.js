@@ -140,6 +140,7 @@ class Menu {
       autoRowSize: false,
       readOnly: true,
       copyPaste: false,
+      maxCols: 1,
       columns: [{
         data: 'name',
         renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value)

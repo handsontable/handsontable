@@ -77,6 +77,20 @@ export class RecordTranslator {
   }
 
   /**
+   * @TODO Description
+   *
+   * @param {Number} column Visual column index.
+   * @returns {Number} Returns physical column index.
+   */
+  toRenderableColumn(column) {
+    if (column < 0) {
+      return column;
+    }
+
+    return this.getColumnIndexMapper().getRenderableIndex(column);
+  }
+
+  /**
    * Translate visual coordinates into physical. Can be passed as separate 2 arguments (row, column) or as an object in first
    * argument with `row` and `column` keys.
    *

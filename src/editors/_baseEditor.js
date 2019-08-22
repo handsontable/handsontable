@@ -193,7 +193,7 @@ class BaseEditor {
         selection[3] = tmp;
       }
     } else {
-      selection = [this.row, this.col, null, null];
+      selection = [this.row, this.hot.toRenderableColumn(this.col), null, null];
     }
 
     this.hot.populateFromArray(selection[0], selection[1], value, selection[2], selection[3], 'edit');

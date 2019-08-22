@@ -2,30 +2,17 @@ import { rangeEach } from '../../../helpers/number';
 import * as C from '../../../i18n/constants';
 
 export default function showColumnItem(hiddenColumnsPlugin) {
-  const hiddenBefore = [];
-  const hiddenBetween = [];
-  const hiddenAfter = [];
+  const columns = [];
 
   return {
     key: 'hidden_columns_show',
     name() {
-      const hiddenColumnsLength = hiddenBefore.length + hiddenBetween.length + hiddenAfter.length;
-      const pluralForm = hiddenColumnsLength <= 1 ? 0 : 1;
+      const pluralForm = columns.length > 1 ? 1 : 0;
 
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN, pluralForm);
     },
     callback() {
-      if (hiddenBetween.length) {
-        hiddenColumnsPlugin.showColumns(hiddenBetween);
-
-      } else {
-        if (hiddenBefore.length) {
-          hiddenColumnsPlugin.showColumns(hiddenBefore);
-        }
-        if (hiddenAfter.length) {
-          hiddenColumnsPlugin.showColumns(hiddenAfter);
-        }
-      }
+      hiddenColumnsPlugin.showColumns(columns);
 
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
@@ -36,49 +23,55 @@ export default function showColumnItem(hiddenColumnsPlugin) {
         return true;
       }
 
-      hiddenBefore.length = 0;
-      hiddenBetween.length = 0;
-      hiddenAfter.length = 0;
+      columns.length = 0;
 
-      let shouldBeHidden = true;
-      let [, start, , end] = this.getSelectedLast();
-      start = Math.min(start, end);
+      const [, startColumn, , endColumn] = this.getSelectedLast();
+      const start = Math.min(startColumn, endColumn);
+      const end = Math.max(startColumn, endColumn);
+      const sequence = hiddenColumnsPlugin.columnIndexMapper.getIndexesSequence();
+      const physicalStartColumn = this.toRenderableColumn(start);
+      const currentStartPosition = sequence.indexOf(physicalStartColumn);
 
       if (start === end) {
-        rangeEach(0, start - 1, (column) => {
-          if (hiddenColumnsPlugin.isHidden(column)) {
-            hiddenBefore.push(column);
+        const columnsBefore = [];
+        const columnsAfter = [];
+
+        rangeEach(0, currentStartPosition - 1, (column) => {
+          if (hiddenColumnsPlugin.isHidden(sequence[column], true)) {
+            columnsBefore.push(sequence[column]);
 
           } else {
-            hiddenBefore.length = 0;
-
-            return false;
-          }
-        });
-        rangeEach(end + 1, this.countCols() - 1, (column) => {
-          if (hiddenColumnsPlugin.isHidden(column)) {
-            hiddenAfter.push(column);
-
-          } else {
-            hiddenAfter.length = 0;
+            columnsBefore.length = 0;
 
             return false;
           }
         });
 
-        shouldBeHidden = hiddenBefore.length + hiddenAfter.length === 0;
+        rangeEach(currentStartPosition + 1, this.countCols() - 1, (column) => {
+          if (hiddenColumnsPlugin.isHidden(sequence[column], true)) {
+            columnsAfter.push(sequence[column]);
+
+          } else {
+            columnsAfter.length = 0;
+
+            return false;
+          }
+        });
+
+        columns.push(...columnsBefore, ...columnsAfter);
 
       } else {
-        rangeEach(start, end, (column) => {
-          if (hiddenColumnsPlugin.isHidden(column)) {
-            hiddenBetween.push(column);
+        const physicalEndColumn = this.toRenderableColumn(end);
+        const currentEndPosition = sequence.indexOf(physicalEndColumn);
+
+        rangeEach(currentStartPosition, currentEndPosition, (column) => {
+          if (hiddenColumnsPlugin.isHidden(sequence[column], true)) {
+            columns.push(sequence[column]);
           }
         });
-
-        shouldBeHidden = hiddenBetween.length === 0;
       }
 
-      return shouldBeHidden;
+      return columns.length < 1;
     }
   };
 }
