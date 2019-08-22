@@ -156,6 +156,7 @@ class MultipleSelectUI extends BaseUI {
         beforeRenderer: (TD, row, col, prop, value, cellProperties) => {
           TD.title = cellProperties.instance.getDataAtRowProp(row, cellProperties.label.property);
         },
+        maxCols: 1,
         autoWrapCol: true,
         height: 110,
         // Workaround for #151.

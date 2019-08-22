@@ -31,7 +31,7 @@ describe('HiddenColumns', () => {
       cells(row, col) {
         const meta = {};
 
-        if (col === 2) {
+        if (this.instance.toRenderableColumn(col) === 2) {
           meta.type = 'date';
         }
 
@@ -41,10 +41,11 @@ describe('HiddenColumns', () => {
       height: 300
     });
 
-    expect(hot.getColWidth(1)).toBeGreaterThan(0);
-    expect(hot.getColWidth(2)).toEqual(0.1);
-    expect(hot.getColWidth(4)).toEqual(0.1);
-    expect(hot.getColWidth(5)).toBeGreaterThan(0);
+    expect(hot.countRenderableColumns()).toBe(8);
+    expect(getCell(0, 0).innerText).toBe('A1');
+    expect(getCell(0, 1).innerText).toBe('B1');
+    expect(getCell(0, 2).innerText).toBe('D1');
+    expect(getCell(0, 3).innerText).toBe('F1');
   });
 
   it('should return to default state after calling the disablePlugin method', () => {
@@ -85,7 +86,7 @@ describe('HiddenColumns', () => {
       cells(row, col) {
         const meta = {};
 
-        if (col === 2) {
+        if (this.instance.toRenderableColumn(col) === 2) {
           meta.type = 'date';
         }
 
@@ -100,12 +101,11 @@ describe('HiddenColumns', () => {
     hot.getPlugin('hiddenColumns').enablePlugin();
     hot.render();
 
-    expect(hot.getColWidth(1)).toBe(50);
-    expect(hot.getCell(0, 2).clientHeight).toBe(22);
-    expect(hot.getColWidth(2)).toBe(0.1);
-    expect(hot.getCell(0, 4).clientHeight).toBe(22);
-    expect(hot.getColWidth(4)).toBe(0.1);
-    expect(hot.getColWidth(5)).toBe(50);
+    expect(getCell(0, 0).innerText).toBe('A1');
+    expect(getCell(0, 1).innerText).toBe('B1');
+    expect(getCell(0, 2).innerText).toBe('D1');
+    expect(getCell(0, 3).innerText).toBe('F1');
+    expect(getCell(0, 4).innerText).toBe('G1');
   });
 
   it('should initialize the plugin after setting it up with the "updateSettings" method', () => {
@@ -138,14 +138,12 @@ describe('HiddenColumns', () => {
       height: 300
     });
 
-    expect(hot.getCell(0, 2).clientHeight).toBe(42);
-    expect(hot.getColWidth(2)).toBe(50);
+    expect(getCell(0, 2).innerText).toBe('C1\nline');
 
     hot.getPlugin('hiddenColumns').hideColumn(2);
     hot.render();
 
-    expect(hot.getCell(0, 2).clientHeight).toBe(22);
-    expect(hot.getColWidth(2)).toBe(0.1);
+    expect(getCell(0, 2).innerText).toBe('D1');
   });
 
   it('should show column after calling the showColumn method', () => {
@@ -158,14 +156,12 @@ describe('HiddenColumns', () => {
       height: 300
     });
 
-    expect(hot.getCell(0, 2).clientHeight).toBe(22);
-    expect(hot.getColWidth(2)).toBe(0.1);
+    expect(getCell(0, 2).innerText).toBe('D1');
 
     hot.getPlugin('hiddenColumns').showColumn(2);
     hot.render();
 
-    expect(hot.getCell(0, 2).clientHeight).toBe(42);
-    expect(hot.getColWidth(2)).toBe(50);
+    expect(hot.getCell(0, 2).innerText).toBe('C1\nline');
   });
 
   it('should show the hidden column indicators if the "indicators" property is set to true', () => {
@@ -182,11 +178,11 @@ describe('HiddenColumns', () => {
 
     const tHeadTRs = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
 
-    expect(Handsontable.dom.hasClass(tHeadTRs[3], 'afterHiddenColumn')).toBe(true);
-    expect(Handsontable.dom.hasClass(tHeadTRs[5], 'afterHiddenColumn')).toBe(true);
-
     expect(Handsontable.dom.hasClass(tHeadTRs[1], 'beforeHiddenColumn')).toBe(true);
-    expect(Handsontable.dom.hasClass(tHeadTRs[3], 'beforeHiddenColumn')).toBe(true);
+    expect(Handsontable.dom.hasClass(tHeadTRs[2], 'afterHiddenColumn')).toBe(true);
+    expect(Handsontable.dom.hasClass(tHeadTRs[2], 'beforeHiddenColumn')).toBe(true);
+    expect(Handsontable.dom.hasClass(tHeadTRs[3], 'afterHiddenColumn')).toBe(true);
+
   });
 
   it('should not throw any errors, when selecting a whole row with the last column hidden', () => {
@@ -210,7 +206,7 @@ describe('HiddenColumns', () => {
     expect(errorThrown).toBe(false);
   });
 
-  describe('copy-paste functionality', () => {
+  xdescribe('copy-paste functionality', () => {
     class DataTransferObject {
       constructor() {
         this.data = {
@@ -427,11 +423,11 @@ describe('HiddenColumns', () => {
         hiddenColumns: true,
         width: 500,
         height: 300,
-        contextMenu: ['hidden_columns_hide', 'hidden_columns_show'],
+        contextMenu: ['hidden_columns_hide'],
         colHeaders: true
       });
 
-      const header = $('.ht_clone_top tr:eq(0)');
+      const header = $(this.$container).find('.ht_clone_top tr:eq(0)');
 
       header.find('th:eq(3)').simulate('mousedown');
       header.find('th:eq(4)').simulate('mouseover');
@@ -439,13 +435,14 @@ describe('HiddenColumns', () => {
 
       contextMenu();
 
-      const items = $('.htContextMenu tbody td');
+      const items = $(hot.getPlugin('contextMenu').menu.container).find('tbody td');
       const actions = items.not('.htSeparator');
 
       actions.simulate('mousedown').simulate('mouseup');
 
-      expect(hot.getColWidth(3)).toBe(0.1);
-      expect(hot.getColWidth(4)).toBe(0.1);
+      expect(hot.countRenderableColumns()).toBe(8);
+      expect(header.find('th:eq(3)').text()).toBe('F');
+      expect(header.find('th:eq(4)').text()).toBe('G');
     });
     it('should show hidden columns by context menu', () => {
       const hot = handsontable({
