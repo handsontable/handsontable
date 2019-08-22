@@ -90,6 +90,9 @@ describe('WalkontableTable', () => {
   });
 
   it('getCell should only return cells from rendered rows and columns', function() {
+    const scrollbarWidth = getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
+    spec().$wrapper.width(100 + scrollbarWidth).height(201 + scrollbarWidth);
+
     createDataArray(20, 20);
     const wt = walkontable({
       data: getData,
@@ -122,8 +125,12 @@ describe('WalkontableTable', () => {
       const result = wt.wtTable.getCell(new Walkontable.CellCoords(i, 6));
       results.push(result instanceof HTMLElement ? HTMLElement : result);
     }
-    expect(results).toEqual([-1, -1, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement,
-      HTMLElement, HTMLElement, -2, -2, -2, -2, -2, -2, -2, -2]);
+
+    const expectedGetCellOutputForRowsInFirstColumn = [-1, -1, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement,
+      HTMLElement, HTMLElement, -2, -2, -2, -2, -2, -2, -2, -2];
+
+    expect(results).toEqual(expectedGetCellOutputForRowsInFirstColumn);
+
   });
 
   it('getCell should only return cells from rendered rows and columns (with fixedRowsBottom)', () => {
