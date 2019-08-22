@@ -1,6 +1,12 @@
 describe('WalkontableTable', () => {
   const debug = false;
 
+  function hotParentName(TH) {
+    const hotParent = TH.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;
+    const classes = hotParent.className.split(' ');
+    return classes[0];
+  }
+
   beforeEach(function() {
     this.$wrapper = $('<div></div>').css({ overflow: 'hidden' });
     this.$wrapper.width(100).height(201);
@@ -133,6 +139,382 @@ describe('WalkontableTable', () => {
     const bottomTable = wt.wtOverlays.bottomOverlay.clone.wtTable;
     expect(bottomTable.getCell(new Walkontable.CellCoords(18, 0)) instanceof HTMLTableCellElement).toBe(true);
     expect(bottomTable.getCell(new Walkontable.CellCoords(19, 0)) instanceof HTMLTableCellElement).toBe(true);
+  });
+
+  it('getCell with a negative parameter should return headers when they exist on a given overlay (no frozen rows)', () => {
+    createDataArray(18, 18);
+    spec().$wrapper.width(250).height(170);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      columnHeaders: [function(col, TH) {
+        TH.innerHTML = `${hotParentName(TH)}-header-of-col-${col}`;
+      }],
+      rowHeaders: [function(row, TH) {
+        TH.innerHTML = `${hotParentName(TH)}-header-of-row-${row}`;
+      }]
+    });
+    wt.draw();
+
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }), 'master').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }), 'master').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }), 'master').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }), 'master').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }).innerHTML, 'master').toBe('ht_master-header-of-row-0'); // TODO this should be -3, because it is rendered on left overlay
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }).innerHTML, 'master').toBe('ht_master-header-of-row-1'); // TODO this should be -3, because it is rendered on left overlay
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }).innerHTML, 'master').toBe('ht_master-header-of-row-2'); // TODO this should be -3, because it is rendered on left overlay
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: -1 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 0 }).innerHTML, 'master').toBe('0');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 2 }).innerHTML, 'master').toBe('b');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 16 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 17 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 18 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 0 }).innerHTML, 'master').toBe('2');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 2 }).innerHTML, 'master').toBe('b');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 16 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 17 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 18 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 0 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 2 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 0 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 2 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 0 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'master').toBe(-2);
+
+    expect(wt.wtOverlays.bottomLeftCornerOverlay).toBe(undefined);
+
+    expect(wt.wtOverlays.bottomOverlay).not.toBe(undefined); // TODO it should be undefined
+    // expectWtTable(wt, wtTable => wtTable.getCell({row: -1, col: -1}), 'bottom').toBe(undefined); // TODO this should be -1 or not a callable method, but it throws
+
+    expect(wt.wtOverlays.leftOverlay.clone).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }), 'left').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }), 'left').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }), 'left').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }), 'left').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }).innerHTML, 'left').toBe('ht_clone_left-header-of-row-0');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }).innerHTML, 'left').toBe('ht_clone_left-header-of-row-1');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }).innerHTML, 'left').toBe('ht_clone_left-header-of-row-2');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: -1 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 0 }), 'left').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 2 }), 'left').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 16 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 17 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 18 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 0 }), 'left').toBe(undefined); // TODO this should be TD
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 2 }), 'left').toBe(undefined); // TODO this should be -4
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 16 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 17 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 18 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 0 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 2 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 0 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 2 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 0 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'left').toBe(-2);
+
+    expect(wt.wtOverlays.topLeftCornerOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }), 'topLeftCorner').toBe(undefined); // TODO this should be TH
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }), 'topLeftCorner').toBe(undefined); // TODO this should be -2 or -4
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }), 'topLeftCorner').toBe(undefined); // TODO this should be -2 or -4
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }), 'topLeftCorner').toBe(undefined); // TODO this should be -2 or -4
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }), 'topLeftCorner').toBe(undefined); // TODO this should be -2 or -4
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }), 'topLeftCorner').toBe(undefined); // TODO this should be -2 or -4
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }), 'topLeftCorner').toBe(undefined); // TODO this should be -2 or -4
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: -1 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 0 }), 'topLeftCorner').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 2 }), 'topLeftCorner').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 16 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 17 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 18 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 0 }), 'topLeftCorner').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 2 }), 'topLeftCorner').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 16 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 17 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 18 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 0 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 2 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 0 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 2 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 0 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'topLeftCorner').toBe(-2);
+
+    expect(wt.wtOverlays.topOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }), 'top').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }), 'top').toBe(undefined); // TODO this should be TH
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }), 'top').toBe(undefined); // TODO this should be TH
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }), 'top').toBe(undefined); // TODO this should be TH
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }), 'top').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }), 'top').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }), 'top').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: -1 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 0 }), 'top').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 2 }), 'top').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 16 }), 'top').toBe(-4); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 17 }), 'top').toBe(-4); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 18 }), 'top').toBe(-4); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 0 }), 'top').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 2 }), 'top').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 16 }), 'top').toBe(-4); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 17 }), 'top').toBe(-4); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 18 }), 'top').toBe(-4); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 0 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 2 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 0 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 2 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 0 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'top').toBe(-2);
+  });
+
+  it('getCell with a negative parameter should return headers when they exist on a given overlay (frozen rows and columns)', () => {
+    createDataArray(18, 18);
+    spec().$wrapper.width(250).height(170);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      fixedRowsTop: 2,
+      fixedRowsBottom: 2,
+      fixedColumnsLeft: 2,
+      columnHeaders: [function(col, TH) {
+        TH.innerHTML = `${hotParentName(TH)}-header-of-col-${col}`;
+      }],
+      rowHeaders: [function(row, TH) {
+        TH.innerHTML = `${hotParentName(TH)}-header-of-row-${row}`;
+      }]
+    });
+    wt.draw();
+
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }), 'master').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }), 'master').toBe(-3); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }), 'master').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }), 'master').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }), 'master').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }), 'master').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }), 'master').toBe(undefined); // TODO this should be -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: -1 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 0 }), 'master').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 2 }), 'master').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 16 }), 'master').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 17 }), 'master').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 18 }), 'master').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 0 }), 'master').toBe(-3);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 2 }).innerHTML, 'master').toBe('b');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 16 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 17 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 18 }), 'master').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 0 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 2 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 0 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 2 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 0 }), 'master').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'master').toBe(-2);
+
+    expect(wt.wtOverlays.bottomLeftCornerOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }), 'bottomLeftCorner').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }), 'bottomLeftCorner').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }), 'bottomLeftCorner').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }), 'bottomLeftCorner').toBe(undefined); // TODO this should be -1 or -4
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'bottomLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'bottomLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'bottomLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'bottomLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }).innerHTML, 'bottomLeftCorner').toBe('ht_clone_bottom_left_corner-header-of-row-16');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }).innerHTML, 'bottomLeftCorner').toBe('ht_clone_bottom_left_corner-header-of-row-17');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: -1 }), 'bottomLeftCorner').toBe(undefined); // TODO this should be -2 or -4
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 0 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 2 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 16 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 17 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 18 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 0 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 2 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 16 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 17 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 18 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: 0 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: 2 }), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 0 }).innerHTML, 'bottomLeftCorner').toBe('16');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 2 }), 'bottomLeftCorner').toBe(undefined); // TODO this should be -4
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 0 }).innerHTML, 'bottomLeftCorner').toBe('17');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 2 }), 'bottomLeftCorner').toBe(undefined); // TODO this should be -4
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 0 }), 'bottomLeftCorner').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'bottomLeftCorner').toBe(undefined); // TODO this should be -2
+
+    expect(wt.wtOverlays.bottomOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }), 'bottom').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }), 'bottom').toBe(-3); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }), 'bottom').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }), 'bottom').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'bottom').toBe(-4); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'bottom').toBe(-4); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'bottom').toBe(-4); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'bottom').toBe(-4); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }), 'bottom').toBe(undefined); // TODO this should be -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }), 'bottom').toBe(undefined); // TODO this should be -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: -1 }), 'bottom').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 0 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 2 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 16 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 17 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 18 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 0 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 2 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 16 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 17 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 18 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: 0 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: 2 }), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 0 }), 'bottom').toBe(-3);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 2 }).innerHTML, 'bottom').toBe('b');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 0 }), 'bottom').toBe(-3);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 2 }).innerHTML, 'bottom').toBe('b');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 0 }), 'bottom').toBe(-3); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'bottom').toBe(undefined); // TODO this should be -2
+
+    expect(wt.wtOverlays.leftOverlay.clone).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }), 'left').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }), 'left').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }), 'left').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }), 'left').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }), 'left').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }), 'left').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }).innerHTML, 'left').toBe('ht_clone_left-header-of-row-2');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: -1 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 0 }), 'left').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 2 }), 'left').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 16 }), 'left').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 17 }), 'left').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 18 }), 'left').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 0 }).innerHTML, 'left').toBe('2');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 2 }), 'left').toBe(undefined); // TODO this should be -4
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 16 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 17 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 18 }), 'left').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 0 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 2 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 0 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 2 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 0 }), 'left').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'left').toBe(-2);
+
+    expect(wt.wtOverlays.topLeftCornerOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }), 'topLeftCorner').toBe(undefined); // TODO this should be TH
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }), 'topLeftCorner').toBe(undefined); // TODO this should be TH
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }), 'topLeftCorner').toBe(undefined); // TODO this should be TH
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }), 'topLeftCorner').toBe(undefined); // TODO this should be -1
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }).innerHTML, 'topLeftCorner').toBe('ht_clone_top_left_corner-header-of-row-0');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }).innerHTML, 'topLeftCorner').toBe('ht_clone_top_left_corner-header-of-row-1');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }), 'topLeftCorner').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: -1 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 0 }).innerHTML, 'topLeftCorner').toBe('0');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 2 }), 'topLeftCorner').toBe(undefined); // TODO this should be -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 16 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 17 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 18 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 0 }), 'topLeftCorner').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 2 }), 'topLeftCorner').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 16 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 17 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 18 }), 'topLeftCorner').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 0 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 2 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 0 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 2 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 0 }), 'topLeftCorner').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'topLeftCorner').toBe(-2);
+
+    expect(wt.wtOverlays.topOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }), 'top').toBe(undefined); // TODO this should be -1 or -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }), 'top').toBe(-3);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }), 'top').toBe(undefined); // TODO this should be -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }), 'top').toBe(undefined); // TODO this should be TH
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }), 'top').toBe(undefined); // TODO this should be -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }), 'top').toBe(undefined); // TODO this should be -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }), 'top').toBe(undefined); // TODO this should be -3
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: -1 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 0 }), 'top').toBe(-3);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 2 }).innerHTML, 'top').toBe('b');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 16 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 17 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 18 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 0 }), 'top').toBe(-3); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 2 }), 'top').toBe(undefined); // TODO this should be -2
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 16 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 17 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: 18 }), 'top').toBe(-4);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 0 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: 2 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 0 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: 2 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 0 }), 'top').toBe(-2);
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'top').toBe(-2);
   });
 
   it('getCoords should return coords of TD', () => {
