@@ -23,6 +23,10 @@ class BottomOverlay extends Overlay {
     this.clone = this.makeClone(Overlay.CLONE_BOTTOM);
   }
 
+  /**
+   * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   * @returns {Table}
+   */
   createTable(...args) {
     return new BottomOverlayTable(...args);
   }

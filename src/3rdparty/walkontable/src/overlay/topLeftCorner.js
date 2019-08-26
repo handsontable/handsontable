@@ -20,6 +20,10 @@ class TopLeftCornerOverlay extends Overlay {
     this.clone = this.makeClone(Overlay.CLONE_TOP_LEFT_CORNER);
   }
 
+  /**
+   * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   * @returns {Table}
+   */
   createTable(...args) {
     return new TopLeftCornerOverlayTable(...args);
   }

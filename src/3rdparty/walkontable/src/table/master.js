@@ -9,6 +9,9 @@ import calculatedRows from './mixin/calculatedRows';
 import calculatedColumns from './mixin/calculatedColumns';
 import { mixin } from './../../../../helpers/object';
 
+/**
+ * Subclass of `Table` that provides the helper methods relevant to the master table (not overlays), implemented through mixins.
+ */
 class MasterTable extends Table {
   alignOverlaysWithTrimmingContainer() {
     const trimmingElement = getTrimmingContainer(this.wtRootElement);

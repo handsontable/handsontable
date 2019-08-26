@@ -93,8 +93,14 @@ class Table {
     });
   }
 
-  is(overlayClass) {
-    return Overlay.isOverlayTypeOf(this.wot.cloneOverlay, overlayClass);
+  /**
+   * Returns a boolean that is true if this intance of Table represents a specific overlay, identified by the overlay name.
+   * For MasterTable, it returns false.
+   * @param {String} overlayTypeName
+   * @return {Boolean}
+   */
+  is(overlayTypeName) {
+    return Overlay.isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
   }
 
   /**
