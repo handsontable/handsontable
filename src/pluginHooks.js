@@ -1828,7 +1828,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeColumnCollapse
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
-   * @param {Boolean} collapsePossible `true`, if all of the col indexes aren't withing the hidden columns, `false` otherwise.
+   * @param {Boolean} collapsePossible `true`, if all of the column indexes aren't withing the hidden columns, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the trimming action will not be completed.
    */
   'beforeColumnCollapse',
