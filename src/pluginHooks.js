@@ -1845,7 +1845,7 @@ const REGISTERED_HOOKS = [
   'afterColumnCollapse',
 
   /**
-   * Fired by {@link CollapsibleColumns} plugin before collapsible columns. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
+   * Fired by {@link CollapsibleColumns} plugin before columns expand. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#beforeColumnExpand
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
