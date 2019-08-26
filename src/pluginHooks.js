@@ -1851,7 +1851,7 @@ const REGISTERED_HOOKS = [
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
    * @param {Boolean} expandPossible `true`, if all of the col indexes are withing the hidden columns, `false` otherwise.
-   * @returns {undefined|Boolean} If the callback returns `false`, the trimming action will not be completed.
+   * @returns {undefined|Boolean} If the callback returns `false`, the expanding action will not be completed.
    */
   'beforeColumnExpand',
 
