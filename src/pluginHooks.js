@@ -1861,7 +1861,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterColumnExpand
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
-   * @param {Boolean} expandPossible `true`, if all of the col indexes are withing the hidden columns, `false` otherwise.
+   * @param {Boolean} expandPossible `true`, if all of the column indexes are withing the hidden columns, `false` otherwise.
    * @param {Boolean} successfullyExpanded `true`, if the action affected any non-collapsible column, `false` otherwise.
    */
   'afterColumnExpand',
