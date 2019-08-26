@@ -524,6 +524,142 @@ describe('WalkontableTable', () => {
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'top').toBe(-2);
   });
 
+  it('helper methods should return -1 error code if there are no rendered rows or columns', () => {
+    createDataArray(0, 0);
+    spec().$wrapper.width(250).height(170);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      fixedRowsTop: 2,
+      fixedRowsBottom: 2,
+      fixedColumnsLeft: 2,
+      columnHeaders: [function(col, TH) {
+        TH.innerHTML = `${hotParentName(TH)}-header-of-col-${col}`;
+      }],
+      rowHeaders: [function(row, TH) {
+        TH.innerHTML = `${hotParentName(TH)}-header-of-row-${row}`;
+      }]
+    });
+    wt.draw();
+
+    expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'master').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'master').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'master').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'master').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'master').toBe(0);
+    expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'master').toBe(0);
+
+    expect(wt.wtOverlays.bottomLeftCornerOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'bottomLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'bottomLeftCorner').toBe(0);
+    expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'bottomLeftCorner').toBe(0);
+
+    expect(wt.wtOverlays.bottomOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'bottom').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'bottom').toBe(0);
+    expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'bottom').toBe(0);
+
+    expect(wt.wtOverlays.leftOverlay.clone).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'left').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'left').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'left').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'left').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'left').toBe(0);
+    expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'left').toBe(0);
+
+    expect(wt.wtOverlays.topLeftCornerOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'topLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'topLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'topLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'topLeftCorner').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'topLeftCorner').toBe(0);
+    expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'topLeftCorner').toBe(0);
+
+    expect(wt.wtOverlays.topOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'top').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'top').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'top').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'top').toBe(-1);
+    expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'top').toBe(0);
+    expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'top').toBe(0);
+  });
+
+  it('helper methods should return relevant value for rows and columns', () => {
+    createDataArray(18, 18);
+    spec().$wrapper.width(250).height(170);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      fixedRowsTop: 2,
+      fixedRowsBottom: 2,
+      fixedColumnsLeft: 2,
+      columnHeaders: [function(col, TH) {
+        TH.innerHTML = `${hotParentName(TH)}-header-of-col-${col}`;
+      }],
+      rowHeaders: [function(row, TH) {
+        TH.innerHTML = `${hotParentName(TH)}-header-of-row-${row}`;
+      }]
+    });
+    wt.draw();
+
+    expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'master').toBe(2);
+    expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'master').toBe(2);
+    expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'master').toBe(5);
+    expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'master').toBe(3);
+    expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'master').toBe(4);
+    expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'master').toBe(2);
+
+    expect(wt.wtOverlays.bottomLeftCornerOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottomLeftCorner').toBe(16);
+    expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'bottomLeftCorner').toBe(16);
+    expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'bottomLeftCorner').toBe(17);
+    expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'bottomLeftCorner').toBe(17);
+    expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'bottomLeftCorner').toBe(2);
+    expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'bottomLeftCorner').toBe(2);
+
+    expect(wt.wtOverlays.bottomOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottom').toBe(16);
+    expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'bottom').toBe(16);
+    expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'bottom').toBe(17);
+    expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'bottom').toBe(17);
+    expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'bottom').toBe(2);
+    expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'bottom').toBe(2);
+
+    expect(wt.wtOverlays.leftOverlay.clone).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'left').toBe(2);
+    expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'left').toBe(2);
+    expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'left').toBe(5);
+    expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'left').toBe(3);
+    expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'left').toBe(4);
+    expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'left').toBe(2);
+
+    expect(wt.wtOverlays.topLeftCornerOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'topLeftCorner').toBe(0);
+    expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'topLeftCorner').toBe(0);
+    expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'topLeftCorner').toBe(1);
+    expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'topLeftCorner').toBe(1);
+    expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'topLeftCorner').toBe(2);
+    expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'topLeftCorner').toBe(2);
+
+    expect(wt.wtOverlays.topOverlay).not.toBe(undefined);
+    expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'top').toBe(0);
+    expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'top').toBe(0);
+    expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'top').toBe(1);
+    expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'top').toBe(1);
+    expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'top').toBe(2);
+    expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'top').toBe(2);
+  });
+
   it('getCoords should return coords of TD', () => {
     const wt = walkontable({
       data: getData,

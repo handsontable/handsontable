@@ -19,21 +19,36 @@ const calculatedColumns = {
    * @returns {Number} Returns -1 if no row is visible
    */
   getFirstVisibleColumn() {
-    return this.wot.wtViewport.columnsVisibleCalculator.startColumn;
+    const startColumn = this.wot.wtViewport.columnsVisibleCalculator.startColumn;
+
+    if (startColumn === null) {
+      return -1;
+    }
+    return startColumn;
   },
 
   /**
    * @returns {Number} Returns source index of last rendered column
    */
   getLastRenderedColumn() {
-    return this.wot.wtViewport.columnsRenderCalculator.endColumn;
+    const endColumn = this.wot.wtViewport.columnsRenderCalculator.endColumn;
+
+    if (endColumn === null) {
+      return -1;
+    }
+    return endColumn;
   },
 
   /**
    * @returns {Number} Returns -1 if no column is visible, otherwise source index of the last visible column
    */
   getLastVisibleColumn() {
-    return this.wot.wtViewport.columnsVisibleCalculator.endColumn;
+    const endColumn = this.wot.wtViewport.columnsVisibleCalculator.endColumn;
+
+    if (endColumn === null) {
+      return -1;
+    }
+    return endColumn;
   },
 
   getRenderedColumnsCount() {
