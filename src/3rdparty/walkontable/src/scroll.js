@@ -28,6 +28,9 @@ class Scroll {
    * @returns {Boolean}
    */
   scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
+    if (coords.col < 0 || coords.row < 0) {
+      return false;
+    }
     const scrolledHorizontally = this.scrollViewportHorizontally(coords.col, snapToRight, snapToLeft);
     const scrolledVertically = this.scrollViewportVertically(coords.row, snapToTop, snapToBottom);
 
@@ -53,11 +56,13 @@ class Scroll {
       totalColumns,
     } = this._getVariables();
     let result = false;
+    const firstVisibleColumn = this.getFirstVisibleColumn();
+    const lastVisibleColumn = this.getLastVisibleColumn();
 
     if (column >= 0 && column <= Math.max(totalColumns - 1, 0)) {
-      if (column >= fixedColumnsLeft && (column < this.getFirstVisibleColumn() || snapToLeft)) {
+      if (column >= fixedColumnsLeft && firstVisibleColumn > -1 && (column < firstVisibleColumn || snapToLeft)) {
         result = leftOverlay.scrollTo(column);
-      } else if (column > this.getLastVisibleColumn() || snapToRight) {
+      } else if (lastVisibleColumn === -1 || lastVisibleColumn > -1 && (column > lastVisibleColumn || snapToRight)) {
         result = leftOverlay.scrollTo(column, true);
       }
     }
@@ -85,11 +90,13 @@ class Scroll {
       totalRows,
     } = this._getVariables();
     let result = false;
+    const firstVisibleRow = this.getFirstVisibleRow();
+    const lastVisibleRow = this.getLastVisibleRow();
 
     if (row >= 0 && row <= Math.max(totalRows - 1, 0)) {
-      if (row >= fixedRowsTop && (row < this.getFirstVisibleRow() || snapToTop)) {
+      if (row >= fixedRowsTop && firstVisibleRow > -1 && (row < firstVisibleRow || snapToTop)) {
         result = topOverlay.scrollTo(row);
-      } else if ((row > this.getLastVisibleRow() && row < totalRows - fixedRowsBottom) || snapToBottom) {
+      } else if (lastVisibleRow === -1 || lastVisibleRow > -1 && ((row > lastVisibleRow && row < totalRows - fixedRowsBottom) || snapToBottom)) {
         result = topOverlay.scrollTo(row, true);
       }
     }

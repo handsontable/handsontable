@@ -148,6 +148,9 @@ class Walkontable {
    * @returns {Boolean}
    */
   scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
+    if (coords.col < 0 || coords.row < 0) {
+      return false;
+    }
     return this.wtScroll.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
   }
 
@@ -160,6 +163,9 @@ class Walkontable {
    * @returns {Boolean}
    */
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
+    if (column < 0) {
+      return false;
+    }
     return this.wtScroll.scrollViewportHorizontally(column, snapToRight, snapToLeft);
   }
 
@@ -172,6 +178,9 @@ class Walkontable {
    * @returns {Boolean}
    */
   scrollViewportVertically(row, snapToTop, snapToBottom) {
+    if (row < 0) {
+      return false;
+    }
     return this.wtScroll.scrollViewportVertically(row, snapToTop, snapToBottom);
   }
 

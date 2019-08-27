@@ -354,7 +354,7 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Gets the first visible column.
    *
-   * @returns {Number|null} Returns column index, -1 if table is not rendered or null if there are no columns to base the the calculations on.
+   * @returns {Number} Returns column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn() {
     const wot = this.hot.view.wt;
@@ -451,7 +451,7 @@ class AutoColumnSize extends BasePlugin {
     const firstVisibleColumn = this.getFirstVisibleColumn();
     const lastVisibleColumn = this.getLastVisibleColumn();
 
-    if (firstVisibleColumn === null || lastVisibleColumn === null) {
+    if (firstVisibleColumn === -1 || lastVisibleColumn === -1) {
       return;
     }
 
