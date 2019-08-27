@@ -59,6 +59,7 @@ describe('Triggering `change` hook', () => {
     indexMap.addLocalHook('change', changeCallback);
 
     expect(changeCallback.calls.count()).toEqual(0);
+
     indexMap.insert(0, [0]);
 
     expect(changeCallback.calls.count()).toEqual(1);

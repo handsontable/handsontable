@@ -75,6 +75,7 @@ describe('Triggering `change` hook', () => {
     valueMap.addLocalHook('change', changeCallback);
 
     expect(changeCallback.calls.count()).toEqual(0);
+
     valueMap.insert(0, [0]);
 
     expect(changeCallback.calls.count()).toEqual(1);
