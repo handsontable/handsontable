@@ -5,6 +5,7 @@ const allowedE2EModules = [
   'regenerator-runtime/runtime',
   '@babel/runtime/*',
   './common',
+  './mouseEvents',
   './../bootstrap',
   './helpers/custom-matchers',
   './asciiTable',

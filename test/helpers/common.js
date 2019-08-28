@@ -48,6 +48,7 @@ export const colToProp = handsontableMethodFactory('colToProp');
 export const countCols = handsontableMethodFactory('countCols');
 export const countEmptyCols = handsontableMethodFactory('countEmptyCols');
 export const countEmptyRows = handsontableMethodFactory('countEmptyRows');
+export const countRenderableColumns = handsontableMethodFactory('countRenderableColumns');
 export const countRows = handsontableMethodFactory('countRows');
 export const countSourceCols = handsontableMethodFactory('countSourceCols');
 export const countSourceRows = handsontableMethodFactory('countSourceRows');
@@ -276,40 +277,6 @@ export function dropdownMenuRootElement() {
 
   return root;
 }
-
-/**
- * Returns a function that triggers a mouse event
- * @param {String} type Event type
- * @return {Function}
- */
-export function handsontableMouseTriggerFactory(type, button) {
-  return function(element) {
-    let handsontableElement = element;
-
-    if (!(handsontableElement instanceof jQuery)) {
-      handsontableElement = $(handsontableElement);
-    }
-    const ev = $.Event(type);
-    ev.which = button || 1; // left click by default
-
-    handsontableElement.simulate(type, ev);
-  };
-}
-
-export const mouseDown = handsontableMouseTriggerFactory('mousedown');
-export const mouseMove = handsontableMouseTriggerFactory('mousemove');
-export const mouseOver = handsontableMouseTriggerFactory('mouseover');
-export const mouseUp = handsontableMouseTriggerFactory('mouseup');
-
-export function mouseDoubleClick(element) {
-  mouseDown(element);
-  mouseUp(element);
-  mouseDown(element);
-  mouseUp(element);
-}
-
-export const mouseRightDown = handsontableMouseTriggerFactory('mousedown', 3);
-export const mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
 
 /**
  * Returns a function that triggers a key event

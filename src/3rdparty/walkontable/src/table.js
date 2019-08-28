@@ -417,7 +417,13 @@ class Table {
       return -4;
     }
 
-    const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+    let TR;
+
+    if (row < 0) {
+      TR = this.THEAD.childNodes[this.rowFilter.sourceRowToVisibleColHeadedRow(row)];
+    } else {
+      TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+    }
 
     if (TR) {
       return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
