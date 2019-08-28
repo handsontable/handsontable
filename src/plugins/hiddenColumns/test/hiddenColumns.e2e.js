@@ -1,6 +1,17 @@
 describe('HiddenColumns', () => {
   const id = 'testContainer';
 
+  const { CONTEXTMENU_ITEMS_SHOW_COLUMN, CONTEXTMENU_ITEMS_HIDE_COLUMN, CONTEXTMENU_ITEMS_NO_ITEMS } = Handsontable.languages.dictionaryKeys;
+  const MENU_NO_ITEMS = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_NO_ITEMS);
+  const MENU_ITEM_SHOW_COLUMN = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_SHOW_COLUMN);
+  const MENU_ITEM_SHOW_COLUMNS = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_SHOW_COLUMN, 1);
+  const MENU_ITEM_HIDE_COLUMN = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_HIDE_COLUMN);
+  const MENU_ITEM_HIDE_COLUMNS = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_HIDE_COLUMN, 1);
+  const CSS_CLASS_BEFORE_HIDDEN = 'beforeHiddenColumn';
+  const CSS_CLASS_AFTER_HIDDEN = 'afterHiddenColumn';
+  const CONTEXTMENU_ITEM_SHOW = 'hidden_columns_show';
+  const CONTEXTMENU_ITEM_HIDE = 'hidden_columns_hide';
+
   function getMultilineData(rows, cols) {
     const data = Handsontable.helper.createSpreadsheetData(rows, cols);
 
@@ -22,191 +33,789 @@ describe('HiddenColumns', () => {
     }
   });
 
-  it('should hide columns if the "hiddenColumns" property is set', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 10),
-      hiddenColumns: {
-        columns: [2, 4]
-      },
-      cells(row, col) {
-        const meta = {};
+  describe('configuration', () => {
+    it('should hide columns if the "hiddenColumns" property is set', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          columns: [1, 3],
+        },
+        // cells(row, col) {
+        //   const meta = {};
 
-        if (this.instance.toRenderableColumn(col) === 2) {
-          meta.type = 'date';
-        }
+        //   if (this.instance.toRenderableColumn(col) === 2) {
+        //     meta.type = 'date';
+        //   }
 
-        return meta;
-      },
-      width: 500,
-      height: 300
+        //   return meta;
+        // },
+      });
+
+      expect(countRenderableColumns()).toBe(3);
+      expect(getCell(0, 0).innerText).toBe('A1');
+      expect(getCell(0, 1)).toBe(null);
+      expect(getCell(0, 2).innerText).toBe('C1');
+      expect(getCell(0, 3)).toBe(null);
+      expect(getCell(0, 4).innerText).toBe('E1');
     });
 
-    expect(hot.countRenderableColumns()).toBe(8);
-    expect(getCell(0, 0).innerText).toBe('A1');
-    expect(getCell(0, 1).innerText).toBe('B1');
-    expect(getCell(0, 2).innerText).toBe('D1');
-    expect(getCell(0, 3).innerText).toBe('F1');
+    it('should return to default state after calling the disablePlugin method', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          columns: [1, 3],
+        },
+      });
+      getPlugin('hiddenColumns').disablePlugin();
+      render();
+
+      expect(getCell(0, 0).innerText).toBe('A1');
+      expect(getCell(0, 1).innerText).toBe('B1');
+      expect(getCell(0, 2).innerText).toBe('C1');
+      expect(getCell(0, 3).innerText).toBe('D1');
+      expect(getCell(0, 4).innerText).toBe('E1');
+    });
+
+    it('should hide columns after calling the enablePlugin method', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          columns: [1, 3],
+        },
+      });
+
+      const plugin = getPlugin('hiddenColumns');
+      plugin.disablePlugin();
+      render();
+      plugin.enablePlugin();
+      render();
+
+      expect(getCell(0, 0).innerText).toBe('A1');
+      expect(getCell(0, 1)).toBe(null);
+      expect(getCell(0, 2).innerText).toBe('C1');
+      expect(getCell(0, 3)).toBe(null);
+      expect(getCell(0, 4).innerText).toBe('E1');
+    });
+
+    it('should initialize the plugin after setting it up with the "updateSettings" method', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+      });
+
+      const plugin = getPlugin('hiddenColumns');
+
+      expect(plugin.enabled).toEqual(false);
+
+      updateSettings({
+        hiddenColumns: {
+          columns: [1, 3],
+        },
+      });
+
+      expect(plugin.enabled).toEqual(true);
+      expect(countRenderableColumns()).toBe(3);
+      expect(getCell(0, 0).innerText).toBe('A1');
+      expect(getCell(0, 1)).toBe(null);
+      expect(getCell(0, 2).innerText).toBe('C1');
+      expect(getCell(0, 3)).toBe(null);
+      expect(getCell(0, 4).innerText).toBe('E1');
+    });
+
+    it('should update hidden columns with the "updateSettings" method', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          columns: [1, 3],
+        },
+      });
+
+      expect(countRenderableColumns()).toBe(3);
+      expect(getCell(0, 0).innerText).toBe('A1');
+      expect(getCell(0, 1)).toBe(null);
+      expect(getCell(0, 2).innerText).toBe('C1');
+      expect(getCell(0, 3)).toBe(null);
+      expect(getCell(0, 4).innerText).toBe('E1');
+
+      updateSettings({
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+      });
+
+      expect(countRenderableColumns()).toBe(2);
+      expect(getCell(0, 0)).toBe(null);
+      expect(getCell(0, 1).innerText).toBe('B1');
+      expect(getCell(0, 2)).toBe(null);
+      expect(getCell(0, 3).innerText).toBe('D1');
+      expect(getCell(0, 4)).toBe(null);
+    });
   });
 
-  it('should return to default state after calling the disablePlugin method', () => {
-    const hot = handsontable({
-      data: getMultilineData(5, 10),
-      hiddenColumns: {
-        columns: [2, 4]
-      },
-      cells(row, col) {
-        const meta = {};
+  describe('indicators', () => {
+    it('should add proper class names in column headers', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [1, 3],
+          indicators: true,
+        },
+        colHeaders: true,
+      });
 
-        if (col === 2) {
-          meta.type = 'date';
-        }
-
-        return meta;
-      },
-      width: 500,
-      height: 300
+      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 1)).toBe(null);
+      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(-1, 3)).toBe(null);
+      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
     });
-    hot.getPlugin('hiddenColumns').disablePlugin();
-    hot.render();
 
-    expect(hot.getColWidth(1)).toBe(50);
-    expect(hot.getCell(0, 2).clientHeight).toBe(42);
-    expect(hot.getColWidth(2)).toBeAroundValue(51, 4);
-    expect(hot.getCell(0, 4).clientHeight).toBe(42);
-    expect(hot.getColWidth(4)).toBe(50);
-    expect(hot.getColWidth(5)).toBe(50);
+    it('should render indicators after enabling them in updateSettings', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 3),
+        hiddenColumns: {
+          columns: [0, 2],
+        },
+        colHeaders: true,
+      });
+
+      expect(getCell(-1, 2)).not.toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 2)).not.toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+
+      updateSettings({
+        hiddenColumns: {
+          hiddenColumns: {
+            columns: [0, 2],
+            indicators: true,
+          },
+        }
+      });
+
+      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+    });
   });
 
-  it('should hide columns after calling the enablePlugin method', () => {
-    const hot = handsontable({
-      data: getMultilineData(5, 10),
-      hiddenColumns: {
-        columns: [2, 4]
-      },
-      cells(row, col) {
-        const meta = {};
+  describe('API', () => {
+    it('should hide column after calling the hideColumn method', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 3),
+        hiddenColumns: true,
+      });
 
-        if (this.instance.toRenderableColumn(col) === 2) {
-          meta.type = 'date';
-        }
+      expect(getCell(0, 1).innerText).toBe('B1');
 
-        return meta;
-      },
-      width: 500,
-      height: 300
+      getPlugin('hiddenColumns').hideColumn(1);
+      render();
+
+      expect(getCell(0, 1)).toBe(null);
     });
 
-    hot.getPlugin('hiddenColumns').disablePlugin();
-    hot.render();
-    hot.getPlugin('hiddenColumns').enablePlugin();
-    hot.render();
+    it('should show column after calling the showColumn method', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 3),
+        hiddenColumns: {
+          columns: [1],
+        },
+      });
 
-    expect(getCell(0, 0).innerText).toBe('A1');
-    expect(getCell(0, 1).innerText).toBe('B1');
-    expect(getCell(0, 2).innerText).toBe('D1');
-    expect(getCell(0, 3).innerText).toBe('F1');
-    expect(getCell(0, 4).innerText).toBe('G1');
+      expect(getCell(0, 1)).toBe(null);
+
+      getPlugin('hiddenColumns').showColumn(1);
+      render();
+
+      expect(getCell(0, 1).innerText).toBe('B1');
+    });
   });
 
-  it('should initialize the plugin after setting it up with the "updateSettings" method', () => {
-    const hot = handsontable({
-      data: getMultilineData(5, 10),
-      colHeaders: true,
-      width: 500,
-      height: 300
+  describe('context-menu', () => {
+    describe('items', () => {
+      describe('hiding', () => {
+        it('should not render context menu item for hiding if no column is selected', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            hiddenColumns: true,
+          });
+
+          selectCell(0, 0);
+          contextMenu();
+
+          const items = spec().$container.find('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toBe(MENU_NO_ITEMS);
+        });
+
+        it('should render proper context menu item for hiding if only one column is selected', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            hiddenColumns: true,
+          });
+
+          const header = getCell(-1, 0);
+          header.simulate('mousedown');
+          header.simulate('mouseup');
+          contextMenu();
+
+          const items = spec().$container.find('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toEqual(MENU_ITEM_HIDE_COLUMN);
+        });
+
+        it('should render proper context menu item for hiding a few selected columns', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            hiddenColumns: true,
+          });
+
+          const start = getCell(-1, 0);
+          const end = getCell(-1, 2);
+
+          mouseDown(start);
+          mouseOver(end);
+          mouseUp(end);
+
+          contextMenu();
+
+          const items = spec().$container.find('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toEqual(MENU_ITEM_HIDE_COLUMNS);
+        });
+      });
+
+      describe('unhiding', () => {
+        it('should not render context menu item for unhiding if no column is selected', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenColumns: true,
+          });
+
+          selectCell(0, 0);
+          contextMenu();
+
+          const items = spec().$container.find('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toBe(MENU_NO_ITEMS);
+        });
+
+        it('should not render context menu item for unhiding if the first visible column is selected and no column before is hidden', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenColumns: [1, 2, 3],
+          });
+
+          const header = getCell(-1, 0);
+
+          mouseDown(header);
+          mouseUp(header);
+          contextMenu(header);
+
+          const items = spec().$container.find('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toBe(MENU_NO_ITEMS);
+        });
+
+        it('should not render context menu item for unhiding if the last visible column is selected and no column after is hidden', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenColumns: [1, 2, 3],
+          });
+
+          const header = getCell(-1, 4);
+
+          mouseDown(header);
+          mouseUp(header);
+          contextMenu(header);
+
+          const items = spec().$container.find('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toBe(MENU_NO_ITEMS);
+        });
+
+        it('should not render context menu item for unhiding if selected column is not the first one and is not the last one', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenColumns: [1, 3],
+          });
+
+          const header = getCell(-1, 2);
+
+          mouseDown(header);
+          mouseUp(header);
+          contextMenu(header);
+
+          const items = spec().$container.find('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toBe(MENU_NO_ITEMS);
+        });
+
+        it('should render proper context menu item for unhiding if the first visible column is selected and every column before is hidden', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenColumns: {
+              columns: [0, 1],
+            },
+          });
+
+          const header = getCell(-1, 2);
+          header.simulate('mousedown');
+          header.simulate('mouseup');
+          contextMenu();
+
+          const items = spec().$container.find('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toEqual(MENU_ITEM_SHOW_COLUMNS);
+        });
+
+        it('should render proper context menu item for unhiding if the last visible column is selected and every column after is hidden', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenColumns: {
+              columns: [3, 4],
+            },
+          });
+
+          const header = getCell(-1, 2);
+          header.simulate('mousedown');
+          header.simulate('mouseup');
+          contextMenu();
+
+          const items = spec().$container.find('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toEqual(MENU_ITEM_SHOW_COLUMNS);
+        });
+
+        it('should render proper context menu item for unhiding a few columns', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            hiddenColumns: {
+              columns: [1, 3],
+            },
+          });
+
+          const start = getCell(-1, 0);
+          const end = getCell(-1, 4);
+
+          mouseDown(start);
+          mouseOver(end);
+          mouseUp(end);
+
+          contextMenu();
+
+          const items = spec().$container.find('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toEqual(MENU_ITEM_SHOW_COLUMNS);
+        });
+
+        it('should render proper context menu item for unhiding only one column', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            hiddenColumns: {
+              columns: [1, 2, 3],
+            },
+          });
+
+          const start = getCell(-1, 0);
+          const end = getCell(-1, 4);
+
+          mouseDown(start);
+          mouseOver(end);
+          mouseUp(end);
+
+          contextMenu();
+
+          const items = spec().$container.find('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toEqual(MENU_ITEM_SHOW_COLUMN);
+        });
+      });
     });
 
-    expect(hot.getPlugin('hiddenColumns').enabled).toEqual(false);
+    describe('commands', () => {
+      describe('hiding', () => {
+        it('should hide selected columns', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            hiddenColumns: true,
+          });
 
-    hot.updateSettings({
-      hiddenColumns: {
-        columns: [2, 4],
-        indicators: true
+          selectColumns(1, 2);
+
+          getPlugin('contextMenu').commandExecutor.execute(CONTEXTMENU_ITEM_HIDE);
+
+          expect(countRenderableColumns()).toBe(3);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(0, 1)).toBe(null);
+          expect(getCell(0, 2)).toBe(null);
+          expect(getCell(0, 3).innerText).toBe('D1');
+          expect(getCell(0, 4).innerText).toBe('E1');
+        });
+
+        it('should select column on the right side after hide action', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            hiddenColumns: true,
+          });
+
+          selectColumns(1, 2);
+
+          getPlugin('contextMenu').commandExecutor.execute(CONTEXTMENU_ITEM_HIDE);
+
+          expect(getSelectedLast()).toEqual([0, 3, 1, 3]);
+        });
+
+        it('should select column on the left side after hide action if on the right is no more visible column', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            hiddenColumns: true,
+          });
+
+          selectColumns(3, 4);
+
+          getPlugin('contextMenu').commandExecutor.execute(CONTEXTMENU_ITEM_HIDE);
+
+          expect(getSelectedLast()).toEqual([0, 2, 1, 2]);
+        });
+      });
+
+      describe('unhiding', () => {
+        it('should unhide hidden columns in selection', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenColumns: {
+              columns: [1, 3],
+            },
+          });
+
+          expect(countRenderableColumns()).toBe(3);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(0, 1)).toBe(null);
+          expect(getCell(0, 2).innerText).toBe('C1');
+          expect(getCell(0, 3)).toBe(null);
+          expect(getCell(0, 4).innerText).toBe('E1');
+
+          selectColumns(0, 4);
+
+          getPlugin('contextMenu').commandExecutor.execute(CONTEXTMENU_ITEM_SHOW);
+
+          expect(countRenderableColumns()).toBe(5);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(0, 1).innerText).toBe('B1');
+          expect(getCell(0, 2).innerText).toBe('C1');
+          expect(getCell(0, 3).innerText).toBe('D1');
+          expect(getCell(0, 4).innerText).toBe('E1');
+          expect(getSelectedLast()).toEqual([0, 0, 1, 4]);
+        });
+
+        it('should unhide hidden columns before the first visible and selected column', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenColumns: {
+              columns: [0, 1],
+            },
+          });
+
+          expect(countRenderableColumns()).toBe(3);
+          expect(getCell(0, 0)).toBe(null);
+          expect(getCell(0, 1)).toBe(null);
+          expect(getCell(0, 2).innerText).toBe('C1');
+          expect(getCell(0, 3).innerText).toBe('D1');
+          expect(getCell(0, 4).innerText).toBe('E1');
+
+          selectColumns(2);
+
+          getPlugin('contextMenu').commandExecutor.execute(CONTEXTMENU_ITEM_SHOW);
+
+          expect(countRenderableColumns()).toBe(5);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(0, 1).innerText).toBe('B1');
+          expect(getCell(0, 2).innerText).toBe('C1');
+          expect(getCell(0, 3).innerText).toBe('D1');
+          expect(getCell(0, 4).innerText).toBe('E1');
+          expect(getSelectedLast()).toEqual([0, 0, 1, 2]);
+        });
+
+        it('should unhide hidden columns after the last visible and selected column', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenColumns: {
+              columns: [3, 4],
+            },
+          });
+
+          expect(countRenderableColumns()).toBe(3);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(0, 1).innerText).toBe('B1');
+          expect(getCell(0, 2).innerText).toBe('C1');
+          expect(getCell(0, 3)).toBe(null);
+          expect(getCell(0, 4)).toBe(null);
+
+          selectColumns(2);
+
+          getPlugin('contextMenu').commandExecutor.execute(CONTEXTMENU_ITEM_SHOW);
+
+          expect(countRenderableColumns()).toBe(5);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(0, 1).innerText).toBe('B1');
+          expect(getCell(0, 2).innerText).toBe('C1');
+          expect(getCell(0, 3).innerText).toBe('D1');
+          expect(getCell(0, 4).innerText).toBe('E1');
+          expect(getSelectedLast()).toEqual([0, 2, 1, 4]);
+        });
+      });
+    });
+  });
+
+  describe('cell selection UI', () => {
+    it('should select entire row by header if first column is hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        hiddenColumns: {
+          columns: [0],
+        },
+      });
+
+      const header = getCell(0, -1);
+
+      simulateClick(header, 'LMB');
+
+      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+    });
+
+    it('should select entire row by header if last column is hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        hiddenColumns: {
+          columns: [4],
+        },
+      });
+
+      const header = getCell(0, -1);
+
+      simulateClick(header, 'LMB');
+
+      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+    });
+
+    it('should select entire row by header if any column in the middle is hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        hiddenColumns: {
+          columns: [1, 2, 3],
+        },
+      });
+
+      const header = getCell(0, -1);
+
+      simulateClick(header, 'LMB');
+
+      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+    });
+
+    it('should keep hidden columns in cell range', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        hiddenColumns: {
+          columns: [1, 2, 3],
+        },
+      });
+
+      const startCell = getCell(0, 0);
+      const endCell = getCell(0, 4);
+
+      mouseDown(startCell, 'LMB');
+      mouseOver(endCell);
+      mouseUp(endCell);
+
+      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+    });
+  });
+
+  describe('cell selection (API)', () => {
+    // Do we need this test case?
+    it('should not throw any errors, when selecting a whole row with the last column hidden', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        hiddenColumns: {
+          columns: [3]
+        },
+        rowHeaders: true,
+      });
+
+      let errorThrown = false;
+
+      try {
+        hot.selectCell(2, 0, 2, 3);
+
+      } catch (err) {
+        errorThrown = true;
       }
+
+      expect(errorThrown).toBe(false);
     });
 
-    expect(hot.getPlugin('hiddenColumns').enabled).toEqual(true);
-    expect($('.beforeHiddenColumn').size()).toBeGreaterThan(0);
+    it('should select entire table after call selectAll if all of columns ', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1, 2, 3, 4],
+        },
+      });
 
-  });
+      selectAll();
 
-  it('should hide column after calling the hideColumn method', () => {
-    const hot = handsontable({
-      data: getMultilineData(5, 10),
-      hiddenColumns: true,
-      width: 500,
-      height: 300
+      expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
     });
 
-    expect(getCell(0, 2).innerText).toBe('C1\nline');
+    it('should select entire row after call selectRows if the first column is hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        hiddenColumns: {
+          columns: [0],
+        },
+      });
 
-    hot.getPlugin('hiddenColumns').hideColumn(2);
-    hot.render();
+      selectRows(0);
 
-    expect(getCell(0, 2).innerText).toBe('D1');
-  });
-
-  it('should show column after calling the showColumn method', () => {
-    const hot = handsontable({
-      data: getMultilineData(5, 10),
-      hiddenColumns: {
-        columns: [2]
-      },
-      width: 500,
-      height: 300
+      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
     });
 
-    expect(getCell(0, 2).innerText).toBe('D1');
+    it('should select entire row after call selectRows if the last column is hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        hiddenColumns: {
+          columns: [4],
+        },
+      });
 
-    hot.getPlugin('hiddenColumns').showColumn(2);
-    hot.render();
+      selectRows(0);
 
-    expect(hot.getCell(0, 2).innerText).toBe('C1\nline');
-  });
-
-  it('should show the hidden column indicators if the "indicators" property is set to true', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 10),
-      hiddenColumns: {
-        columns: [2, 4],
-        indicators: true
-      },
-      colHeaders: true,
-      width: 500,
-      height: 300
+      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
     });
 
-    const tHeadTRs = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+    it('should select entire row after call selectRows if columns between the first and the last are hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        hiddenColumns: {
+          columns: [1, 2, 3],
+        },
+      });
 
-    expect(Handsontable.dom.hasClass(tHeadTRs[1], 'beforeHiddenColumn')).toBe(true);
-    expect(Handsontable.dom.hasClass(tHeadTRs[2], 'afterHiddenColumn')).toBe(true);
-    expect(Handsontable.dom.hasClass(tHeadTRs[2], 'beforeHiddenColumn')).toBe(true);
-    expect(Handsontable.dom.hasClass(tHeadTRs[3], 'afterHiddenColumn')).toBe(true);
+      selectRows(0);
 
-  });
-
-  it('should not throw any errors, when selecting a whole row with the last column hidden', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
-      hiddenColumns: {
-        columns: [3]
-      },
-      rowHeaders: true
+      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
     });
 
-    let errorThrown = false;
+    it('should select hidden column after call selectColumns', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        hiddenColumns: {
+          columns: [1],
+        },
+      });
 
-    try {
-      hot.selectCell(2, 0, 2, 3);
+      selectColumns(1);
 
-    } catch (err) {
-      errorThrown = true;
-    }
+      expect(getSelectedLast()).toEqual([0, 1, 4, 1]);
+    });
 
-    expect(errorThrown).toBe(false);
+    it('should select columns after call selectColumns if range is partially hidden at the begining of selection', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        hiddenColumns: {
+          columns: [1, 2, 3],
+        },
+      });
+
+      selectColumns(2, 4);
+
+      expect(getSelectedLast()).toEqual([0, 2, 4, 4]);
+    });
+
+    it('should select columns after call selectColumns if range is partially hidden at the end of selection', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        hiddenColumns: {
+          columns: [1, 2, 3],
+        },
+      });
+
+      selectColumns(0, 2);
+
+      expect(getSelectedLast()).toEqual([0, 0, 4, 2]);
+    });
+
+    it('should select columns after call selectColumns if range is partially hidden in the middle of selection', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        hiddenColumns: {
+          columns: [1, 2, 3],
+        },
+      });
+
+      selectColumns(0, 4);
+
+      expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+    });
   });
 
-  xdescribe('copy-paste functionality', () => {
+  describe('copy-paste functionality', () => {
     class DataTransferObject {
       constructor() {
         this.data = {
@@ -296,7 +905,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should skip hidden columns, while copying data, when "copyPasteEnabled" property is set to false', () => {
-      const hot = handsontable({
+      handsontable({
         data: getMultilineData(5, 10),
         hiddenColumns: {
           columns: [2, 4],
@@ -307,7 +916,7 @@ describe('HiddenColumns', () => {
       });
 
       const copyEvent = getClipboardEventMock('copy');
-      const plugin = hot.getPlugin('CopyPaste');
+      const plugin = getPlugin('CopyPaste');
 
       selectCell(0, 0, 4, 9);
 
@@ -325,7 +934,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should skip hidden columns, while pasting data, when "copyPasteEnabled" property is set to false', () => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         hiddenColumns: {
           columns: [2, 4],
@@ -337,7 +946,7 @@ describe('HiddenColumns', () => {
 
       selectCell(0, 0);
 
-      const plugin = hot.getPlugin('CopyPaste');
+      const plugin = getPlugin('CopyPaste');
       plugin.paste('a\tb\tc\td\te\nf\tg\th\ti\tj');
 
       expect(getDataAtRow(0)).toEqual(['a', 'b', 'C1', 'c', 'E1', 'd', 'e', 'H1', 'I1', 'J1']);
@@ -346,132 +955,97 @@ describe('HiddenColumns', () => {
   });
 
   describe('navigation', () => {
-    it('should ignore hidden columns while navigating by arrow keys', () => {
+    it('should go to the closest not hidden cell on the right side while navigating by right arrow', () => {
       handsontable({
-        data: getMultilineData(5, 10),
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
         hiddenColumns: {
-          columns: [
-            2,
-            4
-          ]
+          columns: [1, 2, 3],
         },
-        width: 500,
-        height: 300
-      });
-
-      selectCell(0, 0, 0, 0);
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
-
-      expect(getSelected()).toEqual([[0, 1, 0, 1]]);
-
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
-
-      expect(getSelected()).toEqual([[0, 3, 0, 3]]);
-
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
-
-      expect(getSelected()).toEqual([[0, 5, 0, 5]]);
-    });
-  });
-
-  describe('context-menu', () => {
-    it('should be visible "hide column" on context menu when column is selected by header', () => {
-      handsontable({
-        data: getMultilineData(5, 10),
-        hiddenColumns: true,
-        width: 500,
-        height: 300,
-        contextMenu: ['hidden_columns_hide', 'hidden_columns_show'],
-        colHeaders: true
-      });
-
-      const header = $('.ht_clone_top tr:eq(0) th:eq(0)');
-      header.simulate('mousedown');
-      header.simulate('mouseup');
-      contextMenu();
-
-      const items = $('.htContextMenu tbody td');
-      const actions = items.not('.htSeparator');
-
-      expect(actions.text()).toEqual('Hide column');
-    });
-
-    it('should be NOT visible "hide column" on context menu when column is selected by header', () => {
-      handsontable({
-        data: getMultilineData(5, 10),
-        hiddenColumns: true,
-        width: 500,
-        height: 300,
-        contextMenu: ['hidden_columns_hide', 'hidden_columns_show'],
-        colHeaders: true
       });
 
       selectCell(0, 0);
-      contextMenu();
 
-      const items = $('.htContextMenu tbody td');
-      const actions = items.not('.htSeparator');
+      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
 
-      expect(actions.length).toEqual(1);
-      expect(actions.text()).toEqual([
-        'No available options',
-      ].join(''));
+      expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
+      expect(getCell(0, 1)).toHaveClass('current');
     });
-    it('should hide selected columns by "Hide column" in context menu', () => {
-      const hot = handsontable({
-        data: getMultilineData(5, 10),
-        hiddenColumns: true,
-        width: 500,
-        height: 300,
-        contextMenu: ['hidden_columns_hide'],
-        colHeaders: true
-      });
 
-      const header = $(this.$container).find('.ht_clone_top tr:eq(0)');
-
-      header.find('th:eq(3)').simulate('mousedown');
-      header.find('th:eq(4)').simulate('mouseover');
-      header.find('th:eq(4)').simulate('mouseup');
-
-      contextMenu();
-
-      const items = $(hot.getPlugin('contextMenu').menu.container).find('tbody td');
-      const actions = items.not('.htSeparator');
-
-      actions.simulate('mousedown').simulate('mouseup');
-
-      expect(hot.countRenderableColumns()).toBe(8);
-      expect(header.find('th:eq(3)').text()).toBe('F');
-      expect(header.find('th:eq(4)').text()).toBe('G');
-    });
-    it('should show hidden columns by context menu', () => {
-      const hot = handsontable({
-        data: getMultilineData(5, 10),
+    it('should go to the closest not hidden cell on the left side while navigating by left arrow', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
         hiddenColumns: {
-          columns: [2, 3],
-          indicators: true
+          columns: [1, 2, 3],
         },
-        width: 500,
-        height: 300,
-        contextMenu: ['hidden_columns_show'],
-        colHeaders: true
       });
 
-      const header = $('.ht_clone_top tr:eq(0)');
+      selectCell(0, 4);
 
-      header.find('th:eq(1)').simulate('mousedown');
-      header.find('th:eq(4)').simulate('mouseover');
-      header.find('th:eq(4)').simulate('mouseup');
+      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
 
-      contextMenu();
+      expect(getSelectedLast()).toEqual([0, 0, 0, 0]);
+      expect(getCell(0, 0)).toHaveClass('current');
+    });
 
-      const items = $('.htContextMenu tbody td');
-      const actions = items.not('.htSeparator');
+    it('should go to the first visible cell in the next row while navigating by right arrow if all column on the right side are hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          columns: [3, 4],
+        },
+      });
 
-      actions.simulate('mousedown').simulate('mouseup');
+      selectCell(0, 2);
 
-      expect(hot.getColWidth(2)).toBe(50);
-      expect(hot.getColWidth(3)).toBe(50);
+      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+      expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+      expect(getCell(1, 0)).toHaveClass('current');
+    });
+
+    it('should go to the last visible cell in the previous row while navigating by left arrow if all column on the left side are hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          columns: [0, 1],
+        },
+      });
+
+      selectCell(1, 2);
+
+      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+      expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
+    });
+
+    it('should go to the first cell in the next visible column while navigating by down arrow if column on the right side is hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          columns: [1, 2, 3],
+        },
+      });
+
+      selectCell(4, 0);
+
+      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+      expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
+    });
+
+    it('should go to the last cell in the previous visible column while navigating by up arrow if column on the left side is hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          columns: [1, 2, 3],
+        },
+      });
+
+      selectCell(0, 4);
+
+      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+      expect(getSelectedLast()).toEqual([4, 0, 4, 0]);
     });
   });
 

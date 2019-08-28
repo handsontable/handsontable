@@ -562,14 +562,15 @@ class Table {
       return -4;
     }
 
-    if (row < 0) {
-      const columnHeaders = this.wot.getSetting('columnHeaders');
-      const columnHeadersCount = columnHeaders.length;
-      const zeroBasedHeaderLevel = columnHeadersCount + row;
-      return this.getColumnHeader(column, zeroBasedHeaderLevel);
-    }
+    // Took @swistach version of code (56eca442ac2834cd2790ee581f0b1303b95ceaa5), but probably it should be changed.
+    // Since original commit there was change done by @warpech (d6a5be6cdbb4dba2da4cef0db29a1a09b171efbe).
+    let TR;
 
-    const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+    if (row < 0) {
+      TR = this.THEAD.childNodes[this.rowFilter.sourceRowToVisibleColHeadedRow(row)];
+    } else {
+      TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+    }
 
     if (!TR && row >= 0) {
       throw new Error('TR was expected to be rendered but is not');
