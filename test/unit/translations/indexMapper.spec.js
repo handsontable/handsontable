@@ -695,5 +695,75 @@ describe('IndexMapper', () => {
         expect(indexMapper.getIndexesSequence()).toEqual([0, 3, 4, 5, 7, 2, 1, 6, 8, 9]);
       });
     });
+
+    describe('should move indexes properly when there are skipped indexes', () => {
+      it('from the top down to element before skipped index', () => {
+        const indexMapper = new IndexMapper();
+        const skipMap = new SkipMap();
+
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(10);
+        skipMap.setValues([false, false, false, false, true, false, false, false, false, false]);
+
+        indexMapper.moveIndexes([0], 3);
+
+        expect(indexMapper.getIndexesSequence()).toEqual([1, 2, 3, 0, 4, 5, 6, 7, 8, 9]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([1, 2, 3, 0, 5, 6, 7, 8, 9]);
+      });
+
+      it('from the top up to element before skipped index', () => {
+        const indexMapper = new IndexMapper();
+        const skipMap = new SkipMap();
+
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(10);
+        skipMap.setValues([false, false, false, false, true, false, false, false, false, false]);
+
+        indexMapper.moveIndexes([5], 3); // physical index 6, there is one skipped index before the element.
+
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 6, 3, 4, 5, 7, 8, 9]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([0, 1, 2, 6, 3, 5, 7, 8, 9]);
+      });
+
+      it('when first few starting indexes are skipped', () => {
+        const indexMapper = new IndexMapper();
+        const skipMap = new SkipMap();
+
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(10);
+        skipMap.setValues([true, true, true, false, false, false, false, false, false, false]);
+
+        indexMapper.moveIndexes([2, 3], 0);
+
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 5, 6, 3, 4, 7, 8, 9]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([5, 6, 3, 4, 7, 8, 9]);
+      });
+
+      it('when few last indexes are skipped #1', () => {
+        const indexMapper = new IndexMapper();
+        const skipMap = new SkipMap();
+
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(10);
+        skipMap.setValues([false, false, false, false, false, false, false, true, true, true]);
+
+        indexMapper.moveIndexes([0, 1], 5); // Elements will be moved at 5th and 6th position.
+
+        expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 0, 1, 7, 8, 9]);
+      });
+
+      it('when few last indexes are skipped #2', () => {
+        const indexMapper = new IndexMapper();
+        const skipMap = new SkipMap();
+
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(10);
+        skipMap.setValues([false, false, false, false, false, false, false, true, true, true]);
+
+        indexMapper.moveIndexes([0, 1], 6); // Elements can't be moved at 6th and 7th position, they will be placed at 5th and 6th position.
+
+        expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 0, 1, 7, 8, 9]);
+      });
+    });
   });
 });

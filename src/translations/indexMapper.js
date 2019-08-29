@@ -218,33 +218,22 @@ class IndexMapper {
 
     const physicalMovedIndexes = arrayMap(movedIndexes, row => this.getPhysicalIndex(row));
 
-    this.executeBatchOperations(() => {
-      // Removing indexes without re-indexing.
-      this.setIndexesSequence(getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes));
+    // Physical index at final index position.
+    const physicalIndex = this.getPhysicalIndex(finalIndex);
 
-      // When item(s) are moved after the last item we assign new index.
-      let indexNumber = this.getNumberOfIndexes();
+    // When item(s) are moved after the last visible item we assign the last possible index.
+    let indexNumber = this.getNotSkippedIndexesLength() - movedIndexes.length;
 
-      // Otherwise, we find proper index for inserted item(s).
-      if (finalIndex < this.getNotSkippedIndexesLength()) {
-        const physicalIndex = this.getPhysicalIndex(finalIndex);
-        indexNumber = this.getIndexesSequence()
-          .indexOf(physicalIndex);
-      }
+    // Otherwise, we find proper index for inserted item(s).
+    if (finalIndex + movedIndexes.length <= this.getNotSkippedIndexesLength()) {
+      indexNumber = this.getIndexesSequence().indexOf(physicalIndex);
+    }
 
-      // We count number of skipped rows from the start to the position of inserted item(s).
-      const skippedRowsToTargetIndex = arrayReduce(this.getIndexesSequence()
-        .slice(0, indexNumber), (skippedRowsSum, currentValue) => {
-        if (this.isSkipped(currentValue)) {
-          return skippedRowsSum + 1;
-        }
+    // Removing indexes without re-indexing.
+    const listWithRemovedItems = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
 
-        return skippedRowsSum;
-      }, 0);
-
-      // Adding indexes without re-indexing.
-      this.setIndexesSequence(getListWithInsertedItems(this.getIndexesSequence(), finalIndex + skippedRowsToTargetIndex, physicalMovedIndexes));
-    });
+    // Adding indexes without re-indexing.
+    this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, indexNumber, physicalMovedIndexes));
   }
 
   /**
