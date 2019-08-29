@@ -279,9 +279,8 @@ class CustomBorders extends BasePlugin {
    *
    * @private
    * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
-   * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
    */
-  insertBorderIntoSettings(border, place) {
+  insertBorderIntoSettings(border) {
     if (this.savedBordersById[border.id]) {
       const index = this.savedBorders.indexOf(border);
       this.savedBorders[index] = border;
@@ -295,7 +294,7 @@ class CustomBorders extends BasePlugin {
       col: border.col
     };
     const cellRange = new CellRange(coordinates, coordinates, coordinates);
-    const hasCustomSelections = this.checkCustomSelections(border, cellRange, place);
+    const hasCustomSelections = this.checkCustomSelections(border, cellRange);
 
     if (!hasCustomSelections) {
       this.hot.selection.highlight.addCustomSelection({ border, cellRange });
@@ -616,25 +615,15 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-  * Check if an border already exists in the customSelections, and if true call toggleHiddenClass method.
+  * Check if an border already exists in the customSelections
   *
   * @private
   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
-  * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right` and `noBorders`.
-  * @param {Boolean} remove True when remove borders, and false when add borders.
   *
   * @return {Boolean}
   */
-  checkCustomSelectionsFromContextMenu(border, place, remove) {
-    if (border.customSelection) {
-      border.customSelection.instanceSelectionHandles.forEach((selectionHandleObject) => {
-        selectionHandleObject.toggleHiddenClass(place, remove); // TODO this also bad?
-      });
-
-      return true;
-    }
-
-    return false;
+  checkCustomSelectionsFromContextMenu(border) {
+    return !!border.customSelection;
   }
 
   /**
@@ -643,11 +632,10 @@ class CustomBorders extends BasePlugin {
   * @private
   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
   * @param {CellRange} cellRange
-  * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
   *
   * @return {Boolean}
   */
-  checkCustomSelections(border, cellRange, place) {
+  checkCustomSelections(border, cellRange) {
     const hidden = this.areAllEdgesHidden(border);
 
     if (hidden) {
@@ -656,13 +644,6 @@ class CustomBorders extends BasePlugin {
 
     } else if (border.customSelection) {
       border.customSelection.cellRange = cellRange;
-
-      if (place) {
-        border.customSelection.instanceSelectionHandles.forEach((selectionHandleObject) => {
-          selectionHandleObject.changeBorderStyle(place, border);
-        });
-      }
-
       return true;
     }
 

@@ -1,7 +1,4 @@
 import {
-  addClass,
-  hasClass,
-  removeClass,
   getComputedStyle,
   getTrimmingContainer,
   innerWidth,
@@ -45,7 +42,7 @@ class SelectionHandle {
     this.corner = null;
     this.cornerStyle = null;
 
-    this.createBorders(settings);
+    this.createElements(settings);
     this.registerListeners();
   }
 
@@ -127,11 +124,11 @@ class SelectionHandle {
   }
 
   /**
-   * Create border elements
+   * Create elements for corner selection handler (desktop) or multiple selector handler (mobile)
    *
    * @param {Object} settings
    */
-  createBorders(settings) {
+  createElements(settings) {
     const { rootDocument } = this.wot;
     this.main = rootDocument.createElement('div');
 
@@ -172,15 +169,15 @@ class SelectionHandle {
     this.disappear();
 
     const { wtTable } = this.wot;
-    let bordersHolder = wtTable.bordersHolder;
+    let holder = wtTable.selectionHandlesHolder;
 
-    if (!bordersHolder) {
-      bordersHolder = rootDocument.createElement('div');
-      bordersHolder.className = 'htBorders';
-      wtTable.bordersHolder = bordersHolder;
-      wtTable.spreader.appendChild(bordersHolder);
+    if (!holder) {
+      holder = rootDocument.createElement('div');
+      holder.className = 'htBorders';
+      wtTable.selectionHandlesHolder = holder;
+      wtTable.spreader.appendChild(holder);
     }
-    bordersHolder.appendChild(this.main);
+    holder.appendChild(this.main);
   }
 
   /**
@@ -552,71 +549,6 @@ class SelectionHandle {
     }
 
     return false;
-  }
-
-  /**
-   * Change border style.
-   *
-   * @private
-   * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
-   */
-  changeBorderStyle(borderElement, border) {
-    const style = this[borderElement].style;
-    const borderStyle = border[borderElement];
-
-    if (!borderStyle || borderStyle.hide) {
-      addClass(this[borderElement], 'hidden');
-
-    } else {
-      if (hasClass(this[borderElement], 'hidden')) {
-        removeClass(this[borderElement], 'hidden');
-      }
-
-      style.backgroundColor = borderStyle.color;
-
-      if (borderElement === 'top' || borderElement === 'bottom') {
-        style.height = `${borderStyle.width}px`;
-      }
-
-      if (borderElement === 'right' || borderElement === 'left') {
-        style.width = `${borderStyle.width}px`;
-      }
-    }
-  }
-
-  /**
-   * Change border style to default.
-   *
-   * @private
-   * @param {HTMLElement} position
-   */
-  changeBorderToDefaultStyle(position) {
-    const defaultBorder = {
-      width: 1,
-      color: '#000',
-    };
-    const style = this[position].style;
-
-    style.backgroundColor = defaultBorder.color;
-    style.width = `${defaultBorder.width}px`;
-    style.height = `${defaultBorder.width}px`;
-  }
-
-  /**
-   * Toggle class 'hidden' to element.
-   *
-   * @private
-   * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
-   * @return {Boolean}
-   */
-  toggleHiddenClass(borderElement, remove) {
-    this.changeBorderToDefaultStyle(borderElement);
-
-    if (remove) {
-      addClass(this[borderElement], 'hidden');
-    } else {
-      removeClass(this[borderElement], 'hidden');
-    }
   }
 
   /**
