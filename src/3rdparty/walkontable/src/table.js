@@ -66,6 +66,7 @@ class Table {
     this.holder = this.createHolder(this.hider);
 
     this.wtRootElement = this.holder.parentNode;
+
     if (this.isMaster) {
       this.alignOverlaysWithTrimmingContainer();
     }
@@ -96,6 +97,7 @@ class Table {
   /**
    * Returns a boolean that is true if this intance of Table represents a specific overlay, identified by the overlay name.
    * For MasterTable, it returns false.
+   *
    * @param {String} overlayTypeName
    * @return {Boolean}
    */
@@ -700,16 +702,20 @@ class Table {
 
   /**
    * 0-based index of column header
+   *
    * @param {Number} level
+   * @returns {Boolean}
    */
   isColumnHeaderLevelRendered(level) {
     const columnHeaders = this.wot.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
+
     return level > (columnHeadersCount - 1);
   }
 
   /**
    * 0-based index of row header
+   *
    * @param {Number} level
    */
   isRowHeaderLevelRendered(level) {
@@ -720,6 +726,7 @@ class Table {
 
   isRowBeforeRenderedRows(row) {
     const first = this.getFirstRenderedRow();
+
     if (row < 0) {
       if (first === 0) {
         // first rendered row is above 0, so we can't expect any headers to be rendered
@@ -754,6 +761,7 @@ class Table {
 
   isColumnBeforeRenderedColumns(column) {
     const first = this.getFirstRenderedColumn();
+
     if (column < 0) {
       if (first === 0) {
         // first rendered column is above 0, so we can't expect any headers to be rendered
