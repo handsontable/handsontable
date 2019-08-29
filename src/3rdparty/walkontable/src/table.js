@@ -28,7 +28,12 @@ class Table {
    * @param {HTMLTableElement} table
    */
   constructor(wotInstance, table) {
-    this.isMaster = !wotInstance.cloneOverlay;
+    /**
+     * Indicates if this instance is of type `MasterTable` (i.e. it is NOT an overlay)
+     *
+     * @type {Boolean}
+     */
+    this.isMaster = !wotInstance.cloneOverlay; // "instanceof" operator isn't used, because it caused a circular reference in Webpack
     this.wot = wotInstance;
 
     // legacy support
@@ -717,10 +722,12 @@ class Table {
    * 0-based index of row header
    *
    * @param {Number} level
+   * @returns {Boolean}
    */
   isRowHeaderLevelRendered(level) {
     const columnHeaders = this.wot.getSetting('rowHeaders');
     const columnHeadersCount = columnHeaders.length;
+
     return level > (columnHeadersCount - 1);
   }
 

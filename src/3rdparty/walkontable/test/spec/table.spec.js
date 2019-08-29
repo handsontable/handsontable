@@ -200,7 +200,6 @@ describe('WalkontableTable', () => {
     expect(wt.wtOverlays.bottomLeftCornerOverlay).toBe(undefined);
 
     expect(wt.wtOverlays.bottomOverlay).not.toBe(undefined); // TODO it should be undefined
-    // expectWtTable(wt, wtTable => wtTable.getCell({row: -1, col: -1}), 'bottom').toBe(undefined); // TODO this should be -1 or not a callable method, but it throws
 
     expect(wt.wtOverlays.leftOverlay.clone).not.toBe(undefined);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }).innerHTML, 'left').toBe('ht_clone_left-header-of-col--1'); // TODO this should be negative, because it is rendered on top-left overlay

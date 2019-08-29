@@ -56,10 +56,11 @@ class Scroll {
       totalColumns,
     } = this._getVariables();
     let result = false;
-    const firstVisibleColumn = this.getFirstVisibleColumn();
-    const lastVisibleColumn = this.getLastVisibleColumn();
 
     if (column >= 0 && column <= Math.max(totalColumns - 1, 0)) {
+      const firstVisibleColumn = this.getFirstVisibleColumn();
+      const lastVisibleColumn = this.getLastVisibleColumn();
+
       if (column >= fixedColumnsLeft && firstVisibleColumn > -1 && (column < firstVisibleColumn || snapToLeft)) {
         result = leftOverlay.scrollTo(column);
       } else if (lastVisibleColumn === -1 || lastVisibleColumn > -1 && (column > lastVisibleColumn || snapToRight)) {
@@ -90,10 +91,11 @@ class Scroll {
       totalRows,
     } = this._getVariables();
     let result = false;
-    const firstVisibleRow = this.getFirstVisibleRow();
-    const lastVisibleRow = this.getLastVisibleRow();
 
     if (row >= 0 && row <= Math.max(totalRows - 1, 0)) {
+      const firstVisibleRow = this.getFirstVisibleRow();
+      const lastVisibleRow = this.getLastVisibleRow();
+
       if (row >= fixedRowsTop && firstVisibleRow > -1 && (row < firstVisibleRow || snapToTop)) {
         result = topOverlay.scrollTo(row);
       } else if (lastVisibleRow === -1 || lastVisibleRow > -1 && ((row > lastVisibleRow && row < totalRows - fixedRowsBottom) || snapToBottom)) {

@@ -21,6 +21,9 @@ class BottomLeftCornerOverlay extends Overlay {
 
   /**
    * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   *
+   * @see Table#constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor
    * @returns {Table}
    */
   createTable(...args) {
