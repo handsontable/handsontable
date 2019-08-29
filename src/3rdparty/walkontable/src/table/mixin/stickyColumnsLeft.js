@@ -7,11 +7,13 @@ const MIXIN_NAME = 'stickyColumnsLeft';
  * helper methods that are related to columns.
  * This mixin is meant to be applied in the subclasses of `Table`
  * that use sticky rendering of the first columns in the horizontal axis.
+ *
  * @type {Object}
  */
 const stickyColumnsLeft = {
   /**
    * Get the source index of the first rendered column. If no columns are rendered, returns an error code: -1.
+   *
    * @returns {Number}
    */
   getFirstRenderedColumn() {
@@ -26,6 +28,7 @@ const stickyColumnsLeft = {
   /**
    * Get the source index of the first column fully visible in the viewport. If no columns are fully visible, returns an error code: -1.
    * Assumes that all rendered columns are fully visible.
+   *
    * @returns {Number}
    */
   getFirstVisibleColumn() {
@@ -34,6 +37,7 @@ const stickyColumnsLeft = {
 
   /**
    * Get the source index of the last rendered column. If no columns are rendered, returns an error code: -1.
+   *
    * @returns {Number}
    */
   getLastRenderedColumn() {
@@ -43,6 +47,7 @@ const stickyColumnsLeft = {
   /**
    * Get the source index of the last column fully visible in the viewport. If no columns are fully visible, returns an error code: -1.
    * Assumes that all rendered columns are fully visible.
+   *
    * @returns {Number}
    */
   getLastVisibleColumn() {
@@ -51,6 +56,7 @@ const stickyColumnsLeft = {
 
   /**
    * Get the number of rendered columns.
+   *
    * @returns {Number}
    */
   getRenderedColumnsCount() {
@@ -62,6 +68,7 @@ const stickyColumnsLeft = {
   /**
    * Get the number of fully visible columns in the viewport.
    * Assumes that all rendered columns are fully visible.
+   *
    * @returns {Number}
    */
   getVisibleColumnsCount() {

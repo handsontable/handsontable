@@ -7,11 +7,13 @@ const MIXIN_NAME = 'calculatedRows';
  * helper methods that are related to rows.
  * This mixin is meant to be applied in the subclasses of `Table`
  * that use virtual rendering in the vertical axis.
+ *
  * @type {Object}
  */
 const calculatedRows = {
   /**
    * Get the source index of the first rendered row. If no rows are rendered, returns an error code: -1
+   *
    * @returns {Number}
    */
   getFirstRenderedRow() {
@@ -25,6 +27,7 @@ const calculatedRows = {
 
   /**
    * Get the source index of the first row fully visible in the viewport. If no rows are fully visible, returns an error code: -1
+   *
    * @returns {Number}
    */
   getFirstVisibleRow() {
@@ -38,6 +41,7 @@ const calculatedRows = {
 
   /**
    * Get the source index of the last rendered row. If no rows are rendered, returns an error code: -1
+   *
    * @returns {Number}
    */
   getLastRenderedRow() {
@@ -51,6 +55,7 @@ const calculatedRows = {
 
   /**
    * Get the source index of the last row fully visible in the viewport. If no rows are fully visible, returns an error code: -1
+   *
    * @returns {Number}
    */
   getLastVisibleRow() {
@@ -64,6 +69,7 @@ const calculatedRows = {
 
   /**
    * Get the number of rendered rows
+   *
    * @returns {Number}
    */
   getRenderedRowsCount() {
@@ -72,6 +78,7 @@ const calculatedRows = {
 
   /**
    * Get the number of fully visible rows in the viewport
+   *
    * @returns {Number}
    */
   getVisibleRowsCount() {

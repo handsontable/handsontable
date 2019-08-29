@@ -7,11 +7,13 @@ const MIXIN_NAME = 'stickyRowsBottom';
  * helper methods that are related to rows.
  * This mixin is meant to be applied in the subclasses of `Table`
  * that use sticky rendering of the bottom rows in the vertical axis.
+ *
  * @type {Object}
  */
 const stickyRowsBottom = {
   /**
    * Get the source index of the first rendered row. If no rows are rendered, returns an error code: -1
+   *
    * @returns {Number}
    */
   getFirstRenderedRow() {
@@ -28,6 +30,7 @@ const stickyRowsBottom = {
   /**
    * Get the source index of the first row fully visible in the viewport. If no rows are fully visible, returns an error code: -1
    * Assumes that all rendered rows are fully visible.
+   *
    * @returns {Number}
    */
   getFirstVisibleRow() {
@@ -36,6 +39,7 @@ const stickyRowsBottom = {
 
   /**
    * Get the source index of the last rendered row. If no rows are rendered, returns an error code: -1.
+   *
    * @returns {Number}
    */
   getLastRenderedRow() {
@@ -45,6 +49,7 @@ const stickyRowsBottom = {
   /**
    * Get the source index of the last row fully visible in the viewport. If no rows are fully visible, returns an error code: -1.
    * Assumes that all rendered rows are fully visible.
+   *
    * @returns {Number}
    */
   getLastVisibleRow() {
@@ -53,6 +58,7 @@ const stickyRowsBottom = {
 
   /**
    * Get the number of rendered rows.
+   *
    * @returns {Number}
    */
   getRenderedRowsCount() {
@@ -64,6 +70,7 @@ const stickyRowsBottom = {
   /**
    * Get the number of fully visible rows in the viewport.
    * Assumes that all rendered rows are fully visible.
+   *
    * @returns {Number}
    */
   getVisibleRowsCount() {

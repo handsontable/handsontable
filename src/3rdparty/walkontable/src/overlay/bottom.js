@@ -25,6 +25,7 @@ class BottomOverlay extends Overlay {
 
   /**
    * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   *
    * @returns {Table}
    */
   createTable(...args) {
