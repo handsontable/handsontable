@@ -54,7 +54,7 @@ function run(commands, commandToTrigger, spawnOpts) {
   child.stderr.pipe(process.stderr);
 
   if (commandToTrigger) {
-    ['SIGINT', 'SIGTERM'].forEach(function(signal) {
+    ['SIGINT', 'SIGTERM', 'SIGQUIT'].forEach(function(signal) {
       process.on(signal, function() {
         treeKill(child.pid, signal);
       });

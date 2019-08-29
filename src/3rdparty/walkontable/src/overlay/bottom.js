@@ -8,7 +8,7 @@ import {
   removeClass,
   resetCssTransform
 } from './../../../../helpers/dom/element';
-import BottomOverlayTable from './table/bottom';
+import BottomOverlayTable from './../table/bottom';
 import Overlay from './_base';
 
 /**
@@ -23,6 +23,10 @@ class BottomOverlay extends Overlay {
     this.clone = this.makeClone(Overlay.CLONE_BOTTOM);
   }
 
+  /**
+   * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   * @returns {Table}
+   */
   createTable(...args) {
     return new BottomOverlayTable(...args);
   }

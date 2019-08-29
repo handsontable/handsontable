@@ -4,7 +4,7 @@ import {
   outerWidth,
   resetCssTransform
 } from './../../../../helpers/dom/element';
-import BottomLeftCornerOverlayTable from './table/bottomLeftCorner';
+import BottomLeftCornerOverlayTable from './../table/bottomLeftCorner';
 import Overlay from './_base';
 
 /**
@@ -19,6 +19,10 @@ class BottomLeftCornerOverlay extends Overlay {
     this.clone = this.makeClone(Overlay.CLONE_BOTTOM_LEFT_CORNER);
   }
 
+  /**
+   * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   * @returns {Table}
+   */
   createTable(...args) {
     return new BottomLeftCornerOverlayTable(...args);
   }

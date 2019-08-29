@@ -5,7 +5,7 @@ import {
   setOverlayPosition,
   resetCssTransform
 } from './../../../../helpers/dom/element';
-import TopLeftCornerOverlayTable from './table/topLeftCorner';
+import TopLeftCornerOverlayTable from './../table/topLeftCorner';
 import Overlay from './_base';
 
 /**
@@ -20,6 +20,10 @@ class TopLeftCornerOverlay extends Overlay {
     this.clone = this.makeClone(Overlay.CLONE_TOP_LEFT_CORNER);
   }
 
+  /**
+   * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   * @returns {Table}
+   */
   createTable(...args) {
     return new TopLeftCornerOverlayTable(...args);
   }

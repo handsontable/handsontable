@@ -9,7 +9,7 @@ import Event from './event';
 import Overlays from './overlays';
 import Scroll from './scroll';
 import Settings from './settings';
-import Table from './table';
+import MasterTable from './table/master';
 import Viewport from './viewport';
 
 /**
@@ -39,7 +39,7 @@ class Walkontable {
       this.selections = this.cloneSource.selections;
     } else {
       this.wtSettings = new Settings(this, settings);
-      this.wtTable = new Table(this, settings.table);
+      this.wtTable = new MasterTable(this, settings.table);
       this.wtScroll = new Scroll(this);
       this.wtViewport = new Viewport(this);
       this.wtEvent = new Event(this);
@@ -148,6 +148,9 @@ class Walkontable {
    * @returns {Boolean}
    */
   scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
+    if (coords.col < 0 || coords.row < 0) {
+      return false;
+    }
     return this.wtScroll.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
   }
 
@@ -160,6 +163,9 @@ class Walkontable {
    * @returns {Boolean}
    */
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
+    if (column < 0) {
+      return false;
+    }
     return this.wtScroll.scrollViewportHorizontally(column, snapToRight, snapToLeft);
   }
 
@@ -172,6 +178,9 @@ class Walkontable {
    * @returns {Boolean}
    */
   scrollViewportVertically(row, snapToTop, snapToBottom) {
+    if (row < 0) {
+      return false;
+    }
     return this.wtScroll.scrollViewportVertically(row, snapToTop, snapToBottom);
   }
 

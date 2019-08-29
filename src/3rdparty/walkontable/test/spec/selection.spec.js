@@ -140,6 +140,9 @@ describe('Walkontable.Selection', () => {
   });
 
   it('should not scroll the viewport after selection is cleared', () => {
+    const scrollbarWidth = getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
+    spec().$wrapper.width(100 + scrollbarWidth).height(200 + scrollbarWidth);
+
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -155,11 +158,14 @@ describe('Walkontable.Selection', () => {
 
     wt.scrollViewportVertically(17);
     wt.draw();
-    expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
+
+    const expectedFirstVisibleRow = 10;
+
+    expect(wt.wtTable.getFirstVisibleRow()).toEqual(expectedFirstVisibleRow);
     expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);
 
     wt.selections.getCell().clear();
-    expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
+    expect(wt.wtTable.getFirstVisibleRow()).toEqual(expectedFirstVisibleRow);
     expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);
   });
 

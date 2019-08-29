@@ -351,11 +351,12 @@ export function getScrollbarWidth() {
  * @param {*} callb Callback that will receive wtTable of that overlay
  */
 export function expectWtTable(wt, callb, name) {
+  const callbAsString = callb.toString().replace(/\s\s+/g, ' ');
   if (name === 'master') {
-    return expect(callb(wt.wtTable)).withContext(name);
+    return expect(callb(wt.wtTable)).withContext(`${name}: ${callbAsString}`);
   }
 
-  return expect(callb(wt.wtOverlays[`${name}Overlay`].clone.wtTable)).withContext(name);
+  return expect(callb(wt.wtOverlays[`${name}Overlay`].clone.wtTable)).withContext(`${name}: ${callbAsString}`);
 }
 
 export async function testSvgAsAsciiArt(svg, expectedAsciiArt) {
