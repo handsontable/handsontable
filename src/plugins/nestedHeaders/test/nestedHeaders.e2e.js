@@ -1,6 +1,51 @@
 describe('NestedHeaders', () => {
   const id = 'testContainer';
 
+  function nonHiddenTHs(hot, row) {
+    const headerRows = hot.view.wt.wtTable.THEAD.querySelectorAll('tr');
+    return headerRows[row].querySelectorAll('th:not(.hiddenHeader)');
+  }
+
+  function generateComplexSetup(rows, cols, obj) {
+    const data = [];
+
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        if (!data[i]) {
+          data[i] = [];
+        }
+
+        if (!obj) {
+          data[i][j] = `${i}_${j}`;
+          /* eslint-disable no-continue */
+          continue;
+        }
+
+        if (i === 0 && j % 2 !== 0) {
+          data[i][j] = {
+            label: `${i}_${j}`,
+            colspan: 8
+          };
+        } else if (i === 1 && (j % 3 === 1 || j % 3 === 2)) {
+          data[i][j] = {
+            label: `${i}_${j}`,
+            colspan: 4
+          };
+        } else if (i === 2 && (j % 5 === 1 || j % 5 === 2 || j % 5 === 3 || j % 5 === 4)) {
+          data[i][j] = {
+            label: `${i}_${j}`,
+            colspan: 2
+          };
+        } else {
+          data[i][j] = `${i}_${j}`;
+        }
+
+      }
+    }
+
+    return data;
+  }
+
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
@@ -137,12 +182,8 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      const headerRows = hot.view.wt.wtTable.THEAD.querySelectorAll('tr');
-      const nonHiddenTHs = function(row) {
-        return headerRows[row].querySelectorAll('th:not(.hiddenHeader)');
-      };
-      const firstLevel = nonHiddenTHs(0);
-      const secondLevel = nonHiddenTHs(1);
+      const firstLevel = nonHiddenTHs(hot, 0);
+      const secondLevel = nonHiddenTHs(hot, 1);
 
       expect(firstLevel[0].getAttribute('colspan')).toEqual(null);
       expect(firstLevel[1].getAttribute('colspan')).toEqual('4');
@@ -155,46 +196,6 @@ describe('NestedHeaders', () => {
     });
 
     it('should render the setup properly after the table being scrolled', () => {
-      function generateComplexSetup(rows, cols, obj) {
-        const data = [];
-
-        for (let i = 0; i < rows; i++) {
-          for (let j = 0; j < cols; j++) {
-            if (!data[i]) {
-              data[i] = [];
-            }
-
-            if (!obj) {
-              data[i][j] = `${i}_${j}`;
-              /* eslint-disable no-continue */
-              continue;
-            }
-
-            if (i === 0 && j % 2 !== 0) {
-              data[i][j] = {
-                label: `${i}_${j}`,
-                colspan: 8
-              };
-            } else if (i === 1 && (j % 3 === 1 || j % 3 === 2)) {
-              data[i][j] = {
-                label: `${i}_${j}`,
-                colspan: 4
-              };
-            } else if (i === 2 && (j % 5 === 1 || j % 5 === 2 || j % 5 === 3 || j % 5 === 4)) {
-              data[i][j] = {
-                label: `${i}_${j}`,
-                colspan: 2
-              };
-            } else {
-              data[i][j] = `${i}_${j}`;
-            }
-
-          }
-        }
-
-        return data;
-      }
-
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         colHeaders: true,
@@ -204,11 +205,7 @@ describe('NestedHeaders', () => {
         viewportColumnRenderingOffset: 15
       });
 
-      const headerRows = hot.view.wt.wtTable.THEAD.querySelectorAll('tr');
-      const nonHiddenTHs = function(row) {
-        return headerRows[row].querySelectorAll('th:not(.hiddenHeader)');
-      };
-      let levels = [nonHiddenTHs(0), nonHiddenTHs(1), nonHiddenTHs(2), nonHiddenTHs(3)];
+      let levels = [nonHiddenTHs(hot, 0), nonHiddenTHs(hot, 1), nonHiddenTHs(hot, 2), nonHiddenTHs(hot, 3)];
 
       // not scrolled
       expect(levels[0][0].getAttribute('colspan')).toEqual(null);
@@ -234,7 +231,7 @@ describe('NestedHeaders', () => {
       hot.scrollViewportTo(void 0, 40);
       hot.render();
 
-      levels = [nonHiddenTHs(0), nonHiddenTHs(1), nonHiddenTHs(2), nonHiddenTHs(3)];
+      levels = [nonHiddenTHs(hot, 0), nonHiddenTHs(hot, 1), nonHiddenTHs(hot, 2), nonHiddenTHs(hot, 3)];
 
       // scrolled
       expect(levels[0][0].getAttribute('colspan')).toEqual('8');
