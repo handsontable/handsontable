@@ -75,6 +75,7 @@ describe('Triggering `change` hook', () => {
     skipMap.addLocalHook('change', changeCallback);
 
     expect(changeCallback.calls.count()).toEqual(0);
+
     skipMap.insert(0, [0]);
 
     expect(changeCallback.calls.count()).toEqual(1);
