@@ -519,7 +519,12 @@ class Table {
 
   /**
    * Get cell element at coords.
-   * Negative coords.row or coords.col are used to retrieve header cells
+   * Negative coords.row or coords.col are used to retrieve header cells.
+   *
+   * In case an element for the coords is not rendered, the method returns an error code.
+   * To produce the error code, the input parameters are validated in the order in which they
+   * are given. Thus, if both the row and the column coords are out of the rendered bounds,
+   * the method returns the error code for the row.
    *
    * @param {CellCoords} coords
    * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:
