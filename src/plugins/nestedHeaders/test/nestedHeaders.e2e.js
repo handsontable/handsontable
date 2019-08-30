@@ -195,6 +195,47 @@ describe('NestedHeaders', () => {
       expect(secondLevel[3].getAttribute('colspan')).toEqual(null);
     });
 
+    it('should return a relevant nested header element in hot.getCell', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        colHeaders: true,
+        nestedHeaders: generateComplexSetup(4, 70, true),
+        width: 400,
+        height: 300,
+        viewportColumnRenderingOffset: 15
+      });
+
+      const allTHs = function allTHs(row) {
+        const headerRows = hot.view.wt.wtTable.THEAD.querySelectorAll('tr');
+        return headerRows[row].querySelectorAll('th');
+      };
+      const levels = [nonHiddenTHs(hot, 0), nonHiddenTHs(hot, 1), nonHiddenTHs(hot, 2), nonHiddenTHs(hot, 3)];
+
+      expect(levels[0][0]).toEqual(getCell(-1, 0));
+      expect(levels[0][1]).toEqual(getCell(-1, 1));
+      expect(allTHs(0)[2]).toEqual(getCell(-1, 2));
+      expect(allTHs(0)[3]).toEqual(getCell(-1, 3));
+      expect(levels[0][2]).toEqual(getCell(-1, 9));
+      expect(levels[0][3]).toEqual(getCell(-1, 10));
+      expect(levels[0][4]).toEqual(getCell(-1, 18));
+      expect(levels[0][5]).toEqual(getCell(-1, 19));
+
+      expect(levels[1][0]).toEqual(getCell(-2, 0));
+      expect(levels[1][1]).toEqual(getCell(-2, 1));
+      expect(levels[1][2]).toEqual(getCell(-2, 5));
+      expect(levels[1][3]).toEqual(getCell(-2, 9));
+
+      expect(levels[2][0]).toEqual(getCell(-3, 0));
+      expect(levels[2][1]).toEqual(getCell(-3, 1));
+      expect(levels[2][2]).toEqual(getCell(-3, 3));
+      expect(levels[2][3]).toEqual(getCell(-3, 5));
+
+      expect(levels[3][0]).toEqual(getCell(-4, 0));
+      expect(levels[3][1]).toEqual(getCell(-4, 1));
+      expect(levels[3][2]).toEqual(getCell(-4, 2));
+      expect(levels[3][3]).toEqual(getCell(-4, 3));
+    });
+
     it('should render the setup properly after the table being scrolled', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
