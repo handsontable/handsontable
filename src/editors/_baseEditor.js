@@ -391,36 +391,10 @@ class BaseEditor {
   /**
    * Gets HTMLTableCellElement of the edited cell if exist.
    *
-   * @returns {HTMLTableCellElement|undefined}
+   * @returns {HTMLTableCellElement|null}
    */
   getEditedCell() {
-    const { wtOverlays, wtTable } = this.hot.view.wt;
-    const editorSection = this.checkEditorSection();
-    const coords = new CellCoords(this.row, this.col);
-    let editedCell;
-
-    switch (editorSection) {
-      case 'top':
-        editedCell = wtOverlays.topOverlay.clone.wtTable.getCell(coords);
-        break;
-      case 'top-left-corner':
-        editedCell = wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell(coords);
-        break;
-      case 'bottom-left-corner':
-        editedCell = wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
-        break;
-      case 'left':
-        editedCell = wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
-        break;
-      case 'bottom':
-        editedCell = wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
-        break;
-      default:
-        editedCell = wtTable.getCell(coords);
-        break;
-    }
-
-    return editedCell < 0 ? void 0 : editedCell;
+    return this.hot.getCell(this.row, this.col, true);
   }
 
   /**
