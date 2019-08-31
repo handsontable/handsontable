@@ -471,7 +471,6 @@ class TableView {
         };
 
         this.activeWt = wt;
-
         this.instance.runHooks('beforeOnCellMouseOver', event, coords, TD, blockCalculations);
 
         if (isImmediatePropagationStopped(event)) {
