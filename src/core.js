@@ -149,7 +149,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   let selection = new Selection(priv.settings, {
-    countCols: () => instance.countRenderableColumns(),
+    countCols: () => instance.countCols(),
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
@@ -1393,7 +1393,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return arrayMap(selection.getSelectedRange(), ({ from, to }) => [from.row, from.col, to.row, to.col]);
+      return arrayMap(selection.getSelectedRange(), ({ from, to }) => {
+        return [
+          from.row,
+          from.col,
+          to.row,
+          to.col,
+        ];
+      });
     }
   };
 
@@ -2008,7 +2015,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {HTMLTableCellElement|null} The cell's TD element.
    */
   this.getCell = function(row, column, topmost = false) {
-    return instance.view.getCellAtCoords(new CellCoords(row, column), topmost);
+    const physicalColumn = this.toPhysicalColumn(column);
+    const isColumnHidden = recordTranslator.columnIndexMapper.getFlattenHiddenList()[physicalColumn];
+
+    if (isColumnHidden) {
+      return null;
+    }
+
+    const wotIndex = column < 0 ? column : this.fromPhysicalToRenderableColumn(physicalColumn);
+    return instance.view.getCellAtCoords(new CellCoords(row, wotIndex), topmost);
   };
 
   /**
@@ -2109,6 +2124,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @TODO Description
    */
   this.toRenderableColumn = column => recordTranslator.toRenderableColumn(column);
+
+  /**
+   * @TODO Description
+   */
+  this.fromPhysicalToRenderableColumn = column => recordTranslator.fromPhysicalToRenderableColumn(column);
+
+  this.fromVisualToRenderedColumn = column => recordTranslator.fromVisualToRenderedColumn(column);
+  /**
+   * @TODO Description
+   */
+  this.fromRenderedToPhysicalColumn = (column) => {
+    const renderableColumn = this.toRenderableColumn(column);
+
+    return this.toVisualColumn(renderableColumn);
+  };
 
   this.recordTranslator = recordTranslator;
 

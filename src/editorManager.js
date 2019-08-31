@@ -136,7 +136,7 @@ class EditorManager {
 
     const { row, col } = this.instance.selection.selectedRange.current().highlight;
     const prop = this.instance.getColumnProperty(col);
-    const td = this.instance.getCell(row, col);
+    const td = this.instance.getCell(row, this.instance.toRenderableColumn(col));
     const originalValue = this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(row), prop);
     const cellProperties = this.instance.getCellMeta(row, col);
     const editorClass = this.instance.getCellEditor(cellProperties);

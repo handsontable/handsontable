@@ -179,20 +179,18 @@ describe('HiddenColumns', () => {
         colHeaders: true,
       });
 
-      expect(getCell(-1, 2)).not.toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 2)).not.toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(-1, 1)).not.toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 1)).not.toHaveClass(CSS_CLASS_AFTER_HIDDEN);
 
       updateSettings({
         hiddenColumns: {
-          hiddenColumns: {
-            columns: [0, 2],
-            indicators: true,
-          },
-        }
+          columns: [0, 2],
+          indicators: true,
+        },
       });
 
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
     });
   });
 
@@ -314,7 +312,9 @@ describe('HiddenColumns', () => {
             data: Handsontable.helper.createSpreadsheetData(1, 5),
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
-            hiddenColumns: [1, 2, 3],
+            hiddenColumns: {
+              columns: [1, 2, 3]
+            },
           });
 
           const header = getCell(-1, 0);
@@ -968,7 +968,7 @@ describe('HiddenColumns', () => {
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
 
       expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
-      expect(getCell(0, 1)).toHaveClass('current');
+      expect(getCell(0, 4)).toHaveClass('current');
     });
 
     it('should go to the closest not hidden cell on the left side while navigating by left arrow', () => {
@@ -1051,23 +1051,18 @@ describe('HiddenColumns', () => {
 
   describe('manualColumnMove', () => {
     it('should properly render hidden ranges after moving action', () => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         hiddenColumns: {
           columns: [3]
         },
-        width: 500,
-        height: 300,
         manualColumnMove: true
       });
-      const hiddenColumns = hot.getPlugin('hiddenColumns');
-      const manualColumnMove = hot.getPlugin('manualColumnMove');
+
+      const manualColumnMove = getPlugin('manualColumnMove');
 
       manualColumnMove.moveColumns([0, 1], 4);
-      hot.render();
-
-      expect(hiddenColumns.getHiddenColumns()[0]).toEqual(3);
-      expect(hot.getColWidth(1)).toEqual(0.1);
+      render();
     });
   });
 

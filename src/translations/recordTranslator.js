@@ -90,6 +90,36 @@ export class RecordTranslator {
     return this.getColumnIndexMapper().getRenderableIndex(column);
   }
 
+  fromPhysicalToRenderableColumn(column) {
+    if (column < 0) {
+      return column;
+    }
+
+    const position = this.getColumnIndexMapper().getNotHiddenIndexes().indexOf(column);
+
+    return position < 0 ? void 0 : position;
+  }
+
+  fromVisualToRenderedColumn(column) {
+    if (column < 0) {
+      return column;
+    }
+
+    const physicalColumn = this.toPhysicalColumn(column);
+    const renderedColumn = this.fromPhysicalToRenderableColumn(physicalColumn);
+
+    return renderedColumn;
+  }
+  // fromVisualToRenderableColumn(column) {
+  //   if (column < 0) {
+  //     return column;
+  //   }
+  //   const physicalCol = this.getColumnIndexMapper().getNotHiddenIndexes()[column];
+  //   const
+
+  //   return ;
+  // }
+
   /**
    * Translate visual coordinates into physical. Can be passed as separate 2 arguments (row, column) or as an object in first
    * argument with `row` and `column` keys.

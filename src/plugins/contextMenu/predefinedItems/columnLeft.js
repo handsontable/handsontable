@@ -10,6 +10,7 @@ export default function columnLeftItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_LEFT);
     },
     callback(key, normalizedSelection) {
+      debugger;
       const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
 
       this.alter('insert_col', latestSelection.start.col, 1, 'ContextMenu.columnLeft');
