@@ -41,6 +41,7 @@ declare namespace _Handsontable {
     getCellRenderer(cellMeta: Handsontable.CellMeta): Handsontable.renderers.Base;
     getCellValidator(row: number, col: number): Handsontable.validators.Base | RegExp | undefined;
     getCellValidator(cellMeta: Handsontable.CellMeta): Handsontable.validators.Base | RegExp | undefined;
+    getCellsMeta(): Handsontable.CellProperties[];
     getColHeader(): (number | string)[];
     getColHeader(col: number): number | string;
     getColWidth(col: number): number;
