@@ -216,6 +216,7 @@ class AutoColumnSize extends BasePlugin {
       if (physicalColumn === null) {
         physicalColumn = col;
       }
+
       if (force || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === void 0 && !this.hot._getColWidthFromSettings(physicalColumn))) {
         const samples = this.samplesGenerator.generateColumnSamples(physicalColumn, rowsRange);
 
@@ -229,6 +230,7 @@ class AutoColumnSize extends BasePlugin {
           this.columnWidthsMap.setValueAtIndex(col, width);
         });
       });
+
       this.ghostTable.clean();
     }
   }
