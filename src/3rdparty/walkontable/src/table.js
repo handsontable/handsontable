@@ -519,7 +519,10 @@ class Table {
 
   /**
    * Get cell element at coords.
-   * Negative coords.row or coords.col are used to retrieve header cells.
+   * Negative coords.row or coords.col are used to retrieve header cells. If there are multiple header levels, the
+   * negative value corresponds to the distance from the working area. For example, when there are 3 levels of column
+   * headers, coords.col=-1 corresponds to the most inner header element, while coords.col=-3 corresponds to the
+   * outmost header element.
    *
    * In case an element for the coords is not rendered, the method returns an error code.
    * To produce the error code, the input parameters are validated in the order in which they
@@ -560,7 +563,9 @@ class Table {
     }
 
     if (row < 0) {
-      const zeroBasedHeaderLevel = (-1 * row) - 1;
+      const columnHeaders = this.wot.getSetting('columnHeaders');
+      const columnHeadersCount = columnHeaders.length;
+      const zeroBasedHeaderLevel = columnHeadersCount + row;
       return this.getColumnHeader(column, zeroBasedHeaderLevel);
     }
 
