@@ -992,11 +992,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               if (typeof result !== 'boolean') {
                 throw new Error('Validation error: result is not boolean');
               }
+
               if (result === false && cellPropertiesReference.allowInvalid === false) {
                 shouldBeCanceled = false;
                 changes.splice(index, 1); // cancel the change
                 cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
+
                 const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
+
                 if (cell !== null) {
                   removeClass(cell, instance.getSettings().invalidCellClassName);
                 }
@@ -2721,6 +2724,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
       i -= 1;
     }
+
     waitingForValidator.checkIfQueueIsEmpty();
   };
 

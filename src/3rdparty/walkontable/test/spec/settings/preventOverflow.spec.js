@@ -1,30 +1,28 @@
 describe('preventOverflow option', () => {
-  let $table;
-  let $container;
-  let $wrapper;
   const debug = false;
 
-  beforeEach(() => {
-    $wrapper = $('<div></div>').css({ position: 'relative' });
-    $wrapper.width(500).height(201);
-    $container = $('<div></div>');
-    $table = $('<table></table>'); // create a table that is not attached to document
-    $wrapper.append($container);
-    $container.append($table);
-    $wrapper.appendTo('body');
-    createDataArray(100, 100);
+  beforeEach(function() {
+    this.$wrapper = $('<div></div>').css({ overflow: 'hidden' });
+    this.$wrapper.width(500).height(201);
+    this.$container = $('<div></div>');
+    this.$table = $('<table></table>'); // create a table that is not attached to document
+    this.$wrapper.append(this.$container);
+    this.$container.append(this.$table);
+    this.$wrapper.appendTo('body');
+    createDataArray(100, 4);
   });
 
-  afterEach(() => {
+  afterEach(function() {
     if (!debug) {
       $('.wtHolder').remove();
     }
-    $wrapper.remove();
+
+    this.$wrapper.remove();
+    this.wotInstance.destroy();
   });
 
   it('should set overflow to `auto` for master table when `horizontal` value is passed', () => {
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -34,13 +32,12 @@ describe('preventOverflow option', () => {
     });
     wt.draw();
 
-    expect($table.parents('.wtHolder').css('overflow')).toBe('auto');
-    expect($table.parents('.ht_master').css('overflow')).toBe('visible');
+    expect(spec().$table.parents('.wtHolder').css('overflow')).toBe('auto');
+    expect(spec().$table.parents('.ht_master').css('overflow')).toBe('visible');
   });
 
   it('should set overflow-x to `auto` for top clone when `horizontal` value is passed', () => {
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,

@@ -2171,6 +2171,34 @@ describe('UndoRedo', () => {
         });
       });
     });
+
+    it('should save the undo action only if a new value is different than the previous one', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2)
+      });
+
+      expect(getDataAtCell(0, 0)).toBe('A1');
+      setDataAtCell(0, 0, 'A1');
+
+      expect(hot.undoRedo.isUndoAvailable()).toBe(false);
+
+      setDataAtCell(0, 0, 'A');
+      expect(hot.undoRedo.isUndoAvailable()).toBe(true);
+    });
+
+    it('should not save the undo action if old and new values are not string, number or boolean', () => {
+      const hot = handsontable({
+        data: [
+          [{ key1: 'abc' }]
+        ]
+      });
+
+      expect(hot.undoRedo.isUndoAvailable()).toBe(false);
+      expect(getDataAtCell(0, 0)).toEqual({ key1: 'abc' });
+      setDataAtCell(0, 0, { key1: 'abc' });
+
+      expect(hot.undoRedo.isUndoAvailable()).toBe(true);
+    });
   });
 
   describe('plugin features', () => {
@@ -2622,7 +2650,9 @@ describe('UndoRedo', () => {
     });
 
     it('should keep saved selection state ater undoing non-contignous selected cells', () => {
-      handsontable();
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+      });
 
       selectCells([[0, 0, 1, 1], [1, 2, 2, 3]]);
       emptySelectedCells();

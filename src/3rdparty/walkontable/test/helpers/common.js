@@ -1,3 +1,5 @@
+import { normalize, pretty } from './htmlNormalize';
+
 export function sleep(delay = 100) {
   return Promise.resolve({
     then(resolve) {
@@ -10,10 +12,39 @@ export function sleep(delay = 100) {
   });
 }
 
-let currentSpec;
+/**
+ * Test context object.
+ *
+ * @type {Object}
+ */
+const specContext = {};
 
+/**
+ * Get the test case context.
+ *
+ * @returns {Object|null}
+ */
 export function spec() {
-  return currentSpec;
+  return specContext.spec;
+}
+
+/**
+ * Create the Walkontable instance with the provided options and cache it as `wotInstance` in the test context.
+ * @param {Object} options Walkontable options.
+ * @param {HTMLTableElement} [table] The table element to base the instance on.
+ */
+export function walkontable(options, table) {
+  const currentSpec = spec();
+
+  if (!table) {
+    table = currentSpec.$table[0];
+  }
+
+  options.table = table;
+
+  currentSpec.wotInstance = new Walkontable.Core(options);
+
+  return currentSpec.wotInstance;
 }
 
 export function createDataArray(rows = 100, cols = 4) {
@@ -47,8 +78,19 @@ export function getTotalColumns() {
   return spec().data[0] ? spec().data[0].length : 0;
 }
 
+/**
+ * Simulates WheelEvent on the element.
+ *
+ * @param {Element} elem Element to dispatch event.
+ * @param {Number} deltaX Relative distance in px to scroll horizontally.
+ * @param {Number} deltaY Relative distance in px to scroll vertically.
+ */
+export function wheelOnElement(elem, deltaX = 0, deltaY = 0) {
+  elem.dispatchEvent(new WheelEvent('wheel', { deltaX, deltaY }));
+}
+
 beforeEach(function() {
-  currentSpec = this;
+  specContext.spec = this;
 
   const matchers = {
     toBeInArray() {
@@ -66,6 +108,29 @@ beforeEach(function() {
           return {
             pass: typeof actual === 'function'
           };
+        }
+      };
+    },
+    toMatchHTML() {
+      return {
+        compare(actual, expected) {
+          const actualHTML = pretty(normalize(actual));
+          const expectedHTML = pretty(normalize(expected));
+
+          const result = {
+            pass: actualHTML === expectedHTML,
+          };
+
+          result.message = `Expected ${actualHTML} NOT to be ${expectedHTML}`;
+
+          if (typeof jest === 'object') {
+            /* eslint-disable global-require */
+            const jestMatcherUtils = require('jest-matcher-utils');
+
+            result.message = () => jestMatcherUtils.diff(expectedHTML, actualHTML);
+          }
+
+          return result;
         }
       };
     },
@@ -92,6 +157,7 @@ beforeEach(function() {
 });
 
 afterEach(() => {
+  specContext.spec = null;
   window.scrollTo(0, 0);
 });
 

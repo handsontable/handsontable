@@ -1,4 +1,4 @@
-import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
+import { arrayFilter, arrayMap } from './../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/visuallyIndexed';
 import { rangeEach } from '../helpers/number';
 import IndexMap from './maps/indexMap';

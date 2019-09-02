@@ -11,4 +11,16 @@ describe('MemoryLeakTest', () => {
   it('should not leave any `testContainer`s (created in `beforeEach`) after all the tests have finished', () => {
     expect(document.querySelectorAll('#testContainer').length).toEqual(0);
   });
+
+  it('should not leave any any DOM containers, except for those created by Jasmine', () => {
+    let leftoverNodesCount = 0;
+
+    document.body.children.forEach((child) => {
+      if (child.nodeName !== 'SCRIPT' && !child.className.includes('jasmine')) {
+        leftoverNodesCount += 1;
+      }
+    });
+
+    expect(leftoverNodesCount).toBe(0);
+  });
 });

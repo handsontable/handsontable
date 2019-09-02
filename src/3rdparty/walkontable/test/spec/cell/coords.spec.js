@@ -1,50 +1,56 @@
 describe('Walkontable.CellCoords', () => {
   describe('isValid', () => {
 
-    const table = document.createElement('table');
-    const wrapper = document.createElement('div');
-    const container = document.createElement('div');
-    wrapper.appendChild(container);
-    container.appendChild(table);
+    beforeEach(function() {
+      this.$wrapper = $('<div></div>');
+      this.$container = $('<div></div>');
+      this.$table = $('<table></table>');
+      this.$wrapper.append(this.$container);
+      this.$container.append(this.$table);
 
-    const wot = new Walkontable.Core({
-      table,
-      data: [],
-      totalRows: 10,
-      totalColumns: 5
+      this.wot = walkontable({
+        data: [],
+        totalRows: 10,
+        totalColumns: 5
+      });
+    });
+
+    afterEach(function() {
+      this.$wrapper.remove();
+      this.wotInstance.destroy();
     });
 
     it('should be false if one of the arguments is smaller than 0', () => {
       let cellCoords = new Walkontable.CellCoords(-1, 0);
-      let result = cellCoords.isValid(wot);
+      let result = cellCoords.isValid(spec().wot);
       expect(result).toBe(false);
 
       cellCoords = new Walkontable.CellCoords(0, -1);
-      result = cellCoords.isValid(wot);
+      result = cellCoords.isValid(spec().wot);
       expect(result).toBe(false);
     });
 
     it('should be true if row is within the total number of rows', () => {
       const cellCoords = new Walkontable.CellCoords(9, 1);
-      const result = cellCoords.isValid(wot);
+      const result = cellCoords.isValid(spec().wot);
       expect(result).toBe(true);
     });
 
     it('should be false if row is greater than total number of rows', () => {
       const cellCoords = new Walkontable.CellCoords(10, 1);
-      const result = cellCoords.isValid(wot);
+      const result = cellCoords.isValid(spec().wot);
       expect(result).toBe(false);
     });
 
     it('should be true if column is within the total number of columns', () => {
       const cellCoords = new Walkontable.CellCoords(1, 4);
-      const result = cellCoords.isValid(wot);
+      const result = cellCoords.isValid(spec().wot);
       expect(result).toBe(true);
     });
 
     it('should be false if column is greater than total number of columns', () => {
       const cellCoords = new Walkontable.CellCoords(1, 5);
-      const result = cellCoords.isValid(wot);
+      const result = cellCoords.isValid(spec().wot);
       expect(result).toBe(false);
     });
   });
