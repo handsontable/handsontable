@@ -102,10 +102,10 @@ class ObserveChanges extends BasePlugin {
 
           } else {
             const visualColumn = patch.col;
-            let physicalColumn = visualColumn;
+            let physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
-            if (visualColumn < this.hot.countCols()) {
-              physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+            if (physicalColumn === null) {
+              physicalColumn = visualColumn;
             }
             this.columnIndexMapper.insertIndexes(visualColumn, physicalColumn, 1);
             this.hot.runHooks('afterCreateCol', visualColumn, 1, sourceName);

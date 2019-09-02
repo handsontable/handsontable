@@ -165,7 +165,7 @@ class AutoColumnSize extends BasePlugin {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
 
-    this.columnWidthsMap = new ValueMap(() => void 0);
+    this.columnWidthsMap = new ValueMap();
     this.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
 
     this.setSamplingOptions();
@@ -202,8 +202,8 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Calculates a columns width.
    *
-   * @param {Number|Object} colRange Column index or an object with `from` and `to` indexes as a range.
-   * @param {Number|Object} rowRange Row index or an object with `from` and `to` indexes as a range.
+   * @param {Number|Object} colRange Visual column index or an object with `from` and `to` visual indexes as a range.
+   * @param {Number|Object} rowRange Visual row index or an object with `from` and `to` visual indexes as a range.
    * @param {Boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
   calculateColumnsWidth(colRange = { from: 0, to: this.hot.countCols() - 1 }, rowRange = { from: 0, to: this.hot.countRows() - 1 }, force = false) {
@@ -211,8 +211,13 @@ class AutoColumnSize extends BasePlugin {
     const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
 
     rangeEach(columnsRange.from, columnsRange.to, (col) => {
-      if (force || (this.columnWidthsMap.getValueAtIndex(col) === void 0 && !this.hot._getColWidthFromSettings(col))) {
-        const samples = this.samplesGenerator.generateColumnSamples(col, rowsRange);
+      let physicalColumn = this.hot.toPhysicalColumn(col);
+
+      if (physicalColumn === null) {
+        physicalColumn = col;
+      }
+      if (force || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === void 0 && !this.hot._getColWidthFromSettings(physicalColumn))) {
+        const samples = this.samplesGenerator.generateColumnSamples(physicalColumn, rowsRange);
 
         arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
       }
@@ -544,6 +549,7 @@ class AutoColumnSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.columnIndexMapper.unregisterMap(COLUMN_SIZE_MAP_NAME);
     this.ghostTable.clean();
     super.destroy();
   }
