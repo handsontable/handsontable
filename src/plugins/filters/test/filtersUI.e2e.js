@@ -1335,6 +1335,48 @@ describe('Filters UI', () => {
     }, 100);
   });
 
+  it('should allow opening the filtering dropdown menu, when there are multiple Handsontable instances present', () => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    const hot2Container = document.createElement('DIV');
+    document.body.appendChild(hot2Container);
+    const hot2 = new Handsontable(hot2Container, {
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    expect(document.querySelectorAll('.htDropdownMenu').length).toBe(2);
+
+    dropdownMenu(1);
+    closeDropdownMenu();
+
+    expect(getPlugin('dropdownMenu').menu.container.style.display).toBe('block');
+    expect(getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+
+    const th = hot2.view.wt.wtTable.getColumnHeader(1);
+    const button = th.querySelector('.changeType');
+    $(button).simulate('mousedown');
+    $(button).simulate('mouseup');
+    $(button).simulate('click');
+
+    expect(hot2.getPlugin('dropdownMenu').menu.container.style.display).toBe('block');
+    expect(hot2.getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+
+    hot2.destroy();
+    hot2Container.parentElement.removeChild(hot2Container);
+  });
+
   describe('Simple filtering (one column)', () => {
     it('should filter empty values and revert back after removing filter', () => {
       handsontable({

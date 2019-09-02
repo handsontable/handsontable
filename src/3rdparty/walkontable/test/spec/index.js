@@ -5,3 +5,5 @@
     req(key);
   });
 });
+
+require('./MemoryLeakTest');

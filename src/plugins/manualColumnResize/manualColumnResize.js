@@ -79,7 +79,7 @@ class ManualColumnResize extends BasePlugin {
       return;
     }
 
-    this.columnWidthsMap = new ValueMap(() => void 0);
+    this.columnWidthsMap = new ValueMap();
     this.columnWidthsMap.addLocalHook('init', () => this.onMapInit());
     this.columnIndexMapper.registerMap(COLUMN_WIDTHS_MAP_NAME, this.columnWidthsMap);
 
@@ -581,6 +581,15 @@ class ManualColumnResize extends BasePlugin {
   onBeforeColumnResize() {
     // clear the header height cache information
     this.hot.view.wt.wtViewport.hasOversizedColumnHeadersMarked = {};
+  }
+
+  /**
+   * Destroys the plugin instance.
+   */
+  destroy() {
+    this.columnIndexMapper.unregisterMap(COLUMN_WIDTHS_MAP_NAME);
+
+    super.destroy();
   }
 }
 

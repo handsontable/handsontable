@@ -295,6 +295,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
   preventOverflow: oneOf(true, 'vertical', 'horizontal'),
+  preventWheel: true,
   readOnly: true,
   readOnlyCellClassName: 'foo',
   renderAllRows: true,
@@ -305,7 +306,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
-  search: true,
+  search: oneOf(true, {
+    searchResultClass: 'customClass',
+    queryMethod(queryStr: string, value: any) {
+      return true;
+    },
+    callback(instance: Handsontable, row: number, column: number, value: any, result: boolean) {
+      // ...
+    }
+  }),
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectOptions: ['A', 'B', 'C'],
   skipColumnOnPaste: true,

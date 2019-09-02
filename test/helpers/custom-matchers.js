@@ -1,4 +1,5 @@
 import { generateASCIITable } from './asciiTable';
+import { normalize, pretty } from './htmlNormalize';
 
 // http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 const scrollbarWidth = (function calculateScrollbarWidth() {
@@ -77,6 +78,29 @@ beforeEach(function() {
             pass,
             message
           };
+        }
+      };
+    },
+    toMatchHTML() {
+      return {
+        compare(actual, expected) {
+          const actualHTML = pretty(normalize(actual));
+          const expectedHTML = pretty(normalize(expected));
+
+          const result = {
+            pass: actualHTML === expectedHTML,
+          };
+
+          result.message = `Expected ${actualHTML} NOT to be ${expectedHTML}`;
+
+          if (typeof jest === 'object') {
+            /* eslint-disable global-require */
+            const jestMatcherUtils = require('jest-matcher-utils');
+
+            result.message = () => jestMatcherUtils.diff(expectedHTML, actualHTML);
+          }
+
+          return result;
         }
       };
     },

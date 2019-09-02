@@ -939,21 +939,6 @@ describe('Core_alter', () => {
       expect(spec().$container.find('tr:eq(6) td:eq(0)').html()).toEqual('b1');
     });
 
-    it('should not add more source rows than defined in maxRows when trimming rows using the TrimRows plugin', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 4),
-        trimRows: [8, 9],
-        maxRows: 10
-      });
-
-      expect(hot.countRows()).toEqual(8);
-
-      hot.populateFromArray(7, 0, [['a'], ['b'], ['c']]);
-
-      expect(hot.countSourceRows()).toEqual(10);
-      expect(hot.getDataAtCell(7, 0)).toEqual('a');
-    });
-
     it('should fire callback on create row', () => {
       let outputBefore;
       let outputAfter;

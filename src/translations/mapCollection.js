@@ -2,6 +2,8 @@ import { isUndefined, isDefined } from '../helpers/mixed';
 import { mixin } from '../helpers/object';
 import localHooks from '../mixins/localHooks';
 
+let registeredMaps = 0;
+
 class MapCollection {
   constructor() {
     this.mappings = new Map();
@@ -12,16 +14,16 @@ class MapCollection {
    *
    * @param {String} name Unique name of the indexes list.
    * @param {BaseMap} map Map containing miscellaneous (i.e. meta data, indexes sequence), updated after remove and insert data actions.
-   * @returns {BaseMap}
+   * @returns {BaseMap|undefined}
    */
   register(name, map) {
     if (this.mappings.has(name) === false) {
       this.mappings.set(name, map);
+
+      map.addLocalHook('change', () => this.runLocalHooks('change', map));
+
+      registeredMaps += 1;
     }
-
-    map.addLocalHook('change', () => this.runLocalHooks('change', map));
-
-    return this.mappings.get(name);
   }
 
   /**
@@ -37,6 +39,8 @@ class MapCollection {
       this.mappings.delete(name);
 
       this.runLocalHooks('change', map);
+
+      registeredMaps -= 1;
     }
   }
 
@@ -104,3 +108,7 @@ class MapCollection {
 mixin(MapCollection, localHooks);
 
 export default MapCollection;
+
+export function getRegisteredMapsCounter() {
+  return registeredMaps;
+}

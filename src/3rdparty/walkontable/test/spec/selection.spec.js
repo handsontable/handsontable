@@ -1,30 +1,28 @@
 describe('Walkontable.Selection', () => {
-  let $table;
-  let $container;
-  let $wrapper;
   const debug = false;
 
-  beforeEach(() => {
-    $wrapper = $('<div></div>').css({ overflow: 'hidden' });
-    $wrapper.width(100).height(200);
-    $container = $('<div></div>');
-    $table = $('<table></table>'); // create a table that is not attached to document
-    $wrapper.append($container);
-    $container.append($table);
-    $wrapper.appendTo('body');
-    createDataArray();
+  beforeEach(function() {
+    this.$wrapper = $('<div></div>').css({ overflow: 'hidden' });
+    this.$wrapper.width(100).height(200);
+    this.$container = $('<div></div>');
+    this.$table = $('<table></table>'); // create a table that is not attached to document
+    this.$wrapper.append(this.$container);
+    this.$container.append(this.$table);
+    this.$wrapper.appendTo('body');
+    createDataArray(100, 4);
   });
 
-  afterEach(() => {
+  afterEach(function() {
     if (!debug) {
       $('.wtHolder').remove();
     }
-    $wrapper.remove();
+
+    this.$wrapper.remove();
+    this.wotInstance.destroy();
   });
 
   it('should add/remove class to selection when cell is clicked', () => {
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -37,23 +35,27 @@ describe('Walkontable.Selection', () => {
     });
     wt.draw();
 
-    const $td1 = $table.find('tbody td:eq(0)');
-    const $td2 = $table.find('tbody td:eq(1)');
+    const $td1 = spec().$table.find('tbody td:eq(0)');
+    const $td2 = spec().$table.find('tbody td:eq(1)');
+
+    expect($td1.hasClass('current')).toEqual(false);
+
     $td1.simulate('mousedown');
+
     expect($td1.hasClass('current')).toEqual(true);
 
     $td2.simulate('mousedown');
+
     expect($td1.hasClass('current')).toEqual(false);
     expect($td2.hasClass('current')).toEqual(true);
   });
 
   it('should add class to selection on all overlays', function() {
-    $wrapper.width(300).height(300);
+    spec().$wrapper.width(300).height(300);
 
     this.data = createSpreadsheetData(10, 10);
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -69,7 +71,7 @@ describe('Walkontable.Selection', () => {
 
     wt.draw();
 
-    const tds = $wrapper.find('td:contains(B2), td:contains(B3), td:contains(C2), td:contains(C3)');
+    const tds = spec().$wrapper.find('td:contains(B2), td:contains(B3), td:contains(C2), td:contains(C3)');
     expect(tds.length).toBeGreaterThan(4);
     for (let i = 0, ilen = tds.length; i < ilen; i++) {
       expect(tds[i].className).toContain('area');
@@ -77,8 +79,7 @@ describe('Walkontable.Selection', () => {
   });
 
   it('should not add class to selection until it is rerendered', () => {
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -87,16 +88,15 @@ describe('Walkontable.Selection', () => {
     wt.draw();
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
 
-    const $td1 = $table.find('tbody td:eq(0)');
+    const $td1 = spec().$table.find('tbody td:eq(0)');
     expect($td1.hasClass('current')).toEqual(false);
 
     wt.draw();
     expect($td1.hasClass('current')).toEqual(true);
   });
 
-  it('should add/remove border to selection when cell is clicked', (done) => {
-    const wt = new Walkontable.Core({
-      table: $table[0],
+  it('should add/remove border to selection when cell is clicked', async() => {
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -109,28 +109,25 @@ describe('Walkontable.Selection', () => {
     });
     wt.draw();
 
-    setTimeout(() => {
-      const $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
-      const $td2 = $table.find('tbody tr:eq(2) td:eq(1)');
-      const $top = $(wt.selections.getCell().getBorder(wt).top); // cheat... get border for ht_master
-      $td1.simulate('mousedown');
+    await sleep(1500);
+    const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
+    const $td2 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
+    const $top = $(wt.selections.getCell().getBorder(wt).top); // cheat... get border for ht_master
+    $td1.simulate('mousedown');
 
-      const pos1 = $top.position();
-      expect(pos1.top).toBeGreaterThan(0);
-      expect(pos1.left).toBe(0);
+    const pos1 = $top.position();
+    expect(pos1.top).toBeGreaterThan(0);
+    expect(pos1.left).toBe(0);
 
-      $td2.simulate('mousedown');
-      const pos2 = $top.position();
+    $td2.simulate('mousedown');
+    const pos2 = $top.position();
 
-      expect(pos2.top).toBeGreaterThan(pos1.top);
-      expect(pos2.left).toBeGreaterThan(pos1.left);
-      done();
-    }, 1500);
+    expect(pos2.top).toBeGreaterThan(pos1.top);
+    expect(pos2.left).toBeGreaterThan(pos1.left);
   });
 
   it('should add a selection that is outside of the viewport', () => {
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -139,12 +136,14 @@ describe('Walkontable.Selection', () => {
     wt.draw();
 
     wt.selections.getCell().add([20, 0]);
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new Walkontable.CellCoords(0, 0));
+    expect(wt.wtTable.getCoords(spec().$table.find('tbody tr:first td:first')[0])).toEqual(new Walkontable.CellCoords(0, 0));
   });
 
   it('should not scroll the viewport after selection is cleared', () => {
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const scrollbarWidth = getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
+    spec().$wrapper.width(100 + scrollbarWidth).height(200 + scrollbarWidth);
+
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -159,17 +158,19 @@ describe('Walkontable.Selection', () => {
 
     wt.scrollViewportVertically(17);
     wt.draw();
-    expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
+
+    const expectedFirstVisibleRow = 10;
+
+    expect(wt.wtTable.getFirstVisibleRow()).toEqual(expectedFirstVisibleRow);
     expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);
 
     wt.selections.getCell().clear();
-    expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
+    expect(wt.wtTable.getFirstVisibleRow()).toEqual(expectedFirstVisibleRow);
     expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);
   });
 
   it('should clear a selection that has more than one cell', () => {
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -185,7 +186,7 @@ describe('Walkontable.Selection', () => {
   });
 
   it('should highlight cells in selected row & column', () => {
-    $wrapper.width(300);
+    spec().$wrapper.width(300);
 
     const customSelection = new Walkontable.Selection({
       highlightRowClassName: 'highlightRow',
@@ -194,8 +195,7 @@ describe('Walkontable.Selection', () => {
     customSelection.add(new Walkontable.CellCoords(0, 0));
     customSelection.add(new Walkontable.CellCoords(0, 1));
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -205,12 +205,12 @@ describe('Walkontable.Selection', () => {
     });
     wt.draw();
 
-    expect($table.find('.highlightRow').length).toEqual(2);
-    expect($table.find('.highlightColumn').length).toEqual((wt.wtTable.getRenderedRowsCount() * 2) - 2);
+    expect(spec().$table.find('.highlightRow').length).toEqual(2);
+    expect(spec().$table.find('.highlightColumn').length).toEqual((wt.wtTable.getRenderedRowsCount() * 2) - 2);
   });
 
   it('should highlight cells in selected row & column, when same class is shared between 2 selection definitions', () => {
-    $wrapper.width(300);
+    spec().$wrapper.width(300);
 
     const customSelection1 = new Walkontable.Selection({
       highlightRowClassName: 'highlightRow',
@@ -226,8 +226,7 @@ describe('Walkontable.Selection', () => {
 
     customSelection2.add(new Walkontable.CellCoords(0, 0));
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -237,13 +236,12 @@ describe('Walkontable.Selection', () => {
     });
     wt.draw();
 
-    expect($table.find('.highlightRow').length).toEqual(3);
-    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.getRenderedRowsCount() - 1);
+    expect(spec().$table.find('.highlightRow').length).toEqual(3);
+    expect(spec().$table.find('.highlightColumn').length).toEqual(wt.wtTable.getRenderedRowsCount() - 1);
   });
 
   it('should remove highlight when selection is deselected', () => {
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -263,15 +261,14 @@ describe('Walkontable.Selection', () => {
     wt.selections.getCell().clear();
     wt.draw();
 
-    expect($table.find('.highlightRow').length).toEqual(0);
-    expect($table.find('.highlightColumn').length).toEqual(0);
+    expect(spec().$table.find('.highlightRow').length).toEqual(0);
+    expect(spec().$table.find('.highlightColumn').length).toEqual(0);
   });
 
   it('should add/remove appropriate class to the row/column headers of selected cells', () => {
-    $wrapper.width(300);
+    spec().$wrapper.width(300);
 
-    const wt = new Walkontable.Core({
-      table: $table[0],
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
@@ -301,16 +298,16 @@ describe('Walkontable.Selection', () => {
     // *2 -> because there are 2 columns selected
     // +2 -> because there are the headers
     // -4 -> because 4 cells are selected = there are overlapping highlightRow class
-    expect($table.find('.highlightRow').length).toEqual((wt.wtViewport.columnsVisibleCalculator.count * 2) + 2 - 4);
-    expect($table.find('.highlightColumn').length - 2).toEqual((wt.wtViewport.rowsVisibleCalculator.count * 2) + 2 - 4);
-    expect($table.find('.highlightColumn').length).toEqual(14);
+    expect(spec().$table.find('.highlightRow').length).toEqual((wt.wtViewport.columnsVisibleCalculator.count * 2) + 2 - 4);
+    expect(spec().$table.find('.highlightColumn').length - 2).toEqual((wt.wtViewport.rowsVisibleCalculator.count * 2) + 2 - 4);
+    expect(spec().$table.find('.highlightColumn').length).toEqual(14);
     expect(getTableTopClone().find('.highlightColumn').length).toEqual(2);
     expect(getTableTopClone().find('.highlightRow').length).toEqual(0);
     expect(getTableLeftClone().find('.highlightColumn').length).toEqual(0);
     expect(getTableLeftClone().find('.highlightRow').length).toEqual(2);
 
-    const $colHeaders = $table.find('thead tr:first-child th');
-    const $rowHeaders = $table.find('tbody tr th:first-child');
+    const $colHeaders = spec().$table.find('thead tr:first-child th');
+    const $rowHeaders = spec().$table.find('tbody tr th:first-child');
 
     expect($colHeaders.eq(2).hasClass('highlightColumn')).toBe(true);
     expect($colHeaders.eq(3).hasClass('highlightColumn')).toBe(true);
@@ -321,8 +318,8 @@ describe('Walkontable.Selection', () => {
     wt.selections.getCell().clear();
     wt.draw();
 
-    expect($table.find('.highlightRow').length).toEqual(0);
-    expect($table.find('.highlightColumn').length).toEqual(0);
+    expect(spec().$table.find('.highlightRow').length).toEqual(0);
+    expect(spec().$table.find('.highlightColumn').length).toEqual(0);
     expect(getTableTopClone().find('.highlightColumn').length).toEqual(0);
     expect(getTableTopClone().find('.highlightRow').length).toEqual(0);
     expect(getTableLeftClone().find('.highlightColumn').length).toEqual(0);
@@ -331,8 +328,7 @@ describe('Walkontable.Selection', () => {
 
   describe('replace', () => {
     it('should replace range from property and return true', () => {
-      const wt = new Walkontable.Core({
-        table: $table[0],
+      const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,

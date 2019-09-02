@@ -89,35 +89,27 @@ class ObserveChanges extends BasePlugin {
       const sourceName = `${this.pluginName}.change`;
       const actions = {
         add: (patch) => {
-          if (isNaN(patch.col)) {
-            const visualRow = patch.row;
-            let physicalRow = visualRow;
+          const [visualRow, visualColumn] = [patch.row, patch.col];
 
-            if (visualRow < this.hot.countRows()) {
-              physicalRow = this.hot.toPhysicalRow(visualRow);
-            }
-
-            this.rowIndexMapper.insertIndexes(visualRow, physicalRow, 1);
+          if (isNaN(visualColumn)) {
+            this.rowIndexMapper.insertIndexes(visualRow, 1);
             this.hot.runHooks('afterCreateRow', visualRow, 1, sourceName);
 
           } else {
-            const visualColumn = patch.col;
-            let physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-            if (physicalColumn === null) {
-              physicalColumn = visualColumn;
-            }
-            this.columnIndexMapper.insertIndexes(visualColumn, physicalColumn, 1);
+            this.columnIndexMapper.insertIndexes(visualColumn, 1);
             this.hot.runHooks('afterCreateCol', visualColumn, 1, sourceName);
           }
         },
         remove: (patch) => {
-          if (isNaN(patch.col)) {
-            this.rowIndexMapper.removeIndexes([patch.row]);
-            this.hot.runHooks('afterRemoveRow', patch.row, 1, sourceName);
+          const [visualRow, visualColumn] = [patch.row, patch.col];
+
+          if (isNaN(visualColumn)) {
+            this.rowIndexMapper.removeIndexes([visualRow]);
+            this.hot.runHooks('afterRemoveRow', visualRow, 1, sourceName);
+
           } else {
-            this.columnIndexMapper.removeIndexes([patch.col]);
-            this.hot.runHooks('afterRemoveCol', patch.col, 1, sourceName);
+            this.columnIndexMapper.removeIndexes([visualColumn]);
+            this.hot.runHooks('afterRemoveCol', visualColumn, 1, sourceName);
           }
         },
         replace: (patch) => {
@@ -130,6 +122,7 @@ class ObserveChanges extends BasePlugin {
           actions[patch.op](patch);
         }
       });
+
       this.hot.render();
     }
 

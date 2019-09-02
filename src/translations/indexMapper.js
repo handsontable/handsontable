@@ -1,4 +1,4 @@
-import { arrayFilter, arrayMap, arrayReduce } from './../helpers/array';
+import { arrayFilter, arrayMap } from './../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/visuallyIndexed';
 import { rangeEach } from '../helpers/number';
 import IndexMap from './maps/indexMap';
@@ -6,6 +6,7 @@ import SkipMap from './maps/skipMap';
 import MapCollection from './mapCollection';
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
+import { isDefined } from '../helpers/mixed';
 
 class IndexMapper {
   constructor() {
@@ -217,31 +218,22 @@ class IndexMapper {
 
     const physicalMovedIndexes = arrayMap(movedIndexes, row => this.getPhysicalIndex(row));
 
-    this.executeBatchOperations(() => {
-      this.setIndexesSequence(getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes));
+    // Physical index at final index position.
+    const physicalIndex = this.getPhysicalIndex(finalIndex);
 
-      // When item(s) are moved after the last item we assign new index.
-      let indexNumber = this.getNumberOfIndexes();
+    // When item(s) are moved after the last visible item we assign the last possible index.
+    let indexNumber = this.getNotSkippedIndexesLength() - movedIndexes.length;
 
-      // Otherwise, we find proper index for inserted item(s).
-      if (finalIndex < this.getNotSkippedIndexesLength()) {
-        const physicalIndex = this.getPhysicalIndex(finalIndex);
-        indexNumber = this.getIndexesSequence()
-          .indexOf(physicalIndex);
-      }
+    // Otherwise, we find proper index for inserted item(s).
+    if (finalIndex + movedIndexes.length <= this.getNotSkippedIndexesLength()) {
+      indexNumber = this.getIndexesSequence().indexOf(physicalIndex);
+    }
 
-      // We count number of skipped rows from the start to the position of inserted item(s).
-      const skippedRowsToTargetIndex = arrayReduce(this.getIndexesSequence()
-        .slice(0, indexNumber), (skippedRowsSum, currentValue) => {
-        if (this.isSkipped(currentValue)) {
-          return skippedRowsSum + 1;
-        }
+    // Removing indexes without re-indexing.
+    const listWithRemovedItems = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
 
-        return skippedRowsSum;
-      }, 0);
-
-      this.setIndexesSequence(getListWithInsertedItems(this.getIndexesSequence(), finalIndex + skippedRowsToTargetIndex, physicalMovedIndexes));
-    });
+    // Adding indexes without re-indexing.
+    this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, indexNumber, physicalMovedIndexes));
   }
 
   /**
@@ -286,11 +278,11 @@ class IndexMapper {
    *
    * @private
    * @param {Number} firstInsertedVisualIndex First inserted visual index.
-   * @param {Number} firstInsertedPhysicalIndex First inserted physical index.
    * @param {Number} amountOfIndexes Amount of inserted indexes.
    */
-  insertIndexes(firstInsertedVisualIndex, firstInsertedPhysicalIndex, amountOfIndexes) {
+  insertIndexes(firstInsertedVisualIndex, amountOfIndexes) {
     const nthVisibleIndex = this.getNotSkippedIndexes()[firstInsertedVisualIndex];
+    const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex) ? nthVisibleIndex : this.getNumberOfIndexes();
     const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 

@@ -46,13 +46,6 @@ class TextEditor extends BaseEditor {
      */
     this.autoResize = autoResize();
     /**
-     * Contains  `z-index` of the editor. Helps display editor on overlays on correct elevation.
-     *
-     * @private
-     * @type {Number}
-     */
-    this.holderZIndex = -1;
-    /**
      * An TEXTAREA element.
      *
      * @private
@@ -231,61 +224,6 @@ class TextEditor extends BaseEditor {
   }
 
   /**
-   * Gets HTMLTableCellElement of the edited cell if exist.
-   *
-   * @private
-   * @returns {HTMLTableCellElement|undefined}
-   */
-  getEditedCell() {
-    const editorSection = this.checkEditorSection();
-    let editedCell;
-
-    switch (editorSection) {
-      case 'top':
-        editedCell = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 101;
-        break;
-      case 'top-left-corner':
-        editedCell = this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 103;
-        break;
-      case 'bottom-left-corner':
-        editedCell = this.hot.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 103;
-        break;
-      case 'left':
-        editedCell = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 102;
-        break;
-      case 'bottom':
-        editedCell = this.hot.view.wt.wtOverlays.bottomOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 102;
-        break;
-      default:
-        editedCell = this.hot.getCell(this.row, this.col);
-        this.holderZIndex = -1;
-        break;
-    }
-
-    return editedCell < 0 ? void 0 : editedCell;
-  }
-
-  /**
    * Moves an editable element out of the viewport, but element must be able to hold focus for IME support.
    *
    * @private
@@ -311,7 +249,8 @@ class TextEditor extends BaseEditor {
     this.textareaParentStyle.overflow = '';
     this.textareaParentStyle.position = '';
     this.textareaParentStyle.right = 'auto';
-    this.textareaParentStyle.zIndex = this.holderZIndex >= 0 ? this.holderZIndex : '';
+    const zIndex = this.getEditedCellsZIndex();
+    this.textareaParentStyle.zIndex = zIndex !== 'auto' ? zIndex : '';
     this.textareaParentStyle.opacity = '1';
 
     this.textareaStyle.textIndent = '';

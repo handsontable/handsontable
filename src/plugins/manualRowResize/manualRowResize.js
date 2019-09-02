@@ -81,7 +81,7 @@ class ManualRowResize extends BasePlugin {
       return;
     }
 
-    this.rowHeightsMap = new ValueMap(() => void 0);
+    this.rowHeightsMap = new ValueMap();
     this.rowHeightsMap.addLocalHook('init', () => this.onMapInit());
     this.rowIndexMapper.registerMap(ROW_HEIGHTS_MAP_NAME, this.rowHeightsMap);
 
@@ -509,30 +509,35 @@ class ManualRowResize extends BasePlugin {
     const initialSetting = this.hot.getSettings().manualRowResize;
     const loadedManualRowHeights = this.loadManualRowHeights();
 
-    if (typeof loadedManualColumnWidths !== 'undefined') {
-      this.hot.executeBatchOperations(() => {
+    this.hot.executeBatchOperations(() => {
+      if (typeof loadedManualColumnWidths !== 'undefined') {
         loadedManualRowHeights.forEach((height, index) => {
           this.rowHeightsMap.setValueAtIndex(index, height);
         });
-      });
 
-    } else if (Array.isArray(initialSetting)) {
+      } else if (Array.isArray(initialSetting)) {
 
-      this.hot.executeBatchOperations(() => {
         initialSetting.forEach((height, index) => {
           this.rowHeightsMap.setValueAtIndex(index, height);
         });
-      });
 
-      priv.config = initialSetting;
+        priv.config = initialSetting;
 
-    } else if (initialSetting === true && Array.isArray(priv.config)) {
-      this.hot.executeBatchOperations(() => {
+      } else if (initialSetting === true && Array.isArray(priv.config)) {
         priv.config.forEach((height, index) => {
           this.rowHeightsMap.setValueAtIndex(index, height);
         });
-      });
-    }
+      }
+    });
+  }
+
+  /**
+   * Destroys the plugin instance.
+   */
+  destroy() {
+    this.rowIndexMapper.unregisterMap(ROW_HEIGHTS_MAP_NAME);
+
+    super.destroy();
   }
 }
 
