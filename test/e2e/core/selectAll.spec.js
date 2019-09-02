@@ -11,10 +11,12 @@ describe('Core.selectAll', () => {
   });
 
   it('should select all cells and clear previous selection', () => {
+    const scrollbarWidth = Handsontable.dom.getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
+
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(15, 20),
-      width: 200,
-      height: 100,
+      width: 185 + scrollbarWidth,
+      height: 85 + scrollbarWidth,
       selectionMode: 'multiple',
       colHeaders: true,
       rowHeaders: true,
