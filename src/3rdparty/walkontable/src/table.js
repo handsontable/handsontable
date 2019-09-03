@@ -769,9 +769,20 @@ class Table {
     return this.rowFilter && (row > this.getLastVisibleRow());
   }
 
+  /**
+   * Check if the given column index is larger than the index of the last column that is currently redered
+   * and return TRUE in that case, or FALSE otherwise.
+   *
+   * Negative column index is used to check the header cells.
+   *
+   * @param {Number} column
+   * @returns {Boolean}
+   */
   isRowAfterRenderedRows(row) {
     if (row < 0) {
-      const zeroBasedHeaderLevel = (-1 * row) - 1;
+      const columnHeaders = this.wot.getSetting('columnHeaders');
+      const columnHeadersCount = columnHeaders.length;
+      const zeroBasedHeaderLevel = columnHeadersCount + row;
       return this.isColumnHeaderLevelRendered(zeroBasedHeaderLevel);
     }
     return row > this.getLastRenderedRow();
@@ -809,9 +820,20 @@ class Table {
     return this.columnFilter && (column > this.getLastVisibleColumn());
   }
 
+  /**
+   * Check if the given column index is larger than the index of the last column that is currently redered
+   * and return TRUE in that case, or FALSE otherwise.
+   *
+   * Negative column index is used to check the header cells.
+   *
+   * @param {Number} column
+   * @returns {Boolean}
+   */
   isColumnAfterRenderedColumns(column) {
     if (column < 0) {
-      const zeroBasedHeaderLevel = (-1 * column) - 1;
+      const rowHeaders = this.wot.getSetting('rowHeaders');
+      const rowHeadersCount = rowHeaders.length;
+      const zeroBasedHeaderLevel = rowHeadersCount + column;
       return this.isRowHeaderLevelRendered(zeroBasedHeaderLevel);
     }
     return this.columnFilter && (column > this.getLastRenderedColumn());
