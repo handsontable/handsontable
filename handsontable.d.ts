@@ -1,4 +1,4 @@
-import { PikadayOptions } from "pikaday";
+import { PikadayOptions } from 'pikaday';
 
 /**
  * @internal
@@ -904,19 +904,19 @@ declare namespace Handsontable {
     type PasteModeType = 'overwrite' | 'shift_down' | 'shift_right';
     type RangeType = { startRow: number, startCol: number, endRow: number, endCol: number };
     interface CopyPaste extends Base {
-      eventManager: EventManager;
       columnsLimit: number;
       copyableRanges: any[];
+      eventManager: EventManager;
+      focusableElement: FocusableWrapper;
       pasteMode: PasteModeType;
       rowsLimit: number;
-      focusableElement: FocusableWrapper;
 
-      setCopyableText(): void;
-      getRangedCopyableData(ranges: RangeType[]): string;
-      getRangedData(ranges: RangeType[]): any[];
       copy(): void;
       cut(): void;
-      paste(pastableText: string, pastableHtml?: string): void;
+      getRangedCopyableData(ranges: RangeType[]): string;
+      getRangedData(ranges: RangeType[]): any[];
+      paste(pastableText?: string, pastableHtml?: string): void;
+      setCopyableText(): void;
     }
 
     interface CustomBorders extends Base {
