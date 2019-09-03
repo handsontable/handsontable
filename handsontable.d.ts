@@ -906,7 +906,6 @@ declare namespace Handsontable {
     interface CopyPaste extends Base {
       columnsLimit: number;
       copyableRanges: any[];
-      eventManager: EventManager;
       focusableElement: FocusableWrapper;
       pasteMode: PasteModeType;
       rowsLimit: number;
@@ -1695,7 +1694,7 @@ declare namespace Handsontable {
     comments?: boolean | comments.Settings | comments.CommentConfig[];
     contextMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
     copyable?: boolean;
-    copyPaste?: boolean;
+    copyPaste?: boolean | copyPaste.Settings;
     correctFormat?: boolean;
     currentColClassName?: string;
     currentHeaderClassName?: string;
@@ -2498,6 +2497,14 @@ declare namespace Handsontable {
       type: 'custom';
       customFunction: (this: plugins.ColumnSummary, endpoint: plugins.Endpoint) => number;
     });
+  }
+
+  namespace copyPaste {
+    interface Settings {
+      pasteMode?: plugins.PasteModeType;
+      rowsLimit?: number;
+      columnsLimit?: number;
+    }
   }
 
   namespace customBorders {
