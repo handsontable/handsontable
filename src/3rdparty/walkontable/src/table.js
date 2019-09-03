@@ -741,17 +741,22 @@ class Table {
     return level > (columnHeadersCount - 1);
   }
 
+  /**
+   * Check if the given row index is smaller than the index of the first row that is currently redered
+   * and return TRUE in that case, or FALSE otherwise.
+   *
+   * Negative row index is used to check the header cells. As a simplification, it checks negative row index
+   * the same way as a regular row 0. You can interpret this as follows: If the row 0 is rendered, all header
+   * cells are also rendered.
+   *
+   * @param {Number} row
+   * @returns {Boolean}
+   */
   isRowBeforeRenderedRows(row) {
     const first = this.getFirstRenderedRow();
 
     if (row < 0) {
-      if (first === 0) {
-        // first rendered row is above 0, so we can't expect any headers to be rendered
-        return false;
-      }
-
-      return true;
-
+      row = 0;
     }
 
     if (first === -1) {
@@ -776,17 +781,22 @@ class Table {
     return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
   }
 
+  /**
+   * Check if the given column index is smaller than the index of the first column that is currently redered
+   * and return TRUE in that case, or FALSE otherwise.
+   *
+   * Negative column index is used to check the header cells. As a simplification, it checks negative column index
+   * the same way as a regular column 0. You can interpret this as follows: If the column 0 is rendered, all header
+   * cells are also rendered.
+   *
+   * @param {Number} column
+   * @returns {Boolean}
+   */
   isColumnBeforeRenderedColumns(column) {
     const first = this.getFirstRenderedColumn();
 
     if (column < 0) {
-      if (first === 0) {
-        // first rendered column is above 0, so we can't expect any headers to be rendered
-        return false;
-      }
-
-      return true;
-
+      column = 0;
     }
 
     if (first === -1) {
