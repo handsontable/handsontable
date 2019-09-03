@@ -799,7 +799,7 @@ declare namespace Handsontable {
       meetsDependencies(): boolean;
       parseSettings(): void;
       toggleAllCollapsibleSections(action: string): void;
-      toggleCollapsibleSection(coords: object, action: string): void;
+      toggleCollapsibleSection(coords: Array<object>, action: string): void;
     }
 
     interface ColumnSorting extends Base {

@@ -1828,7 +1828,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeColumnCollapse
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
-   * @param {Boolean} collapsePossible `true`, if all of the column indexes aren't withing the hidden columns, `false` otherwise.
+   * @param {Boolean} collapsePossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the collapsing action will not be completed.
    */
   'beforeColumnCollapse',
@@ -1839,7 +1839,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterColumnCollapse
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
-   * @param {Boolean} collapsePossible `true`, if all of the column indexes aren't withing the hidden columns, `false` otherwise.
+   * @param {Boolean} collapsePossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
    * @param {Boolean} successfullyCollapsed `true`, if the action affected any non-collapsible column, `false` otherwise.
    */
   'afterColumnCollapse',
@@ -1850,7 +1850,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeColumnExpand
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
-   * @param {Boolean} expandPossible `true`, if all of the column indexes are withing the hidden columns, `false` otherwise.
+   * @param {Boolean} expandPossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
    * @returns {undefined|Boolean} If the callback returns `false`, the expanding action will not be completed.
    */
   'beforeColumnExpand',
@@ -1861,7 +1861,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterColumnExpand
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
-   * @param {Boolean} expandPossible `true`, if all of the column indexes are withing the hidden columns, `false` otherwise.
+   * @param {Boolean} expandPossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
    * @param {Boolean} successfullyExpanded `true`, if the action affected any non-collapsible column, `false` otherwise.
    */
   'afterColumnExpand',
