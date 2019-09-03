@@ -711,7 +711,7 @@ describe('IndexMapper', () => {
         expect(indexMapper.getNotSkippedIndexes()).toEqual([1, 2, 3, 0, 5, 6, 7, 8, 9]);
       });
 
-      it('from the top up to element before skipped index', () => {
+      it('from the bottom up to element before skipped index', () => {
         const indexMapper = new IndexMapper();
         const skipMap = new SkipMap();
 

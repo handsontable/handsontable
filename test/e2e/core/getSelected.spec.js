@@ -63,9 +63,8 @@ describe('Core.getSelected', () => {
     await sleep(100);
 
     const bottomClone = getBottomClone();
-    bottomClone.find('tbody tr:eq(1) td:eq(5)').simulate('mousedown');
-    bottomClone.find('tbody tr:eq(1) td:eq(5)').simulate('mouseup');
-
+    bottomClone.find('tbody tr:eq(1) td:last-child').simulate('mousedown');
+    bottomClone.find('tbody tr:eq(1) td:last-child').simulate('mouseup');
     hot.render(true);
 
     expect(getSelected()).toEqual([[99, 99, 99, 99]]);
