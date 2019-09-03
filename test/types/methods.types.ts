@@ -32,8 +32,8 @@ hot.getCellEditor(123, 123);
 hot.getCellMeta(123, 123).type === "text";
 hot.getCellMetaAtRow(123).forEach(meta => meta.type === "text");
 hot.getCellRenderer(123, 123)(hot, {} as any as HTMLTableCellElement, 1, 2, 'prop', '', {} as any as Handsontable.CellProperties);
-hot.getCellValidator(123, 123);
 hot.getCellsMeta()[0].visualRow
+hot.getCellValidator(123, 123);
 hot.getColHeader().forEach((header: number | string) => {});
 hot.getColHeader(123).toString();
 hot.getColWidth(123) === 123;
