@@ -81,7 +81,7 @@ class AutoRowSize extends BasePlugin {
     /**
      * Columns header's height cache.
      */
-    this.headerRowsHeights = new Map();
+    this.headerHeight = void 0;
     /**
      * Instance of {@link GhostTable} for rows and columns size calculations.
      *
@@ -163,7 +163,7 @@ class AutoRowSize extends BasePlugin {
    */
   disablePlugin() {
     this.rowIndexMapper.unregisterMap(ROW_WIDTHS_MAP_NAME);
-    this.headerRowsHeights.clear();
+    this.headerHeight = void 0;
 
     super.disablePlugin();
   }
@@ -198,7 +198,7 @@ class AutoRowSize extends BasePlugin {
       this.hot.executeBatchOperations(() => {
         this.ghostTable.getHeights((row, height) => {
           if (row < 0) {
-            this.headerRowsHeights.set(row, height);
+            this.headerHeight = height;
           } else {
             this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), height);
           }
@@ -288,7 +288,6 @@ class AutoRowSize extends BasePlugin {
    */
   recalculateAllRowsHeight() {
     if (isVisible(this.hot.view.wt.wtTable.TABLE)) {
-      this.headerRowsHeights.clear();
       this.clearCache();
       this.calculateAllRowsHeight();
     }
@@ -327,7 +326,7 @@ class AutoRowSize extends BasePlugin {
    * @returns {Number}
    */
   getRowHeight(row, defaultHeight = void 0) {
-    const cachedHeight = row < 0 ? this.headerRowsHeights.get(row) : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));
+    const cachedHeight = row < 0 ? this.headerHeight : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));
     let height = defaultHeight;
 
     if (cachedHeight !== void 0 && cachedHeight > (defaultHeight || 0)) {
@@ -343,7 +342,7 @@ class AutoRowSize extends BasePlugin {
    * @returns {Number|undefined}
    */
   getColumnHeaderHeight() {
-    return this.headerRowsHeights.get(-1);
+    return this.headerHeight;
   }
 
   /**
@@ -386,8 +385,8 @@ class AutoRowSize extends BasePlugin {
    * Clears cached heights.
    */
   clearCache() {
-    this.headerRowsHeights.clear();
-    this.rowHeightsMap.setDefaultValues();
+    this.headerHeight = void 0;
+    this.rowHeightsMap.init();
   }
 
   /**
@@ -518,7 +517,6 @@ class AutoRowSize extends BasePlugin {
    */
   destroy() {
     this.rowIndexMapper.unregisterMap(ROW_WIDTHS_MAP_NAME);
-    this.headerRowsHeights.clear();
     this.ghostTable.clean();
     super.destroy();
   }
