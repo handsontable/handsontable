@@ -39,6 +39,7 @@ declare namespace _Handsontable {
     getCellMetaAtRow(row: number): Handsontable.CellProperties[];
     getCellRenderer(row: number, col: number): Handsontable.renderers.Base;
     getCellRenderer(cellMeta: Handsontable.CellMeta): Handsontable.renderers.Base;
+    getCellsMeta(): Handsontable.CellProperties[];
     getCellValidator(row: number, col: number): Handsontable.validators.Base | RegExp | undefined;
     getCellValidator(cellMeta: Handsontable.CellMeta): Handsontable.validators.Base | RegExp | undefined;
     getColHeader(): (number | string)[];
