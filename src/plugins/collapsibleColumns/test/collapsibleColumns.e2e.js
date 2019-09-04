@@ -356,6 +356,80 @@ describe('CollapsibleColumns', () => {
       expect(afterColumnCollapseCallback).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
     });
 
+    it('should not throw error when trying collapsing row which does not have the ability to collapse', () => {
+      const beforeColumnCollapseCallback = jasmine.createSpy('beforeColumnCollapseCallback');
+      const afterColumnCollapseCallback = jasmine.createSpy('afterColumnCollapseCallback');
+      let errors = 0;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+        ],
+        collapsibleColumns: [
+          { row: -4, col: 1, collapsible: true },
+          { row: -3, col: 1, collapsible: true },
+          { row: -2, col: 1, collapsible: true },
+          { row: -2, col: 3, collapsible: true }
+        ],
+        beforeColumnCollapse: beforeColumnCollapseCallback,
+        afterColumnCollapse: afterColumnCollapseCallback
+      });
+
+      const collapsibleColumnsPlugin = getPlugin('collapsibleColumns');
+
+      try {
+        collapsibleColumnsPlugin.collapseSection({ row: 0, col: 1 });
+      } catch (e) {
+        errors += 1;
+      }
+
+      expect(errors).toBe(0);
+      expect(beforeColumnCollapseCallback).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
+      expect(afterColumnCollapseCallback).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
+    });
+
+    it('should not throw error when trying collapsing column which does not have the ability to collapse', () => {
+      const beforeColumnCollapseCallback = jasmine.createSpy('beforeColumnCollapseCallback');
+      const afterColumnCollapseCallback = jasmine.createSpy('afterColumnCollapseCallback');
+      let errors = 0;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+        ],
+        collapsibleColumns: [
+          { row: -4, col: 1, collapsible: true },
+          { row: -3, col: 1, collapsible: true },
+          { row: -2, col: 1, collapsible: true },
+          { row: -2, col: 3, collapsible: true }
+        ],
+        beforeColumnCollapse: beforeColumnCollapseCallback,
+        afterColumnCollapse: afterColumnCollapseCallback
+      });
+
+      const collapsibleColumnsPlugin = getPlugin('collapsibleColumns');
+
+      try {
+        collapsibleColumnsPlugin.collapseSection({ row: 2, col: 2 });
+      } catch (e) {
+        errors += 1;
+      }
+
+      expect(errors).toBe(0);
+      expect(beforeColumnCollapseCallback).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
+      expect(afterColumnCollapseCallback).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
+    });
+
     it('should not trigger an afterColumnCollapse event after try collapse columns when beforeColumnCollapse returns false', () => {
       const afterColumnCollapseCallback = jasmine.createSpy('afterColumnCollapseCallback');
 
