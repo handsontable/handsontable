@@ -217,23 +217,24 @@ class IndexMapper {
     }
 
     const physicalMovedIndexes = arrayMap(movedIndexes, row => this.getPhysicalIndex(row));
-
-    // Physical index at final index position.
-    const physicalIndex = this.getPhysicalIndex(finalIndex);
-
-    // When item(s) are moved after the last visible item we assign the last possible index.
-    let indexNumber = this.getNotSkippedIndexesLength() - movedIndexes.length;
-
-    // Otherwise, we find proper index for inserted item(s).
-    if (finalIndex + movedIndexes.length <= this.getNotSkippedIndexesLength()) {
-      indexNumber = this.getIndexesSequence().indexOf(physicalIndex);
-    }
+    const notSkippedIndexesLength = this.getNotSkippedIndexesLength();
+    const movedIndexesLength = movedIndexes.length;
 
     // Removing indexes without re-indexing.
     const listWithRemovedItems = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
 
+    // When item(s) are moved after the last visible item we assign the last possible index.
+    let destinationPosition = notSkippedIndexesLength - movedIndexesLength;
+
+    // Otherwise, we find proper index for inserted item(s).
+    if (finalIndex + movedIndexesLength < notSkippedIndexesLength) {
+      // Physical index at final index position.
+      const physicalIndex = listWithRemovedItems.filter(index => this.isSkipped(index) === false)[finalIndex];
+      destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
+    }
+
     // Adding indexes without re-indexing.
-    this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, indexNumber, physicalMovedIndexes));
+    this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, destinationPosition, physicalMovedIndexes));
   }
 
   /**

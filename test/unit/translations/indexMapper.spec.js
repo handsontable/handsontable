@@ -707,7 +707,7 @@ describe('IndexMapper', () => {
 
         indexMapper.moveIndexes([0], 3);
 
-        expect(indexMapper.getIndexesSequence()).toEqual([1, 2, 3, 0, 4, 5, 6, 7, 8, 9]);
+        expect(indexMapper.getIndexesSequence()).toEqual([1, 2, 3, 4, 0, 5, 6, 7, 8, 9]);
         expect(indexMapper.getNotSkippedIndexes()).toEqual([1, 2, 3, 0, 5, 6, 7, 8, 9]);
       });
 
