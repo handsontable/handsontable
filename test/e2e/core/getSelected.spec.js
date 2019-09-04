@@ -49,4 +49,24 @@ describe('Core.getSelected', () => {
 
     expect(getSelected()).toEqual(snapshot);
   });
+
+  it('should return valid coordinates with fixedRowsBottom', async() => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(100, 100),
+      fixedRowsBottom: 2,
+      height: 200,
+      width: 300
+    });
+
+    hot.scrollViewportTo(99, 99, true, true);
+
+    await sleep(100);
+
+    const bottomClone = getBottomClone();
+    bottomClone.find('tbody tr:eq(1) td:last-child').simulate('mousedown');
+    bottomClone.find('tbody tr:eq(1) td:last-child').simulate('mouseup');
+    hot.render(true);
+
+    expect(getSelected()).toEqual([[99, 99, 99, 99]]);
+  });
 });

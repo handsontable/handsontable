@@ -153,7 +153,8 @@
   overflow-y: auto;
 }
 
-.ht_clone_top .wtHolder {
+.ht_clone_top .wtHolder,
+.ht_clone_bottom .wtHolder {
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -161,4 +162,8 @@
 /* used for testing */
 .testOverflowHidden {
   overflow: hidden;
+}
+
+.wtSpreader {
+  width: 0; /* must be 0, otherwise, while scrolling replacing nodes triggers new scroll position before table render is finished */
 }

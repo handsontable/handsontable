@@ -46,13 +46,14 @@ class TopOverlay extends Overlay {
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
-      const box = this.wot.wtTable.hider.getBoundingClientRect();
+      const { wtTable } = this.wot;
+      const box = wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(box.top);
       const bottom = Math.ceil(box.bottom);
       let finalLeft;
       let finalTop;
 
-      finalLeft = this.wot.wtTable.hider.style.left;
+      finalLeft = wtTable.hider.style.left;
       finalLeft = finalLeft === '' ? 0 : finalLeft;
 
       if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
@@ -169,7 +170,12 @@ class TopOverlay extends Overlay {
 
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
-    const tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
+
+    if (!this.wot.wtTable.hasDefinedSize()) {
+      tableHeight = 0;
+    }
+
     overlayRootStyle.height = `${tableHeight === 0 ? tableHeight : tableHeight + 4}px`;
   }
 

@@ -363,7 +363,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Prepare array of indexes based on actual selection.
+   * Prepares an array of indexes based on actual selection.
    *
    * @private
    * @returns {Array}

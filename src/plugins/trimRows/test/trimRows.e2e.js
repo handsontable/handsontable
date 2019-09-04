@@ -55,6 +55,21 @@ describe('TrimRows', () => {
     expect(getCellMeta(6, 0).type).toBe('text');
   });
 
+  it('should not add more source rows than defined in maxRows when trimming rows using the TrimRows plugin', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 4),
+      trimRows: [8, 9],
+      maxRows: 10
+    });
+
+    expect(hot.countRows()).toEqual(8);
+
+    hot.populateFromArray(7, 0, [['a'], ['b'], ['c']]);
+
+    expect(hot.countSourceRows()).toEqual(10);
+    expect(hot.getDataAtCell(7, 0)).toEqual('a');
+  });
+
   it('should trim rows after re-load data calling loadData method', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
