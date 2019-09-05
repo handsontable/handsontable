@@ -499,9 +499,6 @@ class CollapsibleColumns extends BasePlugin {
 
             destinationCollapsedColumns = Array.from(hiddenColumns);
 
-            // this.sectionToCollapase.push([currentCoords.row, currentCoords.col]);
-            // this.sectionToCollapase.set('collapse', [currentCoords.row, currentCoords.col]);
-
             this.markSectionAs('collapsed', currentCoords.row, currentCoords.col, true);
 
             break;
