@@ -453,6 +453,7 @@ class CollapsibleColumns extends BasePlugin {
     }
 
     const currentCollapsedColumns = this.collapsedColumns;
+    const hiddenColumns = this.hiddenColumnsPlugin.hiddenColumns;
     let destinationCollapsedColumns = currentCollapsedColumns;
     let collapsePossible;
 
@@ -473,7 +474,6 @@ class CollapsibleColumns extends BasePlugin {
 
       collapsePossible = this.collapsableCoordsList[currentCoords.row][currentCoords.col];
 
-      const hiddenColumns = this.hiddenColumnsPlugin.hiddenColumns;
       const colspanArray = this.nestedHeadersPlugin.colspanArray;
       const level = this.nestedHeadersPlugin.rowCoordsToLevel(currentCoords.row);
       const currentHeaderColspan = colspanArray[level][currentCoords.col].colspan;
@@ -499,6 +499,9 @@ class CollapsibleColumns extends BasePlugin {
 
             destinationCollapsedColumns = Array.from(hiddenColumns);
 
+            // this.sectionToCollapase.push([currentCoords.row, currentCoords.col]);
+            // this.sectionToCollapase.set('collapse', [currentCoords.row, currentCoords.col]);
+
             this.markSectionAs('collapsed', currentCoords.row, currentCoords.col, true);
 
             break;
@@ -522,12 +525,34 @@ class CollapsibleColumns extends BasePlugin {
       const allowColumnCollapse = this.hot.runHooks('beforeColumnCollapse', currentCollapsedColumns, destinationCollapsedColumns, collapsePossible);
 
       if (allowColumnCollapse === false) {
+        hiddenColumns.length = 0;
+        this.collapsedSections = {};
+
         return;
       }
     } else {
       const allowColumnExpand = this.hot.runHooks('beforeColumnExpand', currentCollapsedColumns, destinationCollapsedColumns, collapsePossible);
 
       if (allowColumnExpand === false) {
+        this.hiddenColumnsPlugin.hiddenColumns = Array.from(this.collapsedColumns);
+
+        Object.keys(this.collapsedSections).forEach((key) => {
+          if (Array.isArray(this.collapsedSections[key])) {
+            this.collapsedSections[key].forEach((item, index) => {
+              if (this.collapsedSections[key][index] === void 0) {
+                this.collapsedSections[key][index] = true;
+              }
+            });
+
+          } else {
+            Object.keys(this.collapsedSections[key]).forEach((objKey) => {
+              if (this.collapsedSections[key][objKey] === void 0) {
+                this.collapsedSections[key][objKey] = true;
+              }
+            });
+          }
+        });
+
         return;
       }
     }
