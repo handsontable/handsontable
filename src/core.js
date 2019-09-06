@@ -943,7 +943,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const isNumericData = value => value.length > 0 && /^\s*[+-.]?\s*(?:(?:\d+(?:(\.|,)\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/.test(value);
 
     waitingForValidator.onQueueEmpty = (isValid) => {
-      if (activeEditor && shouldBeCanceled) {
+      if (activeEditor && !activeEditor.cellProperties.readOnly && shouldBeCanceled) {
         activeEditor.cancelChanges();
       }
 
