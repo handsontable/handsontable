@@ -457,6 +457,7 @@ describe('CollapsibleColumns', () => {
       expect(parseInt(colgroupArray.eq(6).width(), 10)).toBeGreaterThan(0);
 
       button.simulate('mousedown');
+      render();
 
       expect(parseInt(colgroupArray.eq(0).width(), 10)).toBeGreaterThan(0);
       expect(parseInt(colgroupArray.eq(1).width(), 10)).toBeGreaterThan(0);
@@ -488,6 +489,10 @@ describe('CollapsibleColumns', () => {
 
       collapsibleColumnsPlugin.collapseSection({ row: -2, col: 1 });
 
+      $('.collapsibleIndicator').first().simulate('mousedown');
+      render();
+
+      expect($('.collapsibleIndicator')[0].className.includes('expanded')).toBe(true);
       expect(afterColumnCollapseCallback).not.toHaveBeenCalled();
     });
 
@@ -509,6 +514,11 @@ describe('CollapsibleColumns', () => {
       const collapsibleColumnsPlugin = getPlugin('collapsibleColumns');
 
       collapsibleColumnsPlugin.toggleCollapsibleSection([{ row: -2, col: 1 }], 'collapse');
+
+      $('.collapsibleIndicator').first().simulate('mousedown');
+      render();
+
+      expect($('.collapsibleIndicator')[0].className.includes('expanded')).toBe(true);
 
       expect(afterColumnCollapseCallback).not.toHaveBeenCalled();
     });
@@ -532,6 +542,11 @@ describe('CollapsibleColumns', () => {
 
       collapsibleColumnsPlugin.collapseAll();
 
+      $('.collapsibleIndicator').first().simulate('mousedown');
+      render();
+
+      expect($('.collapsibleIndicator')[0].className.includes('expanded')).toBe(true);
+
       expect(afterColumnCollapseCallback).not.toHaveBeenCalled();
     });
 
@@ -553,6 +568,11 @@ describe('CollapsibleColumns', () => {
       const collapsibleColumnsPlugin = getPlugin('collapsibleColumns');
 
       collapsibleColumnsPlugin.toggleAllCollapsibleSections('collapse');
+
+      $('.collapsibleIndicator').first().simulate('mousedown');
+      render();
+
+      expect($('.collapsibleIndicator')[0].className.includes('expanded')).toBe(true);
 
       expect(afterColumnCollapseCallback).not.toHaveBeenCalled();
     });
@@ -936,6 +956,7 @@ describe('CollapsibleColumns', () => {
 
       button = $('.collapsibleIndicator').first();
       button.simulate('mousedown');
+      render();
 
       expect(parseInt(colgroupArray.eq(0).width(), 10)).toBeGreaterThan(0);
       expect(parseInt(colgroupArray.eq(1).width(), 10)).toBeGreaterThan(0);
@@ -969,6 +990,10 @@ describe('CollapsibleColumns', () => {
 
       collapsibleColumnsPlugin.expandSection({ row: -2, col: 1 });
 
+      $('.collapsibleIndicator').first().simulate('mousedown');
+      render();
+
+      expect($('.collapsibleIndicator')[0].className.includes('collapsed')).toBe(true);
       expect(afterColumnExpandCallback).not.toHaveBeenCalled();
     });
 
@@ -993,6 +1018,10 @@ describe('CollapsibleColumns', () => {
 
       collapsibleColumnsPlugin.toggleCollapsibleSection([{ row: -2, col: 1 }], 'expand');
 
+      $('.collapsibleIndicator').first().simulate('mousedown');
+      render();
+
+      expect($('.collapsibleIndicator')[0].className.includes('collapsed')).toBe(true);
       expect(afterColumnExpandCallback).not.toHaveBeenCalled();
     });
 
@@ -1017,6 +1046,10 @@ describe('CollapsibleColumns', () => {
 
       collapsibleColumnsPlugin.toggleAllCollapsibleSections('expand');
 
+      $('.collapsibleIndicator').first().simulate('mousedown');
+      render();
+
+      expect($('.collapsibleIndicator')[0].className.includes('collapsed')).toBe(true);
       expect(afterColumnExpandCallback).not.toHaveBeenCalled();
     });
 
@@ -1041,6 +1074,10 @@ describe('CollapsibleColumns', () => {
 
       collapsibleColumnsPlugin.expandAll();
 
+      $('.collapsibleIndicator').first().simulate('mousedown');
+      render();
+
+      expect($('.collapsibleIndicator')[0].className.includes('collapsed')).toBe(true);
       expect(afterColumnExpandCallback).not.toHaveBeenCalled();
     });
   });

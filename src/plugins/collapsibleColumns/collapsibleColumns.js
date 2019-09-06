@@ -533,16 +533,16 @@ class CollapsibleColumns extends BasePlugin {
       if (allowColumnExpand === false) {
         this.hiddenColumnsPlugin.hiddenColumns = Array.from(this.collapsedColumns);
 
-        Object.keys(this.collapsedSections).forEach((key) => {
+        arrayEach(Object.keys(this.collapsedSections), (key) => {
           if (Array.isArray(this.collapsedSections[key])) {
             this.collapsedSections[key].forEach((item, index) => {
-              if (this.collapsedSections[key][index] === void 0) {
+              if (item === void 0) {
                 this.collapsedSections[key][index] = true;
               }
             });
 
           } else {
-            Object.keys(this.collapsedSections[key]).forEach((objKey) => {
+            arrayEach(Object.keys(this.collapsedSections[key]), (objKey) => {
               if (this.collapsedSections[key][objKey] === void 0) {
                 this.collapsedSections[key][objKey] = true;
               }
