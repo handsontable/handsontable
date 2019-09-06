@@ -30,6 +30,12 @@ function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
     classesToAdd.push(cellProperties.noWordWrapClassName);
   }
 
+  if (cellProperties.wordWrap && instance.getSettings().trimWhitespace === false) {
+    // default css class (.handsontable th, .handsontable td) sets 'white-space: pre-line;' which will not break lines,
+    // thus the ghost table will calculate the width wrong
+    classesToAdd.push('htAllowWrap');
+  }
+
   if (!value && cellProperties.placeholder) {
     classesToAdd.push(cellProperties.placeholderCellClassName);
   }
