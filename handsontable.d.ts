@@ -278,7 +278,7 @@ declare namespace Handsontable {
       extend<T extends _editors.Base>(): T;
       finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
       abstract focus(): void;
-      getEditedCell(): HTMLTableCellElement | undefined;
+      getEditedCell(): HTMLTableCellElement | null;
       getEditedCellsZIndex(): string;
       abstract getValue(): any;
       init(): void;
