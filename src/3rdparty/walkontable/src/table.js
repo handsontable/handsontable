@@ -104,7 +104,7 @@ class Table {
    * For MasterTable, it returns false.
    *
    * @param {String} overlayTypeName
-   * @return {Boolean}
+   * @returns {Boolean}
    */
   is(overlayTypeName) {
     return Overlay.isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
