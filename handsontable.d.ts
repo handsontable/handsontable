@@ -39,6 +39,7 @@ declare namespace _Handsontable {
     getCellMetaAtRow(row: number): Handsontable.CellProperties[];
     getCellRenderer(row: number, col: number): Handsontable.renderers.Base;
     getCellRenderer(cellMeta: Handsontable.CellMeta): Handsontable.renderers.Base;
+    getCellsMeta(): Handsontable.CellProperties[];
     getCellValidator(row: number, col: number): Handsontable.validators.Base | RegExp | undefined;
     getCellValidator(cellMeta: Handsontable.CellMeta): Handsontable.validators.Base | RegExp | undefined;
     getColHeader(): (number | string)[];
@@ -277,7 +278,7 @@ declare namespace Handsontable {
       extend<T extends _editors.Base>(): T;
       finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
       abstract focus(): void;
-      getEditedCell(): HTMLTableCellElement | undefined;
+      getEditedCell(): HTMLTableCellElement | null;
       getEditedCellsZIndex(): string;
       abstract getValue(): any;
       init(): void;
@@ -1570,18 +1571,20 @@ declare namespace Handsontable {
     }
 
     interface Search extends Base {
-      callback: () => void;
-      queryMethod: () => void;
+      callback: search.SearchCallback;
+      queryMethod: search.SearchQueryMethod;
       searchResultClass: string;
 
-      query(queryStr: string, callback: () => void, queryMethod: () => void): any[];
-      getCallback(): () => void;
-      setCallback(newCallback: () => void): void;
-      getQueryMethod(): () => void;
-      setQueryMethod(newQueryMethod: () => void): void;
+      query(queryStr: string, callback?: search.SearchCallback, queryMethod?: search.SearchQueryMethod): SearchResult[];
+      getCallback(): search.SearchCallback;
+      setCallback(newCallback: search.SearchCallback): void;
+      getQueryMethod(): search.SearchQueryMethod;
+      setQueryMethod(newQueryMethod: search.SearchQueryMethod): void;
       getSearchResultClass(): string;
       setSearchResultClass(newElementClass: string): void;
     }
+
+    type SearchResult = { row: number; col: number; data: CellValue };
   }
 
   namespace renderers {
@@ -1765,7 +1768,7 @@ declare namespace Handsontable {
     rowHeaders?: boolean | string[] | ((index: number) => string);
     rowHeaderWidth?: number | number[];
     rowHeights?: number | number[] | string | string[] | ((index: number) => string | number);
-    search?: boolean;
+    search?: boolean | search.Settings;
     selectionMode?: 'single' | 'range' | 'multiple';
     selectOptions?: string[];
     skipColumnOnPaste?: boolean;
@@ -2450,6 +2453,18 @@ declare namespace Handsontable {
       compareFunctionFactory?: ((sortOrder: columnSorting.SortOrderType, columnMeta: GridSettings) =>
         (value: any, nextValue: any) => -1 | 0 | 1);
     }
+  }
+
+  namespace search {
+    interface Settings {
+      callback?: SearchCallback;
+      queryMethod?: SearchQueryMethod;
+      searchResultClass?: string;
+    }
+
+    type SearchCallback = (instance: Handsontable, row: number, column: number, value: CellValue, result: boolean) => void;
+
+    type SearchQueryMethod = (queryStr: string, value: CellValue, cellProperties: CellProperties) => boolean;
   }
 
   namespace autoColumnSize {

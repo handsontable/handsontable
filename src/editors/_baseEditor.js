@@ -367,6 +367,37 @@ class BaseEditor {
   }
 
   /**
+   * Gets HTMLTableCellElement of the edited cell if exist.
+   *
+   * @returns {string}
+   */
+  getEditedCellsZIndex() {
+    const editorSection = this.checkEditorSection();
+
+    switch (editorSection) {
+      case 'top':
+        return '101';
+      case 'top-left-corner':
+      case 'bottom-left-corner':
+        return '103';
+      case 'left':
+      case 'bottom':
+        return '102';
+      default:
+        return 'auto';
+    }
+  }
+
+  /**
+   * Gets HTMLTableCellElement of the edited cell if exist.
+   *
+   * @returns {HTMLTableCellElement|null}
+   */
+  getEditedCell() {
+    return this.hot.getCell(this.row, this.col, true);
+  }
+
+  /**
    * Returns name of the overlay, where editor is placed.
    *
    * @private
