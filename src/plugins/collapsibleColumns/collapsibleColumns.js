@@ -313,7 +313,7 @@ class CollapsibleColumns extends BasePlugin {
   generateCollapsableCoordsList(column, TH) {
     const TR = TH.parentNode;
     const THEAD = TR.parentNode;
-    const row = ((-1) * THEAD.childNodes.length) + Array.prototype.indexOf.call(THEAD.childNodes, TR);
+    const row = ((-1) * THEAD.childNodes.length) + Array.from(THEAD.childNodes).indexOf(TR);
 
     if (!this.collapsableCoordsList[row]) {
       this.collapsableCoordsList[row] = {};
