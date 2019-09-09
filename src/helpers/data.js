@@ -165,7 +165,7 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
 
       } else if (hasOwnProperty(properties, 'type') && properties.type) { // check if it is own and is not empty
         if (typeof properties.type !== 'string') {
-          throw new Error('Cell type must be a string ');
+          throw new Error('Cell type must be a string');
         }
 
         const type = getCellType(properties.type);

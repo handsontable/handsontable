@@ -22,7 +22,6 @@ import * as functionHelpers from './helpers/function';
 import * as mixedHelpers from './helpers/mixed';
 import * as numberHelpers from './helpers/number';
 import * as objectHelpers from './helpers/object';
-import * as settingHelpers from './helpers/setting';
 import * as stringHelpers from './helpers/string';
 import * as unicodeHelpers from './helpers/unicode';
 import * as domHelpers from './helpers/dom/element';
@@ -75,7 +74,6 @@ const HELPERS = [
   mixedHelpers,
   numberHelpers,
   objectHelpers,
-  settingHelpers,
   stringHelpers,
   unicodeHelpers,
   parseTableHelpers,

@@ -8,10 +8,10 @@ import { EditorState } from './editors/_baseEditor';
 class EditorManager {
   /**
    * @param {Handsontable} instance
-   * @param {GridSettings} priv
+   * @param {GridSettings} tableMeta
    * @param {Selection} selection
    */
-  constructor(instance, priv, selection) {
+  constructor(instance, tableMeta, selection) {
     /**
      * Instance of {@link Handsontable}
      *
@@ -25,7 +25,7 @@ class EditorManager {
      * @private
      * @type {GridSettings}
      */
-    this.priv = priv;
+    this.tableMeta = tableMeta;
     /**
      * Instance of {@link Selection}
      *
@@ -61,6 +61,7 @@ class EditorManager {
      * @type {*}
      */
     this.activeEditor = void 0;
+    this.lastKeyCode = void 0;
 
     this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
@@ -223,7 +224,7 @@ class EditorManager {
    * @param {Boolean} isShiftPressed
    */
   moveSelectionAfterEnter(isShiftPressed) {
-    const enterMoves = typeof this.priv.settings.enterMoves === 'function' ? this.priv.settings.enterMoves(event) : this.priv.settings.enterMoves;
+    const enterMoves = typeof this.tableMeta.enterMoves === 'function' ? this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves;
 
     if (isShiftPressed) {
       // move selection up
@@ -312,7 +313,7 @@ class EditorManager {
     if (isImmediatePropagationStopped(event)) {
       return;
     }
-    this.priv.lastKeyCode = event.keyCode;
+    this.lastKeyCode = event.keyCode;
 
     if (!this.selection.isSelected()) {
       return;
@@ -387,7 +388,7 @@ class EditorManager {
         break;
 
       case KEY_CODES.TAB:
-        tabMoves = typeof this.priv.settings.tabMoves === 'function' ? this.priv.settings.tabMoves(event) : this.priv.settings.tabMoves;
+        tabMoves = typeof this.tableMeta.tabMoves === 'function' ? this.tableMeta.tabMoves(event) : this.tableMeta.tabMoves;
 
         if (isShiftPressed) {
           // move selection left
@@ -516,15 +517,14 @@ const instances = new WeakMap();
 
 /**
  * @param {Handsontable} hotInstance
- * @param {GridSettings} hotSettings
+ * @param {GridSettings} tableMeta
  * @param {Selection} selection
- * @param {DataMap} datamap
  */
-EditorManager.getInstance = function(hotInstance, hotSettings, selection, datamap) {
+EditorManager.getInstance = function(hotInstance, tableMeta, selection) {
   let editorManager = instances.get(hotInstance);
 
   if (!editorManager) {
-    editorManager = new EditorManager(hotInstance, hotSettings, selection, datamap);
+    editorManager = new EditorManager(hotInstance, tableMeta, selection);
     instances.set(hotInstance, editorManager);
   }
 
