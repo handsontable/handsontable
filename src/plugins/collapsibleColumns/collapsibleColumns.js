@@ -535,7 +535,7 @@ class CollapsibleColumns extends BasePlugin {
 
         arrayEach(Object.keys(this.collapsedSections), (key) => {
           if (Array.isArray(this.collapsedSections[key])) {
-            this.collapsedSections[key].forEach((item, index) => {
+            this.collapsedSections[key].forEach((isCollapsed, columnIndex) => {
               if (item === void 0) {
                 this.collapsedSections[key][index] = true;
               }
