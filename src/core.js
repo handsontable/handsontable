@@ -2304,13 +2304,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {String} value Property value.
    * @fires Hooks#afterSetCellMeta
    */
-   this.setCellMeta = function(row, column, key, value) {
-     const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
+  this.setCellMeta = function(row, column, key, value) {
+    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
 
-     metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+    metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
 
-     instance.runHooks('afterSetCellMeta', row, column, key, value);
-   };
+    instance.runHooks('afterSetCellMeta', row, column, key, value);
+  };
 
   /**
    * Get all the cells meta settings at least once generated in the table (in order of cell initialization).
@@ -2319,9 +2319,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function getCellsMeta
    * @returns {Array} Returns an array of ColumnSettings object instances.
    */
-   this.getCellsMeta = function() {
-     return metaManager.getCellMetas();
-   };
+  this.getCellsMeta = function() {
+    return metaManager.getCellMetas();
+  };
 
   /**
    * Returns the cell properties object for the given `row` and `column` coordinates.
