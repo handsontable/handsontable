@@ -408,9 +408,8 @@ class CollapsibleColumns extends BasePlugin {
 
     } else {
       arrayEach(this.buttonEnabledList, (headerRow) => {
-        arrayEach(headerRow, (header) => {
-          if (!Number.isInteger(header)) {
-            const colIndexes = [...header];
+        arrayEach(headerRow, (colIndexes) => {
+          if (!Number.isInteger(colIndexes)) {
 
             colIndexes.forEach((colIndex) => {
               const rowIndex = parseInt(headerRow[0], 10);
@@ -459,6 +458,7 @@ class CollapsibleColumns extends BasePlugin {
 
     const currentCollapsedColumns = this.collapsedColumns;
     const hiddenColumns = this.hiddenColumnsPlugin.hiddenColumns;
+    const cloneCollapsedSections = new Map(JSON.parse(JSON.stringify(Array.from(this.collapsedSections))));
     let collapsePossible;
 
     arrayEach(coords, (currentCoords) => {
@@ -534,18 +534,7 @@ class CollapsibleColumns extends BasePlugin {
 
       if (allowColumnExpand === false) {
         this.hiddenColumnsPlugin.hiddenColumns = Array.from(this.collapsedColumns);
-
-        arrayEach(this.collapsedSections, (rowIndex) => {
-          arrayEach(rowIndex, (collapsedValue) => {
-            if (!Number.isInteger(collapsedValue)) {
-              collapsedValue.forEach((isCollapsed, index) => {
-                if (isCollapsed === void 0) {
-                  collapsedValue[index] = true;
-                }
-              });
-            }
-          });
-        });
+        this.collapsedSections = cloneCollapsedSections;
 
         return;
       }
