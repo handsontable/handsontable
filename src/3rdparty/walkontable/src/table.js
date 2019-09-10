@@ -30,7 +30,12 @@ class Table {
    * @param {HTMLTableElement} table
    */
   constructor(wotInstance, table) {
-    this.isMaster = !wotInstance.cloneOverlay;
+    /**
+     * Indicates if this instance is of type `MasterTable` (i.e. it is NOT an overlay)
+     *
+     * @type {Boolean}
+     */
+    this.isMaster = !wotInstance.cloneOverlay; // "instanceof" operator isn't used, because it caused a circular reference in Webpack
     this.wot = wotInstance;
 
     // legacy support
@@ -68,6 +73,7 @@ class Table {
     this.holder = this.createHolder(this.hider);
 
     this.wtRootElement = this.holder.parentNode;
+
     if (this.isMaster) {
       this.alignOverlaysWithTrimmingContainer();
     }
@@ -109,8 +115,9 @@ class Table {
   /**
    * Returns a boolean that is true if this intance of Table represents a specific overlay, identified by the overlay name.
    * For MasterTable, it returns false.
+   *
    * @param {String} overlayTypeName
-   * @return {Boolean}
+   * @returns {Boolean}
    */
   is(overlayTypeName) {
     return Overlay.isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
@@ -607,7 +614,15 @@ class Table {
 
   /**
    * Get cell element at coords.
-   * Negative coords.row or coords.col are used to retrieve header cells
+   * Negative coords.row or coords.col are used to retrieve header cells. If there are multiple header levels, the
+   * negative value corresponds to the distance from the working area. For example, when there are 3 levels of column
+   * headers, coords.col=-1 corresponds to the most inner header element, while coords.col=-3 corresponds to the
+   * outmost header element.
+   *
+   * In case an element for the coords is not rendered, the method returns an error code.
+   * To produce the error code, the input parameters are validated in the order in which they
+   * are given. Thus, if both the row and the column coords are out of the rendered bounds,
+   * the method returns the error code for the row.
    *
    * @param {CellCoords} coords
    * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:
@@ -643,7 +658,9 @@ class Table {
     }
 
     if (row < 0) {
-      const zeroBasedHeaderLevel = (-1 * row) - 1;
+      const columnHeaders = this.wot.getSetting('columnHeaders');
+      const columnHeadersCount = columnHeaders.length;
+      const zeroBasedHeaderLevel = columnHeadersCount + row;
       return this.getColumnHeader(column, zeroBasedHeaderLevel);
     }
 
@@ -795,34 +812,46 @@ class Table {
 
   /**
    * 0-based index of column header
+   *
    * @param {Number} level
+   * @returns {Boolean}
    */
   isColumnHeaderLevelRendered(level) {
     const columnHeaders = this.wot.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
+
     return level > (columnHeadersCount - 1);
   }
 
   /**
    * 0-based index of row header
+   *
    * @param {Number} level
+   * @returns {Boolean}
    */
   isRowHeaderLevelRendered(level) {
     const columnHeaders = this.wot.getSetting('rowHeaders');
     const columnHeadersCount = columnHeaders.length;
+
     return level > (columnHeadersCount - 1);
   }
 
+  /**
+   * Check if the given row index is smaller than the index of the first row that is currently redered
+   * and return TRUE in that case, or FALSE otherwise.
+   *
+   * Negative row index is used to check the header cells. As a simplification, it checks negative row index
+   * the same way as a regular row 0. You can interpret this as follows: If the row 0 is rendered, all header
+   * cells are also rendered.
+   *
+   * @param {Number} row
+   * @returns {Boolean}
+   */
   isRowBeforeRenderedRows(row) {
     const first = this.getFirstRenderedRow();
+
     if (row < 0) {
-      if (first === 0) {
-        // first rendered row is above 0, so we can't expect any headers to be rendered
-        return false;
-      }
-
-      return true;
-
+      row = 0;
     }
 
     if (first === -1) {
@@ -835,9 +864,20 @@ class Table {
     return this.rowFilter && (row > this.getLastVisibleRow());
   }
 
+  /**
+   * Check if the given column index is larger than the index of the last column that is currently redered
+   * and return TRUE in that case, or FALSE otherwise.
+   *
+   * Negative column index is used to check the header cells.
+   *
+   * @param {Number} column
+   * @returns {Boolean}
+   */
   isRowAfterRenderedRows(row) {
     if (row < 0) {
-      const zeroBasedHeaderLevel = (-1 * row) - 1;
+      const columnHeaders = this.wot.getSetting('columnHeaders');
+      const columnHeadersCount = columnHeaders.length;
+      const zeroBasedHeaderLevel = columnHeadersCount + row;
       return this.isColumnHeaderLevelRendered(zeroBasedHeaderLevel);
     }
     return row > this.getLastRenderedRow();
@@ -847,16 +887,22 @@ class Table {
     return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
   }
 
+  /**
+   * Check if the given column index is smaller than the index of the first column that is currently redered
+   * and return TRUE in that case, or FALSE otherwise.
+   *
+   * Negative column index is used to check the header cells. As a simplification, it checks negative column index
+   * the same way as a regular column 0. You can interpret this as follows: If the column 0 is rendered, all header
+   * cells are also rendered.
+   *
+   * @param {Number} column
+   * @returns {Boolean}
+   */
   isColumnBeforeRenderedColumns(column) {
     const first = this.getFirstRenderedColumn();
+
     if (column < 0) {
-      if (first === 0) {
-        // first rendered column is above 0, so we can't expect any headers to be rendered
-        return false;
-      }
-
-      return true;
-
+      column = 0;
     }
 
     if (first === -1) {
@@ -869,9 +915,20 @@ class Table {
     return this.columnFilter && (column > this.getLastVisibleColumn());
   }
 
+  /**
+   * Check if the given column index is larger than the index of the last column that is currently redered
+   * and return TRUE in that case, or FALSE otherwise.
+   *
+   * Negative column index is used to check the header cells.
+   *
+   * @param {Number} column
+   * @returns {Boolean}
+   */
   isColumnAfterRenderedColumns(column) {
     if (column < 0) {
-      const zeroBasedHeaderLevel = (-1 * column) - 1;
+      const rowHeaders = this.wot.getSetting('rowHeaders');
+      const rowHeadersCount = rowHeaders.length;
+      const zeroBasedHeaderLevel = rowHeadersCount + column;
       return this.isRowHeaderLevelRendered(zeroBasedHeaderLevel);
     }
     return this.columnFilter && (column > this.getLastRenderedColumn());
