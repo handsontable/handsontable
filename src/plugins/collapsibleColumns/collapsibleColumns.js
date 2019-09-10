@@ -68,7 +68,7 @@ class CollapsibleColumns extends BasePlugin {
      * @private
      * @type {Object}
      */
-    this.buttonEnabledList = {};
+    this.buttonEnabledList = new Map();
     /**
      * Cached reference to the HiddenColumns plugin.
      *
@@ -89,7 +89,7 @@ class CollapsibleColumns extends BasePlugin {
      * @private
      * @type {Object}
      */
-    this.collapsedSections = {};
+    this.collapsedSections = new Map();
     /**
      * Number of column header levels.
      *
@@ -117,7 +117,7 @@ class CollapsibleColumns extends BasePlugin {
      * @private
      * @type {Object}
      */
-    this.collapsableCoordsList = {};
+    this.collapsableCoordsList = new Map();
   }
 
   /**
@@ -164,9 +164,9 @@ class CollapsibleColumns extends BasePlugin {
    */
   disablePlugin() {
     this.settings = null;
-    this.buttonEnabledList = {};
+    this.buttonEnabledList.clear();
     this.hiddenColumnsPlugin = null;
-    this.collapsedSections = {};
+    this.collapsedSections.clear();
 
     this.clearButtons();
 
@@ -228,11 +228,11 @@ class CollapsibleColumns extends BasePlugin {
   parseSettings() {
     objectEach(this.settings, (val) => {
 
-      if (!this.buttonEnabledList[val.row]) {
-        this.buttonEnabledList[val.row] = {};
+      if (!this.buttonEnabledList.has(val.row)) {
+        this.buttonEnabledList.set(val.row, new Set());
       }
 
-      this.buttonEnabledList[val.row][val.col] = val.collapsible;
+      this.buttonEnabledList.get(val.row).add(val.col);
     });
 
     this.collapsableCoordsList = this.buttonEnabledList;
@@ -284,7 +284,7 @@ class CollapsibleColumns extends BasePlugin {
     const THEAD = TR.parentNode;
     const row = ((-1) * THEAD.childNodes.length) + Array.prototype.indexOf.call(THEAD.childNodes, TR);
 
-    if (Object.keys(this.buttonEnabledList).length > 0 && (!this.buttonEnabledList[row] || !this.buttonEnabledList[row][column])) {
+    if (this.buttonEnabledList.size > 0 && (!this.buttonEnabledList.has(row) || !this.buttonEnabledList.get(row).has(column))) {
       return null;
     }
 
@@ -292,7 +292,7 @@ class CollapsibleColumns extends BasePlugin {
 
     addClass(divEl, 'collapsibleIndicator');
 
-    if (this.collapsedSections[row] && this.collapsedSections[row][column] === true) {
+    if (this.collapsedSections.has(row) && this.collapsedSections.get(row)[column] === true) {
       addClass(divEl, 'collapsed');
       fastInnerText(divEl, '+');
     } else {
@@ -315,11 +315,11 @@ class CollapsibleColumns extends BasePlugin {
     const THEAD = TR.parentNode;
     const row = ((-1) * THEAD.childNodes.length) + Array.from(THEAD.childNodes).indexOf(TR);
 
-    if (!this.collapsableCoordsList[row]) {
-      this.collapsableCoordsList[row] = {};
+    if (!this.collapsableCoordsList.has(row)) {
+      this.collapsableCoordsList.set(row, new Set());
     }
 
-    this.collapsableCoordsList[row][column] = true;
+    this.collapsableCoordsList.get(row).add(column);
   }
 
   /**
@@ -332,17 +332,17 @@ class CollapsibleColumns extends BasePlugin {
    * @param {Boolean} recursive If `true`, it will also attempt to mark the child sections.
    */
   markSectionAs(state, row, column, recursive) {
-    if (!this.collapsedSections[row]) {
-      this.collapsedSections[row] = {};
+    if (!this.collapsedSections.has(row)) {
+      this.collapsedSections.set(row, []);
     }
 
     switch (state) {
       case 'collapsed':
-        this.collapsedSections[row][column] = true;
+        this.collapsedSections.get(row)[column] = true;
 
         break;
       case 'expanded':
-        this.collapsedSections[row][column] = void 0;
+        this.collapsedSections.get(row)[column] = void 0;
 
         break;
       default:
@@ -407,15 +407,20 @@ class CollapsibleColumns extends BasePlugin {
       });
 
     } else {
-      objectEach(this.buttonEnabledList, (headerRow, i) => {
-        objectEach(headerRow, (header, j) => {
-          const rowIndex = parseInt(i, 10);
-          const columnIndex = parseInt(j, 10);
+      arrayEach(this.buttonEnabledList, (headerRow) => {
+        arrayEach(headerRow, (header) => {
+          if (!Number.isInteger(header)) {
+            const colIndexes = [...header];
 
-          sectionToToggle.push({
-            row: rowIndex,
-            col: columnIndex
-          });
+            colIndexes.forEach((colIndex) => {
+              const rowIndex = parseInt(headerRow[0], 10);
+
+              sectionToToggle.push({
+                row: rowIndex,
+                col: colIndex
+              });
+            });
+          }
         });
       });
     }
@@ -454,7 +459,6 @@ class CollapsibleColumns extends BasePlugin {
 
     const currentCollapsedColumns = this.collapsedColumns;
     const hiddenColumns = this.hiddenColumnsPlugin.hiddenColumns;
-    let destinationCollapsedColumns = currentCollapsedColumns;
     let collapsePossible;
 
     arrayEach(coords, (currentCoords) => {
@@ -465,14 +469,14 @@ class CollapsibleColumns extends BasePlugin {
         currentCoords.col = parseInt(currentCoords.col, 10);
       }
 
-      if (!this.collapsableCoordsList[currentCoords.row] ||
-        (this.collapsableCoordsList[currentCoords.row] && !this.collapsableCoordsList[currentCoords.row][currentCoords.col])) {
+      if (!this.collapsableCoordsList.has(currentCoords.row) ||
+        (this.collapsableCoordsList.has(currentCoords.row) && !this.collapsableCoordsList.get(currentCoords.row).has(currentCoords.col))) {
         collapsePossible = false;
 
         return false;
       }
 
-      collapsePossible = this.collapsableCoordsList[currentCoords.row][currentCoords.col];
+      collapsePossible = this.collapsableCoordsList.get(currentCoords.row).has(currentCoords.col);
 
       const colspanArray = this.nestedHeadersPlugin.colspanArray;
       const level = this.nestedHeadersPlugin.rowCoordsToLevel(currentCoords.row);
@@ -497,8 +501,6 @@ class CollapsibleColumns extends BasePlugin {
               hiddenColumns.push(colToHide);
             }
 
-            destinationCollapsedColumns = Array.from(hiddenColumns);
-
             this.markSectionAs('collapsed', currentCoords.row, currentCoords.col, true);
 
             break;
@@ -506,8 +508,6 @@ class CollapsibleColumns extends BasePlugin {
             if (this.hiddenColumnsPlugin.isHidden(colToHide)) {
               hiddenColumns.splice(hiddenColumns.indexOf(colToHide), 1);
             }
-
-            destinationCollapsedColumns = Array.from(hiddenColumns);
 
             this.markSectionAs('expanded', currentCoords.row, currentCoords.col, true);
 
@@ -518,12 +518,14 @@ class CollapsibleColumns extends BasePlugin {
       });
     });
 
+    const destinationCollapsedColumns = Array.from(hiddenColumns);
+
     if (action === 'collapse') {
       const allowColumnCollapse = this.hot.runHooks('beforeColumnCollapse', currentCollapsedColumns, destinationCollapsedColumns, collapsePossible);
 
       if (allowColumnCollapse === false) {
         hiddenColumns.length = 0;
-        this.collapsedSections = {};
+        this.collapsedSections.clear();
 
         return;
       }
@@ -532,22 +534,18 @@ class CollapsibleColumns extends BasePlugin {
 
       if (allowColumnExpand === false) {
         this.hiddenColumnsPlugin.hiddenColumns = Array.from(this.collapsedColumns);
+        console.log(this.collapsedSections);
 
-        arrayEach(Object.keys(this.collapsedSections), (key) => {
-          if (Array.isArray(this.collapsedSections[key])) {
-            this.collapsedSections[key].forEach((isCollapsed, columnIndex) => {
-              if (item === void 0) {
-                this.collapsedSections[key][index] = true;
-              }
-            });
-
-          } else {
-            arrayEach(Object.keys(this.collapsedSections[key]), (objKey) => {
-              if (this.collapsedSections[key][objKey] === void 0) {
-                this.collapsedSections[key][objKey] = true;
-              }
-            });
-          }
+        arrayEach(this.collapsedSections, (rowIndex) => {
+          arrayEach(rowIndex, (collapsedValue) => {
+            if (!Number.isInteger(collapsedValue)) {
+              collapsedValue.forEach((isCollapsed, index) => {
+                if (isCollapsed === void 0) {
+                  collapsedValue[index] = true;
+                }
+              });
+            }
+          });
         });
 
         return;
@@ -580,7 +578,7 @@ class CollapsibleColumns extends BasePlugin {
     if (TH.hasAttribute('colspan') && TH.getAttribute('colspan') > 1 && column >= this.hot.getSettings().fixedColumnsLeft) {
       const button = this.generateIndicator(column, TH);
 
-      if (Object.keys(this.buttonEnabledList).length === 0) {
+      if (this.buttonEnabledList.size === 0) {
         this.generateCollapsableCoordsList(column, TH);
       }
 
@@ -602,8 +600,8 @@ class CollapsibleColumns extends BasePlugin {
       if (hasClass(event.target, 'expanded')) {
 
         // mark section as collapsed
-        if (!this.collapsedSections[coords.row]) {
-          this.collapsedSections[coords.row] = [];
+        if (!this.collapsedSections.has(coords.row)) {
+          this.collapsedSections.set(coords.row, []);
         }
 
         this.eventManager.fireEvent(event.target, 'mouseup');

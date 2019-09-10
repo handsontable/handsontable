@@ -781,10 +781,10 @@ declare namespace Handsontable {
     }
 
     interface CollapsibleColumns extends Base {
-      buttonEnabledList: object;
-      collapsableCoordsList: object;
+      buttonEnabledList: Map;
+      collapsableCoordsList: Map;
       collapsedColumns: number[];
-      collapsedSections: object;
+      collapsedSections: Map;
       columnHeaderLevelCount: number;
       eventManager: EventManager;
       hiddenColumnsPlugin: object;
