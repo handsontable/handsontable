@@ -63,7 +63,7 @@ class CollapsibleColumns extends BasePlugin {
      */
     this.settings = null;
     /**
-     * Object listing headers with buttons enabled.
+     * Map listing headers with buttons enabled.
      *
      * @private
      * @type {Object}
@@ -84,7 +84,7 @@ class CollapsibleColumns extends BasePlugin {
      */
     this.nestedHeadersPlugin = null;
     /**
-     * Object listing the currently collapsed sections.
+     * Map listing the currently collapsed sections.
      *
      * @private
      * @type {Object}
@@ -646,6 +646,8 @@ class CollapsibleColumns extends BasePlugin {
     this.nestedHeadersPlugin = null;
     this.collapsedSections = null;
     this.columnHeaderLevelCount = null;
+    this.collapsedColumns = null;
+    this.collapsableCoordsList = null;
 
     super.destroy();
   }
