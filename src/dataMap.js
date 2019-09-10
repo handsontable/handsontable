@@ -369,11 +369,10 @@ class DataMap {
         this.priv.columnSettings.splice(currentIndex, 0, constructor);
       }
 
+      this.instance.recordTranslator.getColumnIndexMapper().insertIndexes(numberOfCreatedCols, 1);
       numberOfCreatedCols += 1;
       currentIndex += 1;
     }
-
-    this.instance.recordTranslator.getColumnIndexMapper().insertIndexes(columnIndex, amount);
 
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -475,7 +474,7 @@ class DataMap {
     }
 
     // TODO: Function `removeCol` should validate fully, probably above.
-    if (index < this.instance.countCols()) {
+    if (columnIndex < this.instance.countCols()) {
       this.instance.recordTranslator.getColumnIndexMapper().removeIndexes(logicColumns);
     }
 

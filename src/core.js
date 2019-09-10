@@ -1606,8 +1606,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     clearCellSettingCache();
 
-    // Method `countSourceCols` doesn't return number of columns declared by `minCols` property.
-    recordTranslator.getColumnIndexMapper().initToLength(Math.max(this.countSourceCols(), this.countCols()));
+    const columnsSettings = priv.settings.columns;
+    let nrOfColumnsFromSettings = 0;
+
+    // We will check number of columns only when the `columns` property was defined as an array.
+    if (Array.isArray(columnsSettings)) {
+      nrOfColumnsFromSettings = columnsSettings.length;
+    }
+
+    /**
+     * We need to use `Math.max`, because:
+     * - we need information about `columns` as `data` may contains functions, less columns than defined by the property or even be empty.
+     * - we need also information about dataSchema as `data` and `columns` properties may not provide information about number of columns
+     * (ie. `data` may be empty, `columns` may be a function).
+     */
+    recordTranslator.getColumnIndexMapper().initToLength(Math.max(this.countSourceCols(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
     recordTranslator.getRowIndexMapper().initToLength(this.countSourceRows());
 
     grid.adjustRowsAndCols();
@@ -3026,16 +3039,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countCols = function() {
     const maxCols = this.getSettings().maxCols;
-    let dataHasLength = false;
-    let dataLen = 0;
-
-    if (instance.dataType === 'array') {
-      dataHasLength = priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length;
-    }
-
-    if (dataHasLength) {
-      dataLen = priv.settings.data[0].length;
-    }
+    let dataLen = recordTranslator.getColumnIndexMapper().getNotSkippedIndexesLength();
 
     if (priv.settings.columns) {
       const columnsIsFunction = isFunction(priv.settings.columns);
