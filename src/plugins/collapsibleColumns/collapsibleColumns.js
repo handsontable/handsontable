@@ -534,7 +534,6 @@ class CollapsibleColumns extends BasePlugin {
 
       if (allowColumnExpand === false) {
         this.hiddenColumnsPlugin.hiddenColumns = Array.from(this.collapsedColumns);
-        console.log(this.collapsedSections);
 
         arrayEach(this.collapsedSections, (rowIndex) => {
           arrayEach(rowIndex, (collapsedValue) => {
