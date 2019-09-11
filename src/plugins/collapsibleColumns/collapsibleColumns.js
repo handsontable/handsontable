@@ -66,7 +66,7 @@ class CollapsibleColumns extends BasePlugin {
      * Map listing headers with buttons enabled.
      *
      * @private
-     * @type {Object}
+      * @type {Map<number, Set<number>>}
      */
     this.buttonEnabledList = new Map();
     /**
