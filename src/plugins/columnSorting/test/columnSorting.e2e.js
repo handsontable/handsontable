@@ -2583,23 +2583,41 @@ describe('ColumnSorting', () => {
     });
   });
 
-  describe('index mappers', () => {
-    it('should not map indexes when already sorted column was set to not sorted', () => {
-      const hot = handsontable({
-        colHeaders: true,
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
-        columnSorting: {
-          initialConfig: {
-            column: 0,
-            sortOrder: 'desc'
-          }
-        }
-      });
-
-      updateSettings({ columnSorting: { initialConfig: [] } });
-
-      expect(hot.toVisualRow(0)).toEqual(0);
+  it('should revert starting indexes sequence after resetting the state to not sorted', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      colHeaders: true,
+      columnSorting: true
     });
+
+    getPlugin('columnSorting').rowIndexMapper.setIndexesSequence([2, 0, 1]);
+
+    spec().sortByClickOnColumnHeader(0);
+    spec().sortByClickOnColumnHeader(0);
+    spec().sortByClickOnColumnHeader(0);
+
+    expect(getData()).toEqual([
+      ['A3', 'B3', 'C3'],
+      ['A1', 'B1', 'C1'],
+      ['A2', 'B2', 'C2']
+    ]);
+  });
+
+  it('should not map indexes when already sorted column was set to not sorted', () => {
+    const hot = handsontable({
+      colHeaders: true,
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      columnSorting: {
+        initialConfig: {
+          column: 0,
+          sortOrder: 'desc'
+        }
+      }
+    });
+
+    updateSettings({ columnSorting: { initialConfig: [] } });
+
+    expect(hot.toVisualRow(0)).toEqual(0);
   });
 
   // TODO: Remove tests when workaround will be removed.

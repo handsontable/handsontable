@@ -220,6 +220,7 @@ class ColumnSorting extends BasePlugin {
 
     if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
       this.indexesSequenceCache = this.rowIndexMapper.registerMap(this.pluginKey, new IndexMap());
+      this.indexesSequenceCache.setValues(this.rowIndexMapper.getIndexesSequence());
     }
 
     if (sortPossible) {
