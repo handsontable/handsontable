@@ -115,7 +115,7 @@ class CollapsibleColumns extends BasePlugin {
      * List of collapsable coords.
      *
      * @private
-     * @type {Object}
+     * @type {Map<number, Set<number>>}
      */
     this.collapsableCoordsList = new Map();
   }
