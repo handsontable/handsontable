@@ -334,6 +334,7 @@ class DataMap {
     const columnIndex = typeof index !== 'number' || index >= countColumns ? countColumns : index;
     let numberOfCreatedCols = 0;
     let currentIndex;
+    let nrOfColumns = this.instance.countCols();
 
     const continueProcess = this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
 
@@ -344,10 +345,10 @@ class DataMap {
     currentIndex = columnIndex;
 
     const maxCols = this.instance.getSettings().maxCols;
-    while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
+    while (numberOfCreatedCols < amount && nrOfColumns < maxCols) {
       const constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
 
-      if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countCols()) {
+      if (typeof columnIndex !== 'number' || columnIndex >= nrOfColumns) {
         if (rlen > 0) {
           for (let r = 0; r < rlen; r++) {
             if (typeof data[r] === 'undefined') {
@@ -369,10 +370,12 @@ class DataMap {
         this.priv.columnSettings.splice(currentIndex, 0, constructor);
       }
 
-      this.instance.recordTranslator.getColumnIndexMapper().insertIndexes(numberOfCreatedCols, 1);
       numberOfCreatedCols += 1;
       currentIndex += 1;
+      nrOfColumns += 1;
     }
+
+    this.instance.recordTranslator.getColumnIndexMapper().insertIndexes(numberOfCreatedCols, amount);
 
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed

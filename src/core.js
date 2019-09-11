@@ -2846,9 +2846,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         return arr[visualColumnIndex];
       };
-      const baseCol = columnIndex;
-      const physicalColumn = instance.toPhysicalColumn(baseCol);
 
+      const physicalColumn = instance.toPhysicalColumn(columnIndex);
       const prop = translateVisualIndexToColumns(physicalColumn);
 
       if (priv.settings.colHeaders === false) {
@@ -2867,7 +2866,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         result = priv.settings.colHeaders(physicalColumn);
 
       } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
-        result = spreadsheetColumnLabel(baseCol); // see #1458
+        result = spreadsheetColumnLabel(columnIndex); // see #1458
       }
     }
 
