@@ -1,4 +1,7 @@
-import { objectEach } from '../../helpers/object';
+import {
+  objectEach,
+  deepClone
+} from '../../helpers/object';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';
@@ -407,19 +410,14 @@ class CollapsibleColumns extends BasePlugin {
       });
 
     } else {
-      arrayEach(this.buttonEnabledList, (headerRow) => {
-        arrayEach(headerRow, (colIndexes) => {
-          if (!Number.isInteger(colIndexes)) {
+      arrayEach(this.buttonEnabledList, ([headerRowIndex, columnIndexes]) => {
+        arrayEach(columnIndexes, (columnIndex) => {
+          const rowIndex = parseInt(headerRowIndex, 10);
 
-            colIndexes.forEach((colIndex) => {
-              const rowIndex = parseInt(headerRow[0], 10);
-
-              sectionToToggle.push({
-                row: rowIndex,
-                col: colIndex
-              });
-            });
-          }
+          sectionToToggle.push({
+            row: rowIndex,
+            col: columnIndex
+          });
         });
       });
     }
@@ -524,8 +522,8 @@ class CollapsibleColumns extends BasePlugin {
       const allowColumnCollapse = this.hot.runHooks('beforeColumnCollapse', currentCollapsedColumns, destinationCollapsedColumns, collapsePossible);
 
       if (allowColumnCollapse === false) {
-        hiddenColumns.length = 0;
-        this.collapsedSections.clear();
+        this.hiddenColumnsPlugin.hiddenColumns = Array.from(this.collapsedColumns);
+        this.collapsedSections = cloneCollapsedSections;
 
         return;
       }
