@@ -87,7 +87,7 @@ class CollapsibleColumns extends BasePlugin {
      * Map listing the currently collapsed sections.
      *
      * @private
-     * @type {Object}
+      * @type {Map<number, any[]>}
      */
     this.collapsedSections = new Map();
     /**
