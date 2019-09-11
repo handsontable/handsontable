@@ -458,7 +458,7 @@ class CollapsibleColumns extends BasePlugin {
 
     const currentCollapsedColumns = this.collapsedColumns;
     const hiddenColumns = this.hiddenColumnsPlugin.hiddenColumns;
-    const cloneCollapsedSections = new Map(JSON.parse(JSON.stringify(Array.from(this.collapsedSections))));
+    const cloneCollapsedSections = new Map(deepClone(Array.from(this.collapsedSections)));
     let collapsePossible;
 
     arrayEach(coords, (currentCoords) => {
