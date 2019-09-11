@@ -142,9 +142,8 @@ class EditorManager {
 
     if (editorClass) {
       this.activeEditor = getEditorInstance(editorClass, this.instance);
-      const td = this.activeEditor.getEditedCell();
+      const td = this.instance.getCell(row, col, true);
       this.activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
-
     } else {
       this.activeEditor = void 0;
     }
