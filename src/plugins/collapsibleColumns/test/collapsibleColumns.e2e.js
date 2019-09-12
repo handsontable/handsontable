@@ -577,6 +577,56 @@ describe('CollapsibleColumns', () => {
       expect(afterColumnCollapseCallback).not.toHaveBeenCalled();
     });
 
+    it('should not break table when beforeColumnCollapse returns false on a specific column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'b', colspan: 2 }, { label: 'c', colspan: 2 }, 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
+        ],
+        collapsibleColumns: true,
+        beforeColumnCollapse: (currentCollapsedColumns, destinationCollapsedColumns) => {
+          if (destinationCollapsedColumns.includes(2)) {
+            return false;
+          }
+        },
+      });
+
+      const colgroupArray = $('colgroup col');
+      const collapsibleColumnsPlugin = getPlugin('collapsibleColumns');
+
+      expect(parseInt(colgroupArray.eq(0).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(1).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(2).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(3).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(4).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(5).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(6).width(), 10)).toBeGreaterThan(0);
+
+      collapsibleColumnsPlugin.collapseSection({ row: -2, col: 1 });
+      render();
+
+      expect(parseInt(colgroupArray.eq(0).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(1).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(2).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(3).width(), 10)).toEqual(0);
+      expect(parseInt(colgroupArray.eq(4).width(), 10)).toEqual(0);
+      expect(parseInt(colgroupArray.eq(5).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(6).width(), 10)).toBeGreaterThan(0);
+
+      collapsibleColumnsPlugin.collapseSection({ row: -1, col: 1 });
+      render();
+
+      expect(parseInt(colgroupArray.eq(0).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(1).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(2).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(3).width(), 10)).toEqual(0);
+      expect(parseInt(colgroupArray.eq(4).width(), 10)).toEqual(0);
+      expect(parseInt(colgroupArray.eq(5).width(), 10)).toBeGreaterThan(0);
+      expect(parseInt(colgroupArray.eq(6).width(), 10)).toBeGreaterThan(0);
+    });
+
     xit('should maintain the collapse functionality, when the table has been scrolled', function() {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
@@ -1079,6 +1129,42 @@ describe('CollapsibleColumns', () => {
 
       expect($('.collapsibleIndicator')[0].className.includes('collapsed')).toBe(true);
       expect(afterColumnExpandCallback).not.toHaveBeenCalled();
+    });
+
+    it('should not change buttons class name when beforeColumnExpand returns false on some column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['a', { label: 'd', colspan: 4 }, 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+          ['a', { label: 'b', colspan: 2 }, { label: 'c', colspan: 2 }, 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'f', 'g']
+        ],
+        collapsibleColumns: true,
+        beforeColumnExpand: (currentCollapsedColumns) => {
+          if (currentCollapsedColumns.includes(2)) {
+            return false;
+          }
+        },
+      });
+
+      const collapsibleColumnsPlugin = getPlugin('collapsibleColumns');
+
+      expect($('.collapsibleIndicator')[0].className.includes('expanded')).toBe(true);
+      expect($('.collapsibleIndicator')[1].className.includes('expanded')).toBe(true);
+      expect($('.collapsibleIndicator')[2].className.includes('expanded')).toBe(true);
+
+      collapsibleColumnsPlugin.collapseSection({ row: -1, col: 1 });
+
+      expect($('.collapsibleIndicator')[0].className.includes('expanded')).toBe(true);
+      expect($('.collapsibleIndicator')[1].className.includes('collapsed')).toBe(true);
+      expect($('.collapsibleIndicator')[2].className.includes('expanded')).toBe(true);
+
+      collapsibleColumnsPlugin.expandSection({ row: -1, col: 1 });
+      render();
+
+      expect($('.collapsibleIndicator')[0].className.includes('expanded')).toBe(true);
+      expect($('.collapsibleIndicator')[1].className.includes('collapsed')).toBe(true);
+      expect($('.collapsibleIndicator')[2].className.includes('expanded')).toBe(true);
     });
   });
 });
