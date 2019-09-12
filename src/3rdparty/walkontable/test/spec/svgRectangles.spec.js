@@ -3,6 +3,16 @@ describe('getSvgRectangleRenderer', () => {
   let svg;
   let svgRectangles;
 
+  const totalWidth = 10;
+  const totalHeight = 10;
+
+  function callSvgRectangleRenderer(rawData) {
+    const stylesAndStrokes = precalculateStrokes(rawData, totalWidth, totalHeight);
+    const strokeStyles = [...stylesAndStrokes.keys()];
+    const strokeLines = [...stylesAndStrokes.values()];
+    svgRectangles(totalWidth, totalHeight, strokeStyles, strokeLines);
+  }
+
   beforeEach(() => {
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -21,7 +31,7 @@ describe('getSvgRectangleRenderer', () => {
 
   describe('stroke alignment of a rectangle in the middle', () => {
     it('should center 1px line exactly on the path', async() => {
-      const rects = [
+      const rawData = [
         {
           x1: 2,
           x2: 7,
@@ -33,7 +43,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '1px #000',
         }
       ];
-      svgRectangles(10, 10, rects, 0, 0, 10, 10);
+      callSvgRectangleRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▯▯▯▯▯▯▯▯▯▯
@@ -47,7 +57,7 @@ describe('getSvgRectangleRenderer', () => {
 ▯▯▯▯▯▯▯▯▯▯`);
     });
     it('should center 2px on the path with a leak to the top-left', async() => {
-      const rects = [
+      const rawData = [
         {
           x1: 2,
           x2: 7,
@@ -59,7 +69,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '2px #000',
         }
       ];
-      svgRectangles(10, 10, rects, 0, 0, 10, 10);
+      callSvgRectangleRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▯▮▮▮▮▮▮▮▯▯
@@ -73,7 +83,7 @@ describe('getSvgRectangleRenderer', () => {
 ▯▯▯▯▯▯▯▯▯▯`);
     });
     it('should center 3px line exactly on the path', async() => {
-      const rects = [
+      const rawData = [
         {
           x1: 2,
           x2: 7,
@@ -85,7 +95,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '3px #000',
         }
       ];
-      svgRectangles(10, 10, rects, 0, 0, 10, 10);
+      callSvgRectangleRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▯▮▮▮▮▮▮▮▮▯
@@ -102,7 +112,7 @@ describe('getSvgRectangleRenderer', () => {
 
   describe('stroke alignment of a rectangle that touches the edges vertically', () => {
     it('should center 1px line exactly on the path', async() => {
-      const rects = [
+      const rawData = [
         {
           x1: 2,
           x2: 7,
@@ -114,7 +124,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '1px #000',
         }
       ];
-      svgRectangles(10, 10, rects, 0, 0, 10, 10);
+      callSvgRectangleRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▮▮▮▮▮▮▯▯
 ▯▯▮▯▯▯▯▮▯▯
@@ -128,7 +138,7 @@ describe('getSvgRectangleRenderer', () => {
 ▯▯▮▮▮▮▮▮▯▯`);
     });
     it('should center 2px on the path with a leak to the top-left', async() => {
-      const rects = [
+      const rawData = [
         {
           x1: 2,
           x2: 7,
@@ -140,7 +150,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '2px #000',
         }
       ];
-      svgRectangles(10, 10, rects, 0, 0, 10, 10);
+      callSvgRectangleRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▮▮▮▮▮▮▮▯▯
 ▯▮▮▮▮▮▮▮▯▯
@@ -154,7 +164,7 @@ describe('getSvgRectangleRenderer', () => {
 ▯▮▮▮▮▮▮▮▯▯`);
     });
     it('should center 3px line exactly on the path', async() => {
-      const rects = [
+      const rawData = [
         {
           x1: 2,
           x2: 7,
@@ -166,7 +176,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '3px #000',
         }
       ];
-      svgRectangles(10, 10, rects, 0, 0, 10, 10);
+      callSvgRectangleRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▮▮▮▮▮▮▮▮▯
 ▯▮▮▮▮▮▮▮▮▯
@@ -183,7 +193,7 @@ describe('getSvgRectangleRenderer', () => {
 
   describe('stroke alignment of a rectangle that touches the edges horizontally', () => {
     it('should center 1px line exactly on the path', async() => {
-      const rects = [
+      const rawData = [
         {
           x1: 0,
           x2: 9,
@@ -195,7 +205,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '1px #000',
         }
       ];
-      svgRectangles(10, 10, rects, 0, 0, 10, 10);
+      callSvgRectangleRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▯▯▯▯▯▯▯▯▯▯
@@ -209,7 +219,7 @@ describe('getSvgRectangleRenderer', () => {
 ▯▯▯▯▯▯▯▯▯▯`);
     });
     it('should center 2px on the path with a leak to the top-left', async() => {
-      const rects = [
+      const rawData = [
         {
           x1: 0,
           x2: 9,
@@ -221,7 +231,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '2px #000',
         }
       ];
-      svgRectangles(10, 10, rects, 0, 0, 10, 10);
+      callSvgRectangleRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▮▮▮▮▮▮▮▮▮▮
@@ -235,7 +245,7 @@ describe('getSvgRectangleRenderer', () => {
 ▯▯▯▯▯▯▯▯▯▯`);
     });
     it('should center 3px line exactly on the path', async() => {
-      const rects = [
+      const rawData = [
         {
           x1: 0,
           x2: 9,
@@ -247,7 +257,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '3px #000',
         }
       ];
-      svgRectangles(10, 10, rects, 0, 0, 10, 10);
+      callSvgRectangleRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▮▮▮▮▮▮▮▮▮▮

@@ -16,11 +16,18 @@ describe('CustomBorders', () => {
     const paths = Array.from(document.querySelectorAll('.wtSpreader svg path'));
     const total = paths.reduce((acc, path) => {
       const d = path.getAttribute('d');
-      const horizontalLines = d.match(/ H /g);
-      const verticalLines = d.match(/ V /g);
-      const horizontalLinesCount = horizontalLines === null ? 0 : horizontalLines.length;
-      const verticalLinesCount = verticalLines === null ? 0 : verticalLines.length;
-      return acc + horizontalLinesCount + verticalLinesCount;
+      const parts = d.split(' ');
+      const countNumericParts = parts.filter(x => (x !== '' && isFinite(x))).length;
+      const countMoveOperations = (d.match(/M/g) || []).length;
+      const countHorVOperations = (d.match(/[HV]/g) || []).length;
+      const countAllOperations = countNumericParts + countHorVOperations; // + countHorVOperations, because the shorthand has one coordinage assumed
+      const countNotLineOperations = countMoveOperations * 2; // * 2, because for each M there is a pair of coordinates
+      let linesInCurrentPath = (countAllOperations - countNotLineOperations) / 2; // / 2 because we want to count the number of pairs
+      if (linesInCurrentPath > 0 && d[d.length - 1] !== 'Z') {
+        // if path is not closed, Walkontable add one redundant return path to fix Chrome/Ubuntu rendering error
+        linesInCurrentPath -= 1;
+      }
+      return acc + linesInCurrentPath;
     }, 0);
 
     return total;

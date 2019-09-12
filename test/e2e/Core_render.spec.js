@@ -59,13 +59,13 @@ describe('Core_render', () => {
     const currentSelection = spec().$container.find('.wtBorder.current')[0];
     const svgPath = spec().$container.find('svg:eq(0) path')[0];
     const left = currentSelection.offsetLeft;
-    expect(svgPath.getAttribute('d')).toBe('M 50 24 H 99 V 46 H 50 V 24 z');
+    expect(svgPath.getAttribute('d')).toBe('M 50 24 L 99 24 L 99 46 L 50 46 L 50 24 Z');
 
     data[1][1] = 'dddddddddddddddddddd';
     render();
 
     expect(currentSelection.offsetLeft).toBeGreaterThan(left);
-    expect(svgPath.getAttribute('d')).toBe('M 50 24 H 237 V 46 H 50 V 24 z');
+    expect(svgPath.getAttribute('d')).toBe('M 50 24 L 237 24 L 237 46 L 50 46 L 50 24 Z');
   });
 
   it('should not render table twice', () => {

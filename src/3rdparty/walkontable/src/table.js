@@ -19,7 +19,8 @@ import { Renderer } from './renderer';
 import Overlay from './overlay/_base';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
-import getSvgRectangleRenderer from './svgRectangles';
+import getSvgRectangleRenderer, { createPathString } from './svgRectangles';
+import svgOptimizePath from './svgOptimizePath';
 
 /**
  *
@@ -535,23 +536,44 @@ class Table {
         }
       });
     }
-    const rects = [];
-    argArrays.forEach(argArray => this.addBorderLinesToStrokes(rects, ...argArray)); // makes DOM reads
 
+    const stylesAndStrokes = new Map();
+    const stylesAndPaths = new Map();
+    argArrays.forEach(argArray => this.addBorderLinesToStrokes(stylesAndStrokes, ...argArray)); // makes DOM reads
+    let maxWidth = 0;
+    let maxHeight = 0;
     const marginForSafeRenderingOfTheRightBottomEdge = 1;
-    const totalWidth = rects.reduce((accumulator, rect) => Math.max(accumulator, rect.x2), 0) + marginForSafeRenderingOfTheRightBottomEdge;
-    const totalHeight = rects.reduce((accumulator, rect) => Math.max(accumulator, rect.y2), 0) + marginForSafeRenderingOfTheRightBottomEdge;
-    this.renderSvgRectangles(totalWidth, totalHeight, rects); // makes DOM writes
+    const keys = stylesAndStrokes.keys();
+    Array.from(keys).forEach((key) => {
+      const value = stylesAndStrokes.get(key);
+      const width = parseInt(key, 10);
+      const pathString = createPathString(width, value, Infinity, Infinity);
+      const optimizedPathString = svgOptimizePath(pathString);
+      stylesAndPaths.set(key, optimizedPathString);
+
+      const currentMaxWidth = value.reduce((accumulator, line) => Math.max(accumulator, line[2]), 0) + marginForSafeRenderingOfTheRightBottomEdge;
+      if (currentMaxWidth > maxWidth) {
+        maxWidth = currentMaxWidth;
+      }
+      const currentMaxHeight = value.reduce((accumulator, line) => Math.max(accumulator, line[3]), 0) + marginForSafeRenderingOfTheRightBottomEdge;
+      if (currentMaxHeight > maxHeight) {
+        maxHeight = currentMaxHeight;
+      }
+    });
+
+    const strokeStyles = [...stylesAndPaths.keys()];
+    const strokeLines = [...stylesAndPaths.values()];
+    this.renderSvgRectangles(maxWidth, maxHeight, strokeStyles, strokeLines); // makes DOM writes
   }
 
   /**
    * This method tries to be as easy on performance on possible. It only reads from DOM (getBoundingClientRect)
-   * @param {Array} rects
+   * @param {Map} map
    * @param {Selection} selection
    * @param {Number} sourceRow
    * @param {Number} sourceColumn
    */
-  addBorderLinesToStrokes(rects, containerOffset, selection, firstRow, firstColumn, lastRow, lastColumn, isTopClean, isRightClean, isBottomClean, isLeftClean) {
+  addBorderLinesToStrokes(map, containerOffset, selection, firstRow, firstColumn, lastRow, lastColumn, isTopClean, isRightClean, isBottomClean, isLeftClean) {
     const firstTd = this.getCell({ row: firstRow, col: firstColumn });
     const firstTdOffset = offset(firstTd);
     let lastTdOffset;
@@ -584,32 +606,51 @@ class Table {
       rect.x1 += insetPositioningForCurrentCellHighlight;
       rect.y1 += insetPositioningForCurrentCellHighlight;
     }
-    if (isTopClean) {
-      this.getStroke(rect, selection.settings, 'top');
+
+    if (rect.x1 < 0 && rect.x2 < 0 || rect.y1 < 0 && rect.y2 < 0) {
+      // nothing to draw, everything is at a negative index
+      return;
     }
-    if (isRightClean) {
-      this.getStroke(rect, selection.settings, 'right');
+
+    if (isTopClean && !this.shouldSkipStroke(selection.settings, 'top')) {
+      const lines = this.getStrokeLines(map, selection.settings, 'top');
+      lines.push([rect.x1, rect.y1, rect.x2, rect.y1]);
     }
-    if (isBottomClean) {
-      this.getStroke(rect, selection.settings, 'bottom');
+    if (isRightClean && !this.shouldSkipStroke(selection.settings, 'right')) {
+      const lines = this.getStrokeLines(map, selection.settings, 'right');
+      lines.push([rect.x2, rect.y1, rect.x2, rect.y2]);
     }
-    if (isLeftClean) {
-      this.getStroke(rect, selection.settings, 'left');
+    if (isBottomClean && !this.shouldSkipStroke(selection.settings, 'bottom')) {
+      const lines = this.getStrokeLines(map, selection.settings, 'bottom');
+      lines.push([rect.x1, rect.y2, rect.x2, rect.y2]);
     }
-    rects.push(rect);
+    if (isLeftClean && !this.shouldSkipStroke(selection.settings, 'left')) {
+      const lines = this.getStrokeLines(map, selection.settings, 'left');
+      lines.push([rect.x1, rect.y1, rect.x1, rect.y2]);
+    }
   }
 
-  getStroke(rect, borderSetting, edge) {
-    if (!(borderSetting[edge] && borderSetting[edge].hide)) {
-      let width = 1;
-      if (borderSetting[edge] && borderSetting[edge].width !== undefined) {
-        width = borderSetting[edge].width;
-      } else if (borderSetting.border && borderSetting.border.width !== undefined) {
-        width = borderSetting.border.width;
-      }
-      const color = (borderSetting[edge] && borderSetting[edge].color) || (borderSetting.border && borderSetting.border.color) || 'black';
-      rect[`${edge}Stroke`] = `${width}px ${color}`;
+  shouldSkipStroke(borderSetting, edge) {
+    return borderSetting[edge] && borderSetting[edge].hide;
+  }
+
+  getStrokeLines(map, borderSetting, edge) {
+    let width = 1;
+    if (borderSetting[edge] && borderSetting[edge].width !== undefined) {
+      width = borderSetting[edge].width;
+    } else if (borderSetting.border && borderSetting.border.width !== undefined) {
+      width = borderSetting.border.width;
     }
+    const color = (borderSetting[edge] && borderSetting[edge].color) || (borderSetting.border && borderSetting.border.color) || 'black';
+    const stroke = `${width}px ${color}`;
+
+    const lines = map.get(stroke);
+    if (lines) {
+      return lines;
+    }
+    const newLines = [];
+    map.set(stroke, newLines);
+    return newLines;
   }
 
   /**

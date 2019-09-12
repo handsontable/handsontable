@@ -1,3 +1,5 @@
+import svgOptimizePath from './svgOptimizePath';
+
 /**
  * getSvgRectangleRenderer is a higher-order function that returns a function to render groupedRects.
  * The returned function expects groupedRects to be in a format created by SvgRectangles.precalculate
@@ -5,10 +7,6 @@
  * @param {HTMLElement} svg
  */
 export default function getSvgRectangleRenderer(svg) {
-  svg.setAttribute('shape-rendering', 'optimizeSpeed');
-  // svg.setAttribute('shape-rendering', 'geometricPrecision'); // TODO why the border renders wrong when this is on
-  // svg.setAttribute('shape-rendering', 'crispEdges');
-
   svg.setAttribute('fill', 'none');
 
   let lastTotalWidth;
@@ -18,7 +16,25 @@ export default function getSvgRectangleRenderer(svg) {
 
   // TODO instead of totalWidth, etc, I could use maximum x2, y2 in groupedRects
   // on the other hand, totalWidth, totalHeight should not change that often
-  return (totalWidth, totalHeight, rects) => {
+  /*
+    strokeStyles is an array of stroke style strings, e.g.:
+    [
+        '1px black',
+        '2px #FF0000'
+    ]
+
+    strokeLines is an array of x1, y1, x2, y2 quadruplets for each strokeStyle, e.g.:
+    [
+        [0, 0, 10, 10, 0, 0, 10, 0, 20, 20, 50, 50],
+        [5, 5, 55, 5]
+    ]
+
+    assumptions:
+     - x1 <= x2 && y1 <= y2
+     - x1 === x2 || y1 === y2
+     - the length of strokeLines must be 4 * the length of strokeStyles
+    */
+  return (totalWidth, totalHeight, strokeStyles, strokeLines) => {
     if (totalWidth !== lastTotalWidth || totalHeight !== lastTotalHeight) {
       svg.setAttribute('viewBox', `0 0 ${totalWidth} ${totalHeight}`);
 
@@ -36,44 +52,63 @@ export default function getSvgRectangleRenderer(svg) {
 
     brushes.forEach(resetBrush);
 
-    for (let rr = 0; rr < rects.length; rr++) {
-      const { x1, x2, y1, y2 } = rects[rr];
-
-      const { topStroke, leftStroke, bottomStroke, rightStroke } = rects[rr];
-      if (topStroke) {
-        const brush = getBrushForStyle(brushes, topStroke, svg);
-        lineH(brush, x1, y1, x2, totalWidth, totalHeight);
-      }
-      if (rightStroke) {
-        const brush = getBrushForStyle(brushes, rightStroke, svg);
-        lineV(brush, x2, y1, y2, totalWidth, totalHeight);
-      }
-      if (bottomStroke) {
-        const brush = getBrushForStyle(brushes, bottomStroke, svg);
-        lineH(brush, x2, y2, x1, totalWidth, totalHeight);
-      }
-      if (leftStroke) {
-        const brush = getBrushForStyle(brushes, leftStroke, svg);
-        lineV(brush, x1, y2, y1, totalWidth, totalHeight);
-      }
+    for (let ii = 0; ii < strokeStyles.length; ii++) { // http://jsbench.github.io/#fb2e17228039ba5bfdf4d1744395f352
+      const brush = getBrushForStyle(brushes, strokeStyles[ii], svg);
+      brush.instruction = strokeLines[ii];
     }
 
     brushes.forEach((brush) => {
-      // if (brush.instruction.indexOf('undefined') > -1) {
-      //     debugger;
-      // }
-      // if (brush.instruction.indexOf('NaN') > -1) {
-      //     debugger;
-      // }
       if (brush.renderedInstruction !== brush.instruction) {
-        if (brush.instruction) {
-          brush.instruction += 'z';
-        }
         brush.elem.setAttribute('d', brush.instruction);
         brush.renderedInstruction = brush.instruction;
       }
     });
   };
+}
+
+function ensureStrokeLines(map, stroke) {
+  const lines = map.get(stroke);
+  if (lines) {
+    return lines;
+  }
+  const newLines = [];
+  map.set(stroke, newLines);
+  return newLines;
+}
+
+export function precalculateStrokes(rawData, totalWidth, totalHeight) {
+  const map = new Map();
+
+  for (let ii = 0; ii < rawData.length; ii++) {
+    const { x1, y1, x2, y2, topStroke, rightStroke, bottomStroke, leftStroke } = rawData[ii];
+    if (topStroke) {
+      const lines = ensureStrokeLines(map, topStroke);
+      lines.push([x1, y1, x2, y1]);
+    }
+    if (rightStroke) {
+      const lines = ensureStrokeLines(map, rightStroke);
+      lines.push([x2, y1, x2, y2]);
+    }
+    if (bottomStroke) {
+      const lines = ensureStrokeLines(map, bottomStroke);
+      lines.push([x1, y2, x2, y2]);
+    }
+    if (leftStroke) {
+      const lines = ensureStrokeLines(map, leftStroke);
+      lines.push([x1, y1, x1, y2]);
+    }
+  }
+
+  const keys = map.keys();
+  Array.from(keys).forEach((key) => {
+    const value = map.get(key);
+    const width = parseInt(key, 10);
+    const pathString = createPathString(width, value, totalWidth, totalHeight);
+    const optimizedPathString = svgOptimizePath(pathString);
+    map.set(key, optimizedPathString);
+  });
+
+  return map;
 }
 
 function resetBrush(brush) {
@@ -83,16 +118,16 @@ function resetBrush(brush) {
 }
 
 function getBrushForStyle(brushes, style, parent) {
-  if (style === true) {
-    style = '1px black';
-  }
   let brush = brushes.get(style);
   if (!brush) {
     const elem = parent.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'path');
     const [width, color] = style.split(' ');
     elem.setAttribute('stroke', color);
     elem.setAttribute('stroke-width', width);
-    // elem.setAttribute('stroke-linecap', 'square');
+    elem.setAttribute('stroke-linecap', 'square');
+    elem.setAttribute('shape-rendering', 'optimizeSpeed');
+    // elem.setAttribute('shape-rendering', 'geometricPrecision'); // TODO why the border renders wrong when this is on
+    // elem.setAttribute('shape-rendering', 'crispEdges');
 
     brush = {};
     brush.elem = elem;
@@ -115,44 +150,29 @@ function preventStrokeLeakingAtEdges(pos, totalSize, brushHalfSize) {
   return pos;
 }
 
-function lineH(brush, x1, y1, x2, totalWidth, totalHeight) {
-  // Compare: https://stackoverflow.com/questions/7241393/can-you-control-how-an-svgs-stroke-width-is-drawn
+export function createPathString(width, lines, totalWidth, totalHeight) {
+  const instruction = [];
+  const brushHalfSize = width / 2;
+  const needSubPixelCorrection = (width % 2 !== 0); // disable antialiasing
 
-  if (brush.width % 2 !== 0) { // disable antialiasing
-    y1 += 0.5;
-    x1 += 0.5;
-    x2 += 0.5;
+  for (let ii = 0; ii < lines.length; ii++) {
+    let [x1, y1, x2, y2] = lines[ii];
+
+    if (needSubPixelCorrection) {
+      y1 += 0.5;
+      y2 += 0.5;
+      x1 += 0.5;
+      x2 += 0.5;
+    }
+
+    x1 = preventStrokeLeakingAtEdges(x1, totalWidth, brushHalfSize);
+    y1 = preventStrokeLeakingAtEdges(y1, totalHeight, brushHalfSize);
+    x2 = preventStrokeLeakingAtEdges(x2, totalWidth, brushHalfSize);
+    y2 = preventStrokeLeakingAtEdges(y2, totalHeight, brushHalfSize);
+
+    instruction.push(`M ${x1} ${y1} `);
+    instruction.push(`L ${x2} ${y2} `);
   }
 
-  const brushHalfSize = brush.width / 2;
-  x1 = preventStrokeLeakingAtEdges(x1, totalWidth, brushHalfSize);
-  x2 = preventStrokeLeakingAtEdges(x2, totalWidth, brushHalfSize);
-  y1 = preventStrokeLeakingAtEdges(y1, totalHeight, brushHalfSize);
-
-  if (brush.x !== x1 || brush.y !== y1) {
-    brush.instruction += `M ${x1} ${y1} `;
-    brush.y = y1;
-  }
-  brush.instruction += `H ${x2} `;
-  brush.x = x2;
-}
-
-function lineV(brush, x1, y1, y2, totalWidth, totalHeight) {
-  if (brush.width % 2 !== 0) { // disable antialiasing
-    y1 += 0.5;
-    y2 += 0.5;
-    x1 += 0.5;
-  }
-
-  const brushHalfSize = brush.width / 2;
-  x1 = preventStrokeLeakingAtEdges(x1, totalWidth, brushHalfSize);
-  y1 = preventStrokeLeakingAtEdges(y1, totalHeight, brushHalfSize);
-  y2 = preventStrokeLeakingAtEdges(y2, totalHeight, brushHalfSize);
-
-  if (brush.x !== x1 || brush.y !== y1) {
-    brush.instruction += `M ${x1} ${y1} `;
-    brush.x = x1;
-  }
-  brush.instruction += `V ${y2} `;
-  brush.y = y2;
+  return instruction.join(' ');
 }
