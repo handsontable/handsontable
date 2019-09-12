@@ -1696,7 +1696,7 @@ declare namespace Handsontable {
     comments?: boolean | comments.Settings | comments.CommentConfig[];
     contextMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
     copyable?: boolean;
-    copyPaste?: boolean;
+    copyPaste?: boolean | Plugins.CopyPaste;
     correctFormat?: boolean;
     currentColClassName?: string;
     currentHeaderClassName?: string;
