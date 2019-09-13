@@ -1,3 +1,5 @@
+import svgOptimizePath from './svgOptimizePath';
+
 /**
  * getSvgPathsRenderer is a higher-order function that returns a function to render paths.
  * The returned function expects `strokeStyles`, `strokeLines` to be in a format created by `precalculateStrokes`.
@@ -42,6 +44,51 @@ export default function getSvgPathsRenderer(svg) {
       }
     });
   };
+}
+
+function ensureStrokeLines(map, stroke) {
+  const lines = map.get(stroke);
+  if (lines) {
+    return lines;
+  }
+  const newLines = [];
+  map.set(stroke, newLines);
+  return newLines;
+}
+
+export function precalculateStrokes(rawData, totalWidth, totalHeight) {
+  const map = new Map();
+
+  for (let ii = 0; ii < rawData.length; ii++) {
+    const { x1, y1, x2, y2, topStroke, rightStroke, bottomStroke, leftStroke } = rawData[ii];
+    if (topStroke) {
+      const lines = ensureStrokeLines(map, topStroke);
+      lines.push([x1, y1, x2, y1]);
+    }
+    if (rightStroke) {
+      const lines = ensureStrokeLines(map, rightStroke);
+      lines.push([x2, y1, x2, y2]);
+    }
+    if (bottomStroke) {
+      const lines = ensureStrokeLines(map, bottomStroke);
+      lines.push([x1, y2, x2, y2]);
+    }
+    if (leftStroke) {
+      const lines = ensureStrokeLines(map, leftStroke);
+      lines.push([x1, y1, x1, y2]);
+    }
+  }
+
+  const keys = map.keys();
+  Array.from(keys).forEach((key) => {
+    const value = map.get(key);
+    const width = parseInt(key, 10);
+    const pathString = createPathString(width, value, totalWidth, totalHeight);
+    const optimizedPathString = svgOptimizePath(pathString);
+    map.set(key, optimizedPathString);
+  });
+
+  return map;
 }
 
 function resetBrush(brush) {
