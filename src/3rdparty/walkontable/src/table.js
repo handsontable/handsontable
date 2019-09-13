@@ -112,7 +112,8 @@ class Table {
     this.svg.setAttribute('pointer-events', 'none');
     this.spreader.appendChild(this.svg);
     this.svgResizer = getSvgResizer(this.svg);
-    this.svgPathsRenderer = getSvgPathsRenderer(this.svg);
+    this.svgPathsRendererForCustomBorders = this.getSvgPathsRendererForGroup(this.svg);
+    this.svgPathsRendererForBuiltinBorders = this.getSvgPathsRendererForGroup(this.svg);
   }
 
   /**
@@ -299,7 +300,7 @@ class Table {
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
 
         if (this.is(Overlay.CLONE_BOTTOM) ||
-            this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+          this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
           // do NOT render headers on the bottom or bottom-left corner overlay
           this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
         }
@@ -529,16 +530,47 @@ class Table {
     }
 
     const containerOffset = offset(this.TABLE);
-    const argArrays = [];
+    const argArraysBuiltin = [];
+    const argArraysCustom = [];
     for (let i = 0; i < len; i++) {
       highlights[i].draw(wot, (highlight, firstRow, firstColumn, lastRow, lastColumn, isTopClean, isRightClean, isBottomClean, isLeftClean) => { // makes DOM writes
         if (highlights[i].settings.border) {
           // push arguments to a temporary array to separate bulk DOM writes from DOM reads
-          argArrays.push([containerOffset, highlight, firstRow, firstColumn, lastRow, lastColumn, isTopClean, isRightClean, isBottomClean, isLeftClean]);
+          const descriptor = [containerOffset, highlight, firstRow, firstColumn, lastRow, lastColumn, isTopClean, isRightClean, isBottomClean, isLeftClean];
+
+          if (highlights[i].settings.className) {
+            argArraysBuiltin.push(descriptor);
+          } else {
+            argArraysCustom.push(descriptor);
+          }
         }
       });
     }
 
+    const stylesAndPathsBuiltin = this.drawPaths(argArraysBuiltin);
+    const strokeStylesBuiltin = [...stylesAndPathsBuiltin.keys()];
+    const strokeLinesBuiltin = [...stylesAndPathsBuiltin.values()];
+
+    const stylesAndPathsCustom = this.drawPaths(argArraysCustom);
+    const strokeStylesCustom = [...stylesAndPathsCustom.keys()];
+    const strokeLinesCustom = [...stylesAndPathsCustom.values()];
+
+    // below functions make DOM writes
+    this.svgResizer(
+      Math.max(stylesAndPathsBuiltin.maxWidth, stylesAndPathsCustom.maxWidth),
+      Math.max(stylesAndPathsBuiltin.maxHeight, stylesAndPathsCustom.maxHeight)
+    );
+    this.svgPathsRendererForBuiltinBorders(strokeStylesBuiltin, strokeLinesBuiltin);
+    this.svgPathsRendererForCustomBorders(strokeStylesCustom, strokeLinesCustom);
+  }
+
+  getSvgPathsRendererForGroup(svg) {
+    const group = this.holder.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'g');
+    svg.appendChild(group);
+    return getSvgPathsRenderer(group);
+  }
+
+  drawPaths(argArrays) {
     const stylesAndStrokes = new Map();
     const stylesAndPaths = new Map();
     argArrays.forEach(argArray => this.addBorderLinesToStrokes(stylesAndStrokes, ...argArray)); // makes DOM reads
@@ -563,10 +595,10 @@ class Table {
       }
     });
 
-    const strokeStyles = [...stylesAndPaths.keys()];
-    const strokeLines = [...stylesAndPaths.values()];
-    this.svgResizer(maxWidth, maxHeight); // makes DOM writes
-    this.svgPathsRenderer(strokeStyles, strokeLines); // makes DOM writes
+    stylesAndPaths.maxWidth = maxWidth;
+    stylesAndPaths.maxHeight = maxHeight;
+
+    return stylesAndPaths;
   }
 
   /**
@@ -843,7 +875,7 @@ class Table {
       }
 
       if ((!previousRowHeight && this.wot.wtSettings.settings.defaultRowHeight < rowInnerHeight ||
-          previousRowHeight < rowInnerHeight)) {
+        previousRowHeight < rowInnerHeight)) {
         rowInnerHeight += 1;
         this.wot.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
       }
