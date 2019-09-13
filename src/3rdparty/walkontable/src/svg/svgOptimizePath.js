@@ -1,4 +1,4 @@
-import { MakerJs, getPathDataByLayer } from '../../makerjs/index';
+import { MakerJs, getPathDataByLayer } from '../../../makerjs/index';
 
 export default function svgOptimizePath(unoptimizedPathString) {
   // copied from https://observablehq.com/@forresto/maker-js-svg-path-simplify

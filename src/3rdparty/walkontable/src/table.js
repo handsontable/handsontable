@@ -19,9 +19,7 @@ import { Renderer } from './renderer';
 import Overlay from './overlay/_base';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
-import getSvgPathsRenderer, { createPathString } from './svgPathsRenderer';
-import getSvgResizer from './svgResizer';
-import svgOptimizePath from './svgOptimizePath';
+import SvgBorder from './svgBorder';
 
 /**
  *
@@ -102,18 +100,7 @@ class Table {
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
 
-    this.svg = this.holder.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.svg.style.top = '0';
-    this.svg.style.left = '0';
-    this.svg.style.width = '0';
-    this.svg.style.height = '0';
-    this.svg.style.position = 'absolute';
-    this.svg.style.zIndex = '5';
-    this.svg.setAttribute('pointer-events', 'none');
-    this.spreader.appendChild(this.svg);
-    this.svgResizer = getSvgResizer(this.svg);
-    this.svgPathsRendererForCustomBorders = this.getSvgPathsRendererForGroup(this.svg);
-    this.svgPathsRendererForBuiltinBorders = this.getSvgPathsRendererForGroup(this.svg);
+    this.svgBorder = new SvgBorder(this.spreader);
   }
 
   /**
@@ -530,162 +517,46 @@ class Table {
     }
 
     const containerOffset = offset(this.TABLE);
-    const argArraysBuiltin = [];
-    const argArraysCustom = [];
+    const argArrays = [];
     for (let i = 0; i < len; i++) {
       highlights[i].draw(wot, (highlight, firstRow, firstColumn, lastRow, lastColumn, isTopClean, isRightClean, isBottomClean, isLeftClean) => { // makes DOM writes
         if (highlights[i].settings.border) {
-          // push arguments to a temporary array to separate bulk DOM writes from DOM reads
-          const descriptor = [containerOffset, highlight, firstRow, firstColumn, lastRow, lastColumn, isTopClean, isRightClean, isBottomClean, isLeftClean];
-
+          let priority = 0;
           if (highlights[i].settings.className) {
-            argArraysBuiltin.push(descriptor);
-          } else {
-            argArraysCustom.push(descriptor);
+            priority = 1;
           }
+
+          const firstTd = this.getCell({ row: firstRow, col: firstColumn });
+          const firstTdOffset = offset(firstTd);
+          let lastTdOffset;
+          let lastTdWidth;
+          let lastTdHeight;
+          if (firstRow === lastRow && firstColumn === lastColumn) {
+            lastTdOffset = firstTdOffset;
+            lastTdWidth = outerWidth(firstTd);
+            lastTdHeight = outerHeight(firstTd);
+          } else {
+            const lastTd = this.getCell({ row: lastRow, col: lastColumn });
+            lastTdOffset = offset(lastTd);
+            lastTdWidth = outerWidth(lastTd);
+            lastTdHeight = outerHeight(lastTd);
+          }
+
+          const rect = {
+            x1: firstTdOffset.left - containerOffset.left,
+            y1: firstTdOffset.top - containerOffset.top,
+            x2: lastTdOffset.left - containerOffset.left + lastTdWidth,
+            y2: lastTdOffset.top - containerOffset.top + lastTdHeight,
+          };
+
+          // push arguments to a temporary array to separate bulk DOM writes from DOM reads
+          const descriptor = [rect, highlight, priority, isTopClean, isRightClean, isBottomClean, isLeftClean];
+          argArrays.push(descriptor);
         }
       });
     }
 
-    const stylesAndPathsBuiltin = this.drawPaths(argArraysBuiltin);
-    const strokeStylesBuiltin = [...stylesAndPathsBuiltin.keys()];
-    const strokeLinesBuiltin = [...stylesAndPathsBuiltin.values()];
-
-    const stylesAndPathsCustom = this.drawPaths(argArraysCustom);
-    const strokeStylesCustom = [...stylesAndPathsCustom.keys()];
-    const strokeLinesCustom = [...stylesAndPathsCustom.values()];
-
-    // below functions make DOM writes
-    this.svgResizer(
-      Math.max(stylesAndPathsBuiltin.maxWidth, stylesAndPathsCustom.maxWidth),
-      Math.max(stylesAndPathsBuiltin.maxHeight, stylesAndPathsCustom.maxHeight)
-    );
-    this.svgPathsRendererForBuiltinBorders(strokeStylesBuiltin, strokeLinesBuiltin);
-    this.svgPathsRendererForCustomBorders(strokeStylesCustom, strokeLinesCustom);
-  }
-
-  getSvgPathsRendererForGroup(svg) {
-    const group = this.holder.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'g');
-    svg.appendChild(group);
-    return getSvgPathsRenderer(group);
-  }
-
-  drawPaths(argArrays) {
-    const stylesAndStrokes = new Map();
-    const stylesAndPaths = new Map();
-    argArrays.forEach(argArray => this.addBorderLinesToStrokes(stylesAndStrokes, ...argArray)); // makes DOM reads
-    let maxWidth = 0;
-    let maxHeight = 0;
-    const marginForSafeRenderingOfTheRightBottomEdge = 1;
-    const keys = stylesAndStrokes.keys();
-    Array.from(keys).forEach((key) => {
-      const value = stylesAndStrokes.get(key);
-      const width = parseInt(key, 10);
-      const pathString = createPathString(width, value, Infinity, Infinity);
-      const optimizedPathString = svgOptimizePath(pathString);
-      stylesAndPaths.set(key, optimizedPathString);
-
-      const currentMaxWidth = value.reduce((accumulator, line) => Math.max(accumulator, line[2]), 0) + marginForSafeRenderingOfTheRightBottomEdge;
-      if (currentMaxWidth > maxWidth) {
-        maxWidth = currentMaxWidth;
-      }
-      const currentMaxHeight = value.reduce((accumulator, line) => Math.max(accumulator, line[3]), 0) + marginForSafeRenderingOfTheRightBottomEdge;
-      if (currentMaxHeight > maxHeight) {
-        maxHeight = currentMaxHeight;
-      }
-    });
-
-    stylesAndPaths.maxWidth = maxWidth;
-    stylesAndPaths.maxHeight = maxHeight;
-
-    return stylesAndPaths;
-  }
-
-  /**
-   * This method tries to be as easy on performance on possible. It only reads from DOM (getBoundingClientRect)
-   * @param {Map} map
-   * @param {Selection} selection
-   * @param {Number} sourceRow
-   * @param {Number} sourceColumn
-   */
-  addBorderLinesToStrokes(map, containerOffset, selection, firstRow, firstColumn, lastRow, lastColumn, isTopClean, isRightClean, isBottomClean, isLeftClean) {
-    const firstTd = this.getCell({ row: firstRow, col: firstColumn });
-    const firstTdOffset = offset(firstTd);
-    let lastTdOffset;
-    let lastTdWidth;
-    let lastTdHeight;
-    if (firstRow === lastRow && firstColumn === lastColumn) {
-      lastTdOffset = firstTdOffset;
-      lastTdWidth = outerWidth(firstTd);
-      lastTdHeight = outerHeight(firstTd);
-    } else {
-      const lastTd = this.getCell({ row: lastRow, col: lastColumn });
-      lastTdOffset = offset(lastTd);
-      lastTdWidth = outerWidth(lastTd);
-      lastTdHeight = outerHeight(lastTd);
-    }
-    const rect = {
-      x1: firstTdOffset.left - containerOffset.left,
-      y1: firstTdOffset.top - containerOffset.top,
-      x2: lastTdOffset.left - containerOffset.left + lastTdWidth,
-      y2: lastTdOffset.top - containerOffset.top + lastTdHeight,
-    };
-
-    const offsetToOverLapPrecedingBorder = -1;
-    rect.x1 += offsetToOverLapPrecedingBorder;
-    rect.y1 += offsetToOverLapPrecedingBorder;
-    rect.x2 += offsetToOverLapPrecedingBorder;
-    rect.y2 += offsetToOverLapPrecedingBorder;
-    if (selection.settings.className === 'current') {
-      const insetPositioningForCurrentCellHighlight = 1;
-      rect.x1 += insetPositioningForCurrentCellHighlight;
-      rect.y1 += insetPositioningForCurrentCellHighlight;
-    }
-
-    if (rect.x1 < 0 && rect.x2 < 0 || rect.y1 < 0 && rect.y2 < 0) {
-      // nothing to draw, everything is at a negative index
-      return;
-    }
-
-    if (isTopClean && !this.shouldSkipStroke(selection.settings, 'top')) {
-      const lines = this.getStrokeLines(map, selection.settings, 'top');
-      lines.push([rect.x1, rect.y1, rect.x2, rect.y1]);
-    }
-    if (isRightClean && !this.shouldSkipStroke(selection.settings, 'right')) {
-      const lines = this.getStrokeLines(map, selection.settings, 'right');
-      lines.push([rect.x2, rect.y1, rect.x2, rect.y2]);
-    }
-    if (isBottomClean && !this.shouldSkipStroke(selection.settings, 'bottom')) {
-      const lines = this.getStrokeLines(map, selection.settings, 'bottom');
-      lines.push([rect.x1, rect.y2, rect.x2, rect.y2]);
-    }
-    if (isLeftClean && !this.shouldSkipStroke(selection.settings, 'left')) {
-      const lines = this.getStrokeLines(map, selection.settings, 'left');
-      lines.push([rect.x1, rect.y1, rect.x1, rect.y2]);
-    }
-  }
-
-  shouldSkipStroke(borderSetting, edge) {
-    return borderSetting[edge] && borderSetting[edge].hide;
-  }
-
-  getStrokeLines(map, borderSetting, edge) {
-    let width = 1;
-    if (borderSetting[edge] && borderSetting[edge].width !== undefined) {
-      width = borderSetting[edge].width;
-    } else if (borderSetting.border && borderSetting.border.width !== undefined) {
-      width = borderSetting.border.width;
-    }
-    const color = (borderSetting[edge] && borderSetting[edge].color) || (borderSetting.border && borderSetting.border.color) || 'black';
-    const stroke = `${width}px ${color}`;
-
-    const lines = map.get(stroke);
-    if (lines) {
-      return lines;
-    }
-    const newLines = [];
-    map.set(stroke, newLines);
-    return newLines;
+    this.svgBorder.render(argArrays);
   }
 
   /**

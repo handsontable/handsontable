@@ -1,8 +1,8 @@
 import { normalize, pretty } from './htmlNormalize';
 import svgToAscii from './svgToAscii';
 
-export { default as getSvgPathsRenderer, precalculateStrokes } from '../../src/svgPathsRenderer';
-export { default as getSvgResizer } from '../../src/svgResizer';
+export { default as getSvgPathsRenderer, precalculateStrokes } from '../../src/svg/svgPathsRenderer';
+export { default as getSvgResizer } from '../../src/svg/svgResizer';
 
 export function sleep(delay = 100) {
   return Promise.resolve({
