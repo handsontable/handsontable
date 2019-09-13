@@ -1,4 +1,4 @@
-import getSvgPathsRenderer, { createPathString } from './svg/svgPathsRenderer';
+import getSvgPathsRenderer, { convertLinesToCommand } from './svg/svgPathsRenderer';
 import getSvgResizer from './svg/svgResizer';
 import svgOptimizePath from './svg/svgOptimizePath';
 
@@ -75,7 +75,7 @@ export default class SvgBorder {
     styles.forEach((style) => {
       const lines = stylesAndLines.get(style);
       const width = parseInt(style, 10);
-      const pathString = createPathString(width, lines, Infinity, Infinity);
+      const pathString = convertLinesToCommand(width, lines, Infinity, Infinity);
       const optimizedPathString = svgOptimizePath(pathString);
       paths.push(optimizedPathString);
 

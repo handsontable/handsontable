@@ -2,125 +2,123 @@ import svgOptimizePath from './svgOptimizePath';
 
 /**
  * getSvgPathsRenderer is a higher-order function that returns a function to render paths.
- * The returned function expects `strokeStyles`, `strokeLines` to be in a format created by `precalculateStrokes`.
  *
- * `strokeStyles` is an array of stroke style strings, e.g.:
+ * `styles` is an array of stroke style strings, e.g.:
  * [
  *   '1px black',
  *   '2px #FF0000'
  * ]
  *
- * `strokeLines` is an array of x1, y1, x2, y2 quadruplets for each strokeStyle, e.g.:
+ * `commands` is an array of path commands strings for each style, e.g.:
  * [
- *   [0, 0, 10, 10, 0, 0, 10, 0, 20, 20, 50, 50],
- *   [5, 5, 55, 5]
+ *   'M 0 0 L 0 10',
+ *   'M 50 0 L 50 20'
  * ]
  *
  * Assumptions:
- *  - `(x1 >= 0 || x2 >= 0) && (y1 >= 0 || y2 >= 0)`
- *  - `x1 <= x2 && y1 <= y2`
- *  - `x1 === x2 || y1 === y2`
- *  - the length of strokeLines must be 4 * the length of strokeStyles
+ *  - the length of `styles` and `commands` must be the same
  *
  * @param {HTMLElement} svg <svg> or <g> element
  */
 export default function getSvgPathsRenderer(svg) {
   svg.setAttribute('fill', 'none');
 
-  const brushes = new Map();
+  const states = new Map();
 
-  return (strokeStyles, strokeLines) => {
-    brushes.forEach(resetBrush);
+  return (styles, commands) => {
+    states.forEach(resetState);
 
-    for (let ii = 0; ii < strokeStyles.length; ii++) { // http://jsbench.github.io/#fb2e17228039ba5bfdf4d1744395f352
-      const brush = getBrushForStyle(brushes, strokeStyles[ii], svg);
-      brush.instruction = strokeLines[ii];
+    for (let ii = 0; ii < styles.length; ii++) { // http://jsbench.github.io/#fb2e17228039ba5bfdf4d1744395f352
+      const state = getStateForStyle(states, styles[ii], svg);
+      state.command = commands[ii];
     }
 
-    brushes.forEach((brush) => {
-      if (brush.renderedInstruction !== brush.instruction) {
-        brush.elem.setAttribute('d', brush.instruction);
-        brush.renderedInstruction = brush.instruction;
-      }
-    });
+    states.forEach(renderState);
   };
 }
 
-function ensureStrokeLines(map, stroke) {
-  const lines = map.get(stroke);
+function getLines(stylesAndLines, style) {
+  const lines = stylesAndLines.get(style);
   if (lines) {
     return lines;
   }
   const newLines = [];
-  map.set(stroke, newLines);
+  stylesAndLines.set(style, newLines);
   return newLines;
 }
 
-export function precalculateStrokes(rawData, totalWidth, totalHeight) {
-  const map = new Map();
+export function precalculateStylesAndCommands(rawData, totalWidth, totalHeight) {
+  const stylesAndLines = new Map();
+  const stylesAndCommands = new Map();
 
   for (let ii = 0; ii < rawData.length; ii++) {
-    const { x1, y1, x2, y2, topStroke, rightStroke, bottomStroke, leftStroke } = rawData[ii];
-    if (topStroke) {
-      const lines = ensureStrokeLines(map, topStroke);
+    const { x1, y1, x2, y2, topStyle, rightStyle, bottomStyle, leftStyle } = rawData[ii];
+    if (topStyle) {
+      const lines = getLines(stylesAndLines, topStyle);
       lines.push([x1, y1, x2, y1]);
     }
-    if (rightStroke) {
-      const lines = ensureStrokeLines(map, rightStroke);
+    if (rightStyle) {
+      const lines = getLines(stylesAndLines, rightStyle);
       lines.push([x2, y1, x2, y2]);
     }
-    if (bottomStroke) {
-      const lines = ensureStrokeLines(map, bottomStroke);
+    if (bottomStyle) {
+      const lines = getLines(stylesAndLines, bottomStyle);
       lines.push([x1, y2, x2, y2]);
     }
-    if (leftStroke) {
-      const lines = ensureStrokeLines(map, leftStroke);
+    if (leftStyle) {
+      const lines = getLines(stylesAndLines, leftStyle);
       lines.push([x1, y1, x1, y2]);
     }
   }
 
-  const keys = map.keys();
-  Array.from(keys).forEach((key) => {
-    const value = map.get(key);
-    const width = parseInt(key, 10);
-    const pathString = createPathString(width, value, totalWidth, totalHeight);
-    const optimizedPathString = svgOptimizePath(pathString);
-    map.set(key, optimizedPathString);
+  const styles = [...stylesAndLines.keys()];
+  styles.forEach((style) => {
+    const lines = stylesAndLines.get(style);
+    const strokeWidth = parseInt(style, 10);
+    const command = convertLinesToCommand(strokeWidth, lines, totalWidth, totalHeight);
+    const optimizedCommand = svgOptimizePath(command);
+    stylesAndCommands.set(style, optimizedCommand);
   });
 
-  return map;
+  return stylesAndCommands;
 }
 
-function resetBrush(brush) {
-  brush.instruction = '';
-  brush.x = undefined;
-  brush.y = undefined;
+function resetState(state) {
+  state.command = '';
 }
 
-function getBrushForStyle(brushes, style, parent) {
-  let brush = brushes.get(style);
-  if (!brush) {
+function renderState(state) {
+  if (state.renderedCommand !== state.command) {
+    state.elem.setAttribute('d', state.command);
+    state.renderedCommand = state.command;
+  }
+}
+
+function getStateForStyle(states, style, parent) {
+  let state = states.get(style);
+  if (!state) {
     const elem = parent.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'path');
-    const [width, color] = style.split(' ');
+    const [size, color] = style.split(' ');
     elem.setAttribute('stroke', color);
-    elem.setAttribute('stroke-width', width);
+    elem.setAttribute('stroke-width', size);
     elem.setAttribute('stroke-linecap', 'square');
     elem.setAttribute('shape-rendering', 'optimizeSpeed');
     // elem.setAttribute('shape-rendering', 'geometricPrecision'); // TODO why the border renders wrong when this is on
     // elem.setAttribute('shape-rendering', 'crispEdges');
 
-    brush = {};
-    brush.elem = elem;
-    brush.width = parseInt(width, 10);
-    brush.renderedInstruction = '';
-    resetBrush(brush);
+    state = {
+      elem,
+      command: '',
+      renderedCommand: ''
+    };
+    resetState(state);
     parent.appendChild(elem);
-    brushes.set(style, brush);
+    states.set(style, state);
   }
-  return brush;
+  return state;
 }
 
-function preventStrokeLeakingAtEdges(pos, totalSize, brushHalfSize) {
+function keepLineWithinViewBox(pos, totalSize, brushHalfSize) {
   if (pos - brushHalfSize < 0) {
     pos += Math.ceil(brushHalfSize - pos);
   }
@@ -130,10 +128,27 @@ function preventStrokeLeakingAtEdges(pos, totalSize, brushHalfSize) {
   return pos;
 }
 
-export function createPathString(width, lines, totalWidth, totalHeight) {
-  const instruction = [];
-  const brushHalfSize = width / 2;
-  const needSubPixelCorrection = (width % 2 !== 0); // disable antialiasing
+/**
+ * `lines` is an array of `x1`, `y1`, `x2`, `y2` quadruplets, e.g.:
+ * [
+ *   [0, 0, 10, 10, 0, 0, 10, 0, 20, 20, 50, 50],
+ *   [5, 5, 55, 5]
+ * ]
+ *
+ * Assumptions:
+ *  - `(x1 >= 0 || x2 >= 0) && (y1 >= 0 || y2 >= 0)`
+ *  - `x1 <= x2 && y1 <= y2`
+ *  - `x1 === x2 || y1 === y2`
+ *
+ * @param {*} strokeWidth
+ * @param {*} lines
+ * @param {*} totalWidth
+ * @param {*} totalHeight
+ */
+export function convertLinesToCommand(strokeWidth, lines, totalWidth, totalHeight) {
+  const commands = [];
+  const halfStrokeWidth = strokeWidth / 2;
+  const needSubPixelCorrection = (strokeWidth % 2 !== 0); // disable antialiasing
 
   for (let ii = 0; ii < lines.length; ii++) {
     let [x1, y1, x2, y2] = lines[ii];
@@ -145,14 +160,14 @@ export function createPathString(width, lines, totalWidth, totalHeight) {
       x2 += 0.5;
     }
 
-    x1 = preventStrokeLeakingAtEdges(x1, totalWidth, brushHalfSize);
-    y1 = preventStrokeLeakingAtEdges(y1, totalHeight, brushHalfSize);
-    x2 = preventStrokeLeakingAtEdges(x2, totalWidth, brushHalfSize);
-    y2 = preventStrokeLeakingAtEdges(y2, totalHeight, brushHalfSize);
+    x1 = keepLineWithinViewBox(x1, totalWidth, halfStrokeWidth);
+    y1 = keepLineWithinViewBox(y1, totalHeight, halfStrokeWidth);
+    x2 = keepLineWithinViewBox(x2, totalWidth, halfStrokeWidth);
+    y2 = keepLineWithinViewBox(y2, totalHeight, halfStrokeWidth);
 
-    instruction.push(`M ${x1} ${y1} `);
-    instruction.push(`L ${x2} ${y2} `);
+    commands.push(`M ${x1} ${y1} `);
+    commands.push(`L ${x2} ${y2} `);
   }
 
-  return instruction.join(' ');
+  return commands.join(' ');
 }

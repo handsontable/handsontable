@@ -8,7 +8,7 @@ describe('getSvgPathsRenderer', () => {
   const totalHeight = 10;
 
   function callSvgPathsRenderer(rawData) {
-    const stylesAndStrokes = precalculateStrokes(rawData, totalWidth, totalHeight);
+    const stylesAndStrokes = precalculateStylesAndCommands(rawData, totalWidth, totalHeight);
     const strokeStyles = [...stylesAndStrokes.keys()];
     const strokeLines = [...stylesAndStrokes.values()];
     svgResizer(totalWidth, totalHeight);
@@ -40,10 +40,10 @@ describe('getSvgPathsRenderer', () => {
           x2: 7,
           y1: 2,
           y2: 7,
-          topStroke: '1px #000',
-          rightStroke: '1px #000',
-          leftStroke: '1px #000',
-          bottomStroke: '1px #000',
+          topStyle: '1px #000',
+          rightStyle: '1px #000',
+          leftStyle: '1px #000',
+          bottomStyle: '1px #000',
         }
       ];
       callSvgPathsRenderer(rawData);
@@ -66,10 +66,10 @@ describe('getSvgPathsRenderer', () => {
           x2: 7,
           y1: 2,
           y2: 7,
-          topStroke: '2px #000',
-          rightStroke: '2px #000',
-          leftStroke: '2px #000',
-          bottomStroke: '2px #000',
+          topStyle: '2px #000',
+          rightStyle: '2px #000',
+          leftStyle: '2px #000',
+          bottomStyle: '2px #000',
         }
       ];
       callSvgPathsRenderer(rawData);
@@ -92,10 +92,10 @@ describe('getSvgPathsRenderer', () => {
           x2: 7,
           y1: 2,
           y2: 7,
-          topStroke: '3px #000',
-          rightStroke: '3px #000',
-          leftStroke: '3px #000',
-          bottomStroke: '3px #000',
+          topStyle: '3px #000',
+          rightStyle: '3px #000',
+          leftStyle: '3px #000',
+          bottomStyle: '3px #000',
         }
       ];
       callSvgPathsRenderer(rawData);
@@ -121,10 +121,10 @@ describe('getSvgPathsRenderer', () => {
           x2: 7,
           y1: 0,
           y2: 9,
-          topStroke: '1px #000',
-          rightStroke: '1px #000',
-          leftStroke: '1px #000',
-          bottomStroke: '1px #000',
+          topStyle: '1px #000',
+          rightStyle: '1px #000',
+          leftStyle: '1px #000',
+          bottomStyle: '1px #000',
         }
       ];
       callSvgPathsRenderer(rawData);
@@ -147,10 +147,10 @@ describe('getSvgPathsRenderer', () => {
           x2: 7,
           y1: 0,
           y2: 9,
-          topStroke: '2px #000',
-          rightStroke: '2px #000',
-          leftStroke: '2px #000',
-          bottomStroke: '2px #000',
+          topStyle: '2px #000',
+          rightStyle: '2px #000',
+          leftStyle: '2px #000',
+          bottomStyle: '2px #000',
         }
       ];
       callSvgPathsRenderer(rawData);
@@ -173,10 +173,10 @@ describe('getSvgPathsRenderer', () => {
           x2: 7,
           y1: 0,
           y2: 9,
-          topStroke: '3px #000',
-          rightStroke: '3px #000',
-          leftStroke: '3px #000',
-          bottomStroke: '3px #000',
+          topStyle: '3px #000',
+          rightStyle: '3px #000',
+          leftStyle: '3px #000',
+          bottomStyle: '3px #000',
         }
       ];
       callSvgPathsRenderer(rawData);
@@ -202,10 +202,10 @@ describe('getSvgPathsRenderer', () => {
           x2: 9,
           y1: 2,
           y2: 7,
-          topStroke: '1px #000',
-          rightStroke: '1px #000',
-          leftStroke: '1px #000',
-          bottomStroke: '1px #000',
+          topStyle: '1px #000',
+          rightStyle: '1px #000',
+          leftStyle: '1px #000',
+          bottomStyle: '1px #000',
         }
       ];
       callSvgPathsRenderer(rawData);
@@ -228,10 +228,10 @@ describe('getSvgPathsRenderer', () => {
           x2: 9,
           y1: 2,
           y2: 7,
-          topStroke: '2px #000',
-          rightStroke: '2px #000',
-          leftStroke: '2px #000',
-          bottomStroke: '2px #000',
+          topStyle: '2px #000',
+          rightStyle: '2px #000',
+          leftStyle: '2px #000',
+          bottomStyle: '2px #000',
         }
       ];
       callSvgPathsRenderer(rawData);
@@ -254,10 +254,10 @@ describe('getSvgPathsRenderer', () => {
           x2: 9,
           y1: 2,
           y2: 7,
-          topStroke: '3px #000',
-          rightStroke: '3px #000',
-          leftStroke: '3px #000',
-          bottomStroke: '3px #000',
+          topStyle: '3px #000',
+          rightStyle: '3px #000',
+          leftStyle: '3px #000',
+          bottomStyle: '3px #000',
         }
       ];
       callSvgPathsRenderer(rawData);
