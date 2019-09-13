@@ -1,7 +1,8 @@
 import { normalize, pretty } from './htmlNormalize';
 import svgToAscii from './svgToAscii';
 
-export { default as getSvgRectangleRenderer, precalculateStrokes } from '../../src/svgRectangles';
+export { default as getSvgPathsRenderer, precalculateStrokes } from '../../src/svgPathsRenderer';
+export { default as getSvgResizer } from '../../src/svgResizer';
 
 export function sleep(delay = 100) {
   return Promise.resolve({

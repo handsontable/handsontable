@@ -1,16 +1,18 @@
-describe('getSvgRectangleRenderer', () => {
+describe('getSvgPathsRenderer', () => {
   let container;
   let svg;
-  let svgRectangles;
+  let svgResizer;
+  let svgPathsRenderer;
 
   const totalWidth = 10;
   const totalHeight = 10;
 
-  function callSvgRectangleRenderer(rawData) {
+  function callSvgPathsRenderer(rawData) {
     const stylesAndStrokes = precalculateStrokes(rawData, totalWidth, totalHeight);
     const strokeStyles = [...stylesAndStrokes.keys()];
     const strokeLines = [...stylesAndStrokes.values()];
-    svgRectangles(totalWidth, totalHeight, strokeStyles, strokeLines);
+    svgResizer(totalWidth, totalHeight);
+    svgPathsRenderer(strokeStyles, strokeLines);
   }
 
   beforeEach(() => {
@@ -22,7 +24,8 @@ describe('getSvgRectangleRenderer', () => {
     svg.style.background = 'white';
     container.appendChild(svg);
 
-    svgRectangles = getSvgRectangleRenderer(svg);
+    svgResizer = getSvgResizer(svg);
+    svgPathsRenderer = getSvgPathsRenderer(svg);
   });
 
   afterEach(() => {
@@ -43,7 +46,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '1px #000',
         }
       ];
-      callSvgRectangleRenderer(rawData);
+      callSvgPathsRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▯▯▯▯▯▯▯▯▯▯
@@ -69,7 +72,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '2px #000',
         }
       ];
-      callSvgRectangleRenderer(rawData);
+      callSvgPathsRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▯▮▮▮▮▮▮▮▯▯
@@ -95,7 +98,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '3px #000',
         }
       ];
-      callSvgRectangleRenderer(rawData);
+      callSvgPathsRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▯▮▮▮▮▮▮▮▮▯
@@ -124,7 +127,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '1px #000',
         }
       ];
-      callSvgRectangleRenderer(rawData);
+      callSvgPathsRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▮▮▮▮▮▮▯▯
 ▯▯▮▯▯▯▯▮▯▯
@@ -150,7 +153,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '2px #000',
         }
       ];
-      callSvgRectangleRenderer(rawData);
+      callSvgPathsRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▮▮▮▮▮▮▮▯▯
 ▯▮▮▮▮▮▮▮▯▯
@@ -176,7 +179,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '3px #000',
         }
       ];
-      callSvgRectangleRenderer(rawData);
+      callSvgPathsRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▮▮▮▮▮▮▮▮▯
 ▯▮▮▮▮▮▮▮▮▯
@@ -205,7 +208,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '1px #000',
         }
       ];
-      callSvgRectangleRenderer(rawData);
+      callSvgPathsRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▯▯▯▯▯▯▯▯▯▯
@@ -231,7 +234,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '2px #000',
         }
       ];
-      callSvgRectangleRenderer(rawData);
+      callSvgPathsRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▮▮▮▮▮▮▮▮▮▮
@@ -257,7 +260,7 @@ describe('getSvgRectangleRenderer', () => {
           bottomStroke: '3px #000',
         }
       ];
-      callSvgRectangleRenderer(rawData);
+      callSvgPathsRenderer(rawData);
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▮▮▮▮▮▮▮▮▮▮

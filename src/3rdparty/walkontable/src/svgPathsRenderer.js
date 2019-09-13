@@ -1,55 +1,35 @@
 import svgOptimizePath from './svgOptimizePath';
 
 /**
- * getSvgRectangleRenderer is a higher-order function that returns a function to render groupedRects.
- * The returned function expects groupedRects to be in a format created by SvgRectangles.precalculate
- * Stroke lines are not defined within the SVG. You should define them using CSS on the SVG element.
- * @param {HTMLElement} svg
+ * getSvgPathsRenderer is a higher-order function that returns a function to render paths.
+ * The returned function expects `strokeStyles`, `strokeLines` to be in a format created by `precalculateStrokes`.
+ *
+ * `strokeStyles` is an array of stroke style strings, e.g.:
+ * [
+ *   '1px black',
+ *   '2px #FF0000'
+ * ]
+ *
+ * `strokeLines` is an array of x1, y1, x2, y2 quadruplets for each strokeStyle, e.g.:
+ * [
+ *   [0, 0, 10, 10, 0, 0, 10, 0, 20, 20, 50, 50],
+ *   [5, 5, 55, 5]
+ * ]
+ *
+ * Assumptions:
+ *  - `(x1 >= 0 || x2 >= 0) && (y1 >= 0 || y2 >= 0)`
+ *  - `x1 <= x2 && y1 <= y2`
+ *  - `x1 === x2 || y1 === y2`
+ *  - the length of strokeLines must be 4 * the length of strokeStyles
+ *
+ * @param {HTMLElement} svg <svg> or <g> element
  */
-export default function getSvgRectangleRenderer(svg) {
+export default function getSvgPathsRenderer(svg) {
   svg.setAttribute('fill', 'none');
-
-  let lastTotalWidth;
-  let lastTotalHeight;
 
   const brushes = new Map();
 
-  // TODO instead of totalWidth, etc, I could use maximum x2, y2 in groupedRects
-  // on the other hand, totalWidth, totalHeight should not change that often
-  /*
-    strokeStyles is an array of stroke style strings, e.g.:
-    [
-        '1px black',
-        '2px #FF0000'
-    ]
-
-    strokeLines is an array of x1, y1, x2, y2 quadruplets for each strokeStyle, e.g.:
-    [
-        [0, 0, 10, 10, 0, 0, 10, 0, 20, 20, 50, 50],
-        [5, 5, 55, 5]
-    ]
-
-    assumptions:
-     - x1 <= x2 && y1 <= y2
-     - x1 === x2 || y1 === y2
-     - the length of strokeLines must be 4 * the length of strokeStyles
-    */
-  return (totalWidth, totalHeight, strokeStyles, strokeLines) => {
-    if (totalWidth !== lastTotalWidth || totalHeight !== lastTotalHeight) {
-      svg.setAttribute('viewBox', `0 0 ${totalWidth} ${totalHeight}`);
-
-      if (totalWidth !== lastTotalWidth) {
-        svg.style.width = `${totalWidth}px`;
-        svg.setAttribute('width', totalWidth);
-        lastTotalWidth = totalWidth;
-      }
-      if (totalHeight !== lastTotalHeight) {
-        svg.style.height = `${totalHeight}px`;
-        svg.setAttribute('height', totalHeight);
-        lastTotalHeight = totalHeight;
-      }
-    }
-
+  return (strokeStyles, strokeLines) => {
     brushes.forEach(resetBrush);
 
     for (let ii = 0; ii < strokeStyles.length; ii++) { // http://jsbench.github.io/#fb2e17228039ba5bfdf4d1744395f352

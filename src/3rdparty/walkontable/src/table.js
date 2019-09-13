@@ -19,7 +19,8 @@ import { Renderer } from './renderer';
 import Overlay from './overlay/_base';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
-import getSvgRectangleRenderer, { createPathString } from './svgRectangles';
+import getSvgPathsRenderer, { createPathString } from './svgPathsRenderer';
+import getSvgResizer from './svgResizer';
 import svgOptimizePath from './svgOptimizePath';
 
 /**
@@ -110,7 +111,8 @@ class Table {
     this.svg.style.zIndex = '5';
     this.svg.setAttribute('pointer-events', 'none');
     this.spreader.appendChild(this.svg);
-    this.renderSvgRectangles = getSvgRectangleRenderer(this.svg);
+    this.svgResizer = getSvgResizer(this.svg);
+    this.svgPathsRenderer = getSvgPathsRenderer(this.svg);
   }
 
   /**
@@ -563,7 +565,8 @@ class Table {
 
     const strokeStyles = [...stylesAndPaths.keys()];
     const strokeLines = [...stylesAndPaths.values()];
-    this.renderSvgRectangles(maxWidth, maxHeight, strokeStyles, strokeLines); // makes DOM writes
+    this.svgResizer(maxWidth, maxHeight); // makes DOM writes
+    this.svgPathsRenderer(strokeStyles, strokeLines); // makes DOM writes
   }
 
   /**

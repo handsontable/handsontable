@@ -14,7 +14,8 @@ const allowedE2EModules = [
   './MemoryLeakTest',
   '../MemoryLeakTest',
   './svgToAscii',
-  '../../src/svgRectangles',
+  '../../src/svgPathsRenderer',
+  '../../src/svgResizer',
   './svgOptimizePath',
   '../../makerjs/index'
 ];
