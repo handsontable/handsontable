@@ -2,6 +2,10 @@ import getSvgPathsRenderer, { createPathString } from './svg/svgPathsRenderer';
 import getSvgResizer from './svg/svgResizer';
 import svgOptimizePath from './svg/svgOptimizePath';
 
+const marginForSafeRenderingOfTheRightBottomEdge = 1;
+const offsetToOverLapPrecedingBorder = -1;
+const insetPositioningForCurrentCellHighlight = 1;
+
 export default class SvgBorder {
   constructor(parentElement) {
     this.svg = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -15,26 +19,26 @@ export default class SvgBorder {
     parentElement.appendChild(this.svg);
     this.svgResizer = getSvgResizer(this.svg);
 
-    this.priorityGroups = [];
+    this.pathGroups = []; // paths are grouped by priority
 
     this.maxWidth = 0;
     this.maxHeight = 0;
   }
 
-  ensurePriorityGroup(priority) {
-    const found = this.priorityGroups[priority];
+  ensurePathGroup(priority) {
+    const found = this.pathGroups[priority];
     if (!found) {
-      if (this.priorityGroups.length < priority) {
-        this.ensurePriorityGroup(priority - 1); // ensure there are no gaps
+      if (this.pathGroups.length < priority) {
+        this.ensurePathGroup(priority - 1); // ensure there are no gaps
       }
-      const group = {
+      const pathGroup = {
         svgPathsRenderer: this.getSvgPathsRendererForGroup(this.svg),
-        stylesAndStrokes: new Map(),
-        strokeStyles: [],
-        strokeLines: []
+        stylesAndLines: new Map(),
+        styles: [],
+        paths: []
       };
-      this.priorityGroups[priority] = group;
-      return group;
+      this.pathGroups[priority] = pathGroup;
+      return pathGroup;
     }
     return found;
   }
@@ -44,42 +48,42 @@ export default class SvgBorder {
     this.maxHeight = 0;
 
     // make all DOM reads
-    this.priorityGroups.forEach((group) => {
-      group.stylesAndStrokes.clear();
-    });
+    this.pathGroups.forEach(pathGroup => pathGroup.stylesAndLines.clear());
     argArrays.forEach(argArray => this.addBorderLinesToStrokes(...argArray));
-    this.priorityGroups.forEach((group) => {
-      this.drawPaths(group);
-    });
+    this.pathGroups.forEach(pathGroup => this.convertLinesToPaths(pathGroup));
 
     // make all DOM writes
     this.svgResizer(this.maxWidth, this.maxHeight);
-    this.priorityGroups.forEach((group) => {
-      group.svgPathsRenderer(group.strokeStyles, group.strokeLines);
-    });
+    this.pathGroups.forEach(pathGroup => pathGroup.svgPathsRenderer(pathGroup.styles, pathGroup.paths));
   }
 
-  drawPaths(group) {
-    const stylesAndStrokes = group.stylesAndStrokes;
-    group.strokeStyles.length = 0;
-    group.strokeLines.length = 0;
+  /**
+   *
+   * @param {Array} arr Array of subarrays
+   * @param {Number} index Index in subarray
+   * @returns {Number} Sum
+   */
+  sumArrayElementAtIndex(arr, index) {
+    return arr.reduce((accumulator, subarr) => Math.max(accumulator, subarr[index]), 0);
+  }
 
-    const marginForSafeRenderingOfTheRightBottomEdge = 1;
-    const keys = stylesAndStrokes.keys();
-    Array.from(keys).forEach((key) => {
-      const value = stylesAndStrokes.get(key);
-      const width = parseInt(key, 10);
-      const pathString = createPathString(width, value, Infinity, Infinity);
+  convertLinesToPaths(pathGroup) {
+    const { stylesAndLines, styles, paths } = pathGroup;
+    paths.length = 0;
+    styles.length = 0;
+    styles.push(...stylesAndLines.keys());
+    styles.forEach((style) => {
+      const lines = stylesAndLines.get(style);
+      const width = parseInt(style, 10);
+      const pathString = createPathString(width, lines, Infinity, Infinity);
       const optimizedPathString = svgOptimizePath(pathString);
+      paths.push(optimizedPathString);
 
-      group.strokeStyles.push(key);
-      group.strokeLines.push(optimizedPathString);
-
-      const currentMaxWidth = value.reduce((accumulator, line) => Math.max(accumulator, line[2]), 0) + marginForSafeRenderingOfTheRightBottomEdge;
+      const currentMaxWidth = this.sumArrayElementAtIndex(lines, 2) + marginForSafeRenderingOfTheRightBottomEdge;
       if (currentMaxWidth > this.maxWidth) {
         this.maxWidth = currentMaxWidth;
       }
-      const currentMaxHeight = value.reduce((accumulator, line) => Math.max(accumulator, line[3]), 0) + marginForSafeRenderingOfTheRightBottomEdge;
+      const currentMaxHeight = this.sumArrayElementAtIndex(lines, 3) + marginForSafeRenderingOfTheRightBottomEdge;
       if (currentMaxHeight > this.maxHeight) {
         this.maxHeight = currentMaxHeight;
       }
@@ -100,39 +104,38 @@ export default class SvgBorder {
    * @param {Number} sourceColumn
    */
   addBorderLinesToStrokes(rect, borderSetting, priority, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
-    const map = this.ensurePriorityGroup(priority).stylesAndStrokes;
+    let { x1, y1, x2, y2 } = rect;
+    const stylesAndLines = this.ensurePathGroup(priority).stylesAndLines;
 
-    const offsetToOverLapPrecedingBorder = -1;
-    rect.x1 += offsetToOverLapPrecedingBorder;
-    rect.y1 += offsetToOverLapPrecedingBorder;
-    rect.x2 += offsetToOverLapPrecedingBorder;
-    rect.y2 += offsetToOverLapPrecedingBorder;
+    x1 += offsetToOverLapPrecedingBorder;
+    y1 += offsetToOverLapPrecedingBorder;
+    x2 += offsetToOverLapPrecedingBorder;
+    y2 += offsetToOverLapPrecedingBorder;
     if (borderSetting.className === 'current') {
-      const insetPositioningForCurrentCellHighlight = 1;
-      rect.x1 += insetPositioningForCurrentCellHighlight;
-      rect.y1 += insetPositioningForCurrentCellHighlight;
+      x1 += insetPositioningForCurrentCellHighlight;
+      y1 += insetPositioningForCurrentCellHighlight;
     }
 
-    if (rect.x1 < 0 && rect.x2 < 0 || rect.y1 < 0 && rect.y2 < 0) {
+    if (x1 < 0 && x2 < 0 || y1 < 0 && y2 < 0) {
       // nothing to draw, everything is at a negative index
       return;
     }
 
     if (hasTopEdge && this.hasBorderLineAtEdge(borderSetting, 'top')) {
-      const lines = this.getStrokeLines(map, borderSetting, 'top');
-      lines.push([rect.x1, rect.y1, rect.x2, rect.y1]);
+      const lines = this.getLines(stylesAndLines, borderSetting, 'top');
+      lines.push([x1, y1, x2, y1]);
     }
     if (hasRightEdge && this.hasBorderLineAtEdge(borderSetting, 'right')) {
-      const lines = this.getStrokeLines(map, borderSetting, 'right');
-      lines.push([rect.x2, rect.y1, rect.x2, rect.y2]);
+      const lines = this.getLines(stylesAndLines, borderSetting, 'right');
+      lines.push([x2, y1, x2, y2]);
     }
     if (hasBottomEdge && this.hasBorderLineAtEdge(borderSetting, 'bottom')) {
-      const lines = this.getStrokeLines(map, borderSetting, 'bottom');
-      lines.push([rect.x1, rect.y2, rect.x2, rect.y2]);
+      const lines = this.getLines(stylesAndLines, borderSetting, 'bottom');
+      lines.push([x1, y2, x2, y2]);
     }
     if (hasLeftEdge && this.hasBorderLineAtEdge(borderSetting, 'left')) {
-      const lines = this.getStrokeLines(map, borderSetting, 'left');
-      lines.push([rect.x1, rect.y1, rect.x1, rect.y2]);
+      const lines = this.getLines(stylesAndLines, borderSetting, 'left');
+      lines.push([x1, y1, x1, y2]);
     }
   }
 
@@ -140,7 +143,7 @@ export default class SvgBorder {
     return !(borderSetting[edge] && borderSetting[edge].hide);
   }
 
-  getStrokeLines(map, borderSetting, edge) {
+  getLines(map, borderSetting, edge) {
     let width = 1;
     if (borderSetting[edge] && borderSetting[edge].width !== undefined) {
       width = borderSetting[edge].width;
