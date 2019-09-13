@@ -15,22 +15,26 @@ export default class SvgBorder {
     parentElement.appendChild(this.svg);
     this.svgResizer = getSvgResizer(this.svg);
 
-    this.svgPathsRenderersByPriority = [];
+    this.priorityGroups = [];
 
     this.maxWidth = 0;
     this.maxHeight = 0;
   }
 
-  ensureRendererForPriority(priority) {
-    const found = this.svgPathsRenderersByPriority[priority];
+  ensurePriorityGroup(priority) {
+    const found = this.priorityGroups[priority];
     if (!found) {
-      if (this.svgPathsRenderersByPriority.length < priority) {
-        this.ensureRendererForPriority(priority - 1); // ensure there are no gaps
+      if (this.priorityGroups.length < priority) {
+        this.ensurePriorityGroup(priority - 1); // ensure there are no gaps
       }
-      const svgPathsRenderer = this.getSvgPathsRendererForGroup(this.svg);
-      svgPathsRenderer.stylesAndStrokes = new Map();
-      this.svgPathsRenderersByPriority[priority] = svgPathsRenderer;
-      return svgPathsRenderer;
+      const group = {
+        svgPathsRenderer: this.getSvgPathsRendererForGroup(this.svg),
+        stylesAndStrokes: new Map(),
+        strokeStyles: [],
+        strokeLines: []
+      };
+      this.priorityGroups[priority] = group;
+      return group;
     }
     return found;
   }
@@ -40,26 +44,25 @@ export default class SvgBorder {
     this.maxHeight = 0;
 
     // make all DOM reads
-    this.svgPathsRenderersByPriority.forEach((svgPathsRenderer) => {
-      svgPathsRenderer.stylesAndStrokes.clear();
+    this.priorityGroups.forEach((group) => {
+      group.stylesAndStrokes.clear();
     });
     argArrays.forEach(argArray => this.addBorderLinesToStrokes(...argArray));
-    this.svgPathsRenderersByPriority.forEach((svgPathsRenderer, priority) => {
-      const stylesAndPaths = this.drawPaths(priority);
-      svgPathsRenderer.strokeStyles = [...stylesAndPaths.keys()];
-      svgPathsRenderer.strokeLines = [...stylesAndPaths.values()];
+    this.priorityGroups.forEach((group) => {
+      this.drawPaths(group);
     });
 
     // make all DOM writes
     this.svgResizer(this.maxWidth, this.maxHeight);
-    this.svgPathsRenderersByPriority.forEach((svgPathsRenderer) => {
-      svgPathsRenderer(svgPathsRenderer.strokeStyles, svgPathsRenderer.strokeLines);
+    this.priorityGroups.forEach((group) => {
+      group.svgPathsRenderer(group.strokeStyles, group.strokeLines);
     });
   }
 
-  drawPaths(priority) {
-    const stylesAndStrokes = this.ensureRendererForPriority(priority).stylesAndStrokes;
-    const stylesAndPaths = new Map();
+  drawPaths(group) {
+    const stylesAndStrokes = group.stylesAndStrokes;
+    group.strokeStyles.length = 0;
+    group.strokeLines.length = 0;
 
     const marginForSafeRenderingOfTheRightBottomEdge = 1;
     const keys = stylesAndStrokes.keys();
@@ -68,7 +71,9 @@ export default class SvgBorder {
       const width = parseInt(key, 10);
       const pathString = createPathString(width, value, Infinity, Infinity);
       const optimizedPathString = svgOptimizePath(pathString);
-      stylesAndPaths.set(key, optimizedPathString);
+
+      group.strokeStyles.push(key);
+      group.strokeLines.push(optimizedPathString);
 
       const currentMaxWidth = value.reduce((accumulator, line) => Math.max(accumulator, line[2]), 0) + marginForSafeRenderingOfTheRightBottomEdge;
       if (currentMaxWidth > this.maxWidth) {
@@ -79,8 +84,6 @@ export default class SvgBorder {
         this.maxHeight = currentMaxHeight;
       }
     });
-
-    return stylesAndPaths;
   }
 
   getSvgPathsRendererForGroup(svg) {
@@ -96,15 +99,15 @@ export default class SvgBorder {
    * @param {Number} sourceRow
    * @param {Number} sourceColumn
    */
-  addBorderLinesToStrokes(rect, selection, priority, isTopClean, isRightClean, isBottomClean, isLeftClean) {
-    const map = this.ensureRendererForPriority(priority).stylesAndStrokes;
+  addBorderLinesToStrokes(rect, borderSetting, priority, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
+    const map = this.ensurePriorityGroup(priority).stylesAndStrokes;
 
     const offsetToOverLapPrecedingBorder = -1;
     rect.x1 += offsetToOverLapPrecedingBorder;
     rect.y1 += offsetToOverLapPrecedingBorder;
     rect.x2 += offsetToOverLapPrecedingBorder;
     rect.y2 += offsetToOverLapPrecedingBorder;
-    if (selection.settings.className === 'current') {
+    if (borderSetting.className === 'current') {
       const insetPositioningForCurrentCellHighlight = 1;
       rect.x1 += insetPositioningForCurrentCellHighlight;
       rect.y1 += insetPositioningForCurrentCellHighlight;
@@ -115,26 +118,26 @@ export default class SvgBorder {
       return;
     }
 
-    if (isTopClean && !this.shouldSkipStroke(selection.settings, 'top')) {
-      const lines = this.getStrokeLines(map, selection.settings, 'top');
+    if (hasTopEdge && this.hasBorderLineAtEdge(borderSetting, 'top')) {
+      const lines = this.getStrokeLines(map, borderSetting, 'top');
       lines.push([rect.x1, rect.y1, rect.x2, rect.y1]);
     }
-    if (isRightClean && !this.shouldSkipStroke(selection.settings, 'right')) {
-      const lines = this.getStrokeLines(map, selection.settings, 'right');
+    if (hasRightEdge && this.hasBorderLineAtEdge(borderSetting, 'right')) {
+      const lines = this.getStrokeLines(map, borderSetting, 'right');
       lines.push([rect.x2, rect.y1, rect.x2, rect.y2]);
     }
-    if (isBottomClean && !this.shouldSkipStroke(selection.settings, 'bottom')) {
-      const lines = this.getStrokeLines(map, selection.settings, 'bottom');
+    if (hasBottomEdge && this.hasBorderLineAtEdge(borderSetting, 'bottom')) {
+      const lines = this.getStrokeLines(map, borderSetting, 'bottom');
       lines.push([rect.x1, rect.y2, rect.x2, rect.y2]);
     }
-    if (isLeftClean && !this.shouldSkipStroke(selection.settings, 'left')) {
-      const lines = this.getStrokeLines(map, selection.settings, 'left');
+    if (hasLeftEdge && this.hasBorderLineAtEdge(borderSetting, 'left')) {
+      const lines = this.getStrokeLines(map, borderSetting, 'left');
       lines.push([rect.x1, rect.y1, rect.x1, rect.y2]);
     }
   }
 
-  shouldSkipStroke(borderSetting, edge) {
-    return borderSetting[edge] && borderSetting[edge].hide;
+  hasBorderLineAtEdge(borderSetting, edge) {
+    return !(borderSetting[edge] && borderSetting[edge].hide);
   }
 
   getStrokeLines(map, borderSetting, edge) {

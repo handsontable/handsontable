@@ -519,7 +519,7 @@ class Table {
     const containerOffset = offset(this.TABLE);
     const argArrays = [];
     for (let i = 0; i < len; i++) {
-      highlights[i].draw(wot, (highlight, firstRow, firstColumn, lastRow, lastColumn, isTopClean, isRightClean, isBottomClean, isLeftClean) => { // makes DOM writes
+      highlights[i].draw(wot, (highlight, firstRow, firstColumn, lastRow, lastColumn, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) => { // makes DOM writes
         if (highlights[i].settings.border) {
           let priority = 0;
           if (highlights[i].settings.className) {
@@ -550,7 +550,7 @@ class Table {
           };
 
           // push arguments to a temporary array to separate bulk DOM writes from DOM reads
-          const descriptor = [rect, highlight, priority, isTopClean, isRightClean, isBottomClean, isLeftClean];
+          const descriptor = [rect, highlight.settings, priority, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
           argArrays.push(descriptor);
         }
       });
