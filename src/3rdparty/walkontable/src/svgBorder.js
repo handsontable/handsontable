@@ -35,7 +35,7 @@ export default class SvgBorder {
         svgPathsRenderer: this.getSvgPathsRendererForGroup(this.svg),
         stylesAndLines: new Map(),
         styles: [],
-        paths: []
+        commands: []
       };
       this.pathGroups[priority] = pathGroup;
       return pathGroup;
@@ -47,14 +47,14 @@ export default class SvgBorder {
     this.maxWidth = 0;
     this.maxHeight = 0;
 
-    // make all DOM reads
+    // batch all calculations
     this.pathGroups.forEach(pathGroup => pathGroup.stylesAndLines.clear());
-    argArrays.forEach(argArray => this.addBorderLinesToStrokes(...argArray));
-    this.pathGroups.forEach(pathGroup => this.convertLinesToPaths(pathGroup));
+    argArrays.forEach(argArray => this.convertArgsToLines(...argArray));
+    this.pathGroups.forEach(pathGroup => this.convertLinesToCommands(pathGroup));
 
-    // make all DOM writes
+    // batch all DOM writes
     this.svgResizer(this.maxWidth, this.maxHeight);
-    this.pathGroups.forEach(pathGroup => pathGroup.svgPathsRenderer(pathGroup.styles, pathGroup.paths));
+    this.pathGroups.forEach(pathGroup => pathGroup.svgPathsRenderer(pathGroup.styles, pathGroup.commands));
   }
 
   /**
@@ -67,17 +67,17 @@ export default class SvgBorder {
     return arr.reduce((accumulator, subarr) => Math.max(accumulator, subarr[index]), 0);
   }
 
-  convertLinesToPaths(pathGroup) {
-    const { stylesAndLines, styles, paths } = pathGroup;
-    paths.length = 0;
+  convertLinesToCommands(pathGroup) {
+    const { stylesAndLines, styles, commands } = pathGroup;
+    commands.length = 0;
     styles.length = 0;
     styles.push(...stylesAndLines.keys());
     styles.forEach((style) => {
       const lines = stylesAndLines.get(style);
       const width = parseInt(style, 10);
-      const pathString = convertLinesToCommand(width, lines, Infinity, Infinity);
-      const optimizedPathString = svgOptimizePath(pathString);
-      paths.push(optimizedPathString);
+      const command = convertLinesToCommand(width, lines, Infinity, Infinity);
+      const optimizedCommand = svgOptimizePath(command);
+      commands.push(optimizedCommand);
 
       const currentMaxWidth = this.sumArrayElementAtIndex(lines, 2) + marginForSafeRenderingOfTheRightBottomEdge;
       if (currentMaxWidth > this.maxWidth) {
@@ -96,14 +96,7 @@ export default class SvgBorder {
     return getSvgPathsRenderer(group);
   }
 
-  /**
-   * This method tries to be as easy on performance on possible. It only reads from DOM (getBoundingClientRect)
-   * @param {Map} map
-   * @param {Selection} selection
-   * @param {Number} sourceRow
-   * @param {Number} sourceColumn
-   */
-  addBorderLinesToStrokes(rect, borderSetting, priority, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
+  convertArgsToLines(rect, borderSetting, priority, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
     let { x1, y1, x2, y2 } = rect;
     const stylesAndLines = this.ensurePathGroup(priority).stylesAndLines;
 
@@ -121,25 +114,25 @@ export default class SvgBorder {
       return;
     }
 
-    if (hasTopEdge && this.hasBorderLineAtEdge(borderSetting, 'top')) {
+    if (hasTopEdge && this.hasLineAtEdge(borderSetting, 'top')) {
       const lines = this.getLines(stylesAndLines, borderSetting, 'top');
       lines.push([x1, y1, x2, y1]);
     }
-    if (hasRightEdge && this.hasBorderLineAtEdge(borderSetting, 'right')) {
+    if (hasRightEdge && this.hasLineAtEdge(borderSetting, 'right')) {
       const lines = this.getLines(stylesAndLines, borderSetting, 'right');
       lines.push([x2, y1, x2, y2]);
     }
-    if (hasBottomEdge && this.hasBorderLineAtEdge(borderSetting, 'bottom')) {
+    if (hasBottomEdge && this.hasLineAtEdge(borderSetting, 'bottom')) {
       const lines = this.getLines(stylesAndLines, borderSetting, 'bottom');
       lines.push([x1, y2, x2, y2]);
     }
-    if (hasLeftEdge && this.hasBorderLineAtEdge(borderSetting, 'left')) {
+    if (hasLeftEdge && this.hasLineAtEdge(borderSetting, 'left')) {
       const lines = this.getLines(stylesAndLines, borderSetting, 'left');
       lines.push([x1, y1, x1, y2]);
     }
   }
 
-  hasBorderLineAtEdge(borderSetting, edge) {
+  hasLineAtEdge(borderSetting, edge) {
     return !(borderSetting[edge] && borderSetting[edge].hide);
   }
 
