@@ -15,6 +15,7 @@ export default function bottom(customBordersPlugin) {
     callback(key, selected) {
       const hasBorder = checkSelectionBorders(this, 'bottom');
       customBordersPlugin.prepareBorder(selected, 'bottom', hasBorder);
+      customBordersPlugin.render();
     }
   };
 }

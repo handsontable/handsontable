@@ -803,13 +803,12 @@ describe('CustomBorders', () => {
     deselectCell();
 
     await selectContextSubmenuOption('Borders', 'Top');
-    deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
     expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
-    expect(getVisibleCustomBorders()).toEqual(['', '', '', 'M 0.5 0.5 49.5 0.5 M 0.5 0.5 Z', '']);
+    expect(getVisibleCustomBorders()).toEqual(['', '', '', 'M 0.5 0.5 49.5 0.5 M 0.5 0.5 Z', 'M 1 1 L 49 1 L 49 23 L 1 23 L 1 1 Z']);
   });
 
   it('should clear all borders when first was cleared borders by the clearBorders method with selections,' +
@@ -833,11 +832,10 @@ describe('CustomBorders', () => {
     deselectCell();
 
     await selectContextSubmenuOption('Borders', 'Top');
-    deselectCell();
 
     customBorders.clearBorders();
     expect(getCellMeta(0, 0).borders).toBeUndefined();
-    expect(getVisibleCustomBorders()).toEqual(['', '', '', '', '']);
+    expect(getVisibleCustomBorders()).toEqual(['', '', '', '', 'M 1 1 L 49 1 L 49 23 L 1 23 L 1 1 Z']);
   });
 
   it('should draw top border from context menu options', async() => {
@@ -848,7 +846,6 @@ describe('CustomBorders', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Top');
-    deselectCell();
 
     // expect(getCellMeta(0,0).borders.hasOwnProperty('top')).toBe(true);
     expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
@@ -856,7 +853,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
 
-    expect(getVisibleCustomBorders()).toEqual(['M 0.5 0.5 49.5 0.5 M 0.5 0.5 Z', '']);
+    expect(getVisibleCustomBorders()).toEqual(['M 0.5 0.5 49.5 0.5 M 0.5 0.5 Z', 'M 1 1 L 49 1 L 49 23 L 1 23 L 1 1 Z']);
   });
 
   it('should draw left border from context menu options', async() => {
@@ -867,7 +864,6 @@ describe('CustomBorders', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Left');
-    deselectCell();
 
     /* eslint-disable no-prototype-builtins */
     expect(getCellMeta(0, 0).borders.hasOwnProperty('left')).toBe(true);
@@ -875,7 +871,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.left).toEqual(DEFAULT_BORDER);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
-    expect(getVisibleCustomBorders()).toEqual(['M 0.5 0.5 0.5 23.5 M 0.5 0.5 Z', '']);
+    expect(getVisibleCustomBorders()).toEqual(['M 0.5 0.5 0.5 23.5 M 0.5 0.5 Z', 'M 1 1 L 49 1 L 49 23 L 1 23 L 1 1 Z']);
   });
 
   it('should draw right border from context menu options', async() => {
@@ -886,7 +882,6 @@ describe('CustomBorders', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Right');
-    deselectCell();
 
     /* eslint-disable no-prototype-builtins */
     expect(getCellMeta(0, 0).borders.hasOwnProperty('right')).toBe(true); // TODO flaky test. sometimes I get this error on this line: 'Failed: Cannot read property 'hasOwnProperty' of undefined'
@@ -894,7 +889,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.right).toEqual(DEFAULT_BORDER);
-    expect(getVisibleCustomBorders()).toEqual(['M 49.5 0.5 49.5 23.5 M 49.5 0.5 Z', '']);
+    expect(getVisibleCustomBorders()).toEqual(['M 49.5 0.5 49.5 23.5 M 49.5 0.5 Z', 'M 1 1 L 49 1 L 49 23 L 1 23 L 1 1 Z']);
   });
 
   it('should draw bottom border from context menu options', async() => {
@@ -905,7 +900,6 @@ describe('CustomBorders', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Bottom');
-    deselectCell();
 
     /* eslint-disable no-prototype-builtins */
     expect(getCellMeta(0, 0).borders.hasOwnProperty('right')).toBe(true);
@@ -913,7 +907,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(DEFAULT_BORDER);
     expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
-    expect(getVisibleCustomBorders()).toEqual(['M 0.5 23.5 49.5 23.5 M 0.5 23.5 Z', '']);
+    expect(getVisibleCustomBorders()).toEqual(['M 0.5 23.5 49.5 23.5 M 0.5 23.5 Z', 'M 1 1 L 49 1 L 49 23 L 1 23 L 1 1 Z']);
   });
 
   it('should remove all bottoms border from context menu options', async() => {
@@ -931,10 +925,9 @@ describe('CustomBorders', () => {
     expect(getVisibleCustomBorders()).toEqual(['M 49.5 0.5 49.5 23.5 M 49.5 0.5 Z', 'M 1 1 1 23 M 1 1 Z']);
 
     await selectContextSubmenuOption('Borders', 'Remove border');
-    deselectCell();
 
     expect(getCellMeta(0, 0).borders).toBeUndefined();
-    expect(getVisibleCustomBorders()).toEqual(['', '', '']);
+    expect(getVisibleCustomBorders()).toEqual(['', '', 'M 1 1 L 49 1 L 49 23 L 1 23 L 1 1 Z']);
   });
 
   it('should disable `Borders` context menu item when menu was triggered from corner header', () => {

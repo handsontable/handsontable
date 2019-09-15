@@ -9,6 +9,7 @@ export default function noBorders(customBordersPlugin) {
     },
     callback(key, selected) {
       customBordersPlugin.prepareBorder(selected, 'noBorders');
+      customBordersPlugin.render();
     },
     disabled() {
       return !checkSelectionBorders(this);
