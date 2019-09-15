@@ -1,4 +1,4 @@
-import getSvgPathsRenderer, { convertLinesToCommand } from './svg/svgPathsRenderer';
+import getSvgPathsRenderer, { adjustLinesToViewBox } from './svg/svgPathsRenderer';
 import getSvgResizer from './svg/svgResizer';
 import svgOptimizePath from './svg/svgOptimizePath';
 
@@ -75,8 +75,8 @@ export default class SvgBorder {
     styles.forEach((style) => {
       const lines = stylesAndLines.get(style);
       const width = parseInt(style, 10);
-      const command = convertLinesToCommand(width, lines, Infinity, Infinity);
-      const optimizedCommand = svgOptimizePath(command);
+      const adjustedLines = adjustLinesToViewBox(width, lines, Infinity, Infinity);
+      const optimizedCommand = svgOptimizePath(adjustedLines);
       commands.push(optimizedCommand);
 
       const currentMaxWidth = this.sumArrayElementAtIndex(lines, 2) + marginForSafeRenderingOfTheRightBottomEdge;

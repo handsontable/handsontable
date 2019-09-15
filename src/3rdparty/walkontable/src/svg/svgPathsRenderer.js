@@ -75,8 +75,8 @@ export function precalculateStylesAndCommands(rawData, totalWidth, totalHeight) 
   styles.forEach((style) => {
     const lines = stylesAndLines.get(style);
     const strokeWidth = parseInt(style, 10);
-    const command = convertLinesToCommand(strokeWidth, lines, totalWidth, totalHeight);
-    const optimizedCommand = svgOptimizePath(command);
+    const desiredLines = adjustLinesToViewBox(strokeWidth, lines, totalWidth, totalHeight);
+    const optimizedCommand = svgOptimizePath(desiredLines);
     stylesAndCommands.set(style, optimizedCommand);
   });
 
@@ -102,8 +102,8 @@ function getStateForStyle(states, style, parent) {
     elem.setAttribute('stroke', color);
     elem.setAttribute('stroke-width', size);
     elem.setAttribute('stroke-linecap', 'square');
-    elem.setAttribute('shape-rendering', 'optimizeSpeed');
-    // elem.setAttribute('shape-rendering', 'geometricPrecision'); // TODO why the border renders wrong when this is on
+    // elem.setAttribute('shape-rendering', 'optimizeSpeed');
+    elem.setAttribute('shape-rendering', 'geometricPrecision'); // TODO why the border renders wrong when this is on
     // elem.setAttribute('shape-rendering', 'crispEdges');
 
     state = {
@@ -118,12 +118,12 @@ function getStateForStyle(states, style, parent) {
   return state;
 }
 
-function keepLineWithinViewBox(pos, totalSize, brushHalfSize) {
-  if (pos - brushHalfSize < 0) {
-    pos += Math.ceil(brushHalfSize - pos);
+function keepLineWithinViewBox(pos, totalSize, halfStrokeWidth) {
+  if (pos - halfStrokeWidth < 0) {
+    pos += Math.ceil(halfStrokeWidth - pos);
   }
-  if (pos + brushHalfSize > totalSize) {
-    pos -= Math.ceil(pos + brushHalfSize - totalSize);
+  if (pos + halfStrokeWidth > totalSize) {
+    pos -= Math.ceil(pos + halfStrokeWidth - totalSize);
   }
   return pos;
 }
@@ -145,8 +145,8 @@ function keepLineWithinViewBox(pos, totalSize, brushHalfSize) {
  * @param {*} totalWidth
  * @param {*} totalHeight
  */
-export function convertLinesToCommand(strokeWidth, lines, totalWidth, totalHeight) {
-  const commands = [];
+export function adjustLinesToViewBox(strokeWidth, lines, totalWidth, totalHeight) {
+  const newLines = new Array(lines.length);
   const halfStrokeWidth = strokeWidth / 2;
   const needSubPixelCorrection = (strokeWidth % 2 !== 0); // disable antialiasing
 
@@ -165,9 +165,8 @@ export function convertLinesToCommand(strokeWidth, lines, totalWidth, totalHeigh
     x2 = keepLineWithinViewBox(x2, totalWidth, halfStrokeWidth);
     y2 = keepLineWithinViewBox(y2, totalHeight, halfStrokeWidth);
 
-    commands.push(`M ${x1} ${y1} `);
-    commands.push(`L ${x2} ${y2} `);
+    newLines[ii] = [x1, y1, x2, y2];
   }
 
-  return commands.join(' ');
+  return newLines;
 }
