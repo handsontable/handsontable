@@ -81,9 +81,9 @@ class Highlight {
     /**
      * Collection of the `custom-selection`, holder for example borders added through CustomBorders plugin.
      *
-     * @type {Selection[]}
+     * @type {Map.<string, Selection>}
      */
-    this.customSelections = [];
+    this.customSelections = new Map();
   }
 
   /**
@@ -236,10 +236,11 @@ class Highlight {
   /**
    * Add selection to the custom selection instance. The new selection are added to the end of the selection collection.
    *
+   * @param {String} key
    * @param {Object} options
    */
-  addCustomSelection(options) {
-    this.customSelections.push(createHighlight(CUSTOM_SELECTION, { ...options }));
+  addCustomSelection(key, options) {
+    this.customSelections.set(key, createHighlight(CUSTOM_SELECTION, { ...options }));
   }
 
   /**
@@ -264,7 +265,7 @@ class Highlight {
       ...this.areas.values(),
       ...this.headers.values(),
       ...this.activeHeaders.values(),
-      ...this.customSelections,
+      ...this.customSelections.values(),
     ][Symbol.iterator]();
   }
 }

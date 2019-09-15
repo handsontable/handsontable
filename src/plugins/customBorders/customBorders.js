@@ -2,9 +2,7 @@ import BasePlugin from './../_base';
 import { registerPlugin } from './../../plugins';
 import { hasOwnProperty } from './../../helpers/object';
 import { rangeEach } from './../../helpers/number';
-import {
-  arrayEach,
-  arrayMap } from './../../helpers/array';
+import { arrayEach } from './../../helpers/array';
 import { CellRange } from './../../3rdparty/walkontable/src';
 import * as C from './../../i18n/constants';
 import {
@@ -297,9 +295,7 @@ class CustomBorders extends BasePlugin {
     const hasCustomSelections = this.checkCustomSelections(border, cellRange);
 
     if (!hasCustomSelections) {
-      this.hot.selection.highlight.addCustomSelection({ border, cellRange });
-      const index = this.hot.selection.highlight.customSelections.length - 1;
-      border.customSelection = this.hot.selection.highlight.customSelections[index];
+      this.hot.selection.highlight.addCustomSelection(border.id, { border, cellRange });
     }
   }
 
@@ -318,15 +314,11 @@ class CustomBorders extends BasePlugin {
     if (borderDescriptor) {
       border = extendDefaultBorder(border, borderDescriptor);
 
-      arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
-        if (border.id === customSelection.settings.id) {
-          Object.assign(customSelection.settings, borderDescriptor);
-
-          border = customSelection.settings;
-
-          return false; // breaks forAll
-        }
-      });
+      const customSelection = this.hot.selection.highlight.customSelections.get(border.id);
+      if (customSelection) {
+        Object.assign(customSelection.settings, borderDescriptor);
+        border = customSelection.settings;
+      }
     }
 
     this.hot.setCellMeta(row, column, 'borders', border);
@@ -562,10 +554,9 @@ class CustomBorders extends BasePlugin {
   * @param {String} borderId Border id name as string.
   */
   clearBordersFromSelectionSettings(borderId) {
-    const index = arrayMap(this.hot.selection.highlight.customSelections, customSelection => customSelection.settings.id).indexOf(borderId);
-
-    if (index > -1) {
-      this.hot.selection.highlight.customSelections[index].clear();
+    const customSelection = this.hot.selection.highlight.customSelections.get(borderId);
+    if (customSelection) {
+      customSelection.clear();
     }
   }
 
@@ -575,10 +566,9 @@ class CustomBorders extends BasePlugin {
   * @private
   */
   clearNullCellRange() {
-    arrayEach(this.hot.selection.highlight.customSelections, (customSelection, index) => {
+    arrayEach(this.hot.selection.highlight.customSelections.values(), (customSelection) => {
       if (customSelection.cellRange === null) {
-        this.hot.selection.highlight.customSelections[index].destroy();
-        this.hot.selection.highlight.customSelections.splice(index, 1);
+        this.hot.selection.highlight.customSelections.delete(customSelection.settings.id);
 
         return false; // breaks forAll
       }
@@ -623,7 +613,7 @@ class CustomBorders extends BasePlugin {
   * @return {Boolean}
   */
   checkCustomSelectionsFromContextMenu(border) {
-    return !!border.customSelection;
+    return this.hot.selection.highlight.customSelections.has(border.id);
   }
 
   /**
@@ -642,8 +632,10 @@ class CustomBorders extends BasePlugin {
       this.removeAllBorders(border.row, border.col);
       return true;
 
-    } else if (border.customSelection) {
-      border.customSelection.cellRange = cellRange;
+    }
+    const customSelection = this.hot.selection.highlight.customSelections.get(border.id);
+    if (customSelection) {
+      customSelection.cellRange = cellRange;
       return true;
     }
 
