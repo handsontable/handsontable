@@ -1,4 +1,4 @@
-import svgOptimizePath from './svgOptimizePath';
+import svgOptimizePath from './optimizePath';
 
 /**
  * getSvgPathsRenderer is a higher-order function that returns a function to render paths.

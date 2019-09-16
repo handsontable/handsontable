@@ -7,7 +7,6 @@ import {
   overlayContainsElement,
   closest,
   outerWidth,
-  outerHeight,
   innerHeight,
   isVisible,
 } from './../../../helpers/dom/element';
@@ -19,7 +18,7 @@ import { Renderer } from './renderer';
 import Overlay from './overlay/_base';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
-import SvgBorder from './svgBorder';
+import { BorderRenderer } from './borderRenderer';
 
 /**
  *
@@ -100,7 +99,7 @@ class Table {
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
 
-    this.svgBorder = new SvgBorder(this.spreader);
+    this.borderRenderer = new BorderRenderer(this.spreader);
   }
 
   /**
@@ -516,47 +515,23 @@ class Table {
       }
     }
 
-    const containerOffset = offset(this.TABLE);
     const argArrays = [];
+
+    this.borderRenderer.setContainerOffset(offset(this.TABLE));
+
     for (let i = 0; i < len; i++) {
-      highlights[i].draw(wot, (highlight, firstRow, firstColumn, lastRow, lastColumn, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) => { // makes DOM writes
-        if (highlights[i].settings.border) {
-          let priority = 0;
-          if (highlights[i].settings.className) {
-            priority = 1;
-          }
+      const selection = highlights[i];
 
-          const firstTd = this.getCell({ row: firstRow, col: firstColumn });
-          const firstTdOffset = offset(firstTd);
-          let lastTdOffset;
-          let lastTdWidth;
-          let lastTdHeight;
-          if (firstRow === lastRow && firstColumn === lastColumn) {
-            lastTdOffset = firstTdOffset;
-            lastTdWidth = outerWidth(firstTd);
-            lastTdHeight = outerHeight(firstTd);
-          } else {
-            const lastTd = this.getCell({ row: lastRow, col: lastColumn });
-            lastTdOffset = offset(lastTd);
-            lastTdWidth = outerWidth(lastTd);
-            lastTdHeight = outerHeight(lastTd);
-          }
+      selection.draw(wot);
 
-          const rect = {
-            x1: firstTdOffset.left - containerOffset.left,
-            y1: firstTdOffset.top - containerOffset.top,
-            x2: lastTdOffset.left - containerOffset.left + lastTdWidth,
-            y2: lastTdOffset.top - containerOffset.top + lastTdHeight,
-          };
+      const selectedCellsDescriptor = selection.getSelectedCellsDescriptor();
 
-          // push arguments to a temporary array to separate bulk DOM writes from DOM reads
-          const descriptor = [rect, highlight.settings, priority, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
-          argArrays.push(descriptor);
-        }
-      });
+      if (selectedCellsDescriptor.length > 0) {
+        argArrays.push(selection.getSelectedCellsDescriptor());
+      }
     }
 
-    this.svgBorder.render(argArrays);
+    this.borderRenderer.render(argArrays);
   }
 
   /**

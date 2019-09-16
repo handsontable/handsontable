@@ -14,10 +14,10 @@ const allowedE2EModules = [
   './MemoryLeakTest',
   '../MemoryLeakTest',
   './svgToAscii',
-  '../../src/svg/svgPathsRenderer',
-  '../../src/svg/svgResizer',
-  './svgOptimizePath',
-  '../../../makerjs/index'
+  '../../src/borderRenderer/svg/pathsRenderer',
+  '../../src/borderRenderer/svg/resizer',
+  './optimizePath',
+  '../../../../makerjs/index'
 ];
 
 const babelPresetConfig = () => ({

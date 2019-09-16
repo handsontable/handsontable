@@ -1,12 +1,12 @@
-import getSvgPathsRenderer, { adjustLinesToViewBox } from './svg/svgPathsRenderer';
-import getSvgResizer from './svg/svgResizer';
-import svgOptimizePath from './svg/svgOptimizePath';
+import getSvgPathsRenderer, { adjustLinesToViewBox } from './svg/pathsRenderer';
+import getSvgResizer from './svg/resizer';
+import svgOptimizePath from './svg/optimizePath';
 
 const marginForSafeRenderingOfTheRightBottomEdge = 1;
 const offsetToOverLapPrecedingBorder = -1;
 const insetPositioningForCurrentCellHighlight = 1;
 
-export default class SvgBorder {
+export default class BorderRenderer {
   constructor(parentElement) {
     this.svg = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
     this.svg.style.top = '0';
@@ -96,14 +96,20 @@ export default class SvgBorder {
     return getSvgPathsRenderer(group);
   }
 
+  setContainerOffset(containerOffset) {
+    this.containerOffset = containerOffset;
+  }
+
   convertArgsToLines(rect, borderSetting, priority, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
     let { x1, y1, x2, y2 } = rect;
     const stylesAndLines = this.ensurePathGroup(priority).stylesAndLines;
+    const containerOffset = this.containerOffset;
 
-    x1 += offsetToOverLapPrecedingBorder;
-    y1 += offsetToOverLapPrecedingBorder;
-    x2 += offsetToOverLapPrecedingBorder;
-    y2 += offsetToOverLapPrecedingBorder;
+    x1 += (offsetToOverLapPrecedingBorder - containerOffset.left);
+    y1 += (offsetToOverLapPrecedingBorder - containerOffset.top);
+    x2 += (offsetToOverLapPrecedingBorder - containerOffset.left);
+    y2 += (offsetToOverLapPrecedingBorder - containerOffset.top);
+
     if (borderSetting.className === 'current') {
       x1 += insetPositioningForCurrentCellHighlight;
       y1 += insetPositioningForCurrentCellHighlight;
