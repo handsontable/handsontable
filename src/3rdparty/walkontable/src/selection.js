@@ -1,4 +1,4 @@
-import { addClass, hasClass, outerWidth, outerHeight, offset } from './../../../helpers/dom/element';
+import { addClass, hasClass } from './../../../helpers/dom/element';
 import SelectionHandle from './selectionHandle';
 import CellCoords from './cell/coords';
 import CellRange from './cell/range';
@@ -282,33 +282,15 @@ class Selection {
         const hasBottomEdge = highlightLastRenderedRow === lastRow;
         const hasLeftEdge = highlightFirstRenderedColumn === firstColumn;
 
-        const priority = this.settings.className ? 1 : 0;
         const firstTd = wotInstance.wtTable.getCell({ row: highlightFirstRenderedRow, col: highlightFirstRenderedColumn });
-        const firstTdOffset = offset(firstTd);
-        let lastTdOffset;
-        let lastTdWidth;
-        let lastTdHeight;
-
+        let lastTd;
         if (highlightFirstRenderedRow === highlightLastRenderedRow && highlightFirstRenderedColumn === highlightLastRenderedColumn) {
-          lastTdOffset = firstTdOffset;
-          lastTdWidth = outerWidth(firstTd);
-          lastTdHeight = outerHeight(firstTd);
+          lastTd = firstTd;
         } else {
-          const lastTd = wotInstance.wtTable.getCell({ row: highlightLastRenderedRow, col: highlightLastRenderedColumn });
-
-          lastTdOffset = offset(lastTd);
-          lastTdWidth = outerWidth(lastTd);
-          lastTdHeight = outerHeight(lastTd);
+          lastTd = wotInstance.wtTable.getCell({ row: highlightLastRenderedRow, col: highlightLastRenderedColumn });
         }
 
-        const rect = {
-          x1: firstTdOffset.left,
-          y1: firstTdOffset.top,
-          x2: lastTdOffset.left + lastTdWidth,
-          y2: lastTdOffset.top + lastTdHeight,
-        };
-
-        this.selectedCellsDescriptor = [rect, this.settings, priority, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
+        this.selectedCellsDescriptor = [this.settings, firstTd, lastTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
       }
 
       for (let sourceRow = highlightFirstRenderedRow; sourceRow <= highlightLastRenderedRow; sourceRow += 1) {

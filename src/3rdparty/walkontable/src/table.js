@@ -517,8 +517,6 @@ class Table {
 
     const argArrays = [];
 
-    this.borderRenderer.setContainerOffset(offset(this.TABLE));
-
     for (let i = 0; i < len; i++) {
       const selection = highlights[i];
 
@@ -531,7 +529,7 @@ class Table {
       }
     }
 
-    this.borderRenderer.render(argArrays);
+    this.borderRenderer.render(this.TABLE, argArrays);
   }
 
   /**

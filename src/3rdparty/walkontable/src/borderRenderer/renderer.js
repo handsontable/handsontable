@@ -1,3 +1,4 @@
+import { outerWidth, outerHeight, offset } from './../../../../helpers/dom/element';
 import getSvgPathsRenderer, { adjustLinesToViewBox } from './svg/pathsRenderer';
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
@@ -43,7 +44,9 @@ export default class BorderRenderer {
     return found;
   }
 
-  render(argArrays) {
+  render(table, argArrays) {
+    this.containerOffset = offset(table);
+
     this.maxWidth = 0;
     this.maxHeight = 0;
 
@@ -96,19 +99,24 @@ export default class BorderRenderer {
     return getSvgPathsRenderer(group);
   }
 
-  setContainerOffset(containerOffset) {
-    this.containerOffset = containerOffset;
-  }
+  convertArgsToLines(borderSetting, firstTd, lastTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
+    const priority = borderSetting.className ? 1 : 0;
+    const firstTdOffset = offset(firstTd);
+    const lastTdOffset = (firstTd === lastTd) ? firstTdOffset : offset(lastTd);
+    const lastTdWidth = outerWidth(lastTd);
+    const lastTdHeight = outerHeight(lastTd);
 
-  convertArgsToLines(rect, borderSetting, priority, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
-    let { x1, y1, x2, y2 } = rect;
+    let x1 = firstTdOffset.left;
+    let y1 = firstTdOffset.top;
+    let x2 = lastTdOffset.left + lastTdWidth;
+    let y2 = lastTdOffset.top + lastTdHeight;
+
     const stylesAndLines = this.ensurePathGroup(priority).stylesAndLines;
-    const containerOffset = this.containerOffset;
 
-    x1 += (offsetToOverLapPrecedingBorder - containerOffset.left);
-    y1 += (offsetToOverLapPrecedingBorder - containerOffset.top);
-    x2 += (offsetToOverLapPrecedingBorder - containerOffset.left);
-    y2 += (offsetToOverLapPrecedingBorder - containerOffset.top);
+    x1 += (offsetToOverLapPrecedingBorder - this.containerOffset.left);
+    y1 += (offsetToOverLapPrecedingBorder - this.containerOffset.top);
+    x2 += (offsetToOverLapPrecedingBorder - this.containerOffset.left);
+    y2 += (offsetToOverLapPrecedingBorder - this.containerOffset.top);
 
     if (borderSetting.className === 'current') {
       x1 += insetPositioningForCurrentCellHighlight;
