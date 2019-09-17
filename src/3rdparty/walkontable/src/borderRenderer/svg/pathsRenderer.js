@@ -30,6 +30,7 @@ export default function getSvgPathsRenderer(svg) {
 
     for (let ii = 0; ii < styles.length; ii++) { // http://jsbench.github.io/#fb2e17228039ba5bfdf4d1744395f352
       const state = getStateForStyle(states, styles[ii], svg);
+
       state.command = commands[ii];
     }
 
@@ -39,11 +40,15 @@ export default function getSvgPathsRenderer(svg) {
 
 function getLines(stylesAndLines, style) {
   const lines = stylesAndLines.get(style);
+
   if (lines) {
     return lines;
   }
+
   const newLines = [];
+
   stylesAndLines.set(style, newLines);
+
   return newLines;
 }
 
@@ -53,30 +58,37 @@ export function precalculateStylesAndCommands(rawData, totalWidth, totalHeight) 
 
   for (let ii = 0; ii < rawData.length; ii++) {
     const { x1, y1, x2, y2, topStyle, rightStyle, bottomStyle, leftStyle } = rawData[ii];
+
     if (topStyle) {
       const lines = getLines(stylesAndLines, topStyle);
+
       lines.push([x1, y1, x2, y1]);
     }
     if (rightStyle) {
       const lines = getLines(stylesAndLines, rightStyle);
+
       lines.push([x2, y1, x2, y2]);
     }
     if (bottomStyle) {
       const lines = getLines(stylesAndLines, bottomStyle);
+
       lines.push([x1, y2, x2, y2]);
     }
     if (leftStyle) {
       const lines = getLines(stylesAndLines, leftStyle);
+
       lines.push([x1, y1, x1, y2]);
     }
   }
 
   const styles = [...stylesAndLines.keys()];
+
   styles.forEach((style) => {
     const lines = stylesAndLines.get(style);
     const strokeWidth = parseInt(style, 10);
     const desiredLines = adjustLinesToViewBox(strokeWidth, lines, totalWidth, totalHeight);
     const optimizedCommand = svgOptimizePath(desiredLines);
+
     stylesAndCommands.set(style, optimizedCommand);
   });
 
@@ -96,9 +108,11 @@ function renderState(state) {
 
 function getStateForStyle(states, style, parent) {
   let state = states.get(style);
+
   if (!state) {
     const elem = parent.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'path');
     const [size, color] = style.split(' ');
+
     elem.setAttribute('stroke', color);
     elem.setAttribute('stroke-width', size);
     elem.setAttribute('stroke-linecap', 'square');
@@ -115,6 +129,7 @@ function getStateForStyle(states, style, parent) {
     parent.appendChild(elem);
     states.set(style, state);
   }
+
   return state;
 }
 
@@ -125,6 +140,7 @@ function keepLineWithinViewBox(pos, totalSize, halfStrokeWidth) {
   if (pos + halfStrokeWidth > totalSize) {
     pos -= Math.ceil(pos + halfStrokeWidth - totalSize);
   }
+
   return pos;
 }
 

@@ -268,16 +268,21 @@ class Table {
       } else {
         this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
       }
+
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
       const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
+
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
       let performRedraw = true;
+
       // Only master table rendering can be skipped
       if (this.isMaster) {
         this.alignOverlaysWithTrimmingContainer();
+
         const skipRender = {};
+
         this.wot.getSetting('beforeDraw', true, skipRender);
         performRedraw = skipRender.skipRender !== true;
       }
@@ -430,6 +435,7 @@ class Table {
    */
   resetOversizedRows() {
     const { wot } = this;
+
     if (!this.isMaster && !this.is(Overlay.CLONE_BOTTOM)) {
       return;
     }
@@ -467,6 +473,7 @@ class Table {
     if (!wot.selections) {
       return;
     }
+
     const highlights = Array.from(wot.selections);
     const len = highlights.length;
 
@@ -581,6 +588,7 @@ class Table {
       const columnHeaders = this.wot.getSetting('columnHeaders');
       const columnHeadersCount = columnHeaders.length;
       const zeroBasedHeaderLevel = columnHeadersCount + row;
+
       return this.getColumnHeader(column, zeroBasedHeaderLevel);
     }
 
@@ -624,6 +632,7 @@ class Table {
     if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
       return null;
     }
+
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
 
     if (TR) {
@@ -691,6 +700,7 @@ class Table {
     if (this.wot.getSetting('externalRowCalculator')) {
       return;
     }
+
     let rowCount = this.TBODY.childNodes.length;
     const expectedTableHeight = rowCount * this.wot.wtSettings.settings.defaultRowHeight;
     const actualTableHeight = innerHeight(this.TBODY) - 1;
@@ -777,6 +787,7 @@ class Table {
     if (first === -1) {
       return true;
     }
+
     return row < first;
   }
 
@@ -798,8 +809,10 @@ class Table {
       const columnHeaders = this.wot.getSetting('columnHeaders');
       const columnHeadersCount = columnHeaders.length;
       const zeroBasedHeaderLevel = columnHeadersCount + row;
+
       return this.isColumnHeaderLevelRendered(zeroBasedHeaderLevel);
     }
+
     return row > this.getLastRenderedRow();
   }
 
@@ -828,6 +841,7 @@ class Table {
     if (first === -1) {
       return true;
     }
+
     return column < first;
   }
 
@@ -849,8 +863,10 @@ class Table {
       const rowHeaders = this.wot.getSetting('rowHeaders');
       const rowHeadersCount = rowHeaders.length;
       const zeroBasedHeaderLevel = rowHeadersCount + column;
+
       return this.isRowHeaderLevelRendered(zeroBasedHeaderLevel);
     }
+
     return this.columnFilter && (column > this.getLastRenderedColumn());
   }
 

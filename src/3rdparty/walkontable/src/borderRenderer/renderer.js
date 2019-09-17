@@ -28,19 +28,24 @@ export default class BorderRenderer {
 
   ensurePathGroup(priority) {
     const found = this.pathGroups[priority];
+
     if (!found) {
       if (this.pathGroups.length < priority) {
         this.ensurePathGroup(priority - 1); // ensure there are no gaps
       }
+
       const pathGroup = {
         svgPathsRenderer: this.getSvgPathsRendererForGroup(this.svg),
         stylesAndLines: new Map(),
         styles: [],
         commands: []
       };
+
       this.pathGroups[priority] = pathGroup;
+
       return pathGroup;
     }
+
     return found;
   }
 
@@ -72,6 +77,7 @@ export default class BorderRenderer {
 
   convertLinesToCommands(pathGroup) {
     const { stylesAndLines, styles, commands } = pathGroup;
+
     commands.length = 0;
     styles.length = 0;
     styles.push(...stylesAndLines.keys());
@@ -80,13 +86,17 @@ export default class BorderRenderer {
       const width = parseInt(style, 10);
       const adjustedLines = adjustLinesToViewBox(width, lines, Infinity, Infinity);
       const optimizedCommand = svgOptimizePath(adjustedLines);
+
       commands.push(optimizedCommand);
 
       const currentMaxWidth = this.sumArrayElementAtIndex(lines, 2) + marginForSafeRenderingOfTheRightBottomEdge;
+
       if (currentMaxWidth > this.maxWidth) {
         this.maxWidth = currentMaxWidth;
       }
+
       const currentMaxHeight = this.sumArrayElementAtIndex(lines, 3) + marginForSafeRenderingOfTheRightBottomEdge;
+
       if (currentMaxHeight > this.maxHeight) {
         this.maxHeight = currentMaxHeight;
       }
@@ -95,7 +105,9 @@ export default class BorderRenderer {
 
   getSvgPathsRendererForGroup(svg) {
     const group = svg.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'g');
+
     svg.appendChild(group);
+
     return getSvgPathsRenderer(group);
   }
 
@@ -130,18 +142,22 @@ export default class BorderRenderer {
 
     if (hasTopEdge && this.hasLineAtEdge(borderSetting, 'top')) {
       const lines = this.getLines(stylesAndLines, borderSetting, 'top');
+
       lines.push([x1, y1, x2, y1]);
     }
     if (hasRightEdge && this.hasLineAtEdge(borderSetting, 'right')) {
       const lines = this.getLines(stylesAndLines, borderSetting, 'right');
+
       lines.push([x2, y1, x2, y2]);
     }
     if (hasBottomEdge && this.hasLineAtEdge(borderSetting, 'bottom')) {
       const lines = this.getLines(stylesAndLines, borderSetting, 'bottom');
+
       lines.push([x1, y2, x2, y2]);
     }
     if (hasLeftEdge && this.hasLineAtEdge(borderSetting, 'left')) {
       const lines = this.getLines(stylesAndLines, borderSetting, 'left');
+
       lines.push([x1, y1, x1, y2]);
     }
   }
@@ -152,20 +168,25 @@ export default class BorderRenderer {
 
   getLines(map, borderSetting, edge) {
     let width = 1;
+
     if (borderSetting[edge] && borderSetting[edge].width !== undefined) {
       width = borderSetting[edge].width;
     } else if (borderSetting.border && borderSetting.border.width !== undefined) {
       width = borderSetting.border.width;
     }
+
     const color = (borderSetting[edge] && borderSetting[edge].color) || (borderSetting.border && borderSetting.border.color) || 'black';
     const stroke = `${width}px ${color}`;
-
     const lines = map.get(stroke);
+
     if (lines) {
       return lines;
     }
+
     const newLines = [];
+
     map.set(stroke, newLines);
+
     return newLines;
   }
 }

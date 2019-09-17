@@ -363,8 +363,10 @@ export function expectWtTable(wt, callb, name) {
 export async function testSvgAsAsciiArt(svg, expectedAsciiArt) {
   return new Promise((resolve) => {
     const whenConverted = svgToAscii(svg);
+
     whenConverted.then((resultAsciiArt) => {
       const scaleFactor = window.devicePixelRatio || 1;
+
       expectedAsciiArt = expectedAsciiArt.trim();
       expectedAsciiArt = multiplyStringChars2D(expectedAsciiArt, scaleFactor);
       expect(`\n${resultAsciiArt}\n`).toBe(`\n${expectedAsciiArt}\n`);
@@ -376,6 +378,7 @@ export async function testSvgAsAsciiArt(svg, expectedAsciiArt) {
 function multiplyStringChars2D(str, factor) {
   const lines = str.split('\n');
   let out = '';
+
   for (let ll = 0; ll < lines.length; ll++) {
     for (let ii = 0; ii < factor; ii++) {
       if (out !== '') {
@@ -388,5 +391,6 @@ function multiplyStringChars2D(str, factor) {
       }
     }
   }
+
   return out;
 }

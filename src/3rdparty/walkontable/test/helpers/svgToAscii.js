@@ -4,6 +4,7 @@ export default async function svgToAscii(svg) {
   const scaleFactor = window.devicePixelRatio || 1;
 
   const img = document.createElement('img');
+
   // img.style.imageRendering = 'crisp-edges'; //FF
   // img.style.imageRendering = `pixelated`; //Ch
   img.style.width = `${svg.clientWidth}px`;
@@ -12,6 +13,7 @@ export default async function svgToAscii(svg) {
   return new Promise((resolve) => {
     img.onload = function() {
       const canvas = document.createElement('canvas');
+
       canvas.style.width = `${svg.clientWidth}px`;
       canvas.style.height = `${svg.clientHeight}px`;
       canvas.width = img.naturalWidth * scaleFactor;
@@ -19,7 +21,9 @@ export default async function svgToAscii(svg) {
       // canvas.style.imageRendering = 'crisp-edges'; //FF
       // canvas.style.imageRendering = `pixelated`; //Ch
       svg.parentNode.appendChild(canvas);
+
       const ctx = canvas.getContext('2d');
+
       ctx.mozImageSmoothingEnabled = false;
       ctx.webkitImageSmoothingEnabled = false;
       ctx.msImageSmoothingEnabled = false;
@@ -27,6 +31,7 @@ export default async function svgToAscii(svg) {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
       let imageData;
+
       try {
         imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       } catch (e) {

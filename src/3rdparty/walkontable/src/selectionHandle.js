@@ -95,6 +95,7 @@ class SelectionHandle {
     const _this = this;
     const documentBody = this.wot.rootDocument.body;
     const bounds = parentElement.getBoundingClientRect();
+
     // Hide border to prevents selection jumping when fragmentSelection is enabled.
     parentElement.style.display = 'none';
 
@@ -130,9 +131,11 @@ class SelectionHandle {
    */
   createElements(settings) {
     const { rootDocument } = this.wot;
+
     this.main = rootDocument.createElement('div');
 
     let style = this.main.style;
+
     style.position = 'absolute';
     style.top = 0;
     style.left = 0;
@@ -192,6 +195,7 @@ class SelectionHandle {
       bottomRight: rootDocument.createElement('DIV'),
       bottomRightHitArea: rootDocument.createElement('DIV')
     };
+
     const width = 10;
     const hitAreaWidth = 40;
 
@@ -354,6 +358,7 @@ class SelectionHandle {
 
       return;
     }
+
     let fromTD = wtTable.getCell(new CellCoords(fromRow, fromColumn));
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     const toTD = isMultiple ? wtTable.getCell(new CellCoords(toRow, toColumn)) : fromTD;
@@ -407,6 +412,7 @@ class SelectionHandle {
     }
 
     let cornerVisibleSetting = this.settings.border.cornerVisible;
+
     cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ? cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
 
     const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn);

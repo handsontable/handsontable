@@ -7,6 +7,7 @@ export default function left(customBordersPlugin) {
     name() {
       let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_LEFT);
       const hasBorder = checkSelectionBorders(this, 'left');
+
       if (hasBorder) {
         label = markSelected(label);
       }
@@ -15,6 +16,7 @@ export default function left(customBordersPlugin) {
     },
     callback(key, selected) {
       const hasBorder = checkSelectionBorders(this, 'left');
+
       customBordersPlugin.prepareBorder(selected, 'left', hasBorder);
       customBordersPlugin.render();
     }

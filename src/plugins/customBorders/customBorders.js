@@ -281,6 +281,7 @@ class CustomBorders extends BasePlugin {
   insertBorderIntoSettings(border) {
     if (this.savedBordersById[border.id]) {
       const index = this.savedBorders.indexOf(border);
+
       this.savedBorders[index] = border;
     } else {
       this.savedBorders.push(border);
@@ -315,6 +316,7 @@ class CustomBorders extends BasePlugin {
       border = extendDefaultBorder(border, borderDescriptor);
 
       const customSelection = this.hot.selection.highlight.customSelections.get(border.id);
+
       if (customSelection) {
         Object.assign(customSelection.settings, borderDescriptor);
         border = customSelection.settings;
@@ -536,6 +538,7 @@ class CustomBorders extends BasePlugin {
     if (this.isEdgeVisible(border.bottom)) {
       return false;
     }
+
     return true;
   }
 
@@ -555,6 +558,7 @@ class CustomBorders extends BasePlugin {
   */
   clearBordersFromSelectionSettings(borderId) {
     const customSelection = this.hot.selection.highlight.customSelections.get(borderId);
+
     if (customSelection) {
       customSelection.clear();
     }
@@ -598,6 +602,7 @@ class CustomBorders extends BasePlugin {
 
     if (border) {
       const index = this.savedBorders.indexOf(border);
+
       this.savedBorders.splice(index, 1);
     }
 
@@ -630,12 +635,16 @@ class CustomBorders extends BasePlugin {
 
     if (hidden) {
       this.removeAllBorders(border.row, border.col);
+
       return true;
 
     }
+
     const customSelection = this.hot.selection.highlight.customSelections.get(border.id);
+
     if (customSelection) {
       customSelection.cellRange = cellRange;
+
       return true;
     }
 

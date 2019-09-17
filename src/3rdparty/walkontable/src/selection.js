@@ -42,6 +42,7 @@ class Selection {
     }
 
     const selectionHandle = new SelectionHandle(wotInstance, this.settings);
+
     this.instanceSelectionHandles.set(wotInstance, selectionHandle);
     return selectionHandle;
   }
@@ -221,6 +222,7 @@ class Selection {
     if (this.isEmpty()) {
       if (this.hasSelectionHandle()) {
         const found = this.getSelectionHandleIfExists(wotInstance);
+
         if (found) {
           found.disappear();
         }
@@ -253,6 +255,7 @@ class Selection {
           for (let renderedRow = 0; renderedRow < renderedRows; renderedRow += 1) {
             if (renderedRow < highlightFirstRenderedRow || renderedRow > highlightLastRenderedRow) {
               const sourceRow = wotInstance.wtTable.rowFilter.renderedToSource(renderedRow);
+
               this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, this.settings.highlightColumnClassName);
             }
           }
@@ -268,6 +271,7 @@ class Selection {
           for (let renderedColumn = 0; renderedColumn < renderedColumns; renderedColumn += 1) {
             if (renderedColumn < highlightFirstRenderedColumn || renderedColumn > highlightLastRenderedColumn) {
               const sourceColumn = wotInstance.wtTable.columnFilter.renderedToSource(renderedColumn);
+
               this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, this.settings.highlightRowClassName);
             }
           }
@@ -284,6 +288,7 @@ class Selection {
 
         const firstTd = wotInstance.wtTable.getCell({ row: highlightFirstRenderedRow, col: highlightFirstRenderedColumn });
         let lastTd;
+
         if (highlightFirstRenderedRow === highlightLastRenderedRow && highlightFirstRenderedColumn === highlightLastRenderedColumn) {
           lastTd = firstTd;
         } else {
