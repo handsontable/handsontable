@@ -39,10 +39,7 @@ export default async function svgToAscii(svg) {
         return;
       }
 
-      const art = imageToAscii(imageData, {
-        contrast: 0, // range -255 to +255
-        invert: false // invert brightness
-      });
+      const art = imageToAscii(imageData);
 
       resolve(art);
     };
@@ -56,15 +53,16 @@ export default async function svgToAscii(svg) {
 // var characters = '.,:;i1tfLCG08@◼'.split('');
 const characters = '▯▮'.split('');
 
-function imageToAscii(imageData, options) {
+/**
+ * Converts canvas imageData to a ASCII representation in a string
+ * @param {HTMLElement} imageData
+ * @returns {String}
+ */
+function imageToAscii(imageData) {
   const width = imageData.width;
   const height = imageData.height;
   const data = imageData.data;
   const bytesPerPixel = imageData.format === 'RGB24' ? 3 : 4;
-
-  // calculate contrast factor
-  // http://www.dfstudios.co.uk/articles/image-processing-algorithms-part-5/
-  const contrastFactor = (259 * (options.contrast + 255)) / (255 * (259 - options.contrast));
 
   let ascii = '';
 
@@ -78,15 +76,13 @@ function imageToAscii(imageData, options) {
       let b = data[offset + 2];
 
       // increase the contrast of the image
-      r = clamp((contrastFactor * (r - 128)) + 128, 0, 255);
-      g = clamp((contrastFactor * (g - 128)) + 128, 0, 255);
-      b = clamp((contrastFactor * (b - 128)) + 128, 0, 255);
+      r = clamp((r - 128) + 128, 0, 255);
+      g = clamp((g - 128) + 128, 0, 255);
+      b = clamp((b - 128) + 128, 0, 255);
 
       // calculate pixel brightness
       // http://stackoverflow.com/questions/596216/formula-to-determine-brightness-of-rgb-color
-      let brightness = ((0.299 * r) + (0.587 * g) + (0.114 * b)) / 255;
-
-      if (!options.invert) brightness = 1 - brightness;
+      const brightness = 1 - (((0.299 * r) + (0.587 * g) + (0.114 * b)) / 255);
 
       ascii += characters[Math.round(brightness * (characters.length - 1))];
     }
