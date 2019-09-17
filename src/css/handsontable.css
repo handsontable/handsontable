@@ -589,7 +589,8 @@ CheckboxRenderer
   z-index: 101;
 }
 
-.ht_clone_left {
+.ht_clone_left,
+.ht_clone_bottom {
   z-index: 102;
 }
 
