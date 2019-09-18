@@ -26,6 +26,13 @@ import { OrderView, SharedOrderView } from './utils/orderView';
 import Viewport from './viewport';
 import { getListenersCounter } from './../../../eventManager';
 
+import getSvgPathsRenderer, { precalculateStylesAndCommands } from './borderRenderer/svg/pathsRenderer';
+import getSvgResizer from './borderRenderer/svg/resizer';
+
+/**
+ * The export `Walkontable as default` is intended for external use (i.e. in Handsontable). Other named exports
+ * are intended for internal use in Walkontable test suites.
+ */
 export {
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
@@ -57,5 +64,9 @@ export {
   SharedOrderView,
   Viewport,
 
-  getListenersCounter
+  getListenersCounter,
+
+  getSvgPathsRenderer,
+  precalculateStylesAndCommands,
+  getSvgResizer
 };

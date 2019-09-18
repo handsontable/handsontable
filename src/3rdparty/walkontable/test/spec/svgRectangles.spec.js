@@ -8,12 +8,12 @@ describe('getSvgPathsRenderer', () => {
   const totalHeight = 10;
 
   function callSvgPathsRenderer(rawData) {
-    const stylesAndStrokes = precalculateStylesAndCommands(rawData, totalWidth, totalHeight);
-    const strokeStyles = [...stylesAndStrokes.keys()];
-    const strokeLines = [...stylesAndStrokes.values()];
+    const stylesAndCommands = Walkontable.precalculateStylesAndCommands(rawData, totalWidth, totalHeight);
+    const strokeStyles = [...stylesAndCommands.keys()];
+    const strokeCommands = [...stylesAndCommands.values()];
 
     svgResizer(totalWidth, totalHeight);
-    svgPathsRenderer(strokeStyles, strokeLines);
+    svgPathsRenderer(strokeStyles, strokeCommands);
   }
 
   beforeEach(() => {
@@ -25,8 +25,8 @@ describe('getSvgPathsRenderer', () => {
     svg.style.background = 'white';
     container.appendChild(svg);
 
-    svgResizer = getSvgResizer(svg);
-    svgPathsRenderer = getSvgPathsRenderer(svg);
+    svgResizer = Walkontable.getSvgResizer(svg);
+    svgPathsRenderer = Walkontable.getSvgPathsRenderer(svg);
   });
 
   afterEach(() => {

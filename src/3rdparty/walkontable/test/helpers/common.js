@@ -1,9 +1,6 @@
 import { normalize, pretty } from './htmlNormalize';
 import svgToAscii from './svgToAscii';
 
-export { default as getSvgPathsRenderer, precalculateStylesAndCommands } from '../../src/borderRenderer/svg/pathsRenderer';
-export { default as getSvgResizer } from '../../src/borderRenderer/svg/resizer';
-
 export function sleep(delay = 100) {
   return Promise.resolve({
     then(resolve) {
