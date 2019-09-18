@@ -375,14 +375,14 @@ class BaseEditor {
     const editorSection = this.checkEditorSection();
 
     switch (editorSection) {
-      case 'top':
-        return '101';
-      case 'top-left-corner':
-      case 'bottom-left-corner':
-        return '103';
-      case 'left':
       case 'bottom':
+        return '101';
+      case 'left':
+      case 'bottom-left-corner':
         return '102';
+      case 'top':
+      case 'top-left-corner':
+        return '103';
       default:
         return 'auto';
     }
