@@ -11,6 +11,7 @@ describe('getSvgPathsRenderer', () => {
     const stylesAndStrokes = precalculateStylesAndCommands(rawData, totalWidth, totalHeight);
     const strokeStyles = [...stylesAndStrokes.keys()];
     const strokeLines = [...stylesAndStrokes.values()];
+
     svgResizer(totalWidth, totalHeight);
     svgPathsRenderer(strokeStyles, strokeLines);
   }
@@ -46,7 +47,9 @@ describe('getSvgPathsRenderer', () => {
           bottomStyle: '1px #000',
         }
       ];
+
       callSvgPathsRenderer(rawData);
+
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▯▯▯▯▯▯▯▯▯▯
@@ -72,7 +75,9 @@ describe('getSvgPathsRenderer', () => {
           bottomStyle: '2px #000',
         }
       ];
+
       callSvgPathsRenderer(rawData);
+
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▯▮▮▮▮▮▮▮▯▯
@@ -98,7 +103,9 @@ describe('getSvgPathsRenderer', () => {
           bottomStyle: '3px #000',
         }
       ];
+
       callSvgPathsRenderer(rawData);
+
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▯▮▮▮▮▮▮▮▮▯
@@ -127,7 +134,9 @@ describe('getSvgPathsRenderer', () => {
           bottomStyle: '1px #000',
         }
       ];
+
       callSvgPathsRenderer(rawData);
+
       return testSvgAsAsciiArt(svg, `
 ▯▯▮▮▮▮▮▮▯▯
 ▯▯▮▯▯▯▯▮▯▯
@@ -153,7 +162,9 @@ describe('getSvgPathsRenderer', () => {
           bottomStyle: '2px #000',
         }
       ];
+
       callSvgPathsRenderer(rawData);
+
       return testSvgAsAsciiArt(svg, `
 ▯▮▮▮▮▮▮▮▯▯
 ▯▮▮▮▮▮▮▮▯▯
@@ -179,7 +190,9 @@ describe('getSvgPathsRenderer', () => {
           bottomStyle: '3px #000',
         }
       ];
+
       callSvgPathsRenderer(rawData);
+
       return testSvgAsAsciiArt(svg, `
 ▯▮▮▮▮▮▮▮▮▯
 ▯▮▮▮▮▮▮▮▮▯
@@ -208,7 +221,9 @@ describe('getSvgPathsRenderer', () => {
           bottomStyle: '1px #000',
         }
       ];
+
       callSvgPathsRenderer(rawData);
+
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▯▯▯▯▯▯▯▯▯▯
@@ -234,7 +249,9 @@ describe('getSvgPathsRenderer', () => {
           bottomStyle: '2px #000',
         }
       ];
+
       callSvgPathsRenderer(rawData);
+
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▮▮▮▮▮▮▮▮▮▮
@@ -260,7 +277,9 @@ describe('getSvgPathsRenderer', () => {
           bottomStyle: '3px #000',
         }
       ];
+
       callSvgPathsRenderer(rawData);
+
       return testSvgAsAsciiArt(svg, `
 ▯▯▯▯▯▯▯▯▯▯
 ▮▮▮▮▮▮▮▮▮▮
