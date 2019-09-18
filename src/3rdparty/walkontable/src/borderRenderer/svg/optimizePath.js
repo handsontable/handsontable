@@ -1,5 +1,11 @@
 import { MakerJs, getPathDataByLayer } from '../../../../makerjs/index';
 
+/**
+ * Converts a 2D array of paths into a 1D array of SVG path commands.
+ *
+ * @param {Array.<Array.<number>>>} lines SVG Path data in format `[[x1, y1, x2, y2, ...], ...]`
+ * @returns {Array.<string>} SVG Path data in format `['M x1 y1 x2 y2 ... Z', ...]`
+ */
 export default function svgOptimizePath(lines) {
   // copied from https://observablehq.com/@forresto/maker-js-svg-path-simplify
   const makerModel = {

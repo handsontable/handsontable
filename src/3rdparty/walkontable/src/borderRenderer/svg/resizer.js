@@ -2,6 +2,7 @@
  * getSvgResizer is a higher-order function that returns a function to resize SVG.
  *
  * @param {HTMLElement} svg <svg> element
+ * @returns {Function}
  */
 export default function getSvgResizer(svg) {
   let lastTotalWidth;

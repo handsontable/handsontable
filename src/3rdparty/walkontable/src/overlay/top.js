@@ -331,8 +331,6 @@ class TopOverlay extends Overlay {
     this.redrawSelectionBorders(selections.getFill());
 
     this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
-
-    // draw SVG rectangles here
   }
 
   /**

@@ -360,6 +360,12 @@ export function expectWtTable(wt, callb, name) {
   return expect(callb(wt.wtOverlays[`${name}Overlay`].clone.wtTable)).withContext(`${name}: ${callbAsString}`);
 }
 
+/**
+ * Run expectation towards an SVG image rendering according to the provided reference ASCII art string
+ *
+ * @param {HTMLElement} svg
+ * @param {String} expectedAsciiArt
+ */
 export async function testSvgAsAsciiArt(svg, expectedAsciiArt) {
   return new Promise((resolve) => {
     const whenConverted = svgToAscii(svg);
@@ -375,6 +381,12 @@ export async function testSvgAsAsciiArt(svg, expectedAsciiArt) {
   });
 }
 
+/**
+ * Repeats every character in the string horizontally and vertically by a number.
+ *
+ * @param {String} str String to multiply
+ * @param {Number} factor Integer by which each char will be multiplied
+ */
 function multiplyStringChars2D(str, factor) {
   const lines = str.split('\n');
   let out = '';

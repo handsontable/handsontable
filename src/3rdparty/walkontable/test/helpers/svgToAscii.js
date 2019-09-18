@@ -1,3 +1,8 @@
+/**
+ * Converts an SVG image to a ASCII representation in a string
+ * @param {HTMLElement} svg
+ * @returns {String}
+ */
 export default async function svgToAscii(svg) {
   const xml = new XMLSerializer().serializeToString(svg);
 
@@ -93,6 +98,14 @@ function imageToAscii(imageData) {
   return ascii.slice(0, -1);
 }
 
+/**
+ * Adjusts the `value` to in the range given by `min` and `max`
+ *
+ * @param {Number} value
+ * @param {Number} min
+ * @param {Number} max
+ * @returns {Number}
+ */
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }

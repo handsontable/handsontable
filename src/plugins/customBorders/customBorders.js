@@ -180,6 +180,10 @@ class CustomBorders extends BasePlugin {
     this.render();
   }
 
+  /**
+   * Instruct Handsontable to re-render, because some of the configuration was changed and we are not expecting it to be
+   * rendered automatically.
+   */
   render() {
     /*
     The line below triggers a re-render of Handsontable. This will be a "fastDraw"

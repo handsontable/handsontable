@@ -44,6 +44,7 @@ class Selection {
     const selectionHandle = new SelectionHandle(wotInstance, this.settings);
 
     this.instanceSelectionHandles.set(wotInstance, selectionHandle);
+
     return selectionHandle;
   }
 
@@ -207,6 +208,12 @@ class Selection {
     };
   }
 
+  /**
+   * Add CSS class names to an element, but only if the element exists
+   *
+   * @param {HTMLElement} elem
+   * @param {Array} classNames
+   */
   addClassIfElemExists(elem, classNames) {
     if (elem) {
       addClass(elem, classNames);
@@ -302,9 +309,9 @@ class Selection {
         for (let sourceColumn = highlightFirstRenderedColumn; sourceColumn <= highlightLastRenderedColumn; sourceColumn += 1) {
 
           if (sourceRow >= highlightFirstRenderedRow
-              && sourceRow <= highlightLastRenderedRow
-              && sourceColumn >= highlightFirstRenderedColumn
-              && sourceColumn <= highlightLastRenderedColumn) {
+            && sourceRow <= highlightLastRenderedRow
+            && sourceColumn >= highlightFirstRenderedColumn
+            && sourceColumn <= highlightLastRenderedColumn) {
             // selected cell
             if (this.settings.className) {
               this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, this.settings.className, this.settings.markIntersections);
