@@ -1,5 +1,5 @@
 import { outerWidth, outerHeight, offset } from './../../../../helpers/dom/element';
-import getSvgPathsRenderer, { adjustLinesToViewBox } from './svg/pathsRenderer';
+import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand } from './svg/pathsRenderer';
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
 
@@ -146,7 +146,8 @@ export default class BorderRenderer {
       const lines = stylesAndLines.get(style);
       const width = parseInt(style, 10);
       const adjustedLines = adjustLinesToViewBox(width, lines, Infinity, Infinity);
-      const optimizedCommand = svgOptimizePath(adjustedLines);
+      const optimizedLines = svgOptimizePath(adjustedLines);
+      const optimizedCommand = convertLinesToCommand(optimizedLines);
 
       commands.push(optimizedCommand);
 

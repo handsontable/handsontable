@@ -108,10 +108,11 @@ export function precalculateStylesAndCommands(rawData, totalWidth, totalHeight) 
   styles.forEach((style) => {
     const lines = stylesAndLines.get(style);
     const strokeWidth = parseInt(style, 10);
-    const desiredLines = adjustLinesToViewBox(strokeWidth, lines, totalWidth, totalHeight);
-    const optimizedCommand = svgOptimizePath(desiredLines);
+    const adjustedLines = adjustLinesToViewBox(strokeWidth, lines, totalWidth, totalHeight);
+    const optimizedLines = svgOptimizePath(adjustedLines);
+    const command = convertLinesToCommand(optimizedLines);
 
-    stylesAndCommands.set(style, optimizedCommand);
+    stylesAndCommands.set(style, command);
   });
 
   return stylesAndCommands;
@@ -234,4 +235,43 @@ export function adjustLinesToViewBox(strokeWidth, lines, totalWidth, totalHeight
   }
 
   return newLines;
+}
+
+/**
+ * Convert array of positions to a SVG Path command string
+ *
+ * @param {Array.<Array.<number>>>} lines SVG Path data in format `[[x1, y1, x2, y2, ...], ...]`
+ * @returns {String}
+ */
+export function convertLinesToCommand(lines) {
+  let command = '';
+  let firstX = -1;
+  let firstY = -1;
+  let lastX = -1;
+  let lastY = -1;
+
+  for (let ii = 0; ii < lines.length; ii++) {
+    const line = lines[ii];
+
+    if (ii === 0) {
+      firstX = line[0];
+      firstY = line[1];
+    }
+
+    const len = line.length;
+
+    lastX = line[len - 2];
+    lastY = line[len - 1];
+    command += `M ${line.join(' ')} `;
+  }
+
+  const isLastPointDifferentThanFirst = (firstX !== lastX || firstY !== lastY);
+
+  if (isLastPointDifferentThanFirst) {
+    command += `M ${firstX} ${firstY} Z`;
+  } else {
+    command += 'Z';
+  }
+
+  return command;
 }
