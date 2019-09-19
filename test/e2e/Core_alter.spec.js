@@ -1210,5 +1210,4 @@ describe('Core_alter', () => {
       expect(getCellMeta(1, 5).className).toEqual('test');
     });
   });
-
 });
