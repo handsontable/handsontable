@@ -1,5 +1,6 @@
 /**
  * Converts an SVG image to a ASCII representation in a string
+ *
  * @param {HTMLElement} svg
  * @returns {String}
  */
@@ -60,6 +61,7 @@ const characters = '▯▮'.split('');
 
 /**
  * Converts canvas imageData to a ASCII representation in a string
+ *
  * @param {HTMLElement} imageData
  * @returns {String}
  */
