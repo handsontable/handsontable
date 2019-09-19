@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.1.1
- * Release date: 12/08/2019 (built at 11/09/2019 12:15:13)
+ * Release date: 12/08/2019 (built at 19/09/2019 15:14:20)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -37311,13 +37311,6 @@ function Core(rootElement, userSettings) {
      * Makes sure there are empty rows at the bottom of the table
      */
     adjustRowsAndCols: function adjustRowsAndCols() {
-      var rowIndexMapper = (0, _translations.getTranslator)(instance).rowIndexMapper;
-      var anyRowSkipped = rowIndexMapper.getNumberOfIndexes() > rowIndexMapper.getNotSkippedIndexesLength();
-
-      if (anyRowSkipped) {
-        return;
-      }
-
       if (priv.settings.minRows) {
         // should I add empty rows to data source to meet minRows?
         var rows = instance.countRows();
@@ -57215,6 +57208,7 @@ function (_BasePlugin) {
 
       if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
         this.indexesSequenceCache = this.rowIndexMapper.registerMap(this.pluginKey, new _translations.IndexMap());
+        this.indexesSequenceCache.setValues(this.rowIndexMapper.getIndexesSequence());
       }
 
       if (sortPossible) {
@@ -59928,7 +59922,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "11/09/2019 12:15:13";
+Handsontable.buildDate = "19/09/2019 15:14:20";
 Handsontable.version = "7.1.1"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
