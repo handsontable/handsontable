@@ -1,4 +1,4 @@
-import { outerWidth, outerHeight, offset } from './../../../../helpers/dom/element';
+import { outerWidth, outerHeight, offset, getComputedStyle } from './../../../../helpers/dom/element';
 import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand } from './svg/pathsRenderer';
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
@@ -42,6 +42,12 @@ export default class BorderRenderer {
      * @type {Number}
      */
     this.maxHeight = 0;
+    /**
+     * Context for getComputedStyle
+     *
+     * @type {Object}
+     */
+    this.rootWindow = parentElement.ownerDocument.defaultView;
   }
 
   /**
@@ -196,11 +202,19 @@ export default class BorderRenderer {
     const lastTdOffset = (firstTd === lastTd) ? firstTdOffset : offset(lastTd);
     const lastTdWidth = outerWidth(lastTd);
     const lastTdHeight = outerHeight(lastTd);
+    const style = getComputedStyle(firstTd, this.rootWindow);
 
     let x1 = firstTdOffset.left;
     let y1 = firstTdOffset.top;
     let x2 = lastTdOffset.left + lastTdWidth;
     let y2 = lastTdOffset.top + lastTdHeight;
+
+    if (parseInt(style.borderLeftWidth, 10) > 0) {
+      x1 += 1;
+    }
+    if (parseInt(style.borderTopWidth, 10) > 0) {
+      y1 += 1;
+    }
 
     x1 += (offsetToOverLapPrecedingBorder - this.containerOffset.left);
     y1 += (offsetToOverLapPrecedingBorder - this.containerOffset.top);
