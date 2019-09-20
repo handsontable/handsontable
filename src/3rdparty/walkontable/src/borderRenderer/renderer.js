@@ -3,7 +3,6 @@ import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand } from
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
 
-const marginForSafeRenderingOfTheRightBottomEdge = 1;
 const offsetToOverLapPrecedingBorder = -1;
 const insetPositioningForCurrentCellHighlight = 1;
 
@@ -151,14 +150,13 @@ export default class BorderRenderer {
 
       commands.push(optimizedCommand);
 
-      const currentMaxWidth = this.sumArrayElementAtIndex(lines, 2) + marginForSafeRenderingOfTheRightBottomEdge;
+      const marginForBoldStroke = Math.ceil(width / 2); // needed to make sure that the SVG width is enough to render bold strokes
+      const currentMaxWidth = this.sumArrayElementAtIndex(lines, 2) + marginForBoldStroke;
+      const currentMaxHeight = this.sumArrayElementAtIndex(lines, 3) + marginForBoldStroke;
 
       if (currentMaxWidth > this.maxWidth) {
         this.maxWidth = currentMaxWidth;
       }
-
-      const currentMaxHeight = this.sumArrayElementAtIndex(lines, 3) + marginForSafeRenderingOfTheRightBottomEdge;
-
       if (currentMaxHeight > this.maxHeight) {
         this.maxHeight = currentMaxHeight;
       }
