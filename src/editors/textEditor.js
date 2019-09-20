@@ -112,7 +112,9 @@ class TextEditor extends BaseEditor {
    * Closes the editor.
    */
   close() {
-    this.autoResize.unObserve();
+    if (this.autoResize.observe) {
+      this.autoResize.unObserve();
+    }
 
     if (this.hot.rootDocument.activeElement === this.TEXTAREA) {
       this.hot.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
