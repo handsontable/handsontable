@@ -273,6 +273,22 @@ describe('Filters UI', () => {
       ]);
     });
 
+    it('should have 0-width border for highlighting of the currently selected cell in the multiple select', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(3);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+
+      expect(getPlugin('filters').components.get('filter_by_value').getMultipleSelectElement().itemsBox.selection.highlight.cell.settings.border.width).toBe(0);
+    });
+
     it('should disappear conditional options menu after outside the table click', () => {
       handsontable({
         data: getDataForFilters(),
