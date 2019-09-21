@@ -25,7 +25,7 @@ export default class BorderRenderer {
      */
     this.svgResizer = getSvgResizer(this.svg);
     /**
-     * Array that holds pathGroup metadata objects keyed by priority. Used to render custom borders on a lower layer than built-in borders (current, area, fill)
+     * Array that holds pathGroup metadata objects keyed by the layer number
      *
      * @type {Array.<Object>}
      */
@@ -184,6 +184,30 @@ export default class BorderRenderer {
   }
 
   /**
+   * Returns a number that represents the visual layer on which a border should be rendered.
+   * Used to render custom borders on a lower layer than built-in borders (fill, area, current).
+   * Higher numbers render above lower numbers.
+   *
+   * @param {Object} selectionSetting Settings provided in the same format as used by `Selection.setting`
+   * @returns {Number}
+   */
+  getLayerNumber(selectionSetting) {
+    switch (selectionSetting.className) {
+      case 'current':
+        return 3;
+
+      case 'area':
+        return 2;
+
+      case 'fill':
+        return 1;
+
+      default:
+        return 0;
+    }
+  }
+
+  /**
    * Generates lines in format `[[x1, y1, x2, y2], ...]` based on input given as arguments, and stores them in `pathGroup.stylesAndLines`
    *
    * @param {Object} selectionSetting Settings provided in the same format as used by `Selection.setting`
@@ -195,8 +219,8 @@ export default class BorderRenderer {
    * @param {Boolean} hasLeftEdge TRUE if the range between `firstTd` and `lastTd` contains left top line, FALSE otherwise
    */
   convertArgsToLines(selectionSetting, firstTd, lastTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
-    const priority = selectionSetting.className ? 1 : 0;
-    const stylesAndLines = this.ensurePathGroup(priority).stylesAndLines;
+    const layerNumber = this.getLayerNumber(selectionSetting);
+    const stylesAndLines = this.ensurePathGroup(layerNumber).stylesAndLines;
 
     const firstTdOffset = offset(firstTd);
     const lastTdOffset = (firstTd === lastTd) ? firstTdOffset : offset(lastTd);
