@@ -89,7 +89,15 @@
   border-top: 1px solid #CCC;
 }
 
-.wtHolder thead tr:last-child th {
+.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable tbody tr th,
+.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
+  border-right-width: 0;
+}
+
+.ht_master:not(.innerBorderTop) thead tr:last-child th,
+.ht_master:not(.innerBorderTop) ~ .handsontable thead tr:last-child th,
+.ht_master:not(.innerBorderTop) thead tr.lastChild th,
+.ht_master:not(.innerBorderTop) ~ .handsontable thead tr.lastChild th {
   border-bottom-width: 0;
 }
 

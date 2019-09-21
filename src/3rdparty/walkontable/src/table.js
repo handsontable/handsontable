@@ -345,7 +345,6 @@ class Table {
         }
       }
     }
-    this.refreshSelections(runFastDraw);
 
     if (this.isMaster) {
       wtOverlays.topOverlay.resetFixedPosition();
@@ -364,6 +363,9 @@ class Table {
         wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
       }
     }
+
+    this.refreshSelections(runFastDraw);
+
     if (syncScroll) {
       wtOverlays.syncScrollWithMaster();
     }
