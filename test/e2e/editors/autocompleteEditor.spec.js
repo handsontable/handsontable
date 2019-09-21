@@ -89,6 +89,25 @@ describe('AutocompleteEditor', () => {
 
       window.onerror = prevError;
     });
+
+    it('should have 0-width border for highlighting of the currently selected cell', () => {
+      const hot = handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      const ht = hot.getActiveEditor();
+      const innerHot = ht.htEditor;
+
+      expect(innerHot.selection.highlight.cell.settings.border.width).toBe(0);
+    });
   });
 
   describe('choices', () => {

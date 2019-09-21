@@ -350,6 +350,20 @@ describe('ContextMenu', () => {
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
+
+    it('should have 0-width border for highlighting of the currently selected cell', () => {
+      handsontable({
+        contextMenu: true,
+        height: 100
+      });
+
+      expect(getPlugin('contextMenu')).toBeDefined();
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+
+      contextMenu();
+
+      expect(getPlugin('contextMenu').menu.hotMenu.selection.highlight.cell.settings.border.width).toBe(0);
+    });
   });
 
   describe('menu closing', () => {

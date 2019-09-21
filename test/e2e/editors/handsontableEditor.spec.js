@@ -41,6 +41,27 @@ describe('HandsontableEditor', () => {
     expect(spec().$container.find('.handsontableEditor:visible').length).toEqual(1);
   });
 
+  it('should have 0-width border for highlighting of the currently selected cell', () => {
+    const hot = handsontable({
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        }
+      ]
+    });
+    selectCell(2, 0);
+
+    keyDownUp('enter');
+
+    const ht = hot.getActiveEditor();
+    const innerHot = ht.htEditor;
+    expect(innerHot.selection.highlight.cell.settings.border.width).toBe(0);
+  });
+
   it('should create an editor directly below the textarea element', () => {
     handsontable({
       columns: [
