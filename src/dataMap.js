@@ -375,7 +375,7 @@ class DataMap {
       nrOfColumns += 1;
     }
 
-    this.instance.recordTranslator.getColumnIndexMapper().insertIndexes(numberOfCreatedCols, amount);
+    this.instance.recordTranslator.getColumnIndexMapper().insertIndexes(columnIndex, numberOfCreatedCols);
 
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
