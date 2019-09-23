@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.1.1
- * Release date: 12/08/2019 (built at 19/09/2019 15:14:20)
+ * Release date: 12/08/2019 (built at 23/09/2019 09:39:30)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -39524,7 +39524,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "19/09/2019 15:14:20";
+Handsontable.buildDate = "23/09/2019 09:39:30";
 Handsontable.version = "7.1.1"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -46898,7 +46898,7 @@ function () {
         nrOfColumns += 1;
       }
 
-      this.instance.recordTranslator.getColumnIndexMapper().insertIndexes(numberOfCreatedCols, amount);
+      this.instance.recordTranslator.getColumnIndexMapper().insertIndexes(columnIndex, numberOfCreatedCols);
       this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
       this.instance.forceFullRender = true; // used when data was changed
 
