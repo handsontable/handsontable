@@ -8,6 +8,7 @@ import {
   removeClass,
   resetCssTransform
 } from './../../../../helpers/dom/element';
+import BottomOverlayTable from './../table/bottom';
 import Overlay from './_base';
 
 /**
@@ -20,6 +21,17 @@ class BottomOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_BOTTOM);
+  }
+
+  /**
+   * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   *
+   * @see Table#constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor
+   * @returns {Table}
+   */
+  createTable(...args) {
+    return new BottomOverlayTable(...args);
   }
 
   /**
@@ -60,8 +72,9 @@ class BottomOverlay extends Overlay {
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
     overlayRoot.style.top = '';
+    const preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.wot.wtOverlays.leftOverlay.trimmingContainer === this.wot.rootWindow) {
+    if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const { rootDocument, wtTable } = this.wot;
       const box = wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(box.bottom);
@@ -90,6 +103,7 @@ class BottomOverlay extends Overlay {
       this.repositionOverlay();
     }
     this.adjustHeaderBordersPosition(headerPosition);
+    this.adjustElementsSize();
   }
 
   /**
@@ -99,20 +113,25 @@ class BottomOverlay extends Overlay {
    */
   setScrollPosition(pos) {
     const { rootWindow } = this.wot;
+    let result = false;
 
     if (this.mainTableScrollableElement === rootWindow) {
       rootWindow.scrollTo(getWindowScrollLeft(rootWindow), pos);
+      result = true;
 
-    } else {
+    } else if (this.mainTableScrollableElement.scrollTop !== pos) {
       this.mainTableScrollableElement.scrollTop = pos;
+      result = true;
     }
+
+    return result;
   }
 
   /**
    * Triggers onScroll hook callback
    */
   onScroll() {
-    this.wot.getSetting('onScrollVertically');
+    this.wot.getSetting('onScrollHorizontally');
   }
 
   /**
@@ -182,7 +201,12 @@ class BottomOverlay extends Overlay {
 
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
-    const tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
+
+    if (!this.wot.wtTable.hasDefinedSize()) {
+      tableHeight = 0;
+    }
+
     overlayRootStyle.height = `${tableHeight === 0 ? tableHeight : tableHeight}px`;
   }
 

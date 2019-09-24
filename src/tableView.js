@@ -177,37 +177,6 @@ class TableView {
   }
 
   /**
-   * Updates header cell content.
-   *
-   * @since 0.15.0-beta4
-   * @param {HTMLElement} element Element to update
-   * @param {Number} index Row index or column index
-   * @param {Function} content Function which should be returns content for this cell
-   */
-  updateCellHeader(element, index, content) {
-    let renderedIndex = index;
-    const parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
-
-    // prevent wrong calculations from SampleGenerator
-    if (element.parentNode) {
-      if (hasClass(element, 'colHeader')) {
-        renderedIndex = parentOverlay.wtTable.columnFilter.sourceToRendered(index);
-      } else if (hasClass(element, 'rowHeader')) {
-        renderedIndex = parentOverlay.wtTable.rowFilter.sourceToRendered(index);
-      }
-    }
-
-    if (renderedIndex > -1) {
-      fastInnerHTML(element, content(index));
-
-    } else {
-      // workaround for https://github.com/handsontable/handsontable/issues/1946
-      fastInnerText(element, String.fromCharCode(160));
-      addClass(element, 'cornerHeader');
-    }
-  }
-
-  /**
    * Prepares DOMElements and adds correct className to the root element.
    *
    * @private
@@ -380,6 +349,7 @@ class TableView {
       externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
       table: priv.table,
       preventOverflow: () => this.settings.preventOverflow,
+      preventWheel: () => this.settings.preventWheel,
       stretchH: () => this.settings.stretchH,
       data: this.instance.getDataAtCell,
       totalRows: () => this.instance.countRows(),
@@ -548,42 +518,50 @@ class TableView {
       onModifyRowHeaderWidth: rowHeaderWidth => this.instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (row, column, topmost) => this.instance.runHooks('modifyGetCellCoords', row, column, topmost),
       viewportRowCalculatorOverride: (calc) => {
-        const rows = this.instance.countRows();
         let viewportOffset = this.settings.viewportRowRenderingOffset;
 
         if (viewportOffset === 'auto' && this.settings.fixedRowsTop) {
           viewportOffset = 10;
         }
-        if (typeof viewportOffset === 'number') {
-          calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
-          calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
-        }
-        if (viewportOffset === 'auto') {
-          const center = calc.startRow + calc.endRow - calc.startRow;
-          const offset = Math.ceil(center / rows * 12);
 
-          calc.startRow = Math.max(calc.startRow - offset, 0);
-          calc.endRow = Math.min(calc.endRow + offset, rows - 1);
+        if (viewportOffset > 0 || viewportOffset === 'auto') {
+          const rows = this.instance.countRows();
+
+          if (typeof viewportOffset === 'number') {
+            calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
+            calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
+
+          } else if (viewportOffset === 'auto') {
+            const center = calc.startRow + calc.endRow - calc.startRow;
+            const offset = Math.ceil(center / rows * 12);
+
+            calc.startRow = Math.max(calc.startRow - offset, 0);
+            calc.endRow = Math.min(calc.endRow + offset, rows - 1);
+          }
         }
         this.instance.runHooks('afterViewportRowCalculatorOverride', calc);
       },
       viewportColumnCalculatorOverride: (calc) => {
-        const cols = this.instance.countCols();
         let viewportOffset = this.settings.viewportColumnRenderingOffset;
 
         if (viewportOffset === 'auto' && this.settings.fixedColumnsLeft) {
           viewportOffset = 10;
         }
-        if (typeof viewportOffset === 'number') {
-          calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
-          calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
-        }
-        if (viewportOffset === 'auto') {
-          const center = calc.startColumn + calc.endColumn - calc.startColumn;
-          const offset = Math.ceil(center / cols * 12);
 
-          calc.startRow = Math.max(calc.startColumn - offset, 0);
-          calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
+        if (viewportOffset > 0 || viewportOffset === 'auto') {
+          const cols = this.instance.countCols();
+
+          if (typeof viewportOffset === 'number') {
+            calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
+            calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
+          }
+          if (viewportOffset === 'auto') {
+            const center = calc.startColumn + calc.endColumn - calc.startColumn;
+            const offset = Math.ceil(center / cols * 12);
+
+            calc.startRow = Math.max(calc.startColumn - offset, 0);
+            calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
+          }
         }
         this.instance.runHooks('afterViewportColumnCalculatorOverride', calc);
       },
@@ -733,6 +711,7 @@ class TableView {
 
         return;
       }
+
       this.updateCellHeader(container.querySelector('.rowHeader'), row, this.instance.getRowHeader);
 
     } else {
@@ -783,6 +762,38 @@ class TableView {
     }
 
     this.instance.runHooks('afterGetColHeader', col, TH);
+  }
+
+  /**
+   * Updates header cell content.
+   *
+   * @since 0.15.0-beta4
+   * @param {HTMLElement} element Element to update
+   * @param {Number} index Row index or column index
+   * @param {Function} content Function which should be returns content for this cell
+   */
+  updateCellHeader(element, index, content) {
+    let renderedIndex = index;
+    const parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
+
+    // prevent wrong calculations from SampleGenerator
+    if (element.parentNode) {
+      if (hasClass(element, 'colHeader')) {
+        renderedIndex = parentOverlay.wtTable.columnFilter.sourceToRendered(index);
+
+      } else if (hasClass(element, 'rowHeader')) {
+        renderedIndex = parentOverlay.wtTable.rowFilter.sourceToRendered(index);
+      }
+    }
+
+    if (renderedIndex > -1) {
+      fastInnerHTML(element, content(index));
+
+    } else {
+      // workaround for https://github.com/handsontable/handsontable/issues/1946
+      fastInnerText(element, String.fromCharCode(160));
+      addClass(element, 'cornerHeader');
+    }
   }
 
   /**

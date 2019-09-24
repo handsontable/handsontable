@@ -9,6 +9,7 @@ import {
   setOverlayPosition,
   resetCssTransform,
 } from './../../../../helpers/dom/element';
+import LeftOverlayTable from './../table/left';
 import Overlay from './_base';
 
 /**
@@ -21,6 +22,17 @@ class LeftOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_LEFT);
+  }
+
+  /**
+   * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   *
+   * @see Table#constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor
+   * @returns {Table}
+   */
+  createTable(...args) {
+    return new LeftOverlayTable(...args);
   }
 
   /**
@@ -167,6 +179,7 @@ class LeftOverlay extends Overlay {
     this.clone.wtTable.holder.style.height = overlayRootStyle.height;
 
     const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+
     overlayRootStyle.width = `${tableWidth === 0 ? tableWidth : tableWidth + 4}px`;
   }
 

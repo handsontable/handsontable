@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "7.1.0",
+  "version": "7.1.1",
   "main": "commonjs/index.js",
   "module": "es/index.js",
   "jsnext:main": "es/index.js",
@@ -19,15 +19,17 @@
   "scripts": {
     "clean": "rimraf commonjs es coverage tmp",
     "lint": "eslint src/ test/",
+    "lint:fix": "eslint --fix src/ test/",
     "test": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable && npm run test:e2e && npm run test:production",
     "test.random": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable.random && npm run test:e2e.random && npm run test:production.random",
     "test:walkontable": "npm run build:walkontable && npm run test:walkontable.dump && npm run test:walkontable.puppeteer",
     "test:walkontable.random": "npm run build:walkontable && npm run test:walkontable.dump && npm run test:walkontable.puppeteer -- --random",
+    "test:walkontable.watch": "node ./.config/bin/trigger-on-stdout-change.js \"concurrently --raw --kill-others \\\"npm run build:walkontable -- --watch\\\" \\\"npm run test:walkontable.dump -- --watch\\\"\" \"npm run test:walkontable.puppeteer\"",
     "test:production": "npm run build:umd.min && npm run build:languages.min && npm run test:production.dump && npm run test:e2e.puppeteer",
     "test:production.random": "npm run build:umd.min && npm run build:languages.min && npm run test:production.dump && npm run test:e2e.puppeteer -- --random",
     "test:e2e": "npm run build:umd && npm run build:languages && npm run test:e2e.dump && npm run test:e2e.puppeteer",
     "test:e2e.random": "npm run build:umd && npm run build:languages && npm run test:e2e.dump && npm run test:e2e.puppeteer -- --random",
-    "test:e2e.watch": "node ./.config/bin/trigger-on-stdout-change.js \"concurrently --raw --kill-others 'npm run build:umd -- --watch' 'npm run test:e2e.dump -- --watch'\" \"npm run test:e2e.puppeteer\"",
+    "test:e2e.watch": "node ./.config/bin/trigger-on-stdout-change.js \"concurrently --raw --kill-others \\\"npm run build:umd -- --watch\\\" \\\"npm run test:e2e.dump -- --watch\\\"\" \"npm run test:e2e.puppeteer\"",
     "test:e2e.puppeteer": "node test/scripts/run-puppeteer.js test/E2ERunner.html",
     "test:unit": "cross-env-shell npm_config_testPathPattern=. BABEL_ENV=commonjs env-cmd -f ./hot.config.js jest --testPathPattern=$npm_config_testPathPattern",
     "test:unit.watch": "cross-env-shell BABEL_ENV=commonjs env-cmd -f ./hot.config.js jest --testPathPattern=$npm_config_testPathPattern --watch",
@@ -89,7 +91,7 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-plugin-transform-require-ignore": "^0.1.1",
     "check-es3-syntax-cli": "^0.2.0",
-    "concurrently": "^3.5.0",
+    "concurrently": "^4.1.1",
     "copy-webpack-plugin": "^4.6.0",
     "cpy-cli": "^2.0.0",
     "cross-env": "^5.0.1",
@@ -101,11 +103,12 @@
     "eslint-plugin-import": "^2.7.0",
     "fs-extra": "^4.0.2",
     "glob": "^7.1.2",
+    "html-parse-stringify": "^1.0.3",
     "html-webpack-plugin": "^3.2.0",
     "jasmine-co": "^1.2.2",
     "jasmine-core": "^3.4.0",
     "jasmine-terminal-reporter": "^1.0.3",
-    "jest": "^24.7.1",
+    "jest": "^24.8.0",
     "jest-cli": "^24.7.1",
     "loader-utils": "^1.1.0",
     "mini-css-extract-plugin": "^0.5.0",
@@ -131,7 +134,8 @@
   "jest": {
     "roots": [
       "./test/unit",
-      "./src/plugins"
+      "./src/plugins",
+      "./src/3rdparty/walkontable/test/unit"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/test/bootstrap.js"

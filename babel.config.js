@@ -1,9 +1,12 @@
 const allowedE2EModules = [
   'window',
   'jasmine-co',
+  'jest-matcher-utils',
+  'html-parse-stringify',
   'core-js/*',
   'regenerator-runtime/runtime',
   '@babel/runtime/*',
+  './htmlNormalize',
   './common',
   './../bootstrap',
   './helpers/custom-matchers',

@@ -1,7 +1,6 @@
 import BasePlugin from './../_base';
 import { arrayEach, arrayFilter, arrayReduce, arrayMap } from './../../helpers/array';
 import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
-import { isVisible } from './../../helpers/dom/element';
 import GhostTable from './../../utils/ghostTable';
 import { isObject, hasOwnProperty } from './../../helpers/object';
 import { valueAccordingPercent, rangeEach } from './../../helpers/number';
@@ -299,7 +298,7 @@ class AutoColumnSize extends BasePlugin {
    * Recalculates all columns width (overwrite cache values).
    */
   recalculateAllColumnsWidth() {
-    if (this.hot.view && isVisible(this.hot.view.wt.wtTable.TABLE)) {
+    if (this.hot.view && this.hot.view.wt.wtTable.isVisible()) {
       this.clearCache();
       this.calculateAllColumnsWidth();
     }
@@ -355,7 +354,7 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Gets the first visible column.
    *
-   * @returns {Number|null} Returns column index, -1 if table is not rendered or null if there are no columns to base the the calculations on.
+   * @returns {Number} Returns column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn() {
     const wot = this.hot.view.wt;
@@ -452,7 +451,7 @@ class AutoColumnSize extends BasePlugin {
     const firstVisibleColumn = this.getFirstVisibleColumn();
     const lastVisibleColumn = this.getLastVisibleColumn();
 
-    if (firstVisibleColumn === null || lastVisibleColumn === null) {
+    if (firstVisibleColumn === -1 || lastVisibleColumn === -1) {
       return;
     }
 

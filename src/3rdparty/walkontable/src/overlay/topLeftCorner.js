@@ -5,6 +5,7 @@ import {
   setOverlayPosition,
   resetCssTransform
 } from './../../../../helpers/dom/element';
+import TopLeftCornerOverlayTable from './../table/topLeftCorner';
 import Overlay from './_base';
 
 /**
@@ -17,6 +18,17 @@ class TopLeftCornerOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_TOP_LEFT_CORNER);
+  }
+
+  /**
+   * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   *
+   * @see Table#constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor
+   * @returns {Table}
+   */
+  createTable(...args) {
+    return new TopLeftCornerOverlayTable(...args);
   }
 
   /**
@@ -41,8 +53,6 @@ class TopLeftCornerOverlay extends Overlay {
       return;
     }
     const overlayRoot = this.clone.wtTable.holder.parentNode;
-    const tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer === this.wot.rootWindow) {
@@ -69,6 +79,14 @@ class TopLeftCornerOverlay extends Overlay {
     } else {
       resetCssTransform(overlayRoot);
     }
+
+    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+
+    if (!this.wot.wtTable.hasDefinedSize()) {
+      tableHeight = 0;
+    }
+
     overlayRoot.style.height = `${tableHeight === 0 ? tableHeight : tableHeight + 4}px`;
     overlayRoot.style.width = `${tableWidth === 0 ? tableWidth : tableWidth + 4}px`;
   }

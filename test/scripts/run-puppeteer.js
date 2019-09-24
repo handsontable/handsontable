@@ -9,7 +9,7 @@ const DEFAULT_INACTIVITY_TIMEOUT = 10000;
 const [,, originalPath, flags] = process.argv;
 let path = originalPath;
 
-if (!path) {
+if (!originalPath) {
   /* eslint-disable no-console */
   console.log('The `path` argument is missing.');
 
@@ -17,11 +17,18 @@ if (!path) {
 }
 
 if (flags) {
+  const seed = flags.match(/(--seed=)\d{1,}/g);
   const random = flags.includes('random');
+  const params = [];
 
-  if (random) {
-    path = `${path}?random=true`;
+  if (seed) {
+    params.push(`seed=${seed[0].replace('--seed=', '')}`);
   }
+  if (seed || random) {
+    params.push('random=true');
+  }
+
+  path = `${path}?${params.join('&')}`;
 }
 
 const cleanupFactory = (browser, server) => async(exitCode) => {
@@ -71,7 +78,13 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
   });
   let errorCount = 0;
 
-  await page.exposeFunction('jasmineStarted', specInfo => reporter.jasmineStarted(specInfo));
+  await page.exposeFunction('jasmineStarted', (specInfo) => {
+    if (specInfo.order.random) {
+      process.stdout.write(`Randomized with seed ${specInfo.order.seed}\n`);
+    }
+
+    reporter.jasmineStarted(specInfo);
+  });
   await page.exposeFunction('jasmineSpecStarted', () => {});
   await page.exposeFunction('jasmineSuiteStarted', suite => reporter.suiteStarted(suite));
   await page.exposeFunction('jasmineSuiteDone', () => reporter.suiteDone());
