@@ -5,6 +5,10 @@ import { getListWithInsertedItems, getListWithRemovedItems } from '../../../tran
  * Map from physical index to another index.
  */
 class StrictBindsMap extends BaseMap {
+  constructor() {
+    super(index => index);
+  }
+
   /**
    * Add values to list and reorganize.
    *
