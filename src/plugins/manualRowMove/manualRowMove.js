@@ -347,7 +347,7 @@ class ManualRowMove extends BasePlugin {
    * @fires Hooks#persistentStateSave
    */
   persistentStateSave() {
-    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.rowsMapper._arrayMap);
+    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.rowIndexMapper.getIndexesSequence()); // The `PersistentState` plugin should be refactored.
   }
 
   /**
@@ -639,7 +639,7 @@ class ManualRowMove extends BasePlugin {
 
     this.dragRows(priv.rowsToMove, target);
 
-    // this.persistentStateSave();
+    this.persistentStateSave();
     this.hot.render();
 
     const selectionStart = this.t.toVisualRow(firstMovedPhysicalRow);
