@@ -33,14 +33,14 @@ declare namespace _Handsontable {
     destroyEditor(revertOriginal?: boolean, prepareEditorIfNeeded?: boolean): void;
     emptySelectedCells(): void;
     forceFullRender: boolean;
-    getActiveEditor<T extends Handsontable._editors.Base>(): T | undefined;
+    getActiveEditor<T extends Handsontable._editors.BaseEditor>(): T | undefined;
     getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
-    getCellEditor<T extends Handsontable._editors.Base>(row: number, col: number): T;
-    getCellEditor<T extends Handsontable._editors.Base>(cellMeta: Handsontable.CellMeta): T;
+    getCellEditor<T extends Handsontable._editors.BaseEditor>(row: number, col: number): T;
+    getCellEditor<T extends Handsontable._editors.BaseEditor>(cellMeta: Handsontable.CellMeta): T;
     getCellMeta(row: number, col: number): Handsontable.CellProperties;
     getCellMetaAtRow(row: number): Handsontable.CellProperties[];
-    getCellRenderer(row: number, col: number): Handsontable.renderers.Base;
-    getCellRenderer(cellMeta: Handsontable.CellMeta): Handsontable.renderers.Base;
+    getCellRenderer(row: number, col: number): Handsontable.renderers.BaseRenderer;
+    getCellRenderer(cellMeta: Handsontable.CellMeta): Handsontable.renderers.BaseRenderer;
     getCellsMeta(): Handsontable.CellProperties[];
     getCellValidator(row: number, col: number): Handsontable.validators.Base | RegExp | undefined;
     getCellValidator(cellMeta: Handsontable.CellMeta): Handsontable.validators.Base | RegExp | undefined;
@@ -264,7 +264,7 @@ declare namespace Handsontable {
       'STATE_WAITING' | // waiting for async validation
       'STATE_FINISHED';
 
-    abstract class Base {
+    abstract class BaseEditor {
       hot: _Handsontable.Core;
       instance: _Handsontable.Core;
       row: number;
@@ -283,7 +283,7 @@ declare namespace Handsontable {
       abstract close(): void;
       discardEditor(validationResult?: boolean): void;
       enableFullEditMode(): void;
-      extend<T extends _editors.Base>(): T;
+      extend<T extends _editors.BaseEditor>(): T;
       finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
       abstract focus(): void;
       getEditedCell(): HTMLTableCellElement | null;
@@ -299,7 +299,7 @@ declare namespace Handsontable {
       abstract setValue(newValue?: any): void;
     }
 
-    class Checkbox extends Base {
+    class Checkbox extends BaseEditor {
       close(): void;
       focus(): void;
       getValue(): any;
@@ -307,7 +307,7 @@ declare namespace Handsontable {
       setValue(newValue?: any): void;
     }
 
-    class Mobile extends Base {
+    class Mobile extends BaseEditor {
       close(): void;
       focus(): void;
       getValue(): any;
@@ -323,7 +323,7 @@ declare namespace Handsontable {
       valueChanged(): boolean;
     }
 
-    class Select extends Base {
+    class Select extends BaseEditor {
       close(): void;
       focus(): void;
       getValue(): any;
@@ -336,7 +336,7 @@ declare namespace Handsontable {
       registerHooks(): void;
     }
 
-    class Text extends Base {
+    class Text extends BaseEditor {
       close(): void;
       focus(): void;
       getValue(): any;
@@ -1601,21 +1601,21 @@ declare namespace Handsontable {
   }
 
   namespace renderers {
-    interface Base {
+    interface BaseRenderer {
       (instance: _Handsontable.Core, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties): HTMLTableCellElement | void;
     }
 
-    interface Autocomplete extends Base { }
+    interface Autocomplete extends BaseRenderer { }
 
-    interface Checkbox extends Base { }
+    interface Checkbox extends BaseRenderer { }
 
-    interface Html extends Base { }
+    interface Html extends BaseRenderer { }
 
-    interface Numeric extends Base { }
+    interface Numeric extends BaseRenderer { }
 
-    interface Password extends Base { }
+    interface Password extends BaseRenderer { }
 
-    interface Text extends Base { }
+    interface Text extends BaseRenderer { }
   }
 
   namespace validators {
@@ -1726,7 +1726,7 @@ declare namespace Handsontable {
     disableVisualSelection?: boolean | 'current' | 'area' | 'header' | ('current' | 'area' | 'header')[];
     dragToScroll?: boolean;
     dropdownMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
-    editor?: EditorType | typeof _editors.Base | boolean | string;
+    editor?: EditorType | typeof _editors.BaseEditor | boolean | string;
     enterBeginsEditing?: boolean;
     enterMoves?: wot.CellCoords | ((event: KeyboardEvent) => wot.CellCoords);
     fillHandle?: boolean | 'vertical' | 'horizontal' | autoFill.Settings;
@@ -1777,7 +1777,7 @@ declare namespace Handsontable {
     readOnly?: boolean;
     readOnlyCellClassName?: string;
     renderAllRows?: boolean;
-    renderer?: RendererType | string | renderers.Base;
+    renderer?: RendererType | string | renderers.BaseRenderer;
     rowHeaders?: boolean | string[] | ((index: number) => string);
     rowHeaderWidth?: number | number[];
     rowHeights?: number | number[] | string | string[] | ((index: number) => string | number);
@@ -2063,8 +2063,8 @@ declare namespace Handsontable {
   }
 
   interface CellTypeObject extends GridSettings {
-    renderer?: renderers.Base;
-    editor?: typeof _editors.Base;
+    renderer?: renderers.BaseRenderer;
+    editor?: typeof _editors.BaseEditor;
     validator?: validators.Base;
     /**
      * Custom properties which will be accessible in `cellProperties`
@@ -2074,7 +2074,7 @@ declare namespace Handsontable {
 
   interface Editors {
     AutocompleteEditor: typeof _editors.Autocomplete;
-    BaseEditor: typeof _editors.Base;
+    BaseEditor: typeof _editors.BaseEditor;
     CheckboxEditor: typeof _editors.Checkbox;
     DateEditor: typeof _editors.Date;
     DropdownEditor: typeof _editors.Dropdown;
@@ -2085,13 +2085,13 @@ declare namespace Handsontable {
     SelectEditor: typeof _editors.Select;
     TextEditor: typeof _editors.Text;
     TimeEditor: typeof _editors.Text;
-    getEditor(editorName: string): typeof _editors.Base;
-    registerEditor(editorName: string, editorClass: typeof _editors.Base): void;
+    getEditor(editorName: string): typeof _editors.BaseEditor;
+    registerEditor(editorName: string, editorClass: typeof _editors.BaseEditor): void;
   }
 
   interface Renderers {
     AutocompleteRenderer: renderers.Autocomplete;
-    BaseRenderer: renderers.Base;
+    BaseRenderer: renderers.BaseRenderer;
     CheckboxRenderer: renderers.Checkbox;
     DateRenderer: renderers.Autocomplete;
     DropdownRenderer: renderers.Autocomplete;
@@ -2101,8 +2101,8 @@ declare namespace Handsontable {
     PasswordRenderer: renderers.Password;
     TextRenderer: renderers.Text;
     TimeRenderer: renderers.Text;
-    getRenderer(name: string): renderers.Base;
-    registerRenderer(name: string, renderer: renderers.Base): void;
+    getRenderer(name: string): renderers.BaseRenderer;
+    registerRenderer(name: string, renderer: renderers.BaseRenderer): void;
   }
 
   interface Validators {
