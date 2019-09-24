@@ -344,7 +344,7 @@ class ManualColumnMove extends BasePlugin {
    * @fires Hooks#persistentStateSave
    */
   persistentStateSave() {
-    this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.columnsMapper._arrayMap);
+    this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.columnIndexMapper.getIndexesSequence()); // The `PersistentState` plugin should be refactored.
   }
 
   /**
@@ -651,7 +651,7 @@ class ManualColumnMove extends BasePlugin {
 
     this.dragColumns(priv.columnsToMove, target);
 
-    // this.persistentStateSave();
+    this.persistentStateSave();
     this.hot.render();
 
     const selectionStart = this.t.toVisualColumn(firstMovedPhysicalColumn);
