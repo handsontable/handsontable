@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.1.1
- * Release date: 12/08/2019 (built at 24/09/2019 11:36:06)
+ * Release date: 12/08/2019 (built at 24/09/2019 13:25:33)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -39524,7 +39524,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "24/09/2019 11:36:06";
+Handsontable.buildDate = "24/09/2019 13:25:33";
 Handsontable.version = "7.1.1"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -61679,7 +61679,7 @@ function (_BasePlugin) {
   }, {
     key: "persistentStateSave",
     value: function persistentStateSave() {
-      this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.columnsMapper._arrayMap);
+      this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.columnIndexMapper.getIndexesSequence()); // The `PersistentState` plugin should be refactored.
     }
     /**
      * Loads the manual column positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
@@ -61991,8 +61991,8 @@ function (_BasePlugin) {
 
       var firstMovedVisualColumn = priv.columnsToMove[0];
       var firstMovedPhysicalColumn = this.t.toPhysicalColumn(firstMovedVisualColumn);
-      this.dragColumns(priv.columnsToMove, target); // this.persistentStateSave();
-
+      this.dragColumns(priv.columnsToMove, target);
+      this.persistentStateSave();
       this.hot.render();
       var selectionStart = this.t.toVisualColumn(firstMovedPhysicalColumn);
       var selectionEnd = selectionStart + columnsLen - 1;
