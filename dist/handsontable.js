@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.1.1
- * Release date: 12/08/2019 (built at 23/09/2019 09:39:30)
+ * Release date: 12/08/2019 (built at 24/09/2019 11:36:06)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -39524,7 +39524,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "23/09/2019 09:39:30";
+Handsontable.buildDate = "24/09/2019 11:36:06";
 Handsontable.version = "7.1.1"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -63352,7 +63352,7 @@ function (_BasePlugin) {
   }, {
     key: "persistentStateSave",
     value: function persistentStateSave() {
-      this.hot.runHooks('persistentStateSave', 'manualRowMove', this.rowsMapper._arrayMap);
+      this.hot.runHooks('persistentStateSave', 'manualRowMove', this.rowIndexMapper.getIndexesSequence()); // The `PersistentState` plugin should be refactored.
     }
     /**
      * Loads the manual row positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
@@ -63654,8 +63654,8 @@ function (_BasePlugin) {
 
       var firstMovedVisualRow = priv.rowsToMove[0];
       var firstMovedPhysicalRow = this.t.toPhysicalRow(firstMovedVisualRow);
-      this.dragRows(priv.rowsToMove, target); // this.persistentStateSave();
-
+      this.dragRows(priv.rowsToMove, target);
+      this.persistentStateSave();
       this.hot.render();
       var selectionStart = this.t.toVisualRow(firstMovedPhysicalRow);
       var selectionEnd = selectionStart + rowsLen - 1;
