@@ -510,7 +510,7 @@ class ManualRowResize extends BasePlugin {
     const loadedManualRowHeights = this.loadManualRowHeights();
 
     this.hot.executeBatchOperations(() => {
-      if (typeof loadedManualColumnWidths !== 'undefined') {
+      if (typeof loadedManualRowHeights !== 'undefined') {
         loadedManualRowHeights.forEach((height, index) => {
           this.rowHeightsMap.setValueAtIndex(index, height);
         });
