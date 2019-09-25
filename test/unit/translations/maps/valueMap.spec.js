@@ -12,7 +12,7 @@ it('should work with get, and set functions properly', () => {
 
   valueMap.init(3);
 
-  expect(valueMap.getValues()).toEqual([void 0, void 0, void 0]);
+  expect(valueMap.getValues()).toEqual([null, null, null]);
   expect(valueMap.getLength()).toEqual(3);
 
   valueMap.setValueAtIndex(0, 2);

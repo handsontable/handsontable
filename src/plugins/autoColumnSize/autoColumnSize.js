@@ -216,7 +216,7 @@ class AutoColumnSize extends BasePlugin {
         physicalColumn = col;
       }
 
-      if (force || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === void 0 && !this.hot._getColWidthFromSettings(physicalColumn))) {
+      if (force || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null && !this.hot._getColWidthFromSettings(physicalColumn))) {
         const samples = this.samplesGenerator.generateColumnSamples(physicalColumn, rowsRange);
 
         arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
@@ -441,7 +441,7 @@ class AutoColumnSize extends BasePlugin {
     if (columns.length) {
       this.hot.executeBatchOperations(() => {
         arrayEach(columns, (physicalIndex) => {
-          this.columnWidthsMap.setValueAtIndex(physicalIndex, void 0);
+          this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
         });
       });
 
@@ -456,7 +456,7 @@ class AutoColumnSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.columnWidthsMap.getValues(), item => (item === void 0)).length;
+    return !!arrayFilter(this.columnWidthsMap.getValues(), item => (item === null)).length;
   }
 
   /**

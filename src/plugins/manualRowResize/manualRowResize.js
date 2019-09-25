@@ -491,7 +491,7 @@ class ManualRowResize extends BasePlugin {
       const physicalRow = this.hot.toPhysicalRow(row);
       const manualRowHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
 
-      if (manualRowHeight !== void 0 && (manualRowHeight === autoRowHeightResult || manualRowHeight > (height || 0))) {
+      if (manualRowHeight !== null && (manualRowHeight === autoRowHeightResult || manualRowHeight > (height || 0))) {
         return manualRowHeight;
       }
     }

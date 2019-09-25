@@ -160,7 +160,7 @@ class ManualColumnResize extends BasePlugin {
   clearManualSize(column) {
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    this.columnWidthsMap.setValueAtIndex(physicalColumn, void 0);
+    this.columnWidthsMap.setValueAtIndex(physicalColumn, null);
   }
 
   /**
@@ -566,7 +566,7 @@ class ManualColumnResize extends BasePlugin {
   onBeforeStretchingColumnWidth(stretchedWidth, column) {
     let width = this.columnWidthsMap.getValueAtIndex(column);
 
-    if (width === void 0) {
+    if (width === null) {
       width = stretchedWidth;
     }
 
