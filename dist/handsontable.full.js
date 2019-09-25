@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.1.1
- * Release date: 12/08/2019 (built at 24/09/2019 13:25:33)
+ * Release date: 12/08/2019 (built at 25/09/2019 11:08:51)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -40774,7 +40774,8 @@ var _localHooks = _interopRequireDefault(__webpack_require__(48));
 var BaseMap =
 /*#__PURE__*/
 function () {
-  function BaseMap(initValueOrFn) {
+  function BaseMap() {
+    var initValueOrFn = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
     (0, _classCallCheck2.default)(this, BaseMap);
     this.list = [];
     this.initValueOrFn = initValueOrFn;
@@ -59922,7 +59923,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "24/09/2019 13:25:33";
+Handsontable.buildDate = "25/09/2019 11:08:51";
 Handsontable.version = "7.1.1"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -74289,7 +74290,7 @@ function (_BasePlugin) {
           physicalColumn = col;
         }
 
-        if (force || _this3.columnWidthsMap.getValueAtIndex(physicalColumn) === void 0 && !_this3.hot._getColWidthFromSettings(physicalColumn)) {
+        if (force || _this3.columnWidthsMap.getValueAtIndex(physicalColumn) === null && !_this3.hot._getColWidthFromSettings(physicalColumn)) {
           var samples = _this3.samplesGenerator.generateColumnSamples(physicalColumn, rowsRange);
 
           (0, _array.arrayEach)(samples, function (_ref) {
@@ -74552,7 +74553,7 @@ function (_BasePlugin) {
       if (columns.length) {
         this.hot.executeBatchOperations(function () {
           (0, _array.arrayEach)(columns, function (physicalIndex) {
-            _this5.columnWidthsMap.setValueAtIndex(physicalIndex, void 0);
+            _this5.columnWidthsMap.setValueAtIndex(physicalIndex, null);
           });
         });
       } else {
@@ -74569,7 +74570,7 @@ function (_BasePlugin) {
     key: "isNeedRecalculate",
     value: function isNeedRecalculate() {
       return !!(0, _array.arrayFilter)(this.columnWidthsMap.getValues(), function (item) {
-        return item === void 0;
+        return item === null;
       }).length;
     }
     /**
@@ -84274,7 +84275,7 @@ function (_BasePlugin) {
     key: "clearManualSize",
     value: function clearManualSize(column) {
       var physicalColumn = this.hot.toPhysicalColumn(column);
-      this.columnWidthsMap.setValueAtIndex(physicalColumn, void 0);
+      this.columnWidthsMap.setValueAtIndex(physicalColumn, null);
     }
     /**
      * Callback to call on map's `init` local hook.
@@ -84739,7 +84740,7 @@ function (_BasePlugin) {
     value: function onBeforeStretchingColumnWidth(stretchedWidth, column) {
       var width = this.columnWidthsMap.getValueAtIndex(column);
 
-      if (width === void 0) {
+      if (width === null) {
         width = stretchedWidth;
       }
 
@@ -86321,7 +86322,7 @@ function (_BasePlugin) {
         var physicalRow = this.hot.toPhysicalRow(row);
         var manualRowHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
 
-        if (manualRowHeight !== void 0 && (manualRowHeight === autoRowHeightResult || manualRowHeight > (height || 0))) {
+        if (manualRowHeight !== null && (manualRowHeight === autoRowHeightResult || manualRowHeight > (height || 0))) {
           return manualRowHeight;
         }
       }
@@ -92163,9 +92164,7 @@ function (_BasePlugin) {
       }
 
       var MapStrategy = bindTypeToMapStrategy.get(bindType);
-      this.headerIndexes = this.rowIndexMapper.registerMap('bindRowsWithHeaders', new MapStrategy(function (index) {
-        return index;
-      }));
+      this.headerIndexes = this.rowIndexMapper.registerMap('bindRowsWithHeaders', new MapStrategy());
       this.addHook('modifyRowHeader', function (row) {
         return _this2.onModifyRowHeader(row);
       });
@@ -92254,19 +92253,21 @@ function (_BaseMap) {
 
   function LooseBindsMap() {
     (0, _classCallCheck2.default)(this, LooseBindsMap);
-    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(LooseBindsMap).apply(this, arguments));
+    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(LooseBindsMap).call(this, function (index) {
+      return index;
+    }));
   }
+  /**
+   * Add values to list and reorganize.
+   *
+   * @private
+   * @param {Number} insertionIndex Position inside actual list.
+   * @param {Array} insertedIndexes List of inserted indexes.
+   */
+
 
   (0, _createClass2.default)(LooseBindsMap, [{
     key: "insert",
-
-    /**
-     * Add values to list and reorganize.
-     *
-     * @private
-     * @param {Number} insertionIndex Position inside actual list.
-     * @param {Array} insertedIndexes List of inserted indexes.
-     */
     value: function insert(insertionIndex, insertedIndexes) {
       var listAfterUpdate = (0, _actionsOnIndexes.getIncreasedIndexes)(this.list, insertionIndex, insertedIndexes);
       this.list = (0, _physicallyIndexed.getListWithInsertedItems)(listAfterUpdate, insertionIndex, insertedIndexes, this.initValueOrFn);
@@ -92333,19 +92334,21 @@ function (_BaseMap) {
 
   function StrictBindsMap() {
     (0, _classCallCheck2.default)(this, StrictBindsMap);
-    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(StrictBindsMap).apply(this, arguments));
+    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(StrictBindsMap).call(this, function (index) {
+      return index;
+    }));
   }
+  /**
+   * Add values to list and reorganize.
+   *
+   * @private
+   * @param {Number} insertionIndex Position inside actual list.
+   * @param {Array} insertedIndexes List of inserted indexes.
+   */
+
 
   (0, _createClass2.default)(StrictBindsMap, [{
     key: "insert",
-
-    /**
-     * Add values to list and reorganize.
-     *
-     * @private
-     * @param {Number} insertionIndex Position inside actual list.
-     * @param {Array} insertedIndexes List of inserted indexes.
-     */
     value: function insert(insertionIndex, insertedIndexes) {
       var _this = this;
 
