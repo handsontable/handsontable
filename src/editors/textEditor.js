@@ -262,7 +262,6 @@ class TextEditor extends BaseEditor {
     this.textareaParentStyle.position = '';
     this.textareaParentStyle.right = 'auto';
     this.textareaParentStyle.opacity = '1';
-    this.textareaParentStyle.zIndex = '';
 
     this.textareaStyle.textIndent = '';
     this.textareaStyle.overflowY = 'hidden';
