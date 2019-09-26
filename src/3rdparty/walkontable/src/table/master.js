@@ -36,7 +36,11 @@ class MasterTable extends Table {
       if (trimmingElementParent && overflow.includes(trimmingOverflow)) {
         const cloneNode = trimmingElement.cloneNode(false);
 
-        trimmingElementParent.insertBefore(cloneNode, trimmingElement);
+        if (trimmingElement.nextElementSibling) {
+          trimmingElementParent.insertBefore(cloneNode, trimmingElement.nextElementSibling);
+        } else {
+          trimmingElementParent.appendChild(cloneNode);
+        }
 
         const cloneHeight = getComputedStyle(cloneNode, rootWindow).height;
 

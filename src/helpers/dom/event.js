@@ -64,7 +64,15 @@ export function pageY(event) {
 
   const rootWindow = event.target.ownerDocument.defaultView;
 
-  return event.clientY + getWindowScrollTop(rootWindow);
+  let frame = rootWindow;
+  let offset = getWindowScrollTop(frame);
+
+  while (frame.frameElement) {
+    frame = frame.frameElement.ownerDocument.defaultView;
+    offset -= getWindowScrollTop(frame);
+  }
+
+  return event.clientY + offset;
 }
 
 /**

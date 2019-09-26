@@ -127,7 +127,7 @@ class ContextMenu extends BasePlugin {
    * @returns {Boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().contextMenu;
+    return !!this.hot.getSettings().contextMenu;
   }
 
   /**
@@ -146,7 +146,8 @@ class ContextMenu extends BasePlugin {
 
     this.menu = new Menu(this.hot, {
       className: 'htContextMenu',
-      keepInViewport: true
+      keepInViewport: true,
+      container: settings.container || this.hot.rootDocument.documentElement,
     });
 
     this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
@@ -155,8 +156,15 @@ class ContextMenu extends BasePlugin {
     this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
     this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
+    this.addHook('afterSelection', (...params) => this.onAfterSelection(...params));
 
     super.enablePlugin();
+  }
+
+  onAfterSelection() {
+    if (this.menu.isOpened()) {
+      this.menu.close();
+    }
   }
 
   /**
@@ -204,9 +212,19 @@ class ContextMenu extends BasePlugin {
       return;
     }
 
+    let offsetTop = 0;
+    let offsetLeft = 0;
+
+    if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
+      const frameElement = this.hot.rootWindow.frameElement;
+
+      offsetTop = frameElement.offsetTop;
+      offsetLeft = frameElement.offsetLeft;
+    }
+
     this.menu.setPosition({
-      top: parseInt(pageY(event), 10) - getWindowScrollTop(this.hot.rootWindow),
-      left: parseInt(pageX(event), 10) - getWindowScrollLeft(this.hot.rootWindow),
+      top: parseInt(pageY(event), 10) - getWindowScrollTop(this.menu.hotMenu.rootWindow) + offsetTop,
+      left: parseInt(pageX(event), 10) - getWindowScrollLeft(this.menu.hotMenu.rootWindow) + offsetLeft,
     });
 
     // ContextMenu is not detected HotTableEnv correctly because is injected outside hot-table
