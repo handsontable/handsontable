@@ -46,7 +46,7 @@ class BaseUI {
    */
   build() {
     if (this.state !== STATE_INITIALIZED) {
-      return false;
+      return;
     }
 
     this._element = this.hot.rootDocument.createElement('div');
