@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.1.1
- * Release date: 12/08/2019 (built at 26/09/2019 12:37:40)
+ * Release date: 12/08/2019 (built at 26/09/2019 13:43:06)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -37910,6 +37910,10 @@ function () {
   }, {
     key: "build",
     value: function build() {
+      if (this.state !== STATE_INITIALIZED) {
+        return;
+      }
+
       this._element = this.hot.rootDocument.createElement('div');
       this.state = STATE_BUILT;
     }
@@ -38126,7 +38130,7 @@ function () {
     key: "build",
     value: function build() {
       if (this.state !== STATE_INITIALIZED) {
-        return false;
+        return;
       }
 
       this._element = this.hot.rootDocument.createElement('div');
@@ -39529,7 +39533,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "26/09/2019 12:37:40";
+Handsontable.buildDate = "26/09/2019 13:43:06";
 Handsontable.version = "7.1.1"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -61427,8 +61431,9 @@ function (_BasePlugin) {
         return _this2.onAfterScrollVertically();
       });
       this.addHook('afterLoadData', function () {
-        return _this2.initWork();
+        return _this2.onAfterLoadData();
       });
+      this.buildPluginUI();
       this.registerEvents(); // TODO: move adding plugin classname to BasePlugin.
 
       (0, _element.addClass)(this.hot.rootElement, CSS_PLUGIN);
@@ -61443,7 +61448,7 @@ function (_BasePlugin) {
     value: function updatePlugin() {
       this.disablePlugin();
       this.enablePlugin();
-      this.initWork();
+      this.moveBySettingsOrLoad();
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualColumnMove.prototype), "updatePlugin", this).call(this);
     }
     /**
@@ -62022,17 +62027,25 @@ function (_BasePlugin) {
       this.backlight.setSize(null, wtTable.hider.offsetHeight - posTop);
     }
     /**
-     * Init plugin work.
+     * Builds the plugin's UI.
+     */
+
+  }, {
+    key: "buildPluginUI",
+    value: function buildPluginUI() {
+      this.backlight.build();
+      this.guideline.build();
+    }
+    /**
+     * Callback for the `afterLoadData` hook.
      *
      * @private
      */
 
   }, {
-    key: "initWork",
-    value: function initWork() {
+    key: "onAfterLoadData",
+    value: function onAfterLoadData() {
       this.moveBySettingsOrLoad();
-      this.backlight.build();
-      this.guideline.build();
     }
     /**
      * Destroys the plugin instance.
