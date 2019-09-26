@@ -655,4 +655,14 @@ describe('Core_loadData', () => {
     expect(objectData[2].user.name.first).toEqual('Barry');
   });
 
+  it('should create new data schema after loading data', () => {
+    handsontable({
+      data: arrayOfObjects()
+    });
+
+    loadData(arrayOfArrays());
+
+    expect(getSourceData()).toEqual(arrayOfArrays());
+    expect(getData()).toEqual(arrayOfArrays());
+  });
 });

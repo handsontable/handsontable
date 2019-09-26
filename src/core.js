@@ -1543,7 +1543,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (datamap) {
       datamap.destroy();
     }
-    datamap = new DataMap(instance, priv, GridSettings);
+
+    datamap = new DataMap(instance, data, priv, GridSettings);
 
     if (typeof data === 'object' && data !== null) {
       if (!(data.push && data.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it

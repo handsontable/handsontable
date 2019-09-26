@@ -43,10 +43,11 @@ class DataMap {
 
   /**
    * @param {Object} instance Instance of Handsontable
+   * @param {Array} data Array of arrays or array of objects containing data.
    * @param {*} priv
    * @param {GridSettings} GridSettings Grid settings
    */
-  constructor(instance, priv, GridSettings) {
+  constructor(instance, data, priv, GridSettings) {
     /**
      * Instance of {@link Handsontable}
      *
@@ -73,7 +74,7 @@ class DataMap {
      *
      * @type {*}
      */
-    this.dataSource = this.instance.getSettings().data;
+    this.dataSource = data;
     /**
      * Cached sourceData rows number.
      *
