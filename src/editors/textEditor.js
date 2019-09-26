@@ -10,7 +10,9 @@ import {
   setCaretPosition,
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
-  selectElementIfAllowed
+  selectElementIfAllowed,
+  hasClass,
+  removeClass
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
 import { isMobileBrowser, isIE, isEdge } from './../helpers/browser';
@@ -215,8 +217,13 @@ class TextEditor extends BaseEditor {
     this.TEXTAREA_PARENT = rootDocument.createElement('DIV');
     addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
+    if (hasClass(this.TEXTAREA_PARENT, 'ht_editor_show')) {
+      removeClass(this.TEXTAREA_PARENT, 'ht_editor_show');
+    }
+
+    addClass(this.TEXTAREA_PARENT, 'ht_editor_hide');
+
     this.textareaParentStyle = this.TEXTAREA_PARENT.style;
-    this.textareaParentStyle.zIndex = '-1';
 
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
 
@@ -236,7 +243,12 @@ class TextEditor extends BaseEditor {
 
     this.textareaParentStyle.opacity = '0';
     this.textareaParentStyle.height = '1px';
-    this.textareaParentStyle.zIndex = '-1';
+
+    if (hasClass(this.TEXTAREA_PARENT, 'ht_editor_show')) {
+      removeClass(this.TEXTAREA_PARENT, 'ht_editor_show');
+    }
+
+    addClass(this.TEXTAREA_PARENT, 'ht_editor_hide');
   }
 
   /**
@@ -249,12 +261,17 @@ class TextEditor extends BaseEditor {
     this.textareaParentStyle.overflow = '';
     this.textareaParentStyle.position = '';
     this.textareaParentStyle.right = 'auto';
-    const zIndex = this.getEditedCellsZIndex();
-    this.textareaParentStyle.zIndex = zIndex !== 'auto' ? zIndex : '';
     this.textareaParentStyle.opacity = '1';
+    this.textareaParentStyle.zIndex = '';
 
     this.textareaStyle.textIndent = '';
     this.textareaStyle.overflowY = 'hidden';
+
+    if (hasClass(this.TEXTAREA_PARENT, 'ht_editor_hide')) {
+      removeClass(this.TEXTAREA_PARENT, 'ht_editor_hide');
+    }
+
+    addClass(this.TEXTAREA_PARENT, 'ht_editor_show');
   }
 
   /**
