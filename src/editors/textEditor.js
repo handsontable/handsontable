@@ -77,7 +77,7 @@ class TextEditor extends BaseEditor {
      */
     this.textareaParentStyle = void 0;
     /**
-     * Style declaration object of the TEXTAREA_PARENT element.
+     * z-index class style for the editor.
      *
      * @private
      * @type {string}
