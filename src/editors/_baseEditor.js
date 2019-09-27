@@ -367,7 +367,7 @@ class BaseEditor {
   }
 
   /**
-   * Gets HTMLTableCellElement of the edited cell if exist.
+   * Gets className of the edited cell if exist.
    *
    * @returns {string}
    */

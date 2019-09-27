@@ -14,6 +14,7 @@ import {
   hasClass,
   removeClass
 } from './../helpers/dom/element';
+import { arrayFilter } from './../helpers/array';
 import autoResize from './../../lib/autoResize/autoResize';
 import { isMobileBrowser, isIE, isEdge } from './../helpers/browser';
 import BaseEditor, { EditorState } from './_baseEditor';
@@ -75,6 +76,13 @@ class TextEditor extends BaseEditor {
      * @type {CSSStyleDeclaration}
      */
     this.textareaParentStyle = void 0;
+    /**
+     * Style declaration object of the TEXTAREA_PARENT element.
+     *
+     * @private
+     * @type {string}
+     */
+    this.zIndexClass = void 0;
 
     this.createElements();
     this.bindEvents();
@@ -217,8 +225,8 @@ class TextEditor extends BaseEditor {
     this.TEXTAREA_PARENT = rootDocument.createElement('DIV');
     addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
-    if (hasClass(this.TEXTAREA_PARENT, 'ht_editor_show')) {
-      removeClass(this.TEXTAREA_PARENT, 'ht_editor_show');
+    if (hasClass(this.TEXTAREA_PARENT, this.zIndexClass)) {
+      removeClass(this.TEXTAREA_PARENT, this.zIndexClass);
     }
 
     addClass(this.TEXTAREA_PARENT, 'ht_editor_hide');
@@ -244,8 +252,8 @@ class TextEditor extends BaseEditor {
     this.textareaParentStyle.opacity = '0';
     this.textareaParentStyle.height = '1px';
 
-    if (hasClass(this.TEXTAREA_PARENT, 'ht_editor_show')) {
-      removeClass(this.TEXTAREA_PARENT, 'ht_editor_show');
+    if (hasClass(this.TEXTAREA_PARENT, this.zIndexClass)) {
+      removeClass(this.TEXTAREA_PARENT, this.zIndexClass);
     }
 
     addClass(this.TEXTAREA_PARENT, 'ht_editor_hide');
@@ -266,11 +274,29 @@ class TextEditor extends BaseEditor {
     this.textareaStyle.textIndent = '';
     this.textareaStyle.overflowY = 'hidden';
 
+    const childNodes = this.TEXTAREA_PARENT.childNodes;
+    let hasClassHandsontableEditor = false;
+
+    arrayFilter(childNodes, (childNode) => {
+      if (hasClass(childNode, 'handsontableEditor')) {
+        hasClassHandsontableEditor = true;
+      }
+    });
+
     if (hasClass(this.TEXTAREA_PARENT, 'ht_editor_hide')) {
       removeClass(this.TEXTAREA_PARENT, 'ht_editor_hide');
     }
 
-    addClass(this.TEXTAREA_PARENT, 'ht_editor_show');
+    if (hasClassHandsontableEditor) {
+      this.zIndexClass = 'ht_editor_show';
+
+      addClass(this.TEXTAREA_PARENT, this.zIndexClass);
+
+    } else {
+      this.zIndexClass = this.getEditedCellsZIndexClass();
+
+      addClass(this.TEXTAREA_PARENT, this.zIndexClass);
+    }
   }
 
   /**
