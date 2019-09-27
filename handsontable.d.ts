@@ -1,4 +1,4 @@
-import { PikadayOptions } from "pikaday";
+import { PikadayOptions } from 'pikaday';
 
 /**
  * @internal
@@ -905,19 +905,18 @@ declare namespace Handsontable {
     type PasteModeType = 'overwrite' | 'shift_down' | 'shift_right';
     type RangeType = { startRow: number, startCol: number, endRow: number, endCol: number };
     interface CopyPaste extends Base {
-      eventManager: EventManager;
       columnsLimit: number;
       copyableRanges: any[];
+      focusableElement: FocusableWrapper;
       pasteMode: PasteModeType;
       rowsLimit: number;
-      focusableElement: FocusableWrapper;
 
-      setCopyableText(): void;
+      copy(): void;
+      cut(): void;
       getRangedCopyableData(ranges: RangeType[]): string;
       getRangedData(ranges: RangeType[]): any[];
-      copy(triggeredByClick?: boolean): void;
-      cut(triggeredByClick?: boolean): void;
-      paste(triggeredByClick?: boolean): void;
+      paste(pastableText?: string, pastableHtml?: string): void;
+      setCopyableText(): void;
     }
 
     interface CustomBorders extends Base {
@@ -1696,7 +1695,7 @@ declare namespace Handsontable {
     comments?: boolean | comments.Settings | comments.CommentConfig[];
     contextMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
     copyable?: boolean;
-    copyPaste?: boolean;
+    copyPaste?: boolean | copyPaste.Settings;
     correctFormat?: boolean;
     currentColClassName?: string;
     currentHeaderClassName?: string;
@@ -2499,6 +2498,14 @@ declare namespace Handsontable {
       type: 'custom';
       customFunction: (this: plugins.ColumnSummary, endpoint: plugins.Endpoint) => number;
     });
+  }
+
+  namespace copyPaste {
+    interface Settings {
+      pasteMode?: plugins.PasteModeType;
+      rowsLimit?: number;
+      columnsLimit?: number;
+    }
   }
 
   namespace customBorders {
