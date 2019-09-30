@@ -1869,7 +1869,7 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      let $menu = $('.htContextMenu .ht_master .htCore');
+      let $menu = $(hot.getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
 
       expect(hot.undoRedo.isUndoAvailable()).toBe(false);
       expect($menu.find('tbody td:eq(9)').text()).toEqual('Undo');
@@ -1880,7 +1880,7 @@ describe('ContextMenu', () => {
       setDataAtCell(0, 0, 'foo');
 
       contextMenu();
-      $menu = $('.htContextMenu .ht_master .htCore');
+      $menu = $(hot.getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
       expect(hot.undoRedo.isUndoAvailable()).toBe(true);
       expect($menu.find('tbody td:eq(9)').hasClass('htDisabled')).toBe(false);
     });
@@ -1893,7 +1893,7 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      let $menu = $('.htContextMenu .ht_master .htCore');
+      let $menu = $(hot.getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
 
       expect(hot.undoRedo.isRedoAvailable()).toBe(false);
       expect($menu.find('tbody td:eq(10)').text()).toEqual('Redo');
@@ -1905,7 +1905,7 @@ describe('ContextMenu', () => {
       undo();
 
       contextMenu();
-      $menu = $('.htContextMenu .ht_master .htCore');
+      $menu = $(hot.getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
       expect(hot.undoRedo.isRedoAvailable()).toBe(true);
       expect($menu.find('tbody td:eq(10)').hasClass('htDisabled')).toBe(false);
     });
@@ -1919,7 +1919,7 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      let $menu = $('.htContextMenu .ht_master .htCore');
+      let $menu = $(getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
 
       expect($menu.find('tbody td:eq(0)').text()).toEqual('Insert row above');
       expect($menu.find('tbody td:eq(0)').hasClass('htDisabled')).toBe(false);
@@ -1931,7 +1931,7 @@ describe('ContextMenu', () => {
       alter('insert_row');
 
       contextMenu();
-      $menu = $('.htContextMenu .ht_master .htCore');
+      $menu = $(getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
 
       expect($menu.find('tbody td:eq(0)').hasClass('htDisabled')).toBe(true);
       expect($menu.find('tbody td:eq(1)').hasClass('htDisabled')).toBe(true);
@@ -1946,7 +1946,7 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      let $menu = $('.htContextMenu .ht_master .htCore');
+      let $menu = $(getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
 
       expect($menu.find('tbody td:eq(3)').text()).toEqual('Insert column left');
       expect($menu.find('tbody td:eq(3)').hasClass('htDisabled')).toBe(false);
@@ -1958,7 +1958,7 @@ describe('ContextMenu', () => {
       alter('insert_col');
 
       contextMenu();
-      $menu = $('.htContextMenu .ht_master .htCore');
+      $menu = $(getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
       expect($menu.find('tbody td:eq(3)').hasClass('htDisabled')).toBe(true);
       expect($menu.find('tbody td:eq(4)').hasClass('htDisabled')).toBe(true);
     });
@@ -1974,7 +1974,7 @@ describe('ContextMenu', () => {
       selectCell(0, 0);
       contextMenu();
 
-      const $menu = $('.htContextMenu .ht_master .htCore');
+      const $menu = $(getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
 
       expect($menu.find('tbody td:eq(3)').text()).toEqual('Insert column left');
       expect($menu.find('tbody td:eq(3)').hasClass('htDisabled')).toBe(false);
@@ -2000,7 +2000,7 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      const $menu = $('.htContextMenu .ht_master .htCore');
+      const $menu = $(getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
 
       expect($menu.find('tbody td:eq(0)').text()).toEqual('Remove columns');
       expect($menu.find('tbody td:eq(0)').hasClass('htDisabled')).toBe(true);
@@ -2022,7 +2022,7 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      const $menu = $('.htContextMenu .ht_master .htCore');
+      const $menu = $(getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
 
       expect($menu.find('tbody td:eq(1)').text()).toEqual('Remove rows');
       expect($menu.find('tbody td:eq(1)').hasClass('htDisabled')).toBe(true);

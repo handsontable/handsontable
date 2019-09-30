@@ -63,7 +63,12 @@ class Menu {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.container.ownerDocument.documentElement, 'mousedown', event => this.onDocumentMouseDown(event));
+    let frame = this.hot.rootWindow;
+
+    while (frame) {
+      this.eventManager.addEventListener(frame.document.documentElement, 'mousedown', event => this.onDocumentMouseDown(event));
+      frame = frame.frameElement && frame.frameElement.ownerDocument.defaultView;
+    }
   }
 
   /**

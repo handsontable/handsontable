@@ -217,14 +217,19 @@ class ContextMenu extends BasePlugin {
 
     if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
       const frameElement = this.hot.rootWindow.frameElement;
+      const { top, left } = frameElement.getBoundingClientRect();
 
-      offsetTop = frameElement.offsetTop;
-      offsetLeft = frameElement.offsetLeft;
+      offsetTop = top;
+      offsetLeft = left;
+
+    } else {
+      offsetTop = -1 * getWindowScrollTop(this.menu.hotMenu.rootWindow);
+      offsetLeft = -1 * getWindowScrollLeft(this.menu.hotMenu.rootWindow);
     }
 
     this.menu.setPosition({
-      top: parseInt(pageY(event), 10) - getWindowScrollTop(this.menu.hotMenu.rootWindow) + offsetTop,
-      left: parseInt(pageX(event), 10) - getWindowScrollLeft(this.menu.hotMenu.rootWindow) + offsetLeft,
+      top: parseInt(pageY(event), 10) + offsetTop,
+      left: parseInt(pageX(event), 10) + offsetLeft,
     });
 
     // ContextMenu is not detected HotTableEnv correctly because is injected outside hot-table
