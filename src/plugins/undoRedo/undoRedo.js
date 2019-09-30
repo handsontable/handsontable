@@ -44,13 +44,15 @@ function UndoRedo(instance) {
       return;
     }
 
-    arrayEach(changes, (change) => {
+    const clonedChanges = changes.reduce((arr, change) => { arr.push([...change]); return arr; }, []);
+
+    arrayEach(clonedChanges, (change) => {
       change[1] = instance.propToCol(change[1]);
     });
 
-    const selected = changesLen > 1 ? this.getSelected() : [[changes[0][0], instance.propToCol(changes[0][1])]];
+    const selected = changesLen > 1 ? this.getSelected() : [[clonedChanges[0][0], clonedChanges[0][1]]];
 
-    plugin.done(new UndoRedo.ChangeAction(changes, selected));
+    plugin.done(new UndoRedo.ChangeAction(clonedChanges, selected));
   });
 
   instance.addHook('afterCreateRow', (index, amount, source) => {
