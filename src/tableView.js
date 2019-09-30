@@ -559,7 +559,7 @@ class TableView {
             const center = calc.startColumn + calc.endColumn - calc.startColumn;
             const offset = Math.ceil(center / cols * 12);
 
-            calc.startRow = Math.max(calc.startColumn - offset, 0);
+            calc.startColumn = Math.max(calc.startColumn - offset, 0);
             calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
           }
         }
