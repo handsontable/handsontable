@@ -48,7 +48,7 @@ function UndoRedo(instance) {
       change[1] = instance.propToCol(change[1]);
     });
 
-    const selected = changesLen > 1 ? this.getSelected() : [[changes[0][0], changes[0][1]]];
+    const selected = changesLen > 1 ? this.getSelected() : [[changes[0][0], instance.propToCol(changes[0][1])]];
 
     plugin.done(new UndoRedo.ChangeAction(changes, selected));
   });
