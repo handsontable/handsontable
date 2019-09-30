@@ -112,7 +112,7 @@ class TextEditor extends BaseEditor {
    * Closes the editor.
    */
   close() {
-    if (this.autoResize.observe) {
+    if (!this.cellProperties.readOnly) {
       this.autoResize.unObserve();
     }
 
