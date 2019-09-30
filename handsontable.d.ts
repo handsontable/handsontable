@@ -1807,8 +1807,8 @@ declare namespace Handsontable {
       afterContextMenuShow?: (context: plugins.ContextMenu) => void;
       afterCopy?: (data: CellValue[][], coords: plugins.RangeType[]) => void;
       afterCopyLimit?: (selectedRows: number, selectedColumnds: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
-      afterCreateCol?: (index: number, amount: number) => void;
-      afterCreateRow?: (index: number, amount: number) => void;
+      afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
+      afterCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
       afterCut?: (data: CellValue[][], coords: plugins.RangeType[]) => void;
       afterDeselect?: () => void;
       afterDestroy?: () => void;
@@ -1846,8 +1846,8 @@ declare namespace Handsontable {
       afterRedo?: (action: plugins.UndoRedoAction) => void;
       afterRefreshDimensions?: (previousDimensions: object, currentDimensions: object, stateChanged: boolean) => void;
       afterRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
-      afterRemoveCol?: (index: number, amount: number) => void;
-      afterRemoveRow?: (index: number, amount: number) => void;
+      afterRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
+      afterRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
       afterRender?: (isForced: boolean) => void;
       afterRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
       afterRowMove?: (startRow: number, endRow: number) => void;
