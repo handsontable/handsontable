@@ -16,6 +16,8 @@ import { KEY_CODES } from './../helpers/unicode';
 import BaseEditor, { EditorState } from './_baseEditor';
 import { objectEach } from '../helpers/object';
 
+const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
+
 /**
  * @private
  * @editor SelectEditor
@@ -69,8 +71,8 @@ class SelectEditor extends BaseEditor {
     this._opened = false;
     this.select.style.display = 'none';
 
-    if (hasClass(this.select, 'ht_editor_show')) {
-      removeClass(this.select, 'ht_editor_show');
+    if (hasClass(this.select, EDITOR_VISIBLE_CLASS_NAME)) {
+      removeClass(this.select, EDITOR_VISIBLE_CLASS_NAME);
     }
     this.clearHooks();
   }
@@ -241,7 +243,7 @@ class SelectEditor extends BaseEditor {
     selectStyle.left = `${editLeft}px`;
     selectStyle.margin = '0px';
 
-    addClass(this.select, 'ht_editor_show');
+    addClass(this.select, EDITOR_VISIBLE_CLASS_NAME);
   }
 
   /**

@@ -585,11 +585,11 @@ CheckboxRenderer
   background: #eee;
 }
 
-.ht_editor_hide {
+.ht_editor_hidden {
   z-index: -1;
 }
 
-.ht_editor_show {
+.ht_editor_visible {
   z-index: 200;
 }
 

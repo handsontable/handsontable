@@ -371,7 +371,7 @@ class BaseEditor {
    *
    * @returns {string}
    */
-  getEditedCellsZIndexClass() {
+  getEditedCellsLayerClass() {
     const editorSection = this.checkEditorSection();
 
     switch (editorSection) {
