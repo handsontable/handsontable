@@ -1,7 +1,4 @@
 import {
-  getStyle,
-  getComputedStyle,
-  getTrimmingContainer,
   hasClass,
   index,
   offset,
@@ -31,6 +28,12 @@ class Table {
    * @param {HTMLTableElement} table
    */
   constructor(wotInstance, table) {
+    /**
+     * Indicates if this instance is of type `MasterTable` (i.e. it is NOT an overlay)
+     *
+     * @type {Boolean}
+     */
+    this.isMaster = !wotInstance.cloneOverlay; // "instanceof" operator isn't used, because it caused a circular reference in Webpack
     this.wot = wotInstance;
 
     // legacy support
@@ -68,7 +71,10 @@ class Table {
     this.holder = this.createHolder(this.hider);
 
     this.wtRootElement = this.holder.parentNode;
-    this.alignOverlaysWithTrimmingContainer();
+
+    if (this.isMaster) {
+      this.alignOverlaysWithTrimmingContainer();
+    }
     this.fixTableDomTree();
 
     this.rowFilter = null;
@@ -91,6 +97,17 @@ class Table {
       columnUtils: this.columnUtils,
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
+  }
+
+  /**
+   * Returns a boolean that is true if this intance of Table represents a specific overlay, identified by the overlay name.
+   * For MasterTable, it returns false.
+   *
+   * @param {String} overlayTypeName
+   * @returns {Boolean}
+   */
+  is(overlayTypeName) {
+    return Overlay.isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
   }
 
   /**
@@ -186,69 +203,13 @@ class Table {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
         parent.insertBefore(holder, hider);
       }
-      if (!this.isWorkingOnClone()) {
+      if (this.isMaster) {
         holder.parentNode.className += 'ht_master handsontable';
       }
       holder.appendChild(hider);
     }
 
     return holder;
-  }
-
-  alignOverlaysWithTrimmingContainer() {
-    if (this.isWorkingOnClone()) {
-      return;
-    }
-
-    const trimmingElement = getTrimmingContainer(this.wtRootElement);
-    const { rootWindow } = this.wot;
-
-    if (trimmingElement === rootWindow) {
-      const preventOverflow = this.wot.getSetting('preventOverflow');
-
-      if (!preventOverflow) {
-        this.holder.style.overflow = 'visible';
-        this.wtRootElement.style.overflow = 'visible';
-      }
-    } else {
-      const trimmingElementParent = trimmingElement.parentElement;
-      const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
-      const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow);
-      const holderStyle = this.holder.style;
-      const { scrollWidth, scrollHeight } = trimmingElement;
-      let { width, height } = trimmingElement.getBoundingClientRect();
-      const overflow = ['auto', 'hidden', 'scroll'];
-
-      if (trimmingElementParent && overflow.includes(trimmingOverflow)) {
-        const cloneNode = trimmingElement.cloneNode(false);
-
-        trimmingElementParent.insertBefore(cloneNode, trimmingElement);
-
-        const cloneHeight = getComputedStyle(cloneNode, rootWindow).height;
-
-        trimmingElementParent.removeChild(cloneNode);
-
-        if (parseInt(cloneHeight, 10) === 0) {
-          height = 0;
-        }
-      }
-
-      height = Math.min(height, scrollHeight);
-      holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
-
-      width = Math.min(width, scrollWidth);
-      holderStyle.width = `${width}px`;
-
-      holderStyle.overflow = '';
-      this.hasTableHeight = height > 0;
-      this.hasTableWidth = width > 0;
-    }
-
-    this.isTableVisible = isVisible(this.TABLE);
-  }
-
-  isWorkingOnClone() {
-    return !!this.wot.cloneSource;
   }
 
   /**
@@ -261,9 +222,8 @@ class Table {
   draw(fastDraw = false) {
     const { wot } = this;
     const { wtOverlays, wtViewport } = wot;
-    const isClone = this.isWorkingOnClone();
-    const totalRows = this.instance.getSetting('totalRows');
-    const totalColumns = this.instance.getSetting('totalColumns');
+    const totalRows = wot.getSetting('totalRows');
+    const totalColumns = wot.getSetting('totalColumns');
     const rowHeaders = wot.getSetting('rowHeaders');
     const rowHeadersCount = rowHeaders.length;
     const columnHeaders = wot.getSetting('columnHeaders');
@@ -271,7 +231,7 @@ class Table {
     let syncScroll = false;
     let runFastDraw = fastDraw;
 
-    if (!isClone) {
+    if (this.isMaster) {
       this.holderOffset = offset(this.holder);
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
@@ -287,12 +247,12 @@ class Table {
       }
     }
 
-    if (!isClone) {
+    if (this.isMaster) {
       syncScroll = wtOverlays.prepareOverlays();
     }
 
     if (runFastDraw) {
-      if (!isClone) {
+      if (this.isMaster) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
         wtViewport.createVisibleCalculators();
       }
@@ -300,54 +260,30 @@ class Table {
         wtOverlays.refresh(true);
       }
     } else {
-      const { cloneOverlay } = wot;
-
-      if (isClone) {
-        this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
-      } else {
+      if (this.isMaster) {
         this.tableOffset = offset(this.TABLE);
-      }
-      let startRow;
-
-      if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP) ||
-          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
-        startRow = 0;
-      } else if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM) ||
-                 Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-        startRow = Math.max(totalRows - wot.getSetting('fixedRowsBottom'), 0);
       } else {
-        startRow = wtViewport.rowsRenderCalculator.startRow;
+        this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
       }
-      let startColumn;
-
-      if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_LEFT) ||
-          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER) ||
-          Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-        startColumn = 0;
-      } else {
-        startColumn = wtViewport.columnsRenderCalculator.startColumn;
-      }
+      const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
+      const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
-      this.alignOverlaysWithTrimmingContainer();
-
-      let performRedraw = isClone;
-
+      let performRedraw = true;
       // Only master table rendering can be skipped
-      if (!isClone) {
+      if (this.isMaster) {
+        this.alignOverlaysWithTrimmingContainer();
         const skipRender = {};
-
         this.wot.getSetting('beforeDraw', true, skipRender);
-
         performRedraw = skipRender.skipRender !== true;
       }
 
       if (performRedraw) {
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
 
-        if (Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM) ||
-            Overlay.isOverlayTypeOf(cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+        if (this.is(Overlay.CLONE_BOTTOM) ||
+            this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
           // do NOT render headers on the bottom or bottom-left corner overlay
           this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
         }
@@ -361,19 +297,19 @@ class Table {
 
         let workspaceWidth;
 
-        if (!isClone) {
+        if (this.isMaster) {
           workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
           this.wot.wtViewport.containerWidth = null;
+          this.markOversizedColumnHeaders();
         }
 
-        this.markOversizedColumnHeaders();
         this.adjustColumnHeaderHeights();
 
-        if (!isClone || this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
+        if (this.isMaster || this.is(Overlay.CLONE_BOTTOM)) {
           this.markOversizedRows();
         }
 
-        if (!isClone) {
+        if (this.isMaster) {
           this.wot.wtViewport.createVisibleCalculators();
           this.wot.wtOverlays.refresh(false);
           this.wot.wtOverlays.applyToDOM();
@@ -396,14 +332,14 @@ class Table {
 
           this.wot.getSetting('onDraw', true);
 
-        } else if (this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
+        } else if (this.is(Overlay.CLONE_BOTTOM)) {
           this.wot.cloneSource.wtOverlays.adjustElementsSize();
         }
       }
     }
     this.refreshSelections(runFastDraw);
 
-    if (!isClone) {
+    if (this.isMaster) {
       wtOverlays.topOverlay.resetFixedPosition();
 
       if (wtOverlays.bottomOverlay.clone) {
@@ -469,27 +405,6 @@ class Table {
     }
   }
 
-  markOversizedColumnHeaders() {
-    const { wot } = this;
-    const isClone = this.isWorkingOnClone();
-    const overlayName = wot.getOverlayName();
-    const columnHeaders = wot.getSetting('columnHeaders');
-    const columnHeadersCount = columnHeaders.length;
-
-    if (columnHeadersCount && !wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] && !isClone) {
-      const rowHeaders = wot.getSetting('rowHeaders');
-      const rowHeaderCount = rowHeaders.length;
-      const columnCount = this.getRenderedColumnsCount();
-
-      for (let i = 0; i < columnHeadersCount; i++) {
-        for (let renderedColumnIndex = (-1) * rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
-          this.markIfOversizedColumnHeader(renderedColumnIndex);
-        }
-      }
-      wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] = true;
-    }
-  }
-
   adjustColumnHeaderHeights() {
     const { wot } = this;
     const children = wot.wtTable.THEAD.childNodes;
@@ -512,8 +427,11 @@ class Table {
    */
   resetOversizedRows() {
     const { wot } = this;
+    if (!this.isMaster && !this.is(Overlay.CLONE_BOTTOM)) {
+      return;
+    }
 
-    if (!wot.getSetting('externalRowCalculator') && (!this.isWorkingOnClone() || wot.isOverlayName(Overlay.CLONE_BOTTOM))) {
+    if (!wot.getSetting('externalRowCalculator')) {
       const rowsToRender = this.getRenderedRowsCount();
 
       // Reset the oversized row cache for rendered rows
@@ -601,6 +519,15 @@ class Table {
 
   /**
    * Get cell element at coords.
+   * Negative coords.row or coords.col are used to retrieve header cells. If there are multiple header levels, the
+   * negative value corresponds to the distance from the working area. For example, when there are 3 levels of column
+   * headers, coords.col=-1 corresponds to the most inner header element, while coords.col=-3 corresponds to the
+   * outmost header element.
+   *
+   * In case an element for the coords is not rendered, the method returns an error code.
+   * To produce the error code, the input parameters are validated in the order in which they
+   * are given. Thus, if both the row and the column coords are out of the rendered bounds,
+   * the method returns the error code for the row.
    *
    * @param {CellCoords} coords
    * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:
@@ -635,11 +562,26 @@ class Table {
       return -4;
     }
 
+    if (row < 0) {
+      const columnHeaders = this.wot.getSetting('columnHeaders');
+      const columnHeadersCount = columnHeaders.length;
+      const zeroBasedHeaderLevel = columnHeadersCount + row;
+      return this.getColumnHeader(column, zeroBasedHeaderLevel);
+    }
+
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
 
-    if (TR) {
-      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
+    if (!TR && row >= 0) {
+      throw new Error('TR was expected to be rendered but is not');
     }
+
+    const TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
+
+    if (!TD && column >= 0) {
+      throw new Error('TD or TH was expected to be rendered but is not');
+    }
+
+    return TD;
   }
 
   /**
@@ -773,83 +715,127 @@ class Table {
     return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
   }
 
-  getFirstRenderedRow() {
-    return this.wot.wtViewport.rowsRenderCalculator.startRow;
-  }
+  /**
+   * 0-based index of column header
+   *
+   * @param {Number} level
+   * @returns {Boolean}
+   */
+  isColumnHeaderLevelRendered(level) {
+    const columnHeaders = this.wot.getSetting('columnHeaders');
+    const columnHeadersCount = columnHeaders.length;
 
-  getFirstVisibleRow() {
-    return this.wot.wtViewport.rowsVisibleCalculator.startRow;
-  }
-
-  getFirstRenderedColumn() {
-    return this.wot.wtViewport.columnsRenderCalculator.startColumn;
+    return level > (columnHeadersCount - 1);
   }
 
   /**
-   * @returns {Number} Returns -1 if no row is visible
+   * 0-based index of row header
+   *
+   * @param {Number} level
+   * @returns {Boolean}
    */
-  getFirstVisibleColumn() {
-    return this.wot.wtViewport.columnsVisibleCalculator.startColumn;
+  isRowHeaderLevelRendered(level) {
+    const columnHeaders = this.wot.getSetting('rowHeaders');
+    const columnHeadersCount = columnHeaders.length;
+
+    return level > (columnHeadersCount - 1);
   }
 
   /**
-   * @returns {Number} Returns -1 if no row is visible, otherwise source index of the last rendered row
+   * Check if the given row index is smaller than the index of the first row that is currently redered
+   * and return TRUE in that case, or FALSE otherwise.
+   *
+   * Negative row index is used to check the header cells. As a simplification, it checks negative row index
+   * the same way as a regular row 0. You can interpret this as follows: If the row 0 is rendered, all header
+   * cells are also rendered.
+   *
+   * @param {Number} row
+   * @returns {Boolean}
    */
-  getLastRenderedRow() {
-    return this.wot.wtViewport.rowsRenderCalculator.endRow;
-  }
-
-  /**
-   * @returns {Number} Returns source index of last visible row
-   */
-  getLastVisibleRow() {
-    return this.wot.wtViewport.rowsVisibleCalculator.endRow;
-  }
-
-  /**
-   * @returns {Number} Returns source index of last rendered column
-   */
-  getLastRenderedColumn() {
-    return this.wot.wtViewport.columnsRenderCalculator.endColumn;
-  }
-
-  /**
-   * @returns {Number} Returns -1 if no column is visible, otherwise source index of the last visible column
-   */
-  getLastVisibleColumn() {
-    return this.wot.wtViewport.columnsVisibleCalculator.endColumn;
-  }
-
   isRowBeforeRenderedRows(row) {
-    return this.rowFilter && (this.rowFilter.sourceToRendered(row) < 0 && row >= 0);
+    const first = this.getFirstRenderedRow();
+
+    if (row < 0) {
+      row = 0;
+    }
+
+    if (first === -1) {
+      return true;
+    }
+    return row < first;
   }
 
   isRowAfterViewport(row) {
     return this.rowFilter && (row > this.getLastVisibleRow());
   }
 
+  /**
+   * Check if the given column index is larger than the index of the last column that is currently redered
+   * and return TRUE in that case, or FALSE otherwise.
+   *
+   * Negative column index is used to check the header cells.
+   *
+   * @param {Number} column
+   * @returns {Boolean}
+   */
   isRowAfterRenderedRows(row) {
-    if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM)
-      || Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      return false;
+    if (row < 0) {
+      const columnHeaders = this.wot.getSetting('columnHeaders');
+      const columnHeadersCount = columnHeaders.length;
+      const zeroBasedHeaderLevel = columnHeadersCount + row;
+      return this.isColumnHeaderLevelRendered(zeroBasedHeaderLevel);
     }
-
-    return this.rowFilter && (row > this.getLastRenderedRow());
+    return row > this.getLastRenderedRow();
   }
 
   isColumnBeforeViewport(column) {
     return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
   }
 
+  /**
+   * Check if the given column index is smaller than the index of the first column that is currently redered
+   * and return TRUE in that case, or FALSE otherwise.
+   *
+   * Negative column index is used to check the header cells. As a simplification, it checks negative column index
+   * the same way as a regular column 0. You can interpret this as follows: If the column 0 is rendered, all header
+   * cells are also rendered.
+   *
+   * @param {Number} column
+   * @returns {Boolean}
+   */
   isColumnBeforeRenderedColumns(column) {
-    return this.columnFilter && (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column) < 0 && column >= 0);
+    const first = this.getFirstRenderedColumn();
+
+    if (column < 0) {
+      column = 0;
+    }
+
+    if (first === -1) {
+      return true;
+    }
+    return column < first;
   }
 
   isColumnAfterViewport(column) {
     return this.columnFilter && (column > this.getLastVisibleColumn());
   }
 
+  /**
+   * Check if the given column index is larger than the index of the last column that is currently redered
+   * and return TRUE in that case, or FALSE otherwise.
+   *
+   * Negative column index is used to check the header cells.
+   *
+   * @param {Number} column
+   * @returns {Boolean}
+   */
   isColumnAfterRenderedColumns(column) {
+    if (column < 0) {
+      const rowHeaders = this.wot.getSetting('rowHeaders');
+      const rowHeadersCount = rowHeaders.length;
+      const zeroBasedHeaderLevel = rowHeadersCount + column;
+      return this.isRowHeaderLevelRendered(zeroBasedHeaderLevel);
+    }
     return this.columnFilter && (column > this.getLastRenderedColumn());
   }
 
@@ -861,49 +847,8 @@ class Table {
     return this.getLastVisibleColumn() === this.getLastRenderedColumn();
   }
 
-  getRenderedColumnsCount() {
-    const columnsCount = this.wot.wtViewport.columnsRenderCalculator.count;
-
-    if (this.wot.isOverlayName(Overlay.CLONE_LEFT) ||
-        this.wot.isOverlayName(Overlay.CLONE_TOP_LEFT_CORNER) ||
-        this.wot.isOverlayName(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      const totalColumns = this.wot.getSetting('totalColumns');
-
-      return Math.min(this.wot.getSetting('fixedColumnsLeft'), totalColumns);
-    }
-
-    return columnsCount;
-  }
-
-  getRenderedRowsCount() {
-    let rowsCount = this.wot.wtViewport.rowsRenderCalculator.count;
-
-    if (this.wot.isOverlayName(Overlay.CLONE_TOP) ||
-        this.wot.isOverlayName(Overlay.CLONE_TOP_LEFT_CORNER)) {
-      const totalRows = this.wot.getSetting('totalRows');
-
-      rowsCount = Math.min(this.wot.getSetting('fixedRowsTop'), totalRows);
-
-    } else if (this.wot.isOverlayName(Overlay.CLONE_BOTTOM) ||
-               this.wot.isOverlayName(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      const totalRows = this.wot.getSetting('totalRows');
-
-      rowsCount = Math.min(this.wot.getSetting('fixedRowsBottom'), totalRows);
-    }
-
-    return rowsCount;
-  }
-
-  getVisibleRowsCount() {
-    return this.wot.wtViewport.rowsVisibleCalculator.count;
-  }
-
   allRowsInViewport() {
     return this.wot.getSetting('totalRows') === this.getVisibleRowsCount();
-  }
-
-  getVisibleColumnsCount() {
-    return this.wot.wtViewport.columnsVisibleCalculator.count;
   }
 
   allColumnsInViewport() {
