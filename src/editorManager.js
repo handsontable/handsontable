@@ -61,6 +61,12 @@ class EditorManager {
      * @type {*}
      */
     this.activeEditor = void 0;
+    /**
+     * Object containing the cell's properties.
+     *
+     * @type {Object}
+     */
+    this.cellProperties = void 0;
 
     this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
@@ -135,15 +141,20 @@ class EditorManager {
     }
 
     const { row, col } = this.instance.selection.selectedRange.current().highlight;
+    this.cellProperties = this.instance.getCellMeta(row, col);
+
+    if (this.cellProperties.readOnly) {
+      return;
+    }
+
     const prop = this.instance.colToProp(col);
     const originalValue = this.instance.getSourceDataAtCell(this.instance.runHooks('modifyRow', row), col);
-    const cellProperties = this.instance.getCellMeta(row, col);
-    const editorClass = this.instance.getCellEditor(cellProperties);
+    const editorClass = this.instance.getCellEditor(this.cellProperties);
 
     if (editorClass) {
       this.activeEditor = getEditorInstance(editorClass, this.instance);
       const td = this.activeEditor.getEditedCell();
-      this.activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
+      this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
 
     } else {
       this.activeEditor = void 0;
@@ -170,16 +181,7 @@ class EditorManager {
       return;
     }
 
-    const readOnly = this.activeEditor.cellProperties.readOnly;
-
-    if (readOnly) {
-      // move the selection after opening the editor with ENTER key
-      if (event && event.keyCode === KEY_CODES.ENTER) {
-        this.moveSelectionAfterEnter();
-      }
-    } else {
-      this.activeEditor.beginEditing(newInitialValue, event);
-    }
+    this.activeEditor.beginEditing(newInitialValue, event);
   }
 
   /**
@@ -430,7 +432,13 @@ class EditorManager {
           if (this.activeEditor) {
             this.activeEditor.enableFullEditMode();
           }
-          this.openEditor(null, event);
+
+          if (this.cellProperties.readOnly) {
+            this.moveSelectionAfterEnter();
+
+          } else {
+            this.openEditor(null, event);
+          }
 
         } else {
           this.moveSelectionAfterEnter(isShiftPressed);
