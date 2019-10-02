@@ -544,7 +544,7 @@ describe('HandsontableObserveChanges', () => {
         await sleep(300);
 
         expect(afterChangeCallback.calls.count()).toEqual(1);
-        expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, null, 'new string']], 'ObserveChanges.change', undefined, undefined, undefined, undefined);
+        expect(afterChangeCallback).toHaveBeenCalledWith([[0, 'prop0', null, 'new string']], 'ObserveChanges.change', undefined, undefined, undefined, undefined);
       });
     });
   });
