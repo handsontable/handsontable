@@ -150,11 +150,12 @@ class EditorManager {
     const prop = this.instance.colToProp(col);
     const originalValue = this.instance.getSourceDataAtCell(this.instance.runHooks('modifyRow', row), col);
     const editorClass = this.instance.getCellEditor(this.cellProperties);
+    const td = this.instance.getCell(row, col, true);
 
-    if (editorClass) {
+    if (editorClass && td) {
       this.activeEditor = getEditorInstance(editorClass, this.instance);
-      const td = this.instance.getCell(row, col, true);
       this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
+
     } else {
       this.activeEditor = void 0;
     }
