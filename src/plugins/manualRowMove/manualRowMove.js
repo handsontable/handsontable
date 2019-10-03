@@ -149,6 +149,7 @@ class ManualRowMove extends BasePlugin {
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
+   * @returns {Boolean}
    */
   moveRow(row, finalIndex) {
     this.moveRows([row], finalIndex);
@@ -162,6 +163,7 @@ class ManualRowMove extends BasePlugin {
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
+   * @returns {Boolean}
    */
   moveRows(rows, finalIndex) {
     const priv = privatePool.get(this);
@@ -188,6 +190,9 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} row Visual row index to be dragged.
    * @param {Number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
    * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @fires Hooks#beforeRowMove
+   * @fires Hooks#afterRowMove
+   * @returns {Boolean}
    */
   dragRow(row, dropIndex) {
     this.dragRows([row], dropIndex);
@@ -199,6 +204,9 @@ class ManualRowMove extends BasePlugin {
    * @param {Array} rows Array of visual row indexes to be dragged.
    * @param {Number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
    * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @fires Hooks#beforeRowMove
+   * @fires Hooks#afterRowMove
+   * @returns {Boolean}
    */
   dragRows(rows, dropIndex) {
     const finalIndex = this.countFinalIndex(rows, dropIndex);
@@ -637,18 +645,18 @@ class ManualRowMove extends BasePlugin {
 
     const firstMovedVisualRow = priv.rowsToMove[0];
     const firstMovedPhysicalRow = this.t.toPhysicalRow(firstMovedVisualRow);
-
-    this.dragRows(priv.rowsToMove, target);
-
-    this.persistentStateSave();
-    this.hot.render();
-
-    const selectionStart = this.t.toVisualRow(firstMovedPhysicalRow);
-    const selectionEnd = selectionStart + rowsLen - 1;
-
-    this.changeSelection(selectionStart, selectionEnd);
+    const movePerformed = this.dragRows(priv.rowsToMove, target);
 
     priv.rowsToMove.length = 0;
+
+    if (movePerformed === true) {
+      this.persistentStateSave();
+
+      const selectionStart = this.t.toVisualRow(firstMovedPhysicalRow);
+      const selectionEnd = selectionStart + rowsLen - 1;
+
+      this.hot.selectRows(selectionStart, selectionEnd);
+    }
   }
 
   /**
