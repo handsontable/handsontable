@@ -136,6 +136,7 @@ class Menu {
       data: filteredItems,
       colHeaders: false,
       autoColumnSize: true,
+      autoWrapRow: false,
       modifyColWidth(width) {
         if (isDefined(width) && width < minWidthOfMenu) {
           return minWidthOfMenu;
@@ -165,11 +166,17 @@ class Menu {
       rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
+        stopImmediatePropagation(event);
         stopPropagation(event);
       },
       afterOnCellMouseDown: (event) => {
+        console.log('menu.afterOnCellMouseDown');
         this.executeCommand(event);
-      }
+
+        event.preventDefault();
+        stopImmediatePropagation(event);
+        stopPropagation(event);
+      },
     };
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
@@ -737,9 +744,6 @@ class Menu {
       return;
     }
 
-    // if (this.container && isChildOf(event.target, this.container)) {
-    //   this.executeCommand(event);
-    // }
     // Close menu when clicked element is not belongs to menu itself
     if (this.options.standalone && this.hotMenu && !isChildOf(event.target, this.hotMenu.rootElement)) {
       this.close(true);

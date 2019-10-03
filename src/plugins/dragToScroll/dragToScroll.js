@@ -139,20 +139,49 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
+   * Enables listening on `mousemove` event.
+   *
+   * @private
+   */
+  listen() {
+    this.listening = true;
+  }
+
+  /**
+   * Disables listening on `mousemove` event.
+   *
+   * @private
+   */
+  unlisten() {
+    this.listening = false;
+  }
+
+  /**
+   * Returns current state of listening.
+   *
+   * @private
+   * @returns {Boolean}
+   */
+  isListening() {
+    return this.listening;
+  }
+
+  /**
    * Registers dom listeners.
    *
    * @private
    */
   registerEvents() {
-    const rootDocument = this.hot.rootDocument;
+    const { rootWindow } = this.hot;
 
-    let doc = rootDocument;
+    let frame = rootWindow;
 
-    while (doc) {
-      this.eventManager.addEventListener(doc, 'mouseup', () => this.onMouseUp());
-      this.eventManager.addEventListener(doc, 'mousemove', event => this.onMouseMove(event));
+    while (frame) {
+      this.eventManager.addEventListener(frame.document, 'contextmenu', () => this.unlisten());
+      this.eventManager.addEventListener(frame.document, 'mouseup', () => this.unlisten());
+      this.eventManager.addEventListener(frame.document, 'mousemove', event => this.onMouseMove(event));
 
-      doc = doc.defaultView && doc.defaultView.frameElement && doc.defaultView.frameElement.ownerDocument;
+      frame = frame.frameElement && frame.frameElement.ownerDocument.defaultView;
     }
   }
 
@@ -195,7 +224,7 @@ class DragToScroll extends BasePlugin {
       }
     });
 
-    this.listening = true;
+    this.listen();
   }
 
   /**
@@ -205,18 +234,11 @@ class DragToScroll extends BasePlugin {
    * @param {MouseEvent} event `mousemove` event properties.
    */
   onMouseMove(event) {
-    if (this.listening) {
-      this.check(event.clientX, event.clientY);
+    if (!this.isListening()) {
+      return;
     }
-  }
 
-  /**
-   * `onMouseUp` hook callback.
-   *
-   * @private
-   */
-  onMouseUp() {
-    this.listening = false;
+    this.check(event.clientX, event.clientY);
   }
 
   /**

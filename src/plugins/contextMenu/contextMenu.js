@@ -6,7 +6,7 @@ import EventManager from './../../eventManager';
 import ItemsFactory from './itemsFactory';
 import Menu from './menu';
 import { registerPlugin } from './../../plugins';
-import { stopPropagation, pageX, pageY } from './../../helpers/dom/event';
+import { stopPropagation, pageX, pageY, isRightClick, isImmediatePropagationStopped } from './../../helpers/dom/event';
 import { getWindowScrollLeft, getWindowScrollTop, hasClass } from './../../helpers/dom/element';
 import {
   ROW_ABOVE,
@@ -161,12 +161,6 @@ class ContextMenu extends BasePlugin {
     super.enablePlugin();
   }
 
-  onAfterSelection() {
-    if (this.menu.isOpened()) {
-      this.menu.close();
-    }
-  }
-
   /**
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
@@ -216,7 +210,7 @@ class ContextMenu extends BasePlugin {
     let offsetLeft = 0;
 
     if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
-      const frameElement = this.hot.rootWindow.frameElement;
+      const { frameElement } = this.hot.rootWindow;
       const { top, left } = frameElement.getBoundingClientRect();
 
       offsetTop = top;
@@ -312,12 +306,24 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
+   * Callback for the `afterSelection` hook.
+   *
+   * @private
+   */
+  onAfterSelection() {
+    if (this.menu.isOpened()) {
+      this.menu.close();
+    }
+  }
+
+  /**
    * On contextmenu listener.
    *
    * @private
    * @param {Event} event
    */
   onAfterOnCellContextMenu(event) {
+    console.log('contextMenu.onAfterOnCellContextMenu', isImmediatePropagationStopped(event));
     const settings = this.hot.getSettings();
     const showRowHeaders = settings.rowHeaders;
     const showColHeaders = settings.colHeaders;
