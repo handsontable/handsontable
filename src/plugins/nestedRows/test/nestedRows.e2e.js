@@ -255,6 +255,7 @@ describe('NestedRows', () => {
       expect(getDataAtCell(1, 1)).toEqual('Florence & The Machine');
       expect(getDataAtCell(5, 0)).toEqual('Best Metal Performance');
       expect(getDataAtCell(6, 1)).toEqual('Alabama Shakes');
+      expect(getSelected()).toEqual([6, 0, 6, 3]);
     });
 
     it('should move single row between parents properly (moving from the bottom to the top)', () => {
@@ -282,6 +283,49 @@ describe('NestedRows', () => {
       expect(getDataAtCell(1, 1)).toEqual('Ghost');
       expect(getDataAtCell(7, 0)).toEqual('Best Metal Performance');
       expect(getDataAtCell(8, 1)).toEqual('August Burns Red');
+      expect(getSelected()).toEqual([1, 0, 1, 3]);
     });
+  });
+
+  it('should warn user that `moveRow` and `moveRows` methods can\'t be used and they don\'t move data', () => {
+    const warnSpy = spyOn(console, 'warn');
+
+    handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true,
+      manualRowMove: true
+    });
+
+    const dataAtStart = getData();
+
+    getPlugin('manualRowMove').moveRow(1, 2);
+
+    expect(warnSpy.calls.count()).toEqual(1);
+    expect(getData()).toEqual(dataAtStart);
+
+    getPlugin('manualRowMove').moveRow(2, 1);
+
+    expect(warnSpy.calls.count()).toEqual(2);
+    expect(getData()).toEqual(dataAtStart);
+
+    getPlugin('manualRowMove').moveRow(0, 1);
+
+    expect(warnSpy.calls.count()).toEqual(3);
+    expect(getData()).toEqual(dataAtStart);
+
+    getPlugin('manualRowMove').moveRows([1], 2);
+
+    expect(warnSpy.calls.count()).toEqual(4);
+    expect(getData()).toEqual(dataAtStart);
+
+    getPlugin('manualRowMove').moveRows([2], 1);
+
+    expect(warnSpy.calls.count()).toEqual(5);
+    expect(getData()).toEqual(dataAtStart);
+
+    getPlugin('manualRowMove').moveRows([0], 1);
+
+    expect(warnSpy.calls.count()).toEqual(6);
+    expect(getData()).toEqual(dataAtStart);
   });
 });

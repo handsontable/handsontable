@@ -152,7 +152,7 @@ class ManualRowMove extends BasePlugin {
    * @returns {Boolean}
    */
   moveRow(row, finalIndex) {
-    this.moveRows([row], finalIndex);
+    return this.moveRows([row], finalIndex);
   }
 
   /**
@@ -181,7 +181,11 @@ class ManualRowMove extends BasePlugin {
       this.rowIndexMapper.moveIndexes(rows, finalIndex);
     }
 
-    this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePossible && this.isRowOrderChanged(rows, finalIndex));
+    const movePerformed = movePossible && this.isRowOrderChanged(rows, finalIndex);
+
+    this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePerformed);
+
+    return movePerformed;
   }
 
   /**
@@ -195,7 +199,7 @@ class ManualRowMove extends BasePlugin {
    * @returns {Boolean}
    */
   dragRow(row, dropIndex) {
-    this.dragRows([row], dropIndex);
+    return this.dragRows([row], dropIndex);
   }
 
   /**
@@ -214,7 +218,7 @@ class ManualRowMove extends BasePlugin {
 
     priv.cachedDropIndex = dropIndex;
 
-    this.moveRows(rows, finalIndex);
+    return this.moveRows(rows, finalIndex);
   }
 
   /**
@@ -651,6 +655,7 @@ class ManualRowMove extends BasePlugin {
 
     if (movePerformed === true) {
       this.persistentStateSave();
+      this.hot.render();
 
       const selectionStart = this.t.toVisualRow(firstMovedPhysicalRow);
       const selectionEnd = selectionStart + rowsLen - 1;

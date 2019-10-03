@@ -238,10 +238,11 @@ describe('manualRowMove', () => {
             afterRowMove: afterMoveRowCallback
           });
 
-          hot.getPlugin('manualRowMove').moveRow(0, 1);
+          const result = hot.getPlugin('manualRowMove').moveRow(0, 1);
 
           expect(afterMoveRowCallback).not.toHaveBeenCalled();
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(result).toBeFalsy();
         });
 
         it('should not move and trigger the `afterRowMove` hook with proper arguments after try of moving row to final index, which is too high', () => {
@@ -255,10 +256,11 @@ describe('manualRowMove', () => {
             afterRowMove: afterMoveRowCallback
           });
 
-          hot.getPlugin('manualRowMove').moveRow(0, 1000);
+          const result = hot.getPlugin('manualRowMove').moveRow(0, 1000);
 
           expect(afterMoveRowCallback).toHaveBeenCalledWith([0], 1000, void 0, false, false, void 0);
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(result).toBeFalsy();
         });
 
         it('should not move and trigger the `afterRowMove` hook with proper arguments after try of moving row to final index, which is too low', () => {
@@ -272,10 +274,11 @@ describe('manualRowMove', () => {
             afterRowMove: afterMoveRowCallback
           });
 
-          hot.getPlugin('manualRowMove').moveRow(0, -1);
+          const result = hot.getPlugin('manualRowMove').moveRow(0, -1);
 
           expect(afterMoveRowCallback).toHaveBeenCalledWith([0], -1, void 0, false, false, void 0);
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(result).toBeFalsy();
         });
 
         it('should not move and trigger the `afterRowMove` hook with proper arguments after try of moving too high row', () => {
@@ -289,10 +292,11 @@ describe('manualRowMove', () => {
             afterRowMove: afterMoveRowCallback
           });
 
-          hot.getPlugin('manualRowMove').moveRow(1000, 1);
+          const result = hot.getPlugin('manualRowMove').moveRow(1000, 1);
 
           expect(afterMoveRowCallback).toHaveBeenCalledWith([1000], 1, void 0, false, false, void 0);
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(result).toBeFalsy();
         });
 
         it('should not move and trigger the `afterRowMove` hook with proper arguments after try of moving too low row', () => {
@@ -306,10 +310,11 @@ describe('manualRowMove', () => {
             afterRowMove: afterMoveRowCallback
           });
 
-          hot.getPlugin('manualRowMove').moveRow(-1, 1);
+          const result = hot.getPlugin('manualRowMove').moveRow(-1, 1);
 
           expect(afterMoveRowCallback).toHaveBeenCalledWith([-1], 1, void 0, false, false, void 0);
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(result).toBeFalsy();
         });
       });
 
@@ -511,10 +516,11 @@ describe('manualRowMove', () => {
             }
           });
 
-          hot.getPlugin('manualRowMove').dragRows([1, 2, 3], 15);
+          const result = hot.getPlugin('manualRowMove').dragRows([1, 2, 3], 15);
 
           expect(movePossible).toBeFalsy();
           expect(orderChanged).toBeFalsy();
+          expect(result).toBeFalsy();
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
@@ -532,10 +538,11 @@ describe('manualRowMove', () => {
             }
           });
 
-          hot.getPlugin('manualRowMove').dragRows([1, 2, 3], -1);
+          const result = hot.getPlugin('manualRowMove').dragRows([1, 2, 3], -1);
 
           expect(movePossible).toBeFalsy();
           expect(orderChanged).toBeFalsy();
+          expect(result).toBeFalsy();
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
@@ -553,10 +560,11 @@ describe('manualRowMove', () => {
             }
           });
 
-          hot.getPlugin('manualRowMove').dragRows([-1, -2, -3, -4], 15);
+          const result = hot.getPlugin('manualRowMove').dragRows([-1, -2, -3, -4], 15);
 
           expect(movePossible).toBeFalsy();
           expect(orderChanged).toBeFalsy();
+          expect(result).toBeFalsy();
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
@@ -574,10 +582,11 @@ describe('manualRowMove', () => {
             }
           });
 
-          hot.getPlugin('manualRowMove').dragRows([-2, -3, -4, -5], -1);
+          const result = hot.getPlugin('manualRowMove').dragRows([-2, -3, -4, -5], -1);
 
           expect(movePossible).toBeFalsy();
           expect(orderChanged).toBeFalsy();
+          expect(result).toBeFalsy();
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
       });
@@ -600,11 +609,12 @@ describe('manualRowMove', () => {
             }
           });
 
-          hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
+          const result = hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
           hot.render();
 
           expect(beforeRowMoveCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, void 0, void 0);
           expect(afterMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, true, void 0);
+          expect(result).toBeTruthy();
         });
 
         describe('moving single row from the bottom to the top', () => {

@@ -16,7 +16,7 @@ describe('NestedRows Collapsing UI', () => {
     describe('collapseChildren', () => {
       it('should collapse all children nodes of the row provided as a number', () => {
         handsontable({
-          data: getDataForNestedRows(),
+          data: getMoreComplexNestedData(),
           nestedRows: true
         });
 
@@ -39,7 +39,7 @@ describe('NestedRows Collapsing UI', () => {
 
       it('should collapse all children nodes of the row provided as an object', () => {
         handsontable({
-          data: getDataForNestedRows(),
+          data: getMoreComplexNestedData(),
           nestedRows: true
         });
 
@@ -65,7 +65,7 @@ describe('NestedRows Collapsing UI', () => {
     describe('expandChildren', () => {
       it('should collapse all children nodes of the row provided as a number', () => {
         handsontable({
-          data: getDataForNestedRows(),
+          data: getMoreComplexNestedData(),
           nestedRows: true
         });
 
@@ -81,7 +81,7 @@ describe('NestedRows Collapsing UI', () => {
 
       it('should collapse all children nodes of the row provided as an object', () => {
         handsontable({
-          data: getDataForNestedRows(),
+          data: getMoreComplexNestedData(),
           nestedRows: true,
         });
 
@@ -99,7 +99,7 @@ describe('NestedRows Collapsing UI', () => {
     describe('expandRows', () => {
       it('Should make the rows provided in the arguments visible', (done) => {
         handsontable({
-          data: getDataForNestedRows(),
+          data: getMoreComplexNestedData(),
           nestedRows: true,
           rowHeaders: true
         });
@@ -124,7 +124,7 @@ describe('NestedRows Collapsing UI', () => {
     describe('expandChildren', () => {
       it('Should make the child rows of the provided element visible', (done) => {
         handsontable({
-          data: getDataForNestedRows(),
+          data: getMoreComplexNestedData(),
           nestedRows: true
         });
 
@@ -146,7 +146,7 @@ describe('NestedRows Collapsing UI', () => {
 
       it('Should make the child rows of the provided element visible, even if some of them are already visible', (done) => {
         handsontable({
-          data: getDataForNestedRows(),
+          data: getMoreComplexNestedData(),
           nestedRows: true
         });
 

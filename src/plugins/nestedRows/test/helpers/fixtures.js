@@ -162,5 +162,5 @@ export function getSimplerNestedData() {
         }
       ]
     }
-  ]
+  ];
 }
