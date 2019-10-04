@@ -429,14 +429,11 @@ class EditorManager {
           this.moveSelectionAfterEnter(isShiftPressed);
 
         } else if (this.instance.getSettings().enterBeginsEditing) {
-          if (this.activeEditor) {
-            this.activeEditor.enableFullEditMode();
-          }
-
           if (this.cellProperties.readOnly) {
             this.moveSelectionAfterEnter();
 
-          } else {
+          } else if (this.activeEditor) {
+            this.activeEditor.enableFullEditMode();
             this.openEditor(null, event);
           }
 
