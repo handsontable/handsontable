@@ -62,7 +62,7 @@ class EditorManager {
      */
     this.activeEditor = void 0;
     /**
-     * Object containing the cell's properties.
+     * Keeps a reference to the cell's properties object.
      *
      * @type {Object}
      */
