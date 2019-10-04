@@ -166,16 +166,12 @@ class Menu {
       rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
-        stopImmediatePropagation(event);
         stopPropagation(event);
-      },
-      afterOnCellMouseDown: (event) => {
-        console.log('menu.afterOnCellMouseDown');
-        this.executeCommand(event);
 
-        event.preventDefault();
-        stopImmediatePropagation(event);
-        stopPropagation(event);
+        this.executeCommand(event);
+      },
+      afterOnCellMouseUp: (event) => {
+        this.executeCommand(event);
       },
     };
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
@@ -500,7 +496,6 @@ class Menu {
    * @private
    */
   menuItemRenderer(hot, TD, row, col, prop, value) {
-    // console.log('menuItemRenderer');
     const item = hot.getSourceDataAtRow(row);
     const wrapper = this.hot.rootDocument.createElement('div');
 
@@ -748,7 +743,7 @@ class Menu {
     if (this.options.standalone && this.hotMenu && !isChildOf(event.target, this.hotMenu.rootElement)) {
       this.close(true);
 
-    // // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
+    // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
         (!isChildOf(event.target, '.htMenu') && (isChildOf(event.target, this.container.ownerDocument) || isChildOf(event.target, this.hot.rootDocument)))) {
       this.close(true);

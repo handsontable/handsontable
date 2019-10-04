@@ -6,7 +6,7 @@ import EventManager from './../../eventManager';
 import ItemsFactory from './itemsFactory';
 import Menu from './menu';
 import { registerPlugin } from './../../plugins';
-import { stopPropagation, pageX, pageY, isRightClick, isImmediatePropagationStopped } from './../../helpers/dom/event';
+import { stopPropagation, pageX, pageY } from './../../helpers/dom/event';
 import { getWindowScrollLeft, getWindowScrollTop, hasClass } from './../../helpers/dom/element';
 import {
   ROW_ABOVE,
@@ -323,7 +323,6 @@ class ContextMenu extends BasePlugin {
    * @param {Event} event
    */
   onAfterOnCellContextMenu(event) {
-    console.log('contextMenu.onAfterOnCellContextMenu', isImmediatePropagationStopped(event));
     const settings = this.hot.getSettings();
     const showRowHeaders = settings.rowHeaders;
     const showColHeaders = settings.colHeaders;
