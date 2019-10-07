@@ -1,4 +1,4 @@
-import { PikadayOptions } from "pikaday";
+import { PikadayOptions } from 'pikaday';
 
 /**
  * @internal
@@ -907,19 +907,18 @@ declare namespace Handsontable {
     type PasteModeType = 'overwrite' | 'shift_down' | 'shift_right';
     type RangeType = { startRow: number, startCol: number, endRow: number, endCol: number };
     interface CopyPaste extends Base {
-      eventManager: EventManager;
       columnsLimit: number;
       copyableRanges: any[];
+      focusableElement: FocusableWrapper;
       pasteMode: PasteModeType;
       rowsLimit: number;
-      focusableElement: FocusableWrapper;
 
-      setCopyableText(): void;
+      copy(): void;
+      cut(): void;
       getRangedCopyableData(ranges: RangeType[]): string;
       getRangedData(ranges: RangeType[]): any[];
-      copy(triggeredByClick?: boolean): void;
-      cut(triggeredByClick?: boolean): void;
-      paste(triggeredByClick?: boolean): void;
+      paste(pastableText?: string, pastableHtml?: string): void;
+      setCopyableText(): void;
     }
 
     interface CustomBorders extends Base {
@@ -1698,7 +1697,7 @@ declare namespace Handsontable {
     comments?: boolean | comments.Settings | comments.CommentConfig[];
     contextMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
     copyable?: boolean;
-    copyPaste?: boolean;
+    copyPaste?: boolean | copyPaste.Settings;
     correctFormat?: boolean;
     currentColClassName?: string;
     currentHeaderClassName?: string;
@@ -1810,8 +1809,8 @@ declare namespace Handsontable {
       afterContextMenuShow?: (context: plugins.ContextMenu) => void;
       afterCopy?: (data: CellValue[][], coords: plugins.RangeType[]) => void;
       afterCopyLimit?: (selectedRows: number, selectedColumnds: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
-      afterCreateCol?: (index: number, amount: number) => void;
-      afterCreateRow?: (index: number, amount: number) => void;
+      afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
+      afterCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
       afterCut?: (data: CellValue[][], coords: plugins.RangeType[]) => void;
       afterDeselect?: () => void;
       afterDestroy?: () => void;
@@ -1849,8 +1848,8 @@ declare namespace Handsontable {
       afterRedo?: (action: plugins.UndoRedoAction) => void;
       afterRefreshDimensions?: (previousDimensions: object, currentDimensions: object, stateChanged: boolean) => void;
       afterRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
-      afterRemoveCol?: (index: number, amount: number) => void;
-      afterRemoveRow?: (index: number, amount: number) => void;
+      afterRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
+      afterRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
       afterRender?: (isForced: boolean) => void;
       afterRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
       afterRowMove?: (startRow: number, endRow: number) => void;
@@ -2501,6 +2500,14 @@ declare namespace Handsontable {
       type: 'custom';
       customFunction: (this: plugins.ColumnSummary, endpoint: plugins.Endpoint) => number;
     });
+  }
+
+  namespace copyPaste {
+    interface Settings {
+      pasteMode?: plugins.PasteModeType;
+      rowsLimit?: number;
+      columnsLimit?: number;
+    }
   }
 
   namespace customBorders {

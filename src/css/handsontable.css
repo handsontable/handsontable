@@ -585,21 +585,48 @@ CheckboxRenderer
   background: #eee;
 }
 
-.ht_clone_top {
-  z-index: 101;
+.ht_editor_hidden {
+  z-index: -1;
+}
+
+.ht_editor_visible {
+  z-index: 200;
+}
+
+.ht_clone_master {
+  z-index: 100;
+}
+
+.ht_clone_right {
+  z-index: 110;
 }
 
 .ht_clone_left {
-  z-index: 102;
+  z-index: 120;
 }
 
-.ht_clone_top_left_corner,
+.ht_clone_bottom {
+  z-index: 130;
+}
+
+.ht_clone_bottom_right_corner {
+  z-index: 140;
+}
+
 .ht_clone_bottom_left_corner {
-  z-index: 103;
+  z-index: 150;
 }
 
-.ht_clone_debug {
-  z-index: 103;
+.ht_clone_top {
+  z-index: 160;
+}
+
+.ht_clone_top_right_corner {
+  z-index: 170;
+}
+
+.ht_clone_top_left_corner {
+  z-index: 180;
 }
 
 .handsontable td.htSearchResult {

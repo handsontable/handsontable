@@ -54,7 +54,7 @@ class MasterTable extends Table {
       holderStyle.width = `${width}px`;
 
       holderStyle.overflow = '';
-      this.hasTableHeight = height > 0;
+      this.hasTableHeight = holderStyle.height === 'auto' ? true : height > 0;
       this.hasTableWidth = width > 0;
     }
 

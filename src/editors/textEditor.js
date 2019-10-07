@@ -10,14 +10,20 @@ import {
   setCaretPosition,
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
-  selectElementIfAllowed
+  selectElementIfAllowed,
+  hasClass,
+  removeClass
 } from './../helpers/dom/element';
+import { rangeEach } from './../helpers/number';
 import autoResize from './../../lib/autoResize/autoResize';
 import { isMobileBrowser, isIE, isEdge } from './../helpers/browser';
 import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
 import { KEY_CODES } from './../helpers/unicode';
 import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
+
+const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
+const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
 
 /**
  * @private
@@ -73,6 +79,13 @@ class TextEditor extends BaseEditor {
      * @type {CSSStyleDeclaration}
      */
     this.textareaParentStyle = void 0;
+    /**
+     * z-index class style for the editor.
+     *
+     * @private
+     * @type {string}
+     */
+    this.layerClass = void 0;
 
     this.createElements();
     this.bindEvents();
@@ -215,8 +228,13 @@ class TextEditor extends BaseEditor {
     this.TEXTAREA_PARENT = rootDocument.createElement('DIV');
     addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
+    if (hasClass(this.TEXTAREA_PARENT, this.layerClass)) {
+      removeClass(this.TEXTAREA_PARENT, this.layerClass);
+    }
+
+    addClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME);
+
     this.textareaParentStyle = this.TEXTAREA_PARENT.style;
-    this.textareaParentStyle.zIndex = '-1';
 
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
 
@@ -236,7 +254,12 @@ class TextEditor extends BaseEditor {
 
     this.textareaParentStyle.opacity = '0';
     this.textareaParentStyle.height = '1px';
-    this.textareaParentStyle.zIndex = '-1';
+
+    if (hasClass(this.TEXTAREA_PARENT, this.layerClass)) {
+      removeClass(this.TEXTAREA_PARENT, this.layerClass);
+    }
+
+    addClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME);
   }
 
   /**
@@ -249,12 +272,38 @@ class TextEditor extends BaseEditor {
     this.textareaParentStyle.overflow = '';
     this.textareaParentStyle.position = '';
     this.textareaParentStyle.right = 'auto';
-    const zIndex = this.getEditedCellsZIndex();
-    this.textareaParentStyle.zIndex = zIndex !== 'auto' ? zIndex : '';
     this.textareaParentStyle.opacity = '1';
 
     this.textareaStyle.textIndent = '';
     this.textareaStyle.overflowY = 'hidden';
+
+    const childNodes = this.TEXTAREA_PARENT.childNodes;
+    let hasClassHandsontableEditor = false;
+
+    rangeEach(childNodes.length - 1, (index) => {
+      const childNode = childNodes[index];
+
+      if (hasClass(childNode, 'handsontableEditor')) {
+        hasClassHandsontableEditor = true;
+
+        return false;
+      }
+    });
+
+    if (hasClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME)) {
+      removeClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME);
+    }
+
+    if (hasClassHandsontableEditor) {
+      this.layerClass = EDITOR_VISIBLE_CLASS_NAME;
+
+      addClass(this.TEXTAREA_PARENT, this.layerClass);
+
+    } else {
+      this.layerClass = this.getEditedCellsLayerClass();
+
+      addClass(this.TEXTAREA_PARENT, this.layerClass);
+    }
   }
 
   /**
