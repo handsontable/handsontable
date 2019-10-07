@@ -255,7 +255,7 @@ describe('NestedRows', () => {
       expect(getDataAtCell(1, 1)).toEqual('Florence & The Machine');
       expect(getDataAtCell(5, 0)).toEqual('Best Metal Performance');
       expect(getDataAtCell(6, 1)).toEqual('Alabama Shakes');
-      expect(getSelected()).toEqual([6, 0, 6, 3]);
+      expect(getSelectedLast()).toEqual([6, 0, 6, 3]);
     });
 
     it('should move single row between parents properly (moving from the bottom to the top)', () => {
@@ -283,7 +283,7 @@ describe('NestedRows', () => {
       expect(getDataAtCell(1, 1)).toEqual('Ghost');
       expect(getDataAtCell(7, 0)).toEqual('Best Metal Performance');
       expect(getDataAtCell(8, 1)).toEqual('August Burns Red');
-      expect(getSelected()).toEqual([1, 0, 1, 3]);
+      expect(getSelectedLast()).toEqual([1, 0, 1, 3]);
     });
   });
 

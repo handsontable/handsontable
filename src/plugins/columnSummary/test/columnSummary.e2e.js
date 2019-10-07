@@ -633,7 +633,7 @@ describe('ColumnSummarySpec', () => {
       expect(this.$container.find('.columnSummaryResult').size()).toEqual(3);
       expect(this.$container.find('.htDimmed').size()).toEqual(3);
 
-      hot.getPlugin('manualRowMove').moveRow(2, 7);
+      hot.getPlugin('manualRowMove').dragRow(2, 6);
 
       expect(hot.getDataAtCell(0, 1)).toEqual(70);
       expect(hot.getDataAtCell(3, 1)).toEqual(4032);
