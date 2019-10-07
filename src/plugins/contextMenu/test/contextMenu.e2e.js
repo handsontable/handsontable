@@ -492,7 +492,7 @@ describe('ContextMenu', () => {
 
         const action = $('.htContextMenu .ht_master .htCore tbody').find('td').not('.htSeparator').eq(0);
 
-        action.simulate('mousedown');
+        action.simulate('mousedown').simulate('mouseup');
 
         expect(getData().length).toEqual(4);
       };
@@ -1024,7 +1024,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(0)
-        .simulate('mousedown'); // Insert row above
+        .simulate('mousedown')
+        .simulate('mouseup'); // Insert row above
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.rowAbove', void 0, void 0, void 0);
       expect(countRows()).toEqual(5);
@@ -1055,7 +1056,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(0)
-        .simulate('mousedown'); // Insert row above
+        .simulate('mousedown')
+        .simulate('mouseup'); // Insert row above
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.rowAbove', void 0, void 0, void 0);
       expect(countRows()).toEqual(1);
@@ -1137,7 +1139,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(0)
-        .simulate('mousedown'); // Insert row above
+        .simulate('mousedown')
+        .simulate('mouseup'); // Insert row above
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.rowAbove', void 0, void 0, void 0);
       expect(countRows()).toEqual(5);
@@ -1163,7 +1166,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(1)
-        .simulate('mousedown'); // Insert row above
+        .simulate('mousedown')
+        .simulate('mouseup'); // Insert row above
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.rowBelow', void 0, void 0, void 0);
       expect(countRows()).toEqual(5);
@@ -1194,7 +1198,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(1)
-        .simulate('mousedown'); // Insert row below
+        .simulate('mousedown')
+        .simulate('mouseup'); // Insert row below
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.rowBelow', void 0, void 0, void 0);
       expect(countRows()).toEqual(1);
@@ -1220,7 +1225,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(1)
-        .simulate('mousedown'); // Insert row below
+        .simulate('mousedown')
+        .simulate('mouseup'); // Insert row below
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.rowBelow', void 0, void 0, void 0);
       expect(countRows()).toEqual(5);
@@ -1247,7 +1253,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(2)
-        .simulate('mousedown'); // Insert col left
+        .simulate('mousedown')
+        .simulate('mouseup'); // Insert col left
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', void 0, void 0, void 0);
       expect(countCols()).toEqual(5);
@@ -1278,7 +1285,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(3)
-        .simulate('mousedown'); // Insert column left
+        .simulate('mousedown')
+        .simulate('mouseup'); // Insert column left
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight', void 0, void 0, void 0);
       expect(countCols()).toEqual(1);
@@ -1304,7 +1312,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(2)
-        .simulate('mousedown'); // Insert col left
+        .simulate('mousedown')
+        .simulate('mouseup'); // Insert col left
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', void 0, void 0, void 0);
       expect(countCols()).toEqual(5);
@@ -1330,7 +1339,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(2)
-        .simulate('mousedown'); // Insert col right
+        .simulate('mousedown')
+        .simulate('mouseup'); // Insert col right
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', void 0, void 0, void 0);
       expect(countCols()).toEqual(5);
@@ -1361,7 +1371,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(3)
-        .simulate('mousedown'); // Insert column right
+        .simulate('mousedown')
+        .simulate('mouseup'); // Insert column right
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight', void 0, void 0, void 0);
       expect(countCols()).toEqual(1);
@@ -1387,7 +1398,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(3)
-        .simulate('mousedown'); // Insert col right
+        .simulate('mousedown')
+        .simulate('mouseup'); // Insert col right
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.columnRight', void 0, void 0, void 0);
       expect(countCols()).toEqual(5);
@@ -1413,7 +1425,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(4)
-        .simulate('mousedown'); // Remove row
+        .simulate('mousedown')
+        .simulate('mouseup'); // Remove row
 
       expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeRow', void 0, void 0);
       expect(countRows()).toEqual(1);
@@ -1440,7 +1453,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(4)
-        .simulate('mousedown'); // Remove row
+        .simulate('mousedown')
+        .simulate('mouseup'); // Remove row
 
       expect(afterRemoveRowCallback).toHaveBeenCalledWith(0, 1, [0], 'ContextMenu.removeRow', void 0, void 0);
       expect(countRows()).toBe(0);
@@ -1466,7 +1480,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(4)
-        .simulate('mousedown'); // Remove row
+        .simulate('mousedown')
+        .simulate('mouseup'); // Remove row
 
       expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeRow', void 0, void 0);
       expect(countRows()).toBe(1);
@@ -1492,7 +1507,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(5)
-        .simulate('mousedown'); // Remove col
+        .simulate('mousedown')
+        .simulate('mouseup'); // Remove col
 
       expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeColumn', void 0, void 0);
       expect(countCols()).toBe(1);
@@ -1519,7 +1535,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(5)
-        .simulate('mousedown'); // Remove column
+        .simulate('mousedown')
+        .simulate('mouseup'); // Remove column
 
       expect(afterRemoveColCallback).toHaveBeenCalledWith(0, 1, [0], 'ContextMenu.removeColumn', void 0, void 0);
       expect(countCols()).toBe(0);
@@ -1547,7 +1564,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(5)
-        .simulate('mousedown'); // Remove col
+        .simulate('mousedown')
+        .simulate('mouseup'); // Remove col
 
       expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeColumn', void 0, void 0);
       expect(countCols()).toEqual(1);
@@ -1574,7 +1592,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(6)
-        .simulate('mousedown'); // Undo
+        .simulate('mousedown')
+        .simulate('mouseup'); // Undo
 
       expect(getDataAtCell(0, 0)).toEqual('A1');
     });
@@ -1604,7 +1623,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(7)
-        .simulate('mousedown'); // Redo
+        .simulate('mousedown')
+        .simulate('mouseup'); // Redo
 
       expect(getDataAtCell(0, 0)).toEqual('XX');
     });
@@ -1638,7 +1658,7 @@ describe('ContextMenu', () => {
 
       const menu = $('.htContextMenu .ht_master .htCore tbody');
 
-      menu.find('td').not('.htSeparator').eq(8).simulate('mousedown'); // Make read-only
+      menu.find('td').not('.htSeparator').eq(8).simulate('mousedown').simulate('mouseup'); // Make read-only
 
       expect(getCellMeta(0, 0).readOnly).toBe(true);
     });
@@ -1661,7 +1681,7 @@ describe('ContextMenu', () => {
 
       const menu = $('.htContextMenu .ht_master .htCore tbody');
 
-      menu.find('td').not('.htSeparator').eq(8).simulate('mousedown');
+      menu.find('td').not('.htSeparator').eq(8).simulate('mousedown').simulate('mouseup');
 
       expect(getCellMeta(0, 0).readOnly).toBe(false);
     });
@@ -1685,7 +1705,8 @@ describe('ContextMenu', () => {
         .find('td')
         .not('.htSeparator')
         .eq(8)
-        .simulate('mousedown');
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       expect(hot.getCellMeta(0, 0).readOnly).toEqual(true);
       expect(hot.getCellMeta(0, 1).readOnly).toEqual(true);
@@ -1713,7 +1734,8 @@ describe('ContextMenu', () => {
         .find('td')
         .not('.htSeparator')
         .eq(8)
-        .simulate('mousedown');
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
       expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
@@ -1735,7 +1757,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(2)
-        .simulate('mousedown'); // Alignment
+        .simulate('mousedown')
+        .simulate('mouseup'); // Alignment
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
@@ -1757,7 +1780,7 @@ describe('ContextMenu', () => {
 
       const menu = $('.htContextMenu .ht_master .htCore tbody');
 
-      menu.find('td').not('.htSeparator').eq(8).simulate('mousedown'); // Make read-only
+      menu.find('td').not('.htSeparator').eq(8).simulate('mousedown').simulate('mouseup'); // Make read-only
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
       expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
@@ -1786,7 +1809,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(8)
-        .simulate('mousedown'); // Make writable
+        .simulate('mousedown')
+        .simulate('mouseup'); // Make writable
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
       expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
@@ -1815,7 +1839,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(8)
-        .simulate('mousedown'); // Make writable
+        .simulate('mousedown')
+        .simulate('mouseup'); // Make writable
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
       expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
@@ -1839,7 +1864,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(0)
-        .simulate('mousedown'); // Undo
+        .simulate('mousedown')
+        .simulate('mouseup'); // Undo
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
@@ -2055,13 +2081,13 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').length).toEqual(2);
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').text()).toEqual(['CustomItem1', 'CustomItem2'].join(''));
 
-      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
+      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
       expect(callback1.calls.count()).toEqual(1);
       expect(callback2.calls.count()).toEqual(0);
 
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown');
+      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown').simulate('mouseup');
 
       expect(callback1.calls.count()).toEqual(1);
       expect(callback2.calls.count()).toEqual(1);
@@ -2089,15 +2115,13 @@ describe('ContextMenu', () => {
 
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').text()).toEqual('Enable my custom option');
 
-      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
+      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
       enabled = true;
 
       contextMenu();
 
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').text()).toEqual('Disable my custom option');
-
-      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
     });
 
     it('should bind HOT instace to menu\'s `name` function', () => {
@@ -2143,12 +2167,12 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
+      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
       expect(callback.calls.count()).toEqual(1);
 
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown');
+      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown').simulate('mouseup');
 
       expect(callback.calls.count()).toEqual(2);
     });
@@ -2175,14 +2199,14 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').length).toEqual(2);
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').text()).toEqual(['Remove row', 'Delete column'].join(''));
 
-      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
+      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
       expect(callback.calls.count()).toEqual(1);
 
       expect(countCols()).toEqual(5);
 
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown');
+      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown').simulate('mouseup');
 
       expect(countCols()).toEqual(4);
     });
@@ -2206,7 +2230,7 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
+      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
       expect(customItem.callback.calls.count()).toEqual(1);
       expect(customItem.callback.calls.argsFor(0)[0]).toEqual('customItemKey');
@@ -2952,7 +2976,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(0)
-        .simulate('mousedown');
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       const scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
 
@@ -3159,7 +3184,7 @@ describe('ContextMenu', () => {
       expect(hot1.countRows()).toEqual(5);
       expect(hot2.countRows()).toEqual(5);
 
-      $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').simulate('mousedown'); // insert row above
+      $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').simulate('mousedown').simulate('mouseup'); // insert row above
 
       expect(hot1.countRows()).toEqual(6);
       expect(hot2.countRows()).toEqual(5);
@@ -3170,7 +3195,7 @@ describe('ContextMenu', () => {
       expect(hot1.countRows()).toEqual(6);
       expect(hot2.countRows()).toEqual(5);
 
-      $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').simulate('mousedown'); // insert row above
+      $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').simulate('mousedown').simulate('mouseup'); // insert row above
 
       expect(hot1.countRows()).toEqual(6);
       expect(hot2.countRows()).toEqual(6);

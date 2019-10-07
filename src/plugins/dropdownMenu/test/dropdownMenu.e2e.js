@@ -306,7 +306,7 @@ describe('DropdownMenu', () => {
       dropdownMenu(2);
 
       // Insert col left
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown');
+      $('.htDropdownMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(2, 1, 'ContextMenu.columnLeft', undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
@@ -328,7 +328,7 @@ describe('DropdownMenu', () => {
       dropdownMenu(2);
 
       // Insert col right
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1).simulate('mousedown');
+      $('.htDropdownMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1).simulate('mousedown').simulate('mouseup');
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(3, 1, 'ContextMenu.columnRight', undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
@@ -347,7 +347,7 @@ describe('DropdownMenu', () => {
       dropdownMenu(1);
 
       // Clear column
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2).simulate('mousedown');
+      $('.htDropdownMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2).simulate('mousedown').simulate('mouseup');
 
       expect(countCols()).toEqual(3);
     });
@@ -363,7 +363,7 @@ describe('DropdownMenu', () => {
       dropdownMenu(1);
 
       // Clear column
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3).simulate('mousedown');
+      $('.htDropdownMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getDataAtCell(0, 0)).toBe('A1');
       expect(hot.getDataAtCell(1, 2)).toBe('C2');
@@ -416,13 +416,13 @@ describe('DropdownMenu', () => {
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').length).toEqual(2);
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').text()).toEqual(['CustomItem1', 'CustomItem2'].join(''));
 
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
+      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
       expect(callback1.calls.count()).toEqual(1);
       expect(callback2.calls.count()).toEqual(0);
 
       dropdownMenu();
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown');
+      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown').simulate('mouseup');
 
       expect(callback1.calls.count()).toEqual(1);
       expect(callback2.calls.count()).toEqual(1);
@@ -455,14 +455,14 @@ describe('DropdownMenu', () => {
 
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').text()).toEqual('Enable my custom option');
 
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
+      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
       enabled = true;
       dropdownMenu();
 
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').text()).toEqual('Disable my custom option');
 
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
+      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
     });
 
     it('should enable to define item options globally', () => {
@@ -486,12 +486,12 @@ describe('DropdownMenu', () => {
 
       dropdownMenu();
 
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
+      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
       expect(callback.calls.count()).toEqual(1);
 
       dropdownMenu();
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown');
+      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(1)').simulate('mousedown').simulate('mouseup');
 
       expect(callback.calls.count()).toEqual(2);
     });
@@ -519,7 +519,7 @@ describe('DropdownMenu', () => {
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').length).toEqual(2);
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').text()).toEqual(['Remove column', 'CLEAR'].join(''));
 
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
+      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
       expect(callback.calls.count()).toEqual(1);
     });
@@ -544,7 +544,7 @@ describe('DropdownMenu', () => {
 
       dropdownMenu();
 
-      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
+      $('.htDropdownMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
       expect(customItem.callback.calls.count()).toEqual(1);
       expect(customItem.callback.calls.argsFor(0)[0]).toEqual('customItemKey');
@@ -618,7 +618,7 @@ describe('DropdownMenu', () => {
       expect(options.items).toBeDefined();
       expect($menu.find('tbody td').text()).toContain('My custom item');
 
-      $menu.find('tbody td:eq(0)').simulate('mousedown');
+      $menu.find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
       Handsontable.hooks.remove('afterDropdownMenuDefaultOptions', afterDropdownMenuDefaultOptions);
     });

@@ -154,7 +154,7 @@ describe('manualColumnFreeze', () => {
       });
 
       expect(freezeEntry.size()).toEqual(1);
-      freezeEntry.eq(0).simulate('mousedown');
+      freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
       expect(hot.getDataAtCell(1, 1)).toEqual(dataAtCell);
@@ -185,7 +185,7 @@ describe('manualColumnFreeze', () => {
         return $(this).text() === 'Unfreeze column';
 
       });
-      freezeEntry.eq(0).simulate('mousedown');
+      freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
       dataAtCell = hot.getDataAtCell(1, 0);
@@ -204,7 +204,7 @@ describe('manualColumnFreeze', () => {
         }
         return false;
       });
-      freezeEntry.eq(0).simulate('mousedown');
+      freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
       dataAtCell = hot.getDataAtCell(1, 0);
@@ -233,7 +233,7 @@ describe('manualColumnFreeze', () => {
         return $(this).text() === 'Freeze column';
       });
 
-      freezeEntry.eq(0).simulate('mousedown');
+      freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
       dataAtCell = hot.getDataAtCell(1, 0);
@@ -245,7 +245,7 @@ describe('manualColumnFreeze', () => {
         return $(this).text() === 'Unfreeze column';
       });
 
-      freezeEntry.eq(0).simulate('mousedown');
+      freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
       dataAtCell = hot.getDataAtCell(1, 2);

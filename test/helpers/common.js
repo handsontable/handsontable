@@ -227,8 +227,6 @@ export function contextMenu(cell) {
     clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hotInstance.rootWindow),
     clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hotInstance.rootWindow),
   });
-  // Chrome doesn't call `mouseup`.
-  // $(cell).simulate('mouseup', { button: 2 });
 }
 
 export async function selectContextSubmenuOption(submenuName, optionName) {
@@ -238,7 +236,7 @@ export async function selectContextSubmenuOption(submenuName, optionName) {
   await sleep(300);
   const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
   const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
-  button.simulate('mousedown');
+  button.simulate('mousedown').simulate('mouseup');
   closeContextMenu();
 }
 

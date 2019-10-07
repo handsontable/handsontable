@@ -32,7 +32,7 @@ describe('ContextMenuReadOnly', () => {
       return $(this).text() === 'Read only';
     })[0];
 
-    $(changeToReadOnlyButton).simulate('mousedown');
+    $(changeToReadOnlyButton).simulate('mousedown').simulate('mouseup');
     expect(afterSetCellMetaCallback).toHaveBeenCalledWith(2, 3, 'readOnly', true, undefined, undefined);
   });
 });

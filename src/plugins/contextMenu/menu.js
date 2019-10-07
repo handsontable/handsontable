@@ -17,7 +17,7 @@ import { filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, is
 import { KEY_CODES } from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
 import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
-import { stopImmediatePropagation, stopPropagation } from './../../helpers/dom/event';
+import { stopImmediatePropagation } from './../../helpers/dom/event';
 
 const MIN_WIDTH = 215;
 
@@ -66,7 +66,7 @@ class Menu {
     let frame = this.hot.rootWindow;
 
     while (frame) {
-      this.eventManager.addEventListener(frame.document.documentElement, 'mousedown', event => this.onDocumentMouseDown(event));
+      this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
       frame = frame.frameElement && frame.frameElement.ownerDocument.defaultView;
     }
   }
@@ -153,7 +153,7 @@ class Menu {
         renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value)
       }],
       renderAllRows: true,
-      fragmentSelection: 'cell',
+      fragmentSelection: false,
       disableVisualSelection: 'area',
       beforeKeyDown: event => this.onBeforeKeyDown(event),
       afterOnCellMouseOver: (event, coords) => {
@@ -166,9 +166,7 @@ class Menu {
       rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
-        stopPropagation(event);
-
-        this.executeCommand(event);
+        this.hotMenu.runHooks('afterOnCellMouseUp', event);
       },
       afterOnCellMouseUp: (event) => {
         this.executeCommand(event);

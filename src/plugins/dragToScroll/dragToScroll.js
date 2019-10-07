@@ -1,6 +1,7 @@
 import BasePlugin from './../_base';
 import EventManager from './../../eventManager';
 import { registerPlugin } from './../../plugins';
+import { isRightClick } from '../../helpers/dom/event';
 
 /**
  * @description
@@ -61,8 +62,8 @@ class DragToScroll extends BasePlugin {
       return;
     }
 
-    this.addHook('afterOnCellMouseDown', () => this.setupListening());
-    this.addHook('afterOnCellCornerMouseDown', () => this.setupListening());
+    this.addHook('afterOnCellMouseDown', event => this.setupListening(event));
+    this.addHook('afterOnCellCornerMouseDown', event => this.setupListening(event));
 
     this.registerEvents();
 
@@ -198,8 +199,13 @@ class DragToScroll extends BasePlugin {
    * On after on cell/cellCorner mouse down listener.
    *
    * @private
+   * @param {MouseEvent} event
    */
-  setupListening() {
+  setupListening(event) {
+    if (isRightClick(event)) {
+      return;
+    }
+
     const scrollHandler = this.hot.view.wt.wtTable.holder; // native scroll
 
     if (scrollHandler === this.hot.rootWindow) {
