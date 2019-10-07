@@ -76,10 +76,11 @@ declare namespace _Handsontable {
     hasColHeaders(): boolean;
     hasHook(key: keyof Handsontable.Hooks.Events): boolean;
     hasRowHeaders(): boolean;
-    isColumnModificationAllowed(): boolean;
+    init(): () => void;
     isEmptyCol(col: number): boolean;
     isEmptyRow(row: number): boolean;
     isListening(): boolean;
+    isColumnModificationAllowed(): boolean;
     listen(): void;
     loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[]): void;
     populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
@@ -117,6 +118,7 @@ declare namespace _Handsontable {
     toTableElement(): HTMLTableElement;
     unlisten(): void;
     updateSettings(settings: Handsontable.GridSettings, init?: boolean): void;
+    validateCell(value: any, cellProperties: Handsontable.CellProperties, callback: (valid: boolean) => void, source: string): void;
     validateCells(callback?: (valid: boolean) => void): void;
     validateColumns(columns: number[], callback?: (valid: boolean) => void): void;
     validateRows(rows: number[], callback?: (valid: boolean) => void): void;
