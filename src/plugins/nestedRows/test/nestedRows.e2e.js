@@ -1,3 +1,5 @@
+import {getSimplerNestedData} from './helpers/fixtures';
+
 describe('NestedRows', () => {
   const id = 'testContainer';
   const dataInOrder = [
@@ -285,6 +287,54 @@ describe('NestedRows', () => {
       expect(getDataAtCell(8, 1)).toEqual('August Burns Red');
       expect(getSelectedLast()).toEqual([1, 0, 1, 3]);
     });
+  });
+
+  it('should add blabla', () => {
+    handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true,
+      contextMenu: true
+    });
+
+    expect(countRows()).toEqual(18);
+
+    selectCell(0, 0);
+    contextMenu();
+
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown'); // Insert child row.
+
+    expect(countRows()).toEqual(19);
+    expect(getDataAtCell(0, 0)).toEqual('Best Rock Performance');
+    expect(getDataAtCell(1, 1)).toEqual('Alabama Shakes');
+    expect(getDataAtCell(2, 1)).toEqual('Florence & The Machine');
+    expect(getDataAtCell(6, 1)).toEqual(null);
+    expect(getPlugin('nestedRows').dataManager.isParent(0)).toBeTruthy();
+    expect(getPlugin('nestedRows').dataManager.isParent(1)).toBeFalsy();
+    expect(getPlugin('nestedRows').dataManager.isParent(2)).toBeFalsy();
+
+    // Added child.
+    // expect(getPlugin('nestedRows').dataManager.isParent(6)).toBeFalsy();  // TODO: Bug? Element has null under the `__children` key.
+
+    selectCell(1, 0);
+    contextMenu();
+
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown'); // Insert child row.
+
+    expect(countRows()).toEqual(20);
+    expect(getDataAtCell(0, 0)).toEqual('Best Rock Performance');
+    expect(getDataAtCell(1, 1)).toEqual('Alabama Shakes');
+    expect(getDataAtCell(2, 1)).toEqual(null);
+    expect(getDataAtCell(3, 1)).toEqual('Florence & The Machine');
+    expect(getDataAtCell(7, 1)).toEqual(null); // Previously added child.
+    expect(getPlugin('nestedRows').dataManager.isParent(0)).toBeTruthy();
+    expect(getPlugin('nestedRows').dataManager.isParent(1)).toBeTruthy();
+    expect(getPlugin('nestedRows').dataManager.isParent(3)).toBeFalsy();
+
+    // Added child.
+    // expect(getPlugin('nestedRows').dataManager.isParent(2)).toBeFalsy();  // TODO: Bug? Element has null under the `__children` key.
+
+    // Previously added child.
+    // expect(getPlugin('nestedRows').dataManager.isParent(7)).toBeTruthy();  // TODO: Bug? Element has null under the `__children` key.
   });
 
   it('should warn user that `moveRow` and `moveRows` methods can\'t be used and they don\'t move data', () => {
