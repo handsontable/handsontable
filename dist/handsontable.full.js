@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.1.1
- * Release date: 12/08/2019 (built at 07/10/2019 10:24:47)
+ * Release date: 12/08/2019 (built at 07/10/2019 17:12:53)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -59931,7 +59931,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "07/10/2019 10:24:47";
+Handsontable.buildDate = "07/10/2019 17:12:53";
 Handsontable.version = "7.1.1"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -94158,7 +94158,7 @@ function () {
       var visualEndpointRowIndex = this.getVisualRowIndex(endpoint.destinationRow);
       var cellMeta = this.hot.getCellMeta(this.getVisualRowIndex(endpoint.destinationRow + reverseRowOffset), endpoint.destinationColumn + reverseColOffset);
 
-      if (visualEndpointRowIndex > this.hot.countRows() || endpoint.destinationColumn > this.hot.countCols()) {
+      if (endpoint.destinationRow >= this.hot.countRows() || endpoint.destinationColumn >= this.hot.countCols()) {
         this.throwOutOfBoundsWarning();
         return;
       }
@@ -94192,7 +94192,7 @@ function () {
   }, {
     key: "getVisualRowIndex",
     value: function getVisualRowIndex(row) {
-      return this.hot.toVisualRow(row, 'columnSummary');
+      return this.hot.toVisualRow(row);
     }
     /**
      * Get the visual column index for the provided column. Uses the `umodifyColumn` hook.
@@ -94205,7 +94205,7 @@ function () {
   }, {
     key: "getVisualColumnIndex",
     value: function getVisualColumnIndex(column) {
-      return this.hot.toVisualColumn(column, 'columnSummary');
+      return this.hot.toVisualColumn(column);
     }
     /**
      * Throw an error for the calculation range being out of boundaries.
@@ -94216,7 +94216,7 @@ function () {
   }, {
     key: "throwOutOfBoundsWarning",
     value: function throwOutOfBoundsWarning() {
-      (0, _console.warn)('One of the  Column Summary plugins\' destination points you provided is beyond the table boundaries!');
+      (0, _console.warn)('One of the Column Summary plugins\' destination points you provided is beyond the table boundaries!');
     }
   }]);
   return Endpoints;
@@ -96235,7 +96235,7 @@ var _translations = __webpack_require__(50);
 __webpack_require__(641);
 
 function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["The filter conditions have been applied properly, but couldn\u2019t be displayed visually.\n        The overall amount of conditions exceed the capability of the dropdown menu.\n        For more details see the documentation."]);
+  var data = (0, _taggedTemplateLiteral2.default)(["The filter conditions have been applied properly, but couldn\u2019t be displayed visually. \n        The overall amount of conditions exceed the capability of the dropdown menu. \n        For more details see the documentation."]);
 
   _templateObject = function _templateObject() {
     return data;
@@ -108386,8 +108386,6 @@ function (_BaseUI) {
       var _this12 = this;
 
       this.hot.executeBatchOperations(function () {
-        _this12.plugin.collapsedRowsMap.clear();
-
         (0, _array.arrayEach)(rows, function (physicalRow) {
           _this12.plugin.collapsedRowsMap.setValueAtIndex(physicalRow, true);
         });
