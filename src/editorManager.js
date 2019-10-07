@@ -144,15 +144,18 @@ class EditorManager {
     this.cellProperties = this.instance.getCellMeta(row, col);
 
     if (this.cellProperties.readOnly) {
+      this.activeEditor = void 0;
+
       return;
     }
 
-    const prop = this.instance.colToProp(col);
-    const originalValue = this.instance.getSourceDataAtCell(this.instance.runHooks('modifyRow', row), col);
     const editorClass = this.instance.getCellEditor(this.cellProperties);
     const td = this.instance.getCell(row, col, true);
 
     if (editorClass && td) {
+      const prop = this.instance.colToProp(col);
+      const originalValue = this.instance.getSourceDataAtCell(this.instance.runHooks('modifyRow', row), col);
+
       this.activeEditor = getEditorInstance(editorClass, this.instance);
       this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
 
