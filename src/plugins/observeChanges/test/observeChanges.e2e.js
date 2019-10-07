@@ -447,7 +447,7 @@ describe('HandsontableObserveChanges', () => {
         }, 200);
       });
 
-      it('should fire afterChange event after detecting that table data has changed', (done) => {
+      it('should fire afterChange event after detecting that table data has changed', async() => {
         const data = Handsontable.helper.createSpreadsheetData(2, 2);
         const hot = createHOT(data, true);
 
@@ -456,11 +456,10 @@ describe('HandsontableObserveChanges', () => {
 
         data[0][0] = 'new string';
 
-        setTimeout(() => {
-          expect(afterChangeCallback.calls.count()).toEqual(1);
-          expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, null, 'new string']], 'ObserveChanges.change', undefined, undefined, undefined, undefined);
-          done();
-        }, 200);
+        await sleep(300);
+
+        expect(afterChangeCallback.calls.count()).toEqual(1);
+        expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, null, 'new string']], 'ObserveChanges.change', undefined, undefined, undefined, undefined);
       });
     });
     describe('object data', () => {
@@ -533,7 +532,7 @@ describe('HandsontableObserveChanges', () => {
         }, 200);
       });
 
-      it('should fire afterChange event after detecting that table data has changed', (done) => {
+      it('should fire afterChange event after detecting that table data has changed', async() => {
         const data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
         const hot = createHOT(data, true);
 
@@ -542,11 +541,10 @@ describe('HandsontableObserveChanges', () => {
 
         data[0].prop0 = 'new string';
 
-        setTimeout(() => {
-          expect(afterChangeCallback.calls.count()).toEqual(1);
-          expect(afterChangeCallback).toHaveBeenCalledWith([[0, 'prop0', null, 'new string']], 'ObserveChanges.change', undefined, undefined, undefined, undefined);
-          done();
-        }, 200);
+        await sleep(300);
+
+        expect(afterChangeCallback.calls.count()).toEqual(1);
+        expect(afterChangeCallback).toHaveBeenCalledWith([[0, 'prop0', null, 'new string']], 'ObserveChanges.change', undefined, undefined, undefined, undefined);
       });
     });
   });

@@ -367,24 +367,32 @@ class BaseEditor {
   }
 
   /**
-   * Gets HTMLTableCellElement of the edited cell if exist.
+   * Gets className of the edited cell if exist.
    *
    * @returns {string}
    */
-  getEditedCellsZIndex() {
+  getEditedCellsLayerClass() {
     const editorSection = this.checkEditorSection();
 
     switch (editorSection) {
-      case 'top':
-        return '101';
-      case 'top-left-corner':
-      case 'bottom-left-corner':
-        return '103';
+      case 'right':
+        return 'ht_clone_right';
       case 'left':
+        return 'ht_clone_left';
       case 'bottom':
-        return '102';
+        return 'ht_clone_bottom';
+      case 'bottom-right-corner':
+        return 'ht_clone_bottom_right_corner';
+      case 'bottom-left-corner':
+        return 'ht_clone_bottom_left_corner';
+      case 'top':
+        return 'ht_clone_top';
+      case 'top-right-corner':
+        return 'ht_clone_top_right_corner';
+      case 'top-left-corner':
+        return 'ht_clone_top_left_corner';
       default:
-        return 'auto';
+        return 'ht_clone_master';
     }
   }
 

@@ -11,8 +11,7 @@
 
 .htFiltersConditionsMenu .ht_clone_top,
 .htFiltersConditionsMenu .ht_clone_left,
-.htFiltersConditionsMenu .ht_clone_corner,
-.htFiltersConditionsMenu .ht_clone_debug {
+.htFiltersConditionsMenu .ht_clone_corner {
   display: none;
 }
 

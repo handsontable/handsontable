@@ -44,9 +44,15 @@ function UndoRedo(instance) {
       return;
     }
 
-    const selected = changesLen > 1 ? this.getSelected() : [[changes[0][0], changes[0][1]]];
+    const clonedChanges = changes.reduce((arr, change) => { arr.push([...change]); return arr; }, []);
 
-    plugin.done(new UndoRedo.ChangeAction(changes, selected));
+    arrayEach(clonedChanges, (change) => {
+      change[1] = instance.propToCol(change[1]);
+    });
+
+    const selected = changesLen > 1 ? this.getSelected() : [[clonedChanges[0][0], clonedChanges[0][1]]];
+
+    plugin.done(new UndoRedo.ChangeAction(clonedChanges, selected));
   });
 
   instance.addHook('afterCreateRow', (index, amount, source) => {
@@ -281,7 +287,7 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
 
   instance.addHookOnce('afterChange', undoneCallback);
 
-  instance.setDataAtRowProp(data, null, null, 'UndoRedo.undo');
+  instance.setDataAtCell(data, null, null, 'UndoRedo.undo');
 
   for (let i = 0, len = data.length; i < len; i++) {
     const [row, column] = data[i];
@@ -311,7 +317,7 @@ UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
   }
 
   instance.addHookOnce('afterChange', onFinishCallback);
-  instance.setDataAtRowProp(data, null, null, 'UndoRedo.redo');
+  instance.setDataAtCell(data, null, null, 'UndoRedo.redo');
 
   if (this.selected) {
     instance.selectCells(this.selected, false, false);
