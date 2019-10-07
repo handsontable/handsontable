@@ -171,8 +171,13 @@ UndoRedo.prototype.undo = function() {
   if (this.isUndoAvailable()) {
     const action = this.doneActions.pop();
     const actionClone = deepClone(action);
+    
+    // deepClone doesn't clone a function, e.g: column data bag can be a string or a function.
+    if (typeof action.changes[0][1] === 'function')
+      actionClone.changes[0][1] = action.changes[0][1];
+    //
+    
     const instance = this.instance;
-
     const continueAction = instance.runHooks('beforeUndo', actionClone);
 
     if (continueAction === false) {
@@ -202,8 +207,13 @@ UndoRedo.prototype.redo = function() {
   if (this.isRedoAvailable()) {
     const action = this.undoneActions.pop();
     const actionClone = deepClone(action);
-    const instance = this.instance;
 
+    // deepClone doesn't clone a function, e.g: column data bag can be a string or a function.
+    if (typeof action.changes[0][1] === 'function')
+      actionClone.changes[0][1] = action.changes[0][1];
+    //
+
+    const instance = this.instance;
     const continueAction = instance.runHooks('beforeRedo', actionClone);
 
     if (continueAction === false) {
@@ -272,6 +282,12 @@ inherit(UndoRedo.ChangeAction, UndoRedo.Action);
 
 UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
   const data = deepClone(this.changes);
+
+  // deepClone doesn't clone a function, e.g: column data bag can be a string or a function.
+  if (typeof this.changes[0][1] === "function")
+    data[0][1] = this.changes[0][1];
+  //
+
   const emptyRowsAtTheEnd = instance.countEmptyRows(true);
   const emptyColsAtTheEnd = instance.countEmptyCols(true);
 
@@ -305,6 +321,11 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
 };
 UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
   const data = deepClone(this.changes);
+
+  // deepClone doesn't clone a function, e.g: column data bag can be a string or a function.
+  if (typeof this.changes[0][1] === "function")
+    data[0][1] = this.changes[0][1];
+  //
 
   for (let i = 0, len = data.length; i < len; i++) {
     data[i].splice(2, 1);
