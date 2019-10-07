@@ -76,10 +76,10 @@ declare namespace _Handsontable {
     hasColHeaders(): boolean;
     hasHook(key: keyof Handsontable.Hooks.Events): boolean;
     hasRowHeaders(): boolean;
+    init(): () => void;
     isEmptyCol(col: number): boolean;
     isEmptyRow(row: number): boolean;
     isListening(): boolean;
-    init(): () => void;
     isColumnModificationAllowed(): boolean;
     listen(): void;
     loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[]): void;
