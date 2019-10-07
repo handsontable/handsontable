@@ -90,7 +90,6 @@
     "babel-plugin-forbidden-imports": "^0.1.2",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-plugin-transform-require-ignore": "^0.1.1",
-    "check-es3-syntax-cli": "^0.2.0",
     "concurrently": "^4.1.1",
     "copy-webpack-plugin": "^4.6.0",
     "cpy-cli": "^2.0.0",
