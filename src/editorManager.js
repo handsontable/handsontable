@@ -144,7 +144,7 @@ class EditorManager {
     this.cellProperties = this.instance.getCellMeta(row, col);
 
     if (this.cellProperties.readOnly) {
-      this.activeEditor = void 0;
+      this.clearActiveEditor();
 
       return;
     }
@@ -160,7 +160,7 @@ class EditorManager {
       this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
 
     } else {
-      this.activeEditor = void 0;
+      this.clearActiveEditor();
     }
   }
 
@@ -219,6 +219,15 @@ class EditorManager {
    */
   closeEditorAndRestoreOriginalValue(isCtrlPressed) {
     return this.closeEditor(true, isCtrlPressed);
+  }
+
+  /**
+   * Deactivate active editor.
+   *
+   * @private
+   */
+  clearActiveEditor() {
+    this.activeEditor = void 0;
   }
 
   /**
