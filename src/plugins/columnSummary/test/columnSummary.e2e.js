@@ -675,4 +675,18 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(0, 4)).toEqual(3);
     });
   });
+
+  it('should warn user that provided destination points are beyond the table boundaries', () => {
+    const warnSpy = spyOn(console, 'warn');
+
+    handsontable({
+      columnSummary: [{
+        destinationRow: 5,
+        destinationColumn: 1,
+        type: 'sum'
+      }]
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith('One of the Column Summary plugins\' destination points you provided is beyond the table boundaries!');
+  });
 });

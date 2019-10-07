@@ -512,8 +512,7 @@ class Endpoints {
 
     const cellMeta = this.hot.getCellMeta(this.getVisualRowIndex(endpoint.destinationRow + reverseRowOffset), endpoint.destinationColumn + reverseColOffset);
 
-    if (visualEndpointRowIndex > this.hot.countRows() ||
-      endpoint.destinationColumn > this.hot.countCols()) {
+    if (endpoint.destinationRow >= this.hot.countRows() || endpoint.destinationColumn >= this.hot.countCols()) {
       this.throwOutOfBoundsWarning();
       return;
     }
@@ -545,7 +544,7 @@ class Endpoints {
    * @returns {Number}
    */
   getVisualRowIndex(row) {
-    return this.hot.toVisualRow(row, 'columnSummary');
+    return this.hot.toVisualRow(row);
   }
 
   /**
@@ -556,7 +555,7 @@ class Endpoints {
    * @returns {Number}
    */
   getVisualColumnIndex(column) {
-    return this.hot.toVisualColumn(column, 'columnSummary');
+    return this.hot.toVisualColumn(column);
   }
 
   /**
@@ -565,7 +564,7 @@ class Endpoints {
    * @private
    */
   throwOutOfBoundsWarning() {
-    warn('One of the  Column Summary plugins\' destination points you provided is beyond the table boundaries!');
+    warn('One of the Column Summary plugins\' destination points you provided is beyond the table boundaries!');
   }
 }
 

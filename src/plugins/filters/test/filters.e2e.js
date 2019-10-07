@@ -171,7 +171,8 @@ describe('Filters', () => {
     plugin.addCondition(0, 'contains', ['o']);
     plugin.filter();
 
-    expect(warnSpy).toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith('The filter conditions have been applied properly, but couldn’t be displayed visually. ' +
+      'The overall amount of conditions exceed the capability of the dropdown menu. For more details see the documentation.');
   });
 
   it('should not warn user by log at console when amount of conditions at specific column not exceed the capability of ' +
