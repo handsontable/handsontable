@@ -347,8 +347,6 @@ class CollapsingUI extends BaseUI {
    */
   trimRows(rows) {
     this.hot.executeBatchOperations(() => {
-      this.plugin.collapsedRowsMap.clear();
-
       arrayEach(rows, (physicalRow) => {
         this.plugin.collapsedRowsMap.setValueAtIndex(physicalRow, true);
       });

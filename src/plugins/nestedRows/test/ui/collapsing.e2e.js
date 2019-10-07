@@ -37,6 +37,44 @@ describe('NestedRows Collapsing UI', () => {
         expect(plugin.rowIndexMapper.isSkipped(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
       });
 
+      it('should keep collapsed rows after collapsing next ones', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true,
+          rowHeaders: true
+        });
+
+        const plugin = getPlugin('nestedRows');
+
+        plugin.collapsingUI.collapseChildren(0);
+
+        expect(plugin.rowIndexMapper.isSkipped(0)).toEqual(false);
+        expect(plugin.rowIndexMapper.isSkipped(1)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(2)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(3)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(4)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(5)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(6)).toEqual(false);
+
+        plugin.collapsingUI.collapseChildren(6);
+
+        expect(plugin.rowIndexMapper.isSkipped(0)).toEqual(false);
+        expect(plugin.rowIndexMapper.isSkipped(1)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(2)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(3)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(4)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(5)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(6)).toEqual(false);
+
+        expect(plugin.rowIndexMapper.isSkipped(6)).toEqual(false);
+        expect(plugin.rowIndexMapper.isSkipped(7)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(8)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(9)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(10)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(11)).toEqual(true);
+        expect(plugin.rowIndexMapper.isSkipped(12)).toEqual(false);
+      });
+
       it('should collapse all children nodes of the row provided as an object', () => {
         handsontable({
           data: getMoreComplexNestedData(),
