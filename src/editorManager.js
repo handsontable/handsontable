@@ -222,7 +222,7 @@ class EditorManager {
   }
 
   /**
-   * Deactivate active editor.
+   * Clears reference to an instance of the active editor.
    *
    * @private
    */
