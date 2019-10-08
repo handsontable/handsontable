@@ -104,8 +104,7 @@ class AutocompleteEditor extends HandsontableEditor {
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth + 2 : void 0,
       renderer: (instance, TD, row, col, prop, value, cellProperties) => {
-
-        getRenderer('base')(instance, TD, row, col, prop, value, cellProperties);
+        getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
 
         const { filteringCaseSensitive, allowHtml } = this.cellProperties;
         const query = this.query;
