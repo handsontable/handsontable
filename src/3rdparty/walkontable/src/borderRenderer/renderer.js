@@ -1,4 +1,4 @@
-import { outerWidth, outerHeight, offset, getComputedStyle } from './../../../../helpers/dom/element';
+import { getComputedStyle } from './../../../../helpers/dom/element';
 import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand } from './svg/pathsRenderer';
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
@@ -109,7 +109,7 @@ export default class BorderRenderer {
    * @param {Array.<Array.<*>>} argArrays
    */
   render(table, argArrays) {
-    this.containerOffset = offset(table);
+    this.containerBoundingRect = table.getBoundingClientRect();
 
     this.maxWidth = 0;
     this.maxHeight = 0;
@@ -222,16 +222,14 @@ export default class BorderRenderer {
     const layerNumber = this.getLayerNumber(selectionSetting);
     const stylesAndLines = this.ensurePathGroup(layerNumber).stylesAndLines;
 
-    const firstTdOffset = offset(firstTd);
-    const lastTdOffset = (firstTd === lastTd) ? firstTdOffset : offset(lastTd);
-    const lastTdWidth = outerWidth(lastTd);
-    const lastTdHeight = outerHeight(lastTd);
+    const firstTdBoundingRect = firstTd.getBoundingClientRect();
+    const lastTdBoundingRect = (firstTd === lastTd) ? firstTdBoundingRect : lastTd.getBoundingClientRect();
     const style = getComputedStyle(firstTd, this.rootWindow);
 
-    let x1 = firstTdOffset.left;
-    let y1 = firstTdOffset.top;
-    let x2 = lastTdOffset.left + lastTdWidth;
-    let y2 = lastTdOffset.top + lastTdHeight;
+    let x1 = firstTdBoundingRect.left;
+    let y1 = firstTdBoundingRect.top;
+    let x2 = lastTdBoundingRect.left + lastTdBoundingRect.width;
+    let y2 = lastTdBoundingRect.top + lastTdBoundingRect.height;
 
     if (parseInt(style.borderLeftWidth, 10) > 0) {
       x1 += 1;
@@ -240,10 +238,10 @@ export default class BorderRenderer {
       y1 += 1;
     }
 
-    x1 += (offsetToOverLapPrecedingBorder - this.containerOffset.left);
-    y1 += (offsetToOverLapPrecedingBorder - this.containerOffset.top);
-    x2 += (offsetToOverLapPrecedingBorder - this.containerOffset.left);
-    y2 += (offsetToOverLapPrecedingBorder - this.containerOffset.top);
+    x1 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.left);
+    y1 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.top);
+    x2 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.left);
+    y2 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.top);
 
     if (selectionSetting.className === 'current') {
       x1 += insetPositioningForCurrentCellHighlight;
