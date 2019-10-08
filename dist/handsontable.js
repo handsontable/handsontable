@@ -29,18 +29,18 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.1.1
- * Release date: 12/08/2019 (built at 08/10/2019 11:15:35)
+ * Release date: 12/08/2019 (built at 08/10/2019 15:16:23)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("moment"), require("hot-formula-parser"), require("pikaday"), require("numbro"));
+		module.exports = factory(require("moment"), require("hot-formula-parser"), require("numbro"), require("pikaday"));
 	else if(typeof define === 'function' && define.amd)
-		define("Handsontable", ["moment", "hot-formula-parser", "pikaday", "numbro"], factory);
+		define("Handsontable", ["moment", "hot-formula-parser", "numbro", "pikaday"], factory);
 	else if(typeof exports === 'object')
-		exports["Handsontable"] = factory(require("moment"), require("hot-formula-parser"), require("pikaday"), require("numbro"));
+		exports["Handsontable"] = factory(require("moment"), require("hot-formula-parser"), require("numbro"), require("pikaday"));
 	else
-		root["Handsontable"] = factory(root["moment"], root["formulaParser"], root["Pikaday"], root["numbro"]);
-})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE__72__, __WEBPACK_EXTERNAL_MODULE__116__, __WEBPACK_EXTERNAL_MODULE__333__, __WEBPACK_EXTERNAL_MODULE__344__) {
+		root["Handsontable"] = factory(root["moment"], root["formulaParser"], root["numbro"], root["Pikaday"]);
+})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE__72__, __WEBPACK_EXTERNAL_MODULE__116__, __WEBPACK_EXTERNAL_MODULE__335__, __WEBPACK_EXTERNAL_MODULE__341__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -4678,26 +4678,6 @@ fixRegExpWellKnownSymbolLogic('replace', 2, function (REPLACE, nativeReplace, ma
 
 "use strict";
 
-var $ = __webpack_require__(21);
-var $filter = __webpack_require__(89).filter;
-var arrayMethodHasSpeciesSupport = __webpack_require__(106);
-
-// `Array.prototype.filter` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.filter
-// with adding support of @@species
-$({ target: 'Array', proto: true, forced: !arrayMethodHasSpeciesSupport('filter') }, {
-  filter: function filter(callbackfn /* , thisArg */) {
-    return $filter(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
-  }
-});
-
-
-/***/ }),
-/* 42 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
 
 var _interopRequireDefault = __webpack_require__(0);
 
@@ -4707,19 +4687,19 @@ exports.getRegisteredRenderers = exports.getRegisteredRendererNames = exports.ha
 
 var _staticRegister2 = _interopRequireDefault(__webpack_require__(78));
 
-var _cellDecorator = _interopRequireDefault(__webpack_require__(339));
+var _cellDecorator = _interopRequireDefault(__webpack_require__(330));
 
-var _autocompleteRenderer = _interopRequireDefault(__webpack_require__(340));
+var _autocompleteRenderer = _interopRequireDefault(__webpack_require__(331));
 
-var _checkboxRenderer = _interopRequireDefault(__webpack_require__(341));
+var _checkboxRenderer = _interopRequireDefault(__webpack_require__(332));
 
-var _htmlRenderer = _interopRequireDefault(__webpack_require__(342));
+var _htmlRenderer = _interopRequireDefault(__webpack_require__(333));
 
-var _numericRenderer = _interopRequireDefault(__webpack_require__(343));
+var _numericRenderer = _interopRequireDefault(__webpack_require__(334));
 
-var _passwordRenderer = _interopRequireDefault(__webpack_require__(345));
+var _passwordRenderer = _interopRequireDefault(__webpack_require__(336));
 
-var _textRenderer = _interopRequireDefault(__webpack_require__(346));
+var _textRenderer = _interopRequireDefault(__webpack_require__(337));
 
 var _staticRegister = (0, _staticRegister2.default)('renderers'),
     register = _staticRegister.register,
@@ -4757,6 +4737,26 @@ function _getItem(name) {
 
   return getItem(name);
 }
+
+/***/ }),
+/* 42 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $ = __webpack_require__(21);
+var $filter = __webpack_require__(89).filter;
+var arrayMethodHasSpeciesSupport = __webpack_require__(106);
+
+// `Array.prototype.filter` method
+// https://tc39.github.io/ecma262/#sec-array.prototype.filter
+// with adding support of @@species
+$({ target: 'Array', proto: true, forced: !arrayMethodHasSpeciesSupport('filter') }, {
+  filter: function filter(callbackfn /* , thisArg */) {
+    return $filter(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+
 
 /***/ }),
 /* 43 */
@@ -7585,19 +7585,19 @@ var _baseEditor = _interopRequireDefault(__webpack_require__(107));
 
 var _autocompleteEditor = _interopRequireDefault(__webpack_require__(236));
 
-var _checkboxEditor = _interopRequireDefault(__webpack_require__(331));
+var _checkboxEditor = _interopRequireDefault(__webpack_require__(339));
 
-var _dateEditor = _interopRequireDefault(__webpack_require__(332));
+var _dateEditor = _interopRequireDefault(__webpack_require__(340));
 
-var _dropdownEditor = _interopRequireDefault(__webpack_require__(335));
+var _dropdownEditor = _interopRequireDefault(__webpack_require__(343));
 
 var _handsontableEditor = _interopRequireDefault(__webpack_require__(237));
 
-var _numericEditor = _interopRequireDefault(__webpack_require__(336));
+var _numericEditor = _interopRequireDefault(__webpack_require__(344));
 
-var _passwordEditor = _interopRequireDefault(__webpack_require__(337));
+var _passwordEditor = _interopRequireDefault(__webpack_require__(345));
 
-var _selectEditor = _interopRequireDefault(__webpack_require__(338));
+var _selectEditor = _interopRequireDefault(__webpack_require__(346));
 
 var _textEditor = _interopRequireDefault(__webpack_require__(111));
 
@@ -12706,7 +12706,7 @@ var _inherits2 = _interopRequireDefault(__webpack_require__(7));
 
 var _element = __webpack_require__(8);
 
-var _autoResize = _interopRequireDefault(__webpack_require__(330));
+var _autoResize = _interopRequireDefault(__webpack_require__(338));
 
 var _browser = __webpack_require__(75);
 
@@ -16922,7 +16922,7 @@ var _staticRegister2 = _interopRequireDefault(__webpack_require__(78));
 
 var _editors = __webpack_require__(60);
 
-var _renderers = __webpack_require__(42);
+var _renderers = __webpack_require__(41);
 
 var _validators = __webpack_require__(80);
 
@@ -17081,7 +17081,7 @@ var _parseTable = __webpack_require__(174);
 
 var _plugins = __webpack_require__(20);
 
-var _renderers = __webpack_require__(42);
+var _renderers = __webpack_require__(41);
 
 var _validators = __webpack_require__(80);
 
@@ -21327,7 +21327,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(17);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(369);
 
@@ -30821,7 +30821,7 @@ $({ target: 'Object', stat: true }, {
 
 var _interopRequireDefault = __webpack_require__(0);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(137);
 
@@ -30865,6 +30865,8 @@ var _mixed = __webpack_require__(26);
 var _string = __webpack_require__(76);
 
 var _array = __webpack_require__(3);
+
+var _renderers = __webpack_require__(41);
 
 var _element = __webpack_require__(8);
 
@@ -30972,7 +30974,8 @@ function (_HandsontableEditor) {
       choicesListHot.updateSettings({
         colWidths: trimDropdown ? [(0, _element.outerWidth)(this.TEXTAREA) - 2] : void 0,
         width: trimDropdown ? (0, _element.outerWidth)(this.TEXTAREA) + scrollbarWidth + 2 : void 0,
-        renderer: function renderer(instance, TD, row, col, prop, value) {
+        renderer: function renderer(instance, TD, row, col, prop, value, cellProperties) {
+          (0, _renderers.getRenderer)('text')(instance, TD, row, col, prop, value, cellProperties);
           var _this3$cellProperties = _this3.cellProperties,
               filteringCaseSensitive = _this3$cellProperties.filteringCaseSensitive,
               allowHtml = _this3$cellProperties.allowHtml;
@@ -32150,7 +32153,7 @@ exports.default = _default;
 "use strict";
 
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 exports.__esModule = true;
 exports.getDecreasedIndexes = getDecreasedIndexes;
@@ -35803,7 +35806,7 @@ __webpack_require__(17);
 
 __webpack_require__(242);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(25);
 
@@ -36494,7 +36497,7 @@ __webpack_require__(112);
 
 __webpack_require__(17);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(14);
 
@@ -39451,7 +39454,7 @@ __webpack_require__(287);
 
 var _editors = __webpack_require__(60);
 
-var _renderers = __webpack_require__(42);
+var _renderers = __webpack_require__(41);
 
 var _validators = __webpack_require__(80);
 
@@ -39533,7 +39536,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "08/10/2019 11:15:35";
+Handsontable.buildDate = "08/10/2019 15:16:23";
 Handsontable.version = "7.1.1"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -43886,1156 +43889,6 @@ module.exports = _superPropBase;
 "use strict";
 
 
-__webpack_require__(33);
-
-/**
- * autoResize - resizes a DOM element to the width and height of another DOM element
- *
- * Copyright 2014, Marcin Warpechowski
- * Licensed under the MIT license
- */
-function autoResize() {
-  var defaults = {
-    minHeight: 200,
-    maxHeight: 300,
-    minWidth: 100,
-    maxWidth: 300
-  },
-      el,
-      body = document.body,
-      text = document.createTextNode(''),
-      span = document.createElement('SPAN'),
-      observe = function observe(element, event, handler) {
-    element.addEventListener(event, handler, false);
-  },
-      _unObserve = function unObserve(element, event, handler) {
-    element.removeEventListener(event, handler, false);
-  },
-      resize = function resize(newChar) {
-    var width, scrollHeight;
-
-    if (!newChar) {
-      newChar = "";
-    } else if (!/^[a-zA-Z \.,\\\/\|0-9]$/.test(newChar)) {
-      newChar = ".";
-    }
-
-    if (text.textContent !== void 0) {
-      text.textContent = el.value + newChar;
-    } else {
-      text.data = el.value + newChar; //IE8
-    }
-
-    span.style.fontSize = getComputedStyle(el).fontSize;
-    span.style.fontFamily = getComputedStyle(el).fontFamily;
-    span.style.whiteSpace = "pre";
-    body.appendChild(span);
-    width = span.clientWidth + 2;
-    body.removeChild(span);
-    el.style.height = defaults.minHeight + 'px';
-
-    if (defaults.minWidth > width) {
-      el.style.width = defaults.minWidth + 'px';
-    } else if (width > defaults.maxWidth) {
-      el.style.width = defaults.maxWidth + 'px';
-    } else {
-      el.style.width = width + 'px';
-    }
-
-    scrollHeight = el.scrollHeight ? el.scrollHeight - 1 : 0;
-
-    if (defaults.minHeight > scrollHeight) {
-      el.style.height = defaults.minHeight + 'px';
-    } else if (defaults.maxHeight < scrollHeight) {
-      el.style.height = defaults.maxHeight + 'px';
-      el.style.overflowY = 'visible';
-    } else {
-      el.style.height = scrollHeight + 'px';
-    }
-  },
-      delayedResize = function delayedResize() {
-    window.setTimeout(resize, 0);
-  },
-      extendDefaults = function extendDefaults(config) {
-    if (config && config.minHeight) {
-      if (config.minHeight == 'inherit') {
-        defaults.minHeight = el.clientHeight;
-      } else {
-        var minHeight = parseInt(config.minHeight);
-
-        if (!isNaN(minHeight)) {
-          defaults.minHeight = minHeight;
-        }
-      }
-    }
-
-    if (config && config.maxHeight) {
-      if (config.maxHeight == 'inherit') {
-        defaults.maxHeight = el.clientHeight;
-      } else {
-        var maxHeight = parseInt(config.maxHeight);
-
-        if (!isNaN(maxHeight)) {
-          defaults.maxHeight = maxHeight;
-        }
-      }
-    }
-
-    if (config && config.minWidth) {
-      if (config.minWidth == 'inherit') {
-        defaults.minWidth = el.clientWidth;
-      } else {
-        var minWidth = parseInt(config.minWidth);
-
-        if (!isNaN(minWidth)) {
-          defaults.minWidth = minWidth;
-        }
-      }
-    }
-
-    if (config && config.maxWidth) {
-      if (config.maxWidth == 'inherit') {
-        defaults.maxWidth = el.clientWidth;
-      } else {
-        var maxWidth = parseInt(config.maxWidth);
-
-        if (!isNaN(maxWidth)) {
-          defaults.maxWidth = maxWidth;
-        }
-      }
-    }
-
-    if (!span.firstChild) {
-      span.className = "autoResize";
-      span.style.display = 'inline-block';
-      span.appendChild(text);
-    }
-  },
-      _init = function init(el_, config, doObserve) {
-    el = el_;
-    extendDefaults(config);
-
-    if (el.nodeName == 'TEXTAREA') {
-      el.style.resize = 'none';
-      el.style.overflowY = '';
-      el.style.height = defaults.minHeight + 'px';
-      el.style.minWidth = defaults.minWidth + 'px';
-      el.style.maxWidth = defaults.maxWidth + 'px';
-      el.style.overflowY = 'hidden';
-    }
-
-    if (doObserve) {
-      observe(el, 'change', resize);
-      observe(el, 'cut', delayedResize);
-      observe(el, 'paste', delayedResize);
-      observe(el, 'drop', delayedResize);
-      observe(el, 'keydown', delayedResize);
-      observe(el, 'focus', resize);
-      observe(el, 'compositionstart', delayedResize);
-      observe(el, 'compositionupdate', delayedResize);
-      observe(el, 'compositionend', delayedResize);
-    }
-
-    resize();
-  };
-
-  function getComputedStyle(element) {
-    return element.currentStyle || document.defaultView.getComputedStyle(element);
-  }
-
-  return {
-    init: function init(el_, config, doObserve) {
-      _init(el_, config, doObserve);
-    },
-    unObserve: function unObserve() {
-      _unObserve(el, 'change', resize);
-
-      _unObserve(el, 'cut', delayedResize);
-
-      _unObserve(el, 'paste', delayedResize);
-
-      _unObserve(el, 'drop', delayedResize);
-
-      _unObserve(el, 'keydown', delayedResize);
-
-      _unObserve(el, 'focus', resize);
-
-      _unObserve(el, 'compositionstart', delayedResize);
-
-      _unObserve(el, 'compositionupdate', delayedResize);
-
-      _unObserve(el, 'compositionend', delayedResize);
-    },
-    resize: resize
-  };
-}
-
-if (true) {
-  module.exports = autoResize;
-}
-
-/***/ }),
-/* 331 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _interopRequireDefault = __webpack_require__(0);
-
-exports.__esModule = true;
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(6));
-
-var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(5));
-
-var _inherits2 = _interopRequireDefault(__webpack_require__(7));
-
-var _baseEditor = _interopRequireDefault(__webpack_require__(107));
-
-var _element = __webpack_require__(8);
-
-/**
- * @private
- * @editor CheckboxEditor
- * @class CheckboxEditor
- */
-var CheckboxEditor =
-/*#__PURE__*/
-function (_BaseEditor) {
-  (0, _inherits2.default)(CheckboxEditor, _BaseEditor);
-
-  function CheckboxEditor() {
-    (0, _classCallCheck2.default)(this, CheckboxEditor);
-    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(CheckboxEditor).apply(this, arguments));
-  }
-
-  (0, _createClass2.default)(CheckboxEditor, [{
-    key: "beginEditing",
-    value: function beginEditing(initialValue, event) {
-      // Just some events connected with checkbox editor are delegated here. Some `keydown` events like `enter` and `space` key press
-      // are handled inside `checkboxRenderer`. Some events come here from `editorManager`. Below `if` statement was created by author
-      // for purpose of handling only `doubleclick` event which may be done on a cell with checkbox.
-      if (event && event.type === 'mouseup') {
-        var checkbox = this.TD.querySelector('input[type="checkbox"]');
-
-        if (!(0, _element.hasClass)(checkbox, 'htBadValue')) {
-          checkbox.click();
-        }
-      }
-    }
-  }, {
-    key: "finishEditing",
-    value: function finishEditing() {}
-  }, {
-    key: "init",
-    value: function init() {}
-  }, {
-    key: "open",
-    value: function open() {}
-  }, {
-    key: "close",
-    value: function close() {}
-  }, {
-    key: "getValue",
-    value: function getValue() {}
-  }, {
-    key: "setValue",
-    value: function setValue() {}
-  }, {
-    key: "focus",
-    value: function focus() {}
-  }]);
-  return CheckboxEditor;
-}(_baseEditor.default);
-
-var _default = CheckboxEditor;
-exports.default = _default;
-
-/***/ }),
-/* 332 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _interopRequireDefault = __webpack_require__(0);
-
-exports.__esModule = true;
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(6));
-
-var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(5));
-
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _inherits2 = _interopRequireDefault(__webpack_require__(7));
-
-var _moment = _interopRequireDefault(__webpack_require__(72));
-
-var _pikaday = _interopRequireDefault(__webpack_require__(333));
-
-__webpack_require__(334);
-
-var _element = __webpack_require__(8);
-
-var _object = __webpack_require__(4);
-
-var _eventManager = _interopRequireDefault(__webpack_require__(24));
-
-var _unicode = __webpack_require__(58);
-
-var _event = __webpack_require__(31);
-
-var _textEditor = _interopRequireDefault(__webpack_require__(111));
-
-/**
- * @private
- * @editor DateEditor
- * @class DateEditor
- * @dependencies TextEditor
- */
-var DateEditor =
-/*#__PURE__*/
-function (_TextEditor) {
-  (0, _inherits2.default)(DateEditor, _TextEditor);
-
-  /**
-   * @param {Core} hotInstance Handsontable instance
-   * @private
-   */
-  function DateEditor(hotInstance) {
-    var _this;
-
-    (0, _classCallCheck2.default)(this, DateEditor);
-    _this = (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(DateEditor).call(this, hotInstance)); // TODO: Move this option to general settings
-
-    _this.defaultDateFormat = 'DD/MM/YYYY';
-    _this.isCellEdited = false;
-    _this.parentDestroyed = false;
-    return _this;
-  }
-
-  (0, _createClass2.default)(DateEditor, [{
-    key: "init",
-    value: function init() {
-      var _this2 = this;
-
-      if (typeof _moment.default !== 'function') {
-        throw new Error('You need to include moment.js to your project.');
-      }
-
-      if (typeof _pikaday.default !== 'function') {
-        throw new Error('You need to include Pikaday to your project.');
-      }
-
-      (0, _get2.default)((0, _getPrototypeOf2.default)(DateEditor.prototype), "init", this).call(this);
-      this.instance.addHook('afterDestroy', function () {
-        _this2.parentDestroyed = true;
-
-        _this2.destroyElements();
-      });
-    }
-    /**
-     * Create data picker instance
-     */
-
-  }, {
-    key: "createElements",
-    value: function createElements() {
-      (0, _get2.default)((0, _getPrototypeOf2.default)(DateEditor.prototype), "createElements", this).call(this);
-      this.datePicker = this.hot.rootDocument.createElement('DIV');
-      this.datePickerStyle = this.datePicker.style;
-      this.datePickerStyle.position = 'absolute';
-      this.datePickerStyle.top = 0;
-      this.datePickerStyle.left = 0;
-      this.datePickerStyle.zIndex = 9999;
-      (0, _element.addClass)(this.datePicker, 'htDatepickerHolder');
-      this.hot.rootDocument.body.appendChild(this.datePicker);
-      this.$datePicker = new _pikaday.default(this.getDatePickerConfig());
-      var eventManager = new _eventManager.default(this);
-      /**
-       * Prevent recognizing clicking on datepicker as clicking outside of table
-       */
-
-      eventManager.addEventListener(this.datePicker, 'mousedown', function (event) {
-        return (0, _event.stopPropagation)(event);
-      });
-      this.hideDatepicker();
-    }
-    /**
-     * Destroy data picker instance
-     */
-
-  }, {
-    key: "destroyElements",
-    value: function destroyElements() {
-      var datePickerParentElement = this.datePicker.parentNode;
-      this.$datePicker.destroy();
-
-      if (datePickerParentElement) {
-        datePickerParentElement.removeChild(this.datePicker);
-      }
-    }
-    /**
-     * Prepare editor to appear
-     *
-     * @param {Number} row Row index
-     * @param {Number} col Column index
-     * @param {String} prop Property name (passed when datasource is an array of objects)
-     * @param {HTMLTableCellElement} td Table cell element
-     * @param {*} originalValue Original value
-     * @param {Object} cellProperties Object with cell properties ({@see Core#getCellMeta})
-     */
-
-  }, {
-    key: "prepare",
-    value: function prepare(row, col, prop, td, originalValue, cellProperties) {
-      (0, _get2.default)((0, _getPrototypeOf2.default)(DateEditor.prototype), "prepare", this).call(this, row, col, prop, td, originalValue, cellProperties);
-    }
-    /**
-     * Open editor
-     *
-     * @param {Event} [event=null]
-     */
-
-  }, {
-    key: "open",
-    value: function open() {
-      var event = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
-      (0, _get2.default)((0, _getPrototypeOf2.default)(DateEditor.prototype), "open", this).call(this);
-      this.showDatepicker(event);
-    }
-    /**
-     * Close editor
-     */
-
-  }, {
-    key: "close",
-    value: function close() {
-      var _this3 = this;
-
-      this._opened = false;
-
-      this.instance._registerTimeout(function () {
-        _this3.instance._refreshBorders();
-      });
-
-      (0, _get2.default)((0, _getPrototypeOf2.default)(DateEditor.prototype), "close", this).call(this);
-    }
-    /**
-     * @param {Boolean} [isCancelled=false]
-     * @param {Boolean} [ctrlDown=false]
-     */
-
-  }, {
-    key: "finishEditing",
-    value: function finishEditing() {
-      var isCancelled = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-      var ctrlDown = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-
-      if (isCancelled) {
-        // pressed ESC, restore original value
-        // var value = this.instance.getDataAtCell(this.row, this.col);
-        var value = this.originalValue;
-
-        if (value !== void 0) {
-          this.setValue(value);
-        }
-      }
-
-      this.hideDatepicker();
-      (0, _get2.default)((0, _getPrototypeOf2.default)(DateEditor.prototype), "finishEditing", this).call(this, isCancelled, ctrlDown);
-    }
-    /**
-     * Show data picker
-     *
-     * @param {Event} event
-     */
-
-  }, {
-    key: "showDatepicker",
-    value: function showDatepicker(event) {
-      this.$datePicker.config(this.getDatePickerConfig());
-      var offset = this.TD.getBoundingClientRect();
-      var dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
-      var datePickerConfig = this.$datePicker.config();
-      var dateStr;
-      var isMouseDown = this.instance.view.isMouseDown();
-      var isMeta = event ? (0, _unicode.isMetaKey)(event.keyCode) : false;
-      this.datePickerStyle.top = "".concat(this.hot.rootWindow.pageYOffset + offset.top + (0, _element.outerHeight)(this.TD), "px");
-      this.datePickerStyle.left = "".concat(this.hot.rootWindow.pageXOffset + offset.left, "px");
-
-      this.$datePicker._onInputFocus = function () {};
-
-      datePickerConfig.format = dateFormat;
-
-      if (this.originalValue) {
-        dateStr = this.originalValue;
-
-        if ((0, _moment.default)(dateStr, dateFormat, true).isValid()) {
-          this.$datePicker.setMoment((0, _moment.default)(dateStr, dateFormat), true);
-        } // workaround for date/time cells - pikaday resets the cell value to 12:00 AM by default, this will overwrite the value.
-
-
-        if (this.getValue() !== this.originalValue) {
-          this.setValue(this.originalValue);
-        }
-
-        if (!isMeta && !isMouseDown) {
-          this.setValue('');
-        }
-      } else if (this.cellProperties.defaultDate) {
-        dateStr = this.cellProperties.defaultDate;
-        datePickerConfig.defaultDate = dateStr;
-
-        if ((0, _moment.default)(dateStr, dateFormat, true).isValid()) {
-          this.$datePicker.setMoment((0, _moment.default)(dateStr, dateFormat), true);
-        }
-
-        if (!isMeta && !isMouseDown) {
-          this.setValue('');
-        }
-      } else {
-        // if a default date is not defined, set a soft-default-date: display the current day and month in the
-        // datepicker, but don't fill the editor input
-        this.$datePicker.gotoToday();
-      }
-
-      this.datePickerStyle.display = 'block';
-      this.$datePicker.show();
-    }
-    /**
-     * Hide data picker
-     */
-
-  }, {
-    key: "hideDatepicker",
-    value: function hideDatepicker() {
-      this.datePickerStyle.display = 'none';
-      this.$datePicker.hide();
-    }
-    /**
-     * Get date picker options.
-     *
-     * @returns {Object}
-     */
-
-  }, {
-    key: "getDatePickerConfig",
-    value: function getDatePickerConfig() {
-      var _this4 = this;
-
-      var htInput = this.TEXTAREA;
-      var options = {};
-
-      if (this.cellProperties && this.cellProperties.datePickerConfig) {
-        (0, _object.deepExtend)(options, this.cellProperties.datePickerConfig);
-      }
-
-      var origOnSelect = options.onSelect;
-      var origOnClose = options.onClose;
-      options.field = htInput;
-      options.trigger = htInput;
-      options.container = this.datePicker;
-      options.bound = false;
-      options.format = options.format || this.defaultDateFormat;
-      options.reposition = options.reposition || false;
-
-      options.onSelect = function (value) {
-        var dateStr = value;
-
-        if (!isNaN(dateStr.getTime())) {
-          dateStr = (0, _moment.default)(dateStr).format(_this4.cellProperties.dateFormat || _this4.defaultDateFormat);
-        }
-
-        _this4.setValue(dateStr);
-
-        _this4.hideDatepicker();
-
-        if (origOnSelect) {
-          origOnSelect();
-        }
-      };
-
-      options.onClose = function () {
-        if (!_this4.parentDestroyed) {
-          _this4.finishEditing(false);
-        }
-
-        if (origOnClose) {
-          origOnClose();
-        }
-      };
-
-      return options;
-    }
-  }]);
-  return DateEditor;
-}(_textEditor.default);
-
-var _default = DateEditor;
-exports.default = _default;
-
-/***/ }),
-/* 333 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE__333__;
-
-/***/ }),
-/* 334 */
-/***/ (function(module, exports) {
-
-
-
-/***/ }),
-/* 335 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _interopRequireDefault = __webpack_require__(0);
-
-__webpack_require__(41);
-
-exports.__esModule = true;
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(6));
-
-var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(5));
-
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _inherits2 = _interopRequireDefault(__webpack_require__(7));
-
-var _autocompleteEditor = _interopRequireDefault(__webpack_require__(236));
-
-var _pluginHooks = _interopRequireDefault(__webpack_require__(44));
-
-/**
- * @private
- * @editor DropdownEditor
- * @class DropdownEditor
- * @dependencies AutocompleteEditor
- */
-var DropdownEditor =
-/*#__PURE__*/
-function (_AutocompleteEditor) {
-  (0, _inherits2.default)(DropdownEditor, _AutocompleteEditor);
-
-  function DropdownEditor() {
-    (0, _classCallCheck2.default)(this, DropdownEditor);
-    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(DropdownEditor).apply(this, arguments));
-  }
-
-  (0, _createClass2.default)(DropdownEditor, [{
-    key: "prepare",
-    value: function prepare(row, col, prop, td, originalValue, cellProperties) {
-      (0, _get2.default)((0, _getPrototypeOf2.default)(DropdownEditor.prototype), "prepare", this).call(this, row, col, prop, td, originalValue, cellProperties);
-      this.cellProperties.filter = false;
-      this.cellProperties.strict = true;
-    }
-  }]);
-  return DropdownEditor;
-}(_autocompleteEditor.default);
-
-_pluginHooks.default.getSingleton().add('beforeValidate', function (value, row, col) {
-  var cellMeta = this.getCellMeta(row, this.propToCol(col));
-
-  if (cellMeta.editor === DropdownEditor) {
-    if (cellMeta.strict === void 0) {
-      cellMeta.filter = false;
-      cellMeta.strict = true;
-    }
-  }
-});
-
-var _default = DropdownEditor;
-exports.default = _default;
-
-/***/ }),
-/* 336 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _interopRequireDefault = __webpack_require__(0);
-
-exports.__esModule = true;
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(6));
-
-var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(5));
-
-var _inherits2 = _interopRequireDefault(__webpack_require__(7));
-
-var _textEditor = _interopRequireDefault(__webpack_require__(111));
-
-/**
- * @private
- * @editor NumericEditor
- * @class NumericEditor
- */
-var NumericEditor =
-/*#__PURE__*/
-function (_TextEditor) {
-  (0, _inherits2.default)(NumericEditor, _TextEditor);
-
-  function NumericEditor() {
-    (0, _classCallCheck2.default)(this, NumericEditor);
-    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(NumericEditor).apply(this, arguments));
-  }
-
-  return NumericEditor;
-}(_textEditor.default);
-
-var _default = NumericEditor;
-exports.default = _default;
-
-/***/ }),
-/* 337 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _interopRequireDefault = __webpack_require__(0);
-
-exports.__esModule = true;
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(6));
-
-var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(5));
-
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _inherits2 = _interopRequireDefault(__webpack_require__(7));
-
-var _element = __webpack_require__(8);
-
-var _textEditor = _interopRequireDefault(__webpack_require__(111));
-
-/**
- * @private
- * @editor PasswordEditor
- * @class PasswordEditor
- * @dependencies TextEditor
- */
-var PasswordEditor =
-/*#__PURE__*/
-function (_TextEditor) {
-  (0, _inherits2.default)(PasswordEditor, _TextEditor);
-
-  function PasswordEditor() {
-    (0, _classCallCheck2.default)(this, PasswordEditor);
-    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(PasswordEditor).apply(this, arguments));
-  }
-
-  (0, _createClass2.default)(PasswordEditor, [{
-    key: "createElements",
-    value: function createElements() {
-      (0, _get2.default)((0, _getPrototypeOf2.default)(PasswordEditor.prototype), "createElements", this).call(this);
-      this.TEXTAREA = this.hot.rootDocument.createElement('input');
-      this.TEXTAREA.setAttribute('type', 'password');
-      this.TEXTAREA.className = 'handsontableInput';
-      this.textareaStyle = this.TEXTAREA.style;
-      this.textareaStyle.width = 0;
-      this.textareaStyle.height = 0;
-      (0, _element.empty)(this.TEXTAREA_PARENT);
-      this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
-    }
-  }]);
-  return PasswordEditor;
-}(_textEditor.default);
-
-var _default = PasswordEditor;
-exports.default = _default;
-
-/***/ }),
-/* 338 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _interopRequireWildcard = __webpack_require__(10);
-
-var _interopRequireDefault = __webpack_require__(0);
-
-exports.__esModule = true;
-exports.default = void 0;
-
-var _typeof2 = _interopRequireDefault(__webpack_require__(45));
-
-var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(6));
-
-var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(5));
-
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _inherits2 = _interopRequireDefault(__webpack_require__(7));
-
-var _element = __webpack_require__(8);
-
-var _event = __webpack_require__(31);
-
-var _unicode = __webpack_require__(58);
-
-var _baseEditor = _interopRequireWildcard(__webpack_require__(107));
-
-var _object = __webpack_require__(4);
-
-/**
- * @private
- * @editor SelectEditor
- * @class SelectEditor
- */
-var SelectEditor =
-/*#__PURE__*/
-function (_BaseEditor) {
-  (0, _inherits2.default)(SelectEditor, _BaseEditor);
-
-  function SelectEditor() {
-    (0, _classCallCheck2.default)(this, SelectEditor);
-    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(SelectEditor).apply(this, arguments));
-  }
-
-  (0, _createClass2.default)(SelectEditor, [{
-    key: "init",
-
-    /**
-     * Initializes editor instance, DOM Element and mount hooks.
-     */
-    value: function init() {
-      this.select = this.hot.rootDocument.createElement('SELECT');
-      (0, _element.addClass)(this.select, 'htSelectEditor');
-      this.select.style.display = 'none';
-      this.hot.rootElement.appendChild(this.select);
-      this.registerHooks();
-    }
-    /**
-     * Returns select's value.
-     *
-     * @returns {*}
-     */
-
-  }, {
-    key: "getValue",
-    value: function getValue() {
-      return this.select.value;
-    }
-    /**
-     * Sets value in the select element.
-     *
-     * @param {*} value A new select's value.
-     */
-
-  }, {
-    key: "setValue",
-    value: function setValue(value) {
-      this.select.value = value;
-    }
-    /**
-     * Opens the editor and adjust its size.
-     */
-
-  }, {
-    key: "open",
-    value: function open() {
-      var _this = this;
-
-      this._opened = true;
-      this.refreshDimensions();
-      this.select.style.display = '';
-      this.addHook('beforeKeyDown', function () {
-        return _this.onBeforeKeyDown();
-      });
-    }
-    /**
-     * Closes the editor.
-     */
-
-  }, {
-    key: "close",
-    value: function close() {
-      this._opened = false;
-      this.select.style.display = 'none';
-      this.clearHooks();
-    }
-    /**
-     * Sets focus state on the select element.
-     */
-
-  }, {
-    key: "focus",
-    value: function focus() {
-      this.select.focus();
-    }
-    /**
-     * Binds hooks to refresh editor's size after scrolling of the viewport or resizing of columns/rows.
-     *
-     * @private
-     */
-
-  }, {
-    key: "registerHooks",
-    value: function registerHooks() {
-      var _this2 = this;
-
-      this.addHook('afterScrollHorizontally', function () {
-        return _this2.refreshDimensions();
-      });
-      this.addHook('afterScrollVertically', function () {
-        return _this2.refreshDimensions();
-      });
-      this.addHook('afterColumnResize', function () {
-        return _this2.refreshDimensions();
-      });
-      this.addHook('afterRowResize', function () {
-        return _this2.refreshDimensions();
-      });
-    }
-    /**
-     * Prepares editor's meta data and a list of available options.
-     *
-     * @param {Number} row
-     * @param {Number} col
-     * @param {Number|String} prop
-     * @param {HTMLTableCellElement} td
-     * @param {*} originalValue
-     * @param {Object} cellProperties
-     */
-
-  }, {
-    key: "prepare",
-    value: function prepare(row, col, prop, td, originalValue, cellProperties) {
-      var _this3 = this;
-
-      (0, _get2.default)((0, _getPrototypeOf2.default)(SelectEditor.prototype), "prepare", this).call(this, row, col, prop, td, originalValue, cellProperties);
-      var selectOptions = this.cellProperties.selectOptions;
-      var options;
-
-      if (typeof selectOptions === 'function') {
-        options = this.prepareOptions(selectOptions(this.row, this.col, this.prop));
-      } else {
-        options = this.prepareOptions(selectOptions);
-      }
-
-      (0, _element.empty)(this.select);
-      (0, _object.objectEach)(options, function (value, key) {
-        var optionElement = _this3.hot.rootDocument.createElement('OPTION');
-
-        optionElement.value = key;
-        (0, _element.fastInnerHTML)(optionElement, value);
-
-        _this3.select.appendChild(optionElement);
-      });
-    }
-    /**
-     * Creates consistent list of available options.
-     *
-     * @private
-     * @param {Array|Object} optionsToPrepare
-     * @returns {Object}
-     */
-
-  }, {
-    key: "prepareOptions",
-    value: function prepareOptions(optionsToPrepare) {
-      var preparedOptions = {};
-
-      if (Array.isArray(optionsToPrepare)) {
-        for (var i = 0, len = optionsToPrepare.length; i < len; i++) {
-          preparedOptions[optionsToPrepare[i]] = optionsToPrepare[i];
-        }
-      } else if ((0, _typeof2.default)(optionsToPrepare) === 'object') {
-        preparedOptions = optionsToPrepare;
-      }
-
-      return preparedOptions;
-    }
-    /**
-     * Refreshes editor's value using source data.
-     *
-     * @private
-     */
-
-  }, {
-    key: "refreshValue",
-    value: function refreshValue() {
-      var sourceData = this.hot.getSourceDataAtCell(this.row, this.prop);
-      this.originalValue = sourceData;
-      this.setValue(sourceData);
-      this.refreshDimensions();
-    }
-    /**
-     * Refreshes editor's size and position.
-     *
-     * @private
-     */
-
-  }, {
-    key: "refreshDimensions",
-    value: function refreshDimensions() {
-      if (this.state !== _baseEditor.EditorState.EDITING) {
-        return;
-      }
-
-      this.TD = this.getEditedCell(); // TD is outside of the viewport.
-
-      if (!this.TD) {
-        this.close();
-        return;
-      }
-
-      var wtOverlays = this.hot.view.wt.wtOverlays;
-      var currentOffset = (0, _element.offset)(this.TD);
-      var containerOffset = (0, _element.offset)(this.hot.rootElement);
-      var scrollableContainer = wtOverlays.scrollableElement;
-      var editorSection = this.checkEditorSection();
-      var width = (0, _element.outerWidth)(this.TD) + 1;
-      var height = (0, _element.outerHeight)(this.TD) + 1;
-      var editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0);
-      var editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
-      var cssTransformOffset;
-
-      switch (editorSection) {
-        case 'top':
-          cssTransformOffset = (0, _element.getCssTransform)(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
-          break;
-
-        case 'left':
-          cssTransformOffset = (0, _element.getCssTransform)(wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
-          break;
-
-        case 'top-left-corner':
-          cssTransformOffset = (0, _element.getCssTransform)(wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
-          break;
-
-        case 'bottom-left-corner':
-          cssTransformOffset = (0, _element.getCssTransform)(wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
-          break;
-
-        case 'bottom':
-          cssTransformOffset = (0, _element.getCssTransform)(wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
-          break;
-
-        default:
-          break;
-      }
-
-      if (this.hot.getSelectedLast()[0] === 0) {
-        editTop += 1;
-      }
-
-      if (this.hot.getSelectedLast()[1] === 0) {
-        editLeft += 1;
-      }
-
-      var selectStyle = this.select.style;
-
-      if (cssTransformOffset && cssTransformOffset !== -1) {
-        selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
-      } else {
-        (0, _element.resetCssTransform)(this.select);
-      }
-
-      var cellComputedStyle = (0, _element.getComputedStyle)(this.TD, this.hot.rootWindow);
-
-      if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
-        height -= 1;
-      }
-
-      if (parseInt(cellComputedStyle.borderLeftWidth, 10) > 0) {
-        width -= 1;
-      }
-
-      selectStyle.height = "".concat(height, "px");
-      selectStyle.minWidth = "".concat(width, "px");
-      selectStyle.top = "".concat(editTop, "px");
-      selectStyle.left = "".concat(editLeft, "px");
-      selectStyle.margin = '0px';
-      selectStyle.zIndex = this.getEditedCellsZIndex();
-    }
-    /**
-     * onBeforeKeyDown callback.
-     *
-     * @private
-     */
-
-  }, {
-    key: "onBeforeKeyDown",
-    value: function onBeforeKeyDown() {
-      var previousOptionIndex = this.select.selectedIndex - 1;
-      var nextOptionIndex = this.select.selectedIndex + 1;
-
-      switch (event.keyCode) {
-        case _unicode.KEY_CODES.ARROW_UP:
-          if (previousOptionIndex >= 0) {
-            this.select[previousOptionIndex].selected = true;
-          }
-
-          (0, _event.stopImmediatePropagation)(event);
-          event.preventDefault();
-          break;
-
-        case _unicode.KEY_CODES.ARROW_DOWN:
-          if (nextOptionIndex <= this.select.length - 1) {
-            this.select[nextOptionIndex].selected = true;
-          }
-
-          (0, _event.stopImmediatePropagation)(event);
-          event.preventDefault();
-          break;
-
-        default:
-          break;
-      }
-    }
-  }]);
-  return SelectEditor;
-}(_baseEditor.default);
-
-var _default = SelectEditor;
-exports.default = _default;
-
-/***/ }),
-/* 339 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
 __webpack_require__(17);
 
 exports.__esModule = true;
@@ -45084,7 +43937,7 @@ var _default = cellDecorator;
 exports.default = _default;
 
 /***/ }),
-/* 340 */
+/* 331 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45103,7 +43956,7 @@ var _eventManager = _interopRequireDefault(__webpack_require__(24));
 
 var _src = __webpack_require__(27);
 
-var _index = __webpack_require__(42);
+var _index = __webpack_require__(41);
 
 /**
  * Autocomplete renderer
@@ -45162,7 +44015,7 @@ var _default = autocompleteRenderer;
 exports.default = _default;
 
 /***/ }),
-/* 341 */
+/* 332 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45205,7 +44058,7 @@ var _function = __webpack_require__(63);
 
 var _event = __webpack_require__(31);
 
-var _index = __webpack_require__(42);
+var _index = __webpack_require__(41);
 
 var isListeningKeyDownEvent = new WeakMap();
 var isCheckboxListenerAdded = new WeakMap();
@@ -45577,7 +44430,7 @@ var _default = checkboxRenderer;
 exports.default = _default;
 
 /***/ }),
-/* 342 */
+/* 333 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45590,7 +44443,7 @@ exports.default = void 0;
 
 var _element = __webpack_require__(8);
 
-var _index = __webpack_require__(42);
+var _index = __webpack_require__(41);
 
 /**
  * @private
@@ -45616,7 +44469,7 @@ var _default = htmlRenderer;
 exports.default = _default;
 
 /***/ }),
-/* 343 */
+/* 334 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45635,9 +44488,9 @@ __webpack_require__(49);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _numbro = _interopRequireDefault(__webpack_require__(344));
+var _numbro = _interopRequireDefault(__webpack_require__(335));
 
-var _index = __webpack_require__(42);
+var _index = __webpack_require__(41);
 
 var _number = __webpack_require__(19);
 
@@ -45695,13 +44548,13 @@ var _default = numericRenderer;
 exports.default = _default;
 
 /***/ }),
-/* 344 */
+/* 335 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE__344__;
+module.exports = __WEBPACK_EXTERNAL_MODULE__335__;
 
 /***/ }),
-/* 345 */
+/* 336 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45714,7 +44567,7 @@ exports.default = void 0;
 
 var _element = __webpack_require__(8);
 
-var _index = __webpack_require__(42);
+var _index = __webpack_require__(41);
 
 var _number = __webpack_require__(19);
 
@@ -45748,7 +44601,7 @@ var _default = passwordRenderer;
 exports.default = _default;
 
 /***/ }),
-/* 346 */
+/* 337 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45765,7 +44618,7 @@ var _element = __webpack_require__(8);
 
 var _mixed = __webpack_require__(26);
 
-var _index = __webpack_require__(42);
+var _index = __webpack_require__(41);
 
 /**
  * Default text renderer
@@ -45813,6 +44666,1156 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
 }
 
 var _default = textRenderer;
+exports.default = _default;
+
+/***/ }),
+/* 338 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+__webpack_require__(33);
+
+/**
+ * autoResize - resizes a DOM element to the width and height of another DOM element
+ *
+ * Copyright 2014, Marcin Warpechowski
+ * Licensed under the MIT license
+ */
+function autoResize() {
+  var defaults = {
+    minHeight: 200,
+    maxHeight: 300,
+    minWidth: 100,
+    maxWidth: 300
+  },
+      el,
+      body = document.body,
+      text = document.createTextNode(''),
+      span = document.createElement('SPAN'),
+      observe = function observe(element, event, handler) {
+    element.addEventListener(event, handler, false);
+  },
+      _unObserve = function unObserve(element, event, handler) {
+    element.removeEventListener(event, handler, false);
+  },
+      resize = function resize(newChar) {
+    var width, scrollHeight;
+
+    if (!newChar) {
+      newChar = "";
+    } else if (!/^[a-zA-Z \.,\\\/\|0-9]$/.test(newChar)) {
+      newChar = ".";
+    }
+
+    if (text.textContent !== void 0) {
+      text.textContent = el.value + newChar;
+    } else {
+      text.data = el.value + newChar; //IE8
+    }
+
+    span.style.fontSize = getComputedStyle(el).fontSize;
+    span.style.fontFamily = getComputedStyle(el).fontFamily;
+    span.style.whiteSpace = "pre";
+    body.appendChild(span);
+    width = span.clientWidth + 2;
+    body.removeChild(span);
+    el.style.height = defaults.minHeight + 'px';
+
+    if (defaults.minWidth > width) {
+      el.style.width = defaults.minWidth + 'px';
+    } else if (width > defaults.maxWidth) {
+      el.style.width = defaults.maxWidth + 'px';
+    } else {
+      el.style.width = width + 'px';
+    }
+
+    scrollHeight = el.scrollHeight ? el.scrollHeight - 1 : 0;
+
+    if (defaults.minHeight > scrollHeight) {
+      el.style.height = defaults.minHeight + 'px';
+    } else if (defaults.maxHeight < scrollHeight) {
+      el.style.height = defaults.maxHeight + 'px';
+      el.style.overflowY = 'visible';
+    } else {
+      el.style.height = scrollHeight + 'px';
+    }
+  },
+      delayedResize = function delayedResize() {
+    window.setTimeout(resize, 0);
+  },
+      extendDefaults = function extendDefaults(config) {
+    if (config && config.minHeight) {
+      if (config.minHeight == 'inherit') {
+        defaults.minHeight = el.clientHeight;
+      } else {
+        var minHeight = parseInt(config.minHeight);
+
+        if (!isNaN(minHeight)) {
+          defaults.minHeight = minHeight;
+        }
+      }
+    }
+
+    if (config && config.maxHeight) {
+      if (config.maxHeight == 'inherit') {
+        defaults.maxHeight = el.clientHeight;
+      } else {
+        var maxHeight = parseInt(config.maxHeight);
+
+        if (!isNaN(maxHeight)) {
+          defaults.maxHeight = maxHeight;
+        }
+      }
+    }
+
+    if (config && config.minWidth) {
+      if (config.minWidth == 'inherit') {
+        defaults.minWidth = el.clientWidth;
+      } else {
+        var minWidth = parseInt(config.minWidth);
+
+        if (!isNaN(minWidth)) {
+          defaults.minWidth = minWidth;
+        }
+      }
+    }
+
+    if (config && config.maxWidth) {
+      if (config.maxWidth == 'inherit') {
+        defaults.maxWidth = el.clientWidth;
+      } else {
+        var maxWidth = parseInt(config.maxWidth);
+
+        if (!isNaN(maxWidth)) {
+          defaults.maxWidth = maxWidth;
+        }
+      }
+    }
+
+    if (!span.firstChild) {
+      span.className = "autoResize";
+      span.style.display = 'inline-block';
+      span.appendChild(text);
+    }
+  },
+      _init = function init(el_, config, doObserve) {
+    el = el_;
+    extendDefaults(config);
+
+    if (el.nodeName == 'TEXTAREA') {
+      el.style.resize = 'none';
+      el.style.overflowY = '';
+      el.style.height = defaults.minHeight + 'px';
+      el.style.minWidth = defaults.minWidth + 'px';
+      el.style.maxWidth = defaults.maxWidth + 'px';
+      el.style.overflowY = 'hidden';
+    }
+
+    if (doObserve) {
+      observe(el, 'change', resize);
+      observe(el, 'cut', delayedResize);
+      observe(el, 'paste', delayedResize);
+      observe(el, 'drop', delayedResize);
+      observe(el, 'keydown', delayedResize);
+      observe(el, 'focus', resize);
+      observe(el, 'compositionstart', delayedResize);
+      observe(el, 'compositionupdate', delayedResize);
+      observe(el, 'compositionend', delayedResize);
+    }
+
+    resize();
+  };
+
+  function getComputedStyle(element) {
+    return element.currentStyle || document.defaultView.getComputedStyle(element);
+  }
+
+  return {
+    init: function init(el_, config, doObserve) {
+      _init(el_, config, doObserve);
+    },
+    unObserve: function unObserve() {
+      _unObserve(el, 'change', resize);
+
+      _unObserve(el, 'cut', delayedResize);
+
+      _unObserve(el, 'paste', delayedResize);
+
+      _unObserve(el, 'drop', delayedResize);
+
+      _unObserve(el, 'keydown', delayedResize);
+
+      _unObserve(el, 'focus', resize);
+
+      _unObserve(el, 'compositionstart', delayedResize);
+
+      _unObserve(el, 'compositionupdate', delayedResize);
+
+      _unObserve(el, 'compositionend', delayedResize);
+    },
+    resize: resize
+  };
+}
+
+if (true) {
+  module.exports = autoResize;
+}
+
+/***/ }),
+/* 339 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(0);
+
+exports.__esModule = true;
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(6));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(5));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(7));
+
+var _baseEditor = _interopRequireDefault(__webpack_require__(107));
+
+var _element = __webpack_require__(8);
+
+/**
+ * @private
+ * @editor CheckboxEditor
+ * @class CheckboxEditor
+ */
+var CheckboxEditor =
+/*#__PURE__*/
+function (_BaseEditor) {
+  (0, _inherits2.default)(CheckboxEditor, _BaseEditor);
+
+  function CheckboxEditor() {
+    (0, _classCallCheck2.default)(this, CheckboxEditor);
+    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(CheckboxEditor).apply(this, arguments));
+  }
+
+  (0, _createClass2.default)(CheckboxEditor, [{
+    key: "beginEditing",
+    value: function beginEditing(initialValue, event) {
+      // Just some events connected with checkbox editor are delegated here. Some `keydown` events like `enter` and `space` key press
+      // are handled inside `checkboxRenderer`. Some events come here from `editorManager`. Below `if` statement was created by author
+      // for purpose of handling only `doubleclick` event which may be done on a cell with checkbox.
+      if (event && event.type === 'mouseup') {
+        var checkbox = this.TD.querySelector('input[type="checkbox"]');
+
+        if (!(0, _element.hasClass)(checkbox, 'htBadValue')) {
+          checkbox.click();
+        }
+      }
+    }
+  }, {
+    key: "finishEditing",
+    value: function finishEditing() {}
+  }, {
+    key: "init",
+    value: function init() {}
+  }, {
+    key: "open",
+    value: function open() {}
+  }, {
+    key: "close",
+    value: function close() {}
+  }, {
+    key: "getValue",
+    value: function getValue() {}
+  }, {
+    key: "setValue",
+    value: function setValue() {}
+  }, {
+    key: "focus",
+    value: function focus() {}
+  }]);
+  return CheckboxEditor;
+}(_baseEditor.default);
+
+var _default = CheckboxEditor;
+exports.default = _default;
+
+/***/ }),
+/* 340 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(0);
+
+exports.__esModule = true;
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(6));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(5));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(7));
+
+var _moment = _interopRequireDefault(__webpack_require__(72));
+
+var _pikaday = _interopRequireDefault(__webpack_require__(341));
+
+__webpack_require__(342);
+
+var _element = __webpack_require__(8);
+
+var _object = __webpack_require__(4);
+
+var _eventManager = _interopRequireDefault(__webpack_require__(24));
+
+var _unicode = __webpack_require__(58);
+
+var _event = __webpack_require__(31);
+
+var _textEditor = _interopRequireDefault(__webpack_require__(111));
+
+/**
+ * @private
+ * @editor DateEditor
+ * @class DateEditor
+ * @dependencies TextEditor
+ */
+var DateEditor =
+/*#__PURE__*/
+function (_TextEditor) {
+  (0, _inherits2.default)(DateEditor, _TextEditor);
+
+  /**
+   * @param {Core} hotInstance Handsontable instance
+   * @private
+   */
+  function DateEditor(hotInstance) {
+    var _this;
+
+    (0, _classCallCheck2.default)(this, DateEditor);
+    _this = (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(DateEditor).call(this, hotInstance)); // TODO: Move this option to general settings
+
+    _this.defaultDateFormat = 'DD/MM/YYYY';
+    _this.isCellEdited = false;
+    _this.parentDestroyed = false;
+    return _this;
+  }
+
+  (0, _createClass2.default)(DateEditor, [{
+    key: "init",
+    value: function init() {
+      var _this2 = this;
+
+      if (typeof _moment.default !== 'function') {
+        throw new Error('You need to include moment.js to your project.');
+      }
+
+      if (typeof _pikaday.default !== 'function') {
+        throw new Error('You need to include Pikaday to your project.');
+      }
+
+      (0, _get2.default)((0, _getPrototypeOf2.default)(DateEditor.prototype), "init", this).call(this);
+      this.instance.addHook('afterDestroy', function () {
+        _this2.parentDestroyed = true;
+
+        _this2.destroyElements();
+      });
+    }
+    /**
+     * Create data picker instance
+     */
+
+  }, {
+    key: "createElements",
+    value: function createElements() {
+      (0, _get2.default)((0, _getPrototypeOf2.default)(DateEditor.prototype), "createElements", this).call(this);
+      this.datePicker = this.hot.rootDocument.createElement('DIV');
+      this.datePickerStyle = this.datePicker.style;
+      this.datePickerStyle.position = 'absolute';
+      this.datePickerStyle.top = 0;
+      this.datePickerStyle.left = 0;
+      this.datePickerStyle.zIndex = 9999;
+      (0, _element.addClass)(this.datePicker, 'htDatepickerHolder');
+      this.hot.rootDocument.body.appendChild(this.datePicker);
+      this.$datePicker = new _pikaday.default(this.getDatePickerConfig());
+      var eventManager = new _eventManager.default(this);
+      /**
+       * Prevent recognizing clicking on datepicker as clicking outside of table
+       */
+
+      eventManager.addEventListener(this.datePicker, 'mousedown', function (event) {
+        return (0, _event.stopPropagation)(event);
+      });
+      this.hideDatepicker();
+    }
+    /**
+     * Destroy data picker instance
+     */
+
+  }, {
+    key: "destroyElements",
+    value: function destroyElements() {
+      var datePickerParentElement = this.datePicker.parentNode;
+      this.$datePicker.destroy();
+
+      if (datePickerParentElement) {
+        datePickerParentElement.removeChild(this.datePicker);
+      }
+    }
+    /**
+     * Prepare editor to appear
+     *
+     * @param {Number} row Row index
+     * @param {Number} col Column index
+     * @param {String} prop Property name (passed when datasource is an array of objects)
+     * @param {HTMLTableCellElement} td Table cell element
+     * @param {*} originalValue Original value
+     * @param {Object} cellProperties Object with cell properties ({@see Core#getCellMeta})
+     */
+
+  }, {
+    key: "prepare",
+    value: function prepare(row, col, prop, td, originalValue, cellProperties) {
+      (0, _get2.default)((0, _getPrototypeOf2.default)(DateEditor.prototype), "prepare", this).call(this, row, col, prop, td, originalValue, cellProperties);
+    }
+    /**
+     * Open editor
+     *
+     * @param {Event} [event=null]
+     */
+
+  }, {
+    key: "open",
+    value: function open() {
+      var event = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+      (0, _get2.default)((0, _getPrototypeOf2.default)(DateEditor.prototype), "open", this).call(this);
+      this.showDatepicker(event);
+    }
+    /**
+     * Close editor
+     */
+
+  }, {
+    key: "close",
+    value: function close() {
+      var _this3 = this;
+
+      this._opened = false;
+
+      this.instance._registerTimeout(function () {
+        _this3.instance._refreshBorders();
+      });
+
+      (0, _get2.default)((0, _getPrototypeOf2.default)(DateEditor.prototype), "close", this).call(this);
+    }
+    /**
+     * @param {Boolean} [isCancelled=false]
+     * @param {Boolean} [ctrlDown=false]
+     */
+
+  }, {
+    key: "finishEditing",
+    value: function finishEditing() {
+      var isCancelled = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      var ctrlDown = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+      if (isCancelled) {
+        // pressed ESC, restore original value
+        // var value = this.instance.getDataAtCell(this.row, this.col);
+        var value = this.originalValue;
+
+        if (value !== void 0) {
+          this.setValue(value);
+        }
+      }
+
+      this.hideDatepicker();
+      (0, _get2.default)((0, _getPrototypeOf2.default)(DateEditor.prototype), "finishEditing", this).call(this, isCancelled, ctrlDown);
+    }
+    /**
+     * Show data picker
+     *
+     * @param {Event} event
+     */
+
+  }, {
+    key: "showDatepicker",
+    value: function showDatepicker(event) {
+      this.$datePicker.config(this.getDatePickerConfig());
+      var offset = this.TD.getBoundingClientRect();
+      var dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
+      var datePickerConfig = this.$datePicker.config();
+      var dateStr;
+      var isMouseDown = this.instance.view.isMouseDown();
+      var isMeta = event ? (0, _unicode.isMetaKey)(event.keyCode) : false;
+      this.datePickerStyle.top = "".concat(this.hot.rootWindow.pageYOffset + offset.top + (0, _element.outerHeight)(this.TD), "px");
+      this.datePickerStyle.left = "".concat(this.hot.rootWindow.pageXOffset + offset.left, "px");
+
+      this.$datePicker._onInputFocus = function () {};
+
+      datePickerConfig.format = dateFormat;
+
+      if (this.originalValue) {
+        dateStr = this.originalValue;
+
+        if ((0, _moment.default)(dateStr, dateFormat, true).isValid()) {
+          this.$datePicker.setMoment((0, _moment.default)(dateStr, dateFormat), true);
+        } // workaround for date/time cells - pikaday resets the cell value to 12:00 AM by default, this will overwrite the value.
+
+
+        if (this.getValue() !== this.originalValue) {
+          this.setValue(this.originalValue);
+        }
+
+        if (!isMeta && !isMouseDown) {
+          this.setValue('');
+        }
+      } else if (this.cellProperties.defaultDate) {
+        dateStr = this.cellProperties.defaultDate;
+        datePickerConfig.defaultDate = dateStr;
+
+        if ((0, _moment.default)(dateStr, dateFormat, true).isValid()) {
+          this.$datePicker.setMoment((0, _moment.default)(dateStr, dateFormat), true);
+        }
+
+        if (!isMeta && !isMouseDown) {
+          this.setValue('');
+        }
+      } else {
+        // if a default date is not defined, set a soft-default-date: display the current day and month in the
+        // datepicker, but don't fill the editor input
+        this.$datePicker.gotoToday();
+      }
+
+      this.datePickerStyle.display = 'block';
+      this.$datePicker.show();
+    }
+    /**
+     * Hide data picker
+     */
+
+  }, {
+    key: "hideDatepicker",
+    value: function hideDatepicker() {
+      this.datePickerStyle.display = 'none';
+      this.$datePicker.hide();
+    }
+    /**
+     * Get date picker options.
+     *
+     * @returns {Object}
+     */
+
+  }, {
+    key: "getDatePickerConfig",
+    value: function getDatePickerConfig() {
+      var _this4 = this;
+
+      var htInput = this.TEXTAREA;
+      var options = {};
+
+      if (this.cellProperties && this.cellProperties.datePickerConfig) {
+        (0, _object.deepExtend)(options, this.cellProperties.datePickerConfig);
+      }
+
+      var origOnSelect = options.onSelect;
+      var origOnClose = options.onClose;
+      options.field = htInput;
+      options.trigger = htInput;
+      options.container = this.datePicker;
+      options.bound = false;
+      options.format = options.format || this.defaultDateFormat;
+      options.reposition = options.reposition || false;
+
+      options.onSelect = function (value) {
+        var dateStr = value;
+
+        if (!isNaN(dateStr.getTime())) {
+          dateStr = (0, _moment.default)(dateStr).format(_this4.cellProperties.dateFormat || _this4.defaultDateFormat);
+        }
+
+        _this4.setValue(dateStr);
+
+        _this4.hideDatepicker();
+
+        if (origOnSelect) {
+          origOnSelect();
+        }
+      };
+
+      options.onClose = function () {
+        if (!_this4.parentDestroyed) {
+          _this4.finishEditing(false);
+        }
+
+        if (origOnClose) {
+          origOnClose();
+        }
+      };
+
+      return options;
+    }
+  }]);
+  return DateEditor;
+}(_textEditor.default);
+
+var _default = DateEditor;
+exports.default = _default;
+
+/***/ }),
+/* 341 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE__341__;
+
+/***/ }),
+/* 342 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 343 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(0);
+
+__webpack_require__(42);
+
+exports.__esModule = true;
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(6));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(5));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(7));
+
+var _autocompleteEditor = _interopRequireDefault(__webpack_require__(236));
+
+var _pluginHooks = _interopRequireDefault(__webpack_require__(44));
+
+/**
+ * @private
+ * @editor DropdownEditor
+ * @class DropdownEditor
+ * @dependencies AutocompleteEditor
+ */
+var DropdownEditor =
+/*#__PURE__*/
+function (_AutocompleteEditor) {
+  (0, _inherits2.default)(DropdownEditor, _AutocompleteEditor);
+
+  function DropdownEditor() {
+    (0, _classCallCheck2.default)(this, DropdownEditor);
+    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(DropdownEditor).apply(this, arguments));
+  }
+
+  (0, _createClass2.default)(DropdownEditor, [{
+    key: "prepare",
+    value: function prepare(row, col, prop, td, originalValue, cellProperties) {
+      (0, _get2.default)((0, _getPrototypeOf2.default)(DropdownEditor.prototype), "prepare", this).call(this, row, col, prop, td, originalValue, cellProperties);
+      this.cellProperties.filter = false;
+      this.cellProperties.strict = true;
+    }
+  }]);
+  return DropdownEditor;
+}(_autocompleteEditor.default);
+
+_pluginHooks.default.getSingleton().add('beforeValidate', function (value, row, col) {
+  var cellMeta = this.getCellMeta(row, this.propToCol(col));
+
+  if (cellMeta.editor === DropdownEditor) {
+    if (cellMeta.strict === void 0) {
+      cellMeta.filter = false;
+      cellMeta.strict = true;
+    }
+  }
+});
+
+var _default = DropdownEditor;
+exports.default = _default;
+
+/***/ }),
+/* 344 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(0);
+
+exports.__esModule = true;
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(6));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(5));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(7));
+
+var _textEditor = _interopRequireDefault(__webpack_require__(111));
+
+/**
+ * @private
+ * @editor NumericEditor
+ * @class NumericEditor
+ */
+var NumericEditor =
+/*#__PURE__*/
+function (_TextEditor) {
+  (0, _inherits2.default)(NumericEditor, _TextEditor);
+
+  function NumericEditor() {
+    (0, _classCallCheck2.default)(this, NumericEditor);
+    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(NumericEditor).apply(this, arguments));
+  }
+
+  return NumericEditor;
+}(_textEditor.default);
+
+var _default = NumericEditor;
+exports.default = _default;
+
+/***/ }),
+/* 345 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(0);
+
+exports.__esModule = true;
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(6));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(5));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(7));
+
+var _element = __webpack_require__(8);
+
+var _textEditor = _interopRequireDefault(__webpack_require__(111));
+
+/**
+ * @private
+ * @editor PasswordEditor
+ * @class PasswordEditor
+ * @dependencies TextEditor
+ */
+var PasswordEditor =
+/*#__PURE__*/
+function (_TextEditor) {
+  (0, _inherits2.default)(PasswordEditor, _TextEditor);
+
+  function PasswordEditor() {
+    (0, _classCallCheck2.default)(this, PasswordEditor);
+    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(PasswordEditor).apply(this, arguments));
+  }
+
+  (0, _createClass2.default)(PasswordEditor, [{
+    key: "createElements",
+    value: function createElements() {
+      (0, _get2.default)((0, _getPrototypeOf2.default)(PasswordEditor.prototype), "createElements", this).call(this);
+      this.TEXTAREA = this.hot.rootDocument.createElement('input');
+      this.TEXTAREA.setAttribute('type', 'password');
+      this.TEXTAREA.className = 'handsontableInput';
+      this.textareaStyle = this.TEXTAREA.style;
+      this.textareaStyle.width = 0;
+      this.textareaStyle.height = 0;
+      (0, _element.empty)(this.TEXTAREA_PARENT);
+      this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
+    }
+  }]);
+  return PasswordEditor;
+}(_textEditor.default);
+
+var _default = PasswordEditor;
+exports.default = _default;
+
+/***/ }),
+/* 346 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _interopRequireWildcard = __webpack_require__(10);
+
+var _interopRequireDefault = __webpack_require__(0);
+
+exports.__esModule = true;
+exports.default = void 0;
+
+var _typeof2 = _interopRequireDefault(__webpack_require__(45));
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(6));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(5));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(7));
+
+var _element = __webpack_require__(8);
+
+var _event = __webpack_require__(31);
+
+var _unicode = __webpack_require__(58);
+
+var _baseEditor = _interopRequireWildcard(__webpack_require__(107));
+
+var _object = __webpack_require__(4);
+
+/**
+ * @private
+ * @editor SelectEditor
+ * @class SelectEditor
+ */
+var SelectEditor =
+/*#__PURE__*/
+function (_BaseEditor) {
+  (0, _inherits2.default)(SelectEditor, _BaseEditor);
+
+  function SelectEditor() {
+    (0, _classCallCheck2.default)(this, SelectEditor);
+    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(SelectEditor).apply(this, arguments));
+  }
+
+  (0, _createClass2.default)(SelectEditor, [{
+    key: "init",
+
+    /**
+     * Initializes editor instance, DOM Element and mount hooks.
+     */
+    value: function init() {
+      this.select = this.hot.rootDocument.createElement('SELECT');
+      (0, _element.addClass)(this.select, 'htSelectEditor');
+      this.select.style.display = 'none';
+      this.hot.rootElement.appendChild(this.select);
+      this.registerHooks();
+    }
+    /**
+     * Returns select's value.
+     *
+     * @returns {*}
+     */
+
+  }, {
+    key: "getValue",
+    value: function getValue() {
+      return this.select.value;
+    }
+    /**
+     * Sets value in the select element.
+     *
+     * @param {*} value A new select's value.
+     */
+
+  }, {
+    key: "setValue",
+    value: function setValue(value) {
+      this.select.value = value;
+    }
+    /**
+     * Opens the editor and adjust its size.
+     */
+
+  }, {
+    key: "open",
+    value: function open() {
+      var _this = this;
+
+      this._opened = true;
+      this.refreshDimensions();
+      this.select.style.display = '';
+      this.addHook('beforeKeyDown', function () {
+        return _this.onBeforeKeyDown();
+      });
+    }
+    /**
+     * Closes the editor.
+     */
+
+  }, {
+    key: "close",
+    value: function close() {
+      this._opened = false;
+      this.select.style.display = 'none';
+      this.clearHooks();
+    }
+    /**
+     * Sets focus state on the select element.
+     */
+
+  }, {
+    key: "focus",
+    value: function focus() {
+      this.select.focus();
+    }
+    /**
+     * Binds hooks to refresh editor's size after scrolling of the viewport or resizing of columns/rows.
+     *
+     * @private
+     */
+
+  }, {
+    key: "registerHooks",
+    value: function registerHooks() {
+      var _this2 = this;
+
+      this.addHook('afterScrollHorizontally', function () {
+        return _this2.refreshDimensions();
+      });
+      this.addHook('afterScrollVertically', function () {
+        return _this2.refreshDimensions();
+      });
+      this.addHook('afterColumnResize', function () {
+        return _this2.refreshDimensions();
+      });
+      this.addHook('afterRowResize', function () {
+        return _this2.refreshDimensions();
+      });
+    }
+    /**
+     * Prepares editor's meta data and a list of available options.
+     *
+     * @param {Number} row
+     * @param {Number} col
+     * @param {Number|String} prop
+     * @param {HTMLTableCellElement} td
+     * @param {*} originalValue
+     * @param {Object} cellProperties
+     */
+
+  }, {
+    key: "prepare",
+    value: function prepare(row, col, prop, td, originalValue, cellProperties) {
+      var _this3 = this;
+
+      (0, _get2.default)((0, _getPrototypeOf2.default)(SelectEditor.prototype), "prepare", this).call(this, row, col, prop, td, originalValue, cellProperties);
+      var selectOptions = this.cellProperties.selectOptions;
+      var options;
+
+      if (typeof selectOptions === 'function') {
+        options = this.prepareOptions(selectOptions(this.row, this.col, this.prop));
+      } else {
+        options = this.prepareOptions(selectOptions);
+      }
+
+      (0, _element.empty)(this.select);
+      (0, _object.objectEach)(options, function (value, key) {
+        var optionElement = _this3.hot.rootDocument.createElement('OPTION');
+
+        optionElement.value = key;
+        (0, _element.fastInnerHTML)(optionElement, value);
+
+        _this3.select.appendChild(optionElement);
+      });
+    }
+    /**
+     * Creates consistent list of available options.
+     *
+     * @private
+     * @param {Array|Object} optionsToPrepare
+     * @returns {Object}
+     */
+
+  }, {
+    key: "prepareOptions",
+    value: function prepareOptions(optionsToPrepare) {
+      var preparedOptions = {};
+
+      if (Array.isArray(optionsToPrepare)) {
+        for (var i = 0, len = optionsToPrepare.length; i < len; i++) {
+          preparedOptions[optionsToPrepare[i]] = optionsToPrepare[i];
+        }
+      } else if ((0, _typeof2.default)(optionsToPrepare) === 'object') {
+        preparedOptions = optionsToPrepare;
+      }
+
+      return preparedOptions;
+    }
+    /**
+     * Refreshes editor's value using source data.
+     *
+     * @private
+     */
+
+  }, {
+    key: "refreshValue",
+    value: function refreshValue() {
+      var sourceData = this.hot.getSourceDataAtCell(this.row, this.prop);
+      this.originalValue = sourceData;
+      this.setValue(sourceData);
+      this.refreshDimensions();
+    }
+    /**
+     * Refreshes editor's size and position.
+     *
+     * @private
+     */
+
+  }, {
+    key: "refreshDimensions",
+    value: function refreshDimensions() {
+      if (this.state !== _baseEditor.EditorState.EDITING) {
+        return;
+      }
+
+      this.TD = this.getEditedCell(); // TD is outside of the viewport.
+
+      if (!this.TD) {
+        this.close();
+        return;
+      }
+
+      var wtOverlays = this.hot.view.wt.wtOverlays;
+      var currentOffset = (0, _element.offset)(this.TD);
+      var containerOffset = (0, _element.offset)(this.hot.rootElement);
+      var scrollableContainer = wtOverlays.scrollableElement;
+      var editorSection = this.checkEditorSection();
+      var width = (0, _element.outerWidth)(this.TD) + 1;
+      var height = (0, _element.outerHeight)(this.TD) + 1;
+      var editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0);
+      var editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
+      var cssTransformOffset;
+
+      switch (editorSection) {
+        case 'top':
+          cssTransformOffset = (0, _element.getCssTransform)(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
+          break;
+
+        case 'left':
+          cssTransformOffset = (0, _element.getCssTransform)(wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
+          break;
+
+        case 'top-left-corner':
+          cssTransformOffset = (0, _element.getCssTransform)(wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+          break;
+
+        case 'bottom-left-corner':
+          cssTransformOffset = (0, _element.getCssTransform)(wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
+          break;
+
+        case 'bottom':
+          cssTransformOffset = (0, _element.getCssTransform)(wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
+          break;
+
+        default:
+          break;
+      }
+
+      if (this.hot.getSelectedLast()[0] === 0) {
+        editTop += 1;
+      }
+
+      if (this.hot.getSelectedLast()[1] === 0) {
+        editLeft += 1;
+      }
+
+      var selectStyle = this.select.style;
+
+      if (cssTransformOffset && cssTransformOffset !== -1) {
+        selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
+      } else {
+        (0, _element.resetCssTransform)(this.select);
+      }
+
+      var cellComputedStyle = (0, _element.getComputedStyle)(this.TD, this.hot.rootWindow);
+
+      if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
+        height -= 1;
+      }
+
+      if (parseInt(cellComputedStyle.borderLeftWidth, 10) > 0) {
+        width -= 1;
+      }
+
+      selectStyle.height = "".concat(height, "px");
+      selectStyle.minWidth = "".concat(width, "px");
+      selectStyle.top = "".concat(editTop, "px");
+      selectStyle.left = "".concat(editLeft, "px");
+      selectStyle.margin = '0px';
+      selectStyle.zIndex = this.getEditedCellsZIndex();
+    }
+    /**
+     * onBeforeKeyDown callback.
+     *
+     * @private
+     */
+
+  }, {
+    key: "onBeforeKeyDown",
+    value: function onBeforeKeyDown() {
+      var previousOptionIndex = this.select.selectedIndex - 1;
+      var nextOptionIndex = this.select.selectedIndex + 1;
+
+      switch (event.keyCode) {
+        case _unicode.KEY_CODES.ARROW_UP:
+          if (previousOptionIndex >= 0) {
+            this.select[previousOptionIndex].selected = true;
+          }
+
+          (0, _event.stopImmediatePropagation)(event);
+          event.preventDefault();
+          break;
+
+        case _unicode.KEY_CODES.ARROW_DOWN:
+          if (nextOptionIndex <= this.select.length - 1) {
+            this.select[nextOptionIndex].selected = true;
+          }
+
+          (0, _event.stopImmediatePropagation)(event);
+          event.preventDefault();
+          break;
+
+        default:
+          break;
+      }
+    }
+  }]);
+  return SelectEditor;
+}(_baseEditor.default);
+
+var _default = SelectEditor;
 exports.default = _default;
 
 /***/ }),
@@ -46110,7 +46113,7 @@ exports.default = void 0;
 
 var _editors = __webpack_require__(60);
 
-var _renderers = __webpack_require__(42);
+var _renderers = __webpack_require__(41);
 
 var _validators = __webpack_require__(80);
 
@@ -46134,7 +46137,7 @@ exports.default = void 0;
 
 var _editors = __webpack_require__(60);
 
-var _renderers = __webpack_require__(42);
+var _renderers = __webpack_require__(41);
 
 var CELL_TYPE = 'checkbox';
 var _default = {
@@ -46155,7 +46158,7 @@ exports.default = void 0;
 
 var _editors = __webpack_require__(60);
 
-var _renderers = __webpack_require__(42);
+var _renderers = __webpack_require__(41);
 
 var _validators = __webpack_require__(80);
 
@@ -46180,7 +46183,7 @@ exports.default = void 0;
 
 var _editors = __webpack_require__(60);
 
-var _renderers = __webpack_require__(42);
+var _renderers = __webpack_require__(41);
 
 var _validators = __webpack_require__(80);
 
@@ -46205,7 +46208,7 @@ exports.default = void 0;
 
 var _editors = __webpack_require__(60);
 
-var _renderers = __webpack_require__(42);
+var _renderers = __webpack_require__(41);
 
 var CELL_TYPE = 'handsontable';
 var _default = {
@@ -46227,7 +46230,7 @@ exports.default = void 0;
 
 var _editors = __webpack_require__(60);
 
-var _renderers = __webpack_require__(42);
+var _renderers = __webpack_require__(41);
 
 var _validators = __webpack_require__(80);
 
@@ -46252,7 +46255,7 @@ exports.default = void 0;
 
 var _editors = __webpack_require__(60);
 
-var _renderers = __webpack_require__(42);
+var _renderers = __webpack_require__(41);
 
 var CELL_TYPE = 'password';
 var _default = {
@@ -46274,7 +46277,7 @@ exports.default = void 0;
 
 var _editors = __webpack_require__(60);
 
-var _renderers = __webpack_require__(42);
+var _renderers = __webpack_require__(41);
 
 var CELL_TYPE = 'text';
 var _default = {
@@ -46295,7 +46298,7 @@ exports.default = void 0;
 
 var _editors = __webpack_require__(60);
 
-var _renderers = __webpack_require__(42);
+var _renderers = __webpack_require__(41);
 
 var _validators = __webpack_require__(80);
 
@@ -46457,7 +46460,7 @@ module.exports = {
 
 var _interopRequireDefault = __webpack_require__(0);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(13);
 
@@ -47721,7 +47724,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(242);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(25);
 
@@ -64566,7 +64569,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(17);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(25);
 
@@ -69391,7 +69394,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(17);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(137);
 
@@ -74211,7 +74214,7 @@ function warnAboutPluginsConflict() {
 "use strict";
 
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(134);
 
@@ -74282,7 +74285,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(17);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(25);
 
@@ -75412,7 +75415,7 @@ var _interopRequireWildcard = __webpack_require__(10);
 
 var _interopRequireDefault = __webpack_require__(0);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(59);
 
@@ -77182,7 +77185,7 @@ var _interopRequireWildcard = __webpack_require__(10);
 
 var _interopRequireDefault = __webpack_require__(0);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(59);
 
@@ -78268,7 +78271,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(17);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(13);
 
@@ -86851,7 +86854,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(17);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(55);
 
@@ -87858,7 +87861,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(17);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(55);
 
@@ -88877,7 +88880,7 @@ var _interopRequireDefault = __webpack_require__(0);
 
 __webpack_require__(17);
 
-__webpack_require__(41);
+__webpack_require__(42);
 
 __webpack_require__(55);
 
