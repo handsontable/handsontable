@@ -1529,6 +1529,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function loadData
    * @param {Array} data Array of arrays or array of objects containing data.
    * @fires Hooks#afterLoadData
+   * @fires Hooks#beforeIndexMappersInit
    * @fires Hooks#afterChange
    */
   this.loadData = function(data) {
@@ -1607,6 +1608,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (Array.isArray(columnsSettings)) {
       nrOfColumnsFromSettings = columnsSettings.length;
     }
+
+    instance.runHooks('beforeIndexMappersInit');
 
     /**
      * We need to use `Math.max`, because:

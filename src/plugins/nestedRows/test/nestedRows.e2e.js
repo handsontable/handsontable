@@ -1,4 +1,4 @@
-import {getSimplerNestedData} from './helpers/fixtures';
+import {getMoreComplexNestedData, getSimplerNestedData} from './helpers/fixtures';
 
 describe('NestedRows', () => {
   const id = 'testContainer';
@@ -377,5 +377,31 @@ describe('NestedRows', () => {
 
     expect(warnSpy.calls.count()).toEqual(6);
     expect(getData()).toEqual(dataAtStart);
+  });
+
+  it('should display the right amount of entries when calling loadData after being initialized with empty data', (done) => {
+    const hot = handsontable({
+      data: [],
+      nestedRows: true
+    });
+
+    setTimeout(() => {
+      hot.loadData(getMoreComplexNestedData());
+      expect(hot.countRows()).toEqual(13);
+      done();
+    }, 100);
+  });
+
+  it('should display the right amount of entries when calling loadData with another set of data', (done) => {
+    const hot = handsontable({
+      data: getMoreComplexNestedData(),
+      nestedRows: true
+    });
+
+    setTimeout(() => {
+      hot.loadData(getMoreComplexNestedData().slice(0, 1));
+      expect(hot.countRows()).toEqual(7);
+      done();
+    }, 100);
   });
 });

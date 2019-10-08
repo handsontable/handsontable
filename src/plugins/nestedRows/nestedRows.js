@@ -116,6 +116,7 @@ class NestedRows extends BasePlugin {
     this.addHook('modifyRowHeaderWidth', (...args) => this.onModifyRowHeaderWidth(...args));
     this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
     this.addHook('beforeRowMove', (...args) => this.onBeforeRowMove(...args));
+    this.addHook('beforeIndexMappersInit', (...args) => this.onBeforeIndexMappersInit(...args));
 
     super.enablePlugin();
   }
@@ -611,6 +612,16 @@ class NestedRows extends BasePlugin {
     this.rowIndexMapper.unregisterMap('nestedRows');
 
     super.destroy();
+  }
+
+  /**
+   * `beforeIndexMappersInit` hook callback.
+   *
+   * @private
+   */
+  onBeforeIndexMappersInit() {
+    this.dataManager.data = this.hot.getSourceData();
+    this.dataManager.rewriteCache();
   }
 }
 
