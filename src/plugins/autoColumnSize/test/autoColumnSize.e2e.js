@@ -1,3 +1,5 @@
+import {render} from '../../../../test/helpers/common';
+
 describe('AutoColumnSize', () => {
   const id = 'testContainer';
 
@@ -522,5 +524,80 @@ describe('AutoColumnSize', () => {
     loadData([[]]);
 
     expect(calculateColumnsWidth).not.toHaveBeenCalled();
+  });
+
+  it('should keep proper column widths after inserting column', () => {
+    handsontable({
+      autoColumnSize: true,
+      colHeaders: ['Short', 'Longer', 'The longest header']
+    });
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(59);
+    expect(colWidth(spec().$container, 2)).toBe(147);
+
+    alter('insert_col', 0);
+
+    expect(colWidth(spec().$container, 0)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(59);
+    expect(colWidth(spec().$container, 3)).toBe(147);
+    expect(colWidth(spec().$container, 4)).toBe(50);
+
+    alter('insert_col', 3);
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(59);
+    expect(colWidth(spec().$container, 3)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 4)).toBe(147);
+    expect(colWidth(spec().$container, 5)).toBe(50);
+
+    alter('insert_col', 5);
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(59);
+    expect(colWidth(spec().$container, 3)).toBe(50);
+    expect(colWidth(spec().$container, 4)).toBe(147);
+    expect(colWidth(spec().$container, 5)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 6)).toBe(50);
+  });
+
+  it('should keep proper column widths after removing column', () => {
+    handsontable({
+      autoColumnSize: true,
+      colHeaders: ['Short', 'Longer', 'The longest header']
+    });
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(59);
+    expect(colWidth(spec().$container, 2)).toBe(147);
+    expect(colWidth(spec().$container, 3)).toBe(50);
+
+    alter('remove_col', 0);
+
+    expect(colWidth(spec().$container, 0)).toBe(59);
+    expect(colWidth(spec().$container, 1)).toBe(147);
+    expect(colWidth(spec().$container, 2)).toBe(50);
+  });
+
+  it('should keep appropriate column size when columns order is changed', () => {
+    handsontable({
+      autoColumnSize: true,
+      colHeaders: ['Short', 'Longer', 'The longest header']
+    });
+
+    getPlugin('autoColumnSize').columnIndexMapper.moveIndexes(2, 1);
+    render();
+
+    expect(colWidth(spec().$container, 1)).toBe(147);
+    expect(colWidth(spec().$container, 2)).toBe(59);
+
+    getPlugin('autoColumnSize').columnIndexMapper.moveIndexes(1, 2);
+    render();
+
+    expect(colWidth(spec().$container, 1)).toBe(59);
+    expect(colWidth(spec().$container, 2)).toBe(147);
   });
 });

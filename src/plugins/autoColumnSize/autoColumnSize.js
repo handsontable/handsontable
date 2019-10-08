@@ -226,7 +226,9 @@ class AutoColumnSize extends BasePlugin {
     if (this.ghostTable.columns.length) {
       this.hot.executeBatchOperations(() => {
         this.ghostTable.getWidths((col, width) => {
-          this.columnWidthsMap.setValueAtIndex(col, width);
+          const physicalColumn = this.hot.toPhysicalColumn(col);
+
+          this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
         });
       });
 
