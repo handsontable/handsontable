@@ -61,6 +61,12 @@ class EditorManager {
      * @type {*}
      */
     this.activeEditor = void 0;
+    /**
+     * Keeps a reference to the cell's properties object.
+     *
+     * @type {Object}
+     */
+    this.cellProperties = void 0;
 
     this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
@@ -135,17 +141,26 @@ class EditorManager {
     }
 
     const { row, col } = this.instance.selection.selectedRange.current().highlight;
-    const prop = this.instance.colToProp(col);
-    const originalValue = this.instance.getSourceDataAtCell(this.instance.runHooks('modifyRow', row), col);
-    const cellProperties = this.instance.getCellMeta(row, col);
-    const editorClass = this.instance.getCellEditor(cellProperties);
+    this.cellProperties = this.instance.getCellMeta(row, col);
 
-    if (editorClass) {
+    if (this.cellProperties.readOnly) {
+      this.clearActiveEditor();
+
+      return;
+    }
+
+    const editorClass = this.instance.getCellEditor(this.cellProperties);
+    const td = this.instance.getCell(row, col, true);
+
+    if (editorClass && td) {
+      const prop = this.instance.colToProp(col);
+      const originalValue = this.instance.getSourceDataAtCell(this.instance.runHooks('modifyRow', row), col);
+
       this.activeEditor = getEditorInstance(editorClass, this.instance);
-      const td = this.instance.getCell(row, col, true);
-      this.activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
+      this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
+
     } else {
-      this.activeEditor = void 0;
+      this.clearActiveEditor();
     }
   }
 
@@ -169,16 +184,7 @@ class EditorManager {
       return;
     }
 
-    const readOnly = this.activeEditor.cellProperties.readOnly;
-
-    if (readOnly) {
-      // move the selection after opening the editor with ENTER key
-      if (event && event.keyCode === KEY_CODES.ENTER) {
-        this.moveSelectionAfterEnter();
-      }
-    } else {
-      this.activeEditor.beginEditing(newInitialValue, event);
-    }
+    this.activeEditor.beginEditing(newInitialValue, event);
   }
 
   /**
@@ -213,6 +219,15 @@ class EditorManager {
    */
   closeEditorAndRestoreOriginalValue(isCtrlPressed) {
     return this.closeEditor(true, isCtrlPressed);
+  }
+
+  /**
+   * Clears reference to an instance of the active editor.
+   *
+   * @private
+   */
+  clearActiveEditor() {
+    this.activeEditor = void 0;
   }
 
   /**
@@ -426,10 +441,13 @@ class EditorManager {
           this.moveSelectionAfterEnter(isShiftPressed);
 
         } else if (this.instance.getSettings().enterBeginsEditing) {
-          if (this.activeEditor) {
+          if (this.cellProperties.readOnly) {
+            this.moveSelectionAfterEnter();
+
+          } else if (this.activeEditor) {
             this.activeEditor.enableFullEditMode();
+            this.openEditor(null, event);
           }
-          this.openEditor(null, event);
 
         } else {
           this.moveSelectionAfterEnter(isShiftPressed);
