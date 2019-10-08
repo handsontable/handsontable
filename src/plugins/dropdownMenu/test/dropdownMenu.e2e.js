@@ -117,6 +117,21 @@ describe('DropdownMenu', () => {
       expect($('.htDropdownMenu').is(':visible')).toBe(true);
     });
 
+    it('should be possible to define a custom container for DropdownMenu\'s UI elements', () => {
+      const uiContainer = $('<div/>').addClass('uiContainer');
+      spec().$container.append(uiContainer);
+
+      handsontable({
+        dropdownMenu: {
+          uiContainer: uiContainer[0],
+        },
+      });
+
+      dropdownMenu(0);
+
+      expect($('.uiContainer .htDropdownMenu').is(':visible')).toBe(true);
+    });
+
     it('should open menu after click on table header button when only header cells are visible', () => {
       handsontable({
         data: [],

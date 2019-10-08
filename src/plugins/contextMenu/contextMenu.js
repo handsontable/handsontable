@@ -147,7 +147,7 @@ class ContextMenu extends BasePlugin {
     this.menu = new Menu(this.hot, {
       className: 'htContextMenu',
       keepInViewport: true,
-      container: settings.container || this.hot.rootDocument.documentElement,
+      container: settings.uiContainer || this.hot.rootDocument.documentElement,
     });
 
     this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());

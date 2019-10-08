@@ -176,6 +176,21 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
+    it('should be possible to define a custom container for ContextMenu\'s UI elements', () => {
+      const uiContainer = $('<div/>').addClass('uiContainer');
+      spec().$container.append(uiContainer);
+
+      handsontable({
+        contextMenu: {
+          uiContainer: uiContainer[0],
+        },
+      });
+
+      contextMenu();
+
+      expect($('.uiContainer .htContextMenu').is(':visible')).toBe(true);
+    });
+
     it('should finish selection after right click on table cell', () => {
       const hot = handsontable({
         contextMenu: true,

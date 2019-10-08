@@ -82,7 +82,7 @@ class SelectUI extends BaseUI {
       className: 'htSelectUI htFiltersConditionsMenu',
       keepInViewport: false,
       standalone: true,
-      container: this.hot.rootDocument.body,
+      container: this.options.menuContainer,
     });
     this.menu.setMenuItems(this.items);
 

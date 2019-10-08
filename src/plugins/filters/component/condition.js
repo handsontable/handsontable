@@ -22,7 +22,7 @@ class ConditionComponent extends BaseComponent {
     this.name = options.name;
     this.addSeparator = options.addSeparator;
 
-    this.elements.push(new SelectUI(this.hot));
+    this.elements.push(new SelectUI(this.hot, { menuContainer: options.menuContainer }));
     this.elements.push(new InputUI(this.hot, { placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_VALUE }));
     this.elements.push(new InputUI(this.hot, { placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE }));
     this.registerHooks();
