@@ -570,7 +570,7 @@ describe('NestedHeaders', () => {
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseup');
 
-      const svgPath = spec().$container.find('svg:eq(0) path[stroke-width="2px"]')[0];
+      const svgPath = spec().$container.find('svg:eq(0) path[stroke-width="2"]')[0];
       expect(svgPath.getAttribute('d')).toBe('M 50 105 99 105 99 127 50 127 50 105 Z');
     });
   });

@@ -154,7 +154,7 @@ function getStateForStyle(states, style, parent) {
     const [size, color] = style.split(' ');
 
     elem.setAttribute('stroke', color);
-    elem.setAttribute('stroke-width', size);
+    elem.setAttribute('stroke-width', parseInt(size, 10));
     elem.setAttribute('stroke-linecap', 'square');
     // elem.setAttribute('shape-rendering', 'optimizeSpeed');
     elem.setAttribute('shape-rendering', 'geometricPrecision'); // TODO why the border renders wrong when this is on

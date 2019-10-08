@@ -291,7 +291,7 @@ describe('WalkontableScroll', () => {
       wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
       wt.draw();
 
-      const svgPath = spec().$wrapper.find('svg:eq(0) path[stroke-width="2px"]')[0];
+      const svgPath = spec().$wrapper.find('svg:eq(0) path[stroke-width="2"]')[0];
       expect(svgPath.getAttribute('d')).toBe('M 49 46 99 46 99 69 49 69 49 46 Z');
 
       wt.scrollViewport(new Walkontable.CellCoords(12, 0));
