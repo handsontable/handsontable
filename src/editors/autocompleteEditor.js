@@ -2,6 +2,7 @@ import { KEY_CODES, isPrintableChar } from './../helpers/unicode';
 import { stringify, isDefined } from './../helpers/mixed';
 import { stripTags } from './../helpers/string';
 import { pivot, arrayMap } from './../helpers/array';
+import { getRenderer } from '../renderers';
 import {
   addClass,
   getCaretPosition,
@@ -102,7 +103,10 @@ class AutocompleteEditor extends HandsontableEditor {
     choicesListHot.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth + 2 : void 0,
-      renderer: (instance, TD, row, col, prop, value) => {
+      renderer: (instance, TD, row, col, prop, value, cellProperties) => {
+
+        getRenderer('base')(instance, TD, row, col, prop, value, cellProperties);
+
         const { filteringCaseSensitive, allowHtml } = this.cellProperties;
         const query = this.query;
         let cellValue = stringify(value);
