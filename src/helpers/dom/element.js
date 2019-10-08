@@ -108,7 +108,11 @@ export function isChildOf(child, parent) {
   let queriedParents = [];
 
   if (typeof parent === 'string') {
-    queriedParents = Array.prototype.slice.call(child.ownerDocument.querySelectorAll(parent), 0);
+    if (child.defaultView) {
+      queriedParents = Array.prototype.slice.call(child.querySelectorAll(parent), 0);
+    } else {
+      queriedParents = Array.prototype.slice.call(child.ownerDocument.querySelectorAll(parent), 0);
+    }
   } else {
     queriedParents.push(parent);
   }

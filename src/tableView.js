@@ -493,6 +493,10 @@ class TableView {
         this.activeWt = wt;
         this.instance.runHooks('beforeOnCellMouseUp', event, coords, TD);
 
+        if (isImmediatePropagationStopped(event)) {
+          return;
+        }
+
         this.instance.runHooks('afterOnCellMouseUp', event, coords, TD);
         this.activeWt = this.wt;
       },

@@ -166,9 +166,11 @@ class Menu {
       rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
-        this.hotMenu.runHooks('afterOnCellMouseUp', event);
+        stopImmediatePropagation(event);
+        this.executeCommand(event);
       },
-      afterOnCellMouseUp: (event) => {
+      beforeOnCellMouseUp: (event) => {
+        stopImmediatePropagation(event);
         this.executeCommand(event);
       },
     };
