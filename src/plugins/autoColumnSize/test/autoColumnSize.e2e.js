@@ -1,5 +1,3 @@
-import {render} from '../../../../test/helpers/common';
-
 describe('AutoColumnSize', () => {
   const id = 'testContainer';
 

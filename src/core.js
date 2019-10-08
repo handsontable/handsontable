@@ -1528,11 +1528,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function loadData
    * @param {Array} data Array of arrays or array of objects containing data.
+   * @fires Hooks#beforeLoadData
    * @fires Hooks#afterLoadData
-   * @fires Hooks#beforeIndexMappersInit
    * @fires Hooks#afterChange
    */
   this.loadData = function(data) {
+    const hookResult = instance.runHooks('beforeLoadData', data, priv.firstRun);
+
+    if (hookResult === false) {
+      return;
+    }
+
     if (Array.isArray(priv.settings.dataSchema)) {
       instance.dataType = 'array';
     } else if (isFunction(priv.settings.dataSchema)) {
@@ -1608,8 +1614,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (Array.isArray(columnsSettings)) {
       nrOfColumnsFromSettings = columnsSettings.length;
     }
-
-    instance.runHooks('beforeIndexMappersInit');
 
     /**
      * We need to use `Math.max`, because:

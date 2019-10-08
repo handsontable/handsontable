@@ -1,5 +1,3 @@
-import {getMoreComplexNestedData, getSimplerNestedData} from './helpers/fixtures';
-
 describe('NestedRows', () => {
   const id = 'testContainer';
   const dataInOrder = [
