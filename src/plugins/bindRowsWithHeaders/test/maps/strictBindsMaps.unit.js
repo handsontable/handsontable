@@ -1,4 +1,4 @@
-import StrictBindsMap from 'handsontable/plugins/bindRowsWithHeaders/maps/StrictBindsMap';
+import StrictBindsMap from 'handsontable/plugins/bindRowsWithHeaders/maps/strictBindsMap';
 
 it('should re-index mapped indexes properly after insertion', () => {
   const strictBindsMap = new StrictBindsMap();

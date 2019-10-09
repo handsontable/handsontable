@@ -1,4 +1,4 @@
-import LooseBindsMap from 'handsontable/plugins/bindRowsWithHeaders/maps/LooseBindsMap';
+import LooseBindsMap from 'handsontable/plugins/bindRowsWithHeaders/maps/looseBindsMap';
 
 it('should re-index mapped indexes properly after insertion', () => {
   const looseBindsMap = new LooseBindsMap();
