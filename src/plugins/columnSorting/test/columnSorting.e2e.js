@@ -2620,6 +2620,28 @@ describe('ColumnSorting', () => {
     expect(hot.toVisualRow(0)).toEqual(0);
   });
 
+  it('should not break data order when extra `loadData` is triggered #3809', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      columnSorting: true
+    });
+
+    alter('insert_row');
+
+    getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+    loadData(Handsontable.helper.createSpreadsheetData(3, 3));
+
+    alter('insert_row');
+
+    expect(getData()).toEqual([
+      ['A1', 'B1', 'C1'],
+      ['A2', 'B2', 'C2'],
+      ['A3', 'B3', 'C3'],
+      [null, null, null],
+    ]);
+  });
+
   // TODO: Remove tests when workaround will be removed.
   describe('workaround regression check', () => {
     it('should not break the dataset when inserted new row', () => {
