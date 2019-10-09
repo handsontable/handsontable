@@ -189,9 +189,10 @@ class ContextMenu extends BasePlugin {
    *
    * @param {Object|Event} position An object with `pageX` and `pageY` properties which contains values relative to
    *                                the top left of the fully rendered content area in the browser or with `clientX`
-   *                                and `clientY`  properties which contains values relative to the upper left edge
-   *                                of the content area (the viewport) of the browser window. This object is structurally
-   *                                compatible with native mouse event so it can be used either.
+   *                                and `clientY` properties which contains values relative to the upper left edge
+   *                                of the content area (the viewport) of the browser window. `target` property is
+   *                                also required. This object is structurally compatible with the native mouse event
+   *                                so it can be used either.
    */
   open(event) {
     if (!this.menu) {

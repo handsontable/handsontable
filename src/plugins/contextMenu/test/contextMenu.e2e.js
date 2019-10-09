@@ -2106,7 +2106,6 @@ describe('ContextMenu', () => {
 
       expect(callback1.calls.count()).toEqual(1);
       expect(callback2.calls.count()).toEqual(1);
-
     });
 
     it('should have custom items list (defined as a function)', () => {
@@ -2997,6 +2996,77 @@ describe('ContextMenu', () => {
       const scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
 
       expect(scrollHeight).toBe(0);
+    });
+
+    it('should fire commend after the \'mouseup\' event', () => {
+      const callback = jasmine.createSpy('callback');
+
+      handsontable({
+        contextMenu: {
+          items: {
+            item1: {
+              name: 'Item',
+              callback,
+            },
+          },
+        },
+        height: 100
+      });
+
+      contextMenu();
+
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)');
+      item.simulate('mousedown');
+
+      expect(callback.calls.count()).toEqual(0);
+
+      item.simulate('mouseup');
+      expect(callback.calls.count()).toEqual(1);
+    });
+
+    it('should fire commend after the \'contextmenu\' event', () => {
+      const callback = jasmine.createSpy('callback');
+
+      handsontable({
+        contextMenu: {
+          items: {
+            item1: {
+              name: 'Item',
+              callback,
+            },
+          },
+        },
+        height: 100
+      });
+
+      contextMenu();
+
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)');
+      item.simulate('mousedown');
+
+      expect(callback.calls.count()).toEqual(0);
+
+      item.simulate('contextmenu');
+      expect(callback.calls.count()).toEqual(1);
+    });
+
+    it('should not open another instance of ContextMenu after fireing command by the \'contextmenu\' event', () => {
+      handsontable({
+        contextMenu: {
+          items: {
+            item1: {
+              name: 'Item',
+              callback: () => {},
+            },
+          },
+        },
+        height: 100
+      });
+
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('contextmenu');
+      expect($('.htContextMenu').is(':visible')).toBe(false);
     });
   });
 
