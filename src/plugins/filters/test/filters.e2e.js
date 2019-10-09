@@ -801,4 +801,20 @@ describe('Filters', () => {
       });
     });
   });
+
+  it('should add minSpareRows properly when the filters plugin is enabled #3937', () => {
+    handsontable({
+      minSpareRows: 1,
+      filters: true
+    });
+
+    loadData(Handsontable.helper.createSpreadsheetData(3, 3));
+
+    expect(getData()).toEqual([
+      ['A1', 'B1', 'C1'],
+      ['A2', 'B2', 'C2'],
+      ['A3', 'B3', 'C3'],
+      [null, null, null],
+    ]);
+  });
 });
