@@ -122,6 +122,7 @@ describe('DropdownMenu', () => {
       spec().$container.append(uiContainer);
 
       handsontable({
+        colHeaders: true,
         dropdownMenu: {
           uiContainer: uiContainer[0],
         },
