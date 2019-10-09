@@ -287,7 +287,7 @@ describe('NestedRows', () => {
     });
   });
 
-  it('should add blabla', () => {
+  it('should add child properly', () => {
     handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,

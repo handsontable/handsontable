@@ -1533,11 +1533,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterChange
    */
   this.loadData = function(data) {
-    const hookResult = instance.runHooks('beforeLoadData', data, priv.firstRun);
-
-    if (hookResult === false) {
-      return;
-    }
+    instance.runHooks('beforeLoadData', data, priv.firstRun);
 
     if (Array.isArray(priv.settings.dataSchema)) {
       instance.dataType = 'array';
