@@ -1533,8 +1533,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterChange
    */
   this.loadData = function(data) {
-    instance.runHooks('beforeLoadData', data, priv.firstRun);
-
     if (Array.isArray(priv.settings.dataSchema)) {
       instance.dataType = 'array';
     } else if (isFunction(priv.settings.dataSchema)) {
@@ -1594,6 +1592,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (Array.isArray(data[0])) {
       instance.dataType = 'array';
     }
+
+    instance.runHooks('beforeLoadData', data, priv.firstRun);
 
     datamap.dataSource = data;
     dataSource.data = data;

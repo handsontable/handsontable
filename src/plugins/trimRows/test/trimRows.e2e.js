@@ -219,6 +219,30 @@ describe('TrimRows', () => {
     expect(getDataAtCell(3, 0)).toBe(null);
   });
 
+  it('should trim proper row when moved one using the `ManualRowMove` plugin #1', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 1),
+      trimRows: true,
+      manualRowMove: [7]
+    });
+
+    getPlugin('trimRows').trimRow(0);
+
+    expect(getDataAtCol(0)).toEqual(['A8', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A9', 'A10']);
+  });
+
+  it('should trim proper row when moved one using the `ManualRowMove` plugin #2', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 1),
+      trimRows: true,
+      manualRowMove: [9]
+    });
+
+    getPlugin('trimRows').trimRow(0);
+
+    expect(getDataAtCol(0)).toEqual(['A10', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9']);
+  });
+
   it('should update trimmed row indexes after rows removal', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 1),
