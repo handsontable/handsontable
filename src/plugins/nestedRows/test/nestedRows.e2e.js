@@ -37,6 +37,16 @@ describe('NestedRows', () => {
       expect(hot.countRows()).toEqual(13);
     });
 
+    it('should show full dataset when the `Filters` plugin is enabled #5889', () => {
+      const hot = handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        filters: true
+      });
+
+      expect(hot.countRows()).toEqual(18);
+    });
+
     it('should display all nested structure elements in correct order (parent, its children, its children children, next parent etc)', () => {
       const hot = handsontable({
         data: getMoreComplexNestedData(),
