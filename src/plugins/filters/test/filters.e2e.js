@@ -152,6 +152,30 @@ describe('Filters', () => {
     expect(getData().length).toEqual(3);
   });
 
+  it('should return proper response on the `toVisualRow` call when sorted filtered values #5890', () => {
+    const hot = handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      columnSorting: true
+    });
+
+    const filtersPlugin = getPlugin('filters');
+    const columnSortingPlugin = getPlugin('columnSorting');
+
+    filtersPlugin.addCondition(0, 'gt', [1]);
+    filtersPlugin.filter();
+
+    columnSortingPlugin.sort({
+      column: 0,
+      sortOrder: 'desc'
+    });
+
+    expect(hot.toVisualRow(0)).toEqual(null);
+    expect(hot.toVisualRow(1)).toBe(37);
+    expect(hot.toVisualRow(38)).toBe(0);
+  });
+
   it('should warn user by log at console when amount of conditions at specific column exceed the capability of ' +
     'a dropdown menu (`dropdownMenu` plugin is enabled)', () => {
     const warnSpy = spyOn(console, 'warn');
