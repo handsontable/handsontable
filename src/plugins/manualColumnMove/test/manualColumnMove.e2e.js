@@ -13,7 +13,7 @@ describe('manualColumnMove', () => {
   });
 
   describe('init', () => {
-    it('should change column order at init', () => {
+    it('should change column order at init when columns properly is not defined', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 10),
         manualColumnMove: [1, 2, 0]
@@ -22,6 +22,22 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
+    });
+
+    it('should change column order at init when columns properly is defined #4470', () => {
+      handsontable({
+        data: [
+          [1, 2, 3],
+          [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        ],
+        columns: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+        manualColumnMove: [0, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+      });
+
+      expect(getData()).toEqual([
+        [1, null, null, null, null, null, null, null, 3, 2],
+        [1, 10, 9, 8, 7, 6, 5, 4, 3, 2]
+      ]);
     });
   });
 
