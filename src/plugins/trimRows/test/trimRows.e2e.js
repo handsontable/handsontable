@@ -1024,6 +1024,26 @@ describe('TrimRows', () => {
         [null, null, null],
       ]);
     });
+
+    it('just the plugin is enabled and we load data #5707', () => {
+      handsontable({
+        minSpareRows: 3,
+        trimRows: true,
+      });
+
+      loadData(Handsontable.helper.createSpreadsheetData(5, 2));
+
+      expect(getData()).toEqual([
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['A4', 'B4'],
+        ['A5', 'B5'],
+        [null, null],
+        [null, null],
+        [null, null],
+      ]);
+    });
   });
 
   describe('updateSettings', () => {
