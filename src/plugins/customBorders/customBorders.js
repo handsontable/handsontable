@@ -421,9 +421,9 @@ class CustomBorders extends BasePlugin {
     if (remove) {
       bordersMeta[place] = createSingleEmptyBorder();
 
-      const hidden = this.areAllEdgesHidden(bordersMeta);
+      const disabled = this.areAllEdgesDisabled(bordersMeta);
 
-      if (hidden) {
+      if (disabled) {
         this.removeAllBorders(row, column);
 
       } else {
@@ -524,29 +524,35 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-  * Returns information if all of the border edges are hidden
+  * Returns information if all of the border edges are disabled
   *
   * @private
   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
   */
-  areAllEdgesHidden(border) {
-    if (this.isEdgeVisible(border.left)) {
+  areAllEdgesDisabled(border) {
+    if (this.isEdgeEnabled(border.left)) {
       return false;
     }
-    if (this.isEdgeVisible(border.right)) {
+    if (this.isEdgeEnabled(border.right)) {
       return false;
     }
-    if (this.isEdgeVisible(border.top)) {
+    if (this.isEdgeEnabled(border.top)) {
       return false;
     }
-    if (this.isEdgeVisible(border.bottom)) {
+    if (this.isEdgeEnabled(border.bottom)) {
       return false;
     }
 
     return true;
   }
 
-  isEdgeVisible(edge) {
+  /**
+   * For a given subtree of the border settings that represents a single edge, returns a TRUE if the edge
+   * is configured to be rendered; otherwise FALSE
+   *
+   * @param {Object} edge Object with optional `hide` property
+   */
+  isEdgeEnabled(edge) {
     if (edge !== undefined && edge.hide !== undefined) {
       return !edge.hide;
     }
@@ -635,9 +641,9 @@ class CustomBorders extends BasePlugin {
   * @return {Boolean}
   */
   checkCustomSelections(border, cellRange) {
-    const hidden = this.areAllEdgesHidden(border);
+    const disabled = this.areAllEdgesDisabled(border);
 
-    if (hidden) {
+    if (disabled) {
       this.removeAllBorders(border.row, border.col);
 
       return true;

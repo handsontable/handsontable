@@ -17,7 +17,7 @@ class Selection {
     this.instanceSelectionHandles = new Map();
     this.classNames = [this.settings.className];
     this.classNameGenerator = this.linearClassNameGenerator(this.settings.className, this.settings.layerLevel);
-    this.selectedCellsDescriptor = [];
+    this.borderEdgesDescriptor = [];
   }
 
   /**
@@ -136,8 +136,15 @@ class Selection {
     ];
   }
 
-  getSelectedCellsDescriptor() {
-    return this.selectedCellsDescriptor;
+  /**
+   * Returns an array of arrays that contain information about border edges renderable in the current selection.
+   *
+   * Every nested array has the structure that is expected by {@link BorderRenderer.convertArgsToLines}:
+   *
+   * @returns {Array.<Array.<*>>}
+   */
+  getBorderEdgesDescriptor() {
+    return this.borderEdgesDescriptor;
   }
 
   /**
@@ -224,7 +231,7 @@ class Selection {
    * @param wotInstance
    */
   draw(wotInstance) {
-    this.selectedCellsDescriptor = [];
+    this.borderEdgesDescriptor = [];
 
     if (this.isEmpty()) {
       if (this.hasSelectionHandle()) {
@@ -303,7 +310,7 @@ class Selection {
           lastTd = wotInstance.wtTable.getCell({ row: highlightLastRenderedRow, col: highlightLastRenderedColumn });
         }
 
-        this.selectedCellsDescriptor = [this.settings, firstTd, lastTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
+        this.borderEdgesDescriptor = [this.settings, firstTd, lastTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
       }
 
       for (let sourceRow = highlightFirstRenderedRow; sourceRow <= highlightLastRenderedRow; sourceRow += 1) {

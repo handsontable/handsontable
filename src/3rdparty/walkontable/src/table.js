@@ -524,21 +524,21 @@ class Table {
       }
     }
 
-    const argArrays = [];
+    const borderEdgesDescriptors = [];
 
     for (let i = 0; i < len; i++) {
       const selection = highlights[i];
 
       selection.draw(wot);
 
-      const selectedCellsDescriptor = selection.getSelectedCellsDescriptor();
+      const borderEdgesDescriptor = selection.getBorderEdgesDescriptor();
 
-      if (selectedCellsDescriptor.length > 0) {
-        argArrays.push(selection.getSelectedCellsDescriptor());
+      if (borderEdgesDescriptor.length > 0) {
+        borderEdgesDescriptors.push(selection.getBorderEdgesDescriptor());
       }
     }
 
-    this.borderRenderer.render(this.TABLE, argArrays);
+    this.borderRenderer.render(this.TABLE, borderEdgesDescriptors);
   }
 
   /**
