@@ -1377,6 +1377,54 @@ describe('Filters UI', () => {
     hot2Container.parentElement.removeChild(hot2Container);
   });
 
+  it('should display data and filter\'s box properly when there was the `clearConditions` call and the `loadData` call #5244', () => {
+    const hot = handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      colHeaders: true,
+      rowHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    const plugin = hot.getPlugin('filters');
+
+    plugin.addCondition(1, 'begins_with', ['m']);
+    plugin.filter();
+    plugin.clearConditions();
+
+    hot.loadData([{
+      id: 1,
+      name: 'Nannie Patel',
+      address: 'Jenkinsville',
+      registered: '2014-01-29',
+      eyeColor: { color: 'green' },
+      balance: 1261.6,
+      active: true,
+    }, {
+      id: 2,
+      name: 'Mcintyre Clarke',
+      address: 'Wakarusa',
+      registered: '2014-06-28',
+      eyeColor: { color: 'green' },
+      balance: 3012.56,
+      active: true,
+    }]);
+
+    dropdownMenu(1);
+
+    const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
+    const checkedArray = checkboxes.map(element => element.checked);
+    const labels = $(byValueBoxRootElement()).find('label').toArray();
+    const texts = labels.map(element => $(element).text());
+
+    expect(texts).toEqual(['Mcintyre Clarke', 'Nannie Patel']);
+    expect(checkedArray).toEqual([true, true]);
+    expect(checkboxes.length).toBe(2);
+  });
+
   describe('Simple filtering (one column)', () => {
     it('should filter empty values and revert back after removing filter', () => {
       handsontable({
