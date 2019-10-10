@@ -1,5 +1,7 @@
 import svgOptimizePath from './optimizePath';
 
+let stringifyPath;
+
 /**
  * getSvgPathsRenderer is a higher-order function that returns a function to render paths.
  *
@@ -22,6 +24,10 @@ import svgOptimizePath from './optimizePath';
  * @returns {Function}
  */
 export default function getSvgPathsRenderer(svg) {
+  if (!stringifyPath) {
+    stringifyPath = hasImplicitLineProblem(svg.ownerDocument) ? stringifyPathExplicit : stringifyPathImplicit;
+  }
+
   svg.setAttribute('fill', 'none');
 
   /**
@@ -110,7 +116,7 @@ export function precalculateStylesAndCommands(rawData, totalWidth, totalHeight) 
     const strokeWidth = parseInt(style, 10);
     const adjustedLines = adjustLinesToViewBox(strokeWidth, lines, totalWidth, totalHeight);
     const optimizedLines = svgOptimizePath(adjustedLines);
-    const command = convertLinesToCommand(optimizedLines);
+    const command = convertLinesToCommand(optimizedLines, strokeWidth);
 
     stylesAndCommands.set(style, command);
   });
@@ -238,12 +244,54 @@ export function adjustLinesToViewBox(strokeWidth, lines, totalWidth, totalHeight
 }
 
 /**
+ * Stringify line using explicit definition of each segment in a poly-line
+ * @param {Array.<number>} line
+ * @returns {String}
+ */
+function stringifyPathExplicit(line) {
+  let command = 'M ';
+
+  for (let jj = 0; jj < line.length; jj++) {
+    if (jj > 1 && (jj % 2 === 0)) {
+      command += ` L ${line[jj]}`;
+    } else {
+      command += ` ${line[jj]}`;
+    }
+  }
+
+  return command;
+}
+
+/**
+ * Stringify line using implicit definition of each segment in a poly-line
+ * @param {Array.<number>} line
+ * @returns {String}
+ */
+function stringifyPathImplicit(line) {
+  return `M ${line.join(' ')}`;
+}
+
+/**
+ * Some browsers (Edge) convert implicit lines "M 0 0 10 0" into explicit lines "M 0 0 L 10 0". Detect if this is such browser
+ * @param {Object} document DOM document object
+ * @returns {Boolean}
+ */
+export function hasImplicitLineProblem(document) {
+  const desiredCommand = 'M 0 0 10 0';
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+  path.setAttribute('d', desiredCommand);
+
+  return desiredCommand !== path.getAttribute('d');
+}
+
+/**
  * Convert array of positions to a SVG Path command string
  *
  * @param {Array.<Array.<number>>>} lines SVG Path data in format `[[x1, y1, x2, y2, ...], ...]`
  * @returns {String}
  */
-export function convertLinesToCommand(lines) {
+export function convertLinesToCommand(lines, strokeWidth) {
   let command = '';
   let firstX = -1;
   let firstY = -1;
@@ -262,15 +310,26 @@ export function convertLinesToCommand(lines) {
 
     lastX = line[len - 2];
     lastY = line[len - 1];
-    command += `M ${line.join(' ')} `;
+
+    if (ii > 0) {
+      command += ' ';
+    }
+
+    command += stringifyPath(line);
   }
 
+  const firstLine = lines[0];
+  const lastLine = lines[lines.length - 1];
   const isLastPointDifferentThanFirst = (firstX !== lastX || firstY !== lastY);
 
   if (isLastPointDifferentThanFirst) {
-    command += `M ${firstX} ${firstY} Z`;
+    if (strokeWidth === 1) {
+      const lastLineLen = lastLine.length;
+
+      command = `M ${firstLine[2]} ${firstLine[3]} ${command.substring(2)} ${lastLine[lastLineLen - 4]} ${lastLine[lastLineLen - 3]}`;
+    }
   } else {
-    command += 'Z';
+    command += ' Z';
   }
 
   return command;
