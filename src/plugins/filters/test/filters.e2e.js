@@ -841,4 +841,19 @@ describe('Filters', () => {
       [null, null, null],
     ]);
   });
+
+  it('should work also when the `TrimRows` plugin is enabled #3937', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      filters: true,
+      trimRows: [1]
+    });
+
+    expect(getData()).toEqual([
+      ['A1', 'B1', 'C1', 'D1', 'E1'],
+      ['A3', 'B3', 'C3', 'D3', 'E3'],
+      ['A4', 'B4', 'C4', 'D4', 'E4'],
+      ['A5', 'B5', 'C5', 'D5', 'E5'],
+    ]);
+  });
 });
