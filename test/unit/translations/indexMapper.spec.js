@@ -766,4 +766,170 @@ describe('IndexMapper', () => {
       });
     });
   });
+
+  describe('cache management', () => {
+    it('should reset the cache when `initToLength` function is called', () => {
+      const indexMapper = new IndexMapper();
+      const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+      const notSkippedIndexesCache = indexMapper.notSkippedIndexesCache.concat();
+
+      indexMapper.addLocalHook('cacheUpdated', cacheUpdatedCallback);
+
+      expect(cacheUpdatedCallback).not.toHaveBeenCalled();
+
+      indexMapper.initToLength(10);
+
+      expect(notSkippedIndexesCache).not.toEqual(indexMapper.notSkippedIndexesCache);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(1);
+    });
+
+    it('should reset the cache only when the `updateCache` function is called with `force` parameter set to an truthy value', () => {
+      // It's internal function responsible for handling batched operation, called often. Just flag set to `true` should reset the cache.
+      const indexMapper = new IndexMapper();
+      const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+
+      indexMapper.initToLength(10);
+      indexMapper.addLocalHook('cacheUpdated', cacheUpdatedCallback);
+
+      const notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
+
+      indexMapper.updateCache();
+
+      expect(cacheUpdatedCallback).not.toHaveBeenCalled();
+      expect(notSkippedIndexesCache).toBe(indexMapper.notSkippedIndexesCache);
+
+      indexMapper.updateCache(false);
+
+      expect(cacheUpdatedCallback).not.toHaveBeenCalled();
+      expect(notSkippedIndexesCache).toBe(indexMapper.notSkippedIndexesCache);
+
+      indexMapper.updateCache(true);
+
+      expect(cacheUpdatedCallback).toHaveBeenCalled();
+      expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
+    });
+
+    it('should reset two caches when any registered map inside skip collection is changed', () => {
+      const indexMapper = new IndexMapper();
+      const skipMap1 = new SkipMap();
+      const skipMap2 = new SkipMap();
+      const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+
+      indexMapper.registerMap('skipMap1', skipMap1);
+      indexMapper.registerMap('skipMap2', skipMap2);
+      indexMapper.initToLength(10);
+
+      let notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
+      let flattenSkipList = indexMapper.flattenSkipList;
+
+      indexMapper.addLocalHook('cacheUpdated', cacheUpdatedCallback);
+
+      skipMap1.setValues([false, false, false, false, false, false, false, true, true, true]);
+      skipMap2.setValues([false, false, false, false, false, false, false, true, true, true]);
+
+      expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
+      expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(2);
+
+      notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
+      flattenSkipList = indexMapper.flattenSkipList;
+
+      skipMap1.setValueAtIndex(0, false);
+
+      // Actions on the first collection. No real change. We do not rebuild cache.
+      expect(notSkippedIndexesCache).toBe(indexMapper.notSkippedIndexesCache);
+      expect(flattenSkipList).toBe(indexMapper.flattenSkipList);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(2);
+
+      skipMap1.setValueAtIndex(0, true);
+
+      expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
+      expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(3);
+
+      notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
+      flattenSkipList = indexMapper.flattenSkipList;
+
+      skipMap1.setValueAtIndex(0, false);
+
+      expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
+      expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(4);
+
+      notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
+      flattenSkipList = indexMapper.flattenSkipList;
+
+      skipMap2.setValueAtIndex(0, false);
+
+      // Actions on the second collection. No real change. We do not rebuild cache.
+      expect(notSkippedIndexesCache).toBe(indexMapper.notSkippedIndexesCache);
+      expect(flattenSkipList).toBe(indexMapper.flattenSkipList);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(4);
+
+      skipMap2.setValueAtIndex(0, true);
+
+      expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
+      expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(5);
+
+      notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
+      flattenSkipList = indexMapper.flattenSkipList;
+
+      skipMap2.setValueAtIndex(0, false);
+
+      expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
+      expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(6);
+    });
+
+    it('should not reset two caches when any registered map inside various mappings collection is changed', () => {
+      const indexMapper = new IndexMapper();
+      const valueMap1 = new ValueMap();
+      const valueMap2 = new ValueMap();
+      const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+
+      indexMapper.registerMap('valueMap1', valueMap1);
+      indexMapper.registerMap('valueMap2', valueMap2);
+      indexMapper.initToLength(10);
+
+      const notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
+      const flattenSkipList = indexMapper.flattenSkipList;
+
+      indexMapper.addLocalHook('cacheUpdated', cacheUpdatedCallback);
+
+      valueMap1.setValues([false, false, false, false, false, false, false, true, true, true]);
+      valueMap2.setValues([false, false, false, false, false, false, false, true, true, true]);
+
+      expect(cacheUpdatedCallback).not.toHaveBeenCalled();
+
+      valueMap1.setValueAtIndex(0, false);
+
+      // Actions on the first collection. No real change.
+      expect(cacheUpdatedCallback).not.toHaveBeenCalled();
+
+      valueMap1.setValueAtIndex(0, true);
+
+      expect(cacheUpdatedCallback).not.toHaveBeenCalled();
+
+      valueMap1.setValueAtIndex(0, false);
+
+      expect(cacheUpdatedCallback).not.toHaveBeenCalled();
+
+      valueMap2.setValueAtIndex(0, false);
+
+      // Actions on the second collection. No real change.
+      expect(cacheUpdatedCallback).not.toHaveBeenCalled();
+
+      valueMap2.setValueAtIndex(0, true);
+
+      expect(cacheUpdatedCallback).not.toHaveBeenCalled();
+
+      valueMap2.setValueAtIndex(0, false);
+
+      expect(cacheUpdatedCallback).not.toHaveBeenCalled();
+
+      expect(notSkippedIndexesCache).toBe(indexMapper.notSkippedIndexesCache);
+      expect(flattenSkipList).toBe(indexMapper.flattenSkipList);
+    });
+  });
 });
