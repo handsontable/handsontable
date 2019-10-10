@@ -412,4 +412,26 @@ describe('NestedRows', () => {
       done();
     }, 100);
   });
+
+  it('should display proper row headers after collapsing one parent - cooperation with the `BindRowsWithHeaders` plugin #5874', () => {
+    handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true,
+      rowHeaders: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S'],
+      bindRowsWithHeaders: true
+    });
+
+    // Test with the `getColHeader` passed, but rendered headers weren't proper.
+    let rowHeaders = $('.ht_clone_left').find('span.rowHeader').toArray().map(element => $(element).text());
+
+    expect(rowHeaders).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S']);
+
+    $('.ht_nestingButton').eq(0).simulate('mousedown');
+    $('.ht_nestingButton').eq(0).simulate('click');
+    $('.ht_nestingButton').eq(0).simulate('mouseup');
+
+    rowHeaders = $('.ht_clone_left').find('span.rowHeader').toArray().map(element => $(element).text());
+
+    expect(rowHeaders).toEqual(['A', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S']);
+  });
 });
