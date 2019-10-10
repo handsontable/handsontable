@@ -321,7 +321,7 @@ describe('NestedRows', () => {
     expect(getPlugin('nestedRows').dataManager.isParent(2)).toBeFalsy();
 
     // Added child.
-    // expect(getPlugin('nestedRows').dataManager.isParent(6)).toBeFalsy();  // TODO: Bug? Element has null under the `__children` key.
+    // expect(getPlugin('nestedRows').dataManager.isParent(6)).toBeFalsy(); // TODO: Bug? Element has null under the `__children` key.
 
     selectCell(1, 0);
     contextMenu();
@@ -339,10 +339,32 @@ describe('NestedRows', () => {
     expect(getPlugin('nestedRows').dataManager.isParent(3)).toBeFalsy();
 
     // Added child.
-    // expect(getPlugin('nestedRows').dataManager.isParent(2)).toBeFalsy();  // TODO: Bug? Element has null under the `__children` key.
+    // expect(getPlugin('nestedRows').dataManager.isParent(2)).toBeFalsy(); // TODO: Bug? Element has null under the `__children` key.
 
     // Previously added child.
-    // expect(getPlugin('nestedRows').dataManager.isParent(7)).toBeTruthy();  // TODO: Bug? Element has null under the `__children` key.
+    // expect(getPlugin('nestedRows').dataManager.isParent(7)).toBeTruthy(); // TODO: Bug? Element has null under the `__children` key.
+  });
+
+  it('should allow user to detach already added child', () => {
+    handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true,
+      contextMenu: true
+    });
+
+    selectCell(0, 0);
+    contextMenu();
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown'); // Insert child row.
+
+    selectCell(6, 0);
+    contextMenu();
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1).simulate('mousedown'); // Detach from parent.
+
+    expect(getDataAtCell(6, 0)).toEqual('Best Metal Performance');
+    expect(getDataAtCell(18, 1)).toEqual(null);
+
+    // Added and then detached child.
+    // expect(getPlugin('nestedRows').dataManager.isParent(18)).toBeFalsy(); // TODO: Bug? Element has null under the `__children` key.
   });
 
   it('should warn user that `moveRow` and `moveRows` methods can\'t be used and they don\'t move data', () => {
