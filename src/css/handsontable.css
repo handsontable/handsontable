@@ -305,6 +305,18 @@
   z-index: 6;
 }
 
+svg path.copyingFront {
+  stroke-dasharray: 2 4;
+  animation: dashedAnimation 1.5s linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes dashedAnimation {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
 .handsontable td.area,
 .handsontable td.area-1,
 .handsontable td.area-2,

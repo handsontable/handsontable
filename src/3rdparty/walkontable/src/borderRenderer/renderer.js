@@ -48,6 +48,10 @@ export default class BorderRenderer {
      * @type {Object}
      */
     this.rootWindow = parentElement.ownerDocument.defaultView;
+
+    this.lastMaxWidth = 0;
+    this.lastMaxHeight = 0;
+    this.lastTimeout = null;
   }
 
   /**
@@ -120,7 +124,23 @@ export default class BorderRenderer {
     this.pathGroups.forEach(pathGroup => this.convertLinesToCommands(pathGroup));
 
     // batch all DOM writes
-    this.svgResizer(this.maxWidth, this.maxHeight);
+
+    if (this.lastMaxWidth > this.maxWidth || this.lastMaxHeight > this.maxHeight) {
+      // shrinking
+      clearTimeout(this.lastTimeout);
+      this.lastTimeout = setTimeout(() => {
+        this.svgResizer(this.maxWidth, this.maxHeight);
+      }, 1000);
+
+      this.svgResizer(Math.max(this.lastMaxWidth, this.maxWidth), Math.max(this.lastMaxHeight, this.maxHeight));
+    } else {
+      // growing
+      this.svgResizer(this.maxWidth, this.maxHeight);
+    }
+
+    this.lastMaxWidth = this.maxWidth;
+    this.lastMaxHeight = this.maxHeight;
+
     this.pathGroups.forEach(pathGroup => pathGroup.svgPathsRenderer(pathGroup.styles, pathGroup.commands));
   }
 
@@ -193,13 +213,19 @@ export default class BorderRenderer {
    */
   getLayerNumber(selectionSetting) {
     switch (selectionSetting.className) {
+      case 'copyingFront':
+        return 5;
+
       case 'current':
-        return 3;
+        return 4;
 
       case 'area':
-        return 2;
+        return 3;
 
       case 'fill':
+        return 2;
+
+      case 'copyingBack':
         return 1;
 
       default:
@@ -246,6 +272,9 @@ export default class BorderRenderer {
     if (selectionSetting.className === 'current') {
       x1 += insetPositioningForCurrentCellHighlight;
       y1 += insetPositioningForCurrentCellHighlight;
+    } else if (selectionSetting.className === 'copyingBack' || selectionSetting.className === 'copyingFront') {
+      x2 += insetPositioningForCurrentCellHighlight;
+      y2 += insetPositioningForCurrentCellHighlight;
     }
 
     if (x1 < 0 && x2 < 0 || y1 < 0 && y2 < 0) {
@@ -306,7 +335,13 @@ export default class BorderRenderer {
     }
 
     const color = (selectionSetting[edge] && selectionSetting[edge].color) || (selectionSetting.border && selectionSetting.border.color) || 'black';
-    const stroke = `${width}px ${color}`;
+    let stroke = `${width}px ${color}`;
+
+    if (selectionSetting.className === 'current' || selectionSetting.className === 'area'
+    || selectionSetting.className === 'copyingBack' || selectionSetting.className === 'copyingFront') {
+      stroke += ` ${selectionSetting.className} 500ms`;
+    }
+
     const lines = stylesAndLines.get(stroke);
 
     if (lines) {

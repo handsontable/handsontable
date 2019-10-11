@@ -5,6 +5,8 @@ export const ACTIVE_HEADER_TYPE = 'active-header';
 export const AREA_TYPE = 'area';
 export const CELL_TYPE = 'cell';
 export const FILL_TYPE = 'fill';
+export const COPYING_BACK_TYPE = 'copyingBack';
+export const COPYING_FRONT_TYPE = 'copyingFront';
 export const HEADER_TYPE = 'header';
 export const CUSTOM_SELECTION = 'custom-selection';
 
@@ -56,6 +58,8 @@ class Highlight {
      * @type {Selection}
      */
     this.fill = createHighlight(FILL_TYPE, options);
+    this.copyingBack = createHighlight(COPYING_BACK_TYPE, options);
+    this.copyingFront = createHighlight(COPYING_FRONT_TYPE, options);
     /**
      * Collection of the `area` highlights. That objects describes attributes for the borders and selection of
      * the multiple selected cells. It can occur multiple times on the table.
@@ -249,6 +253,8 @@ class Highlight {
   clear() {
     this.cell.clear();
     this.fill.clear();
+    this.copyingBack.clear();
+    this.copyingFront.clear();
 
     arrayEach(this.areas.values(), highlight => void highlight.clear());
     arrayEach(this.headers.values(), highlight => void highlight.clear());
@@ -262,6 +268,8 @@ class Highlight {
     return [
       this.cell,
       this.fill,
+      this.copyingBack,
+      this.copyingFront,
       ...this.areas.values(),
       ...this.headers.values(),
       ...this.activeHeaders.values(),

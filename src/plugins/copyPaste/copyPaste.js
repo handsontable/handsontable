@@ -412,6 +412,15 @@ class CopyPaste extends BasePlugin {
     }
 
     this.setCopyableText();
+
+    this.hot.selection.highlight.copyingBack.clear()
+      .add(this.hot.getSelectedRangeLast().from)
+      .add(this.hot.getSelectedRangeLast().to);
+    this.hot.selection.highlight.copyingFront.clear()
+      .add(this.hot.getSelectedRangeLast().from)
+      .add(this.hot.getSelectedRangeLast().to);
+    this.hot.view.render();
+
     priv.isTriggeredByCopy = false;
 
     const rangedData = this.getRangedData(this.copyableRanges);

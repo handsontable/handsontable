@@ -435,6 +435,7 @@ class Autofill extends BasePlugin {
    * @param {Array} cornersOfArea
    */
   setSelection(cornersOfArea) {
+
     this.hot.selectCell(...cornersOfArea, false, false);
   }
 

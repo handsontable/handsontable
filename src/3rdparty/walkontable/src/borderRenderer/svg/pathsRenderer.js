@@ -133,6 +133,18 @@ function resetState(state) {
   state.command = '';
 }
 
+function parseCommandToArray(command) {
+  const arr = command.split(' ');
+
+  for (let ii = 0; ii < arr.length; ii++) {
+    if (arr[ii] !== 'M' && arr[ii] !== 'L' && arr[ii] !== 'Z') {
+      arr[ii] = parseFloat(arr[ii]);
+    }
+  }
+
+  return arr;
+}
+
 /**
  * Renders the <path> element in the state object to DOM and memoizes the current path
  *
@@ -140,7 +152,48 @@ function resetState(state) {
  */
 function renderState(state) {
   if (state.renderedCommand !== state.command) {
-    state.elem.setAttribute('d', state.command);
+    if (state.transitionDuration && state.renderedCommand && state.command) {
+      state.startTime = performance.now();
+      state.endTime = state.startTime + state.transitionDuration;
+
+      const command = state.command;
+      const current = parseCommandToArray(state.renderedCommand);
+      const desired = parseCommandToArray(command);
+
+      const singleFrame = (currentTime) => {
+        if (command !== state.command) {
+          return; // animation was cancelled by a new state.command
+        }
+
+        let deltaTime = currentTime - state.startTime;
+
+        if (deltaTime > state.transitionDuration) {
+          deltaTime = state.transitionDuration;
+        }
+
+        const progress = deltaTime / state.transitionDuration;
+        const animatedProgress = tweenCubicOut(progress);
+
+        if (animatedProgress < 1) {
+          for (let ii = 0; ii < current.length; ii++) {
+            if (typeof current[ii] === 'number' && typeof desired[ii] === 'number') {
+              const deltaValue = desired[ii] - current[ii];
+
+              current[ii] += animatedProgress * deltaValue;
+            }
+          }
+
+          state.elem.setAttribute('d', current.join(' '));
+          requestAnimationFrame(singleFrame);
+        } else {
+          state.elem.setAttribute('d', state.command);
+        }
+      };
+
+      requestAnimationFrame(singleFrame);
+    } else {
+      state.elem.setAttribute('d', state.command);
+    }
     state.renderedCommand = state.command;
   }
 }
@@ -157,7 +210,7 @@ function getStateForStyle(states, style, parent) {
 
   if (!state) {
     const elem = parent.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'path');
-    const [size, color] = style.split(' ');
+    const [size, color, className, transitionDuration] = style.split(' ');
 
     elem.setAttribute('stroke', color);
     elem.setAttribute('stroke-width', parseInt(size, 10));
@@ -166,10 +219,15 @@ function getStateForStyle(states, style, parent) {
     elem.setAttribute('shape-rendering', 'geometricPrecision'); // TODO why the border renders wrong when this is on
     // elem.setAttribute('shape-rendering', 'crispEdges');
 
+    if (className) {
+      elem.classList.add(className);
+    }
+
     state = {
       elem,
       command: '',
-      renderedCommand: ''
+      renderedCommand: '',
+      transitionDuration: transitionDuration ? parseInt(transitionDuration, 10) : undefined
     };
     resetState(state);
     parent.appendChild(elem);
@@ -333,4 +391,16 @@ export function convertLinesToCommand(lines, strokeWidth) {
   }
 
   return command;
+}
+
+/**
+ * Tween function that uses the cubic out algorithm
+ *
+ * @param {Number} k progress in range from 0 to 1
+ * @returns tweened progress in range from 0 to 1
+ */
+function tweenCubicOut(k) {
+  k -= 1;
+
+  return (k * k * k) + 1;
 }
