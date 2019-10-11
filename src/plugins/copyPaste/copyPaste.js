@@ -24,7 +24,6 @@ Hooks.getSingleton().register('afterCopy');
 
 const ROWS_LIMIT = 1000;
 const COLUMNS_LIMIT = 1000;
-const privatePool = new WeakMap();
 const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
@@ -60,6 +59,12 @@ const META_HEAD = [
  * @plugin CopyPaste
  */
 class CopyPaste extends BasePlugin {
+  // Private fields
+  #isTriggeredByCopy = false;
+  #isTriggeredByCut = false;
+  #isBeginEditing = false;
+  #isFragmentSelectionEnabled = false;
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -99,13 +104,6 @@ class CopyPaste extends BasePlugin {
      * @default 1000
      */
     this.rowsLimit = ROWS_LIMIT;
-
-    privatePool.set(this, {
-      isTriggeredByCopy: false,
-      isTriggeredByCut: false,
-      isBeginEditing: false,
-      isFragmentSelectionEnabled: false,
-    });
   }
 
   /**
@@ -126,14 +124,14 @@ class CopyPaste extends BasePlugin {
       return;
     }
     const settings = this.hot.getSettings();
-    const priv = privatePool.get(this);
 
-    priv.isFragmentSelectionEnabled = settings.fragmentSelection;
+    this.#isFragmentSelectionEnabled = settings.fragmentSelection;
 
     if (typeof settings.copyPaste === 'object') {
-      this.pasteMode = settings.copyPaste.pasteMode || this.pasteMode;
-      this.rowsLimit = settings.copyPaste.rowsLimit || this.rowsLimit;
-      this.columnsLimit = settings.copyPaste.columnsLimit || this.columnsLimit;
+      // nullish coalescing
+      this.pasteMode = settings.copyPaste.pasteMode ?? this.pasteMode;
+      this.rowsLimit = settings.copyPaste.rowsLimit ?? this.rowsLimit;
+      this.columnsLimit = settings.copyPaste.columnsLimit ?? this.columnsLimit;
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
@@ -176,8 +174,7 @@ class CopyPaste extends BasePlugin {
    * Copies the selected cell into the clipboard.
    */
   copy() {
-    const priv = privatePool.get(this);
-    priv.isTriggeredByCopy = true;
+    this.#isTriggeredByCopy = true;
 
     this.getOrCreateFocusableElement();
     this.focusableElement.focus();
@@ -188,8 +185,7 @@ class CopyPaste extends BasePlugin {
    * Cuts the selected cell into the clipboard.
    */
   cut() {
-    const priv = privatePool.get(this);
-    priv.isTriggeredByCut = true;
+    this.#isTriggeredByCut = true;
 
     this.getOrCreateFocusableElement();
     this.focusableElement.focus();
@@ -337,7 +333,8 @@ class CopyPaste extends BasePlugin {
    */
   getOrCreateFocusableElement() {
     const editor = this.hot.getActiveEditor();
-    const editableElement = editor ? editor.TEXTAREA : void 0;
+    // optional chaining
+    const editableElement = editor?.TEXTAREA;
 
     if (editableElement) {
       this.focusableElement.setFocusableElement(editableElement);
@@ -354,7 +351,8 @@ class CopyPaste extends BasePlugin {
   isEditorOpened() {
     const editor = this.hot.getActiveEditor();
 
-    return editor && editor.isOpened();
+    // optional chaining
+    return editor?.isOpened();
   }
 
   /**
@@ -405,14 +403,12 @@ class CopyPaste extends BasePlugin {
    * @private
    */
   onCopy(event) {
-    const priv = privatePool.get(this);
-
-    if ((!this.hot.isListening() && !priv.isTriggeredByCopy) || this.isEditorOpened()) {
+    if ((!this.hot.isListening() && !this.#isTriggeredByCopy) || this.isEditorOpened()) {
       return;
     }
 
     this.setCopyableText();
-    priv.isTriggeredByCopy = false;
+    this.#isTriggeredByCopy = false;
 
     const rangedData = this.getRangedData(this.copyableRanges);
     const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
@@ -443,14 +439,12 @@ class CopyPaste extends BasePlugin {
    * @private
    */
   onCut(event) {
-    const priv = privatePool.get(this);
-
-    if ((!this.hot.isListening() && !priv.isTriggeredByCut) || this.isEditorOpened()) {
+    if ((!this.hot.isListening() && !this.#isTriggeredByCut) || this.isEditorOpened()) {
       return;
     }
 
     this.setCopyableText();
-    priv.isTriggeredByCut = false;
+    this.#isTriggeredByCut = false;
 
     const rangedData = this.getRangedData(this.copyableRanges);
     const allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
@@ -566,15 +560,13 @@ class CopyPaste extends BasePlugin {
    * @private
    */
   onAfterSelectionEnd() {
-    const { isFragmentSelectionEnabled } = privatePool.get(this);
-
     if (this.isEditorOpened()) {
       return;
     }
 
     this.getOrCreateFocusableElement();
 
-    if (isFragmentSelectionEnabled && this.focusableElement.getFocusableElement() !== this.hot.rootDocument.activeElement && getSelectionText()) {
+    if (this.#isFragmentSelectionEnabled && this.focusableElement.getFocusableElement() !== this.hot.rootDocument.activeElement && getSelectionText()) {
       return;
     }
 
