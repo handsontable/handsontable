@@ -680,13 +680,39 @@ describe('ColumnSummarySpec', () => {
     const warnSpy = spyOn(console, 'warn');
 
     handsontable({
+      startRows: 3,
+      startCols: 3,
       columnSummary: [{
-        destinationRow: 5,
+        destinationRow: 3,
         destinationColumn: 1,
         type: 'sum'
       }]
     });
 
     expect(warnSpy).toHaveBeenCalledWith('One of the Column Summary plugins\' destination points you provided is beyond the table boundaries!');
+  });
+
+  it('should not show endpoint when it\'s destination point is proper just after new row insertion', () => {
+    const warnSpy = spyOn(console, 'warn');
+
+    handsontable({
+      startRows: 3,
+      startCols: 3,
+      columnSummary: [{
+        destinationRow: 3,
+        destinationColumn: 1,
+        type: 'sum'
+      }]
+    });
+
+    alter('insert_row', 0);
+
+    expect(warnSpy.calls.count()).toBe(3); // One warn from the information about license.
+    expect(getData()).toEqual([
+      [null, null, null],
+      [null, null, null],
+      [null, null, null],
+      [null, null, null],
+    ]);
   });
 });

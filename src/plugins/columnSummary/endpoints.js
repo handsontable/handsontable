@@ -391,19 +391,29 @@ class Endpoints {
   /**
    * Resets (removes) the endpoints from the table.
    *
-   * @param {Array} endpoints Array containing the endpoints.
+   * @param {Array} [endpoints] Array containing the endpoints.
    * @param {Boolean} [useOffset=true] Use the cell offset value.
    */
-  resetAllEndpoints(endpoints, useOffset = true) {
-    let endpointsArray = endpoints;
-    this.cellsToSetCache = [];
+  resetAllEndpoints(endpoints = this.getAllEndpoints(), useOffset = true) {
+    const anyEndpointOutOfRange = endpoints.some((endpoint) => {
+      const alterRowOffset = endpoint.alterRowOffset || 0;
+      const alterColOffset = endpoint.alterColumnOffset || 0;
 
-    if (!endpointsArray) {
-      endpointsArray = this.getAllEndpoints();
+      if (endpoint.destinationRow + alterRowOffset >= this.hot.countRows() || endpoint.destinationColumn + alterColOffset >= this.hot.countCols()) {
+        return true;
+      }
+
+      return false;
+    });
+
+    if (anyEndpointOutOfRange) {
+      return;
     }
 
-    arrayEach(endpointsArray, (value) => {
-      this.resetEndpointValue(value, useOffset);
+    this.cellsToSetCache = [];
+
+    arrayEach(endpoints, (endpoint) => {
+      this.resetEndpointValue(endpoint, useOffset);
     });
 
     this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
