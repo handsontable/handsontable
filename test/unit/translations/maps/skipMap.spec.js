@@ -114,17 +114,17 @@ describe('Triggering `change` hook', () => {
     expect(changeCallback.calls.count()).toEqual(1);
   });
 
-  it('should not trigger `change` hook on setting data which does not change value', () => {
+  it('should trigger `change` hook on setting data which does not change value', () => {
     const skipMap = new SkipMap();
     const changeCallback = jasmine.createSpy('change');
 
     skipMap.init(10);
     skipMap.addLocalHook('change', changeCallback);
 
-    // Default value is `false`. No real change.
+    // Default value is `false`. No real change, but hook is called anyway.
     skipMap.setValueAtIndex(0, false);
 
-    expect(changeCallback.calls.count()).toEqual(0);
+    expect(changeCallback.calls.count()).toEqual(1);
   });
 
   it('should trigger `change` hook on setting data on indexes once', () => {

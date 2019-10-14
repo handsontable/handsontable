@@ -98,17 +98,17 @@ describe('Triggering `change` hook', () => {
     expect(changeCallback.calls.count()).toEqual(1);
   });
 
-  it('should not trigger `change` hook on setting data which does not change value', () => {
+  it('should trigger `change` hook on setting data which does not change value', () => {
     const indexMap = new IndexMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexMap.init(10);
     indexMap.addLocalHook('change', changeCallback);
 
-    // Default value is `0` for index at position `0`. No real change.
+    // Default value is `0` for index at position `0`. No real change, but hook is called anyway.
     indexMap.setValueAtIndex(0, 0);
 
-    expect(changeCallback.calls.count()).toEqual(0);
+    expect(changeCallback.calls.count()).toEqual(1);
   });
 
   it('should trigger `change` hook on setting data on indexes once', () => {

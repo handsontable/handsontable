@@ -67,7 +67,7 @@ class BaseMap {
    * @returns {Boolean}
    */
   setValueAtIndex(index, value) {
-    if (index < this.getLength() && this.list[index] !== value) {
+    if (index < this.getLength()) {
       this.list[index] = value;
 
       this.runLocalHooks('change');

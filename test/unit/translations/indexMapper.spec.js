@@ -851,13 +851,7 @@ describe('IndexMapper', () => {
 
       skipMap1.setValueAtIndex(0, false);
 
-      // Actions on the first collection. No real change. We do not rebuild cache.
-      expect(notSkippedIndexesCache).toBe(indexMapper.notSkippedIndexesCache);
-      expect(flattenSkipList).toBe(indexMapper.flattenSkipList);
-      expect(cacheUpdatedCallback.calls.count()).toEqual(2);
-
-      skipMap1.setValueAtIndex(0, true);
-
+      // Actions on the first collection. No real change. We rebuild cache anyway (`change` hook should be called?).
       expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
       expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
       expect(cacheUpdatedCallback.calls.count()).toEqual(3);
@@ -865,7 +859,7 @@ describe('IndexMapper', () => {
       notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
       flattenSkipList = indexMapper.flattenSkipList;
 
-      skipMap1.setValueAtIndex(0, false);
+      skipMap1.setValueAtIndex(0, true);
 
       expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
       expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
@@ -874,14 +868,7 @@ describe('IndexMapper', () => {
       notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
       flattenSkipList = indexMapper.flattenSkipList;
 
-      skipMap2.setValueAtIndex(0, false);
-
-      // Actions on the second collection. No real change. We do not rebuild cache.
-      expect(notSkippedIndexesCache).toBe(indexMapper.notSkippedIndexesCache);
-      expect(flattenSkipList).toBe(indexMapper.flattenSkipList);
-      expect(cacheUpdatedCallback.calls.count()).toEqual(4);
-
-      skipMap2.setValueAtIndex(0, true);
+      skipMap1.setValueAtIndex(0, false);
 
       expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
       expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
@@ -892,9 +879,28 @@ describe('IndexMapper', () => {
 
       skipMap2.setValueAtIndex(0, false);
 
+      // Actions on the second collection. No real change.  We rebuild cache anyway (`change` hook should be called?).
       expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
       expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
       expect(cacheUpdatedCallback.calls.count()).toEqual(6);
+
+      notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
+      flattenSkipList = indexMapper.flattenSkipList;
+
+      skipMap2.setValueAtIndex(0, true);
+
+      expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
+      expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(7);
+
+      notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
+      flattenSkipList = indexMapper.flattenSkipList;
+
+      skipMap2.setValueAtIndex(0, false);
+
+      expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
+      expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(8);
     });
 
     it('should not reset two caches when any registered map inside various mappings collection is changed', () => {
