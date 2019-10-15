@@ -1,5 +1,6 @@
 describe('ColumnSummarySpec', () => {
   const id = 'testContainer';
+  const warnMessage = 'One of the Column Summary plugins\' destination points you provided is beyond the table boundaries!';
   const columnSummaryFunction = function() {
     // We're assuming there are two levels, and the upper level has the summary results, while its children contain the calculation data.
     const endpoints = [];
@@ -689,11 +690,12 @@ describe('ColumnSummarySpec', () => {
       }]
     });
 
-    expect(warnSpy).toHaveBeenCalledWith('One of the Column Summary plugins\' destination points you provided is beyond the table boundaries!');
+    expect(warnSpy).toHaveBeenCalledWith(warnMessage);
   });
 
   it('should not show endpoint when it\'s destination point is proper just after new row insertion', () => {
     const warnSpy = spyOn(console, 'warn');
+    let warnFirstArgs;
 
     handsontable({
       startRows: 3,
@@ -705,9 +707,15 @@ describe('ColumnSummarySpec', () => {
       }]
     });
 
+    warnFirstArgs = warnSpy.calls.allArgs().map(args => args[0]);
+
+    expect(warnFirstArgs.filter(arg => arg === warnMessage).length).toBe(1);
+
     alter('insert_row', 0);
 
-    expect(warnSpy.calls.count()).toBe(3); // One warn from the information about license.
+    warnFirstArgs = warnSpy.calls.allArgs().map(args => args[0]);
+
+    expect(warnFirstArgs.filter(arg => arg === warnMessage).length).toBe(2);
     expect(getData()).toEqual([
       [null, null, null],
       [null, null, null],
