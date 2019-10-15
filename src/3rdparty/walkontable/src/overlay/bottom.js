@@ -207,7 +207,7 @@ class BottomOverlay extends Overlay {
       tableHeight = 0;
     }
 
-    overlayRootStyle.height = `${tableHeight === 0 ? tableHeight : tableHeight}px`;
+    overlayRootStyle.height = `${tableHeight}px`;
   }
 
   /**

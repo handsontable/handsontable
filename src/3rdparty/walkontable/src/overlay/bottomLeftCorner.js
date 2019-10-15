@@ -111,8 +111,8 @@ class BottomLeftCornerOverlay extends Overlay {
       tableHeight = 0;
     }
 
-    overlayRoot.style.height = `${tableHeight === 0 ? tableHeight : tableHeight}px`;
-    overlayRoot.style.width = `${tableWidth === 0 ? tableWidth : tableWidth}px`;
+    overlayRoot.style.height = `${tableHeight}px`;
+    overlayRoot.style.width = `${tableWidth}px`;
   }
 }
 

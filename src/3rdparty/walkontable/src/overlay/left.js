@@ -180,7 +180,7 @@ class LeftOverlay extends Overlay {
 
     const tableWidth = outerWidth(this.clone.wtTable.TABLE);
 
-    overlayRootStyle.width = `${tableWidth === 0 ? tableWidth : tableWidth + 4}px`;
+    overlayRootStyle.width = `${tableWidth}px`;
   }
 
   /**

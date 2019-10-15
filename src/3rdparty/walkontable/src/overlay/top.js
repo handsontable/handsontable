@@ -188,7 +188,7 @@ class TopOverlay extends Overlay {
       tableHeight = 0;
     }
 
-    overlayRootStyle.height = `${tableHeight === 0 ? tableHeight : tableHeight + 4}px`;
+    overlayRootStyle.height = `${tableHeight}px`;
   }
 
   /**

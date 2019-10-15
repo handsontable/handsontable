@@ -32,7 +32,7 @@ describe('ColHeader', () => {
       height: 'auto',
     });
 
-    expect(spec().$container.find('.handsontable.ht_clone_top').height()).toEqual(30);
+    expect(spec().$container.find('.handsontable.ht_clone_top').height()).toEqual(26); // THs are 25px height and have 1px border on top
   });
 
   it('should properly calculate colHeaders\' overlay width', () => {
