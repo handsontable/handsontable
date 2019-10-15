@@ -4,15 +4,19 @@ import {
   fastInnerHTML,
   getComputedStyle,
   getCssTransform,
+  hasClass,
   offset,
   outerHeight,
   outerWidth,
+  removeClass,
   resetCssTransform,
 } from './../helpers/dom/element';
 import { stopImmediatePropagation } from './../helpers/dom/event';
 import { KEY_CODES } from './../helpers/unicode';
 import BaseEditor, { EditorState } from './_baseEditor';
 import { objectEach } from '../helpers/object';
+
+const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 
 /**
  * @private
@@ -66,6 +70,10 @@ class SelectEditor extends BaseEditor {
   close() {
     this._opened = false;
     this.select.style.display = 'none';
+
+    if (hasClass(this.select, EDITOR_VISIBLE_CLASS_NAME)) {
+      removeClass(this.select, EDITOR_VISIBLE_CLASS_NAME);
+    }
     this.clearHooks();
   }
 
@@ -234,48 +242,8 @@ class SelectEditor extends BaseEditor {
     selectStyle.top = `${editTop}px`;
     selectStyle.left = `${editLeft}px`;
     selectStyle.margin = '0px';
-  }
 
-  /**
-   * Gets HTMLTableCellElement of the edited cell if exist.
-   *
-   * @private
-   * @returns {HTMLTableCellElement|undefined}
-   */
-  getEditedCell() {
-    const { wtOverlays } = this.hot.view.wt;
-    const editorSection = this.checkEditorSection();
-    let editedCell;
-
-    switch (editorSection) {
-      case 'top':
-        editedCell = wtOverlays.topOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.select.style.zIndex = 101;
-        break;
-      case 'corner':
-        editedCell = wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.select.style.zIndex = 103;
-        break;
-      case 'left':
-        editedCell = wtOverlays.leftOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.select.style.zIndex = 102;
-        break;
-      default:
-        editedCell = this.hot.getCell(this.row, this.col);
-        this.select.style.zIndex = '';
-        break;
-    }
-
-    return editedCell < 0 ? void 0 : editedCell;
+    addClass(this.select, EDITOR_VISIBLE_CLASS_NAME);
   }
 
   /**

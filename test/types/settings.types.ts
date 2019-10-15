@@ -128,7 +128,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
     ]),
   contextMenu: oneOf(true_or_false, contextMenuDemo) || ['row_above', 'row_below', 'col_left', 'col_right', '---------', 'remove_row', 'remove_col', 'clear_column', 'undo', 'redo', 'make_read_only', 'alignment', 'cut', 'copy', 'freeze_column', 'unfreeze_column', 'borders', 'commentsAddEdit', 'commentsRemove', 'commentsReadOnly', 'mergeCells', 'add_child', 'detach_from_parent', 'hidden_columns_hide', 'hidden_columns_show', 'hidden_rows_hide', 'hidden_rows_show', 'filter_by_condition', 'filter_operators', 'filter_by_condition2', 'filter_by_value', 'filter_action_bar'],
   copyable: true,
-  copyPaste: true,
+  copyPaste: oneOf(true, {
+    pasteMode: oneOf('overwrite', 'shift_down', 'shift_right'),
+    rowsLimit: 10,
+    columnsLimit: 20,
+  }),
   correctFormat: true,
   currentColClassName: 'foo',
   currentHeaderClassName: 'foo',
@@ -306,7 +310,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
-  search: true,
+  search: oneOf(true, {
+    searchResultClass: 'customClass',
+    queryMethod(queryStr: string, value: any) {
+      return true;
+    },
+    callback(instance: Handsontable, row: number, column: number, value: any, result: boolean) {
+      // ...
+    }
+  }),
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectOptions: ['A', 'B', 'C'],
   skipColumnOnPaste: true,
@@ -350,8 +362,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterContextMenuShow: (context) => {},
   afterCopy: (data, coords) => {},
   afterCopyLimit: (selectedRows, selectedColumnds, copyRowsLimit, copyColumnsLimit) => {},
-  afterCreateCol: (index, amount) => {},
-  afterCreateRow: (index, amount) => {},
+  afterCreateCol: (index, amount, source) => {},
+  afterCreateRow: (index, amount, source) => {},
   afterCut: (data, coords) => {},
   afterDeselect: () => {},
   afterDestroy: () => {},
@@ -389,8 +401,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRedo: (action) => {},
   afterRefreshDimensions: (previousDimensions, currentDimensions, stateChanged) => {},
   afterRemoveCellMeta: (row, column, key, value) => {},
-  afterRemoveCol: (index, amount) => {},
-  afterRemoveRow: (index, amount) => {},
+  afterRemoveCol: (index, amount, physicalColumns = [1, 2, 3], source) => {},
+  afterRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
   afterRowMove: (startRow, endRow) => {},
@@ -453,8 +465,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRemoveCellMeta: (row, column, key, value) => {},
   beforeRedo: (action) => {},
   beforeRefreshDimensions: (previousDimensions, currentDimensions, actionPossible) => {},
-  beforeRemoveCol: (index, amount, logicalCols = [1, 2, 3]) => {},
-  beforeRemoveRow: (index, amount, logicalCols = [1, 2, 3]) => {},
+  beforeRemoveCol: (index, amount, physicalColumns = [1, 2, 3], source) => {},
+  beforeRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   beforeRender: (isForced, skipRender) => {},
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
   beforeRowMove: (startRow, endRow) => {},

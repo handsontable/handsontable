@@ -367,6 +367,45 @@ class BaseEditor {
   }
 
   /**
+   * Gets className of the edited cell if exist.
+   *
+   * @returns {string}
+   */
+  getEditedCellsLayerClass() {
+    const editorSection = this.checkEditorSection();
+
+    switch (editorSection) {
+      case 'right':
+        return 'ht_clone_right';
+      case 'left':
+        return 'ht_clone_left';
+      case 'bottom':
+        return 'ht_clone_bottom';
+      case 'bottom-right-corner':
+        return 'ht_clone_bottom_right_corner';
+      case 'bottom-left-corner':
+        return 'ht_clone_bottom_left_corner';
+      case 'top':
+        return 'ht_clone_top';
+      case 'top-right-corner':
+        return 'ht_clone_top_right_corner';
+      case 'top-left-corner':
+        return 'ht_clone_top_left_corner';
+      default:
+        return 'ht_clone_master';
+    }
+  }
+
+  /**
+   * Gets HTMLTableCellElement of the edited cell if exist.
+   *
+   * @returns {HTMLTableCellElement|null}
+   */
+  getEditedCell() {
+    return this.hot.getCell(this.row, this.col, true);
+  }
+
+  /**
    * Returns name of the overlay, where editor is placed.
    *
    * @private

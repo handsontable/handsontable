@@ -3025,6 +3025,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Returns an visual index of the first rendered row.
+   * Returns -1 if no row is rendered.
    *
    * @memberof Core#
    * @function rowOffset
@@ -3036,6 +3037,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Returns the visual index of the first rendered column.
+   * Returns -1 if no column is rendered.
    *
    * @memberof Core#
    * @function colOffset

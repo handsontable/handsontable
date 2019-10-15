@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 7.1.1
- * Release date: 12/08/2019 (built at 02/08/2019 13:04:58)
+ * Version: 7.2.0
+ * Release date: 15/10/2019 (built at 14/10/2019 12:26:27)
  */
 /**
  * Fix for bootstrap styles
@@ -684,21 +684,48 @@ CheckboxRenderer
   background: #eee;
 }
 
-.ht_clone_top {
-  z-index: 101;
+.ht_editor_hidden {
+  z-index: -1;
+}
+
+.ht_editor_visible {
+  z-index: 200;
+}
+
+.ht_clone_master {
+  z-index: 100;
+}
+
+.ht_clone_right {
+  z-index: 110;
 }
 
 .ht_clone_left {
-  z-index: 102;
+  z-index: 120;
 }
 
-.ht_clone_top_left_corner,
+.ht_clone_bottom {
+  z-index: 130;
+}
+
+.ht_clone_bottom_right_corner {
+  z-index: 140;
+}
+
 .ht_clone_bottom_left_corner {
-  z-index: 103;
+  z-index: 150;
 }
 
-.ht_clone_debug {
-  z-index: 103;
+.ht_clone_top {
+  z-index: 160;
+}
+
+.ht_clone_top_right_corner {
+  z-index: 170;
+}
+
+.ht_clone_top_left_corner {
+  z-index: 180;
 }
 
 .handsontable td.htSearchResult {
@@ -1133,8 +1160,7 @@ thead .htCollapseButton:after {
 
 .htContextMenu .ht_clone_top,
 .htContextMenu .ht_clone_left,
-.htContextMenu .ht_clone_corner,
-.htContextMenu .ht_clone_debug {
+.htContextMenu .ht_clone_corner {
   display: none;
 }
 
@@ -1383,8 +1409,7 @@ textarea#HandsontableCopyPaste {
 
 .htDropdownMenu .ht_clone_top,
 .htDropdownMenu .ht_clone_left,
-.htDropdownMenu .ht_clone_corner,
-.htDropdownMenu .ht_clone_debug {
+.htDropdownMenu .ht_clone_corner {
   display: none;
 }
 
@@ -1532,8 +1557,7 @@ textarea#HandsontableCopyPaste {
 
 .htFiltersConditionsMenu .ht_clone_top,
 .htFiltersConditionsMenu .ht_clone_left,
-.htFiltersConditionsMenu .ht_clone_corner,
-.htFiltersConditionsMenu .ht_clone_debug {
+.htFiltersConditionsMenu .ht_clone_corner {
   display: none;
 }
 

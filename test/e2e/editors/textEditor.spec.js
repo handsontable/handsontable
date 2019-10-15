@@ -224,7 +224,7 @@ describe('TextEditor', () => {
     }, 200);
   });
 
-  it('should hide whole editor when it is higher then header', (done) => {
+  it('should hide whole editor when it is higher then header and TD is not rendered anymore', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       rowHeaders: true,
@@ -242,11 +242,34 @@ describe('TextEditor', () => {
     mainHolder.scrollTop = 150;
     mainHolder.scrollLeft = 150;
 
-    setTimeout(() => {
-      expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).toBeAroundValue(-77);
-      expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBeAroundValue(-1);
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(parseInt(hot.getActiveEditor().textareaParentStyle.opacity, 10)).toBe(0); // result of textEditor .close()
+  });
+
+  it('should hide whole editor when it is higher then header and TD is still rendered', async() => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(50, 50),
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    setDataAtCell(2, 2, 'string\nstring\nstring');
+    selectCell(2, 2);
+
+    keyDown('enter');
+    keyUp('enter');
+
+    const mainHolder = hot.view.wt.wtTable.holder;
+
+    mainHolder.scrollTop = 150;
+    mainHolder.scrollLeft = 100;
+
+    await sleep(200);
+
+    expect(parseInt(hot.getActiveEditor().textareaParentStyle.opacity, 10)).toBe(1);
+    expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).toBeAroundValue(-77);
+    expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBeAroundValue(50);
   });
 
   it('should hide editor when quick navigation by click scrollbar was triggered', async() => {
@@ -1377,6 +1400,27 @@ describe('TextEditor', () => {
     expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     expect(isEditorVisible()).toBe(true);
     expect(getActiveEditor().TEXTAREA.value).toBe('999');
+  });
+
+  it('should not prepare editor after the close editor and selecting the read-only cell', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      columns: [
+        { readOnly: true },
+        {}
+      ]
+    });
+
+    selectCell(0, 1);
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    selectCell(0, 0);
+
+    keyDownUp('enter');
+
+    expect(hot.getActiveEditor()).toBe(void 0);
   });
 
   describe('IME support', () => {
