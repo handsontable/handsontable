@@ -132,7 +132,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     this.columnMetaCache = this.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, new ValueMap((physicalIndex) => {
-      let visualIndex = this.columnIndexMapper.getVisualIndex(physicalIndex);
+      let visualIndex = this.hot.toVisualColumn(physicalIndex);
 
       if (visualIndex === null) {
         visualIndex = physicalIndex;

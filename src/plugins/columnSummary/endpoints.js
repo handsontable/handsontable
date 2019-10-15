@@ -331,10 +331,10 @@ class Endpoints {
       const newRange = [];
       if (range[1]) {
         for (let i = range[0]; i <= range[1]; i++) {
-          newRange.push(this.plugin.rowIndexMapper.getPhysicalIndex(i));
+          newRange.push(this.hot.toPhysicalRow(i));
         }
       } else {
-        newRange.push(this.plugin.rowIndexMapper.getPhysicalIndex(range[0]));
+        newRange.push(this.hot.toPhysicalRow(range[0]));
       }
 
       allIndexes.push(newRange);
@@ -491,8 +491,8 @@ class Endpoints {
     const alterRowOffset = endpoint.alterRowOffset || 0;
     const alterColOffset = endpoint.alterColumnOffset || 0;
     const [visualRowIndex, visualColumnIndex] = [
-      this.plugin.rowIndexMapper.getVisualIndex(endpoint.destinationRow),
-      this.plugin.columnIndexMapper.getVisualIndex(endpoint.destinationColumn)
+      this.hot.toVisualRow(endpoint.destinationRow),
+      this.hot.toVisualColumn(endpoint.destinationColumn)
     ];
 
     // Clear the meta on the "old" indexes
@@ -501,8 +501,8 @@ class Endpoints {
     cellMeta.className = '';
 
     this.cellsToSetCache.push([
-      this.plugin.rowIndexMapper.getVisualIndex(endpoint.destinationRow + (useOffset ? alterRowOffset : 0)),
-      this.plugin.columnIndexMapper.getVisualIndex(endpoint.destinationColumn + (useOffset ? alterColOffset : 0)),
+      this.hot.toVisualRow(endpoint.destinationRow + (useOffset ? alterRowOffset : 0)),
+      this.hot.toVisualColumn(endpoint.destinationColumn + (useOffset ? alterColOffset : 0)),
       ''
     ]);
   }

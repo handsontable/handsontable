@@ -89,11 +89,9 @@ class BindRowsWithHeaders extends BasePlugin {
    * @private
    * @param {Number} row Row index.
    * @returns {Number}
-   *
-   * @fires Hooks#modifyRow
    */
   onModifyRowHeader(row) {
-    return this.headerIndexes.getValueAtIndex(this.rowIndexMapper.getPhysicalIndex(row));
+    return this.headerIndexes.getValueAtIndex(this.hot.toPhysicalRow(row));
   }
 
   /**

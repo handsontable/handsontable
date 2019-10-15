@@ -64,7 +64,7 @@ class HeadersUI extends BaseUI {
    * @param {HTMLElement} TH TH 3element.
    */
   appendLevelIndicators(row, TH) {
-    const rowIndex = this.hot.recordTranslator.getRowIndexMapper().getPhysicalIndex(row);
+    const rowIndex = this.hot.toPhysicalRow(row);
     const rowLevel = this.dataManager.getRowLevel(rowIndex);
     const rowObject = this.dataManager.getDataObject(rowIndex);
     const innerDiv = TH.getElementsByTagName('DIV')[0];
