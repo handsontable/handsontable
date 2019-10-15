@@ -184,7 +184,7 @@
   position: absolute;
   top: 0;
   cursor: col-resize;
-  z-index: 110;
+  z-index: 190;
   width: 5px;
   height: 25px;
 }
@@ -193,7 +193,7 @@
   position: absolute;
   left: 0;
   cursor: row-resize;
-  z-index: 110;
+  z-index: 190;
   height: 5px;
   width: 50px;
 }
