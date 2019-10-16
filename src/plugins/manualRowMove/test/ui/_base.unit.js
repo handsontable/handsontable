@@ -5,7 +5,7 @@ describe('manualRowMove', () => {
   const STATE_BUILT = 1;
   const STATE_APPENDED = 2;
 
-  it('should not rebuild UI elements', () => {
+  it('should not rebuild UI elements unnecessarily', () => {
     const hotMock = {
       rootDocument: {
         createElement() {}

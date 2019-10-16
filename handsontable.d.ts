@@ -1246,33 +1246,6 @@ declare namespace Handsontable {
       unfreezeColumn(column: number): void;
     }
 
-    interface indexMapper {
-      getPhysicalIndex(index: number): any;
-      getVisualIndex(value: any): number;
-      insertItems(index: number, amount?: number): any[];
-      removeItems(index: number, amount?: number): any[];
-      shiftItems(index: number, amount?: number): void;
-      unshiftItems(index: number, amount?: number): void;
-    }
-
-    interface MoveColumnsMapper extends indexMapper {
-      manualColumnMove: ManualColumnMove;
-
-      clearNull(): void;
-      createMap(length?: number): void;
-      destroy(): void;
-      moveColumn(from: number, to: number): void;
-    }
-
-    interface MoveRowsMapper extends indexMapper {
-      manualRowMove: ManualRowMove;
-
-      clearNull(): void;
-      createMap(length?: number): void;
-      destroy(): void;
-      moveColumn(from: number, to: number): void;
-    }
-
     interface MultiColumnSorting extends BasePlugin {
       clearSort(): void;
       destroy(): void;
@@ -1281,13 +1254,6 @@ declare namespace Handsontable {
       isSorted(): boolean;
       setSortConfig(sortConfig?: columnSorting.Config | Array<columnSorting.Config>): void;
       sort(sortConfig?: columnSorting.Config | Array<columnSorting.Config>): void;
-    }
-
-    interface TrimRowsMapper extends indexMapper {
-      trimRows: TrimRows;
-
-      createMap(length?: number): void;
-      destroy(): void;
     }
 
     namespace moveUI {
@@ -1378,7 +1344,6 @@ declare namespace Handsontable {
 
     interface ManualColumnMove extends BasePlugin {
       backlight: moveUI.BacklightUI;
-      columnsMapper: MoveColumnsMapper;
       eventManager: EventManager;
       guideline: moveUI.GuidelineUI;
       removedColumns: any[];
@@ -1424,7 +1389,6 @@ declare namespace Handsontable {
       eventManager: EventManager;
       guideline: moveUI.GuidelineUI;
       removedRows: any[];
-      rowsMapper: MoveRowsMapper;
 
       moveRow(row: number, finalIndex: number): void;
       moveRows(rows: number[], finalIndex: number): void;
@@ -1556,7 +1520,6 @@ declare namespace Handsontable {
     interface TrimRows extends BasePlugin {
       trimmedRows: any[];
       removedRows: any[];
-      rowsMapper: TrimRowsMapper;
 
       isTrimmed(row: number): boolean;
       trimRow(row: number): void;

@@ -82,20 +82,4 @@ describe('Core_countEmptyRows', () => {
 
     expect(countEmptyRows()).toBe(5);
   });
-
-  it('should count empty rows properly when rows was trimmed', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
-      trimRows: [8, 9],
-      modifyRow(row) {
-        if (row >= 2) {
-          return row + 2;
-        }
-
-        return row;
-      }
-    });
-
-    expect(countEmptyRows()).toBe(0);
-  });
 });

@@ -82,6 +82,22 @@ describe('TrimRows', () => {
     expect(hot.getDataAtCell(7, 0)).toEqual('a');
   });
 
+  it('should count empty rows properly when rows was trimmed', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      trimRows: [8, 9],
+      modifyRow(row) {
+        if (row >= 2) {
+          return row + 2;
+        }
+
+        return row;
+      }
+    });
+
+    expect(countEmptyRows()).toBe(0);
+  });
+
   it('should trim rows after re-load data calling loadData method', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
