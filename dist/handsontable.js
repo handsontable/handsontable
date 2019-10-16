@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 7.1.1
- * Release date: 12/08/2019 (built at 14/10/2019 18:32:16)
+ * Version: 7.2.0
+ * Release date: 15/10/2019 (built at 16/10/2019 11:13:04)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3884,7 +3884,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "7.1.1";
+  var hotVersion = "7.2.0";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -3894,7 +3894,7 @@ function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("12/08/2019", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("15/10/2019", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
 
       var keyValidityDays = _extractTime(key);
@@ -36845,7 +36845,7 @@ function (_BasePlugin) {
       }
 
       this.columnMetaCache = this.columnIndexMapper.registerMap("".concat(this.pluginKey, ".columnMeta"), new _translations.ValueMap(function (physicalIndex) {
-        var visualIndex = _this2.columnIndexMapper.getVisualIndex(physicalIndex);
+        var visualIndex = _this2.hot.toVisualColumn(physicalIndex);
 
         if (visualIndex === null) {
           visualIndex = physicalIndex;
@@ -39498,7 +39498,7 @@ function (_BaseUI) {
   (0, _createClass2.default)(HeadersUI, [{
     key: "appendLevelIndicators",
     value: function appendLevelIndicators(row, TH) {
-      var rowIndex = this.hot.recordTranslator.getRowIndexMapper().getPhysicalIndex(row);
+      var rowIndex = this.hot.toPhysicalRow(row);
       var rowLevel = this.dataManager.getRowLevel(rowIndex);
       var rowObject = this.dataManager.getDataObject(rowIndex);
       var innerDiv = TH.getElementsByTagName('DIV')[0];
@@ -39668,8 +39668,8 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "14/10/2019 18:32:16";
-Handsontable.version = "7.1.1"; // Export Hooks singleton
+Handsontable.buildDate = "16/10/2019 11:13:04";
+Handsontable.version = "7.2.0"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
@@ -70542,14 +70542,12 @@ function (_BasePlugin) {
      * @private
      * @param {Number} row Row index.
      * @returns {Number}
-     *
-     * @fires Hooks#modifyRow
      */
 
   }, {
     key: "onModifyRowHeader",
     value: function onModifyRowHeader(row) {
-      return this.headerIndexes.getValueAtIndex(this.rowIndexMapper.getPhysicalIndex(row));
+      return this.headerIndexes.getValueAtIndex(this.hot.toPhysicalRow(row));
     }
     /**
      * Destroys the plugin instance.
@@ -72287,10 +72285,10 @@ function () {
 
         if (range[1]) {
           for (var i = range[0]; i <= range[1]; i++) {
-            newRange.push(_this3.plugin.rowIndexMapper.getPhysicalIndex(i));
+            newRange.push(_this3.hot.toPhysicalRow(i));
           }
         } else {
-          newRange.push(_this3.plugin.rowIndexMapper.getPhysicalIndex(range[0]));
+          newRange.push(_this3.hot.toPhysicalRow(range[0]));
         }
 
         allIndexes.push(newRange);
@@ -72455,14 +72453,14 @@ function () {
       var useOffset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       var alterRowOffset = endpoint.alterRowOffset || 0;
       var alterColOffset = endpoint.alterColumnOffset || 0;
-      var _ref = [this.plugin.rowIndexMapper.getVisualIndex(endpoint.destinationRow), this.plugin.columnIndexMapper.getVisualIndex(endpoint.destinationColumn)],
+      var _ref = [this.hot.toVisualRow(endpoint.destinationRow), this.hot.toVisualColumn(endpoint.destinationColumn)],
           visualRowIndex = _ref[0],
           visualColumnIndex = _ref[1]; // Clear the meta on the "old" indexes
 
       var cellMeta = this.hot.getCellMeta(visualRowIndex, visualColumnIndex);
       cellMeta.readOnly = false;
       cellMeta.className = '';
-      this.cellsToSetCache.push([this.plugin.rowIndexMapper.getVisualIndex(endpoint.destinationRow + (useOffset ? alterRowOffset : 0)), this.plugin.columnIndexMapper.getVisualIndex(endpoint.destinationColumn + (useOffset ? alterColOffset : 0)), '']);
+      this.cellsToSetCache.push([this.hot.toVisualRow(endpoint.destinationRow + (useOffset ? alterRowOffset : 0)), this.hot.toVisualColumn(endpoint.destinationColumn + (useOffset ? alterColOffset : 0)), '']);
     }
     /**
      * Set the endpoint value.
@@ -85941,7 +85939,7 @@ function () {
 
       if (!isNaN(rowObj)) {
         rowObj = this.getDataObject(rowObj);
-      } // TODO: Bug? What about situation when an element has empty array under the `__children` key? Please take a look at another "TODO" inside test case.
+      } // TODO: Bug? What about situation when an element has empty array under the `__children` key? Please take a look at another "TODO" within test cases.
 
 
       return !!(0, _object.hasOwnProperty)(rowObj, '__children');
@@ -86848,7 +86846,7 @@ function (_BaseUI) {
   }, {
     key: "translateTrimmedRow",
     value: function translateTrimmedRow(row) {
-      return this.hot.recordTranslator.getRowIndexMapper().getPhysicalIndex(row);
+      return this.hot.toPhysicalRow(row);
     }
     /**
      * Helper function to render the table and call the `adjustElementsSize` method.
