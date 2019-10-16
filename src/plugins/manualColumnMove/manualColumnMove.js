@@ -648,14 +648,14 @@ class ManualColumnMove extends BasePlugin {
     }
 
     const firstMovedVisualColumn = priv.columnsToMove[0];
-    const firstMovedPhysicalColumn = this.t.toPhysicalColumn(firstMovedVisualColumn);
+    const firstMovedPhysicalColumn = this.hot.toPhysicalColumn(firstMovedVisualColumn);
 
     this.dragColumns(priv.columnsToMove, target);
 
     this.persistentStateSave();
     this.hot.render();
 
-    const selectionStart = this.t.toVisualColumn(firstMovedPhysicalColumn);
+    const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
     const selectionEnd = selectionStart + columnsLen - 1;
 
     this.changeSelection(selectionStart, selectionEnd);

@@ -18,12 +18,12 @@ let visualRows;
  * Collect all previous visual rows from CellValues.
  */
 export function prepare() {
-  const { matrix, dataProvider } = this;
+  const { matrix, hot } = this;
 
   visualRows = new WeakMap();
 
   arrayEach(matrix.data, (cell) => {
-    visualRows.set(cell, dataProvider.t.toVisualRow(cell.row));
+    visualRows.set(cell, hot.toVisualRow(cell.row));
   });
 }
 
@@ -31,7 +31,7 @@ export function prepare() {
  * Translate all CellValues depends on previous position.
  */
 export function operate() {
-  const { matrix, dataProvider } = this;
+  const { matrix, dataProvider, hot } = this;
 
   matrix.cellReferences.length = 0;
 
@@ -46,7 +46,7 @@ export function operate() {
       const prevRow = visualRows.get(cell);
       const expModifier = new ExpressionModifier(value);
 
-      expModifier.translate({ row: dataProvider.t.toVisualRow(row) - prevRow });
+      expModifier.translate({ row: hot.toVisualRow(row) - prevRow });
 
       dataProvider.updateSourceData(row, column, expModifier.toString());
     }

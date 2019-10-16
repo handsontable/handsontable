@@ -22,9 +22,6 @@ class BasePlugin {
     defineGetter(this, 'hot', hotInstance, {
       writable: false
     });
-    defineGetter(this, 't', getTranslator(hotInstance), {
-      writable: false
-    });
     defineGetter(this, 'rowIndexMapper', getTranslator(hotInstance).getRowIndexMapper(), {
       writable: false
     });

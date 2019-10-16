@@ -2366,7 +2366,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterRemoveCellMeta
    */
   this.removeCellMeta = function(row, column, key) {
-    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
+    const [physicalRow, physicalColumn] = [recordTranslator.toPhysicalRow(row), recordTranslator.toPhysicalColumn(column)];
     let cachedValue = priv.cellSettings[physicalRow][physicalColumn][key];
 
     const hookResult = instance.runHooks('beforeRemoveCellMeta', row, column, key, cachedValue);

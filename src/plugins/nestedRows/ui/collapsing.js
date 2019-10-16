@@ -17,7 +17,7 @@ class CollapsingUI extends BaseUI {
     super(nestedRowsPlugin, hotInstance);
 
     /**
-     * Reference to the Trim Rows plugin.
+     * Reference to the TrimRows plugin.
      */
     this.dataManager = this.plugin.dataManager;
     this.collapsedRows = [];

@@ -292,7 +292,7 @@ class Filters extends BasePlugin {
    * @param {String} operationId `id` of operation which is performed on the column
    */
   addCondition(column, name, args, operationId = OPERATION_AND) {
-    const physicalColumn = this.t.toPhysicalColumn(column);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.conditionCollection.addCondition(physicalColumn, { command: { key: name }, args }, operationId);
   }
@@ -303,7 +303,7 @@ class Filters extends BasePlugin {
    * @param {Number} column Visual column index.
    */
   removeConditions(column) {
-    const physicalColumn = this.t.toPhysicalColumn(column);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.conditionCollection.removeConditions(physicalColumn);
   }
@@ -319,7 +319,7 @@ class Filters extends BasePlugin {
       this.conditionCollection.clean();
 
     } else {
-      const physicalColumn = this.t.toPhysicalColumn(column);
+      const physicalColumn = this.hot.toPhysicalColumn(column);
 
       this.conditionCollection.clearConditions(physicalColumn);
     }
@@ -406,7 +406,7 @@ class Filters extends BasePlugin {
    * @returns {Array} Returns array of objects where keys as row index.
    */
   getDataMapAtColumn(column) {
-    const visualIndex = this.t.toVisualColumn(column);
+    const visualIndex = this.hot.toVisualColumn(column);
     const data = [];
 
     arrayEach(this.hot.getSourceDataAtCol(visualIndex), (value, rowIndex) => {
@@ -648,7 +648,7 @@ class Filters extends BasePlugin {
    * @param {HTMLTableCellElement} TH
    */
   onAfterGetColHeader(col, TH) {
-    const physicalColumn = this.t.toPhysicalColumn(col);
+    const physicalColumn = this.hot.toPhysicalColumn(col);
 
     if (this.enabled && this.conditionCollection.hasConditions(physicalColumn)) {
       addClass(TH, 'htFiltersActive');
@@ -668,7 +668,7 @@ class Filters extends BasePlugin {
 
     if (th) {
       const visualIndex = this.hot.getCoords(th).col;
-      const physicalIndex = this.t.toPhysicalColumn(visualIndex);
+      const physicalIndex = this.hot.toPhysicalColumn(visualIndex);
 
       this.lastSelectedColumn = {
         visualIndex,

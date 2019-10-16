@@ -1,7 +1,6 @@
 import { rangeEach } from '../../../helpers/number';
 import { objectEach, hasOwnProperty } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
-import { getTranslator } from '../../../translations';
 
 /**
  * Class responsible for making data operations.
@@ -46,13 +45,6 @@ class DataManager {
       rows: [],
       nodeInfo: new WeakMap()
     };
-    /**
-     * A `recordTranslator` instance.
-     *
-     * @private
-     * @type {Object}
-     */
-    this.recordTranslator = getTranslator(this.hot);
   }
 
   /**

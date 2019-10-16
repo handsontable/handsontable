@@ -1,5 +1,4 @@
 import Core from './../core';
-import { isObject } from './../helpers/object';
 import IndexMapper from './indexMapper';
 
 /**
@@ -34,29 +33,6 @@ export class RecordTranslator {
   }
 
   /**
-   * Translate physical coordinates into visual. Can be passed as separate 2 arguments (row, column) or as an object in first
-   * argument with `row` and `column` keys.
-   *
-   * @param {Number|Object} row Physical coordinates or row index.
-   * @param {Number} [column] Physical column index.
-   * @returns {Object|Array} Returns an object with visual records or an array if coordinates passed as separate arguments.
-   */
-  toVisual(row, column) {
-    let result;
-
-    if (isObject(row)) {
-      result = {
-        row: this.toVisualRow(row.row),
-        column: this.toVisualColumn(row.column),
-      };
-    } else {
-      result = [this.toVisualRow(row), this.toVisualColumn(column)];
-    }
-
-    return result;
-  }
-
-  /**
    * Translate visual row index into physical.
    *
    * @param {Number} row Visual row index.
@@ -74,29 +50,6 @@ export class RecordTranslator {
    */
   toPhysicalColumn(column) {
     return this.hot.runHooks('modifyCol', this.getColumnIndexMapper().getPhysicalIndex(column));
-  }
-
-  /**
-   * Translate visual coordinates into physical. Can be passed as separate 2 arguments (row, column) or as an object in first
-   * argument with `row` and `column` keys.
-   *
-   * @param {Number|Object} row Visual coordinates or row index.
-   * @param {Number} [column] Visual column index.
-   * @returns {Object|Array} Returns an object with physical records or an array if coordinates passed as separate arguments.
-   */
-  toPhysical(row, column) {
-    let result;
-
-    if (isObject(row)) {
-      result = {
-        row: this.toPhysicalRow(row.row),
-        column: this.toPhysicalColumn(row.column),
-      };
-    } else {
-      result = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];
-    }
-
-    return result;
   }
 
   /**
