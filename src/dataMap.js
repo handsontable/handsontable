@@ -99,6 +99,12 @@ class DataMap {
      * @type {Map}
      */
     this.propToColCache = void 0;
+    /**
+     * Record translator for translating visual records into psychical and vice versa.
+     *
+     * @type {RecordTranslator}
+     */
+    this.recordTranslator = getTranslator(this.instance);
 
     this.createMap();
   }
@@ -306,7 +312,7 @@ class DataMap {
       numberOfCreatedRows += 1;
     }
 
-    this.instance.recordTranslator.getRowIndexMapper().insertIndexes(rowIndex, numberOfCreatedRows);
+    this.recordTranslator.getRowIndexMapper().insertIndexes(rowIndex, numberOfCreatedRows);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -376,7 +382,7 @@ class DataMap {
       nrOfColumns += 1;
     }
 
-    this.instance.recordTranslator.getColumnIndexMapper().insertIndexes(columnIndex, numberOfCreatedCols);
+    this.recordTranslator.getColumnIndexMapper().insertIndexes(columnIndex, numberOfCreatedCols);
 
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -417,7 +423,7 @@ class DataMap {
 
     // TODO: Function `removeRow` should validate fully, probably above.
     if (rowIndex < this.instance.countRows()) {
-      this.instance.recordTranslator.getRowIndexMapper().removeIndexes(logicRows);
+      this.recordTranslator.getRowIndexMapper().removeIndexes(logicRows);
     }
 
     this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
@@ -479,7 +485,7 @@ class DataMap {
 
     // TODO: Function `removeCol` should validate fully, probably above.
     if (columnIndex < this.instance.countCols()) {
-      this.instance.recordTranslator.getColumnIndexMapper().removeIndexes(logicColumns);
+      this.recordTranslator.getColumnIndexMapper().removeIndexes(logicColumns);
     }
 
     this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
@@ -579,7 +585,7 @@ class DataMap {
    * @returns {*}
    */
   get(row, prop) {
-    const physicalRow = this.instance.recordTranslator.toPhysicalRow(row);
+    const physicalRow = this.recordTranslator.toPhysicalRow(row);
 
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)

@@ -2118,8 +2118,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.toPhysicalColumn = column => recordTranslator.toPhysicalColumn(column);
 
-  this.recordTranslator = recordTranslator;
-
   /**
    * @description
    * Returns the cell value at `row`, `column`.
