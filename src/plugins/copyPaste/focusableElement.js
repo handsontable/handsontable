@@ -10,8 +10,8 @@ import { selectElementIfAllowed } from './../../helpers/dom/element';
  * @plugin CopyPaste
  */
 class FocusableWrapper {
-  constructor(rootDocument) {
-    this.rootDocument = rootDocument;
+  constructor(container) {
+    this.rootDocument = container.defaultView ? container : container.ownerDocument;
     /**
      * The main/operational focusable element.
      *
@@ -30,13 +30,15 @@ class FocusableWrapper {
      * @type {WeakSet}
      */
     this.listenersCount = new WeakSet();
+
+    this.container = container;
   }
 
   /**
    * Switch to the secondary focusable element. Used when no any main focusable element is provided.
    */
   useSecondaryElement() {
-    const el = createOrGetSecondaryElement(this.rootDocument);
+    const el = createOrGetSecondaryElement(this.container);
 
     if (!this.listenersCount.has(el)) {
       this.listenersCount.add(el);
@@ -89,10 +91,11 @@ let refCounter = 0;
 /**
  * Create and return the FocusableWrapper instance.
  *
+ * @param {HTMLElement} container
  * @returns {FocusableWrapper}
  */
-function createElement(rootDocument) {
-  const focusableWrapper = new FocusableWrapper(rootDocument);
+function createElement(container) {
+  const focusableWrapper = new FocusableWrapper(container);
 
   refCounter += 1;
 
@@ -120,6 +123,7 @@ function forwardEventsToLocalHooks(eventManager, element, subject) {
   eventManager.addEventListener(element, 'copy', runLocalHooks('copy', subject));
   eventManager.addEventListener(element, 'cut', runLocalHooks('cut', subject));
   eventManager.addEventListener(element, 'paste', runLocalHooks('paste', subject));
+  eventManager.addEventListener(element, 'keydown', runLocalHooks('keydown', subject));
 }
 
 const secondaryElements = new WeakMap();
@@ -127,30 +131,32 @@ const secondaryElements = new WeakMap();
 /**
  * Create and attach newly created focusable element to the DOM.
  *
+ * @param {HTMLElement} container
  * @returns {HTMLElement}
  */
-function createOrGetSecondaryElement(rootDocument) {
-  const secondaryElement = secondaryElements.get(rootDocument);
+function createOrGetSecondaryElement(container) {
+  const secondaryElement = secondaryElements.get(container);
 
   if (secondaryElement) {
     if (!secondaryElement.parentElement) {
-      this.rootDocument.body.appendChild(secondaryElement);
+      container.appendChild(secondaryElement);
     }
 
     return secondaryElement;
   }
 
-  const element = rootDocument.createElement('textarea');
+  const doc = container.defaultView ? container : container.ownerDocument;
+  const element = doc.createElement('textarea');
 
-  secondaryElements.set(rootDocument, element);
-  element.id = 'HandsontableCopyPaste';
-  element.className = 'copyPaste';
+  secondaryElements.set(container, element);
+  // element.id = 'HandsontableCopyPaste';
+  element.className = 'copyPaste HandsontableCopyPaste';
   element.tabIndex = -1;
   element.autocomplete = 'off';
   element.wrap = 'hard';
   element.value = ' ';
 
-  rootDocument.body.appendChild(element);
+  container.appendChild(element);
 
   return element;
 }
@@ -175,11 +181,11 @@ function destroyElement(wrapper) {
     refCounter = 0;
 
     // Detach secondary element from the DOM.
-    const secondaryElement = secondaryElements.get(wrapper.rootDocument);
+    const secondaryElement = secondaryElements.get(wrapper.container);
 
     if (secondaryElement && secondaryElement.parentNode) {
       secondaryElement.parentNode.removeChild(secondaryElement);
-      secondaryElements.delete(wrapper.rootDocument);
+      secondaryElements.delete(wrapper.container);
     }
 
     wrapper.mainElement = null;
