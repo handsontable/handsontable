@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 7.2.0
- * Release date: 15/10/2019 (built at 14/10/2019 12:26:27)
+ * Version: 7.2.1
+ * Release date: 16/10/2019 (built at 16/10/2019 09:50:41)
  */
 /**
  * Fix for bootstrap styles
@@ -283,7 +283,7 @@
   position: absolute;
   top: 0;
   cursor: col-resize;
-  z-index: 110;
+  z-index: 210;
   width: 5px;
   height: 25px;
 }
@@ -292,7 +292,7 @@
   position: absolute;
   left: 0;
   cursor: row-resize;
-  z-index: 110;
+  z-index: 210;
   height: 5px;
   width: 50px;
 }
@@ -329,7 +329,7 @@
 .handsontable .manualColumnResizerGuide.active,
 .handsontable .manualRowResizerGuide.active {
   display: block;
-  z-index: 199;
+  z-index: 209;
 }
 
 .handsontable .columnSorting {
@@ -1279,13 +1279,13 @@ textarea#HandsontableCopyPaste {
   width: 2px;
   top: 0;
   margin-left: -1px;
-  z-index: 105;
+  z-index: 205;
 }
 .handsontable .ht__manualColumnMove--backlight {
   background: #343434;
   background: rgba(52, 52, 52, 0.25);
   display: none;
-  z-index: 105;
+  z-index: 205;
   pointer-events: none;
 }
 .handsontable.on-moving--columns.show-ui .ht__manualColumnMove--guideline,
@@ -1323,13 +1323,13 @@ textarea#HandsontableCopyPaste {
   height: 2px;
   left: 0;
   margin-top: -1px;
-  z-index: 105;
+  z-index: 205;
 }
 .handsontable .ht__manualRowMove--backlight {
   background: #343434;
   background: rgba(52, 52, 52, 0.25);
   display: none;
-  z-index: 105;
+  z-index: 205;
   pointer-events: none;
 }
 .handsontable.on-moving--rows.show-ui .ht__manualRowMove--guideline,
