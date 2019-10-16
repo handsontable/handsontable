@@ -145,7 +145,7 @@ class ColumnSorting extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, controller) => this.onBeforeOnCellMouseDown(event, coords, TD, controller));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterInit', () => this.loadOrSortBySettings());
-    this.addHook('afterLoadData', initialLoad => this.onAfterLoadData(initialLoad));
+    this.addHook('afterLoadData', (sourceData, initialLoad) => this.onAfterLoadData(initialLoad));
 
     // TODO: Workaround? It should be refactored / described.
     if (this.hot.view) {

@@ -1622,7 +1622,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     grid.adjustRowsAndCols();
 
-    instance.runHooks('afterLoadData', priv.firstRun);
+    instance.runHooks('afterLoadData', data, priv.firstRun);
 
     if (priv.firstRun) {
       priv.firstRun = [null, 'loadData'];

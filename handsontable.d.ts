@@ -1812,7 +1812,7 @@ declare namespace Handsontable {
       afterInit?: () => void;
       afterLanguageChange?: (languageCode: string) => void;
       afterListen?: () => void;
-      afterLoadData?: (initialLoad: boolean) => void;
+      afterLoadData?: (sourceData: object | void, initialLoad: boolean) => void;
       afterMergeCells?: (cellRange: wot.CellRange, mergeParent: mergeCells.Settings, auto: boolean) => void;
       afterModifyTransformEnd?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
       afterModifyTransformStart?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
@@ -1882,6 +1882,7 @@ declare namespace Handsontable {
       beforeInitWalkontable?: (walkontableConfig: object) => void;
       beforeKeyDown?: (event: KeyboardEvent) => void;
       beforeLanguageChange?: (languageCode: string) => void;
+      beforeLoadData?: (sourceData: object | void, initialLoad: boolean) => void;
       beforeMergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
       beforeOnCellContextMenu?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
       beforeOnCellMouseDown?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;

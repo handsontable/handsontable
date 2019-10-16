@@ -518,9 +518,8 @@ class Endpoints {
     // We'll need the reversed offset values, because cellMeta will be shifted AGAIN afterwards.
     const reverseRowOffset = (-1) * endpoint.alterRowOffset || 0;
     const reverseColOffset = (-1) * endpoint.alterColumnOffset || 0;
-    const visualEndpointRowIndex = this.getVisualRowIndex(endpoint.destinationRow);
-
-    const cellMeta = this.hot.getCellMeta(this.getVisualRowIndex(endpoint.destinationRow + reverseRowOffset), endpoint.destinationColumn + reverseColOffset);
+    const visualEndpointRowIndex = this.hot.toVisualRow(endpoint.destinationRow);
+    const cellMeta = this.hot.getCellMeta(this.hot.toVisualRow(endpoint.destinationRow + reverseRowOffset), endpoint.destinationColumn + reverseColOffset);
 
     if (endpoint.destinationRow >= this.hot.countRows() || endpoint.destinationColumn >= this.hot.countCols()) {
       this.throwOutOfBoundsWarning();
@@ -544,28 +543,6 @@ class Endpoints {
 
     endpoint.alterRowOffset = void 0;
     endpoint.alterColumnOffset = void 0;
-  }
-
-  /**
-   * Get the visual row index for the provided row. Uses the `umodifyRow` hook.
-   *
-   * @private
-   * @param {Number} row Row index.
-   * @returns {Number}
-   */
-  getVisualRowIndex(row) {
-    return this.hot.toVisualRow(row);
-  }
-
-  /**
-   * Get the visual column index for the provided column. Uses the `umodifyColumn` hook.
-   *
-   * @private
-   * @param {Number} column Column index.
-   * @returns {Number}
-   */
-  getVisualColumnIndex(column) {
-    return this.hot.toVisualColumn(column);
   }
 
   /**
