@@ -511,5 +511,26 @@ describe('manualRowResize', () => {
       expect($handle.offset().top).toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
     });
+
+    it('should display the resize handle in the proper z-index and be greater than left overlay z-index', () => {
+      handsontable({
+        data: [
+          { id: 1, name: 'Ted', lastName: 'Right' },
+          { id: 2, name: 'Frank', lastName: 'Honest' },
+          { id: 3, name: 'Joan', lastName: 'Well' },
+          { id: 4, name: 'Sid', lastName: 'Strong' },
+          { id: 5, name: 'Jane', lastName: 'Neat' }
+        ],
+        rowHeaders: true,
+        manualRowResize: true
+      });
+
+      const $headerTH = spec().$container.find('tbody tr:eq(1) th:eq(0)');
+      $headerTH.simulate('mouseover');
+
+      const $handle = $('.manualRowResizer');
+
+      expect($handle.css('z-index')).toBeGreaterThan(getLeftClone().css('z-index'));
+    });
   });
 });
