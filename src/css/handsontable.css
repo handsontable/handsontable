@@ -184,7 +184,7 @@
   position: absolute;
   top: 0;
   cursor: col-resize;
-  z-index: 110;
+  z-index: 210;
   width: 5px;
   height: 25px;
 }
@@ -193,7 +193,7 @@
   position: absolute;
   left: 0;
   cursor: row-resize;
-  z-index: 110;
+  z-index: 210;
   height: 5px;
   width: 50px;
 }
@@ -230,7 +230,7 @@
 .handsontable .manualColumnResizerGuide.active,
 .handsontable .manualRowResizerGuide.active {
   display: block;
-  z-index: 199;
+  z-index: 209;
 }
 
 .handsontable .columnSorting {
