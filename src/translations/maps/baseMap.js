@@ -4,7 +4,7 @@ import { isFunction } from '../../helpers/function';
 import localHooks from '../../mixins/localHooks';
 
 /**
- * Map from index to value.
+ * Map for storing mappings from an index to a value.
  */
 class BaseMap {
   constructor(initValueOrFn = null) {
@@ -35,7 +35,7 @@ class BaseMap {
   }
 
   /**
-   * Get value for particular index.
+   * Get value for the particular index.
    *
    * @param {Number} index
    * @returns {*}
@@ -60,7 +60,7 @@ class BaseMap {
   }
 
   /**
-   * Set new value for particular index.
+   * Set new value for the particular index.
    *
    * @param {Number} index
    * @param {*} value
@@ -79,7 +79,7 @@ class BaseMap {
   }
 
   /**
-   * Clear all values.
+   * Clear all values to the defaults.
    */
   clear() {
     this.setDefaultValues();

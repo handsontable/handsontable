@@ -2,6 +2,7 @@ import { isUndefined, isDefined } from '../helpers/mixed';
 import { mixin } from '../helpers/object';
 import localHooks from '../mixins/localHooks';
 
+// Counter for checking if there is a memory leak.
 let registeredMaps = 0;
 
 class MapCollection {
@@ -10,15 +11,15 @@ class MapCollection {
   }
 
   /**
-   * Register custom indexes map.
+   * Register custom index map.
    *
-   * @param {String} name Unique name of the indexes list.
+   * @param {String} uniqueName Unique name of the indexes list.
    * @param {BaseMap} map Map containing miscellaneous (i.e. meta data, indexes sequence), updated after remove and insert data actions.
    * @returns {BaseMap|undefined}
    */
-  register(name, map) {
-    if (this.mappings.has(name) === false) {
-      this.mappings.set(name, map);
+  register(uniqueName, map) {
+    if (this.mappings.has(uniqueName) === false) {
+      this.mappings.set(uniqueName, map);
 
       map.addLocalHook('change', () => this.runLocalHooks('change', map));
 
@@ -27,9 +28,9 @@ class MapCollection {
   }
 
   /**
-   * Unregister custom indexes map.
+   * Unregister custom index map.
    *
-   * @param {String} name Unique name of the indexes list.
+   * @param {String} name Name of the indexes list.
    */
   unregister(name) {
     const map = this.mappings.get(name);
@@ -45,7 +46,7 @@ class MapCollection {
   }
 
   /**
-   * Get indexes list by it's name.
+   * Get indexes list for provided index map name.
    *
    * @param {String} [name] Name of the indexes list.
    * @returns {Array|IndexMap}
@@ -68,7 +69,7 @@ class MapCollection {
   }
 
   /**
-   * Remove some indexes and update value of the previous ones.
+   * Remove some indexes and corresponding mappings and update values of the others within all collection's index maps.
    *
    * @private
    * @param {Array} removedIndexes List of removed indexes.
@@ -80,7 +81,7 @@ class MapCollection {
   }
 
   /**
-   * Insert new indexes and update value of the previous ones.
+   * Insert new indexes and corresponding mapping and update values of the others all collection's index maps.
    *
    * @private
    * @param {Number} firstInsertedVisualIndex First inserted visual index.
@@ -94,9 +95,9 @@ class MapCollection {
   }
 
   /**
-   * Reset current index map and create new one.
+   * Set default values to index maps within collection.
    *
-   * @param {Number} length Custom generated map length.
+   * @param {Number} length Destination length for all stored index maps.
    */
   initEvery(length) {
     this.mappings.forEach((list) => {

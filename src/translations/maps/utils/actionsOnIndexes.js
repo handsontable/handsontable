@@ -1,20 +1,22 @@
 import { arrayMap } from '../../../helpers/array';
 
 /**
- * Transform list of indexes after removal.
+ * Transform mappings after removal.
  *
  * @private
+ * @param {Array} indexesList List of indexes.
  * @param {Array} removedIndexes List of removed indexes.
  */
-export function getDecreasedIndexes(list, removedIndexes) {
-  return arrayMap(list, index => index - removedIndexes.filter(removedRow => removedRow < index).length);
+export function getDecreasedIndexes(indexesList, removedIndexes) {
+  return arrayMap(indexesList, index => index - removedIndexes.filter(removedIndex => removedIndex < index).length);
 }
 
 /**
- * Transform list of indexes after insertion.
+ * Transform mappings after insertion.
  *
  * @private
- * @param {Number} insertionIndex Position inside actual list.
+ * @param {Array} indexesList List of indexes.
+ * @param {Number} insertionIndex Position inside the actual list.
  * @param {Array} insertedIndexes List of inserted indexes.
  */
 export function getIncreasedIndexes(indexesList, insertionIndex, insertedIndexes) {
