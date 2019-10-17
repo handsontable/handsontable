@@ -34,7 +34,7 @@ describe('CopyPaste', () => {
         copyPaste: false
       });
 
-      expect($('#HandsontableCopyPaste').length).toEqual(0);
+      expect($('.HandsontableCopyPaste').length).toEqual(0);
     });
   });
 
@@ -46,7 +46,7 @@ describe('CopyPaste', () => {
       await sleep(150);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
-      expect($('#HandsontableCopyPaste').length).toBe(0);
+      expect($('.HandsontableCopyPaste').length).toBe(0);
     });
 
     it('should create focusable element when cell editor doesn\'t exist', () => {
@@ -55,7 +55,7 @@ describe('CopyPaste', () => {
       });
       selectCell(0, 0);
 
-      expect($('#HandsontableCopyPaste').length).toEqual(1);
+      expect($('.HandsontableCopyPaste').length).toEqual(1);
     });
 
     it('should keep focusable element if updateSettings occurred after the end of the selection', () => {
@@ -91,7 +91,7 @@ describe('CopyPaste', () => {
       handsontable();
       spec().$container2.handsontable();
 
-      expect($('#HandsontableCopyPaste').length).toBe(0);
+      expect($('.HandsontableCopyPaste').length).toBe(0);
     });
 
     it('should use focusable element from cell editor of the lastly selected table', async() => {
@@ -103,7 +103,7 @@ describe('CopyPaste', () => {
 
       await sleep(100);
 
-      expect($('#HandsontableCopyPaste').length).toBe(0);
+      expect($('.HandsontableCopyPaste').length).toBe(0);
       expect(document.activeElement).toBe(hot2.getActiveEditor().TEXTAREA);
     });
 
@@ -114,15 +114,15 @@ describe('CopyPaste', () => {
       hot1.selectCell(0, 0);
       hot2.selectCell(0, 0);
 
-      expect($('#HandsontableCopyPaste').length).toBe(1);
+      expect($('.HandsontableCopyPaste').length).toBe(1);
 
       hot1.updateSettings({ copyPaste: false });
 
-      expect($('#HandsontableCopyPaste').length).toBe(1);
+      expect($('.HandsontableCopyPaste').length).toBe(1);
 
       hot2.updateSettings({ copyPaste: false });
 
-      expect($('#HandsontableCopyPaste').length).toBe(0);
+      expect($('.HandsontableCopyPaste').length).toBe(0);
     });
 
     it('should not touch focusable element borrowed from cell editors', () => {

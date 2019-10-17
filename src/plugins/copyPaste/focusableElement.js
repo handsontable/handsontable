@@ -126,7 +126,6 @@ function forwardEventsToLocalHooks(eventManager, element, subject) {
   eventManager.addEventListener(element, 'copy', runLocalHooks('copy', subject));
   eventManager.addEventListener(element, 'cut', runLocalHooks('cut', subject));
   eventManager.addEventListener(element, 'paste', runLocalHooks('paste', subject));
-  eventManager.addEventListener(element, 'keydown', runLocalHooks('keydown', subject));
 }
 
 const secondaryElements = new WeakMap();

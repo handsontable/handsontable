@@ -148,16 +148,11 @@ class CopyPaste extends BasePlugin {
     this.focusableElement
       .addLocalHook('copy', event => this.onCopy(event))
       .addLocalHook('cut', event => this.onCut(event))
-      .addLocalHook('paste', event => this.onPaste(event))
-      .addLocalHook('keydown', event => this.onKeyDown(event));
+      .addLocalHook('paste', event => this.onPaste(event));
 
     super.enablePlugin();
   }
 
-  onKeyDown() {
-    // console.log(event);
-    // this.hot.rootElement.dispatchEvent(event);
-  }
   /**
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
