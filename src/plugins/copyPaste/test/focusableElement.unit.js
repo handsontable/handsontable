@@ -128,6 +128,9 @@ describe('CopyPaste', () => {
 
       fw1.useSecondaryElement();
       fw2.useSecondaryElement();
+
+      expect(document.querySelectorAll('.HandsontableCopyPaste').length).toBe(2);
+
       destroyElement(fw2);
 
       expect(document.querySelectorAll('.HandsontableCopyPaste').length).toBe(1);

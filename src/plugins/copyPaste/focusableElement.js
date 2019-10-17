@@ -86,7 +86,7 @@ class FocusableWrapper {
 
 mixin(FocusableWrapper, localHooks);
 
-let refCounter = 0;
+const refCounter = new WeakMap();
 
 /**
  * Create and return the FocusableWrapper instance.
@@ -97,7 +97,10 @@ let refCounter = 0;
 function createElement(container) {
   const focusableWrapper = new FocusableWrapper(container);
 
-  refCounter += 1;
+  let counter = refCounter.get(container);
+  counter = isNaN(counter) ? 0 : counter;
+
+  refCounter.set(container, counter + 1);
 
   return focusableWrapper;
 }
@@ -149,7 +152,6 @@ function createOrGetSecondaryElement(container) {
   const element = doc.createElement('textarea');
 
   secondaryElements.set(container, element);
-  // element.id = 'HandsontableCopyPaste';
   element.className = 'copyPaste HandsontableCopyPaste';
   element.tabIndex = -1;
   element.autocomplete = 'off';
@@ -171,14 +173,17 @@ function destroyElement(wrapper) {
     return;
   }
 
-  if (refCounter > 0) {
-    refCounter -= 1;
+  let counter = refCounter.get(wrapper.container);
+  counter = isNaN(counter) ? 0 : counter;
+
+  if (counter > 0) {
+    counter -= 1;
   }
 
   deactivateElement(wrapper);
 
-  if (refCounter <= 0) {
-    refCounter = 0;
+  if (counter <= 0) {
+    counter = 0;
 
     // Detach secondary element from the DOM.
     const secondaryElement = secondaryElements.get(wrapper.container);
@@ -190,6 +195,8 @@ function destroyElement(wrapper) {
 
     wrapper.mainElement = null;
   }
+
+  refCounter.set(wrapper.container, counter);
 }
 
 export { createElement, deactivateElement, destroyElement };
