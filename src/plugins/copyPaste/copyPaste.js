@@ -100,6 +100,11 @@ class CopyPaste extends BasePlugin {
      */
     this.rowsLimit = ROWS_LIMIT;
 
+    /**
+     * UI container for the secondary focusable element.
+     *
+     * @type {HTMLElement}
+     */
     this.uiContainer = this.hot.rootDocument.body;
 
     privatePool.set(this, {
