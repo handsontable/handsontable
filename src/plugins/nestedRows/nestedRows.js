@@ -116,6 +116,7 @@ class NestedRows extends BasePlugin {
     this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
     this.addHook('beforeRowMove', (...args) => this.onBeforeRowMove(...args));
     this.addHook('afterRowMove', (...args) => this.onAfterRowMove(...args));
+    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
 
     if (!this.trimRowsPlugin.isEnabled()) {
       // Workaround to prevent calling updateSetttings in the enablePlugin method, which causes many problems.
@@ -570,6 +571,16 @@ class NestedRows extends BasePlugin {
     if (priv.skipRender) {
       skipRender.skipRender = true;
     }
+  }
+
+  /**
+   * `afterLoadData` hook callback.
+   *
+   * @private
+   */
+  onAfterLoadData() {
+    this.dataManager.data = this.hot.getSourceData();
+    this.dataManager.rewriteCache();
   }
 }
 

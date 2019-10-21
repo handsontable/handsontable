@@ -28,13 +28,13 @@
   width: 2px;
   top: 0;
   margin-left: -1px;
-  z-index: 105;
+  z-index: 205;
 }
 .handsontable .ht__manualColumnMove--backlight {
   background: #343434;
   background: rgba(52, 52, 52, 0.25);
   display: none;
-  z-index: 105;
+  z-index: 205;
   pointer-events: none;
 }
 .handsontable.on-moving--columns.show-ui .ht__manualColumnMove--guideline,
