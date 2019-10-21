@@ -151,7 +151,7 @@ function createOrGetSecondaryElement(container) {
   const element = doc.createElement('textarea');
 
   secondaryElements.set(container, element);
-  element.className = 'copyPaste HandsontableCopyPaste';
+  element.className = 'HandsontableCopyPaste';
   element.tabIndex = -1;
   element.autocomplete = 'off';
   element.wrap = 'hard';

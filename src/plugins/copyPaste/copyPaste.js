@@ -42,6 +42,7 @@ const META_HEAD = [
  * * `'columnsLimit'` (see {@link CopyPaste#columnsLimit})
  * * `'rowsLimit'` (see {@link CopyPaste#rowsLimit})
  * * `'pasteMode'` (see {@link CopyPaste#pasteMode})
+ * * `'uiContainer'` (see {@link CopyPaste#uiContainer})
  *
  * See [the copy/paste demo](https://handsontable.com/docs/demo-copy-paste.html) for examples.
  *
@@ -54,6 +55,7 @@ const META_HEAD = [
  *   columnsLimit: 25,
  *   rowsLimit: 50,
  *   pasteMode: 'shift_down',
+ *   pasteMode: document.body,
  * },
  * ```
  * @class CopyPaste
