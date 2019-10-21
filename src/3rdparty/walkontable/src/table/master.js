@@ -40,10 +40,10 @@ class MasterTable extends Table {
 
         trimmingElementParent.insertBefore(cloneNode, trimmingElement);
 
-        const scrollBarWidth = cloneNode.offsetWidth - cloneNode.clientWidth;
+        if (isFirefox() && trimmingOverflow === 'scroll') {
+          const scrollBarWidth = cloneNode.offsetWidth - cloneNode.clientWidth;
 
-        if (scrollBarWidth > 0 && isFirefox()) {
-          cloneHeight = cloneNode.clientHeight - scrollBarWidth;
+          cloneHeight = cloneNode.clientHeight - (scrollBarWidth === 4 ? 16 : 15);
 
         } else {
           cloneHeight = parseInt(getComputedStyle(cloneNode, rootWindow).height, 10);
