@@ -13,14 +13,13 @@ describe('Core_getCellMeta', () => {
   });
 
   it('should get proper cell meta when indexes was modified', () => {
-    handsontable({
-      modifyRow(row) {
-        return row + 10;
-      },
-      modifyCol(col) {
-        return col + 10;
-      }
+    const hot = handsontable({
+      minRows: 5,
+      minCols: 5
     });
+
+    hot.recordTranslator.getColumnIndexMapper().setIndexesSequence([10, 11, 12, 13, 14]);
+    hot.recordTranslator.getRowIndexMapper().setIndexesSequence([10, 11, 12, 13, 14]);
 
     const cellMeta = getCellMeta(0, 1);
 

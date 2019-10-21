@@ -7,7 +7,6 @@ import { rangeEach } from './../../helpers/number';
 import { inherit, deepClone } from './../../helpers/object';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from './../../helpers/dom/event';
 import { align } from './../contextMenu/utils';
-import { getTranslator } from '../../translations';
 
 /**
  * @description
@@ -117,7 +116,7 @@ function UndoRedo(instance) {
       });
     }
 
-    const columnsMap = getTranslator(instance).getColumnIndexMapper().getIndexesSequence();
+    const columnsMap = instance.recordTranslator.getColumnIndexMapper().getIndexesSequence();
     const action = new UndoRedo.RemoveColumnAction(columnIndex, indexes, removedData, headers, columnsMap);
 
     plugin.done(action);
@@ -449,7 +448,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     });
   }
 
-  getTranslator(instance).getColumnIndexMapper().setIndexesSequence(this.columnPositions);
+  instance.recordTranslator.getColumnIndexMapper().setIndexesSequence(this.columnPositions);
 
   instance.addHookOnce('afterRender', undoneCallback);
 

@@ -13,7 +13,6 @@ import {
 } from './helpers/object';
 import { extendArray, to2dArray } from './helpers/array';
 import { rangeEach } from './helpers/number';
-import { getTranslator } from './translations';
 
 const copyableLookup = cellMethodLookupFactory('copyable', false);
 
@@ -99,12 +98,6 @@ class DataMap {
      * @type {Map}
      */
     this.propToColCache = void 0;
-    /**
-     * Record translator for translating visual records into psychical and vice versa.
-     *
-     * @type {RecordTranslator}
-     */
-    this.recordTranslator = getTranslator(this.instance);
 
     this.createMap();
   }
@@ -200,7 +193,7 @@ class DataMap {
     let physicalColumn = column;
 
     if (column < this.instance.countCols()) {
-      physicalColumn = getTranslator(this.instance).toPhysicalColumn(column);
+      physicalColumn = this.instance.recordTranslator.toPhysicalColumn(column);
     }
 
     if (!isNaN(physicalColumn) && this.colToPropCache && typeof this.colToPropCache[physicalColumn] !== 'undefined') {
@@ -224,7 +217,7 @@ class DataMap {
     const physicalColumn = this.propToColCache.get(prop);
 
     if (physicalColumn < this.instance.countSourceCols()) {
-      return getTranslator(this.instance).toVisualColumn(physicalColumn);
+      return this.instance.recordTranslator.toVisualColumn(physicalColumn);
     }
 
     return physicalColumn;
@@ -312,7 +305,7 @@ class DataMap {
       numberOfCreatedRows += 1;
     }
 
-    this.recordTranslator.getRowIndexMapper().insertIndexes(rowIndex, numberOfCreatedRows);
+    this.instance.recordTranslator.getRowIndexMapper().insertIndexes(rowIndex, numberOfCreatedRows);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -382,7 +375,7 @@ class DataMap {
       nrOfColumns += 1;
     }
 
-    this.recordTranslator.getColumnIndexMapper().insertIndexes(columnIndex, numberOfCreatedCols);
+    this.instance.recordTranslator.getColumnIndexMapper().insertIndexes(columnIndex, numberOfCreatedCols);
 
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -423,7 +416,7 @@ class DataMap {
 
     // TODO: Function `removeRow` should validate fully, probably above.
     if (rowIndex < this.instance.countRows()) {
-      this.recordTranslator.getRowIndexMapper().removeIndexes(logicRows);
+      this.instance.recordTranslator.getRowIndexMapper().removeIndexes(logicRows);
     }
 
     this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
@@ -485,7 +478,7 @@ class DataMap {
 
     // TODO: Function `removeCol` should validate fully, probably above.
     if (columnIndex < this.instance.countCols()) {
-      this.recordTranslator.getColumnIndexMapper().removeIndexes(logicColumns);
+      this.instance.recordTranslator.getColumnIndexMapper().removeIndexes(logicColumns);
     }
 
     this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
@@ -585,7 +578,7 @@ class DataMap {
    * @returns {*}
    */
   get(row, prop) {
-    const physicalRow = this.recordTranslator.toPhysicalRow(row);
+    const physicalRow = this.instance.recordTranslator.toPhysicalRow(row);
 
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)
@@ -794,7 +787,7 @@ class DataMap {
       maxRows = maxRowsFromSettings || Infinity;
     }
 
-    const length = getTranslator(this.instance).getRowIndexMapper().getNotSkippedIndexesLength();
+    const length = this.instance.recordTranslator.getRowIndexMapper().getNotSkippedIndexesLength();
 
     return Math.min(length, maxRows);
   }

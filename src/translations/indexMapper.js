@@ -271,35 +271,8 @@ class IndexMapper {
   }
 
   /**
-   * Get list of values, which represent result if index was skipped in any of skip collections.
-   *
-   * @private
-   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
-   * @returns {Array}
-   */
-  getFlattenSkipList(readFromCache = true) {
-    if (readFromCache === true) {
-      return this.flattenSkipList;
-    }
-
-    if (this.skipCollection.getLength() === 0) {
-      return [];
-    }
-
-    const result = [];
-    const particularSkipsLists = arrayMap(this.skipCollection.get(), skipList => skipList.getValues());
-
-    rangeEach(this.indexesSequence.getLength(), (physicalIndex) => {
-      result[physicalIndex] = particularSkipsLists.some(particularSkipsList => particularSkipsList[physicalIndex]);
-    });
-
-    return result;
-  }
-
-  /**
    * Get whether index is skipped in the process of rendering.
    *
-   * @private
    * @param {Number} physicalIndex Physical index.
    * @returns {Boolean}
    */
@@ -339,6 +312,32 @@ class IndexMapper {
       this.skipCollection.removeFromEvery(removedIndexes);
       this.variousMappingsCollection.removeFromEvery(removedIndexes);
     });
+  }
+
+  /**
+   * Get list of values, which represent result if index was skipped in any of skip collections.
+   *
+   * @private
+   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @returns {Array}
+   */
+  getFlattenSkipList(readFromCache = true) {
+    if (readFromCache === true) {
+      return this.flattenSkipList;
+    }
+
+    if (this.skipCollection.getLength() === 0) {
+      return [];
+    }
+
+    const result = [];
+    const particularSkipsLists = arrayMap(this.skipCollection.get(), skipList => skipList.getValues());
+
+    rangeEach(this.indexesSequence.getLength(), (physicalIndex) => {
+      result[physicalIndex] = particularSkipsLists.some(particularSkipsList => particularSkipsList[physicalIndex]);
+    });
+
+    return result;
   }
 
   /**

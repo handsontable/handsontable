@@ -1918,14 +1918,12 @@ declare namespace Handsontable {
       hiddenRow?: (row: number) => void;
       init?: () => void;
       modifyAutofillRange?: (startArea: [number, number, number, number][], entireArea: [number, number, number, number][]) => void;
-      modifyCol?: (col: number) => void;
       modifyColHeader?: (column: number) => void;
       modifyColumnHeaderHeight?: () => void;
       modifyColWidth?: (width: number, col: number) => void;
       modifyCopyableRange?: (copyableRanges: plugins.RangeType[]) => void;
       modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
       modifyGetCellCoords?: (row: number, column: number, topmost: boolean) => void | [number, number] | [number, number, number, number];
-      modifyRow?: (row: number) => void;
       modifyRowData?: (row: number) => void;
       modifyRowHeader?: (row: number) => void;
       modifyRowHeaderWidth?: (rowHeaderWidth: number) => void;
@@ -1936,8 +1934,6 @@ declare namespace Handsontable {
       persistentStateLoad?: (key: string, valuePlaceholder: { value: any }) => void;
       persistentStateReset?: (key: string) => void;
       persistentStateSave?: (key: string, value: any) => void;
-      unmodifyCol?: (col: number) => void;
-      unmodifyRow?: (row: number) => void;
     }
     interface Methods {
       add<K extends keyof Hooks.Events>(key: K, callback: Hooks.Events[K] | Hooks.Events[K][], context?: Handsontable): Hooks.Methods;

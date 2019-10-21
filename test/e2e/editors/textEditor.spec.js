@@ -125,11 +125,14 @@ describe('TextEditor', () => {
   });
 
   it('should render proper value after cell coords manipulation', () => {
-    handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       modifyRow(row) { return row === 4 ? 0 : row + 1; },
       modifyCol(column) { return column === 4 ? 0 : column + 1; },
     });
+
+    hot.recordTranslator.getRowIndexMapper().setIndexesSequence([1, 2, 3, 4, 0]);
+    hot.recordTranslator.getColumnIndexMapper().setIndexesSequence([1, 2, 3, 4, 0]);
 
     selectCell(0, 0);
     getActiveEditor().beginEditing();

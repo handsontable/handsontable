@@ -1,6 +1,5 @@
 import { defineGetter, objectEach } from './../helpers/object';
 import { arrayEach } from './../helpers/array';
-import { getTranslator } from './../translations';
 import { getRegistredPluginNames, getPluginName } from './../plugins';
 
 const privatePool = new WeakMap();
@@ -22,10 +21,10 @@ class BasePlugin {
     defineGetter(this, 'hot', hotInstance, {
       writable: false
     });
-    defineGetter(this, 'rowIndexMapper', getTranslator(hotInstance).getRowIndexMapper(), {
+    defineGetter(this, 'rowIndexMapper', hotInstance.recordTranslator.getRowIndexMapper(), {
       writable: false
     });
-    defineGetter(this, 'columnIndexMapper', getTranslator(hotInstance).getColumnIndexMapper(), {
+    defineGetter(this, 'columnIndexMapper', hotInstance.recordTranslator.getColumnIndexMapper(), {
       writable: false
     });
 

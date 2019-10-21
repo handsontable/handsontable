@@ -19,7 +19,7 @@ export class RecordTranslator {
    * @returns {Number} Returns visual row index.
    */
   toVisualRow(row) {
-    return this.hot.runHooks('unmodifyRow', this.getRowIndexMapper().getVisualIndex(row));
+    return this.getRowIndexMapper().getVisualIndex(row);
   }
 
   /**
@@ -29,7 +29,7 @@ export class RecordTranslator {
    * @returns {Number} Returns visual column index.
    */
   toVisualColumn(column) {
-    return this.hot.runHooks('unmodifyCol', this.getColumnIndexMapper().getVisualIndex(column));
+    return this.getColumnIndexMapper().getVisualIndex(column);
   }
 
   /**
@@ -39,7 +39,7 @@ export class RecordTranslator {
    * @returns {Number} Returns physical row index.
    */
   toPhysicalRow(row) {
-    return this.hot.runHooks('modifyRow', this.getRowIndexMapper().getPhysicalIndex(row));
+    return this.getRowIndexMapper().getPhysicalIndex(row);
   }
 
   /**
@@ -49,7 +49,7 @@ export class RecordTranslator {
    * @returns {Number} Returns physical column index.
    */
   toPhysicalColumn(column) {
-    return this.hot.runHooks('modifyCol', this.getColumnIndexMapper().getPhysicalIndex(column));
+    return this.getColumnIndexMapper().getPhysicalIndex(column);
   }
 
   /**

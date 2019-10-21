@@ -62,23 +62,21 @@ describe('Core_countEmptyRows', () => {
   });
 
   it('should count empty rows properly when translating rows in the viewport', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
-      modifyRow(row) {
-        return row + 2;
-      }
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5)
     });
+
+    hot.recordTranslator.getRowIndexMapper().setIndexesSequence([2, 3, 4, 5, 6]);
 
     expect(countEmptyRows()).toBe(2);
   });
 
   it('should count empty rows properly when translating rows below the viewport', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(100, 100),
-      modifyRow(row) {
-        return row + 5;
-      }
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(100, 100)
     });
+
+    hot.recordTranslator.getRowIndexMapper().setIndexesSequence(new Array(100).fill(0).map((_, index) => index + 5));
 
     expect(countEmptyRows()).toBe(5);
   });

@@ -132,6 +132,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   const recordTranslator = getTranslator(instance);
 
+  this.recordTranslator = recordTranslator;
+
   dataSource = new DataSource(instance);
 
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
