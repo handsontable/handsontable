@@ -581,18 +581,18 @@ describe('AutoColumnSize', () => {
   });
 
   it('should keep appropriate column size when columns order is changed', () => {
-    handsontable({
+    const hot = handsontable({
       autoColumnSize: true,
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
-    getPlugin('autoColumnSize').columnIndexMapper.moveIndexes(2, 1);
+    hot.getColumnIndexMapper().moveIndexes(2, 1);
     render();
 
     expect(colWidth(spec().$container, 1)).toBe(147);
     expect(colWidth(spec().$container, 2)).toBe(59);
 
-    getPlugin('autoColumnSize').columnIndexMapper.moveIndexes(1, 2);
+    hot.getColumnIndexMapper().moveIndexes(1, 2);
     render();
 
     expect(colWidth(spec().$container, 1)).toBe(59);

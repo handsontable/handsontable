@@ -15,7 +15,7 @@ describe('NestedRows Collapsing UI', () => {
   describe('API', () => {
     describe('collapseChildren', () => {
       it('should collapse all children nodes of the row provided as a number', () => {
-        handsontable({
+        const hot = handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true
         });
@@ -23,22 +23,22 @@ describe('NestedRows Collapsing UI', () => {
         const plugin = getPlugin('nestedRows');
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(plugin.rowIndexMapper.isSkipped(i + 1)).toEqual(false);
+          expect(hot.getRowIndexMapper().isSkipped(i + 1)).toEqual(false);
         }
 
         plugin.collapsingUI.collapseChildren(0);
 
-        expect(plugin.rowIndexMapper.isSkipped(0)).toEqual(false);
+        expect(hot.getRowIndexMapper().isSkipped(0)).toEqual(false);
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(plugin.rowIndexMapper.isSkipped(i + 1)).toEqual(true);
+          expect(hot.getRowIndexMapper().isSkipped(i + 1)).toEqual(true);
         }
 
-        expect(plugin.rowIndexMapper.isSkipped(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
+        expect(hot.getRowIndexMapper().isSkipped(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
       });
 
       it('should keep collapsed rows after collapsing next ones', () => {
-        handsontable({
+        const hot = handsontable({
           data: getSimplerNestedData(),
           nestedRows: true,
           rowHeaders: true
@@ -48,35 +48,35 @@ describe('NestedRows Collapsing UI', () => {
 
         plugin.collapsingUI.collapseChildren(0);
 
-        expect(plugin.rowIndexMapper.isSkipped(0)).toEqual(false);
-        expect(plugin.rowIndexMapper.isSkipped(1)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(2)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(3)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(4)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(5)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(6)).toEqual(false);
+        expect(hot.getRowIndexMapper().isSkipped(0)).toEqual(false);
+        expect(hot.getRowIndexMapper().isSkipped(1)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(2)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(3)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(4)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(5)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(6)).toEqual(false);
 
         plugin.collapsingUI.collapseChildren(6);
 
-        expect(plugin.rowIndexMapper.isSkipped(0)).toEqual(false);
-        expect(plugin.rowIndexMapper.isSkipped(1)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(2)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(3)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(4)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(5)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(6)).toEqual(false);
+        expect(hot.getRowIndexMapper().isSkipped(0)).toEqual(false);
+        expect(hot.getRowIndexMapper().isSkipped(1)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(2)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(3)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(4)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(5)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(6)).toEqual(false);
 
-        expect(plugin.rowIndexMapper.isSkipped(6)).toEqual(false);
-        expect(plugin.rowIndexMapper.isSkipped(7)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(8)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(9)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(10)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(11)).toEqual(true);
-        expect(plugin.rowIndexMapper.isSkipped(12)).toEqual(false);
+        expect(hot.getRowIndexMapper().isSkipped(6)).toEqual(false);
+        expect(hot.getRowIndexMapper().isSkipped(7)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(8)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(9)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(10)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(11)).toEqual(true);
+        expect(hot.getRowIndexMapper().isSkipped(12)).toEqual(false);
       });
 
       it('should collapse all children nodes of the row provided as an object', () => {
-        handsontable({
+        const hot = handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true
         });
@@ -85,24 +85,24 @@ describe('NestedRows Collapsing UI', () => {
         const child = getSourceData()[0];
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(plugin.rowIndexMapper.isSkipped(i + 1)).toEqual(false);
+          expect(hot.getRowIndexMapper().isSkipped(i + 1)).toEqual(false);
         }
 
         plugin.collapsingUI.collapseChildren(child);
 
-        expect(plugin.rowIndexMapper.isSkipped(0)).toEqual(false);
+        expect(hot.getRowIndexMapper().isSkipped(0)).toEqual(false);
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(plugin.rowIndexMapper.isSkipped(i + 1)).toEqual(true);
+          expect(hot.getRowIndexMapper().isSkipped(i + 1)).toEqual(true);
         }
 
-        expect(plugin.rowIndexMapper.isSkipped(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
+        expect(hot.getRowIndexMapper().isSkipped(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
       });
     });
 
     describe('expandChildren', () => {
       it('should collapse all children nodes of the row provided as a number', () => {
-        handsontable({
+        const hot = handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true
         });
@@ -113,12 +113,12 @@ describe('NestedRows Collapsing UI', () => {
         plugin.collapsingUI.expandChildren(0);
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(plugin.rowIndexMapper.isSkipped(i + 1)).toEqual(false);
+          expect(hot.getRowIndexMapper().isSkipped(i + 1)).toEqual(false);
         }
       });
 
       it('should collapse all children nodes of the row provided as an object', () => {
-        handsontable({
+        const hot = handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true,
         });
@@ -129,7 +129,7 @@ describe('NestedRows Collapsing UI', () => {
         plugin.collapsingUI.expandChildren(0);
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(plugin.rowIndexMapper.isSkipped(i + 1)).toEqual(false);
+          expect(hot.getRowIndexMapper().isSkipped(i + 1)).toEqual(false);
         }
       });
     });

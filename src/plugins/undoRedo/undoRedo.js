@@ -116,7 +116,7 @@ function UndoRedo(instance) {
       });
     }
 
-    const columnsMap = instance.recordTranslator.getColumnIndexMapper().getIndexesSequence();
+    const columnsMap = instance.getColumnIndexMapper().getIndexesSequence();
     const action = new UndoRedo.RemoveColumnAction(columnIndex, indexes, removedData, headers, columnsMap);
 
     plugin.done(action);
@@ -448,7 +448,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     });
   }
 
-  instance.recordTranslator.getColumnIndexMapper().setIndexesSequence(this.columnPositions);
+  instance.getColumnIndexMapper().setIndexesSequence(this.columnPositions);
 
   instance.addHookOnce('afterRender', undoneCallback);
 

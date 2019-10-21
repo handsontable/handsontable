@@ -178,7 +178,7 @@ class ManualColumnMove extends BasePlugin {
     }
 
     if (movePossible) {
-      this.columnIndexMapper.moveIndexes(columns, finalIndex);
+      this.hot.getColumnIndexMapper().moveIndexes(columns, finalIndex);
     }
 
     this.hot.runHooks('afterColumnMove', columns, finalIndex, dropIndex, movePossible, movePossible && this.isColumnOrderChanged(columns, finalIndex));
@@ -220,7 +220,7 @@ class ManualColumnMove extends BasePlugin {
    * @returns {Boolean}
    */
   isMovePossible(movedColumns, finalIndex) {
-    const length = this.columnIndexMapper.getNotSkippedIndexesLength();
+    const length = this.hot.getColumnIndexMapper().getNotSkippedIndexesLength();
 
     // An attempt to transfer more columns to start destination than is possible (only when moving from the top to the bottom).
     const tooHighDestinationIndex = movedColumns.length + finalIndex > length;
@@ -345,7 +345,7 @@ class ManualColumnMove extends BasePlugin {
    * @fires Hooks#persistentStateSave
    */
   persistentStateSave() {
-    this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.columnIndexMapper.getIndexesSequence()); // The `PersistentState` plugin should be refactored.
+    this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.hot.getColumnIndexMapper().getIndexesSequence()); // The `PersistentState` plugin should be refactored.
   }
 
   /**

@@ -144,7 +144,7 @@ describe('MultiColumnSorting', () => {
     expect(getPlugin('multiColumnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    hot.recordTranslator.getColumnIndexMapper().moveIndexes([1], 0);
+    hot.getColumnIndexMapper().moveIndexes([1], 0);
     hot.render();
 
     expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
@@ -179,7 +179,7 @@ describe('MultiColumnSorting', () => {
     expect(getPlugin('multiColumnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    hot.recordTranslator.getColumnIndexMapper().moveIndexes([1], 0);
+    hot.getColumnIndexMapper().moveIndexes([1], 0);
     hot.render();
 
     expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
@@ -207,7 +207,7 @@ describe('MultiColumnSorting', () => {
     getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    hot.recordTranslator.getColumnIndexMapper().moveIndexes([1], 0);
+    hot.getColumnIndexMapper().moveIndexes([1], 0);
     hot.render();
 
     const sortedColumn = spec().$container.find('th span.columnSorting')[1];

@@ -193,7 +193,7 @@ class DataMap {
     let physicalColumn = column;
 
     if (column < this.instance.countCols()) {
-      physicalColumn = this.instance.recordTranslator.toPhysicalColumn(column);
+      physicalColumn = this.instance.toPhysicalColumn(column);
     }
 
     if (!isNaN(physicalColumn) && this.colToPropCache && typeof this.colToPropCache[physicalColumn] !== 'undefined') {
@@ -217,7 +217,7 @@ class DataMap {
     const physicalColumn = this.propToColCache.get(prop);
 
     if (physicalColumn < this.instance.countSourceCols()) {
-      return this.instance.recordTranslator.toVisualColumn(physicalColumn);
+      return this.instance.toVisualColumn(physicalColumn);
     }
 
     return physicalColumn;
@@ -305,7 +305,7 @@ class DataMap {
       numberOfCreatedRows += 1;
     }
 
-    this.instance.recordTranslator.getRowIndexMapper().insertIndexes(rowIndex, numberOfCreatedRows);
+    this.instance.getRowIndexMapper().insertIndexes(rowIndex, numberOfCreatedRows);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -375,7 +375,7 @@ class DataMap {
       nrOfColumns += 1;
     }
 
-    this.instance.recordTranslator.getColumnIndexMapper().insertIndexes(columnIndex, numberOfCreatedCols);
+    this.instance.getColumnIndexMapper().insertIndexes(columnIndex, numberOfCreatedCols);
 
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -416,7 +416,7 @@ class DataMap {
 
     // TODO: Function `removeRow` should validate fully, probably above.
     if (rowIndex < this.instance.countRows()) {
-      this.instance.recordTranslator.getRowIndexMapper().removeIndexes(logicRows);
+      this.instance.getRowIndexMapper().removeIndexes(logicRows);
     }
 
     this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
@@ -478,7 +478,7 @@ class DataMap {
 
     // TODO: Function `removeCol` should validate fully, probably above.
     if (columnIndex < this.instance.countCols()) {
-      this.instance.recordTranslator.getColumnIndexMapper().removeIndexes(logicColumns);
+      this.instance.getColumnIndexMapper().removeIndexes(logicColumns);
     }
 
     this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
@@ -578,7 +578,7 @@ class DataMap {
    * @returns {*}
    */
   get(row, prop) {
-    const physicalRow = this.instance.recordTranslator.toPhysicalRow(row);
+    const physicalRow = this.instance.toPhysicalRow(row);
 
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)
@@ -787,7 +787,7 @@ class DataMap {
       maxRows = maxRowsFromSettings || Infinity;
     }
 
-    const length = this.instance.recordTranslator.getRowIndexMapper().getNotSkippedIndexesLength();
+    const length = this.instance.getRowIndexMapper().getNotSkippedIndexesLength();
 
     return Math.min(length, maxRows);
   }

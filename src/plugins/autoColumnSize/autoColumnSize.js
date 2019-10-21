@@ -165,7 +165,7 @@ class AutoColumnSize extends BasePlugin {
     }
 
     this.columnWidthsMap = new ValueMap();
-    this.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
+    this.hot.getColumnIndexMapper().registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
 
     this.setSamplingOptions();
 
@@ -193,7 +193,7 @@ class AutoColumnSize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.columnIndexMapper.unregisterMap(COLUMN_SIZE_MAP_NAME);
+    this.hot.getColumnIndexMapper().unregisterMap(COLUMN_SIZE_MAP_NAME);
 
     super.disablePlugin();
   }
@@ -552,7 +552,7 @@ class AutoColumnSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.columnIndexMapper.unregisterMap(COLUMN_SIZE_MAP_NAME);
+    this.hot.getColumnIndexMapper().unregisterMap(COLUMN_SIZE_MAP_NAME);
     this.ghostTable.clean();
     super.destroy();
   }

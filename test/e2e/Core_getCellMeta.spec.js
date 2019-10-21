@@ -18,8 +18,8 @@ describe('Core_getCellMeta', () => {
       minCols: 5
     });
 
-    hot.recordTranslator.getColumnIndexMapper().setIndexesSequence([10, 11, 12, 13, 14]);
-    hot.recordTranslator.getRowIndexMapper().setIndexesSequence([10, 11, 12, 13, 14]);
+    hot.getColumnIndexMapper().setIndexesSequence([10, 11, 12, 13, 14]);
+    hot.getRowIndexMapper().setIndexesSequence([10, 11, 12, 13, 14]);
 
     const cellMeta = getCellMeta(0, 1);
 

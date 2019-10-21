@@ -94,7 +94,7 @@ class ManualColumnFreeze extends BasePlugin {
 
     priv.moveByFreeze = true;
 
-    this.columnIndexMapper.moveIndexes(column, settings.fixedColumnsLeft);
+    this.hot.getColumnIndexMapper().moveIndexes(column, settings.fixedColumnsLeft);
 
     settings.fixedColumnsLeft += 1;
   }
@@ -119,7 +119,7 @@ class ManualColumnFreeze extends BasePlugin {
     priv.moveByFreeze = true;
     settings.fixedColumnsLeft -= 1;
 
-    this.columnIndexMapper.moveIndexes(column, settings.fixedColumnsLeft);
+    this.hot.getColumnIndexMapper().moveIndexes(column, settings.fixedColumnsLeft);
   }
 
   /**

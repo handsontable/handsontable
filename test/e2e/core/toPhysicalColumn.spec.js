@@ -17,7 +17,7 @@ describe('Core.toPhysicalColumn', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
 
-    hot.recordTranslator.getColumnIndexMapper().setIndexesSequence([3, 4, 5, 6, 7]);
+    hot.getColumnIndexMapper().setIndexesSequence([3, 4, 5, 6, 7]);
 
     expect(hot.toPhysicalColumn(0)).toBe(3);
     expect(hot.toPhysicalColumn(1)).toBe(4);

@@ -73,7 +73,7 @@ describe('Core_countEmptyCols', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 5)
     });
 
-    hot.recordTranslator.getColumnIndexMapper().setIndexesSequence([2, 3, 4, 5, 6]);
+    hot.getColumnIndexMapper().setIndexesSequence([2, 3, 4, 5, 6]);
 
     expect(countEmptyCols()).toBe(2);
   });
@@ -83,7 +83,7 @@ describe('Core_countEmptyCols', () => {
       data: Handsontable.helper.createSpreadsheetData(100, 100)
     });
 
-    hot.recordTranslator.getColumnIndexMapper().setIndexesSequence(new Array(100).fill(0).map((_, index) => index + 5));
+    hot.getColumnIndexMapper().setIndexesSequence(new Array(100).fill(0).map((_, index) => index + 5));
 
     expect(countEmptyCols()).toBe(5);
   });

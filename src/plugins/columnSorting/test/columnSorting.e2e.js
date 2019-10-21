@@ -144,7 +144,7 @@ describe('ColumnSorting', () => {
     expect(getPlugin('columnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    hot.recordTranslator.getColumnIndexMapper().moveIndexes([1], 0);
+    hot.getColumnIndexMapper().moveIndexes([1], 0);
     hot.render();
 
     expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
@@ -179,7 +179,7 @@ describe('ColumnSorting', () => {
     expect(getPlugin('columnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    hot.recordTranslator.getColumnIndexMapper().moveIndexes([1], 0);
+    hot.getColumnIndexMapper().moveIndexes([1], 0);
     hot.render();
 
     expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
@@ -207,7 +207,7 @@ describe('ColumnSorting', () => {
     getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    hot.recordTranslator.getColumnIndexMapper().moveIndexes([1], 0);
+    hot.getColumnIndexMapper().moveIndexes([1], 0);
     hot.render();
 
     const sortedColumn = spec().$container.find('th span.columnSorting')[1];
@@ -2554,13 +2554,13 @@ describe('ColumnSorting', () => {
   });
 
   it('should revert starting indexes sequence after resetting the state to not sorted', () => {
-    handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
       columnSorting: true
     });
 
-    getPlugin('columnSorting').rowIndexMapper.setIndexesSequence([2, 0, 1]);
+    hot.getRowIndexMapper().setIndexesSequence([2, 0, 1]);
 
     spec().sortByClickOnColumnHeader(0);
     spec().sortByClickOnColumnHeader(0);

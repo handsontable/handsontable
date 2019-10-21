@@ -131,8 +131,8 @@ describe('TextEditor', () => {
       modifyCol(column) { return column === 4 ? 0 : column + 1; },
     });
 
-    hot.recordTranslator.getRowIndexMapper().setIndexesSequence([1, 2, 3, 4, 0]);
-    hot.recordTranslator.getColumnIndexMapper().setIndexesSequence([1, 2, 3, 4, 0]);
+    hot.getRowIndexMapper().setIndexesSequence([1, 2, 3, 4, 0]);
+    hot.getColumnIndexMapper().setIndexesSequence([1, 2, 3, 4, 0]);
 
     selectCell(0, 0);
     getActiveEditor().beginEditing();

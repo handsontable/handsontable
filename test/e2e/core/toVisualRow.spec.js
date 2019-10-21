@@ -17,7 +17,7 @@ describe('Core.toVisualRow', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 5)
     });
 
-    hot.recordTranslator.getRowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.getRowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     expect(hot.toVisualRow(0)).toBe(4);
     expect(hot.toVisualRow(1)).toBe(3);

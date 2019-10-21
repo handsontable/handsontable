@@ -178,7 +178,7 @@ class ManualRowMove extends BasePlugin {
     }
 
     if (movePossible) {
-      this.rowIndexMapper.moveIndexes(rows, finalIndex);
+      this.hot.getRowIndexMapper().moveIndexes(rows, finalIndex);
     }
 
     const movePerformed = movePossible && this.isRowOrderChanged(rows, finalIndex);
@@ -230,7 +230,7 @@ class ManualRowMove extends BasePlugin {
    * @returns {Boolean}
    */
   isMovePossible(movedRows, finalIndex) {
-    const length = this.rowIndexMapper.getNotSkippedIndexesLength();
+    const length = this.hot.getRowIndexMapper().getNotSkippedIndexesLength();
 
     // An attempt to transfer more rows to start destination than is possible (only when moving from the top to the bottom).
     const tooHighDestinationIndex = movedRows.length + finalIndex > length;
@@ -360,7 +360,7 @@ class ManualRowMove extends BasePlugin {
    * @fires Hooks#persistentStateSave
    */
   persistentStateSave() {
-    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.rowIndexMapper.getIndexesSequence()); // The `PersistentState` plugin should be refactored.
+    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.hot.getRowIndexMapper().getIndexesSequence()); // The `PersistentState` plugin should be refactored.
   }
 
   /**

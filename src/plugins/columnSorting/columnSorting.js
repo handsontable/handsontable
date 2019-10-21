@@ -131,7 +131,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    this.columnMetaCache = this.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, new ValueMap((physicalIndex) => {
+    this.columnMetaCache = this.hot.getColumnIndexMapper().registerMap(`${this.pluginKey}.columnMeta`, new ValueMap((physicalIndex) => {
       let visualIndex = this.hot.toVisualColumn(physicalIndex);
 
       if (visualIndex === null) {
@@ -177,11 +177,11 @@ class ColumnSorting extends BasePlugin {
 
     this.hot.executeBatchOperations(() => {
       if (this.indexesSequenceCache !== null) {
-        this.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
-        this.rowIndexMapper.unregisterMap(this.pluginKey);
+        this.hot.getRowIndexMapper().setIndexesSequence(this.indexesSequenceCache.getValues());
+        this.hot.getRowIndexMapper().unregisterMap(this.pluginKey);
       }
 
-      this.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
+      this.hot.getColumnIndexMapper().unregisterMap(`${this.pluginKey}.columnMeta`);
     });
 
     super.disablePlugin();
@@ -219,8 +219,8 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
-      this.indexesSequenceCache = this.rowIndexMapper.registerMap(this.pluginKey, new IndexMap());
-      this.indexesSequenceCache.setValues(this.rowIndexMapper.getIndexesSequence());
+      this.indexesSequenceCache = this.hot.getRowIndexMapper().registerMap(this.pluginKey, new IndexMap());
+      this.indexesSequenceCache.setValues(this.hot.getRowIndexMapper().getIndexesSequence());
     }
 
     if (sortPossible) {
@@ -553,7 +553,7 @@ class ColumnSorting extends BasePlugin {
    */
   sortByPresetSortStates() {
     if (this.columnStatesManager.isListOfSortedColumnsEmpty()) {
-      this.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
+      this.hot.getRowIndexMapper().setIndexesSequence(this.indexesSequenceCache.getValues());
 
       return;
     }
@@ -587,7 +587,7 @@ class ColumnSorting extends BasePlugin {
 
     const indexMapping = new Map(arrayMap(indexesBefore, (indexBefore, indexInsideArray) => [indexBefore, indexesAfter[indexInsideArray]]));
 
-    this.rowIndexMapper.setIndexesSequence(arrayMap(this.rowIndexMapper.getIndexesSequence(), (physicalIndex) => {
+    this.hot.getRowIndexMapper().setIndexesSequence(arrayMap(this.hot.getRowIndexMapper().getIndexesSequence(), (physicalIndex) => {
       if (indexMapping.has(physicalIndex)) {
         return indexMapping.get(physicalIndex);
       }
@@ -769,8 +769,8 @@ class ColumnSorting extends BasePlugin {
    */
   destroy() {
     this.columnStatesManager.destroy();
-    this.rowIndexMapper.unregisterMap(this.pluginKey);
-    this.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
+    this.hot.getRowIndexMapper().unregisterMap(this.pluginKey);
+    this.hot.getColumnIndexMapper().unregisterMap(`${this.pluginKey}.columnMeta`);
 
     super.destroy();
   }

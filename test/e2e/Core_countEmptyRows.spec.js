@@ -66,7 +66,7 @@ describe('Core_countEmptyRows', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 5)
     });
 
-    hot.recordTranslator.getRowIndexMapper().setIndexesSequence([2, 3, 4, 5, 6]);
+    hot.getRowIndexMapper().setIndexesSequence([2, 3, 4, 5, 6]);
 
     expect(countEmptyRows()).toBe(2);
   });
@@ -76,7 +76,7 @@ describe('Core_countEmptyRows', () => {
       data: Handsontable.helper.createSpreadsheetData(100, 100)
     });
 
-    hot.recordTranslator.getRowIndexMapper().setIndexesSequence(new Array(100).fill(0).map((_, index) => index + 5));
+    hot.getRowIndexMapper().setIndexesSequence(new Array(100).fill(0).map((_, index) => index + 5));
 
     expect(countEmptyRows()).toBe(5);
   });

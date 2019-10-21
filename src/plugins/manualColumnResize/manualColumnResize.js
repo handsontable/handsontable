@@ -81,7 +81,7 @@ class ManualColumnResize extends BasePlugin {
 
     this.columnWidthsMap = new ValueMap();
     this.columnWidthsMap.addLocalHook('init', () => this.onMapInit());
-    this.columnIndexMapper.registerMap(COLUMN_WIDTHS_MAP_NAME, this.columnWidthsMap);
+    this.hot.getColumnIndexMapper().registerMap(COLUMN_WIDTHS_MAP_NAME, this.columnWidthsMap);
 
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
     this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
@@ -109,7 +109,7 @@ class ManualColumnResize extends BasePlugin {
     const priv = privatePool.get(this);
     priv.config = this.columnWidthsMap.getValues();
 
-    this.columnIndexMapper.unregisterMap(COLUMN_WIDTHS_MAP_NAME);
+    this.hot.getColumnIndexMapper().unregisterMap(COLUMN_WIDTHS_MAP_NAME);
     super.disablePlugin();
   }
 
@@ -587,7 +587,7 @@ class ManualColumnResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.columnIndexMapper.unregisterMap(COLUMN_WIDTHS_MAP_NAME);
+    this.hot.getColumnIndexMapper().unregisterMap(COLUMN_WIDTHS_MAP_NAME);
 
     super.destroy();
   }
