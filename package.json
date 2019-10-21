@@ -29,6 +29,7 @@
     "test:e2e": "npm run build:umd && npm run build:languages && npm run test:e2e.dump && npm run test:e2e.puppeteer",
     "test:e2e.random": "npm run build:umd && npm run build:languages && npm run test:e2e.dump && npm run test:e2e.puppeteer -- --random",
     "test:e2e.watch": "node ./.config/bin/trigger-on-stdout-change.js \"concurrently --raw --kill-others \\\"npm run build:umd -- --watch\\\" \\\"npm run test:e2e.dump -- --watch\\\"\" \"npm run test:e2e.puppeteer\"",
+    "test:e2e.verbose": "npm run build:umd && npm run build:languages && npm run test:e2e.dump && npm run test:e2e.puppeteer -- --verbose",
     "test:e2e.puppeteer": "node test/scripts/run-puppeteer.js test/E2ERunner.html",
     "test:unit": "cross-env-shell npm_config_testPathPattern=. BABEL_ENV=commonjs env-cmd -f ./hot.config.js jest --testPathPattern=$npm_config_testPathPattern",
     "test:unit.watch": "cross-env-shell BABEL_ENV=commonjs env-cmd -f ./hot.config.js jest --testPathPattern=$npm_config_testPathPattern --watch",

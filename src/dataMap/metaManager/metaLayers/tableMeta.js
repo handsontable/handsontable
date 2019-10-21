@@ -8,13 +8,13 @@ export default class TableMeta {
     this.meta = new MetaCtor();
   }
 
+  getMeta() {
+    return this.meta;
+  }
+
   updateMeta(settings) {
     extend(this.meta, settings);
     extend(this.meta, expandMetaType(settings));
-  }
-
-  getMeta() {
-    return this.meta;
   }
 
   clearCache() {

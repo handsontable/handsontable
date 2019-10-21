@@ -8,6 +8,7 @@ const DEFAULT_INACTIVITY_TIMEOUT = 10000;
 
 const [,, originalPath, flags] = process.argv;
 let path = originalPath;
+let verboseReporting = false;
 
 if (!originalPath) {
   /* eslint-disable no-console */
@@ -20,6 +21,8 @@ if (flags) {
   const seed = flags.match(/(--seed=)\d{1,}/g);
   const random = flags.includes('random');
   const params = [];
+
+  verboseReporting = flags.includes('verbose');
 
   if (seed) {
     params.push(`seed=${seed[0].replace('--seed=', '')}`);
@@ -73,7 +76,7 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
     verbosity: 4,
     listStyle: 'flat',
     activity: true,
-    isVerbose: false,
+    isVerbose: verboseReporting,
     includeStackTrace: true,
   });
   let errorCount = 0;

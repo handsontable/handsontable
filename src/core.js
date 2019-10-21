@@ -338,7 +338,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
           // eslint-disable-next-line no-param-reassign
           index = (isDefined(index)) ? index : numberOfSourceRows;
-
           delta = datamap.createRow(index, amount, source);
 
           if (delta) {
@@ -818,7 +817,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (hasLanguageDictionary(normalizedLanguageCode)) {
       instance.runHooks('beforeLanguageChange', normalizedLanguageCode);
 
-      tableMeta.language = normalizedLanguageCode;
+      globalMeta.language = normalizedLanguageCode;
 
       instance.runHooks('afterLanguageChange', normalizedLanguageCode);
 
@@ -1559,7 +1558,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource.colToProp = datamap.colToProp.bind(datamap);
     dataSource.propToCol = datamap.propToCol.bind(datamap);
 
-    metaManager.clearCache();
+    metaManager.clearCellsCache();
 
     grid.adjustRowsAndCols();
     instance.runHooks('afterLoadData', firstRun);
@@ -2320,7 +2319,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} Returns an array of ColumnSettings object instances.
    */
   this.getCellsMeta = function() {
-    return metaManager.getCellMetas();
+    return metaManager.getCellsMeta();
   };
 
   /**
@@ -2353,13 +2352,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     cellProperties.prop = prop;
     cellProperties.instance = instance;
 
+    // TODO: Add call 'calls' only once per table render cycle.
+
     instance.runHooks('beforeGetCellMeta', row, column, cellProperties);
 
     // extend(cellProperties, expandType(cellProperties)); // for `type` added in beforeGetCellMeta
+    // metaManager.updateCellMeta(physicalRow, physicalColumn, cellProperties);
 
-    // TODO: Add call 'calls' only once per table lifecycle.
     if (cellProperties.cells) {
-      const settings = cellProperties.cells.call(cellProperties, physicalRow, physicalColumn, prop);
+      const settings = cellProperties.cells(physicalRow, physicalColumn, prop);
 
       if (settings) {
         metaManager.updateCellMeta(physicalRow, physicalColumn, settings);
@@ -2380,7 +2381,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array}
    */
   this.getCellMetaAtRow = function(row) {
-    return metaManager.getCellMetasAtRow(row);
+    return metaManager.getCellsMetaAtRow(row);
   };
 
   /**

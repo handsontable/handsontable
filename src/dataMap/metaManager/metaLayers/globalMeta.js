@@ -18,13 +18,13 @@ export default class GlobalMeta {
     return this.metaCtor;
   }
 
+  getMeta() {
+    return this.meta;
+  }
+
   updateMeta(settings) {
     extend(this.meta, settings);
     extend(this.meta, expandMetaType(settings));
-  }
-
-  getMeta() {
-    return this.meta;
   }
 
   clearCache() {

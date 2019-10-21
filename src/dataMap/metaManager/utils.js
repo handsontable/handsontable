@@ -37,3 +37,9 @@ export function columnFactory(TableMeta, conflictList) {
 
   return ColumnMeta;
 }
+
+export function arraySplice(array, start, itemsCount, defaultValue) {
+  const valueToFill = typeof defaultValue === 'function' ? defaultValue() : defaultValue;
+
+  array.splice(start, 0, ...new Array(itemsCount).fill(valueToFill));
+}

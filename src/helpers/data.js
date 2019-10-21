@@ -156,7 +156,6 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
 
   return function cellMethodLookup(row, col) {
     return (function getMethodFromProperties(properties) {
-
       if (!properties) {
         return; // method not found
 

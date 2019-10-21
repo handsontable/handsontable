@@ -1,5 +1,6 @@
 import { extend } from '../../../helpers/object';
 import { columnFactory, expandMetaType } from '../utils';
+import LazyGridMap from '../lazyGridMap';
 
 /**
  * List of props which have to be cleared in the column meta-layer. That props have a
@@ -11,30 +12,38 @@ const COLUMNS_PROPS_CONFLICTS = ['data', 'width'];
 
 export default class ColumnMeta {
   constructor(globalMeta) {
-    this.metas = new Map();
+    this.metas = new LazyGridMap(() => this._createMeta());
     this.globalMeta = globalMeta;
   }
 
   updateMeta(physicalColumn, settings) {
     const meta = this.getMeta(physicalColumn);
 
-    extend(meta.prototype, settings);
-    extend(meta.prototype, expandMetaType(settings));
+    extend(meta, settings);
+    extend(meta, expandMetaType(settings));
+  }
+
+  createColumn(physicalColumn, amount) {
+    this.metas.insert(physicalColumn, amount);
+  }
+
+  removeColumn(physicalColumn, amount) {
+    this.metas.remove(physicalColumn, amount);
   }
 
   getMeta(physicalColumn) {
-    if (this.metas.has(physicalColumn)) {
-      return this.metas.get(physicalColumn);
-    }
+    return this.metas.obtain(physicalColumn);
+  }
 
-    const ColumnMetaCtor = columnFactory(this.globalMeta.getMetaConstructor(), COLUMNS_PROPS_CONFLICTS);
-
-    this.metas.set(physicalColumn, ColumnMetaCtor);
-
-    return ColumnMetaCtor;
+  getMetaConstructor(physicalColumn) {
+    return this.metas.obtain(physicalColumn).constructor;
   }
 
   clearCache() {
     this.metas.clear();
+  }
+
+  _createMeta() {
+    return columnFactory(this.globalMeta.getMetaConstructor(), COLUMNS_PROPS_CONFLICTS).prototype;
   }
 }

@@ -4,6 +4,29 @@ import ColumnMeta from './metaLayers/columnMeta';
 import CellMeta from './metaLayers/cellMeta';
 
 /* eslint-disable import/prefer-default-export */
+/**
+ * The diagram of the meta layers:
+ * +-------------+
+ * | GlobalMeta  |
+ * | (prototype) |
+ * +-------------+\
+ *       |         \
+ *       |          \
+ *      \|/         _\|
+ * +-------------+    +-------------+
+ * | TableMeta   |    | ColumnMeta  |
+ * | (instance)  |    | (prototype) |
+ * +-------------+    +-------------+
+ *                         |
+ *                         |
+ *                        \|/
+ *                    +-------------+
+ *                    |  CellMeta   |
+ *                    | (instance)  |
+ *                    +-------------+
+ *
+ * @type {MetaManager}
+ */
 export class MetaManager {
   constructor(customSettings) {
     this.globalMeta = new GlobalMeta();
@@ -38,8 +61,8 @@ export class MetaManager {
     this.columnMeta.updateMeta(physicalColumn, settings);
   }
 
-  getCellMeta(physicalRow, physicalColumn) {
-    return this.cellMeta.getMeta(physicalRow, physicalColumn);
+  getCellMeta(physicalRow, physicalColumn, key) {
+    return this.cellMeta.getMeta(physicalRow, physicalColumn, key);
   }
 
   setCellMeta(physicalRow, physicalColumn, key, value) {
@@ -50,36 +73,43 @@ export class MetaManager {
     this.cellMeta.updateMeta(physicalRow, physicalColumn, settings);
   }
 
-  removeCellMeta(physicalRow, physicalColumn) {
-    this.cellMeta.removeMeta(physicalRow, physicalColumn);
+  removeCellMeta(physicalRow, physicalColumn, key) {
+    this.cellMeta.removeMeta(physicalRow, physicalColumn, key);
   }
 
-  getCellMetas() {
+  getCellsMeta() {
     return this.cellMeta.getMetas();
   }
 
-  getCellMetasAtRow(physicalRow) {
+  getCellsMetaAtRow(physicalRow) {
     return this.cellMeta.getMetasAtRow(physicalRow);
   }
 
-  createRow(physicalRow) {
-    this.cellMeta.createRow(physicalRow);
+  createRow(physicalRow, amount) {
+    this.cellMeta.createRow(physicalRow, amount);
   }
 
-  removeRow(physicalRow) {
-    this.cellMeta.removeRow(physicalRow);
+  removeRow(physicalRow, amount) {
+    this.cellMeta.removeRow(physicalRow, amount);
   }
 
-  createColumn(physicalColumn) {
-    this.cellMeta.createColumn(physicalColumn);
+  createColumn(physicalColumn, amount) {
+    this.cellMeta.createColumn(physicalColumn, amount);
+    this.columnMeta.createColumn(physicalColumn, amount);
   }
 
-  removeColumn(physicalColumn) {
-    this.cellMeta.removeColumn(physicalColumn);
+  removeColumn(physicalColumn, amount) {
+    this.cellMeta.removeColumn(physicalColumn, amount);
+    this.columnMeta.removeColumn(physicalColumn, amount);
+  }
+
+  clearCellsCache() {
+    this.cellMeta.clearCache();
   }
 
   clearCache() {
     this.cellMeta.clearCache();
     this.columnMeta.clearCache();
+    this.tableMeta.clearCache();
   }
 }
