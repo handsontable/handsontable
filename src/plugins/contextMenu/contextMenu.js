@@ -214,8 +214,8 @@ class ContextMenu extends BasePlugin {
       const { frameElement } = this.hot.rootWindow;
       const { top, left } = frameElement.getBoundingClientRect();
 
-      offsetTop = top;
-      offsetLeft = left;
+      offsetTop = top - getWindowScrollTop(event.view);
+      offsetLeft = left - getWindowScrollLeft(event.view);
 
     } else {
       offsetTop = -1 * getWindowScrollTop(this.menu.hotMenu.rootWindow);
@@ -229,7 +229,6 @@ class ContextMenu extends BasePlugin {
 
     // ContextMenu is not detected HotTableEnv correctly because is injected outside hot-table
     this.menu.hotMenu.isHotTableEnv = this.hot.isHotTableEnv;
-    // Handsontable.eventManager.isHotTableEnv = this.hot.isHotTableEnv;
   }
 
   /**
