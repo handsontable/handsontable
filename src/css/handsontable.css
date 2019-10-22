@@ -17,6 +17,11 @@
   top: -99000px;
 }
 
+[class*="ht_clone"].handsontable .wtHolder {
+  max-width: 100%;
+  max-height: 100%;
+}
+
 .handsontable .wtHider {
   width: 0;
 }
@@ -528,7 +533,7 @@ CheckboxRenderer
  */
 
 .handsontable .handsontable.ht_clone_top .wtHider {
-  padding: 0 0 5px 0;
+  /* padding: 0 0 5px 0; */
 }
 
 /**
