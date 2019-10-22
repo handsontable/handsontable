@@ -114,7 +114,7 @@
     "on-build-webpack": "^0.1.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "progress-bar-webpack-plugin": "^1.10.0",
-    "puppeteer": "^1.15.0",
+    "puppeteer": "https://api.github.com/repos/GoogleChrome/puppeteer/tarball/5b34028e63c9532349ac525fa4c14daeada05b94",
     "rimraf": "^2.5.4",
     "spawn-command": "0.0.2",
     "string-replace-webpack-plugin": "^0.1.3",
