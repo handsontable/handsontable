@@ -503,6 +503,34 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
   });
 
+  it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      colWidths: 100
+    });
+
+    expect(colWidth(spec().$container, 0)).toEqual(100);
+    expect(colWidth(spec().$container, 1)).toEqual(100);
+    expect(colWidth(spec().$container, 2)).toEqual(100);
+
+    resizeColumn(2, 300);
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mouseup');
+
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mouseup');
+
+    await sleep(1000);
+
+    expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
+  });
+
   it('should autosize selected columns after double click on handler', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(9, 9),

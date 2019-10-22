@@ -84,9 +84,8 @@ class MapCollection {
    * Insert new indexes and corresponding mapping and update values of the others all collection's index maps.
    *
    * @private
-   * @param {Number} firstInsertedVisualIndex First inserted visual index.
-   * @param {Number} firstInsertedPhysicalIndex First inserted physical index.
-   * @param {Number} amountOfIndexes Amount of inserted indexes.
+   * @param {Number} insertionIndex Position inside the actual list.
+   * @param {Array} insertedIndexes List of inserted indexes.
    */
   insertToEvery(insertionIndex, insertedIndexes) {
     this.mappings.forEach((list) => {
