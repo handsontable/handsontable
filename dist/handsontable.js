@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.2.0
- * Release date: 15/10/2019 (built at 22/10/2019 13:43:48)
+ * Release date: 15/10/2019 (built at 22/10/2019 16:08:39)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -32734,9 +32734,8 @@ function () {
      * Insert new indexes and corresponding mapping and update values of the others all collection's index maps.
      *
      * @private
-     * @param {Number} firstInsertedVisualIndex First inserted visual index.
-     * @param {Number} firstInsertedPhysicalIndex First inserted physical index.
-     * @param {Number} amountOfIndexes Amount of inserted indexes.
+     * @param {Number} insertionIndex Position inside the actual list.
+     * @param {Array} insertedIndexes List of inserted indexes.
      */
 
   }, {
@@ -39694,7 +39693,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "22/10/2019 13:43:48";
+Handsontable.buildDate = "22/10/2019 16:08:39";
 Handsontable.version = "7.2.0"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -52296,11 +52295,20 @@ function (_BasePlugin) {
      * @type {Boolean}
      */
 
-    _this.inProgress = false; // moved to constructor to allow auto-sizing the columns when the plugin is disabled
+    _this.inProgress = false;
+    /**
+     * Map for storing index to value mappings.
+     *
+     * @type {ValueMap}
+     */
+
+    _this.columnWidthsMap = new _translations.ValueMap(); // moved to constructor to allow auto-sizing the columns when the plugin is disabled
 
     _this.addHook('beforeColumnResize', function (col, size, isDblClick) {
       return _this.onBeforeColumnResize(col, size, isDblClick);
     });
+
+    _this.hot.getColumnIndexMapper().registerMap(COLUMN_SIZE_MAP_NAME, _this.columnWidthsMap);
 
     return _this;
   }
@@ -52336,8 +52344,6 @@ function (_BasePlugin) {
         this.ghostTable.setSetting('useHeaders', setting.useHeaders);
       }
 
-      this.columnWidthsMap = new _translations.ValueMap();
-      this.hot.getColumnIndexMapper().registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
       this.setSamplingOptions();
       this.addHook('afterLoadData', function () {
         return _this2.onAfterLoadData();
@@ -52370,16 +52376,6 @@ function (_BasePlugin) {
       }
 
       (0, _get2.default)((0, _getPrototypeOf2.default)(AutoColumnSize.prototype), "updatePlugin", this).call(this);
-    }
-    /**
-     * Disables the plugin functionality for this Handsontable instance.
-     */
-
-  }, {
-    key: "disablePlugin",
-    value: function disablePlugin() {
-      this.hot.getColumnIndexMapper().unregisterMap(COLUMN_SIZE_MAP_NAME);
-      (0, _get2.default)((0, _getPrototypeOf2.default)(AutoColumnSize.prototype), "disablePlugin", this).call(this);
     }
     /**
      * Calculates a columns width.
