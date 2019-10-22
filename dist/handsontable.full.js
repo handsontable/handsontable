@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.2.0
- * Release date: 15/10/2019 (built at 21/10/2019 14:52:46)
+ * Release date: 15/10/2019 (built at 22/10/2019 13:43:48)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -60092,7 +60092,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "21/10/2019 14:52:46";
+Handsontable.buildDate = "22/10/2019 13:43:48";
 Handsontable.version = "7.2.0"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -82809,8 +82809,6 @@ var _base = _interopRequireDefault(__webpack_require__(22));
 
 var _plugins = __webpack_require__(20);
 
-var _array = __webpack_require__(3);
-
 var _freezeColumn = _interopRequireDefault(__webpack_require__(562));
 
 var _unfreezeColumn = _interopRequireDefault(__webpack_require__(563));
@@ -82842,7 +82840,6 @@ function (_BasePlugin) {
     (0, _classCallCheck2.default)(this, ManualColumnFreeze);
     _this = (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(ManualColumnFreeze).call(this, hotInstance));
     privatePool.set((0, _assertThisInitialized2.default)(_this), {
-      moveByFreeze: false,
       afterFirstUse: false
     });
     return _this;
@@ -82876,8 +82873,8 @@ function (_BasePlugin) {
       this.addHook('afterContextMenuDefaultOptions', function (options) {
         return _this2.addContextMenuEntry(options);
       });
-      this.addHook('beforeColumnMove', function (rows, target) {
-        return _this2.onBeforeColumnMove(rows, target);
+      this.addHook('beforeColumnMove', function (columns, finalIndex) {
+        return _this2.onBeforeColumnMove(columns, finalIndex);
       });
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualColumnFreeze.prototype), "enablePlugin", this).call(this);
     }
@@ -82890,7 +82887,6 @@ function (_BasePlugin) {
     value: function disablePlugin() {
       var priv = privatePool.get(this);
       priv.afterFirstUse = false;
-      priv.moveByFreeze = false;
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualColumnFreeze.prototype), "disablePlugin", this).call(this);
     }
     /**
@@ -82924,7 +82920,6 @@ function (_BasePlugin) {
         return; // already fixed
       }
 
-      priv.moveByFreeze = true;
       this.hot.getColumnIndexMapper().moveIndexes(column, settings.fixedColumnsLeft);
       settings.fixedColumnsLeft += 1;
     }
@@ -82948,7 +82943,6 @@ function (_BasePlugin) {
         return; // not fixed
       }
 
-      priv.moveByFreeze = true;
       settings.fixedColumnsLeft -= 1;
       this.hot.getColumnIndexMapper().moveIndexes(column, settings.fixedColumnsLeft);
     }
@@ -82967,38 +82961,31 @@ function (_BasePlugin) {
       }, (0, _freezeColumn.default)(this), (0, _unfreezeColumn.default)(this));
     }
     /**
-     * Prevents moving the rows from/to fixed area.
+     * Prevents moving the columns from/to fixed area.
      *
      * @private
-     * @param {Array} rows
-     * @param {Number} target
+     * @param {Array} columns Array of visual column indexes to be moved.
+     * @param {Number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.
      */
 
   }, {
     key: "onBeforeColumnMove",
-    value: function onBeforeColumnMove(rows, target) {
+    value: function onBeforeColumnMove(columns, finalIndex) {
       var priv = privatePool.get(this);
 
-      if (priv.afterFirstUse && !priv.moveByFreeze) {
-        var frozenLen = this.hot.getSettings().fixedColumnsLeft;
-        var disallowMoving = target < frozenLen;
+      if (priv.afterFirstUse) {
+        var freezeLine = this.hot.getSettings().fixedColumnsLeft; // Moving any column before the "freeze line" isn't possible.
 
-        if (!disallowMoving) {
-          (0, _array.arrayEach)(rows, function (value) {
-            if (value < frozenLen) {
-              disallowMoving = true;
-              return false;
-            }
-          });
-        }
+        if (finalIndex < freezeLine) {
+          return false;
+        } // Moving frozen column isn't possible.
 
-        if (disallowMoving) {
+
+        if (columns.some(function (column) {
+          return column < freezeLine;
+        })) {
           return false;
         }
-      }
-
-      if (priv.moveByFreeze) {
-        priv.moveByFreeze = false;
       }
     }
   }]);
