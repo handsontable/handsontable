@@ -228,7 +228,43 @@ class Selection {
   }
 
   /**
-   * @param wotInstance
+   * Get TD from a relevant overlay in case when the TD is not rendered on the current overlay. The TD is needed for
+   * measurements done on `borderEdgesDescriptor`.
+   *
+   * @param {Walkontable} wotInstance
+   * @param {Number} row
+   * @param {Number} col
+   * @param {Number} firstRenderedRow
+   * @param {Number} lastRenderedRow
+   * @param {Number} lastRenderedColumn
+   */
+  getRelevantCell(wotInstance, row, col, firstRenderedRow, lastRenderedRow, lastRenderedColumn) {
+    let td = wotInstance.wtTable.getCell({ row, col });
+
+    if (typeof td === 'number') {
+      let container;
+      if ((row > lastRenderedRow && col > lastRenderedColumn) || (col > lastRenderedColumn && row < firstRenderedRow)) {
+        container = wotInstance.wtTable.getTableNeighborDiagonal();
+      } else if (row > lastRenderedRow) {
+        container = wotInstance.wtTable.getTableNeighborSouth();
+      } else if (col > lastRenderedColumn) {
+        container = wotInstance.wtTable.getTableNeighborEast();
+      } else if (row < firstRenderedRow) {
+        container = wotInstance.wtTable.getTableNeighborNorth();
+      }
+
+      td = container.getCell({ row, col });
+    }
+
+    if (typeof td === 'number') {
+      td = undefined;
+    }
+
+    return td;
+  }
+
+  /**
+   * @param {Walkontable} wotInstance
    */
   draw(wotInstance) {
     this.borderEdgesDescriptor = [];
@@ -245,6 +281,7 @@ class Selection {
       return;
     }
 
+    const { wtTable } = wotInstance;
     const renderedRows = wotInstance.wtTable.getRenderedRowsCount();
     const renderedColumns = wotInstance.wtTable.getRenderedColumnsCount();
 
@@ -257,10 +294,30 @@ class Selection {
     const tableLastRenderedRow = wotInstance.wtTable.getLastRenderedRow(); // null when there are no rendered rows
     const tableLastRenderedColumn = wotInstance.wtTable.getLastRenderedColumn(); // null when there are no rendered columns
 
-    const highlightFirstRenderedRow = Math.max(firstRow, tableFirstRenderedRow);
+    /*
+    renderingOffsets are used to render side effects of borders from other overlays,
+    e.g. when fixedRowsTop === 1, this method will render the top border of the cell A2 (from the master table)
+    as the bottom border of the cell A1 (on the top overlay table).
+    */
+
+    let renderingOffsetEast = 0;
+    let renderingOffsetSouth = 0;
+    let renderingOffsetNorth = 0;
+
+    if (wtTable.getTableNeighborEast && wtTable.getTableNeighborEast().getFirstVisibleColumn() === wtTable.getLastVisibleColumn() + 1) {
+      renderingOffsetEast = 1;
+    }
+    if (wtTable.getTableNeighborSouth && wtTable.getTableNeighborSouth().getFirstVisibleRow() === wtTable.getLastVisibleRow() + 1) {
+      renderingOffsetSouth = 1;
+    }
+    if (wtTable.getTableNeighborNorth && wtTable.getTableNeighborNorth().getLastVisibleRow() === wtTable.getFirstVisibleRow() - 1) {
+      renderingOffsetNorth = -1;
+    }
+
+    const highlightFirstRenderedRow = Math.max(firstRow, tableFirstRenderedRow + renderingOffsetNorth);
     const highlightFirstRenderedColumn = Math.max(firstColumn, tableFirstRenderedColumn);
-    const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow);
-    const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn);
+    const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow + renderingOffsetSouth);
+    const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn + renderingOffsetEast);
 
     if (renderedColumns && (highlightHeaderClassName || highlightColumnClassName)) {
       for (let sourceColumn = highlightFirstRenderedColumn; sourceColumn <= highlightLastRenderedColumn; sourceColumn += 1) {
@@ -301,16 +358,20 @@ class Selection {
         const hasBottomEdge = highlightLastRenderedRow === lastRow;
         const hasLeftEdge = highlightFirstRenderedColumn === firstColumn;
 
-        const firstTd = wotInstance.wtTable.getCell({ row: highlightFirstRenderedRow, col: highlightFirstRenderedColumn });
+        const firstTd = this.getRelevantCell(wotInstance, highlightFirstRenderedRow, highlightFirstRenderedColumn,
+          tableFirstRenderedRow, tableLastRenderedRow, tableLastRenderedColumn);
         let lastTd;
 
         if (highlightFirstRenderedRow === highlightLastRenderedRow && highlightFirstRenderedColumn === highlightLastRenderedColumn) {
           lastTd = firstTd;
         } else {
-          lastTd = wotInstance.wtTable.getCell({ row: highlightLastRenderedRow, col: highlightLastRenderedColumn });
+          lastTd = this.getRelevantCell(wotInstance, highlightLastRenderedRow, highlightLastRenderedColumn,
+            tableFirstRenderedRow, tableLastRenderedRow, tableLastRenderedColumn);
         }
 
-        this.borderEdgesDescriptor = [this.settings, firstTd, lastTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
+        if (firstTd && lastTd) {
+          this.borderEdgesDescriptor = [this.settings, firstTd, lastTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
+        }
       }
 
       for (let sourceRow = highlightFirstRenderedRow; sourceRow <= highlightLastRenderedRow; sourceRow += 1) {
