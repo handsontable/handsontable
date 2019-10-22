@@ -1,6 +1,5 @@
 import BasePlugin from './../_base';
 import { registerPlugin } from './../../plugins';
-import { arrayEach } from './../../helpers/array';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 
@@ -24,7 +23,6 @@ class ManualColumnFreeze extends BasePlugin {
     super(hotInstance);
 
     privatePool.set(this, {
-      moveByFreeze: false,
       afterFirstUse: false,
     });
   }
@@ -48,7 +46,7 @@ class ManualColumnFreeze extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.addContextMenuEntry(options));
-    this.addHook('beforeColumnMove', (rows, target) => this.onBeforeColumnMove(rows, target));
+    this.addHook('beforeColumnMove', (columns, finalIndex) => this.onBeforeColumnMove(columns, finalIndex));
 
     super.enablePlugin();
   }
@@ -60,7 +58,6 @@ class ManualColumnFreeze extends BasePlugin {
     const priv = privatePool.get(this);
 
     priv.afterFirstUse = false;
-    priv.moveByFreeze = false;
 
     super.disablePlugin();
   }
@@ -92,8 +89,6 @@ class ManualColumnFreeze extends BasePlugin {
       return; // already fixed
     }
 
-    priv.moveByFreeze = true;
-
     this.hot.getColumnIndexMapper().moveIndexes(column, settings.fixedColumnsLeft);
 
     settings.fixedColumnsLeft += 1;
@@ -116,7 +111,6 @@ class ManualColumnFreeze extends BasePlugin {
       return; // not fixed
     }
 
-    priv.moveByFreeze = true;
     settings.fixedColumnsLeft -= 1;
 
     this.hot.getColumnIndexMapper().moveIndexes(column, settings.fixedColumnsLeft);
@@ -137,35 +131,27 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Prevents moving the rows from/to fixed area.
+   * Prevents moving the columns from/to fixed area.
    *
    * @private
-   * @param {Array} rows
-   * @param {Number} target
+   * @param {Array} columns Array of visual column indexes to be moved.
+   * @param {Number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.
    */
-  onBeforeColumnMove(rows, target) {
+  onBeforeColumnMove(columns, finalIndex) {
     const priv = privatePool.get(this);
 
-    if (priv.afterFirstUse && !priv.moveByFreeze) {
-      const frozenLen = this.hot.getSettings().fixedColumnsLeft;
-      let disallowMoving = target < frozenLen;
+    if (priv.afterFirstUse) {
+      const freezeLine = this.hot.getSettings().fixedColumnsLeft;
 
-      if (!disallowMoving) {
-        arrayEach(rows, (value) => {
-          if (value < frozenLen) {
-            disallowMoving = true;
-            return false;
-          }
-        });
-      }
-
-      if (disallowMoving) {
+      // Moving any column before the "freeze line" isn't possible.
+      if (finalIndex < freezeLine) {
         return false;
       }
-    }
 
-    if (priv.moveByFreeze) {
-      priv.moveByFreeze = false;
+      // Moving frozen column isn't possible.
+      if (columns.some(column => column < freezeLine)) {
+        return false;
+      }
     }
   }
 }
