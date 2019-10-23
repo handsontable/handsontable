@@ -2206,6 +2206,7 @@ declare namespace Handsontable {
     isDefined(variable: any): boolean,
     isEdge(): boolean,
     isEmpty(variable: any): boolean,
+    isFirefox(): boolean,
     isFunction(func: any): boolean,
     isGetComputedStyleSupported(): boolean,
     isIE(): boolean,
