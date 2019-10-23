@@ -17,7 +17,7 @@ class CollapsingUI extends BaseUI {
     super(nestedRowsPlugin, hotInstance);
 
     /**
-     * Reference to the Trim Rows plugin.
+     * Reference to the TrimRows plugin.
      */
     this.dataManager = this.plugin.dataManager;
     this.collapsedRows = [];
@@ -347,8 +347,6 @@ class CollapsingUI extends BaseUI {
    */
   trimRows(rows) {
     this.hot.executeBatchOperations(() => {
-      this.plugin.collapsedRowsMap.clear();
-
       arrayEach(rows, (physicalRow) => {
         this.plugin.collapsedRowsMap.setValueAtIndex(physicalRow, true);
       });
@@ -453,7 +451,7 @@ class CollapsingUI extends BaseUI {
    * @returns {Number} Base row index.
    */
   translateTrimmedRow(row) {
-    return this.hot.recordTranslator.getRowIndexMapper().getPhysicalIndex(row);
+    return this.hot.toPhysicalRow(row);
   }
 
   /**

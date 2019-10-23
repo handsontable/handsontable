@@ -3,7 +3,7 @@ import { getListWithRemovedItems, getListWithInsertedItems } from './utils/visua
 import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndexes';
 
 /**
- * Map from visual index to physical index.
+ * Map for storing mappings from an visual index to an physical index.
  */
 class IndexMap extends BaseMap {
   constructor() {

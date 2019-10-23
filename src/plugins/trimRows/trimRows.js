@@ -73,7 +73,7 @@ class TrimRows extends BasePlugin {
       return;
     }
 
-    this.trimmedRowsMap = this.rowIndexMapper.registerMap('trimRows', new SkipMap());
+    this.trimmedRowsMap = this.hot.getRowIndexMapper().registerMap('trimRows', new SkipMap());
     this.trimmedRowsMap.addLocalHook('init', () => this.onMapInit());
 
     super.enablePlugin();
@@ -102,7 +102,7 @@ class TrimRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.rowIndexMapper.unregisterMap('trimRows');
+    this.hot.getRowIndexMapper().unregisterMap('trimRows');
 
     super.disablePlugin();
   }
@@ -257,7 +257,7 @@ class TrimRows extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.rowIndexMapper.unregisterMap('trimRows');
+    this.hot.getRowIndexMapper().unregisterMap('trimRows');
 
     super.destroy();
   }

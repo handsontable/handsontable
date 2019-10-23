@@ -82,7 +82,7 @@ class ManualRowResize extends BasePlugin {
 
     this.rowHeightsMap = new ValueMap();
     this.rowHeightsMap.addLocalHook('init', () => this.onMapInit());
-    this.rowIndexMapper.registerMap(ROW_HEIGHTS_MAP_NAME, this.rowHeightsMap);
+    this.hot.getRowIndexMapper().registerMap(ROW_HEIGHTS_MAP_NAME, this.rowHeightsMap);
 
     this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
 
@@ -108,7 +108,7 @@ class ManualRowResize extends BasePlugin {
     const priv = privatePool.get(this);
     priv.config = this.rowHeightsMap.getValues();
 
-    this.rowIndexMapper.unregisterMap(ROW_HEIGHTS_MAP_NAME);
+    this.hot.getRowIndexMapper().unregisterMap(ROW_HEIGHTS_MAP_NAME);
     super.disablePlugin();
   }
 
@@ -488,7 +488,7 @@ class ManualRowResize extends BasePlugin {
       const physicalRow = this.hot.toPhysicalRow(row);
       const manualRowHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
 
-      if (manualRowHeight !== void 0) {
+      if (manualRowHeight !== null) {
         newHeight = manualRowHeight;
       }
     }
@@ -506,7 +506,7 @@ class ManualRowResize extends BasePlugin {
     const loadedManualRowHeights = this.loadManualRowHeights();
 
     this.hot.executeBatchOperations(() => {
-      if (typeof loadedManualColumnWidths !== 'undefined') {
+      if (typeof loadedManualRowHeights !== 'undefined') {
         loadedManualRowHeights.forEach((height, index) => {
           this.rowHeightsMap.setValueAtIndex(index, height);
         });
@@ -531,7 +531,7 @@ class ManualRowResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.rowIndexMapper.unregisterMap(ROW_HEIGHTS_MAP_NAME);
+    this.hot.getRowIndexMapper().unregisterMap(ROW_HEIGHTS_MAP_NAME);
 
     super.destroy();
   }

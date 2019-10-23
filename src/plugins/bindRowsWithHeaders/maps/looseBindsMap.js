@@ -6,6 +6,10 @@ import { getDecreasedIndexes, getIncreasedIndexes } from '../../../translations/
  * Map from physical index to another index.
  */
 class LooseBindsMap extends BaseMap {
+  constructor() {
+    super(index => index);
+  }
+
   /**
    * Add values to list and reorganize.
    *

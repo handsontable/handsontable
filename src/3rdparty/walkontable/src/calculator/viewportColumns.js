@@ -22,7 +22,7 @@ class ViewportColumnsCalculator {
    * @param {Object} options Object with all options specyfied for column viewport calculation.
    * @param {Number} options.viewportWidth Width of the viewport
    * @param {Number} options.scrollOffset Current horizontal scroll position of the viewport
-   * @param {Number} options.totalColumns Total number of rows
+   * @param {Number} options.totalColumns Total number of columns
    * @param {Function} options.columnWidthFn Function that returns the width of the column at a given index (in px)
    * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
    * @param {String} options.calculationType String which describes types of calculation which will be performed.

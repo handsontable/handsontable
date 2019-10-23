@@ -135,9 +135,16 @@ class AutoColumnSize extends BasePlugin {
      * @type {Boolean}
      */
     this.inProgress = false;
+    /**
+     * Map for storing index to value mappings.
+     *
+     * @type {ValueMap}
+     */
+    this.columnWidthsMap = new ValueMap();
 
     // moved to constructor to allow auto-sizing the columns when the plugin is disabled
     this.addHook('beforeColumnResize', (col, size, isDblClick) => this.onBeforeColumnResize(col, size, isDblClick));
+    this.hot.getColumnIndexMapper().registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
   }
 
   /**
@@ -164,9 +171,6 @@ class AutoColumnSize extends BasePlugin {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
 
-    this.columnWidthsMap = new ValueMap();
-    this.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
-
     this.setSamplingOptions();
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
@@ -190,15 +194,6 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Disables the plugin functionality for this Handsontable instance.
-   */
-  disablePlugin() {
-    this.columnIndexMapper.unregisterMap(COLUMN_SIZE_MAP_NAME);
-
-    super.disablePlugin();
-  }
-
-  /**
    * Calculates a columns width.
    *
    * @param {Number|Object} colRange Visual column index or an object with `from` and `to` visual indexes as a range.
@@ -216,7 +211,7 @@ class AutoColumnSize extends BasePlugin {
         physicalColumn = col;
       }
 
-      if (force || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === void 0 && !this.hot._getColWidthFromSettings(physicalColumn))) {
+      if (force || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null && !this.hot._getColWidthFromSettings(physicalColumn))) {
         const samples = this.samplesGenerator.generateColumnSamples(physicalColumn, rowsRange);
 
         arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
@@ -226,7 +221,9 @@ class AutoColumnSize extends BasePlugin {
     if (this.ghostTable.columns.length) {
       this.hot.executeBatchOperations(() => {
         this.ghostTable.getWidths((col, width) => {
-          this.columnWidthsMap.setValueAtIndex(col, width);
+          const physicalColumn = this.hot.toPhysicalColumn(col);
+
+          this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
         });
       });
 
@@ -370,7 +367,7 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Gets the first visible column.
    *
-   * @returns {Number|null} Returns column index, -1 if table is not rendered or null if there are no columns to base the the calculations on.
+   * @returns {Number} Returns column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn() {
     const wot = this.hot.view.wt;
@@ -441,7 +438,7 @@ class AutoColumnSize extends BasePlugin {
     if (columns.length) {
       this.hot.executeBatchOperations(() => {
         arrayEach(columns, (physicalIndex) => {
-          this.columnWidthsMap.setValueAtIndex(physicalIndex, void 0);
+          this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
         });
       });
 
@@ -456,7 +453,7 @@ class AutoColumnSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.columnWidthsMap.getValues(), item => (item === void 0)).length;
+    return !!arrayFilter(this.columnWidthsMap.getValues(), item => (item === null)).length;
   }
 
   /**
@@ -470,7 +467,7 @@ class AutoColumnSize extends BasePlugin {
     const firstVisibleColumn = this.getFirstVisibleColumn();
     const lastVisibleColumn = this.getLastVisibleColumn();
 
-    if (firstVisibleColumn === null || lastVisibleColumn === null) {
+    if (firstVisibleColumn === -1 || lastVisibleColumn === -1) {
       return;
     }
 
@@ -550,7 +547,7 @@ class AutoColumnSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.columnIndexMapper.unregisterMap(COLUMN_SIZE_MAP_NAME);
+    this.hot.getColumnIndexMapper().unregisterMap(COLUMN_SIZE_MAP_NAME);
     this.ghostTable.clean();
     super.destroy();
   }

@@ -13,7 +13,7 @@ describe('manualColumnMove', () => {
   });
 
   describe('init', () => {
-    it('should change column order at init', () => {
+    it('should change column order at init when columns properly is not defined', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 10),
         manualColumnMove: [1, 2, 0]
@@ -22,6 +22,22 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
+    });
+
+    it('should change column order at init when columns properly is defined #4470', () => {
+      handsontable({
+        data: [
+          [1, 2, 3],
+          [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        ],
+        columns: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+        manualColumnMove: [0, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+      });
+
+      expect(getData()).toEqual([
+        [1, null, null, null, null, null, null, null, 3, 2],
+        [1, 10, 9, 8, 7, 6, 5, 4, 3, 2]
+      ]);
     });
   });
 
@@ -298,6 +314,44 @@ describe('manualColumnMove', () => {
 
           expect(afterMoveColumnCallback).toHaveBeenCalledWith([-1], 1, void 0, false, false, void 0);
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        });
+
+        it('should work when also when `data` has less items than `columns` property #5931', () => {
+          const aPlusB = record => record.A + record.B;
+          const aMinusB = record => record.A - record.B;
+          const aMultiplyB = record => record.A * record.B;
+          const aDivideB = record => record.A / record.B;
+
+          handsontable({
+            columns: [
+              { data: 'ID', type: 'text' },
+              { data: 'A', type: 'numeric' },
+              { data: 'B', type: 'numeric' },
+              { data: aPlusB, type: 'numeric' },
+              { data: aMinusB, type: 'numeric' },
+              { data: aMultiplyB, type: 'numeric' },
+              { data: aDivideB, type: 'numeric' }
+            ],
+            data: [
+              { ID: 20, A: 1000, B: 200 },
+              { ID: 19, A: 1000, B: 200 },
+              { ID: 18, A: 1000, B: 200 },
+              { ID: 17, A: 1000, B: 200 },
+              { ID: 16, A: 1000, B: 200 }
+            ],
+            manualColumnMove: true
+          });
+
+          getPlugin('manualColumnMove').moveColumn(6, 0);
+          render();
+
+          expect(getData()).toEqual([
+            [5, 20, 1000, 200, 1200, 800, 200000],
+            [5, 19, 1000, 200, 1200, 800, 200000],
+            [5, 18, 1000, 200, 1200, 800, 200000],
+            [5, 17, 1000, 200, 1200, 800, 200000],
+            [5, 16, 1000, 200, 1200, 800, 200000],
+          ]);
         });
       });
 

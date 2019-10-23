@@ -107,8 +107,9 @@ class ManualColumnMove extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
     this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
     this.addHook('afterScrollVertically', () => this.onAfterScrollVertically());
-    this.addHook('afterLoadData', () => this.initWork());
+    this.addHook('afterLoadData', () => this.onAfterLoadData());
 
+    this.buildPluginUI();
     this.registerEvents();
 
     // TODO: move adding plugin classname to BasePlugin.
@@ -124,7 +125,7 @@ class ManualColumnMove extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
-    this.initWork();
+    this.moveBySettingsOrLoad();
 
     super.updatePlugin();
   }
@@ -177,7 +178,7 @@ class ManualColumnMove extends BasePlugin {
     }
 
     if (movePossible) {
-      this.columnIndexMapper.moveIndexes(columns, finalIndex);
+      this.hot.getColumnIndexMapper().moveIndexes(columns, finalIndex);
     }
 
     this.hot.runHooks('afterColumnMove', columns, finalIndex, dropIndex, movePossible, movePossible && this.isColumnOrderChanged(columns, finalIndex));
@@ -219,7 +220,7 @@ class ManualColumnMove extends BasePlugin {
    * @returns {Boolean}
    */
   isMovePossible(movedColumns, finalIndex) {
-    const length = this.columnIndexMapper.getNotSkippedIndexesLength();
+    const length = this.hot.getColumnIndexMapper().getNotSkippedIndexesLength();
 
     // An attempt to transfer more columns to start destination than is possible (only when moving from the top to the bottom).
     const tooHighDestinationIndex = movedColumns.length + finalIndex > length;
@@ -344,7 +345,7 @@ class ManualColumnMove extends BasePlugin {
    * @fires Hooks#persistentStateSave
    */
   persistentStateSave() {
-    this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.columnsMapper._arrayMap);
+    this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.hot.getColumnIndexMapper().getIndexesSequence()); // The `PersistentState` plugin should be refactored.
   }
 
   /**
@@ -647,14 +648,14 @@ class ManualColumnMove extends BasePlugin {
     }
 
     const firstMovedVisualColumn = priv.columnsToMove[0];
-    const firstMovedPhysicalColumn = this.t.toPhysicalColumn(firstMovedVisualColumn);
+    const firstMovedPhysicalColumn = this.hot.toPhysicalColumn(firstMovedVisualColumn);
 
     this.dragColumns(priv.columnsToMove, target);
 
-    // this.persistentStateSave();
+    this.persistentStateSave();
     this.hot.render();
 
-    const selectionStart = this.t.toVisualColumn(firstMovedPhysicalColumn);
+    const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
     const selectionEnd = selectionStart + columnsLen - 1;
 
     this.changeSelection(selectionStart, selectionEnd);
@@ -678,14 +679,20 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Init plugin work.
+   * Builds the plugin's UI.
+   */
+  buildPluginUI() {
+    this.backlight.build();
+    this.guideline.build();
+  }
+
+  /**
+   * Callback for the `afterLoadData` hook.
    *
    * @private
    */
-  initWork() {
+  onAfterLoadData() {
     this.moveBySettingsOrLoad();
-    this.backlight.build();
-    this.guideline.build();
   }
 
   /**

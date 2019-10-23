@@ -239,4 +239,65 @@ describe('manualColumnFreeze', () => {
     });
   });
 
+  describe('Cooperation with the `ManualColumnMove` plugin', () => {
+    it('should not allow to move any column before the "freeze line" - moving already frozen column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualColumnFreeze: true,
+        manualColumnMove: true
+      });
+
+      const data = getData();
+      const manualColumnFreezePlugin = getPlugin('manualColumnFreeze');
+
+      manualColumnFreezePlugin.freezeColumn(0);
+      manualColumnFreezePlugin.freezeColumn(1);
+
+      const manualColumnMovePlugin = getPlugin('manualColumnMove');
+
+      manualColumnMovePlugin.moveColumn(1, 0);
+
+      expect(getData()).toEqual(data);
+    });
+
+    it('should not allow to move any column before the "freeze line" - moving not frozen column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualColumnFreeze: true,
+        manualColumnMove: true
+      });
+
+      const data = getData();
+      const manualColumnFreezePlugin = getPlugin('manualColumnFreeze');
+
+      manualColumnFreezePlugin.freezeColumn(0);
+      manualColumnFreezePlugin.freezeColumn(1);
+
+      const manualColumnMovePlugin = getPlugin('manualColumnMove');
+
+      manualColumnMovePlugin.moveColumn(3, 0);
+
+      expect(getData()).toEqual(data);
+    });
+
+    it('should not allow to move frozen column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualColumnFreeze: true,
+        manualColumnMove: true
+      });
+
+      const data = getData();
+      const manualColumnFreezePlugin = getPlugin('manualColumnFreeze');
+
+      manualColumnFreezePlugin.freezeColumn(0);
+      manualColumnFreezePlugin.freezeColumn(1);
+
+      const manualColumnMovePlugin = getPlugin('manualColumnMove');
+
+      manualColumnMovePlugin.moveColumn(0, 3);
+
+      expect(getData()).toEqual(data);
+    });
+  });
 });

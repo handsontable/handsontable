@@ -1,6 +1,5 @@
 import { defineGetter, objectEach } from './../helpers/object';
 import { arrayEach } from './../helpers/array';
-import { getTranslator } from './../translations';
 import { getRegistredPluginNames, getPluginName } from './../plugins';
 
 const privatePool = new WeakMap();
@@ -20,15 +19,6 @@ class BasePlugin {
      * @type {Core}
      */
     defineGetter(this, 'hot', hotInstance, {
-      writable: false
-    });
-    defineGetter(this, 't', getTranslator(hotInstance), {
-      writable: false
-    });
-    defineGetter(this, 'rowIndexMapper', getTranslator(hotInstance).getRowIndexMapper(), {
-      writable: false
-    });
-    defineGetter(this, 'columnIndexMapper', getTranslator(hotInstance).getColumnIndexMapper(), {
       writable: false
     });
 
@@ -181,7 +171,7 @@ class BasePlugin {
     this.clearHooks();
 
     objectEach(this, (value, property) => {
-      if (['hot', 't', 'rowIndexMapper', 'columnIndexMapper'].includes(property) === false) {
+      if (property !== 'hot') {
         this[property] = null;
       }
     });

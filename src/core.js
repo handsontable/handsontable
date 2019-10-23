@@ -27,7 +27,7 @@ import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
 import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
-import { getTranslator } from './translations';
+import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
@@ -130,7 +130,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
 
-  const recordTranslator = getTranslator(instance);
+  this.columnIndexMapper = new IndexMapper();
+  this.rowIndexMapper = new IndexMapper();
 
   dataSource = new DataSource(instance);
 
@@ -466,7 +467,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             arrayEach(indexes, ([groupIndex, groupAmount]) => {
               const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
 
-              let visualColumnIndex = recordTranslator.toPhysicalColumn(calcIndex);
+              let visualColumnIndex = instance.toPhysicalColumn(calcIndex);
 
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
@@ -524,13 +525,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * Makes sure there are empty rows at the bottom of the table
      */
     adjustRowsAndCols() {
-      const rowIndexMapper = getTranslator(instance).rowIndexMapper;
-      const anyRowSkipped = rowIndexMapper.getNumberOfIndexes() > rowIndexMapper.getNotSkippedIndexesLength();
-
-      if (anyRowSkipped) {
-        return;
-      }
-
       if (priv.settings.minRows) {
         // should I add empty rows to data source to meet minRows?
         const rows = instance.countRows();
@@ -859,13 +853,33 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   /**
+   * Get instance of index mapper which is responsible for managing the row indexes.
+   *
+   * @return {IndexMapper}
+   */
+  this.getRowIndexMapper = function() {
+    return this.rowIndexMapper;
+  };
+
+  /**
+   * Get instance of index mapper which is responsible for managing the column indexes.
+   *
+   * @return {IndexMapper}
+   */
+  this.getColumnIndexMapper = function() {
+    return this.columnIndexMapper;
+  };
+
+  /**
    * Execute batch operations on Handsontable instance with updating cache.
    *
    * @param {Function} curriedBatchOperations Batched operations curried in a function.
    */
   this.executeBatchOperations = function(curriedBatchOperations) {
-    recordTranslator.executeBatchOperations(() => {
-      curriedBatchOperations();
+    this.getColumnIndexMapper().executeBatchOperations(() => {
+      this.getRowIndexMapper().executeBatchOperations(() => {
+        curriedBatchOperations();
+      });
     });
   };
 
@@ -1203,7 +1217,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       changes.push([
         input[i][0],
         prop,
-        dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]),
+        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
         input[i][2],
       ]);
     }
@@ -1242,7 +1256,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       changes.push([
         input[i][0],
         input[i][1],
-        dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]),
+        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
         input[i][2],
       ]);
     }
@@ -1535,6 +1549,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function loadData
    * @param {Array} data Array of arrays or array of objects containing data.
+   * @fires Hooks#beforeLoadData
    * @fires Hooks#afterLoadData
    * @fires Hooks#afterChange
    */
@@ -1550,7 +1565,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (datamap) {
       datamap.destroy();
     }
-    datamap = new DataMap(instance, priv, GridSettings);
+
+    datamap = new DataMap(instance, data, priv, GridSettings);
 
     if (typeof data === 'object' && data !== null) {
       if (!(data.push && data.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it
@@ -1598,6 +1614,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.dataType = 'array';
     }
 
+    instance.runHooks('beforeLoadData', data, priv.firstRun);
+
     datamap.dataSource = data;
     dataSource.data = data;
     dataSource.dataType = instance.dataType;
@@ -1606,13 +1624,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     clearCellSettingCache();
 
-    // Method `countSourceCols` doesn't return number of columns declared by `minCols` property.
-    recordTranslator.getColumnIndexMapper().initToLength(Math.max(this.countSourceCols(), this.countCols()));
-    recordTranslator.getRowIndexMapper().initToLength(this.countSourceRows());
+    const columnsSettings = priv.settings.columns;
+    let nrOfColumnsFromSettings = 0;
+
+    // We will check number of columns only when the `columns` property was defined as an array.
+    if (Array.isArray(columnsSettings)) {
+      nrOfColumnsFromSettings = columnsSettings.length;
+    }
+
+    /**
+     * We need to use `Math.max`, because:
+     * - we need information about `columns` as `data` may contains functions, less columns than defined by the property or even be empty.
+     * - we need also information about dataSchema as `data` and `columns` properties may not provide information about number of columns
+     * (ie. `data` may be empty, `columns` may be a function).
+     */
+    this.getColumnIndexMapper().initToLength(Math.max(this.countSourceCols(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
+    this.getRowIndexMapper().initToLength(this.countSourceRows());
 
     grid.adjustRowsAndCols();
 
-    instance.runHooks('afterLoadData', priv.firstRun);
+    instance.runHooks('afterLoadData', data, priv.firstRun);
 
     if (priv.firstRun) {
       priv.firstRun = [null, 'loadData'];
@@ -2067,7 +2098,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} row Physical row index.
    * @returns {Number} Returns visual row index.
    */
-  this.toVisualRow = row => recordTranslator.toVisualRow(row);
+  this.toVisualRow = row => this.getRowIndexMapper().getVisualIndex(row);
 
   /**
    * Translate physical column index into visual.
@@ -2080,7 +2111,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} column Physical column index.
    * @returns {Number} Returns visual column index.
    */
-  this.toVisualColumn = column => recordTranslator.toVisualColumn(column);
+  this.toVisualColumn = column => this.getColumnIndexMapper().getVisualIndex(column);
 
   /**
    * Translate visual row index into physical.
@@ -2093,7 +2124,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} row Visual row index.
    * @returns {Number} Returns physical row index.
    */
-  this.toPhysicalRow = row => recordTranslator.toPhysicalRow(row);
+  this.toPhysicalRow = row => this.getRowIndexMapper().getPhysicalIndex(row);
 
   /**
    * Translate visual column index into physical.
@@ -2106,9 +2137,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} column Visual column index.
    * @returns {Number} Returns physical column index.
    */
-  this.toPhysicalColumn = column => recordTranslator.toPhysicalColumn(column);
-
-  this.recordTranslator = recordTranslator;
+  this.toPhysicalColumn = column => this.getColumnIndexMapper().getPhysicalIndex(column);
 
   /**
    * @description
@@ -2356,7 +2385,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterRemoveCellMeta
    */
   this.removeCellMeta = function(row, column, key) {
-    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
+    const [physicalRow, physicalColumn] = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];
     let cachedValue = priv.cellSettings[physicalRow][physicalColumn][key];
 
     const hookResult = instance.runHooks('beforeRemoveCellMeta', row, column, key, cachedValue);
@@ -2415,11 +2444,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let physicalColumn = column;
 
     if (row < this.countRows()) {
-      physicalRow = recordTranslator.toPhysicalRow(row);
+      physicalRow = this.toPhysicalRow(row);
     }
 
     if (column < this.countCols()) {
-      physicalColumn = recordTranslator.toPhysicalColumn(column);
+      physicalColumn = this.toPhysicalColumn(column);
     }
 
     if (!priv.columnSettings[physicalColumn]) {
@@ -2459,8 +2488,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterGetCellMeta
    */
   this.getCellMeta = function(row, column) {
-    let physicalRow = recordTranslator.toPhysicalRow(row);
-    let physicalColumn = recordTranslator.toPhysicalColumn(column);
+    let physicalRow = this.toPhysicalRow(row);
+    let physicalColumn = this.toPhysicalColumn(column);
 
     if (physicalRow === null) {
       physicalRow = row;
@@ -2833,9 +2862,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         return arr[visualColumnIndex];
       };
-      const baseCol = columnIndex;
-      const physicalColumn = instance.toPhysicalColumn(baseCol);
 
+      const physicalColumn = instance.toPhysicalColumn(columnIndex);
       const prop = translateVisualIndexToColumns(physicalColumn);
 
       if (priv.settings.colHeaders === false) {
@@ -2854,7 +2882,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         result = priv.settings.colHeaders(physicalColumn);
 
       } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
-        result = spreadsheetColumnLabel(baseCol); // see #1458
+        result = spreadsheetColumnLabel(columnIndex); // see #1458
       }
     }
 
@@ -3026,16 +3054,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countCols = function() {
     const maxCols = this.getSettings().maxCols;
-    let dataHasLength = false;
-    let dataLen = 0;
-
-    if (instance.dataType === 'array') {
-      dataHasLength = priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length;
-    }
-
-    if (dataHasLength) {
-      dataLen = priv.settings.data[0].length;
-    }
+    let dataLen = this.getColumnIndexMapper().getNotSkippedIndexesLength();
 
     if (priv.settings.columns) {
       const columnsIsFunction = isFunction(priv.settings.columns);
@@ -3068,6 +3087,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Returns an visual index of the first rendered row.
+   * Returns -1 if no row is rendered.
    *
    * @memberof Core#
    * @function rowOffset
@@ -3079,6 +3099,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Returns the visual index of the first rendered column.
+   * Returns -1 if no column is rendered.
    *
    * @memberof Core#
    * @function colOffset
@@ -3454,6 +3475,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (datamap) {
       datamap.destroy();
     }
+
+    instance.rowIndexMapper = null;
+    instance.columnIndexMapper = null;
     datamap = null;
     priv = null;
     grid = null;

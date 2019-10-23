@@ -26,6 +26,15 @@ describe('ColHeader', () => {
     expect(spec().$container.find('thead th').length).toBeGreaterThan(0);
   });
 
+  it('should show col headers if height is set to "auto"', () => {
+    handsontable({
+      colHeaders: true,
+      height: 'auto',
+    });
+
+    expect(spec().$container.find('.handsontable.ht_clone_top').height()).toEqual(30);
+  });
+
   it('should properly calculate colHeaders\' overlay width', () => {
     handsontable({
       colHeaders: true,

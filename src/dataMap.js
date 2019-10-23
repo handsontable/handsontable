@@ -13,7 +13,6 @@ import {
 } from './helpers/object';
 import { extendArray, to2dArray } from './helpers/array';
 import { rangeEach } from './helpers/number';
-import { getTranslator } from './translations';
 
 const copyableLookup = cellMethodLookupFactory('copyable', false);
 
@@ -43,10 +42,11 @@ class DataMap {
 
   /**
    * @param {Object} instance Instance of Handsontable
+   * @param {Array} data Array of arrays or array of objects containing data.
    * @param {*} priv
    * @param {GridSettings} GridSettings Grid settings
    */
-  constructor(instance, priv, GridSettings) {
+  constructor(instance, data, priv, GridSettings) {
     /**
      * Instance of {@link Handsontable}
      *
@@ -73,7 +73,7 @@ class DataMap {
      *
      * @type {*}
      */
-    this.dataSource = this.instance.getSettings().data;
+    this.dataSource = data;
     /**
      * Cached sourceData rows number.
      *
@@ -193,7 +193,7 @@ class DataMap {
     let physicalColumn = column;
 
     if (column < this.instance.countCols()) {
-      physicalColumn = getTranslator(this.instance).toPhysicalColumn(column);
+      physicalColumn = this.instance.toPhysicalColumn(column);
     }
 
     if (!isNaN(physicalColumn) && this.colToPropCache && typeof this.colToPropCache[physicalColumn] !== 'undefined') {
@@ -217,7 +217,7 @@ class DataMap {
     const physicalColumn = this.propToColCache.get(prop);
 
     if (physicalColumn < this.instance.countSourceCols()) {
-      return getTranslator(this.instance).toVisualColumn(physicalColumn);
+      return this.instance.toVisualColumn(physicalColumn);
     }
 
     return physicalColumn;
@@ -305,7 +305,7 @@ class DataMap {
       numberOfCreatedRows += 1;
     }
 
-    this.instance.recordTranslator.getRowIndexMapper().insertIndexes(rowIndex, numberOfCreatedRows);
+    this.instance.getRowIndexMapper().insertIndexes(rowIndex, numberOfCreatedRows);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -334,6 +334,7 @@ class DataMap {
     const columnIndex = typeof index !== 'number' || index >= countColumns ? countColumns : index;
     let numberOfCreatedCols = 0;
     let currentIndex;
+    let nrOfColumns = this.instance.countCols();
 
     const continueProcess = this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
 
@@ -344,10 +345,10 @@ class DataMap {
     currentIndex = columnIndex;
 
     const maxCols = this.instance.getSettings().maxCols;
-    while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
+    while (numberOfCreatedCols < amount && nrOfColumns < maxCols) {
       const constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
 
-      if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countCols()) {
+      if (typeof columnIndex !== 'number' || columnIndex >= nrOfColumns) {
         if (rlen > 0) {
           for (let r = 0; r < rlen; r++) {
             if (typeof data[r] === 'undefined') {
@@ -371,9 +372,10 @@ class DataMap {
 
       numberOfCreatedCols += 1;
       currentIndex += 1;
+      nrOfColumns += 1;
     }
 
-    this.instance.recordTranslator.getColumnIndexMapper().insertIndexes(columnIndex, amount);
+    this.instance.getColumnIndexMapper().insertIndexes(columnIndex, numberOfCreatedCols);
 
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -414,7 +416,7 @@ class DataMap {
 
     // TODO: Function `removeRow` should validate fully, probably above.
     if (rowIndex < this.instance.countRows()) {
-      this.instance.recordTranslator.getRowIndexMapper().removeIndexes(logicRows);
+      this.instance.getRowIndexMapper().removeIndexes(logicRows);
     }
 
     this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
@@ -475,8 +477,8 @@ class DataMap {
     }
 
     // TODO: Function `removeCol` should validate fully, probably above.
-    if (index < this.instance.countCols()) {
-      this.instance.recordTranslator.getColumnIndexMapper().removeIndexes(logicColumns);
+    if (columnIndex < this.instance.countCols()) {
+      this.instance.getColumnIndexMapper().removeIndexes(logicColumns);
     }
 
     this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
@@ -576,7 +578,7 @@ class DataMap {
    * @returns {*}
    */
   get(row, prop) {
-    const physicalRow = this.instance.recordTranslator.toPhysicalRow(row);
+    const physicalRow = this.instance.toPhysicalRow(row);
 
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)
@@ -658,10 +660,9 @@ class DataMap {
    * @param {Number} row Visual row index.
    * @param {Number} prop
    * @param {String} value
-   * @param {String} [source] Source of hook runner.
    */
-  set(row, prop, value, source) {
-    const physicalRow = this.instance.toPhysicalRow(row, source || 'datamapGet');
+  set(row, prop, value) {
+    const physicalRow = this.instance.toPhysicalRow(row);
     let newValue = value;
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)
@@ -786,7 +787,7 @@ class DataMap {
       maxRows = maxRowsFromSettings || Infinity;
     }
 
-    const length = getTranslator(this.instance).getRowIndexMapper().getNotSkippedIndexesLength();
+    const length = this.instance.getRowIndexMapper().getNotSkippedIndexesLength();
 
     return Math.min(length, maxRows);
   }

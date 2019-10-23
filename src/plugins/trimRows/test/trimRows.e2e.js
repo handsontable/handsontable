@@ -11,6 +11,18 @@ describe('TrimRows', () => {
     return data;
   }
 
+  const dataWithoutEmptyCells = [
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+    ['A3', 'B3', 'C3'],
+  ];
+
+  const dataWithEmptyRow = [
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+    [null, null, null],
+  ];
+
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
@@ -68,6 +80,22 @@ describe('TrimRows', () => {
 
     expect(hot.countSourceRows()).toEqual(10);
     expect(hot.getDataAtCell(7, 0)).toEqual('a');
+  });
+
+  it('should count empty rows properly when rows was trimmed', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      trimRows: [8, 9],
+      modifyRow(row) {
+        if (row >= 2) {
+          return row + 2;
+        }
+
+        return row;
+      }
+    });
+
+    expect(countEmptyRows()).toBe(0);
   });
 
   it('should trim rows after re-load data calling loadData method', () => {
@@ -205,6 +233,30 @@ describe('TrimRows', () => {
     expect(getDataAtCell(1, 0)).toBe('A4');
     expect(getDataAtCell(2, 0)).toBe('A6');
     expect(getDataAtCell(3, 0)).toBe(null);
+  });
+
+  it('should trim proper row when moved one using the `ManualRowMove` plugin #1', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 1),
+      trimRows: true,
+      manualRowMove: [7]
+    });
+
+    getPlugin('trimRows').trimRow(0);
+
+    expect(getDataAtCol(0)).toEqual(['A8', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A9', 'A10']);
+  });
+
+  it('should trim proper row when moved one using the `ManualRowMove` plugin #2', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 1),
+      trimRows: true,
+      manualRowMove: [9]
+    });
+
+    getPlugin('trimRows').trimRow(0);
+
+    expect(getDataAtCol(0)).toEqual(['A10', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9']);
   });
 
   it('should update trimmed row indexes after rows removal', () => {
@@ -829,58 +881,184 @@ describe('TrimRows', () => {
   });
 
   describe('maxRows option set', () => {
-    it('should return properly data after trimming', (done) => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+    it('should return properly data after trimming', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 3),
         maxRows: 3,
         trimRows: [2, 3]
       });
 
-      setTimeout(() => {
-        expect(getData().length).toEqual(3);
-        expect(getDataAtCell(2, 1)).toEqual('B5');
-        done();
-      }, 100);
+      await sleep(100);
+
+      expect(hot.getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A5', 'B5', 'C5']
+      ]);
     });
   });
 
-  describe('minRows option set', () => {
-    it('should not fill the table with empty rows (to the `minRows` limit), when editing rows in a table with trimmed rows', (done) => {
+  describe('should display data properly when minSpareRow or / and minRows or / and startRows options are set', () => {
+    it('minRows is set', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: Handsontable.helper.createSpreadsheetData(10, 3),
         minRows: 10,
         trimRows: [1, 2, 3, 4, 5, 6, 7, 8, 9]
       });
 
-      expect(hot.countRows()).toEqual(1);
+      expect(hot.getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
 
-      hot.setDataAtCell(0, 0, 'test');
+      hot.setDataAtCell(9, 0, 'test');
 
-      setTimeout(() => {
-        expect(hot.countRows()).toEqual(1);
+      await sleep(100);
 
-        done();
-      }, 100);
+      expect(hot.getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        ['test', null, null],
+      ]);
     });
-  });
 
-  describe('minSpareRows option set', () => {
-    it('should not fill the table with empty rows (to the `minSpareRows` limit), when editing rows in a table with trimmed rows', (done) => {
+    it('minSpareRows is set', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: Handsontable.helper.createSpreadsheetData(10, 3),
         minSpareRows: 4,
         trimRows: [1, 2, 3, 4, 5, 6, 7, 8, 9]
       });
 
-      expect(hot.countRows()).toEqual(1);
+      expect(hot.getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
 
       hot.setDataAtCell(0, 0, 'test');
 
-      setTimeout(() => {
-        expect(hot.countRows()).toEqual(1);
+      await sleep(100);
 
-        done();
-      }, 100);
+      expect(hot.getData()).toEqual([
+        ['test', 'B1', 'C1'],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+
+      hot.setDataAtCell(4, 0, 'test');
+
+      await sleep(100);
+
+      expect(hot.getData()).toEqual([
+        ['test', 'B1', 'C1'],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        ['test', null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+    });
+
+    it('data.length < minRows; no empty cells in dataset, minSpareRows set', async() => {
+      const hot = handsontable({
+        data: dataWithoutEmptyCells,
+        trimRows: [0, 1],
+        minRows: 5,
+        minSpareRows: 2
+      });
+
+      expect(hot.getData()).toEqual([
+        ['A3', 'B3', 'C3'],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+
+      hot.setDataAtCell(3, 0, 'test');
+
+      await sleep(100);
+
+      expect(hot.getData()).toEqual([
+        ['A3', 'B3', 'C3'],
+        [null, null, null],
+        [null, null, null],
+        ['test', null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+    });
+
+    it('data.length < minRows; empty cells in dataset, minSpareRows set', async() => {
+      const hot = handsontable({
+        data: dataWithEmptyRow,
+        trimRows: [0, 1],
+        minRows: 5,
+        minSpareRows: 2
+      });
+
+      expect(hot.getData()).toEqual([
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+
+      hot.setDataAtCell(3, 0, 'test');
+
+      await sleep(100);
+
+      expect(hot.getData()).toEqual([
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        ['test', null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+    });
+
+    it('just the plugin is enabled and we load data #5707', () => {
+      handsontable({
+        minSpareRows: 3,
+        trimRows: true,
+      });
+
+      loadData(Handsontable.helper.createSpreadsheetData(5, 2));
+
+      expect(getData()).toEqual([
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['A4', 'B4'],
+        ['A5', 'B5'],
+        [null, null],
+        [null, null],
+        [null, null],
+      ]);
     });
   });
 
@@ -1056,6 +1234,82 @@ describe('TrimRows', () => {
       hot.updateSettings({});
 
       expect(getData().length).toEqual(7);
+    });
+  });
+
+  describe('regression check - headers resizing', () => {
+    const DEFAULT_ROW_HEIGHT = 23;
+
+    it('should resize container for headers properly after insertion (pixel perfect)', () => {
+      const insertedRows = 6;
+
+      const hot = handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        trimRows: [0],
+        startCols: 4,
+        startRows: 3
+      });
+
+      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_left').eq(0).height();
+
+      hot.render(); // Extra `render` needed.
+
+      expect(spec().$container.find('.ht_clone_left').eq(0).height()).toBe(rowHeadersHeightAtStart);
+
+      alter('insert_row', 0, insertedRows);
+
+      const newRowHeadersHeight = spec().$container.find('.ht_clone_left').eq(0).height();
+
+      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + (insertedRows * DEFAULT_ROW_HEIGHT));
+    });
+
+    it('should resize container for headers properly after removal (pixel perfect)', () => {
+      const removedRows = 6;
+
+      const hot = handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        trimRows: [0],
+        startCols: 4,
+        startRows: 10
+      });
+
+      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_left').eq(0).height();
+
+      hot.render(); // Extra `render` needed.
+
+      expect(spec().$container.find('.ht_clone_left').eq(0).height()).toBe(rowHeadersHeightAtStart);
+
+      alter('remove_row', 0, removedRows);
+
+      const newRowHeadersHeight = spec().$container.find('.ht_clone_left').eq(0).height();
+
+      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart - (removedRows * DEFAULT_ROW_HEIGHT));
+    });
+
+    // This test don't pass on the actual code.
+    xit('should resize container for headers properly after untrimming row (pixel perfect) #6276', () => {
+      const hot = handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        trimRows: [0],
+        startCols: 4,
+        startRows: 10
+      });
+
+      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_left').eq(0).height();
+
+      hot.render(); // Extra `render` needed.
+
+      expect(spec().$container.find('.ht_clone_left').eq(0).height()).toBe(rowHeadersHeightAtStart);
+
+      hot.getPlugin('trimRows').untrimAll();
+      hot.render();
+
+      const newRowHeadersHeight = spec().$container.find('.ht_clone_left').eq(0).height();
+
+      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + DEFAULT_ROW_HEIGHT);
     });
   });
 });

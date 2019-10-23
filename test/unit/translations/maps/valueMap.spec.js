@@ -12,7 +12,7 @@ it('should work with get, and set functions properly', () => {
 
   valueMap.init(3);
 
-  expect(valueMap.getValues()).toEqual([void 0, void 0, void 0]);
+  expect(valueMap.getValues()).toEqual([null, null, null]);
   expect(valueMap.getLength()).toEqual(3);
 
   valueMap.setValueAtIndex(0, 2);
@@ -110,6 +110,19 @@ describe('Triggering `change` hook', () => {
 
     // Not triggered for index out of range.
     valueMap.setValueAtIndex(10, true);
+
+    expect(changeCallback.calls.count()).toEqual(1);
+  });
+
+  it('should trigger `change` hook on setting data which does not change value', () => {
+    const valueMap = new ValueMap();
+    const changeCallback = jasmine.createSpy('change');
+
+    valueMap.init(10);
+    valueMap.addLocalHook('change', changeCallback);
+
+    // Default value is `null`. No real change, but hook is called anyway.
+    valueMap.setValueAtIndex(0, null);
 
     expect(changeCallback.calls.count()).toEqual(1);
   });

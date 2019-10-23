@@ -131,7 +131,7 @@ class Filters extends BasePlugin {
       return;
     }
 
-    this.filtersRowsMap = this.rowIndexMapper.registerMap('filters', new SkipMap());
+    this.filtersRowsMap = this.hot.getRowIndexMapper().registerMap('filters', new SkipMap());
 
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
@@ -219,7 +219,7 @@ class Filters extends BasePlugin {
 
       this.conditionCollection.clean();
 
-      this.rowIndexMapper.unregisterMap('filters');
+      this.hot.getRowIndexMapper().unregisterMap('filters');
     }
 
     super.disablePlugin();
@@ -292,7 +292,7 @@ class Filters extends BasePlugin {
    * @param {String} operationId `id` of operation which is performed on the column
    */
   addCondition(column, name, args, operationId = OPERATION_AND) {
-    const physicalColumn = this.t.toPhysicalColumn(column);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.conditionCollection.addCondition(physicalColumn, { command: { key: name }, args }, operationId);
   }
@@ -303,7 +303,7 @@ class Filters extends BasePlugin {
    * @param {Number} column Visual column index.
    */
   removeConditions(column) {
-    const physicalColumn = this.t.toPhysicalColumn(column);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.conditionCollection.removeConditions(physicalColumn);
   }
@@ -319,7 +319,7 @@ class Filters extends BasePlugin {
       this.conditionCollection.clean();
 
     } else {
-      const physicalColumn = this.t.toPhysicalColumn(column);
+      const physicalColumn = this.hot.toPhysicalColumn(column);
 
       this.conditionCollection.clearConditions(physicalColumn);
     }
@@ -406,7 +406,7 @@ class Filters extends BasePlugin {
    * @returns {Array} Returns array of objects where keys as row index.
    */
   getDataMapAtColumn(column) {
-    const visualIndex = this.t.toVisualColumn(column);
+    const visualIndex = this.hot.toVisualColumn(column);
     const data = [];
 
     arrayEach(this.hot.getSourceDataAtCol(visualIndex), (value, rowIndex) => {
@@ -648,7 +648,7 @@ class Filters extends BasePlugin {
    * @param {HTMLTableCellElement} TH
    */
   onAfterGetColHeader(col, TH) {
-    const physicalColumn = this.t.toPhysicalColumn(col);
+    const physicalColumn = this.hot.toPhysicalColumn(col);
 
     if (this.enabled && this.conditionCollection.hasConditions(physicalColumn)) {
       addClass(TH, 'htFiltersActive');
@@ -668,7 +668,7 @@ class Filters extends BasePlugin {
 
     if (th) {
       const visualIndex = this.hot.getCoords(th).col;
-      const physicalIndex = this.t.toPhysicalColumn(visualIndex);
+      const physicalIndex = this.hot.toPhysicalColumn(visualIndex);
 
       this.lastSelectedColumn = {
         visualIndex,
@@ -706,8 +706,8 @@ class Filters extends BasePlugin {
     const operationType = this.conditionCollection.columnTypes[column];
 
     if (conditionsByValue.length === 2 || conditionsWithoutByValue.length === 3) {
-      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.
-        The overall amount of conditions exceed the capability of the dropdown menu.
+      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually. 
+        The overall amount of conditions exceed the capability of the dropdown menu. 
         For more details see the documentation.`);
 
     } else {
@@ -858,7 +858,7 @@ class Filters extends BasePlugin {
         component.destroy();
       });
 
-      this.rowIndexMapper.unregisterMap('filters');
+      this.hot.getRowIndexMapper().unregisterMap('filters');
       this.conditionCollection.destroy();
       this.conditionUpdateObserver.destroy();
       this.hiddenRowsCache.clear();

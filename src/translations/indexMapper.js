@@ -10,14 +10,47 @@ import { isDefined } from '../helpers/mixed';
 
 class IndexMapper {
   constructor() {
+    /**
+     * Map storing the sequence of indexes.
+     *
+     * @type {IndexMap}
+     */
     this.indexesSequence = new IndexMap();
+    /**
+     * Collection for different skip maps. Indexes marked as skipped in any map won't be rendered.
+     *
+     * @type {MapCollection}
+     */
     this.skipCollection = new MapCollection();
+    /**
+     * Collection for another kind of mappings.
+     *
+     * @type {MapCollection}
+     */
     this.variousMappingsCollection = new MapCollection();
-
+    /**
+     * Cache for skip result for particular indexes.
+     *
+     * @type {Array}
+     */
     this.flattenSkipList = [];
+    /**
+     * Cache for list of not skipped indexes, respecting the indexes sequence.
+     *
+     * @type {Array}
+     */
     this.notSkippedIndexesCache = [];
-
+    /**
+     * Flag determining whether operations performed on index mapper were batched.
+     *
+     * @type {Boolean}
+     */
     this.isBatched = false;
+    /**
+     * Flag determining whether any action on indexes sequence or skipped indexes was performed.
+     *
+     * @type {Boolean}
+     */
     this.cachedIndexesChange = false;
 
     this.indexesSequence.addLocalHook('change', () => {
@@ -61,22 +94,22 @@ class IndexMapper {
   }
 
   /**
-   * Register map.
+   * Register map which provide some index mappings.
    *
-   * @param {String} name Name of the map. It should be unique.
-   * @param {ValueMap|IndexMap|SkipMap} mapper Register mapper updated on items removal and insertion.
+   * @param {String} uniqueName Name of the map. It should be unique.
+   * @param {ValueMap|IndexMap|SkipMap} map Registered map updated on items removal and insertion.
    * @returns {ValueMap|IndexMap|SkipMap}
    */
-  registerMap(name, map) {
-    if (this.skipCollection.get(name) || this.variousMappingsCollection.get(name)) {
-      throw Error(`Mapper with name "${name}" is already registered.`);
+  registerMap(uniqueName, map) {
+    if (this.skipCollection.get(uniqueName) || this.variousMappingsCollection.get(uniqueName)) {
+      throw Error(`Mapper with name "${uniqueName}" has been already registered.`);
     }
 
     if (map instanceof SkipMap === true) {
-      this.skipCollection.register(name, map);
+      this.skipCollection.register(uniqueName, map);
 
     } else {
-      this.variousMappingsCollection.register(name, map);
+      this.variousMappingsCollection.register(uniqueName, map);
     }
 
     const numberOfIndexes = this.getNumberOfIndexes();
@@ -138,9 +171,9 @@ class IndexMapper {
   }
 
   /**
-   * Reset current index map and create new one.
+   * Set default values for all stored index maps.
    *
-   * @param {Number} [length] Custom generated map length.
+   * @param {Number} [length] Destination length for all stored index maps.
    */
   initToLength(length = this.getNumberOfIndexes()) {
     this.flattenSkipList = [];
@@ -158,7 +191,7 @@ class IndexMapper {
   /**
    * Get all indexes sequence.
    *
-   * @returns {Array}
+   * @returns {Array} Physical indexes.
    */
   getIndexesSequence() {
     return this.indexesSequence.getValues();
@@ -167,7 +200,7 @@ class IndexMapper {
   /**
    * Set completely new indexes sequence.
    *
-   * @param {Array} indexes Physical row indexes.
+   * @param {Array} indexes Physical indexes.
    */
   setIndexesSequence(indexes) {
     this.indexesSequence.setValues(indexes);
@@ -177,7 +210,7 @@ class IndexMapper {
    * Get all indexes NOT skipped in the process of rendering.
    *
    * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
-   * @returns {Array}
+   * @returns {Array} Physical indexes.
    */
   getNotSkippedIndexes(readFromCache = true) {
     if (readFromCache === true) {
@@ -209,35 +242,80 @@ class IndexMapper {
    * Move indexes in the index mapper.
    *
    * @param {Number|Array} movedIndexes Visual index(es) to move.
-   * @param {Number} finalIndex Visual row index being a start index for the moved rows.
+   * @param {Number} finalIndex Visual index index being a start index for the moved element.
    */
   moveIndexes(movedIndexes, finalIndex) {
     if (typeof movedIndexes === 'number') {
       movedIndexes = [movedIndexes];
     }
 
-    const physicalMovedIndexes = arrayMap(movedIndexes, row => this.getPhysicalIndex(row));
-
-    // Physical index at final index position.
-    const physicalIndex = this.getPhysicalIndex(finalIndex);
-
-    // When item(s) are moved after the last visible item we assign the last possible index.
-    let indexNumber = this.getNotSkippedIndexesLength() - movedIndexes.length;
-
-    // Otherwise, we find proper index for inserted item(s).
-    if (finalIndex + movedIndexes.length <= this.getNotSkippedIndexesLength()) {
-      indexNumber = this.getIndexesSequence().indexOf(physicalIndex);
-    }
+    const physicalMovedIndexes = arrayMap(movedIndexes, visualIndex => this.getPhysicalIndex(visualIndex));
+    const notSkippedIndexesLength = this.getNotSkippedIndexesLength();
+    const movedIndexesLength = movedIndexes.length;
 
     // Removing indexes without re-indexing.
     const listWithRemovedItems = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
 
+    // When item(s) are moved after the last visible item we assign the last possible index.
+    let destinationPosition = notSkippedIndexesLength - movedIndexesLength;
+
+    // Otherwise, we find proper index for inserted item(s).
+    if (finalIndex + movedIndexesLength < notSkippedIndexesLength) {
+      // Physical index at final index position.
+      const physicalIndex = listWithRemovedItems.filter(index => this.isSkipped(index) === false)[finalIndex];
+      destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
+    }
+
     // Adding indexes without re-indexing.
-    this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, indexNumber, physicalMovedIndexes));
+    this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, destinationPosition, physicalMovedIndexes));
   }
 
   /**
-   * Get flat list of values, which are result whether index was skipped in any of skip collection's element.
+   * Get whether index is skipped in the process of rendering.
+   *
+   * @param {Number} physicalIndex Physical index.
+   * @returns {Boolean}
+   */
+  isSkipped(physicalIndex) {
+    return this.getFlattenSkipList()[physicalIndex] || false;
+  }
+
+  /**
+   * Insert new indexes and corresponding mapping and update values of the others, for all stored index maps.
+   *
+   * @private
+   * @param {Number} firstInsertedVisualIndex First inserted visual index.
+   * @param {Number} amountOfIndexes Amount of inserted indexes.
+   */
+  insertIndexes(firstInsertedVisualIndex, amountOfIndexes) {
+    const nthVisibleIndex = this.getNotSkippedIndexes()[firstInsertedVisualIndex];
+    const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex) ? nthVisibleIndex : this.getNumberOfIndexes();
+    const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
+    const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
+
+    this.executeBatchOperations(() => {
+      this.indexesSequence.insert(insertionIndex, insertedIndexes);
+      this.skipCollection.insertToEvery(insertionIndex, insertedIndexes);
+      this.variousMappingsCollection.insertToEvery(insertionIndex, insertedIndexes);
+    });
+  }
+
+  /**
+   * Remove some indexes and corresponding mappings and update values of the others, for all stored index maps.
+   *
+   * @private
+   * @param {Array} removedIndexes List of removed indexes.
+   */
+  removeIndexes(removedIndexes) {
+    this.executeBatchOperations(() => {
+      this.indexesSequence.remove(removedIndexes);
+      this.skipCollection.removeFromEvery(removedIndexes);
+      this.variousMappingsCollection.removeFromEvery(removedIndexes);
+    });
+  }
+
+  /**
+   * Get list of values, which represent result if index was skipped in any of skip collections.
    *
    * @private
    * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
@@ -263,53 +341,9 @@ class IndexMapper {
   }
 
   /**
-   * Get whether index is skipped in the process of rendering.
+   * Rebuild cache for some indexes. Every action on indexes sequence or skipped indexes by default reset cache, thus batching some index maps actions is recommended.
    *
-   * @private
-   * @param {Number} physicalIndex Physical index.
-   * @returns {Boolean}
-   */
-  isSkipped(physicalIndex) {
-    return this.getFlattenSkipList()[physicalIndex] || false;
-  }
-
-  /**
-   * Insert new indexes and corresponding mapping and update values of the previous ones.
-   *
-   * @private
-   * @param {Number} firstInsertedVisualIndex First inserted visual index.
-   * @param {Number} amountOfIndexes Amount of inserted indexes.
-   */
-  insertIndexes(firstInsertedVisualIndex, amountOfIndexes) {
-    const nthVisibleIndex = this.getNotSkippedIndexes()[firstInsertedVisualIndex];
-    const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex) ? nthVisibleIndex : this.getNumberOfIndexes();
-    const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
-    const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
-
-    this.executeBatchOperations(() => {
-      this.indexesSequence.insert(insertionIndex, insertedIndexes);
-      this.skipCollection.insertToEvery(insertionIndex, insertedIndexes);
-      this.variousMappingsCollection.insertToEvery(insertionIndex, insertedIndexes);
-    });
-  }
-
-  /**
-   * Remove some indexes and corresponding mappings and update values of the previous ones.
-   *
-   * @private
-   * @param {Array} removedIndexes List of removed indexes.
-   */
-  removeIndexes(removedIndexes) {
-    this.executeBatchOperations(() => {
-      this.indexesSequence.remove(removedIndexes);
-      this.skipCollection.removeFromEvery(removedIndexes);
-      this.variousMappingsCollection.removeFromEvery(removedIndexes);
-    });
-  }
-
-  /**
-   * Rebuild cache for all indexes.
-   *
+   * @param {Boolean} [force=false] Determine if force cache update.
    * @private
    */
   updateCache(force = false) {

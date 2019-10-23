@@ -2,7 +2,7 @@ import BaseMap from './baseMap';
 import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physicallyIndexed';
 
 /**
- * Map from physical indexes to value.
+ * Map for storing mappings from an physical index to a value.
  */
 class ValueMap extends BaseMap {
   /**

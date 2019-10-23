@@ -745,6 +745,14 @@ const REGISTERED_HOOKS = [
   'beforeInitWalkontable',
 
   /**
+   * Fired before new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
+   *
+   * @event Hooks#beforeLoadData
+   * @param {Boolean} initialLoad flag that determines whether the data has been loaded during the initialization.
+   */
+  'beforeLoadData',
+
+  /**
    * Fired before keydown event is handled. It can be used to overwrite default key bindings.
    *
    * __Note__: To prevent default behavior you need to call `event.stopImmediatePropagation()` in your `beforeKeyDown`

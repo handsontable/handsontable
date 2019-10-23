@@ -7,6 +7,7 @@ import CellRange from './cell/range';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 
+import MasterTable from './table/master';
 import LeftOverlay from './overlay/left';
 import TopOverlay from './overlay/top';
 import TopLeftCornerOverlay from './overlay/topLeftCorner';
@@ -20,7 +21,6 @@ import Overlays from './overlays';
 import Scroll from './scroll';
 import Selection from './selection';
 import Settings from './settings';
-import Table from './table';
 import * as Renderer from './renderer';
 import { OrderView, SharedOrderView } from './utils/orderView';
 import Viewport from './viewport';
@@ -36,6 +36,8 @@ export {
   ColumnFilter,
   RowFilter,
 
+  MasterTable,
+
   LeftOverlay,
   TopOverlay,
   TopLeftCornerOverlay,
@@ -50,7 +52,6 @@ export {
   Scroll,
   Selection,
   Settings,
-  Table,
   Renderer,
   OrderView,
   SharedOrderView,

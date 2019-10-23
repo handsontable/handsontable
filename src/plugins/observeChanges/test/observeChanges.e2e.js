@@ -430,6 +430,7 @@ describe('HandsontableObserveChanges', () => {
         data[0][0] = 'new string';
 
         await sleep(200);
+
         expect(afterChangeCallback.calls.count()).toEqual(1);
         expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, null, 'new string']], 'ObserveChanges.change', undefined, undefined, undefined, undefined);
       });

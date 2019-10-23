@@ -105,8 +105,9 @@ class ManualRowMove extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
     this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
     this.addHook('afterScrollHorizontally', () => this.onAfterScrollHorizontally());
-    this.addHook('afterLoadData', () => this.initWork());
+    this.addHook('afterLoadData', () => this.onAfterLoadData());
 
+    this.buildPluginUI();
     this.registerEvents();
 
     // TODO: move adding plugin classname to BasePlugin.
@@ -122,7 +123,7 @@ class ManualRowMove extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
-    this.initWork();
+    this.moveBySettingsOrLoad();
 
     super.updatePlugin();
   }
@@ -148,9 +149,10 @@ class ManualRowMove extends BasePlugin {
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
+   * @returns {Boolean}
    */
   moveRow(row, finalIndex) {
-    this.moveRows([row], finalIndex);
+    return this.moveRows([row], finalIndex);
   }
 
   /**
@@ -161,6 +163,7 @@ class ManualRowMove extends BasePlugin {
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
+   * @returns {Boolean}
    */
   moveRows(rows, finalIndex) {
     const priv = privatePool.get(this);
@@ -175,10 +178,14 @@ class ManualRowMove extends BasePlugin {
     }
 
     if (movePossible) {
-      this.rowIndexMapper.moveIndexes(rows, finalIndex);
+      this.hot.getRowIndexMapper().moveIndexes(rows, finalIndex);
     }
 
-    this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePossible && this.isRowOrderChanged(rows, finalIndex));
+    const movePerformed = movePossible && this.isRowOrderChanged(rows, finalIndex);
+
+    this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePerformed);
+
+    return movePerformed;
   }
 
   /**
@@ -187,9 +194,12 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} row Visual row index to be dragged.
    * @param {Number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
    * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @fires Hooks#beforeRowMove
+   * @fires Hooks#afterRowMove
+   * @returns {Boolean}
    */
   dragRow(row, dropIndex) {
-    this.dragRows([row], dropIndex);
+    return this.dragRows([row], dropIndex);
   }
 
   /**
@@ -198,6 +208,9 @@ class ManualRowMove extends BasePlugin {
    * @param {Array} rows Array of visual row indexes to be dragged.
    * @param {Number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
    * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @fires Hooks#beforeRowMove
+   * @fires Hooks#afterRowMove
+   * @returns {Boolean}
    */
   dragRows(rows, dropIndex) {
     const finalIndex = this.countFinalIndex(rows, dropIndex);
@@ -205,7 +218,7 @@ class ManualRowMove extends BasePlugin {
 
     priv.cachedDropIndex = dropIndex;
 
-    this.moveRows(rows, finalIndex);
+    return this.moveRows(rows, finalIndex);
   }
 
   /**
@@ -217,7 +230,7 @@ class ManualRowMove extends BasePlugin {
    * @returns {Boolean}
    */
   isMovePossible(movedRows, finalIndex) {
-    const length = this.rowIndexMapper.getNotSkippedIndexesLength();
+    const length = this.hot.getRowIndexMapper().getNotSkippedIndexesLength();
 
     // An attempt to transfer more rows to start destination than is possible (only when moving from the top to the bottom).
     const tooHighDestinationIndex = movedRows.length + finalIndex > length;
@@ -347,7 +360,7 @@ class ManualRowMove extends BasePlugin {
    * @fires Hooks#persistentStateSave
    */
   persistentStateSave() {
-    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.rowsMapper._arrayMap);
+    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.hot.getRowIndexMapper().getIndexesSequence()); // The `PersistentState` plugin should be refactored.
   }
 
   /**
@@ -635,19 +648,20 @@ class ManualRowMove extends BasePlugin {
     }
 
     const firstMovedVisualRow = priv.rowsToMove[0];
-    const firstMovedPhysicalRow = this.t.toPhysicalRow(firstMovedVisualRow);
-
-    this.dragRows(priv.rowsToMove, target);
-
-    // this.persistentStateSave();
-    this.hot.render();
-
-    const selectionStart = this.t.toVisualRow(firstMovedPhysicalRow);
-    const selectionEnd = selectionStart + rowsLen - 1;
-
-    this.changeSelection(selectionStart, selectionEnd);
+    const firstMovedPhysicalRow = this.hot.toPhysicalRow(firstMovedVisualRow);
+    const movePerformed = this.dragRows(priv.rowsToMove, target);
 
     priv.rowsToMove.length = 0;
+
+    if (movePerformed === true) {
+      this.persistentStateSave();
+      this.hot.render();
+
+      const selectionStart = this.hot.toVisualRow(firstMovedPhysicalRow);
+      const selectionEnd = selectionStart + rowsLen - 1;
+
+      this.hot.selectRows(selectionStart, selectionEnd);
+    }
   }
 
   /**
@@ -666,14 +680,22 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Init plugin work.
+   * Builds the plugin's UI.
    *
    * @private
    */
-  initWork() {
-    this.moveBySettingsOrLoad();
+  buildPluginUI() {
     this.backlight.build();
     this.guideline.build();
+  }
+
+  /**
+   * Callback for the `afterLoadData` hook.
+   *
+   * @private
+   */
+  onAfterLoadData() {
+    this.moveBySettingsOrLoad();
   }
 
   /**

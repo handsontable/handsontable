@@ -9,7 +9,7 @@ import Event from './event';
 import Overlays from './overlays';
 import Scroll from './scroll';
 import Settings from './settings';
-import Table from './table';
+import MasterTable from './table/master';
 import Viewport from './viewport';
 
 /**
@@ -32,14 +32,14 @@ class Walkontable {
       this.cloneSource = settings.cloneSource;
       this.cloneOverlay = settings.cloneOverlay;
       this.wtSettings = settings.cloneSource.wtSettings;
-      this.wtTable = new Table(this, settings.table, settings.wtRootElement);
+      this.wtTable = this.cloneOverlay.createTable(this, settings.table);
       this.wtScroll = new Scroll(this);
       this.wtViewport = settings.cloneSource.wtViewport;
       this.wtEvent = new Event(this);
       this.selections = this.cloneSource.selections;
     } else {
       this.wtSettings = new Settings(this, settings);
-      this.wtTable = new Table(this, settings.table);
+      this.wtTable = new MasterTable(this, settings.table);
       this.wtScroll = new Scroll(this);
       this.wtViewport = new Viewport(this);
       this.wtEvent = new Event(this);
@@ -148,6 +148,9 @@ class Walkontable {
    * @returns {Boolean}
    */
   scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
+    if (coords.col < 0 || coords.row < 0) {
+      return false;
+    }
     return this.wtScroll.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
   }
 
@@ -160,6 +163,9 @@ class Walkontable {
    * @returns {Boolean}
    */
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
+    if (column < 0) {
+      return false;
+    }
     return this.wtScroll.scrollViewportHorizontally(column, snapToRight, snapToLeft);
   }
 
@@ -172,6 +178,9 @@ class Walkontable {
    * @returns {Boolean}
    */
   scrollViewportVertically(row, snapToTop, snapToBottom) {
+    if (row < 0) {
+      return false;
+    }
     return this.wtScroll.scrollViewportVertically(row, snapToTop, snapToBottom);
   }
 
@@ -194,29 +203,6 @@ class Walkontable {
    */
   getOverlayName() {
     return this.cloneOverlay ? this.cloneOverlay.type : 'master';
-  }
-
-  /**
-   * Check if this instance acts as an overlay (internally called as "clone" of the master table).
-   *
-   * @returns {Boolean}
-   */
-  isClone() {
-    return !this.cloneSource;
-  }
-
-  /**
-   * Check overlay type of this Walkontable instance.
-   *
-   * @param {String} name Clone type @see {Overlay.CLONE_TYPES}.
-   * @returns {Boolean}
-   */
-  isOverlayName(name) {
-    if (this.cloneOverlay) {
-      return this.cloneOverlay.type === name;
-    }
-
-    return false;
   }
 
   /**

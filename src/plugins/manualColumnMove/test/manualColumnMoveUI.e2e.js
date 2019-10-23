@@ -151,6 +151,24 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetLeft).toBe(150);
     });
 
+    it('should set proper z-index of the backlight and guideline element and be greater than top overlay z-index', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      const header = spec().$container.find('thead tr:eq(0) th:eq(2)');
+
+      header.simulate('mousedown');
+      header.simulate('mouseup');
+      header.simulate('mousedown');
+
+      expect($('.ht__manualColumnMove--backlight').css('z-index')).toBeGreaterThan(getTopClone().css('z-index'));
+      expect($('.ht__manualColumnMove--guideline').css('z-index')).toBeGreaterThan(getTopClone().css('z-index'));
+    });
+
     it('should not run moving ui if mousedown was fired on sorting element', () => {
       handsontable({
         data: arrayOfArrays.slice(),

@@ -8,6 +8,7 @@ import {
   removeClass,
   resetCssTransform
 } from './../../../../helpers/dom/element';
+import BottomOverlayTable from './../table/bottom';
 import Overlay from './_base';
 
 /**
@@ -20,6 +21,17 @@ class BottomOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_BOTTOM);
+  }
+
+  /**
+   * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   *
+   * @see Table#constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor
+   * @returns {Table}
+   */
+  createTable(...args) {
+    return new BottomOverlayTable(...args);
   }
 
   /**

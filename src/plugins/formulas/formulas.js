@@ -266,7 +266,7 @@ class Formulas extends BasePlugin {
 
     arrayEach(changes, ([row, column, oldValue, newValue]) => {
       const physicalColumn = this.hot.propToCol(column);
-      const physicalRow = this.t.toPhysicalRow(row);
+      const physicalRow = this.hot.toPhysicalRow(row);
       let value = newValue;
 
       if (isFormulaExpression(value)) {

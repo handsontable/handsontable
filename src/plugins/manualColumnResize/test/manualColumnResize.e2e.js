@@ -122,13 +122,37 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(120);
     expect(colWidth(spec().$container, 3)).toBe(50);
+    expect(colWidth(spec().$container, 4)).toBe(50);
 
     alter('insert_col', 0);
+
+    expect(colWidth(spec().$container, 0)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(50);
+    expect(colWidth(spec().$container, 3)).toBe(120);
+    expect(colWidth(spec().$container, 4)).toBe(50);
+    expect(colWidth(spec().$container, 5)).toBe(50);
+
+    alter('insert_col', 3);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(50);
-    expect(colWidth(spec().$container, 3)).toBe(120);
+    expect(colWidth(spec().$container, 3)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 4)).toBe(120);
+    expect(colWidth(spec().$container, 5)).toBe(50);
+    expect(colWidth(spec().$container, 6)).toBe(50);
+
+    alter('insert_col', 5);
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(50);
+    expect(colWidth(spec().$container, 3)).toBe(50);
+    expect(colWidth(spec().$container, 4)).toBe(120);
+    expect(colWidth(spec().$container, 5)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 6)).toBe(50);
+    expect(colWidth(spec().$container, 7)).toBe(50);
   });
 
   it('should keep proper column widths after removing column', () => {
@@ -479,6 +503,34 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
   });
 
+  it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      colWidths: 100
+    });
+
+    expect(colWidth(spec().$container, 0)).toEqual(100);
+    expect(colWidth(spec().$container, 1)).toEqual(100);
+    expect(colWidth(spec().$container, 2)).toEqual(100);
+
+    resizeColumn(2, 300);
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mouseup');
+
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mouseup');
+
+    await sleep(1000);
+
+    expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
+  });
+
   it('should autosize selected columns after double click on handler', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(9, 9),
@@ -723,6 +775,27 @@ describe('manualColumnResize', () => {
 
       expect($handle.offset().left).toEqual($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
       expect($handle.height()).toEqual($headerTH.outerHeight());
+    });
+
+    it('should display the resize handle in the proper z-index and be greater than top overlay z-index', () => {
+      handsontable({
+        data: [
+          { id: 1, name: 'Ted', lastName: 'Right' },
+          { id: 2, name: 'Frank', lastName: 'Honest' },
+          { id: 3, name: 'Joan', lastName: 'Well' },
+          { id: 4, name: 'Sid', lastName: 'Strong' },
+          { id: 5, name: 'Jane', lastName: 'Neat' }
+        ],
+        colHeaders: true,
+        manualColumnResize: true
+      });
+
+      const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(1)');
+      $headerTH.simulate('mouseover');
+
+      const $handle = $('.manualColumnResizer');
+
+      expect($handle.css('z-index')).toBeGreaterThan(getTopClone().css('z-index'));
     });
   });
 });

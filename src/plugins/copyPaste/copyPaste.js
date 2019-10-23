@@ -43,7 +43,7 @@ const META_HEAD = [
  * * `'rowsLimit'` (see {@link CopyPaste#rowsLimit})
  * * `'pasteMode'` (see {@link CopyPaste#pasteMode})
  *
- * See [the copy/paste demo](https://docs.handsontable.com/demo-copy-paste.html) for examples.
+ * See [the copy/paste demo](https://handsontable.com/docs/demo-copy-paste.html) for examples.
  *
  * @example
  * ```js
@@ -76,6 +76,12 @@ class CopyPaste extends BasePlugin {
      * @type {Array}
      */
     this.copyableRanges = [];
+    /**
+     * Provides focusable element to support IME and copy/paste/cut actions.
+     *
+     * @type {FocusableWrapper}
+     */
+    this.focusableElement = void 0;
     /**
      * Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior.
      * * Default value `"overwrite"` will paste clipboard value over current selection.

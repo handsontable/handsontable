@@ -10,6 +10,7 @@ import {
   resetCssTransform,
 } from './../../../../helpers/dom/element';
 import { arrayEach } from './../../../../helpers/array';
+import TopOverlayTable from './../table/top';
 import Overlay from './_base';
 
 /**
@@ -22,6 +23,17 @@ class TopOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_TOP);
+  }
+
+  /**
+   * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   *
+   * @see Table#constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor
+   * @returns {Table}
+   */
+  createTable(...args) {
+    return new TopOverlayTable(...args);
   }
 
   /**

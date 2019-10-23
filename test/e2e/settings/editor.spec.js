@@ -147,7 +147,7 @@ describe('settings', () => {
       it('should provide correct set of arguments to the prepare callback', (done) => {
         const customEditor = jasmine.createSpy('customEditor');
         const myData = Handsontable.helper.createSpreadsheetData(1, 5);
-        const editedTd = document.createElement('td');
+        let editedTd;
 
         customEditor.and.callFake(function() {
           this.prepare = function(row, col, prop, td, originalValue, cellProperties) {
@@ -159,7 +159,6 @@ describe('settings', () => {
             expect(cellProperties.editor).toEqual(customEditor);
             done();
           };
-          this.getEditedCell = () => editedTd;
           this.isOpened = function() {};
         });
 
@@ -171,6 +170,7 @@ describe('settings', () => {
             }
           ]
         });
+        editedTd = spec().$container.find('.ht_master td')[0];
         selectCell(0, 0);
       });
 
@@ -178,7 +178,7 @@ describe('settings', () => {
         // https://github.com/handsontable/handsontable/issues/6043
         const customEditor = jasmine.createSpy('customEditor');
         const myData = Handsontable.helper.createSpreadsheetData(1, 5);
-        const editedTd = document.createElement('td');
+        let editedTd;
 
         customEditor.and.callFake(function() {
           this.prepare = function(row, col, prop, td, originalValue, cellProperties) {
@@ -190,7 +190,6 @@ describe('settings', () => {
             expect(cellProperties.editor).toEqual(customEditor);
             done();
           };
-          this.getEditedCell = () => editedTd;
           this.isOpened = function() {};
         });
 
@@ -206,6 +205,7 @@ describe('settings', () => {
           fixedColumnsLeft: 1,
           viewportColumnRenderingOffset: 0,
         });
+        editedTd = spec().$container.find('.ht_clone_left td')[0];
         selectCell(0, 0);
       });
     });

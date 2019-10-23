@@ -81,7 +81,7 @@ class AutoRowSize extends BasePlugin {
     /**
      * Columns header's height cache.
      */
-    this.headerHeight = void 0;
+    this.headerHeight = null;
     /**
      * Instance of {@link GhostTable} for rows and columns size calculations.
      *
@@ -144,7 +144,7 @@ class AutoRowSize extends BasePlugin {
     }
 
     this.rowHeightsMap = new ValueMap();
-    this.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
+    this.hot.getRowIndexMapper().registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
 
     this.setSamplingOptions();
 
@@ -162,8 +162,8 @@ class AutoRowSize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.rowIndexMapper.unregisterMap(ROW_WIDTHS_MAP_NAME);
-    this.headerHeight = void 0;
+    this.hot.getRowIndexMapper().unregisterMap(ROW_WIDTHS_MAP_NAME);
+    this.headerHeight = null;
 
     super.disablePlugin();
   }
@@ -188,7 +188,7 @@ class AutoRowSize extends BasePlugin {
     rangeEach(rowsRange.from, rowsRange.to, (row) => {
       // For rows we must calculate row height even when user had set height value manually.
       // We can shrink column but cannot shrink rows!
-      if (force || this.rowHeightsMap.getValueAtIndex(row) === void 0) {
+      if (force || this.rowHeightsMap.getValueAtIndex(row) === null) {
         const samples = this.samplesGenerator.generateRowSamples(row, columnsRange);
 
         arrayEach(samples, ([rowIndex, sample]) => this.ghostTable.addRow(rowIndex, sample));
@@ -329,7 +329,7 @@ class AutoRowSize extends BasePlugin {
     const cachedHeight = row < 0 ? this.headerHeight : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));
     let height = defaultHeight;
 
-    if (cachedHeight !== void 0 && cachedHeight > (defaultHeight || 0)) {
+    if (cachedHeight !== null && cachedHeight > (defaultHeight || 0)) {
       height = cachedHeight;
     }
 
@@ -348,7 +348,7 @@ class AutoRowSize extends BasePlugin {
   /**
    * Get the first visible row.
    *
-   * @returns {Number|null} Returns row index, -1 if table is not rendered or null if there are no rows to base the the calculations on.
+   * @returns {Number} Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.
    */
   getFirstVisibleRow() {
     const wot = this.hot.view.wt;
@@ -385,7 +385,7 @@ class AutoRowSize extends BasePlugin {
    * Clears cached heights.
    */
   clearCache() {
-    this.headerHeight = void 0;
+    this.headerHeight = null;
     this.rowHeightsMap.init();
   }
 
@@ -398,7 +398,7 @@ class AutoRowSize extends BasePlugin {
     const { from, to } = typeof range === 'number' ? { from: range, to: range } : range;
 
     rangeEach(Math.min(from, to), Math.max(from, to), (row) => {
-      this.rowHeightsMap.setValueAtIndex(row, void 0);
+      this.rowHeightsMap.setValueAtIndex(row, null);
     });
   }
 
@@ -408,7 +408,7 @@ class AutoRowSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.rowHeightsMap.getValues(), item => (item === void 0)).length;
+    return !!arrayFilter(this.rowHeightsMap.getValues(), item => (item === null)).length;
   }
 
   /**
@@ -422,7 +422,7 @@ class AutoRowSize extends BasePlugin {
     const firstVisibleRow = this.getFirstVisibleRow();
     const lastVisibleRow = this.getLastVisibleRow();
 
-    if (firstVisibleRow === null || lastVisibleRow === null) {
+    if (firstVisibleRow === -1 || lastVisibleRow === -1) {
       return;
     }
 
@@ -516,7 +516,7 @@ class AutoRowSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.rowIndexMapper.unregisterMap(ROW_WIDTHS_MAP_NAME);
+    this.hot.getRowIndexMapper().unregisterMap(ROW_WIDTHS_MAP_NAME);
     this.ghostTable.clean();
     super.destroy();
   }

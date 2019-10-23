@@ -70,6 +70,23 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('.ht__manualRowMove--backlight:visible').length).toBe(1);
     });
 
+    it('should set proper z-index of the backlight and guideline element and be greater than left overlay z-index', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualRowMove: true,
+        rowHeaders: true,
+      });
+
+      const $headerTH = spec().$container.find('tbody tr:eq(0) th:eq(0)');
+
+      $headerTH.simulate('mousedown');
+      $headerTH.simulate('mouseup');
+      $headerTH.simulate('mousedown');
+
+      expect($('.ht__manualRowMove--backlight').css('z-index')).toBeGreaterThan(getLeftClone().css('z-index'));
+      expect($('.ht__manualRowMove--guideline').css('z-index')).toBeGreaterThan(getLeftClone().css('z-index'));
+    });
+
     describe('backlight', () => {
       it('should set proper left position of element when colWidths is undefined', () => {
         handsontable({

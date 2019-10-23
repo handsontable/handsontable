@@ -60,7 +60,7 @@ class ObserveChanges extends BasePlugin {
     this.addHook('afterCreateCol', () => this.onAfterTableAlter());
     this.addHook('afterRemoveCol', () => this.onAfterTableAlter());
     this.addHook('afterChange', (changes, source) => this.onAfterTableAlter(source));
-    this.addHook('afterLoadData', firstRun => this.onAfterLoadData(firstRun));
+    this.addHook('afterLoadData', (sourceData, firstRun) => this.onAfterLoadData(firstRun));
 
     super.enablePlugin();
   }
@@ -92,11 +92,11 @@ class ObserveChanges extends BasePlugin {
           const [visualRow, visualColumn] = [patch.row, patch.col];
 
           if (isNaN(visualColumn)) {
-            this.rowIndexMapper.insertIndexes(visualRow, 1);
+            this.hot.getRowIndexMapper().insertIndexes(visualRow, 1);
             this.hot.runHooks('afterCreateRow', visualRow, 1, sourceName);
 
           } else {
-            this.columnIndexMapper.insertIndexes(visualColumn, 1);
+            this.hot.getColumnIndexMapper().insertIndexes(visualColumn, 1);
             this.hot.runHooks('afterCreateCol', visualColumn, 1, sourceName);
           }
         },
@@ -104,11 +104,11 @@ class ObserveChanges extends BasePlugin {
           const [visualRow, visualColumn] = [patch.row, patch.col];
 
           if (isNaN(visualColumn)) {
-            this.rowIndexMapper.removeIndexes([visualRow]);
+            this.hot.getRowIndexMapper().removeIndexes([visualRow]);
             this.hot.runHooks('afterRemoveRow', visualRow, 1, sourceName);
 
           } else {
-            this.columnIndexMapper.removeIndexes([visualColumn]);
+            this.hot.getColumnIndexMapper().removeIndexes([visualColumn]);
             this.hot.runHooks('afterRemoveCol', visualColumn, 1, sourceName);
           }
         },

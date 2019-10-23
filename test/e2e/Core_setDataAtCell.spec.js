@@ -299,6 +299,24 @@ describe('Core_setDataAtCell', () => {
     expect(getData()).toEqual([['bar', 1], ['b', 33], ['c', 3]]);
   });
 
+  it('should not throw an error when trying set data after selection on cell read-only', () => {
+    let errors = 0;
+
+    handsontable({
+      data: [[1, 1]],
+      readOnly: true
+    });
+
+    try {
+      selectCell(0, 0);
+      setDataAtCell(0, 0, '333');
+    } catch (e) {
+      errors += 1;
+    }
+
+    expect(errors).toBe(0);
+  });
+
   describe('Coordinates out of dataset', () => {
     it('should insert new column', () => {
       handsontable({

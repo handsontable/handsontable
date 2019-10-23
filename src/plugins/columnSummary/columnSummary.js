@@ -318,8 +318,8 @@ class ColumnSummary extends BasePlugin {
    * @returns {String} The cell value.
    */
   getCellValue(row, col) {
-    const visualRowIndex = this.endpoints.getVisualRowIndex(row);
-    const visualColumnIndex = this.endpoints.getVisualColumnIndex(col);
+    const visualRowIndex = this.hot.toVisualRow(row);
+    const visualColumnIndex = this.hot.toVisualColumn(col);
 
     let cellValue = this.hot.getSourceDataAtCell(row, col);
     const cellClassName = this.hot.getCellMeta(visualRowIndex, visualColumnIndex).className || '';
