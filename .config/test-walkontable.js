@@ -46,6 +46,7 @@ module.exports.create = function create(envArgs) {
         filename: path.resolve(wotPath, 'test/SpecRunner.html'),
         baseJasminePath: '../../../../',
         externalCssFiles: [
+          '../css/walkontable.css',
           '../css/walkontable.test.css',
         ],
         externalJsFiles: [

@@ -2,9 +2,9 @@ describe('Walkontable.CellCoords', () => {
   describe('isValid', () => {
 
     beforeEach(function() {
-      this.$wrapper = $('<div></div>');
+      this.$wrapper = $('<div></div>').addClass('handsontable');
       this.$container = $('<div></div>');
-      this.$table = $('<table></table>');
+      this.$table = $('<table></table>').addClass('htCore');
       this.$wrapper.append(this.$container);
       this.$container.append(this.$table);
 
