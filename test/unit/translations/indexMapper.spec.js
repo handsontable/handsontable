@@ -113,6 +113,7 @@ describe('IndexMapper', () => {
     // Initialization of two maps.
     indexMapper.initToLength(10);
 
+    // Maps are filled with default values before calling the `init` hook.
     expect(indexesSequenceOnInit).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     expect(notSkippedIndexesOnInit).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     expect(numberOfIndexesOnInit).toBe(10);
@@ -127,7 +128,7 @@ describe('IndexMapper', () => {
     expect(indexMapper.isSkipped(2)).toBeTruthy();
     expect(indexMapper.isSkipped(5)).toBeTruthy();
 
-    // 2 maps were initialized and 3 `setValueAtIndex` functions were called.
+    // 2 maps were initialized and 3 `setValueAtIndex` functions have been called.
     expect(changeCallback.calls.count()).toEqual(5);
 
     indexMapper.unregisterMap('uniqueName');
