@@ -38,6 +38,7 @@ class MasterTable extends Table {
         const cloneNode = trimmingElement.cloneNode(false);
         let cloneHeight;
 
+        cloneNode.style.overflow = 'auto';
         trimmingElementParent.insertBefore(cloneNode, trimmingElement);
 
         if (isFirefox() && trimmingOverflow === 'scroll') {
