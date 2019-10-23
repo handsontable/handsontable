@@ -76,11 +76,9 @@ function getLines(stylesAndLines, style) {
  * For a given configuration object (as described in Handsontable `CustomBorders` plugin) returns a relevant `stylesAndLines` map.
  *
  * @param {Array.<Object>} rawData Configuration object
- * @param {Number} totalWidth Desired total width of SVG
- * @param {Number} totalHeight Desired total height of SVG
  * @returns {Map.<string, Array.<Array.<string>>>} Map where keys are the `style` strings and values are SVG Path commands in format `['M x1 y1 x2 y2 ... Z', ...]`
  */
-export function precalculateStylesAndCommands(rawData, totalWidth, totalHeight) {
+export function precalculateStylesAndCommands(rawData) {
   const stylesAndLines = new Map();
   const stylesAndCommands = new Map();
 
@@ -114,7 +112,7 @@ export function precalculateStylesAndCommands(rawData, totalWidth, totalHeight) 
   styles.forEach((style) => {
     const lines = stylesAndLines.get(style);
     const strokeWidth = parseInt(style, 10);
-    const adjustedLines = adjustLinesToViewBox(strokeWidth, lines, totalWidth, totalHeight);
+    const adjustedLines = adjustLinesToViewBox(strokeWidth, lines);
     const optimizedLines = svgOptimizePath(adjustedLines);
     const command = convertLinesToCommand(optimizedLines, strokeWidth);
 
@@ -180,25 +178,6 @@ function getStateForStyle(states, style, parent) {
 }
 
 /**
- * Adjusts the pixel coordinate to make sure that the rendered stroke (including its with) is fully rendered within the total size of the SVG image
- *
- * @param {Number} pos Pixel coordinate
- * @param {Number} totalSize Total size of the SVG image in the relevant direction
- * @param {Number} halfStrokeWidth The size in pixels by which we are adjusting
- * @returns {Number} New pixel coordinate
- */
-function keepLineWithinViewBox(pos, totalSize, halfStrokeWidth) {
-  if (pos - halfStrokeWidth < 0) {
-    pos += Math.ceil(halfStrokeWidth - pos);
-  }
-  if (pos + halfStrokeWidth > totalSize) {
-    pos -= Math.ceil(pos + halfStrokeWidth - totalSize);
-  }
-
-  return pos;
-}
-
-/**
  * Adjusts all line coordinates to fit within the SVG image
  *
  * `lines` is an array of `x1`, `y1`, `x2`, `y2` quadruplets, e.g.:
@@ -214,12 +193,9 @@ function keepLineWithinViewBox(pos, totalSize, halfStrokeWidth) {
  *
  * @param {Number} strokeWidth The width of the stroke in pixels
  * @param {Array.<Array.<number>>>} lines SVG Path data in format `[[x1, y1, x2, y2], ...]`
- * @param {Number} totalWidth Total width of the SVG image where the lines need to fit
- * @param {Number} totalHeight Total height of the SVG image where the lines need to fit
  */
-export function adjustLinesToViewBox(strokeWidth, lines, totalWidth, totalHeight) {
+export function adjustLinesToViewBox(strokeWidth, lines) {
   const newLines = new Array(lines.length);
-  const halfStrokeWidth = strokeWidth / 2;
   const needSubPixelCorrection = (strokeWidth % 2 !== 0); // disable antialiasing
 
   for (let ii = 0; ii < lines.length; ii++) {
@@ -231,11 +207,6 @@ export function adjustLinesToViewBox(strokeWidth, lines, totalWidth, totalHeight
       x1 += 0.5;
       x2 += 0.5;
     }
-
-    x1 = keepLineWithinViewBox(x1, totalWidth, halfStrokeWidth);
-    y1 = keepLineWithinViewBox(y1, totalHeight, halfStrokeWidth);
-    x2 = keepLineWithinViewBox(x2, totalWidth, halfStrokeWidth);
-    y2 = keepLineWithinViewBox(y2, totalHeight, halfStrokeWidth);
 
     newLines[ii] = [x1, y1, x2, y2];
   }

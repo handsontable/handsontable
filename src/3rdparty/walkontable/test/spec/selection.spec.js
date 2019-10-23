@@ -116,6 +116,9 @@ describe('Walkontable.Selection', () => {
 
     const pathInBottomOverlay = spec().$wrapper.find('.ht_clone_bottom svg path').eq(0);
     expect(pathInBottomOverlay.attr('d')).toBe(undefined);
+
+    const pathInBottomLeftCornerOverlay = spec().$wrapper.find('.ht_clone_bottom_left_corner svg path').eq(0);
+    expect(pathInBottomLeftCornerOverlay.attr('d')).toBe(undefined);
   });
 
   it('should draw border on bottom, left, bottom-left-corner overlays if they are overlapping (scrollable viewport)', function() {
@@ -150,13 +153,16 @@ describe('Walkontable.Selection', () => {
     expect(pathInTopOverlay.attr('d')).toBe(undefined);
 
     const pathInLeftOverlay = spec().$wrapper.find('.ht_clone_left svg path').eq(0);
-    expect(pathInLeftOverlay.attr('d')).toBe('M 0.5 253.5 99.5 253.5 99.5 0.5 0.5 0.5 0.5 253.5 Z');
+    expect(pathInLeftOverlay.attr('d')).toBe('M 0.5 253.5 99.5 253.5 99.5 -336.5 0.5 -336.5 0.5 253.5 Z');
 
     const pathInTopLeftCornerOverlay = spec().$wrapper.find('.ht_clone_top_left_corner svg path').eq(0);
     expect(pathInTopLeftCornerOverlay.attr('d')).toBe(undefined);
 
     const pathInBottomOverlay = spec().$wrapper.find('.ht_clone_bottom svg path').eq(0);
-    expect(pathInBottomOverlay.attr('d')).toBe('M 0.5 23.5 49.5 23.5 49.5 0.5 0.5 0.5');
+    expect(pathInBottomOverlay.attr('d')).toBe('M 0.5 23.5 49.5 23.5 49.5 -643.5 0.5 -643.5');
+
+    const pathInBottomLeftCornerOverlay = spec().$wrapper.find('.ht_clone_bottom_left_corner svg path').eq(0);
+    expect(pathInBottomLeftCornerOverlay.attr('d')).toBe('M 0.5 -7.5 99.5 -7.5 99.5 23.5 0.5 23.5 0.5 -7.5 Z');
   });
 
   it('should not add class to selection until it is rerendered', () => {

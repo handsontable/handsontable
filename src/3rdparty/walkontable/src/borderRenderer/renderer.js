@@ -150,7 +150,7 @@ export default class BorderRenderer {
     styles.forEach((style) => {
       const lines = stylesAndLines.get(style);
       const width = parseInt(style, 10);
-      const adjustedLines = adjustLinesToViewBox(width, lines, Infinity, Infinity);
+      const adjustedLines = adjustLinesToViewBox(width, lines);
       const optimizedLines = svgOptimizePath(adjustedLines);
       const optimizedCommand = convertLinesToCommand(optimizedLines);
 
@@ -280,7 +280,7 @@ export default class BorderRenderer {
    * returns TRUE if yes, FALSE otherwise.
    *
    * @param {Object} selectionSetting Settings provided in the same format as used by `Selection.setting`
-   * @param {String} edge Possible falues: 'top', 'right', 'bottom', 'left'
+   * @param {String} edge Possible values: 'top', 'right', 'bottom', 'left'
    * @returns {Boolean}
    */
   hasLineAtEdge(selectionSetting, edge) {

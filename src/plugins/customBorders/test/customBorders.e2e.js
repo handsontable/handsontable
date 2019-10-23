@@ -923,7 +923,7 @@ describe('CustomBorders', () => {
           right: GREEN_BORDER
         }]
     });
-    expect(getRenderedBorderPaths()).toEqual(['M 49.5 0.5 49.5 23.5', 'M 1 1 1 23']);
+    expect(getRenderedBorderPaths()).toEqual(['M 49.5 0.5 49.5 23.5', 'M 0 0 0 23']);
 
     await selectContextSubmenuOption('Borders', 'Remove border');
 
