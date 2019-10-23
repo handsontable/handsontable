@@ -94,19 +94,9 @@
   border-bottom: 1px solid #ccc;
 }
 
-.handsontable tr:first-child th.htNoFrame,
-.handsontable th:first-child.htNoFrame,
-.handsontable th.htNoFrame {
-  border-left-width: 0;
-  background-color: white;
-  border-color: #fff;
-}
-
 .handsontable th:first-child,
 .handsontable th:nth-child(2),
-.handsontable td:first-of-type,
-.handsontable .htNoFrame + th,
-.handsontable .htNoFrame + td {
+.handsontable td:first-of-type {
   border-left: 1px solid #ccc;
 }
 
@@ -186,12 +176,6 @@
   cursor: crosshair;
 }
 
-.handsontable .htBorder.htFillBorder {
-  background: red;
-  width: 1px;
-  height: 1px;
-}
-
 .ht_clone_master {
   z-index: 100;
 }
@@ -231,34 +215,8 @@
 /*
   Cell borders
   */
-.htBordered {
-  /*box-sizing: border-box !important;*/
-  border-width: 1px;
-}
-.htBordered.htTopBorderSolid {
-  border-top-style: solid;
-  border-top-color: #000;
-}
-.htBordered.htRightBorderSolid {
-  border-right-style: solid;
-  border-right-color: #000;
-}
-.htBordered.htBottomBorderSolid {
-  border-bottom-style: solid;
-  border-bottom-color: #000;
-}
-.htBordered.htLeftBorderSolid {
-  border-left-style: solid;
-  border-left-color: #000;
-}
-
 .handsontable tbody tr th:nth-last-child(2) {
   border-right: 1px solid #ccc;
-}
-
-.handsontable thead tr:nth-last-child(2) th.htGroupIndicatorContainer {
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 5px;
 }
 
 .ht_clone_top_left_corner thead tr th:nth-last-child(2) {
@@ -267,10 +225,6 @@
 
 .handsontable col.hidden {
   width: 0 !important;
-}
-
-.handsontable table tr th.lightRightBorder {
-  border-right: 1px solid #e6e6e6;
 }
 
 .handsontable tr.hidden,
