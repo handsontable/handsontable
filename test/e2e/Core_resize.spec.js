@@ -38,6 +38,25 @@ describe('Core resize', () => {
     expect(getBottomLeftClone().height()).toBe(0);
   });
 
+  it('should not change table height after window is resized when a handsontable parent elements have not defined height and has overflow scroll', () => {
+    spec().$wrapper.css({ overflow: 'scroll' });
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsBottom: 1,
+    });
+
+    refreshDimensions();
+
+    expect(getMaster().height()).toBe(0);
+    expect(getTopClone().height()).toBe(0);
+    expect(getBottomClone().height()).toBe(0);
+    expect(getLeftClone().height()).toBe(0);
+    expect(getBottomLeftClone().height()).toBe(0);
+  });
+
   it('should change table height after changing parent element height', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 2),

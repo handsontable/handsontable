@@ -8,7 +8,6 @@ import Table from '../table';
 import calculatedRows from './mixin/calculatedRows';
 import calculatedColumns from './mixin/calculatedColumns';
 import { mixin } from './../../../../helpers/object';
-import { isFirefox } from './../../../../helpers/browser';
 
 /**
  * Subclass of `Table` that provides the helper methods relevant to the master table (not overlays), implemented through mixins.
@@ -36,19 +35,11 @@ class MasterTable extends Table {
 
       if (trimmingElementParent && overflow.includes(trimmingOverflow)) {
         const cloneNode = trimmingElement.cloneNode(false);
-        let cloneHeight;
 
         cloneNode.style.overflow = 'auto';
         trimmingElementParent.insertBefore(cloneNode, trimmingElement);
 
-        if (isFirefox() && trimmingOverflow === 'scroll') {
-          const scrollBarWidth = cloneNode.offsetWidth - cloneNode.clientWidth;
-
-          cloneHeight = cloneNode.clientHeight - (scrollBarWidth === 4 ? 16 : 15);
-
-        } else {
-          cloneHeight = parseInt(getComputedStyle(cloneNode, rootWindow).height, 10);
-        }
+        const cloneHeight = parseInt(getComputedStyle(cloneNode, rootWindow).height, 10);
 
         trimmingElementParent.removeChild(cloneNode);
 
