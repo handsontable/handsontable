@@ -4,7 +4,7 @@ import {
   removeClass,
 } from './../../../helpers/dom/element';
 import { objectEach } from './../../../helpers/object';
-import { toUpperCaseFirst, randomString } from './../../../helpers/string';
+import { randomString } from './../../../helpers/string';
 import Event from './event';
 import Overlays from './overlays';
 import Scroll from './scroll';
@@ -210,17 +210,17 @@ class Walkontable {
    */
   exportSettingsAsClassNames() {
     const toExport = {
-      rowHeaders: ['array'],
-      columnHeaders: ['array']
+      rowHeaders: 'htRowHeaders',
+      columnHeaders: 'htColumnHeaders'
     };
     const allClassNames = [];
     const newClassNames = [];
 
-    objectEach(toExport, (optionType, key) => {
-      if (optionType.indexOf('array') > -1 && this.getSetting(key).length) {
-        newClassNames.push(`ht${toUpperCaseFirst(key)}`);
+    objectEach(toExport, (className, key) => {
+      if (this.getSetting(key).length) {
+        newClassNames.push(className);
       }
-      allClassNames.push(`ht${toUpperCaseFirst(key)}`);
+      allClassNames.push(className);
     });
     removeClass(this.wtTable.wtRootElement.parentNode, allClassNames);
     addClass(this.wtTable.wtRootElement.parentNode, newClassNames);

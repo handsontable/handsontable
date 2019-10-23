@@ -2,10 +2,10 @@ describe('WalkontableScrollbarNative', () => {
   const debug = false;
 
   beforeEach(function() {
-    this.$wrapper = $('<div></div>').css({ overflow: 'hidden' });
+    this.$wrapper = $('<div></div>').addClass('handsontable').css({ overflow: 'hidden' });
     this.$wrapper.width(100).height(200);
     this.$container = $('<div></div>');
-    this.$table = $('<table></table>'); // create a table that is not attached to document
+    this.$table = $('<table></table>').addClass('htCore'); // create a table that is not attached to document
     this.$wrapper.append(this.$container);
     this.$container.append(this.$table);
     this.$wrapper.appendTo('body');
