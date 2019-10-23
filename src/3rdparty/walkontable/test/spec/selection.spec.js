@@ -106,13 +106,13 @@ describe('Walkontable.Selection', () => {
     expect(pathInMasterTable.attr('d')).toBe('M 0.5 0.5 99.5 0.5 99.5 46.5 0.5 46.5 0.5 0.5 Z');
 
     const pathInTopOverlay = spec().$wrapper.find('.ht_clone_top svg path').eq(0);
-    expect(pathInTopOverlay.attr('d')).toBe('M 107.5 128.5 107.5 105.5 8.5 105.5 8.5 128.5');
+    expect(pathInTopOverlay.attr('d')).toBe('M 99.5 23.5 99.5 0.5 0.5 0.5 0.5 23.5');
 
     const pathInLeftOverlay = spec().$wrapper.find('.ht_clone_left svg path').eq(0);
-    expect(pathInLeftOverlay.attr('d')).toBe('M 57.5 105.5 8.5 105.5 8.5 151.5 57.5 151.5');
+    expect(pathInLeftOverlay.attr('d')).toBe('M 49.5 0.5 0.5 0.5 0.5 46.5 49.5 46.5');
 
     const pathInTopLeftCornerOverlay = spec().$wrapper.find('.ht_clone_top_left_corner svg path').eq(0);
-    expect(pathInTopLeftCornerOverlay.attr('d')).toBe('M 57.5 105.5 8.5 105.5 8.5 128.5');
+    expect(pathInTopLeftCornerOverlay.attr('d')).toBe('M 49.5 0.5 0.5 0.5 0.5 23.5');
 
     const pathInBottomOverlay = spec().$wrapper.find('.ht_clone_bottom svg path').eq(0);
     expect(pathInBottomOverlay.attr('d')).toBe(undefined);
