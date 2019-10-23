@@ -6,6 +6,7 @@ import { arrayMap } from '../../../helpers/array';
  * @private
  * @param {Array} indexesList List of indexes.
  * @param {Array} removedIndexes List of removed indexes.
+ * @returns {Array} List with decreased indexes.
  */
 export function getDecreasedIndexes(indexesList, removedIndexes) {
   return arrayMap(indexesList, index => index - removedIndexes.filter(removedIndex => removedIndex < index).length);
@@ -18,6 +19,7 @@ export function getDecreasedIndexes(indexesList, removedIndexes) {
  * @param {Array} indexesList List of indexes.
  * @param {Number} insertionIndex Position inside the actual list.
  * @param {Array} insertedIndexes List of inserted indexes.
+ * @returns {Array} List with increased indexes.
  */
 export function getIncreasedIndexes(indexesList, insertionIndex, insertedIndexes) {
   const firstInsertedIndex = insertedIndexes[0];

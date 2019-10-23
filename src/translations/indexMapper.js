@@ -97,12 +97,12 @@ class IndexMapper {
    * Register map which provide some index mappings.
    *
    * @param {String} uniqueName Name of the map. It should be unique.
-   * @param {ValueMap|IndexMap|SkipMap} mapper Register mapper updated on items removal and insertion.
+   * @param {ValueMap|IndexMap|SkipMap} map Registered map updated on items removal and insertion.
    * @returns {ValueMap|IndexMap|SkipMap}
    */
   registerMap(uniqueName, map) {
     if (this.skipCollection.get(uniqueName) || this.variousMappingsCollection.get(uniqueName)) {
-      throw Error(`Mapper with name "${uniqueName}" is already registered.`);
+      throw Error(`Mapper with name "${uniqueName}" has been already registered.`);
     }
 
     if (map instanceof SkipMap === true) {
@@ -343,6 +343,7 @@ class IndexMapper {
   /**
    * Rebuild cache for some indexes. Every action on indexes sequence or skipped indexes by default reset cache, thus batching some index maps actions is recommended.
    *
+   * @param {Boolean} [force=false] Determine if force cache update.
    * @private
    */
   updateCache(force = false) {
