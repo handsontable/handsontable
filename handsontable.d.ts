@@ -33,14 +33,14 @@ declare namespace _Handsontable {
     destroyEditor(revertOriginal?: boolean, prepareEditorIfNeeded?: boolean): void;
     emptySelectedCells(): void;
     forceFullRender: boolean;
-    getActiveEditor<T extends Handsontable._editors.BaseEditor>(): T | undefined;
+    getActiveEditor<T extends Handsontable._editors.Base>(): T | undefined;
     getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
-    getCellEditor<T extends Handsontable._editors.BaseEditor>(row: number, col: number): T;
-    getCellEditor<T extends Handsontable._editors.BaseEditor>(cellMeta: Handsontable.CellMeta): T;
+    getCellEditor<T extends Handsontable._editors.Base>(row: number, col: number): T;
+    getCellEditor<T extends Handsontable._editors.Base>(cellMeta: Handsontable.CellMeta): T;
     getCellMeta(row: number, col: number): Handsontable.CellProperties;
     getCellMetaAtRow(row: number): Handsontable.CellProperties[];
-    getCellRenderer(row: number, col: number): Handsontable.renderers.BaseRenderer;
-    getCellRenderer(cellMeta: Handsontable.CellMeta): Handsontable.renderers.BaseRenderer;
+    getCellRenderer(row: number, col: number): Handsontable.renderers.Base;
+    getCellRenderer(cellMeta: Handsontable.CellMeta): Handsontable.renderers.Base;
     getCellsMeta(): Handsontable.CellProperties[];
     getCellValidator(row: number, col: number): Handsontable.validators.Base | RegExp | undefined;
     getCellValidator(cellMeta: Handsontable.CellMeta): Handsontable.validators.Base | RegExp | undefined;
@@ -266,7 +266,7 @@ declare namespace Handsontable {
       'STATE_WAITING' | // waiting for async validation
       'STATE_FINISHED';
 
-    abstract class BaseEditor {
+    abstract class Base {
       hot: _Handsontable.Core;
       instance: _Handsontable.Core;
       row: number;
@@ -285,7 +285,7 @@ declare namespace Handsontable {
       abstract close(): void;
       discardEditor(validationResult?: boolean): void;
       enableFullEditMode(): void;
-      extend<T extends _editors.BaseEditor>(): T;
+      extend<T extends _editors.Base>(): T;
       finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
       abstract focus(): void;
       getEditedCell(): HTMLTableCellElement | null;
@@ -301,7 +301,7 @@ declare namespace Handsontable {
       abstract setValue(newValue?: any): void;
     }
 
-    class Checkbox extends BaseEditor {
+    class Checkbox extends Base {
       close(): void;
       focus(): void;
       getValue(): any;
@@ -309,7 +309,7 @@ declare namespace Handsontable {
       setValue(newValue?: any): void;
     }
 
-    class Mobile extends BaseEditor {
+    class Mobile extends Base {
       close(): void;
       focus(): void;
       getValue(): any;
@@ -325,7 +325,7 @@ declare namespace Handsontable {
       valueChanged(): boolean;
     }
 
-    class Select extends BaseEditor {
+    class Select extends Base {
       close(): void;
       focus(): void;
       getValue(): any;
@@ -338,7 +338,7 @@ declare namespace Handsontable {
       registerHooks(): void;
     }
 
-    class Text extends BaseEditor {
+    class Text extends Base {
       close(): void;
       focus(): void;
       getValue(): any;
@@ -716,7 +716,7 @@ declare namespace Handsontable {
       setSampleCount(sampleCount: number): void;
     }
 
-    class BasePlugin {
+    class Base {
       pluginName: string;
       pluginsInitializedCallback: any[];
       isPluginsReady: boolean;
@@ -738,11 +738,11 @@ declare namespace Handsontable {
       removeHooks(name: string): void;
     }
 
-    interface BasePlugin {
-      new(hotInstance?: _Handsontable.Core): BasePlugin;
+    interface Base {
+      new(hotInstance?: _Handsontable.Core): Base;
     }
 
-    interface AutoColumnSize extends BasePlugin {
+    interface AutoColumnSize extends Base {
       firstCalculation: boolean;
       ghostTable: GhostTable;
       inProgress: boolean;
@@ -761,7 +761,7 @@ declare namespace Handsontable {
       recalculateAllColumnsWidth(): void;
     }
 
-    interface AutoRowSize extends BasePlugin {
+    interface AutoRowSize extends Base {
       firstCalculation: boolean;
       heights: any[];
       ghostTable: GhostTable;
@@ -782,7 +782,7 @@ declare namespace Handsontable {
       recalculateAllRowsHeight(): void;
     }
 
-    interface Autofill extends BasePlugin {
+    interface Autofill extends Base {
       addingStarted: boolean;
       autoInsertRow: boolean;
       directions: string[];
@@ -792,12 +792,12 @@ declare namespace Handsontable {
       mouseDragOutside: boolean;
     }
 
-    interface BindRowsWithHeaders extends BasePlugin {
+    interface BindRowsWithHeaders extends Base {
       bindStrategy: BindStrategy;
       removeRows: any[];
     }
 
-    interface CollapsibleColumns extends BasePlugin {
+    interface CollapsibleColumns extends Base {
       buttonEnabledList: object;
       collapsedSections: object;
       columnHeaderLevelCount: number;
@@ -819,7 +819,7 @@ declare namespace Handsontable {
       toggleCollapsibleSection(coords: object, action: string): void;
     }
 
-    interface ColumnSorting extends BasePlugin {
+    interface ColumnSorting extends Base {
       clearSort(): void;
       destroy(): void;
       getSortConfig(column: number): void | columnSorting.Config
@@ -829,7 +829,7 @@ declare namespace Handsontable {
       sort(sortConfig?: columnSorting.Config): void;
     }
 
-    interface ColumnSummary extends BasePlugin {
+    interface ColumnSummary extends Base {
       endpoints: Endpoints | void;
 
       calculate(endpoint: Endpoints): void;
@@ -847,7 +847,7 @@ declare namespace Handsontable {
       from: wot.CellCoords;
       to?: wot.CellCoords;
     }
-    interface Comments extends BasePlugin {
+    interface Comments extends Base {
       contextMenuEvent: boolean;
       displayDelay: number;
       editor: CommentEditor;
@@ -896,7 +896,7 @@ declare namespace Handsontable {
       destroy(): void;
     }
 
-    interface ContextMenu extends BasePlugin {
+    interface ContextMenu extends Base {
       eventManager: EventManager;
       commandExecutor: CommandExecutor;
       itemsFactory: ItemsFactory | void;
@@ -921,7 +921,7 @@ declare namespace Handsontable {
 
     type PasteModeType = 'overwrite' | 'shift_down' | 'shift_right';
     type RangeType = { startRow: number, startCol: number, endRow: number, endCol: number };
-    interface CopyPaste extends BasePlugin {
+    interface CopyPaste extends Base {
       columnsLimit: number;
       copyableRanges: any[];
       focusableElement: FocusableWrapper;
@@ -936,7 +936,7 @@ declare namespace Handsontable {
       setCopyableText(): void;
     }
 
-    interface CustomBorders extends BasePlugin {
+    interface CustomBorders extends Base {
       savedBorderSettings: any[];
 
       setBorders(selection: Range[] | Array<[number, number, number, number]>, borderObject: object): void;
@@ -944,7 +944,7 @@ declare namespace Handsontable {
       clearBorders(selection: Range[] | Array<[number, number, number, number]>): void;
     }
 
-    interface DragToScroll extends BasePlugin {
+    interface DragToScroll extends Base {
       boundaries: object | void;
       callback: (() => void) | void;
 
@@ -956,7 +956,7 @@ declare namespace Handsontable {
     type SeparatorObject = {
       name: string;
     }
-    interface DropdownMenu extends BasePlugin {
+    interface DropdownMenu extends Base {
       eventManager: EventManager;
       commandExecutor: CommandExecutor;
       itemsFactory: ItemsFactory | void;
@@ -968,13 +968,13 @@ declare namespace Handsontable {
       open(event: Event): void;
     }
 
-    interface ExportFile extends BasePlugin {
+    interface ExportFile extends Base {
       downloadFile(format: string, options: object): void;
       exportAsString(format: string, options?: object): string;
       exportAsBlob(format: string, options?: object): Blob;
     }
 
-    interface Filters extends BasePlugin {
+    interface Filters extends Base {
       actionBarComponent: FiltersPlugin.ActionBarComponent | void;
       dropdownMenuPlugin: DropdownMenu | void;
       eventManager: EventManager;
@@ -1159,7 +1159,7 @@ declare namespace Handsontable {
 
     type UndoRedoAction = UndoRedoAction.Change | UndoRedoAction.InsertRow | UndoRedoAction.RemoveRow | UndoRedoAction.InsertCol | UndoRedoAction.RemoveCol | UndoRedoAction.Filter;
 
-    interface Formulas extends BasePlugin {
+    interface Formulas extends Base {
       dataProvider: DataProvider;
       eventManager: EventManager;
       sheet: Sheet;
@@ -1174,7 +1174,7 @@ declare namespace Handsontable {
       setVariable(name: string, value: any): void;
     }
 
-    interface GanttChart extends BasePlugin {
+    interface GanttChart extends Base {
       colorData: object;
       currentYear: number | void;
       dateCalculator: object | void;
@@ -1208,13 +1208,13 @@ declare namespace Handsontable {
       updateRangeBarData(row: number, column: number, data: object): void;
     }
 
-    interface HeaderTooltips extends BasePlugin {
+    interface HeaderTooltips extends Base {
       settings: boolean | object;
 
       parseSettings(): void;
     }
 
-    interface HiddenColumns extends BasePlugin {
+    interface HiddenColumns extends Base {
       hiddenColumns: boolean | any[];
       lastSelectedColumn: number;
       settings: object | void;
@@ -1226,7 +1226,7 @@ declare namespace Handsontable {
       showColumns(columns: any[]): void;
     }
 
-    interface HiddenRows extends BasePlugin {
+    interface HiddenRows extends Base {
       hiddenRows: boolean | any[];
       lastSelectedRow: number;
       settings: object | void;
@@ -1238,7 +1238,7 @@ declare namespace Handsontable {
       showRows(rows: any[]): void;
     }
 
-    interface ManualColumnFreeze extends BasePlugin {
+    interface ManualColumnFreeze extends Base {
       frozenColumnsBasePositions: any[];
       manualColumnMovePlugin: ManualColumnMove;
 
@@ -1246,7 +1246,7 @@ declare namespace Handsontable {
       unfreezeColumn(column: number): void;
     }
 
-    interface MultiColumnSorting extends BasePlugin {
+    interface MultiColumnSorting extends Base {
       clearSort(): void;
       destroy(): void;
       getSortConfig(column: number): void | columnSorting.Config;
@@ -1278,7 +1278,7 @@ declare namespace Handsontable {
       interface GuidelineUI extends BaseUI { }
     }
 
-    interface MergeCells extends BasePlugin {
+    interface MergeCells extends Base {
       mergedCellsCollection: MergeCellsPlugin.MergedCellsCollection;
       autofillCalculations: MergeCellsPlugin.AutofillCalculations;
       selectionCalculations: MergeCellsPlugin.SelectionCalculations;
@@ -1342,7 +1342,7 @@ declare namespace Handsontable {
       }
     }
 
-    interface ManualColumnMove extends BasePlugin {
+    interface ManualColumnMove extends Base {
       backlight: moveUI.BacklightUI;
       eventManager: EventManager;
       guideline: moveUI.GuidelineUI;
@@ -1354,7 +1354,7 @@ declare namespace Handsontable {
       persistentStateSave(): void;
     }
 
-    interface ManualColumnResize extends BasePlugin {
+    interface ManualColumnResize extends Base {
       autoresizeTimeout: (() => void) | void;
       currentCol: number | void;
       currentTH: HTMLElement | void;
@@ -1384,7 +1384,7 @@ declare namespace Handsontable {
       setupHandlePosition(TH: HTMLElement): boolean | void;
     }
 
-    interface ManualRowMove extends BasePlugin {
+    interface ManualRowMove extends Base {
       backlight: moveUI.BacklightUI;
       eventManager: EventManager;
       guideline: moveUI.GuidelineUI;
@@ -1397,7 +1397,7 @@ declare namespace Handsontable {
       isMovePossible(rows: number[], finalIndex: number): boolean;
     }
 
-    interface ManualRowResize extends BasePlugin {
+    interface ManualRowResize extends Base {
       autoresizeTimeout: (() => void) | void;
       currentRow: number | void;
       currentTH: HTMLElement | void;
@@ -1427,7 +1427,7 @@ declare namespace Handsontable {
       setupHandlePosition(TH: HTMLElement): boolean | void;
     }
 
-    interface MultipleSelectionHandles extends BasePlugin {
+    interface MultipleSelectionHandles extends Base {
       dragged: any[];
       eventManager: EventManager;
       lastSetCell: HTMLElement | void;
@@ -1444,7 +1444,7 @@ declare namespace Handsontable {
       clear(): void;
     }
 
-    interface NestedHeaders extends BasePlugin {
+    interface NestedHeaders extends Base {
       colspanArray: any[];
       columnHeaderLevelCount: number;
       ghostTable: GhostTableNestedHeaders;
@@ -1487,7 +1487,7 @@ declare namespace Handsontable {
       rewriteCache(): void;
     }
 
-    interface NestedRows extends BasePlugin {
+    interface NestedRows extends Base {
       bindRowsWithHeadersPlugin: BindRowsWithHeaders | void;
       dataManager: DataManager | void;
       headersUI: object | void;
@@ -1507,17 +1507,17 @@ declare namespace Handsontable {
       resume(): void;
       setObservedData(observedData: any): void;
     }
-    interface ObserveChanges extends BasePlugin {
+    interface ObserveChanges extends Base {
       observer: DataObserver | void;
     }
 
-    interface TouchScroll extends BasePlugin {
+    interface TouchScroll extends Base {
       clones: any[];
       lockedCollection: boolean;
       scrollbars: any[];
     }
 
-    interface TrimRows extends BasePlugin {
+    interface TrimRows extends Base {
       trimmedRows: any[];
       removedRows: any[];
 
@@ -1542,7 +1542,7 @@ declare namespace Handsontable {
       saveValue(key: string, value: any): void;
     }
 
-    interface PersistenState extends BasePlugin {
+    interface PersistenState extends Base {
       storage: Storage;
 
       loadValue(key: string, saveTo: object): void;
@@ -1550,7 +1550,7 @@ declare namespace Handsontable {
       resetValue(key: string): void;
     }
 
-    interface Search extends BasePlugin {
+    interface Search extends Base {
       callback: search.SearchCallback;
       queryMethod: search.SearchQueryMethod;
       searchResultClass: string;
@@ -1568,21 +1568,21 @@ declare namespace Handsontable {
   }
 
   namespace renderers {
-    interface BaseRenderer {
+    interface Base {
       (instance: _Handsontable.Core, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties): HTMLTableCellElement | void;
     }
 
-    interface Autocomplete extends BaseRenderer { }
+    interface Autocomplete extends Base { }
 
-    interface Checkbox extends BaseRenderer { }
+    interface Checkbox extends Base { }
 
-    interface Html extends BaseRenderer { }
+    interface Html extends Base { }
 
-    interface Numeric extends BaseRenderer { }
+    interface Numeric extends Base { }
 
-    interface Password extends BaseRenderer { }
+    interface Password extends Base { }
 
-    interface Text extends BaseRenderer { }
+    interface Text extends Base { }
   }
 
   namespace validators {
@@ -1693,7 +1693,7 @@ declare namespace Handsontable {
     disableVisualSelection?: boolean | 'current' | 'area' | 'header' | ('current' | 'area' | 'header')[];
     dragToScroll?: boolean;
     dropdownMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
-    editor?: EditorType | typeof _editors.BaseEditor | boolean | string;
+    editor?: EditorType | typeof _editors.Base | boolean | string;
     enterBeginsEditing?: boolean;
     enterMoves?: wot.CellCoords | ((event: KeyboardEvent) => wot.CellCoords);
     fillHandle?: boolean | 'vertical' | 'horizontal' | autoFill.Settings;
@@ -1744,7 +1744,7 @@ declare namespace Handsontable {
     readOnly?: boolean;
     readOnlyCellClassName?: string;
     renderAllRows?: boolean;
-    renderer?: RendererType | string | renderers.BaseRenderer;
+    renderer?: RendererType | string | renderers.Base;
     rowHeaders?: boolean | string[] | ((index: number) => string);
     rowHeaderWidth?: number | number[];
     rowHeights?: number | number[] | string | string[] | ((index: number) => string | number);
@@ -1812,7 +1812,7 @@ declare namespace Handsontable {
       afterInit?: () => void;
       afterLanguageChange?: (languageCode: string) => void;
       afterListen?: () => void;
-      afterLoadData?: (sourceData: object | void, initialLoad: boolean) => void;
+      afterLoadData?: (sourceData: Handsontable.CellValue[], initialLoad: boolean) => void;
       afterMergeCells?: (cellRange: wot.CellRange, mergeParent: mergeCells.Settings, auto: boolean) => void;
       afterModifyTransformEnd?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
       afterModifyTransformStart?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
@@ -1882,7 +1882,7 @@ declare namespace Handsontable {
       beforeInitWalkontable?: (walkontableConfig: object) => void;
       beforeKeyDown?: (event: KeyboardEvent) => void;
       beforeLanguageChange?: (languageCode: string) => void;
-      beforeLoadData?: (sourceData: object | void, initialLoad: boolean) => void;
+      beforeLoadData?: (sourceData: Handsontable.CellValue[], initialLoad: boolean) => void;
       beforeMergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
       beforeOnCellContextMenu?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
       beforeOnCellMouseDown?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
@@ -2026,8 +2026,8 @@ declare namespace Handsontable {
   }
 
   interface CellTypeObject extends GridSettings {
-    renderer?: renderers.BaseRenderer;
-    editor?: typeof _editors.BaseEditor;
+    renderer?: renderers.Base;
+    editor?: typeof _editors.Base;
     validator?: validators.Base;
     /**
      * Custom properties which will be accessible in `cellProperties`
@@ -2037,7 +2037,7 @@ declare namespace Handsontable {
 
   interface Editors {
     AutocompleteEditor: typeof _editors.Autocomplete;
-    BaseEditor: typeof _editors.BaseEditor;
+    BaseEditor: typeof _editors.Base;
     CheckboxEditor: typeof _editors.Checkbox;
     DateEditor: typeof _editors.Date;
     DropdownEditor: typeof _editors.Dropdown;
@@ -2048,13 +2048,13 @@ declare namespace Handsontable {
     SelectEditor: typeof _editors.Select;
     TextEditor: typeof _editors.Text;
     TimeEditor: typeof _editors.Text;
-    getEditor(editorName: string): typeof _editors.BaseEditor;
-    registerEditor(editorName: string, editorClass: typeof _editors.BaseEditor): void;
+    getEditor(editorName: string): typeof _editors.Base;
+    registerEditor(editorName: string, editorClass: typeof _editors.Base): void;
   }
 
   interface Renderers {
     AutocompleteRenderer: renderers.Autocomplete;
-    BaseRenderer: renderers.BaseRenderer;
+    BaseRenderer: renderers.Base;
     CheckboxRenderer: renderers.Checkbox;
     DateRenderer: renderers.Autocomplete;
     DropdownRenderer: renderers.Autocomplete;
@@ -2064,8 +2064,8 @@ declare namespace Handsontable {
     PasswordRenderer: renderers.Password;
     TextRenderer: renderers.Text;
     TimeRenderer: renderers.Text;
-    getRenderer(name: string): renderers.BaseRenderer;
-    registerRenderer(name: string, renderer: renderers.BaseRenderer): void;
+    getRenderer(name: string): renderers.Base;
+    registerRenderer(name: string, renderer: renderers.Base): void;
   }
 
   interface Validators {
@@ -2168,6 +2168,7 @@ declare namespace Handsontable {
     isDefined(variable: any): boolean,
     isEdge(): boolean,
     isEmpty(variable: any): boolean,
+    isFirefox(): boolean,
     isFunction(func: any): boolean,
     isGetComputedStyleSupported(): boolean,
     isIE(): boolean,
@@ -2271,7 +2272,7 @@ declare namespace Handsontable {
     AutoColumnSize: plugins.AutoColumnSize;
     Autofill: plugins.Autofill;
     AutoRowSize: plugins.AutoRowSize;
-    BasePlugin: plugins.BasePlugin;
+    BasePlugin: plugins.Base;
     BindRowsWithHeaders: plugins.BindRowsWithHeaders;
     CollapsibleColumns: plugins.CollapsibleColumns;
     ColumnSorting: plugins.ColumnSorting;
@@ -2302,7 +2303,7 @@ declare namespace Handsontable {
     Search: plugins.Search;
     TouchScroll: plugins.TouchScroll;
     TrimRows: plugins.TrimRows;
-    registerPlugin(pluginName: string, pluginClass: { new(hotInstance?: _Handsontable.Core): plugins.BasePlugin }): void;
+    registerPlugin(pluginName: string, pluginClass: { new(hotInstance?: _Handsontable.Core): plugins.Base }): void;
   }
 
   // Plugin collection, map for getPlugin method
@@ -2310,7 +2311,7 @@ declare namespace Handsontable {
     autoColumnSize: plugins.AutoColumnSize;
     autofill: plugins.Autofill;
     autoRowSize: plugins.AutoRowSize;
-    basePlugin: plugins.BasePlugin;
+    basePlugin: plugins.Base;
     bindRowsWithHeaders: plugins.BindRowsWithHeaders;
     collapsibleColumns: plugins.CollapsibleColumns;
     columnSorting: plugins.ColumnSorting;

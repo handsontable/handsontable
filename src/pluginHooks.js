@@ -303,6 +303,7 @@ const REGISTERED_HOOKS = [
    * Fired after new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
    *
    * @event Hooks#afterLoadData
+   * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {Boolean} initialLoad flag that determines whether the data has been loaded during the initialization.
    */
   'afterLoadData',
@@ -748,6 +749,7 @@ const REGISTERED_HOOKS = [
    * Fired before new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
    *
    * @event Hooks#beforeLoadData
+   * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {Boolean} initialLoad flag that determines whether the data has been loaded during the initialization.
    */
   'beforeLoadData',

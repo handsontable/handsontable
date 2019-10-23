@@ -14,6 +14,7 @@ const tester = (testerFunc) => {
 const browsers = {
   chrome: tester((ua, vendor) => /Chrome/.test(ua) && /Google/.test(vendor)),
   edge: tester(ua => /Edge/.test(ua)),
+  firefox: tester(ua => /Firefox/.test(ua)),
   ie: tester(ua => /Trident/.test(ua)),
   // eslint-disable-next-line no-restricted-globals
   ie8: tester(() => !(document.createTextNode('test').textContent)),
@@ -59,4 +60,8 @@ export function isMobileBrowser() {
 
 export function isSafari() {
   return browsers.safari.value;
+}
+
+export function isFirefox() {
+  return browsers.firefox.value;
 }
