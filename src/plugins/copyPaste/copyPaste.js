@@ -55,7 +55,7 @@ const META_HEAD = [
  *   columnsLimit: 25,
  *   rowsLimit: 50,
  *   pasteMode: 'shift_down',
- *   pasteMode: document.body,
+ *   uiContainer: document.body,
  * },
  * ```
  * @class CopyPaste
