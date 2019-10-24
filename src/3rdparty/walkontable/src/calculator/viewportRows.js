@@ -22,6 +22,7 @@ class ViewportRowsCalculator {
    * @param {Object} options Object with all options specyfied for row viewport calculation.
    * @param {Number} options.viewportHeight Height of the viewport
    * @param {Number} options.scrollOffset Current vertical scroll position of the viewport
+   * @param {Number} options.hardstopStartOffset Offset in pixels before rendering of the first possibly renderable row
    * @param {Number} options.hardstopStart Index of the first possibly renderable row
    * @param {Number} options.hardstopEnd Index of the last possibly renderable row
    * @param {Function} options.rowHeightFn Function that returns the height of the row at a given index (in px)
@@ -32,6 +33,7 @@ class ViewportRowsCalculator {
   constructor({
     viewportSize,
     scrollOffset,
+    hardstopStartOffset,
     hardstopStart,
     hardstopEnd,
     itemSizeFn,
@@ -41,6 +43,7 @@ class ViewportRowsCalculator {
   } = {}) {
     privatePool.set(this, {
       viewportHeight: viewportSize,
+      hardstopStartOffset,
       scrollOffset,
       hardstopStart,
       hardstopEnd,
@@ -85,18 +88,18 @@ class ViewportRowsCalculator {
    * Calculates viewport
    */
   calculate() {
-    let sum = 0;
     let needReverse = true;
-    const startPositions = [];
 
     const priv = privatePool.get(this);
     const calculationType = priv.calculationType;
     const overrideFn = priv.overrideFn;
     const rowHeightFn = priv.rowHeightFn;
     const scrollOffset = priv.scrollOffset;
+    let sum = priv.hardstopStartOffset;
     const { hardstopStart, hardstopEnd } = priv;
     const viewportHeight = priv.viewportHeight;
     const horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
+    const startPositions = new Array(hardstopEnd + 1); // preallocate array
     let rowHeight;
 
     // Calculate the number (start and end index) of rows needed
@@ -117,7 +120,7 @@ class ViewportRowsCalculator {
         this.endRow = i;
       }
 
-      startPositions.push(sum);
+      startPositions[i] = sum;
       sum += rowHeight;
 
       if (calculationType !== FULLY_VISIBLE_TYPE) {
@@ -150,6 +153,11 @@ class ViewportRowsCalculator {
     if (calculationType === RENDER_TYPE && this.startRow !== null && overrideFn) {
       overrideFn(this);
     }
+
+    if (this.startRow !== null && this.startRow < hardstopStart) {
+      this.startRow = hardstopStart;
+    }
+
     this.startPosition = startPositions[this.startRow];
 
     if (this.startPosition === void 0) {

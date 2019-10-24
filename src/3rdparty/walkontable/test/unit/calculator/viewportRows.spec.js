@@ -14,6 +14,7 @@ describe('ViewportRowsCalculator', () => {
     const options = {
       viewportSize: 100,
       scrollOffset: 0,
+      hardstopStartOffset: 0,
       hardstopStart: 0,
       hardstopEnd: 999,
       itemSizeFn: index => allRows20(index),
@@ -43,6 +44,7 @@ describe('ViewportRowsCalculator', () => {
     const options = {
       viewportSize: 100,
       scrollOffset: 70,
+      hardstopStartOffset: 0,
       hardstopStart: 0,
       hardstopEnd: 999,
       itemSizeFn: index => allRows20(index),
@@ -76,6 +78,7 @@ describe('ViewportRowsCalculator', () => {
     const options = {
       viewportSize: 100,
       scrollOffset: 70,
+      hardstopStartOffset: 0,
       hardstopStart: 0,
       hardstopEnd: 999,
       itemSizeFn: index => allRows20(index),
@@ -109,6 +112,7 @@ describe('ViewportRowsCalculator', () => {
     const options = {
       viewportSize: 100,
       scrollOffset: 70,
+      hardstopStartOffset: 0,
       hardstopStart: 0,
       hardstopEnd: 7,
       itemSizeFn: index => allRows20(index),
@@ -137,6 +141,7 @@ describe('ViewportRowsCalculator', () => {
     const options = {
       viewportSize: 100,
       scrollOffset: 50,
+      hardstopStartOffset: 0,
       hardstopStart: 0,
       hardstopEnd: 999,
       itemSizeFn: index => allRows20(index),
@@ -156,6 +161,7 @@ describe('ViewportRowsCalculator', () => {
     const options = {
       viewportSize: 200,
       scrollOffset: 0,
+      hardstopStartOffset: 0,
       hardstopStart: 0,
       hardstopEnd: 7,
       itemSizeFn: index => allRows20(index),
@@ -183,6 +189,7 @@ describe('ViewportRowsCalculator', () => {
     const options = {
       viewportSize: 200,
       scrollOffset: 0,
+      hardstopStartOffset: 0,
       hardstopStart: 0,
       hardstopEnd: 9,
       itemSizeFn: index => allRows20(index),
@@ -210,6 +217,7 @@ describe('ViewportRowsCalculator', () => {
     const options = {
       viewportSize: 199,
       scrollOffset: 0,
+      hardstopStartOffset: 0,
       hardstopStart: 0,
       hardstopEnd: 9,
       itemSizeFn: index => allRows20(index),
@@ -237,6 +245,7 @@ describe('ViewportRowsCalculator', () => {
     const options = {
       viewportSize: 200,
       scrollOffset: 0,
+      hardstopStartOffset: 0,
       hardstopStart: 0,
       hardstopEnd: -1,
       itemSizeFn: index => allRows20(index),
@@ -269,6 +278,7 @@ describe('ViewportRowsCalculator', () => {
     const options = {
       viewportSize: 200,
       scrollOffset: 0,
+      hardstopStartOffset: 0,
       hardstopStart: 0,
       hardstopEnd: -1,
       itemSizeFn: index => allRows20(index),
@@ -297,6 +307,7 @@ describe('ViewportRowsCalculator', () => {
     const options = {
       viewportSize: 190,
       scrollOffset: 350,
+      hardstopStartOffset: 0,
       hardstopStart: 0,
       hardstopEnd: 19,
       itemSizeFn: index => allRows20(index),
@@ -326,6 +337,7 @@ describe('ViewportRowsCalculator', () => {
     const options = {
       viewportSize: 100,
       scrollOffset: 0,
+      hardstopStartOffset: 0,
       hardstopStart: 0,
       hardstopEnd: 999,
       itemSizeFn: () => (void 0 + 1),

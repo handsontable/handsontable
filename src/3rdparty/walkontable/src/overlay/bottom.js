@@ -237,8 +237,8 @@ class BottomOverlay extends Overlay {
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
       this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
-    } else if (total === 0) {
-      // can happen if there are 0 rows
+    } else if (total <= this.wot.getSetting('fixedRowsTop')) {
+      // can happen if all rows are rendered on the top overlay
       this.spreader.style.top = '0';
 
     } else {

@@ -304,7 +304,7 @@ class Viewport {
     const { wtSettings, wtOverlays, wtTable, rootDocument } = wot;
     let height;
     let scrollbarHeight;
-    let fixedRowsHeight;
+    let fixedRowsTopHeight = 0;
 
     this.rowHeaderWidth = NaN;
 
@@ -325,15 +325,15 @@ class Viewport {
     const totalRows = wot.getSetting('totalRows');
 
     if (fixedRowsTop) {
-      fixedRowsHeight = wtOverlays.topOverlay.sumCellSizes(0, fixedRowsTop);
-      pos += fixedRowsHeight;
-      height -= fixedRowsHeight;
+      fixedRowsTopHeight = wtOverlays.topOverlay.sumCellSizes(0, fixedRowsTop);
+      pos += fixedRowsTopHeight;
+      height -= fixedRowsTopHeight;
     }
 
     if (fixedRowsBottom && wtOverlays.bottomOverlay.clone) {
-      fixedRowsHeight = wtOverlays.bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
+      const fixedRowsBottomHeight = wtOverlays.bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
 
-      height -= fixedRowsHeight;
+      height -= fixedRowsBottomHeight;
     }
 
     if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
@@ -345,7 +345,8 @@ class Viewport {
     return new ViewportRowsCalculator({
       viewportSize: height,
       scrollOffset: pos,
-      hardstopStart: 0,
+      hardstopStartOffset: fixedRowsTopHeight,
+      hardstopStart: fixedRowsTop,
       hardstopEnd: totalRows - 1,
       itemSizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
       overrideFn: wtSettings.settings.viewportRowCalculatorOverride,
