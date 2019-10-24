@@ -256,7 +256,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
   const dataRows = [
     ...fixedRowsTop,
     ...Array.from(checkElement.tBodies).reduce((sections, section) => {
-      sections.push(...section.rows); return sections;
+      sections.push(...Array.from(section.rows)); return sections;
     }, []),
     ...fixedRowsBottom];
 

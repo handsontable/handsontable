@@ -48,6 +48,8 @@ class FocusableWrapper {
 
   /**
    * Switch to the main focusable element.
+   *
+   * @param {HTMLElement} element
    */
   setFocusableElement(element) {
     if (!this.listenersCount.has(element)) {
@@ -61,7 +63,7 @@ class FocusableWrapper {
   /**
    * Get currently set focusable element.
    *
-   * @return {HTMLElement}
+   * @returns {HTMLElement}
    */
   getFocusableElement() {
     return this.mainElement;
@@ -87,7 +89,7 @@ let refCounter = 0;
 /**
  * Create and return the FocusableWrapper instance.
  *
- * @return {FocusableWrapper}
+ * @returns {FocusableWrapper}
  */
 function createElement(rootDocument) {
   const focusableWrapper = new FocusableWrapper(rootDocument);
@@ -125,7 +127,7 @@ const secondaryElements = new WeakMap();
 /**
  * Create and attach newly created focusable element to the DOM.
  *
- * @return {HTMLElement}
+ * @returns {HTMLElement}
  */
 function createOrGetSecondaryElement(rootDocument) {
   const secondaryElement = secondaryElements.get(rootDocument);

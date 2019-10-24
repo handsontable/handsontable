@@ -688,5 +688,26 @@ describe('manualColumnResize', () => {
       expect($handle.offset().left).toEqual($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
       expect($handle.height()).toEqual($headerTH.outerHeight());
     });
+
+    it('should display the resize handle in the proper z-index and be greater than top overlay z-index', () => {
+      handsontable({
+        data: [
+          { id: 1, name: 'Ted', lastName: 'Right' },
+          { id: 2, name: 'Frank', lastName: 'Honest' },
+          { id: 3, name: 'Joan', lastName: 'Well' },
+          { id: 4, name: 'Sid', lastName: 'Strong' },
+          { id: 5, name: 'Jane', lastName: 'Neat' }
+        ],
+        colHeaders: true,
+        manualColumnResize: true
+      });
+
+      const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(1)');
+      $headerTH.simulate('mouseover');
+
+      const $handle = $('.manualColumnResizer');
+
+      expect($handle.css('z-index')).toBeGreaterThan(getTopClone().css('z-index'));
+    });
   });
 });

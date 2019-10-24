@@ -1402,6 +1402,27 @@ describe('TextEditor', () => {
     expect(getActiveEditor().TEXTAREA.value).toBe('999');
   });
 
+  it('should not prepare editor after the close editor and selecting the read-only cell', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      columns: [
+        { readOnly: true },
+        {}
+      ]
+    });
+
+    selectCell(0, 1);
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    selectCell(0, 0);
+
+    keyDownUp('enter');
+
+    expect(hot.getActiveEditor()).toBe(void 0);
+  });
+
   describe('IME support', () => {
     it('should focus editable element after selecting the cell', async() => {
       handsontable({

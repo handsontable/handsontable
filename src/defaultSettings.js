@@ -1630,15 +1630,35 @@ DefaultSettings.prototype = {
   contextMenu: void 0,
 
   /**
-   * Disables or enables the copy/paste functionality.
+   * Disables or enables CopyPaste plugin to provide the copy/cut/paste functionality.
+   * Possible values:
+   * * `true` (to enable default options),
+   * * `false` (to disable completely)
    *
-   * @type {Boolean}
+   * or an object with values:
+   * * `'columnsLimit'` (see {@link CopyPaste#columnsLimit})
+   * * `'rowsLimit'` (see {@link CopyPaste#rowsLimit})
+   * * `'pasteMode'` (see {@link CopyPaste#pasteMode})
+   *
+   * @type {Boolean|Object}
    * @default true
    *
    * @example
    * ```js
    * // disable copy and paste
    * copyPaste: false,
+   * ```
+   * @example
+   * ```js
+   * // disable copy and paste
+   * copyPaste: false,
+   *
+   * // or
+   * copyPaste: {
+   *   pasteMode: 'shift_right',
+   *   columnsLimit: 10,
+   *   rowsLimit: 10,
+   * }
    * ```
    */
   copyPaste: true,
