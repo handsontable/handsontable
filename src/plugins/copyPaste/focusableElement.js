@@ -30,7 +30,11 @@ class FocusableWrapper {
      * @type {WeakSet}
      */
     this.listenersCount = new WeakSet();
-
+    /**
+     * Parent for an focusable element.
+     *
+     * @type {HTMLElement}
+     */
     this.container = container;
   }
 
