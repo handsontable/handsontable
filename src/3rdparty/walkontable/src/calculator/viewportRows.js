@@ -22,7 +22,8 @@ class ViewportRowsCalculator {
    * @param {Object} options Object with all options specyfied for row viewport calculation.
    * @param {Number} options.viewportHeight Height of the viewport
    * @param {Number} options.scrollOffset Current vertical scroll position of the viewport
-   * @param {Number} options.totalRows Total number of rows
+   * @param {Number} options.hardstopStart Index of the first possibly renderable row
+   * @param {Number} options.hardstopEnd Index of the last possibly renderable row
    * @param {Function} options.rowHeightFn Function that returns the height of the row at a given index (in px)
    * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
    * @param {String} options.calculationType String which describes types of calculation which will be performed.
@@ -31,7 +32,8 @@ class ViewportRowsCalculator {
   constructor({
     viewportSize,
     scrollOffset,
-    totalItems,
+    hardstopStart,
+    hardstopEnd,
     itemSizeFn,
     overrideFn,
     calculationType,
@@ -40,7 +42,8 @@ class ViewportRowsCalculator {
     privatePool.set(this, {
       viewportHeight: viewportSize,
       scrollOffset,
-      totalRows: totalItems,
+      hardstopStart,
+      hardstopEnd,
       rowHeightFn: itemSizeFn,
       overrideFn,
       calculationType,
@@ -91,13 +94,13 @@ class ViewportRowsCalculator {
     const overrideFn = priv.overrideFn;
     const rowHeightFn = priv.rowHeightFn;
     const scrollOffset = priv.scrollOffset;
-    const totalRows = priv.totalRows;
+    const { hardstopStart, hardstopEnd } = priv;
     const viewportHeight = priv.viewportHeight;
     const horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
     let rowHeight;
 
     // Calculate the number (start and end index) of rows needed
-    for (let i = 0; i < totalRows; i++) {
+    for (let i = hardstopStart; i <= hardstopEnd; i++) {
       rowHeight = rowHeightFn(i);
 
       if (isNaN(rowHeight)) {
@@ -128,10 +131,10 @@ class ViewportRowsCalculator {
 
     // If the estimation has reached the last row and there is still some space available in the viewport,
     // we need to render in reverse in order to fill the whole viewport with rows
-    if (this.endRow === totalRows - 1 && needReverse) {
+    if (this.endRow === hardstopEnd && needReverse) {
       this.startRow = this.endRow;
 
-      while (this.startRow > 0) {
+      while (this.startRow > hardstopStart) {
         // rowHeight is the height of the last row
         const viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1];
 
@@ -153,9 +156,8 @@ class ViewportRowsCalculator {
       this.startPosition = null;
     }
 
-    // If totalRows exceeded its total rows size set endRow to the latest item
-    if (totalRows < this.endRow) {
-      this.endRow = totalRows - 1;
+    if (hardstopEnd + 1 < this.endRow) {
+      this.endRow = hardstopEnd;
     }
 
     if (this.startRow !== null) {

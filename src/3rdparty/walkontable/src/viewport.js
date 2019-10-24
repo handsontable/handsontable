@@ -345,7 +345,8 @@ class Viewport {
     return new ViewportRowsCalculator({
       viewportSize: height,
       scrollOffset: pos,
-      totalItems: wot.getSetting('totalRows'),
+      hardstopStart: 0,
+      hardstopEnd: totalRows - 1,
       itemSizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
       overrideFn: wtSettings.settings.viewportRowCalculatorOverride,
       calculationType,
@@ -373,6 +374,7 @@ class Viewport {
     }
 
     const fixedColumnsLeft = wot.getSetting('fixedColumnsLeft');
+    const totalColumns = wot.getSetting('totalColumns');
 
     if (fixedColumnsLeft) {
       const fixedColumnsWidth = wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
@@ -386,7 +388,8 @@ class Viewport {
     return new ViewportColumnsCalculator({
       viewportSize: width,
       scrollOffset: pos,
-      totalItems: wot.getSetting('totalColumns'),
+      hardstopStart: 0,
+      hardstopEnd: totalColumns - 1,
       itemSizeFn: sourceCol => wot.wtTable.getColumnWidth(sourceCol),
       overrideFn: wtSettings.settings.viewportColumnCalculatorOverride,
       calculationType,

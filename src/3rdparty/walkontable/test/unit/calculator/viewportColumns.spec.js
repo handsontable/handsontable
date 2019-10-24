@@ -14,7 +14,8 @@ describe('ViewportColumnsCalculator', () => {
     const options = {
       viewportSize: 100,
       scrollOffset: 0,
-      totalItems: 1000,
+      hardstopStart: 0,
+      hardstopEnd: 999,
       itemSizeFn: index => allColumns20(index),
       overrideFn: void 0,
       stretchMode: void 0,
@@ -42,7 +43,8 @@ describe('ViewportColumnsCalculator', () => {
     const options = {
       viewportSize: 100,
       scrollOffset: 70,
-      totalItems: 1000,
+      hardstopStart: 0,
+      hardstopEnd: 999,
       itemSizeFn: index => allColumns20(index),
       overrideFn: void 0,
       stretchMode: void 0,
@@ -74,7 +76,8 @@ describe('ViewportColumnsCalculator', () => {
     const options = {
       viewportSize: 100,
       scrollOffset: 70,
-      totalItems: 1000,
+      hardstopStart: 0,
+      hardstopEnd: 999,
       itemSizeFn: index => allColumns20(index),
       overrideFn: calc => overrideFn(calc),
       stretchMode: void 0,
@@ -106,7 +109,8 @@ describe('ViewportColumnsCalculator', () => {
     const options = {
       viewportSize: 100,
       scrollOffset: 70,
-      totalItems: 8,
+      hardstopStart: 0,
+      hardstopEnd: 7,
       itemSizeFn: index => allColumns20(index),
       overrideFn: calc => overrideFn(calc),
       stretchMode: void 0,
@@ -134,7 +138,8 @@ describe('ViewportColumnsCalculator', () => {
     const options = {
       viewportSize: 100,
       scrollOffset: 50,
-      totalItems: 1000,
+      hardstopStart: 0,
+      hardstopEnd: 999,
       itemSizeFn: index => allColumns20(index),
       overrideFn: void 0,
       stretchMode: void 0,
@@ -153,7 +158,8 @@ describe('ViewportColumnsCalculator', () => {
     const options = {
       viewportSize: 200,
       scrollOffset: 0,
-      totalItems: 8,
+      hardstopStart: 0,
+      hardstopEnd: 7,
       itemSizeFn: index => allColumns20(index),
       overrideFn: void 0,
       stretchMode: void 0,
@@ -180,7 +186,8 @@ describe('ViewportColumnsCalculator', () => {
     const options = {
       viewportSize: 200,
       scrollOffset: 0,
-      totalItems: 10,
+      hardstopStart: 0,
+      hardstopEnd: 9,
       itemSizeFn: index => allColumns20(index),
       overrideFn: void 0,
       stretchMode: void 0,
@@ -207,7 +214,8 @@ describe('ViewportColumnsCalculator', () => {
     const options = {
       viewportSize: 199,
       scrollOffset: 0,
-      totalItems: 10,
+      hardstopStart: 0,
+      hardstopEnd: 9,
       itemSizeFn: index => allColumns20(index),
       overrideFn: void 0,
       stretchMode: void 0,
@@ -234,7 +242,8 @@ describe('ViewportColumnsCalculator', () => {
     const options = {
       viewportSize: 200,
       scrollOffset: 0,
-      totalItems: 0,
+      hardstopStart: 0,
+      hardstopEnd: -1,
       itemSizeFn: index => allColumns20(index),
       overrideFn: void 0,
       stretchMode: void 0,
@@ -266,7 +275,8 @@ describe('ViewportColumnsCalculator', () => {
     const options = {
       viewportSize: 200,
       scrollOffset: 0,
-      totalItems: 0,
+      hardstopStart: 0,
+      hardstopEnd: -1,
       itemSizeFn: index => allColumns20(index),
       overrideFn: calc => overrideFn(calc),
       stretchMode: void 0,
@@ -294,7 +304,8 @@ describe('ViewportColumnsCalculator', () => {
     const options = {
       viewportSize: 190,
       scrollOffset: 350,
-      totalItems: 20,
+      hardstopStart: 0,
+      hardstopEnd: 19,
       itemSizeFn: index => allColumns20(index),
       overrideFn: void 0,
       stretchMode: void 0,
@@ -322,7 +333,8 @@ describe('ViewportColumnsCalculator', () => {
     const calc = new ViewportColumnsCalculator({
       viewportSize: 250,
       scrollOffset: 0,
-      totalItems: 20,
+      hardstopStart: 0,
+      hardstopEnd: 19,
       itemSizeFn: index => allColumns20(index),
       overrideFn: void 0,
       calculationType: RENDER_TYPE,
@@ -343,7 +355,8 @@ describe('ViewportColumnsCalculator', () => {
     const calc = new ViewportColumnsCalculator({
       viewportSize: 250,
       scrollOffset: 0,
-      totalItems: 5,
+      hardstopStart: 0,
+      hardstopEnd: 4,
       itemSizeFn: index => allColumns20(index),
       overrideFn: void 0,
       calculationType: RENDER_TYPE,
@@ -364,7 +377,8 @@ describe('ViewportColumnsCalculator', () => {
     const calc = new ViewportColumnsCalculator({
       viewportSize: 250,
       scrollOffset: 0,
-      totalItems: 5,
+      hardstopStart: 0,
+      hardstopEnd: 4,
       itemSizeFn: index => allColumns20(index),
       overrideFn: void 0,
       calculationType: RENDER_TYPE,
@@ -390,7 +404,8 @@ describe('ViewportColumnsCalculator', () => {
     const calc = new ViewportColumnsCalculator({
       viewportSize: 250,
       scrollOffset: 0,
-      totalItems: 5,
+      hardstopStart: 0,
+      hardstopEnd: 4,
       itemSizeFn: index => allColumns20(index),
       overrideFn: void 0,
       calculationType: RENDER_TYPE,
@@ -413,7 +428,8 @@ describe('ViewportColumnsCalculator', () => {
     const calc = new ViewportColumnsCalculator({
       viewportSize: 250,
       scrollOffset: 0,
-      totalItems: 5,
+      hardstopStart: 0,
+      hardstopEnd: 4,
       itemSizeFn: index => allColumns20(index),
       overrideFn: void 0,
       calculationType: RENDER_TYPE,
@@ -445,7 +461,8 @@ describe('ViewportColumnsCalculator', () => {
     const options = {
       viewportSize: 200,
       scrollOffset: 0,
-      totalItems: 1000,
+      hardstopStart: 0,
+      hardstopEnd: 999,
       itemSizeFn: () => (void 0 + 1),
       overrideFn: void 0,
       stretchMode: void 0,
