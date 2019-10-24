@@ -43,7 +43,7 @@ describe('AutoRowSize', () => {
   it('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (long text in row) #4000', async() => {
     const row = ['This is very long text which will break this cell text into two lines'];
     const data = [];
-    const nrOfRows = 1000;
+    const nrOfRows = 200;
     const columnWidth = 100;
 
     for (let i = 0; i < nrOfRows; i += 1) {
@@ -60,7 +60,7 @@ describe('AutoRowSize', () => {
 
     const oldHeight = spec().$container[0].scrollHeight;
 
-    await sleep(1000);
+    await sleep(200);
 
     const newHeight = spec().$container[0].scrollHeight;
     expect(oldHeight).toBeLessThan(newHeight);
@@ -113,7 +113,7 @@ describe('AutoRowSize', () => {
         autoRowSize: true
       });
 
-      await sleep(1000);
+      await sleep(200);
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
@@ -127,7 +127,7 @@ describe('AutoRowSize', () => {
         autoRowSize: true
       });
 
-      await sleep(1000);
+      await sleep(200);
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
@@ -141,7 +141,7 @@ describe('AutoRowSize', () => {
         autoRowSize: true
       });
 
-      await sleep(1000);
+      await sleep(200);
 
       const newHeight = spec().$container[0].scrollHeight;
 
@@ -156,7 +156,7 @@ describe('AutoRowSize', () => {
         autoRowSize: true
       });
 
-      await sleep(1000);
+      await sleep(200);
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
