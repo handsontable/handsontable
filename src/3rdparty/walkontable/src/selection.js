@@ -150,7 +150,7 @@ class Selection {
   /**
    * Adds class name to cell element at given coords
    *
-   * @param {Walkontable} wotInstance Walkontable instance
+   * @param {Table} wtTable
    * @param {Number} sourceRow Cell row coord
    * @param {Number} sourceColumn Cell column coord
    * @param {String} className Class name
@@ -158,8 +158,8 @@ class Selection {
    *                                            in a continuous way.
    * @returns {Selection}
    */
-  addClassAtCoords(wotInstance, sourceRow, sourceColumn, className, markIntersections = false) {
-    const TD = wotInstance.wtTable.getCell(new CellCoords(sourceRow, sourceColumn));
+  addClassAtCoords(wtTable, sourceRow, sourceColumn, className, markIntersections = false) {
+    const TD = wtTable.getCell(new CellCoords(sourceRow, sourceColumn));
 
     if (typeof TD === 'object') {
       let cellClassName = className;
@@ -231,26 +231,26 @@ class Selection {
    * Get TD from a relevant overlay in case when the TD is not rendered on the current overlay. The TD is needed for
    * measurements done on `borderEdgesDescriptor`.
    *
-   * @param {Walkontable} wotInstance
+   * @param {Table} wtTable
    * @param {Number} row
    * @param {Number} col
-   * @param {Number} firstRenderedRow
-   * @param {Number} lastRenderedRow
-   * @param {Number} lastRenderedColumn
+   * @param {Number} tableStartRow
+   * @param {Number} tableEndRow
+   * @param {Number} tableEndColumn
    */
-  getRelevantCell(wotInstance, row, col, firstRenderedRow, lastRenderedRow, lastRenderedColumn) {
-    let td = wotInstance.wtTable.getCell({ row, col });
+  getRelevantCell(wtTable, row, col, tableStartRow, tableEndRow, tableEndColumn) {
+    let td = wtTable.getCell({ row, col });
 
     if (typeof td === 'number') {
       let container;
-      if ((row > lastRenderedRow && col > lastRenderedColumn) || (col > lastRenderedColumn && row < firstRenderedRow)) {
-        container = wotInstance.wtTable.getTableNeighborDiagonal();
-      } else if (row > lastRenderedRow) {
-        container = wotInstance.wtTable.getTableNeighborSouth();
-      } else if (col > lastRenderedColumn) {
-        container = wotInstance.wtTable.getTableNeighborEast();
-      } else if (row < firstRenderedRow) {
-        container = wotInstance.wtTable.getTableNeighborNorth();
+      if ((row > tableEndRow && col > tableEndColumn) || (col > tableEndColumn && row < tableStartRow)) {
+        container = wtTable.getTableNeighborDiagonal();
+      } else if (row > tableEndRow) {
+        container = wtTable.getTableNeighborSouth();
+      } else if (col > tableEndColumn) {
+        container = wtTable.getTableNeighborEast();
+      } else if (row < tableStartRow) {
+        container = wtTable.getTableNeighborNorth();
       }
 
       td = container.getCell({ row, col });
@@ -282,118 +282,118 @@ class Selection {
     }
 
     const { wtTable } = wotInstance;
-    const renderedRows = wotInstance.wtTable.getRenderedRowsCount();
-    const renderedColumns = wotInstance.wtTable.getRenderedColumnsCount();
+    const tableRowsCount = wtTable.getRenderedRowsCount();
+    const tableColumnsCount = wtTable.getRenderedColumnsCount();
 
     const { highlightHeaderClassName, highlightRowClassName, highlightColumnClassName } = this.settings;
-    const corners = this.getCorners();
-    const [firstRow, firstColumn, lastRow, lastColumn] = corners; // row/column values can be negative if row/column header was clicked
+    const selectionCorners = this.getCorners();
+    const [selectionSettingTop, selectionSettingLeft, selectionSettingBottom, selectionSettingRight] = selectionCorners; // row/column values can be negative if row/column header was clicked
 
-    const tableFirstRenderedRow = wotInstance.wtTable.getFirstRenderedRow(); // -1 when there are no rendered rows
-    const tableFirstRenderedColumn = wotInstance.wtTable.getFirstRenderedColumn(); // -1 when there are no rendered columns
-    const tableLastRenderedRow = wotInstance.wtTable.getLastRenderedRow(); // null when there are no rendered rows
-    const tableLastRenderedColumn = wotInstance.wtTable.getLastRenderedColumn(); // null when there are no rendered columns
+    const tableStartRow = wtTable.getFirstRenderedRow(); // -1 when there are no rendered rows
+    const tableStartColumn = wtTable.getFirstRenderedColumn(); // -1 when there are no rendered columns
+    const tableEndRow = wtTable.getLastRenderedRow(); // null when there are no rendered rows
+    const tableEndColumn = wtTable.getLastRenderedColumn(); // null when there are no rendered columns
 
     /*
-    renderingOffsets are used to render side effects of borders from other overlays,
+    neighborOverlaps are used to render side effects of borders from other overlays,
     e.g. when fixedRowsTop === 1, this method will render the top border of the cell A2 (from the master table)
     as the bottom border of the cell A1 (on the top overlay table).
     */
 
-    let renderingOffsetEast = 0;
-    let renderingOffsetSouth = 0;
-    let renderingOffsetNorth = 0;
+    let neighborOverlapRight = 0;
+    let neighborOverlapBottom = 0;
+    let neighborOverlapTop = 0;
 
     if (wtTable.getTableNeighborEast && wtTable.getTableNeighborEast().getFirstVisibleColumn() === wtTable.getLastVisibleColumn() + 1) {
-      renderingOffsetEast = 1;
+      neighborOverlapRight = 1;
     }
     if (wtTable.getTableNeighborSouth && wtTable.getTableNeighborSouth().getFirstVisibleRow() === wtTable.getLastVisibleRow() + 1) {
-      renderingOffsetSouth = 1;
+      neighborOverlapBottom = 1;
     }
     if (wtTable.getTableNeighborNorth && wtTable.getTableNeighborNorth().getLastVisibleRow() === wtTable.getFirstVisibleRow() - 1) {
-      renderingOffsetNorth = -1;
+      neighborOverlapTop = -1;
     }
 
-    const highlightFirstRenderedRow = Math.max(firstRow, tableFirstRenderedRow + renderingOffsetNorth);
-    const highlightFirstRenderedColumn = Math.max(firstColumn, tableFirstRenderedColumn);
-    const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow + renderingOffsetSouth);
-    const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn + renderingOffsetEast);
+    const selectionStartRow = Math.max(selectionSettingTop, tableStartRow + neighborOverlapTop);
+    const selectionStartColumn = Math.max(selectionSettingLeft, tableStartColumn);
+    const selectionEndRow = Math.min(selectionSettingBottom, tableEndRow + neighborOverlapBottom);
+    const selectionEndColumn = Math.min(selectionSettingRight, tableEndColumn + neighborOverlapRight);
 
-    if (renderedColumns && (highlightHeaderClassName || highlightColumnClassName)) {
-      for (let sourceColumn = highlightFirstRenderedColumn; sourceColumn <= highlightLastRenderedColumn; sourceColumn += 1) {
-        this.addClassIfElemExists(wotInstance.wtTable.getColumnHeader(sourceColumn), [highlightHeaderClassName, highlightColumnClassName]);
+    if (tableColumnsCount && (highlightHeaderClassName || highlightColumnClassName)) {
+      for (let sourceColumn = selectionStartColumn; sourceColumn <= selectionEndColumn; sourceColumn += 1) {
+        this.addClassIfElemExists(wtTable.getColumnHeader(sourceColumn), [highlightHeaderClassName, highlightColumnClassName]);
 
         if (highlightColumnClassName) {
-          for (let renderedRow = 0; renderedRow < renderedRows; renderedRow += 1) {
-            if (renderedRow < highlightFirstRenderedRow || renderedRow > highlightLastRenderedRow) {
-              const sourceRow = wotInstance.wtTable.rowFilter.renderedToSource(renderedRow);
+          for (let renderedRow = 0; renderedRow < tableRowsCount; renderedRow += 1) {
+            if (renderedRow < selectionStartRow || renderedRow > selectionEndRow) {
+              const sourceRow = wtTable.rowFilter.renderedToSource(renderedRow);
 
-              this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, highlightColumnClassName);
+              this.addClassAtCoords(wtTable, sourceRow, sourceColumn, highlightColumnClassName);
             }
           }
         }
       }
     }
 
-    if (renderedRows && (highlightHeaderClassName || highlightRowClassName)) {
-      for (let sourceRow = highlightFirstRenderedRow; sourceRow <= highlightLastRenderedRow; sourceRow += 1) {
-        this.addClassIfElemExists(wotInstance.wtTable.getRowHeader(sourceRow), [highlightHeaderClassName, highlightRowClassName]);
+    if (tableRowsCount && (highlightHeaderClassName || highlightRowClassName)) {
+      for (let sourceRow = selectionStartRow; sourceRow <= selectionEndRow; sourceRow += 1) {
+        this.addClassIfElemExists(wtTable.getRowHeader(sourceRow), [highlightHeaderClassName, highlightRowClassName]);
 
         if (highlightRowClassName) {
-          for (let renderedColumn = 0; renderedColumn < renderedColumns; renderedColumn += 1) {
-            if (renderedColumn < highlightFirstRenderedColumn || renderedColumn > highlightLastRenderedColumn) {
-              const sourceColumn = wotInstance.wtTable.columnFilter.renderedToSource(renderedColumn);
+          for (let renderedColumn = 0; renderedColumn < tableColumnsCount; renderedColumn += 1) {
+            if (renderedColumn < selectionStartColumn || renderedColumn > selectionEndColumn) {
+              const sourceColumn = wtTable.columnFilter.renderedToSource(renderedColumn);
 
-              this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, highlightRowClassName);
+              this.addClassAtCoords(wtTable, sourceRow, sourceColumn, highlightRowClassName);
             }
           }
         }
       }
     }
 
-    if (renderedRows && renderedColumns) {
-      if (this.settings.border && highlightFirstRenderedRow <= highlightLastRenderedRow && highlightFirstRenderedColumn <= highlightLastRenderedColumn) {
-        const hasTopEdge = highlightFirstRenderedRow === firstRow;
-        const hasRightEdge = highlightLastRenderedColumn === lastColumn;
-        const hasBottomEdge = highlightLastRenderedRow === lastRow;
-        const hasLeftEdge = highlightFirstRenderedColumn === firstColumn;
+    if (tableRowsCount && tableColumnsCount) {
+      if (this.settings.border && selectionStartRow <= selectionEndRow && selectionStartColumn <= selectionEndColumn) {
+        const hasTopEdge = selectionStartRow === selectionSettingTop;
+        const hasRightEdge = selectionEndColumn === selectionSettingRight;
+        const hasBottomEdge = selectionEndRow === selectionSettingBottom;
+        const hasLeftEdge = selectionStartColumn === selectionSettingLeft;
 
-        const firstTd = this.getRelevantCell(wotInstance, highlightFirstRenderedRow, highlightFirstRenderedColumn,
-          tableFirstRenderedRow, tableLastRenderedRow, tableLastRenderedColumn);
-        let lastTd;
+        const topLeftTd = this.getRelevantCell(wtTable, selectionStartRow, selectionStartColumn,
+          tableStartRow, tableEndRow, tableEndColumn);
+        let bottomRightTd;
 
-        if (highlightFirstRenderedRow === highlightLastRenderedRow && highlightFirstRenderedColumn === highlightLastRenderedColumn) {
-          lastTd = firstTd;
+        if (selectionStartRow === selectionEndRow && selectionStartColumn === selectionEndColumn) {
+          bottomRightTd = topLeftTd;
         } else {
-          lastTd = this.getRelevantCell(wotInstance, highlightLastRenderedRow, highlightLastRenderedColumn,
-            tableFirstRenderedRow, tableLastRenderedRow, tableLastRenderedColumn);
+          bottomRightTd = this.getRelevantCell(wtTable, selectionEndRow, selectionEndColumn,
+            tableStartRow, tableEndRow, tableEndColumn);
         }
 
-        if (firstTd && lastTd) {
-          this.borderEdgesDescriptor = [this.settings, firstTd, lastTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
+        if (topLeftTd && bottomRightTd) {
+          this.borderEdgesDescriptor = [this.settings, topLeftTd, bottomRightTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
         }
       }
 
-      for (let sourceRow = highlightFirstRenderedRow; sourceRow <= highlightLastRenderedRow; sourceRow += 1) {
-        for (let sourceColumn = highlightFirstRenderedColumn; sourceColumn <= highlightLastRenderedColumn; sourceColumn += 1) {
+      for (let sourceRow = selectionStartRow; sourceRow <= selectionEndRow; sourceRow += 1) {
+        for (let sourceColumn = selectionStartColumn; sourceColumn <= selectionEndColumn; sourceColumn += 1) {
 
-          if (sourceRow >= highlightFirstRenderedRow
-            && sourceRow <= highlightLastRenderedRow
-            && sourceColumn >= highlightFirstRenderedColumn
-            && sourceColumn <= highlightLastRenderedColumn) {
+          if (sourceRow >= selectionStartRow
+            && sourceRow <= selectionEndRow
+            && sourceColumn >= selectionStartColumn
+            && sourceColumn <= selectionEndColumn) {
             // selected cell
             if (this.settings.className) {
-              this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, this.settings.className, this.settings.markIntersections);
+              this.addClassAtCoords(wtTable, sourceRow, sourceColumn, this.settings.className, this.settings.markIntersections);
             }
           }
 
           if (this.settings.className) {
             // This has a big perf cost. Don't perform this for custom borders
 
-            const additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceColumn, corners, this.settings.layerLevel);
+            const additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceColumn, selectionCorners, this.settings.layerLevel);
 
             if (typeof additionalSelectionClass === 'string') {
-              this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, additionalSelectionClass);
+              this.addClassAtCoords(wtTable, sourceRow, sourceColumn, additionalSelectionClass);
             }
           }
 
@@ -401,11 +401,11 @@ class Selection {
       }
     }
 
-    wotInstance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
+    wotInstance.getSetting('onBeforeDrawBorders', selectionCorners, this.settings.className);
 
     if (this.hasSelectionHandle()) {
       // warning! selectionHandle.appear modifies corners!
-      this.getSelectionHandle(wotInstance).appear(corners);
+      this.getSelectionHandle(wotInstance).appear(selectionCorners);
     }
   }
 
