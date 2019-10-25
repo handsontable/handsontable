@@ -1,4 +1,5 @@
 <div align="center">
+Note
 
 [![Handsontable](https://raw.githubusercontent.com/handsontable/static-files/master/Images/Logo/Handsontable/Handsontable-logo-300-74-new.png)](//handsontable.com)
 
