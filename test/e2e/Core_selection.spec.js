@@ -851,10 +851,10 @@ describe('Core_selection', () => {
       fixedColumnsLeft: 2
     });
 
-    spec().$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
+    spec().$container.find('.ht_clone_top_left_corner tr:eq(2) th:eq(0)').simulate('mousedown');
     expect(getSelected()).toEqual([[1, 0, 1, 4]]);
 
-    spec().$container.find('tr:eq(3) th:eq(0)').simulate('mousedown');
+    spec().$container.find('.ht_master tr:eq(1) th:eq(0)').simulate('mousedown');
     expect(getSelected()).toEqual([[2, 0, 2, 4]]);
   });
 

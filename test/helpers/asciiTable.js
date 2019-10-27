@@ -102,6 +102,13 @@ function cellFactory(overlay) {
   return (row, column) => overlay && overlay.rows[row] && overlay.rows[row].cells[column];
 }
 
+const TABLE_EDGES_SYMBOL = '|';
+const COLUMN_SEPARATOR = ':';
+const ROW_HEADER_SEPARATOR = '\u2551';
+const COLUMN_HEADER_SEPARATOR = '===';
+const ROW_OVERLAY_SEPARATOR = '|';
+const COLUMN_OVERLAY_SEPARATOR = '---';
+
 /**
  * Generates table based on Handsontable structure.
  *
@@ -109,114 +116,104 @@ function cellFactory(overlay) {
  * @return {String}
  */
 export function generateASCIITable(context) {
-  const TABLE_EDGES_SYMBOL = '|';
-  const COLUMN_SEPARATOR = ':';
-  const ROW_HEADER_SEPARATOR = '\u2551';
-  const COLUMN_HEADER_SEPARATOR = '===';
-  const ROW_OVERLAY_SEPARATOR = '|';
-  const COLUMN_OVERLAY_SEPARATOR = '---';
-
   const cornerOverlayTable = $('.ht_clone_top_left_corner .htCore', context);
   const leftOverlayTable = $('.ht_clone_left .htCore', context);
   const topOverlayTable = $('.ht_clone_top .htCore', context);
   const masterTable = $('.ht_master .htCore', context);
+  const stringRowsLeft = [];
+  const stringRowsRight = [];
+  let skipLeft = 0;
+  let skipTop = 0;
+
+  if (cornerOverlayTable) {
+    stringRowsLeft.push(...generateASCIISubtable(cornerOverlayTable, 0, 0, true));
+    const countCols = cornerOverlayTable.rows[0].cells.length;
+    skipLeft = countCols;
+    const separator = cornerOverlayTable.rows.length > 1 ? COLUMN_OVERLAY_SEPARATOR : COLUMN_HEADER_SEPARATOR;
+    stringRowsLeft.push(new Array(countCols).fill(separator).join(COLUMN_SEPARATOR) + COLUMN_SEPARATOR);
+  }
+  if (topOverlayTable) {
+    stringRowsRight.push(...generateASCIISubtable(topOverlayTable, 0, skipLeft, false));
+    const countCols = topOverlayTable.rows[0].cells.length - skipLeft;
+    skipTop = 1;
+    const separator = topOverlayTable.rows.length > 1 ? COLUMN_OVERLAY_SEPARATOR : COLUMN_HEADER_SEPARATOR;
+    stringRowsRight.push(new Array(countCols).fill(separator).join(COLUMN_SEPARATOR));
+    // stringRowsRight.push(new Array(countCols).fill(COLUMN_OVERLAY_SEPARATOR).join(COLUMN_SEPARATOR));
+  }
+  if (leftOverlayTable) {
+    stringRowsLeft.push(...generateASCIISubtable(leftOverlayTable, skipTop, 0, true));
+    const countCols = leftOverlayTable.rows[0].cells.length;
+    skipLeft = countCols;
+  }
+  if (masterTable) {
+    stringRowsRight.push(...generateASCIISubtable(masterTable, skipTop, skipLeft, false));
+  }
+
+  let stringRows = [];
+
+  if (stringRowsLeft.length) {
+    stringRows = stringRowsLeft.map((stringRow, index) => {
+      return `${TABLE_EDGES_SYMBOL}${stringRow}${stringRowsRight[index]}${TABLE_EDGES_SYMBOL}`;
+    });
+  } else {
+    stringRows = stringRowsRight.map(stringRow => `${TABLE_EDGES_SYMBOL}${stringRow}${TABLE_EDGES_SYMBOL}`);
+  }
+
+  return stringRows.join('\n');
+}
+
+function generateASCIISubtable(table, skipTop, skipLeft, isLeft) {
   const stringRows = [];
+  const rowsLength = table.rows.length;
+  const getCell = cellFactory(table);
+  let cell;
+  let wasTopHeader = false;
 
-  const cornerOverlayCells = cellFactory(cornerOverlayTable);
-  const leftOverlayCells = cellFactory(leftOverlayTable);
-  const topOverlayCells = cellFactory(topOverlayTable);
-  const masterCells = cellFactory(masterTable);
-
-  const hasLeftHeader = leftOverlayCells(1, 0) ? isLeftHeader(leftOverlayCells(1, 0)) : false;
-  const hasTopHeader = topOverlayCells(0, 1) ? isTopHeader(topOverlayCells(0, 1)) : false;
-  const hasCornerHeader = hasLeftHeader && hasTopHeader;
-  const hasFixedLeftCells = leftOverlayCells(1, 1) ? !isLeftHeader(leftOverlayCells(1, 1)) : false;
-  const hasFixedTopCells = topOverlayCells(1, 1) ? !isTopHeader(topOverlayCells(1, 1)) : false;
-
-  const consumedFlags = new Map([
-    ['hasLeftHeader', hasLeftHeader],
-    ['hasTopHeader', hasTopHeader],
-    ['hasCornerHeader', hasCornerHeader],
-    ['hasFixedLeftCells', hasFixedLeftCells],
-    ['hasFixedTopCells', hasLeftHeader],
-  ]);
-
-  const rowsLength = masterTable.rows.length;
-
-  for (let r = 0; r < rowsLength; r++) {
+  for (let r = skipTop; r < rowsLength; r++) {
     const stringCells = [];
-    const columnsLength = masterTable.rows[0].cells.length;
+    const columnsLength = table.rows[0].cells.length;
     let isLastColumn = false;
-    let insertTopOverlayRowSeparator = false;
 
-    for (let c = 0; c < columnsLength; c++) {
-      let cellSymbol;
+    for (let c = skipLeft; c < columnsLength; c++) {
       let separatorSymbol = COLUMN_SEPARATOR;
 
       isLastColumn = c === columnsLength - 1;
 
-      if (cornerOverlayCells(r, c)) {
-        const cell = cornerOverlayCells(r, c);
-        const nextCell = cornerOverlayCells(r, c + 1);
+      cell = getCell(r, c);
+      const nextCell = getCell(r, c + 1);
+      const cellSymbol = getSelectionSymbol(cell);
 
-        cellSymbol = getSelectionSymbol(cell);
-
-        if (isLeftHeader(cell) && (!nextCell || !isLeftHeader(nextCell))) {
-          separatorSymbol = ROW_HEADER_SEPARATOR;
-        }
-        if (!isLeftHeader(cell) && !nextCell) {
-          separatorSymbol = ROW_OVERLAY_SEPARATOR;
-        }
-        if (r === 0 && c === 0 && hasCornerHeader) { // Fix for header symbol
-          separatorSymbol = ROW_HEADER_SEPARATOR;
-        }
-
-      } else if (leftOverlayCells(r, c)) {
-        const cell = leftOverlayCells(r, c);
-        const nextCell = leftOverlayCells(r, c + 1);
-
-        cellSymbol = getSelectionSymbol(cell);
-
-        if (isLeftHeader(cell) && (!nextCell || !isLeftHeader(nextCell))) {
-          separatorSymbol = ROW_HEADER_SEPARATOR;
-        }
-        if (!isLeftHeader(cell) && !nextCell) {
-          separatorSymbol = ROW_OVERLAY_SEPARATOR;
-        }
-
-      } else if (topOverlayCells(r, c)) {
-        const cell = topOverlayCells(r, c);
-
-        cellSymbol = getSelectionSymbol(cell);
-
-        if (hasFixedTopCells && isLastColumn && !topOverlayCells(r + 1, c)) {
-          insertTopOverlayRowSeparator = true;
-        }
-
-      } else if (masterCells(r, c)) {
-        const cell = masterCells(r, c);
-
-        cellSymbol = getSelectionSymbol(cell);
+      if (isTopHeader(cell)) {
+        wasTopHeader = true;
+      }
+      if (isLeftHeader(cell) && (!nextCell || !isLeftHeader(nextCell))) {
+        separatorSymbol = ROW_HEADER_SEPARATOR;
+      }
+      if (!isLeftHeader(cell) && !nextCell) {
+        separatorSymbol = ROW_OVERLAY_SEPARATOR;
+      }
+      if (r === 0 && c === 0 && isLeft) { // Fix for header symbol
+        separatorSymbol = ROW_HEADER_SEPARATOR;
       }
 
       stringCells.push(cellSymbol);
 
-      if (!isLastColumn) {
+      if (isLeft || !isLastColumn) {
         stringCells.push(separatorSymbol);
       }
     }
 
-    stringRows.push(TABLE_EDGES_SYMBOL + stringCells.join('') + TABLE_EDGES_SYMBOL);
+    if (wasTopHeader && !isTopHeader(cell)) {
+      wasTopHeader = false;
+      let str = new Array(columnsLength - skipLeft).fill(COLUMN_HEADER_SEPARATOR).join(COLUMN_SEPARATOR);
+      if (isLeft) {
+        str += COLUMN_SEPARATOR;
+      }
+      stringRows.push(str);
+    }
 
-    if (consumedFlags.get('hasTopHeader')) {
-      consumedFlags.delete('hasTopHeader');
-      stringRows.push(TABLE_EDGES_SYMBOL + new Array(columnsLength).fill(COLUMN_HEADER_SEPARATOR).join(COLUMN_SEPARATOR) + TABLE_EDGES_SYMBOL);
-    }
-    if (insertTopOverlayRowSeparator) {
-      insertTopOverlayRowSeparator = false;
-      stringRows.push(TABLE_EDGES_SYMBOL + new Array(columnsLength).fill(COLUMN_OVERLAY_SEPARATOR).join(COLUMN_SEPARATOR) + TABLE_EDGES_SYMBOL);
-    }
+    stringRows.push(stringCells.join(''));
   }
 
-  return stringRows.join('\n');
+  return stringRows;
 }
