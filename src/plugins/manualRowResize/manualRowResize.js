@@ -44,7 +44,6 @@ class ManualRowResize extends BasePlugin {
     this.pressed = null;
     this.dblclick = 0;
     this.autoresizeTimeout = null;
-    this.manualRowHeights = [];
 
     /**
      * ValueMap to keep and track widths for physical row indexes.
@@ -483,18 +482,17 @@ class ManualRowResize extends BasePlugin {
    * @returns {Number}
    */
   onModifyRowHeight(height, row) {
+    let newHeight = height;
+
     if (this.enabled) {
-      const autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
-      const autoRowHeightResult = autoRowSizePlugin ? autoRowSizePlugin.heights[row] : null;
       const physicalRow = this.hot.toPhysicalRow(row);
       const manualRowHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
 
-      if (manualRowHeight !== null && (manualRowHeight === autoRowHeightResult || manualRowHeight > (height || 0))) {
-        return manualRowHeight;
+      if (manualRowHeight !== null) {
+        newHeight = manualRowHeight;
       }
     }
-
-    return height;
+    return height === void 0 ? newHeight : Math.max(newHeight, height);
   }
 
   /**
