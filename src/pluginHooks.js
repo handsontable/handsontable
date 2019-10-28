@@ -924,30 +924,6 @@ const REGISTERED_HOOKS = [
   'init',
 
   /**
-   * Fired when a column index is about to be modified by a callback function.
-   *
-   * @event Hooks#modifyCol
-   * @param {Number} column Visual column index.
-   */
-  'modifyCol',
-
-  /**
-   * Fired when a column index is about to be de-modified by a callback function.
-   *
-   * @event Hooks#unmodifyCol
-   * @param {Number} column Physical column index.
-   */
-  'unmodifyCol',
-
-  /**
-   * Fired when a physical row index is about to be de-modified by a callback function.
-   *
-   * @event Hooks#unmodifyRow
-   * @param {Number} row Physical row index
-   */
-  'unmodifyRow',
-
-  /**
    * Fired when a column header index is about to be modified by a callback function.
    *
    * @event Hooks#modifyColHeader
@@ -963,14 +939,6 @@ const REGISTERED_HOOKS = [
    * @param {Number} column Visual column index.
    */
   'modifyColWidth',
-
-  /**
-   * Fired when a row index is about to be modified by a callback function.
-   *
-   * @event Hooks#modifyRow
-   * @param {Number} row Visual row index.
-   */
-  'modifyRow',
 
   /**
    * Fired when a row header index is about to be modified by a callback function.

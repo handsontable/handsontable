@@ -242,10 +242,11 @@ describe('manualColumnMove', () => {
             afterColumnMove: afterMoveColumnCallback
           });
 
-          hot.getPlugin('manualColumnMove').moveColumn(0, 1);
+          const result = hot.getPlugin('manualColumnMove').moveColumn(0, 1);
 
           expect(afterMoveColumnCallback).not.toHaveBeenCalled();
-          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(result).toBeFalsy();
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving column to final index, which is too high', () => {
@@ -259,10 +260,11 @@ describe('manualColumnMove', () => {
             afterColumnMove: afterMoveColumnCallback
           });
 
-          hot.getPlugin('manualColumnMove').moveColumn(0, 1000);
+          const result = hot.getPlugin('manualColumnMove').moveColumn(0, 1000);
 
           expect(afterMoveColumnCallback).toHaveBeenCalledWith([0], 1000, void 0, false, false, void 0);
-          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(result).toBeFalsy();
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving column to final index, which is too low', () => {
@@ -276,10 +278,11 @@ describe('manualColumnMove', () => {
             afterColumnMove: afterMoveColumnCallback
           });
 
-          hot.getPlugin('manualColumnMove').moveColumn(0, -1);
+          const result = hot.getPlugin('manualColumnMove').moveColumn(0, -1);
 
           expect(afterMoveColumnCallback).toHaveBeenCalledWith([0], -1, void 0, false, false, void 0);
-          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(result).toBeFalsy();
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving too high column', () => {
@@ -293,10 +296,11 @@ describe('manualColumnMove', () => {
             afterColumnMove: afterMoveColumnCallback
           });
 
-          hot.getPlugin('manualColumnMove').moveColumn(1000, 1);
+          const result = hot.getPlugin('manualColumnMove').moveColumn(1000, 1);
 
           expect(afterMoveColumnCallback).toHaveBeenCalledWith([1000], 1, void 0, false, false, void 0);
-          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(result).toBeFalsy();
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving too low column', () => {
@@ -310,10 +314,12 @@ describe('manualColumnMove', () => {
             afterColumnMove: afterMoveColumnCallback
           });
 
-          hot.getPlugin('manualColumnMove').moveColumn(-1, 1);
+          const result = hot.getPlugin('manualColumnMove').moveColumn(-1, 1);
 
           expect(afterMoveColumnCallback).toHaveBeenCalledWith([-1], 1, void 0, false, false, void 0);
-          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(result).toBeFalsy();
+          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(result).toBeFalsy();
         });
 
         it('should work when also when `data` has less items than `columns` property #5931', () => {
@@ -553,11 +559,12 @@ describe('manualColumnMove', () => {
             }
           });
 
-          hot.getPlugin('manualColumnMove').dragColumns([1, 2, 3], 15);
+          const result = hot.getPlugin('manualColumnMove').dragColumns([1, 2, 3], 15);
 
           expect(movePossible).toBeFalsy();
           expect(orderChanged).toBeFalsy();
-          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(result).toBeFalsy();
+          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging columns to index, which is too low', () => {
@@ -574,11 +581,12 @@ describe('manualColumnMove', () => {
             }
           });
 
-          hot.getPlugin('manualColumnMove').dragColumns([1, 2, 3], -1);
+          const result = hot.getPlugin('manualColumnMove').dragColumns([1, 2, 3], -1);
 
           expect(movePossible).toBeFalsy();
           expect(orderChanged).toBeFalsy();
-          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(result).toBeFalsy();
+          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging too low columns to index, which is too high', () => {
@@ -595,11 +603,12 @@ describe('manualColumnMove', () => {
             }
           });
 
-          hot.getPlugin('manualColumnMove').dragColumns([-1, -2, -3, -4], 15);
+          const result = hot.getPlugin('manualColumnMove').dragColumns([-1, -2, -3, -4], 15);
 
           expect(movePossible).toBeFalsy();
           expect(orderChanged).toBeFalsy();
-          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(result).toBeFalsy();
+          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging too low columns to index, which is too low', () => {
@@ -616,11 +625,12 @@ describe('manualColumnMove', () => {
             }
           });
 
-          hot.getPlugin('manualColumnMove').dragColumns([-2, -3, -4, -5], -1);
+          const result = hot.getPlugin('manualColumnMove').dragColumns([-2, -3, -4, -5], -1);
 
           expect(movePossible).toBeFalsy();
           expect(orderChanged).toBeFalsy();
-          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+          expect(result).toBeFalsy();
+          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
         });
       });
     });
@@ -636,17 +646,15 @@ describe('manualColumnMove', () => {
             colHeaders: true,
             manualColumnMove: true,
             beforeColumnMove: beforeColumnMoveCallback,
-            afterColumnMove: afterMoveColumnCallback,
-            modifyCol(column) {
-              return column + 10;
-            }
+            afterColumnMove: afterMoveColumnCallback
           });
 
-          hot.getPlugin('manualColumnMove').moveColumns([8, 9, 7], 0);
-          hot.render();
+          hot.getColumnIndexMapper().setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+          const result = hot.getPlugin('manualColumnMove').moveColumns([8, 9, 7], 0);
 
           expect(beforeColumnMoveCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, void 0, void 0);
           expect(afterMoveColumnCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, true, void 0);
+          expect(result).toBeTruthy();
         });
 
         describe('moving single column from the right to the left', () => {

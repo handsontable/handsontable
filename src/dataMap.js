@@ -715,7 +715,6 @@ class DataMap {
    *
    * @param {Number} index Visual row index.
    * @param {Number} amount
-   * @fires Hooks#modifyRow
    * @returns {Number}
    */
   visualRowsToPhysical(index, amount) {

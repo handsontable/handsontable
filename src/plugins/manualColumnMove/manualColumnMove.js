@@ -151,9 +151,10 @@ class ManualColumnMove extends BasePlugin {
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualColumnMove).
    * @fires Hooks#beforeColumnMove
    * @fires Hooks#afterColumnMove
+   * @returns {Boolean}
    */
   moveColumn(column, finalIndex) {
-    this.moveColumns([column], finalIndex);
+    return this.moveColumns([column], finalIndex);
   }
 
   /**
@@ -164,6 +165,7 @@ class ManualColumnMove extends BasePlugin {
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualColumnMove).
    * @fires Hooks#beforeColumnMove
    * @fires Hooks#afterColumnMove
+   * @returns {Boolean}
    */
   moveColumns(columns, finalIndex) {
     const priv = privatePool.get(this);
@@ -181,7 +183,11 @@ class ManualColumnMove extends BasePlugin {
       this.hot.getColumnIndexMapper().moveIndexes(columns, finalIndex);
     }
 
-    this.hot.runHooks('afterColumnMove', columns, finalIndex, dropIndex, movePossible, movePossible && this.isColumnOrderChanged(columns, finalIndex));
+    const movePerformed = movePossible && this.isColumnOrderChanged(columns, finalIndex);
+
+    this.hot.runHooks('afterColumnMove', columns, finalIndex, dropIndex, movePossible, movePerformed);
+
+    return movePerformed;
   }
 
   /**
@@ -190,9 +196,12 @@ class ManualColumnMove extends BasePlugin {
    * @param {Number} column Visual column index to be dragged.
    * @param {Number} dropIndex Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements.
    * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualColumnMove).
+   * @fires Hooks#beforeColumnMove
+   * @fires Hooks#afterColumnMove
+   * @returns {Boolean}
    */
   dragColumn(column, dropIndex) {
-    this.dragColumns([column], dropIndex);
+    return this.dragColumns([column], dropIndex);
   }
 
   /**
@@ -201,6 +210,9 @@ class ManualColumnMove extends BasePlugin {
    * @param {Array} columns Array of visual column indexes to be dragged.
    * @param {Number} dropIndex Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements.
    * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualColumnMove).
+   * @fires Hooks#beforeColumnMove
+   * @fires Hooks#afterColumnMove
+   * @returns {Boolean}
    */
   dragColumns(columns, dropIndex) {
     const finalIndex = this.countFinalIndex(columns, dropIndex);
@@ -208,7 +220,7 @@ class ManualColumnMove extends BasePlugin {
 
     priv.cachedDropIndex = dropIndex;
 
-    this.moveColumns(columns, finalIndex);
+    return this.moveColumns(columns, finalIndex);
   }
 
   /**
@@ -649,18 +661,19 @@ class ManualColumnMove extends BasePlugin {
 
     const firstMovedVisualColumn = priv.columnsToMove[0];
     const firstMovedPhysicalColumn = this.hot.toPhysicalColumn(firstMovedVisualColumn);
-
-    this.dragColumns(priv.columnsToMove, target);
-
-    this.persistentStateSave();
-    this.hot.render();
-
-    const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
-    const selectionEnd = selectionStart + columnsLen - 1;
-
-    this.changeSelection(selectionStart, selectionEnd);
+    const movePerformed = this.dragColumns(priv.columnsToMove, target);
 
     priv.columnsToMove.length = 0;
+
+    if (movePerformed === true) {
+      this.persistentStateSave();
+      this.hot.render();
+
+      const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
+      const selectionEnd = selectionStart + columnsLen - 1;
+
+      this.hot.selectRows(selectionStart, selectionEnd);
+    }
   }
 
   /**

@@ -1660,7 +1660,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
-   * unless the `modifyRow` hook was used to trim some of the rows. If that's the case - use the {@link Core#getSourceData} method.).
+   * unless some modifications have been applied (i.e. sequence of rows/columns was changed, some row/column was skipped).
+   * If that's the case - use the {@link Core#getSourceData} method.).
    *
    * Optionally you can provide cell range by defining `row`, `column`, `row2`, `column2` to get only a fragment of table data.
    *

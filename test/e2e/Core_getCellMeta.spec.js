@@ -18,13 +18,13 @@ describe('Core_getCellMeta', () => {
       minCols: 5
     });
 
-    hot.getColumnIndexMapper().setIndexesSequence([10, 11, 12, 13, 14]);
-    hot.getRowIndexMapper().setIndexesSequence([10, 11, 12, 13, 14]);
+    hot.getColumnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.getRowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     const cellMeta = getCellMeta(0, 1);
 
-    expect(cellMeta.row).toEqual(10);
-    expect(cellMeta.col).toEqual(11);
+    expect(cellMeta.row).toEqual(4);
+    expect(cellMeta.col).toEqual(3);
     expect(cellMeta.visualRow).toEqual(0);
     expect(cellMeta.visualCol).toEqual(1);
   });
@@ -197,17 +197,16 @@ describe('Core_getCellMeta', () => {
     let colInsideHook;
 
     const hot = handsontable({
+      minRows: 5,
+      minCols: 5,
       beforeGetCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },
-      modifyRow(row) {
-        return row + 10;
-      },
-      modifyCol(col) {
-        return col + 10;
-      }
     });
+
+    hot.getRowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.getColumnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     hot.getCellMeta(0, 1);
 
@@ -220,17 +219,16 @@ describe('Core_getCellMeta', () => {
     let colInsideHook;
 
     const hot = handsontable({
+      minRows: 5,
+      minCols: 5,
       afterGetCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
-      },
-      modifyRow(row) {
-        return row + 10;
-      },
-      modifyCol(col) {
-        return col + 10;
       }
     });
+
+    hot.getRowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.getColumnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     hot.getCellMeta(0, 1);
 
