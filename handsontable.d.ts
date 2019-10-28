@@ -927,6 +927,7 @@ declare namespace Handsontable {
       focusableElement: FocusableWrapper;
       pasteMode: PasteModeType;
       rowsLimit: number;
+      uiContainer: HTMLElement;
 
       copy(): void;
       cut(): void;
