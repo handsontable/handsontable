@@ -129,6 +129,24 @@ describe('CustomBorders', () => {
       expect(hot.getPlugin('customBorders').isEnabled()).toBe(false); // TODO this assertion checks current behavior that looks like a bug. I would expect true
     });
 
+    it('should hide borders when added new empty configuration for the plugin', () => {
+      const hot = handsontable({
+        customBorders: [{
+          row: 2,
+          col: 2,
+          left: RED_BORDER,
+          right: RED_BORDER,
+          top: GREEN_BORDER
+        }]
+      });
+
+      hot.updateSettings({
+        customBorders: []
+      });
+
+      expect(getRenderedBorderPaths()).toEqual(['', '']);
+    });
+
     it('should hide borders when disabled using updateSettings', () => {
       const hot = handsontable({
         customBorders: [{
