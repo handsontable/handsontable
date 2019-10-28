@@ -66,6 +66,29 @@ describe('AutoRowSize', () => {
     expect(oldHeight).toBeLessThan(newHeight);
   });
 
+  it('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set ' +
+    '(value of an empty cell outside the viewport is changed to a longer text)', async() => {
+    const nrOfRows = 200;
+    const columnWidth = 100;
+
+    const hot = handsontable({
+      data: Handsontable.helper.createEmptySpreadsheetData(nrOfRows, 1),
+      colWidths() {
+        return columnWidth;
+      },
+      autoRowSize: true
+    });
+
+    const oldHeight = spec().$container[0].scrollHeight;
+
+    hot.setDataAtCell(150, 0, 'This is very long text which will break this cell text into two lines');
+
+    await sleep(200);
+
+    const newHeight = spec().$container[0].scrollHeight;
+    expect(oldHeight).toBeLessThan(newHeight);
+  });
+
   describe('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (`table td` element height set by CSS) #4000', () => {
     const cellHeightInPx = 100;
     const nrOfColumns = 200;

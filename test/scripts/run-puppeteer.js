@@ -40,7 +40,7 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
 (async() => {
   const browser = await puppeteer.launch({
     timeout: DEFAULT_INACTIVITY_TIMEOUT,
-    devtools: true, // Turn it on to debug the tests.
+    // devtools: true, // Turn it on to debug the tests.
     headless: false,
     // Puppeteer by default hide the scrollbars in headless mode (https://github.com/GoogleChrome/puppeteer/blob/master/lib/Launcher.js#L86).
     // To prevent this the custom arguments are provided.
@@ -49,8 +49,8 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
 
   const page = await browser.newPage();
   // To emulate slower CPU you can uncomment next two lines. Docs: https://chromedevtools.github.io/devtools-protocol/tot/Emulation#method-setCPUThrottlingRate
-  const client = await page.target().createCDPSession();
-  await client.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  // const client = await page.target().createCDPSession();
+  // await client.send('Emulation.setCPUThrottlingRate', { rate: 2 });
 
   page.setCacheEnabled(false);
   page.setViewport({
