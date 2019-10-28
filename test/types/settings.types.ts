@@ -132,6 +132,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     pasteMode: oneOf('overwrite', 'shift_down', 'shift_right'),
     rowsLimit: 10,
     columnsLimit: 20,
+    uiContainer: document.body,
   }),
   correctFormat: true,
   currentColClassName: 'foo',

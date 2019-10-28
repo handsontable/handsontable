@@ -17,14 +17,14 @@ describe('CopyPaste', () => {
     });
 
     it('should create and return instance of FocusableWrapper class', () => {
-      fw1 = createElement(document);
+      fw1 = createElement(document.body);
 
       expect(fw1.constructor.name).toBe('FocusableWrapper');
     });
 
     it('should create new instance of FocusableWrapper class on every createElement call', () => {
-      fw1 = createElement(document);
-      fw2 = createElement(document);
+      fw1 = createElement(document.body);
+      fw2 = createElement(document.body);
 
       fw1.useSecondaryElement();
       fw2.useSecondaryElement();
@@ -34,23 +34,23 @@ describe('CopyPaste', () => {
     });
 
     it('should create focusable element only once when useSecondaryElement method is called multiple times', () => {
-      fw1 = createElement(document);
+      fw1 = createElement(document.body);
       fw1.useSecondaryElement();
 
-      expect(fw1.mainElement).toBe(document.querySelector('#HandsontableCopyPaste'));
-
-      fw1.useSecondaryElement();
-
-      expect(fw1.mainElement).toBe(document.querySelector('#HandsontableCopyPaste'));
+      expect(fw1.mainElement).toBe(document.querySelector('.HandsontableCopyPaste'));
 
       fw1.useSecondaryElement();
 
-      expect(fw1.mainElement).toBe(document.querySelector('#HandsontableCopyPaste'));
-      expect(document.querySelectorAll('#HandsontableCopyPaste').length).toBe(1);
+      expect(fw1.mainElement).toBe(document.querySelector('.HandsontableCopyPaste'));
+
+      fw1.useSecondaryElement();
+
+      expect(fw1.mainElement).toBe(document.querySelector('.HandsontableCopyPaste'));
+      expect(document.querySelectorAll('.HandsontableCopyPaste').length).toBe(1);
     });
 
     it('should fire internal events only once when useSecondaryElement method is called multiple times', () => {
-      fw1 = createElement(document);
+      fw1 = createElement(document.body);
 
       fw1.useSecondaryElement();
       fw1.useSecondaryElement();
@@ -65,7 +65,7 @@ describe('CopyPaste', () => {
     });
 
     it('should fire internal events only once when external focusable element is passed multiple times', () => {
-      fw1 = createElement(document);
+      fw1 = createElement(document.body);
       const element = document.createElement('textarea');
 
       fw1.setFocusableElement(element);
@@ -82,7 +82,7 @@ describe('CopyPaste', () => {
     });
 
     it('should return focusable element through mainElement property', () => {
-      fw1 = createElement(document);
+      fw1 = createElement(document.body);
       const element = document.createElement('textarea');
 
       expect(fw1.getFocusableElement()).toBe(null);
@@ -93,7 +93,7 @@ describe('CopyPaste', () => {
     });
 
     it('should select focusable element and set value as an empty string when focus method is called', () => {
-      fw1 = createElement(document);
+      fw1 = createElement(document.body);
       const element = document.createElement('textarea');
 
       spyOn(element, 'select');
@@ -105,18 +105,40 @@ describe('CopyPaste', () => {
     });
 
     it('should destroy FocusableWrapper object instance and detach secondary focusable element from DOM', () => {
-      fw1 = createElement(document);
-      fw2 = createElement(document);
+      fw1 = createElement(document.body);
+      fw2 = createElement(document.body);
 
       fw1.useSecondaryElement();
       fw2.useSecondaryElement();
       destroyElement(fw2);
 
-      expect(document.querySelectorAll('#HandsontableCopyPaste').length).toBe(1);
+      expect(document.querySelectorAll('.HandsontableCopyPaste').length).toBe(1);
 
       destroyElement(fw1);
 
-      expect(document.querySelectorAll('#HandsontableCopyPaste').length).toBe(0);
+      expect(document.querySelectorAll('.HandsontableCopyPaste').length).toBe(0);
+    });
+
+    it('should destroy FocusableWrapper object instance and detach secondary focusable element from DOM if they have different container', () => {
+      const testContainer = document.createElement('div');
+      document.body.appendChild(testContainer);
+
+      fw1 = createElement(document.body);
+      fw2 = createElement(testContainer);
+
+      fw1.useSecondaryElement();
+      fw2.useSecondaryElement();
+
+      expect(document.querySelectorAll('.HandsontableCopyPaste').length).toBe(2);
+
+      destroyElement(fw2);
+
+      expect(document.querySelectorAll('.HandsontableCopyPaste').length).toBe(1);
+
+      destroyElement(fw1);
+
+      expect(document.querySelectorAll('.HandsontableCopyPaste').length).toBe(0);
+      testContainer.parentNode.removeChild(testContainer);
     });
   });
 });
