@@ -16,6 +16,7 @@ import ManualRowMove from './manualRowMove/manualRowMove';
 import ManualRowResize from './manualRowResize/manualRowResize';
 import MergeCells from './mergeCells/mergeCells';
 import MultipleSelectionHandles from './multipleSelectionHandles/multipleSelectionHandles';
+import MultiColumnSorting from './multiColumnSorting/multiColumnSorting';
 import ObserveChanges from './observeChanges/observeChanges';
 import Search from './search/search';
 import TouchScroll from './touchScroll/touchScroll';
@@ -27,8 +28,6 @@ import CollapsibleColumns from './collapsibleColumns/collapsibleColumns';
 import ColumnSummary from './columnSummary/columnSummary';
 import DropdownMenu from './dropdownMenu/dropdownMenu';
 import ExportFile from './exportFile/exportFile';
-// 'MultiColumnSorting' must be initialized before Filters. Bug releated with "wrong listeners order" attached to 'modifyRow' and 'unmodifyRow' hooks.
-import MultiColumnSorting from './multiColumnSorting/multiColumnSorting';
 import Filters from './filters/filters';
 import Formulas from './formulas/formulas';
 import GanttChart from './ganttChart/ganttChart';

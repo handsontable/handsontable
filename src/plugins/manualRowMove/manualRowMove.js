@@ -280,18 +280,6 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Correct the cell selection after the move action. Fired only when action was made with a mouse.
-   * That means that changing the row order using the API won't correct the selection.
-   *
-   * @private
-   * @param {Number} startRow Visual row index for the start of the selection.
-   * @param {Number} endRow Visual row index for the end of the selection.
-   */
-  changeSelection(startRow, endRow) {
-    this.hot.selectRows(startRow, endRow);
-  }
-
-  /**
    * Gets the sum of the heights of rows in the provided range.
    *
    * @private

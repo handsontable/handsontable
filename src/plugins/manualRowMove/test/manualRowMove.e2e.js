@@ -603,14 +603,11 @@ describe('manualRowMove', () => {
             rowHeaders: true,
             manualRowMove: true,
             beforeRowMove: beforeRowMoveCallback,
-            afterRowMove: afterMoveRowCallback,
-            modifyRow(row) {
-              return row + 10;
-            }
+            afterRowMove: afterMoveRowCallback
           });
 
+          hot.getRowIndexMapper().setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
           const result = hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
-          hot.render();
 
           expect(beforeRowMoveCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, void 0, void 0);
           expect(afterMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, true, void 0);

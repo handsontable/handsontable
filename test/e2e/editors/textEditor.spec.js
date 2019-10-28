@@ -126,9 +126,7 @@ describe('TextEditor', () => {
 
   it('should render proper value after cell coords manipulation', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
-      modifyRow(row) { return row === 4 ? 0 : row + 1; },
-      modifyCol(column) { return column === 4 ? 0 : column + 1; },
+      data: Handsontable.helper.createSpreadsheetData(5, 5)
     });
 
     hot.getRowIndexMapper().setIndexesSequence([1, 2, 3, 4, 0]);

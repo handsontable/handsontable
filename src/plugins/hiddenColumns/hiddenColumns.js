@@ -322,8 +322,6 @@ class HiddenColumns extends BasePlugin {
    * @param {Number} row
    * @param {Number} col
    * @param {Object} cellProperties
-   *
-   * @fires Hooks#unmodifyCol
    */
   onAfterGetCellMeta(row, col, cellProperties) {
     const colIndex = this.hot.toVisualColumn(col);
