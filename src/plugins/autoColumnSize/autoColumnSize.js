@@ -77,12 +77,6 @@ class AutoColumnSize extends BasePlugin {
       cachedColumnHeaders: [],
     });
     /**
-     * ValueMap to keep and track widths for physical column indexes.
-     *
-     * @type {ValueMap}
-     */
-    this.columnWidthsMap = void 0;
-    /**
      * Instance of {@link GhostTable} for rows and columns size calculations.
      *
      * @private
@@ -136,7 +130,11 @@ class AutoColumnSize extends BasePlugin {
      */
     this.inProgress = false;
     /**
-     * Map for storing index to value mappings.
+     * Number of already measured columns (we already know their sizes).
+     */
+    this.measuredColumns = 0;
+    /**
+     * ValueMap to keep and track widths for physical column indexes.
      *
      * @type {ValueMap}
      */
@@ -226,6 +224,8 @@ class AutoColumnSize extends BasePlugin {
           this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
         });
       });
+
+      this.measuredColumns = this.ghostTable.columns.length;
 
       this.ghostTable.clean();
     }
@@ -453,7 +453,7 @@ class AutoColumnSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.columnWidthsMap.getValues(), item => (item === null)).length;
+    return !!arrayFilter(this.columnWidthsMap.getValues().slice(0, this.measuredColumns), item => (item === null)).length;
   }
 
   /**

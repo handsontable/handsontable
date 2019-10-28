@@ -120,6 +120,10 @@ class AutoRowSize extends BasePlugin {
      * @type {Boolean}
      */
     this.inProgress = false;
+    /**
+     * Number of already measured rows (we already know their sizes).
+     */
+    this.measuredRows = 0;
 
     // moved to constructor to allow auto-sizing the rows when the plugin is disabled
     this.addHook('beforeRowResize', (row, size, isDblClick) => this.onBeforeRowResize(row, size, isDblClick));
@@ -204,6 +208,9 @@ class AutoRowSize extends BasePlugin {
           }
         });
       });
+
+      this.measuredRows = this.ghostTable.rows.length;
+
       this.ghostTable.clean();
     }
   }
@@ -408,7 +415,7 @@ class AutoRowSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.rowHeightsMap.getValues(), item => (item === null)).length;
+    return !!arrayFilter(this.rowHeightsMap.getValues().slice(0, this.measuredRows), item => (item === null)).length;
   }
 
   /**
