@@ -767,7 +767,7 @@ declare namespace Handsontable {
       heights: any[];
       ghostTable: GhostTable;
       inProgress: boolean;
-      measuredRows: number;
+      measuredColumns: number;
       sampleGenerator: SamplesGenerator;
 
       calculateAllRowsHeight(colRange?: number | object): void;
@@ -1348,9 +1348,9 @@ declare namespace Handsontable {
       guideline: moveUI.GuidelineUI;
 
       moveColumn(column: number, finalIndex: number): boolean;
-      moveRows(columns: number[], finalIndex: number): boolean;
-      dragRow(column: number, dropIndex: number): boolean;
-      dragRows(columns: number[], dropIndex: number): boolean;
+      moveColumns(columns: number[], finalIndex: number): boolean;
+      dragColumn(column: number, dropIndex: number): boolean;
+      dragColumns(columns: number[], dropIndex: number): boolean;
       isMovePossible(columns: number[], finalIndex: number): boolean;
     }
 
