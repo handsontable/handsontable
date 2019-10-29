@@ -693,6 +693,8 @@ class ManualColumnMove extends BasePlugin {
 
   /**
    * Builds the plugin's UI.
+   *
+   * @private
    */
   buildPluginUI() {
     this.backlight.build();

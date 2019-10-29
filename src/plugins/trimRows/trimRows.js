@@ -51,6 +51,7 @@ class TrimRows extends BasePlugin {
     /**
      * Map of skipped rows by plugin.
      *
+     * @private
      * @type {null|SkipMap}
      */
     this.trimmedRowsMap = null;
@@ -108,11 +109,11 @@ class TrimRows extends BasePlugin {
   }
 
   /**
-   * Get trimmed rows.
+   * Get list of trimmed rows.
    *
    * @returns {Array} Physical rows.
    */
-  getTrimConfig() {
+  getTrimmedRows() {
     return arrayReduce(this.trimmedRowsMap.getValues(), (indexesList, isTrimmed, physicalIndex) => {
       if (isTrimmed) {
         return indexesList.concat(physicalIndex);
@@ -130,7 +131,7 @@ class TrimRows extends BasePlugin {
    * @fires Hooks#afterTrimRow
    */
   trimRows(rows) {
-    const currentTrimConfig = this.getTrimConfig();
+    const currentTrimConfig = this.getTrimmedRows();
 
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
@@ -174,7 +175,7 @@ class TrimRows extends BasePlugin {
    * @fires Hooks#afterUntrimRow
    */
   untrimRows(rows) {
-    const currentTrimConfig = this.getTrimConfig();
+    const currentTrimConfig = this.getTrimmedRows();
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
 
@@ -223,7 +224,7 @@ class TrimRows extends BasePlugin {
    * Untrims all trimmed rows.
    */
   untrimAll() {
-    this.untrimRows(this.getTrimConfig());
+    this.untrimRows(this.getTrimmedRows());
   }
 
   /**

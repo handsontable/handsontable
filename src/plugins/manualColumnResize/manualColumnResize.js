@@ -47,6 +47,7 @@ class ManualColumnResize extends BasePlugin {
     /**
      * ValueMap to keep and track widths for physical column indexes.
      *
+     * @private
      * @type {ValueMap}
      */
     this.columnWidthsMap = void 0;

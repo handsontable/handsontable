@@ -75,6 +75,7 @@ class AutoRowSize extends BasePlugin {
     /**
      * ValueMap to keep and track heights for physical row indexes.
      *
+     * @private
      * @type {ValueMap}
      */
     this.rowHeightsMap = void 0;

@@ -94,7 +94,7 @@ class ColumnSorting extends BasePlugin {
      * Cached column properties from plugin like i.e. `indicator`, `headerAction`.
      *
      * @private
-     * @type {null | ValueMap}
+     * @type {null|ValueMap}
      */
     this.columnMetaCache = null;
     /**
@@ -472,6 +472,7 @@ class ColumnSorting extends BasePlugin {
   /**
    * Get plugin's column config for the specified column index.
    *
+   * @private
    * @param {Object} columnConfig Configuration inside `columns` property for the specified column index.
    * @returns {Object}
    */

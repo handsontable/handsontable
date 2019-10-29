@@ -32,6 +32,7 @@ declare namespace _Handsontable {
     destroy(): void;
     destroyEditor(revertOriginal?: boolean, prepareEditorIfNeeded?: boolean): void;
     emptySelectedCells(): void;
+    executeBatchOperations(wrappedOperations: () => void): void;
     forceFullRender: boolean;
     getActiveEditor<T extends Handsontable._editors.Base>(): T | undefined;
     getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
@@ -746,8 +747,8 @@ declare namespace Handsontable {
       firstCalculation: boolean;
       ghostTable: GhostTable;
       inProgress: boolean;
+      measuredRows: number;
       samplesGenerator: SamplesGenerator;
-      widths: any[];
 
       calculateAllColumnsWidth(rowRange?: number | object): void;
       calculateColumnsWidth(colRange?: number | object, rowRange?: number | object, force?: boolean): void;
@@ -766,6 +767,7 @@ declare namespace Handsontable {
       heights: any[];
       ghostTable: GhostTable;
       inProgress: boolean;
+      measuredRows: number;
       sampleGenerator: SamplesGenerator;
 
       calculateAllRowsHeight(colRange?: number | object): void;
@@ -1240,9 +1242,6 @@ declare namespace Handsontable {
     }
 
     interface ManualColumnFreeze extends Base {
-      frozenColumnsBasePositions: any[];
-      manualColumnMovePlugin: ManualColumnMove;
-
       freezeColumn(column: number): void;
       unfreezeColumn(column: number): void;
     }
@@ -1347,12 +1346,12 @@ declare namespace Handsontable {
       backlight: moveUI.BacklightUI;
       eventManager: EventManager;
       guideline: moveUI.GuidelineUI;
-      removedColumns: any[];
 
-      moveColumn(column: number, target: number): void;
-      moveColumns(columns: number[], target: number): void;
-      persistentStateLoad(): void;
-      persistentStateSave(): void;
+      moveColumn(column: number, finalIndex: number): boolean;
+      moveRows(columns: number[], finalIndex: number): boolean;
+      dragRow(column: number, dropIndex: number): boolean;
+      dragRows(columns: number[], dropIndex: number): boolean;
+      isMovePossible(columns: number[], finalIndex: number): boolean;
     }
 
     interface ManualColumnResize extends Base {
@@ -1389,12 +1388,11 @@ declare namespace Handsontable {
       backlight: moveUI.BacklightUI;
       eventManager: EventManager;
       guideline: moveUI.GuidelineUI;
-      removedRows: any[];
 
-      moveRow(row: number, finalIndex: number): void;
-      moveRows(rows: number[], finalIndex: number): void;
-      dragRow(row: number, dropIndex: number): void;
-      dragRows(rows: number[], dropIndex: number): void;
+      moveRow(row: number, finalIndex: number): boolean;
+      moveRows(rows: number[], finalIndex: number): boolean;
+      dragRow(row: number, dropIndex: number): boolean;
+      dragRows(rows: number[], dropIndex: number): boolean;
       isMovePossible(rows: number[], finalIndex: number): boolean;
     }
 
@@ -1523,6 +1521,7 @@ declare namespace Handsontable {
       removedRows: any[];
 
       isTrimmed(row: number): boolean;
+      getTrimmedRows(): number[];
       trimRow(row: number): void;
       trimRows(rows: number[]): void;
       untrimAll(): void;

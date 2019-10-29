@@ -61,6 +61,7 @@ class NestedRows extends BasePlugin {
     /**
      * Map of skipped rows by plugin.
      *
+     * @private
      * @type {null|SkipMap}
      */
     this.collapsedRowsMap = null;

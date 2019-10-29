@@ -136,6 +136,7 @@ class AutoColumnSize extends BasePlugin {
     /**
      * ValueMap to keep and track widths for physical column indexes.
      *
+     * @private
      * @type {ValueMap}
      */
     this.columnWidthsMap = new ValueMap();
@@ -541,6 +542,13 @@ class AutoColumnSize extends BasePlugin {
    */
   onAfterInit() {
     privatePool.get(this).cachedColumnHeaders = this.hot.getColHeader();
+  }
+
+  /**
+   * Disables the plugin functionality for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
   }
 
   /**

@@ -48,6 +48,7 @@ class ManualRowResize extends BasePlugin {
     /**
      * ValueMap to keep and track widths for physical row indexes.
      *
+     * @private
      * @type {ValueMap}
      */
     this.rowHeightsMap = void 0;

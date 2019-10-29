@@ -36,7 +36,7 @@ class BindRowsWithHeaders extends BasePlugin {
      * Plugin indexes cache.
      *
      * @private
-     * @type {null|IndexToValueMap}
+     * @type {null|BaseMap}
      */
     this.headerIndexes = null;
   }
