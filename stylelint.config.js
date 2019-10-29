@@ -1,4 +1,4 @@
-{
+module.exports = {
   "rules": {
     "indentation": 2,
     "max-empty-lines": 2,
