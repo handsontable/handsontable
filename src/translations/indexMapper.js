@@ -79,14 +79,14 @@ class IndexMapper {
   /**
    * Execute batch operations with updating cache.
    *
-   * @param {Function} curriedBatchOperations Batched operations curried in a function.
+   * @param {Function} wrappedOperations Batched operations wrapped in a function.
    */
-  executeBatchOperations(curriedBatchOperations) {
+  executeBatchOperations(wrappedOperations) {
     const actualFlag = this.isBatched;
 
     this.isBatched = true;
 
-    curriedBatchOperations(this);
+    wrappedOperations();
 
     this.isBatched = actualFlag;
 
