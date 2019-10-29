@@ -34,6 +34,12 @@ class StrictBindsMap extends BaseMap {
     super.remove(removedIndexes);
   }
 
+  /**
+   * Get next values, which should be greater than actual maximum value in the list.
+   *
+   * @param ordinalNumber Position in the list.
+   * @returns {Number}
+   */
   getNextValue(ordinalNumber) {
     return Math.max(...this.getValues()) + 1 + ordinalNumber;
   }

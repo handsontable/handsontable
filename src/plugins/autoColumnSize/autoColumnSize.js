@@ -142,7 +142,7 @@ class AutoColumnSize extends BasePlugin {
 
     // moved to constructor to allow auto-sizing the columns when the plugin is disabled
     this.addHook('beforeColumnResize', (col, size, isDblClick) => this.onBeforeColumnResize(col, size, isDblClick));
-    this.hot.getColumnIndexMapper().registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
+    this.hot.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
   }
 
   /**
@@ -547,7 +547,7 @@ class AutoColumnSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.getColumnIndexMapper().unregisterMap(COLUMN_SIZE_MAP_NAME);
+    this.hot.columnIndexMapper.unregisterMap(COLUMN_SIZE_MAP_NAME);
     this.ghostTable.clean();
     super.destroy();
   }

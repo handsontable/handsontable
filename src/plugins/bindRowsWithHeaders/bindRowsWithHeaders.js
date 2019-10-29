@@ -67,7 +67,7 @@ class BindRowsWithHeaders extends BasePlugin {
 
     const MapStrategy = bindTypeToMapStrategy.get(bindType);
 
-    this.headerIndexes = this.hot.getRowIndexMapper().registerMap('bindRowsWithHeaders', new MapStrategy());
+    this.headerIndexes = this.hot.rowIndexMapper.registerMap('bindRowsWithHeaders', new MapStrategy());
 
     this.addHook('modifyRowHeader', row => this.onModifyRowHeader(row));
 
@@ -78,7 +78,7 @@ class BindRowsWithHeaders extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.getRowIndexMapper().unregisterMap('bindRowsWithHeaders');
+    this.hot.rowIndexMapper.unregisterMap('bindRowsWithHeaders');
 
     super.disablePlugin();
   }
@@ -98,7 +98,7 @@ class BindRowsWithHeaders extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.getRowIndexMapper().unregisterMap('bindRowsWithHeaders');
+    this.hot.rowIndexMapper.unregisterMap('bindRowsWithHeaders');
 
     super.destroy();
   }

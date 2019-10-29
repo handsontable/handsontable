@@ -649,7 +649,7 @@ describe('manualColumnMove', () => {
             afterColumnMove: afterMoveColumnCallback
           });
 
-          hot.getColumnIndexMapper().setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+          hot.columnIndexMapper.setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
           const result = hot.getPlugin('manualColumnMove').moveColumns([8, 9, 7], 0);
 
           expect(beforeColumnMoveCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, void 0, void 0);

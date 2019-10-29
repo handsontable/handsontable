@@ -305,7 +305,7 @@ class DataMap {
       numberOfCreatedRows += 1;
     }
 
-    this.instance.getRowIndexMapper().insertIndexes(rowIndex, numberOfCreatedRows);
+    this.instance.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -375,7 +375,7 @@ class DataMap {
       nrOfColumns += 1;
     }
 
-    this.instance.getColumnIndexMapper().insertIndexes(columnIndex, numberOfCreatedCols);
+    this.instance.columnIndexMapper.insertIndexes(columnIndex, numberOfCreatedCols);
 
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -416,7 +416,7 @@ class DataMap {
 
     // TODO: Function `removeRow` should validate fully, probably above.
     if (rowIndex < this.instance.countRows()) {
-      this.instance.getRowIndexMapper().removeIndexes(logicRows);
+      this.instance.rowIndexMapper.removeIndexes(logicRows);
     }
 
     this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
@@ -478,7 +478,7 @@ class DataMap {
 
     // TODO: Function `removeCol` should validate fully, probably above.
     if (columnIndex < this.instance.countCols()) {
-      this.instance.getColumnIndexMapper().removeIndexes(logicColumns);
+      this.instance.columnIndexMapper.removeIndexes(logicColumns);
     }
 
     this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
@@ -786,7 +786,7 @@ class DataMap {
       maxRows = maxRowsFromSettings || Infinity;
     }
 
-    const length = this.instance.getRowIndexMapper().getNotSkippedIndexesLength();
+    const length = this.instance.rowIndexMapper.getNotSkippedIndexesLength();
 
     return Math.min(length, maxRows);
   }

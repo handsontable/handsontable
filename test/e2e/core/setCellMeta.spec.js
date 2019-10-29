@@ -34,8 +34,8 @@ describe('Core.setCellMeta', () => {
       minCols: 5
     });
 
-    hot.getRowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.getColumnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     setCellMeta(0, 1, 'key', 'value');
 
@@ -118,8 +118,8 @@ describe('Core.setCellMeta', () => {
       afterSetCellMeta
     });
 
-    hot.getRowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.getColumnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     hot.setCellMeta(0, 1, 'className', className);
 

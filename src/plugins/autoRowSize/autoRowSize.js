@@ -148,7 +148,7 @@ class AutoRowSize extends BasePlugin {
     }
 
     this.rowHeightsMap = new ValueMap();
-    this.hot.getRowIndexMapper().registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
+    this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
 
     this.setSamplingOptions();
 
@@ -166,7 +166,7 @@ class AutoRowSize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.getRowIndexMapper().unregisterMap(ROW_WIDTHS_MAP_NAME);
+    this.hot.rowIndexMapper.unregisterMap(ROW_WIDTHS_MAP_NAME);
     this.headerHeight = null;
 
     super.disablePlugin();
@@ -525,7 +525,7 @@ class AutoRowSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.getRowIndexMapper().unregisterMap(ROW_WIDTHS_MAP_NAME);
+    this.hot.rowIndexMapper.unregisterMap(ROW_WIDTHS_MAP_NAME);
     this.ghostTable.clean();
     super.destroy();
   }

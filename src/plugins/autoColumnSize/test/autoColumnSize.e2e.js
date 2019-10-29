@@ -586,13 +586,13 @@ describe('AutoColumnSize', () => {
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
-    hot.getColumnIndexMapper().moveIndexes(2, 1);
+    hot.columnIndexMapper.moveIndexes(2, 1);
     render();
 
     expect(colWidth(spec().$container, 1)).toBe(147);
     expect(colWidth(spec().$container, 2)).toBe(59);
 
-    hot.getColumnIndexMapper().moveIndexes(1, 2);
+    hot.columnIndexMapper.moveIndexes(1, 2);
     render();
 
     expect(colWidth(spec().$container, 1)).toBe(59);

@@ -855,31 +855,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   /**
-   * Get instance of index mapper which is responsible for managing the row indexes.
-   *
-   * @return {IndexMapper}
-   */
-  this.getRowIndexMapper = function() {
-    return this.rowIndexMapper;
-  };
-
-  /**
-   * Get instance of index mapper which is responsible for managing the column indexes.
-   *
-   * @return {IndexMapper}
-   */
-  this.getColumnIndexMapper = function() {
-    return this.columnIndexMapper;
-  };
-
-  /**
    * Execute batch operations on Handsontable instance with updating cache.
    *
    * @param {Function} curriedBatchOperations Batched operations curried in a function.
    */
   this.executeBatchOperations = function(curriedBatchOperations) {
-    this.getColumnIndexMapper().executeBatchOperations(() => {
-      this.getRowIndexMapper().executeBatchOperations(() => {
+    this.columnIndexMapper.executeBatchOperations(() => {
+      this.rowIndexMapper.executeBatchOperations(() => {
         curriedBatchOperations();
       });
     });
@@ -1640,8 +1622,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * - we need also information about dataSchema as `data` and `columns` properties may not provide information about number of columns
      * (ie. `data` may be empty, `columns` may be a function).
      */
-    this.getColumnIndexMapper().initToLength(Math.max(this.countSourceCols(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
-    this.getRowIndexMapper().initToLength(this.countSourceRows());
+    this.columnIndexMapper.initToLength(Math.max(this.countSourceCols(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
+    this.rowIndexMapper.initToLength(this.countSourceRows());
 
     grid.adjustRowsAndCols();
 
@@ -2101,7 +2083,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} row Physical row index.
    * @returns {Number} Returns visual row index.
    */
-  this.toVisualRow = row => this.getRowIndexMapper().getVisualIndex(row);
+  this.toVisualRow = row => this.rowIndexMapper.getVisualIndex(row);
 
   /**
    * Translate physical column index into visual.
@@ -2114,7 +2096,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} column Physical column index.
    * @returns {Number} Returns visual column index.
    */
-  this.toVisualColumn = column => this.getColumnIndexMapper().getVisualIndex(column);
+  this.toVisualColumn = column => this.columnIndexMapper.getVisualIndex(column);
 
   /**
    * Translate visual row index into physical.
@@ -2127,7 +2109,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} row Visual row index.
    * @returns {Number} Returns physical row index.
    */
-  this.toPhysicalRow = row => this.getRowIndexMapper().getPhysicalIndex(row);
+  this.toPhysicalRow = row => this.rowIndexMapper.getPhysicalIndex(row);
 
   /**
    * Translate visual column index into physical.
@@ -2140,7 +2122,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} column Visual column index.
    * @returns {Number} Returns physical column index.
    */
-  this.toPhysicalColumn = column => this.getColumnIndexMapper().getPhysicalIndex(column);
+  this.toPhysicalColumn = column => this.columnIndexMapper.getPhysicalIndex(column);
 
   /**
    * @description
@@ -3057,7 +3039,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countCols = function() {
     const maxCols = this.getSettings().maxCols;
-    let dataLen = this.getColumnIndexMapper().getNotSkippedIndexesLength();
+    let dataLen = this.columnIndexMapper.getNotSkippedIndexesLength();
 
     if (priv.settings.columns) {
       const columnsIsFunction = isFunction(priv.settings.columns);

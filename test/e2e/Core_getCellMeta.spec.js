@@ -18,8 +18,8 @@ describe('Core_getCellMeta', () => {
       minCols: 5
     });
 
-    hot.getColumnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.getRowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     const cellMeta = getCellMeta(0, 1);
 
@@ -205,8 +205,8 @@ describe('Core_getCellMeta', () => {
       },
     });
 
-    hot.getRowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.getColumnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     hot.getCellMeta(0, 1);
 
@@ -227,8 +227,8 @@ describe('Core_getCellMeta', () => {
       }
     });
 
-    hot.getRowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.getColumnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     hot.getCellMeta(0, 1);
 

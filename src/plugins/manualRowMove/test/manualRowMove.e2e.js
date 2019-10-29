@@ -606,7 +606,7 @@ describe('manualRowMove', () => {
             afterRowMove: afterMoveRowCallback
           });
 
-          hot.getRowIndexMapper().setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+          hot.rowIndexMapper.setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
           const result = hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
 
           expect(beforeRowMoveCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, void 0, void 0);

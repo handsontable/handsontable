@@ -42,8 +42,8 @@ describe('Core_removeCellMeta', () => {
       minCols: 5
     });
 
-    hot.getRowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.getColumnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     setCellMeta(0, 0, 'key', 'value');
     removeCellMeta(0, 0, 'key');
@@ -117,8 +117,8 @@ describe('Core_removeCellMeta', () => {
       }
     });
 
-    hot.getRowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.getColumnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     removeCellMeta(0, 1, 'key');
 
@@ -139,8 +139,8 @@ describe('Core_removeCellMeta', () => {
       }
     });
 
-    hot.getRowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.getColumnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     removeCellMeta(0, 1, 'key');
 

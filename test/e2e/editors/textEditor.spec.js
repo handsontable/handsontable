@@ -129,8 +129,8 @@ describe('TextEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 5)
     });
 
-    hot.getRowIndexMapper().setIndexesSequence([1, 2, 3, 4, 0]);
-    hot.getColumnIndexMapper().setIndexesSequence([1, 2, 3, 4, 0]);
+    hot.rowIndexMapper.setIndexesSequence([1, 2, 3, 4, 0]);
+    hot.columnIndexMapper.setIndexesSequence([1, 2, 3, 4, 0]);
 
     selectCell(0, 0);
     getActiveEditor().beginEditing();
