@@ -8,10 +8,10 @@ describe('WalkontableTable', () => {
   }
 
   beforeEach(function() {
-    this.$wrapper = $('<div></div>').css({ overflow: 'hidden' });
+    this.$wrapper = $('<div></div>').addClass('handsontable').css({ overflow: 'hidden' });
     this.$wrapper.width(100).height(201);
     this.$container = $('<div></div>');
-    this.$table = $('<table></table>'); // create a table that is not attached to document
+    this.$table = $('<table></table>').addClass('htCore'); // create a table that is not attached to document
     this.$wrapper.append(this.$container);
     this.$container.append(this.$table);
     this.$wrapper.appendTo('body');
@@ -1074,7 +1074,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('cell header border', () => {
-    it('should be correct visible in fixedColumns and without row header', () => {
+    it('both left and right borders should be set on the first TH in the top overlay if `fixedColumns` is set but there are no `rowHeaders`', () => {
       createDataArray(50, 50);
       spec().$wrapper.width(500).height(400);
 
@@ -1090,7 +1090,7 @@ describe('WalkontableTable', () => {
 
       expect($('.ht_clone_top_left_corner thead tr th').eq(0).css('border-left-width')).toBe('1px');
       expect($('.ht_clone_top_left_corner thead tr th').eq(0).css('border-right-width')).toBe('1px');
-      expect($('.ht_clone_top_left_corner thead tr th').eq(1).css('border-left-width')).toBe('0px');
+      expect($('.ht_clone_top_left_corner thead tr th').eq(1).css('border-left-width')).toBe('1px'); // was 0 before https://github.com/handsontable/handsontable/commit/32c163c6a98903a30daddac7582276d18a12a81a
       expect($('.ht_clone_top_left_corner thead tr th').eq(1).css('border-right-width')).toBe('1px');
     });
   });
