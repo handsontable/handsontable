@@ -855,14 +855,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   /**
-   * Execute batch operations on Handsontable instance with updating cache.
+   * Execute batch of operations with updating cache only when necessary. Function is responsible for renewing row index mapper's and column index mapper's
+   * cache at most once, even when there is more then one operation inside their internal maps. If there is no operation which would reset the cache, it is preserved.
+   * Every action on indexes sequence or skipped indexes by default reset cache, thus batching some index maps actions is recommended.
    *
-   * @param {Function} curriedBatchOperations Batched operations curried in a function.
+   * @param {Function} wrappedOperations Batched operations wrapped in a function.
    */
-  this.executeBatchOperations = function(curriedBatchOperations) {
+  this.executeBatchOperations = function(wrappedOperations) {
     this.columnIndexMapper.executeBatchOperations(() => {
       this.rowIndexMapper.executeBatchOperations(() => {
-        curriedBatchOperations();
+        wrappedOperations();
       });
     });
   };
