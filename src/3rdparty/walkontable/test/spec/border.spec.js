@@ -2,13 +2,13 @@ describe('WalkontableBorder', () => {
   const debug = false;
 
   beforeEach(function() {
+    this.$wrapper = $('<div></div>').addClass('handsontable');
     this.$container = $('<div></div>');
-    this.$wrapper = $('<div></div>');
-    this.$container.width(100).height(200);
-    this.$table = $('<table></table>');
-    this.$container.append(this.$wrapper);
-    this.$wrapper.append(this.$table);
-    this.$container.appendTo('body');
+    this.$wrapper.width(100).height(200);
+    this.$table = $('<table></table>').addClass('htCore');
+    this.$wrapper.append(this.$container);
+    this.$container.append(this.$table);
+    this.$wrapper.appendTo('body');
     createDataArray();
   });
 
@@ -16,7 +16,7 @@ describe('WalkontableBorder', () => {
     if (!debug) {
       $('.wtHolder').remove();
     }
-    this.$container.remove();
+    this.$wrapper.remove();
     this.wotInstance.destroy();
   });
 
@@ -238,13 +238,13 @@ describe('WalkontableBorder', () => {
 
     wt.draw();
 
-    const corners = spec().$container.find('.wtBorder.corner:visible');
+    const corners = spec().$wrapper.find('.wtBorder.corner:visible');
 
     expect(corners.length).toBe(1);
   });
 
   it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', () => {
-    spec().$container.css({
+    spec().$wrapper.css({
       overflow: 'hidden',
       width: '200px',
     });
@@ -283,7 +283,7 @@ describe('WalkontableBorder', () => {
     expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(42);
     expect($corner.position().left).toBe(45);
-    expect(spec().$container[0].clientWidth === spec().$container[0].scrollWidth).toBe(true);
+    expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
 
     $td2.simulate('mousedown');
 
@@ -291,7 +291,7 @@ describe('WalkontableBorder', () => {
     expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(88);
     expect($corner.position().left).toBe(193);
-    expect(spec().$container[0].clientWidth === spec().$container[0].scrollWidth).toBe(true);
+    expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
 
     $td3.simulate('mousedown');
 
@@ -299,11 +299,11 @@ describe('WalkontableBorder', () => {
     expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(65);
     expect($corner.position().left).toBe(95);
-    expect(spec().$container[0].clientWidth === spec().$container[0].scrollWidth).toBe(true);
+    expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
   });
 
   it('should move the fill handle / corner border to the top, if in the position it would overlap the container (e.g.: far-bottom)', () => {
-    spec().$container.css({
+    spec().$wrapper.css({
       height: '',
       marginTop: '2000px',
     });
@@ -345,11 +345,11 @@ describe('WalkontableBorder', () => {
     expect(spec().$table.css('height')).toBe('116px');
     expect($corner.position().top).toBe(109); // table.height - corner.height - corner.borderTop
     expect($corner.position().left).toBe(45);
-    expect(spec().$container[0].clientHeight === spec().$container[0].scrollHeight).toBe(true);
+    expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
   });
 
   it('should move the corner border to the top-left, if is not enough area on the bottom-right corner of container', () => {
-    spec().$container.css({
+    spec().$wrapper.css({
       height: '',
       width: '50px',
       marginTop: '2000px',
@@ -393,7 +393,7 @@ describe('WalkontableBorder', () => {
     expect(spec().$table.css('height')).toBe('24px');
     expect($corner.position().top).toBe(17); // table.height - corner.height - corner.borderTop
     expect($corner.position().left).toBe(43);
-    expect(spec().$container[0].clientHeight === spec().$container[0].scrollHeight).toBe(true);
-    expect(spec().$container[0].clientWidth === spec().$container[0].scrollWidth).toBe(true);
+    expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
+    expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
   });
 });

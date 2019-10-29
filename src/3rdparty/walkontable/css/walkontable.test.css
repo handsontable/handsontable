@@ -1,0 +1,9 @@
+body > .handsontable {
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.3em;
+  font-size: 13px;
+}
+
+.testOverflowHidden {
+  overflow: hidden;
+}

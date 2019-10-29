@@ -1,4 +1,5 @@
 import './css/bootstrap.css';
+import './3rdparty/walkontable/css/walkontable.css';
 import './css/handsontable.css';
 import './css/mobile.handsontable.css';
 

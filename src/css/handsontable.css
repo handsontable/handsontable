@@ -1,98 +1,8 @@
-.handsontable {
-  position: relative;
-}
-
-.handsontable .hide {
-  display: none;
-}
-
-.handsontable .relative {
-  position: relative;
-}
-
 .handsontable.htAutoSize {
   visibility: hidden;
   left: -99000px;
   position: absolute;
   top: -99000px;
-}
-
-.handsontable .wtHider {
-  width: 0;
-}
-
-.handsontable .wtSpreader {
-  position: relative;
-  width: 0; /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
-  height: auto;
-}
-
-.handsontable table,
-.handsontable tbody,
-.handsontable thead,
-.handsontable td,
-.handsontable th,
-.handsontable input,
-.handsontable textarea,
-.handsontable div {
-  box-sizing: content-box;
-  -webkit-box-sizing: content-box;
-  -moz-box-sizing: content-box;
-}
-
-.handsontable input,
-.handsontable textarea {
-  min-height: initial;
-}
-
-.handsontable table.htCore {
-  border-collapse: separate;
-  /* it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit */
-  /* this actually only changes appearance of user selection - does not make text unselectable */
-  /* -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -o-user-select: none;
-  -ms-user-select: none;
-  user-select: none; */ /* no browser supports unprefixed version */
-  border-spacing: 0;
-  margin: 0;
-  border-width: 0;
-  table-layout: fixed;
-  width: 0;
-  outline-width: 0;
-  cursor: default;
-  /* reset bootstrap table style. for more info see: https://github.com/handsontable/handsontable/issues/224 */
-  max-width: none;
-  max-height: none;
-}
-
-.handsontable col {
-  width: 50px;
-}
-
-.handsontable col.rowHeader {
-  width: 50px;
-}
-
-.handsontable th,
-.handsontable td {
-  border-top-width: 0;
-  border-left-width: 0;
-  border-right: 1px solid #CCC;
-  border-bottom: 1px solid #CCC;
-  height: 22px;
-  empty-cells: show;
-  line-height: 21px;
-  padding: 0 4px 0 4px;
-  /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
-  background-color: #FFF;
-  vertical-align: top;
-  overflow: hidden;
-  outline-width: 0;
-  white-space: pre-line;
-  /* preserve new line character in cell */
-  background-clip: padding-box;
 }
 
 .handsontable td.htInvalid {
@@ -101,68 +11,6 @@
 
 .handsontable td.htNoWrap {
   white-space: nowrap;
-}
-
-.handsontable th:last-child {
-  /*Foundation framework fix*/
-  border-right: 1px solid #CCC;
-  border-bottom: 1px solid #CCC;
-}
-
-.handsontable tr:first-child th.htNoFrame,
-.handsontable th:first-child.htNoFrame,
-.handsontable th.htNoFrame {
-  border-left-width: 0;
-  background-color: white;
-  border-color: #FFF;
-}
-
-.handsontable th:first-child,
-.handsontable th:nth-child(2),
-.handsontable td:first-of-type,
-.handsontable .htNoFrame + th,
-.handsontable .htNoFrame + td {
-  border-left: 1px solid #CCC;
-}
-
-.handsontable.htRowHeaders thead tr th:nth-child(2) {
-  border-left: 1px solid #CCC;
-}
-
-.handsontable tr:first-child th,
-.handsontable tr:first-child td {
-  border-top: 1px solid #CCC;
-}
-
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable tbody tr th,
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
-  border-right-width: 0;
-}
-
-.ht_master:not(.innerBorderTop) thead tr:last-child th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderTop) thead tr.lastChild th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr.lastChild th {
-  border-bottom-width: 0;
-}
-
-.handsontable th {
-  background-color: #f0f0f0;
-  color: #222;
-  text-align: center;
-  font-weight: normal;
-  white-space: nowrap;
-}
-
-.handsontable thead th {
-  padding: 0;
-}
-
-.handsontable th.active {
-  background-color: #CCC;
-}
-.handsontable thead th .relative {
-  padding: 2px 4px;
 }
 
 #hot-display-license-info {
@@ -240,14 +88,7 @@
 .handsontable .columnSorting.sortAction:hover {
   text-decoration: underline;
   cursor: pointer;
-}
-
-.handsontable span.colHeader {
-  display: inline-block;
-  line-height: 1.1;
-}
-
-/* Arrow position */
+}/* Arrow position */
 .handsontable span.colHeader.columnSorting::before {
   /* Centering start */
   top: 50%;
@@ -283,26 +124,6 @@
   /* The multi-line header and header with longer text need more padding to not hide arrow,
   we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
   padding-right: 20px;
-}
-
-/* Selection */
-.handsontable .wtBorder {
-  position: absolute;
-  font-size: 0;
-}
-.handsontable .wtBorder.hidden{
-  display:none !important;
-}
-
-/* A layer order of the selection types */
-.handsontable .wtBorder.current {
-  z-index: 10;
-}
-.handsontable .wtBorder.area {
-  z-index: 8;
-}
-.handsontable .wtBorder.fill {
-  z-index: 6;
 }
 
 .handsontable td.area,
@@ -382,19 +203,6 @@
 .handsontable thead th.ht__active_highlight {
   background-color: #8eb0e7;
   color: #000;
-}
-
-/* fill handle */
-
-.handsontable .wtBorder.corner {
-  font-size: 0;
-  cursor: crosshair;
-}
-
-.handsontable .htBorder.htFillBorder {
-  background: red;
-  width: 1px;
-  height: 1px;
 }
 
 .handsontableInput {
@@ -593,148 +401,9 @@ CheckboxRenderer
   z-index: 200;
 }
 
-.ht_clone_master {
-  z-index: 100;
-}
-
-.ht_clone_right {
-  z-index: 110;
-}
-
-.ht_clone_left {
-  z-index: 120;
-}
-
-.ht_clone_bottom {
-  z-index: 130;
-}
-
-.ht_clone_bottom_right_corner {
-  z-index: 140;
-}
-
-.ht_clone_bottom_left_corner {
-  z-index: 150;
-}
-
-.ht_clone_top {
-  z-index: 160;
-}
-
-.ht_clone_top_right_corner {
-  z-index: 170;
-}
-
-.ht_clone_top_left_corner {
-  z-index: 180;
-}
-
 .handsontable td.htSearchResult {
   background: #fcedd9;
   color: #583707;
-}
-
-/*
-Cell borders
-*/
-.htBordered{
-  /*box-sizing: border-box !important;*/
-  border-width: 1px;
-}
-.htBordered.htTopBorderSolid {
-  border-top-style: solid;
-  border-top-color: #000;
-}
-.htBordered.htRightBorderSolid {
-  border-right-style: solid;
-  border-right-color: #000;
-}
-.htBordered.htBottomBorderSolid {
-  border-bottom-style: solid;
-  border-bottom-color: #000;
-}
-.htBordered.htLeftBorderSolid {
-  border-left-style: solid;
-  border-left-color: #000;
-}
-
-.handsontable tbody tr th:nth-last-child(2) {
-  border-right: 1px solid #CCC;
-}
-
-.handsontable thead tr:nth-last-child(2) th.htGroupIndicatorContainer {
-  border-bottom: 1px solid #CCC;
-  padding-bottom: 5px;
-}
-
-
-.ht_clone_top_left_corner thead tr th:nth-last-child(2) {
-  border-right: 1px solid #CCC;
-}
-
-.htCollapseButton {
-  width: 10px;
-  height: 10px;
-  line-height: 10px;
-  text-align: center;
-  border-radius: 5px;
-  border: 1px solid #f3f3f3;
-  -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-  cursor: pointer;
-  margin-bottom: 3px;
-  position: relative;
-}
-
-.htCollapseButton:after {
-  content: "";
-  height: 300%;
-  width: 1px;
-  display: block;
-  background: #ccc;
-  margin-left: 4px;
-  position: absolute;
-  /*top: -300%;*/
-  bottom: 10px;
-}
-
-
-thead .htCollapseButton {
-  right: 5px;
-  position: absolute;
-  top: 5px;
-  background: #fff;
-}
-
-thead .htCollapseButton:after {
-  height: 1px;
-  width: 700%;
-  right: 10px;
-  top: 4px;
-}
-
-.handsontable tr th .htExpandButton {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  line-height: 10px;
-  text-align: center;
-  border-radius: 5px;
-  border: 1px solid #f3f3f3;
-  -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-  cursor: pointer;
-  top: 0;
-  display: none;
-}
-
-.handsontable thead tr th .htExpandButton {
-  /*left: 5px;*/
-  top: 5px;
-}
-
-.handsontable tr th .htExpandButton.clickable {
-  display: block;
 }
 
 .collapsibleIndicator {
@@ -754,41 +423,4 @@ thead .htCollapseButton:after {
   -moz-box-shadow: 0 0 0 6px rgba(238,238,238,1);
   box-shadow: 0 0 0 6px rgba(238,238,238,1);
   background: #eee;
-}
-
-.handsontable col.hidden {
-  width: 0 !important;
-}
-
-.handsontable table tr th.lightRightBorder {
-  border-right: 1px solid #E6E6E6;
-}
-
-.handsontable tr.hidden,
-.handsontable tr.hidden td,
-.handsontable tr.hidden th {
-  display: none;
-}
-
-.ht_master,
-.ht_clone_left,
-.ht_clone_top,
-.ht_clone_bottom {
-  overflow: hidden;
-}
-
-.ht_master .wtHolder {
-  overflow: auto;
-}
-
-.handsontable .ht_master thead,
-.handsontable .ht_master tr th,
-.handsontable .ht_clone_left thead {
-  visibility: hidden;
-}
-
-.ht_clone_top .wtHolder,
-.ht_clone_left .wtHolder,
-.ht_clone_bottom .wtHolder {
-  overflow: hidden;
 }
