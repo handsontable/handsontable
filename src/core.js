@@ -130,7 +130,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
 
+  // Instance of index mapper which is responsible for managing the column indexes.
   this.columnIndexMapper = new IndexMapper();
+  // Instance of index mapper which is responsible for managing the row indexes.
   this.rowIndexMapper = new IndexMapper();
 
   dataSource = new DataSource(instance);
