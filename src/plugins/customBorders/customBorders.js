@@ -266,7 +266,6 @@ class CustomBorders extends BasePlugin {
     } else {
       arrayEach(this.savedBorders, (border) => {
         this.clearBordersFromSelectionSettings(border.id);
-        this.clearNullCellRange();
         this.hot.removeCellMeta(border.row, border.col, 'borders');
       });
 
@@ -397,7 +396,6 @@ class CustomBorders extends BasePlugin {
     this.spliceBorder(borderId);
 
     this.clearBordersFromSelectionSettings(borderId);
-    this.clearNullCellRange();
 
     this.hot.removeCellMeta(row, column, 'borders');
   }
@@ -571,22 +569,8 @@ class CustomBorders extends BasePlugin {
 
     if (customSelection) {
       customSelection.clear();
+      this.hot.selection.highlight.customSelections.delete(customSelection.settings.id);
     }
-  }
-
-  /**
-  * Clear cellRange with null value.
-  *
-  * @private
-  */
-  clearNullCellRange() {
-    arrayEach(this.hot.selection.highlight.customSelections.values(), (customSelection) => {
-      if (customSelection.cellRange === null) {
-        this.hot.selection.highlight.customSelections.delete(customSelection.settings.id);
-
-        return false; // breaks forAll
-      }
-    });
   }
 
   /**
@@ -597,7 +581,6 @@ class CustomBorders extends BasePlugin {
   hideBorders() {
     arrayEach(this.savedBorders, (border) => {
       this.clearBordersFromSelectionSettings(border.id);
-      this.clearNullCellRange();
     });
   }
 
