@@ -401,13 +401,13 @@ class ManualColumnResize extends BasePlugin {
         this.setManualSize(selectedCol, this.newSize); // double click sets by auto row size plugin
       }
 
-      if (forceRender) {
-        render();
-      }
-
       this.saveManualColumnWidths();
 
       this.hot.runHooks('afterColumnResize', selectedCol, this.newSize, true);
+
+      if (forceRender) {
+        render();
+      }
     };
 
     if (this.dblclick >= 2) {

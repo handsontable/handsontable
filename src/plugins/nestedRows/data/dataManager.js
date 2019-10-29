@@ -511,11 +511,11 @@ class DataManager {
 
     this.hot.runHooks('afterCreateRow', movedElementRowIndex, 1, this.plugin.pluginName);
 
+    this.hot.runHooks('afterDetachChild', parent, element);
+
     if (forceRender) {
       this.hot.render();
     }
-
-    this.hot.runHooks('afterDetachChild', parent, element);
   }
 
   /**

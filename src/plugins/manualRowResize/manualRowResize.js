@@ -346,11 +346,11 @@ class ManualRowResize extends BasePlugin {
 
       this.setManualSize(selectedRow, this.newSize); // double click sets auto row size
 
+      this.hot.runHooks('afterRowResize', selectedRow, this.newSize, true);
+
       if (forceRender) {
         render();
       }
-
-      this.hot.runHooks('afterRowResize', selectedRow, this.newSize, true);
     };
 
     if (this.dblclick >= 2) {

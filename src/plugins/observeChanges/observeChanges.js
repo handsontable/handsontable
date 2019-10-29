@@ -85,6 +85,8 @@ class ObserveChanges extends BasePlugin {
    * @param {Array} patches An array of objects which every item defines coordinates where data was changed.
    */
   onDataChange(patches) {
+    let render = false;
+
     if (!this.observer.isPaused()) {
       const sourceName = `${this.pluginName}.change`;
       const actions = {
@@ -123,10 +125,14 @@ class ObserveChanges extends BasePlugin {
         }
       });
 
-      this.hot.render();
+      render = true;
     }
 
     this.hot.runHooks('afterChangesObserved');
+
+    if (render) {
+      this.hot.render();
+    }
   }
 
   /**
