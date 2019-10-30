@@ -160,7 +160,6 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(24);
 
     hot.addHook('beforeRowResize', () => 100);
-
     hot.addHook('beforeRowResize', () => 200);
 
     hot.addHook('beforeRowResize', () => {});
