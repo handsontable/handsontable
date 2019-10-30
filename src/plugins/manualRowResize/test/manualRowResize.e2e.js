@@ -161,7 +161,6 @@ describe('manualRowResize', () => {
 
     hot.addHook('beforeRowResize', () => 100);
     hot.addHook('beforeRowResize', () => 200);
-
     hot.addHook('beforeRowResize', () => {});
 
     resizeRow(0, 60);
