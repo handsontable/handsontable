@@ -13,6 +13,7 @@ import {
 } from './helpers/object';
 import { extendArray, to2dArray } from './helpers/array';
 import { rangeEach } from './helpers/number';
+import { isDefined } from './helpers/mixed';
 
 const copyableLookup = cellMethodLookupFactory('copyable', false);
 
@@ -190,13 +191,15 @@ class DataMap {
    * @returns {String|Number} Column property, physical column index or passed argument.
    */
   colToProp(column) {
-    let physicalColumn = column;
+    const physicalColumn = this.instance.toPhysicalColumn(column);
 
-    if (column < this.instance.countCols()) {
-      physicalColumn = this.instance.toPhysicalColumn(column);
+    // Out of range, not visible column index.
+    if (physicalColumn === null) {
+      return column;
     }
 
-    if (!isNaN(physicalColumn) && this.colToPropCache && typeof this.colToPropCache[physicalColumn] !== 'undefined') {
+    // Cached property.
+    if (this.colToPropCache && isDefined(this.colToPropCache[physicalColumn])) {
       return this.colToPropCache[physicalColumn];
     }
 
@@ -206,8 +209,8 @@ class DataMap {
   /**
    * Translates property into visual column index.
    *
-   * @param {String|Number} prop Column property or visual column index.
-   * @returns {String|Number} Physical column index or passed argument.
+   * @param {String} prop Column property.
+   * @returns {String|Number} Visual column index or passed argument.
    */
   propToCol(prop) {
     if (typeof this.propToColCache.get(prop) === 'undefined') {
