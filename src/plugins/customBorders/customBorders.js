@@ -89,12 +89,12 @@ class CustomBorders extends BasePlugin {
     this.savedBorders = [];
 
     /**
-     * Object containing border id as the key and the border object as the value
+     * Map containing border id as the key and the border object as the value
      *
      * @private
-     * @type {Object}
+     * @type {Map}
      */
-    this.savedBordersById = {};
+    this.savedBordersById = new Map();
   }
 
   /**
@@ -270,7 +270,7 @@ class CustomBorders extends BasePlugin {
       });
 
       this.savedBorders.length = 0;
-      this.savedBordersById = {};
+      this.savedBordersById.clear();
     }
     this.render();
   }
@@ -282,14 +282,15 @@ class CustomBorders extends BasePlugin {
    * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    */
   insertBorderIntoSettings(border) {
-    if (this.savedBordersById[border.id]) {
-      const index = this.savedBorders.indexOf(border);
+    const prevBorder = this.savedBordersById.get(border.id);
+    if (prevBorder) {
+      const index = this.savedBorders.indexOf(prevBorder);
 
       this.savedBorders[index] = border;
     } else {
       this.savedBorders.push(border);
     }
-    this.savedBordersById[border.id] = border;
+    this.savedBordersById.set(border.id, border);
 
     const coordinates = {
       row: border.row,
@@ -591,15 +592,14 @@ class CustomBorders extends BasePlugin {
   * @param {String} borderId Border id name as string.
   */
   spliceBorder(borderId) {
-    const border = this.savedBordersById[borderId];
+    const border = this.savedBordersById.get(borderId);
 
     if (border) {
       const index = this.savedBorders.indexOf(border);
 
       this.savedBorders.splice(index, 1);
+      this.savedBordersById.delete(borderId);
     }
-
-    this.savedBordersById[borderId] = undefined;
   }
 
   /**
