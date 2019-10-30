@@ -469,7 +469,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             arrayEach(indexes, ([groupIndex, groupAmount]) => {
               const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
 
-              let visualColumnIndex = instance.toPhysicalColumn(calcIndex);
+              let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
 
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
@@ -484,7 +484,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
                 if (priv.cellSettings[row]) { // if row hasn't been rendered it wouldn't have cellSettings
-                  priv.cellSettings[row].splice(visualColumnIndex, groupAmount);
+                  priv.cellSettings[row].splice(physicalColumnIndex, groupAmount);
                 }
               }
               const fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
@@ -494,10 +494,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               }
 
               if (Array.isArray(instance.getSettings().colHeaders)) {
-                if (typeof visualColumnIndex === 'undefined') {
-                  visualColumnIndex = -1;
+                if (typeof physicalColumnIndex === 'undefined') {
+                  physicalColumnIndex = -1;
                 }
-                instance.getSettings().colHeaders.splice(visualColumnIndex, groupAmount);
+                instance.getSettings().colHeaders.splice(physicalColumnIndex, groupAmount);
               }
 
               offset += groupAmount;
