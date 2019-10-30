@@ -1006,6 +1006,29 @@ describe('Core_alter', () => {
 
       expect(getCellMeta(5, 1).className).toEqual('test');
     });
+
+    it('should insert row at proper position when there were some row sequence changes', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5)
+      });
+
+      hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+
+      alter('insert_row', 1, 1);
+
+      expect(getDataAtCol(0)).toEqual(['A5', null, 'A4', 'A3', 'A2', 'A1']);
+      expect(getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', null, 'A4', 'A5']);
+
+      alter('insert_row', 0, 1);
+
+      expect(getDataAtCol(0)).toEqual([null, 'A5', null, 'A4', 'A3', 'A2', 'A1']);
+      expect(getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', null, 'A4', null, 'A5']);
+
+      alter('insert_row', 7, 1);
+
+      expect(getDataAtCol(0)).toEqual([null, 'A5', null, 'A4', 'A3', 'A2', 'A1', null]);
+      expect(getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', null, 'A4', null, 'A5', null]);
+    });
   });
 
   describe('insert column', () => {
@@ -1208,6 +1231,29 @@ describe('Core_alter', () => {
       alter('insert_col', 0, 3);
 
       expect(getCellMeta(1, 5).className).toEqual('test');
+    });
+
+    it('should insert column at proper position when there were some column sequence changes', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5)
+      });
+
+      hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+
+      alter('insert_col', 1, 1);
+
+      expect(getDataAtRow(0)).toEqual(['E1', null, 'D1', 'C1', 'B1', 'A1']);
+      expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', null, 'D1', 'E1']);
+
+      alter('insert_col', 0, 1);
+
+      expect(getDataAtRow(0)).toEqual([null, 'E1', null, 'D1', 'C1', 'B1', 'A1']);
+      expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', null, 'D1', null, 'E1']);
+
+      alter('insert_col', 7, 1);
+
+      expect(getDataAtRow(0)).toEqual([null, 'E1', null, 'D1', 'C1', 'B1', 'A1', null]);
+      expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', null, 'D1', null, 'E1', null]);
     });
   });
 });

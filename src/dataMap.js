@@ -328,13 +328,14 @@ class DataMap {
         'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
         'If you want to be able to add new columns, you have to use array datasource.');
     }
-    const rlen = this.instance.countSourceRows();
-    const data = this.dataSource;
-    const countColumns = this.instance.countCols();
-    const columnIndex = typeof index !== 'number' || index >= countColumns ? countColumns : index;
-    let numberOfCreatedCols = 0;
-    let currentIndex;
-    let nrOfColumns = this.instance.countCols();
+
+    const dataSource = this.dataSource;
+    const maxCols = this.instance.getSettings().maxCols;
+    let columnIndex = index;
+
+    if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countSourceCols()) {
+      columnIndex = this.instance.countSourceCols();
+    }
 
     const continueProcess = this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
 
@@ -342,29 +343,38 @@ class DataMap {
       return 0;
     }
 
-    currentIndex = columnIndex;
+    let physicalColumnIndex = this.instance.countSourceCols();
 
-    const maxCols = this.instance.getSettings().maxCols;
+    if (columnIndex < this.instance.countCols()) {
+      physicalColumnIndex = this.instance.toPhysicalColumn(columnIndex);
+    }
+
+    const numberOfSourceRows = this.instance.countSourceRows();
+    let nrOfColumns = this.instance.countCols();
+    let numberOfCreatedCols = 0;
+    let currentIndex = physicalColumnIndex;
+
     while (numberOfCreatedCols < amount && nrOfColumns < maxCols) {
       const constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
 
       if (typeof columnIndex !== 'number' || columnIndex >= nrOfColumns) {
-        if (rlen > 0) {
-          for (let r = 0; r < rlen; r++) {
-            if (typeof data[r] === 'undefined') {
-              data[r] = [];
+        if (numberOfSourceRows > 0) {
+          for (let row = 0; row < numberOfSourceRows; row += 1) {
+            if (typeof dataSource[row] === 'undefined') {
+              dataSource[row] = [];
             }
-            data[r].push(null);
+
+            dataSource[row].push(null);
           }
         } else {
-          data.push([null]);
+          dataSource.push([null]);
         }
         // Add new column constructor
         this.priv.columnSettings.push(constructor);
 
       } else {
-        for (let row = 0; row < rlen; row++) {
-          data[row].splice(currentIndex, 0, null);
+        for (let row = 0; row < numberOfSourceRows; row++) {
+          dataSource[row].splice(currentIndex, 0, null);
         }
         // Add new column constructor at given index
         this.priv.columnSettings.splice(currentIndex, 0, constructor);
