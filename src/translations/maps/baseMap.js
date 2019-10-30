@@ -8,7 +8,19 @@ import localHooks from '../../mixins/localHooks';
  */
 class BaseMap {
   constructor(initValueOrFn = null) {
+    /**
+     * List of mappings.
+     *
+     * @private
+     * @type {Array}
+     */
     this.list = [];
+    /**
+     * Initial value or function for each existing index.
+     *
+     * @private
+     * @type {*}
+     */
     this.initValueOrFn = initValueOrFn;
   }
 
@@ -16,6 +28,7 @@ class BaseMap {
    * Initialize list with default values for particular indexes.
    *
    * @param {Number} length New length of list.
+   * @returns {Array}
    */
   init(length) {
     this.setDefaultValues(length);
