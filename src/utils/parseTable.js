@@ -1,3 +1,4 @@
+import { matchesCSSRules } from './../helpers/dom/element';
 import { isEmpty } from './../helpers/mixed';
 
 /**
@@ -131,24 +132,31 @@ export function _dataToHTML(input) {
   return result.join('');
 }
 
-/**
- * Helper to verify and get CSSRules for the element.
- *
- * @param {Element} element Element to verify with selector text.
- * @param {String} selector Selector text from CSSRule.
- */
-function matchCSSRules(element, selector) {
-  let result;
+// /**
+//  * Verifies if element fit to provided CSSRule.
+//  *
+//  * @param {Element} element Element to verify with selector text.
+//  * @param {CSSRule} rule Selector text from CSSRule.
+//  * @returns {Boolean}
+//  */
+// function matchCSSRules(element, rule) {
+//   const { selectorText } = rule;
 
-  if (element.msMatchesSelector) {
-    result = element.msMatchesSelector(selector);
+//   if (rule.type !== CSSRule.STYLE_RULE && !selectorText) {
+//     return false;
+//   }
 
-  } else if (element.matches) {
-    result = element.matches(selector);
-  }
+//   let result;
 
-  return result;
-}
+//   if (element.msMatchesSelector) {
+//     result = element.msMatchesSelector(selectorText);
+
+//   } else if (element.matches) {
+//     result = element.matches(selectorText);
+//   }
+
+//   return result;
+// }
 
 /**
  * Converts HTMLTable or string into Handsontable configuration object.
@@ -305,7 +313,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
         }
 
         const cellStyle = styleSheetArr.reduce((settings, cssRule) => {
-          if (cssRule.selectorText && matchCSSRules(cell, cssRule.selectorText)) {
+          if (matchesCSSRules(cell, cssRule)) {
             const { whiteSpace } = cssRule.style;
 
             if (whiteSpace) {
