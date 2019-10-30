@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.2.2
- * Release date: 23/10/2019 (built at 30/10/2019 10:55:37)
+ * Release date: 23/10/2019 (built at 30/10/2019 12:18:42)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -39702,7 +39702,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "30/10/2019 10:55:37";
+Handsontable.buildDate = "30/10/2019 12:18:42";
 Handsontable.version = "7.2.2"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -47077,43 +47077,52 @@ function () {
         throw new Error('Cannot create new column. When data source in an object, ' + 'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' + 'If you want to be able to add new columns, you have to use array datasource.');
       }
 
-      var rlen = this.instance.countSourceRows();
-      var data = this.dataSource;
-      var countColumns = this.instance.countCols();
-      var columnIndex = typeof index !== 'number' || index >= countColumns ? countColumns : index;
-      var numberOfCreatedCols = 0;
-      var currentIndex;
-      var nrOfColumns = this.instance.countCols();
+      var dataSource = this.dataSource;
+      var maxCols = this.instance.getSettings().maxCols;
+      var columnIndex = index;
+
+      if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countSourceCols()) {
+        columnIndex = this.instance.countSourceCols();
+      }
+
       var continueProcess = this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
 
       if (continueProcess === false) {
         return 0;
       }
 
-      currentIndex = columnIndex;
-      var maxCols = this.instance.getSettings().maxCols;
+      var physicalColumnIndex = this.instance.countSourceCols();
+
+      if (columnIndex < this.instance.countCols()) {
+        physicalColumnIndex = this.instance.toPhysicalColumn(columnIndex);
+      }
+
+      var numberOfSourceRows = this.instance.countSourceRows();
+      var nrOfColumns = this.instance.countCols();
+      var numberOfCreatedCols = 0;
+      var currentIndex = physicalColumnIndex;
 
       while (numberOfCreatedCols < amount && nrOfColumns < maxCols) {
         var _constructor = (0, _setting.columnFactory)(this.GridSettings, this.priv.columnsSettingConflicts);
 
         if (typeof columnIndex !== 'number' || columnIndex >= nrOfColumns) {
-          if (rlen > 0) {
-            for (var r = 0; r < rlen; r++) {
-              if (typeof data[r] === 'undefined') {
-                data[r] = [];
+          if (numberOfSourceRows > 0) {
+            for (var row = 0; row < numberOfSourceRows; row += 1) {
+              if (typeof dataSource[row] === 'undefined') {
+                dataSource[row] = [];
               }
 
-              data[r].push(null);
+              dataSource[row].push(null);
             }
           } else {
-            data.push([null]);
+            dataSource.push([null]);
           } // Add new column constructor
 
 
           this.priv.columnSettings.push(_constructor);
         } else {
-          for (var row = 0; row < rlen; row++) {
-            data[row].splice(currentIndex, 0, null);
+          for (var _row = 0; _row < numberOfSourceRows; _row++) {
+            dataSource[_row].splice(currentIndex, 0, null);
           } // Add new column constructor at given index
 
 
