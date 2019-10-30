@@ -209,21 +209,24 @@ class DataMap {
   /**
    * Translates property into visual column index.
    *
-   * @param {String} prop Column property.
+   * @param {String|Number} prop Column property which may be also a physical column index.
    * @returns {String|Number} Visual column index or passed argument.
    */
   propToCol(prop) {
-    if (typeof this.propToColCache.get(prop) === 'undefined') {
+    const cachedPhysicalIndex = this.propToColCache.get(prop);
+
+    if (isDefined(cachedPhysicalIndex)) {
+      return this.instance.toVisualColumn(cachedPhysicalIndex);
+    }
+
+    // Property may be a physical column index.
+    const visualColumn = this.instance.toVisualColumn(prop);
+
+    if (visualColumn === null) {
       return prop;
     }
 
-    const physicalColumn = this.propToColCache.get(prop);
-
-    if (physicalColumn < this.instance.countSourceCols()) {
-      return this.instance.toVisualColumn(physicalColumn);
-    }
-
-    return physicalColumn;
+    return visualColumn;
   }
 
   /**
