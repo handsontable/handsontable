@@ -348,7 +348,6 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 0)).toEqual(50);
 
     hot.addHook('beforeColumnResize', () => 100);
-
     hot.addHook('beforeColumnResize', () => 200);
     hot.addHook('beforeColumnResize', () => {});
 
