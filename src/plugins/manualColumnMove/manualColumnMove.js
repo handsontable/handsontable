@@ -672,7 +672,7 @@ class ManualColumnMove extends BasePlugin {
       const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
       const selectionEnd = selectionStart + columnsLen - 1;
 
-      this.hot.selectRows(selectionStart, selectionEnd);
+      this.hot.selectColumns(selectionStart, selectionEnd);
     }
   }
 
