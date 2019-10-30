@@ -36,13 +36,17 @@ class MasterTable extends Table {
       if (trimmingElementParent && overflow.includes(trimmingOverflow)) {
         const cloneNode = trimmingElement.cloneNode(false);
 
+        // Before calculating the height of the trimming element, set overflow: auto to hide scrollbars.
+        // An issue occurred on Firefox, where an empty element with overflow: scroll returns an element height higher than 0px
+        // despite an empty content within.
+        cloneNode.style.overflow = 'auto';
         trimmingElementParent.insertBefore(cloneNode, trimmingElement);
 
-        const cloneHeight = getComputedStyle(cloneNode, rootWindow).height;
+        const cloneHeight = parseInt(getComputedStyle(cloneNode, rootWindow).height, 10);
 
         trimmingElementParent.removeChild(cloneNode);
 
-        if (parseInt(cloneHeight, 10) === 0) {
+        if (cloneHeight === 0) {
           height = 0;
         }
       }

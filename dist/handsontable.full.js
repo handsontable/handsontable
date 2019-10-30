@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 7.2.1
- * Release date: 16/10/2019 (built at 16/10/2019 09:50:41)
+ * Version: 7.2.2
+ * Release date: 23/10/2019 (built at 21/10/2019 12:22:24)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3991,7 +3991,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "7.2.1";
+  var hotVersion = "7.2.2";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -4001,7 +4001,7 @@ function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("16/10/2019", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("23/10/2019", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
 
       var keyValidityDays = _extractTime(key);
@@ -41457,7 +41457,7 @@ function htmlToGridSettings(element) {
   }
 
   var dataRows = [].concat(fixedRowsTop, (0, _toConsumableArray2.default)(Array.from(checkElement.tBodies).reduce(function (sections, section) {
-    sections.push.apply(sections, (0, _toConsumableArray2.default)(section.rows));
+    sections.push.apply(sections, (0, _toConsumableArray2.default)(Array.from(section.rows)));
     return sections;
   }, [])), (0, _toConsumableArray2.default)(fixedRowsBottom));
   countRows = dataRows.length;
@@ -59802,8 +59802,8 @@ Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "16/10/2019 09:50:41";
-Handsontable.version = "7.2.1"; // Export Hooks singleton
+Handsontable.buildDate = "21/10/2019 12:22:24";
+Handsontable.version = "7.2.2"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
