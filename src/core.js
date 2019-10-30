@@ -2308,7 +2308,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * @description
-   * Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](https://docs.handsontable.com/Options.html#type)).
+   * Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](https://handsontable.com/docs/Options.html#type)).
    * If there are cells with different types in the selected range, it returns `'mixed'`.
    *
    * __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.

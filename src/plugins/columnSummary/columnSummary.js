@@ -8,7 +8,7 @@ import Endpoints from './endpoints';
  *
  * @description
  * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
- * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
+ * [See the demo for more information](https://handsontable.com/docs/demo-summary-calculations.html).
  *s
  * @example
  * const container = document.getElementById('example');
