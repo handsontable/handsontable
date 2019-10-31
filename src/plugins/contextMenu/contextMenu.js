@@ -127,7 +127,7 @@ class ContextMenu extends BasePlugin {
    * @returns {Boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().contextMenu;
+    return !!this.hot.getSettings().contextMenu;
   }
 
   /**
@@ -146,7 +146,8 @@ class ContextMenu extends BasePlugin {
 
     this.menu = new Menu(this.hot, {
       className: 'htContextMenu',
-      keepInViewport: true
+      keepInViewport: true,
+      container: settings.uiContainer || this.hot.rootDocument.body,
     });
 
     this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
@@ -155,6 +156,7 @@ class ContextMenu extends BasePlugin {
     this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
     this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
+    this.addHook('afterSelection', (...params) => this.onAfterSelection(...params));
 
     super.enablePlugin();
   }
@@ -187,9 +189,10 @@ class ContextMenu extends BasePlugin {
    *
    * @param {Object|Event} position An object with `pageX` and `pageY` properties which contains values relative to
    *                                the top left of the fully rendered content area in the browser or with `clientX`
-   *                                and `clientY`  properties which contains values relative to the upper left edge
-   *                                of the content area (the viewport) of the browser window. This object is structurally
-   *                                compatible with native mouse event so it can be used either.
+   *                                and `clientY` properties which contains values relative to the upper left edge
+   *                                of the content area (the viewport) of the browser window. `target` property is
+   *                                also required. This object is structurally compatible with the native mouse event
+   *                                so it can be used either.
    */
   open(event) {
     if (!this.menu) {
@@ -204,14 +207,28 @@ class ContextMenu extends BasePlugin {
       return;
     }
 
+    let offsetTop = 0;
+    let offsetLeft = 0;
+
+    if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
+      const { frameElement } = this.hot.rootWindow;
+      const { top, left } = frameElement.getBoundingClientRect();
+
+      offsetTop = top - getWindowScrollTop(event.view);
+      offsetLeft = left - getWindowScrollLeft(event.view);
+
+    } else {
+      offsetTop = -1 * getWindowScrollTop(this.menu.hotMenu.rootWindow);
+      offsetLeft = -1 * getWindowScrollLeft(this.menu.hotMenu.rootWindow);
+    }
+
     this.menu.setPosition({
-      top: parseInt(pageY(event), 10) - getWindowScrollTop(this.hot.rootWindow),
-      left: parseInt(pageX(event), 10) - getWindowScrollLeft(this.hot.rootWindow),
+      top: parseInt(pageY(event), 10) + offsetTop,
+      left: parseInt(pageX(event), 10) + offsetLeft,
     });
 
     // ContextMenu is not detected HotTableEnv correctly because is injected outside hot-table
     this.menu.hotMenu.isHotTableEnv = this.hot.isHotTableEnv;
-    // Handsontable.eventManager.isHotTableEnv = this.hot.isHotTableEnv;
   }
 
   /**
@@ -286,6 +303,17 @@ class ContextMenu extends BasePlugin {
 
     // Register all commands. Predefined and added by user or by plugins
     arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
+  }
+
+  /**
+   * Callback for the `afterSelection` hook.
+   *
+   * @private
+   */
+  onAfterSelection() {
+    if (this.menu.isOpened()) {
+      this.menu.close();
+    }
   }
 
   /**

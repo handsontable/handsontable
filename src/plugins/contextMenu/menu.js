@@ -35,6 +35,7 @@ class Menu {
       keepInViewport: true,
       standalone: false,
       minWidth: MIN_WIDTH,
+      container: this.hot.rootDocument.documentElement,
     };
     this.eventManager = new EventManager(this);
     this.container = this.createContainer(this.options.name);
@@ -62,7 +63,12 @@ class Menu {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mousedown', event => this.onDocumentMouseDown(event));
+    let frame = this.hot.rootWindow;
+
+    while (frame) {
+      this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
+      frame = frame.frameElement && frame.frameElement.ownerDocument.defaultView;
+    }
   }
 
   /**
@@ -130,6 +136,7 @@ class Menu {
       data: filteredItems,
       colHeaders: false,
       autoColumnSize: true,
+      autoWrapRow: false,
       modifyColWidth(width) {
         if (isDefined(width) && width < minWidthOfMenu) {
           return minWidthOfMenu;
@@ -139,13 +146,14 @@ class Menu {
       },
       autoRowSize: false,
       readOnly: true,
+      editor: false,
       copyPaste: false,
       columns: [{
         data: 'name',
         renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value)
       }],
       renderAllRows: true,
-      fragmentSelection: 'cell',
+      fragmentSelection: false,
       disableVisualSelection: 'area',
       beforeKeyDown: event => this.onBeforeKeyDown(event),
       afterOnCellMouseOver: (event, coords) => {
@@ -155,7 +163,16 @@ class Menu {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23)
+      rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
+      afterOnCellContextMenu: (event) => {
+        event.preventDefault();
+        stopImmediatePropagation(event);
+        this.executeCommand(event);
+      },
+      beforeOnCellMouseUp: (event) => {
+        stopImmediatePropagation(event);
+        this.executeCommand(event);
+      },
     };
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
@@ -216,7 +233,8 @@ class Menu {
       parent: this,
       name: dataItem.name,
       className: this.options.className,
-      keepInViewport: true
+      keepInViewport: true,
+      container: this.options.container,
     });
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
@@ -326,7 +344,7 @@ class Menu {
    * @param {Event|Object} coords Event or literal Object with coordinates.
    */
   setPosition(coords) {
-    const cursor = new Cursor(coords, this.hot.rootWindow);
+    const cursor = new Cursor(coords, this.container.ownerDocument.defaultView);
 
     if (this.options.keepInViewport) {
       if (cursor.fitsBelow(this.container)) {
@@ -521,8 +539,7 @@ class Menu {
         this.eventManager.addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
       }
     } else {
-      removeClass(TD, 'htSubmenu');
-      removeClass(TD, 'htDisabled');
+      removeClass(TD, ['htSubmenu', 'htDisabled']);
 
       if (itemIsSelectionDisabled(item)) {
         this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
@@ -540,7 +557,7 @@ class Menu {
    * @returns {HTMLElement}
    */
   createContainer(name = null) {
-    const { rootDocument } = this.hot;
+    const doc = this.options.container.ownerDocument;
     let className = name;
     let container;
 
@@ -559,18 +576,19 @@ class Menu {
       className = className.replace(/[^A-z0-9]/g, '_');
       className = `${this.options.className}Sub_${className}`;
 
-      container = rootDocument.querySelector(`.${this.options.className}.${className}`);
+      container = doc.querySelector(`.${this.options.className}.${className}`);
     }
 
     if (!container) {
-      container = rootDocument.createElement('div');
+      container = doc.createElement('div');
 
       addClass(container, `htMenu ${this.options.className}`);
 
       if (className) {
         addClass(container, className);
       }
-      rootDocument.getElementsByTagName('body')[0].appendChild(container);
+
+      this.options.container.appendChild(container);
     }
 
     return container;
@@ -720,16 +738,14 @@ class Menu {
     if (!this.isOpened()) {
       return;
     }
-    if (this.container && isChildOf(event.target, this.container)) {
-      this.executeCommand(event);
-    }
+
     // Close menu when clicked element is not belongs to menu itself
     if (this.options.standalone && this.hotMenu && !isChildOf(event.target, this.hotMenu.rootElement)) {
       this.close(true);
 
     // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
-        (!isChildOf(event.target, '.htMenu') && isChildOf(event.target, this.hot.rootDocument))) {
+        (!isChildOf(event.target, '.htMenu') && (isChildOf(event.target, this.container.ownerDocument) || isChildOf(event.target, this.hot.rootDocument)))) {
       this.close(true);
     }
   }
