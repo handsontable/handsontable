@@ -338,7 +338,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 0)).toEqual(100);
   });
 
-  it('should appropriate resize colWidth after beforeColumnResize call a few times', () => {
+  it('should appropriate resize colWidth after beforeColumnResize call a few times', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
@@ -351,11 +351,24 @@ describe('manualColumnResize', () => {
 
     hot.addHook('beforeColumnResize', () => 200);
 
-    hot.addHook('beforeColumnResize', () => {});
+    hot.addHook('beforeColumnResize', () => void 0);
 
-    resizeColumn(0, 60);
+    const $th = spec().$container.find('thead tr:eq(0) th:eq(0)');
 
-    expect(colWidth(spec().$container, 0)).toEqual(60);
+    $th.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mouseup');
+
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mouseup');
+
+    await sleep(700);
+
+    expect(colWidth(spec().$container, 0)).toEqual(200);
   });
 
   it('should trigger an afterColumnResize event after column size changes', () => {

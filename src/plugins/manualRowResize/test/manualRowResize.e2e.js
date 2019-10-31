@@ -150,7 +150,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(101);
   });
 
-  it('should appropriate resize rowHeight after beforeRowResize call a few times', () => {
+  it('should appropriate resize rowHeight after beforeRowResize call a few times', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       rowHeaders: true,
@@ -165,9 +165,25 @@ describe('manualRowResize', () => {
 
     hot.addHook('beforeRowResize', () => {});
 
-    resizeRow(0, 60);
+    const $th = spec().$container.find('tbody tr:eq(0) th:eq(0)');
+    $th.simulate('mouseover');
 
-    expect(rowHeight(spec().$container, 0)).toEqual(61);
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown', {
+      clientY: resizerPosition.top
+    });
+    $resizer.simulate('mouseup');
+
+    $resizer.simulate('mousedown', {
+      clientY: resizerPosition.top
+    });
+    $resizer.simulate('mouseup');
+
+    await sleep(700);
+
+    expect(rowHeight(spec().$container, 0)).toEqual(201);
   });
 
   it('should trigger afterRowResize event after row height changes', () => {
