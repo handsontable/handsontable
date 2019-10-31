@@ -437,6 +437,8 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     });
   });
 
+  instance.columnIndexMapper.insertIndexes(ascendingIndexes[0], ascendingIndexes.length);
+
   // TODO: Temporary hook for undo/redo mess
   if (instance.getPlugin('formulas')) {
     instance.getPlugin('formulas').onAfterSetDataAtCell(changes);

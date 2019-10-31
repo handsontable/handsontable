@@ -598,4 +598,74 @@ describe('AutoColumnSize', () => {
     expect(colWidth(spec().$container, 1)).toBe(59);
     expect(colWidth(spec().$container, 2)).toBe(147);
   });
+
+  it('should cooperate with the `UndoRedo` plugin properly (removing column)', () => {
+    const hot = handsontable({
+      data: [['Short', 'Somewhat long', 'The very very very longest one']],
+      autoColumnSize: true,
+    });
+
+    alter('remove_col', 0);
+
+    hot.undo();
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(121);
+    expect(colWidth(spec().$container, 2)).toBe(229);
+
+    alter('remove_col', 1);
+
+    hot.undo();
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(121);
+    expect(colWidth(spec().$container, 2)).toBe(229);
+
+    alter('remove_col', 2);
+
+    hot.undo();
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(121);
+    expect(colWidth(spec().$container, 2)).toBe(229);
+  });
+
+  it('should cooperate with the `UndoRedo` plugin properly (inserting column)', () => {
+    const hot = handsontable({
+      data: [['Short', 'Somewhat long', 'The very very very longest one']],
+      autoColumnSize: true,
+    });
+
+    alter('insert_col', 0);
+
+    hot.undo();
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(121);
+    expect(colWidth(spec().$container, 2)).toBe(229);
+
+    alter('insert_col', 1);
+
+    hot.undo();
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(121);
+    expect(colWidth(spec().$container, 2)).toBe(229);
+
+    alter('insert_col', 2);
+
+    hot.undo();
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(121);
+    expect(colWidth(spec().$container, 2)).toBe(229);
+
+    alter('insert_col', 3);
+
+    hot.undo();
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(121);
+    expect(colWidth(spec().$container, 2)).toBe(229);
+  });
 });
