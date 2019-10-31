@@ -2,6 +2,7 @@ import Handsontable from 'handsontable';
 
 const domElement = new HTMLElement();
 const domEvent = new Event('foo');
+const cssRule = new CSSRule();
 
 const htmlCharacters = Handsontable.dom.HTML_CHARACTERS;
 
@@ -52,6 +53,7 @@ Handsontable.dom.isLeftClick(domEvent);
 Handsontable.dom.isOutsideInput(domElement);
 Handsontable.dom.isRightClick(domEvent);
 Handsontable.dom.isVisible(domElement);
+Handsontable.dom.matchesCSSRules(domElement, cssRule);
 Handsontable.dom.offset(domElement);
 Handsontable.dom.outerHeight(domElement);
 Handsontable.dom.outerWidth(domElement);
