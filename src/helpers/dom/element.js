@@ -736,18 +736,15 @@ export function getStyle(element, prop, rootWindow = window) {
  */
 export function matchesCSSRules(element, rule) {
   const { selectorText } = rule;
+  let result = false;
 
-  if (rule.type !== CSSRule.STYLE_RULE && !selectorText) {
-    return false;
-  }
+  if (rule.type === CSSRule.STYLE_RULE && selectorText) {
+    if (element.msMatchesSelector) {
+      result = element.msMatchesSelector(selectorText);
 
-  let result;
-
-  if (element.msMatchesSelector) {
-    result = element.msMatchesSelector(selectorText);
-
-  } else if (element.matches) {
-    result = element.matches(selectorText);
+    } else if (element.matches) {
+      result = element.matches(selectorText);
+    }
   }
 
   return result;
