@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.2.2
- * Release date: 23/10/2019 (built at 31/10/2019 13:31:24)
+ * Release date: 23/10/2019 (built at 31/10/2019 17:18:10)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -60890,7 +60890,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "31/10/2019 13:31:24";
+Handsontable.buildDate = "31/10/2019 17:18:10";
 Handsontable.version = "7.2.2"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -74701,6 +74701,11 @@ function () {
 
       if (rowIndex < this.instance.countRows()) {
         this.instance.rowIndexMapper.removeIndexes(logicRows);
+        var customDefinedColumns = (0, _mixed.isDefined)(this.instance.getSettings().columns) || (0, _mixed.isDefined)(this.instance.getSettings().dataSchema); // All rows have been removed. There shouldn't be any columns.
+
+        if (this.instance.rowIndexMapper.getNotSkippedIndexesLength() === 0 && customDefinedColumns === false) {
+          this.instance.columnIndexMapper.setIndexesSequence([]);
+        }
       }
 
       this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
@@ -74766,7 +74771,11 @@ function () {
 
 
       if (columnIndex < this.instance.countCols()) {
-        this.instance.columnIndexMapper.removeIndexes(logicColumns);
+        this.instance.columnIndexMapper.removeIndexes(logicColumns); // All columns have been removed. There shouldn't be any rows.
+
+        if (this.instance.columnIndexMapper.getNotSkippedIndexesLength() === 0) {
+          this.instance.rowIndexMapper.setIndexesSequence([]);
+        }
       }
 
       this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
