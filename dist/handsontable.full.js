@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.2.2
- * Release date: 23/10/2019 (built at 30/10/2019 18:44:41)
+ * Release date: 23/10/2019 (built at 31/10/2019 13:31:24)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -60890,7 +60890,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "30/10/2019 18:44:41";
+Handsontable.buildDate = "31/10/2019 13:31:24";
 Handsontable.version = "7.2.2"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -97990,7 +97990,8 @@ UndoRedo.RemoveColumnAction.prototype.undo = function (instance, undoneCallback)
       row.splice(ascendingIndexes[j], 0, sortedData[i][j]);
       changes.push([i, ascendingIndexes[j], null, sortedData[i][j]]);
     });
-  }); // TODO: Temporary hook for undo/redo mess
+  });
+  instance.columnIndexMapper.insertIndexes(ascendingIndexes[0], ascendingIndexes.length); // TODO: Temporary hook for undo/redo mess
 
   if (instance.getPlugin('formulas')) {
     instance.getPlugin('formulas').onAfterSetDataAtCell(changes);
