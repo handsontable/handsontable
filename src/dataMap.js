@@ -433,6 +433,13 @@ class DataMap {
     // TODO: Function `removeRow` should validate fully, probably above.
     if (rowIndex < this.instance.countRows()) {
       this.instance.rowIndexMapper.removeIndexes(logicRows);
+
+      const customDefinedColumns = isDefined(this.instance.getSettings().columns) || isDefined(this.instance.getSettings().dataSchema);
+
+      // All rows have been removed. There shouldn't be any columns.
+      if (this.instance.rowIndexMapper.getNotSkippedIndexesLength() === 0 && customDefinedColumns === false) {
+        this.instance.columnIndexMapper.setIndexesSequence([]);
+      }
     }
 
     this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
@@ -495,6 +502,11 @@ class DataMap {
     // TODO: Function `removeCol` should validate fully, probably above.
     if (columnIndex < this.instance.countCols()) {
       this.instance.columnIndexMapper.removeIndexes(logicColumns);
+
+      // All columns have been removed. There shouldn't be any rows.
+      if (this.instance.columnIndexMapper.getNotSkippedIndexesLength() === 0) {
+        this.instance.rowIndexMapper.setIndexesSequence([]);
+      }
     }
 
     this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
