@@ -165,7 +165,7 @@ describe('manualRowResize', () => {
 
     hot.addHook('beforeRowResize', () => void 0);
 
-    const $th = spec().$container.find('tbody tr:eq(0) th:eq(0)');
+    const $th = spec().$container.find('tbody tr:eq(0) th:eq(0)');
     $th.simulate('mouseover');
 
     const $resizer = spec().$container.find('.manualRowResizer');
