@@ -1822,7 +1822,7 @@ declare namespace Handsontable {
       afterColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean, successfullyCollapsed: boolean) => void;
       afterColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean, successfullyExpanded: boolean) => void;
       afterColumnMove?: (columns: number[], target: number) => void;
-      afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
+      afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
       afterColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void;
       afterContextMenuDefaultOptions?: (predefinedItems: (contextMenu.PredefinedMenuItemKey | contextMenu.MenuItemConfig)[]) => void;
       afterContextMenuHide?: (context: plugins.ContextMenu) => void;
@@ -1873,7 +1873,7 @@ declare namespace Handsontable {
       afterRender?: (isForced: boolean) => void;
       afterRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
       afterRowMove?: (startRow: number, endRow: number) => void;
-      afterRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => void;
+      afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
       afterScrollHorizontally?: () => void;
       afterScrollVertically?: () => void;
       afterSelection?: (row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
@@ -1903,7 +1903,7 @@ declare namespace Handsontable {
       beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean) => void | boolean;
       beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean) => void | boolean;
       beforeColumnMove?: (columns: number[], target: number) => void | boolean;
-      beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void | number;
+      beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number;
       beforeColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void | boolean;
       beforeContextMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
       beforeContextMenuShow?: (context: plugins.ContextMenu) => void;
@@ -1939,7 +1939,7 @@ declare namespace Handsontable {
       beforeRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
       beforeRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
       beforeRowMove?: (columns: number[], target: number) => void;
-      beforeRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => number | void;
+      beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
       beforeSetRangeEnd?: (coords: wot.CellCoords) => void;
       beforeSetRangeStart?: (coords: wot.CellCoords) => void;
       beforeSetRangeStartOnly?: (coords: wot.CellCoords) => void;

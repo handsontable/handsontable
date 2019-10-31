@@ -133,6 +133,59 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1);
   });
 
+  it('should trigger beforeRowResize event after row height changes', () => {
+    const beforeRowResizeCallback = jasmine.createSpy('beforeRowResizeCallback');
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      beforeRowResize: beforeRowResizeCallback
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
+
+    resizeRow(0, 100);
+    expect(beforeRowResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
+    expect(rowHeight(spec().$container, 0)).toEqual(101);
+  });
+
+  it('should appropriate resize rowHeight after beforeRowResize call a few times', async() => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      rowHeaders: true,
+      manualRowResize: true
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(24);
+
+    hot.addHook('beforeRowResize', () => 100);
+
+    hot.addHook('beforeRowResize', () => 200);
+
+    hot.addHook('beforeRowResize', () => void 0);
+
+    const $th = spec().$container.find('tbody tr:eq(0) th:eq(0)');
+    $th.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown', {
+      clientY: resizerPosition.top
+    });
+    $resizer.simulate('mouseup');
+
+    $resizer.simulate('mousedown', {
+      clientY: resizerPosition.top
+    });
+    $resizer.simulate('mouseup');
+
+    await sleep(700);
+
+    expect(rowHeight(spec().$container, 0)).toEqual(201);
+  });
+
   it('should trigger afterRowResize event after row height changes', () => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
@@ -146,7 +199,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
     resizeRow(0, 100);
-    expect(afterRowResizeCallback).toHaveBeenCalledWith(0, 100, false, void 0, void 0, void 0);
+    expect(afterRowResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
     expect(rowHeight(spec().$container, 0)).toEqual(101);
   });
 
@@ -227,8 +280,8 @@ describe('manualRowResize', () => {
     await sleep(1000);
 
     expect(afterRowResizeCallback.calls.count()).toEqual(1);
-    expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(2);
-    expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(defaultRowHeight + 1);
+    expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(2);
+    expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(defaultRowHeight + 1);
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1);
   });
   it('should not trigger afterRowResize event after if row height does not change (no dblclick event)', () => {

@@ -1253,8 +1253,8 @@ const REGISTERED_HOOKS = [
    * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#beforeColumnResize
-   * @param {Number} currentColumn Visual index of the resized column.
    * @param {Number} newSize Calculated new column width.
+   * @param {Number} column Visual index of the resized column.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    * @returns {Number} Returns a new column size or `undefined`, if column size should be calculated automatically.
    */
@@ -1265,8 +1265,8 @@ const REGISTERED_HOOKS = [
    * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#afterColumnResize
-   * @param {Number} currentColumn Visual index of the resized column.
    * @param {Number} newSize Calculated new column width.
+   * @param {Number} column Visual index of the resized column.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    */
   'afterColumnResize',
@@ -1276,8 +1276,8 @@ const REGISTERED_HOOKS = [
    * fired when {@link Options#manualRowResize} option is enabled.
    *
    * @event Hooks#beforeRowResize
-   * @param {Number} currentRow Visual index of the resized row.
    * @param {Number} newSize Calculated new row height.
+   * @param {Number} row Visual index of the resized row.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    * @returns {Number} Returns the new row size or `undefined` if row size should be calculated automatically.
    */
@@ -1288,8 +1288,8 @@ const REGISTERED_HOOKS = [
    * fired when {@link Options#manualRowResize} option is enabled.
    *
    * @event Hooks#afterRowResize
-   * @param {Number} currentRow Visual index of the resized row.
    * @param {Number} newSize Calculated new row height.
+   * @param {Number} row Visual index of the resized row.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    */
   'afterRowResize',

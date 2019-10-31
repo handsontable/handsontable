@@ -69,7 +69,7 @@ class ManualColumnResize extends BasePlugin {
 
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
     this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
-    this.addHook('beforeColumnResize', (currentColumn, newSize, isDoubleClick) => this.onBeforeColumnResize(currentColumn, newSize, isDoubleClick));
+    this.addHook('beforeColumnResize', (newSize, column, isDoubleClick) => this.onBeforeColumnResize(newSize, column, isDoubleClick));
 
     if (typeof loadedManualColumnWidths !== 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
@@ -320,17 +320,17 @@ class ManualColumnResize extends BasePlugin {
       this.hot.view.render(); // updates all
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
-    const resize = (selectedCol, forceRender) => {
-      const hookNewSize = this.hot.runHooks('beforeColumnResize', selectedCol, this.newSize, true);
+    const resize = (column, forceRender) => {
+      const hookNewSize = this.hot.runHooks('beforeColumnResize', this.newSize, column, true);
 
       if (hookNewSize !== void 0) {
         this.newSize = hookNewSize;
       }
 
       if (this.hot.getSettings().stretchH === 'all') {
-        this.clearManualSize(selectedCol);
+        this.clearManualSize(column);
       } else {
-        this.setManualSize(selectedCol, this.newSize); // double click sets by auto row size plugin
+        this.setManualSize(column, this.newSize); // double click sets by auto row size plugin
       }
 
       if (forceRender) {
@@ -339,7 +339,7 @@ class ManualColumnResize extends BasePlugin {
 
       this.saveManualColumnWidths();
 
-      this.hot.runHooks('afterColumnResize', selectedCol, this.newSize, true);
+      this.hot.runHooks('afterColumnResize', this.newSize, column, true);
     };
 
     if (this.dblclick >= 2) {
@@ -416,8 +416,8 @@ class ManualColumnResize extends BasePlugin {
       this.hot.view.render(); // updates all
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
-    const resize = (selectedCol, forceRender) => {
-      this.hot.runHooks('beforeColumnResize', selectedCol, this.newSize, false);
+    const resize = (column, forceRender) => {
+      this.hot.runHooks('beforeColumnResize', this.newSize, column, false);
 
       if (forceRender) {
         render();
@@ -425,7 +425,7 @@ class ManualColumnResize extends BasePlugin {
 
       this.saveManualColumnWidths();
 
-      this.hot.runHooks('afterColumnResize', selectedCol, this.newSize);
+      this.hot.runHooks('afterColumnResize', this.newSize, column, false);
     };
 
     if (this.pressed) {
