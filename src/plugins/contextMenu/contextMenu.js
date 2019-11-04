@@ -37,6 +37,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  * Possible values:
  * * `true` (to enable default options),
  * * `false` (to disable completely)
+ * * `{ uiContainer: containerDomElement }` (to declare a container for all of the Context Menu's dom elements to be placed in)
  *
  * or array of any available strings:
  * * `'row_above'`
