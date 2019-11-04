@@ -1,3 +1,4 @@
+import { matchesCSSRules } from './../helpers/dom/element';
 import { isEmpty } from './../helpers/mixed';
 
 /**
@@ -129,25 +130,6 @@ export function _dataToHTML(input) {
   result.push('</table>');
 
   return result.join('');
-}
-
-/**
- * Helper to verify and get CSSRules for the element.
- *
- * @param {Element} element Element to verify with selector text.
- * @param {String} selector Selector text from CSSRule.
- */
-function matchCSSRules(element, selector) {
-  let result;
-
-  if (element.msMatchesSelector) {
-    result = element.msMatchesSelector(selector);
-
-  } else if (element.matches) {
-    result = element.matches(selector);
-  }
-
-  return result;
 }
 
 /**
@@ -305,7 +287,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
         }
 
         const cellStyle = styleSheetArr.reduce((settings, cssRule) => {
-          if (cssRule.selectorText && matchCSSRules(cell, cssRule.selectorText)) {
+          if (matchesCSSRules(cell, cssRule)) {
             const { whiteSpace } = cssRule.style;
 
             if (whiteSpace) {

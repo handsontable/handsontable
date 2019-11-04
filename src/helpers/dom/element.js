@@ -732,6 +732,29 @@ export function getStyle(element, prop, rootWindow = window) {
 }
 
 /**
+ * Verifies if element fit to provided CSSRule.
+ *
+ * @param {Element} element Element to verify with selector text.
+ * @param {CSSRule} rule Selector text from CSSRule.
+ * @returns {Boolean}
+ */
+export function matchesCSSRules(element, rule) {
+  const { selectorText } = rule;
+  let result = false;
+
+  if (rule.type === CSSRule.STYLE_RULE && selectorText) {
+    if (element.msMatchesSelector) {
+      result = element.msMatchesSelector(selectorText);
+
+    } else if (element.matches) {
+      result = element.matches(selectorText);
+    }
+  }
+
+  return result;
+}
+
+/**
  * Returns a computed style object for the provided element. (Needed if style is declared in external stylesheet).
  *
  * @param element
