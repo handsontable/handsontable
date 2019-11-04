@@ -306,7 +306,8 @@ export default class BorderRenderer {
     }
 
     const color = (selectionSetting[edge] && selectionSetting[edge].color) || (selectionSetting.border && selectionSetting.border.color) || 'black';
-    const stroke = `${width}px ${color}`;
+    const direction = (edge === 'top' || edge === 'bottom') ? 'horizontal' : 'vertical';
+    const stroke = `${width}px ${color} ${direction}`;
     const lines = stylesAndLines.get(stroke);
 
     if (lines) {

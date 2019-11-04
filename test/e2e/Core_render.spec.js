@@ -57,15 +57,14 @@ describe('Core_render', () => {
 
     selectCell(1, 1);
     const currentSelection = spec().$container.find('.wtBorder.current')[0];
-    const svgPath = spec().$container.find('svg:eq(0) path')[0];
     const left = currentSelection.offsetLeft;
-    expect(svgPath.getAttribute('d')).toBe('M 50 24 99 24 99 46 50 46 50 24 Z');
+    expect(getRenderedBorderPaths(document.body)).toEqual(['M 99 24 99 46 M 50 24 50 46', 'M 50 24 99 24 M 50 46 99 46']);
 
     data[1][1] = 'dddddddddddddddddddd';
     render();
 
     expect(currentSelection.offsetLeft).toBeGreaterThan(left);
-    expect(svgPath.getAttribute('d')).toBe('M 50 24 237 24 237 46 50 46 50 24 Z');
+    expect(getRenderedBorderPaths(document.body)).toEqual(['M 237 24 237 46 M 50 24 50 46', 'M 50 24 237 24 M 50 46 237 46']);
   });
 
   it('should not render table twice', () => {

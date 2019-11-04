@@ -820,3 +820,14 @@ class DataTransferObject {
     this.data[type] = value;
   }
 }
+
+/**
+ * Returns number of border path commands currently rendered in DOM
+ *
+ * @param {HTMLElement} parentElem
+ */
+export function getRenderedBorderPaths(parentElem) {
+  const paths = Array.from(parentElem.querySelectorAll('.wtSpreader svg path')).map(x => x.getAttribute('d'));
+  // TODO object containing stroke width and color as the key would be more useful
+  return paths;
+}

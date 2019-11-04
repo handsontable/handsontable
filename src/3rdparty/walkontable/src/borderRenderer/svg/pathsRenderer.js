@@ -144,10 +144,39 @@ function renderState(state) {
 }
 
 /**
+ * High stroke sizes have priority over small sizes. Horizontal lines have priority over vertical ones.
+ *
+ * @param {HTMLElement} path1
+ * @param {HTMLElement} path2
+ * @returns {Number} 1 if path1 has a higher priority than path2, 0 if path1 has the same priority as path2, -1 if path1 has a lower priority than path2
+ */
+function compareStrokePriority(path1, path2) {
+  const size1 = parseInt(path1.getAttribute('stroke-width'), 10);
+  const size2 = parseInt(path2.getAttribute('stroke-width'), 10);
+  if (size1 > size2) {
+    return 1;
+  }
+  if (size1 < size2) {
+    return -1;
+  }
+
+  const isHorizontal1 = path1.dataset.direction === 'horizontal';
+  const isHorizontal2 = path2.dataset.direction === 'horizontal';
+
+  if (isHorizontal1 && isHorizontal2) {
+    return 0;
+  }
+  if (isHorizontal1) {
+    return 1;
+  }
+  return -1;
+}
+
+/**
  * Returns a state object for given style. Creates the state object if requested for the first time.
  *
  * @param {Map.<string, Object>} states
- * @param {String} style Stroke style description, e.g. `1px black`
+ * @param {String} style Stroke style description in format `width color direction`, e.g. `1px black horizontal`
  * @param {HTMLElement} parent <svg> or <g> HTML element where the <path> elements should be appended
  */
 function getStateForStyle(states, style, parent) {
@@ -155,7 +184,7 @@ function getStateForStyle(states, style, parent) {
 
   if (!state) {
     const elem = parent.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'path');
-    const [size, color] = style.split(' ');
+    const [size, color, direction] = style.split(' ');
 
     elem.setAttribute('stroke', color);
     elem.setAttribute('stroke-width', parseInt(size, 10));
@@ -163,6 +192,7 @@ function getStateForStyle(states, style, parent) {
     // elem.setAttribute('shape-rendering', 'optimizeSpeed');
     elem.setAttribute('shape-rendering', 'geometricPrecision'); // TODO why the border renders wrong when this is on
     // elem.setAttribute('shape-rendering', 'crispEdges');
+    elem.dataset.direction = direction;
 
     state = {
       elem,
@@ -170,7 +200,22 @@ function getStateForStyle(states, style, parent) {
       renderedCommand: ''
     };
     resetState(state);
-    parent.appendChild(elem);
+
+    let insertBeforeElem = null;
+    let siblingElem = parent.firstElementChild;
+    while (siblingElem) {
+      if (compareStrokePriority(elem, siblingElem) === -1) {
+        insertBeforeElem = siblingElem;
+        break;
+      }
+      siblingElem = siblingElem.nextSibling;
+    }
+    if (insertBeforeElem) {
+      parent.insertBefore(elem, insertBeforeElem);
+    } else {
+      parent.appendChild(elem);
+    }
+
     states.set(style, state);
   }
 

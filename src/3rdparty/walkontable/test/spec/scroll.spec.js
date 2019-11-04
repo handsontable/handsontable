@@ -291,16 +291,21 @@ describe('WalkontableScroll', () => {
       wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
       wt.draw();
 
-      const svgPath = spec().$wrapper.find('svg:eq(0) path[stroke-width="2"]')[0];
-      expect(svgPath.getAttribute('d')).toBe('M 49 46 99 46 99 69 49 69 49 46 Z');
+      const svgPaths = spec().$wrapper.find('svg:eq(0) path[stroke-width="2"]');
+      const svgPathV = svgPaths[0];
+      const svgPathH = svgPaths[1];
+      expect(svgPathV.getAttribute('d')).toBe('M 99 46 99 69 M 49 46 49 69');
+      expect(svgPathH.getAttribute('d')).toBe('M 49 46 99 46 M 49 69 99 69');
 
       wt.scrollViewport(new Walkontable.CellCoords(12, 0));
       wt.draw();
-      expect(svgPath.getAttribute('d')).toBe('');
+      expect(svgPathV.getAttribute('d')).toBe('');
+      expect(svgPathH.getAttribute('d')).toBe('');
 
       wt.scrollViewport(new Walkontable.CellCoords(0, 0));
       wt.draw();
-      expect(svgPath.getAttribute('d')).toBe('M 49 46 99 46 99 69 49 69 49 46 Z');
+      expect(svgPathV.getAttribute('d')).toBe('M 99 46 99 69 M 49 46 49 69');
+      expect(svgPathH.getAttribute('d')).toBe('M 49 46 99 46 M 49 69 99 69');
 
     });
 

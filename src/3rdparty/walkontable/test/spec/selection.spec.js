@@ -101,25 +101,37 @@ describe('Walkontable.Selection', () => {
     wt.draw(); // TODO as it turns out, the desired rendering is only visible after the second draw. A problem that does not appear in HOT but appears in raw WOT
 
     const paths = spec().$wrapper.find('svg path');
-    expect(paths.length).toBe(4);
+    expect(paths.length).toBe(8);
 
-    const pathInMasterTable = spec().$wrapper.find('.ht_master svg path').eq(0);
-    expect(pathInMasterTable.attr('d')).toBe('M 0.5 23.5 49.5 23.5 49.5 0.5');
+    const pathInMasterTableV = spec().$wrapper.find('.ht_master svg path').eq(0);
+    expect(pathInMasterTableV.attr('d')).toBe('M 49.5 0.5 49.5 23.5');
+    const pathInMasterTableH = spec().$wrapper.find('.ht_master svg path').eq(1);
+    expect(pathInMasterTableH.attr('d')).toBe('M 0.5 23.5 49.5 23.5');
 
-    const pathInTopOverlay = spec().$wrapper.find('.ht_clone_top svg path').eq(0);
-    expect(pathInTopOverlay.attr('d')).toBe('M 0.5 46.5 49.5 46.5 49.5 0.5 0.5 0.5');
+    const pathInTopOverlayV = spec().$wrapper.find('.ht_clone_top svg path').eq(0);
+    expect(pathInTopOverlayV.attr('d')).toBe('M 49.5 0.5 49.5 46.5');
+    const pathInTopOverlayH = spec().$wrapper.find('.ht_clone_top svg path').eq(1);
+    expect(pathInTopOverlayH.attr('d')).toBe('M 0.5 0.5 49.5 0.5 M 0.5 46.5 49.5 46.5');
 
-    const pathInLeftOverlay = spec().$wrapper.find('.ht_clone_left svg path').eq(0);
-    expect(pathInLeftOverlay.attr('d')).toBe('M 0.5 0.5 0.5 23.5 99.5 23.5 99.5 0.5');
+    const pathInLeftOverlayV = spec().$wrapper.find('.ht_clone_left svg path').eq(0);
+    expect(pathInLeftOverlayV.attr('d')).toBe('M 99.5 0.5 99.5 23.5 M 0.5 0.5 0.5 23.5');
+    const pathInLeftOverlayH = spec().$wrapper.find('.ht_clone_left svg path').eq(1);
+    expect(pathInLeftOverlayH.attr('d')).toBe('M 0.5 23.5 99.5 23.5');
 
-    const pathInTopLeftCornerOverlay = spec().$wrapper.find('.ht_clone_top_left_corner svg path').eq(0);
-    expect(pathInTopLeftCornerOverlay.attr('d')).toBe('M 0.5 0.5 99.5 0.5 99.5 46.5 0.5 46.5 0.5 0.5 Z');
+    const pathInTopLeftCornerOverlayV = spec().$wrapper.find('.ht_clone_top_left_corner svg path').eq(0);
+    expect(pathInTopLeftCornerOverlayV.attr('d')).toBe('M 99.5 0.5 99.5 46.5 M 0.5 0.5 0.5 46.5');
+    const pathInTopLeftCornerOverlayH = spec().$wrapper.find('.ht_clone_top_left_corner svg path').eq(1);
+    expect(pathInTopLeftCornerOverlayH.attr('d')).toBe('M 0.5 0.5 99.5 0.5 M 0.5 46.5 99.5 46.5');
 
-    const pathInBottomOverlay = spec().$wrapper.find('.ht_clone_bottom svg path').eq(0);
-    expect(pathInBottomOverlay.attr('d')).toBe(undefined);
+    const pathInBottomOverlayV = spec().$wrapper.find('.ht_clone_bottom svg path').eq(0);
+    expect(pathInBottomOverlayV.attr('d')).toBe(undefined);
+    const pathInBottomOverlayH = spec().$wrapper.find('.ht_clone_bottom svg path').eq(1);
+    expect(pathInBottomOverlayH.attr('d')).toBe(undefined);
 
-    const pathInBottomLeftCornerOverlay = spec().$wrapper.find('.ht_clone_bottom_left_corner svg path').eq(0);
-    expect(pathInBottomLeftCornerOverlay.attr('d')).toBe(undefined);
+    const pathInBottomLeftCornerOverlayV = spec().$wrapper.find('.ht_clone_bottom_left_corner svg path').eq(0);
+    expect(pathInBottomLeftCornerOverlayV.attr('d')).toBe(undefined);
+    const pathInBottomLeftCornerOverlayH = spec().$wrapper.find('.ht_clone_bottom_left_corner svg path').eq(1);
+    expect(pathInBottomLeftCornerOverlayH.attr('d')).toBe(undefined);
   });
 
   it('should draw border on bottom, left, bottom-left-corner overlays if they are overlapping (scrollable viewport)', function() {
@@ -146,25 +158,37 @@ describe('Walkontable.Selection', () => {
     wt.draw(); // TODO as it turns out, the desired rendering is only visible after the second draw. A problem that does not appear in HOT but appears in raw WOT. Why?
 
     const paths = spec().$wrapper.find('svg path');
-    expect(paths.length).toBe(4);
+    expect(paths.length).toBe(8);
 
-    const pathInMasterTable = spec().$wrapper.find('.ht_master svg path').eq(0);
-    expect(pathInMasterTable.attr('d')).toBe('M 0.5 299.5 49.5 299.5 49.5 253.5 0.5 253.5');
+    const pathInMasterTableV = spec().$wrapper.find('.ht_master svg path').eq(0);
+    expect(pathInMasterTableV.attr('d')).toBe('M 49.5 253.5 49.5 299.5');
+    const pathInMasterTableH = spec().$wrapper.find('.ht_master svg path').eq(1);
+    expect(pathInMasterTableH.attr('d')).toBe('M 0.5 253.5 49.5 253.5 M 0.5 299.5 49.5 299.5');
 
-    const pathInTopOverlay = spec().$wrapper.find('.ht_clone_top svg path').eq(0);
-    expect(pathInTopOverlay.attr('d')).toBe(undefined);
+    const pathInTopOverlayV = spec().$wrapper.find('.ht_clone_top svg path').eq(0);
+    expect(pathInTopOverlayV.attr('d')).toBe(undefined);
+    const pathInTopOverlayH = spec().$wrapper.find('.ht_clone_top svg path').eq(1);
+    expect(pathInTopOverlayH.attr('d')).toBe(undefined);
 
-    const pathInLeftOverlay = spec().$wrapper.find('.ht_clone_left svg path').eq(0);
-    expect(pathInLeftOverlay.attr('d')).toBe('M 0.5 253.5 99.5 253.5 99.5 -336.5 0.5 -336.5 0.5 253.5 Z');
+    const pathInLeftOverlayV = spec().$wrapper.find('.ht_clone_left svg path').eq(0);
+    expect(pathInLeftOverlayV.attr('d')).toBe('M 99.5 253.5 99.5 -336.5 M 0.5 253.5 0.5 -336.5');
+    const pathInLeftOverlayH = spec().$wrapper.find('.ht_clone_left svg path').eq(1);
+    expect(pathInLeftOverlayH.attr('d')).toBe('M 0.5 253.5 99.5 253.5 M 0.5 -336.5 99.5 -336.5');
 
-    const pathInTopLeftCornerOverlay = spec().$wrapper.find('.ht_clone_top_left_corner svg path').eq(0);
-    expect(pathInTopLeftCornerOverlay.attr('d')).toBe(undefined);
+    const pathInTopLeftCornerOverlayV = spec().$wrapper.find('.ht_clone_top_left_corner svg path').eq(0);
+    expect(pathInTopLeftCornerOverlayV.attr('d')).toBe(undefined);
+    const pathInTopLeftCornerOverlayH = spec().$wrapper.find('.ht_clone_top_left_corner svg path').eq(1);
+    expect(pathInTopLeftCornerOverlayH.attr('d')).toBe(undefined);
 
-    const pathInBottomOverlay = spec().$wrapper.find('.ht_clone_bottom svg path').eq(0);
-    expect(pathInBottomOverlay.attr('d')).toBe('M 0.5 23.5 49.5 23.5 49.5 -22.5 0.5 -22.5');
+    const pathInBottomOverlayV = spec().$wrapper.find('.ht_clone_bottom svg path').eq(0);
+    expect(pathInBottomOverlayV.attr('d')).toBe('M 49.5 -22.5 49.5 23.5');
+    const pathInBottomOverlayH = spec().$wrapper.find('.ht_clone_bottom svg path').eq(1);
+    expect(pathInBottomOverlayH.attr('d')).toBe('M 0.5 -22.5 49.5 -22.5 M 0.5 23.5 49.5 23.5');
 
-    const pathInBottomLeftCornerOverlay = spec().$wrapper.find('.ht_clone_bottom_left_corner svg path').eq(0);
-    expect(pathInBottomLeftCornerOverlay.attr('d')).toBe('M 0.5 613.5 99.5 613.5 99.5 23.5 0.5 23.5 0.5 613.5 Z');
+    const pathInBottomLeftCornerOverlayV = spec().$wrapper.find('.ht_clone_bottom_left_corner svg path').eq(0);
+    expect(pathInBottomLeftCornerOverlayV.attr('d')).toBe('M 99.5 613.5 99.5 23.5 M 0.5 613.5 0.5 23.5');
+    const pathInBottomLeftCornerOverlayH = spec().$wrapper.find('.ht_clone_bottom_left_corner svg path').eq(1);
+    expect(pathInBottomLeftCornerOverlayH.attr('d')).toBe('M 0.5 613.5 99.5 613.5 M 0.5 23.5 99.5 23.5');
   });
 
   it('should not add class to selection until it is rerendered', () => {
