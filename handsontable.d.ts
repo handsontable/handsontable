@@ -2295,6 +2295,7 @@ declare namespace Handsontable {
     isOutsideInput: (element: HTMLElement) => boolean;
     isRightClick: (event: Event) => boolean;
     isVisible: (elem: HTMLElement) => boolean;
+    matchesCSSRules: (elem: HTMLElement, rule: CSSRule) => boolean;
     offset: (elem: HTMLElement) => object;
     outerHeight: (elem: HTMLElement) => number;
     outerWidth: (element: HTMLElement) => number;
