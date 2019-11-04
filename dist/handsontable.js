@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.3.0
- * Release date: 18/11/2019 (built at 04/11/2019 11:42:46)
+ * Release date: 18/11/2019 (built at 04/11/2019 12:28:26)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -39491,7 +39491,7 @@ Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "04/11/2019 11:42:46";
+Handsontable.buildDate = "04/11/2019 12:28:26";
 Handsontable.version = "7.3.0"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -56641,6 +56641,7 @@ _pluginHooks.default.getSingleton().register('afterContextMenuExecute');
  * Possible values:
  * * `true` (to enable default options),
  * * `false` (to disable completely)
+ * * `{ uiContainer: containerDomElement }` (to declare a container for all of the Context Menu's dom elements to be placed in)
  *
  * or array of any available strings:
  * * `'row_above'`
