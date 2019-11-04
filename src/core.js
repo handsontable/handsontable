@@ -872,9 +872,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.init = function() {
     dataSource.setData(priv.settings.data);
 
-    instance.executeBatchOperations(() => {
-      instance.runHooks('beforeInit');
-    });
+    instance.runHooks('beforeInit');
 
     if (isMobileBrowser()) {
       addClass(instance.rootElement, 'mobile');
@@ -3440,7 +3438,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.destroy();
     }
 
-    instance.runHooks('afterDestroy');
+    instance.executeBatchOperations(() => {
+      // The plugin's `destroy` method is called as a consequence and it should handle unregistration of plugin's maps. Some unregistered maps reset the cache.
+      instance.runHooks('afterDestroy');
+    });
+
     Hooks.getSingleton().destroy(instance);
 
     objectEach(instance, (property, key, obj) => {

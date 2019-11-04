@@ -724,7 +724,6 @@ declare namespace Handsontable {
       enabled: boolean;
       initialized: boolean;
       hot: _Handsontable.Core;
-      t: RecordTranslator;
 
       constructor(hotInstance?: _Handsontable.Core)
 
@@ -996,22 +995,9 @@ declare namespace Handsontable {
       filter(): void;
       removeConditions(column: number): void;
     }
-
-    interface RecordTranslator {
-      hot: _Handsontable.Core;
-
-      toPhysical(row: number | object, column?: number): object | any[];
-      toPhysicalColumn(column: number): number;
-      toPhysicalRow(row: number): number;
-      toVisual(row: number | object, column?: number): object | any[];
-      toVisualColumn(column: number): number;
-      toVisualRow(row: number): number;
-    }
-
     interface DataProvider {
       changes: object;
       hot: _Handsontable.Core;
-      t: RecordTranslator;
 
       clearChanges(): void;
       collectChanges(row: number, column: number, value: any): void;
@@ -1038,7 +1024,6 @@ declare namespace Handsontable {
     }
 
     interface Matrix {
-      t: RecordTranslator;
       data: any[];
       cellReferences: any[];
 
@@ -1091,7 +1076,6 @@ declare namespace Handsontable {
       hot: _Handsontable.Core;
       matrix: Matrix;
       parser: Parser;
-      t: RecordTranslator;
 
       applyChanges(row: number, column: number, newValue: any): void;
       destroy(): void;

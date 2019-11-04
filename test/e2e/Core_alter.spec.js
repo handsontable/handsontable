@@ -184,8 +184,8 @@ describe('Core_alter', () => {
         handsontable({
           data: arrayOfNestedObjects(),
           columns: [
-            { data: 'id', title: 'ID' },
-            { data: 'name.first', title: 'First name' }
+            { data: 'id' },
+            { data: 'name.first' }
           ]
         });
 
@@ -195,7 +195,7 @@ describe('Core_alter', () => {
         expect(getData()).toEqual([]);
         expect($('.ht_master .htCore td').length).toBe(0);
         expect($('.ht_master .htCore tbody th').length).toBe(0);
-        expect($('.ht_master .htCore thead th').length).toBe(2);
+        expect($('.ht_master .htCore thead th').length).toBe(0);
         expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
       });
 
