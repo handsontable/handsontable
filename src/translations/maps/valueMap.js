@@ -9,11 +9,11 @@ class ValueMap extends BaseMap {
    * Add values to list and reorganize.
    *
    * @private
-   * @param {Number} insertionIndex Position inside actual list.
+   * @param {Number} insertionIndex Position inside the list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
-    this.list = getListWithInsertedItems(this.list, insertionIndex, insertedIndexes, this.initValueOrFn);
+    this.indexedValues = getListWithInsertedItems(this.indexedValues, insertionIndex, insertedIndexes, this.initValueOrFn);
 
     super.insert(insertionIndex, insertedIndexes);
   }
@@ -25,7 +25,7 @@ class ValueMap extends BaseMap {
    * @param {Array} removedIndexes List of removed indexes.
    */
   remove(removedIndexes) {
-    this.list = getListWithRemovedItems(this.list, removedIndexes);
+    this.indexedValues = getListWithRemovedItems(this.indexedValues, removedIndexes);
 
     super.remove(removedIndexes);
   }

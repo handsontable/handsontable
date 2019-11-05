@@ -9,12 +9,12 @@ import localHooks from '../../mixins/localHooks';
 class BaseMap {
   constructor(initValueOrFn = null) {
     /**
-     * List of mappings.
+     * List of values for particular indexes.
      *
      * @private
      * @type {Array}
      */
-    this.list = [];
+    this.indexedValues = [];
     /**
      * Initial value or function for each existing index.
      *
@@ -44,7 +44,7 @@ class BaseMap {
    * @returns {Array}
    */
   getValues() {
-    return this.list;
+    return this.indexedValues;
   }
 
   /**
@@ -67,7 +67,7 @@ class BaseMap {
    * @param {Array} values List of set values.
    */
   setValues(values) {
-    this.list = values.slice();
+    this.indexedValues = values.slice();
 
     this.runLocalHooks('change');
   }
@@ -81,7 +81,7 @@ class BaseMap {
    */
   setValueAtIndex(index, value) {
     if (index < this.getLength()) {
-      this.list[index] = value;
+      this.indexedValues[index] = value;
 
       this.runLocalHooks('change');
 
@@ -113,14 +113,14 @@ class BaseMap {
    * @private
    * @param {Number} [length] Length of list.
    */
-  setDefaultValues(length = this.list.length) {
-    this.list.length = 0;
+  setDefaultValues(length = this.indexedValues.length) {
+    this.indexedValues.length = 0;
 
     if (isFunction(this.initValueOrFn)) {
-      rangeEach(length - 1, index => this.list.push(this.initValueOrFn(index)));
+      rangeEach(length - 1, index => this.indexedValues.push(this.initValueOrFn(index)));
 
     } else {
-      rangeEach(length - 1, () => this.list.push(this.initValueOrFn));
+      rangeEach(length - 1, () => this.indexedValues.push(this.initValueOrFn));
     }
 
     this.runLocalHooks('change');

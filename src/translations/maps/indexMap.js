@@ -15,13 +15,13 @@ class IndexMap extends BaseMap {
    * Add values to list and reorganize.
    *
    * @private
-   * @param {Number} insertionIndex Position inside actual list.
+   * @param {Number} insertionIndex Position inside the list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
-    const listAfterUpdate = getIncreasedIndexes(this.list, insertionIndex, insertedIndexes);
+    const listAfterUpdate = getIncreasedIndexes(this.indexedValues, insertionIndex, insertedIndexes);
 
-    this.list = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes);
+    this.indexedValues = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes);
 
     super.insert(insertionIndex, insertedIndexes);
   }
@@ -33,9 +33,9 @@ class IndexMap extends BaseMap {
    * @param {Array} removedIndexes List of removed indexes.
    */
   remove(removedIndexes) {
-    const listAfterUpdate = getListWithRemovedItems(this.list, removedIndexes);
+    const listAfterUpdate = getListWithRemovedItems(this.indexedValues, removedIndexes);
 
-    this.list = getDecreasedIndexes(listAfterUpdate, removedIndexes);
+    this.indexedValues = getDecreasedIndexes(listAfterUpdate, removedIndexes);
 
     super.remove(removedIndexes);
   }

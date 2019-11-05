@@ -234,7 +234,9 @@ class TrimRows extends BasePlugin {
    * @returns {Boolean}
    */
   isValidConfig(trimmedRows) {
-    return trimmedRows.every(trimmedRow => (Number.isInteger(trimmedRow) && trimmedRow >= 0 && trimmedRow < this.hot.countSourceRows()));
+    const sourceRows = this.hot.countSourceRows();
+
+    return trimmedRows.every(trimmedRow => (Number.isInteger(trimmedRow) && trimmedRow >= 0 && trimmedRow < sourceRows));
   }
 
   /**

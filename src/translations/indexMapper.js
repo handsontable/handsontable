@@ -8,6 +8,9 @@ import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
 
+/**
+ * Index mapper manages the mappings (from index to another value) provided by "smaller" maps called index map(s).
+ */
 class IndexMapper {
   constructor() {
     /**
@@ -21,13 +24,13 @@ class IndexMapper {
      *
      * @type {MapCollection}
      */
-    this.skipCollection = new MapCollection();
+    this.skipMapsCollection = new MapCollection();
     /**
-     * Collection for another kind of mappings.
+     * Collection for another kind of maps.
      *
      * @type {MapCollection}
      */
-    this.variousMappingsCollection = new MapCollection();
+    this.variousMapsCollection = new MapCollection();
     /**
      * Cache for skip result for particular indexes.
      *
@@ -62,17 +65,17 @@ class IndexMapper {
       this.runLocalHooks('change', this.indexesSequence, null);
     });
 
-    this.skipCollection.addLocalHook('change', (changedMap) => {
+    this.skipMapsCollection.addLocalHook('change', (changedMap) => {
       this.cachedIndexesChange = true;
 
       // Number of visible indexes might change.
       this.updateCache();
 
-      this.runLocalHooks('change', changedMap, this.skipCollection);
+      this.runLocalHooks('change', changedMap, this.skipMapsCollection);
     });
 
-    this.variousMappingsCollection.addLocalHook('change', (changedMap) => {
-      this.runLocalHooks('change', changedMap, this.variousMappingsCollection);
+    this.variousMapsCollection.addLocalHook('change', (changedMap) => {
+      this.runLocalHooks('change', changedMap, this.variousMapsCollection);
     });
   }
 
@@ -101,15 +104,15 @@ class IndexMapper {
    * @returns {ValueMap|IndexMap|SkipMap}
    */
   registerMap(uniqueName, map) {
-    if (this.skipCollection.get(uniqueName) || this.variousMappingsCollection.get(uniqueName)) {
-      throw Error(`Mapper with name "${uniqueName}" has been already registered.`);
+    if (this.skipMapsCollection.get(uniqueName) || this.variousMapsCollection.get(uniqueName)) {
+      throw Error(`Map with name "${uniqueName}" has been already registered.`);
     }
 
     if (map instanceof SkipMap === true) {
-      this.skipCollection.register(uniqueName, map);
+      this.skipMapsCollection.register(uniqueName, map);
 
     } else {
-      this.variousMappingsCollection.register(uniqueName, map);
+      this.variousMapsCollection.register(uniqueName, map);
     }
 
     const numberOfIndexes = this.getNumberOfIndexes();
@@ -131,8 +134,8 @@ class IndexMapper {
    * @param {String} name Name of the map.
    */
   unregisterMap(name) {
-    this.skipCollection.unregister(name);
-    this.variousMappingsCollection.unregister(name);
+    this.skipMapsCollection.unregister(name);
+    this.variousMapsCollection.unregister(name);
   }
 
   /**
@@ -181,8 +184,8 @@ class IndexMapper {
 
     this.executeBatchOperations(() => {
       this.indexesSequence.init(length);
-      this.skipCollection.initEvery(length);
-      this.variousMappingsCollection.initEvery(length);
+      this.skipMapsCollection.initEvery(length);
+      this.variousMapsCollection.initEvery(length);
     });
 
     this.runLocalHooks('init');
@@ -295,8 +298,8 @@ class IndexMapper {
 
     this.executeBatchOperations(() => {
       this.indexesSequence.insert(insertionIndex, insertedIndexes);
-      this.skipCollection.insertToEvery(insertionIndex, insertedIndexes);
-      this.variousMappingsCollection.insertToEvery(insertionIndex, insertedIndexes);
+      this.skipMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
+      this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     });
   }
 
@@ -309,8 +312,8 @@ class IndexMapper {
   removeIndexes(removedIndexes) {
     this.executeBatchOperations(() => {
       this.indexesSequence.remove(removedIndexes);
-      this.skipCollection.removeFromEvery(removedIndexes);
-      this.variousMappingsCollection.removeFromEvery(removedIndexes);
+      this.skipMapsCollection.removeFromEvery(removedIndexes);
+      this.variousMapsCollection.removeFromEvery(removedIndexes);
     });
   }
 
@@ -326,12 +329,12 @@ class IndexMapper {
       return this.flattenSkipList;
     }
 
-    if (this.skipCollection.getLength() === 0) {
+    if (this.skipMapsCollection.getLength() === 0) {
       return [];
     }
 
     const result = [];
-    const particularSkipsLists = arrayMap(this.skipCollection.get(), skipList => skipList.getValues());
+    const particularSkipsLists = arrayMap(this.skipMapsCollection.get(), skipList => skipList.getValues());
 
     rangeEach(this.indexesSequence.getLength(), (physicalIndex) => {
       result[physicalIndex] = particularSkipsLists.some(particularSkipsList => particularSkipsList[physicalIndex]);

@@ -4,28 +4,28 @@ import { arrayMap } from '../../../helpers/array';
  * Transform mappings after removal.
  *
  * @private
- * @param {Array} indexesList List of indexes.
+ * @param {Array} indexedValues List of values for particular indexes.
  * @param {Array} removedIndexes List of removed indexes.
  * @returns {Array} List with decreased indexes.
  */
-export function getDecreasedIndexes(indexesList, removedIndexes) {
-  return arrayMap(indexesList, index => index - removedIndexes.filter(removedIndex => removedIndex < index).length);
+export function getDecreasedIndexes(indexedValues, removedIndexes) {
+  return arrayMap(indexedValues, index => index - removedIndexes.filter(removedIndex => removedIndex < index).length);
 }
 
 /**
  * Transform mappings after insertion.
  *
  * @private
- * @param {Array} indexesList List of indexes.
+ * @param {Array} indexedValues List of values for particular indexes.
  * @param {Number} insertionIndex Position inside the actual list.
  * @param {Array} insertedIndexes List of inserted indexes.
  * @returns {Array} List with increased indexes.
  */
-export function getIncreasedIndexes(indexesList, insertionIndex, insertedIndexes) {
+export function getIncreasedIndexes(indexedValues, insertionIndex, insertedIndexes) {
   const firstInsertedIndex = insertedIndexes[0];
   const amountOfIndexes = insertedIndexes.length;
 
-  return arrayMap(indexesList, (index) => {
+  return arrayMap(indexedValues, (index) => {
     if (index >= firstInsertedIndex) {
       return index + amountOfIndexes;
     }
