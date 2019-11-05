@@ -1,5 +1,5 @@
 import { getComputedStyle } from './../../../../helpers/dom/element';
-import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand } from './svg/pathsRenderer';
+import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand, compareStrokePriority } from './svg/pathsRenderer';
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
 
@@ -142,16 +142,41 @@ export default class BorderRenderer {
    * @param {Object} pathGroup pathGroup metadata object
    */
   convertLinesToCommands(pathGroup) {
-    const { stylesAndLines, styles, commands } = pathGroup;
+    const { stylesAndLines, commands } = pathGroup;
 
     commands.length = 0;
-    styles.length = 0;
-    styles.push(...stylesAndLines.keys());
-    styles.forEach((style) => {
+    const keys = [...stylesAndLines.keys()];
+    pathGroup.styles = keys.sort(compareStrokePriority);
+    const pointSizeMap = new Map();
+    pathGroup.styles.forEach((style) => {
       const lines = stylesAndLines.get(style);
       const width = parseInt(style, 10);
+      const isVertical = style.indexOf('vertical') > -1;
       const adjustedLines = adjustLinesToViewBox(width, lines);
       const optimizedLines = svgOptimizePath(adjustedLines);
+      for (let i = 0; i < optimizedLines.length; i++) {
+        const line = optimizedLines[i];
+        const startPointId = `${line[0]},${line[1]}`;
+        const cachedStartPointSize = pointSizeMap.get(startPointId);
+        if (cachedStartPointSize) {
+          line[0] -= cachedStartPointSize;
+        }
+
+        const lineLength = line.length;
+        const endPointId = `${line[lineLength - 2]},${line[lineLength - 1]}`;
+        const cachedEndPointSize = pointSizeMap.get(endPointId);
+        if (cachedEndPointSize) {
+          line[lineLength - 2] += cachedEndPointSize;
+        }
+
+        for (let p = 0; p < lineLength; p += 2) {
+          const pointId = `${line[p]},${line[p + 1]}`;
+
+          if (isVertical && width > 1) {
+            pointSizeMap.set(pointId, Math.floor(width / 2));
+          }
+        }
+      }
       const optimizedCommand = convertLinesToCommand(optimizedLines);
 
       commands.push(optimizedCommand);
