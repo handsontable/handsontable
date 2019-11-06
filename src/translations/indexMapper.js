@@ -9,15 +9,21 @@ import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
 
 /**
- * Index mapper manages the mappings provided by "smaller" maps called index map(s). Those maps provide links from indexes (physical¹ or visual² depending on requirements) to another value.
- * For example, we may link physical column indexes with widths of columns. On every performed CRUD action such as insert column, move column and remove column the value (column width)
- * will stick to the proper index. The index mapper is used as the centralised source of truth regarding row and column indexes (their sequence, information if they are skipped
- * in the process of rendering, values linked to them). It handles CRUD operations on indexes and translate the visual indexes to the physical indexes and the other way round³.
- * It has built in cache. Thus, this way, read operations are as fast as possible. Cache updates are triggered only when the data or structure changes.
+ * Index mapper manages the mappings provided by "smaller" maps called index map(s). Those maps provide links from
+ * indexes (physical¹ or visual² depending on requirements) to another value. For example, we may link physical column
+ * indexes with widths of columns. On every performed CRUD action such as insert column, move column and remove column
+ * the value (column width) will stick to the proper index. The index mapper is used as the centralised source of truth
+ * regarding row and column indexes (their sequence, information if they are skipped in the process of rendering,
+ * values linked to them). It handles CRUD operations on indexes and translate the visual indexes to the physical
+ * indexes and the other way round³. It has built in cache. Thus, this way, read operations are as fast as possible.
+ * Cache updates are triggered only when the data or structure changes.
  *
- * ¹ Physical index is particular index from the sequence of indexes assigned to the data source rows / columns (from 0 to n, where n is number of the cells on the axis).
- * ² Visual index is particular index from the sequence of indexes assigned to visible rows / columns (from 0 to n, where n is number of the cells on the axis).
- * ³ It maps from visible row / column to its representation in the data source and the other way round. For example, when we sorted data, our 1st visible row can represent 4th row from the original source data,
+ * ¹ Physical index is particular index from the sequence of indexes assigned to the data source rows / columns
+ * (from 0 to n, where n is number of the cells on the axis).
+ * ² Visual index is particular index from the sequence of indexes assigned to visible rows / columns
+ * (from 0 to n, where n is number of the cells on the axis).
+ * ³ It maps from visible row / column to its representation in the data source and the other way round.
+ * For example, when we sorted data, our 1st visible row can represent 4th row from the original source data,
  * 2nd can be mapped to 3rd, 3rd to 2nd, etc. (keep in mind that indexes are represent from the zero).
  */
 class IndexMapper {
@@ -126,9 +132,11 @@ class IndexMapper {
 
     const numberOfIndexes = this.getNumberOfIndexes();
     /*
-      We initialize map ony when we have full information about number of indexes and the dataset is not empty. Otherwise it's unnecessary. Initialization of empty array
-      would not give any positive changes. After initializing it with number of indexes equal to 0 the map would be still empty. What's more there would be triggered
-      not needed hook (no real change have occurred). Number of indexes is known after loading data (the `loadData` function from the `Core`).
+      We initialize map ony when we have full information about number of indexes and the dataset is not empty.
+      Otherwise it's unnecessary. Initialization of empty array would not give any positive changes. After initializing
+      it with number of indexes equal to 0 the map would be still empty. What's more there would be triggered
+      not needed hook (no real change have occurred). Number of indexes is known after loading data (the `loadData`
+      function from the `Core`).
      */
     if (numberOfIndexes > 0) {
       map.init(numberOfIndexes);
@@ -353,7 +361,8 @@ class IndexMapper {
   }
 
   /**
-   * Rebuild cache for some indexes. Every action on indexes sequence or skipped indexes by default reset cache, thus batching some index maps actions is recommended.
+   * Rebuild cache for some indexes. Every action on indexes sequence or skipped indexes by default reset cache,
+   * thus batching some index maps actions is recommended.
    *
    * @param {Boolean} [force=false] Determine if force cache update.
    * @private
