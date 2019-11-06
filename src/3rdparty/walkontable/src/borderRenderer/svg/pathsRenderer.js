@@ -252,10 +252,14 @@ export function adjustLinesToViewBox(strokeWidth, lines) {
     let [x1, y1, x2, y2] = lines[ii];
 
     if (needSubPixelCorrection) {
-      y1 += 0.5;
-      y2 += 0.5;
-      x1 += 0.5;
-      x2 += 0.5;
+      const isHorizontal = y1 === y2;
+      if (isHorizontal) {
+        y1 += 0.5;
+        y2 += 0.5;
+      } else {
+        x1 += 0.5;
+        x2 += 0.5;
+      }
     }
 
     newLines[ii] = [x1, y1, x2, y2];

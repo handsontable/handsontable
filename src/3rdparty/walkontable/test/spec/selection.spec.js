@@ -103,35 +103,18 @@ describe('Walkontable.Selection', () => {
     const paths = spec().$wrapper.find('svg path');
     expect(paths.length).toBe(8);
 
-    const pathInMasterTableV = spec().$wrapper.find('.ht_master svg path').eq(0);
-    expect(pathInMasterTableV.attr('d')).toBe('M 49.5 0.5 49.5 23.5');
-    const pathInMasterTableH = spec().$wrapper.find('.ht_master svg path').eq(1);
-    expect(pathInMasterTableH.attr('d')).toBe('M 0.5 23.5 49.5 23.5');
-
-    const pathInTopOverlayV = spec().$wrapper.find('.ht_clone_top svg path').eq(0);
-    expect(pathInTopOverlayV.attr('d')).toBe('M 49.5 0.5 49.5 46.5');
-    const pathInTopOverlayH = spec().$wrapper.find('.ht_clone_top svg path').eq(1);
-    expect(pathInTopOverlayH.attr('d')).toBe('M 0.5 0.5 49.5 0.5 M 0.5 46.5 49.5 46.5');
-
-    const pathInLeftOverlayV = spec().$wrapper.find('.ht_clone_left svg path').eq(0);
-    expect(pathInLeftOverlayV.attr('d')).toBe('M 99.5 0.5 99.5 23.5 M 0.5 0.5 0.5 23.5');
-    const pathInLeftOverlayH = spec().$wrapper.find('.ht_clone_left svg path').eq(1);
-    expect(pathInLeftOverlayH.attr('d')).toBe('M 0.5 23.5 99.5 23.5');
-
-    const pathInTopLeftCornerOverlayV = spec().$wrapper.find('.ht_clone_top_left_corner svg path').eq(0);
-    expect(pathInTopLeftCornerOverlayV.attr('d')).toBe('M 99.5 0.5 99.5 46.5 M 0.5 0.5 0.5 46.5');
-    const pathInTopLeftCornerOverlayH = spec().$wrapper.find('.ht_clone_top_left_corner svg path').eq(1);
-    expect(pathInTopLeftCornerOverlayH.attr('d')).toBe('M 0.5 0.5 99.5 0.5 M 0.5 46.5 99.5 46.5');
-
-    const pathInBottomOverlayV = spec().$wrapper.find('.ht_clone_bottom svg path').eq(0);
-    expect(pathInBottomOverlayV.attr('d')).toBe(undefined);
-    const pathInBottomOverlayH = spec().$wrapper.find('.ht_clone_bottom svg path').eq(1);
-    expect(pathInBottomOverlayH.attr('d')).toBe(undefined);
-
-    const pathInBottomLeftCornerOverlayV = spec().$wrapper.find('.ht_clone_bottom_left_corner svg path').eq(0);
-    expect(pathInBottomLeftCornerOverlayV.attr('d')).toBe(undefined);
-    const pathInBottomLeftCornerOverlayH = spec().$wrapper.find('.ht_clone_bottom_left_corner svg path').eq(1);
-    expect(pathInBottomLeftCornerOverlayH.attr('d')).toBe(undefined);
+    expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_master')[0])).withContext('ht_master')
+      .toEqual(['M 49.5 0 49.5 24', 'M 0 23.5 50 23.5']);
+    expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top')[0])).withContext('ht_clone_top')
+      .toEqual(['M 49.5 0 49.5 47', 'M 0 0.5 50 0.5 M 0 46.5 50 46.5']);
+    expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_left')[0])).withContext('ht_clone_left')
+      .toEqual(['M 99.5 0 99.5 24 M 0.5 0 0.5 24', 'M 0 23.5 100 23.5']);
+    expect(spec().$wrapper.find('.ht_clone_bottom_left_corner').length).withContext('ht_clone_top_left_corner')
+      .toEqual(0);
+    expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_bottom')[0])).withContext('ht_clone_bottom')
+      .toEqual([]);
+    expect(spec().$wrapper.find('.ht_clone_bottom_left_corner').length).withContext('ht_clone_bottom_left_corner')
+      .toEqual(0);
   });
 
   it('should draw border on bottom, left, bottom-left-corner overlays if they are overlapping (scrollable viewport)', function() {
@@ -160,35 +143,18 @@ describe('Walkontable.Selection', () => {
     const paths = spec().$wrapper.find('svg path');
     expect(paths.length).toBe(8);
 
-    const pathInMasterTableV = spec().$wrapper.find('.ht_master svg path').eq(0);
-    expect(pathInMasterTableV.attr('d')).toBe('M 49.5 253.5 49.5 299.5');
-    const pathInMasterTableH = spec().$wrapper.find('.ht_master svg path').eq(1);
-    expect(pathInMasterTableH.attr('d')).toBe('M 0.5 253.5 49.5 253.5 M 0.5 299.5 49.5 299.5');
-
-    const pathInTopOverlayV = spec().$wrapper.find('.ht_clone_top svg path').eq(0);
-    expect(pathInTopOverlayV.attr('d')).toBe(undefined);
-    const pathInTopOverlayH = spec().$wrapper.find('.ht_clone_top svg path').eq(1);
-    expect(pathInTopOverlayH.attr('d')).toBe(undefined);
-
-    const pathInLeftOverlayV = spec().$wrapper.find('.ht_clone_left svg path').eq(0);
-    expect(pathInLeftOverlayV.attr('d')).toBe('M 99.5 253.5 99.5 -336.5 M 0.5 253.5 0.5 -336.5');
-    const pathInLeftOverlayH = spec().$wrapper.find('.ht_clone_left svg path').eq(1);
-    expect(pathInLeftOverlayH.attr('d')).toBe('M 0.5 253.5 99.5 253.5 M 0.5 -336.5 99.5 -336.5');
-
-    const pathInTopLeftCornerOverlayV = spec().$wrapper.find('.ht_clone_top_left_corner svg path').eq(0);
-    expect(pathInTopLeftCornerOverlayV.attr('d')).toBe(undefined);
-    const pathInTopLeftCornerOverlayH = spec().$wrapper.find('.ht_clone_top_left_corner svg path').eq(1);
-    expect(pathInTopLeftCornerOverlayH.attr('d')).toBe(undefined);
-
-    const pathInBottomOverlayV = spec().$wrapper.find('.ht_clone_bottom svg path').eq(0);
-    expect(pathInBottomOverlayV.attr('d')).toBe('M 49.5 -22.5 49.5 23.5');
-    const pathInBottomOverlayH = spec().$wrapper.find('.ht_clone_bottom svg path').eq(1);
-    expect(pathInBottomOverlayH.attr('d')).toBe('M 0.5 -22.5 49.5 -22.5 M 0.5 23.5 49.5 23.5');
-
-    const pathInBottomLeftCornerOverlayV = spec().$wrapper.find('.ht_clone_bottom_left_corner svg path').eq(0);
-    expect(pathInBottomLeftCornerOverlayV.attr('d')).toBe('M 99.5 613.5 99.5 23.5 M 0.5 613.5 0.5 23.5');
-    const pathInBottomLeftCornerOverlayH = spec().$wrapper.find('.ht_clone_bottom_left_corner svg path').eq(1);
-    expect(pathInBottomLeftCornerOverlayH.attr('d')).toBe('M 0.5 613.5 99.5 613.5 M 0.5 23.5 99.5 23.5');
+    expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_master')[0])).withContext('ht_master')
+      .toEqual(['M 49.5 253 49.5 300', 'M 0 253.5 50 253.5 M 0 299.5 50 299.5']);
+    expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top')[0])).withContext('ht_clone_top')
+      .toEqual([]);
+    expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_left')[0])).withContext('ht_clone_left')
+      .toEqual(['M 99.5 253 99.5 -336 M 0.5 253 0.5 -336', 'M 0 253.5 100 253.5 M 0 -336.5 100 -336.5']);
+    expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top_left_corner')[0])).withContext('ht_clone_top_left_corner')
+      .toEqual(null);
+    expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_bottom')[0])).withContext('ht_clone_bottom')
+      .toEqual(['M 49.5 -23 49.5 24', 'M 0 -22.5 50 -22.5 M 0 23.5 50 23.5']);
+    expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_bottom_left_corner')[0])).withContext('ht_clone_bottom_left_corner')
+      .toEqual(['M 99.5 613 99.5 24 M 0.5 613 0.5 24', 'M 0 613.5 100 613.5 M 0 23.5 100 23.5']);
   });
 
   it('should not add class to selection until it is rerendered', () => {

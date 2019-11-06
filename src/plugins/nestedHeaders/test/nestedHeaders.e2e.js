@@ -570,8 +570,8 @@ describe('NestedHeaders', () => {
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseup');
 
-      expect(getRenderedBorderPaths(document.body)).toEqual(['M 149.5 104.5 149.5 196.5 M 49.5 104.5 49.5 196.5',
-        'M 49.5 104.5 149.5 104.5 M 49.5 196.5 149.5 196.5', 'M 99 105 99 127 M 50 105 50 127', 'M 50 105 99 105 M 50 127 99 127']);
+      expect(getRenderedBorderPaths(document.body)).toEqual(['M 149.5 104 149.5 197 M 49.5 104 49.5 197',
+        'M 49 104.5 150 104.5 M 49 196.5 150 196.5', 'M 99 105 99 128 M 50 105 50 128', 'M 49 105 100 105 M 49 127 100 127']);
     });
   });
 });

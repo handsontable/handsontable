@@ -120,7 +120,7 @@ export default class BorderRenderer {
     this.pathGroups.forEach(pathGroup => this.convertLinesToCommands(pathGroup));
 
     // batch all DOM writes
-    this.svgResizer(this.maxWidth, this.maxHeight);
+    this.svgResizer(Math.min(this.maxWidth, this.containerBoundingRect.width), Math.min(this.maxHeight, this.containerBoundingRect.height));
     this.pathGroups.forEach(pathGroup => pathGroup.svgPathsRenderer(pathGroup.styles, pathGroup.commands));
   }
 
@@ -136,6 +136,60 @@ export default class BorderRenderer {
   }
 
   /**
+   * Adjusts the beginning and end tips of the lines to overlap each other according to the specification.
+   * The specification is covered in TDD file border.spec.js   *
+   *
+   * @param {Array.<number>} lines
+   * @param {Number} width
+   * @param {Boolean} isVertical
+   * @param {Map} horizontalPointSizeMap
+   * @param {Map} verticalPointSizeMap
+   */
+  adjustTipsOfLines(lines, width, isVertical, horizontalPointSizeMap, verticalPointSizeMap) {
+    const lookupPointSizeMap = isVertical ? horizontalPointSizeMap : verticalPointSizeMap;
+    const savedPointSizeMap = isVertical ? verticalPointSizeMap : horizontalPointSizeMap;
+    const gridlineWidth = 1;
+    const beginX = 0;
+    const beginY = 1;
+    const beginIndex = isVertical ? beginY : beginX;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const lineLength = line.length;
+      const endX = lineLength - 2;
+      const endY = lineLength - 1;
+      const endIndex = isVertical ? endY : endX;
+      const startPointId = `${line[beginX]},${line[beginY]}`;
+      const endPointId = `${line[endX]},${line[endY]}`;
+      const cachedStartPointSize = lookupPointSizeMap.get(startPointId);
+      const cachedEndPointSize = lookupPointSizeMap.get(endPointId);
+
+      if (width > 1) {
+        for (let p = 0; p < lineLength; p += 2) {
+          const pointId = `${line[p]},${line[p + 1]}`;
+          savedPointSizeMap.set(pointId, width);
+        }
+      }
+      if (cachedStartPointSize) {
+        line[beginIndex] -= Math.floor(cachedStartPointSize / 2);
+      }
+
+      line[endIndex] += gridlineWidth;
+
+      if (cachedEndPointSize) {
+        let compensateForEvenWidthsInset;
+
+        if (isVertical) {
+          compensateForEvenWidthsInset = (width % 2 === 0) ? 0 : -1;
+        } else {
+          compensateForEvenWidthsInset = (width % 2 === 0) ? -1 : 0;
+        }
+        line[endIndex] += Math.floor(cachedEndPointSize / 2) + compensateForEvenWidthsInset;
+      }
+    }
+  }
+
+  /**
    * Serializes `stylesAndLines` map into into a 1D array of SVG path commands (`commands`) within a pathGroup
    * Sets `this.maxWidth` and `this.maxHeight` to the highest observed value.
    *
@@ -143,44 +197,22 @@ export default class BorderRenderer {
    */
   convertLinesToCommands(pathGroup) {
     const { stylesAndLines, commands } = pathGroup;
+    const keys = [...stylesAndLines.keys()];
+    const horizontalPointSizeMap = new Map();
+    const verticalPointSizeMap = new Map();
 
     commands.length = 0;
-    const keys = [...stylesAndLines.keys()];
     pathGroup.styles = keys.sort(compareStrokePriority);
-    const pointSizeMap = new Map();
     pathGroup.styles.forEach((style) => {
       const lines = stylesAndLines.get(style);
       const width = parseInt(style, 10);
       const isVertical = style.indexOf('vertical') > -1;
+
+      this.adjustTipsOfLines(lines, width, isVertical, horizontalPointSizeMap, verticalPointSizeMap);
+
       const adjustedLines = adjustLinesToViewBox(width, lines);
       const optimizedLines = svgOptimizePath(adjustedLines);
-      for (let i = 0; i < optimizedLines.length; i++) {
-        const line = optimizedLines[i];
-        const startPointId = `${line[0]},${line[1]}`;
-        const cachedStartPointSize = pointSizeMap.get(startPointId);
-        if (cachedStartPointSize) {
-          line[0] -= cachedStartPointSize;
-        }
-
-        const lineLength = line.length;
-        const endPointId = `${line[lineLength - 2]},${line[lineLength - 1]}`;
-        const cachedEndPointSize = pointSizeMap.get(endPointId);
-        if (cachedEndPointSize) {
-          line[lineLength - 2] += cachedEndPointSize;
-        }
-
-        for (let p = 0; p < lineLength; p += 2) {
-          const pointId = `${line[p]},${line[p + 1]}`;
-
-          if (isVertical && width > 1) {
-            pointSizeMap.set(pointId, Math.floor(width / 2));
-          }
-        }
-      }
       const optimizedCommand = convertLinesToCommand(optimizedLines);
-
-      commands.push(optimizedCommand);
-
       const marginForBoldStroke = Math.ceil(width / 2); // needed to make sure that the SVG width is enough to render bold strokes
       const currentMaxWidth = this.sumArrayElementAtIndex(lines, 2) + marginForBoldStroke;
       const currentMaxHeight = this.sumArrayElementAtIndex(lines, 3) + marginForBoldStroke;
@@ -191,6 +223,8 @@ export default class BorderRenderer {
       if (currentMaxHeight > this.maxHeight) {
         this.maxHeight = currentMaxHeight;
       }
+
+      commands.push(optimizedCommand);
     });
   }
 

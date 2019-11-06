@@ -170,6 +170,7 @@ describe('CustomBorders', () => {
       hot.getPlugin('customBorders').disablePlugin();
 
       expect(getRenderedBorderPaths(document.body)).toEqual(['', '']);
+      expect(getRenderedBorderStyles(document.body)).toEqual(['1px green horizontal', '2px red vertical']);
     });
 
     it('should show initial borders when re-enabled using updateSettings', () => {
@@ -190,8 +191,8 @@ describe('CustomBorders', () => {
         customBorders: true
       });
 
-      expect(getRenderedBorderPaths(document.body)).toEqual(['M 99.5 46.5 149.5 46.5', 'M 149 46 149 69 M 99 46 99 69']);
-      // TODO the above assertion checks current behavior that looks like a bug. I would expect 0
+      expect(getRenderedBorderPaths(document.body)).not.toEqual(['', '']);
+      expect(getRenderedBorderStyles(document.body)).toEqual(['1px green horizontal', '2px red vertical']);
     });
 
     it('should show initial borders when re-enabled using disablePlugin', () => {
@@ -244,39 +245,44 @@ describe('CustomBorders', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: [{
-        row: 2,
-        col: 2,
+        range: {
+          from: {
+            row: 1,
+            col: 1
+          },
+          to: {
+            row: 2,
+            col: 2
+          }
+        },
         left: MEDIUM_RED_BORDER,
         right: MEDIUM_RED_BORDER,
         top: THIN_GREEN_BORDER
       }]
     });
 
-    expect(getCellMeta(2, 2).borders.top).toEqual(THIN_GREEN_BORDER);
-    expect(getCellMeta(2, 2).borders.left).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
-    expect(getCellMeta(2, 2).borders.right).toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(1, 1).borders.top).withContext('1,1 top').toEqual(THIN_GREEN_BORDER);
+    expect(getCellMeta(1, 1).borders.left).withContext('1,1 left').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(1, 1).borders.bottom).withContext('1,1 bottom').toEqual(EMPTY);
+    expect(getCellMeta(1, 1).borders.right).withContext('1,1 right').toEqual(EMPTY);
 
-    expect(getCellMeta(0, 0).borders).toBeUndefined();
-    expect(getCellMeta(0, 1).borders).toBeUndefined();
-    expect(getCellMeta(0, 2).borders).toBeUndefined();
-    expect(getCellMeta(0, 3).borders).toBeUndefined();
+    expect(getCellMeta(1, 2).borders.top).withContext('1,2 top').toEqual(THIN_GREEN_BORDER);
+    expect(getCellMeta(1, 2).borders.left).withContext('1,2 left').toEqual(EMPTY);
+    expect(getCellMeta(1, 2).borders.bottom).withContext('1,2 bottom').toEqual(EMPTY);
+    expect(getCellMeta(1, 2).borders.right).withContext('1,2 right').toEqual(MEDIUM_RED_BORDER);
 
-    expect(getCellMeta(1, 0).borders).toBeUndefined();
-    expect(getCellMeta(1, 1).borders).toBeUndefined();
-    expect(getCellMeta(1, 2).borders).toBeUndefined();
-    expect(getCellMeta(1, 3).borders).toBeUndefined();
+    expect(getCellMeta(2, 1).borders.top).withContext('2,1 top').toEqual(EMPTY);
+    expect(getCellMeta(2, 1).borders.left).withContext('1,2 left').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(2, 1).borders.bottom).withContext('1,2 bottom').toEqual(EMPTY);
+    expect(getCellMeta(2, 1).borders.right).withContext('1,2 right').toEqual(EMPTY);
 
-    expect(getCellMeta(2, 0).borders).toBeUndefined();
-    expect(getCellMeta(2, 1).borders).toBeUndefined();
-    expect(getCellMeta(2, 3).borders).toBeUndefined();
+    expect(getCellMeta(2, 2).borders.top).withContext('2,2 top').toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.left).withContext('2,2 left').toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.bottom).withContext('2,2 bottom').toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.right).withContext('2,2 right').toEqual(MEDIUM_RED_BORDER);
 
-    expect(getCellMeta(3, 0).borders).toBeUndefined();
-    expect(getCellMeta(3, 1).borders).toBeUndefined();
-    expect(getCellMeta(3, 2).borders).toBeUndefined();
-    expect(getCellMeta(3, 3).borders).toBeUndefined();
-
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 99.5 46.5 149.5 46.5', 'M 149 46 149 69 M 99 46 99 69']);
+    expect(getRenderedBorderPaths(document.body)).toEqual(['M 49 23.5 150 23.5', 'M 49 23 49 70 M 149 23 149 70']);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green horizontal', '2px red vertical']);
   });
 
   it('should draw new borders by use setBorders method (while selected)', () => {
@@ -289,32 +295,36 @@ describe('CustomBorders', () => {
 
     selectCells([[1, 1, 2, 2]]);
     customBorders.setBorders(getSelected(), {
-      top: MEDIUM_RED_BORDER,
+      left: MEDIUM_RED_BORDER,
+      top: THIN_GREEN_BORDER,
       bottom: MEDIUM_RED_BORDER
     });
     deselectCell();
 
-    expect(getCellMeta(1, 1).borders.top).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(1, 1).borders.left).toEqual(EMPTY);
-    expect(getCellMeta(1, 1).borders.bottom).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(1, 1).borders.right).toEqual(EMPTY);
+    expect(getCellMeta(1, 1).borders.top).withContext('1,1 top').toEqual(THIN_GREEN_BORDER);
+    expect(getCellMeta(1, 1).borders.left).withContext('1,1 left').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(1, 1).borders.bottom).withContext('1,1 bottom').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(1, 1).borders.right).withContext('1,1 right').toEqual(EMPTY);
 
-    expect(getCellMeta(1, 2).borders.top).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(1, 2).borders.left).toEqual(EMPTY);
-    expect(getCellMeta(1, 2).borders.bottom).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(1, 2).borders.right).toEqual(EMPTY);
+    expect(getCellMeta(1, 2).borders.top).withContext('1,2 top').toEqual(THIN_GREEN_BORDER);
+    expect(getCellMeta(1, 2).borders.left).withContext('1,2 left').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(1, 2).borders.bottom).withContext('1,2 bottom').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(1, 2).borders.right).withContext('1,2 right').toEqual(EMPTY);
 
-    expect(getCellMeta(2, 1).borders.top).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(2, 1).borders.left).toEqual(EMPTY);
-    expect(getCellMeta(2, 1).borders.bottom).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(2, 1).borders.right).toEqual(EMPTY);
+    expect(getCellMeta(2, 1).borders.top).withContext('2,1 top').toEqual(THIN_GREEN_BORDER);
+    expect(getCellMeta(2, 1).borders.left).withContext('1,2 left').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(2, 1).borders.bottom).withContext('1,2 bottom').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(2, 1).borders.right).withContext('1,2 right').toEqual(EMPTY);
 
-    expect(getCellMeta(2, 2).borders.top).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(2, 2).borders.left).toEqual(EMPTY);
-    expect(getCellMeta(2, 2).borders.bottom).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(2, 2).borders.right).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.top).withContext('2,2 top').toEqual(THIN_GREEN_BORDER);
+    expect(getCellMeta(2, 2).borders.left).withContext('2,2 left').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(2, 2).borders.bottom).withContext('2,2 bottom').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(2, 2).borders.right).withContext('2,2 right').toEqual(EMPTY);
 
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 49 23 149 23 M 49 46 149 46 M 49 69 149 69', '', '', '', '']);
+    expect(getRenderedBorderPaths(document.body)).toEqual(['M 49 23.5 150 23.5 M 49 46.5 150 46.5',
+      'M 49 23 49 70 M 99 23 99 70', 'M 48 46 150 46 M 48 69 150 69', '', '', '', '']);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green horizontal',
+      '2px red vertical', '2px red horizontal', '1px #4b89ff vertical', '1px #4b89ff horizontal', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
   });
 
   it('should draw new borders by use setBorders method (while deselected)', () => {
@@ -326,31 +336,33 @@ describe('CustomBorders', () => {
     const customBorders = hot.getPlugin('customBorders');
 
     customBorders.setBorders([[1, 1, 2, 2]], {
-      top: MEDIUM_RED_BORDER,
+      left: MEDIUM_RED_BORDER,
+      top: THIN_GREEN_BORDER,
       bottom: MEDIUM_RED_BORDER
     });
 
-    expect(getCellMeta(1, 1).borders.top).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(1, 1).borders.left).toEqual(EMPTY);
-    expect(getCellMeta(1, 1).borders.bottom).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(1, 1).borders.right).toEqual(EMPTY);
+    expect(getCellMeta(1, 1).borders.top).withContext('1,1 top').toEqual(THIN_GREEN_BORDER);
+    expect(getCellMeta(1, 1).borders.left).withContext('1,1 left').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(1, 1).borders.bottom).withContext('1,1 bottom').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(1, 1).borders.right).withContext('1,1 right').toEqual(EMPTY);
 
-    expect(getCellMeta(1, 2).borders.top).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(1, 2).borders.left).toEqual(EMPTY);
-    expect(getCellMeta(1, 2).borders.bottom).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(1, 2).borders.right).toEqual(EMPTY);
+    expect(getCellMeta(1, 2).borders.top).withContext('1,2 top').toEqual(THIN_GREEN_BORDER);
+    expect(getCellMeta(1, 2).borders.left).withContext('1,2 left').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(1, 2).borders.bottom).withContext('1,2 bottom').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(1, 2).borders.right).withContext('1,2 right').toEqual(EMPTY);
 
-    expect(getCellMeta(2, 1).borders.top).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(2, 1).borders.left).toEqual(EMPTY);
-    expect(getCellMeta(2, 1).borders.bottom).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(2, 1).borders.right).toEqual(EMPTY);
+    expect(getCellMeta(2, 1).borders.top).withContext('2,1 top').toEqual(THIN_GREEN_BORDER);
+    expect(getCellMeta(2, 1).borders.left).withContext('1,2 left').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(2, 1).borders.bottom).withContext('1,2 bottom').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(2, 1).borders.right).withContext('1,2 right').toEqual(EMPTY);
 
-    expect(getCellMeta(2, 2).borders.top).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(2, 2).borders.left).toEqual(EMPTY);
-    expect(getCellMeta(2, 2).borders.bottom).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(2, 2).borders.right).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.top).withContext('2,2 top').toEqual(THIN_GREEN_BORDER);
+    expect(getCellMeta(2, 2).borders.left).withContext('2,2 left').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(2, 2).borders.bottom).withContext('2,2 bottom').toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(2, 2).borders.right).withContext('2,2 right').toEqual(EMPTY);
 
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 49 23 149 23 M 49 46 149 46 M 49 69 149 69']);
+    expect(getRenderedBorderPaths(document.body)).toEqual(['M 49 23.5 150 23.5 M 49 46.5 150 46.5', 'M 49 23 49 70 M 99 23 99 70', 'M 48 46 150 46 M 48 69 150 69']);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green horizontal', '2px red vertical', '2px red horizontal']);
   });
 
   it('should redraw existing borders by use setBorders method (while selected)', () => {
@@ -369,16 +381,17 @@ describe('CustomBorders', () => {
 
     selectCell(2, 2);
     customBorders.setBorders(getSelectedRange(), {
-      top: MEDIUM_RED_BORDER,
-      bottom: MEDIUM_RED_BORDER
+      top: MEDIUM_ORANGE_BORDER,
+      bottom: MEDIUM_ORANGE_BORDER
     });
     deselectCell();
 
-    expect(getCellMeta(2, 2).borders.top).toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(2, 2).borders.top).toEqual(MEDIUM_ORANGE_BORDER);
     expect(getCellMeta(2, 2).borders.left).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(2, 2).borders.bottom).toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(MEDIUM_ORANGE_BORDER);
     expect(getCellMeta(2, 2).borders.right).toEqual(THIN_GREEN_BORDER);
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 149.5 46.5 149.5 69.5', 'M 99 46 99 69', '', 'M 99 46 149 46 M 99 69 149 69', '', '']);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green vertical',
+      '2px red vertical', '2px green horizontal', '2px orange horizontal', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
   });
 
   it('should redraw existing borders by use setBorders method (while deselected)', () => {
@@ -396,15 +409,15 @@ describe('CustomBorders', () => {
     const customBorders = hot.getPlugin('customBorders');
 
     customBorders.setBorders([[2, 2]], {
-      top: MEDIUM_RED_BORDER,
-      bottom: MEDIUM_RED_BORDER
+      top: MEDIUM_ORANGE_BORDER,
+      bottom: MEDIUM_ORANGE_BORDER
     });
 
-    expect(getCellMeta(2, 2).borders.top).toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(2, 2).borders.top).toEqual(MEDIUM_ORANGE_BORDER);
     expect(getCellMeta(2, 2).borders.left).toEqual(MEDIUM_RED_BORDER);
-    expect(getCellMeta(2, 2).borders.bottom).toEqual(MEDIUM_RED_BORDER);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(MEDIUM_ORANGE_BORDER);
     expect(getCellMeta(2, 2).borders.right).toEqual(THIN_GREEN_BORDER);
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 149.5 46.5 149.5 69.5', 'M 99 46 99 69', '', 'M 99 46 149 46 M 99 69 149 69']);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green vertical', '2px red vertical', '2px green horizontal', '2px orange horizontal']);
   });
 
   it('should hide only specific border by use setBorders method with {hide: true} (while selected)', () => {
@@ -431,7 +444,8 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.left).toEqual(MEDIUM_RED_BORDER);
     expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(2, 2).borders.right).toEqual(MEDIUM_RED_BORDER);
-    expect(getRenderedBorderPaths(document.body)).toEqual(['', 'M 149 46 149 69 M 99 46 99 69', '', '']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([false, true, false, false]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green horizontal', '2px red vertical', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
   });
 
   it('should hide only specific border by use setBorders method with {hide: true} (while deselected)', () => {
@@ -456,7 +470,8 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.left).toEqual(MEDIUM_RED_BORDER);
     expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(2, 2).borders.right).toEqual(MEDIUM_RED_BORDER);
-    expect(getRenderedBorderPaths(document.body)).toEqual(['', 'M 149 46 149 69 M 99 46 99 69']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([false, true]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green horizontal', '2px red vertical']);
   });
 
   it('should hide only specific border by use setBorders method with {top: false} (while selected)', () => {
@@ -503,7 +518,8 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 2).borders).toBeUndefined();
     expect(getCellMeta(3, 3).borders).toBeUndefined();
 
-    expect(getRenderedBorderPaths(document.body)).toEqual(['', 'M 149 46 149 69 M 99 46 99 69', '', '']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([false, true, false, false]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green horizontal', '2px red vertical', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
   });
 
   it('should hide only specific border by use setBorders method with {top: false} (while deselected)', () => {
@@ -548,7 +564,8 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 2).borders).toBeUndefined();
     expect(getCellMeta(3, 3).borders).toBeUndefined();
 
-    expect(getRenderedBorderPaths(document.body)).toEqual(['', 'M 149 46 149 69 M 99 46 99 69']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([false, true]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green horizontal', '2px red vertical']);
   });
 
   it('should return borders from the selected area by use getBorders method', () => {
@@ -574,7 +591,6 @@ describe('CustomBorders', () => {
     expect(borders[0].left).toEqual(MEDIUM_RED_BORDER);
     expect(borders[0].bottom).toEqual(EMPTY);
     expect(borders[0].right).toEqual(THIN_GREEN_BORDER);
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 149.5 46.5 149.5 69.5', 'M 99.5 46.5 149.5 46.5', 'M 99 46 99 69', '', '', '', '']);
   });
 
   it('should return all borders by use getBorders method without parameter', () => {
@@ -610,9 +626,6 @@ describe('CustomBorders', () => {
     const borders = customBorders.getBorders();
 
     expect(borders.length).toEqual(9);
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 149.5 46.5 149.5 69.5', 'M 99 46 99 69', 'M 199 23 199 92',
-      'M 49 23 49 92', 'M 49 23 199 23', 'M 49 92 199 92', 'M 99 46 149 46']);
-    // explanation to the above borders: there are 9 cells in the provided range, some of which have 1, 2 or 3 rendered borders
   });
 
   it('should clear borders from area by use clearBorders method (while selected)', () => {
@@ -678,8 +691,12 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 2).borders.bottom).toEqual(MEDIUM_RED_BORDER);
     expect(getCellMeta(3, 3).borders.right).toEqual(MEDIUM_MAGENTA_BORDER);
     expect(getCellMeta(3, 3).borders.bottom).toEqual(MEDIUM_RED_BORDER);
-    expect(getRenderedBorderPaths(document.body)).toEqual(['', '', 'M 199 23 199 92',
-      'M 49 69 49 92', 'M 149 23 199 23', 'M 49 92 199 92', '', '', '', '', '']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([false,
+      true, true, false, true, true,
+      false, false, false, false, false]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green vertical',
+      '2px orange vertical', '2px magenta vertical', '2px red vertical', '2px blue horizontal', '2px red horizontal',
+      '2px green horizontal', '1px #4b89ff vertical', '1px #4b89ff horizontal', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
   });
 
   it('should clear borders from area by use clearBorders method (while deselected)', () => {
@@ -743,8 +760,10 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 2).borders.bottom).toEqual(MEDIUM_RED_BORDER);
     expect(getCellMeta(3, 3).borders.right).toEqual(MEDIUM_MAGENTA_BORDER);
     expect(getCellMeta(3, 3).borders.bottom).toEqual(MEDIUM_RED_BORDER);
-    expect(getRenderedBorderPaths(document.body)).toEqual(['', '', 'M 199 23 199 92', 'M 49 69 49 92',
-      'M 149 23 199 23', 'M 49 92 199 92', '']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([false,
+      true, true, false, true, true, false]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green vertical',
+      '2px orange vertical', '2px magenta vertical', '2px red vertical', '2px blue horizontal', '2px red horizontal', '2px green horizontal']);
   });
 
   it('should clear all borders by use clearBorders method without parameter', () => {
@@ -790,7 +809,10 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 2).borders).toBeUndefined();
     expect(getCellMeta(3, 3).borders).toBeUndefined();
 
-    expect(getRenderedBorderPaths(document.body)).toEqual(['', '', '', '', '', '', '']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([false,
+      false, false, false, false, false, false]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green vertical',
+      '2px orange vertical', '2px magenta vertical', '2px red vertical', '2px blue horizontal', '2px red horizontal', '2px green horizontal']);
   });
 
   it('should draw borders from context menu options when was first cleared borders by the clearBorders method', async() => {
@@ -818,7 +840,10 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
-    expect(getRenderedBorderPaths(document.body)).toEqual(['', 'M 0.5 0.5 49.5 0.5', '', '', 'M 49 1 49 23 M 1 1 1 23', 'M 1 1 49 1 M 1 23 49 23']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([false,
+      true, false, false, true, true]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green vertical',
+      '1px #000 horizontal', '2px red vertical', '2px green horizontal', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
   });
 
   it('should clear all borders when first was cleared borders by the clearBorders method with selections,' +
@@ -845,7 +870,10 @@ describe('CustomBorders', () => {
 
     customBorders.clearBorders();
     expect(getCellMeta(0, 0).borders).toBeUndefined();
-    expect(getRenderedBorderPaths(document.body)).toEqual(['', '', '', '', 'M 49 1 49 23 M 1 1 1 23', 'M 1 1 49 1 M 1 23 49 23']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([false,
+      false, false, false, true, true]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green vertical',
+      '1px #000 horizontal', '2px red vertical', '2px green horizontal', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
   });
 
   it('should draw top border from context menu options', async() => {
@@ -863,7 +891,8 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
 
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 0.5 0.5 49.5 0.5', 'M 49 1 49 23 M 1 1 1 23', 'M 1 1 49 1 M 1 23 49 23']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([true, true, true]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px #000 horizontal', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
   });
 
   it('should draw left border from context menu options', async() => {
@@ -881,7 +910,8 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.left).toEqual(DEFAULT_THIN_BORDER);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 0.5 0.5 0.5 23.5', 'M 49 1 49 23 M 1 1 1 23', 'M 1 1 49 1 M 1 23 49 23']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([true, true, true]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px #000 vertical', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
   });
 
   it('should draw right border from context menu options', async() => {
@@ -899,7 +929,8 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.right).toEqual(DEFAULT_THIN_BORDER);
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 49.5 0.5 49.5 23.5', 'M 49 1 49 23 M 1 1 1 23', 'M 1 1 49 1 M 1 23 49 23']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([true, true, true]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px #000 vertical', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
   });
 
   it('should draw bottom border from context menu options', async() => {
@@ -917,7 +948,8 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(DEFAULT_THIN_BORDER);
     expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 0.5 23.5 49.5 23.5', 'M 49 1 49 23 M 1 1 1 23', 'M 1 1 49 1 M 1 23 49 23']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([true, true, true]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px #000 horizontal', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
   });
 
   it('should remove all bottoms border from context menu options', async() => {
@@ -932,12 +964,14 @@ describe('CustomBorders', () => {
           right: THIN_GREEN_BORDER
         }]
     });
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 49.5 0.5 49.5 23.5', 'M 0 0 0 23']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([true, true]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green vertical', '2px red vertical']);
 
     await selectContextSubmenuOption('Borders', 'Remove border');
 
     expect(getCellMeta(0, 0).borders).toBeUndefined();
-    expect(getRenderedBorderPaths(document.body)).toEqual(['', '', 'M 49 1 49 23 M 1 1 1 23', 'M 1 1 49 1 M 1 23 49 23']);
+    expect(getRenderedBorderPathExistence(document.body)).toEqual([false, false, true, true]);
+    expect(getRenderedBorderStyles(document.body)).toEqual(['1px green vertical', '2px red vertical', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
   });
 
   it('should disable `Borders` context menu item when menu was triggered from corner header', () => {
@@ -968,6 +1002,8 @@ describe('CustomBorders', () => {
   describe('virtual rendering', () => {
     // based on tests in Core_count.spec.js
 
+    const expectedBorders = ['M 0 0.5 50 0.5 M 0 23.5 50 23.5 M 0 46.5 50 46.5 M 0 69.5 50 69.5 M 0 92.5 50 92.5'];
+
     it('should render borders only for rendered rows', () => {
       const data = Handsontable.helper.createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
@@ -978,7 +1014,7 @@ describe('CustomBorders', () => {
         viewportRowRenderingOffset: 0
       });
       expect(instance.countRenderedRows()).toEqual(5);
-      expect(getRenderedBorderPaths(document.body)).toEqual(['M 0.5 0.5 49.5 0.5 M 0.5 23.5 49.5 23.5 M 0.5 46.5 49.5 46.5 M 0.5 69.5 49.5 69.5 M 0.5 92.5 49.5 92.5']);
+      expect(getRenderedBorderPaths(document.body)).toEqual(expectedBorders);
     });
 
     it('should render borders only for rendered rows, after scrolling', async() => {
@@ -994,7 +1030,7 @@ describe('CustomBorders', () => {
       $(mainHolder).scrollTop(400);
       await sleep(300);
       expect(instance.countRenderedRows()).toEqual(5);
-      expect(getRenderedBorderPaths(document.body)).toEqual(['M 0.5 0.5 49.5 0.5 M 0.5 23.5 49.5 23.5 M 0.5 46.5 49.5 46.5 M 0.5 69.5 49.5 69.5 M 0.5 92.5 49.5 92.5']);
+      expect(getRenderedBorderPaths(document.body)).toEqual(expectedBorders);
     });
 
     it('should render borders only for rendered rows, including rows rendered because of viewportRowRenderingOffset', () => {
@@ -1007,8 +1043,8 @@ describe('CustomBorders', () => {
         viewportRowRenderingOffset: 20
       });
       expect(instance.countRenderedRows()).toEqual(10);
-      expect(getRenderedBorderPaths(document.body)).toEqual(['M 0.5 0.5 49.5 0.5 M 0.5 23.5 49.5 23.5 M 0.5 46.5 49.5 46.5 M 0.5 69.5 49.5 69.5 M 0.5 92.5 49.5 92.5 '
-          + 'M 0.5 115.5 49.5 115.5 M 0.5 138.5 49.5 138.5 M 0.5 161.5 49.5 161.5 M 0.5 184.5 49.5 184.5 M 0.5 207.5 49.5 207.5']);
+      expect(getRenderedBorderPaths(document.body)).toEqual([`${expectedBorders
+      } M 0 115.5 50 115.5 M 0 138.5 50 138.5 M 0 161.5 50 161.5 M 0 184.5 50 184.5 M 0 207.5 50 207.5`]);
     });
 
     it('should not render borders when the table is not rendered', async() => {

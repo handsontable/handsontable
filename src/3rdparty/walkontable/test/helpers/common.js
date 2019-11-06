@@ -1,5 +1,4 @@
 import { normalize, pretty } from './htmlNormalize';
-import svgToAscii from './svgToAscii';
 
 export function sleep(delay = 100) {
   return Promise.resolve({
@@ -358,48 +357,15 @@ export function expectWtTable(wt, callb, name) {
 }
 
 /**
- * Run expectation towards an SVG image rendering according to the provided reference ASCII art string
+ * Returns path command for all SVG <path> elements within the parent. The items order
+ * matches the rendered order (equivalent of "z-index").
  *
- * @param {HTMLElement} svg
- * @param {String} expectedAsciiArt
+ * @param {HTMLElement} parentElem
  */
-export async function testSvgAsAsciiArt(svg, expectedAsciiArt) {
-  return new Promise((resolve) => {
-    const whenConverted = svgToAscii(svg);
-
-    whenConverted.then((resultAsciiArt) => {
-      const scaleFactor = window.devicePixelRatio || 1;
-
-      expectedAsciiArt = expectedAsciiArt.trim();
-      expectedAsciiArt = multiplyStringChars2D(expectedAsciiArt, scaleFactor);
-      expect(`\n${resultAsciiArt}\n`).toBe(`\n${expectedAsciiArt}\n`);
-      resolve();
-    });
-  });
-}
-
-/**
- * Repeats every character in the string horizontally and vertically by a number.
- *
- * @param {String} str String to multiply
- * @param {Number} factor Integer by which each char will be multiplied
- */
-function multiplyStringChars2D(str, factor) {
-  const lines = str.split('\n');
-  let out = '';
-
-  for (let ll = 0; ll < lines.length; ll++) {
-    for (let ii = 0; ii < factor; ii++) {
-      if (out !== '') {
-        out += '\n';
-      }
-      for (let cc = 0; cc < lines[ll].length; cc++) {
-        for (let jj = 0; jj < factor; jj++) {
-          out += lines[ll][cc];
-        }
-      }
-    }
+export function getRenderedBorderPaths(parentElem) {
+  if (!parentElem || !parentElem.querySelectorAll) {
+    return null;
   }
-
-  return out;
+  const paths = Array.from(parentElem.querySelectorAll('svg path')).map(x => x.getAttribute('d'));
+  return paths;
 }

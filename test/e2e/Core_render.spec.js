@@ -58,13 +58,21 @@ describe('Core_render', () => {
     selectCell(1, 1);
     const currentSelection = spec().$container.find('.wtBorder.current')[0];
     const left = currentSelection.offsetLeft;
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 99 24 99 46 M 50 24 50 46', 'M 50 24 99 24 M 50 46 99 46']);
+    const paths = getRenderedBorderPaths(document.body);
+    expect(paths.length).toEqual(2);
+    expect(paths[0].length).toBeGreaterThan(0);
+    expect(paths[1].length).toBeGreaterThan(0);
 
     data[1][1] = 'dddddddddddddddddddd';
     render();
 
+    const newPaths = getRenderedBorderPaths(document.body);
     expect(currentSelection.offsetLeft).toBeGreaterThan(left);
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 237 24 237 46 M 50 24 50 46', 'M 50 24 237 24 M 50 46 237 46']);
+    expect(newPaths.length).toEqual(paths.length);
+    expect(newPaths[0].length).toBeGreaterThan(0);
+    expect(newPaths[1].length).toBeGreaterThan(0);
+    expect(newPaths[0]).not.toEqual(paths[0]);
+    expect(newPaths[1]).not.toEqual(paths[1]);
   });
 
   it('should not render table twice', () => {
