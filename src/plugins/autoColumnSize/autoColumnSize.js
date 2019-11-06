@@ -131,6 +131,8 @@ class AutoColumnSize extends BasePlugin {
     this.inProgress = false;
     /**
      * Number of already measured columns (we already know their sizes).
+     *
+     * @type {Number}
      */
     this.measuredColumns = 0;
     /**

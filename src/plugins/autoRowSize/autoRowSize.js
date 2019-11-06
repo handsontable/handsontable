@@ -81,6 +81,9 @@ class AutoRowSize extends BasePlugin {
     this.rowHeightsMap = void 0;
     /**
      * Columns header's height cache.
+     *
+     * @private
+     * @type {Number}
      */
     this.headerHeight = null;
     /**
@@ -123,6 +126,8 @@ class AutoRowSize extends BasePlugin {
     this.inProgress = false;
     /**
      * Number of already measured rows (we already know their sizes).
+     *
+     * @type {Number}
      */
     this.measuredRows = 0;
 
