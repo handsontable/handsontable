@@ -5,7 +5,7 @@ import { pageX } from './../../helpers/dom/event';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import { registerPlugin } from './../../plugins';
-import { PhysicalIndexToValueMap } from './../../translations';
+import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
@@ -80,7 +80,7 @@ class ManualColumnResize extends BasePlugin {
       return;
     }
 
-    this.columnWidthsMap = new PhysicalIndexToValueMap();
+    this.columnWidthsMap = new IndexToValueMap();
     this.columnWidthsMap.addLocalHook('init', () => this.onMapInit());
     this.hot.columnIndexMapper.registerMap(COLUMN_WIDTHS_MAP_NAME, this.columnWidthsMap);
 

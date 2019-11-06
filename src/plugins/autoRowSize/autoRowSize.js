@@ -8,7 +8,7 @@ import { valueAccordingPercent, rangeEach } from './../../helpers/number';
 import { registerPlugin } from './../../plugins';
 import SamplesGenerator from './../../utils/samplesGenerator';
 import { isPercentValue } from './../../helpers/string';
-import { PhysicalIndexToValueMap } from './../../translations';
+import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
 
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 
@@ -148,7 +148,7 @@ class AutoRowSize extends BasePlugin {
       return;
     }
 
-    this.rowHeightsMap = new PhysicalIndexToValueMap();
+    this.rowHeightsMap = new IndexToValueMap();
     this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
 
     this.setSamplingOptions();

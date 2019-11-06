@@ -1,7 +1,7 @@
-import { PhysicalIndexToValueMap } from 'handsontable/translations';
+import { PhysicalIndexToValueMap as IndexToValueMap } from 'handsontable/translations';
 
 it('should work with get, and set functions properly', () => {
-  const indexToValueMap = new PhysicalIndexToValueMap();
+  const indexToValueMap = new IndexToValueMap();
 
   indexToValueMap.setValueAtIndex(0, 2);
   indexToValueMap.setValueAtIndex(1, 1);
@@ -29,7 +29,7 @@ it('should work with get, and set functions properly', () => {
 });
 
 it('should init map properly when passing function as initialization property', () => {
-  const indexToValueMap = new PhysicalIndexToValueMap(index => ({ key: index }));
+  const indexToValueMap = new IndexToValueMap(index => ({ key: index }));
 
   indexToValueMap.init(3);
 
@@ -37,7 +37,7 @@ it('should init map properly when passing function as initialization property', 
 });
 
 it('should init map properly when passing value as initialization property', () => {
-  const indexToValueMap = new PhysicalIndexToValueMap({ key: 1 });
+  const indexToValueMap = new IndexToValueMap({ key: 1 });
 
   indexToValueMap.init(3);
 
@@ -45,7 +45,7 @@ it('should init map properly when passing value as initialization property', () 
 });
 
 it('should clear values properly', () => {
-  const indexToValueMap = new PhysicalIndexToValueMap(index => ({ key: index + 2 }));
+  const indexToValueMap = new IndexToValueMap(index => ({ key: index + 2 }));
 
   indexToValueMap.init(3);
   indexToValueMap.setValues([{ key: 1 }, { key: 2 }, { key: 0 }]);
@@ -56,7 +56,7 @@ it('should clear values properly', () => {
 
 describe('Triggering `change` hook', () => {
   it('should trigger `change` hook on initialization once', () => {
-    const indexToValueMap = new PhysicalIndexToValueMap();
+    const indexToValueMap = new IndexToValueMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToValueMap.addLocalHook('change', changeCallback);
@@ -69,7 +69,7 @@ describe('Triggering `change` hook', () => {
   });
 
   it('should trigger `change` hook on insertion once', () => {
-    const indexToValueMap = new PhysicalIndexToValueMap();
+    const indexToValueMap = new IndexToValueMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToValueMap.addLocalHook('change', changeCallback);
@@ -82,7 +82,7 @@ describe('Triggering `change` hook', () => {
   });
 
   it('should trigger `change` hook on removal once', () => {
-    const indexToValueMap = new PhysicalIndexToValueMap();
+    const indexToValueMap = new IndexToValueMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToValueMap.addLocalHook('change', changeCallback);
@@ -95,7 +95,7 @@ describe('Triggering `change` hook', () => {
   });
 
   it('should trigger `change` hook on setting data on index in range', () => {
-    const indexToValueMap = new PhysicalIndexToValueMap();
+    const indexToValueMap = new IndexToValueMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToValueMap.init(10);
@@ -115,7 +115,7 @@ describe('Triggering `change` hook', () => {
   });
 
   it('should trigger `change` hook on setting data which does not change value', () => {
-    const indexToValueMap = new PhysicalIndexToValueMap();
+    const indexToValueMap = new IndexToValueMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToValueMap.init(10);
@@ -128,7 +128,7 @@ describe('Triggering `change` hook', () => {
   });
 
   it('should trigger `change` hook on setting data on indexes once', () => {
-    const indexToValueMap = new PhysicalIndexToValueMap();
+    const indexToValueMap = new IndexToValueMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToValueMap.addLocalHook('change', changeCallback);
@@ -141,7 +141,7 @@ describe('Triggering `change` hook', () => {
   });
 
   it('should trigger `change` hook on clearing data once', () => {
-    const indexToValueMap = new PhysicalIndexToValueMap();
+    const indexToValueMap = new IndexToValueMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToValueMap.addLocalHook('change', changeCallback);

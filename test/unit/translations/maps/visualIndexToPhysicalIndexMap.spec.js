@@ -1,7 +1,7 @@
-import { VisualIndexToPhysicalIndexMap } from 'handsontable/translations';
+import { VisualIndexToPhysicalIndexMap as IndexToIndexMap } from 'handsontable/translations';
 
 it('should work with get, and set functions properly', () => {
-  const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
+  const indexToIndexMap = new IndexToIndexMap();
 
   indexToIndexMap.setValueAtIndex(0, 2);
   indexToIndexMap.setValueAtIndex(1, 1);
@@ -29,7 +29,7 @@ it('should work with get, and set functions properly', () => {
 });
 
 it('should clear values properly', () => {
-  const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
+  const indexToIndexMap = new IndexToIndexMap();
 
   indexToIndexMap.init(3);
   indexToIndexMap.setValues([1, 2, 0]);
@@ -40,7 +40,7 @@ it('should clear values properly', () => {
 
 describe('Triggering `change` hook', () => {
   it('should trigger `change` hook on initialization once', () => {
-    const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
+    const indexToIndexMap = new IndexToIndexMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToIndexMap.addLocalHook('change', changeCallback);
@@ -53,7 +53,7 @@ describe('Triggering `change` hook', () => {
   });
 
   it('should trigger `change` hook on insertion once', () => {
-    const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
+    const indexToIndexMap = new IndexToIndexMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToIndexMap.addLocalHook('change', changeCallback);
@@ -66,7 +66,7 @@ describe('Triggering `change` hook', () => {
   });
 
   it('should trigger `change` hook on removal once', () => {
-    const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
+    const indexToIndexMap = new IndexToIndexMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToIndexMap.addLocalHook('change', changeCallback);
@@ -79,7 +79,7 @@ describe('Triggering `change` hook', () => {
   });
 
   it('should trigger `change` hook on setting data on index in range', () => {
-    const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
+    const indexToIndexMap = new IndexToIndexMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToIndexMap.init(10);
@@ -99,7 +99,7 @@ describe('Triggering `change` hook', () => {
   });
 
   it('should trigger `change` hook on setting data which does not change value', () => {
-    const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
+    const indexToIndexMap = new IndexToIndexMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToIndexMap.init(10);
@@ -112,7 +112,7 @@ describe('Triggering `change` hook', () => {
   });
 
   it('should trigger `change` hook on setting data on indexes once', () => {
-    const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
+    const indexToIndexMap = new IndexToIndexMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToIndexMap.addLocalHook('change', changeCallback);
@@ -125,7 +125,7 @@ describe('Triggering `change` hook', () => {
   });
 
   it('should trigger `change` hook on clearing data once', () => {
-    const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
+    const indexToIndexMap = new IndexToIndexMap();
     const changeCallback = jasmine.createSpy('change');
 
     indexToIndexMap.addLocalHook('change', changeCallback);

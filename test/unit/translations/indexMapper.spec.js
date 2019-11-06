@@ -1,5 +1,5 @@
 import IndexMapper from 'handsontable/translations/indexMapper';
-import { SkipMap, PhysicalIndexToValueMap, VisualIndexToPhysicalIndexMap } from 'handsontable/translations';
+import { SkipMap, PhysicalIndexToValueMap as IndexToValueMap, VisualIndexToPhysicalIndexMap as IndexToIndexMap } from 'handsontable/translations';
 
 describe('IndexMapper', () => {
   it('should fill mappers with initial values at start', () => {
@@ -35,7 +35,7 @@ describe('IndexMapper', () => {
   it('should register map to proper collection when it is possible', () => {
     const indexMapper = new IndexMapper();
     const skipMap = new SkipMap();
-    const indexToValueMap = new PhysicalIndexToValueMap();
+    const indexToValueMap = new IndexToValueMap();
 
     expect(indexMapper.skipMapsCollection.getLength()).toBe(0);
 
@@ -170,8 +170,8 @@ describe('IndexMapper', () => {
   describe('removing indexes', () => {
     it('should remove multiple indexes from the start', () => {
       const indexMapper = new IndexMapper();
-      const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-      const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+      const indexToIndexMap = new IndexToIndexMap();
+      const indexToValueMap = new IndexToValueMap(index => index + 2);
       const skipMap = new SkipMap();
 
       indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
@@ -197,8 +197,8 @@ describe('IndexMapper', () => {
 
     it('should remove multiple indexes from the middle', () => {
       const indexMapper = new IndexMapper();
-      const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-      const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+      const indexToIndexMap = new IndexToIndexMap();
+      const indexToValueMap = new IndexToValueMap(index => index + 2);
       const skipMap = new SkipMap();
 
       indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
@@ -224,8 +224,8 @@ describe('IndexMapper', () => {
 
     it('should remove multiple indexes from the end', () => {
       const indexMapper = new IndexMapper();
-      const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-      const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+      const indexToIndexMap = new IndexToIndexMap();
+      const indexToValueMap = new IndexToValueMap(index => index + 2);
       const skipMap = new SkipMap();
 
       indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
@@ -251,8 +251,8 @@ describe('IndexMapper', () => {
 
     it('should remove multiple indexes with mixed order #1', () => {
       const indexMapper = new IndexMapper();
-      const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-      const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+      const indexToIndexMap = new IndexToIndexMap();
+      const indexToValueMap = new IndexToValueMap(index => index + 2);
       const skipMap = new SkipMap();
 
       indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
@@ -278,8 +278,8 @@ describe('IndexMapper', () => {
 
     it('should remove multiple indexes with mixed order #2', () => {
       const indexMapper = new IndexMapper();
-      const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-      const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+      const indexToIndexMap = new IndexToIndexMap();
+      const indexToValueMap = new IndexToValueMap(index => index + 2);
       const skipMap = new SkipMap();
 
       indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
@@ -305,8 +305,8 @@ describe('IndexMapper', () => {
 
     it('should remove multiple indexes with mixed order #3', () => {
       const indexMapper = new IndexMapper();
-      const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-      const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+      const indexToIndexMap = new IndexToIndexMap();
+      const indexToValueMap = new IndexToValueMap(index => index + 2);
       const skipMap = new SkipMap();
 
       indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
@@ -335,8 +335,8 @@ describe('IndexMapper', () => {
     describe('without skipped indexes', () => {
       it('should insert multiple indexes at the start', () => {
         const indexMapper = new IndexMapper();
-        const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-        const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
 
         indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
         indexMapper.registerMap('indexToValueMap', indexToValueMap);
@@ -356,8 +356,8 @@ describe('IndexMapper', () => {
 
       it('should insert multiple indexes at the middle', () => {
         const indexMapper = new IndexMapper();
-        const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-        const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
 
         indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
         indexMapper.registerMap('indexToValueMap', indexToValueMap);
@@ -377,8 +377,8 @@ describe('IndexMapper', () => {
 
       it('should insert multiple indexes next to the end', () => {
         const indexMapper = new IndexMapper();
-        const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-        const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
 
         indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
         indexMapper.registerMap('indexToValueMap', indexToValueMap);
@@ -398,8 +398,8 @@ describe('IndexMapper', () => {
 
       it('should insert multiple indexes at the end (index equal to the length of maps)', () => {
         const indexMapper = new IndexMapper();
-        const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-        const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
 
         indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
         indexMapper.registerMap('indexToValueMap', indexToValueMap);
@@ -419,8 +419,8 @@ describe('IndexMapper', () => {
 
       it('should insert multiple indexes at the end (index higher than length of maps)', () => {
         const indexMapper = new IndexMapper();
-        const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-        const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
 
         indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
         indexMapper.registerMap('indexToValueMap', indexToValueMap);
@@ -462,8 +462,8 @@ describe('IndexMapper', () => {
     describe('with skipped indexes', () => {
       it('should insert insert properly then adding it on position of skipped index', () => {
         const indexMapper = new IndexMapper();
-        const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-        const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
         const skipMap = new SkipMap();
 
         indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
@@ -489,8 +489,8 @@ describe('IndexMapper', () => {
 
       it('should insert indexes properly when just some indexes skipped (not reindexing skipped indexes)', () => {
         const indexMapper = new IndexMapper();
-        const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-        const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
         const skipMap = new SkipMap();
 
         indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
@@ -518,8 +518,8 @@ describe('IndexMapper', () => {
 
       it('should insert indexes properly when just some indexes skipped (reindexing skipped indexes)', () => {
         const indexMapper = new IndexMapper();
-        const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-        const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
         const skipMap = new SkipMap();
 
         indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
@@ -547,8 +547,8 @@ describe('IndexMapper', () => {
 
       it('should insert indexes properly when all indexes are skipped', () => {
         const indexMapper = new IndexMapper();
-        const indexToIndexMap = new VisualIndexToPhysicalIndexMap();
-        const indexToValueMap = new PhysicalIndexToValueMap(index => index + 2);
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
         const skipMap = new SkipMap();
 
         indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
@@ -912,8 +912,8 @@ describe('IndexMapper', () => {
 
     it('should not reset two caches when any registered map inside various mappings collection is changed', () => {
       const indexMapper = new IndexMapper();
-      const valueMap1 = new PhysicalIndexToValueMap();
-      const valueMap2 = new PhysicalIndexToValueMap();
+      const valueMap1 = new IndexToValueMap();
+      const valueMap2 = new IndexToValueMap();
       const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
 
       indexMapper.registerMap('valueMap1', valueMap1);

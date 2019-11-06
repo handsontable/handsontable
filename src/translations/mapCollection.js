@@ -6,12 +6,12 @@ import localHooks from '../mixins/localHooks';
 let registeredMaps = 0;
 
 /**
- * Collection of index maps having unique names.
+ * Collection of index maps having unique names. It allow us to perform bulk operations such as init, remove, insert on all index maps that have been registered in the collection.
  */
 class MapCollection {
   constructor() {
     /**
-     * Collection of index maps having unique names.
+     * Collection of index maps.
      *
      * @type {Map<string, IndexMap>}
      */
@@ -54,7 +54,7 @@ class MapCollection {
   }
 
   /**
-   * Get indexes list for provided index map name.
+   * Get index map for the provided name.
    *
    * @param {String} [name] Name of the index map.
    * @returns {Array|IndexMap}

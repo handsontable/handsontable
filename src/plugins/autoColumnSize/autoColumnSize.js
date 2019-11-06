@@ -8,7 +8,7 @@ import { registerPlugin } from './../../plugins';
 import SamplesGenerator from './../../utils/samplesGenerator';
 import { isPercentValue } from './../../helpers/string';
 import { ViewportColumnsCalculator } from './../../3rdparty/walkontable/src';
-import { PhysicalIndexToValueMap } from './../../translations';
+import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
 
 const privatePool = new WeakMap();
 const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
@@ -139,7 +139,7 @@ class AutoColumnSize extends BasePlugin {
      * @private
      * @type {PhysicalIndexToValueMap}
      */
-    this.columnWidthsMap = new PhysicalIndexToValueMap();
+    this.columnWidthsMap = new IndexToValueMap();
 
     // moved to constructor to allow auto-sizing the columns when the plugin is disabled
     this.addHook('beforeColumnResize', (col, size, isDblClick) => this.onBeforeColumnResize(col, size, isDblClick));

@@ -9,7 +9,16 @@ import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
 
 /**
- * Index mapper manages the mappings (from index to another value) provided by "smaller" maps called index map(s).
+ * Index mapper manages the mappings provided by "smaller" maps called index map(s). Those maps provide links from indexes (physical¹ or visual² depending on requirements) to another value.
+ * For example, we may link physical column indexes with widths of columns. On every performed CRUD action such as insert column, move column and remove column the value (column width)
+ * will stick to the proper index. The index mapper is used as the centralised source of truth regarding row and column indexes (their sequence, information if they are skipped
+ * in the process of rendering, values linked to them). It handles CRUD operations on indexes and translate the visual indexes to the physical indexes and the other way round³.
+ * It has built in cache. Thus, this way, read operations are as fast as possible. Cache updates are triggered only when the data or structure changes.
+ *
+ * ¹ Physical index is particular index from the sequence of indexes assigned to the data source rows / columns (from 0 to n, where n is number of the cells on the axis).
+ * ² Visual index is particular index from the sequence of indexes assigned to visible rows / columns (from 0 to n, where n is number of the cells on the axis).
+ * ³ It maps from visible row / column to its representation in the data source and the other way round. For example, when we sorted data, our 1st visible row can represent 4th row from the original source data,
+ * 2nd can be mapped to 3rd, 3rd to 2nd, etc. (keep in mind that indexes are represent from the zero).
  */
 class IndexMapper {
   constructor() {
@@ -18,7 +27,7 @@ class IndexMapper {
      *
      * @type {VisualIndexToPhysicalIndexMap}
      */
-    this.indexesSequence = new VisualIndexToPhysicalIndexMap();
+    this.indexesSequence = new IndexToIndexMap();
     /**
      * Collection for different skip maps. Indexes marked as skipped in any map won't be rendered.
      *
