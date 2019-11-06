@@ -1,10 +1,10 @@
-import BaseMap from './baseMap';
+import IndexMap from './indexMap';
 import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physicallyIndexed';
 
 /**
  * Map for storing mappings from an physical index to a value.
  */
-class ValueMap extends BaseMap {
+class PhysicalIndexToValueMap extends IndexMap {
   /**
    * Add values to list and reorganize.
    *
@@ -31,4 +31,4 @@ class ValueMap extends BaseMap {
   }
 }
 
-export default ValueMap;
+export default PhysicalIndexToValueMap;

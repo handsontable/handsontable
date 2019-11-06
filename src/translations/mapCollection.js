@@ -6,30 +6,30 @@ import localHooks from '../mixins/localHooks';
 let registeredMaps = 0;
 
 /**
- * Collection of maps.
+ * Collection of index maps having unique names.
  */
 class MapCollection {
   constructor() {
     /**
-     * Mappings from the unique name to the stored map.
+     * Collection of index maps having unique names.
      *
-     * @type {Map<string, BaseMap>}
+     * @type {Map<string, IndexMap>}
      */
-    this.mappings = new Map();
+    this.collection = new Map();
   }
 
   /**
    * Register custom index map.
    *
-   * @param {String} uniqueName Unique name of the map.
-   * @param {BaseMap} map Map containing miscellaneous (i.e. meta data, indexes sequence), updated after remove and insert data actions.
-   * @returns {BaseMap|undefined}
+   * @param {String} uniqueName Unique name of the index map.
+   * @param {IndexMap} indexMap Index map containing miscellaneous (i.e. meta data, indexes sequence), updated after remove and insert data actions.
+   * @returns {IndexMap|undefined}
    */
-  register(uniqueName, map) {
-    if (this.mappings.has(uniqueName) === false) {
-      this.mappings.set(uniqueName, map);
+  register(uniqueName, indexMap) {
+    if (this.collection.has(uniqueName) === false) {
+      this.collection.set(uniqueName, indexMap);
 
-      map.addLocalHook('change', () => this.runLocalHooks('change', map));
+      indexMap.addLocalHook('change', () => this.runLocalHooks('change', indexMap));
 
       registeredMaps += 1;
     }
@@ -38,16 +38,16 @@ class MapCollection {
   /**
    * Unregister custom index map.
    *
-   * @param {String} name Name of the map.
+   * @param {String} name Name of the index map.
    */
   unregister(name) {
-    const map = this.mappings.get(name);
+    const indexMap = this.collection.get(name);
 
-    if (isDefined(map)) {
-      map.clearLocalHooks();
-      this.mappings.delete(name);
+    if (isDefined(indexMap)) {
+      indexMap.clearLocalHooks();
+      this.collection.delete(name);
 
-      this.runLocalHooks('change', map);
+      this.runLocalHooks('change', indexMap);
 
       registeredMaps -= 1;
     }
@@ -56,15 +56,15 @@ class MapCollection {
   /**
    * Get indexes list for provided index map name.
    *
-   * @param {String} [name] Name of the map.
-   * @returns {Array|BaseMap}
+   * @param {String} [name] Name of the index map.
+   * @returns {Array|IndexMap}
    */
   get(name) {
     if (isUndefined(name)) {
-      return Array.from(this.mappings.values());
+      return Array.from(this.collection.values());
     }
 
-    return this.mappings.get(name);
+    return this.collection.get(name);
   }
 
   /**
@@ -73,31 +73,31 @@ class MapCollection {
    * @returns {Number}
    */
   getLength() {
-    return this.mappings.size;
+    return this.collection.size;
   }
 
   /**
-   * Remove some indexes and corresponding mappings and update values of the others within all collection's maps.
+   * Remove some indexes and corresponding mappings and update values of the others within all collection's index maps.
    *
    * @private
    * @param {Array} removedIndexes List of removed indexes.
    */
   removeFromEvery(removedIndexes) {
-    this.mappings.forEach((map) => {
-      map.remove(removedIndexes);
+    this.collection.forEach((indexMap) => {
+      indexMap.remove(removedIndexes);
     });
   }
 
   /**
-   * Insert new indexes and corresponding mapping and update values of the others all collection's maps.
+   * Insert new indexes and corresponding mapping and update values of the others all collection's index maps.
    *
    * @private
    * @param {Number} insertionIndex Position inside the actual list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insertToEvery(insertionIndex, insertedIndexes) {
-    this.mappings.forEach((map) => {
-      map.insert(insertionIndex, insertedIndexes);
+    this.collection.forEach((indexMap) => {
+      indexMap.insert(insertionIndex, insertedIndexes);
     });
   }
 
@@ -107,8 +107,8 @@ class MapCollection {
    * @param {Number} length Destination length for all stored maps.
    */
   initEvery(length) {
-    this.mappings.forEach((map) => {
-      map.init(length);
+    this.collection.forEach((indexMap) => {
+      indexMap.init(length);
     });
   }
 }

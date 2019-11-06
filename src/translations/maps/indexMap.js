@@ -1,44 +1,150 @@
-import BaseMap from './baseMap';
-import { getListWithRemovedItems, getListWithInsertedItems } from './utils/visuallyIndexed';
-import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndexes';
+import { rangeEach } from '../../helpers/number';
+import { mixin } from '../../helpers/object';
+import { isFunction } from '../../helpers/function';
+import localHooks from '../../mixins/localHooks';
 
 /**
- * Map for storing mappings from an visual index to an physical index.
+ * Map for storing mappings from an index to a value.
  */
-class IndexMap extends BaseMap {
-  constructor() {
-    // Not handling custom init function or init value.
-    super(index => index);
+class IndexMap {
+  constructor(initValueOrFn = null) {
+    /**
+     * List of values for particular indexes.
+     *
+     * @private
+     * @type {Array}
+     */
+    this.indexedValues = [];
+    /**
+     * Initial value or function for each existing index.
+     *
+     * @private
+     * @type {*}
+     */
+    this.initValueOrFn = initValueOrFn;
   }
 
   /**
-   * Add values to list and reorganize.
+   * Initialize list with default values for particular indexes.
    *
-   * @private
-   * @param {Number} insertionIndex Position inside the list.
-   * @param {Array} insertedIndexes List of inserted indexes.
+   * @param {Number} length New length of list.
+   * @returns {Array}
    */
-  insert(insertionIndex, insertedIndexes) {
-    const listAfterUpdate = getIncreasedIndexes(this.indexedValues, insertionIndex, insertedIndexes);
+  init(length) {
+    this.setDefaultValues(length);
 
-    this.indexedValues = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes);
+    this.runLocalHooks('init');
 
-    super.insert(insertionIndex, insertedIndexes);
+    return this;
   }
 
   /**
-   * Remove values from the list and reorganize.
+   * Get full list of values for particular indexes.
+   *
+   * @returns {Array}
+   */
+  getValues() {
+    return this.indexedValues;
+  }
+
+  /**
+   * Get value for the particular index.
+   *
+   * @param {Number} index
+   * @returns {*}
+   */
+  getValueAtIndex(index) {
+    const values = this.getValues();
+
+    if (index < values.length) {
+      return values[index];
+    }
+  }
+
+  /**
+   * Set new values for particular indexes.
+   *
+   * @param {Array} values List of set values.
+   */
+  setValues(values) {
+    this.indexedValues = values.slice();
+
+    this.runLocalHooks('change');
+  }
+
+  /**
+   * Set new value for the particular index.
+   *
+   * @param {Number} index
+   * @param {*} value
+   * @returns {Boolean}
+   */
+  setValueAtIndex(index, value) {
+    if (index < this.getLength()) {
+      this.indexedValues[index] = value;
+
+      this.runLocalHooks('change');
+
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Clear all values to the defaults.
+   */
+  clear() {
+    this.setDefaultValues();
+  }
+
+  /**
+   * Get length of index map.
+   *
+   * @returns {Number}
+   */
+  getLength() {
+    return this.getValues().length;
+  }
+
+  /**
+   * Set default values for elements from `0` to `n`, where `n` is equal to the handled variable.
    *
    * @private
-   * @param {Array} removedIndexes List of removed indexes.
+   * @param {Number} [length] Length of list.
    */
-  remove(removedIndexes) {
-    const listAfterUpdate = getListWithRemovedItems(this.indexedValues, removedIndexes);
+  setDefaultValues(length = this.indexedValues.length) {
+    this.indexedValues.length = 0;
 
-    this.indexedValues = getDecreasedIndexes(listAfterUpdate, removedIndexes);
+    if (isFunction(this.initValueOrFn)) {
+      rangeEach(length - 1, index => this.indexedValues.push(this.initValueOrFn(index)));
 
-    super.remove(removedIndexes);
+    } else {
+      rangeEach(length - 1, () => this.indexedValues.push(this.initValueOrFn));
+    }
+
+    this.runLocalHooks('change');
+  }
+
+  /**
+   * Add values to the list.
+   *
+   * @private
+   */
+  insert() {
+    this.runLocalHooks('change');
+  }
+
+  /**
+   * Remove values from the list.
+   *
+   * @private
+   */
+  remove() {
+    this.runLocalHooks('change');
   }
 }
+
+mixin(IndexMap, localHooks);
 
 export default IndexMap;

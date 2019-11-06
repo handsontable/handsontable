@@ -1,13 +1,13 @@
 import IndexMapper from './indexMapper';
-import ValueMap from './maps/valueMap';
-import IndexMap from './maps/indexMap';
+import PhysicalIndexToValueMap from './maps/physicalIndexToValueMap';
+import VisualIndexToPhysicalIndexMap from './maps/visualIndexToPhysicalIndexMap';
 import SkipMap from './maps/skipMap';
-import BaseMap from './maps/baseMap';
+import IndexMap from './maps/indexMap';
 
 export {
   IndexMapper,
-  ValueMap,
-  IndexMap,
+  PhysicalIndexToValueMap,
+  VisualIndexToPhysicalIndexMap,
   SkipMap,
-  BaseMap,
+  IndexMap,
 };

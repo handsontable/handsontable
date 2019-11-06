@@ -1,10 +1,10 @@
-import { BaseMap } from '../../../translations';
+import { IndexMap } from '../../../translations';
 import { getListWithInsertedItems, getListWithRemovedItems } from '../../../translations/maps/utils/physicallyIndexed';
 
 /**
  * Map from physical index to another index.
  */
-class StrictBindsMap extends BaseMap {
+class StrictBindsMap extends IndexMap {
   constructor() {
     super(index => index);
   }

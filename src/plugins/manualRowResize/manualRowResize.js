@@ -5,7 +5,7 @@ import { pageY } from './../../helpers/dom/event';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import { registerPlugin } from './../../plugins';
-import { ValueMap } from './../../translations';
+import { PhysicalIndexToValueMap } from './../../translations';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
@@ -46,10 +46,10 @@ class ManualRowResize extends BasePlugin {
     this.autoresizeTimeout = null;
 
     /**
-     * ValueMap to keep and track widths for physical row indexes.
+     * PhysicalIndexToValueMap to keep and track widths for physical row indexes.
      *
      * @private
-     * @type {ValueMap}
+     * @type {PhysicalIndexToValueMap}
      */
     this.rowHeightsMap = void 0;
     /**
@@ -81,7 +81,7 @@ class ManualRowResize extends BasePlugin {
       return;
     }
 
-    this.rowHeightsMap = new ValueMap();
+    this.rowHeightsMap = new PhysicalIndexToValueMap();
     this.rowHeightsMap.addLocalHook('init', () => this.onMapInit());
     this.hot.rowIndexMapper.registerMap(ROW_HEIGHTS_MAP_NAME, this.rowHeightsMap);
 

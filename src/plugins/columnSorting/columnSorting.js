@@ -8,7 +8,7 @@ import { isFunction } from '../../helpers/function';
 import { arrayMap } from '../../helpers/array';
 import BasePlugin from '../_base';
 import { registerPlugin } from './../../plugins';
-import { IndexMap, ValueMap } from '../../translations';
+import { VisualIndexToPhysicalIndexMap, PhysicalIndexToValueMap } from '../../translations';
 import Hooks from '../../pluginHooks';
 import { isPressedCtrlKey } from '../../utils/keyStateObserver';
 import { ColumnStatesManager } from './columnStatesManager';
@@ -94,7 +94,7 @@ class ColumnSorting extends BasePlugin {
      * Cached column properties from plugin like i.e. `indicator`, `headerAction`.
      *
      * @private
-     * @type {null|ValueMap}
+     * @type {null|PhysicalIndexToValueMap}
      */
     this.columnMetaCache = null;
     /**
@@ -108,7 +108,7 @@ class ColumnSorting extends BasePlugin {
      * Plugin indexes cache.
      *
      * @private
-     * @type {null|IndexMap}
+     * @type {null|VisualIndexToPhysicalIndexMap}
      */
     this.indexesSequenceCache = null;
   }
@@ -131,7 +131,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    this.columnMetaCache = this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, new ValueMap((physicalIndex) => {
+    this.columnMetaCache = this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, new PhysicalIndexToValueMap((physicalIndex) => {
       let visualIndex = this.hot.toVisualColumn(physicalIndex);
 
       if (visualIndex === null) {
@@ -219,7 +219,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
-      this.indexesSequenceCache = this.hot.rowIndexMapper.registerMap(this.pluginKey, new IndexMap());
+      this.indexesSequenceCache = this.hot.rowIndexMapper.registerMap(this.pluginKey, new VisualIndexToPhysicalIndexMap());
       this.indexesSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
     }
 
