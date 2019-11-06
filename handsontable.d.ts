@@ -15,6 +15,7 @@ declare namespace _Handsontable {
     addHookOnce<K extends keyof Handsontable.Hooks.Events>(key: K, callback: Handsontable.Hooks.Events[K] | Handsontable.Hooks.Events[K][]): void;
     alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index?: number | Array<[number, number]>, amount?: number, source?: string, keepEmptyRows?: boolean): void;
     clear(): void;
+    columnIndexMapper: Handsontable.RecordTranslation.IndexMapper;
     colOffset(): number;
     colToProp(col: number): string | number;
     container: HTMLElement;
@@ -98,6 +99,7 @@ declare namespace _Handsontable {
     rootDocument: Document;
     rootElement: HTMLElement;
     rootWindow: Window;
+    rowIndexMapper: Handsontable.RecordTranslation.IndexMapper;
     rowOffset(): number;
     runHooks(key: keyof Handsontable.Hooks.Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
     // Requires TS 3.0:
@@ -1985,6 +1987,33 @@ declare namespace Handsontable {
     row: boolean;
     column: boolean;
     cells: boolean;
+  }
+  
+  namespace RecordTranslation {
+    interface IndexMap {
+      getValues: number[],
+      getValueAtIndex: (index: number) => any;
+      setValues: (values: any[]) => void;
+      setValueAtIndex: (index: number, value: any) => boolean;
+      clear: () => void;
+      getLength: () => number;
+    }
+    
+    interface IndexMapper {
+      executeBatchOperations: (wrappedOperations: () => any) => void;
+      registerMap: (uniqueName: string, indexMap: IndexMap) => IndexMap;
+      unregisterMap: (name: string) => void;
+      getPhysicalIndex: (visualIndex: number) => number | null; 
+      getVisualIndex: (physicalIndex: number) => number | null;
+      initToLength: (length?: number) => void;
+      getIndexesSequence: () => number[];
+      setIndexesSequence: (indexes: number[]) => void;  
+      getNotSkippedIndexes: (readFromCache?: boolean) => number[];
+      getNotSkippedIndexesLength: () => number;
+      getNumberOfIndexes: () => number;
+      moveIndexes: (movedIndexes: number[], finalIndex: number) => void;
+      isSkipped: (physicalIndex: number) => boolean;
+    }
   }
 
   namespace I18n {

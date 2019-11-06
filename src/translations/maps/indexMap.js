@@ -25,20 +25,6 @@ class IndexMap {
   }
 
   /**
-   * Initialize list with default values for particular indexes.
-   *
-   * @param {Number} length New length of list.
-   * @returns {Array}
-   */
-  init(length) {
-    this.setDefaultValues(length);
-
-    this.runLocalHooks('init');
-
-    return this;
-  }
-
-  /**
    * Get full list of values for particular indexes.
    *
    * @returns {Array}
@@ -50,7 +36,7 @@ class IndexMap {
   /**
    * Get value for the particular index.
    *
-   * @param {Number} index
+   * @param {Number} index Index for which value is got.
    * @returns {*}
    */
   getValueAtIndex(index) {
@@ -124,6 +110,21 @@ class IndexMap {
     }
 
     this.runLocalHooks('change');
+  }
+
+  /**
+   * Initialize list with default values for particular indexes.
+   *
+   * @private
+   * @param {Number} length New length of indexed list.
+   * @returns {Array}
+   */
+  init(length) {
+    this.setDefaultValues(length);
+
+    this.runLocalHooks('init');
+
+    return this;
   }
 
   /**

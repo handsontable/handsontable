@@ -31,42 +31,49 @@ class IndexMapper {
     /**
      * Map storing the sequence of indexes.
      *
+     * @private
      * @type {VisualIndexToPhysicalIndexMap}
      */
     this.indexesSequence = new IndexToIndexMap();
     /**
      * Collection for different skip maps. Indexes marked as skipped in any map won't be rendered.
      *
+     * @private
      * @type {MapCollection}
      */
     this.skipMapsCollection = new MapCollection();
     /**
      * Collection for another kind of maps.
      *
+     * @private
      * @type {MapCollection}
      */
     this.variousMapsCollection = new MapCollection();
     /**
      * Cache for skip result for particular indexes.
      *
+     * @private
      * @type {Array}
      */
     this.flattenSkipList = [];
     /**
      * Cache for list of not skipped indexes, respecting the indexes sequence.
      *
+     * @private
      * @type {Array}
      */
     this.notSkippedIndexesCache = [];
     /**
      * Flag determining whether operations performed on index mapper were batched.
      *
+     * @private
      * @type {Boolean}
      */
     this.isBatched = false;
     /**
      * Flag determining whether any action on indexes sequence or skipped indexes was performed.
      *
+     * @private
      * @type {Boolean}
      */
     this.cachedIndexesChange = false;
@@ -114,20 +121,20 @@ class IndexMapper {
   /**
    * Register map which provide some index mappings.
    *
-   * @param {String} uniqueName Name of the map. It should be unique.
-   * @param {IndexMap} map Registered map updated on items removal and insertion.
+   * @param {String} uniqueName Name of the index map. It should be unique.
+   * @param {IndexMap} indexMap Registered index map updated on items removal and insertion.
    * @returns {IndexMap}
    */
-  registerMap(uniqueName, map) {
+  registerMap(uniqueName, indexMap) {
     if (this.skipMapsCollection.get(uniqueName) || this.variousMapsCollection.get(uniqueName)) {
       throw Error(`Map with name "${uniqueName}" has been already registered.`);
     }
 
-    if (map instanceof SkipMap === true) {
-      this.skipMapsCollection.register(uniqueName, map);
+    if (indexMap instanceof SkipMap) {
+      this.skipMapsCollection.register(uniqueName, indexMap);
 
     } else {
-      this.variousMapsCollection.register(uniqueName, map);
+      this.variousMapsCollection.register(uniqueName, indexMap);
     }
 
     const numberOfIndexes = this.getNumberOfIndexes();
@@ -139,16 +146,16 @@ class IndexMapper {
       function from the `Core`).
      */
     if (numberOfIndexes > 0) {
-      map.init(numberOfIndexes);
+      indexMap.init(numberOfIndexes);
     }
 
-    return map;
+    return indexMap;
   }
 
   /**
    * Unregister a map with given name.
    *
-   * @param {String} name Name of the map.
+   * @param {String} name Name of the index map.
    */
   unregisterMap(name) {
     this.skipMapsCollection.unregister(name);
