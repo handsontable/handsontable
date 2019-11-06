@@ -164,7 +164,8 @@ class DropdownMenu extends BasePlugin {
       }
       this.menu = new Menu(this.hot, {
         className: 'htDropdownMenu',
-        keepInViewport: true
+        keepInViewport: true,
+        container: settings.uiContainer || this.hot.rootDocument.body,
       });
       this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
 
@@ -304,11 +305,22 @@ class DropdownMenu extends BasePlugin {
     stopPropagation(event);
 
     if (hasClass(event.target, BUTTON_CLASS_NAME) && !this.menu.isOpened()) {
+      let offsetTop = 0;
+      let offsetLeft = 0;
+
+      if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
+        const { frameElement } = this.hot.rootWindow;
+        const { top, left } = frameElement.getBoundingClientRect();
+
+        offsetTop = top;
+        offsetLeft = left;
+      }
+
       const rect = event.target.getBoundingClientRect();
 
       this.open({
-        left: rect.left,
-        top: rect.top + event.target.offsetHeight + 3,
+        left: rect.left + offsetLeft,
+        top: rect.top + event.target.offsetHeight + 3 + offsetTop,
         width: rect.width,
         height: rect.height,
       });

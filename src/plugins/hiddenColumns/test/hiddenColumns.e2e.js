@@ -442,7 +442,7 @@ describe('HiddenColumns', () => {
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
-      actions.simulate('mousedown');
+      actions.simulate('mousedown').simulate('mouseup');
 
       expect(hot.getColWidth(3)).toBe(0.1);
       expect(hot.getColWidth(4)).toBe(0.1);
@@ -471,7 +471,7 @@ describe('HiddenColumns', () => {
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
-      actions.simulate('mousedown');
+      actions.simulate('mousedown').simulate('mouseup');
 
       expect(hot.getColWidth(2)).toBe(50);
       expect(hot.getColWidth(3)).toBe(50);

@@ -171,7 +171,7 @@ describe('manualColumnFreeze', () => {
       });
 
       expect(freezeEntry.size()).toEqual(1);
-      freezeEntry.eq(0).simulate('mousedown');
+      freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
       expect(hot.getDataAtCell(1, 1)).toEqual(dataAtCell);
@@ -196,7 +196,7 @@ describe('manualColumnFreeze', () => {
       let freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
         return $(this).text() === 'Unfreeze column';
       });
-      freezeEntry.eq(0).simulate('mousedown');
+      freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
       expect(getDataAtRow(1)).toEqual(['A2', 'F2', 'C2', 'D2', 'E2', 'B2', 'G2', 'H2', 'I2', 'J2']);
@@ -210,7 +210,7 @@ describe('manualColumnFreeze', () => {
         }
         return false;
       });
-      freezeEntry.eq(0).simulate('mousedown');
+      freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
       expect(getDataAtRow(1)).toEqual(['F2', 'A2', 'C2', 'D2', 'E2', 'B2', 'G2', 'H2', 'I2', 'J2']);
@@ -221,7 +221,7 @@ describe('manualColumnFreeze', () => {
         return $(this).text() === 'Freeze column';
       });
 
-      freezeEntry.eq(0).simulate('mousedown');
+      freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
       expect(getDataAtRow(1)).toEqual(['F2', 'C2', 'A2', 'D2', 'E2', 'B2', 'G2', 'H2', 'I2', 'J2']);
@@ -232,7 +232,7 @@ describe('manualColumnFreeze', () => {
         return $(this).text() === 'Unfreeze column';
       });
 
-      freezeEntry.eq(0).simulate('mousedown');
+      freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
       expect(getDataAtRow(1)).toEqual(['C2', 'F2', 'A2', 'D2', 'E2', 'B2', 'G2', 'H2', 'I2', 'J2']);

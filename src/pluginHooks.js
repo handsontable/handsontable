@@ -1236,8 +1236,8 @@ const REGISTERED_HOOKS = [
    * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#beforeColumnResize
-   * @param {Number} currentColumn Visual index of the resized column.
    * @param {Number} newSize Calculated new column width.
+   * @param {Number} column Visual index of the resized column.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    * @returns {Number} Returns a new column size or `undefined`, if column size should be calculated automatically.
    */
@@ -1248,8 +1248,8 @@ const REGISTERED_HOOKS = [
    * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#afterColumnResize
-   * @param {Number} currentColumn Visual index of the resized column.
    * @param {Number} newSize Calculated new column width.
+   * @param {Number} column Visual index of the resized column.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    */
   'afterColumnResize',
@@ -1259,8 +1259,8 @@ const REGISTERED_HOOKS = [
    * fired when {@link Options#manualRowResize} option is enabled.
    *
    * @event Hooks#beforeRowResize
-   * @param {Number} currentRow Visual index of the resized row.
    * @param {Number} newSize Calculated new row height.
+   * @param {Number} row Visual index of the resized row.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    * @returns {Number} Returns the new row size or `undefined` if row size should be calculated automatically.
    */
@@ -1271,8 +1271,8 @@ const REGISTERED_HOOKS = [
    * fired when {@link Options#manualRowResize} option is enabled.
    *
    * @event Hooks#afterRowResize
-   * @param {Number} currentRow Visual index of the resized row.
    * @param {Number} newSize Calculated new row height.
+   * @param {Number} row Visual index of the resized row.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    */
   'afterRowResize',
@@ -1796,6 +1796,50 @@ const REGISTERED_HOOKS = [
    * @returns {undefined|Boolean} If the callback returns `false`, the refresh action will not be completed.
    */
   'beforeRefreshDimensions',
+
+  /**
+   * Fired by {@link CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
+   *
+   * @event Hooks#beforeColumnCollapse
+   * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Boolean} collapsePossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
+   * @returns {undefined|Boolean} If the callback returns `false`, the collapsing action will not be completed.
+   */
+  'beforeColumnCollapse',
+
+  /**
+   * Fired by {@link CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
+   *
+   * @event Hooks#afterColumnCollapse
+   * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Boolean} collapsePossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
+   * @param {Boolean} successfullyCollapsed `true`, if the action affected any non-collapsible column, `false` otherwise.
+   */
+  'afterColumnCollapse',
+
+  /**
+   * Fired by {@link CollapsibleColumns} plugin before columns expand. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
+   *
+   * @event Hooks#beforeColumnExpand
+   * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Boolean} expandPossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
+   * @returns {undefined|Boolean} If the callback returns `false`, the expanding action will not be completed.
+   */
+  'beforeColumnExpand',
+
+  /**
+   * Fired by {@link CollapsibleColumns} plugin before columns expand. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
+   *
+   * @event Hooks#afterColumnExpand
+   * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Boolean} expandPossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
+   * @param {Boolean} successfullyExpanded `true`, if the action affected any non-collapsible column, `false` otherwise.
+   */
+  'afterColumnExpand',
 ];
 
 class Hooks {

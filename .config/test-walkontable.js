@@ -47,6 +47,7 @@ module.exports.create = function create(envArgs) {
         baseJasminePath: '../../../../',
         externalCssFiles: [
           '../css/walkontable.css',
+          '../css/walkontable.test.css',
         ],
         externalJsFiles: [
           'helpers/jasmine-bridge-reporter.js',

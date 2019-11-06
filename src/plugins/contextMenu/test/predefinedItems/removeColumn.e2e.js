@@ -27,7 +27,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(5)
-        .simulate('mousedown');
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'D1', 'E1']);
     });
@@ -46,7 +47,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(5)
-        .simulate('mousedown');
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       expect(getDataAtRow(0)).toEqual(['A1', 'B1']);
     });
@@ -82,7 +84,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(5)
-        .simulate('mousedown');
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       expect(getDataAtRow(0)).toEqual(['C1']);
     });

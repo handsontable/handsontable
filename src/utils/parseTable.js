@@ -1,3 +1,4 @@
+import { matchesCSSRules } from './../helpers/dom/element';
 import { isEmpty } from './../helpers/mixed';
 
 /**
@@ -129,25 +130,6 @@ export function _dataToHTML(input) {
   result.push('</table>');
 
   return result.join('');
-}
-
-/**
- * Helper to verify and get CSSRules for the element.
- *
- * @param {Element} element Element to verify with selector text.
- * @param {String} selector Selector text from CSSRule.
- */
-function matchCSSRules(element, selector) {
-  let result;
-
-  if (element.msMatchesSelector) {
-    result = element.msMatchesSelector(selector);
-
-  } else if (element.matches) {
-    result = element.matches(selector);
-  }
-
-  return result;
 }
 
 /**
@@ -305,7 +287,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
         }
 
         const cellStyle = styleSheetArr.reduce((settings, cssRule) => {
-          if (cssRule.selectorText && matchCSSRules(cell, cssRule.selectorText)) {
+          if (matchesCSSRules(cell, cssRule)) {
             const { whiteSpace } = cssRule.style;
 
             if (whiteSpace) {
@@ -323,7 +305,10 @@ export function htmlToGridSettings(element, rootDocument = document) {
             .replace(/&nbsp;/gi, '\x20');
 
         } else if (generator && /excel/gi.test(generator.content)) {
-          dataArr[row][col] = innerHTML.replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,2}/gim, '\r\n').replace(/(<([^>]+)>)/gi, '').replace(/&nbsp;/gi, '\x20');
+          dataArr[row][col] = innerHTML.replace(/[\r\n][\x20]{0,2}/g, '\x20')
+            .replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,3}/gim, '\r\n')
+            .replace(/(<([^>]+)>)/gi, '')
+            .replace(/&nbsp;/gi, '\x20');
         } else {
           dataArr[row][col] = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n').replace(/(<([^>]+)>)/gi, '').replace(/&nbsp;/gi, '\x20');
         }
