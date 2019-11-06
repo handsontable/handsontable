@@ -305,7 +305,10 @@ export function htmlToGridSettings(element, rootDocument = document) {
             .replace(/&nbsp;/gi, '\x20');
 
         } else if (generator && /excel/gi.test(generator.content)) {
-          dataArr[row][col] = innerHTML.replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,2}/gim, '\r\n').replace(/(<([^>]+)>)/gi, '').replace(/&nbsp;/gi, '\x20');
+          dataArr[row][col] = innerHTML.replace(/[\r\n][\x20]{0,2}/g, '\x20')
+            .replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,3}/gim, '\r\n')
+            .replace(/(<([^>]+)>)/gi, '')
+            .replace(/&nbsp;/gi, '\x20');
         } else {
           dataArr[row][col] = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n').replace(/(<([^>]+)>)/gi, '').replace(/&nbsp;/gi, '\x20');
         }
