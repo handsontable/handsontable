@@ -153,5 +153,47 @@ describe('SheetClip', () => {
 
       expect(result).toEqual(expected);
     });
+
+    it('should parse text in quotes separated by tab into two cells in one row', () => {
+      const entry = '"A"\t"B"';
+      const result = SheetClip.parse(entry);
+      const expected = [
+        ['A', 'B'],
+      ];
+
+      expect(result).toEqual(expected);
+    });
+
+    it('should parse text in quotes separated by new line into two rows with one column each', () => {
+      const entry = '"A"\n"B"';
+      const result = SheetClip.parse(entry);
+      const expected = [
+        ['A'],
+        ['B'],
+      ];
+
+      expect(result).toEqual(expected);
+    });
+
+    it('should parse empty quotes separated by tab into two empty cells in one row', () => {
+      const entry = '""\t""';
+      const result = SheetClip.parse(entry);
+      const expected = [
+        ['', ''],
+      ];
+
+      expect(result).toEqual(expected);
+    });
+
+    it('should parse text in quotes separated by new line into two rows with one empty cell each', () => {
+      const entry = '""\n""';
+      const result = SheetClip.parse(entry);
+      const expected = [
+        [''],
+        [''],
+      ];
+
+      expect(result).toEqual(expected);
+    });
   });
 });
