@@ -491,13 +491,14 @@ class ManualRowResize extends BasePlugin {
 
     if (this.enabled) {
       const physicalRow = this.hot.toPhysicalRow(row);
-      const manualRowHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
+      const rowHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
 
-      if (manualRowHeight !== null) {
-        newHeight = manualRowHeight;
+      if (this.hot.getSettings().manualRowResize && rowHeight) {
+        newHeight = rowHeight;
       }
     }
-    return height === void 0 ? newHeight : Math.max(newHeight, height);
+
+    return newHeight;
   }
 
   /**
