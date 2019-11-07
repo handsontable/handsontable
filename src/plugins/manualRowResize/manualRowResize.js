@@ -146,6 +146,10 @@ class ManualRowResize extends BasePlugin {
   setManualSize(row, height) {
     const physicalRow = this.hot.toPhysicalRow(row);
 
+    if (height < 0) {
+      height = null; // Do not change default size.
+    }
+
     this.rowHeightsMap.setValueAtIndex(physicalRow, height);
 
     return height;

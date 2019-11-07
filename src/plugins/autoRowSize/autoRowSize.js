@@ -133,6 +133,9 @@ class AutoRowSize extends BasePlugin {
 
     // moved to constructor to allow auto-sizing the rows when the plugin is disabled
     this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
+
+    this.rowHeightsMap = new IndexToValueMap();
+    this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
   }
 
   /**
@@ -153,9 +156,6 @@ class AutoRowSize extends BasePlugin {
       return;
     }
 
-    this.rowHeightsMap = new IndexToValueMap();
-    this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
-
     this.setSamplingOptions();
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
@@ -172,7 +172,6 @@ class AutoRowSize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.rowIndexMapper.unregisterMap(ROW_WIDTHS_MAP_NAME);
     this.headerHeight = null;
 
     super.disablePlugin();
@@ -478,10 +477,10 @@ class AutoRowSize extends BasePlugin {
   onBeforeRowResize(size, row, isDblClick) {
     let newSize = size;
 
-    if (this.isEnabled() && isDblClick) {
+    if (isDblClick) {
       this.calculateRowsHeight(row, void 0, true);
 
-      newSize = this.getRowHeight(row, void 0);
+      newSize = this.getRowHeight(row);
     }
 
     return newSize;
