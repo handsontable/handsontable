@@ -1756,7 +1756,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           instance.addHook(i, settings[i]);
         }
 
-      } else if (!init && hasOwnProperty(settings, i)) { // Update settings
+      } else if (!init && i !== 'className' && hasOwnProperty(settings, i)) { // Update settings
         GridSettings.prototype[i] = settings[i];
       }
     }
@@ -1827,7 +1827,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     instance.runHooks('afterCellMetaReset');
-
+    
     // if (isDefined(settings.className)) {
     //   if (GridSettings.prototype.className) {
     //     removeClass(instance.rootElement, GridSettings.prototype.className);
