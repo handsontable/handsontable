@@ -307,11 +307,62 @@ describe('Walkontable Border Renderer', () => {
     });
   });
 
-  describe('should draw sharp corners', () => {
+  describe(`when horizontal line has a bigger width than the vertical line, 
+        the horizontal line should be on top and cover the tips of the vertical line`, () => {
+    it('should render 2px, 1px borders', () => {
+      const wt = generateWalkontableWithSelection({
+        left: THIN_RED_BORDER,
+        right: THIN_RED_BORDER,
+        top: MEDIUM_GREEN_BORDER,
+        bottom: MEDIUM_GREEN_BORDER
+      });
+
+      wt.draw();
+      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 99.5 23 99.5 47 M 49.5 23 49.5 47', 'M 49 23 100 23 M 49 46 100 46']);
+    });
+
+    it('should render 3px, 2px borders', () => {
+      const wt = generateWalkontableWithSelection({
+        left: MEDIUM_RED_BORDER,
+        right: MEDIUM_RED_BORDER,
+        top: THICK_GREEN_BORDER,
+        bottom: THICK_GREEN_BORDER
+      });
+
+      wt.draw();
+      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 99 23 99 47 M 49 23 49 47', 'M 48 23.5 100 23.5 M 48 46.5 100 46.5']);
+    });
+
+    it('should render 4px, 3px borders', () => {
+      const wt = generateWalkontableWithSelection({
+        left: THICK_RED_BORDER,
+        right: THICK_RED_BORDER,
+        top: HUGE_GREEN_BORDER,
+        bottom: HUGE_GREEN_BORDER
+      });
+
+      wt.draw();
+      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 99.5 23 99.5 47 M 49.5 23 49.5 47', 'M 48 23 101 23 M 48 46 101 46']);
+    });
+
+    it('should render 5px, 4px borders', () => {
+      const wt = generateWalkontableWithSelection({
+        left: HUGE_RED_BORDER,
+        right: HUGE_RED_BORDER,
+        top: GIGANTIC_GREEN_BORDER,
+        bottom: GIGANTIC_GREEN_BORDER
+      });
+
+      wt.draw();
+      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 99 23 99 47 M 49 23 49 47', 'M 47 23.5 101 23.5 M 47 46.5 101 46.5']);
+    });
+  });
+
+  describe('sharp corners', () => {
     it('should render 1px corner', () => {
       const wt = generateWalkontableWithSelection({
         left: THIN_GREEN_BORDER,
-        top: THIN_GREEN_BORDER
+        top: THIN_RED_BORDER
       });
 
       wt.draw();
@@ -321,7 +372,7 @@ describe('Walkontable Border Renderer', () => {
     it('should render 2px corner', () => {
       const wt = generateWalkontableWithSelection({
         left: MEDIUM_GREEN_BORDER,
-        top: MEDIUM_GREEN_BORDER
+        top: MEDIUM_RED_BORDER
       });
 
       wt.draw();

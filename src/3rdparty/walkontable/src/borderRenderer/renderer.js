@@ -177,13 +177,8 @@ export default class BorderRenderer {
       line[endIndex] += gridlineWidth;
 
       if (cachedEndPointSize) {
-        let compensateForEvenWidthsInset;
+        const compensateForEvenWidthsInset = (cachedEndPointSize % 2 === 0) ? -1 : 0;
 
-        if (isVertical) {
-          compensateForEvenWidthsInset = (width % 2 === 0) ? 0 : -1;
-        } else {
-          compensateForEvenWidthsInset = (width % 2 === 0) ? -1 : 0;
-        }
         line[endIndex] += Math.floor(cachedEndPointSize / 2) + compensateForEvenWidthsInset;
       }
     }
