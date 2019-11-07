@@ -654,4 +654,19 @@ describe('Core_updateSettings', () => {
 
     expect(Object.keys(updatedSetting)).toEqual(Object.keys(newSettings));
   });
+
+  it('should update tableClassName accordingly', () => {
+    handsontable({
+      data: [[1, true]],
+      tableClassName: ['table_red'],
+    });
+
+    const table = spec().$container.find('table')[0];
+    expect(table.classList.contains('table_red')).toBe(true);
+
+    updateSettings({ tableClassName: ['table_green'] });
+
+    expect(table.classList.contains('table_red')).toBe(false);
+    expect(table.classList.contains('table_green')).toBe(true);
+  });
 });

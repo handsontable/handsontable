@@ -850,6 +850,34 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   }
 
+  /**
+   * Internal function to set `className` or `tableClassName` key of settings.
+   *
+   * @private
+   * @param {Object} settings
+   */
+  function setClassName(settings) {
+    if (settings.className) {
+      if (GridSettings.prototype.className) {
+        removeClass(instance.rootElement, GridSettings.prototype.className);
+      }
+
+      addClass(instance.rootElement, settings.className);
+
+      GridSettings.prototype.className = settings.className;
+    }
+
+    if (settings.tableClassName && instance.table) {
+      if (GridSettings.prototype.tableClassName) {
+        removeClass(instance.table, GridSettings.prototype.tableClassName);
+      }
+
+      addClass(instance.table, settings.tableClassName);
+
+      GridSettings.prototype.tableClassName = settings.tableClassName;
+    }
+  }
+
   this.init = function() {
     dataSource.setData(priv.settings.data);
     instance.runHooks('beforeInit');
@@ -1716,6 +1744,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         /* eslint-disable-next-line no-continue */
         continue;
 
+      } else if (i === 'className' || i === 'tableClassName') {
+        setClassName(settings);
+
+        /* eslint-disable-next-line no-continue */
+        continue;
+
       } else if (Hooks.getSingleton().getRegistered().indexOf(i) > -1) {
         if (isFunction(settings[i]) || Array.isArray(settings[i])) {
           settings[i].initialHook = true;
@@ -1794,14 +1828,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.runHooks('afterCellMetaReset');
 
-    if (isDefined(settings.className)) {
-      if (GridSettings.prototype.className) {
-        removeClass(instance.rootElement, GridSettings.prototype.className);
-      }
-      if (settings.className) {
-        addClass(instance.rootElement, settings.className);
-      }
-    }
+    // if (isDefined(settings.className)) {
+    //   if (GridSettings.prototype.className) {
+    //     removeClass(instance.rootElement, GridSettings.prototype.className);
+    //   }
+    //   if (settings.className) {
+    //     addClass(instance.rootElement, settings.className);
+    //   }
+    // }
 
     let currentHeight = instance.rootElement.style.height;
     if (currentHeight !== '') {
