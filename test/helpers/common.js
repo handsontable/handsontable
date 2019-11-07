@@ -821,35 +821,4 @@ class DataTransferObject {
   }
 }
 
-/**
- * Returns path command for all SVG <path> elements within the parent. The items order
- * matches the rendered order (equivalent of "z-index").
- *
- * @param {HTMLElement} parentElem
- */
-export function getRenderedBorderPaths(parentElem) {
-  const paths = Array.from(parentElem.querySelectorAll('.wtSpreader svg path')).map(x => x.getAttribute('d'));
-  return paths;
-}
-
-/**
- * Returns information about the existence of path command for all SVG <path> elements within the parent. The items order
- * matches the rendered order (equivalent of "z-index").
- *
- * @param {HTMLElement} parentElem
- */
-export function getRenderedBorderPathExistence(parentElem) {
-  const paths = Array.from(parentElem.querySelectorAll('.wtSpreader svg path')).map(x => !!x.getAttribute('d'));
-  return paths;
-}
-
-/**
- * Returns stroke style for all SVG <path> elements within the parent. The items order
- * matches the rendered order (equivalent of "z-index").
- *
- * @param {HTMLElement} parentElem
- */
-export function getRenderedBorderStyles(parentElem) {
-  const paths = Array.from(parentElem.querySelectorAll('.wtSpreader svg path')).map(x => x.dataset.strokeStyle);
-  return paths;
-}
+export { getRenderedBorderPaths, getRenderedBorderPathExistence, getRenderedBorderStyles } from '../../src/3rdparty/walkontable/test/helpers/common';

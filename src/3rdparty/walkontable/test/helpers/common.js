@@ -357,8 +357,18 @@ export function expectWtTable(wt, callb, name) {
 }
 
 /**
- * Returns path command for all SVG <path> elements within the parent. The items order
+ * Returns all SVG <path> elements within the parent. The items order
  * matches the rendered order (equivalent of "z-index").
+ *
+ * @param {HTMLElement} parentElem
+ * @returns {Array.<HTMLElement>}
+ */
+function getSvgPaths(parentElem) {
+  return Array.from(parentElem.querySelectorAll('.wtSpreader svg path'));
+}
+
+/**
+ * Returns path command for all SVG <path> elements within the parent.
  *
  * @param {HTMLElement} parentElem
  */
@@ -366,6 +376,26 @@ export function getRenderedBorderPaths(parentElem) {
   if (!parentElem || !parentElem.querySelectorAll) {
     return null;
   }
-  const paths = Array.from(parentElem.querySelectorAll('svg path')).map(x => x.getAttribute('d'));
+  const paths = getSvgPaths(parentElem).map(x => x.getAttribute('d'));
+  return paths;
+}
+
+/**
+ * Returns information about the existence of path command for all SVG <path> elements within the parent.
+ *
+ * @param {HTMLElement} parentElem
+ */
+export function getRenderedBorderPathExistence(parentElem) {
+  const paths = getSvgPaths(parentElem).map(x => !!x.getAttribute('d'));
+  return paths;
+}
+
+/**
+ * Returns stroke style for all SVG <path> elements within the parent.
+ *
+ * @param {HTMLElement} parentElem
+ */
+export function getRenderedBorderStyles(parentElem) {
+  const paths = getSvgPaths(parentElem).map(x => x.dataset.strokeStyle);
   return paths;
 }

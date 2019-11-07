@@ -13,6 +13,7 @@ const allowedE2EModules = [
   './asciiTable',
   './MemoryLeakTest',
   '../MemoryLeakTest',
+  '../../src/3rdparty/walkontable/test/helpers/common'
 ];
 
 const babelPresetConfig = () => ({
