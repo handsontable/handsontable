@@ -95,6 +95,38 @@ describe('htmlToGridSettings', () => {
     expect(config.data.toString()).toBe('A3,B3,C3,A4,B4,C4,A5,B5,C5,A6,B6,C6');
   });
 
+  it('should parse data with special characters', () => {
+    const tableInnerHTML = [
+      '<table><tbody>',
+      '<tr><td>£§!@#$%^&*()-_=+[{]};:\'\\"|,<.>/?©</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(tableInnerHTML);
+
+    expect(config.data.toString()).toBe('£§!@#$%^&*()-_=+[{]};:\'\\"|,<.>/?©');
+  });
+
+  it('should parse data with HTML-like content', () => {
+    const tableInnerHTML = [
+      '<table><tbody>',
+      '<tr><td><div class="test">A</div></td><td><script>var b = 1 && 2 << 1</script></td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(tableInnerHTML);
+
+    expect(config.data.toString()).toBe('<div class="test">A</div>,<script>var b = 1 && 2 << 1</script>');
+  });
+
+  it('should parse data with Unicode characters (emoji)', () => {
+    const tableInnerHTML = [
+      '<table><tbody>',
+      '<tr><td>☺️</td><td>✍️</td><td>☀️</td><td>❤️</td><td>✌️</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(tableInnerHTML);
+
+    expect(config.data.toString()).toBe('☺️,✍️,☀️,❤️,✌️');
+  });
   it('should parse headers from HTML table', () => {
     const tableInnerHTML = [
       '<table><thead>',
