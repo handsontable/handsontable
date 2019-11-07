@@ -285,17 +285,35 @@ export default class BorderRenderer {
     let x2 = lastTdBoundingRect.left + lastTdBoundingRect.width;
     let y2 = lastTdBoundingRect.top + lastTdBoundingRect.height;
 
-    if (parseInt(style.borderLeftWidth, 10) > 0) {
-      x1 += 1;
-    }
-    if (parseInt(style.borderTopWidth, 10) > 0) {
-      y1 += 1;
-    }
-
     x1 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.left);
     y1 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.top);
     x2 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.left);
     y2 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.top);
+
+    const isThisTheFirstColumn = parseInt(style.borderLeftWidth, 10) > 0;
+    const isThisTheFirstRow = parseInt(style.borderTopWidth, 10) > 0;
+    const isItASelectionBorder = !!selectionSetting.className;
+
+    if (isThisTheFirstColumn) {
+      x1 += 1;
+
+      const areTherePossiblyRowHeaders = x1 > 0;
+
+      if (areTherePossiblyRowHeaders && !isItASelectionBorder) {
+        x1 += 1;
+        hasLeftEdge = false; // don't draw a left edge that would overlap the border of the header cell
+      }
+    }
+    if (isThisTheFirstRow) {
+      y1 += 1;
+
+      const areTherePossiblyColumnHeaders = y1 > 0;
+
+      if (areTherePossiblyColumnHeaders && !isItASelectionBorder) {
+        y1 += 1;
+        hasTopEdge = false; // don't draw a top edge that would overlap the border of the header cell
+      }
+    }
 
     if (selectionSetting.className === 'current') {
       x1 += insetPositioningForCurrentCellHighlight;

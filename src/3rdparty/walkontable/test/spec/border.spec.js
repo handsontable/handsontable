@@ -379,4 +379,91 @@ describe('Walkontable Border Renderer', () => {
       expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 49 23 49 47', 'M 48 23 100 23']);
     });
   });
+
+  describe('row and column headers', () => {
+    it('should render top and left edge on master if column and row headers are not present', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        selections: [
+          generateSelection({
+            left: THIN_GREEN_BORDER,
+            right: MEDIUM_GREEN_BORDER,
+            top: THICK_GREEN_BORDER,
+            bottom: HUGE_GREEN_BORDER
+          }).add(new Walkontable.CellCoords(0, 0))
+        ]
+      });
+
+      wt.draw();
+      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 0.5 0 0.5 24', 'M 49 0 49 24', 'M 0 0.5 50 0.5', 'M 0 23 50 23']);
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px green vertical', '2px green vertical', '3px green horizontal', '4px green horizontal']);
+    });
+
+    it('should not render top edge on master if column headers are present', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnHeaders: [(col, TH) => { TH.innerHTML = col; return undefined; }],
+        selections: [
+          generateSelection({
+            left: THIN_GREEN_BORDER,
+            right: MEDIUM_GREEN_BORDER,
+            top: THICK_GREEN_BORDER,
+            bottom: HUGE_GREEN_BORDER
+          }).add(new Walkontable.CellCoords(0, 0))
+        ]
+      });
+
+      wt.draw();
+      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 0.5 24 0.5 47', 'M 49 24 49 47', 'M 0 46 50 46']);
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px green vertical', '2px green vertical', '4px green horizontal']);
+    });
+
+    it('should not render left edge on master if row headers are present', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        rowHeaders: [(row, TH) => { TH.innerHTML = row; return undefined; }],
+        selections: [
+          generateSelection({
+            left: THIN_GREEN_BORDER,
+            right: MEDIUM_GREEN_BORDER,
+            top: THICK_GREEN_BORDER,
+            bottom: HUGE_GREEN_BORDER
+          }).add(new Walkontable.CellCoords(0, 0))
+        ]
+      });
+
+      wt.draw();
+      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 99 0 99 24', 'M 51 0.5 100 0.5', 'M 51 23 100 23']);
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['2px green vertical', '3px green horizontal', '4px green horizontal']);
+    });
+
+    it('should not render top and left edge on master if row or column headers are present', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnHeaders: [(col, TH) => { TH.innerHTML = col; return undefined; }],
+        rowHeaders: [(row, TH) => { TH.innerHTML = row; return undefined; }],
+        selections: [
+          generateSelection({
+            left: THIN_GREEN_BORDER,
+            right: MEDIUM_GREEN_BORDER,
+            top: THICK_GREEN_BORDER,
+            bottom: HUGE_GREEN_BORDER
+          }).add(new Walkontable.CellCoords(0, 0))
+        ]
+      });
+
+      wt.draw();
+      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 99 24 99 47', 'M 51 46 100 46']);
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['2px green vertical', '4px green horizontal']);
+
+    });
+  });
 });

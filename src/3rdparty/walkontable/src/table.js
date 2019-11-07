@@ -538,6 +538,8 @@ class Table {
       }
     }
 
+    this.borderRenderer.skipFirstRowTopEdge = !!this.wot.getSetting('columnHeaders').length;
+    this.borderRenderer.skipFirstColumnLeftEdge = !!this.wot.getSetting('rowHeaders').length;
     this.borderRenderer.render(this.TABLE, borderEdgesDescriptors);
   }
 
