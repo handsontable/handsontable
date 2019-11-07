@@ -145,9 +145,6 @@ class SelectionHandle {
 
     div.className = `wtBorder ${this.settings.className || ''}`;
 
-    if (this.settings[position] && this.settings[position].hide) {
-      div.className += ' hidden';
-    }
     style = div.style;
     style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
     style.height = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;

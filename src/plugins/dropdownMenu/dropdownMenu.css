@@ -40,10 +40,6 @@
   border-right-width: 2px;
 }
 
-.htDropdownMenu .wtBorder {
-  visibility: hidden;
-}
-
 .htDropdownMenu table tbody tr td {
   background: white;
   border-width: 0;

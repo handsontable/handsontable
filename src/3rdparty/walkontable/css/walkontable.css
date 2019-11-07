@@ -150,23 +150,14 @@
   position: absolute;
   font-size: 0;
 }
-.handsontable .wtBorder.hidden {
-  display: none !important;
-}
 
 /* A layer order of the selection types */
-.handsontable .wtBorder.current {
+.handsontable .wtBorder.current.corner {
   z-index: 10;
 }
-.handsontable .wtBorder.area {
+.handsontable .wtBorder.area.corner {
   z-index: 8;
 }
-.handsontable .wtBorder.fill {
-  z-index: 6;
-}
-
-/* fill handle */
-
 .handsontable .wtBorder.corner {
   font-size: 0;
   cursor: crosshair;

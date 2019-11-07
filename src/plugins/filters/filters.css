@@ -21,10 +21,6 @@
   border-right-width: 2px;
 }
 
-.htFiltersConditionsMenu .wtBorder {
-  visibility: hidden;
-}
-
 .htFiltersConditionsMenu table tbody tr td {
   background: white;
   border-width: 0;

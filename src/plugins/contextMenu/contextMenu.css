@@ -20,10 +20,6 @@
   border-right-width: 2px;
 }
 
-.htContextMenu .wtBorder {
-  visibility: hidden;
-}
-
 .htContextMenu table tbody tr td {
   background: white;
   border-width: 0;
