@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.2.2
- * Release date: 23/10/2019 (built at 07/11/2019 15:53:31)
+ * Release date: 23/10/2019 (built at 07/11/2019 19:18:08)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -60201,7 +60201,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "07/11/2019 15:53:31";
+Handsontable.buildDate = "07/11/2019 19:18:08";
 Handsontable.version = "7.2.2"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -86735,14 +86735,14 @@ function (_BasePlugin) {
 
       if (this.enabled) {
         var physicalRow = this.hot.toPhysicalRow(row);
-        var manualRowHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
+        var rowHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
 
-        if (manualRowHeight !== null) {
-          newHeight = manualRowHeight;
+        if (this.hot.getSettings().manualRowResize && rowHeight) {
+          newHeight = rowHeight;
         }
       }
 
-      return height === void 0 ? newHeight : Math.max(newHeight, height);
+      return newHeight;
     }
     /**
      * Callback to call on map's `init` local hook.
