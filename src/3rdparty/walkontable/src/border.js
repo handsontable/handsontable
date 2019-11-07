@@ -678,6 +678,14 @@ class Border {
       this.selectionHandles.styles.bottomRight.display = 'none';
     }
   }
+
+  /**
+   * Cleans up all the DOM state related to a Border instance. Call this prior to deleting a Border instance.
+   */
+  destroy() {
+    this.eventManager.destroyWithOwnEventsOnly();
+    this.main.parentNode.removeChild(this.main);
+  }
 }
 
 export default Border;

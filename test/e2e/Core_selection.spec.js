@@ -520,7 +520,7 @@ describe('Core_selection', () => {
       fixedColumnsLeft: 2
     });
 
-    spec().$container.find('.ht_master thead th:eq(1)').simulate('mousedown');
+    spec().$container.find('.ht_clone_top_left_corner thead th:eq(1)').simulate('mousedown');
 
     expect(getSelected()).toEqual([[0, 0, 9, 0]]);
     expect(`

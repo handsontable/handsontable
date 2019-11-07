@@ -10,6 +10,7 @@ import removeRowItem, { KEY as REMOVE_ROW } from './predefinedItems/removeRow';
 import rowAboveItem, { KEY as ROW_ABOVE } from './predefinedItems/rowAbove';
 import rowBelowItem, { KEY as ROW_BELOW } from './predefinedItems/rowBelow';
 import separatorItem, { KEY as SEPARATOR } from './predefinedItems/separator';
+import noItemsItem, { KEY as NO_ITEMS } from './predefinedItems/noItems';
 import undoItem, { KEY as UNDO } from './predefinedItems/undo';
 
 export { KEY as ALIGNMENT } from './predefinedItems/alignment';
@@ -23,15 +24,17 @@ export { KEY as REMOVE_ROW } from './predefinedItems/removeRow';
 export { KEY as ROW_ABOVE } from './predefinedItems/rowAbove';
 export { KEY as ROW_BELOW } from './predefinedItems/rowBelow';
 export { KEY as SEPARATOR } from './predefinedItems/separator';
+export { KEY as NO_ITEMS } from './predefinedItems/noItems';
 export { KEY as UNDO } from './predefinedItems/undo';
 
 export const ITEMS = [
   ROW_ABOVE, ROW_BELOW, COLUMN_LEFT, COLUMN_RIGHT, CLEAR_COLUMN, REMOVE_ROW, REMOVE_COLUMN, UNDO, REDO, READ_ONLY,
-  ALIGNMENT, SEPARATOR
+  ALIGNMENT, SEPARATOR, NO_ITEMS
 ];
 
 const _predefinedItems = {
   [SEPARATOR]: separatorItem,
+  [NO_ITEMS]: noItemsItem,
   [ROW_ABOVE]: rowAboveItem,
   [ROW_BELOW]: rowBelowItem,
   [COLUMN_LEFT]: columnLeftItem,

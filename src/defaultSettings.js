@@ -78,15 +78,16 @@ DefaultSettings.prototype = {
   /**
    * License key for commercial version of Handsontable.
    *
-   * @pro
    * @type {String}
-   * @default 'trial'
+   * @default undefined
    * @example
    * ```js
    * licenseKey: '00000-00000-00000-00000-00000',
+   * // or
+   * licenseKey: 'non-commercial-and-evaluation',
    * ```
    */
-  licenseKey: 'trial',
+  licenseKey: void 0,
 
   /**
    * @description
@@ -95,7 +96,7 @@ DefaultSettings.prototype = {
    *
    * See [Understanding binding as reference](https://docs.handsontable.com/tutorial-data-binding.html#page-reference).
    *
-   * @type {Array[]|Object[]|Function}
+   * @type {Array[]|Object[]}
    * @default undefined
    * @example
    * ```js
@@ -442,17 +443,22 @@ DefaultSettings.prototype = {
    * // enable comments plugin
    * comments: true,
    *
+   * // or an object with extra predefined plugin config:
+   *
+   * comments: {
+   *   displayDelay: 1000
+   * }
+   *
    * // or
    * // enable comments plugin and add predefined comments
-   * comments: [
-   *   {
-   *     row: 1,
-   *     col: 1,
-   *     comment: {
-   *       value: "Test comment"
-   *     }
-   *   }
-   * ],
+   * const hot = new Handsontable(document.getElementById('example'), {
+   *   date: getData(),
+   *   comments: true,
+   *   cell: [
+   *     { row: 1, col: 1, comment: { value: 'Foo' } },
+   *     { row: 2, col: 2, comment: { value: 'Bar' } }
+   *   ]
+   * });
    * ```
    */
   comments: false,
@@ -1325,6 +1331,29 @@ DefaultSettings.prototype = {
 
   /**
    * @description
+   * When added to a cell property, it skips the row on paste and pastes the data on the following row.
+   *
+   * @type {Boolean}
+   * @default false
+   *
+   * @example
+   * ```js
+   * cells: function(row, column) {
+   *  const cellProperties = {};
+   *
+   *  // don't paste data to the second row
+   *  if (row === 1) {
+   *    cellProperties.skipRowOnPaste = true;
+   *  }
+   *
+   *  return cellProperties;
+   * }
+   * ```
+   */
+  skipRowOnPaste: false,
+
+  /**
+   * @description
    * Setting to `true` enables the {@link Search} plugin (see [demo](https://docs.handsontable.com/demo-search-for-values.html)).
    *
    * @type {Boolean}
@@ -1571,7 +1600,7 @@ DefaultSettings.prototype = {
    * contextMenu: true,
    *
    * // as an array
-   * contextMenu: ['row_above', 'row_below', '--------', 'undo', 'redo'],
+   * contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo'],
    *
    * // as an object (`name` attribute is required in the custom keys)
    * contextMenu: {
@@ -1601,15 +1630,35 @@ DefaultSettings.prototype = {
   contextMenu: void 0,
 
   /**
-   * Disables or enables the copy/paste functionality.
+   * Disables or enables CopyPaste plugin to provide the copy/cut/paste functionality.
+   * Possible values:
+   * * `true` (to enable default options),
+   * * `false` (to disable completely)
    *
-   * @type {Boolean}
+   * or an object with values:
+   * * `'columnsLimit'` (see {@link CopyPaste#columnsLimit})
+   * * `'rowsLimit'` (see {@link CopyPaste#rowsLimit})
+   * * `'pasteMode'` (see {@link CopyPaste#pasteMode})
+   *
+   * @type {Boolean|Object}
    * @default true
    *
    * @example
    * ```js
    * // disable copy and paste
    * copyPaste: false,
+   * ```
+   * @example
+   * ```js
+   * // disable copy and paste
+   * copyPaste: false,
+   *
+   * // or
+   * copyPaste: {
+   *   pasteMode: 'shift_right',
+   *   columnsLimit: 10,
+   *   rowsLimit: 10,
+   * }
    * ```
    */
   copyPaste: true,
@@ -1795,7 +1844,6 @@ DefaultSettings.prototype = {
    *   * `false` = the table moves all empty cells to the end of the table
    * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
    *
-   * @pro
    * @type {Boolean|Object}
    * @default undefined
    *
@@ -2337,12 +2385,25 @@ DefaultSettings.prototype = {
   preventOverflow: false,
 
   /**
+   * Prevents wheel event on overlays for doing default action.
+   *
+   * @private
+   * @type {Boolean}
+   * @default false
+   *
+   * @example
+   * ```js
+   * preventWheel: false,
+   * ```
+   */
+  preventWheel: false,
+
+  /**
    * @description
    * Enables the functionality of the {@link BindRowsWithHeaders} plugin which allows binding the table rows with their headers.
    * If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
    * if at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
    *
-   * @pro
    * @type {Boolean|String}
    * @default undefined
    *
@@ -2367,7 +2428,6 @@ DefaultSettings.prototype = {
    * To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property
    * as an array of objects, as in the example below.
    *
-   * @pro
    * @type {Boolean|Object[]}
    * @default undefined
    *
@@ -2400,7 +2460,6 @@ DefaultSettings.prototype = {
    *
    * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
    *
-   * @pro
    * @type {Object[]|Function}
    * @default undefined
    *
@@ -2429,7 +2488,6 @@ DefaultSettings.prototype = {
    * This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
    * the {@link Options#contextMenu}, but is triggered by clicking the button in the header.
    *
-   * @pro
    * @type {Boolean|Object|String[]}
    * @default undefined
    *
@@ -2448,7 +2506,6 @@ DefaultSettings.prototype = {
   /**
    * The {@link Filters} plugin allows filtering the table data either by the built-in component or with the API.
    *
-   * @pro
    * @type {Boolean}
    * @default undefined
    *
@@ -2463,7 +2520,6 @@ DefaultSettings.prototype = {
   /**
    * The {@link Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
    *
-   * @pro
    * @type {Boolean|Object}
    * @default undefined
    *
@@ -2488,7 +2544,6 @@ DefaultSettings.prototype = {
    * The {@link GanttChart} plugin enables a possibility to create a Gantt chart using a Handsontable instance. In this
    * case, the whole table becomes read-only.
    *
-   * @pro
    * @type {Object}
    * @default undefined
    */
@@ -2503,7 +2558,6 @@ DefaultSettings.prototype = {
    * * the `columns` property defines if tooltips should be added to column headers,
    * * the `onlyTrimmed` property defines if tooltips should be added only to headers, which content is trimmed by the header itself (the content being wider then the header).
    *
-   * @pro
    * @type {Boolean|Object}
    * @default undefined
    *
@@ -2528,7 +2582,6 @@ DefaultSettings.prototype = {
    *  * `columns` - an array of rows that should be hidden on plugin initialization
    *  * `indicators` - enables small ui markers to indicate where are hidden columns
    *
-   * @pro
    * @type {Boolean|Object}
    * @default undefined
    *
@@ -2554,7 +2607,6 @@ DefaultSettings.prototype = {
    *  * `rows` - an array of rows that should be hidden on plugin initialization
    *  * `indicators` - enables small ui markers to indicate where are hidden columns
    *
-   * @pro
    * @type {Boolean|Object}
    * @default undefined
    *
@@ -2578,7 +2630,6 @@ DefaultSettings.prototype = {
    * @description
    * Allows creating a nested header structure, using the HTML's colspan attribute.
    *
-   * @pro
    * @type {Array[]}
    * @default undefined
    *
@@ -2597,7 +2648,6 @@ DefaultSettings.prototype = {
    * @description
    * Plugin allowing hiding of certain rows.
    *
-   * @pro
    * @type {Boolean|Number[]}
    * @default undefined
    *
@@ -2768,7 +2818,6 @@ DefaultSettings.prototype = {
    * nestedRows: true,
    * ```
    *
-   * @pro
    * @type {Boolean}
    * @default false
    */

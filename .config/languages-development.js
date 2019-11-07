@@ -4,13 +4,14 @@
 const NEW_LINE_CHAR = '\n';
 const SOURCE_LANGUAGES_DIRECTORY = 'src/i18n/languages';
 const OUTPUT_LANGUAGES_DIRECTORY = 'languages';
-const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
 const path = require('path');
 const StringReplacePlugin  = require('string-replace-webpack-plugin');
 const WebpackOnBuildPlugin = require('on-build-webpack');
 const fs  = require('fs');
 const fsExtra  = require('fs-extra');
+
+const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
 function getEntryJsFiles() {
   const entryObject = {};
@@ -60,14 +61,17 @@ const ruleForSnippetsInjection = {
 
 module.exports.create = function create() {
   const config = {
+    mode: 'none',
     entry: getEntryJsFiles(),
     output: {
-      path: path.resolve(__dirname, '../' + OUTPUT_LANGUAGES_DIRECTORY),
-      libraryTarget: 'umd',
       filename: '[name].js',
+      globalObject: `typeof self !== 'undefined' ? self : this`,
       // Workaround below: Without this option webpack would export all language packs as globals
       libraryExport: '___',
-      umdNamedDefine: true
+      libraryTarget: 'umd',
+      path: path.resolve(__dirname, '../' + OUTPUT_LANGUAGES_DIRECTORY),
+      umdNamedDefine: true,
+      
     },
     externals: {
       [`../../${PACKAGE_FILENAME}`]: {

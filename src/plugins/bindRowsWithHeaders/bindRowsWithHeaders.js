@@ -5,7 +5,6 @@ import BindStrategy from './bindStrategy';
 
 /**
  * @plugin BindRowsWithHeaders
- * @pro
  *
  * @description
  * Plugin allows binding the table rows with their headers.

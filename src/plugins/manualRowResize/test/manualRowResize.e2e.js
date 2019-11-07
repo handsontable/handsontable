@@ -133,6 +133,59 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1);
   });
 
+  it('should trigger beforeRowResize event after row height changes', () => {
+    const beforeRowResizeCallback = jasmine.createSpy('beforeRowResizeCallback');
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      beforeRowResize: beforeRowResizeCallback
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
+
+    resizeRow(0, 100);
+    expect(beforeRowResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
+    expect(rowHeight(spec().$container, 0)).toEqual(101);
+  });
+
+  it('should appropriate resize rowHeight after beforeRowResize call a few times', async() => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      rowHeaders: true,
+      manualRowResize: true
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(24);
+
+    hot.addHook('beforeRowResize', () => 100);
+
+    hot.addHook('beforeRowResize', () => 200);
+
+    hot.addHook('beforeRowResize', () => void 0);
+
+    const $th = spec().$container.find('tbody tr:eq(0) th:eq(0)');
+    $th.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown', {
+      clientY: resizerPosition.top
+    });
+    $resizer.simulate('mouseup');
+
+    $resizer.simulate('mousedown', {
+      clientY: resizerPosition.top
+    });
+    $resizer.simulate('mouseup');
+
+    await sleep(700);
+
+    expect(rowHeight(spec().$container, 0)).toEqual(201);
+  });
+
   it('should trigger afterRowResize event after row height changes', () => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
@@ -146,7 +199,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
     resizeRow(0, 100);
-    expect(afterRowResizeCallback).toHaveBeenCalledWith(0, 100, false, void 0, void 0, void 0);
+    expect(afterRowResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
     expect(rowHeight(spec().$container, 0)).toEqual(101);
   });
 
@@ -227,8 +280,8 @@ describe('manualRowResize', () => {
     await sleep(1000);
 
     expect(afterRowResizeCallback.calls.count()).toEqual(1);
-    expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(2);
-    expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(defaultRowHeight + 1);
+    expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(2);
+    expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(defaultRowHeight + 1);
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1);
   });
   it('should not trigger afterRowResize event after if row height does not change (no dblclick event)', () => {
@@ -257,7 +310,7 @@ describe('manualRowResize', () => {
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
   });
-  it('should display the resize handle in the correct place after the table has been scrolled', () => {
+  it('should display the resize handle in the correct place after the table has been scrolled', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 20),
       rowHeaders: true,
@@ -280,7 +333,9 @@ describe('manualRowResize', () => {
     $(mainHolder).scrollTop(200);
     $(mainHolder).scroll();
 
-    $rowHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
+    await sleep(400);
+
+    $rowHeader = spec().$container.find('.ht_clone_left tbody tr:eq(10) th:eq(0)');
     $rowHeader.simulate('mouseover');
     expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
     expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
@@ -359,6 +414,134 @@ describe('manualRowResize', () => {
     expect($rowsHeaders.eq(3).height()).toEqual(35);
   });
 
+  describe('handle position in a table positioned using CSS\'s `transform`', () => {
+    it('should display the handles in the correct position, with holder as a scroll parent', async() => {
+      spec().$container.css('transform', 'translate(50px, 120px)');
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        manualRowResize: true,
+        height: 400,
+        width: 200
+      });
+
+      const mainHolder = hot.view.wt.wtTable.holder;
+      let $rowHeader = spec().$container.find('.ht_clone_left tr:eq(2) th:eq(0)');
+
+      $rowHeader.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualRowResizer');
+
+      expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
+      expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
+
+      $(mainHolder).scrollTop(200);
+
+      await sleep(400);
+
+      $rowHeader = spec().$container.find('.ht_clone_left tr:eq(13) th:eq(0)');
+      $rowHeader.simulate('mouseover');
+      expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
+      expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
+    });
+
+    it('should display the handles in the correct position, with window as a scroll parent', async() => {
+      spec().$container.css('transform', 'translate(50px, 120px)');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(80, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        manualRowResize: true,
+      });
+
+      let $rowHeader = spec().$container.find('.ht_clone_left tr:eq(2) th:eq(0)');
+
+      $rowHeader.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualRowResizer');
+
+      expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
+      expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
+
+      $(window).scrollTop(600);
+
+      await sleep(400);
+
+      $rowHeader = spec().$container.find('.ht_clone_left tr:eq(13) th:eq(0)');
+      $rowHeader.simulate('mouseover');
+      expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
+      expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
+
+      $(window).scrollTop(0);
+    });
+  });
+
+  describe('column resizing in a table positioned using CSS\'s `transform`', () => {
+    it('should resize (expanding) selected columns, with holder as a scroll parent', async() => {
+      spec().$container.css('transform', 'translate(50px, 120px)');
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(30, 10),
+        rowHeaders: true,
+        manualRowResize: true,
+        width: 200,
+        height: 400
+      });
+
+      const mainHolder = hot.view.wt.wtTable.holder;
+      $(mainHolder).scrollTop(200);
+
+      await sleep(400);
+
+      spec().$container.find('tbody tr:eq(12) th:eq(0)').simulate('mousedown');
+      spec().$container.find('tbody tr:eq(13) th:eq(0)').simulate('mouseover');
+      spec().$container.find('tbody tr:eq(14) th:eq(0)').simulate('mouseover');
+      spec().$container.find('tbody tr:eq(14) th:eq(0)').simulate('mouseup');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $resizer.position();
+      $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+      $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
+      $resizer.simulate('mouseup');
+
+      expect(spec().$container.find('tbody tr:eq(12) th:eq(0)').height()).toBe(52);
+      expect(spec().$container.find('tbody tr:eq(13) th:eq(0)').height()).toBe(52);
+      expect(spec().$container.find('tbody tr:eq(14) th:eq(0)').height()).toBe(52);
+    });
+
+    it('should resize (expanding) selected columns, with window as a scroll parent', () => {
+      spec().$container.css('transform', 'translate(50px, 120px)');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 10),
+        rowHeaders: true,
+        manualRowResize: true
+      });
+
+      $(window).scrollTop(200);
+
+      spec().$container.find('tbody tr:eq(12) th:eq(0)').simulate('mousedown');
+      spec().$container.find('tbody tr:eq(13) th:eq(0)').simulate('mouseover');
+      spec().$container.find('tbody tr:eq(14) th:eq(0)').simulate('mouseover');
+      spec().$container.find('tbody tr:eq(14) th:eq(0)').simulate('mouseup');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $resizer.position();
+      $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+      $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
+      $resizer.simulate('mouseup');
+
+      expect(spec().$container.find('tbody tr:eq(12) th:eq(0)').height()).toBe(52);
+      expect(spec().$container.find('tbody tr:eq(13) th:eq(0)').height()).toBe(52);
+      expect(spec().$container.find('tbody tr:eq(14) th:eq(0)').height()).toBe(52);
+
+      $(window).scrollTop(0);
+    });
+  });
+
   describe('handle and guide', () => {
     it('should display the resize handle in the proper position and with a proper size', () => {
       handsontable({
@@ -380,6 +563,27 @@ describe('manualRowResize', () => {
 
       expect($handle.offset().top).toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
+    });
+
+    it('should display the resize handle in the proper z-index and be greater than left overlay z-index', () => {
+      handsontable({
+        data: [
+          { id: 1, name: 'Ted', lastName: 'Right' },
+          { id: 2, name: 'Frank', lastName: 'Honest' },
+          { id: 3, name: 'Joan', lastName: 'Well' },
+          { id: 4, name: 'Sid', lastName: 'Strong' },
+          { id: 5, name: 'Jane', lastName: 'Neat' }
+        ],
+        rowHeaders: true,
+        manualRowResize: true
+      });
+
+      const $headerTH = spec().$container.find('tbody tr:eq(1) th:eq(0)');
+      $headerTH.simulate('mouseover');
+
+      const $handle = $('.manualRowResizer');
+
+      expect($handle.css('z-index')).toBeGreaterThan(getLeftClone().css('z-index'));
     });
   });
 });

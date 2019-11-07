@@ -73,7 +73,13 @@ class DateEditor extends TextEditor {
    * Destroy data picker instance
    */
   destroyElements() {
+    const datePickerParentElement = this.datePicker.parentNode;
+
     this.$datePicker.destroy();
+
+    if (datePickerParentElement) {
+      datePickerParentElement.removeChild(this.datePicker);
+    }
   }
 
   /**

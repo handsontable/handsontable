@@ -72,13 +72,18 @@ describe('TextEditor', () => {
       editor: 'text',
     });
 
-    selectCell(0, 0);
+    selectCell(1, 1);
 
-    const { left, position, top, zIndex } = spec().$container.find('.handsontableInputHolder').css(['left', 'position', 'top', 'zIndex']);
+    const { left, top, position, zIndex } = spec().$container.find('.handsontableInputHolder').css([
+      'left',
+      'top',
+      'position',
+      'zIndex'
+    ]);
 
-    expect(left).toBe('-9999px');
-    expect(position).toBe('fixed');
-    expect(top).toBe('-9999px');
+    expect(parseInt(left, 10)).toBe(getCell(1, 1).offsetLeft - 1);
+    expect(position).toBe('absolute');
+    expect(parseInt(top, 10)).toBe(getCell(1, 1).offsetTop - 1);
     expect(zIndex).toBe('-1');
   });
 
@@ -92,12 +97,21 @@ describe('TextEditor', () => {
 
     const cell = getCell(0, 0);
     const [cellOffsetTop, cellOffsetLeft] = [cell.offsetTop, cell.offsetLeft];
-    const { left, position, top, zIndex } = spec().$container.find('.handsontableInputHolder').css(['left', 'position', 'top', 'zIndex']);
+    const { left, right, position, top, zIndex, overflow } = spec().$container.find('.handsontableInputHolder').css([
+      'left',
+      'right',
+      'position',
+      'top',
+      'zIndex',
+      'overflow',
+    ]);
 
     expect(parseInt(left, 10)).toBeAroundValue(cellOffsetLeft);
+    expect(parseInt(right, 10)).not.toBe(document.body.offsetWidth);
     expect(position).toBe('absolute');
     expect(parseInt(top, 10)).toBeAroundValue(cellOffsetTop);
     expect(zIndex).not.toBe('-1');
+    expect(overflow).not.toBe('hidden');
   });
 
   it('should render string in textarea', () => {
@@ -210,7 +224,7 @@ describe('TextEditor', () => {
     }, 200);
   });
 
-  it('should hide whole editor when it is higher then header', (done) => {
+  it('should hide whole editor when it is higher then header and TD is not rendered anymore', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       rowHeaders: true,
@@ -228,11 +242,34 @@ describe('TextEditor', () => {
     mainHolder.scrollTop = 150;
     mainHolder.scrollLeft = 150;
 
-    setTimeout(() => {
-      expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).toBeAroundValue(-77);
-      expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBeAroundValue(-1);
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(parseInt(hot.getActiveEditor().textareaParentStyle.opacity, 10)).toBe(0); // result of textEditor .close()
+  });
+
+  it('should hide whole editor when it is higher then header and TD is still rendered', async() => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(50, 50),
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    setDataAtCell(2, 2, 'string\nstring\nstring');
+    selectCell(2, 2);
+
+    keyDown('enter');
+    keyUp('enter');
+
+    const mainHolder = hot.view.wt.wtTable.holder;
+
+    mainHolder.scrollTop = 150;
+    mainHolder.scrollLeft = 100;
+
+    await sleep(200);
+
+    expect(parseInt(hot.getActiveEditor().textareaParentStyle.opacity, 10)).toBe(1);
+    expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).toBeAroundValue(-77);
+    expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBeAroundValue(50);
   });
 
   it('should hide editor when quick navigation by click scrollbar was triggered', async() => {
@@ -801,7 +838,7 @@ describe('TextEditor', () => {
 
     keyDown(Handsontable.helper.KEY_CODES.BACKSPACE);
 
-    expect(getDataAtCell(0, 0)).toEqual('');
+    expect(getDataAtCell(0, 0)).toEqual(null);
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
@@ -821,7 +858,7 @@ describe('TextEditor', () => {
 
     keyDown(Handsontable.helper.KEY_CODES.DELETE);
 
-    expect(getDataAtCell(0, 0)).toEqual('');
+    expect(getDataAtCell(0, 0)).toEqual(null);
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
@@ -1194,6 +1231,34 @@ describe('TextEditor', () => {
     expect(hot.getActiveEditor().TEXTAREA.value).toEqual('Ma\nserati');
   });
 
+  it('should exceed the editor height only for one line when pressing ALT + ENTER', () => {
+    const data = [
+      ['Maserati', 'Mazda'],
+      ['Honda', 'Mini']
+    ];
+
+    const hot = handsontable({
+      data
+    });
+
+    selectCell(0, 0);
+    keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
+
+    const $editorInput = $('.handsontableInput');
+
+    $editorInput.simulate('keydown', {
+      altKey: true,
+      keyCode: Handsontable.helper.KEY_CODES.ENTER
+    });
+
+    const editorTextarea = hot.getActiveEditor().TEXTAREA;
+    const editorComputedStyle = getComputedStyle(editorTextarea);
+    const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
+    const editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
+
+    expect(editorTextareaHeight).toBe(2 * editorTextareaLineHeight);
+  });
+
   it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', () => {
     const data = [
       ['', '', '', '', ''],
@@ -1335,6 +1400,27 @@ describe('TextEditor', () => {
     expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     expect(isEditorVisible()).toBe(true);
     expect(getActiveEditor().TEXTAREA.value).toBe('999');
+  });
+
+  it('should not prepare editor after the close editor and selecting the read-only cell', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      columns: [
+        { readOnly: true },
+        {}
+      ]
+    });
+
+    selectCell(0, 1);
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    selectCell(0, 0);
+
+    keyDownUp('enter');
+
+    expect(hot.getActiveEditor()).toBe(void 0);
   });
 
   describe('IME support', () => {

@@ -48,6 +48,7 @@ describe('Core_destroy', () => {
     const hot = handsontable();
 
     destroy();
+    spec().$container.remove();
 
     expect(() => {
       hot.getDataAtCell(0, 0);

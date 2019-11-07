@@ -113,7 +113,7 @@ class CustomBorders extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
-    this.addHook('afterInit', () => this.onAfterInit());
+    this.addHook('init', () => this.onAfterInit());
 
     super.enablePlugin();
   }
@@ -172,6 +172,18 @@ class CustomBorders extends BasePlugin {
         }
       }
     });
+
+    /*
+    The line below triggers a re-render of Handsontable. This will be a "fastDraw"
+    render, because that is the default for the TableView class.
+
+    The re-render is needed for borders on cells that did not have a border before.
+    The way this call works is that it calls Table.refreshSelections, which calls
+    Selection.getBorder, which creates a new instance of Border.
+
+    Seems wise to keep this single-direction flow of creating new Borders
+    */
+    this.hot.view.render();
   }
 
   /**
@@ -273,7 +285,6 @@ class CustomBorders extends BasePlugin {
 
     if (!hasCustomSelections) {
       this.hot.selection.highlight.addCustomSelection({ border, cellRange });
-      this.hot.view.wt.draw(true);
     }
   }
 
@@ -323,33 +334,29 @@ class CustomBorders extends BasePlugin {
         let add = 0;
 
         if (rowIndex === range.from.row) {
-          add += 1;
-
           if (hasOwnProperty(rowDecriptor, 'top')) {
+            add += 1;
             border.top = rowDecriptor.top;
           }
         }
 
         if (rowIndex === range.to.row) {
-          add += 1;
-
           if (hasOwnProperty(rowDecriptor, 'bottom')) {
+            add += 1;
             border.bottom = rowDecriptor.bottom;
           }
         }
 
         if (colIndex === range.from.col) {
-          add += 1;
-
           if (hasOwnProperty(rowDecriptor, 'left')) {
+            add += 1;
             border.left = rowDecriptor.left;
           }
         }
 
         if (colIndex === range.to.col) {
-          add += 1;
-
           if (hasOwnProperty(rowDecriptor, 'right')) {
+            add += 1;
             border.right = rowDecriptor.right;
           }
         }
@@ -357,6 +364,8 @@ class CustomBorders extends BasePlugin {
         if (add > 0) {
           this.hot.setCellMeta(rowIndex, colIndex, 'borders', border);
           this.insertBorderIntoSettings(border);
+        } else {
+          // TODO sometimes it enters here. Why?
         }
       });
     });
@@ -533,8 +542,6 @@ class CustomBorders extends BasePlugin {
     if (index > -1) {
       this.hot.selection.highlight.customSelections[index].clear();
     }
-
-    this.hot.view.wt.draw(true);
   }
 
   /**
@@ -545,6 +552,7 @@ class CustomBorders extends BasePlugin {
   clearNullCellRange() {
     arrayEach(this.hot.selection.highlight.customSelections, (customSelection, index) => {
       if (customSelection.cellRange === null) {
+        this.hot.selection.highlight.customSelections[index].destroy();
         this.hot.selection.highlight.customSelections.splice(index, 1);
 
         return false; // breaks forAll
@@ -560,6 +568,7 @@ class CustomBorders extends BasePlugin {
   hideBorders() {
     arrayEach(this.savedBorders, (border) => {
       this.clearBordersFromSelectionSettings(border.id);
+      this.clearNullCellRange();
     });
   }
 
@@ -624,7 +633,7 @@ class CustomBorders extends BasePlugin {
     arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
       if (border.id === customSelection.settings.id) {
         objectEach(customSelection.instanceBorders, (borderObject) => {
-          borderObject.toggleHiddenClass(place, remove);
+          borderObject.toggleHiddenClass(place, remove); // TODO this also bad?
         });
 
         check = true;
@@ -652,9 +661,6 @@ class CustomBorders extends BasePlugin {
 
     if (hideCount === 4) {
       this.removeAllBorders(border.row, border.col);
-      this.clearBordersFromSelectionSettings(border.id);
-      this.clearNullCellRange();
-
       check = true;
 
     } else {

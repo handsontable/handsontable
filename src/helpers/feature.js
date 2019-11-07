@@ -138,3 +138,32 @@ export function getComparisonFunction(language, options = {}) {
 
   return comparisonFunction;
 }
+
+let passiveSupported;
+/**
+ * Checks if browser supports passive events.
+ *
+ * @returns {Boolean}
+ */
+export function isPassiveEventSupported() {
+  if (passiveSupported !== void 0) {
+    return passiveSupported;
+  }
+
+  try {
+    const options = {
+      get passive() {
+        passiveSupported = true;
+      }
+    };
+
+    // eslint-disable-next-line no-restricted-globals
+    window.addEventListener('test', options, options);
+    // eslint-disable-next-line no-restricted-globals
+    window.removeEventListener('test', options, options);
+  } catch (err) {
+    passiveSupported = false;
+  }
+
+  return passiveSupported;
+}

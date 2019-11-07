@@ -2,10 +2,11 @@ import Handsontable from 'handsontable';
 
 const domElement = new HTMLElement();
 const domEvent = new Event('foo');
+const cssRule = new CSSRule();
 
 const htmlCharacters = Handsontable.dom.HTML_CHARACTERS;
 
-Handsontable.dom.addEvent(domElement, 'foo', () => {});
+Handsontable.dom.addEvent(domElement, 'foo', (event) => {});
 Handsontable.dom.addClass(domElement, ['foo', 'bar']);
 Handsontable.dom.clearTextSelection();
 Handsontable.dom.clearTextSelection(window);
@@ -52,10 +53,11 @@ Handsontable.dom.isLeftClick(domEvent);
 Handsontable.dom.isOutsideInput(domElement);
 Handsontable.dom.isRightClick(domEvent);
 Handsontable.dom.isVisible(domElement);
+Handsontable.dom.matchesCSSRules(domElement, cssRule);
 Handsontable.dom.offset(domElement);
 Handsontable.dom.outerHeight(domElement);
 Handsontable.dom.outerWidth(domElement);
-Handsontable.dom.overlayContainsElement('foo', domElement);
+Handsontable.dom.overlayContainsElement('top', domElement, domElement);
 Handsontable.dom.pageX(domEvent);
 Handsontable.dom.pageY(domEvent);
 Handsontable.dom.polymerUnwrap(domElement);

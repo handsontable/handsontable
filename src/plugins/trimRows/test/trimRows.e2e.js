@@ -247,7 +247,7 @@ describe('TrimRows', () => {
   });
 
   describe('plugin hooks', () => {
-    it('should not affect `afterValidate` hook #11', (done) => {
+    it('should not affect `afterValidate` hook #11', async() => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 2),
         trimRows: true,
@@ -264,13 +264,10 @@ describe('TrimRows', () => {
         ['E1', 'E2'],
       ]);
 
-      setTimeout(() => {
-        const $addedCell = $(getCell(5, 1));
+      await sleep(150);
+      const $addedCell = $(getCell(5, 1));
 
-        expect($addedCell.hasClass('htInvalid')).toEqual(true);
-
-        done();
-      }, 100);
+      expect($addedCell.hasClass('htInvalid')).toEqual(true);
     });
 
     describe('beforeTrimRow', () => {

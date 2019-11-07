@@ -10,8 +10,7 @@
 
 .htContextMenu .ht_clone_top,
 .htContextMenu .ht_clone_left,
-.htContextMenu .ht_clone_corner,
-.htContextMenu .ht_clone_debug {
+.htContextMenu .ht_clone_corner {
   display: none;
 }
 

@@ -298,4 +298,70 @@ describe('Core_setDataAtCell', () => {
     expect(getDataAtRowProp(1, 'id')).toBe(33);
     expect(getData()).toEqual([['bar', 1], ['b', 33], ['c', 3]]);
   });
+
+  it('should not throw an error when trying set data after selection on cell read-only', () => {
+    let errors = 0;
+
+    handsontable({
+      data: [[1, 1]],
+      readOnly: true
+    });
+
+    try {
+      selectCell(0, 0);
+      setDataAtCell(0, 0, '333');
+    } catch (e) {
+      errors += 1;
+    }
+
+    expect(errors).toBe(0);
+  });
+
+  describe('Coordinates out of dataset', () => {
+    it('should insert new column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 1)
+      });
+
+      setDataAtCell([[0, 1, 'new column']], 'customSource');
+      expect(countCols()).toBe(2);
+    });
+
+    it('should insert new row', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 1)
+      });
+
+      setDataAtCell([[1, 0, 'new row']], 'customSource');
+      expect(countRows()).toBe(2);
+    });
+
+    it('should not insert new column if `beforeCreateCol` returns false', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        beforeCreateCol() {
+          return false;
+        }
+      });
+
+      const countedColumns = countCols();
+
+      setDataAtCell([[0, 1, 'new column']], 'customSource');
+      expect(countCols()).toBe(countedColumns);
+    });
+
+    it('should not insert new row if `beforeCreateRow` returns false', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        beforeCreateRow() {
+          return false;
+        }
+      });
+
+      const countedRows = countRows();
+
+      setDataAtCell([[1, 0, 'new row']], 'customSource');
+      expect(countRows()).toBe(countedRows);
+    });
+  });
 });

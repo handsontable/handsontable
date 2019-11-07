@@ -56,5 +56,32 @@ describe('NestedRows', () => {
       expect(hot.getData().length).toEqual(12);
 
     });
+
+    it('should display the right amount of entries when calling loadData after being initialized with empty data', (done) => {
+      const hot = handsontable({
+        data: [],
+        nestedRows: true
+      });
+
+      setTimeout(() => {
+        hot.loadData(getDataForNestedRows());
+        expect(hot.countRows()).toEqual(12);
+        done();
+      }, 100);
+    });
+
+    it('should display the right amount of entries when calling loadData with another set of data', (done) => {
+      const hot = handsontable({
+        data: getDataForNestedRows(),
+        nestedRows: true
+      });
+
+      setTimeout(() => {
+        hot.loadData(getDataForNestedRows().slice(0, 1));
+        expect(hot.countRows()).toEqual(6);
+        done();
+      }, 100);
+    });
+
   });
 });

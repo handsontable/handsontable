@@ -4,6 +4,7 @@ import {
   outerWidth,
   resetCssTransform
 } from './../../../../helpers/dom/element';
+import BottomLeftCornerOverlayTable from './../table/bottomLeftCorner';
 import Overlay from './_base';
 
 /**
@@ -16,6 +17,17 @@ class BottomLeftCornerOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_BOTTOM_LEFT_CORNER);
+  }
+
+  /**
+   * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   *
+   * @see Table#constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor
+   * @returns {Table}
+   */
+  createTable(...args) {
+    return new BottomLeftCornerOverlayTable(...args);
   }
 
   /**
@@ -58,8 +70,6 @@ class BottomLeftCornerOverlay extends Overlay {
       return;
     }
     const overlayRoot = this.clone.wtTable.holder.parentNode;
-    const tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
 
     overlayRoot.style.top = '';
 
@@ -93,6 +103,14 @@ class BottomLeftCornerOverlay extends Overlay {
       resetCssTransform(overlayRoot);
       this.repositionOverlay();
     }
+
+    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+
+    if (!this.wot.wtTable.hasDefinedSize()) {
+      tableHeight = 0;
+    }
+
     overlayRoot.style.height = `${tableHeight === 0 ? tableHeight : tableHeight}px`;
     overlayRoot.style.width = `${tableWidth === 0 ? tableWidth : tableWidth}px`;
   }

@@ -108,7 +108,11 @@ export function isChildOf(child, parent) {
   let queriedParents = [];
 
   if (typeof parent === 'string') {
-    queriedParents = Array.prototype.slice.call(child.ownerDocument.querySelectorAll(parent), 0);
+    if (child.defaultView) {
+      queriedParents = Array.prototype.slice.call(child.querySelectorAll(parent), 0);
+    } else {
+      queriedParents = Array.prototype.slice.call(child.ownerDocument.querySelectorAll(parent), 0);
+    }
   } else {
     queriedParents.push(parent);
   }
@@ -206,10 +210,11 @@ export function index(element) {
  *
  * @param {String} overlay
  * @param {HTMLElement} element
+ * @param {HTMLElement} root
  * @returns {boolean}
  */
-export function overlayContainsElement(overlayType, element) {
-  const overlayElement = element.ownerDocument.querySelector(`.ht_clone_${overlayType}`);
+export function overlayContainsElement(overlayType, element, root) {
+  const overlayElement = root.parentElement.querySelector(`.ht_clone_${overlayType}`);
   return overlayElement ? overlayElement.contains(element) : null;
 }
 
@@ -616,11 +621,11 @@ export function getScrollLeft(element, rootWindow = window) {
  * @returns {HTMLElement} Element's scrollable parent
  */
 export function getScrollableElement(element) {
-  let rootDocument = element.document;
-  let rootWindow = element;
+  let rootDocument = element.ownerDocument;
+  let rootWindow = rootDocument ? rootDocument.defaultView : void 0;
 
   if (!rootDocument) {
-    rootDocument = element.ownerDocument ? element.ownerDocument : element;
+    rootDocument = element.document ? element.document : element;
     rootWindow = rootDocument.defaultView;
   }
 
@@ -724,6 +729,29 @@ export function getStyle(element, prop, rootWindow = window) {
   if (computedStyle[prop] !== '' && computedStyle[prop] !== void 0) {
     return computedStyle[prop];
   }
+}
+
+/**
+ * Verifies if element fit to provided CSSRule.
+ *
+ * @param {Element} element Element to verify with selector text.
+ * @param {CSSRule} rule Selector text from CSSRule.
+ * @returns {Boolean}
+ */
+export function matchesCSSRules(element, rule) {
+  const { selectorText } = rule;
+  let result = false;
+
+  if (rule.type === CSSRule.STYLE_RULE && selectorText) {
+    if (element.msMatchesSelector) {
+      result = element.msMatchesSelector(selectorText);
+
+    } else if (element.matches) {
+      result = element.matches(selectorText);
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -1080,7 +1108,7 @@ export function isInput(element) {
  * @returns {Boolean}
  */
 export function isOutsideInput(element) {
-  return isInput(element) && element.className.indexOf('handsontableInput') === -1 && element.className.indexOf('copyPaste') === -1;
+  return isInput(element) && element.className.indexOf('handsontableInput') === -1 && element.className.indexOf('HandsontableCopyPaste') === -1;
 }
 
 /**

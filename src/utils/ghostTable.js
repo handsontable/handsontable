@@ -255,6 +255,9 @@ class GhostTable {
         const renderer = this.hot.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
 
+        // Indicate that this element is created and supported by GhostTable. It can be useful to
+        // exclude rendering performance costly logic or exclude logic which doesn't work within a hidden table.
+        td.setAttribute('ghost-table', 1);
         renderer(this.hot, td, row, column, this.hot.colToProp(column), string.value, cellProperties);
         fragment.appendChild(td);
       });

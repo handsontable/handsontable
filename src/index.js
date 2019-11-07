@@ -1,6 +1,5 @@
-import '@babel/polyfill';
-
 import './css/bootstrap.css';
+import './3rdparty/walkontable/css/walkontable.css';
 import './css/handsontable.css';
 import './css/mobile.handsontable.css';
 
@@ -14,6 +13,7 @@ import jQueryWrapper from './helpers/wrappers/jquery';
 import EventManager, { getListenersCounter } from './eventManager';
 import Hooks from './pluginHooks';
 import GhostTable from './utils/ghostTable';
+import * as parseTableHelpers from './utils/parseTable';
 import * as arrayHelpers from './helpers/array';
 import * as browserHelpers from './helpers/browser';
 import * as dataHelpers from './helpers/data';
@@ -34,6 +34,7 @@ import DefaultSettings from './defaultSettings';
 import { rootInstanceSymbol } from './utils/rootInstance';
 import { getTranslatedPhrase } from './i18n';
 import * as constants from './i18n/constants';
+
 import { registerLanguageDictionary, getLanguagesDictionaries, getLanguageDictionary } from './i18n/dictionariesManager';
 
 function Handsontable(rootElement, userSettings) {
@@ -46,14 +47,14 @@ function Handsontable(rootElement, userSettings) {
 
 jQueryWrapper(Handsontable);
 
-Handsontable.Core = Core;
+Handsontable.Core = function(rootElement, userSettings = {}) {
+  return new Core(rootElement, userSettings, rootInstanceSymbol);
+};
 Handsontable.DefaultSettings = DefaultSettings;
 Handsontable.EventManager = EventManager;
 Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
 
-const hotPackageType = process.env.HOT_PACKAGE_TYPE;
-
-Handsontable.packageName = `handsontable-${hotPackageType}`;
+Handsontable.packageName = 'handsontable';
 Handsontable.buildDate = process.env.HOT_BUILD_DATE;
 Handsontable.version = process.env.HOT_VERSION;
 
@@ -78,6 +79,7 @@ const HELPERS = [
   settingHelpers,
   stringHelpers,
   unicodeHelpers,
+  parseTableHelpers,
 ];
 const DOM = [
   domHelpers,

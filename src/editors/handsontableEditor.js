@@ -45,7 +45,10 @@ class HandsontableEditor extends TextEditor {
    * Closes the editor.
    */
   close() {
-    this.htEditor.rootElement.style.display = 'none';
+    if (this.htEditor) {
+      this.htEditor.rootElement.style.display = 'none';
+    }
+
     this.removeHooksByKey('beforeKeyDown');
     super.close();
   }
@@ -85,7 +88,8 @@ class HandsontableEditor extends TextEditor {
           parent.setValue(sourceValue);
         }
         parent.instance.destroyEditor();
-      }
+      },
+      preventWheel: true,
     };
 
     if (this.cellProperties.handsontable) {
@@ -113,8 +117,8 @@ class HandsontableEditor extends TextEditor {
   /**
    * Sets focus state on the select element.
    */
-  focus() {
-    super.focus();
+  focus(safeFocus) {
+    super.focus(safeFocus);
   }
 
   /**

@@ -5,7 +5,6 @@ import * as strategies from './bindStrategies';
 /**
  * @class BindStrategy
  * @plugin BindRowsWithHeaders
- * @pro
  */
 class BindStrategy {
   /**

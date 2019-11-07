@@ -115,7 +115,7 @@ class AutoRowSize extends BasePlugin {
     this.inProgress = false;
 
     // moved to constructor to allow auto-sizing the rows when the plugin is disabled
-    this.addHook('beforeRowResize', (row, size, isDblClick) => this.onBeforeRowResize(row, size, isDblClick));
+    this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
   }
 
   /**
@@ -330,7 +330,7 @@ class AutoRowSize extends BasePlugin {
   /**
    * Get the first visible row.
    *
-   * @returns {Number|null} Returns row index, -1 if table is not rendered or null if there are no rows to base the the calculations on.
+   * @returns {Number} Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.
    */
   getFirstVisibleRow() {
     const wot = this.hot.view.wt;
@@ -404,7 +404,7 @@ class AutoRowSize extends BasePlugin {
     const firstVisibleRow = this.getFirstVisibleRow();
     const lastVisibleRow = this.getLastVisibleRow();
 
-    if (firstVisibleRow === null || lastVisibleRow === null) {
+    if (firstVisibleRow === -1 || lastVisibleRow === -1) {
       return;
     }
 
@@ -442,7 +442,7 @@ class AutoRowSize extends BasePlugin {
    * @param {Boolean} isDblClick
    * @returns {Number}
    */
-  onBeforeRowResize(row, size, isDblClick) {
+  onBeforeRowResize(size, row, isDblClick) {
     let newSize = size;
 
     if (isDblClick) {

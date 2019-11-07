@@ -1,7 +1,7 @@
 import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
 import { arrayEach } from './../../helpers/array';
-import { addClass, removeClass, offset } from './../../helpers/dom/element';
+import { addClass, removeClass, offset, hasClass } from './../../helpers/dom/element';
 import { rangeEach } from './../../helpers/number';
 import EventManager from './../../eventManager';
 import { registerPlugin } from './../../plugins';
@@ -210,9 +210,9 @@ class ManualColumnMove extends BasePlugin {
 
       // after moving we have to clear columnsMapper from null entries
       this.columnsMapper.clearNull();
-    }
 
-    this.hot.runHooks('afterColumnMove', visualColumns, target);
+      this.hot.runHooks('afterColumnMove', visualColumns, target);
+    }
   }
 
   /**
@@ -477,7 +477,7 @@ class ManualColumnMove extends BasePlugin {
     const selection = this.hot.getSelectedRangeLast();
     const priv = privatePool.get(this);
     // This block action shouldn't be handled below.
-    const isSortingElement = event.realTarget.className.indexOf('sortAction') > -1;
+    const isSortingElement = hasClass(event.realTarget, 'sortAction');
 
     if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0 || isSortingElement) {
       priv.pressed = false;

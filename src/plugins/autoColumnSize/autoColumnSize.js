@@ -1,7 +1,6 @@
 import BasePlugin from './../_base';
 import { arrayEach, arrayFilter, arrayReduce, arrayMap } from './../../helpers/array';
 import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
-import { isVisible } from './../../helpers/dom/element';
 import GhostTable from './../../utils/ghostTable';
 import { isObject, hasOwnProperty } from './../../helpers/object';
 import { valueAccordingPercent, rangeEach } from './../../helpers/number';
@@ -112,7 +111,8 @@ class AutoColumnSize extends BasePlugin {
           labelText = typeof labelValue === 'function' ? labelValue(row, column, this.hot.colToProp(column), cellValue) : labelValue;
 
         } else if (labelProperty) {
-          labelText = this.hot.getDataAtRowProp(row, labelProperty);
+          const labelData = this.hot.getDataAtRowProp(row, labelProperty);
+          labelText = labelData !== null ? labelData : '';
         }
 
         bundleCountSeed = labelText.length;
@@ -135,7 +135,7 @@ class AutoColumnSize extends BasePlugin {
     this.inProgress = false;
 
     // moved to constructor to allow auto-sizing the columns when the plugin is disabled
-    this.addHook('beforeColumnResize', (col, size, isDblClick) => this.onBeforeColumnResize(col, size, isDblClick));
+    this.addHook('beforeColumnResize', (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
   }
 
   /**
@@ -249,9 +249,13 @@ class AutoColumnSize extends BasePlugin {
 
       if (current < length) {
         timer = requestAnimationFrame(loop);
+
       } else {
         cancelAnimationFrame(timer);
         this.inProgress = false;
+
+        // @TODO Should call once per render cycle, currently fired separately in different plugins
+        this.hot.view.wt.wtOverlays.adjustElementsSize();
       }
     };
 
@@ -294,7 +298,7 @@ class AutoColumnSize extends BasePlugin {
    * Recalculates all columns width (overwrite cache values).
    */
   recalculateAllColumnsWidth() {
-    if (this.hot.view && isVisible(this.hot.view.wt.wtTable.TABLE)) {
+    if (this.hot.view && this.hot.view.wt.wtTable.isVisible()) {
       this.clearCache();
       this.calculateAllColumnsWidth();
     }
@@ -350,7 +354,7 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Gets the first visible column.
    *
-   * @returns {Number|null} Returns column index, -1 if table is not rendered or null if there are no columns to base the the calculations on.
+   * @returns {Number} Returns column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn() {
     const wot = this.hot.view.wt;
@@ -447,7 +451,7 @@ class AutoColumnSize extends BasePlugin {
     const firstVisibleColumn = this.getFirstVisibleColumn();
     const lastVisibleColumn = this.getLastVisibleColumn();
 
-    if (firstVisibleColumn === null || lastVisibleColumn === null) {
+    if (firstVisibleColumn === -1 || lastVisibleColumn === -1) {
       return;
     }
 
@@ -497,18 +501,18 @@ class AutoColumnSize extends BasePlugin {
    * On before column resize listener.
    *
    * @private
-   * @param {Number} col
    * @param {Number} size
+   * @param {Number} column
    * @param {Boolean} isDblClick
    * @returns {Number}
    */
-  onBeforeColumnResize(col, size, isDblClick) {
+  onBeforeColumnResize(size, column, isDblClick) {
     let newSize = size;
 
     if (isDblClick) {
-      this.calculateColumnsWidth(col, void 0, true);
+      this.calculateColumnsWidth(column, void 0, true);
 
-      newSize = this.getColumnWidth(col, void 0, false);
+      newSize = this.getColumnWidth(column, void 0, false);
     }
 
     return newSize;

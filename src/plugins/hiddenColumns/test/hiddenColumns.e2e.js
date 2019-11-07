@@ -95,8 +95,6 @@ describe('HiddenColumns', () => {
       height: 300
     });
 
-    window.hot = hot;
-
     hot.getPlugin('hiddenColumns').disablePlugin();
     hot.render();
     hot.getPlugin('hiddenColumns').enablePlugin();
@@ -418,7 +416,10 @@ describe('HiddenColumns', () => {
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
-      expect(actions.length).toEqual(0);
+      expect(actions.length).toEqual(1);
+      expect(actions.text()).toEqual([
+        'No available options',
+      ].join(''));
     });
     it('should hide selected columns by "Hide column" in context menu', () => {
       const hot = handsontable({
@@ -441,7 +442,7 @@ describe('HiddenColumns', () => {
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
-      actions.simulate('mousedown');
+      actions.simulate('mousedown').simulate('mouseup');
 
       expect(hot.getColWidth(3)).toBe(0.1);
       expect(hot.getColWidth(4)).toBe(0.1);
@@ -470,7 +471,7 @@ describe('HiddenColumns', () => {
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
-      actions.simulate('mousedown');
+      actions.simulate('mousedown').simulate('mouseup');
 
       expect(hot.getColWidth(2)).toBe(50);
       expect(hot.getColWidth(3)).toBe(50);

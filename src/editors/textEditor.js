@@ -10,14 +10,20 @@ import {
   setCaretPosition,
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
-  selectElementIfAllowed
+  selectElementIfAllowed,
+  hasClass,
+  removeClass
 } from './../helpers/dom/element';
+import { rangeEach } from './../helpers/number';
 import autoResize from './../../lib/autoResize/autoResize';
-import { isMobileBrowser } from './../helpers/browser';
+import { isMobileBrowser, isIE, isEdge } from './../helpers/browser';
 import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
 import { KEY_CODES } from './../helpers/unicode';
 import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
+
+const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
+const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
 
 /**
  * @private
@@ -46,13 +52,6 @@ class TextEditor extends BaseEditor {
      */
     this.autoResize = autoResize();
     /**
-     * Contains  `z-index` of the editor. Helps display editor on overlays on correct elevation.
-     *
-     * @private
-     * @type {Number}
-     */
-    this.holderZIndex = -1;
-    /**
      * An TEXTAREA element.
      *
      * @private
@@ -80,6 +79,13 @@ class TextEditor extends BaseEditor {
      * @type {CSSStyleDeclaration}
      */
     this.textareaParentStyle = void 0;
+    /**
+     * z-index class style for the editor.
+     *
+     * @private
+     * @type {string}
+     */
+    this.layerClass = void 0;
 
     this.createElements();
     this.bindEvents();
@@ -207,7 +213,9 @@ class TextEditor extends BaseEditor {
    * Creates an editor's elements and adds necessary CSS classnames.
    */
   createElements() {
-    this.TEXTAREA = this.hot.rootDocument.createElement('TEXTAREA');
+    const { rootDocument } = this.hot;
+
+    this.TEXTAREA = rootDocument.createElement('TEXTAREA');
     this.TEXTAREA.tabIndex = -1;
 
     addClass(this.TEXTAREA, 'handsontableInput');
@@ -215,71 +223,22 @@ class TextEditor extends BaseEditor {
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
+    this.textareaStyle.overflowY = 'visible';
 
-    this.TEXTAREA_PARENT = this.hot.rootDocument.createElement('DIV');
+    this.TEXTAREA_PARENT = rootDocument.createElement('DIV');
     addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
+    if (hasClass(this.TEXTAREA_PARENT, this.layerClass)) {
+      removeClass(this.TEXTAREA_PARENT, this.layerClass);
+    }
+
+    addClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME);
+
     this.textareaParentStyle = this.TEXTAREA_PARENT.style;
-    this.textareaParentStyle.zIndex = '-1';
 
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
 
     this.hot.rootElement.appendChild(this.TEXTAREA_PARENT);
-  }
-
-  /**
-   * Gets HTMLTableCellElement of the edited cell if exist.
-   *
-   * @private
-   * @returns {HTMLTableCellElement|undefined}
-   */
-  getEditedCell() {
-    const editorSection = this.checkEditorSection();
-    let editedCell;
-
-    switch (editorSection) {
-      case 'top':
-        editedCell = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 101;
-        break;
-      case 'top-left-corner':
-        editedCell = this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 103;
-        break;
-      case 'bottom-left-corner':
-        editedCell = this.hot.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 103;
-        break;
-      case 'left':
-        editedCell = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 102;
-        break;
-      case 'bottom':
-        editedCell = this.hot.view.wt.wtOverlays.bottomOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 102;
-        break;
-      default:
-        editedCell = this.hot.getCell(this.row, this.col);
-        this.holderZIndex = -1;
-        break;
-    }
-
-    return editedCell < 0 ? void 0 : editedCell;
   }
 
   /**
@@ -288,10 +247,19 @@ class TextEditor extends BaseEditor {
    * @private
    */
   hideEditableElement() {
-    this.textareaParentStyle.top = '-9999px';
-    this.textareaParentStyle.left = '-9999px';
-    this.textareaParentStyle.zIndex = '-1';
-    this.textareaParentStyle.position = 'fixed';
+    if (isIE() || isEdge()) {
+      this.textareaStyle.textIndent = '-99999px';
+    }
+    this.textareaStyle.overflowY = 'visible';
+
+    this.textareaParentStyle.opacity = '0';
+    this.textareaParentStyle.height = '1px';
+
+    if (hasClass(this.TEXTAREA_PARENT, this.layerClass)) {
+      removeClass(this.TEXTAREA_PARENT, this.layerClass);
+    }
+
+    addClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME);
   }
 
   /**
@@ -300,8 +268,42 @@ class TextEditor extends BaseEditor {
    * @private
    */
   showEditableElement() {
-    this.textareaParentStyle.zIndex = this.holderZIndex >= 0 ? this.holderZIndex : '';
+    this.textareaParentStyle.height = '';
+    this.textareaParentStyle.overflow = '';
     this.textareaParentStyle.position = '';
+    this.textareaParentStyle.right = 'auto';
+    this.textareaParentStyle.opacity = '1';
+
+    this.textareaStyle.textIndent = '';
+    this.textareaStyle.overflowY = 'hidden';
+
+    const childNodes = this.TEXTAREA_PARENT.childNodes;
+    let hasClassHandsontableEditor = false;
+
+    rangeEach(childNodes.length - 1, (index) => {
+      const childNode = childNodes[index];
+
+      if (hasClass(childNode, 'handsontableEditor')) {
+        hasClassHandsontableEditor = true;
+
+        return false;
+      }
+    });
+
+    if (hasClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME)) {
+      removeClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME);
+    }
+
+    if (hasClassHandsontableEditor) {
+      this.layerClass = EDITOR_VISIBLE_CLASS_NAME;
+
+      addClass(this.TEXTAREA_PARENT, this.layerClass);
+
+    } else {
+      this.layerClass = this.getEditedCellsLayerClass();
+
+      addClass(this.TEXTAREA_PARENT, this.layerClass);
+    }
   }
 
   /**
@@ -333,7 +335,7 @@ class TextEditor extends BaseEditor {
     // TD is outside of the viewport.
     if (!this.TD) {
       if (!force) {
-        this.close();
+        this.close(); // TODO shouldn't it be this.finishEditing() ?
       }
 
       return;

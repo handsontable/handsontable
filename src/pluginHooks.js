@@ -88,7 +88,7 @@ const REGISTERED_HOOKS = [
   'afterChangesObserved',
 
   /**
-   * Fired by {@link ContextMenu} after setting up the Context Menu's default options. These options are a collection
+   * Fired each time user opens {@link ContextMenu} and after setting up the Context Menu's default options. These options are a collection
    * which user can select by setting an array of keys or an array of objects in {@link Options#contextMenu} option.
    *
    * @event Hooks#afterContextMenuDefaultOptions
@@ -97,7 +97,7 @@ const REGISTERED_HOOKS = [
   'afterContextMenuDefaultOptions',
 
   /**
-   * Fired by {@link ContextMenu} plugin before setting up the Context Menu's items but after filtering these options by
+   * Fired each time user opens {@link ContextMenu} plugin before setting up the Context Menu's items but after filtering these options by
    * user (`contextMenu` option). This hook can by helpful to determine if user use specified menu item or to set up
    * one of the menu item to by always visible.
    *
@@ -111,7 +111,6 @@ const REGISTERED_HOOKS = [
    * collection which user can select by setting an array of keys or an array of objects in {@link Options#dropdownMenu}
    * option.
    *
-   * @pro
    * @event Hooks#afterDropdownMenuDefaultOptions
    * @param {Object[]} predefinedItems An array of objects containing information about the pre-defined Context Menu items.
    */
@@ -122,7 +121,6 @@ const REGISTERED_HOOKS = [
    * by user (`dropdownMenu` option). This hook can by helpful to determine if user use specified menu item or to set
    * up one of the menu item to by always visible.
    *
-   * @pro
    * @event Hooks#beforeDropdownMenuSetItems
    * @param {Object[]} menuItems An array of objects containing information about to generated Dropdown Menu items.
    */
@@ -175,6 +173,16 @@ const REGISTERED_HOOKS = [
    * @param {Number} amount Number of newly created columns in the data source array.
    * @param {String} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {*} If `false` then creating columns is cancelled.
+   * @example
+   * ```js
+   * // Return `false` to cancel column inserting.
+   * new Handsontable(element, {
+   *   beforeCreateCol: function(data, coords) {
+   *     return false;
+   *   }
+   * });
+   * ```
    */
   'beforeCreateCol',
 
@@ -819,8 +827,8 @@ const REGISTERED_HOOKS = [
    * Fired when one or more rows are about to be removed.
    *
    * @event Hooks#beforeRemoveRow
-   * @param {Number} index Visual index of starter column.
-   * @param {Number} amount Amount of columns to be removed.
+   * @param {Number} index Visual index of starter row.
+   * @param {Number} amount Amount of rows to be removed.
    * @param {Number[]} physicalRows An array of physical rows removed from the data source.
    * @param {String} [source] String that identifies source of hook call ([list of all available sources]{@link https://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
@@ -1245,8 +1253,8 @@ const REGISTERED_HOOKS = [
    * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#beforeColumnResize
-   * @param {Number} currentColumn Visual index of the resized column.
    * @param {Number} newSize Calculated new column width.
+   * @param {Number} column Visual index of the resized column.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    * @returns {Number} Returns a new column size or `undefined`, if column size should be calculated automatically.
    */
@@ -1257,8 +1265,8 @@ const REGISTERED_HOOKS = [
    * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#afterColumnResize
-   * @param {Number} currentColumn Visual index of the resized column.
    * @param {Number} newSize Calculated new column width.
+   * @param {Number} column Visual index of the resized column.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    */
   'afterColumnResize',
@@ -1268,8 +1276,8 @@ const REGISTERED_HOOKS = [
    * fired when {@link Options#manualRowResize} option is enabled.
    *
    * @event Hooks#beforeRowResize
-   * @param {Number} currentRow Visual index of the resized row.
    * @param {Number} newSize Calculated new row height.
+   * @param {Number} row Visual index of the resized row.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    * @returns {Number} Returns the new row size or `undefined` if row size should be calculated automatically.
    */
@@ -1280,8 +1288,8 @@ const REGISTERED_HOOKS = [
    * fired when {@link Options#manualRowResize} option is enabled.
    *
    * @event Hooks#afterRowResize
-   * @param {Number} currentRow Visual index of the resized row.
    * @param {Number} newSize Calculated new row height.
+   * @param {Number} row Visual index of the resized row.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    */
   'afterRowResize',
@@ -1316,7 +1324,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link Filters} plugin before applying [filtering]{@link http://docs.handsontable.com/pro/demo-filtering.html}. This hook is fired when
    * {@link Options#filters} option is enabled.
    *
-   * @pro
    * @event Hooks#beforeFilter
    * @param {Object[]} conditionsStack An array of objects with added formulas.
    * ```js
@@ -1346,7 +1353,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link Filters} plugin after applying [filtering]{@link http://docs.handsontable.com/pro/demo-filtering.html}. This hook is fired when
    * {@link Options#filters} option is enabled.
    *
-   * @pro
    * @event Hooks#afterFilter
    * @param {Object[]} conditionsStack An array of objects with added conditions.
    * ```js
@@ -1508,7 +1514,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link HiddenRows} plugin before marking the rows as hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    * Returning `false` in the callback will prevent the hiding action from completing.
    *
-   * @pro
    * @event Hooks#beforeHideRows
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical row indexes.
    * @param {Array} destinationHideConfig Destination hide configuration - a list of hidden physical row indexes.
@@ -1520,7 +1525,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link HiddenRows} plugin after marking the rows as hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    *
-   * @pro
    * @event Hooks#afterHideRows
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical row indexes.
    * @param {Array} destinationHideConfig Destination hide configuration - a list of hidden physical row indexes.
@@ -1533,7 +1537,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link HiddenRows} plugin before marking the rows as not hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    * Returning `false` in the callback will prevent the row revealing action from completing.
    *
-   * @pro
    * @event Hooks#beforeUnhideRows
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical row indexes.
    * @param {Array} destinationHideConfig Destination hide configuration - a list of hidden physical row indexes.
@@ -1545,7 +1548,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link HiddenRows} plugin after marking the rows as not hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    *
-   * @pro
    * @event Hooks#afterUnhideRows
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical row indexes.
    * @param {Array} destinationHideConfig Destination hide configuration - a list of hidden physical row indexes.
@@ -1558,7 +1560,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link HiddenColumns} plugin before marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    * Returning `false` in the callback will prevent the hiding action from completing.
    *
-   * @pro
    * @event Hooks#beforeHideColumns
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical column indexes.
    * @param {Array} destinationHideConfig Destination hide configuration - a list of hidden physical column indexes.
@@ -1570,7 +1571,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link HiddenColumns} plugin after marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    *
-   * @pro
    * @event Hooks#afterHideColumns
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical column indexes.
    * @param {Array} destinationHideConfig Destination hide configuration - a list of hidden physical column indexes.
@@ -1583,7 +1583,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link HiddenColumns} plugin before marking the columns as not hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    * Returning `false` in the callback will prevent the column revealing action from completing.
    *
-   * @pro
    * @event Hooks#beforeUnhideColumns
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical column indexes.
    * @param {Array} destinationHideConfig Destination hide configuration - a list of hidden physical column indexes.
@@ -1595,7 +1594,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link HiddenColumns} plugin after marking the columns as not hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    *
-   * @pro
    * @event Hooks#afterUnhideColumns
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical column indexes.
    * @param {Array} destinationHideConfig Destination hide configuration - a list of hidden physical column indexes.
@@ -1607,7 +1605,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link TrimRows} plugin before trimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
-   * @pro
    * @event Hooks#beforeTrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
    * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
@@ -1619,7 +1616,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link TrimRows} plugin after trimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
-   * @pro
    * @event Hooks#afterTrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
    * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
@@ -1632,7 +1628,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link TrimRows} plugin before untrimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
-   * @pro
    * @event Hooks#beforeUntrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
    * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
@@ -1644,7 +1639,6 @@ const REGISTERED_HOOKS = [
   /**
    * Fired by {@link TrimRows} plugin after untrimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
-   * @pro
    * @event Hooks#afterUntrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
    * @param {Array} destinationTrimConfig Destination trim configuration - a list of trimmed physical row indexes.
@@ -1658,7 +1652,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link DropdownMenu} plugin before opening the dropdown menu. This hook is fired when {@link Options#dropdownMenu}
    * option is enabled.
    *
-   * @pro
    * @event Hooks#beforeDropdownMenuShow
    * @param {DropdownMenu} dropdownMenu The DropdownMenu instance.
    */
@@ -1668,7 +1661,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link DropdownMenu} plugin after opening the Dropdown Menu. This hook is fired when {@link Options#dropdownMenu}
    * option is enabled.
    *
-   * @pro
    * @event Hooks#afterDropdownMenuShow
    * @param {DropdownMenu} dropdownMenu The DropdownMenu instance.
    */
@@ -1678,7 +1670,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link DropdownMenu} plugin after hiding the Dropdown Menu. This hook is fired when {@link Options#dropdownMenu}
    * option is enabled.
    *
-   * @pro
    * @event Hooks#afterDropdownMenuHide
    * @param {DropdownMenu} instance The DropdownMenu instance.
    */
@@ -1688,7 +1679,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link HiddenRows} plugin to check whether the provided row index is hidden. This hook is fired when
    * {@link Options#hiddenRows} option is enabled.
    *
-   * @pro
    * @event Hooks#hiddenRow
    * @param {Number} row The visual row index in question.
    */
@@ -1698,7 +1688,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link HiddenColumns} plugin to check whether the provided column index is hidden. This hook is fired when
    * {@link Options#hiddenColumns} option is enabled.
    *
-   * @pro
    * @event Hooks#hiddenColumn
    * @param {Number} column The visual column index in question.
    */
@@ -1708,7 +1697,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link NestedRows} plugin before adding a children to the NestedRows structure. This hook is fired when
    * {@link Options#nestedRows} option is enabled.
    *
-   * @pro
    * @event Hooks#beforeAddChild
    * @param {Object} parent The parent object.
    * @param {Object|undefined} element The element added as a child. If `undefined`, a blank child was added.
@@ -1720,7 +1708,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link NestedRows} plugin after adding a children to the NestedRows structure. This hook is fired when
    * {@link Options#nestedRows} option is enabled.
    *
-   * @pro
    * @event Hooks#afterAddChild
    * @param {Object} parent The parent object.
    * @param {Object|undefined} element The element added as a child. If `undefined`, a blank child was added.
@@ -1732,7 +1719,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link NestedRows} plugin before detaching a child from its parent. This hook is fired when
    * {@link Options#nestedRows} option is enabled.
    *
-   * @pro
    * @event Hooks#beforeDetachChild
    * @param {Object} parent An object representing the parent from which the element is to be detached.
    * @param {Object} element The detached element.
@@ -1743,7 +1729,6 @@ const REGISTERED_HOOKS = [
    * Fired by {@link NestedRows} plugin after detaching a child from its parent. This hook is fired when
    * {@link Options#nestedRows} option is enabled.
    *
-   * @pro
    * @event Hooks#afterDetachChild
    * @param {Object} parent An object representing the parent from which the element was detached.
    * @param {Object} element The detached element.
@@ -1815,6 +1800,71 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterUnlisten
    */
   'afterUnlisten',
+
+  /**
+   * Fired after the window was resized.
+   *
+   * @event Hooks#afterRefreshDimensions
+   * @param {Object} previousDimensions Previous dimensions of the container.
+   * @param {Object} currentDimensions Current dimensions of the container.
+   * @param {Boolean} stateChanged `true`, if the container was re-render, `false` otherwise.
+   */
+  'afterRefreshDimensions',
+
+  /**
+   * Cancellable hook, called after resizing a window, but before redrawing a table.
+   *
+   * @event Hooks#beforeRefreshDimensions
+   * @param {Object} previousDimensions Previous dimensions of the container.
+   * @param {Object} currentDimensions Current dimensions of the container.
+   * @param {Boolean} actionPossible `true`, if current and previous dimensions are different, `false` otherwise.
+   * @returns {undefined|Boolean} If the callback returns `false`, the refresh action will not be completed.
+   */
+  'beforeRefreshDimensions',
+
+  /**
+   * Fired by {@link CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
+   *
+   * @event Hooks#beforeColumnCollapse
+   * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Boolean} collapsePossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
+   * @returns {undefined|Boolean} If the callback returns `false`, the collapsing action will not be completed.
+   */
+  'beforeColumnCollapse',
+
+  /**
+   * Fired by {@link CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
+   *
+   * @event Hooks#afterColumnCollapse
+   * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Boolean} collapsePossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
+   * @param {Boolean} successfullyCollapsed `true`, if the action affected any non-collapsible column, `false` otherwise.
+   */
+  'afterColumnCollapse',
+
+  /**
+   * Fired by {@link CollapsibleColumns} plugin before columns expand. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
+   *
+   * @event Hooks#beforeColumnExpand
+   * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Boolean} expandPossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
+   * @returns {undefined|Boolean} If the callback returns `false`, the expanding action will not be completed.
+   */
+  'beforeColumnExpand',
+
+  /**
+   * Fired by {@link CollapsibleColumns} plugin before columns expand. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
+   *
+   * @event Hooks#afterColumnExpand
+   * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
+   * @param {Boolean} expandPossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
+   * @param {Boolean} successfullyExpanded `true`, if the action affected any non-collapsible column, `false` otherwise.
+   */
+  'afterColumnExpand',
 ];
 
 class Hooks {

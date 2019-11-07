@@ -7,7 +7,6 @@ import BasePlugin from '../_base';
 
 /**
  * @plugin HeaderTooltips
- * @pro
  *
  * @description
  * Allows to add a tooltip to the table headers.

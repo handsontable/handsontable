@@ -182,6 +182,53 @@ describe('Search plugin', () => {
 
       expect(customQueryMethod.calls.count()).toEqual(25);
     });
+
+    it('should pass search string and cell params to the query method', () => {
+      const customQueryMethod = jasmine.createSpy('customQueryMethod');
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        search: true
+      });
+
+      hot.getPlugin('search').query('A', null, customQueryMethod);
+
+      // Replace `cellProperties.instance` with fake to avoid unreadable test reports
+      const replaceInstanceWithFake = arg => (
+        arg && typeof arg === 'object' && 'instance' in arg
+          ? { ...arg, instance: {} }
+          : arg
+      );
+
+      expect(customQueryMethod.calls.count()).toEqual(25);
+      expect(customQueryMethod.calls.argsFor(0).map(replaceInstanceWithFake)).toEqual(['A', 'A1', {
+        row: 0,
+        col: 0,
+        visualRow: 0,
+        visualCol: 0,
+        prop: 0,
+        instance: {},
+        className: ''
+      }]);
+      expect(customQueryMethod.calls.argsFor(7).map(replaceInstanceWithFake)).toEqual(['A', 'C2', {
+        row: 1,
+        col: 2,
+        visualRow: 1,
+        visualCol: 2,
+        prop: 2,
+        instance: {},
+        className: ''
+      }]);
+      expect(customQueryMethod.calls.argsFor(24).map(replaceInstanceWithFake)).toEqual(['A', 'E5', {
+        row: 4,
+        col: 4,
+        visualRow: 4,
+        visualCol: 4,
+        prop: 4,
+        instance: {},
+        className: ''
+      }]);
+    });
   });
 
   describe('default query method', () => {

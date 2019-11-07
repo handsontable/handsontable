@@ -5,7 +5,6 @@ import Endpoints from './endpoints';
 
 /**
  * @plugin ColumnSummary
- * @pro
  *
  * @description
  * Allows making pre-defined calculations on the cell values and display the results within Handsontable.

@@ -10,8 +10,8 @@ import { selectElementIfAllowed } from './../../helpers/dom/element';
  * @plugin CopyPaste
  */
 class FocusableWrapper {
-  constructor(rootDocument) {
-    this.rootDocument = rootDocument;
+  constructor(container) {
+    this.rootDocument = container.defaultView ? container : container.ownerDocument;
     /**
      * The main/operational focusable element.
      *
@@ -30,13 +30,19 @@ class FocusableWrapper {
      * @type {WeakSet}
      */
     this.listenersCount = new WeakSet();
+    /**
+     * Parent for an focusable element.
+     *
+     * @type {HTMLElement}
+     */
+    this.container = container;
   }
 
   /**
    * Switch to the secondary focusable element. Used when no any main focusable element is provided.
    */
   useSecondaryElement() {
-    const el = createOrGetSecondaryElement(this.rootDocument);
+    const el = createOrGetSecondaryElement(this.container);
 
     if (!this.listenersCount.has(el)) {
       this.listenersCount.add(el);
@@ -48,6 +54,8 @@ class FocusableWrapper {
 
   /**
    * Switch to the main focusable element.
+   *
+   * @param {HTMLElement} element
    */
   setFocusableElement(element) {
     if (!this.listenersCount.has(element)) {
@@ -61,7 +69,7 @@ class FocusableWrapper {
   /**
    * Get currently set focusable element.
    *
-   * @return {HTMLElement}
+   * @returns {HTMLElement}
    */
   getFocusableElement() {
     return this.mainElement;
@@ -82,17 +90,21 @@ class FocusableWrapper {
 
 mixin(FocusableWrapper, localHooks);
 
-let refCounter = 0;
+const refCounter = new WeakMap();
 
 /**
  * Create and return the FocusableWrapper instance.
  *
- * @return {FocusableWrapper}
+ * @param {HTMLElement} container
+ * @returns {FocusableWrapper}
  */
-function createElement(rootDocument) {
-  const focusableWrapper = new FocusableWrapper(rootDocument);
+function createElement(container) {
+  const focusableWrapper = new FocusableWrapper(container);
 
-  refCounter += 1;
+  let counter = refCounter.get(container);
+  counter = isNaN(counter) ? 0 : counter;
+
+  refCounter.set(container, counter + 1);
 
   return focusableWrapper;
 }
@@ -125,30 +137,31 @@ const secondaryElements = new WeakMap();
 /**
  * Create and attach newly created focusable element to the DOM.
  *
- * @return {HTMLElement}
+ * @param {HTMLElement} container
+ * @returns {HTMLElement}
  */
-function createOrGetSecondaryElement(rootDocument) {
-  const secondaryElement = secondaryElements.get(rootDocument);
+function createOrGetSecondaryElement(container) {
+  const secondaryElement = secondaryElements.get(container);
 
   if (secondaryElement) {
     if (!secondaryElement.parentElement) {
-      this.rootDocument.body.appendChild(secondaryElement);
+      container.appendChild(secondaryElement);
     }
 
     return secondaryElement;
   }
 
-  const element = rootDocument.createElement('textarea');
+  const doc = container.defaultView ? container : container.ownerDocument;
+  const element = doc.createElement('textarea');
 
-  secondaryElements.set(rootDocument, element);
-  element.id = 'HandsontableCopyPaste';
-  element.className = 'copyPaste';
+  secondaryElements.set(container, element);
+  element.className = 'HandsontableCopyPaste';
   element.tabIndex = -1;
   element.autocomplete = 'off';
   element.wrap = 'hard';
   element.value = ' ';
 
-  rootDocument.body.appendChild(element);
+  container.appendChild(element);
 
   return element;
 }
@@ -163,25 +176,30 @@ function destroyElement(wrapper) {
     return;
   }
 
-  if (refCounter > 0) {
-    refCounter -= 1;
+  let counter = refCounter.get(wrapper.container);
+  counter = isNaN(counter) ? 0 : counter;
+
+  if (counter > 0) {
+    counter -= 1;
   }
 
   deactivateElement(wrapper);
 
-  if (refCounter <= 0) {
-    refCounter = 0;
+  if (counter <= 0) {
+    counter = 0;
 
     // Detach secondary element from the DOM.
-    const secondaryElement = secondaryElements.get(wrapper.rootDocument);
+    const secondaryElement = secondaryElements.get(wrapper.container);
 
     if (secondaryElement && secondaryElement.parentNode) {
       secondaryElement.parentNode.removeChild(secondaryElement);
-      secondaryElements.delete(wrapper.rootDocument);
+      secondaryElements.delete(wrapper.container);
     }
 
     wrapper.mainElement = null;
   }
+
+  refCounter.set(wrapper.container, counter);
 }
 
 export { createElement, deactivateElement, destroyElement };

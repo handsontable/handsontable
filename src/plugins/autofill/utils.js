@@ -26,7 +26,7 @@ export function getDeltas(start, end, data, direction) {
   if (['down', 'up'].indexOf(direction) !== -1) {
     const arr = [];
 
-    for (let col = 0; col <= diffCol; col++) {
+    for (let col = 0; col < diffCol; col++) {
       const startValue = parseInt(data[0][col], 10);
       const endValue = parseInt(data[rowsLength - 1][col], 10);
       const delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rowsLength - 1) || 0;
@@ -38,7 +38,7 @@ export function getDeltas(start, end, data, direction) {
   }
 
   if (['right', 'left'].indexOf(direction) !== -1) {
-    for (let row = 0; row <= diffRow; row++) {
+    for (let row = 0; row < diffRow; row++) {
       const startValue = parseInt(data[row][0], 10);
       const endValue = parseInt(data[row][columnsLength - 1], 10);
       const delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (columnsLength - 1) || 0;

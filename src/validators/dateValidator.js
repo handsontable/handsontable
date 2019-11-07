@@ -18,9 +18,9 @@ export default function dateValidator(value, callback) {
   if (valueToValidate === null || valueToValidate === void 0) {
     valueToValidate = '';
   }
-  let isValidDate = moment(new Date(valueToValidate)).isValid() || moment(valueToValidate, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
-  // is it in the specified format
+
   let isValidFormat = moment(valueToValidate, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
+  let isValidDate = moment(new Date(valueToValidate)).isValid() || isValidFormat;
 
   if (this.allowEmpty && valueToValidate === '') {
     isValidDate = true;

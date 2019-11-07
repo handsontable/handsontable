@@ -329,7 +329,7 @@ describe('Filters UI', () => {
 
       expect(document.querySelector('.htFiltersConditionsMenu.handsontable table')).not.toBeNull();
 
-      $(dropdownMenuRootElement().querySelector('tbody :nth-child(6) td')).simulate('mousedown');
+      $(dropdownMenuRootElement().querySelector('tbody :nth-child(6) td')).simulate('mousedown').simulate('mouseup');
 
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
     });
@@ -347,7 +347,7 @@ describe('Filters UI', () => {
 
       dropdownMenu(1);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Is equal to")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Is equal to")').simulate('mousedown').simulate('mouseup');
 
       setTimeout(() => {
         keyDownUp('esc');
@@ -371,7 +371,7 @@ describe('Filters UI', () => {
 
       dropdownMenu(1);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Is empty")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Is empty")').simulate('mousedown').simulate('mouseup');
 
       setTimeout(() => {
         keyDownUp('esc');
@@ -416,7 +416,7 @@ describe('Filters UI', () => {
 
       dropdownMenu(1);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(3) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(3) td')).simulate('mousedown').simulate('mouseup');
 
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
       expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -449,7 +449,7 @@ describe('Filters UI', () => {
 
         dropdownMenu(1);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-        $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+        $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
         expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -468,7 +468,7 @@ describe('Filters UI', () => {
 
         dropdownMenu(1);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-        $(conditionMenuRootElements().first).find('tbody td:contains("None")').simulate('mousedown');
+        $(conditionMenuRootElements().first).find('tbody td:contains("None")').simulate('mousedown').simulate('mouseup');
 
         expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -487,10 +487,10 @@ describe('Filters UI', () => {
 
         dropdownMenu(1);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-        $(conditionMenuRootElements().first).find('tbody td:contains("Is equal to")').simulate('mousedown');
+        $(conditionMenuRootElements().first).find('tbody td:contains("Is equal to")').simulate('mousedown').simulate('mouseup');
 
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-        $(conditionMenuRootElements().first).find('tbody td:contains("None")').simulate('mousedown');
+        $(conditionMenuRootElements().first).find('tbody td:contains("None")').simulate('mousedown').simulate('mouseup');
 
         expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -561,7 +561,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // menu separator click
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(2) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(2) td')).simulate('mousedown').simulate('mouseup');
 
       expect($(conditionSelectRootElements().first).find('.htUISelectCaption').text()).toBe('None');
     });
@@ -579,7 +579,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // eq
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -601,7 +601,7 @@ describe('Filters UI', () => {
       dropdownMenu(3);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // between
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(11) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(11) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -1335,6 +1335,48 @@ describe('Filters UI', () => {
     }, 100);
   });
 
+  it('should allow opening the filtering dropdown menu, when there are multiple Handsontable instances present', () => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    const hot2Container = document.createElement('DIV');
+    document.body.appendChild(hot2Container);
+    const hot2 = new Handsontable(hot2Container, {
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    expect(document.querySelectorAll('.htDropdownMenu').length).toBe(2);
+
+    dropdownMenu(1);
+    closeDropdownMenu();
+
+    expect(getPlugin('dropdownMenu').menu.container.style.display).toBe('block');
+    expect(getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+
+    const th = hot2.view.wt.wtTable.getColumnHeader(1);
+    const button = th.querySelector('.changeType');
+    $(button).simulate('mousedown');
+    $(button).simulate('mouseup');
+    $(button).simulate('click');
+
+    expect(hot2.getPlugin('dropdownMenu').menu.container.style.display).toBe('block');
+    expect(hot2.getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+
+    hot2.destroy();
+    hot2Container.parentElement.removeChild(hot2Container);
+  });
+
   describe('Simple filtering (one column)', () => {
     it('should filter empty values and revert back after removing filter', () => {
       handsontable({
@@ -1349,7 +1391,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // is empty
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(3) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(3) td')).simulate('mousedown').simulate('mouseup');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       expect(getData().length).toBe(0);
@@ -1357,7 +1399,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // none
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(1) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(1) td')).simulate('mousedown').simulate('mouseup');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       expect(getData().length).toBe(39);
@@ -1376,7 +1418,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // gt
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
 
       setTimeout(() => {
         // Greater than 12
@@ -1409,7 +1451,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // contains
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(12) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(12) td')).simulate('mousedown').simulate('mouseup');
 
       setTimeout(() => {
         // Contains ej
@@ -1443,7 +1485,7 @@ describe('Filters UI', () => {
       dropdownMenu(3);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // contains
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(15) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(15) td')).simulate('mousedown').simulate('mouseup');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       expect(getData().length).toEqual(3);
@@ -1474,7 +1516,7 @@ describe('Filters UI', () => {
       dropdownMenu(6);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // contains
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown').simulate('mouseup');
 
       setTimeout(() => {
         // Is equal to 'true'
@@ -1535,7 +1577,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // eq
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -1549,7 +1591,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // lt
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(11) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(11) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -1576,7 +1618,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // lt
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(11) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(11) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -1645,7 +1687,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // gt
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(100);
 
@@ -1657,7 +1699,7 @@ describe('Filters UI', () => {
       dropdownMenu(2);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // begins_with
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(100);
 
@@ -1665,10 +1707,13 @@ describe('Filters UI', () => {
       $(document.activeElement).simulate('keyup');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
+      // this condition needs extra time to apply filters
+      await sleep(10);
+
       dropdownMenu(4);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // eq
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(100);
 
@@ -1708,7 +1753,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // gt
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -1720,7 +1765,7 @@ describe('Filters UI', () => {
       dropdownMenu(2);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // begins_with
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -1767,7 +1812,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // gt
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
       // Greater than 12
@@ -1778,7 +1823,7 @@ describe('Filters UI', () => {
       dropdownMenu(2);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // begins_with
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
       document.activeElement.value = 'b';
@@ -1789,7 +1834,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // between
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(13) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(13) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
       const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition input');
@@ -1825,7 +1870,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // gt
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
 
       setTimeout(() => {
         // Greater than 25
@@ -1911,7 +1956,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       $(conditionSelectRootElements().first).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
       setTimeout(() => {
         document.activeElement.value = 'm';
@@ -1938,7 +1983,7 @@ describe('Filters UI', () => {
 
       dropdownMenu(1);
       $(conditionSelectRootElements().first).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
       setTimeout(() => {
         document.activeElement.value = 'm';
@@ -1965,8 +2010,7 @@ describe('Filters UI', () => {
       }, 900);
     });
 
-    it('should filter data properly after changing operator ' +
-      '(`conjunction` <-> `disjunction` operation)', (done) => {
+    it('should filter data properly after changing operator (`conjunction` <-> `disjunction` operation)', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1979,40 +2023,35 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       $(conditionSelectRootElements().first).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
-      setTimeout(() => {
-        document.activeElement.value = 'm';
-        $(document.activeElement).simulate('keyup');
+      await sleep(300);
+      document.activeElement.value = 'm';
+      $(document.activeElement).simulate('keyup');
 
-        $(conditionSelectRootElements().second).simulate('click');
-        $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
-      }, 300);
+      $(conditionSelectRootElements().second).simulate('click');
+      $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown').simulate('mouseup');
 
-      setTimeout(() => {
-        document.activeElement.value = 'e';
-        $(document.activeElement).simulate('keyup');
+      await sleep(300);
+      document.activeElement.value = 'e';
+      $(document.activeElement).simulate('keyup');
 
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-        expect(getData().length).toBe(3);
-        dropdownMenu(1);
-      }, 600);
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      expect(getData().length).toBe(3);
+      dropdownMenu(1);
 
-      setTimeout(() => {
-        // disjunction
-        $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-        expect(getData().length).toBe(7);
-        dropdownMenu(1);
-      }, 900);
+      await sleep(300);
+      // disjunction
+      $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      expect(getData().length).toBe(7);
+      dropdownMenu(1);
 
-      setTimeout(() => {
-        // conjunction
-        $(conditionRadioInput(0).element).find('input[type="radio"]').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-        expect(getData().length).toBe(3);
-        done();
-      }, 1200);
+      await sleep(300);
+      // conjunction
+      $(conditionRadioInput(0).element).find('input[type="radio"]').simulate('click');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      expect(getData().length).toBe(3);
     });
 
     it('should filter data properly after clearing second input', (done) => {
@@ -2028,14 +2067,14 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       $(conditionSelectRootElements().first).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
       setTimeout(() => {
         document.activeElement.value = 'm';
         $(document.activeElement).simulate('keyup');
 
         $(conditionSelectRootElements().second).simulate('click');
-        $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
+        $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown').simulate('mouseup');
       }, 300);
 
       setTimeout(() => {
@@ -2074,14 +2113,14 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       $(conditionSelectRootElements().first).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
       setTimeout(() => {
         document.activeElement.value = 'm';
         $(document.activeElement).simulate('keyup');
 
         $(conditionSelectRootElements().second).simulate('click');
-        $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
+        $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown').simulate('mouseup');
       }, 300);
 
       setTimeout(() => {
@@ -2097,7 +2136,7 @@ describe('Filters UI', () => {
 
       setTimeout(() => {
         $(conditionSelectRootElements().second).simulate('click');
-        $(conditionMenuRootElements().second).find('tbody td:contains("None")').simulate('mousedown');
+        $(conditionMenuRootElements().second).find('tbody td:contains("None")').simulate('mousedown').simulate('mouseup');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
       }, 1200);
 
@@ -2123,7 +2162,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       $(conditionSelectRootElements().first).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -2162,7 +2201,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       $(conditionSelectRootElements().first).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -2170,7 +2209,7 @@ describe('Filters UI', () => {
       $(document.activeElement).simulate('keyup');
 
       $(conditionSelectRootElements().second).simulate('click');
-      $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
+      $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -2204,7 +2243,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       $(conditionSelectRootElements().first).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -2212,7 +2251,7 @@ describe('Filters UI', () => {
       $(document.activeElement).simulate('keyup');
 
       $(conditionSelectRootElements().second).simulate('click');
-      $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
+      $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -2242,7 +2281,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       $(conditionSelectRootElements().first).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -2250,7 +2289,7 @@ describe('Filters UI', () => {
       $(document.activeElement).simulate('keyup');
 
       $(conditionSelectRootElements().second).simulate('click');
-      $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
+      $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
       document.activeElement.value = 'e';
@@ -2429,7 +2468,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // gt
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -2446,7 +2485,7 @@ describe('Filters UI', () => {
       dropdownMenu(2);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // begins_with
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -2478,7 +2517,7 @@ describe('Filters UI', () => {
         dropdownMenu(0);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // gt
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
       }, 300);
 
       setTimeout(() => {
@@ -2499,7 +2538,7 @@ describe('Filters UI', () => {
         dropdownMenu(2);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // ends_with
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown');
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown').simulate('mouseup');
       }, 600);
 
       setTimeout(() => {
@@ -2522,7 +2561,7 @@ describe('Filters UI', () => {
         dropdownMenu(0);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // none
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(1) td')).simulate('mousedown');
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(1) td')).simulate('mousedown').simulate('mouseup');
       }, 900);
 
       setTimeout(() => {
@@ -2549,7 +2588,7 @@ describe('Filters UI', () => {
         dropdownMenu(0);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // gt
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
       }, 300);
 
       setTimeout(() => {
@@ -2570,7 +2609,7 @@ describe('Filters UI', () => {
         dropdownMenu(2);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // ends_with
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown');
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown').simulate('mouseup');
       }, 600);
 
       setTimeout(() => {
@@ -2593,7 +2632,7 @@ describe('Filters UI', () => {
         dropdownMenu(0);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // is empty
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(3) td')).simulate('mousedown');
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(3) td')).simulate('mousedown').simulate('mouseup');
       }, 900);
 
       setTimeout(() => {
@@ -2620,7 +2659,7 @@ describe('Filters UI', () => {
       dropdownMenu(0);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // gt
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -2637,7 +2676,7 @@ describe('Filters UI', () => {
       dropdownMenu(2);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
       // begins_with
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
 
       await sleep(200);
 
@@ -2669,7 +2708,7 @@ describe('Filters UI', () => {
         dropdownMenu(0);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // gt
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
       }, 300);
 
       setTimeout(() => {
@@ -2682,7 +2721,7 @@ describe('Filters UI', () => {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         // sort
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
+        getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown').simulate('mouseup');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
         alter('remove_row', 1, 5);
@@ -2690,7 +2729,7 @@ describe('Filters UI', () => {
         dropdownMenu(2);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // ends_with
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown');
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown').simulate('mouseup');
       }, 600);
 
       setTimeout(() => {
@@ -2713,7 +2752,7 @@ describe('Filters UI', () => {
         dropdownMenu(0);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // none
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(1) td')).simulate('mousedown');
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(1) td')).simulate('mousedown').simulate('mouseup');
       }, 900);
 
       setTimeout(() => {
@@ -2740,7 +2779,7 @@ describe('Filters UI', () => {
         dropdownMenu(0);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // gt
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
       }, 300);
 
       setTimeout(() => {
@@ -2761,7 +2800,7 @@ describe('Filters UI', () => {
         dropdownMenu(2);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // ends_with
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown');
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown').simulate('mouseup');
       }, 600);
 
       setTimeout(() => {
@@ -2784,7 +2823,7 @@ describe('Filters UI', () => {
         dropdownMenu(0);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // is empty
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(3) td')).simulate('mousedown');
+        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(3) td')).simulate('mousedown').simulate('mouseup');
       }, 900);
 
       setTimeout(() => {
@@ -2823,7 +2862,7 @@ describe('Filters UI', () => {
 
       dropdownMenu(1);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
       expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -2842,7 +2881,7 @@ describe('Filters UI', () => {
 
       dropdownMenu(1);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("None")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("None")').simulate('mousedown').simulate('mouseup');
 
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
       expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -2861,10 +2900,10 @@ describe('Filters UI', () => {
 
       dropdownMenu(1);
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Is equal to")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Is equal to")').simulate('mousedown').simulate('mouseup');
 
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("None")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("None")').simulate('mousedown').simulate('mouseup');
 
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
       expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -3277,6 +3316,45 @@ describe('Filters UI', () => {
     });
   });
 
+  it('should inherit font family and size from body', () => {
+    handsontable({
+      data: getDataForFilters(),
+      colHeaders: true,
+      filters: true,
+      dropdownMenu: true
+    });
+
+    const body = document.body;
+    const bodyStyle = body.style;
+    const fontFamily = bodyStyle.fontFamily;
+    const fontSize = bodyStyle.fontSize;
+
+    bodyStyle.fontFamily = 'Helvetica';
+    bodyStyle.fontSize = '24px';
+
+    dropdownMenu(0);
+    const htItemWrapper = document.querySelector('.htItemWrapper');
+    const compStyleHtItemWrapper = Handsontable.dom.getComputedStyle(htItemWrapper);
+
+    const htFiltersMenuLabel = document.querySelector('.htFiltersMenuLabel');
+    const compStyleHtFiltersMenuLabel = Handsontable.dom.getComputedStyle(htFiltersMenuLabel);
+
+    const htUISelectCaption = document.querySelector('.htUISelectCaption');
+    const compStyleHtUISelectCaption = Handsontable.dom.getComputedStyle(htUISelectCaption);
+
+    expect(compStyleHtItemWrapper.fontFamily).toBe('Helvetica');
+    expect(compStyleHtItemWrapper.fontSize).toBe('24px');
+
+    expect(compStyleHtFiltersMenuLabel.fontFamily).toBe('Helvetica');
+    expect(compStyleHtFiltersMenuLabel.fontSize).toBe('18px');
+
+    expect(compStyleHtUISelectCaption.fontFamily).toBe('Helvetica');
+    expect(compStyleHtUISelectCaption.fontSize).toBe('16.8px');
+
+    bodyStyle.fontFamily = fontFamily;
+    bodyStyle.fontSize = fontSize;
+  });
+
   describe('Dimensions of filter\'s elements inside drop-down menu', () => {
     it('should scale text input showed after condition selection (pixel perfect)', () => {
       handsontable({
@@ -3300,7 +3378,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
       const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
       const widthOfInput = $(dropdownMenuRootElement()).find('input').width();
@@ -3397,7 +3475,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
       const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
       const widthOfValueBox = $(byValueBoxRootElement()).width();
@@ -3431,7 +3509,7 @@ describe('Filters UI', () => {
       dropdownMenu(1);
 
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown').simulate('mouseup');
 
       const widthOfValueBoxWithoutScroll = $(byValueBoxRootElement()).find('.wtHolder')[0].scrollWidth;
       const widthOfSingleValue = $(byValueBoxRootElement()).find('table.htCore tr:eq(0)').width();
@@ -3584,7 +3662,7 @@ describe('Filters UI', () => {
       const $conditionalMenu = $('.htFiltersConditionsMenu');
       const $conditionalMenuItems = $conditionalMenu.find('tbody td:not(.htSeparator)');
 
-      $conditionalMenuItems.eq(1).simulate('mousedown');
+      $conditionalMenuItems.eq(1).simulate('mousedown').simulate('mouseup');
 
       const nextWidth = $menu.find('.wtHider').width();
 

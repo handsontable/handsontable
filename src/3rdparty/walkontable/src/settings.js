@@ -28,6 +28,7 @@ class Settings {
       preventOverflow() {
         return false;
       },
+      preventWheel: false,
 
       // data source
       data: void 0,
@@ -91,6 +92,8 @@ class Settings {
       onBeforeStretchingColumnWidth: width => width,
       onModifyRowHeaderWidth: null,
       onModifyGetCellCoords: null,
+
+      onWindowResize: null,
 
       // constants
       scrollbarWidth: 10,

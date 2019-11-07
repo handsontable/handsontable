@@ -865,6 +865,59 @@ describe('UndoRedo', () => {
           expect(getDataAtCell(1, 1)).toEqual('B2');
           expect(getDataAtCell(1, 2)).toEqual('C2');
         });
+
+        it('should work with functional data source', () => {
+          const HOT = handsontable({
+            data: [
+              model({ id: 1, name: 'Ted Right', address: '' }),
+              model({ id: 2, name: 'Frank Honest', address: '' }),
+              model({ id: 3, name: 'Joan Well', address: '' })
+            ],
+            dataSchema: model,
+            startRows: 5,
+            startCols: 3,
+            colHeaders: ['ID', 'Name', 'Address'],
+            columns: [
+              { data: property('id') },
+              { data: property('name') },
+              { data: property('address') }
+            ],
+            minSpareRows: 1
+          });
+
+          function model(opts) {
+            const _pub = {};
+            const _priv = $.extend({
+              id: undefined,
+              name: undefined,
+              address: undefined
+            }, opts);
+
+            _pub.attr = function(attr, val) {
+              if (typeof val === 'undefined') {
+                return _priv[attr];
+              }
+              _priv[attr] = val;
+
+              return _pub;
+            };
+
+            return _pub;
+          }
+
+          function property(attr) {
+            return function(row, value) {
+              return row.attr(attr, value);
+            };
+          }
+
+          expect(getDataAtCell(1, 1)).toEqual('Frank Honest');
+          setDataAtCell(1, 1, 'Something Else');
+          expect(getDataAtCell(1, 1)).toEqual('Something Else');
+
+          HOT.undo();
+          expect(getDataAtCell(1, 1)).toEqual('Frank Honest');
+        });
       });
       describe('redo', () => {
         it('should redo single change', () => {
@@ -2171,6 +2224,34 @@ describe('UndoRedo', () => {
         });
       });
     });
+
+    it('should save the undo action only if a new value is different than the previous one', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2)
+      });
+
+      expect(getDataAtCell(0, 0)).toBe('A1');
+      setDataAtCell(0, 0, 'A1');
+
+      expect(hot.undoRedo.isUndoAvailable()).toBe(false);
+
+      setDataAtCell(0, 0, 'A');
+      expect(hot.undoRedo.isUndoAvailable()).toBe(true);
+    });
+
+    it('should not save the undo action if old and new values are not string, number or boolean', () => {
+      const hot = handsontable({
+        data: [
+          [{ key1: 'abc' }]
+        ]
+      });
+
+      expect(hot.undoRedo.isUndoAvailable()).toBe(false);
+      expect(getDataAtCell(0, 0)).toEqual({ key1: 'abc' });
+      setDataAtCell(0, 0, { key1: 'abc' });
+
+      expect(hot.undoRedo.isUndoAvailable()).toBe(true);
+    });
   });
 
   describe('plugin features', () => {
@@ -2438,7 +2519,7 @@ describe('UndoRedo', () => {
         selectCell(0, 0);
         setDataAtCell(0, 0, 'new value');
 
-        spec().$container.simulate('keydown', { ctrlKey: true, keyCode: 'Z'.charCodeAt(0) });
+        keyDown('ctrl+z');
         expect(getDataAtCell(0, 0)).toBe('A1');
       });
 
@@ -2456,7 +2537,7 @@ describe('UndoRedo', () => {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        spec().$container.simulate('keydown', { ctrlKey: true, keyCode: 'Y'.charCodeAt(0) });
+        keyDown('ctrl+y');
 
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
@@ -2475,8 +2556,41 @@ describe('UndoRedo', () => {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        spec().$container.simulate('keydown', { ctrlKey: true, shiftKey: true, keyCode: 'Z'.charCodeAt(0) });
+        keyDown('ctrl+shift+z');
 
+        expect(getDataAtCell(0, 0)).toBe('new value');
+      });
+
+      it('should be possible to block keyboard shortcuts', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(2, 2),
+          beforeKeyDown: (e) => {
+            const ctrlDown = (e.ctrlKey || e.metaKey) && !e.altKey;
+
+            if (ctrlDown && (e.keyCode === 90 || (e.shiftKey && e.keyCode === 90))) {
+              Handsontable.dom.stopImmediatePropagation(e);
+            }
+          }
+        });
+
+        selectCell(0, 0);
+        setDataAtCell(0, 0, 'new value');
+
+        keyDown('ctrl+z');
+        expect(getDataAtCell(0, 0)).toBe('new value');
+      });
+
+      it('should not undo changes in the other cells if editor is open', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(2, 2),
+        });
+
+        selectCell(0, 0);
+        setDataAtCell(0, 0, 'new value');
+
+        selectCell(1, 0);
+        keyDownUp('enter');
+        keyDown('ctrl+z');
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
     });
@@ -2564,6 +2678,44 @@ describe('UndoRedo', () => {
         expect(hookData.data).toEqual([['A2', 'B2']]);
         done();
       }, 100);
+    });
+  });
+
+  describe('selection', () => {
+    it('should keep saved selection state ater undo and redo data change', () => {
+      handsontable();
+
+      selectCell(0, 0);
+      setDataAtCell(0, 0, 'test');
+      selectCell(0, 1);
+      setDataAtCell(0, 1, 'test2');
+
+      selectCell(0, 2);
+      undo();
+      undo();
+
+      expect(getSelectedLast()).toEqual([0, 0, 0, 0]);
+
+      redo();
+      redo();
+
+      expect(getSelectedLast()).toEqual([0, 1, 0, 1]);
+    });
+
+    it('should keep saved selection state ater undoing non-contignous selected cells', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+      });
+
+      selectCells([[0, 0, 1, 1], [1, 2, 2, 3]]);
+      emptySelectedCells();
+
+      selectCell(4, 0);
+      undo();
+
+      expect(getSelected().length).toBe(2);
+      expect(getSelected()[0]).toEqual([0, 0, 1, 1]);
+      expect(getSelected()[1]).toEqual([1, 2, 2, 3]);
     });
   });
 });

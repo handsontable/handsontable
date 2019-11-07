@@ -823,6 +823,37 @@ describe('AutoFill', () => {
     expect(JSON.stringify(getData(1, 1, 2, 4))).toEqual(JSON.stringify([[2, 0, 1, 2], [5, 3, 4, 5]]));
   });
 
+  it('should omitting data from hidden cells', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, null, null, null, null],
+        [1, 2, null, null, null, null]
+      ],
+      hiddenColumns: {
+        copyPasteEnabled: false,
+        indicators: true,
+        columns: [1]
+      },
+      hiddenRows: {
+        copyPasteEnabled: false,
+        rows: [1],
+        indicators: true
+      },
+    });
+
+    selectCell(0, 0, 0, 2);
+
+    spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+    $(getCell(2, 2, true)).simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 0)).toEqual(1);
+    expect(getDataAtCell(0, 2)).toEqual(3);
+    expect(getDataAtCell(2, 0)).toEqual(1);
+    expect(getDataAtCell(2, 2)).toEqual(3);
+  });
+
   describe('should works properly when two or more instances of Handsontable was initialized with other settings (#3257)', () => {
     let getData;
     let $container1;

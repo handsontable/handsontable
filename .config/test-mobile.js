@@ -4,7 +4,6 @@
  *  - helpers.entry.js
  */
 const path = require('path');
-const webpack = require('webpack');
 const configFactory = require('./test-e2e');
 const JasmineHtml = require('./plugin/jasmine-html');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -31,8 +30,6 @@ module.exports.create = function create(envArgs) {
         externalJsFiles: [
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
-          'lib/lodash.underscore.js',
-          'lib/backbone.js',
           '../node_modules/numbro/dist/numbro.js',
           '../node_modules/numbro/dist/languages.min.js',
           '../node_modules/moment/moment.js',

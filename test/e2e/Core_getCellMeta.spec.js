@@ -156,7 +156,7 @@ describe('Core_getCellMeta', () => {
       cells(row, col) {
         const cellProperties = {};
 
-        if (getSourceData()[row][col] === 'A') {
+        if (this.instance.getSourceDataAtCell(row, col) === 'A') {
           cellProperties.readOnly = true;
         }
 
