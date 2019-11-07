@@ -1,12 +1,13 @@
 import { matchesCSSRules } from './../helpers/dom/element';
 import { isEmpty } from './../helpers/mixed';
 
-const regSpace = /&nbsp;/gi;
 const ESCAPED_HTML_CHARS = {
+  '&nbsp;': '\x20',
   '&amp;': '&',
   '&lt;': '<',
   '&gt;': '>',
 };
+const regEscapedChars = new RegExp(Object.keys(ESCAPED_HTML_CHARS).map(key => `(${key})`).join('|'), 'gi');
 
 /**
  * Verifies if node is an HTMLTable element.
@@ -307,21 +308,16 @@ export function htmlToGridSettings(element, rootDocument = document) {
         let cellValue = '';
 
         if (cellStyle.whiteSpace === 'nowrap') {
-          cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/gim, '\x20')
-            .replace(/<br(\s*|\/)>/gim, '\r\n')
-            .replace(regSpace, '\x20');
+          cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/gim, '\x20').replace(/<br(\s*|\/)>/gim, '\r\n');
 
         } else if (generator && /excel/gi.test(generator.content)) {
-          cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/g, '\x20')
-            .replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,3}/gim, '\r\n')
-            .replace(regSpace, '\x20');
+          cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/g, '\x20').replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,3}/gim, '\r\n');
 
         } else {
-          cellValue = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n')
-            .replace(regSpace, '\x20');
+          cellValue = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n');
         }
 
-        dataArr[row][col] = cellValue.replace(/(&lt;)|(&gt;)|(&amp;)/gi, match => ESCAPED_HTML_CHARS[match]);
+        dataArr[row][col] = cellValue.replace(regEscapedChars, match => ESCAPED_HTML_CHARS[match]);
 
       } else {
         rowHeaders.push(innerHTML);
