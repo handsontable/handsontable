@@ -17,7 +17,6 @@ export default class BorderRenderer {
      * @type {HTMLElement}
      */
     this.svg = this.createSvgContainer(parentElement);
-
     /**
      * The function used to resize the SVG container when needed
      *

@@ -283,6 +283,7 @@ class CustomBorders extends BasePlugin {
    */
   insertBorderIntoSettings(border) {
     const prevBorder = this.savedBordersById.get(border.id);
+
     if (prevBorder) {
       const index = this.savedBorders.indexOf(prevBorder);
 
@@ -526,7 +527,8 @@ class CustomBorders extends BasePlugin {
   * Returns information if all of the border edges are disabled
   *
   * @private
-  * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   * @returns {Boolean}
   */
   areAllEdgesDisabled(border) {
     if (this.isEdgeEnabled(border.left)) {
@@ -550,6 +552,7 @@ class CustomBorders extends BasePlugin {
    * is configured to be rendered; otherwise FALSE
    *
    * @param {Object} edge Object with optional `hide` property
+   * @returns {Boolean}
    */
   isEdgeEnabled(edge) {
     if (edge !== undefined && edge.hide !== undefined) {

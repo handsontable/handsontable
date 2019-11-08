@@ -208,6 +208,7 @@ function getStateForStyle(states, style, parent) {
 
     let insertBeforeElem = null;
     let siblingElem = parent.firstElementChild;
+
     while (siblingElem) {
       if (compareStrokePriority(elem.dataset.strokeStyle, siblingElem.dataset.strokeStyle) === -1) {
         insertBeforeElem = siblingElem;
@@ -253,6 +254,7 @@ export function adjustLinesToViewBox(strokeWidth, lines) {
 
     if (needSubPixelCorrection) {
       const isHorizontal = y1 === y2;
+
       if (isHorizontal) {
         y1 += 0.5;
         y2 += 0.5;
