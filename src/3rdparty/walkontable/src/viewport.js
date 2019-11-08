@@ -64,16 +64,16 @@ class Viewport {
   getWorkspaceWidth() {
     const { wot } = this;
     const { rootDocument, rootWindow } = wot;
+
+    if (wot.getSetting('preventOverflow')) {
+      return outerWidth(this.instance.wtTable.wtRootElement);
+    }
+
     const trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
     const docOffsetWidth = rootDocument.documentElement.offsetWidth;
     const totalColumns = wot.getSetting('totalColumns');
-    const preventOverflow = wot.getSetting('preventOverflow');
     let width;
     let overflow;
-
-    if (preventOverflow) {
-      return outerWidth(this.instance.wtTable.wtRootElement);
-    }
 
     if (wot.getSetting('freezeOverlays')) {
       width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
