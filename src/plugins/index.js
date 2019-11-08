@@ -2,6 +2,7 @@
 import PersistentState from './persistentState/persistentState';
 import AutoColumnSize from './autoColumnSize/autoColumnSize';
 import AutoFill from './autofill/autofill';
+import ManualRowResize from './manualRowResize/manualRowResize';
 import AutoRowSize from './autoRowSize/autoRowSize';
 import ColumnSorting from './columnSorting/columnSorting';
 import Comments from './comments/comments';
@@ -13,7 +14,6 @@ import ManualColumnFreeze from './manualColumnFreeze/manualColumnFreeze';
 import ManualColumnMove from './manualColumnMove/manualColumnMove';
 import ManualColumnResize from './manualColumnResize/manualColumnResize';
 import ManualRowMove from './manualRowMove/manualRowMove';
-import ManualRowResize from './manualRowResize/manualRowResize';
 import MergeCells from './mergeCells/mergeCells';
 import MultipleSelectionHandles from './multipleSelectionHandles/multipleSelectionHandles';
 import MultiColumnSorting from './multiColumnSorting/multiColumnSorting';
