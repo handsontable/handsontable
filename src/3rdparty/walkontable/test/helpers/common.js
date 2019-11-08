@@ -396,6 +396,6 @@ export function getRenderedBorderPathExistence(parentElem) {
  * @param {HTMLElement} parentElem
  */
 export function getRenderedBorderStyles(parentElem) {
-  const paths = getSvgPaths(parentElem).map(x => x.dataset.strokeStyle);
+  const paths = getSvgPaths(parentElem).map(x => x[Walkontable.pathStyleSymbol]);
   return paths;
 }
