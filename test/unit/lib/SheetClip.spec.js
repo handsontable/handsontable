@@ -175,32 +175,32 @@ describe('SheetClip', () => {
       expect(result).toEqual(expected);
     });
 
-    it('should parse inproperly escaped quotes in cell value separated by tab into two cells in one row with', () => {
+    it('should ignore inproperly escaped quotes in cell value separated by tab into two cells in one row with', () => {
       const entry = '""A""\t""B""';
       const result = SheetClip.parse(entry);
       const expected = [
-        ['A""', 'B""'],
+        ['A', 'B'],
       ];
 
       expect(result).toEqual(expected);
     });
 
-    it('should parse inproperly escaped quotes in cell value separated by new line into two rows with one column each', () => {
+    it('should ignore inproperly escaped quotes in cell value separated by new line into two rows with one column each', () => {
       const entry = '""A""\n""B""';
       const result = SheetClip.parse(entry);
       const expected = [
-        ['A""'],
-        ['B""'],
+        ['A'],
+        ['B'],
       ];
 
       expect(result).toEqual(expected);
     });
 
     it('should parse properly escaped quotes in cell value separated by tab into two cells in one row with', () => {
-      const entry = '""A""\t""B""';
+      const entry = '"""A"""\t"""B"""';
       const result = SheetClip.parse(entry);
       const expected = [
-        ['"A', '"B"'],
+        ['"A"', '"B"'],
       ];
 
       expect(result).toEqual(expected);
