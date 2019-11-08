@@ -317,20 +317,20 @@ class ManualRowResize extends BasePlugin {
       this.hot.view.render(); // updates all
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
-    const resize = (selectedRow, forceRender) => {
-      const hookNewSize = this.hot.runHooks('beforeRowResize', selectedRow, this.newSize, true);
+    const resize = (row, forceRender) => {
+      const hookNewSize = this.hot.runHooks('beforeRowResize', this.newSize, row, true);
 
       if (hookNewSize !== void 0) {
         this.newSize = hookNewSize;
       }
 
-      this.setManualSize(selectedRow, this.newSize); // double click sets auto row size
+      this.setManualSize(row, this.newSize); // double click sets auto row size
 
       if (forceRender) {
         render();
       }
 
-      this.hot.runHooks('afterRowResize', selectedRow, this.newSize, true);
+      this.hot.runHooks('afterRowResize', this.newSize, row, true);
     };
 
     if (this.dblclick >= 2) {
@@ -407,8 +407,8 @@ class ManualRowResize extends BasePlugin {
       this.hot.view.render(); // updates all
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
-    const runHooks = (selectedRow, forceRender) => {
-      this.hot.runHooks('beforeRowResize', selectedRow, this.newSize);
+    const runHooks = (row, forceRender) => {
+      this.hot.runHooks('beforeRowResize', this.newSize, row, false);
 
       if (forceRender) {
         render();
@@ -416,7 +416,7 @@ class ManualRowResize extends BasePlugin {
 
       this.saveManualRowHeights();
 
-      this.hot.runHooks('afterRowResize', selectedRow, this.newSize, false);
+      this.hot.runHooks('afterRowResize', this.newSize, row, false);
     };
     if (this.pressed) {
       this.hideHandleAndGuide();

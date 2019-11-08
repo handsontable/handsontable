@@ -726,6 +726,32 @@ describe('CopyPaste', () => {
       expect(getDataAtCell(0, 0)).toEqual('very\r\nlong\r\n\r\ntext');
     });
 
+    it('should properly paste data with excel-style multiline text', async() => {
+      handsontable();
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<meta name=Generator content="Excel">',
+        '<table><tbody><tr><td>Line\r\n',
+        '  1<br>\r\n',
+        '    Line 2<br>\r\n',
+        '    <br>\r\n',
+        '    Line 3<br>\r\n',
+        '    Line 4<br>\r\n',
+        '    <br>\r\n',
+        '    <br>\r\n',
+        '    Line 5</td></tr></tbody></table>',
+      ].join(''));
+
+      selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      expect(getDataAtCell(0, 0)).toEqual('Line 1\r\nLine 2\r\n\r\nLine 3\r\nLine 4\r\n\r\n\r\nLine 5');
+    });
+
     it('should properly paste data with merged cells', async() => {
       handsontable();
 

@@ -130,8 +130,11 @@ class Filters extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
     this.trimRowsPlugin = this.hot.getPlugin('trimRows');
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
+    const dropdownSettings = this.hot.getSettings().dropdownMenu;
+    const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
 
     const addConfirmationHooks = (component) => {
       component.addLocalHook('accept', () => this.onActionBarSubmit('accept'));
@@ -145,7 +148,7 @@ class Filters extends BasePlugin {
     const filterValueLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_VALUE)}:`;
 
     if (!this.components.get('filter_by_condition')) {
-      const conditionComponent = new ConditionComponent(this.hot, { id: 'filter_by_condition', name: filterByConditionLabel, addSeparator: false });
+      const conditionComponent = new ConditionComponent(this.hot, { id: 'filter_by_condition', name: filterByConditionLabel, addSeparator: false, menuContainer });
       conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
 
       this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
@@ -154,7 +157,7 @@ class Filters extends BasePlugin {
       this.components.set('filter_operators', new OperatorsComponent(this.hot, { id: 'filter_operators', name: 'Operators' }));
     }
     if (!this.components.get('filter_by_condition2')) {
-      const conditionComponent = new ConditionComponent(this.hot, { id: 'filter_by_condition2', name: '', addSeparator: true });
+      const conditionComponent = new ConditionComponent(this.hot, { id: 'filter_by_condition2', name: '', addSeparator: true, menuContainer });
       conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
 
       this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));

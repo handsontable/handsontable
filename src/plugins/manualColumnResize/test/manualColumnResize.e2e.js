@@ -320,6 +320,56 @@ describe('manualColumnResize', () => {
     }
   });
 
+  it('should trigger an beforeColumnResize event after column size changes', () => {
+    const beforeColumnResizeCallback = jasmine.createSpy('beforeColumnResizeCallback');
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      beforeColumnResize: beforeColumnResizeCallback
+    });
+
+    expect(colWidth(spec().$container, 0)).toEqual(50);
+
+    resizeColumn(0, 100);
+
+    expect(beforeColumnResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
+    expect(colWidth(spec().$container, 0)).toEqual(100);
+  });
+
+  it('should appropriate resize colWidth after beforeColumnResize call a few times', async() => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true
+    });
+
+    expect(colWidth(spec().$container, 0)).toEqual(50);
+
+    hot.addHook('beforeColumnResize', () => 100);
+    hot.addHook('beforeColumnResize', () => 200);
+
+    hot.addHook('beforeColumnResize', () => void 0);
+
+    const $th = spec().$container.find('thead tr:eq(0) th:eq(0)');
+
+    $th.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mouseup');
+
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mouseup');
+
+    await sleep(700);
+
+    expect(colWidth(spec().$container, 0)).toEqual(200);
+  });
+
   it('should trigger an afterColumnResize event after column size changes', () => {
     const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
@@ -334,7 +384,7 @@ describe('manualColumnResize', () => {
 
     resizeColumn(0, 100);
 
-    expect(afterColumnResizeCallback).toHaveBeenCalledWith(0, 100, void 0, void 0, void 0, void 0);
+    expect(afterColumnResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
     expect(colWidth(spec().$container, 0)).toEqual(100);
   });
 
@@ -409,9 +459,9 @@ describe('manualColumnResize', () => {
     await sleep(1000);
 
     expect(afterColumnResizeCallback.calls.count()).toEqual(1);
-    expect(afterColumnResizeCallback.calls.argsFor(0)[0]).toEqual(0);
+    expect(afterColumnResizeCallback.calls.argsFor(0)[1]).toEqual(0);
     // All modern browsers returns width = 25px, but IE8 seems to compute width differently and returns 24px
-    expect(afterColumnResizeCallback.calls.argsFor(0)[1]).toBeInArray([30, 31, 32, 24, 25]);
+    expect(afterColumnResizeCallback.calls.argsFor(0)[0]).toBeInArray([30, 31, 32, 24, 25]);
     expect(colWidth(spec().$container, 0)).toBeInArray([30, 31, 32, 24, 25]);
   });
 

@@ -543,7 +543,7 @@ describe('HiddenRows', () => {
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
-      actions.simulate('mousedown');
+      actions.simulate('mousedown').simulate('mouseup');
 
       expect(hot.getRowHeight(3)).toBe(0.1);
       expect(hot.getRowHeight(4)).toBe(0.1);
@@ -573,7 +573,7 @@ describe('HiddenRows', () => {
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
-      actions.simulate('mousedown');
+      actions.simulate('mousedown').simulate('mouseup');
 
       expect(hot.getRowHeight(2)).toBe(30);
       expect(hot.getRowHeight(3)).toBe(30);
