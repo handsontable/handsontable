@@ -16,13 +16,13 @@ import CellValue from './cell/value';
  * @util
  */
 class Matrix {
-  constructor(recordTranslator) {
+  constructor(hot) {
     /**
-     * Record translator for translating visual records into psychical and vice versa.
+     * Handsontable instance.
      *
-     * @type {RecordTranslator}
+     * @type {Core}
      */
-    this.t = recordTranslator;
+    this.hot = hot;
     /**
      * List of all cell values with theirs precedents.
      *
@@ -128,7 +128,7 @@ class Matrix {
       if (deps.length) {
         arrayEach(deps, (cellValue) => {
           if (cellValue.hasPrecedents()) {
-            deps = deps.concat(getTotalDependencies(this.t.toVisual(cellValue)));
+            deps = deps.concat(getTotalDependencies({ row: this.hot.toVisualRow(cellValue.row), column: this.hot.toVisualColumn(cellValue.column) }));
           }
         });
       }

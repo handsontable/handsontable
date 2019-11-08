@@ -2,6 +2,7 @@ import { KEY_CODES, isPrintableChar } from './../helpers/unicode';
 import { stringify, isDefined } from './../helpers/mixed';
 import { stripTags } from './../helpers/string';
 import { pivot, arrayMap } from './../helpers/array';
+import { getRenderer } from '../renderers';
 import {
   addClass,
   getCaretPosition,
@@ -102,7 +103,9 @@ class AutocompleteEditor extends HandsontableEditor {
     choicesListHot.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth + 2 : void 0,
-      afterRenderer: (TD, row, col, prop, value) => {
+      renderer: (instance, TD, row, col, prop, value, cellProperties) => {
+        getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
+
         const { filteringCaseSensitive, allowHtml } = this.cellProperties;
         const query = this.query;
         let cellValue = stringify(value);
@@ -121,21 +124,6 @@ class AutocompleteEditor extends HandsontableEditor {
         TD.innerHTML = cellValue;
       },
       autoColumnSize: true,
-      modifyColWidth(width, col) {
-        // workaround for <strong> text overlapping the dropdown, not really accurate
-        const autoColumnSize = this.getPlugin('autoColumnSize');
-        let columnWidth = width;
-
-        if (autoColumnSize) {
-          const autoWidths = autoColumnSize.widths;
-
-          if (autoWidths[col]) {
-            columnWidth = autoWidths[col];
-          }
-        }
-
-        return trimDropdown ? columnWidth : columnWidth + 15;
-      }
     });
 
     // Add additional space for autocomplete holder

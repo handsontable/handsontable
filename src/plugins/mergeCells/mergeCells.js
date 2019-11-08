@@ -437,8 +437,8 @@ class MergeCells extends BasePlugin {
       this.hot.removeCellMeta(currentCollection.row, currentCollection.col, 'spanned');
     });
 
-    this.hot.render();
     this.hot.runHooks('afterUnmergeCells', cellRange, auto);
+    this.hot.render();
   }
 
   /**

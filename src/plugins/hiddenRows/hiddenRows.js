@@ -283,11 +283,9 @@ class HiddenRows extends BasePlugin {
    * @param {Number} row Row index.
    * @param {Number} col Column index.
    * @param {Object} cellProperties Cell meta object properties.
-   *
-   * @fires Hooks#unmodifyRow
    */
   onAfterGetCellMeta(row, col, cellProperties) {
-    const visualRow = this.hot.runHooks('unmodifyRow', row);
+    const visualRow = this.hot.toVisualRow(row);
 
     if (this.settings.copyPasteEnabled === false && this.isHidden(visualRow)) {
       cellProperties.skipRowOnPaste = true;

@@ -29,14 +29,13 @@ describe('Core.setCellMeta', () => {
   });
 
   it('should set proper cell meta when indexes was modified', () => {
-    handsontable({
-      modifyRow(row) {
-        return row + 10;
-      },
-      modifyCol(col) {
-        return col + 10;
-      }
+    const hot = handsontable({
+      minRows: 5,
+      minCols: 5
     });
+
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     setCellMeta(0, 1, 'key', 'value');
 
@@ -113,16 +112,14 @@ describe('Core.setCellMeta', () => {
   it('should call `afterSetCellMeta` plugin hook with visual indexes as parameters', () => {
     const className = 'htCenter htMiddle';
     const afterSetCellMeta = jasmine.createSpy('afterSetCellMeta');
-
     const hot = handsontable({
-      afterSetCellMeta,
-      modifyRow(row) {
-        return row + 10;
-      },
-      modifyCol(col) {
-        return col + 10;
-      }
+      minRows: 5,
+      minCols: 5,
+      afterSetCellMeta
     });
+
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     hot.setCellMeta(0, 1, 'className', className);
 

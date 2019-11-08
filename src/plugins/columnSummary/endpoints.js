@@ -1,6 +1,5 @@
 import { arrayEach } from '../../helpers/array';
 import { warn } from '../../helpers/console';
-import { getTranslator } from '../../utils/recordTranslator';
 
 /**
  * Class used to make all endpoint-related operations.
@@ -56,12 +55,6 @@ class Endpoints {
      * @default {[]}
      */
     this.cellsToSetCache = [];
-    /**
-     * A `recordTranslator` instance.
-     * @private
-     * @type {Object}
-     */
-    this.recordTranslator = getTranslator(this.hot);
   }
 
   /**
@@ -338,10 +331,10 @@ class Endpoints {
       const newRange = [];
       if (range[1]) {
         for (let i = range[0]; i <= range[1]; i++) {
-          newRange.push(this.recordTranslator.toPhysicalRow(i));
+          newRange.push(this.hot.toPhysicalRow(i));
         }
       } else {
-        newRange.push(this.recordTranslator.toPhysicalRow(range[0]));
+        newRange.push(this.hot.toPhysicalRow(range[0]));
       }
 
       allIndexes.push(newRange);
@@ -398,19 +391,29 @@ class Endpoints {
   /**
    * Resets (removes) the endpoints from the table.
    *
-   * @param {Array} endpoints Array containing the endpoints.
+   * @param {Array} [endpoints] Array containing the endpoints.
    * @param {Boolean} [useOffset=true] Use the cell offset value.
    */
-  resetAllEndpoints(endpoints, useOffset = true) {
-    let endpointsArray = endpoints;
-    this.cellsToSetCache = [];
+  resetAllEndpoints(endpoints = this.getAllEndpoints(), useOffset = true) {
+    const anyEndpointOutOfRange = endpoints.some((endpoint) => {
+      const alterRowOffset = endpoint.alterRowOffset || 0;
+      const alterColOffset = endpoint.alterColumnOffset || 0;
 
-    if (!endpointsArray) {
-      endpointsArray = this.getAllEndpoints();
+      if (endpoint.destinationRow + alterRowOffset >= this.hot.countRows() || endpoint.destinationColumn + alterColOffset >= this.hot.countCols()) {
+        return true;
+      }
+
+      return false;
+    });
+
+    if (anyEndpointOutOfRange) {
+      return;
     }
 
-    arrayEach(endpointsArray, (value) => {
-      this.resetEndpointValue(value, useOffset);
+    this.cellsToSetCache = [];
+
+    arrayEach(endpoints, (endpoint) => {
+      this.resetEndpointValue(endpoint, useOffset);
     });
 
     this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
@@ -487,7 +490,10 @@ class Endpoints {
   resetEndpointValue(endpoint, useOffset = true) {
     const alterRowOffset = endpoint.alterRowOffset || 0;
     const alterColOffset = endpoint.alterColumnOffset || 0;
-    const [visualRowIndex, visualColumnIndex] = this.recordTranslator.toVisual(endpoint.destinationRow, endpoint.destinationColumn);
+    const [visualRowIndex, visualColumnIndex] = [
+      this.hot.toVisualRow(endpoint.destinationRow),
+      this.hot.toVisualColumn(endpoint.destinationColumn)
+    ];
 
     // Clear the meta on the "old" indexes
     const cellMeta = this.hot.getCellMeta(visualRowIndex, visualColumnIndex);
@@ -495,8 +501,8 @@ class Endpoints {
     cellMeta.className = '';
 
     this.cellsToSetCache.push([
-      this.recordTranslator.toVisualRow(endpoint.destinationRow + (useOffset ? alterRowOffset : 0)),
-      this.recordTranslator.toVisualColumn(endpoint.destinationColumn + (useOffset ? alterColOffset : 0)),
+      this.hot.toVisualRow(endpoint.destinationRow + (useOffset ? alterRowOffset : 0)),
+      this.hot.toVisualColumn(endpoint.destinationColumn + (useOffset ? alterColOffset : 0)),
       ''
     ]);
   }
@@ -512,12 +518,10 @@ class Endpoints {
     // We'll need the reversed offset values, because cellMeta will be shifted AGAIN afterwards.
     const reverseRowOffset = (-1) * endpoint.alterRowOffset || 0;
     const reverseColOffset = (-1) * endpoint.alterColumnOffset || 0;
-    const visualEndpointRowIndex = this.getVisualRowIndex(endpoint.destinationRow);
+    const visualEndpointRowIndex = this.hot.toVisualRow(endpoint.destinationRow);
+    const cellMeta = this.hot.getCellMeta(this.hot.toVisualRow(endpoint.destinationRow + reverseRowOffset), endpoint.destinationColumn + reverseColOffset);
 
-    const cellMeta = this.hot.getCellMeta(this.getVisualRowIndex(endpoint.destinationRow + reverseRowOffset), endpoint.destinationColumn + reverseColOffset);
-
-    if (visualEndpointRowIndex > this.hot.countRows() ||
-      endpoint.destinationColumn > this.hot.countCols()) {
+    if (endpoint.destinationRow >= this.hot.countRows() || endpoint.destinationColumn >= this.hot.countCols()) {
       this.throwOutOfBoundsWarning();
       return;
     }
@@ -542,34 +546,12 @@ class Endpoints {
   }
 
   /**
-   * Get the visual row index for the provided row. Uses the `umodifyRow` hook.
-   *
-   * @private
-   * @param {Number} row Row index.
-   * @returns {Number}
-   */
-  getVisualRowIndex(row) {
-    return this.hot.runHooks('unmodifyRow', row, 'columnSummary');
-  }
-
-  /**
-   * Get the visual column index for the provided column. Uses the `umodifyColumn` hook.
-   *
-   * @private
-   * @param {Number} column Column index.
-   * @returns {Number}
-   */
-  getVisualColumnIndex(column) {
-    return this.hot.runHooks('unmodifyCol', column, 'columnSummary');
-  }
-
-  /**
    * Throw an error for the calculation range being out of boundaries.
    *
    * @private
    */
   throwOutOfBoundsWarning() {
-    warn('One of the  Column Summary plugins\' destination points you provided is beyond the table boundaries!');
+    warn('One of the Column Summary plugins\' destination points you provided is beyond the table boundaries!');
   }
 }
 

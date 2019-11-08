@@ -113,6 +113,66 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(180);
   });
 
+  it('should keep proper column widths after inserting column', () => {
+    handsontable({
+      manualColumnResize: [void 0, void 0, 120]
+    });
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(120);
+    expect(colWidth(spec().$container, 3)).toBe(50);
+    expect(colWidth(spec().$container, 4)).toBe(50);
+
+    alter('insert_col', 0);
+
+    expect(colWidth(spec().$container, 0)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(50);
+    expect(colWidth(spec().$container, 3)).toBe(120);
+    expect(colWidth(spec().$container, 4)).toBe(50);
+    expect(colWidth(spec().$container, 5)).toBe(50);
+
+    alter('insert_col', 3);
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(50);
+    expect(colWidth(spec().$container, 3)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 4)).toBe(120);
+    expect(colWidth(spec().$container, 5)).toBe(50);
+    expect(colWidth(spec().$container, 6)).toBe(50);
+
+    alter('insert_col', 5);
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(50);
+    expect(colWidth(spec().$container, 3)).toBe(50);
+    expect(colWidth(spec().$container, 4)).toBe(120);
+    expect(colWidth(spec().$container, 5)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 6)).toBe(50);
+    expect(colWidth(spec().$container, 7)).toBe(50);
+  });
+
+  it('should keep proper column widths after removing column', () => {
+    handsontable({
+      manualColumnResize: [void 0, void 0, 120]
+    });
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(120);
+    expect(colWidth(spec().$container, 3)).toBe(50);
+
+    alter('remove_col', 0);
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(120);
+    expect(colWidth(spec().$container, 2)).toBe(50);
+    expect(colWidth(spec().$container, 3)).toBe(50);
+  });
+
   it('should resize (narrowing) appropriate columns, even when stretchH `all` is enabled', () => {
     spec().$container.css('width', '910px');
     handsontable({
@@ -476,6 +536,34 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 0)).toEqual(100);
     expect(colWidth(spec().$container, 1)).toEqual(200);
     expect(colWidth(spec().$container, 2)).toEqual(50);
+
+    resizeColumn(2, 300);
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mouseup');
+
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mouseup');
+
+    await sleep(1000);
+
+    expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
+  });
+
+  it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      colWidths: 100
+    });
+
+    expect(colWidth(spec().$container, 0)).toEqual(100);
+    expect(colWidth(spec().$container, 1)).toEqual(100);
+    expect(colWidth(spec().$container, 2)).toEqual(100);
 
     resizeColumn(2, 300);
 

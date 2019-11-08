@@ -1216,7 +1216,7 @@ describe('Filters UI', () => {
 
       // moving column
 
-      manualColumnMove.moveColumn(0, 2);
+      manualColumnMove.moveColumn(0, 1);
       hot.render();
 
       // filtering first value of column (deselecting checkbox)
@@ -1277,7 +1277,7 @@ describe('Filters UI', () => {
 
       // moving column
 
-      manualColumnMove.moveColumn(0, 2);
+      manualColumnMove.moveColumn(0, 1);
       hot.render();
 
       // filtering second value of column (deselecting checkbox)
@@ -1375,6 +1375,54 @@ describe('Filters UI', () => {
 
     hot2.destroy();
     hot2Container.parentElement.removeChild(hot2Container);
+  });
+
+  it('should display data and filter\'s box properly when there was the `clearConditions` call and the `loadData` call #5244', () => {
+    const hot = handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      colHeaders: true,
+      rowHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    const plugin = hot.getPlugin('filters');
+
+    plugin.addCondition(1, 'begins_with', ['m']);
+    plugin.filter();
+    plugin.clearConditions();
+
+    hot.loadData([{
+      id: 1,
+      name: 'Nannie Patel',
+      address: 'Jenkinsville',
+      registered: '2014-01-29',
+      eyeColor: { color: 'green' },
+      balance: 1261.6,
+      active: true,
+    }, {
+      id: 2,
+      name: 'Mcintyre Clarke',
+      address: 'Wakarusa',
+      registered: '2014-06-28',
+      eyeColor: { color: 'green' },
+      balance: 3012.56,
+      active: true,
+    }]);
+
+    dropdownMenu(1);
+
+    const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
+    const checkedArray = checkboxes.map(element => element.checked);
+    const labels = $(byValueBoxRootElement()).find('label').toArray();
+    const texts = labels.map(element => $(element).text());
+
+    expect(texts).toEqual(['Mcintyre Clarke', 'Nannie Patel']);
+    expect(checkedArray).toEqual([true, true]);
+    expect(checkboxes.length).toBe(2);
   });
 
   describe('Simple filtering (one column)', () => {
@@ -2568,7 +2616,7 @@ describe('Filters UI', () => {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toEqual(5);
-        expect(getDataAtCol(0).join()).toBe('24,10,1,6,21');
+        expect(getDataAtCol(0).join()).toBe('1,6,10,24,21'); // Elements 1, 6, 10 haven't been sorted.
         done();
       }, 1200);
     });
@@ -2759,7 +2807,7 @@ describe('Filters UI', () => {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toEqual(5);
-        expect(getDataAtCol(0).join()).toBe('24,10,1,6,21');
+        expect(getDataAtCol(0).join()).toBe('1,6,10,24,21'); // Elements 1, 6, 10 haven't been sorted.
         done();
       }, 1200);
     });

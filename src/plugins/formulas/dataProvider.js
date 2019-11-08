@@ -1,7 +1,6 @@
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { hasOwnProperty } from '../../helpers/object';
-import { getTranslator } from '../../utils/recordTranslator';
 
 /**
  * Data class provider responsible for providing a set of range data types, necessary for calculating formulas.
@@ -27,12 +26,6 @@ class DataProvider {
      * @type {Object}
      */
     this.changes = {};
-    /**
-     * Record translator for translating visual records into psychical and vice versa.
-     *
-     * @type {RecordTranslator}
-     */
-    this.t = getTranslator(this.hot);
   }
 
   /**
@@ -72,7 +65,7 @@ class DataProvider {
    * @returns {*}
    */
   getDataAtCell(visualRow, visualColumn) {
-    const id = this._coordId(...this.t.toPhysical(visualRow, visualColumn));
+    const id = this._coordId(this.hot.toPhysicalRow(visualRow), this.hot.toPhysicalColumn(visualColumn));
     let result;
 
     if (hasOwnProperty(this.changes, id)) {
@@ -98,7 +91,7 @@ class DataProvider {
 
     arrayEach(result, (rowData, rowIndex) => {
       arrayEach(rowData, (value, columnIndex) => {
-        const id = this._coordId(...this.t.toPhysical(rowIndex + visualRow1, columnIndex + visualColumn1));
+        const id = this._coordId(this.hot.toPhysicalRow(rowIndex + visualRow1), this.hot.toPhysicalColumn(columnIndex + visualColumn1));
 
         if (hasOwnProperty(this.changes, id)) {
           result[rowIndex][columnIndex] = this.changes[id];
@@ -150,7 +143,7 @@ class DataProvider {
    * @returns {*}
    */
   getRawDataAtCell(visualRow, visualColumn) {
-    return this.getSourceDataAtCell(...this.t.toPhysical(visualRow, visualColumn));
+    return this.getSourceDataAtCell(this.hot.toPhysicalRow(visualRow), this.hot.toPhysicalColumn(visualColumn));
   }
 
   /**
@@ -169,7 +162,7 @@ class DataProvider {
       const row = [];
 
       rangeEach(visualColumn1, visualColumn2, (visualColumn) => {
-        const [physicalRow, physicalColumn] = this.t.toPhysical(visualRow, visualColumn);
+        const [physicalRow, physicalColumn] = [this.hot.toPhysicalRow(visualRow), this.hot.toPhysicalColumn(visualColumn)];
         const id = this._coordId(physicalRow, physicalColumn);
 
         if (hasOwnProperty(this.changes, id)) {
@@ -214,7 +207,6 @@ class DataProvider {
   destroy() {
     this.hot = null;
     this.changes = null;
-    this.t = null;
   }
 }
 
