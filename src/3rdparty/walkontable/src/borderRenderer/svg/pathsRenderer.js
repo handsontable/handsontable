@@ -1,5 +1,3 @@
-import svgOptimizePath from './optimizePath';
-
 let stringifyPath;
 
 /**
@@ -48,78 +46,6 @@ export default function getSvgPathsRenderer(svg) {
 
     states.forEach(renderState);
   };
-}
-
-/**
- * For a given `style` string returns a relevant array from the `stylesAndLines` map.
- * Sets a new array in `stylesAndLines` if an existing one is not found.
- *
- * @param {Map.<string, Array.<Array.<number>>>} stylesAndLines Map where keys are the `style` strings and values are lines in format `[[x1, y1, x2, y2, ...], ...]`
- * @param {String} style Stroke style description, e.g. `1px black`
- * @returns {Array.<Array.<number>>} Lines in format `[[x1, y1, x2, y2, ...], ...]`
- */
-function getLines(stylesAndLines, style) {
-  const lines = stylesAndLines.get(style);
-
-  if (lines) {
-    return lines;
-  }
-
-  const newLines = [];
-
-  stylesAndLines.set(style, newLines);
-
-  return newLines;
-}
-
-/**
- * For a given configuration object (as described in Handsontable `CustomBorders` plugin) returns a relevant `stylesAndLines` map.
- *
- * @param {Array.<Object>} rawData Configuration object
- * @returns {Map.<string, Array.<Array.<string>>>} Map where keys are the `style` strings and values are SVG Path commands in format `['M x1 y1 x2 y2 ... Z', ...]`
- */
-export function precalculateStylesAndCommands(rawData) {
-  const stylesAndLines = new Map();
-  const stylesAndCommands = new Map();
-
-  for (let ii = 0; ii < rawData.length; ii++) {
-    const { x1, y1, x2, y2, topStyle, rightStyle, bottomStyle, leftStyle } = rawData[ii];
-
-    if (topStyle) {
-      const lines = getLines(stylesAndLines, topStyle);
-
-      lines.push([x1, y1, x2, y1]);
-    }
-    if (rightStyle) {
-      const lines = getLines(stylesAndLines, rightStyle);
-
-      lines.push([x2, y1, x2, y2]);
-    }
-    if (bottomStyle) {
-      const lines = getLines(stylesAndLines, bottomStyle);
-
-      lines.push([x1, y2, x2, y2]);
-    }
-    if (leftStyle) {
-      const lines = getLines(stylesAndLines, leftStyle);
-
-      lines.push([x1, y1, x1, y2]);
-    }
-  }
-
-  const styles = [...stylesAndLines.keys()];
-
-  styles.forEach((style) => {
-    const lines = stylesAndLines.get(style);
-    const strokeWidth = parseInt(style, 10);
-    const adjustedLines = adjustLinesToViewBox(strokeWidth, lines);
-    const optimizedLines = svgOptimizePath(adjustedLines);
-    const command = convertLinesToCommand(optimizedLines, strokeWidth);
-
-    stylesAndCommands.set(style, command);
-  });
-
-  return stylesAndCommands;
 }
 
 /**
