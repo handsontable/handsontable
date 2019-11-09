@@ -197,7 +197,7 @@ function getStateForStyle(states, style, parent) {
     // elem.setAttribute('shape-rendering', 'optimizeSpeed');
     elem.setAttribute('shape-rendering', 'geometricPrecision'); // TODO why the border renders wrong when this is on
     // elem.setAttribute('shape-rendering', 'crispEdges');
-    elem.dataset.strokeStyle = style;
+    elem.setAttribute('data-stroke-style', style);
 
     state = {
       elem,
@@ -210,7 +210,7 @@ function getStateForStyle(states, style, parent) {
     let siblingElem = parent.firstElementChild;
 
     while (siblingElem) {
-      if (compareStrokePriority(elem.dataset.strokeStyle, siblingElem.dataset.strokeStyle) === -1) {
+      if (compareStrokePriority(style, siblingElem.getAttribute('data-stroke-style')) === -1) {
         insertBeforeElem = siblingElem;
         break;
       }
