@@ -26,7 +26,7 @@ import { OrderView, SharedOrderView } from './utils/orderView';
 import Viewport from './viewport';
 import { getListenersCounter } from './../../../eventManager';
 
-import getSvgPathsRenderer, { precalculateStylesAndCommands, pathStyleSymbol } from './borderRenderer/svg/pathsRenderer';
+import getSvgPathsRenderer, { precalculateStylesAndCommands } from './borderRenderer/svg/pathsRenderer';
 import getSvgResizer from './borderRenderer/svg/resizer';
 
 /**
@@ -68,6 +68,5 @@ export {
 
   getSvgPathsRenderer,
   precalculateStylesAndCommands,
-  getSvgResizer,
-  pathStyleSymbol
+  getSvgResizer
 };
