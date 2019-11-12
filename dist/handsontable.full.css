@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 8.0.0-beta.1
- * Release date: 13/11/2019 (built at 08/11/2019 14:00:51)
+ * Release date: 13/11/2019 (built at 12/11/2019 18:03:32)
  */
 /**
  * Fix for bootstrap styles
@@ -580,7 +580,6 @@
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 104;
 }
 
 .htSelectEditor {
