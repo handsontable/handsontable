@@ -1,15 +1,10 @@
 /* eslint-disable no-sparse-arrays */
+/* eslint-disable comma-spacing */
 import LazyGridMap from 'handsontable/dataMap/metaManager/lazyGridMap';
 
 function createLazyGridMap(valueFactory) {
   if (!valueFactory) {
-    let incr = -1;
-
-    valueFactory = () => {
-      incr += 1;
-
-      return { i: incr };
-    };
+    valueFactory = key => ({ i: key });
   }
 
   return new LazyGridMap(valueFactory);
@@ -27,37 +22,33 @@ describe('LazyGridMap', () => {
     map.remove(10, 2);
 
     expect(map.index).toEqual([,,,,,,,,,, 2, 3]); // <10 empty items>
-    expect(map.data).toEqual([{ i: 0 }, { i: 1 }, { i: 2 }, { i: 3 }]);
+    expect(map.data).toEqual([{ i: 10 }, { i: 11 }, { i: 12 }, { i: 13 }]);
     expect(map.holes).toEqual([0, 1]);
-    expect(map.length).toBe(2);
 
     map.obtain(1);
 
     expect(map.index).toEqual([, 1,,,,,,,,, 2, 3]); // <1 empty items>, 1, <8 empty items>, 2, 3
-    expect(map.data).toEqual([{ i: 0 }, { i: 4 }, { i: 2 }, { i: 3 }]);
+    expect(map.data).toEqual([{ i: 10 }, { i: 1 }, { i: 12 }, { i: 13 }]);
     expect(map.holes).toEqual([0]);
-    expect(map.length).toBe(3);
 
     map.obtain(3);
 
     expect(map.index).toEqual([, 1,, 0,,,,,,, 2, 3]); // <1 empty item>, 1, <1 empty item>, 0, <6 empty items>, 2, 3
-    expect(map.data).toEqual([{ i: 5 }, { i: 4 }, { i: 2 }, { i: 3 }]);
+    expect(map.data).toEqual([{ i: 3 }, { i: 1 }, { i: 12 }, { i: 13 }]);
     expect(map.holes).toEqual([]);
-    expect(map.length).toBe(4);
   });
 
   describe('obtain()', () => {
     it('should lazy create data', () => {
       const map = createLazyGridMap();
 
-      expect(map.obtain(3)).toEqual({ i: 0 });
-      expect(map.obtain(10)).toEqual({ i: 1 });
-      expect(map.obtain(9)).toEqual({ i: 2 });
-      expect(map.obtain(0)).toEqual({ i: 3 });
+      expect(map.obtain(3)).toEqual({ i: 3 });
+      expect(map.obtain(10)).toEqual({ i: 10 });
+      expect(map.obtain(9)).toEqual({ i: 9 });
+      expect(map.obtain(0)).toEqual({ i: 0 });
 
       expect(map.index).toEqual([3,,, 0,,,,,, 2, 1]); // [ 3, <2 empty items>, 0, <5 empty items>, 2, 1 ]
-      expect(map.data).toEqual([{ i: 0 }, { i: 1 }, { i: 2 }, { i: 3 }]);
-      expect(map.length).toBe(4);
+      expect(map.data).toEqual([{ i: 3 }, { i: 10 }, { i: 9 }, { i: 0 }]);
     });
 
     it('should get already created map values', () => {
@@ -66,7 +57,6 @@ describe('LazyGridMap', () => {
 
       map.index = [,,, 0, 1, 2, 3];
       map.data = [{ i: 0 }, { i: 1 }, { i: 2 }, { i: 3 }];
-      map.length = 4;
 
       expect(spyValueFactory).not.toHaveBeenCalled();
       expect(map.obtain(3)).toEqual({ i: 0 });
@@ -77,32 +67,28 @@ describe('LazyGridMap', () => {
   });
 
   describe('insert()', () => {
-    it('should update index map leaving the data intact (an instance with no data)', () => {
+    it('should update index map and fill the data with empty values (an instance with an empty data)', () => {
       const map = createLazyGridMap();
 
       map.insert(0, 2);
 
       expect(map.index).toEqual([0, 1]);
-      expect(map.data).toEqual([]);
-      expect(map.length).toBe(2);
+      expect(map.data).toEqual([,,]); // <2 empty items>
 
       map.insert(0, 2);
 
       expect(map.index).toEqual([2, 3, 0, 1]);
-      expect(map.data).toEqual([]);
-      expect(map.length).toBe(4);
+      expect(map.data).toEqual([,,,,]); // <4 empty items>
 
       map.insert(1, 3);
 
       expect(map.index).toEqual([2, 4, 5, 6, 3, 0, 1]);
-      expect(map.data).toEqual([]);
-      expect(map.length).toBe(7);
+      expect(map.data).toEqual([,,,,,,,]); // <7 empty items>
 
-      map.insert(100);
+      map.insert();
 
       expect(map.index).toEqual([2, 4, 5, 6, 3, 0, 1, 7]);
-      expect(map.data).toEqual([]);
-      expect(map.length).toBe(8);
+      expect(map.data).toEqual([,,,,,,,,]); // <8 empty items>
     });
 
     it('should update index map leaving the data intact (an instance with sample data)', () => {
@@ -115,12 +101,41 @@ describe('LazyGridMap', () => {
 
       map.insert(0, 2);
 
-      // After inserting new rows the `{i: 0}` item will be accessible under index 12
-      expect(map.obtain(12)).toEqual({ i: 0 });
+      // After inserting new rows the `{i: 10}` item will be accessible under index 12
+      expect(map.obtain(12)).toEqual({ i: 10 });
 
-      expect(map.index).toEqual([4, 5, ,,,,,,,,,, 0, 1, 2, 3]); // <10 empty items>
-      expect(map.data).toEqual([{ i: 0 }, { i: 1 }, { i: 2 }, { i: 3 }]);
-      expect(map.length).toBe(6);
+      expect(map.index).toEqual([4, 5, ,,,,,,,,,, 0, 1, 2, 3]); // [ 4, 5, <10 empty items>, 0, 1, 2, 3 ]
+      expect(map.data).toEqual([{ i: 10 }, { i: 11 }, { i: 12 }, { i: 13 },,,]);
+    });
+
+    it('should update index map by inserting the items at the end of the data when method is called without arguments', () => {
+      const map = createLazyGridMap();
+
+      map.insert();
+
+      expect(map.index).toEqual([0]);
+      expect(map.data).toEqual([,]);
+
+      map.obtain(3);
+      map.insert();
+
+      expect(map.index).toEqual([0 ,,, 1, 2]);
+      expect(map.data).toEqual([, { i: 3 },,]);
+
+      expect(map.obtain(3)).toEqual({ i: 3 });
+      expect(map.obtain(4)).toEqual({ i: 4 });
+
+      expect(map.index).toEqual([0 ,,, 1, 2]);
+      expect(map.data).toEqual([, { i: 3 }, { i: 4 }]);
+
+      map.insert(null, 5);
+
+      expect(map.index).toEqual([0 ,,, 1, 2, 3, 4, 5, 6, 7]); // [ 0, <2 empty items>, 1, 2, 3, 4, 5, 6, 7 ]
+      expect(map.data).toEqual([, { i: 3 }, { i: 4 },,,,,,]); // [ <1 empty item>, { i: 3 }, { i: 4 }, <5 empty items> ]
+
+      expect(map.obtain(0)).toEqual({ i: 0 });
+      expect(map.obtain(3)).toEqual({ i: 3 });
+      expect(map.obtain(4)).toEqual({ i: 4 });
     });
 
     it('should refill an empty created row with data after inserting and obtaining data from a new index', () => {
@@ -134,16 +149,15 @@ describe('LazyGridMap', () => {
       map.insert(1, 3);
 
       expect(map.obtain(0)).toEqual({ i: 0 });
-      expect(map.obtain(1)).toEqual({ i: 4 }); // newly created value
-      expect(map.obtain(2)).toEqual({ i: 5 }); // newly created value
-      expect(map.obtain(3)).toEqual({ i: 6 }); // newly created value
+      expect(map.obtain(1)).toEqual({ i: 1 }); // newly created value/object
+      expect(map.obtain(2)).toEqual({ i: 2 }); // newly created value/object
+      expect(map.obtain(3)).toEqual({ i: 3 }); // newly created value/object
       expect(map.obtain(4)).toEqual({ i: 1 });
       expect(map.obtain(5)).toEqual({ i: 2 });
       expect(map.obtain(6)).toEqual({ i: 3 });
 
       expect(map.index).toEqual([0, 4, 5, 6, 1, 2, 3]);
-      expect(map.data).toEqual([{ i: 0 }, { i: 1 }, { i: 2 }, { i: 3 }, { i: 4 }, { i: 5 }, { i: 6 }]);
-      expect(map.length).toBe(7);
+      expect(map.data).toEqual([{ i: 0 }, { i: 1 }, { i: 2 }, { i: 3 }, { i: 1 }, { i: 2 }, { i: 3 }]);
     });
   });
 
@@ -156,27 +170,24 @@ describe('LazyGridMap', () => {
       expect(map.index).toEqual([]);
       expect(map.data).toEqual([]);
       expect(map.holes).toEqual([]);
-      expect(map.length).toBe(0);
 
       map.remove(4, 5);
 
       expect(map.index).toEqual([]);
       expect(map.data).toEqual([]);
       expect(map.holes).toEqual([]);
-      expect(map.length).toBe(0);
 
       map.remove(100);
 
       expect(map.index).toEqual([]);
       expect(map.data).toEqual([]);
       expect(map.holes).toEqual([]);
-      expect(map.length).toBe(0);
     });
 
     it('should update index map leaving the data intact (an instance with sample data)', () => {
       const map = createLazyGridMap();
 
-      expect(map.obtain(10)).toEqual({ i: 0 });
+      expect(map.obtain(10)).toEqual({ i: 10 });
 
       map.obtain(11);
       map.obtain(12);
@@ -185,46 +196,53 @@ describe('LazyGridMap', () => {
       map.remove(0, 2);
 
       // After removing rows the `{i: 0}` item will be accessible under index 8
-      expect(map.obtain(8)).toEqual({ i: 0 });
+      expect(map.obtain(8)).toEqual({ i: 10 });
 
       expect(map.index).toEqual([,,,,,,,, 0, 1, 2, 3]); // <8 empty items>
-      expect(map.data).toEqual([{ i: 0 }, { i: 1 }, { i: 2 }, { i: 3 }]);
+      expect(map.data).toEqual([{ i: 10 }, { i: 11 }, { i: 12 }, { i: 13 }]);
       expect(map.holes).toEqual([]);
-      expect(map.length).toBe(4);
 
       map.remove(9, 2);
 
       expect(map.index).toEqual([,,,,,,,, 0, 3]); // <8 empty items>
-      expect(map.data).toEqual([{ i: 0 }, { i: 1 }, { i: 2 }, { i: 3 }]);
+      expect(map.data).toEqual([{ i: 10 }, { i: 11 }, { i: 12 }, { i: 13 }]);
       expect(map.holes).toEqual([1, 2]); // Data at index 1 and 2 are marked as the hole so that slots will be used for obtaining new ones
-      expect(map.length).toBe(2);
     });
 
-    it('should update index map leaving the data intact (an instance with sample data)', () => {
-      const map = createLazyGridMap();
+    it('should update index map by removing the items from the end of the data when method is called without arguments', () => {
+      let inc = 0;
+      const map = createLazyGridMap(() => {
+        inc += 1;
 
-      expect(map.obtain(10)).toEqual({ i: 0 });
+        return { i: inc };
+      });
 
+      map.obtain(10);
       map.obtain(11);
       map.obtain(12);
-      map.obtain(13);
 
-      map.remove(0, 2);
+      map.remove();
 
-      // After removing rows the `{i: 0}` item will be accessible under index 8
-      expect(map.obtain(8)).toEqual({ i: 0 });
+      expect(map.index).toEqual([,,,,,,,,,, 0, 1]); // [ <10 empty items>, 0, 1 ]
+      expect(map.data).toEqual([{ i: 1 }, { i: 2 }, { i: 3 }]);
+      expect(map.holes).toEqual([2]);
 
-      expect(map.index).toEqual([,,,,,,,, 0, 1, 2, 3]); // <8 empty items>
-      expect(map.data).toEqual([{ i: 0 }, { i: 1 }, { i: 2 }, { i: 3 }]);
+      // Generates object with i=4 so this is a proof that previous entry marked as "hole" was replaced
+      expect(map.obtain(12)).toEqual({ i: 4 });
+
+      map.remove(null, 3);
+
+      expect(map.index).toEqual([,,,,,,,,,,]); // [ <10 empty items> ]
+      expect(map.data).toEqual([{ i: 1 }, { i: 2 }, { i: 4 }]);
+      expect(map.holes).toEqual([0, 1, 2]);
+
+      expect(map.obtain(10)).toEqual({ i: 5 });
+      expect(map.obtain(11)).toEqual({ i: 6 });
+      expect(map.obtain(12)).toEqual({ i: 7 });
+
+      expect(map.index).toEqual([,,,,,,,,,, 2, 1, 0]); // [ <10 empty items> ]
+      expect(map.data).toEqual([{ i: 7 }, { i: 6 }, { i: 5 }]);
       expect(map.holes).toEqual([]);
-      expect(map.length).toBe(4);
-
-      map.remove(9, 2);
-
-      expect(map.index).toEqual([,,,,,,,, 0, 3]); // <8 empty items>, 0, 3
-      expect(map.data).toEqual([{ i: 0 }, { i: 1 }, { i: 2 }, { i: 3 }]);
-      expect(map.holes).toEqual([1, 2]); // Data under index 1 and 2 are marked as hole
-      expect(map.length).toBe(2);
     });
   });
 

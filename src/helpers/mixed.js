@@ -61,6 +61,16 @@ export function isEmpty(variable) {
 }
 
 /**
+ * Check if given variable is null or undefined.
+ *
+ * @param {*} variable Variable to check.
+ * @returns {Boolean}
+ */
+export function isNullish(variable) {
+  return variable === null || variable === void 0;
+}
+
+/**
  * Check if given variable is a regular expression.
  *
  * @param {*} variable Variable to check.

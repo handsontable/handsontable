@@ -219,17 +219,17 @@ class NestedRows extends BasePlugin {
       this.dataManager.moveRow(translatedStartIndexes[i], translatedTargetIndex);
     }
 
-    const movingDown = translatedStartIndexes[translatedStartIndexes.length - 1] < translatedTargetIndex;
+    // const movingDown = translatedStartIndexes[translatedStartIndexes.length - 1] < translatedTargetIndex;
 
-    if (movingDown) {
-      for (i = rowsLen - 1; i >= 0; i--) {
-        this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedTargetIndex);
-      }
-    } else {
-      for (i = 0; i < rowsLen; i++) {
-        this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedTargetIndex);
-      }
-    }
+    // if (movingDown) {
+    //   for (i = rowsLen - 1; i >= 0; i--) {
+    //     this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedTargetIndex);
+    //   }
+    // } else {
+    //   for (i = 0; i < rowsLen; i++) {
+    //     this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedTargetIndex);
+    //   }
+    // }
 
     if ((translatedStartIndexes[rowsLen - 1] <= translatedTargetIndex && sameParent) || this.dataManager.isParent(translatedTargetIndex)) {
       rows.reverse();

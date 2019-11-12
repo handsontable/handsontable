@@ -79,7 +79,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   userSettings.language = getValidLanguageCode(userSettings.language);
 
-  const metaManager = new MetaManager(userSettings);
+  let metaManager = new MetaManager(userSettings);
   const tableMeta = metaManager.getTableMeta();
   const globalMeta = metaManager.getGlobalMeta();
 
@@ -1004,7 +1004,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           const numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
 
           if (numberOfCreatedRows >= 1) {
-            metaManager.createRow(recordTranslator.toPhysicalRow(instance.countRows() - 1), 1);
+            metaManager.createRow(null, numberOfCreatedRows);
           } else {
             skipThisChange = true;
             break;
@@ -1017,7 +1017,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           const numberOfCreatedColumns = datamap.createCol(void 0, void 0, source);
 
           if (numberOfCreatedColumns >= 1) {
-            metaManager.createColumn(recordTranslator.toPhysicalColumn(instance.countCols() - 1), 1);
+            metaManager.createColumn(null, numberOfCreatedColumns);
           } else {
             skipThisChange = true;
             break;
@@ -2225,10 +2225,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     let type = 'mixed';
 
-    rangeEach(Math.min(rowStart, rowEnd), Math.max(rowStart, rowEnd), (row) => {
+    rangeEach(Math.max(Math.min(rowStart, rowEnd), 0), Math.max(rowStart, rowEnd), (row) => {
       let isTypeEqual = true;
 
-      rangeEach(Math.min(columnStart, columnEnd), Math.max(columnStart, columnEnd), (column) => {
+      rangeEach(Math.max(Math.min(columnStart, columnEnd), 0), Math.max(columnStart, columnEnd), (column) => {
         const cellType = this.getCellMeta(row, column);
 
         currentType = cellType.type;
@@ -2734,12 +2734,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number}
    */
   this._getColWidthFromSettings = function(col) {
-    const cellProperties = instance.getCellMeta(0, col);
-    let width = cellProperties.width;
+    let width;
+
+    // We currently dont support cell meta objects for headers (negative values)
+    if (col >= 0) {
+      const cellProperties = instance.getCellMeta(0, col);
+
+      width = cellProperties.width;
+    }
 
     if (width === void 0 || width === tableMeta.width) {
-      width = cellProperties.colWidths;
+      width = tableMeta.colWidths;
     }
+
     if (width !== void 0 && width !== null) {
       switch (typeof width) {
         case 'object': // array
@@ -3280,6 +3287,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       dataSource.destroy();
     }
     dataSource = null;
+
+    metaManager.clearCache();
+    metaManager = null;
 
     keyStateStopObserving();
 

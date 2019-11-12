@@ -85,20 +85,20 @@ export class MetaManager {
     return this.cellMeta.getMetasAtRow(physicalRow);
   }
 
-  createRow(physicalRow, amount) {
+  createRow(physicalRow, amount = 1) {
     this.cellMeta.createRow(physicalRow, amount);
   }
 
-  removeRow(physicalRow, amount) {
+  removeRow(physicalRow, amount = 1) {
     this.cellMeta.removeRow(physicalRow, amount);
   }
 
-  createColumn(physicalColumn, amount) {
+  createColumn(physicalColumn, amount = 1) {
     this.cellMeta.createColumn(physicalColumn, amount);
     this.columnMeta.createColumn(physicalColumn, amount);
   }
 
-  removeColumn(physicalColumn, amount) {
+  removeColumn(physicalColumn, amount = 1) {
     this.cellMeta.removeColumn(physicalColumn, amount);
     this.columnMeta.removeColumn(physicalColumn, amount);
   }

@@ -354,6 +354,10 @@ describe('Comments', () => {
     await sleep(300);
 
     expect($(editor).parents('.htComments')[0].style.display).toEqual('block');
+
+    // Call manually blur event on comment input. This prevents auto-triggering blur event
+    // when the instance is destroyed, which causes to call `getCellMeta` on the destroyed instance.
+    editor.blur();
   });
 
   describe('Using the Context Menu', () => {

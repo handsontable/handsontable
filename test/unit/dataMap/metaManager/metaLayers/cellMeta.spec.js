@@ -439,7 +439,7 @@ describe('ColumnMeta', () => {
         _myCustomKey: 'bar',
       };
 
-      expect(meta.getMeta()).toHaveProperty('outsideClickDeselects', true);
+      expect(meta.getMeta(2, 3)).toHaveProperty('outsideClickDeselects', true);
 
       meta.updateMeta(2, 3, settings);
 

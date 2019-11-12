@@ -1,3 +1,6 @@
+import { isNullish } from '../../helpers/mixed';
+import { assert, isFiniteSignedNumber } from './utils';
+
 /**
  * The LazyGridMap object holds key-value pairs in the structure similar to the
  * 2D grid. Once created, items can be moved around a grid depending on the operations
@@ -9,7 +12,7 @@
  *
  * Having created N items with corresponding data
  * +------+------+------+------+------+
- * | 0/10 | 1/11 | 2/12 | 3/13 | 4/14 |  Keys (volatile zero-based index / storage index)
+ * | 0/10 | 1/11 | 2/12 | 3/13 | 4/14 |  Keys (volatile zero-based index / internal storage index)
  * +------+------+------+------+------+
  *    │      │      │      │      │
  * +------+------+------+------+------+
@@ -76,7 +79,7 @@
  *         means that can be replaced by new item
  *         when that will be created.
  *
- * map.obtain(2) // returns the old value as it should "EEE"
+ * map.obtain(2) // returns the old value ("EEE") as it should
  */
 export default class LazyGridMap {
   constructor(valueFactory) {
@@ -87,12 +90,6 @@ export default class LazyGridMap {
      * @type {Array}
      */
     this.data = [];
-    /**
-     * The length of data stored in the map.
-     *
-     * @type {Number}
-     */
-    this.length = 0;
     /**
      * An array of indexes where the key of the array is mapped to the value which points to the
      * specific position of the data array.
@@ -116,6 +113,8 @@ export default class LazyGridMap {
    * @returns {*}
    */
   obtain(key) {
+    assert(() => isFiniteSignedNumber(key), 'Expecting a signed finite number.');
+
     const dataIndex = this._getStorageIndexByKey(key);
     let result;
 
@@ -138,8 +137,6 @@ export default class LazyGridMap {
         this.data.push(result);
         this.index[key] = this.data.length - 1;
       }
-
-      this.length += 1;
     }
 
     return result;
@@ -153,10 +150,17 @@ export default class LazyGridMap {
    * @param {Number} [amount=1] Ammount data to insert.
    */
   insert(key, amount = 1) {
-    const newIndexes = new Array(amount).fill().map((_, i) => this.length + i);
+    assert(() => (isFiniteSignedNumber(key) || isNullish(key)), 'Expecting a signed finite number or null/undefined argument.');
 
-    this.index.splice(key, 0, ...newIndexes);
-    this.length += amount;
+    const newIndexes = [];
+    const dataLength = this.data.length;
+
+    for (let i = 0; i < amount; i++) {
+      newIndexes.push(dataLength + i);
+      this.data.push(void 0);
+    }
+
+    this.index.splice(isNullish(key) ? this.index.length : key, 0, ...newIndexes);
   }
 
   /**
@@ -166,14 +170,15 @@ export default class LazyGridMap {
    * @param {Number} [amount=1] Ammount data to remove.
    */
   remove(key, amount = 1) {
-    const removed = this.index.splice(key, amount);
+    assert(() => (isFiniteSignedNumber(key) || isNullish(key)), 'Expecting a signed finite number or null/undefined argument.');
+
+    const removed = this.index.splice(isNullish(key) ? this.index.length - amount : key, amount);
 
     for (let i = 0; i < removed.length; i++) {
       const removedIndex = removed[i];
 
       if (typeof removedIndex === 'number') {
         this.holes.push(removedIndex);
-        this.length -= 1;
       }
     }
   }
@@ -184,7 +189,7 @@ export default class LazyGridMap {
    * @returns {Number}
    */
   size() {
-    return this.length;
+    return this.data.length;
   }
 
   /**
@@ -228,7 +233,6 @@ export default class LazyGridMap {
    */
   clear() {
     this.data = [];
-    this.length = 0;
     this.index = [];
     this.holes = [];
   }

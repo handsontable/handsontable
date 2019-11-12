@@ -1,5 +1,5 @@
 import { extend } from '../../../helpers/object';
-import { expandMetaType } from '../utils';
+import { expandMetaType, assert, isFiniteSignedNumber } from '../utils';
 import LazyGridMap from '../lazyGridMap';
 
 export default class CellMeta {
@@ -39,10 +39,6 @@ export default class CellMeta {
     this.metas.clear();
   }
 
-  // splice(physicalRow, deleteAmount, items) {
-  //   return this.metas.splice(physicalRow, deleteAmount, ...items);
-  // }
-
   getMeta(physicalRow, physicalColumn, key) {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
@@ -77,6 +73,8 @@ export default class CellMeta {
   }
 
   getMetasAtRow(physicalRow) {
+    assert(() => isFiniteSignedNumber(physicalRow), 'Expecting a signed finite number.');
+
     const rowsMeta = new Map(this.metas);
 
     return rowsMeta.has(physicalRow) ? Array.from(rowsMeta.get(physicalRow).values()) : [];

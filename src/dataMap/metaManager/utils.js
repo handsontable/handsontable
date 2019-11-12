@@ -38,8 +38,12 @@ export function columnFactory(TableMeta, conflictList) {
   return ColumnMeta;
 }
 
-export function arraySplice(array, start, itemsCount, defaultValue) {
-  const valueToFill = typeof defaultValue === 'function' ? defaultValue() : defaultValue;
+export function isFiniteSignedNumber(value) {
+  return Number.isFinite(value) && value >= 0;
+}
 
-  array.splice(start, 0, ...new Array(itemsCount).fill(valueToFill));
+export function assert(condition, errorMessage) {
+  if (!condition()) {
+    throw new Error(`Assertion failed: ${errorMessage}`);
+  }
 }
