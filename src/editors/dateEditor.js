@@ -1,7 +1,7 @@
 import moment from 'moment';
 import Pikaday from 'pikaday';
 import 'pikaday/css/pikaday.css';
-import { addClass, outerHeight } from './../helpers/dom/element';
+import { addClass, outerHeight, outerWidth } from './../helpers/dom/element';
 import { deepExtend } from './../helpers/object';
 import EventManager from './../eventManager';
 import { isMetaKey } from './../helpers/unicode';
@@ -149,9 +149,20 @@ class DateEditor extends TextEditor {
     let dateStr;
     const isMouseDown = this.instance.view.isMouseDown();
     const isMeta = event ? isMetaKey(event.keyCode) : false;
+    const pickadayHeight = 198;
+    const pickadayWidth = 258;
 
-    this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
-    this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + offset.left}px`;
+    if (this.hot.rootWindow.pageYOffset + offset.top > this.hot.rootWindow.innerHeight - pickadayHeight) {
+      this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top - pickadayHeight}px`;
+    } else {
+      this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
+    }
+
+    if (this.hot.rootWindow.pageXOffset + offset.left > this.hot.rootWindow.innerWidth - pickadayWidth) {
+      this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + offset.left + outerWidth(this.TD) - pickadayWidth}px`;
+    } else {
+      this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + offset.left}px`;
+    }
 
     this.$datePicker._onInputFocus = function() {};
     datePickerConfig.format = dateFormat;
