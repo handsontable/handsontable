@@ -1,7 +1,8 @@
 node_modules
 src/3rdparty/walkontable/test/lib/*
 dist/*
-lib/*
+lib/jsonpatch/*
+lib/autoResize/*
 src/3rdparty/walkontable/test/dist/*
 src/3rdparty/walkontable/dist/*
 test/lib/*
