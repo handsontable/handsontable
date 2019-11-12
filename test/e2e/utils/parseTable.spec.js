@@ -25,7 +25,7 @@ describe('parseTable', () => {
    */
   describe('matchesCSSRules', () => {
     it('should verify only STYLE_RULE type rules', () => {
-      const styleElem = $('<style/>').html('@page div {} div {} * {} .test {}').appendTo(spec().$container);
+      const styleElem = $('<style/>').html('@page {} div {} * {} .test {}').appendTo(spec().$container);
       const testElem = $('<div/>').addClass('test').appendTo(spec().$container)[0];
       const { cssRules } = styleElem[0].sheet;
       const matchesMethod = getMatchesMethod(testElem);
