@@ -147,6 +147,7 @@ class EditorManager {
     }
 
     const { row, col } = this.instance.selection.selectedRange.current().highlight;
+
     this.cellProperties = this.instance.getCellMeta(row, col);
 
     if (this.cellProperties.readOnly) {
@@ -160,7 +161,7 @@ class EditorManager {
 
     if (editorClass && td) {
       const prop = this.instance.colToProp(col);
-      const originalValue = this.instance.getSourceDataAtCell(this.instance.runHooks('modifyRow', row), col);
+      const originalValue = this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(row), col);
 
       this.activeEditor = getEditorInstance(editorClass, this.instance);
       this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);

@@ -54,12 +54,6 @@ class HeadersUI extends BaseUI {
      * @type {null|Number}
      */
     this.rowHeaderWidthCache = null;
-    /**
-     * Reference to the TrimRows instance connected with the Nested Rows plugin.
-     *
-     * @type {TrimRows}
-     */
-    this.trimRowsPlugin = nestedRowsPlugin.trimRowsPlugin;
   }
 
   /**
@@ -70,7 +64,7 @@ class HeadersUI extends BaseUI {
    * @param {HTMLElement} TH TH 3element.
    */
   appendLevelIndicators(row, TH) {
-    const rowIndex = this.trimRowsPlugin.rowsMapper.getValueByIndex(row);
+    const rowIndex = this.hot.toPhysicalRow(row);
     const rowLevel = this.dataManager.getRowLevel(rowIndex);
     const rowObject = this.dataManager.getDataObject(rowIndex);
     const innerDiv = TH.getElementsByTagName('DIV')[0];

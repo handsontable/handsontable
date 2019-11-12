@@ -1,6 +1,5 @@
 import { defineGetter, objectEach } from './../helpers/object';
 import { arrayEach } from './../helpers/array';
-import { getTranslator } from './../utils/recordTranslator';
 import { getRegistredPluginNames, getPluginName } from './../plugins';
 
 const privatePool = new WeakMap();
@@ -20,9 +19,6 @@ class BasePlugin {
      * @type {Core}
      */
     defineGetter(this, 'hot', hotInstance, {
-      writable: false
-    });
-    defineGetter(this, 't', getTranslator(hotInstance), {
       writable: false
     });
 
@@ -175,7 +171,7 @@ class BasePlugin {
     this.clearHooks();
 
     objectEach(this, (value, property) => {
-      if (property !== 'hot' && property !== 't') {
+      if (property !== 'hot') {
         this[property] = null;
       }
     });

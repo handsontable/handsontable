@@ -230,29 +230,6 @@ describe('AutoColumnSize', () => {
     expect(rowHeight(spec().$container, 4)).toBe(23);
   });
 
-  it('should keep last columns width unchanged if all rows was removed', async() => {
-    const hot = handsontable({
-      data: arrayOfObjects(),
-      autoColumnSize: true,
-      columns: [
-        { data: 'id', title: 'Identifier' },
-        { data: 'name', title: 'Name' },
-        { data: 'lastName', title: 'Last Name' },
-      ]
-    });
-
-    expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
-    expect([117, 120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
-    expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
-
-    hot.alter('remove_row', 0);
-    await sleep(50);
-
-    expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
-    expect([117, 120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
-    expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
-  });
-
   it('should be possible to disable plugin using updateSettings', () => {
     handsontable({
       data: arrayOfObjects()
@@ -522,5 +499,245 @@ describe('AutoColumnSize', () => {
     loadData([[]]);
 
     expect(calculateColumnsWidth).not.toHaveBeenCalled();
+  });
+
+  it('should keep proper column widths after inserting column', () => {
+    handsontable({
+      autoColumnSize: true,
+      colHeaders: ['Short', 'Longer', 'The longest header']
+    });
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(59);
+    expect(colWidth(spec().$container, 2)).toBe(147);
+
+    alter('insert_col', 0);
+
+    expect(colWidth(spec().$container, 0)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(59);
+    expect(colWidth(spec().$container, 3)).toBe(147);
+    expect(colWidth(spec().$container, 4)).toBe(50);
+
+    alter('insert_col', 3);
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(59);
+    expect(colWidth(spec().$container, 3)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 4)).toBe(147);
+    expect(colWidth(spec().$container, 5)).toBe(50);
+
+    alter('insert_col', 5);
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(59);
+    expect(colWidth(spec().$container, 3)).toBe(50);
+    expect(colWidth(spec().$container, 4)).toBe(147);
+    expect(colWidth(spec().$container, 5)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 6)).toBe(50);
+  });
+
+  it('should keep proper column widths after removing column', () => {
+    handsontable({
+      autoColumnSize: true,
+      colHeaders: ['Short', 'Longer', 'The longest header']
+    });
+
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(59);
+    expect(colWidth(spec().$container, 2)).toBe(147);
+    expect(colWidth(spec().$container, 3)).toBe(50);
+
+    alter('remove_col', 0);
+
+    expect(colWidth(spec().$container, 0)).toBe(59);
+    expect(colWidth(spec().$container, 1)).toBe(147);
+    expect(colWidth(spec().$container, 2)).toBe(50);
+  });
+
+  it('should keep appropriate column size when columns order is changed', () => {
+    const hot = handsontable({
+      autoColumnSize: true,
+      colHeaders: ['Short', 'Longer', 'The longest header']
+    });
+
+    hot.columnIndexMapper.moveIndexes(2, 1);
+    render();
+
+    expect(colWidth(spec().$container, 1)).toBe(147);
+    expect(colWidth(spec().$container, 2)).toBe(59);
+
+    hot.columnIndexMapper.moveIndexes(1, 2);
+    render();
+
+    expect(colWidth(spec().$container, 1)).toBe(59);
+    expect(colWidth(spec().$container, 2)).toBe(147);
+  });
+
+  describe('should cooperate with the `UndoRedo` plugin properly ', () => {
+    it('when removing single column', () => {
+      const hot = handsontable({
+        data: [['Short', 'Somewhat long', 'The very very very longest one']],
+        autoColumnSize: true,
+      });
+
+      alter('remove_col', 0);
+
+      hot.undo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+      expect(colWidth(spec().$container, 2)).toBe(229);
+
+      hot.redo();
+
+      expect(colWidth(spec().$container, 0)).toBe(121);
+      expect(colWidth(spec().$container, 1)).toBe(229);
+
+      hot.undo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+      expect(colWidth(spec().$container, 2)).toBe(229);
+
+      alter('remove_col', 1);
+
+      hot.undo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+      expect(colWidth(spec().$container, 2)).toBe(229);
+
+      hot.redo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(229);
+
+      hot.undo();
+
+      alter('remove_col', 2);
+
+      hot.undo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+      expect(colWidth(spec().$container, 2)).toBe(229);
+
+      hot.redo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+    });
+
+    it('when inserting single column', () => {
+      const hot = handsontable({
+        data: [['Short', 'Somewhat long', 'The very very very longest one']],
+        autoColumnSize: true,
+      });
+
+      alter('insert_col', 0);
+
+      hot.undo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+      expect(colWidth(spec().$container, 2)).toBe(229);
+
+      hot.redo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(50);
+      expect(colWidth(spec().$container, 2)).toBe(121);
+      expect(colWidth(spec().$container, 3)).toBe(229);
+
+      hot.undo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+      expect(colWidth(spec().$container, 2)).toBe(229);
+
+      alter('insert_col', 1);
+
+      hot.undo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+      expect(colWidth(spec().$container, 2)).toBe(229);
+
+      hot.redo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(50);
+      expect(colWidth(spec().$container, 2)).toBe(121);
+      expect(colWidth(spec().$container, 3)).toBe(229);
+
+      hot.undo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+      expect(colWidth(spec().$container, 2)).toBe(229);
+
+      alter('insert_col', 2);
+
+      hot.undo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+      expect(colWidth(spec().$container, 2)).toBe(229);
+
+      hot.redo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+      expect(colWidth(spec().$container, 2)).toBe(50);
+      expect(colWidth(spec().$container, 3)).toBe(229);
+
+      hot.undo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+      expect(colWidth(spec().$container, 2)).toBe(229);
+
+      alter('insert_col', 3);
+
+      hot.undo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+      expect(colWidth(spec().$container, 2)).toBe(229);
+
+      hot.redo();
+
+      expect(colWidth(spec().$container, 0)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(121);
+      expect(colWidth(spec().$container, 2)).toBe(229);
+      expect(colWidth(spec().$container, 3)).toBe(50);
+    });
+
+    it('when removing all rows', async() => {
+      const hot = handsontable({
+        data: arrayOfObjects(),
+        autoColumnSize: true,
+        columns: [
+          { data: 'id', title: 'Identifier' },
+          { data: 'name', title: 'Name' },
+          { data: 'lastName', title: 'Last Name' },
+        ]
+      });
+
+      expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+      expect([117, 120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
+      expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
+
+      hot.alter('remove_row', 0);
+
+      hot.undo();
+
+      expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+      expect([117, 120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
+      expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
+    });
   });
 });

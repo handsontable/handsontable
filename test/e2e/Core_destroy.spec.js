@@ -67,4 +67,32 @@ describe('Core_destroy', () => {
 
     expect(hot.isDestroyed).toBe(true);
   });
+
+  it('should update index mappers cache only when necessary', () => {
+    const hot = handsontable({
+      data: [['a'], ['b'], ['c']],
+      autoRowSize: true,
+      autoColumnSize: true,
+      bindRowsWithHeaders: 'strict',
+      columnSorting: true,
+      filters: true,
+      manualColumnResize: true,
+      manualRowResize: true,
+      nestedRows: true,
+      trimRows: true
+    });
+    const rowCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+    const columnCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+
+    hot.rowIndexMapper.addLocalHook('cacheUpdated', rowCacheUpdatedCallback);
+    hot.columnIndexMapper.addLocalHook('cacheUpdated', columnCacheUpdatedCallback);
+
+    destroy();
+
+    // There is at least one plugin registering map which can change cache by its own map.
+    expect(rowCacheUpdatedCallback.calls.count()).toEqual(1);
+
+    // There is no plugin which can change cache by its own map.
+    expect(columnCacheUpdatedCallback.calls.count()).toEqual(0);
+  });
 });

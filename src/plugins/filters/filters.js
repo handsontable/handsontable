@@ -17,17 +17,18 @@ import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
 import { CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERATION_OR_THEN_VARIABLE } from './constants';
+import { SkipMap } from '../../translations';
 
 import './filters.css';
 
 /**
  * @plugin Filters
- * @dependencies DropdownMenu TrimRows HiddenRows
+ * @dependencies DropdownMenu HiddenRows
  *
  * @description
  * The plugin allows filtering the table data either by the built-in component or with the API.
  *
- * See [the filtering demo](https://docs.handsontable.com/pro/demo-filtering.html) for examples.
+ * See [the filtering demo](https://handsontable.com/docs/demo-filtering.html) for examples.
  *
  * @example
  * ```
@@ -51,13 +52,6 @@ class Filters extends BasePlugin {
      * @type {EventManager}
      */
     this.eventManager = new EventManager(this);
-    /**
-     * Instance of {@link TrimRows}.
-     *
-     * @private
-     * @type {TrimRows}
-     */
-    this.trimRowsPlugin = null;
     /**
      * Instance of {@link DropdownMenu}.
      *
@@ -107,6 +101,13 @@ class Filters extends BasePlugin {
      * @type {Map}
      */
     this.hiddenRowsCache = new Map();
+    /**
+     * Map of skipped rows by plugin.
+     *
+     * @private
+     * @type {null|SkipMap}
+     */
+    this.filtersRowsMap = null;
 
     // One listener for the enable/disable functionality
     this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
@@ -131,7 +132,7 @@ class Filters extends BasePlugin {
       return;
     }
 
-    this.trimRowsPlugin = this.hot.getPlugin('trimRows');
+    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap('filters', new SkipMap());
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
@@ -187,10 +188,6 @@ class Filters extends BasePlugin {
     this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
     this.addHook('afterChange', changes => this.onAfterChange(changes));
 
-    // force to enable dependent plugins
-    this.hot.getSettings().trimRows = true;
-    this.trimRowsPlugin.enablePlugin();
-
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu) {
       this.dropdownMenuPlugin.disablePlugin();
@@ -223,8 +220,10 @@ class Filters extends BasePlugin {
       });
 
       this.conditionCollection.clean();
-      this.trimRowsPlugin.untrimAll();
+
+      this.hot.rowIndexMapper.unregisterMap('filters');
     }
+
     super.disablePlugin();
   }
 
@@ -295,7 +294,7 @@ class Filters extends BasePlugin {
    * @param {String} operationId `id` of operation which is performed on the column
    */
   addCondition(column, name, args, operationId = OPERATION_AND) {
-    const physicalColumn = this.t.toPhysicalColumn(column);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.conditionCollection.addCondition(physicalColumn, { command: { key: name }, args }, operationId);
   }
@@ -306,7 +305,7 @@ class Filters extends BasePlugin {
    * @param {Number} column Visual column index.
    */
   removeConditions(column) {
-    const physicalColumn = this.t.toPhysicalColumn(column);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.conditionCollection.removeConditions(physicalColumn);
   }
@@ -322,7 +321,7 @@ class Filters extends BasePlugin {
       this.conditionCollection.clean();
 
     } else {
-      const physicalColumn = this.t.toPhysicalColumn(column);
+      const physicalColumn = this.hot.toPhysicalColumn(column);
 
       this.conditionCollection.clearConditions(physicalColumn);
     }
@@ -346,33 +345,37 @@ class Filters extends BasePlugin {
       if (needToFilter) {
         const trimmedRows = [];
 
-        this.trimRowsPlugin.trimmedRows.length = 0;
+        this.hot.executeBatchOperations(() => {
+          this.filtersRowsMap.clear();
 
-        visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
+          visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
 
-        const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
+          const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
 
-        rangeEach(this.hot.countSourceRows() - 1, (row) => {
-          if (!visibleVisualRowsAssertion(row)) {
-            trimmedRows.push(row);
-          }
+          rangeEach(this.hot.countSourceRows() - 1, (row) => {
+            if (!visibleVisualRowsAssertion(row)) {
+              trimmedRows.push(row);
+            }
+          });
+
+          arrayEach(trimmedRows, (physicalRow) => {
+            this.filtersRowsMap.setValueAtIndex(physicalRow, true);
+          });
         });
-
-        this.trimRowsPlugin.trimRows(trimmedRows);
 
         if (!visibleVisualRows.length) {
           this.hot.deselectCell();
         }
       } else {
-        this.trimRowsPlugin.untrimAll();
+        this.filtersRowsMap.clear();
       }
     }
+
+    this.hot.runHooks('afterFilter', conditions);
 
     this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     this.hot.render();
     this.clearColumnSelection();
-
-    this.hot.runHooks('afterFilter', conditions);
   }
 
   /**
@@ -405,7 +408,7 @@ class Filters extends BasePlugin {
    * @returns {Array} Returns array of objects where keys as row index.
    */
   getDataMapAtColumn(column) {
-    const visualIndex = this.t.toVisualColumn(column);
+    const visualIndex = this.hot.toVisualColumn(column);
     const data = [];
 
     arrayEach(this.hot.getSourceDataAtCol(visualIndex), (value, rowIndex) => {
@@ -592,7 +595,7 @@ class Filters extends BasePlugin {
       this.components.get('filter_by_value').saveState(physicalIndex);
       this.saveHiddenRowsCache(physicalIndex);
 
-      this.trimRowsPlugin.trimmedRows.length = 0;
+      this.filtersRowsMap.clear();
       this.filter();
     }
     this.dropdownMenuPlugin.close();
@@ -647,7 +650,7 @@ class Filters extends BasePlugin {
    * @param {HTMLTableCellElement} TH
    */
   onAfterGetColHeader(col, TH) {
-    const physicalColumn = this.t.toPhysicalColumn(col);
+    const physicalColumn = this.hot.toPhysicalColumn(col);
 
     if (this.enabled && this.conditionCollection.hasConditions(physicalColumn)) {
       addClass(TH, 'htFiltersActive');
@@ -667,30 +670,13 @@ class Filters extends BasePlugin {
 
     if (th) {
       const visualIndex = this.hot.getCoords(th).col;
-      const physicalIndex = this.t.toPhysicalColumn(visualIndex);
+      const physicalIndex = this.hot.toPhysicalColumn(visualIndex);
 
       this.lastSelectedColumn = {
         visualIndex,
         physicalIndex
       };
     }
-  }
-
-  /**
-   * Destroys the plugin instance.
-   */
-  destroy() {
-    if (this.enabled) {
-      this.components.forEach((component) => {
-        component.destroy();
-      });
-
-      this.conditionCollection.destroy();
-      this.conditionUpdateObserver.destroy();
-      this.hiddenRowsCache.clear();
-      this.trimRowsPlugin.disablePlugin();
-    }
-    super.destroy();
   }
 
   /**
@@ -722,8 +708,8 @@ class Filters extends BasePlugin {
     const operationType = this.conditionCollection.columnTypes[column];
 
     if (conditionsByValue.length === 2 || conditionsWithoutByValue.length === 3) {
-      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.
-        The overall amount of conditions exceed the capability of the dropdown menu.
+      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually. 
+        The overall amount of conditions exceed the capability of the dropdown menu. 
         For more details see the documentation.`);
 
     } else {
@@ -865,6 +851,23 @@ class Filters extends BasePlugin {
     this.changeComponentsVisibility(true, ...components);
   }
 
+  /**
+   * Destroys the plugin instance.
+   */
+  destroy() {
+    if (this.enabled) {
+      this.components.forEach((component) => {
+        component.destroy();
+      });
+
+      this.hot.rowIndexMapper.unregisterMap('filters');
+      this.conditionCollection.destroy();
+      this.conditionUpdateObserver.destroy();
+      this.hiddenRowsCache.clear();
+    }
+
+    super.destroy();
+  }
 }
 
 registerPlugin('filters', Filters);

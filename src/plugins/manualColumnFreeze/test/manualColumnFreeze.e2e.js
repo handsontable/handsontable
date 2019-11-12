@@ -31,11 +31,10 @@ describe('manualColumnFreeze', () => {
       });
 
       const plugin = hot.getPlugin('manualColumnFreeze');
-      const movePlugin = hot.getPlugin('manualColumnMove');
 
       plugin.freezeColumn(5);
 
-      expect(movePlugin.columnsMapper.getValueByIndex(0)).toEqual(5);
+      expect(hot.toPhysicalColumn(0)).toEqual(5);
     });
   });
 
@@ -60,14 +59,31 @@ describe('manualColumnFreeze', () => {
       });
 
       const plugin = hot.getPlugin('manualColumnFreeze');
-      const movePlugin = hot.getPlugin('manualColumnMove');
+
+      plugin.unfreezeColumn(1);
+
+      expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
+      expect(hot.toPhysicalColumn(0)).toEqual(0);
+      expect(hot.toPhysicalColumn(1)).toEqual(2);
+      expect(hot.toPhysicalColumn(2)).toEqual(1);
+      expect(hot.toPhysicalColumn(3)).toEqual(3);
 
       plugin.unfreezeColumn(0);
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
-      expect(movePlugin.columnsMapper.getValueByIndex(0)).toEqual(1);
-      expect(movePlugin.columnsMapper.getValueByIndex(1)).toEqual(2);
-      expect(movePlugin.columnsMapper.getValueByIndex(2)).toEqual(0);
+      expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
+      expect(hot.toPhysicalColumn(0)).toEqual(2);
+      expect(hot.toPhysicalColumn(1)).toEqual(0);
+      expect(hot.toPhysicalColumn(2)).toEqual(1);
+      expect(hot.toPhysicalColumn(3)).toEqual(3);
+
+      plugin.unfreezeColumn(0);
+
+      expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
+
+      expect(hot.toPhysicalColumn(0)).toEqual(2);
+      expect(hot.toPhysicalColumn(1)).toEqual(0);
+      expect(hot.toPhysicalColumn(2)).toEqual(1);
+      expect(hot.toPhysicalColumn(3)).toEqual(3);
     });
 
     it('should unfreeze the last column', () => {
@@ -77,19 +93,20 @@ describe('manualColumnFreeze', () => {
       });
 
       const plugin = hot.getPlugin('manualColumnFreeze');
-      const movePlugin = hot.getPlugin('manualColumnMove');
 
       plugin.freezeColumn(9);
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
-      expect(movePlugin.columnsMapper.getValueByIndex(0)).toEqual(9);
-      expect(movePlugin.columnsMapper.getValueByIndex(9)).toEqual(8);
+      expect(hot.toPhysicalColumn(0)).toEqual(9);
+      expect(hot.toPhysicalColumn(9)).toEqual(8);
 
       plugin.unfreezeColumn(0);
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
-      expect(movePlugin.columnsMapper.getValueByIndex(0)).toEqual(0);
-      expect(movePlugin.columnsMapper.getValueByIndex(9)).toEqual(9);
+      expect(hot.toPhysicalColumn(0)).toEqual(9);
+      expect(hot.toPhysicalColumn(1)).toEqual(0);
+      expect(hot.toPhysicalColumn(2)).toEqual(1);
+      expect(hot.toPhysicalColumn(9)).toEqual(8);
     });
   });
 
@@ -161,7 +178,7 @@ describe('manualColumnFreeze', () => {
 
     });
 
-    it('should unfix the desired column (and revert it to it\'s original position) after clicking the \'unfreeze column\' context menu entry', async() => {
+    it('should unfix the desired column (and place it on the first position after frozen columns) after clicking the \'unfreeze column\' context menu entry', async() => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -171,31 +188,20 @@ describe('manualColumnFreeze', () => {
         rowHeaders: true
       });
 
-      let dataAtCell = hot.getDataAtCell(1, 0);
-      expect(dataAtCell).toEqual('A2');
-      dataAtCell = hot.getDataAtCell(1, 1);
-      expect(dataAtCell).toEqual('C2');
-      dataAtCell = hot.getDataAtCell(1, 2);
-      expect(dataAtCell).toEqual('F2');
+      expect(getDataAtRow(1)).toEqual(['A2', 'C2', 'F2', 'D2', 'E2', 'B2', 'G2', 'H2', 'I2', 'J2']);
 
       selectCell(1, 1);
       contextMenu();
 
       let freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
         return $(this).text() === 'Unfreeze column';
-
       });
       freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
-      dataAtCell = hot.getDataAtCell(1, 0);
-      expect(dataAtCell).toEqual('A2');
-      dataAtCell = hot.getDataAtCell(1, 1);
-      expect(dataAtCell).toEqual('F2');
-      dataAtCell = hot.getDataAtCell(1, 2);
-      expect(dataAtCell).toEqual('C2');
+      expect(getDataAtRow(1)).toEqual(['A2', 'F2', 'C2', 'D2', 'E2', 'B2', 'G2', 'H2', 'I2', 'J2']);
 
-      selectCell(1, 1);
+      selectCell(1, 0);
       contextMenu();
 
       freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
@@ -207,25 +213,7 @@ describe('manualColumnFreeze', () => {
       freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
-      dataAtCell = hot.getDataAtCell(1, 0);
-      expect(dataAtCell).toEqual('A2');
-      dataAtCell = hot.getDataAtCell(1, 1);
-      expect(dataAtCell).toEqual('C2');
-      dataAtCell = hot.getDataAtCell(1, 2);
-      expect(dataAtCell).toEqual('D2');
-
-      dataAtCell = hot.getDataAtCell(1, 5);
-      expect(dataAtCell).toEqual('F2');
-
-      // Use the modified columns position.
-      hot.updateSettings({
-        fixedColumnsLeft: 0,
-        manualColumnMove: [0, 2, 5, 3, 4, 1, 6, 7, 8, 9],
-      });
-
-      await sleep(300);
-
-      hot.getSettings().fixedColumnsLeft = 0;
+      expect(getDataAtRow(1)).toEqual(['F2', 'A2', 'C2', 'D2', 'E2', 'B2', 'G2', 'H2', 'I2', 'J2']);
 
       selectCell(1, 2);
       contextMenu();
@@ -235,9 +223,8 @@ describe('manualColumnFreeze', () => {
 
       freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
-      dataAtCell = hot.getDataAtCell(1, 0);
-      expect(dataAtCell).toEqual('F2');
+      expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
+      expect(getDataAtRow(1)).toEqual(['F2', 'C2', 'A2', 'D2', 'E2', 'B2', 'G2', 'H2', 'I2', 'J2']);
 
       selectCell(1, 0);
       contextMenu();
@@ -247,10 +234,70 @@ describe('manualColumnFreeze', () => {
 
       freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
-      dataAtCell = hot.getDataAtCell(1, 2);
-      expect(dataAtCell).toEqual('F2');
+      expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
+      expect(getDataAtRow(1)).toEqual(['C2', 'F2', 'A2', 'D2', 'E2', 'B2', 'G2', 'H2', 'I2', 'J2']);
     });
   });
 
+  describe('Cooperation with the `ManualColumnMove` plugin', () => {
+    it('should not allow to move any column before the "freeze line" - moving already frozen column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualColumnFreeze: true,
+        manualColumnMove: true
+      });
+
+      const data = getData();
+      const manualColumnFreezePlugin = getPlugin('manualColumnFreeze');
+
+      manualColumnFreezePlugin.freezeColumn(0);
+      manualColumnFreezePlugin.freezeColumn(1);
+
+      const manualColumnMovePlugin = getPlugin('manualColumnMove');
+
+      manualColumnMovePlugin.moveColumn(1, 0);
+
+      expect(getData()).toEqual(data);
+    });
+
+    it('should not allow to move any column before the "freeze line" - moving not frozen column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualColumnFreeze: true,
+        manualColumnMove: true
+      });
+
+      const data = getData();
+      const manualColumnFreezePlugin = getPlugin('manualColumnFreeze');
+
+      manualColumnFreezePlugin.freezeColumn(0);
+      manualColumnFreezePlugin.freezeColumn(1);
+
+      const manualColumnMovePlugin = getPlugin('manualColumnMove');
+
+      manualColumnMovePlugin.moveColumn(3, 0);
+
+      expect(getData()).toEqual(data);
+    });
+
+    it('should not allow to move frozen column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualColumnFreeze: true,
+        manualColumnMove: true
+      });
+
+      const data = getData();
+      const manualColumnFreezePlugin = getPlugin('manualColumnFreeze');
+
+      manualColumnFreezePlugin.freezeColumn(0);
+      manualColumnFreezePlugin.freezeColumn(1);
+
+      const manualColumnMovePlugin = getPlugin('manualColumnMove');
+
+      manualColumnMovePlugin.moveColumn(0, 3);
+
+      expect(getData()).toEqual(data);
+    });
+  });
 });

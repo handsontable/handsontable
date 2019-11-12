@@ -126,18 +126,7 @@ describe('MultiColumnSorting', () => {
       sortOrder: 'asc'
     }];
 
-    const modification = (column) => {
-      if (column === 0) {
-        return 1;
-
-      } else if (column === 1) {
-        return 0;
-      }
-
-      return column;
-    };
-
-    handsontable({
+    const hot = handsontable({
       data: arrayOfArrays(),
       columns: [
         {},
@@ -155,7 +144,8 @@ describe('MultiColumnSorting', () => {
     expect(getPlugin('multiColumnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    updateSettings({ modifyCol: modification, unmodifyCol: modification });
+    hot.columnIndexMapper.moveIndexes([1], 0);
+    hot.render();
 
     expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
       column: 1,
@@ -171,18 +161,7 @@ describe('MultiColumnSorting', () => {
       sortOrder: 'asc'
     }];
 
-    const modification = (column) => {
-      if (column === 0) {
-        return 1;
-
-      } else if (column === 1) {
-        return 0;
-      }
-
-      return column;
-    };
-
-    handsontable({
+    const hot = handsontable({
       data: arrayOfArrays(),
       columns: [
         {},
@@ -200,7 +179,8 @@ describe('MultiColumnSorting', () => {
     expect(getPlugin('multiColumnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    updateSettings({ modifyCol: modification, unmodifyCol: modification });
+    hot.columnIndexMapper.moveIndexes([1], 0);
+    hot.render();
 
     expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
       column: 1,
@@ -211,18 +191,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it('should display indicator properly after changing sorted column sequence', () => {
-    const modification = (column) => {
-      if (column === 0) {
-        return 1;
-
-      } else if (column === 1) {
-        return 0;
-      }
-
-      return column;
-    };
-
-    handsontable({
+    const hot = handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
         [9, 8, 7, 6, 5, 4, 3, 2, 1],
@@ -238,7 +207,8 @@ describe('MultiColumnSorting', () => {
     getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    updateSettings({ modifyCol: modification, unmodifyCol: modification });
+    hot.columnIndexMapper.moveIndexes([1], 0);
+    hot.render();
 
     const sortedColumn = spec().$container.find('th span.columnSorting')[1];
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);

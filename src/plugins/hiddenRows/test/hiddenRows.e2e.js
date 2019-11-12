@@ -594,7 +594,7 @@ describe('HiddenRows', () => {
       const hiddenRows = hot.getPlugin('hiddenRows');
       const manualRowMove = hot.getPlugin('manualRowMove');
 
-      manualRowMove.moveRows([0, 1], 4);
+      manualRowMove.moveRows([0, 1], 3);
       hot.render();
 
       expect(hiddenRows.hiddenRows[0]).toEqual(3);
