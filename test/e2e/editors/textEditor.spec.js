@@ -114,6 +114,54 @@ describe('TextEditor', () => {
     expect(overflow).not.toBe('hidden');
   });
 
+  it('should change editor\'s z-index properties during switching to overlay where editor was open', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      editor: 'text',
+      fixedRowsBottom: 2,
+      fixedRowsTop: 2,
+      fixedColumnsLeft: 2,
+    });
+
+    // .ht_clone_top_left_corner
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    const handsontableInputHolder = spec().$container.find('.handsontableInputHolder');
+
+    expect(handsontableInputHolder.css('zIndex')).toBe('180');
+
+    // .ht_clone_left
+    selectCell(5, 0);
+    keyDownUp('enter');
+
+    expect(handsontableInputHolder.css('zIndex')).toBe('120');
+
+    // .ht_clone_bottom_left_corner
+    selectCell(9, 0);
+    keyDownUp('enter');
+
+    expect(handsontableInputHolder.css('zIndex')).toBe('150');
+
+    // .ht_clone_top
+    selectCell(0, 5);
+    keyDownUp('enter');
+
+    expect(handsontableInputHolder.css('zIndex')).toBe('160');
+
+    // .ht_clone_master
+    selectCell(2, 2);
+    keyDownUp('enter');
+
+    expect(handsontableInputHolder.css('zIndex')).toBe('100');
+
+    // .ht_clone_bottom
+    selectCell(9, 5);
+    keyDownUp('enter');
+
+    expect(handsontableInputHolder.css('zIndex')).toBe('130');
+  });
+
   it('should render string in textarea', () => {
     handsontable();
     setDataAtCell(2, 2, 'string');
