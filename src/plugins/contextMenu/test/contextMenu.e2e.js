@@ -2326,6 +2326,8 @@ describe('ContextMenu', () => {
       });
 
       it('should scroll down, when user hits ARROW_DOWN for item in menu below the viewport', () => {
+        spec().$container.css({ marginTop: '4000px' });
+
         handsontable({
           height: 100,
           contextMenu: {
