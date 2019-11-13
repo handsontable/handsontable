@@ -84,7 +84,6 @@ class AutocompleteEditor extends HandsontableEditor {
    * Opens the editor and adjust its size and internal Handsontable's instance.
    */
   open() {
-    debugger;
     const priv = privatePool.get(this);
 
     // this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
