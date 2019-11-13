@@ -214,10 +214,11 @@ class BottomOverlay extends Overlay {
    * Adjust overlay root childs size
    */
   adjustRootChildrenSize() {
-    this.clone.wtTable.hider.style.width = this.hider.style.width;
-    this.clone.wtTable.holder.style.width = this.clone.wtTable.holder.parentNode.style.width;
+    const { holder } = this.clone.wtTable;
 
-    this.clone.wtTable.holder.style.height = `${parseInt(this.clone.wtTable.holder.parentNode.style.height, 10)}px`;
+    this.clone.wtTable.hider.style.width = this.hider.style.width;
+    holder.style.width = holder.parentNode.style.width;
+    holder.style.height = `${parseInt(holder.parentNode.style.height, 10)}px`;
   }
 
   /**
