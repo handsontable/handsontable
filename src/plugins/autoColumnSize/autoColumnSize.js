@@ -205,15 +205,15 @@ class AutoColumnSize extends BasePlugin {
     const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
     const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
 
-    rangeEach(columnsRange.from, columnsRange.to, (col) => {
-      let physicalColumn = this.hot.toPhysicalColumn(col);
+    rangeEach(columnsRange.from, columnsRange.to, (visualColumn) => {
+      let physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
       if (physicalColumn === null) {
-        physicalColumn = col;
+        physicalColumn = visualColumn;
       }
 
       if (force || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null && !this.hot._getColWidthFromSettings(physicalColumn))) {
-        const samples = this.samplesGenerator.generateColumnSamples(physicalColumn, rowsRange);
+        const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
 
         arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
       }
@@ -221,14 +221,14 @@ class AutoColumnSize extends BasePlugin {
 
     if (this.ghostTable.columns.length) {
       this.hot.executeBatchOperations(() => {
-        this.ghostTable.getWidths((col, width) => {
-          const physicalColumn = this.hot.toPhysicalColumn(col);
+        this.ghostTable.getWidths((visualColumn, width) => {
+          const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
           this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
         });
       });
 
-      this.measuredColumns = this.ghostTable.columns.length;
+      this.measuredColumns = columnsRange.to + 1;
 
       this.ghostTable.clean();
     }
@@ -511,9 +511,9 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    const changedColumns = arrayMap(changes, ([, column]) => this.hot.propToCol(column));
+    const changedColumns = arrayMap(changes, ([, columnProperty]) => this.hot.toPhysicalColumn(this.hot.propToCol(columnProperty)));
 
-    this.clearCache(changedColumns);
+    this.clearCache(Array.from(new Set(changedColumns)));
   }
 
   /**
