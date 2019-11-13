@@ -130,9 +130,6 @@ class AutocompleteEditor extends HandsontableEditor {
       autoColumnSize: true,
     });
 
-    // Add additional space for autocomplete holder
-    // this.htEditor.view.wt.wtTable.holder.parentNode.style['padding-right'] = `${scrollbarWidth + 2}px`;
-
     if (priv.skipOne) {
       priv.skipOne = false;
     }
