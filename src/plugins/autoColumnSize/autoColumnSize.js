@@ -456,6 +456,10 @@ class AutoColumnSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
+    // console.log(this.columnWidthsMap.getValues().slice());
+    // console.log(this.columnWidthsMap.getValues().slice(0, this.measuredColumns));
+    console.log(this.measuredColumns);
+
     return !!arrayFilter(this.columnWidthsMap.getValues().slice(0, this.measuredColumns), item => (item === null)).length;
   }
 
@@ -511,9 +515,9 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    const changedColumns = arrayMap(changes, ([, column]) => this.hot.propToCol(column));
+    const changedColumns = arrayMap(changes, ([, columnProperty]) => this.hot.toPhysicalColumn(this.hot.propToCol(columnProperty)));
 
-    this.clearCache(changedColumns);
+    this.clearCache(Array.from(new Set(changedColumns)));
   }
 
   /**
