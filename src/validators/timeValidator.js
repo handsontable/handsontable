@@ -51,8 +51,8 @@ export default function timeValidator(value, callback) {
   if (isValidTime && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
       const correctedValue = date.format(timeFormat);
-      const row = this.instance.runHooks('unmodifyRow', this.row);
-      const column = this.instance.runHooks('unmodifyCol', this.col);
+      const row = this.instance.toVisualRow(this.row);
+      const column = this.instance.toVisualColumn(this.col);
 
       this.instance.setDataAtCell(row, column, correctedValue, 'timeValidator');
       valid = true;

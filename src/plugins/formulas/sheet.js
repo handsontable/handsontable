@@ -1,7 +1,6 @@
 import { Parser, ERROR_REF, error as isFormulaError } from 'hot-formula-parser';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import localHooks from '../../mixins/localHooks';
-import { getTranslator } from '../../utils/recordTranslator';
 import { mixin } from '../../helpers/object';
 import CellValue from './cell/value';
 import CellReference from './cell/reference';
@@ -28,12 +27,6 @@ class Sheet {
      */
     this.hot = hot;
     /**
-     * Record translator for translating visual records into psychical and vice versa.
-     *
-     * @type {RecordTranslator}
-     */
-    this.t = getTranslator(this.hot);
-    /**
      * Data provider for sheet calculations.
      *
      * @type {DataProvider}
@@ -50,7 +43,7 @@ class Sheet {
      *
      * @type {Matrix}
      */
-    this.matrix = new Matrix(this.t);
+    this.matrix = new Matrix(this.hot);
     /**
      * Instance of {@link AlterManager}.
      *
@@ -169,7 +162,7 @@ class Sheet {
       this.parseExpression(new CellValue(row, column), newValue.substr(1));
     }
 
-    const deps = this.getCellDependencies(...this.t.toVisual(row, column));
+    const deps = this.getCellDependencies(this.hot.toVisualRow(row), this.hot.toVisualColumn(column));
 
     arrayEach(deps, (cellValue) => {
       cellValue.setState(CellValue.STATE_OUT_OFF_DATE);
@@ -330,7 +323,6 @@ class Sheet {
    */
   destroy() {
     this.hot = null;
-    this.t = null;
     this.dataProvider.destroy();
     this.dataProvider = null;
     this.alterManager.destroy();

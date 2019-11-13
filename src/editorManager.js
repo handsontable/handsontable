@@ -70,11 +70,17 @@ class EditorManager {
 
     this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
-    this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'keydown', (event) => {
-      if (!this.destroyed) {
-        this.instance.runHooks('afterDocumentKeyDown', event);
-      }
-    });
+    let frame = this.instance.rootWindow;
+
+    while (frame) {
+      this.eventManager.addEventListener(frame.document.documentElement, 'keydown', (event) => {
+        if (!this.destroyed) {
+          this.instance.runHooks('afterDocumentKeyDown', event);
+        }
+      });
+
+      frame = frame.frameElement && frame.frameElement.ownerDocument.defaultView;
+    }
 
     // Open editor when text composition is started (IME editor)
     this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'compositionstart', (event) => {
@@ -141,6 +147,7 @@ class EditorManager {
     }
 
     const { row, col } = this.instance.selection.selectedRange.current().highlight;
+
     this.cellProperties = this.instance.getCellMeta(row, col);
 
     if (this.cellProperties.readOnly) {
@@ -154,7 +161,7 @@ class EditorManager {
 
     if (editorClass && td) {
       const prop = this.instance.colToProp(col);
-      const originalValue = this.instance.getSourceDataAtCell(this.instance.runHooks('modifyRow', row), col);
+      const originalValue = this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(row), col);
 
       this.activeEditor = getEditorInstance(editorClass, this.instance);
       this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);

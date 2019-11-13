@@ -40,7 +40,7 @@ import {
  * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
  * of an array.
  *
- * See [Custom Borders](http://docs.handsontable.com/demo-custom-borders.html) demo for more examples.
+ * See [Custom Borders](https://handsontable.com/docs/demo-customizing-borders.html) demo for more examples.
  *
  * @example
  * ```js

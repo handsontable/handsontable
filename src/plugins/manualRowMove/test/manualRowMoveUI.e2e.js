@@ -70,6 +70,23 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('.ht__manualRowMove--backlight:visible').length).toBe(1);
     });
 
+    it('should set proper z-index of the backlight and guideline element and be greater than left overlay z-index', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualRowMove: true,
+        rowHeaders: true,
+      });
+
+      const $headerTH = spec().$container.find('tbody tr:eq(0) th:eq(0)');
+
+      $headerTH.simulate('mousedown');
+      $headerTH.simulate('mouseup');
+      $headerTH.simulate('mousedown');
+
+      expect($('.ht__manualRowMove--backlight').css('z-index')).toBeGreaterThan(getLeftClone().css('z-index'));
+      expect($('.ht__manualRowMove--guideline').css('z-index')).toBeGreaterThan(getLeftClone().css('z-index'));
+    });
+
     describe('backlight', () => {
       it('should set proper left position of element when colWidths is undefined', () => {
         handsontable({
@@ -126,6 +143,166 @@ describe('manualRowMove', () => {
         $headers[0].simulate('mousemove');
 
         expect(spec().$container.find('.ht__manualRowMove--guideline')[0].offsetTop).toBe(-1);
+      });
+    });
+
+    describe('selection', () => {
+      it('should be shown properly when moving multiple rows from the top to the bottom', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          rowHeaders: true,
+          manualRowMove: true
+        });
+
+        const $rowHeader = spec().$container.find('tbody tr:eq(4) th:eq(0)');
+
+        selectRows(0, 2);
+
+        spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousedown');
+        spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
+        spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousedown');
+
+        $rowHeader.simulate('mouseover');
+        $rowHeader.simulate('mousemove', {
+          clientY: $rowHeader.offset().bottom - $rowHeader.height()
+        });
+        $rowHeader.simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 0, 3, 9]]);
+      });
+
+      it('should be shown properly when moving multiple rows from the bottom to the top', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          rowHeaders: true,
+          manualRowMove: true
+        });
+
+        const $rowHeader = spec().$container.find('tbody tr:eq(1) th:eq(0)');
+
+        selectRows(3, 5);
+
+        spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mousedown');
+        spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mouseup');
+        spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mousedown');
+
+        $rowHeader.simulate('mouseover');
+        $rowHeader.simulate('mousemove', {
+          clientY: $rowHeader.offset().top
+        });
+        $rowHeader.simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 0, 3, 9]]);
+      });
+
+      describe('should be shown properly after undo action', () => {
+        it('when moving multiple rows from the top to the bottom', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            manualRowMove: true
+          });
+
+          const $rowHeader = spec().$container.find('tbody tr:eq(4) th:eq(0)');
+
+          selectRows(0, 2);
+
+          spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousedown');
+          spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
+          spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousedown');
+
+          $rowHeader.simulate('mouseover');
+          $rowHeader.simulate('mousemove', {
+            clientY: $rowHeader.offset().bottom - $rowHeader.height()
+          });
+          $rowHeader.simulate('mouseup');
+
+          hot.undo();
+
+          expect(getSelected()).toEqual([[0, 0, 2, 9]]);
+        });
+
+        it('when moving multiple rows from the bottom to the top', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            manualRowMove: true
+          });
+
+          const $rowHeader = spec().$container.find('tbody tr:eq(1) th:eq(0)');
+
+          selectRows(3, 5);
+
+          spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mousedown');
+          spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mouseup');
+          spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mousedown');
+
+          $rowHeader.simulate('mouseover');
+          $rowHeader.simulate('mousemove', {
+            clientY: $rowHeader.offset().top
+          });
+          $rowHeader.simulate('mouseup');
+
+          hot.undo();
+
+          expect(getSelected()).toEqual([[3, 0, 5, 9]]);
+        });
+      });
+
+      describe('should be shown properly after redo action', () => {
+        it('when moving multiple rows from the top to the bottom', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            manualRowMove: true
+          });
+
+          const $rowHeader = spec().$container.find('tbody tr:eq(4) th:eq(0)');
+
+          selectRows(0, 2);
+
+          spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousedown');
+          spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
+          spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousedown');
+
+          $rowHeader.simulate('mouseover');
+          $rowHeader.simulate('mousemove', {
+            clientY: $rowHeader.offset().bottom - $rowHeader.height()
+          });
+          $rowHeader.simulate('mouseup');
+
+          hot.undo();
+          hot.redo();
+
+          expect(getSelected()).toEqual([[1, 0, 3, 9]]);
+        });
+
+        it('when moving multiple rows from the bottom to the top', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            manualRowMove: true
+          });
+
+          const $rowHeader = spec().$container.find('tbody tr:eq(1) th:eq(0)');
+
+          selectRows(3, 5);
+
+          spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mousedown');
+          spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mouseup');
+          spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mousedown');
+
+          $rowHeader.simulate('mouseover');
+          $rowHeader.simulate('mousemove', {
+            clientY: $rowHeader.offset().top
+          });
+          $rowHeader.simulate('mouseup');
+
+          hot.undo();
+          hot.redo();
+
+          expect(getSelected()).toEqual([[1, 0, 3, 9]]);
+        });
       });
     });
   });

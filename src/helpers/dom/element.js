@@ -108,7 +108,11 @@ export function isChildOf(child, parent) {
   let queriedParents = [];
 
   if (typeof parent === 'string') {
-    queriedParents = Array.prototype.slice.call(child.ownerDocument.querySelectorAll(parent), 0);
+    if (child.defaultView) {
+      queriedParents = Array.prototype.slice.call(child.querySelectorAll(parent), 0);
+    } else {
+      queriedParents = Array.prototype.slice.call(child.ownerDocument.querySelectorAll(parent), 0);
+    }
   } else {
     queriedParents.push(parent);
   }
@@ -728,6 +732,29 @@ export function getStyle(element, prop, rootWindow = window) {
 }
 
 /**
+ * Verifies if element fit to provided CSSRule.
+ *
+ * @param {Element} element Element to verify with selector text.
+ * @param {CSSRule} rule Selector text from CSSRule.
+ * @returns {Boolean}
+ */
+export function matchesCSSRules(element, rule) {
+  const { selectorText } = rule;
+  let result = false;
+
+  if (rule.type === CSSRule.STYLE_RULE && selectorText) {
+    if (element.msMatchesSelector) {
+      result = element.msMatchesSelector(selectorText);
+
+    } else if (element.matches) {
+      result = element.matches(selectorText);
+    }
+  }
+
+  return result;
+}
+
+/**
  * Returns a computed style object for the provided element. (Needed if style is declared in external stylesheet).
  *
  * @param element
@@ -1081,7 +1108,7 @@ export function isInput(element) {
  * @returns {Boolean}
  */
 export function isOutsideInput(element) {
-  return isInput(element) && element.className.indexOf('handsontableInput') === -1 && element.className.indexOf('copyPaste') === -1;
+  return isInput(element) && element.className.indexOf('handsontableInput') === -1 && element.className.indexOf('HandsontableCopyPaste') === -1;
 }
 
 /**

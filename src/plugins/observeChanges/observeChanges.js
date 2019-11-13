@@ -60,7 +60,7 @@ class ObserveChanges extends BasePlugin {
     this.addHook('afterCreateCol', () => this.onAfterTableAlter());
     this.addHook('afterRemoveCol', () => this.onAfterTableAlter());
     this.addHook('afterChange', (changes, source) => this.onAfterTableAlter(source));
-    this.addHook('afterLoadData', firstRun => this.onAfterLoadData(firstRun));
+    this.addHook('afterLoadData', (sourceData, firstRun) => this.onAfterLoadData(firstRun));
 
     super.enablePlugin();
   }
@@ -85,21 +85,33 @@ class ObserveChanges extends BasePlugin {
    * @param {Array} patches An array of objects which every item defines coordinates where data was changed.
    */
   onDataChange(patches) {
+    let render = false;
+
     if (!this.observer.isPaused()) {
       const sourceName = `${this.pluginName}.change`;
       const actions = {
         add: (patch) => {
-          if (isNaN(patch.col)) {
-            this.hot.runHooks('afterCreateRow', patch.row, 1, sourceName);
+          const [visualRow, visualColumn] = [patch.row, patch.col];
+
+          if (isNaN(visualColumn)) {
+            this.hot.rowIndexMapper.insertIndexes(visualRow, 1);
+            this.hot.runHooks('afterCreateRow', visualRow, 1, sourceName);
+
           } else {
-            this.hot.runHooks('afterCreateCol', patch.col, 1, sourceName);
+            this.hot.columnIndexMapper.insertIndexes(visualColumn, 1);
+            this.hot.runHooks('afterCreateCol', visualColumn, 1, sourceName);
           }
         },
         remove: (patch) => {
-          if (isNaN(patch.col)) {
-            this.hot.runHooks('afterRemoveRow', patch.row, 1, sourceName);
+          const [visualRow, visualColumn] = [patch.row, patch.col];
+
+          if (isNaN(visualColumn)) {
+            this.hot.rowIndexMapper.removeIndexes([visualRow]);
+            this.hot.runHooks('afterRemoveRow', visualRow, 1, sourceName);
+
           } else {
-            this.hot.runHooks('afterRemoveCol', patch.col, 1, sourceName);
+            this.hot.columnIndexMapper.removeIndexes([visualColumn]);
+            this.hot.runHooks('afterRemoveCol', visualColumn, 1, sourceName);
           }
         },
         replace: (patch) => {
@@ -112,10 +124,15 @@ class ObserveChanges extends BasePlugin {
           actions[patch.op](patch);
         }
       });
-      this.hot.render();
+
+      render = true;
     }
 
     this.hot.runHooks('afterChangesObserved');
+
+    if (render) {
+      this.hot.render();
+    }
   }
 
   /**
