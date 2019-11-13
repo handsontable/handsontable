@@ -1821,19 +1821,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.runHooks('afterCellMetaReset');
 
-    // if (isDefined(settings[className])) {
-    //   console.log(className);
-    //   if (GridSettings.prototype[className]) {
-    //     removeClass(className === 'className' ? instance.rootElement : instance.table, GridSettings.prototype[className]);
-    //   }
-    //
-    //   if (settings[className]) {
-    //     addClass(className === 'className' ? instance.rootElement : instance.table, settings[className]);
-    //   }
-    //
-    //   GridSettings.prototype[className] = settings[className];
-    // }
-
     let currentHeight = instance.rootElement.style.height;
     if (currentHeight !== '') {
       currentHeight = parseInt(instance.rootElement.style.height, 10);
