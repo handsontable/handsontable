@@ -84,6 +84,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * Opens the editor and adjust its size and internal Handsontable's instance.
    */
   open() {
+    debugger;
     const priv = privatePool.get(this);
 
     // this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
@@ -97,12 +98,11 @@ class AutocompleteEditor extends HandsontableEditor {
 
     this.showEditableElement();
     this.focus();
-
-    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
+    const scrollbarWidth = getScrollbarWidth();
 
     choicesListHot.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
-      width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth + 2 : void 0,
+      width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth : void 0,
       renderer: (instance, TD, row, col, prop, value, cellProperties) => {
         getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
 

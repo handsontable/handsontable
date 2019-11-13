@@ -214,15 +214,10 @@ class BottomOverlay extends Overlay {
    * Adjust overlay root childs size
    */
   adjustRootChildrenSize() {
-    let scrollbarWidth = getScrollbarWidth(this.wot.rootDocument);
-
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     this.clone.wtTable.holder.style.width = this.clone.wtTable.holder.parentNode.style.width;
 
-    if (scrollbarWidth === 0) {
-      scrollbarWidth = 30;
-    }
-    this.clone.wtTable.holder.style.height = `${parseInt(this.clone.wtTable.holder.parentNode.style.height, 10) + scrollbarWidth}px`;
+    this.clone.wtTable.holder.style.height = `${parseInt(this.clone.wtTable.holder.parentNode.style.height, 10)}px`;
   }
 
   /**

@@ -187,15 +187,11 @@ class LeftOverlay extends Overlay {
    * Adjust overlay root childs size.
    */
   adjustRootChildrenSize() {
-    let scrollbarWidth = getScrollbarWidth(this.wot.rootDocument);
+    const { holder } = this.clone.wtTable;
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
-    this.clone.wtTable.holder.style.height = this.clone.wtTable.holder.parentNode.style.height;
-
-    if (scrollbarWidth === 0) {
-      scrollbarWidth = 30;
-    }
-    this.clone.wtTable.holder.style.width = `${parseInt(this.clone.wtTable.holder.parentNode.style.width, 10) + scrollbarWidth}px`;
+    holder.style.height = holder.parentNode.style.height;
+    holder.style.width = `${parseInt(holder.parentNode.style.width, 10)}px`;
   }
 
   /**
