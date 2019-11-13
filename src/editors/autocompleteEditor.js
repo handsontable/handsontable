@@ -48,6 +48,7 @@ class AutocompleteEditor extends HandsontableEditor {
 
     privatePool.set(this, {
       skipOne: false,
+      isMacOS: this.hot.rootWindow.navigator.platform.indexOf('Mac') > -1,
     });
   }
 
@@ -97,7 +98,11 @@ class AutocompleteEditor extends HandsontableEditor {
 
     this.showEditableElement();
     this.focus();
-    const scrollbarWidth = getScrollbarWidth();
+    let scrollbarWidth = getScrollbarWidth();
+
+    if (scrollbarWidth === 0 && priv.isMacOS) {
+      scrollbarWidth += 15; // default scroll bar width if scroll bars are visible only when scrolling
+    }
 
     choicesListHot.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
