@@ -133,6 +133,42 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1);
   });
 
+  it('should keep proper row heights after inserting row', () => {
+    handsontable({
+      manualRowResize: [void 0, void 0, 120]
+    });
+
+    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 1)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 2)).toBe(120);
+    expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight + 1);
+
+    alter('insert_row', 0);
+
+    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 1)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 2)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 3)).toBe(120);
+  });
+
+  it('should keep proper row heights after removing row', () => {
+    handsontable({
+      manualRowResize: [void 0, void 0, 120]
+    });
+
+    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 1)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 2)).toBe(120);
+    expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight + 1);
+
+    alter('remove_row', 0);
+
+    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 1)).toBe(120);
+    expect(rowHeight(spec().$container, 2)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight + 1);
+  });
+
   it('should trigger beforeRowResize event after row height changes', () => {
     const beforeRowResizeCallback = jasmine.createSpy('beforeRowResizeCallback');
 
@@ -310,6 +346,7 @@ describe('manualRowResize', () => {
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
   });
+
   it('should display the resize handle in the correct place after the table has been scrolled', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 20),
@@ -339,6 +376,57 @@ describe('manualRowResize', () => {
     $rowHeader.simulate('mouseover');
     expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
     expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
+  });
+
+  it('should autosize row after double click (when initial height is not defined)', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      rowHeaders: true,
+      manualRowResize: true
+    });
+
+    resizeRow(2, 300);
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+    $resizer.simulate('mouseup');
+
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+    $resizer.simulate('mouseup');
+
+    await sleep(1000);
+
+    expect(rowHeight(spec().$container, 2)).toBeAroundValue(23, 3);
+  });
+
+  it('should autosize row after double click (when initial height is defined by the `rowHeights` option)', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      rowHeaders: true,
+      manualRowResize: true,
+      rowHeights: 100
+    });
+
+    expect(rowHeight(spec().$container, 0)).toBeAroundValue(100, 1);
+    expect(rowHeight(spec().$container, 1)).toBeAroundValue(100, 1);
+    expect(rowHeight(spec().$container, 2)).toBeAroundValue(100, 1);
+
+    resizeRow(1, 300);
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+    $resizer.simulate('mouseup');
+
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+    $resizer.simulate('mouseup');
+
+    await sleep(1000);
+
+    expect(rowHeight(spec().$container, 1)).toBeAroundValue(23, 1);
   });
 
   it('should autosize selected rows after double click on handler', async() => {

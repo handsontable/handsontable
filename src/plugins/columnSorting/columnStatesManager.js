@@ -49,7 +49,7 @@ export class ColumnStatesManager {
   /**
    * Update column properties which affect the sorting result.
    *
-   * **Note**: All column properties can be overwritten by [columns](https://docs.handsontable.com/pro/Options.html#columns) option.
+   * **Note**: All column properties can be overwritten by [columns](https://handsontable.com/docs/Options.html#columns) option.
    *
    * @param {Object} allSortSettings Column sorting plugin's configuration object.
    */

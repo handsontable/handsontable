@@ -8,6 +8,9 @@ import { valueAccordingPercent, rangeEach } from './../../helpers/number';
 import { registerPlugin } from './../../plugins';
 import SamplesGenerator from './../../utils/samplesGenerator';
 import { isPercentValue } from './../../helpers/string';
+import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
+
+const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 
 /**
  * @plugin AutoRowSize
@@ -70,11 +73,19 @@ class AutoRowSize extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Cached rows heights.
+     * PhysicalIndexToValueMap to keep and track heights for physical row indexes.
      *
-     * @type {Number[]}
+     * @private
+     * @type {PhysicalIndexToValueMap}
      */
-    this.heights = [];
+    this.rowHeightsMap = void 0;
+    /**
+     * Columns header's height cache.
+     *
+     * @private
+     * @type {Number}
+     */
+    this.headerHeight = null;
     /**
      * Instance of {@link GhostTable} for rows and columns size calculations.
      *
@@ -113,9 +124,18 @@ class AutoRowSize extends BasePlugin {
      * @type {Boolean}
      */
     this.inProgress = false;
+    /**
+     * Number of already measured rows (we already know their sizes).
+     *
+     * @type {Number}
+     */
+    this.measuredRows = 0;
 
     // moved to constructor to allow auto-sizing the rows when the plugin is disabled
     this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
+
+    this.rowHeightsMap = new IndexToValueMap();
+    this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
   }
 
   /**
@@ -140,13 +160,11 @@ class AutoRowSize extends BasePlugin {
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', changes => this.onBeforeChange(changes));
-    this.addHook('beforeColumnMove', () => this.recalculateAllRowsHeight());
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
-    this.addHook('beforeColumnSort', () => this.clearCache());
     this.addHook('beforeRender', force => this.onBeforeRender(force));
-    this.addHook('beforeRowMove', (rowStart, rowEnd) => this.onBeforeRowMove(rowStart, rowEnd));
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
+
     super.enablePlugin();
   }
 
@@ -154,6 +172,8 @@ class AutoRowSize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.headerHeight = null;
+
     super.disablePlugin();
   }
 
@@ -177,16 +197,25 @@ class AutoRowSize extends BasePlugin {
     rangeEach(rowsRange.from, rowsRange.to, (row) => {
       // For rows we must calculate row height even when user had set height value manually.
       // We can shrink column but cannot shrink rows!
-      if (force || this.heights[row] === void 0) {
+      if (force || this.rowHeightsMap.getValueAtIndex(row) === null) {
         const samples = this.samplesGenerator.generateRowSamples(row, columnsRange);
 
         arrayEach(samples, ([rowIndex, sample]) => this.ghostTable.addRow(rowIndex, sample));
       }
     });
     if (this.ghostTable.rows.length) {
-      this.ghostTable.getHeights((row, height) => {
-        this.heights[row] = height;
+      this.hot.executeBatchOperations(() => {
+        this.ghostTable.getHeights((row, height) => {
+          if (row < 0) {
+            this.headerHeight = height;
+          } else {
+            this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), height);
+          }
+        });
       });
+
+      this.measuredRows = this.ghostTable.rows.length;
+
       this.ghostTable.clean();
     }
   }
@@ -309,10 +338,11 @@ class AutoRowSize extends BasePlugin {
    * @returns {Number}
    */
   getRowHeight(row, defaultHeight = void 0) {
+    const cachedHeight = row < 0 ? this.headerHeight : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));
     let height = defaultHeight;
 
-    if (this.heights[row] !== void 0 && this.heights[row] > (defaultHeight || 0)) {
-      height = this.heights[row];
+    if (cachedHeight !== null && cachedHeight > (defaultHeight || 0)) {
+      height = cachedHeight;
     }
 
     return height;
@@ -324,7 +354,7 @@ class AutoRowSize extends BasePlugin {
    * @returns {Number|undefined}
    */
   getColumnHeaderHeight() {
-    return this.heights[-1];
+    return this.headerHeight;
   }
 
   /**
@@ -367,8 +397,8 @@ class AutoRowSize extends BasePlugin {
    * Clears cached heights.
    */
   clearCache() {
-    this.heights.length = 0;
-    this.heights[-1] = void 0;
+    this.headerHeight = null;
+    this.rowHeightsMap.init();
   }
 
   /**
@@ -379,8 +409,10 @@ class AutoRowSize extends BasePlugin {
   clearCacheByRange(range) {
     const { from, to } = typeof range === 'number' ? { from: range, to: range } : range;
 
-    rangeEach(Math.min(from, to), Math.max(from, to), (row) => {
-      this.heights[row] = void 0;
+    this.hot.executeBatchOperations(() => {
+      rangeEach(Math.min(from, to), Math.max(from, to), (row) => {
+        this.rowHeightsMap.setValueAtIndex(row, null);
+      });
     });
   }
 
@@ -390,7 +422,7 @@ class AutoRowSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.heights, item => (item === void 0)).length;
+    return !!arrayFilter(this.rowHeightsMap.getValues().slice(0, this.measuredRows), item => (item === null)).length;
   }
 
   /**
@@ -498,6 +530,7 @@ class AutoRowSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.hot.rowIndexMapper.unregisterMap(ROW_WIDTHS_MAP_NAME);
     this.ghostTable.clean();
     super.destroy();
   }

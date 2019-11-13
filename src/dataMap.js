@@ -12,8 +12,8 @@ import {
   objectEach
 } from './helpers/object';
 import { extendArray, to2dArray } from './helpers/array';
-import Interval from './utils/interval';
 import { rangeEach } from './helpers/number';
+import { isDefined } from './helpers/mixed';
 
 const copyableLookup = cellMethodLookupFactory('copyable', false);
 
@@ -43,10 +43,11 @@ class DataMap {
 
   /**
    * @param {Object} instance Instance of Handsontable
+   * @param {Array} data Array of arrays or array of objects containing data.
    * @param {*} priv
    * @param {GridSettings} GridSettings Grid settings
    */
-  constructor(instance, priv, GridSettings) {
+  constructor(instance, data, priv, GridSettings) {
     /**
      * Instance of {@link Handsontable}
      *
@@ -73,19 +74,7 @@ class DataMap {
      *
      * @type {*}
      */
-    this.dataSource = this.instance.getSettings().data;
-    /**
-     * Cached rows number.
-     *
-     * @type {Number}
-     */
-    this.cachedLength = null;
-    /**
-     * Flag determines if the cache should be used.
-     *
-     * @type {Boolean}
-     */
-    this.skipCache = false;
+    this.dataSource = data;
     /**
      * Cached sourceData rows number.
      *
@@ -112,15 +101,6 @@ class DataMap {
     this.propToColCache = void 0;
 
     this.createMap();
-    /**
-     * Instance of {@link Interval}
-     *
-     * @type {Interval}
-     */
-    this.interval = Interval.create(() => this.clearLengthCache(), '15fps');
-
-    this.instance.addHook('skipLengthCache', delay => this.onSkipLengthCache(delay));
-    this.onSkipLengthCache(500);
   }
 
   /**
@@ -207,13 +187,19 @@ class DataMap {
   /**
    * Returns property name that corresponds with the given column index.
    *
-   * @param {Number} col Visual column index.
-   * @returns {Number} Physical column index.
+   * @param {Number} column Visual column index.
+   * @returns {String|Number} Column property, physical column index or passed argument.
    */
-  colToProp(col) {
-    const physicalColumn = this.instance.toPhysicalColumn(col);
+  colToProp(column) {
+    const physicalColumn = this.instance.toPhysicalColumn(column);
 
-    if (!isNaN(physicalColumn) && this.colToPropCache && typeof this.colToPropCache[physicalColumn] !== 'undefined') {
+    // Out of range, not visible column index.
+    if (physicalColumn === null) {
+      return column;
+    }
+
+    // Cached property.
+    if (this.colToPropCache && isDefined(this.colToPropCache[physicalColumn])) {
       return this.colToPropCache[physicalColumn];
     }
 
@@ -223,21 +209,24 @@ class DataMap {
   /**
    * Translates property into visual column index.
    *
-   * @param {Object} prop
-   * @fires Hooks#modifyCol
-   * @returns {Number}
+   * @param {String|Number} prop Column property which may be also a physical column index.
+   * @returns {String|Number} Visual column index or passed argument.
    */
   propToCol(prop) {
-    let col;
+    const cachedPhysicalIndex = this.propToColCache.get(prop);
 
-    if (typeof this.propToColCache.get(prop) === 'undefined') {
-      col = prop;
-    } else {
-      col = this.propToColCache.get(prop);
+    if (isDefined(cachedPhysicalIndex)) {
+      return this.instance.toVisualColumn(cachedPhysicalIndex);
     }
-    col = this.instance.toVisualColumn(col);
 
-    return col;
+    // Property may be a physical column index.
+    const visualColumn = this.instance.toVisualColumn(prop);
+
+    if (visualColumn === null) {
+      return prop;
+    }
+
+    return visualColumn;
   }
 
   /**
@@ -281,6 +270,12 @@ class DataMap {
       return 0;
     }
 
+    let physicalRowIndex = this.instance.countSourceRows();
+
+    if (rowIndex < this.instance.countRows()) {
+      physicalRowIndex = this.instance.toPhysicalRow(rowIndex);
+    }
+
     const maxRows = this.instance.getSettings().maxRows;
     const columnCount = this.instance.countCols();
 
@@ -310,11 +305,13 @@ class DataMap {
         this.dataSource.push(row);
 
       } else {
-        this.spliceData(rowIndex, 0, row);
+        this.spliceData(physicalRowIndex, 0, row);
       }
 
       numberOfCreatedRows += 1;
     }
+
+    this.instance.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -337,12 +334,14 @@ class DataMap {
         'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
         'If you want to be able to add new columns, you have to use array datasource.');
     }
-    const rlen = this.instance.countSourceRows();
-    const data = this.dataSource;
-    const countColumns = this.instance.countCols();
-    const columnIndex = typeof index !== 'number' || index >= countColumns ? countColumns : index;
-    let numberOfCreatedCols = 0;
-    let currentIndex;
+
+    const dataSource = this.dataSource;
+    const maxCols = this.instance.getSettings().maxCols;
+    let columnIndex = index;
+
+    if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countSourceCols()) {
+      columnIndex = this.instance.countSourceCols();
+    }
 
     const continueProcess = this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
 
@@ -350,29 +349,38 @@ class DataMap {
       return 0;
     }
 
-    currentIndex = columnIndex;
+    let physicalColumnIndex = this.instance.countSourceCols();
 
-    const maxCols = this.instance.getSettings().maxCols;
-    while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
+    if (columnIndex < this.instance.countCols()) {
+      physicalColumnIndex = this.instance.toPhysicalColumn(columnIndex);
+    }
+
+    const numberOfSourceRows = this.instance.countSourceRows();
+    let nrOfColumns = this.instance.countCols();
+    let numberOfCreatedCols = 0;
+    let currentIndex = physicalColumnIndex;
+
+    while (numberOfCreatedCols < amount && nrOfColumns < maxCols) {
       const constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
 
-      if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countCols()) {
-        if (rlen > 0) {
-          for (let r = 0; r < rlen; r++) {
-            if (typeof data[r] === 'undefined') {
-              data[r] = [];
+      if (typeof columnIndex !== 'number' || columnIndex >= nrOfColumns) {
+        if (numberOfSourceRows > 0) {
+          for (let row = 0; row < numberOfSourceRows; row += 1) {
+            if (typeof dataSource[row] === 'undefined') {
+              dataSource[row] = [];
             }
-            data[r].push(null);
+
+            dataSource[row].push(null);
           }
         } else {
-          data.push([null]);
+          dataSource.push([null]);
         }
         // Add new column constructor
         this.priv.columnSettings.push(constructor);
 
       } else {
-        for (let row = 0; row < rlen; row++) {
-          data[row].splice(currentIndex, 0, null);
+        for (let row = 0; row < numberOfSourceRows; row++) {
+          dataSource[row].splice(currentIndex, 0, null);
         }
         // Add new column constructor at given index
         this.priv.columnSettings.splice(currentIndex, 0, constructor);
@@ -380,7 +388,10 @@ class DataMap {
 
       numberOfCreatedCols += 1;
       currentIndex += 1;
+      nrOfColumns += 1;
     }
+
+    this.instance.columnIndexMapper.insertIndexes(columnIndex, numberOfCreatedCols);
 
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -417,6 +428,18 @@ class DataMap {
     if (newData) {
       data.length = 0;
       Array.prototype.push.apply(data, newData);
+    }
+
+    // TODO: Function `removeRow` should validate fully, probably above.
+    if (rowIndex < this.instance.countRows()) {
+      this.instance.rowIndexMapper.removeIndexes(logicRows);
+
+      const customDefinedColumns = isDefined(this.instance.getSettings().columns) || isDefined(this.instance.getSettings().dataSchema);
+
+      // All rows have been removed. There shouldn't be any columns.
+      if (this.instance.rowIndexMapper.getNotSkippedIndexesLength() === 0 && customDefinedColumns === false) {
+        this.instance.columnIndexMapper.setIndexesSequence([]);
+      }
     }
 
     this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
@@ -473,6 +496,16 @@ class DataMap {
 
       for (let c = 0; c < removedColumnsCount; c++) {
         this.priv.columnSettings.splice(logicColumns[c], 1);
+      }
+    }
+
+    // TODO: Function `removeCol` should validate fully, probably above.
+    if (columnIndex < this.instance.countCols()) {
+      this.instance.columnIndexMapper.removeIndexes(logicColumns);
+
+      // All columns have been removed. There shouldn't be any rows.
+      if (this.instance.columnIndexMapper.getNotSkippedIndexesLength() === 0) {
+        this.instance.rowIndexMapper.setIndexesSequence([]);
       }
     }
 
@@ -655,10 +688,9 @@ class DataMap {
    * @param {Number} row Visual row index.
    * @param {Number} prop
    * @param {String} value
-   * @param {String} [source] Source of hook runner.
    */
-  set(row, prop, value, source) {
-    const physicalRow = this.instance.runHooks('modifyRow', row, source || 'datamapGet');
+  set(row, prop, value) {
+    const physicalRow = this.instance.toPhysicalRow(row);
     let newValue = value;
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)
@@ -711,7 +743,6 @@ class DataMap {
    *
    * @param {Number} index Visual row index.
    * @param {Number} amount
-   * @fires Hooks#modifyRow
    * @returns {Number}
    */
   visualRowsToPhysical(index, amount) {
@@ -768,13 +799,6 @@ class DataMap {
   }
 
   /**
-   * Clear cached data length.
-   */
-  clearLengthCache() {
-    this.cachedLength = null;
-  }
-
-  /**
    * Get data length.
    *
    * @returns {Number}
@@ -785,37 +809,12 @@ class DataMap {
 
     if (maxRowsFromSettings < 0 || maxRowsFromSettings === 0) {
       maxRows = 0;
+
     } else {
       maxRows = maxRowsFromSettings || Infinity;
     }
 
-    let length = this.instance.countSourceRows();
-
-    if (this.instance.hasHook('modifyRow')) {
-      let reValidate = this.skipCache;
-
-      this.interval.start();
-      if (length !== this.latestSourceRowsCount) {
-        reValidate = true;
-      }
-
-      this.latestSourceRowsCount = length;
-      if (this.cachedLength === null || reValidate) {
-        rangeEach(length - 1, (row) => {
-          const physicalRow = this.instance.toPhysicalRow(row);
-
-          if (physicalRow === null) {
-            length -= 1;
-          }
-        });
-        this.cachedLength = length;
-
-      } else {
-        length = this.cachedLength;
-      }
-    } else {
-      this.interval.stop();
-    }
+    const length = this.instance.rowIndexMapper.getNotSkippedIndexesLength();
 
     return Math.min(length, maxRows);
   }
@@ -832,7 +831,7 @@ class DataMap {
     };
 
     const end = {
-      row: Math.max(this.instance.countSourceRows() - 1, 0),
+      row: Math.max(this.instance.countRows() - 1, 0),
       col: Math.max(this.instance.countCols() - 1, 0),
     };
 
@@ -911,26 +910,9 @@ class DataMap {
   }
 
   /**
-   * `skipLengthCache` callback.
-   *
-   * @private
-   * @param {Number} delay Time of the delay in milliseconds.
-   */
-  onSkipLengthCache(delay) {
-    this.skipCache = true;
-
-    setTimeout(() => {
-      this.skipCache = false;
-    }, delay);
-  }
-
-  /**
    * Destroy instance.
    */
   destroy() {
-    this.interval.stop();
-
-    this.interval = null;
     this.instance = null;
     this.priv = null;
     this.GridSettings = null;

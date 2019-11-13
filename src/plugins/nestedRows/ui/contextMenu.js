@@ -48,6 +48,8 @@ class ContextMenuUI extends BaseUI {
         callback: () => {
           const translatedRowIndex = this.dataManager.translateTrimmedRow(this.hot.getSelectedLast()[0]);
           const parent = this.dataManager.getDataObject(translatedRowIndex);
+
+          this.hot.rowIndexMapper.insertIndexes(translatedRowIndex, 1);
           this.dataManager.addChild(parent);
         },
         disabled: () => {

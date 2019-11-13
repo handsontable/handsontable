@@ -17,9 +17,8 @@ class CollapsingUI extends BaseUI {
     super(nestedRowsPlugin, hotInstance);
 
     /**
-     * Reference to the Trim Rows plugin.
+     * Reference to the TrimRows plugin.
      */
-    this.trimRowsPlugin = nestedRowsPlugin.trimRowsPlugin;
     this.dataManager = this.plugin.dataManager;
     this.collapsedRows = [];
     this.collapsedRowsStash = {
@@ -38,8 +37,6 @@ class CollapsingUI extends BaseUI {
         });
       },
       applyStash: () => {
-        // Workaround for wrong indexes being set in the trimRows plugin
-        this.hot.runHooks('skipLengthCache', 100);
         this.collapseMultipleChildren(this.lastCollapsedRows, true);
         this.lastCollapsedRows = void 0;
       },
@@ -83,7 +80,7 @@ class CollapsingUI extends BaseUI {
     rowsToTrim = this.collapseRows(rowsToCollapse, true, false);
 
     if (doTrimming) {
-      this.trimRowsPlugin.trimRows(rowsToTrim);
+      this.trimRows(rowsToTrim);
     }
 
     if (forceRender) {
@@ -112,7 +109,7 @@ class CollapsingUI extends BaseUI {
     });
 
     if (doTrimming) {
-      this.trimRowsPlugin.trimRows(rowsToTrim);
+      this.trimRows(rowsToTrim);
     }
 
     if (forceRender) {
@@ -149,7 +146,7 @@ class CollapsingUI extends BaseUI {
     });
 
     if (doTrimming) {
-      this.trimRowsPlugin.trimRows(rowsToTrim);
+      this.trimRows(rowsToTrim);
     }
 
     return rowsToTrim;
@@ -175,7 +172,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (doTrimming) {
-      this.trimRowsPlugin.trimRows(rowsToTrim);
+      this.trimRows(rowsToTrim);
     }
   }
 
@@ -208,7 +205,7 @@ class CollapsingUI extends BaseUI {
     });
 
     if (doTrimming) {
-      this.trimRowsPlugin.untrimRows(rowsToUntrim);
+      this.untrimRows(rowsToUntrim);
     }
 
     return rowsToUntrim;
@@ -236,7 +233,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (doTrimming) {
-      this.trimRowsPlugin.untrimRows(rowsToUntrim);
+      this.untrimRows(rowsToUntrim);
     }
   }
 
@@ -274,7 +271,7 @@ class CollapsingUI extends BaseUI {
     rowsToUntrim = this.expandRows(rowsToExpand, true, false);
 
     if (doTrimming) {
-      this.trimRowsPlugin.untrimRows(rowsToUntrim);
+      this.untrimRows(rowsToUntrim);
     }
 
     if (forceRender) {
@@ -299,7 +296,7 @@ class CollapsingUI extends BaseUI {
     });
 
     if (doTrimming) {
-      this.trimRowsPlugin.untrimRows(rowsToUntrim);
+      this.untrimRows(rowsToUntrim);
     }
 
     if (forceRender) {
@@ -344,6 +341,32 @@ class CollapsingUI extends BaseUI {
   }
 
   /**
+   * Trim rows.
+   *
+   * @param {Array} rows Physical row indexes.
+   */
+  trimRows(rows) {
+    this.hot.executeBatchOperations(() => {
+      arrayEach(rows, (physicalRow) => {
+        this.plugin.collapsedRowsMap.setValueAtIndex(physicalRow, true);
+      });
+    });
+  }
+
+  /**
+   * Untrim rows.
+   *
+   * @param {Array} rows Physical row indexes.
+   */
+  untrimRows(rows) {
+    this.hot.executeBatchOperations(() => {
+      arrayEach(rows, (physicalRow) => {
+        this.plugin.collapsedRowsMap.setValueAtIndex(physicalRow, false);
+      });
+    });
+  }
+
+  /**
    * Check if all child rows are collapsed.
    *
    * @param {Number|Object} row The parent row.
@@ -363,7 +386,7 @@ class CollapsingUI extends BaseUI {
       arrayEach(rowObj.__children, (elem) => {
         const rowIndex = this.dataManager.getRowIndex(elem);
 
-        if (!this.trimRowsPlugin.isTrimmed(rowIndex)) {
+        if (!this.plugin.collapsedRowsMap.getValueAtIndex(rowIndex)) {
           allCollapsed = false;
           return false;
         }
@@ -428,7 +451,7 @@ class CollapsingUI extends BaseUI {
    * @returns {Number} Base row index.
    */
   translateTrimmedRow(row) {
-    return this.trimRowsPlugin.rowsMapper.getValueByIndex(row);
+    return this.hot.toPhysicalRow(row);
   }
 
   /**

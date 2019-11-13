@@ -93,6 +93,6 @@ export function applyLanguageSetting(settings, languageCode) {
 export function warnUserAboutLanguageRegistration(languageCode) {
   if (isDefined(languageCode)) {
     error(toSingleLine`Language with code "${languageCode}" was not found. You should register particular language 
-    before using it. Read more about this issue at: https://docs.handsontable.com/i18n/missing-language-code.`);
+    before using it. Read more about this issue at: https://handsontable.com/docs/i18n/missing-language-code.`);
   }
 }

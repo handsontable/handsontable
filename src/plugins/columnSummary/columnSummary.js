@@ -8,7 +8,7 @@ import Endpoints from './endpoints';
  *
  * @description
  * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
- * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
+ * [See the demo for more information](https://handsontable.com/docs/demo-summary-calculations.html).
  *s
  * @example
  * const container = document.getElementById('example');
@@ -77,7 +77,6 @@ class ColumnSummary extends BasePlugin {
     this.addHook('beforeCreateCol', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_col', index, amount, null, source));
     this.addHook('beforeRemoveRow', (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_row', ...args));
     this.addHook('beforeRemoveCol', (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_col', ...args));
-    this.addHook('beforeRowMove', (...args) => this.onBeforeRowMove(...args));
 
     this.addHook('afterCreateRow', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_row', index, amount, null, source));
     this.addHook('afterCreateCol', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_col', index, amount, null, source));
@@ -319,8 +318,8 @@ class ColumnSummary extends BasePlugin {
    * @returns {String} The cell value.
    */
   getCellValue(row, col) {
-    const visualRowIndex = this.endpoints.getVisualRowIndex(row);
-    const visualColumnIndex = this.endpoints.getVisualColumnIndex(col);
+    const visualRowIndex = this.hot.toVisualRow(row);
+    const visualColumnIndex = this.hot.toVisualColumn(col);
 
     let cellValue = this.hot.getSourceDataAtCell(row, col);
     const cellClassName = this.hot.getCellMeta(visualRowIndex, visualColumnIndex).className || '';
@@ -373,21 +372,13 @@ class ColumnSummary extends BasePlugin {
    * `beforeRowMove` hook callback.
    *
    * @private
-   * @param {Array} rows Array of logical rows to be moved.
+   * @param {Array} rows Array of visual row indexes to be moved.
+   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    */
-  onBeforeRowMove(rows) {
+  onAfterRowMove(rows, finalIndex) {
     this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);
-  }
-
-  /**
-   * `afterRowMove` hook callback.
-   *
-   * @private
-   * @param {Array} rows Array of logical rows that were moved.
-   * @param {Number} target Index of the destination row.
-   */
-  onAfterRowMove(rows, target) {
-    this.endpoints.resetSetupAfterStructureAlteration('move_row', target, rows.length, rows, this.pluginName);
+    this.endpoints.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName);
   }
 }
 

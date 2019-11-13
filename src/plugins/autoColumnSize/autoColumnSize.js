@@ -8,8 +8,10 @@ import { registerPlugin } from './../../plugins';
 import SamplesGenerator from './../../utils/samplesGenerator';
 import { isPercentValue } from './../../helpers/string';
 import { ViewportColumnsCalculator } from './../../3rdparty/walkontable/src';
+import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
 
 const privatePool = new WeakMap();
+const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
 
 /**
  * @plugin AutoColumnSize
@@ -75,12 +77,6 @@ class AutoColumnSize extends BasePlugin {
       cachedColumnHeaders: [],
     });
     /**
-     * Cached columns widths.
-     *
-     * @type {Number[]}
-     */
-    this.widths = [];
-    /**
      * Instance of {@link GhostTable} for rows and columns size calculations.
      *
      * @private
@@ -133,9 +129,23 @@ class AutoColumnSize extends BasePlugin {
      * @type {Boolean}
      */
     this.inProgress = false;
+    /**
+     * Number of already measured columns (we already know their sizes).
+     *
+     * @type {Number}
+     */
+    this.measuredColumns = 0;
+    /**
+     * PhysicalIndexToValueMap to keep and track widths for physical column indexes.
+     *
+     * @private
+     * @type {PhysicalIndexToValueMap}
+     */
+    this.columnWidthsMap = new IndexToValueMap();
 
     // moved to constructor to allow auto-sizing the columns when the plugin is disabled
     this.addHook('beforeColumnResize', (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
+    this.hot.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
   }
 
   /**
@@ -185,17 +195,10 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Disables the plugin functionality for this Handsontable instance.
-   */
-  disablePlugin() {
-    super.disablePlugin();
-  }
-
-  /**
    * Calculates a columns width.
    *
-   * @param {Number|Object} colRange Column index or an object with `from` and `to` indexes as a range.
-   * @param {Number|Object} rowRange Row index or an object with `from` and `to` indexes as a range.
+   * @param {Number|Object} colRange Visual column index or an object with `from` and `to` visual indexes as a range.
+   * @param {Number|Object} rowRange Visual row index or an object with `from` and `to` visual indexes as a range.
    * @param {Boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
   calculateColumnsWidth(colRange = { from: 0, to: this.hot.countCols() - 1 }, rowRange = { from: 0, to: this.hot.countRows() - 1 }, force = false) {
@@ -203,17 +206,30 @@ class AutoColumnSize extends BasePlugin {
     const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
 
     rangeEach(columnsRange.from, columnsRange.to, (col) => {
-      if (force || (this.widths[col] === void 0 && !this.hot._getColWidthFromSettings(col))) {
-        const samples = this.samplesGenerator.generateColumnSamples(col, rowsRange);
+      let physicalColumn = this.hot.toPhysicalColumn(col);
+
+      if (physicalColumn === null) {
+        physicalColumn = col;
+      }
+
+      if (force || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null && !this.hot._getColWidthFromSettings(physicalColumn))) {
+        const samples = this.samplesGenerator.generateColumnSamples(physicalColumn, rowsRange);
 
         arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
       }
     });
 
     if (this.ghostTable.columns.length) {
-      this.ghostTable.getWidths((col, width) => {
-        this.widths[col] = width;
+      this.hot.executeBatchOperations(() => {
+        this.ghostTable.getWidths((col, width) => {
+          const physicalColumn = this.hot.toPhysicalColumn(col);
+
+          this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
+        });
       });
+
+      this.measuredColumns = this.ghostTable.columns.length;
+
       this.ghostTable.clean();
     }
   }
@@ -332,7 +348,7 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Gets the calculated column width.
    *
-   * @param {Number} column Column index.
+   * @param {Number} column Visual column index.
    * @param {Number} [defaultWidth] Default column width. It will be picked up if no calculated width found.
    * @param {Boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
    * @returns {Number}
@@ -341,7 +357,7 @@ class AutoColumnSize extends BasePlugin {
     let width = defaultWidth;
 
     if (width === void 0) {
-      width = this.widths[column];
+      width = this.columnWidthsMap.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
       if (keepMinimum && typeof width === 'number') {
         width = Math.max(width, ViewportColumnsCalculator.DEFAULT_WIDTH);
@@ -423,11 +439,14 @@ class AutoColumnSize extends BasePlugin {
    */
   clearCache(columns = []) {
     if (columns.length) {
-      arrayEach(columns, (physicalIndex) => {
-        this.widths[physicalIndex] = void 0;
+      this.hot.executeBatchOperations(() => {
+        arrayEach(columns, (physicalIndex) => {
+          this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
+        });
       });
+
     } else {
-      this.widths.length = 0;
+      this.columnWidthsMap.clear();
     }
   }
 
@@ -437,7 +456,7 @@ class AutoColumnSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.widths, item => (item === void 0)).length;
+    return !!arrayFilter(this.columnWidthsMap.getValues().slice(0, this.measuredColumns), item => (item === null)).length;
   }
 
   /**
@@ -501,9 +520,9 @@ class AutoColumnSize extends BasePlugin {
    * On before column resize listener.
    *
    * @private
-   * @param {Number} size
-   * @param {Number} column
-   * @param {Boolean} isDblClick
+   * @param {Number} size Calculated new column width.
+   * @param {Number} column Visual index of the resized column.
+   * @param {Boolean} isDblClick  Flag that determines whether there was a double-click.
    * @returns {Number}
    */
   onBeforeColumnResize(size, column, isDblClick) {
@@ -528,9 +547,17 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
+   * Disables the plugin functionality for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
+  }
+
+  /**
    * Destroys the plugin instance.
    */
   destroy() {
+    this.hot.columnIndexMapper.unregisterMap(COLUMN_SIZE_MAP_NAME);
     this.ghostTable.clean();
     super.destroy();
   }

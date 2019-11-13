@@ -1,7 +1,6 @@
 import { rangeEach } from '../../../helpers/number';
 import { objectEach, hasOwnProperty } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
-import { getTranslator } from '../../../utils/recordTranslator';
 
 /**
  * Class responsible for making data operations.
@@ -46,13 +45,6 @@ class DataManager {
       rows: [],
       nodeInfo: new WeakMap()
     };
-    /**
-     * A `recordTranslator` instance.
-     *
-     * @private
-     * @type {Object}
-     */
-    this.recordTranslator = getTranslator(this.hot);
   }
 
   /**
@@ -359,6 +351,7 @@ class DataManager {
       rowObj = this.getDataObject(rowObj);
     }
 
+    // TODO: Bug? What about situation when an element has empty array under the `__children` key? Please take a look at another "TODO" within test cases.
     return !!(hasOwnProperty(rowObj, '__children'));
   }
 
@@ -518,11 +511,11 @@ class DataManager {
 
     this.hot.runHooks('afterCreateRow', movedElementRowIndex, 1, this.plugin.pluginName);
 
+    this.hot.runHooks('afterDetachChild', parent, element);
+
     if (forceRender) {
       this.hot.render();
     }
-
-    this.hot.runHooks('afterDetachChild', parent, element);
   }
 
   /**

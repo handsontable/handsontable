@@ -69,23 +69,21 @@ describe('Core_countEmptyCols', () => {
   });
 
   it('should count empty columns properly when translating columns in the viewport', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
-      modifyCol(row) {
-        return row + 2;
-      }
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5)
     });
+
+    hot.columnIndexMapper.setIndexesSequence([2, 3, 4, 5, 6]);
 
     expect(countEmptyCols()).toBe(2);
   });
 
   it('should count empty columns properly when translating columns outside the viewport', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(100, 100),
-      modifyCol(column) {
-        return column + 5;
-      }
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(100, 100)
     });
+
+    hot.columnIndexMapper.setIndexesSequence(new Array(100).fill(0).map((_, index) => index + 5));
 
     expect(countEmptyCols()).toBe(5);
   });

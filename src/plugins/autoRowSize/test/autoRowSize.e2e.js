@@ -40,7 +40,7 @@ describe('AutoRowSize', () => {
     expect(height1).toBeLessThan(height2);
   });
 
-  it('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (long text in row) #4000', (done) => {
+  it('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (long text in row) #4000', async() => {
     const row = ['This is very long text which will break this cell text into two lines'];
     const data = [];
     const nrOfRows = 200;
@@ -60,17 +60,38 @@ describe('AutoRowSize', () => {
 
     const oldHeight = spec().$container[0].scrollHeight;
 
-    setTimeout(() => {
-      const newHeight = spec().$container[0].scrollHeight;
-      expect(oldHeight).toBeLessThan(newHeight);
-      done();
-    }, 200);
+    await sleep(200);
+
+    const newHeight = spec().$container[0].scrollHeight;
+    expect(oldHeight).toBeLessThan(newHeight);
+  });
+
+  it('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set ' +
+    '(value of an empty cell outside the viewport is changed to a longer text)', async() => {
+    const nrOfRows = 200;
+    const columnWidth = 100;
+
+    const hot = handsontable({
+      data: Handsontable.helper.createEmptySpreadsheetData(nrOfRows, 1),
+      colWidths() {
+        return columnWidth;
+      },
+      autoRowSize: true
+    });
+
+    const oldHeight = spec().$container[0].scrollHeight;
+
+    hot.setDataAtCell(150, 0, 'This is very long text which will break this cell text into two lines');
+
+    await sleep(200);
+
+    const newHeight = spec().$container[0].scrollHeight;
+    expect(oldHeight).toBeLessThan(newHeight);
   });
 
   describe('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (`table td` element height set by CSS) #4000', () => {
     const cellHeightInPx = 100;
     const nrOfColumns = 200;
-    let nrOfRows = null;
     let style;
 
     const SYNC_CALCULATION_LIMIT = Handsontable.plugins.AutoRowSize.SYNC_CALCULATION_LIMIT;
@@ -107,70 +128,61 @@ describe('AutoRowSize', () => {
       }
     });
 
-    it('(SYNC_CALCULATION_LIMIT - 1 rows)', (done) => {
-      nrOfRows = SYNC_CALCULATION_LIMIT - 1;
+    it('(SYNC_CALCULATION_LIMIT - 1 rows)', async() => {
+      const nrOfRows = SYNC_CALCULATION_LIMIT - 1;
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
         autoRowSize: true
       });
 
-      setTimeout(() => {
-        const newHeight = spec().$container[0].scrollHeight;
+      await sleep(200);
+      const newHeight = spec().$container[0].scrollHeight;
 
-        expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
-        done();
-      }, 200);
+      expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
     });
 
-    it('(SYNC_CALCULATION_LIMIT + 1 rows)', (done) => {
-      nrOfRows = SYNC_CALCULATION_LIMIT + 1;
+    it('(SYNC_CALCULATION_LIMIT + 1 rows)', async() => {
+      const nrOfRows = SYNC_CALCULATION_LIMIT + 1;
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
         autoRowSize: true
       });
 
-      setTimeout(() => {
-        const newHeight = spec().$container[0].scrollHeight;
+      await sleep(200);
+      const newHeight = spec().$container[0].scrollHeight;
 
-        expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
-        done();
-      }, 200);
+      expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
     });
 
-    it('(SYNC_CALCULATION_LIMIT + CALCULATION_STEP - 1 rows)', (done) => {
-
-      nrOfRows = SYNC_CALCULATION_LIMIT + CALCULATION_STEP - 1;
+    it('(SYNC_CALCULATION_LIMIT + CALCULATION_STEP - 1 rows)', async() => {
+      const nrOfRows = SYNC_CALCULATION_LIMIT + CALCULATION_STEP - 1;
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
         autoRowSize: true
       });
 
-      setTimeout(() => {
-        const newHeight = spec().$container[0].scrollHeight;
+      await sleep(200);
 
-        expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
-        done();
-      }, 200);
+      const newHeight = spec().$container[0].scrollHeight;
+
+      expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
     });
 
-    it('(SYNC_CALCULATION_LIMIT + CALCULATION_STEP + 1 rows)', (done) => {
-
-      nrOfRows = SYNC_CALCULATION_LIMIT + CALCULATION_STEP + 1;
+    it('(SYNC_CALCULATION_LIMIT + CALCULATION_STEP + 1 rows)', async() => {
+      const nrOfRows = SYNC_CALCULATION_LIMIT + CALCULATION_STEP + 1;
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
         autoRowSize: true
       });
 
-      setTimeout(() => {
-        const newHeight = spec().$container[0].scrollHeight;
+      await sleep(200);
+      const newHeight = spec().$container[0].scrollHeight;
 
-        expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
-        done();
-      }, 200);
+      expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
     });
   });
 
@@ -408,7 +420,7 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(105); // -1px of cell border
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBeInArray([22, 42]); // -1px of cell border
 
-    plugin.moveColumn(0, 2);
+    plugin.moveColumn(0, 1);
     hot.render();
 
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22);
