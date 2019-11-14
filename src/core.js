@@ -15,7 +15,7 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { arrayMap, arrayEach, arrayReduce } from './helpers/array';
+import { arrayMap, arrayEach, arrayReduce, arrayFlatten } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
@@ -25,7 +25,7 @@ import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
 import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
-import { getTranslator } from './utils/recordTranslator';
+import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
@@ -127,7 +127,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
 
-  const recordTranslator = getTranslator(instance);
+  /**
+   * Instance of index mapper which is responsible for managing the column indexes.
+   *
+   * @memberof Core#
+   * @member columnIndexMapper
+   * @type {IndexMapper}
+   */
+  this.columnIndexMapper = new IndexMapper();
+  /**
+   * Instance of index mapper which is responsible for managing the row indexes.
+   *
+   * @memberof Core#
+   * @member rowIndexMapper
+   * @type {IndexMapper}
+   */
+  this.rowIndexMapper = new IndexMapper();
 
   dataSource = new DataSource(instance);
 
@@ -341,7 +356,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           delta = datamap.createRow(index, amount, source);
 
           if (delta) {
-            metaManager.createRow(recordTranslator.toPhysicalRow(index), amount);
+            metaManager.createRow(instance.toPhysicalRow(index), amount);
 
             if (selection.isSelected() && selection.selectedRange.current().from.row >= index) {
               selection.selectedRange.current().from.row += delta;
@@ -356,7 +371,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           delta = datamap.createCol(index, amount, source);
 
           if (delta) {
-            metaManager.createColumn(recordTranslator.toPhysicalColumn(index), amount);
+            metaManager.createColumn(instance.toPhysicalColumn(index), amount);
 
             if (Array.isArray(tableMeta.colHeaders)) {
               const spliceArray = [index, 0];
@@ -392,7 +407,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeRow breaks the removing functionality.
               datamap.removeRow(groupIndex, groupAmount, source);
-              metaManager.removeRow(recordTranslator.toPhysicalRow(calcIndex), groupAmount);
+              metaManager.removeRow(instance.toPhysicalRow(calcIndex), groupAmount);
 
               const totalRows = instance.countRows();
               const fixedRowsTop = tableMeta.fixedRowsTop;
@@ -430,7 +445,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             arrayEach(indexes, ([groupIndex, groupAmount]) => {
               const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
 
-              let visualColumnIndex = recordTranslator.toPhysicalColumn(calcIndex);
+              let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
 
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
@@ -442,7 +457,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeCol breaks the removing functionality.
               datamap.removeCol(groupIndex, groupAmount, source);
-              metaManager.removeColumn(visualColumnIndex, groupAmount);
+              metaManager.removeColumn(physicalColumnIndex, groupAmount);
 
               const fixedColumnsLeft = tableMeta.fixedColumnsLeft;
 
@@ -451,10 +466,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               }
 
               if (Array.isArray(tableMeta.colHeaders)) {
-                if (typeof visualColumnIndex === 'undefined') {
-                  visualColumnIndex = -1;
+                if (typeof physicalColumnIndex === 'undefined') {
+                  physicalColumnIndex = -1;
                 }
-                tableMeta.colHeaders.splice(visualColumnIndex, groupAmount);
+                tableMeta.colHeaders.splice(physicalColumnIndex, groupAmount);
               }
 
               offset += groupAmount;
@@ -491,7 +506,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         if (rows < tableMeta.minRows) {
           for (let r = 0, minRows = tableMeta.minRows; r < minRows - rows; r++) {
             const visualLastRowIndex = instance.countRows();
-            const physicalLastRowIndex = recordTranslator.toPhysicalRow(visualLastRowIndex);
+            const physicalLastRowIndex = instance.toPhysicalRow(visualLastRowIndex);
 
             datamap.createRow(visualLastRowIndex, 1, 'auto');
             metaManager.createRow(physicalLastRowIndex, 1);
@@ -505,7 +520,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         if (emptyRows < tableMeta.minSpareRows) {
           for (; emptyRows < tableMeta.minSpareRows && instance.countSourceRows() < tableMeta.maxRows; emptyRows++) {
             const visualLastRowIndex = instance.countRows();
-            const physicalLastRowIndex = recordTranslator.toPhysicalRow(visualLastRowIndex);
+            const physicalLastRowIndex = instance.toPhysicalRow(visualLastRowIndex);
 
             datamap.createRow(visualLastRowIndex, 1, 'auto');
             metaManager.createRow(physicalLastRowIndex, 1);
@@ -524,7 +539,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         if (tableMeta.minCols && !tableMeta.columns && instance.countCols() < tableMeta.minCols) {
           for (; instance.countCols() < tableMeta.minCols; emptyCols++) {
             const visualLastColumnIndex = instance.countCols();
-            const physicalLastColumnIndex = recordTranslator.toPhysicalRow(visualLastColumnIndex);
+            const physicalLastColumnIndex = instance.toPhysicalRow(visualLastColumnIndex);
 
             datamap.createCol(visualLastColumnIndex, 1, 'auto');
             metaManager.createColumn(physicalLastColumnIndex, 1);
@@ -535,7 +550,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             emptyCols < tableMeta.minSpareCols) {
           for (; emptyCols < tableMeta.minSpareCols && instance.countCols() < tableMeta.maxCols; emptyCols++) {
             const visualLastColumnIndex = instance.countCols();
-            const physicalLastColumnIndex = recordTranslator.toPhysicalRow(visualLastColumnIndex);
+            const physicalLastColumnIndex = instance.toPhysicalRow(visualLastColumnIndex);
 
             datamap.createCol(visualLastColumnIndex, 1, 'auto');
             metaManager.createColumn(physicalLastColumnIndex, 1);
@@ -642,6 +657,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           repeatRow = end ? end.row - start.row + 1 : 0;
           // eslint-disable-next-line no-param-reassign
           input = translateRowsToColumns(input);
+
           for (c = 0, clen = input.length, cmax = Math.max(clen, repeatCol); c < cmax; c++) {
             if (c < clen) {
               for (r = 0, rlen = input[c].length; r < repeatRow - rlen; r++) {
@@ -659,6 +675,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'shift_right':
           repeatCol = end ? end.col - start.col + 1 : 0;
           repeatRow = end ? end.row - start.row + 1 : 0;
+
           for (r = 0, rlen = input.length, rmax = Math.max(rlen, repeatRow); r < rmax; r++) {
             if (r < rlen) {
               for (c = 0, clen = input[r].length; c < repeatCol - clen; c++) {
@@ -826,8 +843,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   }
 
+  /**
+   * Execute batch of operations with updating cache only when necessary. Function is responsible for renewing row index
+   * mapper's and column index mapper's cache at most once, even when there is more then one operation inside their
+   * internal maps. If there is no operation which would reset the cache, it is preserved. Every action on indexes
+   * sequence or skipped indexes by default reset cache, thus batching some index maps actions is recommended.
+   *
+   * @param {Function} wrappedOperations Batched operations wrapped in a function.
+   */
+  this.executeBatchOperations = function(wrappedOperations) {
+    this.columnIndexMapper.executeBatchOperations(() => {
+      this.rowIndexMapper.executeBatchOperations(() => {
+        wrappedOperations();
+      });
+    });
+  };
+
   this.init = function() {
     dataSource.setData(tableMeta.data);
+
     instance.runHooks('beforeInit');
 
     if (isMobileBrowser()) {
@@ -1150,13 +1184,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (typeof input[i][1] !== 'number') {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
-      const physicalRow = recordTranslator.toPhysicalRow(input[i][0]);
 
-      prop = datamap.colToProp(input[i][1]);
+      if (input[i][1] >= this.countCols()) {
+        prop = input[i][1];
+
+      } else {
+        prop = datamap.colToProp(input[i][1]);
+      }
+
       changes.push([
         input[i][0],
         prop,
-        dataSource.getAtCell(physicalRow, input[i][1]),
+        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
         input[i][2],
       ]);
     }
@@ -1192,12 +1231,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let ilen;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
-      const physicalRow = recordTranslator.toPhysicalRow(input[i][0]);
-
       changes.push([
         input[i][0],
         input[i][1],
-        dataSource.getAtCell(physicalRow, input[i][1]),
+        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
         input[i][2],
       ]);
     }
@@ -1490,6 +1527,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function loadData
    * @param {Array} data Array of arrays or array of objects containing data.
+   * @fires Hooks#beforeLoadData
    * @fires Hooks#afterLoadData
    * @fires Hooks#afterChange
    */
@@ -1505,7 +1543,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (datamap) {
       datamap.destroy();
     }
-    datamap = new DataMap(instance, tableMeta);
+
+    datamap = new DataMap(instance, data, tableMeta);
 
     if (typeof data === 'object' && data !== null) {
       if (!(data.push && data.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it
@@ -1546,11 +1585,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       throw new Error(`loadData only accepts array of objects or array of arrays (${typeof data} given)`);
     }
 
-    tableMeta.data = data;
-
     if (Array.isArray(data[0])) {
       instance.dataType = 'array';
     }
+
+    tableMeta.data = data;
+
+    instance.runHooks('beforeLoadData', data, firstRun);
 
     datamap.dataSource = data;
     dataSource.data = data;
@@ -1560,8 +1601,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     metaManager.clearCellsCache();
 
+    const columnsSettings = tableMeta.columns;
+    let nrOfColumnsFromSettings = 0;
+
+    // We will check number of columns only when the `columns` property was defined as an array.
+    if (Array.isArray(columnsSettings)) {
+      nrOfColumnsFromSettings = columnsSettings.length;
+    }
+
+    /**
+     * We need to use `Math.max`, because:
+     * - we need information about `columns` as `data` may contains functions, less columns than defined by the property or even be empty.
+     * - we need also information about dataSchema as `data` and `columns` properties may not provide information about number of columns
+     * (ie. `data` may be empty, `columns` may be a function).
+     */
+    this.columnIndexMapper.initToLength(Math.max(this.countSourceCols(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
+    this.rowIndexMapper.initToLength(this.countSourceRows());
+
     grid.adjustRowsAndCols();
-    instance.runHooks('afterLoadData', firstRun);
+
+    instance.runHooks('afterLoadData', data, firstRun);
 
     if (firstRun) {
       firstRun = [null, 'loadData'];
@@ -1573,7 +1632,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
-   * unless the `modifyRow` hook was used to trim some of the rows. If that's the case - use the {@link Core#getSourceData} method.).
+   * unless some modifications have been applied (i.e. sequence of rows/columns was changed, some row/column was skipped).
+   * If that's the case - use the {@link Core#getSourceData} method.).
    *
    * Optionally you can provide cell range by defining `row`, `column`, `row2`, `column2` to get only a fragment of table data.
    *
@@ -1808,8 +1868,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (!init) {
-      datamap.clearLengthCache(); // force clear cache length on updateSettings() #3416
-
       if (instance.view) {
         instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
       }
@@ -1974,7 +2032,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} row Physical row index.
    * @returns {Number} Returns visual row index.
    */
-  this.toVisualRow = row => recordTranslator.toVisualRow(row);
+  this.toVisualRow = row => this.rowIndexMapper.getVisualIndex(row);
 
   /**
    * Translate physical column index into visual.
@@ -1987,7 +2045,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} column Physical column index.
    * @returns {Number} Returns visual column index.
    */
-  this.toVisualColumn = column => recordTranslator.toVisualColumn(column);
+  this.toVisualColumn = column => this.columnIndexMapper.getVisualIndex(column);
 
   /**
    * Translate visual row index into physical.
@@ -2000,7 +2058,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} row Visual row index.
    * @returns {Number} Returns physical row index.
    */
-  this.toPhysicalRow = row => recordTranslator.toPhysicalRow(row);
+  this.toPhysicalRow = row => this.rowIndexMapper.getPhysicalIndex(row);
 
   /**
    * Translate visual column index into physical.
@@ -2013,7 +2071,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} column Visual column index.
    * @returns {Number} Returns physical column index.
    */
-  this.toPhysicalColumn = column => recordTranslator.toPhysicalColumn(column);
+  this.toPhysicalColumn = column => this.columnIndexMapper.getPhysicalIndex(column);
 
   /**
    * @description
@@ -2197,7 +2255,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * @description
-   * Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](http://docs.handsontable.com/Options.html#type)).
+   * Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](https://handsontable.com/docs/Options.html#type)).
    * If there are cells with different types in the selected range, it returns `'mixed'`.
    *
    * __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
@@ -2261,7 +2319,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterRemoveCellMeta
    */
   this.removeCellMeta = function(row, column, key) {
-    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
+    const [physicalRow, physicalColumn] = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];
     let cachedValue = metaManager.getCellMeta(physicalRow, physicalColumn, key);
 
     const hookResult = instance.runHooks('beforeRemoveCellMeta', row, column, key, cachedValue);
@@ -2273,6 +2331,29 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     cachedValue = null;
+  };
+
+  /**
+   * Remove one or more rows from the cell meta object.
+   *
+   * @since 0.30.0
+   * @memberof Core#
+   * @function spliceCellsMeta
+   * @param {Number} index An integer that specifies at what position to add/remove items, Use negative values to specify the position from the end of the array.
+   * @param {Number} [deleteAmount=0] The number of items to be removed. If set to 0, no items will be removed.
+   * @param {Array} [cellMetaObjects] The new items to be added to the array.
+   */
+  this.spliceCellsMeta = function(index, deleteAmount = 0, ...cellMetaObjects) {
+    if (cellMetaObjects && cellMetaObjects.length > 0) {
+      metaManager.createRow(this.toPhysicalRow(index));
+
+      arrayEach(arrayFlatten(cellMetaObjects), (cellMeta, columnIndex) => {
+        this.setCellMetaObject(index, columnIndex, cellMeta);
+      });
+
+    } else if (deleteAmount > 0) {
+      metaManager.removeRow(this.toPhysicalRow(index), deleteAmount);
+    }
   };
 
   /**
@@ -2304,7 +2385,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row, column, key, value) {
-    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
+    let physicalRow = row;
+    let physicalColumn = column;
+
+    if (row < this.countRows()) {
+      physicalRow = this.toPhysicalRow(row);
+    }
+
+    if (column < this.countCols()) {
+      physicalColumn = this.toPhysicalColumn(column);
+    }
 
     metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
 
@@ -2334,15 +2424,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterGetCellMeta
    */
   this.getCellMeta = function(row, column) {
-    const prop = datamap.colToProp(column);
-    const [potentialPhysicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
-    let physicalRow = potentialPhysicalRow;
+    let physicalRow = this.toPhysicalRow(row);
+    let physicalColumn = this.toPhysicalColumn(column);
 
-    // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
     if (physicalRow === null) {
       physicalRow = row;
     }
 
+    if (physicalColumn === null) {
+      physicalColumn = column;
+    }
+
+    const prop = datamap.colToProp(column);
     const cellProperties = metaManager.getCellMeta(physicalRow, physicalColumn);
 
     cellProperties.row = physicalRow;
@@ -2696,9 +2789,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         return arr[visualColumnIndex];
       };
-      const baseCol = columnIndex;
-      const physicalColumn = instance.runHooks('modifyCol', baseCol);
 
+      const physicalColumn = instance.toPhysicalColumn(columnIndex);
       const prop = translateVisualIndexToColumns(physicalColumn);
 
       if (tableMeta.colHeaders === false) {
@@ -2717,7 +2809,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         result = tableMeta.colHeaders(physicalColumn);
 
       } else if (tableMeta.colHeaders && typeof tableMeta.colHeaders !== 'string' && typeof tableMeta.colHeaders !== 'number') {
-        result = spreadsheetColumnLabel(baseCol); // see #1458
+        result = spreadsheetColumnLabel(columnIndex); // see #1458
       }
     }
 
@@ -2896,16 +2988,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countCols = function() {
     const maxCols = tableMeta.maxCols;
-    let dataHasLength = false;
-    let dataLen = 0;
-
-    if (instance.dataType === 'array') {
-      dataHasLength = tableMeta.data && tableMeta.data[0] && tableMeta.data[0].length;
-    }
-
-    if (dataHasLength) {
-      dataLen = tableMeta.data[0].length;
-    }
+    let dataLen = this.columnIndexMapper.getNotSkippedIndexesLength();
 
     if (tableMeta.columns) {
       const columnsIsFunction = isFunction(tableMeta.columns);
@@ -3307,7 +3390,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.destroy();
     }
 
-    instance.runHooks('afterDestroy');
+    instance.executeBatchOperations(() => {
+      // The plugin's `destroy` method is called as a consequence and it should handle unregistration of plugin's maps. Some unregistered maps reset the cache.
+      instance.runHooks('afterDestroy');
+    });
+
     Hooks.getSingleton().destroy(instance);
 
     objectEach(instance, (property, key, obj) => {
@@ -3329,6 +3416,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (datamap) {
       datamap.destroy();
     }
+
+    instance.rowIndexMapper = null;
+    instance.columnIndexMapper = null;
     datamap = null;
     grid = null;
     selection = null;

@@ -15,6 +15,7 @@ declare namespace _Handsontable {
     addHookOnce<K extends keyof Handsontable.Hooks.Events>(key: K, callback: Handsontable.Hooks.Events[K] | Handsontable.Hooks.Events[K][]): void;
     alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index?: number | Array<[number, number]>, amount?: number, source?: string, keepEmptyRows?: boolean): void;
     clear(): void;
+    columnIndexMapper: Handsontable.RecordTranslation.IndexMapper;
     colOffset(): number;
     colToProp(col: number): string | number;
     container: HTMLElement;
@@ -32,6 +33,7 @@ declare namespace _Handsontable {
     destroy(): void;
     destroyEditor(revertOriginal?: boolean, prepareEditorIfNeeded?: boolean): void;
     emptySelectedCells(): void;
+    executeBatchOperations(wrappedOperations: () => void): void;
     forceFullRender: boolean;
     getActiveEditor<T extends Handsontable._editors.Base>(): T | undefined;
     getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
@@ -97,6 +99,7 @@ declare namespace _Handsontable {
     rootDocument: Document;
     rootElement: HTMLElement;
     rootWindow: Window;
+    rowIndexMapper: Handsontable.RecordTranslation.IndexMapper;
     rowOffset(): number;
     runHooks(key: keyof Handsontable.Hooks.Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
     // Requires TS 3.0:
@@ -723,7 +726,6 @@ declare namespace Handsontable {
       enabled: boolean;
       initialized: boolean;
       hot: _Handsontable.Core;
-      t: RecordTranslator;
 
       constructor(hotInstance?: _Handsontable.Core)
 
@@ -746,8 +748,8 @@ declare namespace Handsontable {
       firstCalculation: boolean;
       ghostTable: GhostTable;
       inProgress: boolean;
+      measuredRows: number;
       samplesGenerator: SamplesGenerator;
-      widths: any[];
 
       calculateAllColumnsWidth(rowRange?: number | object): void;
       calculateColumnsWidth(colRange?: number | object, rowRange?: number | object, force?: boolean): void;
@@ -766,6 +768,7 @@ declare namespace Handsontable {
       heights: any[];
       ghostTable: GhostTable;
       inProgress: boolean;
+      measuredColumns: number;
       sampleGenerator: SamplesGenerator;
 
       calculateAllRowsHeight(colRange?: number | object): void;
@@ -798,8 +801,10 @@ declare namespace Handsontable {
     }
 
     interface CollapsibleColumns extends Base {
-      buttonEnabledList: object;
-      collapsedSections: object;
+      buttonEnabledList: Map<number, Set<number>>;
+      collapsableCoordsList: Map<number, Set<number>>;
+      collapsedColumns: number[];
+      collapsedSections: Map<number, any[]>;
       columnHeaderLevelCount: number;
       eventManager: EventManager;
       hiddenColumnsPlugin: object;
@@ -816,7 +821,7 @@ declare namespace Handsontable {
       meetsDependencies(): boolean;
       parseSettings(): void;
       toggleAllCollapsibleSections(action: string): void;
-      toggleCollapsibleSection(coords: object, action: string): void;
+      toggleCollapsibleSection(coords: Array<object>, action: string): void;
     }
 
     interface ColumnSorting extends Base {
@@ -927,6 +932,7 @@ declare namespace Handsontable {
       focusableElement: FocusableWrapper;
       pasteMode: PasteModeType;
       rowsLimit: number;
+      uiContainer: HTMLElement;
 
       copy(): void;
       cut(): void;
@@ -993,22 +999,9 @@ declare namespace Handsontable {
       filter(): void;
       removeConditions(column: number): void;
     }
-
-    interface RecordTranslator {
-      hot: _Handsontable.Core;
-
-      toPhysical(row: number | object, column?: number): object | any[];
-      toPhysicalColumn(column: number): number;
-      toPhysicalRow(row: number): number;
-      toVisual(row: number | object, column?: number): object | any[];
-      toVisualColumn(column: number): number;
-      toVisualRow(row: number): number;
-    }
-
     interface DataProvider {
       changes: object;
       hot: _Handsontable.Core;
-      t: RecordTranslator;
 
       clearChanges(): void;
       collectChanges(row: number, column: number, value: any): void;
@@ -1035,7 +1028,6 @@ declare namespace Handsontable {
     }
 
     interface Matrix {
-      t: RecordTranslator;
       data: any[];
       cellReferences: any[];
 
@@ -1088,7 +1080,6 @@ declare namespace Handsontable {
       hot: _Handsontable.Core;
       matrix: Matrix;
       parser: Parser;
-      t: RecordTranslator;
 
       applyChanges(row: number, column: number, newValue: any): void;
       destroy(): void;
@@ -1239,38 +1230,8 @@ declare namespace Handsontable {
     }
 
     interface ManualColumnFreeze extends Base {
-      frozenColumnsBasePositions: any[];
-      manualColumnMovePlugin: ManualColumnMove;
-
       freezeColumn(column: number): void;
       unfreezeColumn(column: number): void;
-    }
-
-    interface arrayMapper {
-      getValueByIndex(index: number): any;
-      getIndexByValue(value: any): number;
-      insertItems(index: number, amount?: number): any[];
-      removeItems(index: number, amount?: number): any[];
-      shiftItems(index: number, amount?: number): void;
-      unshiftItems(index: number, amount?: number): void;
-    }
-
-    interface MoveColumnsMapper extends arrayMapper {
-      manualColumnMove: ManualColumnMove;
-
-      clearNull(): void;
-      createMap(length?: number): void;
-      destroy(): void;
-      moveColumn(from: number, to: number): void;
-    }
-
-    interface MoveRowsMapper extends arrayMapper {
-      manualRowMove: ManualRowMove;
-
-      clearNull(): void;
-      createMap(length?: number): void;
-      destroy(): void;
-      moveColumn(from: number, to: number): void;
     }
 
     interface MultiColumnSorting extends Base {
@@ -1281,13 +1242,6 @@ declare namespace Handsontable {
       isSorted(): boolean;
       setSortConfig(sortConfig?: columnSorting.Config | Array<columnSorting.Config>): void;
       sort(sortConfig?: columnSorting.Config | Array<columnSorting.Config>): void;
-    }
-
-    interface TrimRowsMapper extends arrayMapper {
-      trimRows: TrimRows;
-
-      createMap(length?: number): void;
-      destroy(): void;
     }
 
     namespace moveUI {
@@ -1378,15 +1332,14 @@ declare namespace Handsontable {
 
     interface ManualColumnMove extends Base {
       backlight: moveUI.BacklightUI;
-      columnsMapper: MoveColumnsMapper;
       eventManager: EventManager;
       guideline: moveUI.GuidelineUI;
-      removedColumns: any[];
 
-      moveColumn(column: number, target: number): void;
-      moveColumns(columns: number[], target: number): void;
-      persistentStateLoad(): void;
-      persistentStateSave(): void;
+      moveColumn(column: number, finalIndex: number): boolean;
+      moveColumns(columns: number[], finalIndex: number): boolean;
+      dragColumn(column: number, dropIndex: number): boolean;
+      dragColumns(columns: number[], dropIndex: number): boolean;
+      isMovePossible(columns: number[], finalIndex: number): boolean;
     }
 
     interface ManualColumnResize extends Base {
@@ -1423,11 +1376,12 @@ declare namespace Handsontable {
       backlight: moveUI.BacklightUI;
       eventManager: EventManager;
       guideline: moveUI.GuidelineUI;
-      removedRows: any[];
-      rowsMapper: MoveRowsMapper;
 
-      moveRow(row: number, target: number): void;
-      moveRows(rows: number[], target: number): void;
+      moveRow(row: number, finalIndex: number): boolean;
+      moveRows(rows: number[], finalIndex: number): boolean;
+      dragRow(row: number, dropIndex: number): boolean;
+      dragRows(rows: number[], dropIndex: number): boolean;
+      isMovePossible(rows: number[], finalIndex: number): boolean;
     }
 
     interface ManualRowResize extends Base {
@@ -1553,9 +1507,9 @@ declare namespace Handsontable {
     interface TrimRows extends Base {
       trimmedRows: any[];
       removedRows: any[];
-      rowsMapper: TrimRowsMapper;
 
       isTrimmed(row: number): boolean;
+      getTrimmedRows(): number[];
       trimRow(row: number): void;
       trimRows(rows: number[]): void;
       untrimAll(): void;
@@ -1816,8 +1770,10 @@ declare namespace Handsontable {
       afterCellMetaReset?: () => void;
       afterChange?: (changes: CellChange[] | null, source: ChangeSource) => void;
       afterChangesObserved?: () => void;
+      afterColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean, successfullyCollapsed: boolean) => void;
+      afterColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean, successfullyExpanded: boolean) => void;
       afterColumnMove?: (columns: number[], target: number) => void;
-      afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
+      afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
       afterColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void;
       afterContextMenuDefaultOptions?: (predefinedItems: (contextMenu.PredefinedMenuItemKey | contextMenu.MenuItemConfig)[]) => void;
       afterContextMenuHide?: (context: plugins.ContextMenu) => void;
@@ -1846,7 +1802,7 @@ declare namespace Handsontable {
       afterInit?: () => void;
       afterLanguageChange?: (languageCode: string) => void;
       afterListen?: () => void;
-      afterLoadData?: (initialLoad: boolean) => void;
+      afterLoadData?: (sourceData: Handsontable.CellValue[], initialLoad: boolean) => void;
       afterMergeCells?: (cellRange: wot.CellRange, mergeParent: mergeCells.Settings, auto: boolean) => void;
       afterModifyTransformEnd?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
       afterModifyTransformStart?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
@@ -1868,7 +1824,7 @@ declare namespace Handsontable {
       afterRender?: (isForced: boolean) => void;
       afterRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
       afterRowMove?: (startRow: number, endRow: number) => void;
-      afterRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => void;
+      afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
       afterScrollHorizontally?: () => void;
       afterScrollVertically?: () => void;
       afterSelection?: (row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
@@ -1895,8 +1851,10 @@ declare namespace Handsontable {
       beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: wot.CellRange[], type: 'horizontal' | 'vertical', alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
       beforeChange?: (changes: CellChange[], source: ChangeSource) => void | boolean;
       beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
+      beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean) => void | boolean;
+      beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean) => void | boolean;
       beforeColumnMove?: (columns: number[], target: number) => void | boolean;
-      beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void | number;
+      beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number;
       beforeColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void | boolean;
       beforeContextMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
       beforeContextMenuShow?: (context: plugins.ContextMenu) => void;
@@ -1916,6 +1874,7 @@ declare namespace Handsontable {
       beforeInitWalkontable?: (walkontableConfig: object) => void;
       beforeKeyDown?: (event: KeyboardEvent) => void;
       beforeLanguageChange?: (languageCode: string) => void;
+      beforeLoadData?: (sourceData: Handsontable.CellValue[], initialLoad: boolean) => void;
       beforeMergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
       beforeOnCellContextMenu?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
       beforeOnCellMouseDown?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
@@ -1932,7 +1891,7 @@ declare namespace Handsontable {
       beforeRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
       beforeRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
       beforeRowMove?: (columns: number[], target: number) => void;
-      beforeRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => number | void;
+      beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
       beforeSetRangeEnd?: (coords: wot.CellCoords) => void;
       beforeSetRangeStart?: (coords: wot.CellCoords) => void;
       beforeSetRangeStartOnly?: (coords: wot.CellCoords) => void;
@@ -1951,14 +1910,12 @@ declare namespace Handsontable {
       hiddenRow?: (row: number) => void;
       init?: () => void;
       modifyAutofillRange?: (startArea: [number, number, number, number][], entireArea: [number, number, number, number][]) => void;
-      modifyCol?: (col: number) => void;
       modifyColHeader?: (column: number) => void;
       modifyColumnHeaderHeight?: () => void;
       modifyColWidth?: (width: number, col: number) => void;
       modifyCopyableRange?: (copyableRanges: plugins.RangeType[]) => void;
       modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
       modifyGetCellCoords?: (row: number, column: number, topmost: boolean) => void | [number, number] | [number, number, number, number];
-      modifyRow?: (row: number) => void;
       modifyRowData?: (row: number) => void;
       modifyRowHeader?: (row: number) => void;
       modifyRowHeaderWidth?: (rowHeaderWidth: number) => void;
@@ -1969,9 +1926,6 @@ declare namespace Handsontable {
       persistentStateLoad?: (key: string, valuePlaceholder: { value: any }) => void;
       persistentStateReset?: (key: string) => void;
       persistentStateSave?: (key: string, value: any) => void;
-      skipLengthCache?: (delay: number) => void;
-      unmodifyCol?: (col: number) => void;
-      unmodifyRow?: (row: number) => void;
     }
     interface Methods {
       add<K extends keyof Hooks.Events>(key: K, callback: Hooks.Events[K] | Hooks.Events[K][], context?: Handsontable): Hooks.Methods;
@@ -2033,6 +1987,33 @@ declare namespace Handsontable {
     row: boolean;
     column: boolean;
     cells: boolean;
+  }
+  
+  namespace RecordTranslation {
+    interface IndexMap {
+      getValues: number[],
+      getValueAtIndex: (index: number) => any;
+      setValues: (values: any[]) => void;
+      setValueAtIndex: (index: number, value: any) => boolean;
+      clear: () => void;
+      getLength: () => number;
+    }
+    
+    interface IndexMapper {
+      executeBatchOperations: (wrappedOperations: () => any) => void;
+      registerMap: (uniqueName: string, indexMap: IndexMap) => IndexMap;
+      unregisterMap: (name: string) => void;
+      getPhysicalIndex: (visualIndex: number) => number | null; 
+      getVisualIndex: (physicalIndex: number) => number | null;
+      initToLength: (length?: number) => void;
+      getIndexesSequence: () => number[];
+      setIndexesSequence: (indexes: number[]) => void;  
+      getNotSkippedIndexes: (readFromCache?: boolean) => number[];
+      getNotSkippedIndexesLength: () => number;
+      getNumberOfIndexes: () => number;
+      moveIndexes: (movedIndexes: number | number[], finalIndex: number) => void;
+      isSkipped: (physicalIndex: number) => boolean;
+    }
   }
 
   namespace I18n {
@@ -2206,6 +2187,7 @@ declare namespace Handsontable {
     isDefined(variable: any): boolean,
     isEdge(): boolean,
     isEmpty(variable: any): boolean,
+    isFirefox(): boolean,
     isFunction(func: any): boolean,
     isGetComputedStyleSupported(): boolean,
     isIE(): boolean,
@@ -2287,6 +2269,7 @@ declare namespace Handsontable {
     isOutsideInput: (element: HTMLElement) => boolean;
     isRightClick: (event: Event) => boolean;
     isVisible: (elem: HTMLElement) => boolean;
+    matchesCSSRules: (elem: HTMLElement, rule: CSSRule) => boolean;
     offset: (elem: HTMLElement) => object;
     outerHeight: (elem: HTMLElement) => number;
     outerWidth: (element: HTMLElement) => number;

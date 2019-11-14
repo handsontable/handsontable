@@ -347,7 +347,7 @@ describe('Comments', () => {
       clientY: Handsontable.dom.offset(addCommentButton).top + 5,
     });
 
-    $(addCommentButton).simulate('mousedown');
+    $(addCommentButton).simulate('mousedown').simulate('mouseup');
 
     const editor = hot.getPlugin('comments').editor.getInputElement();
 
@@ -375,7 +375,7 @@ describe('Comments', () => {
         return $(this).text() === 'Add comment';
       })[0];
 
-      $(addCommentButton).simulate('mousedown');
+      $(addCommentButton).simulate('mousedown').simulate('mouseup');
 
       const editor = hot.getPlugin('comments').editor.getInputElement();
 
@@ -401,7 +401,7 @@ describe('Comments', () => {
         return $(this).text() === 'Delete comment';
       })[0];
 
-      $(deleteCommentButton).simulate('mousedown');
+      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
 
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
     });
@@ -427,7 +427,7 @@ describe('Comments', () => {
         return $(this).text() === 'Delete comment';
       })[0];
 
-      $(deleteCommentButton).simulate('mousedown');
+      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
 
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
       expect(getCellMeta(2, 2).comment).toEqual(void 0);
@@ -454,7 +454,7 @@ describe('Comments', () => {
         return $(this).text() === 'Read-only comment';
       })[0];
 
-      $(readOnlyComment).simulate('mousedown');
+      $(readOnlyComment).simulate('mousedown').simulate('mouseup');
       $(document).simulate('mouseup');
 
       $(getCell(1, 1)).simulate('mouseover', {
@@ -498,7 +498,7 @@ describe('Comments', () => {
         return $(this).text() === 'Delete comment';
       })[0];
 
-      $(deleteCommentButton).simulate('mousedown');
+      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
 
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', undefined, undefined, undefined);
     });
