@@ -103,12 +103,6 @@
   white-space: nowrap;
 }
 
-/* see src/renderers/_cellDecorator.js */
-/* this is only to allow wrap (like pre-line but also preserves sequences of whitespace) */
-.handsontable td.htAllowWrap {
-  white-space: pre-wrap;
-}
-
 .handsontable th:last-child {
   /*Foundation framework fix*/
   border-right: 1px solid #CCC;
