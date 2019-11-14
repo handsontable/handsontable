@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 8.0.0-beta.1
- * Release date: 14/11/2019 (built at 13/11/2019 15:52:09)
+ * Release date: 14/11/2019 (built at 14/11/2019 10:24:34)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -39874,7 +39874,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "13/11/2019 15:52:09";
+Handsontable.buildDate = "14/11/2019 10:24:34";
 Handsontable.version = "8.0.0-beta.1"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -63130,6 +63130,7 @@ function (_BasePlugin) {
       if (movePerformed === true) {
         this.persistentStateSave();
         this.hot.render();
+        this.hot.view.wt.wtOverlays.adjustElementsSize(true);
         var selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
         var selectionEnd = selectionStart + columnsLen - 1;
         this.hot.selectColumns(selectionStart, selectionEnd);
@@ -64804,6 +64805,7 @@ function (_BasePlugin) {
       if (movePerformed === true) {
         this.persistentStateSave();
         this.hot.render();
+        this.hot.view.wt.wtOverlays.adjustElementsSize(true);
         var selectionStart = this.hot.toVisualRow(firstMovedPhysicalRow);
         var selectionEnd = selectionStart + rowsLen - 1;
         this.hot.selectRows(selectionStart, selectionEnd);
