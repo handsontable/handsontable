@@ -10,7 +10,7 @@ import typeFactory, { EXPORT_TYPES } from './typeFactory';
  * The plugin enables exporting table data to file. It allows to export data as a string, blob or a downloadable file in
  * CSV format.
  *
- * See [the export file demo](https://docs.handsontable.com/demo-export-file.html) for examples.
+ * See [the export file demo](https://handsontable.com/docs/demo-export-file.html) for examples.
  *
  * @example
  * ```js

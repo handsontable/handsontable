@@ -34,7 +34,7 @@ const BUTTON_CLASS_NAME = 'changeType';
  *
  * @description
  * This plugin creates the Handsontable Dropdown Menu. It allows to create a new row or column at any place in the grid
- * among [other features](http://docs.handsontable.com/demo-context-menu.html).
+ * among [other features](https://handsontable.com/docs/demo-context-menu.html).
  * Possible values:
  * * `true` (to enable default options),
  * * `false` (to disable completely)
@@ -43,7 +43,7 @@ const BUTTON_CLASS_NAME = 'changeType';
  * * `["row_above", "row_below", "col_left", "col_right",
  * "remove_row", "remove_col", "---------", "undo", "redo"]`.
  *
- * See [the dropdown menu demo](http://docs.handsontable.com/demo-dropdown-menu.html) for examples.
+ * See [the dropdown menu demo](https://handsontable.com/docs/demo-dropdown-menu.html) for examples.
  *
  * @example
  * ```
@@ -164,7 +164,8 @@ class DropdownMenu extends BasePlugin {
       }
       this.menu = new Menu(this.hot, {
         className: 'htDropdownMenu',
-        keepInViewport: true
+        keepInViewport: true,
+        container: settings.uiContainer || this.hot.rootDocument.body,
       });
       this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
 
@@ -304,11 +305,22 @@ class DropdownMenu extends BasePlugin {
     stopPropagation(event);
 
     if (hasClass(event.target, BUTTON_CLASS_NAME) && !this.menu.isOpened()) {
+      let offsetTop = 0;
+      let offsetLeft = 0;
+
+      if (this.hot.rootDocument !== this.menu.container.ownerDocument) {
+        const { frameElement } = this.hot.rootWindow;
+        const { top, left } = frameElement.getBoundingClientRect();
+
+        offsetTop = top;
+        offsetLeft = left;
+      }
+
       const rect = event.target.getBoundingClientRect();
 
       this.open({
-        left: rect.left,
-        top: rect.top + event.target.offsetHeight + 3,
+        left: rect.left + offsetLeft,
+        top: rect.top + event.target.offsetHeight + 3 + offsetTop,
         width: rect.width,
         height: rect.height,
       });

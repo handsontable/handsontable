@@ -101,23 +101,22 @@ function UndoRedo(instance) {
       const origRow = originalData[i];
 
       rangeEach(columnIndex, columnIndex + (amount - 1), (j) => {
-        column.push(origRow[instance.runHooks('modifyCol', j)]);
+        column.push(origRow[instance.toPhysicalColumn(j)]);
       });
       removedData.push(column);
     });
 
     rangeEach(amount - 1, (i) => {
-      indexes.push(instance.runHooks('modifyCol', columnIndex + i));
+      indexes.push(instance.toPhysicalColumn(columnIndex + i));
     });
 
     if (Array.isArray(instance.getSettings().colHeaders)) {
       rangeEach(amount - 1, (i) => {
-        headers.push(instance.getSettings().colHeaders[instance.runHooks('modifyCol', columnIndex + i)] || null);
+        headers.push(instance.getSettings().colHeaders[instance.toPhysicalColumn(columnIndex + i)] || null);
       });
     }
 
-    const manualColumnMovePlugin = plugin.instance.getPlugin('manualColumnMove');
-    const columnsMap = manualColumnMovePlugin.isEnabled() ? manualColumnMovePlugin.columnsMapper.__arrayMap : [];
+    const columnsMap = instance.columnIndexMapper.getIndexesSequence();
     const action = new UndoRedo.RemoveColumnAction(columnIndex, indexes, removedData, headers, columnsMap);
 
     plugin.done(action);
@@ -132,12 +131,12 @@ function UndoRedo(instance) {
     plugin.done(new UndoRedo.FiltersAction(conditionsStack));
   });
 
-  instance.addHook('beforeRowMove', (movedRows, target) => {
-    if (movedRows === false) {
+  instance.addHook('beforeRowMove', (rows, finalIndex) => {
+    if (rows === false) {
       return;
     }
 
-    plugin.done(new UndoRedo.RowMoveAction(movedRows, target));
+    plugin.done(new UndoRedo.RowMoveAction(rows, finalIndex));
   });
 
   instance.addHook('beforeMergeCells', (cellRange, auto) => {
@@ -438,6 +437,8 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     });
   });
 
+  instance.columnIndexMapper.insertIndexes(ascendingIndexes[0], ascendingIndexes.length);
+
   // TODO: Temporary hook for undo/redo mess
   if (instance.getPlugin('formulas')) {
     instance.getPlugin('formulas').onAfterSetDataAtCell(changes);
@@ -449,9 +450,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     });
   }
 
-  if (instance.getPlugin('manualColumnMove')) {
-    instance.getPlugin('manualColumnMove').columnsMapper.__arrayMap = this.columnPositions;
-  }
+  instance.columnIndexMapper.setIndexesSequence(this.columnPositions);
 
   instance.addHookOnce('afterRender', undoneCallback);
 
@@ -590,40 +589,43 @@ UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
  * @private
  * @TODO: removeRow undo should works on logical index
  */
-UndoRedo.RowMoveAction = function(movedRows, target) {
-  this.rows = movedRows.slice();
-  this.target = target;
+UndoRedo.RowMoveAction = function(rows, finalIndex) {
+  this.rows = rows.slice();
+  this.finalIndex = finalIndex;
 };
 inherit(UndoRedo.RowMoveAction, UndoRedo.Action);
 
 UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
   const manualRowMove = instance.getPlugin('manualRowMove');
+  const copyOfRows = [].concat(this.rows);
+  const rowsMovedUp = copyOfRows.filter(a => a > this.finalIndex);
+  const rowsMovedDown = copyOfRows.filter(a => a <= this.finalIndex);
+  const allMovedRows = rowsMovedUp.sort((a, b) => b - a).concat(rowsMovedDown.sort((a, b) => a - b));
 
   instance.addHookOnce('afterRender', undoneCallback);
 
-  const mod = this.rows[0] < this.target ? -1 * this.rows.length : 0;
-  const newTarget = this.rows[0] > this.target ? this.rows[0] + this.rows.length : this.rows[0];
-  const newRows = [];
-  const rowsLen = this.rows.length + mod;
+  // Moving rows from those with higher indexes to those with lower indexes when action was performed from bottom to top
+  // Moving rows from those with lower indexes to those with higher indexes when action was performed from top to bottom
+  for (let i = 0; i < allMovedRows.length; i += 1) {
+    const newPhysicalRow = instance.toVisualRow(allMovedRows[i]);
 
-  for (let i = mod; i < rowsLen; i += 1) {
-    newRows.push(this.target + i);
+    manualRowMove.moveRow(newPhysicalRow, allMovedRows[i]);
   }
 
-  manualRowMove.moveRows(newRows.slice(), newTarget);
   instance.render();
 
-  instance.selectCell(this.rows[0], 0, this.rows[this.rows.length - 1], instance.countCols() - 1, false, false);
+  instance.deselectCell();
+  instance.selectRows(this.rows[0], this.rows[0] + this.rows.length - 1);
 };
 UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
   const manualRowMove = instance.getPlugin('manualRowMove');
 
   instance.addHookOnce('afterRender', redoneCallback);
-  manualRowMove.moveRows(this.rows.slice(), this.target);
+  manualRowMove.moveRows(this.rows.slice(), this.finalIndex);
   instance.render();
-  const startSelection = this.rows[0] < this.target ? this.target - this.rows.length : this.target;
 
-  instance.selectCell(startSelection, 0, startSelection + this.rows.length - 1, instance.countCols() - 1, false, false);
+  instance.deselectCell();
+  instance.selectRows(this.finalIndex, this.finalIndex + this.rows.length - 1);
 };
 
 function init() {

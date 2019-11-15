@@ -53,7 +53,7 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
  * }
  *
  * // as an object passed to the `column` property, allows specifying a custom options for the desired column.
- * // please take a look at documentation of `column` property: https://docs.handsontable.com/pro/Options.html#columns
+ * // please take a look at documentation of `column` property: https://handsontable.com/docs/Options.html#columns
  * columns: [{
  *   multiColumnSorting: {
  *     indicator: false, // disable indicator for the first column,
