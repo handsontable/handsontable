@@ -191,7 +191,7 @@ class LeftOverlay extends Overlay {
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     holder.style.height = holder.parentNode.style.height;
-    holder.style.width = `${parseInt(holder.parentNode.style.width, 10)}px`;
+    holder.style.width = holder.parentNode.style.width;
   }
 
   /**

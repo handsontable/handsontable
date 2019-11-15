@@ -199,7 +199,7 @@ class TopOverlay extends Overlay {
 
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     holder.style.width = holder.parentNode.style.width;
-    holder.style.height = `${parseInt(holder.parentNode.style.height, 10)}px`;
+    holder.style.height = holder.parentNode.style.height;
   }
 
   /**
