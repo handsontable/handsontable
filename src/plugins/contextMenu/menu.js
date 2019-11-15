@@ -707,8 +707,9 @@ class Menu {
 
     const realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
 
-    holderStyle.width = `${currentHiderWidth + 22}px`;
-    holderStyle.height = `${realHeight + 4}px`;
+    // Additional 3px to menu's size because of additional border around its `table.htCore`.
+    holderStyle.width = `${currentHiderWidth + 3}px`;
+    holderStyle.height = `${realHeight + 3}px`;
     hiderStyle.height = holderStyle.height;
   }
 

@@ -69,7 +69,7 @@ describe('Core resize', () => {
     hot().render();
 
     expect(getMaster().height()).toBe(200);
-    expect(getTopClone().height()).toBe(30);
+    expect(getTopClone().height()).toBe(26);
     expect(getBottomClone().height()).toBe(24);
     expect(getLeftClone().height()).toBe(200);
     expect(getBottomLeftClone().height()).toBe(24);
@@ -77,7 +77,7 @@ describe('Core resize', () => {
     refreshDimensions();
 
     expect(getMaster().height()).toBe(200);
-    expect(getTopClone().height()).toBe(30);
+    expect(getTopClone().height()).toBe(26);
     expect(getBottomClone().height()).toBe(24);
     expect(getLeftClone().height()).toBe(200);
     expect(getBottomLeftClone().height()).toBe(24);
