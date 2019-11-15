@@ -133,7 +133,6 @@ class CopyPaste extends BasePlugin {
     }
 
     const { copyPaste: settings, fragmentSelection } = this.hot.getSettings();
-    const priv = privatePool.get(this);
 
     this.#isFragmentSelectionEnabled = !!fragmentSelection;
 
