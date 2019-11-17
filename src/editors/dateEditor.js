@@ -70,6 +70,27 @@ class DateEditor extends TextEditor {
   }
 
   /**
+   * Update data picker position
+   */
+  updatePosition() {
+    const offset = this.TD.getBoundingClientRect();
+    const pickadayHeight = this.datePicker.clientHeight;
+    const pickadayWidth = this.datePicker.clientWidth;
+
+    if (this.hot.rootWindow.pageYOffset + offset.top > this.hot.rootWindow.innerHeight - pickadayHeight) {
+      this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top - pickadayHeight}px`;
+    } else {
+      this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
+    }
+
+    if (this.hot.rootWindow.pageXOffset + offset.left > this.hot.rootWindow.innerWidth - pickadayWidth) {
+      this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + offset.left + outerWidth(this.TD) - pickadayWidth}px`;
+    } else {
+      this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + offset.left}px`;
+    }
+  }
+
+  /**
    * Destroy data picker instance
    */
   destroyElements() {
@@ -143,26 +164,11 @@ class DateEditor extends TextEditor {
   showDatepicker(event) {
     this.$datePicker.config(this.getDatePickerConfig());
 
-    const offset = this.TD.getBoundingClientRect();
     const dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
     const datePickerConfig = this.$datePicker.config();
     let dateStr;
     const isMouseDown = this.instance.view.isMouseDown();
     const isMeta = event ? isMetaKey(event.keyCode) : false;
-    const pickadayHeight = 198;
-    const pickadayWidth = 258;
-
-    if (this.hot.rootWindow.pageYOffset + offset.top > this.hot.rootWindow.innerHeight - pickadayHeight) {
-      this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top - pickadayHeight}px`;
-    } else {
-      this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
-    }
-
-    if (this.hot.rootWindow.pageXOffset + offset.left > this.hot.rootWindow.innerWidth - pickadayWidth) {
-      this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + offset.left + outerWidth(this.TD) - pickadayWidth}px`;
-    } else {
-      this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + offset.left}px`;
-    }
 
     this.$datePicker._onInputFocus = function() {};
     datePickerConfig.format = dateFormat;
@@ -201,15 +207,16 @@ class DateEditor extends TextEditor {
       this.$datePicker.gotoToday();
     }
 
-    this.datePickerStyle.display = 'block';
     this.$datePicker.show();
+    this.updatePosition();
+    this.datePickerStyle.visibility = 'visible';
   }
 
   /**
    * Hide data picker
    */
   hideDatepicker() {
-    this.datePickerStyle.display = 'none';
+    this.datePickerStyle.visibility = 'hidden';
     this.$datePicker.hide();
   }
 
