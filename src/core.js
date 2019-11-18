@@ -79,7 +79,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   userSettings.language = getValidLanguageCode(userSettings.language);
 
-  let metaManager = new MetaManager(userSettings);
+  const metaManager = new MetaManager(userSettings);
   const tableMeta = metaManager.getTableMeta();
   const globalMeta = metaManager.getGlobalMeta();
 
@@ -2344,7 +2344,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Array} [cellMetaObjects] The new items to be added to the array.
    */
   this.spliceCellsMeta = function(index, deleteAmount = 0, ...cellMetaObjects) {
-    if (cellMetaObjects && cellMetaObjects.length > 0) {
+    if (cellMetaObjects.length > 0) {
       metaManager.createRow(this.toPhysicalRow(index));
 
       arrayEach(arrayFlatten(cellMetaObjects), (cellMeta, columnIndex) => {
@@ -3372,7 +3372,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource = null;
 
     metaManager.clearCache();
-    metaManager = null;
 
     keyStateStopObserving();
 

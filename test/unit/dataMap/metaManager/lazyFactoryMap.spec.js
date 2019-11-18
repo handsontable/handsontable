@@ -1,18 +1,18 @@
 /* eslint-disable no-sparse-arrays */
 /* eslint-disable comma-spacing */
-import LazyGridMap from 'handsontable/dataMap/metaManager/lazyGridMap';
+import LazyFactoryMap from 'handsontable/dataMap/metaManager/lazyFactoryMap';
 
-function createLazyGridMap(valueFactory) {
+function createLazyFactoryMap(valueFactory) {
   if (!valueFactory) {
     valueFactory = key => ({ i: key });
   }
 
-  return new LazyGridMap(valueFactory);
+  return new LazyFactoryMap(valueFactory);
 }
 
-describe('LazyGridMap', () => {
+describe('LazyFactoryMap', () => {
   it('should reuse data marked as "holes" for obtaining new items', () => {
-    const map = createLazyGridMap();
+    const map = createLazyFactoryMap();
 
     map.obtain(10);
     map.obtain(11);
@@ -40,7 +40,7 @@ describe('LazyGridMap', () => {
 
   describe('obtain()', () => {
     it('should lazy create data', () => {
-      const map = createLazyGridMap();
+      const map = createLazyFactoryMap();
 
       expect(map.obtain(3)).toEqual({ i: 3 });
       expect(map.obtain(10)).toEqual({ i: 10 });
@@ -53,7 +53,7 @@ describe('LazyGridMap', () => {
 
     it('should get already created map values', () => {
       const spyValueFactory = jest.fn();
-      const map = createLazyGridMap(spyValueFactory);
+      const map = createLazyFactoryMap(spyValueFactory);
 
       map.index = [,,, 0, 1, 2, 3];
       map.data = [{ i: 0 }, { i: 1 }, { i: 2 }, { i: 3 }];
@@ -68,7 +68,7 @@ describe('LazyGridMap', () => {
 
   describe('insert()', () => {
     it('should update index map and fill the data with empty values (an instance with an empty data)', () => {
-      const map = createLazyGridMap();
+      const map = createLazyFactoryMap();
 
       map.insert(0, 2);
 
@@ -92,7 +92,7 @@ describe('LazyGridMap', () => {
     });
 
     it('should update index map leaving the data intact (an instance with sample data)', () => {
-      const map = createLazyGridMap();
+      const map = createLazyFactoryMap();
 
       map.obtain(10);
       map.obtain(11);
@@ -109,7 +109,7 @@ describe('LazyGridMap', () => {
     });
 
     it('should update index map by inserting the items at the end of the data when method is called without arguments', () => {
-      const map = createLazyGridMap();
+      const map = createLazyFactoryMap();
 
       map.insert();
 
@@ -139,7 +139,7 @@ describe('LazyGridMap', () => {
     });
 
     it('should refill an empty created row with data after inserting and obtaining data from a new index', () => {
-      const map = createLazyGridMap();
+      const map = createLazyFactoryMap();
 
       map.obtain(0);
       map.obtain(1);
@@ -163,7 +163,7 @@ describe('LazyGridMap', () => {
 
   describe('remove()', () => {
     it('should update index map leaving the data intact (an instance with no data)', () => {
-      const map = createLazyGridMap();
+      const map = createLazyFactoryMap();
 
       map.remove(0, 2);
 
@@ -185,7 +185,7 @@ describe('LazyGridMap', () => {
     });
 
     it('should update index map leaving the data intact (an instance with sample data)', () => {
-      const map = createLazyGridMap();
+      const map = createLazyFactoryMap();
 
       expect(map.obtain(10)).toEqual({ i: 10 });
 
@@ -211,7 +211,7 @@ describe('LazyGridMap', () => {
 
     it('should update index map by removing the items from the end of the data when method is called without arguments', () => {
       let inc = 0;
-      const map = createLazyGridMap(() => {
+      const map = createLazyFactoryMap(() => {
         inc += 1;
 
         return { i: inc };
@@ -246,9 +246,38 @@ describe('LazyGridMap', () => {
     });
   });
 
+  describe('size()', () => {
+    it('should return a proper size collection', () => {
+      const map = createLazyFactoryMap(index => index);
+
+      map.obtain(10);
+      map.obtain(11);
+      map.obtain(90);
+      map.obtain(12);
+      map.obtain(13);
+
+      expect(map.size()).toBe(5);
+    });
+
+    it('should return a proper size collection omitting removed objects', () => {
+      const map = createLazyFactoryMap(index => index);
+
+      map.obtain(10);
+      map.obtain(11);
+      map.obtain(90);
+      map.obtain(12);
+      map.obtain(13);
+
+      map.remove(10, 2);
+      map.remove(); // Remove last row
+
+      expect(map.size()).toBe(2);
+    });
+  });
+
   describe('values()', () => {
     it('should return new Iterator object that contains values for each item', () => {
-      const map = createLazyGridMap(index => index);
+      const map = createLazyFactoryMap(index => index);
 
       map.obtain(10);
       map.obtain(11);
@@ -265,11 +294,30 @@ describe('LazyGridMap', () => {
       expect(iterator.next()).toEqual({ done: false, value: 13 });
       expect(iterator.next()).toEqual({ done: true, value: void 0 });
     });
+
+    it('should return all values in the collection except that marked as "hole"', () => {
+      const map = createLazyFactoryMap(index => index);
+
+      map.obtain(10);
+      map.obtain(11);
+      map.obtain(90);
+      map.obtain(12);
+      map.obtain(13);
+
+      map.remove(10, 2);
+      map.remove(); // Remove last row
+
+      const iterator = map.values();
+
+      expect(iterator.next()).toEqual({ done: false, value: 12 });
+      expect(iterator.next()).toEqual({ done: false, value: 13 });
+      expect(iterator.next()).toEqual({ done: true, value: void 0 });
+    });
   });
 
   describe('entries()', () => {
     it('should return new Iterator object that contains an array of [index, value] for each item', () => {
-      const map = createLazyGridMap(index => index / 2);
+      const map = createLazyFactoryMap(index => index / 2);
 
       map.obtain(10);
       map.obtain(11);
@@ -285,6 +333,55 @@ describe('LazyGridMap', () => {
       expect(iterator.next()).toEqual({ done: false, value: [12, 6] });
       expect(iterator.next()).toEqual({ done: false, value: [13, 6.5] });
       expect(iterator.next()).toEqual({ done: true, value: void 0 });
+    });
+
+    it('should return all values in the collection except that marked as "hole"', () => {
+      const map = createLazyFactoryMap(index => index / 2);
+
+      map.obtain(10);
+      map.obtain(11);
+      map.obtain(90);
+      map.obtain(12);
+      map.obtain(13);
+
+      map.remove(10, 2);
+      map.remove(); // Remove last row
+
+      const iterator = map.entries();
+
+      expect(iterator.next()).toEqual({ done: false, value: [10, 6] });
+      expect(iterator.next()).toEqual({ done: false, value: [11, 6.5] });
+      expect(iterator.next()).toEqual({ done: true, value: void 0 });
+    });
+  });
+
+  describe('Iterator protocol', () => {
+    it('should return new Iterator object that contains an array of [index, value] for each item', () => {
+      const map = createLazyFactoryMap(index => index / 2);
+
+      map.obtain(10);
+      map.obtain(11);
+      map.obtain(90);
+      map.obtain(12);
+      map.obtain(13);
+
+      expect(Array.from(map)).toEqual([[10, 5], [11, 5.5], [90, 45], [12, 6], [13, 6.5]]);
+    });
+
+    it('should return all values in the collection except that marked as "hole"', () => {
+      const map = createLazyFactoryMap(index => index / 2);
+
+      map.obtain(10);
+      map.obtain(11);
+      map.obtain(90);
+      map.obtain(12);
+      map.obtain(13);
+
+      map.remove(10, 2);
+      map.remove(); // Remove last row
+
+      // Proof that physical index was changed but data value is still intact.
+      expect(Array.from(map)).toEqual([[10, 6], [11, 6.5]]);
     });
   });
 });

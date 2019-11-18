@@ -1,8 +1,9 @@
 import { isNullish } from '../../helpers/mixed';
+import { arrayFilter, arrayMap } from '../../helpers/array';
 import { assert, isFiniteSignedNumber } from './utils';
 
 /**
- * The LazyGridMap object holds key-value pairs in the structure similar to the
+ * The LazyFactoryMap object holds key-value pairs in the structure similar to the
  * 2D grid. Once created, items can be moved around a grid depending on the operations
  * performed on that grid - adding or removing rows. The collection requires "key"
  * to be a zero-based index.
@@ -31,6 +32,7 @@ import { assert, isFiniteSignedNumber } from './utils';
  * | 0/10 | 1/11 | 2/12 | 3/13 | 4/14 |  Keys before
  * +------+------+------+------+------+
  *
+ *                / 2 new rows \
  * +------+------+------+------+------+------+------+
  * | 0/10 | 1/11 | 2/12 | 3/13 | 4/14 | 5/15 | 6/16 |  Keys after
  * +------+------+------+------+------+------+------+
@@ -45,9 +47,9 @@ import { assert, isFiniteSignedNumber } from './utils';
  * | AAA  | BBB  | CCC  | DDD  | EEE  | FFF  | GGG  |  Data
  * +------+------+------+------+------+------+------+
  *
- * Now at index 2 and 3 we have access to new items
+ * Now at index 2 and 3 we have access to new items.
  *
- * map.obtain(2) // returns new value "FFF" for newly created row
+ * map.obtain(2) // returns new value "FFF" for newly created row.
  * map.obtain(4) // index shifted by 2 has access to the old "CCC" value, as before inserting.
  *
  * after removing 2 rows, keys that hold the data positioned after the place where the
@@ -81,7 +83,7 @@ import { assert, isFiniteSignedNumber } from './utils';
  *
  * map.obtain(2) // returns the old value ("EEE") as it should
  */
-export default class LazyGridMap {
+export default class LazyFactoryMap {
   constructor(valueFactory) {
     this.valueFactory = valueFactory;
     /**
@@ -189,7 +191,7 @@ export default class LazyGridMap {
    * @returns {Number}
    */
   size() {
-    return this.data.length;
+    return this.data.length - this.holes.length;
   }
 
   /**
@@ -198,7 +200,7 @@ export default class LazyGridMap {
    * @returns {Iterator}
    */
   values() {
-    return this.data[Symbol.iterator]();
+    return arrayFilter(this.data, (_, index) => !this.holes.includes(index))[Symbol.iterator]();
   }
 
   /**
@@ -207,12 +209,14 @@ export default class LazyGridMap {
    * @returns {Iterator}
    */
   entries() {
+    const entries = arrayMap(this.data, (value, dataIndex) => [this._getKeyByStorageIndex(dataIndex), value]);
+    const validEntries = arrayFilter(entries, ([dataIndex]) => dataIndex !== -1);
     let dataIndex = 0;
 
     return {
       next: () => {
-        if (dataIndex < this.data.length) {
-          const value = [this._getKeyByStorageIndex(dataIndex), this.data[dataIndex]];
+        if (dataIndex < validEntries.length) {
+          const value = validEntries[dataIndex];
 
           dataIndex += 1;
 
@@ -222,10 +226,6 @@ export default class LazyGridMap {
         return { done: true };
       }
     };
-  }
-
-  [Symbol.iterator]() {
-    return this.entries();
   }
 
   /**
@@ -255,5 +255,12 @@ export default class LazyGridMap {
    */
   _getKeyByStorageIndex(dataIndex) {
     return this.index.indexOf(dataIndex);
+  }
+
+  /**
+   * Makes this object iterable.
+   */
+  [Symbol.iterator]() {
+    return this.entries();
   }
 }

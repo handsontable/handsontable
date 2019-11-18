@@ -1,11 +1,11 @@
 import { extend } from '../../../helpers/object';
 import { expandMetaType, assert, isFiniteSignedNumber } from '../utils';
-import LazyGridMap from '../lazyGridMap';
+import LazyFactoryMap from '../lazyFactoryMap';
 
 export default class CellMeta {
   constructor(columnMeta) {
     this.columnMeta = columnMeta;
-    this.metas = new LazyGridMap(() => this._createRow());
+    this.metas = new LazyFactoryMap(() => this._createRow());
   }
 
   updateMeta(physicalRow, physicalColumn, settings) {
@@ -81,7 +81,7 @@ export default class CellMeta {
   }
 
   _createRow() {
-    return new LazyGridMap(physicalColumn => this._createMeta(physicalColumn));
+    return new LazyFactoryMap(physicalColumn => this._createMeta(physicalColumn));
   }
 
   _createMeta(physicalColumn) {

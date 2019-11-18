@@ -1,6 +1,6 @@
 import { extend } from '../../../helpers/object';
 import { columnFactory, expandMetaType } from '../utils';
-import LazyGridMap from '../lazyGridMap';
+import LazyFactoryMap from '../lazyFactoryMap';
 
 /**
  * List of props which have to be cleared in the column meta-layer. That props have a
@@ -12,7 +12,7 @@ const COLUMNS_PROPS_CONFLICTS = ['data', 'width'];
 
 export default class ColumnMeta {
   constructor(globalMeta) {
-    this.metas = new LazyGridMap(() => this._createMeta());
+    this.metas = new LazyFactoryMap(() => this._createMeta());
     this.globalMeta = globalMeta;
   }
 
