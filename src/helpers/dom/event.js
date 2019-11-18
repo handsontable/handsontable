@@ -67,7 +67,7 @@ export function pageY(event) {
   let frame = rootWindow;
   let offset = getWindowScrollTop(frame);
 
-  while (frame.frameElement) {
+  while (Object.getPrototypeOf(frame.parent) && frame.frameElement) {
     frame = frame.frameElement.ownerDocument.defaultView;
     offset -= getWindowScrollTop(frame);
   }

@@ -67,7 +67,8 @@ class Menu {
 
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
-      frame = frame.frameElement && frame.frameElement.ownerDocument.defaultView;
+
+      frame = Object.getPrototypeOf(frame.parent) && frame.frameElement && frame.frameElement.ownerDocument.defaultView;
     }
   }
 

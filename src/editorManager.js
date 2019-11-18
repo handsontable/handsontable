@@ -79,7 +79,7 @@ class EditorManager {
         }
       });
 
-      frame = frame.frameElement && frame.frameElement.ownerDocument.defaultView;
+      frame = Object.getPrototypeOf(frame.parent) && frame.frameElement && frame.frameElement.ownerDocument.defaultView;
     }
 
     // Open editor when text composition is started (IME editor)
