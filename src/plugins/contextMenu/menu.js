@@ -238,6 +238,7 @@ class Menu {
     });
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
+    // debugger;
     subMenu.setPosition(cell.getBoundingClientRect());
     this.hotSubMenus[dataItem.key] = subMenu;
 
@@ -376,7 +377,7 @@ class Menu {
     let top = this.offset.above + cursor.top - this.container.offsetHeight;
 
     if (this.isSubMenu()) {
-      top = cursor.top + cursor.cellHeight - this.container.offsetHeight + 3;
+      top = cursor.top + cursor.cellHeight - this.container.offsetHeight;
     }
     this.container.style.top = `${top}px`;
   }
@@ -404,9 +405,9 @@ class Menu {
     let left;
 
     if (this.isSubMenu()) {
-      left = 1 + cursor.left + cursor.cellWidth;
+      left = cursor.left + cursor.cellWidth;
     } else {
-      left = this.offset.right + 1 + cursor.left;
+      left = this.offset.right + cursor.left;
     }
 
     this.container.style.left = `${left}px`;
@@ -418,7 +419,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    const left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth(this.hot.rootDocument) + 4;
+    const left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth(this.hot.rootDocument);
 
     this.container.style.left = `${left}px`;
   }
@@ -703,13 +704,11 @@ class Menu {
     const data = this.hotMenu.getSettings().data;
     const hiderStyle = wtTable.hider.style;
     const holderStyle = wtTable.holder.style;
-    const currentHiderWidth = parseInt(hiderStyle.width, 10);
 
     const realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
 
-    // Additional 3px to menu's size because of additional border around its `table.htCore`.
-    holderStyle.width = `${currentHiderWidth + 3}px`;
-    holderStyle.height = `${realHeight + 3}px`;
+    holderStyle.width = hiderStyle.width;
+    holderStyle.height = `${realHeight}px`;
     hiderStyle.height = holderStyle.height;
   }
 
