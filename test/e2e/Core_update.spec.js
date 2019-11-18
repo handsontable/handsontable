@@ -687,26 +687,4 @@ describe('Core_updateSettings', () => {
     expect(table.classList.contains('table_red')).toBe(false);
     expect(table.classList.contains('table_green')).toBe(true);
   });
-
-  it('should update className and tableClassName at the same time accordingly', () => {
-    handsontable({
-      data: [[1, true]],
-      className: ['class-1', 'class-2'],
-      tableClassName: ['table_red', 'table_green'],
-    });
-
-    const container = spec().$container[0];
-    const table = spec().$container.find('table')[0];
-
-    expect(container.classList.contains('class-1')).toBe(true);
-    expect(container.classList.contains('class-2')).toBe(true);
-    expect(table.classList.contains('table_red')).toBe(true);
-
-    updateSettings({ tableClassName: ['table_green'], className: ['class-1'] });
-
-    expect(container.classList.contains('class-1')).toBe(true);
-    expect(container.classList.contains('class-2')).toBe(false);
-    expect(table.classList.contains('table_red')).toBe(false);
-    expect(table.classList.contains('table_green')).toBe(true);
-  });
 });

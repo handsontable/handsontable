@@ -1,4 +1,4 @@
-import { addClass, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
+import { addClass, empty, hasClass, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
 import { columnFactory } from './helpers/setting';
 import { isFunction } from './helpers/function';
 import { warn } from './helpers/console';
@@ -873,19 +873,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {String} className
    * @param {Object} settings
    */
-  function setClassName(className, settings) {
-    const element = className === 'className' ? instance.rootElement : instance.table;
+  // function setClassName(className, settings) {
+  //   const element = className === 'className' ? instance.rootElement : instance.table;
 
-    if (GridSettings.prototype[className]) {
-      removeClass(element, GridSettings.prototype[className]);
-    }
+  //   if (GridSettings.prototype[className]) {
+  //     console.log(GridSettings.prototype[className]);
+  //     removeClass(element, GridSettings.prototype[className]);
+  //   }
 
-    if (settings[className]) {
-      addClass(element, settings[className]);
-    }
+  //   if (settings[className]) {
+  //     console.log(settings[className]);
+  //     addClass(element, settings[className]);
+  //   }
 
-    GridSettings.prototype[className] = settings[className];
-  }
+  //   GridSettings.prototype[className] = settings[className];
+  // }
 
   /**
    * Execute batch of operations with updating cache only when necessary. Function is responsible for renewing row index
@@ -1796,8 +1798,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         /* eslint-disable-next-line no-continue */
         continue;
 
-      } else if (i === 'className' || (i === 'tableClassName' && instance.table)) {
-        setClassName(i, settings);
+      } else if (i === 'className') {
+        removeClass(instance.rootElement, GridSettings.prototype.className);
+
+        if (!hasClass(instance.rootElement, settings.className)) {
+          addClass(instance.rootElement, settings.className);
+        }
+
+        GridSettings.prototype.className = settings.className;
+
+        /* eslint-disable-next-line no-continue */
+        continue;
+
+      } else if (i === 'tableClassName' && instance.table) {
+        removeClass(instance.table, GridSettings.prototype.tableClassName);
+
+        if (!hasClass(instance.table, settings.tableClassName)) {
+          addClass(instance.table, settings.tableClassName);
+        }
+
+        GridSettings.prototype.tableClassName = settings.tableClassName;
 
         /* eslint-disable-next-line no-continue */
         continue;
