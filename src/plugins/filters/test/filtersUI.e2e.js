@@ -3434,7 +3434,8 @@ describe('Filters UI', () => {
       const bothInputPaddings = 8;
       const bothWrapperMargins = 20;
       const bothCustomRendererPaddings = 12;
-      const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
+      const parentBorders = 3; // 1px on left and 2px on right side
+      const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings + parentBorders;
 
       expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
     });
@@ -3464,7 +3465,8 @@ describe('Filters UI', () => {
       const widthOfSelect = $(conditionSelectRootElements().first).width();
       const bothWrapperMargins = 20;
       const bothCustomRendererPaddings = 12;
-      const parentsPaddings = bothWrapperMargins + bothCustomRendererPaddings;
+      const parentBorders = 3; // 1px on left and 2px on right side
+      const parentsPaddings = bothWrapperMargins + bothCustomRendererPaddings + parentBorders;
 
       expect(widthOfSelect).toEqual(widthOfMenu - parentsPaddings);
     });
@@ -3496,7 +3498,8 @@ describe('Filters UI', () => {
       const bothInputPaddings = 8;
       const bothWrapperMargins = 20;
       const bothCustomRendererPaddings = 12;
-      const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
+      const parentBorders = 3; // 1px on left and 2px on right side
+      const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings + parentBorders;
 
       expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
     });
@@ -3529,8 +3532,9 @@ describe('Filters UI', () => {
       const widthOfValueBox = $(byValueBoxRootElement()).width();
       const bothWrapperMargins = 20;
       const bothCustomRendererPaddings = 12;
+      const parentBorders = 3; // 1px on left and 2px on right side
 
-      const parentsPaddings = bothWrapperMargins + bothCustomRendererPaddings;
+      const parentsPaddings = bothWrapperMargins + bothCustomRendererPaddings + parentBorders;
 
       expect(widthOfValueBox).toEqual(widthOfMenu - parentsPaddings);
     });

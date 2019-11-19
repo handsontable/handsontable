@@ -14,12 +14,6 @@
   display: none;
 }
 
-/* .htContextMenu .ht_master table.htCore {
-  border: 1px solid #ccc;
-  border-bottom-width: 2px;
-  border-right-width: 2px;
-} */
-
 .htContextMenu .wtBorder {
   visibility: hidden;
 }

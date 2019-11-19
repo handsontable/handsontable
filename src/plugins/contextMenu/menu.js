@@ -7,7 +7,7 @@ import {
   isChildOf,
   removeClass,
 } from './../../helpers/dom/element';
-import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
+import { arrayEach, arrayFilter } from './../../helpers/array';
 import Cursor from './cursor';
 import EventManager from './../../eventManager';
 import { mixin, hasOwnProperty } from './../../helpers/object';
@@ -238,7 +238,6 @@ class Menu {
     });
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
-    // debugger;
     subMenu.setPosition(cell.getBoundingClientRect());
     this.hotSubMenus[dataItem.key] = subMenu;
 
@@ -701,11 +700,9 @@ class Menu {
    */
   onAfterInit() {
     const { wtTable } = this.hotMenu.view.wt;
-    const data = this.hotMenu.getSettings().data;
     const hiderStyle = wtTable.hider.style;
     const holderStyle = wtTable.holder.style;
-
-    const realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
+    const realHeight = wtTable.spreader.offsetHeight;
 
     holderStyle.width = hiderStyle.width;
     holderStyle.height = `${realHeight}px`;

@@ -101,7 +101,7 @@ describe('ContextMenu', () => {
       await sleep(300);
 
       expect($menu.find('.wtHider').width()).toEqual(215);
-      expect($menu.width()).toEqual(218);
+      expect($menu.width()).toEqual(215);
     });
 
     it('should expand menu when one of items is wider then default width of the menu', async() => {
@@ -935,7 +935,7 @@ describe('ContextMenu', () => {
 
       const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
 
-      expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
+      expect(contextSubMenu.offset().top + contextSubMenu.height() - 26).toBeAroundValue(item.offset().top); // 26 - row height
       expect(contextSubMenu.offset().left).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
     });
 
@@ -961,7 +961,7 @@ describe('ContextMenu', () => {
 
       const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
 
-      expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
+      expect(contextSubMenu.offset().top + contextSubMenu.height() - 26).toBeAroundValue(item.offset().top); // 26 - row height
       expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
     });
   });
