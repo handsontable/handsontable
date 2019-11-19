@@ -399,10 +399,9 @@ describe('DateEditor', () => {
     keyDown('enter');
 
     const cellOffset = $(hot.getActiveEditor().TD).offset();
-    const datePickerOffset = $('.pika-single').offset();
-    const datePickerHeight = $('.pika-single').height();
+    const datePickerOffset = $('.htDatepickerHolder').offset();
+    const datePickerHeight = $('.htDatepickerHolder').innerHeight();
 
-    // 23 is a height of the editor cell
     expect(cellOffset.top - datePickerHeight).toBeCloseTo(datePickerOffset.top, 0);
     expect(cellOffset.left).toBeCloseTo(datePickerOffset.left, 0);
   });
