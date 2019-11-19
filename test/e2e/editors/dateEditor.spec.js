@@ -386,6 +386,27 @@ describe('DateEditor', () => {
     expect(moment(resultDate).month()).toEqual(moment().month());
   });
 
+  it('should display Pikaday Calendar above of the selected cell', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(500, 2),
+      columns: [
+        { type: 'date' },
+        { type: 'date' }
+      ]
+    });
+
+    selectCell(499, 1);
+    keyDown('enter');
+
+    const cellOffset = $(hot.getActiveEditor().TD).offset();
+    const datePickerOffset = $('.pika-single').offset();
+    const datePickerHeight = $('.pika-single').height();
+
+    // 23 is a height of the editor cell
+    expect(cellOffset.top - datePickerHeight).toBeCloseTo(datePickerOffset.top, 0);
+    expect(cellOffset.left).toBeCloseTo(datePickerOffset.left, 0);
+  });
+
   it('should display Pikaday Calendar bottom of the selected cell', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),

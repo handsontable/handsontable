@@ -1,11 +1,11 @@
 import moment from 'moment';
 import Pikaday from 'pikaday';
 import 'pikaday/css/pikaday.css';
-import { addClass, outerHeight, outerWidth } from './../helpers/dom/element';
-import { deepExtend } from './../helpers/object';
+import {addClass, outerHeight, outerWidth} from './../helpers/dom/element';
+import {deepExtend} from './../helpers/object';
 import EventManager from './../eventManager';
-import { isMetaKey } from './../helpers/unicode';
-import { stopPropagation } from './../helpers/dom/event';
+import {isMetaKey} from './../helpers/unicode';
+import {stopPropagation} from './../helpers/dom/event';
 import TextEditor from './textEditor';
 
 /**
@@ -73,21 +73,53 @@ class DateEditor extends TextEditor {
    * Update data picker position
    */
   updatePosition() {
-    const offset = this.TD.getBoundingClientRect();
-    const pickadayHeight = this.datePicker.clientHeight;
-    const pickadayWidth = this.datePicker.clientWidth;
-
-    if (this.hot.rootWindow.pageYOffset + offset.top > this.hot.rootWindow.innerHeight - pickadayHeight) {
-      this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top - pickadayHeight}px`;
+    if (!this.isThereEnoughSpaceForPickadayUnderTD() && this.isThereEnoughSpaceForPickadayAboveTD()) {
+      this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + this.offset.top - this.datePicker.clientHeight}px`;
     } else {
-      this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
+      this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + this.offset.top + outerHeight(this.TD)}px`;
     }
 
-    if (this.hot.rootWindow.pageXOffset + offset.left > this.hot.rootWindow.innerWidth - pickadayWidth) {
-      this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + offset.left + outerWidth(this.TD) - pickadayWidth}px`;
+    if (!this.isThereEnoughSpaceForPickadayOnTheRightOfTD() && this.isThereEnoughSpaceForPickadayOnTheLeftOfTD()) {
+      this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + this.offset.left + outerWidth(this.TD) - this.datePicker.clientWidth}px`;
     } else {
-      this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + offset.left}px`;
+      this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + this.offset.left}px`;
     }
+  }
+
+  /**
+   * Check if there is enough space under the TD for pickaday
+   *
+   * @returns Boolean
+   */
+  isThereEnoughSpaceForPickadayUnderTD() {
+    return this.hot.rootWindow.pageYOffset + this.offset.top < this.hot.rootWindow.innerHeight - this.datePicker.clientHeight;
+  }
+
+  /**
+   * Check if there is enough space above the TD for pickaday
+   *
+   * @returns Boolean
+   */
+  isThereEnoughSpaceForPickadayAboveTD() {
+    return this.hot.rootWindow.pageYOffset + this.offset.top > this.datePicker.clientHeight;
+  }
+
+  /**
+   * Check if there is enough space on the right of the TD for pickaday
+   *
+   * @returns Boolean
+   */
+  isThereEnoughSpaceForPickadayOnTheRightOfTD() {
+    return this.hot.rootWindow.pageXOffset + this.offset.left < this.hot.rootWindow.innerWidth - this.datePicker.clientWidth;
+  }
+
+  /**
+   * Check if there is enough space on the left of the TD for pickaday
+   *
+   * @returns Boolean
+   */
+  isThereEnoughSpaceForPickadayOnTheLeftOfTD() {
+    return this.hot.rootWindow.pageXOffset + this.offset.left + outerWidth(this.TD) > this.datePicker.clientWidth;
   }
 
   /**
@@ -164,6 +196,7 @@ class DateEditor extends TextEditor {
   showDatepicker(event) {
     this.$datePicker.config(this.getDatePickerConfig());
 
+    this.offset = this.TD.getBoundingClientRect();
     const dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
     const datePickerConfig = this.$datePicker.config();
     let dateStr;
@@ -207,6 +240,8 @@ class DateEditor extends TextEditor {
       this.$datePicker.gotoToday();
     }
 
+    this.datePickerStyle.display = 'block';
+    this.datePickerStyle.visibility = 'hidden';
     this.$datePicker.show();
     this.updatePosition();
     this.datePickerStyle.visibility = 'visible';
@@ -216,7 +251,7 @@ class DateEditor extends TextEditor {
    * Hide data picker
    */
   hideDatepicker() {
-    this.datePickerStyle.visibility = 'hidden';
+    this.datePickerStyle.display = 'none';
     this.$datePicker.hide();
   }
 
