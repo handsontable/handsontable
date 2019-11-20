@@ -2,6 +2,7 @@ import BasePlugin from './../_base';
 import EventManager from './../../eventManager';
 import { registerPlugin } from './../../plugins';
 import { isRightClick } from '../../helpers/dom/event';
+import { getParentWindow } from '../../helpers/dom/element';
 
 /**
  * @description
@@ -182,7 +183,7 @@ class DragToScroll extends BasePlugin {
       this.eventManager.addEventListener(frame.document, 'mouseup', () => this.unlisten());
       this.eventManager.addEventListener(frame.document, 'mousemove', event => this.onMouseMove(event));
 
-      frame = frame.frameElement && frame.frameElement.ownerDocument.defaultView;
+      frame = getParentWindow(frame);
     }
   }
 
