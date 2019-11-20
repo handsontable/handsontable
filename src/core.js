@@ -1,4 +1,4 @@
-import { addClass, empty, hasClass, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
+import { addClass, diffClassName, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
 import { columnFactory } from './helpers/setting';
 import { isFunction } from './helpers/function';
 import { warn } from './helpers/console';
@@ -1799,10 +1799,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         continue;
 
       } else if (i === 'className') {
-        removeClass(instance.rootElement, GridSettings.prototype.className);
-
-        if (!hasClass(instance.rootElement, settings.className)) {
+        if (priv.firstRun) {
           addClass(instance.rootElement, settings.className);
+
+        } else {
+          const classNameToRemove = diffClassName(GridSettings.prototype.className, settings.className);
+          const classNameToAdd = diffClassName(settings.className, GridSettings.prototype.className);
+
+          if (classNameToRemove.length) {
+            removeClass(instance.rootElement, classNameToRemove);
+          }
+
+          if (classNameToAdd.length) {
+            addClass(instance.rootElement, classNameToAdd);
+          }
         }
 
         GridSettings.prototype.className = settings.className;
@@ -1811,10 +1821,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         continue;
 
       } else if (i === 'tableClassName' && instance.table) {
-        removeClass(instance.table, GridSettings.prototype.tableClassName);
-
-        if (!hasClass(instance.table, settings.tableClassName)) {
+        if (priv.firstRun) {
           addClass(instance.table, settings.tableClassName);
+
+        } else {
+          const classNameToRemove = diffClassName(GridSettings.prototype.tableClassName, settings.tableClassName);
+          const classNameToAdd = diffClassName(settings.tableClassName, GridSettings.prototype.tableClassName);
+
+          if (classNameToRemove.length) {
+            removeClass(instance.table, classNameToRemove);
+          }
+
+          if (classNameToAdd.length) {
+            addClass(instance.table, classNameToAdd);
+          }
         }
 
         GridSettings.prototype.tableClassName = settings.tableClassName;

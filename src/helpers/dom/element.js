@@ -400,6 +400,30 @@ export function removeTextNodes(element, parent) {
 }
 
 /**
+ * Differences in class names
+ *
+ * @param {String|Array} [firstClasses=[]] Class name as string or array of strings
+ * @param {String|Array} [secondClasses=[]] Class name as string or array of strings
+ * @returns {String} Returns filtered class name.
+ */
+export function diffClassName(firstClasses = [], secondClasses = []) {
+  let firstClassName = firstClasses;
+  let secondClassName = secondClasses;
+
+  if (typeof firstClassName === 'string') {
+    firstClassName = firstClassName.split(' ');
+  }
+
+  if (typeof secondClassName === 'string') {
+    secondClassName = secondClassName.split(' ');
+  }
+
+  const filteredClassName = firstClassName.filter(value => !secondClassName.includes(value));
+
+  return filteredClassName.join(' ');
+}
+
+/**
  * Remove childs function
  * WARNING - this doesn't unload events and data attached by jQuery
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9

@@ -665,11 +665,15 @@ describe('Core_updateSettings', () => {
 
     expect(container.classList.contains('class-1')).toBe(true);
     expect(container.classList.contains('class-2')).toBe(true);
+    expect(getCellMeta(0, 0).className).toEqual(['class-1', 'class-2']);
+    expect(getCellMeta(0, 1).className).toEqual(['class-1', 'class-2']);
 
     updateSettings({ className: ['class-1'] });
 
     expect(container.classList.contains('class-1')).toBe(true);
     expect(container.classList.contains('class-2')).toBe(false);
+    expect(getCellMeta(0, 0).className).toEqual(['class-1']);
+    expect(getCellMeta(0, 1).className).toEqual(['class-1']);
   });
 
   it('should update tableClassName accordingly', () => {
