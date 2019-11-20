@@ -2303,6 +2303,7 @@ declare namespace Handsontable {
     Comments: plugins.Comments;
     ContextMenu: plugins.ContextMenu;
     CopyPaste: plugins.CopyPaste;
+    CustomBorders: plugins.CustomBorders;                                    
     DragToScroll: plugins.DragToScroll;
     DropdownMenu: plugins.DropdownMenu;
     ExportFile: plugins.ExportFile;
@@ -2342,6 +2343,7 @@ declare namespace Handsontable {
     comments: plugins.Comments;
     contextMenu: plugins.ContextMenu;
     copyPaste: plugins.CopyPaste;
+    customBorders: plugins.CustomBorders;                                   
     dragToScroll: plugins.DragToScroll;
     dropdownMenu: plugins.DropdownMenu;
     exportFile: plugins.ExportFile;
