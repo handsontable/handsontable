@@ -66,12 +66,7 @@ export function pageY(event) {
   let offset = getWindowScrollTop(frame);
   frame = getParentWindow(frame);
 
-<<<<<<< HEAD
-  while (Object.getPrototypeOf(frame.parent) && frame.frameElement) {
-    frame = frame.frameElement.ownerDocument.defaultView;
-=======
   while (frame) {
->>>>>>> 6321cafc3... Changes after CR: using helpers instead of the same fragment of code in many places. Added: TS definitions for new dom helpers. #6218
     offset -= getWindowScrollTop(frame);
     frame = getParentWindow(frame);
   }
