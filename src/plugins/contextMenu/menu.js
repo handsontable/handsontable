@@ -6,6 +6,7 @@ import {
   getScrollbarWidth,
   isChildOf,
   removeClass,
+  getParentWindow,
 } from './../../helpers/dom/element';
 import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
 import Cursor from './cursor';
@@ -68,7 +69,7 @@ class Menu {
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
 
-      frame = Object.getPrototypeOf(frame.parent) && frame.frameElement && frame.frameElement.ownerDocument.defaultView;
+      frame = getParentWindow(frame);
     }
   }
 

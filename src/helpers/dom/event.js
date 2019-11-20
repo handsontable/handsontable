@@ -1,4 +1,4 @@
-import { getWindowScrollTop, getWindowScrollLeft } from './element';
+import { getWindowScrollTop, getWindowScrollLeft, getParentWindow } from './element';
 
 /**
  * Prevent other listeners of the same event from being called.
@@ -62,14 +62,18 @@ export function pageY(event) {
     return event.pageY;
   }
 
-  const rootWindow = event.target.ownerDocument.defaultView;
-
-  let frame = rootWindow;
+  let frame = event.target.ownerDocument.defaultView;
   let offset = getWindowScrollTop(frame);
+  frame = getParentWindow(frame);
 
+<<<<<<< HEAD
   while (Object.getPrototypeOf(frame.parent) && frame.frameElement) {
     frame = frame.frameElement.ownerDocument.defaultView;
+=======
+  while (frame) {
+>>>>>>> 6321cafc3... Changes after CR: using helpers instead of the same fragment of code in many places. Added: TS definitions for new dom helpers. #6218
     offset -= getWindowScrollTop(frame);
+    frame = getParentWindow(frame);
   }
 
   return event.clientY + offset;

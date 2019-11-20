@@ -2244,7 +2244,9 @@ declare namespace Handsontable {
     getCaretPosition: (el: HTMLElement) => number;
     getComputedStyle: (element: HTMLElement, rootWindow?: Window) => CSSStyleDeclaration | object;
     getCssTransform: (element: HTMLElement) => number | void;
+    getFrameElement: (frame: Window) => HTMLIFrameElement | null;
     getParent: (element: HTMLElement, level?: number) => HTMLElement | void;
+    getParentWindow: (frame: Window) => Window | null;
     getScrollLeft: (element: HTMLElement, rootWindow?: Window) => number;
     getScrollTop: (element: HTMLElement, rootWindow?: Window) => number;
     getScrollableElement: (element: HTMLElement) => HTMLElement;
@@ -2255,6 +2257,7 @@ declare namespace Handsontable {
     getTrimmingContainer: (base: HTMLElement) => HTMLElement;
     getWindowScrollLeft: (rootWindow?: Window) => number;
     getWindowScrollTop: (rootWindow?: Window) => number;
+    hasAccessToParentWindow: (frame: Window) => boolean;
     hasClass: (element: HTMLElement, className: string) => boolean;
     hasHorizontalScrollbar: (element: HTMLElement) => boolean;
     hasVerticalScrollbar: (element: HTMLElement) => boolean;
