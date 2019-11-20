@@ -58,6 +58,7 @@ export function getParentWindow(frame) {
 
 /**
  * Checks if script has access to read from parent frame of specified frame.
+
  * @param {Window} frame Frame from which should be get frameElement in safe way.
  */
 export function hasAccessToParentWindow(frame) {
