@@ -1,4 +1,5 @@
 import DataMap from '../dataMap';
+import MetaManager from './metaManager';
+import metaSchemaFactory from './metaManager/metaSchema';
 
-export * from './metaManager';
-export { DataMap };
+export { DataMap, MetaManager, metaSchemaFactory };

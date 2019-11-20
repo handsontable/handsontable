@@ -30,7 +30,7 @@ import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
 import * as plugins from './plugins/index';
 import { registerPlugin } from './plugins';
-import DefaultSettings from './defaultSettings';
+import { metaSchemaFactory } from './dataMap/index';
 import { rootInstanceSymbol } from './utils/rootInstance';
 import { getTranslatedPhrase } from './i18n';
 import * as constants from './i18n/constants';
@@ -50,7 +50,7 @@ jQueryWrapper(Handsontable);
 Handsontable.Core = function(rootElement, userSettings = {}) {
   return new Core(rootElement, userSettings, rootInstanceSymbol);
 };
-Handsontable.DefaultSettings = DefaultSettings;
+Handsontable.DefaultSettings = metaSchemaFactory();
 Handsontable.EventManager = EventManager;
 Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
 Handsontable._getRegisteredMapsCounter = getRegisteredMapsCounter; // For MemoryLeak tests

@@ -1,6 +1,5 @@
-import { isNullish } from '../../helpers/mixed';
 import { arrayFilter, arrayMap } from '../../helpers/array';
-import { assert, isFiniteSignedNumber } from './utils';
+import { assert, isFiniteSignedNumber, isNullish } from './utils';
 
 /**
  * The LazyFactoryMap object holds key-value pairs in the structure similar to the

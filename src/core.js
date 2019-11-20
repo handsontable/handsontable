@@ -15,7 +15,7 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { arrayMap, arrayEach, arrayReduce, arrayFlatten } from './helpers/array';
+import { arrayMap, arrayEach, arrayReduce } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
@@ -2334,25 +2334,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Remove one or more rows from the cell meta object.
+   * Removes or adds one or more rows of the cell meta objects to the cell meta collections.
    *
    * @since 0.30.0
    * @memberof Core#
    * @function spliceCellsMeta
-   * @param {Number} index An integer that specifies at what position to add/remove items, Use negative values to specify the position from the end of the array.
-   * @param {Number} [deleteAmount=0] The number of items to be removed. If set to 0, no items will be removed.
-   * @param {Array} [cellMetaObjects] The new items to be added to the array.
+   * @param {Number} visualIndex A visual index that specifies at what position to add/remove items.
+   * @param {Number} [deleteAmount=0] The number of items to be removed. If set to 0, no cell meta objects will be removed.
+   * @param {...Object} [cellMetaRows] The new cell meta row objects to be added to the cell meta collection.
    */
-  this.spliceCellsMeta = function(index, deleteAmount = 0, ...cellMetaObjects) {
-    if (cellMetaObjects.length > 0) {
-      metaManager.createRow(this.toPhysicalRow(index));
+  this.spliceCellsMeta = function(visualIndex, deleteAmount = 0, ...cellMetaRows) {
+    if (deleteAmount > 0) {
+      metaManager.removeRow(this.toPhysicalRow(visualIndex), deleteAmount);
+    }
 
-      arrayEach(arrayFlatten(cellMetaObjects), (cellMeta, columnIndex) => {
-        this.setCellMetaObject(index, columnIndex, cellMeta);
+    if (cellMetaRows.length > 0) {
+      if (!Array.isArray(cellMetaRows[0])) {
+        throw new Error('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
+      }
+
+      arrayEach(cellMetaRows.reverse(), (cellMetas) => {
+        metaManager.createRow(this.toPhysicalRow(visualIndex));
+
+        arrayEach(cellMetas, (cellMeta, columnIndex) => this.setCellMetaObject(visualIndex, columnIndex, cellMeta));
       });
-
-    } else if (deleteAmount > 0) {
-      metaManager.removeRow(this.toPhysicalRow(index), deleteAmount);
     }
   };
 
@@ -2828,7 +2833,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this._getColWidthFromSettings = function(col) {
     let width;
 
-    // We currently dont support cell meta objects for headers (negative values)
+    // We currently don't support cell meta objects for headers (negative values)
     if (col >= 0) {
       const cellProperties = instance.getCellMeta(0, col);
 
