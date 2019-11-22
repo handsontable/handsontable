@@ -77,6 +77,7 @@ export default () => {
     /**
      * License key for commercial version of Handsontable.
      *
+     * @memberof Options#
      * @type {String}
      * @default undefined
      * @example
@@ -95,6 +96,7 @@ export default () => {
      *
      * See [Understanding binding as reference](https://docs.handsontable.com/tutorial-data-binding.html#page-reference).
      *
+     * @memberof Options#
      * @type {Array[]|Object[]}
      * @default undefined
      * @example
@@ -124,6 +126,7 @@ export default () => {
      *
      * See [data-schema](https://docs.handsontable.com/tutorial-data-sources.html#page-data-schema) for more options.
      *
+     * @memberof Options#
      * @type {Object}
      * @default undefined
      *
@@ -148,6 +151,7 @@ export default () => {
     /**
      * Width of the grid. Can be a value or a function that returns a value.
      *
+     * @memberof Options#
      * @type {Number|String|Function}
      * @default undefined
      *
@@ -170,6 +174,7 @@ export default () => {
     /**
      * Height of the grid. Can be a number or a function that returns a number.
      *
+     * @memberof Options#
      * @type {Number|String|Function}
      * @default undefined
      *
@@ -195,6 +200,7 @@ export default () => {
      *
      * __Note:__ This option only has effect in Handsontable constructor and only if `data` option is not provided
      *
+     * @memberof Options#
      * @type {Number}
      * @default 5
      *
@@ -212,6 +218,7 @@ export default () => {
      *
      * __Note:__ This option only has effect in Handsontable constructor and only if `data` option is not provided
      *
+     * @memberof Options#
      * @type {Number}
      * @default 5
      *
@@ -228,6 +235,7 @@ export default () => {
      * You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
      * If a function is set the index of the row is passed as a parameter.
      *
+     * @memberof Options#
      * @type {Boolean|String[]|Function}
      * @default undefined
      *
@@ -252,6 +260,7 @@ export default () => {
      * You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
      * If a function is set, then the index of the column is passed as a parameter.
      *
+     * @memberof Options#
      * @type {Boolean|String[]|Function}
      * @default null
      *
@@ -276,6 +285,7 @@ export default () => {
      * (if you want to define column width separately for each column) or a function (if you want to set column width
      * dynamically on each render).
      *
+     * @memberof Options#
      * @type {Number|Number[]|String|String[]|Function}
      * @default undefined
      *
@@ -308,6 +318,7 @@ export default () => {
      *
      * Height should be equal or greater than 23px. Table is rendered incorrectly if height is less than 23px.
      *
+     * @memberof Options#
      * @type {Number|Number[]|String|String[]|Function}
      * @default undefined
      *
@@ -338,6 +349,7 @@ export default () => {
      *
      * See [documentation -> datasources.html](https://docs.handsontable.com/tutorial-data-sources.html#page-nested) for examples.
      *
+     * @memberof Options#
      * @type {Object[]|Function}
      * @default undefined
      *
@@ -383,6 +395,7 @@ export default () => {
      * - property name for column's data source object, when dataset is an [array of objects](/tutorial-data-sources.html#page-object)
      * - the same number as `col`, when dataset is an [array of arrays](/tutorial-data-sources.html#page-array)
      *
+     * @memberof Options#
      * @type {Function}
      * @default undefined
      *
@@ -407,6 +420,7 @@ export default () => {
      * Any constructor or column option may be overwritten for a particular cell (row/column combination), using `cell`
      * array passed to the Handsontable constructor.
      *
+     * @memberof Options#
      * @type {Array[]}
      * @default []
      *
@@ -434,6 +448,7 @@ export default () => {
      *
      * See [Comments](https://docs.handsontable.com/demo-comments_.html) demo for examples.
      *
+     * @memberof Options#
      * @type {Boolean|Object[]}
      * @default false
      *
@@ -470,6 +485,7 @@ export default () => {
      *
      * See [Custom Borders](https://docs.handsontable.com/demo-custom-borders.html) demo for examples.
      *
+     * @memberof Options#
      * @type {Boolean|Object[]}
      * @default false
      *
@@ -526,6 +542,7 @@ export default () => {
     /**
      * Minimum number of rows. At least that number of rows will be created during initialization.
      *
+     * @memberof Options#
      * @type {Number}
      * @default 0
      *
@@ -540,6 +557,7 @@ export default () => {
     /**
      * Minimum number of columns. At least that number of columns will be created during initialization.
      *
+     * @memberof Options#
      * @type {Number}
      * @default 0
      *
@@ -555,6 +573,7 @@ export default () => {
      * Maximum number of rows. If set to a value lower than the initial row count, the data will be trimmed to the provided
      * value as the number of rows.
      *
+     * @memberof Options#
      * @type {Number}
      * @default Infinity
      *
@@ -570,6 +589,7 @@ export default () => {
      * Maximum number of cols. If set to a value lower than the initial col count, the data will be trimmed to the provided
      * value as the number of cols.
      *
+     * @memberof Options#
      * @type {Number}
      * @default Infinity
      *
@@ -585,6 +605,7 @@ export default () => {
      * When set to 1 (or more), Handsontable will add a new row at the end of grid if there are no more empty rows.
      * (unless the number of rows exceeds the one set in the `maxRows` property)
      *
+     * @memberof Options#
      * @type {Number}
      * @default 0
      *
@@ -600,6 +621,7 @@ export default () => {
      * When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns.
      * (unless the number of rows exceeds the one set in the `maxCols` property)
      *
+     * @memberof Options#
      * @type {Number}
      * @default 0
      *
@@ -614,6 +636,7 @@ export default () => {
     /**
      * If set to `false`, there won't be an option to insert new rows in the Context Menu.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -628,6 +651,7 @@ export default () => {
     /**
      * If set to `false`, there won't be an option to insert new columns in the Context Menu.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -642,6 +666,7 @@ export default () => {
     /**
      * If set to `false`, there won't be an option to remove rows in the Context Menu.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -656,6 +681,7 @@ export default () => {
     /**
      * If set to `false`, there won't be an option to remove columns in the Context Menu.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -677,6 +703,7 @@ export default () => {
      * To see how to interact with selection by getting selected data or change styles of the selected cells go to
      * [https://docs.handsontable.com/demo-selecting-ranges.html](https://docs.handsontable.com/demo-selecting-ranges.html).
      *
+     * @memberof Options#
      * @type {String}
      * @default 'multiple'
      *
@@ -699,6 +726,7 @@ export default () => {
      * If `autoInsertRow` option is `true`, fill-handler will create new rows till it reaches the last row.
      * It is enabled by default.
      *
+     * @memberof Options#
      * @type {Boolean|String|Object}
      * @default true
      *
@@ -732,6 +760,7 @@ export default () => {
     /**
      * Allows to specify the number of fixed (or *frozen*) rows at the top of the table.
      *
+     * @memberof Options#
      * @type {Number}
      * @default 0
      *
@@ -746,6 +775,7 @@ export default () => {
     /**
      * Allows to specify the number of fixed (or *frozen*) rows at the bottom of the table.
      *
+     * @memberof Options#
      * @type {Number}
      * @default 0
      *
@@ -760,6 +790,7 @@ export default () => {
     /**
      * Allows to specify the number of fixed (or *frozen*) columns on the left of the table.
      *
+     * @memberof Options#
      * @type {Number}
      * @default 0
      *
@@ -775,6 +806,7 @@ export default () => {
      * If `true`, mouse click outside the grid will deselect the current selection. Can be a function that takes the
      * click event target and returns a boolean.
      *
+     * @memberof Options#
      * @type {Boolean|Function}
      * @default true
      *
@@ -795,6 +827,7 @@ export default () => {
      * If `true`, <kbd>ENTER</kbd> begins editing mode (like in Google Docs). If `false`, <kbd>ENTER</kbd> moves to next
      * row (like Excel) and adds a new row if necessary. <kbd>TAB</kbd> adds new column if necessary.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -811,6 +844,7 @@ export default () => {
      * received after the <kbd>ENTER</kbd> key has been pressed. This event object can be used to check whether user pressed
      * <kbd>ENTER</kbd> or <kbd>SHIFT</kbd> + <kbd>ENTER</kbd>.
      *
+     * @memberof Options#
      * @type {Object|Function}
      * @default {row: 1, col: 0}
      *
@@ -832,6 +866,7 @@ export default () => {
      * received after the <kbd>TAB</kbd> key has been pressed. This event object can be used to check whether user pressed
      * <kbd>TAB</kbd> or <kbd>SHIFT</kbd> + <kbd>TAB</kbd>.
      *
+     * @memberof Options#
      * @type {Object|Function}
      * @default {row: 0, col: 1}
      *
@@ -850,6 +885,7 @@ export default () => {
     /**
      * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -864,6 +900,7 @@ export default () => {
     /**
      * If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to the first row in the next column.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -904,6 +941,7 @@ export default () => {
      *
      * __Important:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default false
      *
@@ -918,6 +956,7 @@ export default () => {
     /**
      * Class name for all visible rows in the current selection.
      *
+     * @memberof Options#
      * @type {String}
      * @default undefined
      *
@@ -932,6 +971,7 @@ export default () => {
     /**
      * Class name for all visible columns in the current selection.
      *
+     * @memberof Options#
      * @type {String}
      * @default undefined
      *
@@ -946,6 +986,7 @@ export default () => {
     /**
      * Class name for all visible headers in current selection.
      *
+     * @memberof Options#
      * @type {String}
      * @default 'ht__highlight'
      *
@@ -961,6 +1002,7 @@ export default () => {
      * Class name for all active headers in selections. The header will be marked with this class name
      * only when a whole column or row will be selected.
      *
+     * @memberof Options#
      * @type {String}
      * @since 0.38.2
      * @default 'ht__active_highlight'
@@ -976,6 +1018,7 @@ export default () => {
     /**
      * Class name for the Handsontable container element.
      *
+     * @memberof Options#
      * @type {String|String[]}
      * @default undefined
      *
@@ -993,6 +1036,7 @@ export default () => {
     /**
      * Class name for all tables inside container element.
      *
+     * @memberof Options#
      * @type {String|String[]}
      * @default undefined
      *
@@ -1015,6 +1059,7 @@ export default () => {
      *  * `'last'` Stretch only the last column
      *  * `'all'` Stretch all the columns evenly
      *
+     * @memberof Options#
      * @type {String}
      * @default 'none'
      *
@@ -1029,6 +1074,7 @@ export default () => {
     /**
      * Overwrites the default `isEmptyRow` method, which checks if row at the provided index is empty.
      *
+     * @memberof Options#
      * @type {Function}
      * @param {Number} row Visual row index.
      * @returns {Boolean}
@@ -1066,6 +1112,7 @@ export default () => {
     /**
      * Overwrites the default `isEmptyCol` method, which checks if column at the provided index is empty.
      *
+     * @memberof Options#
      * @type {Function}
      * @param {Number} column Visual column index
      * @returns {Boolean}
@@ -1097,6 +1144,7 @@ export default () => {
     /**
      * When set to `true`, the table is re-rendered when it is detected that it was made visible in DOM.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -1114,6 +1162,7 @@ export default () => {
      * If set to `false`, Handsontable will *not* accept the invalid values and won't allow the user to close the editor.
      * This option will be particularly useful when used with the Autocomplete's `strict` mode.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -1129,6 +1178,7 @@ export default () => {
      * If set to `true`, Handsontable will accept values that are empty (`null`, `undefined` or `''`). If set to `false`,
      * Handsontable will *not* accept the empty values and mark cell as invalid.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -1153,6 +1203,7 @@ export default () => {
     /**
      * CSS class name for cells that did not pass validation.
      *
+     * @memberof Options#
      * @type {String}
      * @default 'htInvalid'
      *
@@ -1168,6 +1219,7 @@ export default () => {
      * When set to an non-empty string, displayed as the cell content for empty cells. If a value of a different type is provided,
      * it will be stringified and applied as a string.
      *
+     * @memberof Options#
      * @type {String}
      * @default undefined
      *
@@ -1182,6 +1234,7 @@ export default () => {
     /**
      * CSS class name for cells that have a placeholder in use.
      *
+     * @memberof Options#
      * @type {String}
      * @default 'htPlaceholder'
      *
@@ -1196,6 +1249,7 @@ export default () => {
     /**
      * CSS class name for read-only cells.
      *
+     * @memberof Options#
      * @type {String}
      * @default 'htDimmed'
      *
@@ -1227,6 +1281,7 @@ export default () => {
      *
      * You can read more about custom renderes [in the documentation](https://docs.handsontable.com/demo-custom-renderers.html).
      *
+     * @memberof Options#
      * @type {String|Function}
      * @default undefined
      *
@@ -1263,6 +1318,7 @@ export default () => {
     /**
      * CSS class name added to the commented cells.
      *
+     * @memberof Options#
      * @type {String}
      * @default 'htCommentCell'
      *
@@ -1279,6 +1335,7 @@ export default () => {
      * adjacent cells or in a whole table. If set to `'cell'`, it enables the possibility of selecting a fragment of the
      * text within a single cell's body.
      *
+     * @memberof Options#
      * @type {Boolean|String}
      * @default false
      *
@@ -1298,6 +1355,7 @@ export default () => {
      * @description
      * Makes cell [read only](https://docs.handsontable.com/demo-read-only.html).
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default false
      *
@@ -1313,6 +1371,7 @@ export default () => {
      * @description
      * When added to a `column` property, it skips the column on paste and pastes the data on the next column to the right.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default false
      *
@@ -1332,6 +1391,7 @@ export default () => {
      * @description
      * When added to a cell property, it skips the row on paste and pastes the data on the following row.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default false
      *
@@ -1355,6 +1415,7 @@ export default () => {
      * @description
      * Setting to `true` enables the {@link Search} plugin (see [demo](https://docs.handsontable.com/demo-search-for-values.html)).
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default false
      *
@@ -1396,6 +1457,7 @@ export default () => {
      * Or you can register the custom cell type under specified name and use
      * its name as an alias in your configuration.
      *
+     * @memberof Options#
      * @type {String}
      * @default 'text'
      *
@@ -1435,6 +1497,7 @@ export default () => {
      *
      * __Note:__ this setting is `false` by default for cells with type `password`.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -1471,6 +1534,7 @@ export default () => {
      *
      * To disable cell editing completely set `editor` property to `false`.
      *
+     * @memberof Options#
      * @type {String|Function|Boolean}
      * @default undefined
      *
@@ -1494,6 +1558,7 @@ export default () => {
      * Control number of choices for the autocomplete (or dropdown) typed cells. After exceeding it, a scrollbar for the
      * dropdown list of choices will appear.
      *
+     * @memberof Options#
      * @type {Number}
      * @default 10
      *
@@ -1514,6 +1579,7 @@ export default () => {
      * Makes autocomplete or dropdown width the same as the edited cell width. If `false` then editor will be scaled
      * according to its content.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -1534,6 +1600,7 @@ export default () => {
      * Setting to `true` enables the debug mode, currently used to test the correctness of the row and column
      * header fixed positioning on a layer above the master table.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default false
      *
@@ -1548,6 +1615,7 @@ export default () => {
     /**
      * When set to `true`, the text of the cell content is wrapped if it does not fit in the fixed column width.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -1567,6 +1635,7 @@ export default () => {
     /**
      * CSS class name added to cells with cell meta `wordWrap: false`.
      *
+     * @memberof Options#
      * @type {String}
      * @default 'htNoWrap'
      *
@@ -1590,6 +1659,7 @@ export default () => {
      *
      * See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
      *
+     * @memberof Options#
      * @type {Boolean|String[]|Object}
      * @default undefined
      *
@@ -1631,6 +1701,7 @@ export default () => {
     /**
      * Disables or enables the copy/paste functionality.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -1645,6 +1716,7 @@ export default () => {
     /**
      * If `true`, undo/redo functionality is enabled.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default undefined
      *
@@ -1675,6 +1747,7 @@ export default () => {
      *   * `false` = the table moves all empty cells to the end of the table
      * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
      *
+     * @memberof Options#
      * @type {Boolean|Object}
      * @default undefined
      *
@@ -1708,6 +1781,7 @@ export default () => {
     /**
      * Turns on [Manual column move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial column order (as an array of column indexes).
      *
+     * @memberof Options#
      * @type {Boolean|Number[]}
      * @default undefined
      *
@@ -1727,6 +1801,7 @@ export default () => {
      * @description
      * Turns on [Manual column resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial column resized widths (an an array of widths).
      *
+     * @memberof Options#
      * @type {Boolean|Number[]}
      * @default undefined
      *
@@ -1746,6 +1821,7 @@ export default () => {
      * @description
      * Turns on [Manual row move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial row order (as an array of row indexes).
      *
+     * @memberof Options#
      * @type {Boolean|Number[]}
      * @default undefined
      *
@@ -1765,6 +1841,7 @@ export default () => {
      * @description
      * Turns on [Manual row resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial row resized heights (as an array of heights).
      *
+     * @memberof Options#
      * @type {Boolean|Number[]}
      * @default undefined
      *
@@ -1785,6 +1862,7 @@ export default () => {
      * If set to `true`, it enables a possibility to merge cells. If set to an array of objects, it merges the cells provided
      * in the objects (see the example below). More information on [the demo page](https://docs.handsontable.com/demo-merge-cells.html).
      *
+     * @memberof Options#
      * @type {Boolean|Object[]}
      * @default false
      *
@@ -1823,6 +1901,7 @@ export default () => {
      *   * `false` = the table moves all empty cells to the end of the table
      * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
      *
+     * @memberof Options#
      * @type {Boolean|Object}
      * @default undefined
      *
@@ -1862,6 +1941,7 @@ export default () => {
      *
      * You may test out different values to find the best one that works for your specific implementation.
      *
+     * @memberof Options#
      * @type {Number|String}
      * @default 'auto'
      *
@@ -1879,6 +1959,7 @@ export default () => {
      *
      * You may experiment with the value to find the one that works best for your specific implementation.
      *
+     * @memberof Options#
      * @type {Number|String}
      * @default 'auto'
      *
@@ -1908,6 +1989,7 @@ export default () => {
      *
      * See more [in the demo](https://docs.handsontable.com/demo-data-validation.html).
      *
+     * @memberof Options#
      * @type {Function|RegExp|String}
      * @default undefined
      *
@@ -1944,6 +2026,7 @@ export default () => {
      *  * `'area'` - Disables the area selection, the currently selected cell selection is still present.
      *  * `'header'` - Disables the headers selection, the currently selected cell selection is still present.
      *
+     * @memberof Options#
      * @type {Boolean|String|String[]}
      * @default false
      *
@@ -1964,6 +2047,7 @@ export default () => {
     /**
      * Disables or enables {@link ManualColumnFreeze} plugin.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default undefined
      *
@@ -1978,6 +2062,7 @@ export default () => {
     /**
      * Defines whether Handsontable should trim the whitespace at the beginning and the end of the cell contents.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -1996,6 +2081,7 @@ export default () => {
     /**
      * Defines data source for Autocomplete or Dropdown cell types.
      *
+     * @memberof Options#
      * @type {Array|Function}
      * @default undefined
      *
@@ -2024,6 +2110,7 @@ export default () => {
      * @description
      * Defines the column header name.
      *
+     * @memberof Options#
      * @type {String}
      * @default undefined
      *
@@ -2047,6 +2134,7 @@ export default () => {
     /**
      * Data template for `'checkbox'` type when checkbox is checked.
      *
+     * @memberof Options#
      * @type {Boolean|String|Number}
      * @default true
      *
@@ -2063,6 +2151,7 @@ export default () => {
     /**
      * Data template for `'checkbox'` type when checkbox is unchecked.
      *
+     * @memberof Options#
      * @type {Boolean|String|Number}
      * @default false
      *
@@ -2091,6 +2180,7 @@ export default () => {
      * Valid values are `'before'` and '`after`' (defaults to `'after'`).
      *  * `value` - String or a Function which will be used as label text.
      *
+     * @memberof Options#
      * @type {Object}
      * @default undefined
      *
@@ -2118,6 +2208,7 @@ export default () => {
      *
      * Handsontable uses [numbro](http://numbrojs.com/) as a main library for numbers formatting.
      *
+     * @memberof Options#
      * @since 0.35.0
      * @type {Object}
      * @default undefined
@@ -2141,6 +2232,7 @@ export default () => {
     /**
      * Language for Handsontable translation. Possible language codes are [listed here](https://docs.handsontable.com/tutorial-internationalization.html#available-languages).
      *
+     * @memberof Options#
      * @type {String}
      * @default 'en-US'
      *
@@ -2157,6 +2249,7 @@ export default () => {
      *
      * __Note__, this option only works for [select-typed](https://docs.handsontable.com/demo-select.html) cells.
      *
+     * @memberof Options#
      * @type {String[]}
      * @default undefined
      *
@@ -2185,6 +2278,7 @@ export default () => {
      *
      * You can also use the `useHeaders` option to take the column headers width into calculation.
      *
+     * @memberof Options#
      * @type {Object|Boolean}
      * @default {syncLimit: 50}
      *
@@ -2212,6 +2306,7 @@ export default () => {
      *
      * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
      *
+     * @memberof Options#
      * @type {Object|Boolean}
      * @default {syncLimit: 500}
      *
@@ -2231,6 +2326,7 @@ export default () => {
      *
      * __Note__, this option only works for [date-typed](https://docs.handsontable.com/demo-date.html) cells.
      *
+     * @memberof Options#
      * @type {String}
      * @default 'DD/MM/YYYY'
      *
@@ -2250,6 +2346,7 @@ export default () => {
      *
      * __Note__, this option only works for [date-typed](https://docs.handsontable.com/demo-date.html) cells.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default false
      *
@@ -2270,6 +2367,7 @@ export default () => {
      *
      * __Note__, this option only works for [date-typed](https://docs.handsontable.com/demo-date.html) cells.
      *
+     * @memberof Options#
      * @type {String}
      * @default undefined
      *
@@ -2293,6 +2391,7 @@ export default () => {
      *
      * __Note__, this option only works for [autocomplete-typed](https://docs.handsontable.com/demo-autocomplete.html) cells.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default undefined
      *
@@ -2315,6 +2414,7 @@ export default () => {
      *
      * __Note__, this option only works for [autocomplete-typed](https://docs.handsontable.com/demo-autocomplete.html) cells.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default false
      *
@@ -2333,6 +2433,7 @@ export default () => {
     /**
      * If typed `true` then virtual rendering mechanism for handsontable will be disabled.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default undefined
      *
@@ -2353,6 +2454,7 @@ export default () => {
      *  * `horizontal` - Prevents horizontal overflow table.
      *  * `vertical` - Prevents vertical overflow table.
      *
+     * @memberof Options#
      * @type {String|Boolean}
      * @default false
      *
@@ -2366,6 +2468,7 @@ export default () => {
     /**
      * Prevents wheel event on overlays for doing default action.
      *
+     * @memberof Options#
      * @private
      * @type {Boolean}
      * @default false
@@ -2383,6 +2486,7 @@ export default () => {
      * If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
      * if at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
      *
+     * @memberof Options#
      * @type {Boolean|String}
      * @default undefined
      *
@@ -2407,6 +2511,7 @@ export default () => {
      * To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property
      * as an array of objects, as in the example below.
      *
+     * @memberof Options#
      * @type {Boolean|Object[]}
      * @default undefined
      *
@@ -2439,6 +2544,7 @@ export default () => {
      *
      * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
      *
+     * @memberof Options#
      * @type {Object[]|Function}
      * @default undefined
      *
@@ -2467,6 +2573,7 @@ export default () => {
      * This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
      * the {@link Options#contextMenu}, but is triggered by clicking the button in the header.
      *
+     * @memberof Options#
      * @type {Boolean|Object|String[]}
      * @default undefined
      *
@@ -2485,6 +2592,7 @@ export default () => {
     /**
      * The {@link Filters} plugin allows filtering the table data either by the built-in component or with the API.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default undefined
      *
@@ -2499,6 +2607,7 @@ export default () => {
     /**
      * The {@link Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
      *
+     * @memberof Options#
      * @type {Boolean|Object}
      * @default undefined
      *
@@ -2523,6 +2632,7 @@ export default () => {
      * The {@link GanttChart} plugin enables a possibility to create a Gantt chart using a Handsontable instance. In this
      * case, the whole table becomes read-only.
      *
+     * @memberof Options#
      * @type {Object}
      * @default undefined
      */
@@ -2537,6 +2647,7 @@ export default () => {
      * * the `columns` property defines if tooltips should be added to column headers,
      * * the `onlyTrimmed` property defines if tooltips should be added only to headers, which content is trimmed by the header itself (the content being wider then the header).
      *
+     * @memberof Options#
      * @type {Boolean|Object}
      * @default undefined
      *
@@ -2561,6 +2672,7 @@ export default () => {
      *  * `columns` - an array of rows that should be hidden on plugin initialization
      *  * `indicators` - enables small ui markers to indicate where are hidden columns
      *
+     * @memberof Options#
      * @type {Boolean|Object}
      * @default undefined
      *
@@ -2586,6 +2698,7 @@ export default () => {
      *  * `rows` - an array of rows that should be hidden on plugin initialization
      *  * `indicators` - enables small ui markers to indicate where are hidden columns
      *
+     * @memberof Options#
      * @type {Boolean|Object}
      * @default undefined
      *
@@ -2609,6 +2722,7 @@ export default () => {
      * @description
      * Allows creating a nested header structure, using the HTML's colspan attribute.
      *
+     * @memberof Options#
      * @type {Array[]}
      * @default undefined
      *
@@ -2627,6 +2741,7 @@ export default () => {
      * @description
      * Plugin allowing hiding of certain rows.
      *
+     * @memberof Options#
      * @type {Boolean|Number[]}
      * @default undefined
      *
@@ -2647,6 +2762,7 @@ export default () => {
      * Allows setting a custom width of the row headers. You can provide a number or an array of widths, if many row
      * header levels are defined.
      *
+     * @memberof Options#
      * @type {Number|Number[]}
      * @default undefined
      *
@@ -2667,6 +2783,7 @@ export default () => {
      * Allows setting a custom height of the column headers. You can provide a number or an array of heights, if many
      * column header levels are defined.
      *
+     * @memberof Options#
      * @type {Number|Number[]}
      * @default undefined
      *
@@ -2693,6 +2810,7 @@ export default () => {
      *
      * For every data change [afterChangesObserved](Hooks.html#event:afterChangesObserved) hook will be fired.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default undefined
      *
@@ -2709,6 +2827,7 @@ export default () => {
      *
      * __Note__, this option only works for [autocomplete-typed](https://docs.handsontable.com/demo-autocomplete.html) cells.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -2733,6 +2852,7 @@ export default () => {
      *
      * __Note__, this option only works for [autocomplete-typed](https://docs.handsontable.com/demo-autocomplete.html) cells.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -2755,6 +2875,7 @@ export default () => {
      *
      * __Note__, this option only works for [autocomplete-typed](https://docs.handsontable.com/demo-autocomplete.html) cells.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default: false
      *
@@ -2776,6 +2897,7 @@ export default () => {
      * @description
      * Disables or enables the drag to scroll functionality.
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default true
      *
@@ -2797,6 +2919,7 @@ export default () => {
      * nestedRows: true,
      * ```
      *
+     * @memberof Options#
      * @type {Boolean}
      * @default false
      */
