@@ -87,8 +87,8 @@ class TopLeftCornerOverlay extends Overlay {
       tableHeight = 0;
     }
 
-    overlayRoot.style.height = `${tableHeight === 0 ? tableHeight : tableHeight + 4}px`;
-    overlayRoot.style.width = `${tableWidth === 0 ? tableWidth : tableWidth + 4}px`;
+    overlayRoot.style.height = `${tableHeight}px`;
+    overlayRoot.style.width = `${tableWidth}px`;
   }
 }
 

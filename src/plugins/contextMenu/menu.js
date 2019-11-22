@@ -6,6 +6,7 @@ import {
   getScrollbarWidth,
   isChildOf,
   removeClass,
+  getParentWindow,
 } from './../../helpers/dom/element';
 import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
 import Cursor from './cursor';
@@ -67,7 +68,8 @@ class Menu {
 
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
-      frame = frame.frameElement && frame.frameElement.ownerDocument.defaultView;
+
+      frame = getParentWindow(frame);
     }
   }
 
@@ -707,8 +709,9 @@ class Menu {
 
     const realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
 
-    holderStyle.width = `${currentHiderWidth + 22}px`;
-    holderStyle.height = `${realHeight + 4}px`;
+    // Additional 3px to menu's size because of additional border around its `table.htCore`.
+    holderStyle.width = `${currentHiderWidth + 3}px`;
+    holderStyle.height = `${realHeight + 3}px`;
     hiderStyle.height = holderStyle.height;
   }
 
