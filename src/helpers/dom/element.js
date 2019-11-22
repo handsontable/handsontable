@@ -1150,5 +1150,6 @@ export function selectElementIfAllowed(element) {
 
   if (!isOutsideInput(activeElement)) {
     element.select();
+    element.focus();
   }
 }
