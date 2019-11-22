@@ -124,7 +124,6 @@ class MergeCells extends BasePlugin {
    */
   disablePlugin() {
     this.clearCollections();
-    this.hot.render();
     super.disablePlugin();
   }
 
