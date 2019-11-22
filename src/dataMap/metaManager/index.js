@@ -28,6 +28,8 @@ import CellMeta from './metaLayers/cellMeta';
  *                    │ (instance)  │
  *                    +-------------+
  *
+ * A more detailed description of the specific layers can be found in the "metaLayers/" modules description.
+ *
  * @type {MetaManager}
  */
 export default class MetaManager {
@@ -52,7 +54,7 @@ export default class MetaManager {
   }
 
   /**
-   * Gets the global meta object taht is a root of all default settings, which are recognizable by Handsontable.
+   * Gets the global meta object that is a root of all default settings, which are recognizable by Handsontable.
    * Other layers inherites all properties from this. Adding, removing, or changing property in that
    * object has a direct reflection to all layers.
    *

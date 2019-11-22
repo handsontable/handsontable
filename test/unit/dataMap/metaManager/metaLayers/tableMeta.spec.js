@@ -80,6 +80,32 @@ describe('TableMeta', () => {
       expect(meta.getMeta().editor).toBeFunction();
       expect(meta.getMeta().renderer).toBeFunction();
     });
+
+    it('should expand "type" property even when the property was already set', () => {
+      const globalMeta = new GlobalMeta();
+      const meta = new TableMeta(globalMeta);
+      const settings = {
+        type: {
+          copyPaste: true,
+          _test: 'foo',
+        },
+      };
+
+      meta.getMeta().copyPaste = false;
+      meta.getMeta()._test = 'bar';
+
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta()).toHaveProperty('copyPaste', true);
+      expect(meta.getMeta()).toHaveProperty('_test', 'foo');
+
+      // "copyPaste" from settings has priority over the props defined in "type" prop.
+      settings.copyPaste = false;
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta()).toHaveProperty('copyPaste', false);
+      expect(meta.getMeta()).toHaveProperty('_test', 'foo');
+    });
   });
 
   it('should reflect the changes in table meta when the global meta properties were changed', () => {

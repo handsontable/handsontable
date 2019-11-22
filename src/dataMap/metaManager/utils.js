@@ -1,33 +1,31 @@
-import { hasOwnProperty } from '../../helpers/object';
+import { hasOwnProperty, isObject, objectEach } from '../../helpers/object';
 import { getCellType } from '../../cellTypes';
 
 /**
  * Expands "type" property of the meta object to single values. For example `type: 'numeric'` sets
- * "renderer", "editor", "validator" properties to specyfic logic designed for numeric values.
+ * "renderer", "editor", "validator" properties to specific functions designed for numeric values.
+ * If "type" is passed as an object that object will be returned, excluding properties that
+ * already exist in the "metaObject" if passed.
  *
- * @param {Object} metaObject An object which potentially defined "type" property.
- * @returns {Object} Returns an object with all properties connected to this "type".
+ * @param {Object|String} type Type to expand;
+ * @param {Object|undefined} [metaObject] Source meta object.
+ * @returns {Object|undefined}
  */
-export function expandMetaType(metaObject) {
-  if (!hasOwnProperty(metaObject, 'type')) {
+export function expandMetaType(type, metaObject) {
+  const validType = typeof type === 'string' ? getCellType(type) : type;
+
+  if (!isObject(validType)) {
     return;
   }
 
+  const preventSourceOverwrite = isObject(metaObject);
   const expandedType = {};
-  let type;
 
-  if (typeof metaObject.type === 'object') {
-    type = metaObject.type;
-  } else if (typeof metaObject.type === 'string') {
-    type = getCellType(metaObject.type);
-  }
-
-  // eslint-disable-next-line no-restricted-syntax
-  for (const i in type) {
-    if (hasOwnProperty(type, i) && !hasOwnProperty(metaObject, i)) {
-      expandedType[i] = type[i];
+  objectEach(validType, (value, property) => {
+    if (!preventSourceOverwrite || preventSourceOverwrite && !hasOwnProperty(metaObject, property)) {
+      expandedType[property] = value;
     }
-  }
+  });
 
   return expandedType;
 }
@@ -53,12 +51,12 @@ export function columnFactory(TableMeta, conflictList = []) {
 }
 
 /**
- * Helper which checks if the provided argument is a signed finite number.
+ * Helper which checks if the provided argument is an unsigned finite number.
  *
  * @param {*} value Value to check.
  * @return {Boolean}
  */
-export function isFiniteSignedNumber(value) {
+export function isFiniteUnsignedNumber(value) {
   return Number.isFinite(value) && value >= 0;
 }
 

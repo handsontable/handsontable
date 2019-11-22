@@ -67,18 +67,6 @@ class DataMap {
      */
     this.dataSource = data;
     /**
-     * Cached rows number.
-     *
-     * @type {Number}
-     */
-    this.cachedLength = null;
-    /**
-     * Flag determines if the cache should be used.
-     *
-     * @type {Boolean}
-     */
-    this.skipCache = false;
-    /**
      * Cached sourceData rows number.
      *
      * @type {Number}
@@ -399,11 +387,12 @@ class DataMap {
   /**
    * Removes row from the data array.
    *
+   * @fires Hooks#beforeRemoveRow
+   * @fires Hooks#afterRemoveRow
    * @param {Number} [index] Visual index of the row to be removed. If not provided, the last row will be removed
    * @param {Number} [amount=1] Amount of the rows to be removed. If not provided, one row will be removed
    * @param {String} [source] Source of method call.
-   * @fires Hooks#beforeRemoveRow
-   * @fires Hooks#afterRemoveRow
+   * @returns {Boolean} Returns `false` when action was cancelled, otherwise `true`.
    */
   removeRow(index, amount = 1, source) {
     let rowIndex = typeof index !== 'number' ? -amount : index;
@@ -416,7 +405,7 @@ class DataMap {
     const actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', rowIndex, rowsAmount, logicRows, source);
 
     if (actionWasNotCancelled === false) {
-      return;
+      return false;
     }
 
     const data = this.dataSource;
@@ -442,16 +431,19 @@ class DataMap {
     this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
 
     this.instance.forceFullRender = true; // used when data was changed
+
+    return true;
   }
 
   /**
    * Removes column from the data array.
    *
+   * @fires Hooks#beforeRemoveCol
+   * @fires Hooks#afterRemoveCol
    * @param {Number} [index] Visual index of the column to be removed. If not provided, the last column will be removed
    * @param {Number} [amount=1] Amount of the columns to be removed. If not provided, one column will be removed
    * @param {String} [source] Source of method call.
-   * @fires Hooks#beforeRemoveCol
-   * @fires Hooks#afterRemoveCol
+   * @returns {Boolean} Returns `false` when action was cancelled, otherwise `true`.
    */
   removeCol(index, amount = 1, source) {
     if (this.instance.dataType === 'object' || this.tableMeta.columns) {
@@ -466,7 +458,7 @@ class DataMap {
     const actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', columnIndex, amount, logicColumns, source);
 
     if (actionWasNotCancelled === false) {
-      return;
+      return false;
     }
 
     let isTableUniform = true;
@@ -505,6 +497,8 @@ class DataMap {
     this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
 
     this.instance.forceFullRender = true; // used when data was changed
+
+    return true;
   }
 
   /**
@@ -909,7 +903,6 @@ class DataMap {
     this.instance = null;
     this.tableMeta = null;
     this.dataSource = null;
-    this.cachedLength = null;
     this.duckSchema = null;
     this.colToPropCache.length = 0;
 

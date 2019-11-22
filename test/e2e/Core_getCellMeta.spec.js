@@ -214,6 +214,46 @@ describe('Core_getCellMeta', () => {
     expect(colInsideHook).toEqual(1);
   });
 
+  it('should expand "type" property to cell meta when property is added in the `beforeGetCellMeta` hook', () => {
+    handsontable({
+      beforeGetCellMeta(row, col, cellProperties) {
+        if (row === 1 && col === 0) {
+          cellProperties.type = 'numeric';
+        }
+        if (row === 2 && col === 0) {
+          cellProperties.type = 'autocomplete';
+        }
+      },
+    });
+
+    expect(getCellMeta(0, 0).editor).toBeUndefined();
+    expect(getCellMeta(1, 0).editor).toBe(Handsontable.editors.NumericEditor);
+    expect(getCellMeta(2, 0).editor).toBe(Handsontable.editors.AutocompleteEditor);
+    expect(getCellMeta(3, 0).editor).toBeUndefined();
+  });
+
+  it('should expand "type" property to cell meta when property is added in the "cells" function', () => {
+    handsontable({
+      cells(row, col) {
+        const cellProperties = {};
+
+        if (row === 1 && col === 0) {
+          cellProperties.type = 'numeric';
+        }
+        if (row === 2 && col === 0) {
+          cellProperties.type = 'autocomplete';
+        }
+
+        return cellProperties;
+      },
+    });
+
+    expect(getCellMeta(0, 0).editor).toBeUndefined();
+    expect(getCellMeta(1, 0).editor).toBe(Handsontable.editors.NumericEditor);
+    expect(getCellMeta(2, 0).editor).toBe(Handsontable.editors.AutocompleteEditor);
+    expect(getCellMeta(3, 0).editor).toBeUndefined();
+  });
+
   it('should call `afterGetCellMeta` plugin hook with visual indexes as parameters', () => {
     let rowInsideHook;
     let colInsideHook;

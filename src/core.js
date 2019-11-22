@@ -406,7 +406,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeRow breaks the removing functionality.
-              datamap.removeRow(groupIndex, groupAmount, source);
+              const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
+
+              if (!wasRemoved) {
+                return;
+              }
+
               metaManager.removeRow(instance.toPhysicalRow(calcIndex), groupAmount);
 
               const totalRows = instance.countRows();
@@ -456,7 +461,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeCol breaks the removing functionality.
-              datamap.removeCol(groupIndex, groupAmount, source);
+              const wasRemoved = datamap.removeCol(groupIndex, groupAmount, source);
+
+              if (!wasRemoved) {
+                return;
+              }
+
               metaManager.removeColumn(physicalColumnIndex, groupAmount);
 
               const fixedColumnsLeft = tableMeta.fixedColumnsLeft;
@@ -2443,6 +2453,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const prop = datamap.colToProp(column);
     const cellProperties = metaManager.getCellMeta(physicalRow, physicalColumn);
 
+    // TODO(perf): Add assigning this props and executing below code only once per table render cycle.
     cellProperties.row = physicalRow;
     cellProperties.col = physicalColumn;
     cellProperties.visualRow = row;
@@ -2450,12 +2461,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     cellProperties.prop = prop;
     cellProperties.instance = instance;
 
-    // TODO: Add call 'calls' only once per table render cycle.
-
     instance.runHooks('beforeGetCellMeta', row, column, cellProperties);
 
-    // extend(cellProperties, expandType(cellProperties)); // for `type` added in beforeGetCellMeta
-    // metaManager.updateCellMeta(physicalRow, physicalColumn, cellProperties);
+    // for `type` added or changed in beforeGetCellMeta
+    if (instance.hasHook('beforeGetCellMeta') && hasOwnProperty(cellProperties, 'type')) {
+      metaManager.updateCellMeta(physicalRow, physicalColumn, {
+        type: cellProperties.type,
+      });
+    }
 
     if (cellProperties.cells) {
       const settings = cellProperties.cells(physicalRow, physicalColumn, prop);

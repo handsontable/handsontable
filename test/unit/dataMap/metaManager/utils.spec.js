@@ -1,39 +1,40 @@
-import { expandMetaType, columnFactory, isFiniteSignedNumber, assert, isNullish } from 'handsontable/dataMap/metaManager/utils';
+import { expandMetaType, columnFactory, isFiniteUnsignedNumber, assert, isNullish } from 'handsontable/dataMap/metaManager/utils';
 
 describe('MetaManager utils', () => {
   describe('expandMetaType', () => {
-    it('should return "undefined" when an object doesn\'t have defined "type" property', () => {
-      expect(expandMetaType({})).toBeUndefined();
-    });
-
-    it('should return "undefined" when an object doesn\'t have defined "type" property as own property', () => {
-      class Child {}
-      Child.prototype = Object.create({ type: 'numeric' });
-
-      expect(expandMetaType(new Child())).toBeUndefined();
+    it('should return "undefined" when an object doesn\'t have defined "type" property or is not supported', () => {
+      expect(expandMetaType()).toBeUndefined();
+      expect(expandMetaType(null)).toBeUndefined();
+      expect(expandMetaType(1)).toBeUndefined();
+      expect(expandMetaType(true)).toBeUndefined();
+      expect(expandMetaType(NaN)).toBeUndefined();
+      expect(expandMetaType([])).toBeUndefined();
     });
 
     it('should return only properties that are not defined on the child object', () => {
       class Child {
         constructor() {
-          this.type = { copyPaste: true, test: 'foo' };
           this.copyPaste = false;
         }
       }
-      Child.prototype = Object.create({ copyPaste: false });
 
-      expect(expandMetaType(new Child())).toEqual({ test: 'foo' });
+      expect(expandMetaType({ copyPaste: true, test: 'foo' }, new Child())).toEqual({ test: 'foo' });
+
+      expect(expandMetaType('autocomplete', { editor: () => {} })).toEqual({
+        renderer: expect.any(Function),
+        validator: expect.any(Function),
+      });
     });
 
     it('should return a copy of the object that is holding by "type" property', () => {
       const type = { copyPaste: true, test: 'foo' };
 
-      expect(expandMetaType({ type })).not.toBe(type);
-      expect(expandMetaType({ type })).toEqual(type);
+      expect(expandMetaType(type)).not.toBe(type);
+      expect(expandMetaType(type)).toEqual(type);
     });
 
     it('should return the object with defined properties defined by "autocomplete" cell type', () => {
-      expect(expandMetaType({ type: 'autocomplete' })).toEqual({
+      expect(expandMetaType('autocomplete')).toEqual({
         editor: expect.any(Function),
         renderer: expect.any(Function),
         validator: expect.any(Function),
@@ -41,14 +42,14 @@ describe('MetaManager utils', () => {
     });
 
     it('should return the object with defined properties defined by "checkbox" cell type', () => {
-      expect(expandMetaType({ type: 'checkbox' })).toEqual({
+      expect(expandMetaType('checkbox')).toEqual({
         editor: expect.any(Function),
         renderer: expect.any(Function),
       });
     });
 
     it('should return the object with defined properties defined by "date" cell type', () => {
-      expect(expandMetaType({ type: 'date' })).toEqual({
+      expect(expandMetaType('date')).toEqual({
         editor: expect.any(Function),
         renderer: expect.any(Function),
         validator: expect.any(Function),
@@ -56,7 +57,7 @@ describe('MetaManager utils', () => {
     });
 
     it('should return the object with defined properties defined by "dropdown" cell type', () => {
-      expect(expandMetaType({ type: 'dropdown' })).toEqual({
+      expect(expandMetaType('dropdown')).toEqual({
         editor: expect.any(Function),
         renderer: expect.any(Function),
         validator: expect.any(Function),
@@ -64,14 +65,14 @@ describe('MetaManager utils', () => {
     });
 
     it('should return the object with defined properties defined by "handsontable" cell type', () => {
-      expect(expandMetaType({ type: 'handsontable' })).toEqual({
+      expect(expandMetaType('handsontable')).toEqual({
         editor: expect.any(Function),
         renderer: expect.any(Function),
       });
     });
 
     it('should return the object with defined properties defined by "numeric" cell type', () => {
-      expect(expandMetaType({ type: 'numeric' })).toEqual({
+      expect(expandMetaType('numeric')).toEqual({
         dataType: 'number',
         editor: expect.any(Function),
         renderer: expect.any(Function),
@@ -80,7 +81,7 @@ describe('MetaManager utils', () => {
     });
 
     it('should return the object with defined properties defined by "password" cell type', () => {
-      expect(expandMetaType({ type: 'password' })).toEqual({
+      expect(expandMetaType('password')).toEqual({
         editor: expect.any(Function),
         renderer: expect.any(Function),
         copyable: false,
@@ -88,14 +89,14 @@ describe('MetaManager utils', () => {
     });
 
     it('should return the object with defined properties defined by "text" cell type', () => {
-      expect(expandMetaType({ type: 'text' })).toEqual({
+      expect(expandMetaType('text')).toEqual({
         editor: expect.any(Function),
         renderer: expect.any(Function),
       });
     });
 
     it('should return the object with defined properties defined by "time" cell type', () => {
-      expect(expandMetaType({ type: 'time' })).toEqual({
+      expect(expandMetaType('time')).toEqual({
         editor: expect.any(Function),
         renderer: expect.any(Function),
         validator: expect.any(Function),
@@ -128,21 +129,22 @@ describe('MetaManager utils', () => {
     });
   });
 
-  describe('isFiniteSignedNumber', () => {
+  describe('isFiniteUnsignedNumber', () => {
     it('should return true only for valid signed finite numbers', () => {
-      expect(isFiniteSignedNumber()).toBe(false);
-      expect(isFiniteSignedNumber(null)).toBe(false);
-      expect(isFiniteSignedNumber(false)).toBe(false);
-      expect(isFiniteSignedNumber('')).toBe(false);
-      expect(isFiniteSignedNumber('1')).toBe(false);
-      expect(isFiniteSignedNumber({ a: 1 })).toBe(false);
-      expect(isFiniteSignedNumber(Infinity)).toBe(false);
-      expect(isFiniteSignedNumber(-1)).toBe(false);
+      expect(isFiniteUnsignedNumber()).toBe(false);
+      expect(isFiniteUnsignedNumber(null)).toBe(false);
+      expect(isFiniteUnsignedNumber(false)).toBe(false);
+      expect(isFiniteUnsignedNumber('')).toBe(false);
+      expect(isFiniteUnsignedNumber('1')).toBe(false);
+      expect(isFiniteUnsignedNumber({ a: 1 })).toBe(false);
+      expect(isFiniteUnsignedNumber(Infinity)).toBe(false);
+      expect(isFiniteUnsignedNumber(-1)).toBe(false);
+      expect(isFiniteUnsignedNumber(-999)).toBe(false);
 
-      expect(isFiniteSignedNumber(0)).toBe(true);
-      expect(isFiniteSignedNumber(1)).toBe(true);
-      expect(isFiniteSignedNumber(100)).toBe(true);
-      expect(isFiniteSignedNumber(Number.MAX_SAFE_INTEGER)).toBe(true);
+      expect(isFiniteUnsignedNumber(0)).toBe(true);
+      expect(isFiniteUnsignedNumber(1)).toBe(true);
+      expect(isFiniteUnsignedNumber(100)).toBe(true);
+      expect(isFiniteUnsignedNumber(Number.MAX_SAFE_INTEGER)).toBe(true);
     });
   });
 

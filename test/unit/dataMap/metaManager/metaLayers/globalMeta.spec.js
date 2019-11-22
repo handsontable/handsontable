@@ -48,7 +48,7 @@ describe('GlobalMeta', () => {
       expect(meta.getMeta()).toHaveProperty('outsideClickDeselects', true);
     });
 
-    it('should expand "type" property to "editor", "renderer" and "validator" keys', () => {
+    it('should expand "type" property as object to "editor", "renderer" and "validator" keys', () => {
       const meta = new GlobalMeta();
       const settings = {
         type: {
@@ -70,7 +70,7 @@ describe('GlobalMeta', () => {
       expect(meta.getMeta()).toHaveProperty('validator', 'baz');
     });
 
-    it('should expand "type" property to "editor", "renderer" and "validator"', () => {
+    it('should expand "type" property as string to "editor", "renderer" and "validator" keys', () => {
       const meta = new GlobalMeta();
       const settings = {
         type: 'text',
@@ -81,6 +81,31 @@ describe('GlobalMeta', () => {
       expect(meta.getMeta()).toHaveProperty('type', 'text');
       expect(meta.getMeta().editor).toBeFunction();
       expect(meta.getMeta().renderer).toBeFunction();
+    });
+
+    it('should expand "type" property even when the property was already set', () => {
+      const meta = new GlobalMeta();
+      const settings = {
+        type: {
+          copyPaste: true,
+          _test: 'foo',
+        },
+      };
+
+      meta.getMeta().copyPaste = false;
+      meta.getMeta()._test = 'bar';
+
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta()).toHaveProperty('copyPaste', true);
+      expect(meta.getMeta()).toHaveProperty('_test', 'foo');
+
+      // "copyPaste" from settings has priority over the props defined in "type" prop.
+      settings.copyPaste = false;
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta()).toHaveProperty('copyPaste', false);
+      expect(meta.getMeta()).toHaveProperty('_test', 'foo');
     });
   });
 });

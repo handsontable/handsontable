@@ -450,7 +450,7 @@ describe('ColumnMeta', () => {
       expect(meta.getMeta(2, 3)).toHaveProperty('outsideClickDeselects', true);
     });
 
-    it('should expand "type" property to "editor", "renderer" and "validator" keys', () => {
+    it('should expand "type" property as an object to "editor", "renderer" and "validator" keys', () => {
       const globalMeta = new GlobalMeta();
       const columnMeta = new ColumnMeta(globalMeta);
       const meta = new CellMeta(columnMeta);
@@ -474,7 +474,7 @@ describe('ColumnMeta', () => {
       expect(meta.getMeta(5, 2)).toHaveProperty('validator', 'baz');
     });
 
-    it('should expand "type" property to "editor", "renderer" and "validator"', () => {
+    it('should expand "type" property as string to "editor", "renderer" and "validator" keys', () => {
       const globalMeta = new GlobalMeta();
       const columnMeta = new ColumnMeta(globalMeta);
       const meta = new CellMeta(columnMeta);
@@ -487,6 +487,32 @@ describe('ColumnMeta', () => {
       expect(meta.getMeta(7, 90)).toHaveProperty('type', 'text');
       expect(meta.getMeta(7, 90).editor).toBeFunction();
       expect(meta.getMeta(7, 90).renderer).toBeFunction();
+    });
+
+    it('should expand "type" property but without overwriting already defined properties', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+      const settings = {
+        type: {
+          copyPaste: true,
+          _test: 'foo',
+        },
+      };
+
+      meta.getMeta(7, 90).copyPaste = false;
+      meta.getMeta(7, 90)._test = 'bar';
+
+      meta.updateMeta(7, 90, settings);
+
+      expect(meta.getMeta(7, 90)).toHaveProperty('copyPaste', false);
+      expect(meta.getMeta(7, 90)).toHaveProperty('_test', 'bar');
+
+      settings.copyPaste = true;
+      meta.updateMeta(7, 90, settings);
+
+      expect(meta.getMeta(7, 90)).toHaveProperty('copyPaste', true);
+      expect(meta.getMeta(7, 90)).toHaveProperty('_test', 'bar');
     });
   });
 

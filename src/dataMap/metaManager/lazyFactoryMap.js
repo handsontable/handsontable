@@ -1,9 +1,9 @@
 import { arrayFilter, arrayMap } from '../../helpers/array';
-import { assert, isFiniteSignedNumber, isNullish } from './utils';
+import { assert, isFiniteUnsignedNumber, isNullish } from './utils';
 
 /**
  * The LazyFactoryMap object holds key-value pairs in the structure similar to the
- * 2D grid. Once created, items can be moved around a grid depending on the operations
+ * regular Map. Once created, items can be moved around a grid depending on the operations
  * performed on that grid - adding or removing rows. The collection requires "key"
  * to be a zero-based index.
  *
@@ -114,7 +114,7 @@ export default class LazyFactoryMap {
    * @returns {*}
    */
   obtain(key) {
-    assert(() => isFiniteSignedNumber(key), 'Expecting a signed finite number.');
+    assert(() => isFiniteUnsignedNumber(key), 'Expecting an unsigned finite number.');
 
     const dataIndex = this._getStorageIndexByKey(key);
     let result;
@@ -151,7 +151,7 @@ export default class LazyFactoryMap {
    * @param {Number} [amount=1] Ammount data to insert.
    */
   insert(key, amount = 1) {
-    assert(() => (isFiniteSignedNumber(key) || isNullish(key)), 'Expecting a signed finite number or null/undefined argument.');
+    assert(() => (isFiniteUnsignedNumber(key) || isNullish(key)), 'Expecting an unsigned finite number or null/undefined argument.');
 
     const newIndexes = [];
     const dataLength = this.data.length;
@@ -171,7 +171,7 @@ export default class LazyFactoryMap {
    * @param {Number} [amount=1] Ammount data to remove.
    */
   remove(key, amount = 1) {
-    assert(() => (isFiniteSignedNumber(key) || isNullish(key)), 'Expecting a signed finite number or null/undefined argument.');
+    assert(() => (isFiniteUnsignedNumber(key) || isNullish(key)), 'Expecting an unsigned finite number or null/undefined argument.');
 
     const removed = this.index.splice(isNullish(key) ? this.index.length - amount : key, amount);
 

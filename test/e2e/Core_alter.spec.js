@@ -306,6 +306,22 @@ describe('Core_alter', () => {
       expect(countRows()).toEqual(3);
     });
 
+    it('should not remove cell meta objects if removing has been canceled by beforeRemoveRow event handler', () => {
+      handsontable({
+        beforeRemoveRow: () => false,
+      });
+
+      setCellMeta(2, 0, '_test', 'foo');
+
+      alter('remove_row', 1, 1);
+
+      expect(getCellMeta(0, 0)._test).toBeUndefined();
+      expect(getCellMeta(1, 0)._test).toBeUndefined();
+      expect(getCellMeta(2, 0)._test).toBe('foo');
+      expect(getCellMeta(3, 0)._test).toBeUndefined();
+      expect(getCellMeta(4, 0)._test).toBeUndefined();
+    });
+
     it('should not remove rows below minRows', () => {
       handsontable({
         startRows: 5,
@@ -760,6 +776,22 @@ describe('Core_alter', () => {
       expect(countCols()).toEqual(5);
     });
 
+    it('should not remove cell meta objects if removing has been canceled by beforeRemoveCol event handler', () => {
+      handsontable({
+        beforeRemoveCol: () => false,
+      });
+
+      setCellMeta(0, 2, '_test', 'foo');
+
+      alter('remove_col', 1, 1);
+
+      expect(getCellMeta(0, 0)._test).toBeUndefined();
+      expect(getCellMeta(0, 1)._test).toBeUndefined();
+      expect(getCellMeta(0, 2)._test).toBe('foo');
+      expect(getCellMeta(0, 3)._test).toBeUndefined();
+      expect(getCellMeta(0, 4)._test).toBeUndefined();
+    });
+
     it('should fire callback on remove col', () => {
       let outputBefore;
       let outputAfter;
@@ -945,6 +977,21 @@ describe('Core_alter', () => {
       alter('insert_row');
 
       expect(countRows()).toEqual(3);
+    });
+
+    it('should not create/shift cell meta objects if creating has been canceled by beforeCreateRow hook handler', () => {
+      handsontable({
+        beforeCreateRow: () => false,
+      });
+
+      setCellMeta(2, 0, '_test', 'foo');
+
+      alter('insert_row', 1, 1);
+
+      expect(getCellMeta(0, 0)._test).toBeUndefined();
+      expect(getCellMeta(1, 0)._test).toBeUndefined();
+      expect(getCellMeta(2, 0)._test).toBe('foo');
+      expect(getCellMeta(3, 0)._test).toBeUndefined();
     });
 
     it('should insert row at the end if index is not given', () => {
@@ -1304,6 +1351,22 @@ describe('Core_alter', () => {
       alter('insert_col', 2, 1, 'customSource');
 
       expect(countCols()).toBe(countedColumns);
+    });
+
+    it('should not create/shift cell meta objects if creating has been canceled by beforeCreateCol hook handler', () => {
+      handsontable({
+        beforeCreateCol: () => false,
+      });
+
+      setCellMeta(2, 0, '_test', 'foo');
+
+      alter('insert_col', 1, 1);
+
+      expect(getCellMeta(0, 0)._test).toBeUndefined();
+      expect(getCellMeta(1, 0)._test).toBeUndefined();
+      expect(getCellMeta(2, 0)._test).toBe('foo');
+      expect(getCellMeta(3, 0)._test).toBeUndefined();
+      expect(getCellMeta(4, 0)._test).toBeUndefined();
     });
 
     it('should not create column header together with the column, if headers were NOT specified explicitly', () => {

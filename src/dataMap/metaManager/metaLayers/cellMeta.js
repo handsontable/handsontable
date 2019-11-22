@@ -1,5 +1,5 @@
 import { extend } from '../../../helpers/object';
-import { expandMetaType, assert, isFiniteSignedNumber } from '../utils';
+import { expandMetaType, assert, isFiniteUnsignedNumber } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
 
 /**
@@ -60,7 +60,7 @@ export default class CellMeta {
     const meta = this.getMeta(physicalRow, physicalColumn);
 
     extend(meta, settings);
-    extend(meta, expandMetaType(settings));
+    extend(meta, expandMetaType(settings.type, meta));
   }
 
   /**
@@ -178,7 +178,7 @@ export default class CellMeta {
    * @returns {Object[]}
    */
   getMetasAtRow(physicalRow) {
-    assert(() => isFiniteSignedNumber(physicalRow), 'Expecting a signed finite number.');
+    assert(() => isFiniteUnsignedNumber(physicalRow), 'Expecting an unsigned finite number.');
 
     const rowsMeta = new Map(this.metas);
 

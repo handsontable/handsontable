@@ -219,7 +219,7 @@ describe('ColumnMeta', () => {
       expect(meta.getMeta(2)).toHaveProperty('outsideClickDeselects', true);
     });
 
-    it('should expand "type" property to "editor", "renderer" and "validator" keys', () => {
+    it('should expand "type" property as an object to "editor", "renderer" and "validator" keys', () => {
       const globalMeta = new GlobalMeta();
       const meta = new ColumnMeta(globalMeta);
       const settings = {
@@ -242,7 +242,7 @@ describe('ColumnMeta', () => {
       expect(meta.getMeta(5)).toHaveProperty('validator', 'baz');
     });
 
-    it('should expand "type" property to "editor", "renderer" and "validator"', () => {
+    it('should expand "type" property as string to "editor", "renderer" and "validator" keys', () => {
       const globalMeta = new GlobalMeta();
       const meta = new ColumnMeta(globalMeta);
       const settings = {
@@ -254,6 +254,31 @@ describe('ColumnMeta', () => {
       expect(meta.getMeta(7)).toHaveProperty('type', 'text');
       expect(meta.getMeta(7).editor).toBeFunction();
       expect(meta.getMeta(7).renderer).toBeFunction();
+    });
+
+    it('should expand "type" property but without overwriting already defined properties', () => {
+      const globalMeta = new GlobalMeta();
+      const meta = new ColumnMeta(globalMeta);
+      const settings = {
+        type: {
+          copyPaste: true,
+          _test: 'foo',
+        },
+      };
+
+      meta.getMeta(7).copyPaste = false;
+      meta.getMeta(7)._test = 'bar';
+
+      meta.updateMeta(7, settings);
+
+      expect(meta.getMeta(7)).toHaveProperty('copyPaste', false);
+      expect(meta.getMeta(7)).toHaveProperty('_test', 'bar');
+
+      settings.copyPaste = true;
+      meta.updateMeta(7, settings);
+
+      expect(meta.getMeta(7)).toHaveProperty('copyPaste', true);
+      expect(meta.getMeta(7)).toHaveProperty('_test', 'bar');
     });
   });
 
