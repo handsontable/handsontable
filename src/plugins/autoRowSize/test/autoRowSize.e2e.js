@@ -130,7 +130,6 @@ describe('AutoRowSize', () => {
 
     it('(SYNC_CALCULATION_LIMIT - 1 rows)', async() => {
       const nrOfRows = SYNC_CALCULATION_LIMIT - 1;
-
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
         autoRowSize: true

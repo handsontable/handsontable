@@ -53,7 +53,7 @@
     "build:languages": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ./hot.config.js webpack",
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ./hot.config.js webpack",
     "release": "npm run clean && npm run build && npm publish",
-    "postinstall": "node -p \"'Handsontable is no longer released under the MIT license. Read more about this change on our blog at https://handsontable.com/blog.'\""
+    "postinstall": "cd ./node_modules/hyperformula && yarn install && webpack --config ./webpack.config.js && node -p \"'Handsontable is no longer released under the MIT license. Read more about this change on our blog at https://handsontable.com/blog.'\""
   },
   "keywords": [
     "data",
@@ -77,6 +77,9 @@
     "moment": "2.20.1",
     "numbro": "2.1.1",
     "pikaday": "1.5.1"
+  },
+  "peerDependencies": {
+    "hyperformula": "handsontable/hyperformula"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",

@@ -1,4 +1,4 @@
-import { getProperty } from './helpers/object';
+import { createObjectPropListener, getProperty, isObject } from './helpers/object';
 import { arrayEach } from './helpers/array';
 import { rangeEach } from './helpers/number';
 
@@ -75,13 +75,15 @@ class DataSource {
       const property = this.colToProp(column);
       let value;
 
-      if (typeof property === 'string') {
-        value = getProperty(row, property);
-      } else if (typeof property === 'function') {
-        value = property(row);
-      } else {
-        value = row[property];
-      }
+      value = this.getAtCell(row, column);
+
+      // if (typeof property === 'string') {
+      //   value = getProperty(row, property);
+      // } else if (typeof property === 'function') {
+      //   value = property(row);
+      // } else {
+      //   value = row[property];
+      // }
 
       result.push(value);
     });
@@ -96,7 +98,26 @@ class DataSource {
    * @returns {Array|Object}
    */
   getAtRow(row) {
-    return this.data[row];
+    let sourceDataRow = null;
+
+    // TODO: needs to be discussed
+
+    if (isObject(this.data[row])) {
+      sourceDataRow = {};
+
+      Object.keys(this.data[row]).map((key) => {
+        sourceDataRow[key] = this.getAtCell(row, this.propToCol(key));
+      });
+
+    } else {
+      sourceDataRow = [];
+
+      sourceDataRow = this.data[row].map((value, column) => {
+        return this.getAtCell(row, column);
+      });
+    }
+
+    return sourceDataRow;
   }
 
   /**
@@ -124,6 +145,16 @@ class DataSource {
 
       } else {
         result = dataRow[prop];
+      }
+    }
+
+    if (this.hot.hasHook('modifySourceData')) {
+      const valueHolder = createObjectPropListener(result);
+
+      this.hot.runHooks('modifySourceData', row, column, valueHolder, 'get');
+
+      if (valueHolder.isTouched()) {
+        result = valueHolder.value;
       }
     }
 

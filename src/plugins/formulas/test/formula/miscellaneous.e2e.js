@@ -12,7 +12,7 @@ describe('Formulas -> math trig functions', () => {
     }
   });
 
-  it('UNIQUE', () => {
+  xit('UNIQUE', () => {
     const data = getDataForFormulas(0, 'name', ['=UNIQUE()', '=UNIQUE(1, 2, 3, 4, 4, 4, 4, 3)']);
 
     data[0].id = -2.2;
@@ -30,7 +30,7 @@ describe('Formulas -> math trig functions', () => {
     expect(hot.getDataAtCell(1, 1)).toEqual([1, 2, 3, 4]);
   });
 
-  it('ARGS2ARRAY', () => {
+  xit('ARGS2ARRAY', () => {
     const data = getDataForFormulas(0, 'name', ['=ARGS2ARRAY()', '=ARGS2ARRAY(1, 2, 3, 4, 4, 4, 4, 3)']);
 
     data[0].id = -2.2;
@@ -48,7 +48,7 @@ describe('Formulas -> math trig functions', () => {
     expect(hot.getDataAtCell(1, 1)).toEqual([1, 2, 3, 4, 4, 4, 4, 3]);
   });
 
-  it('FLATTEN', () => {
+  xit('FLATTEN', () => {
     const data = getDataForFormulas(0, 'address', ['=FLATTEN()', '=FLATTEN(A1:B3)']);
 
     const hot = handsontable({
@@ -63,7 +63,7 @@ describe('Formulas -> math trig functions', () => {
     expect(hot.getDataAtCell(1, 2)).toEqual([1, 'Nannie Patel', 2, 'Leanne Ware', 3, 'Mathis Boone']);
   });
 
-  it('JOIN', () => {
+  xit('JOIN', () => {
     const data = getDataForFormulas(0, 'address', ['=JOIN()', '=JOIN(A1:B3)']);
 
     const hot = handsontable({
@@ -78,7 +78,7 @@ describe('Formulas -> math trig functions', () => {
     expect(hot.getDataAtCell(1, 2)).toEqual([1, 'Nannie Patel', 2, 'Leanne Ware', 3, 'Mathis Boone'].join(','));
   });
 
-  it('NUMBERS', () => {
+  xit('NUMBERS', () => {
     const data = getDataForFormulas(0, 'address', ['=NUMBERS()', '=NUMBERS(A1:B3)']);
 
     const hot = handsontable({
@@ -93,7 +93,7 @@ describe('Formulas -> math trig functions', () => {
     expect(hot.getDataAtCell(1, 2)).toEqual([1, 2, 3]);
   });
 
-  it('REFERENCE', () => {
+  xit('REFERENCE', () => {
     const data = getDataForFormulas(0, 'address', ['=REFERENCE()', '=REFERENCE(A1, "name.firstName")']);
 
     data[0].id = { name: { firstName: 'Jim' } };

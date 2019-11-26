@@ -12,7 +12,7 @@ describe('Formulas -> information functions', () => {
     }
   });
 
-  it('ISBINARY', () => {
+  xit('ISBINARY', () => {
     const data = getDataForFormulas(0, 'name', ['=ISBINARY(A1)', '=ISBINARY(A2)', '=ISBINARY(A3)']);
 
     data[0].id = '1';
@@ -58,7 +58,7 @@ describe('Formulas -> information functions', () => {
     expect(hot.getDataAtCell(5, 1)).toBe(false);
   });
 
-  it('ISEVEN', () => {
+  xit('ISEVEN', () => {
     const data = getDataForFormulas(0, 'name', ['=ISEVEN(A1)', '=ISEVEN(A2)', '=ISEVEN(A3)']);
 
     data[0].id = 1;
@@ -78,7 +78,7 @@ describe('Formulas -> information functions', () => {
     expect(hot.getDataAtCell(2, 1)).toBe(true);
   });
 
-  it('ISLOGICAL', () => {
+  xit('ISLOGICAL', () => {
     const data = getDataForFormulas(0, 'name', ['=ISLOGICAL(A1)', '=ISLOGICAL(A2)', '=ISLOGICAL(A3)', '=ISLOGICAL(A4)', '=ISLOGICAL(A5)']);
 
     data[0].id = 1;
@@ -102,7 +102,7 @@ describe('Formulas -> information functions', () => {
     expect(hot.getDataAtCell(4, 1)).toBe(false);
   });
 
-  it('ISNONTEXT', () => {
+  xit('ISNONTEXT', () => {
     const data = getDataForFormulas(0, 'name', ['=ISNONTEXT(A1)', '=ISNONTEXT(A2)', '=ISNONTEXT(A3)', '=ISNONTEXT(A4)']);
 
     data[0].id = 1;
@@ -124,7 +124,7 @@ describe('Formulas -> information functions', () => {
     expect(hot.getDataAtCell(3, 1)).toBe(false);
   });
 
-  it('ISNUMBER', () => {
+  xit('ISNUMBER', () => {
     const data = getDataForFormulas(0, 'name', ['=ISNUMBER(A1)', '=ISNUMBER(A2)', '=ISNUMBER(A3)', '=ISNUMBER(A4)']);
 
     data[0].id = 1;
@@ -146,7 +146,7 @@ describe('Formulas -> information functions', () => {
     expect(hot.getDataAtCell(3, 1)).toBe(false);
   });
 
-  it('ISODD', () => {
+  xit('ISODD', () => {
     const data = getDataForFormulas(0, 'name', ['=ISODD(A1)', '=ISODD(A2)', '=ISODD(A3)']);
 
     data[0].id = 1;
@@ -166,7 +166,7 @@ describe('Formulas -> information functions', () => {
     expect(hot.getDataAtCell(2, 1)).toBe(false);
   });
 
-  it('ISTEXT', () => {
+  xit('ISTEXT', () => {
     const data = getDataForFormulas(0, 'name', ['=ISTEXT(A1)', '=ISTEXT(A2)', '=ISTEXT(A3)', '=ISTEXT(A4)']);
 
     data[0].id = 1;
