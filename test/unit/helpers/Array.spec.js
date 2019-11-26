@@ -8,6 +8,9 @@ import {
   arrayMin,
   arrayReduce,
   arraySum,
+  getDifferenceOfArrays,
+  getIntersectionOfArrays,
+  getUnionOfArrays
 } from 'handsontable/helpers/array';
 
 describe('Array helper', () => {
@@ -274,6 +277,49 @@ describe('Array helper', () => {
       expect(arraySum([1, 1, 2, 3, 4])).toBe(11);
       expect(arraySum([1, 1, 0, 3.1, 4.2])).toBe(9.3);
       expect(arraySum(iterableObject)).toBe(12);
+    });
+  });
+
+  //
+  // Handsontable.helper.getDifferenceOfArrays
+  //
+  describe('getDifferenceOfArrays', () => {
+    it('should return the difference between two arrays.', () => {
+
+      expect(getDifferenceOfArrays([1, 2, 3], [2, 3, 4])).toStrictEqual([1]);
+    });
+
+    it('should return the difference between more than two arrays.', () => {
+
+      expect(getDifferenceOfArrays([1, 2, 3], [3, 4], [3, 4, 5, 6, 7])).toStrictEqual([1, 2]);
+    });
+  });
+
+  //
+  // Handsontable.helper.getIntersectionOfArrays
+  //
+  describe('getIntersectionOfArrays', () => {
+    it('should return elements that exists in two arrays.', () => {
+
+      expect(getIntersectionOfArrays([1, 2, 3], [2, 3, 4])).toStrictEqual([2, 3]);
+    });
+
+    it('should return elements that exists in more than two arrays.', () => {
+      expect(getIntersectionOfArrays([1, 2, 3], [3, 4], [3, 4, 5, 6, 7])).toStrictEqual([3]);
+    });
+  });
+
+  //
+  // Handsontable.helper.getUnionOfArrays
+  //
+  describe('getUnionOfArrays', () => {
+    it('should return elements exists in any of the two arrays.', () => {
+
+      expect(getUnionOfArrays([1, 2, 3], [2, 3, 4])).toStrictEqual([1, 2, 3, 4]);
+    });
+
+    it('should return elements that exists exists in any of the arrays.', () => {
+      expect(getUnionOfArrays([1, 2, 3], [3, 4], [3, 4, 5, 6, 7])).toStrictEqual([1, 2, 3, 4, 5, 6, 7]);
     });
   });
 });

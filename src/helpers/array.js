@@ -249,3 +249,58 @@ export function arrayUnique(array) {
 
   return unique;
 }
+
+/**
+ * Differences in two or more array.
+ *
+ * @param {...[]} arrays Array of strings or array of number.
+ * @returns {Array} Returns the difference between arrays.
+ */
+export function getDifferenceOfArrays(...arrays) {
+  const [first, ...rest] = [...arrays];
+  let filteredFirstArray = first;
+
+  arrayEach(rest, (array) => {
+    filteredFirstArray = filteredFirstArray.filter(value => !array.includes(value));
+  });
+
+  return filteredFirstArray;
+}
+
+/**
+ * Intersection in two or more array.
+ *
+ * @param {...[]} arrays Array of strings or array of number.
+ * @returns {Array} Returns elements that exists in every arrays.
+ */
+export function getIntersectionOfArrays(...arrays) {
+  const [first, ...rest] = [...arrays];
+  let filteredFirstArray = first;
+
+  arrayEach(rest, (array) => {
+    filteredFirstArray = filteredFirstArray.filter(value => array.includes(value));
+  });
+
+  return filteredFirstArray;
+}
+
+/**
+ * Union in two or more array.
+ *
+ * @param {...[]} arrays Array of strings or array of number.
+ * @returns {Array} Returns elements exists in any of the arrays once.
+ */
+export function getUnionOfArrays(...arrays) {
+  const [first, ...rest] = [...arrays];
+  const set = new Set(first);
+
+  arrayEach(rest, (array) => {
+    arrayEach(array, (value) => {
+      if (!set.has(value)) {
+        set.add(value);
+      }
+    });
+  });
+
+  return Array.from(set);
+}

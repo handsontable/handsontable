@@ -654,41 +654,4 @@ describe('Core_updateSettings', () => {
 
     expect(Object.keys(updatedSetting)).toEqual(Object.keys(newSettings));
   });
-
-  it('should update className accordingly', () => {
-    handsontable({
-      data: [[1, true]],
-      className: ['class-1', 'class-2'],
-    });
-
-    const container = spec().$container[0];
-
-    expect(container.classList.contains('class-1')).toBe(true);
-    expect(container.classList.contains('class-2')).toBe(true);
-    expect(getCellMeta(0, 0).className).toEqual(['class-1', 'class-2']);
-    expect(getCellMeta(0, 1).className).toEqual(['class-1', 'class-2']);
-
-    updateSettings({ className: ['class-1'] });
-
-    expect(container.classList.contains('class-1')).toBe(true);
-    expect(container.classList.contains('class-2')).toBe(false);
-    expect(getCellMeta(0, 0).className).toEqual(['class-1']);
-    expect(getCellMeta(0, 1).className).toEqual(['class-1']);
-  });
-
-  it('should update tableClassName accordingly', () => {
-    handsontable({
-      data: [[1, true]],
-      tableClassName: ['table_red'],
-    });
-
-    const table = spec().$container.find('table')[0];
-
-    expect(table.classList.contains('table_red')).toBe(true);
-
-    updateSettings({ tableClassName: ['table_green'] });
-
-    expect(table.classList.contains('table_red')).toBe(false);
-    expect(table.classList.contains('table_green')).toBe(true);
-  });
 });

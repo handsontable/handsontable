@@ -1,4 +1,4 @@
-import { addClass, diffClassName, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
+import { addClass, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
 import { columnFactory } from './helpers/setting';
 import { isFunction } from './helpers/function';
 import { warn } from './helpers/console';
@@ -17,7 +17,7 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { arrayFlatten, arrayMap, arrayEach, arrayReduce } from './helpers/array';
+import { arrayFlatten, arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
@@ -1780,8 +1780,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           addClass(instance.rootElement, settings.className);
 
         } else {
-          const classNameToRemove = diffClassName(GridSettings.prototype.className, settings.className);
-          const classNameToAdd = diffClassName(settings.className, GridSettings.prototype.className);
+          let gridSettingsArray;
+          let settingsArray;
+
+          if (Array.isArray(GridSettings.prototype.className)) {
+            gridSettingsArray = GridSettings.prototype.className;
+
+          } else if (typeof GridSettings.prototype.className === 'string') {
+            gridSettingsArray = GridSettings.prototype.className.split(' ');
+
+          } else {
+            gridSettingsArray = [];
+          }
+
+          if (Array.isArray(settings.className)) {
+            settingsArray = settings.className;
+
+          } else if (typeof settings.className === 'string') {
+            settingsArray = settings.className.split(' ');
+
+          } else {
+            settingsArray = [];
+          }
+
+          const classNameToRemove = getDifferenceOfArrays(gridSettingsArray, settingsArray);
+          const classNameToAdd = getDifferenceOfArrays(settingsArray, gridSettingsArray);
 
           if (classNameToRemove.length) {
             removeClass(instance.rootElement, classNameToRemove);
@@ -1802,8 +1825,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           addClass(instance.table, settings.tableClassName);
 
         } else {
-          const classNameToRemove = diffClassName(GridSettings.prototype.tableClassName, settings.tableClassName);
-          const classNameToAdd = diffClassName(settings.tableClassName, GridSettings.prototype.tableClassName);
+          let gridSettingsArray;
+          let settingsArray;
+
+          if (Array.isArray(GridSettings.prototype.tableClassName)) {
+            gridSettingsArray = GridSettings.prototype.tableClassName;
+
+          } else if (typeof GridSettings.prototype.tableClassName === 'string') {
+            gridSettingsArray = GridSettings.prototype.tableClassName.split(' ');
+
+          } else {
+            gridSettingsArray = [];
+          }
+
+          if (Array.isArray(settings.tableClassName)) {
+            settingsArray = settings.tableClassName;
+
+          } else if (typeof settings.tableClassName === 'string') {
+            settingsArray = settings.tableClassName.split(' ');
+
+          } else {
+            settingsArray = [];
+          }
+
+          const classNameToRemove = getDifferenceOfArrays(gridSettingsArray, settingsArray);
+          const classNameToAdd = getDifferenceOfArrays(settingsArray, gridSettingsArray);
 
           if (classNameToRemove.length) {
             removeClass(instance.table, classNameToRemove);
