@@ -668,6 +668,7 @@ class ManualColumnMove extends BasePlugin {
     if (movePerformed === true) {
       this.persistentStateSave();
       this.hot.render();
+      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
 
       const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
       const selectionEnd = selectionStart + columnsLen - 1;

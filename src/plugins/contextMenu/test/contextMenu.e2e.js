@@ -101,6 +101,7 @@ describe('ContextMenu', () => {
       await sleep(300);
 
       expect($menu.find('.wtHider').width()).toEqual(215);
+      expect($menu.width()).toEqual(218);
     });
 
     it('should expand menu when one of items is wider then default width of the menu', async() => {
@@ -2340,6 +2341,8 @@ describe('ContextMenu', () => {
       });
 
       it('should scroll down, when user hits ARROW_DOWN for item in menu below the viewport', () => {
+        spec().$container.css({ marginTop: '4000px' });
+
         handsontable({
           height: 100,
           contextMenu: {

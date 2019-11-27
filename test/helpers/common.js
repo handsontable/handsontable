@@ -156,8 +156,6 @@ export function getTopClone() {
 export function getTopLeftClone() {
   return spec().$container.find('.ht_clone_top_left_corner');
 }
-// for compatybility
-// const getCornerClone = getTopLeftClone;
 
 export function getLeftClone() {
   return spec().$container.find('.ht_clone_left');

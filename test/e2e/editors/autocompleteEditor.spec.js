@@ -108,6 +108,31 @@ describe('AutocompleteEditor', () => {
 
       expect(innerHot.selection.highlight.cell.settings.border.width).toBe(0);
     });
+
+    it('should open editor with the proper width of the autocomplete list', async() => {
+      handsontable({
+        colWidths: 50,
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            visibleRows: 2,
+          }
+        ]
+      });
+      const scrollbarWidth = Handsontable.dom.getScrollbarWidth();
+      const expectedWidth = 50 + (scrollbarWidth === 0 ? 15 : scrollbarWidth);
+
+      selectCell(0, 0);
+
+      const editor = $('.autocompleteEditor');
+
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      expect(editor.find('.ht_master .wtHolder').width()).toBe(expectedWidth);
+    });
   });
 
   describe('choices', () => {
