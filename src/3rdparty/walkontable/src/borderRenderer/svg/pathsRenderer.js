@@ -77,25 +77,24 @@ function renderState(state) {
  * @returns {Number} 1 if path1 has a higher priority than path2, 0 if path1 has the same priority as path2, -1 if path1 has a lower priority than path2
  */
 export function compareStrokePriority(style1, style2) {
-  const splitStyle1 = style1.split(' ');
-  const size1 = splitStyle1[0];
-  const direction1 = splitStyle1[2];
-  const splitStyle2 = style2.split(' ');
-  const size2 = splitStyle2[0];
-  const direction2 = splitStyle2[2];
+  const [size1, color1, direction1] = style1.split(' ');
+  const [size2, color2, direction2] = style2.split(' ');
+  const parsedSize1 = parseInt(size1, 10);
+  const parsedSize2 = parseInt(size2, 10);
 
-  if (size1 > size2) {
+  if (parsedSize1 > parsedSize2) {
     return 1;
   }
-  if (size1 < size2) {
+  if (parsedSize1 < parsedSize2) {
     return -1;
   }
 
   const isHorizontal1 = direction1 === 'horizontal';
   const isHorizontal2 = direction2 === 'horizontal';
+  const areParallel = isHorizontal1 === isHorizontal2;
 
-  if (isHorizontal1 && isHorizontal2) {
-    return 0;
+  if (areParallel) {
+    return color1.localeCompare(color2); // the lines have the same priority. Sort them by name to keep the order stable
   }
   if (isHorizontal1) {
     return 1;

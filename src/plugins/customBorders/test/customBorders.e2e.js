@@ -692,11 +692,11 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 3).borders.right).toEqual(MEDIUM_MAGENTA_BORDER);
     expect(getCellMeta(3, 3).borders.bottom).toEqual(MEDIUM_RED_BORDER);
     expect(getRenderedBorderPathExistence(document.body)).toEqual([false,
-      true, true, false, true, true,
-      false, false, false, false, false]);
+      true, true, false, true, false,
+      true, false, false, false, false]);
     expect(getRenderedBorderStyles(document.body)).toEqual(['1px green vertical',
-      '2px orange vertical', '2px magenta vertical', '2px red vertical', '2px blue horizontal', '2px red horizontal',
-      '2px green horizontal', '1px #4b89ff vertical', '1px #4b89ff horizontal', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
+      '2px magenta vertical', '2px orange vertical', '2px red vertical', '2px blue horizontal', '2px green horizontal',
+      '2px red horizontal', '1px #4b89ff vertical', '1px #4b89ff horizontal', '2px #4b89ff vertical', '2px #4b89ff horizontal']);
   });
 
   it('should clear borders from area by use clearBorders method (while deselected)', () => {
@@ -761,9 +761,9 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 3).borders.right).toEqual(MEDIUM_MAGENTA_BORDER);
     expect(getCellMeta(3, 3).borders.bottom).toEqual(MEDIUM_RED_BORDER);
     expect(getRenderedBorderPathExistence(document.body)).toEqual([false,
-      true, true, false, true, true, false]);
+      true, true, false, true, false, true]);
     expect(getRenderedBorderStyles(document.body)).toEqual(['1px green vertical',
-      '2px orange vertical', '2px magenta vertical', '2px red vertical', '2px blue horizontal', '2px red horizontal', '2px green horizontal']);
+      '2px magenta vertical', '2px orange vertical', '2px red vertical', '2px blue horizontal', '2px green horizontal', '2px red horizontal']);
   });
 
   it('should clear all borders by use clearBorders method without parameter', () => {
@@ -812,7 +812,7 @@ describe('CustomBorders', () => {
     expect(getRenderedBorderPathExistence(document.body)).toEqual([false,
       false, false, false, false, false, false]);
     expect(getRenderedBorderStyles(document.body)).toEqual(['1px green vertical',
-      '2px orange vertical', '2px magenta vertical', '2px red vertical', '2px blue horizontal', '2px red horizontal', '2px green horizontal']);
+      '2px magenta vertical', '2px orange vertical', '2px red vertical', '2px blue horizontal', '2px green horizontal', '2px red horizontal']);
   });
 
   it('should draw borders from context menu options when was first cleared borders by the clearBorders method', async() => {
