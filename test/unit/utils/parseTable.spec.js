@@ -78,6 +78,18 @@ describe('_dataToHTML', () => {
       '</tbody></table>',
     ].join(''));
   });
+
+  it('should escape HTML tags into entities', () => {
+    const data = [
+      ['<div class="test">A1</div>'],
+    ];
+
+    expect(_dataToHTML(data)).toBe([
+      '<table><tbody>',
+      '<tr><td>&lt;div&nbsp;class="test"&gt;A1&lt;/div&gt;</td></tr>',
+      '</tbody></table>',
+    ].join(''));
+  });
 });
 
 describe('htmlToGridSettings', () => {
@@ -98,7 +110,7 @@ describe('htmlToGridSettings', () => {
   it('should parse data with special characters', () => {
     const tableInnerHTML = [
       '<table><tbody>',
-      '<tr><td>£§!@#$%^&*()-_=+[{]};:\'\\"|,<.>/?©</td></tr>',
+      '<tr><td>£§!@#$%^&*()-_=+[{]};:\'\\"|,&lt;.&gt;/?©</td></tr>',
       '</tbody></table>',
     ].join('');
     const config = htmlToGridSettings(tableInnerHTML);
@@ -106,10 +118,21 @@ describe('htmlToGridSettings', () => {
     expect(config.data.toString()).toBe('£§!@#$%^&*()-_=+[{]};:\'\\"|,<.>/?©');
   });
 
+  it('should parse data without unescaped HTML tags', () => {
+    const tableInnerHTML = [
+      '<table><tbody>',
+      '<tr><td>1<span class="abc">   </span>2</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(tableInnerHTML);
+
+    expect(config.data.toString()).toBe('1   2');
+  });
+
   it('should parse data with HTML-like content', () => {
     const tableInnerHTML = [
       '<table><tbody>',
-      '<tr><td><div class="test">A</div></td><td><script>var b = 1 && 2 << 1</script></td></tr>',
+      '<tr><td>&lt;div class="test"&gt;A&lt;/div&gt;</td><td>&lt;script&gt;var b = 1 && 2 &lt;&lt; 1&lt;/script&gt;</td></tr>',
       '</tbody></table>',
     ].join('');
     const config = htmlToGridSettings(tableInnerHTML);
