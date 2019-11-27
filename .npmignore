@@ -1,8 +1,6 @@
 # Ignore all files and directories in this repository...
-
-# REMOVED JUST FOR TESTING, NEED TO BE UNCOMMENTED WHEN MERGING TO DEVELOP
-#*
-#*/
+*
+*/
 
 # ...and add files and directories that are the only ones that match the pattern below
 !commonjs/**/*
