@@ -284,14 +284,27 @@ describe('Array helper', () => {
   // Handsontable.helper.getDifferenceOfArrays
   //
   describe('getDifferenceOfArrays', () => {
-    it('should return the difference between two arrays.', () => {
+    describe('works with parameters as array of number', () => {
+      it('should return the difference between two arrays.', () => {
 
-      expect(getDifferenceOfArrays([1, 2, 3], [2, 3, 4])).toStrictEqual([1]);
+        expect(getDifferenceOfArrays([1, 2, 3], [2, 3, 4])).toStrictEqual([1]);
+      });
+
+      it('should return the difference between more than two arrays.', () => {
+
+        expect(getDifferenceOfArrays([1, 2, 3], [3, 4], [3, 4, 5, 6, 7])).toStrictEqual([1, 2]);
+      });
     });
 
-    it('should return the difference between more than two arrays.', () => {
+    describe('works with parameters as array of string', () => {
+      it('should return the difference between two arrays.', () => {
+        expect(getDifferenceOfArrays(['class-1', 'class-2', 'class-3'], ['class-2', 'class-3', 'class-4'])).toStrictEqual(['class-1']);
+      });
 
-      expect(getDifferenceOfArrays([1, 2, 3], [3, 4], [3, 4, 5, 6, 7])).toStrictEqual([1, 2]);
+      it('should return the difference between more than two arrays.', () => {
+        expect(getDifferenceOfArrays(['class-1', 'class-2', 'class-3'], ['class-3', 'class-4'], ['class-3', 'class-4', 'class-5']))
+          .toStrictEqual(['class-1', 'class-2']);
+      });
     });
   });
 
@@ -299,13 +312,25 @@ describe('Array helper', () => {
   // Handsontable.helper.getIntersectionOfArrays
   //
   describe('getIntersectionOfArrays', () => {
-    it('should return elements that exists in two arrays.', () => {
+    describe('works with parameters as array of number', () => {
+      it('should return elements that exists in two arrays.', () => {
+        expect(getIntersectionOfArrays([1, 2, 3], [2, 3, 4])).toStrictEqual([2, 3]);
+      });
 
-      expect(getIntersectionOfArrays([1, 2, 3], [2, 3, 4])).toStrictEqual([2, 3]);
+      it('should return elements that exists in more than two arrays.', () => {
+        expect(getIntersectionOfArrays([1, 2, 3], [3, 4], [3, 4, 5, 6, 7])).toStrictEqual([3]);
+      });
     });
 
-    it('should return elements that exists in more than two arrays.', () => {
-      expect(getIntersectionOfArrays([1, 2, 3], [3, 4], [3, 4, 5, 6, 7])).toStrictEqual([3]);
+    describe('works with parameters as array of string', () => {
+      it('should return elements that exists in two arrays.', () => {
+        expect(getIntersectionOfArrays(['class-1', 'class-2', 'class-3'], ['class-2', 'class-3', 'class-4'])).toStrictEqual(['class-2', 'class-3']);
+      });
+
+      it('should return elements that exists in more than two arrays.', () => {
+        expect(getIntersectionOfArrays(['class-1', 'class-2', 'class-3'], ['class-3', 'class-4'], ['class-3', 'class-4', 'class-5']))
+          .toStrictEqual(['class-3']);
+      });
     });
   });
 
@@ -313,13 +338,26 @@ describe('Array helper', () => {
   // Handsontable.helper.getUnionOfArrays
   //
   describe('getUnionOfArrays', () => {
-    it('should return elements exists in any of the two arrays.', () => {
+    describe('works with parameters as array of number', () => {
+      it('should return elements exists in any of the two arrays.', () => {
+        expect(getUnionOfArrays([1, 2, 3], [2, 3, 4])).toStrictEqual([1, 2, 3, 4]);
+      });
 
-      expect(getUnionOfArrays([1, 2, 3], [2, 3, 4])).toStrictEqual([1, 2, 3, 4]);
+      it('should return elements that exists in any of the arrays.', () => {
+        expect(getUnionOfArrays([1, 2, 3], [3, 4], [3, 4, 5, 6, 7])).toStrictEqual([1, 2, 3, 4, 5, 6, 7]);
+      });
     });
 
-    it('should return elements that exists exists in any of the arrays.', () => {
-      expect(getUnionOfArrays([1, 2, 3], [3, 4], [3, 4, 5, 6, 7])).toStrictEqual([1, 2, 3, 4, 5, 6, 7]);
+    describe('works with parameters as array of string', () => {
+      it('should return elements exists in any of the two arrays.', () => {
+        expect(getUnionOfArrays(['class-1', 'class-2', 'class-3'], ['class-2', 'class-3', 'class-4']))
+          .toStrictEqual(['class-1', 'class-2', 'class-3', 'class-4']);
+      });
+
+      it('should return elements that exists in any of the arrays.', () => {
+        expect(getUnionOfArrays(['class-1', 'class-2', 'class-3'], ['class-3', 'class-4'], ['class-3', 'class-4', 'class-5']))
+          .toStrictEqual(['class-1', 'class-2', 'class-3', 'class-4', 'class-5']);
+      });
     });
   });
 });
