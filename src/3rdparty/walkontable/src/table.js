@@ -476,8 +476,8 @@ class Table {
       return;
     }
 
-    const highlights = Array.isArray(wot.selections) ? wot.selections : wot.selections.getAll(); // .selections is an array in simple Walkontable tests
-    const len = highlights.length;
+    const selections = Array.isArray(wot.selections) ? wot.selections : wot.selections.getAll(); // .selections is an array in simple Walkontable tests
+    const len = selections.length;
 
     if (fastDraw) {
       const classesToRemove = new Set();
@@ -488,9 +488,9 @@ class Table {
           highlightHeaderClassName,
           highlightRowClassName,
           highlightColumnClassName,
-        } = highlights[i].settings;
+        } = selections[i].settings;
 
-        highlights[i].classNames.forEach(classesToRemove.add, classesToRemove);
+        selections[i].classNames.forEach(classesToRemove.add, classesToRemove);
 
         if (highlightHeaderClassName) {
           classesToRemove.add(highlightHeaderClassName);
@@ -513,7 +513,7 @@ class Table {
     const borderEdgesDescriptors = [];
 
     for (let i = 0; i < len; i++) {
-      const selection = highlights[i];
+      const selection = selections[i];
 
       selection.draw(wot);
 
