@@ -480,7 +480,8 @@ class Table {
     const len = highlights.length;
 
     if (fastDraw) {
-      const classesToRemove = [];
+      const classesToRemove = new Set();
+      const additionalClassesToRemove = wot.getSetting('onBeforeRemoveCellClassNames');
 
       for (let i = 0; i < len; i++) {
         const {
@@ -488,40 +489,25 @@ class Table {
           highlightRowClassName,
           highlightColumnClassName,
         } = highlights[i].settings;
-        const classNames = highlights[i].classNames;
-        const classNamesLength = classNames.length;
 
-        for (let j = 0; j < classNamesLength; j++) {
-          if (!classesToRemove.includes(classNames[j])) {
-            classesToRemove.push(classNames[j]);
-          }
-        }
+        highlights[i].classNames.forEach(classesToRemove.add, classesToRemove);
 
-        if (highlightHeaderClassName && !classesToRemove.includes(highlightHeaderClassName)) {
-          classesToRemove.push(highlightHeaderClassName);
+        if (highlightHeaderClassName) {
+          classesToRemove.add(highlightHeaderClassName);
         }
-        if (highlightRowClassName && !classesToRemove.includes(highlightRowClassName)) {
-          classesToRemove.push(highlightRowClassName);
+        if (highlightRowClassName) {
+          classesToRemove.add(highlightRowClassName);
         }
-        if (highlightColumnClassName && !classesToRemove.includes(highlightColumnClassName)) {
-          classesToRemove.push(highlightColumnClassName);
+        if (highlightColumnClassName) {
+          classesToRemove.add(highlightColumnClassName);
         }
       }
-
-      const additionalClassesToRemove = wot.getSetting('onBeforeRemoveCellClassNames');
 
       if (Array.isArray(additionalClassesToRemove)) {
-        for (let i = 0; i < additionalClassesToRemove.length; i++) {
-          classesToRemove.push(additionalClassesToRemove[i]);
-        }
+        additionalClassesToRemove.forEach(classesToRemove.add, classesToRemove);
       }
 
-      const classesToRemoveLength = classesToRemove.length;
-
-      for (let i = 0; i < classesToRemoveLength; i++) {
-        // there was no rerender, so we need to remove classNames by ourselves
-        this.removeClassFromCells(classesToRemove[i]);
-      }
+      classesToRemove.forEach(this.removeClassFromCells, this);
     }
 
     const borderEdgesDescriptors = [];
