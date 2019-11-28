@@ -256,9 +256,10 @@ class Highlight {
   }
 
   /**
-   * This object can be iterate over using `for of` syntax or using internal `arrayEach` helper.
+   * This function returns an array that can be iterate over all kinds of highlight objects
+   * @returns {Array}
    */
-  [Symbol.iterator]() {
+  getAll() {
     return [
       this.cell,
       this.fill,
@@ -266,7 +267,7 @@ class Highlight {
       ...this.headers.values(),
       ...this.activeHeaders.values(),
       ...this.customSelections.values(),
-    ][Symbol.iterator]();
+    ];
   }
 }
 

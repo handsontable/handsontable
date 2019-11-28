@@ -239,13 +239,13 @@ export function createSelectionController({ current, area, fill, custom } = {}) 
     getFill() {
       return fillCtrl;
     },
-    [Symbol.iterator]() {
+    getAll() {
       return [
         fillCtrl,
         currentCtrl,
         areaCtrl,
         ...customCtrl,
-      ][Symbol.iterator]();
+      ];
     },
   };
 }

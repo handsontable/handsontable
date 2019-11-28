@@ -476,7 +476,7 @@ class Table {
       return;
     }
 
-    const highlights = Array.from(wot.selections);
+    const highlights = Array.isArray(wot.selections) ? wot.selections : wot.selections.getAll(); // .selections is an array in simple Walkontable tests
     const len = highlights.length;
 
     if (fastDraw) {
