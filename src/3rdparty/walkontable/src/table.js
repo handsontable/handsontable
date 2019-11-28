@@ -520,7 +520,7 @@ class Table {
       const borderEdgesDescriptor = selection.getBorderEdgesDescriptor();
 
       if (borderEdgesDescriptor.length > 0) {
-        borderEdgesDescriptors.push(selection.getBorderEdgesDescriptor());
+        borderEdgesDescriptors.push(borderEdgesDescriptor);
       }
     }
 
