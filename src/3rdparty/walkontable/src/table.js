@@ -510,10 +510,32 @@ class Table {
       classesToRemove.forEach(this.removeClassFromCells, this);
     }
 
+    const tableRowsCount = this.getRenderedRowsCount();
+    const tableColumnsCount = this.getRenderedColumnsCount();
+    const tableStartRow = this.getFirstRenderedRow();
+    const tableStartColumn = this.getFirstRenderedColumn();
+    const tableEndRow = this.getLastRenderedRow();
+    const tableEndColumn = this.getLastRenderedColumn();
     const borderEdgesDescriptors = [];
+    let neighborOverlapRight = 0;
+    let neighborOverlapBottom = 0;
+    let neighborOverlapTop = 0;
+
+    if (this.getTableNeighborEast && this.getTableNeighborEast().getFirstVisibleColumn() === this.getLastVisibleColumn() + 1) {
+      neighborOverlapRight = 1;
+    }
+    if (this.getTableNeighborSouth && this.getTableNeighborSouth().getFirstVisibleRow() === this.getLastVisibleRow() + 1) {
+      neighborOverlapBottom = 1;
+    }
+    if (this.getTableNeighborNorth && this.getTableNeighborNorth().getLastVisibleRow() === this.getFirstVisibleRow() - 1) {
+      neighborOverlapTop = -1;
+    }
 
     for (let i = 0; i < len; i++) {
-      const borderEdgesDescriptor = selections[i].draw(wot);
+      const borderEdgesDescriptor = selections[i].draw(wot,
+        tableRowsCount, tableColumnsCount,
+        tableStartRow, tableStartColumn, tableEndRow, tableEndColumn,
+        neighborOverlapRight, neighborOverlapBottom, neighborOverlapTop);
 
       if (borderEdgesDescriptor) {
         borderEdgesDescriptors.push(borderEdgesDescriptor);

@@ -246,14 +246,30 @@ class Selection {
   /**
    * Renders the selection if it is within the current viewport.
    *
+   * Parameters neighborOverlapRight, neighborOverlapBottom, neighborOverlapTop are used to render side effects of borders from other overlays,
+   * e.g. when fixedRowsTop === 1, this method will render the top border of the cell A2 (from the master table)
+   * as the bottom border of the cell A1 (on the top overlay table).
+   *
    * Returns an array of arrays that contain information about border edges renderable in the current selection or null,
    * if no border edges should be rendered for the current viewport. Every nested array has the structure that is
-   * expected by {@link BorderRenderer.convertArgsToLines}:
+   * expected by {@link BorderRenderer.convertArgsToLines}.
    *
    * @param {Walkontable} wotInstance
+   * @param {number} tableRowsCount
+   * @param {number} tableColumnsCount
+   * @param {number} tableStartRow Source index of the first rendered row in the table. Expecting -1 when there are no rendered rows
+   * @param {number} tableStartColumn Source index of the first rendered column in the table. Expecting -1 when there are no rendered columns
+   * @param {number} tableEndRow Source index of the last rendered row in the table. Expecting  -1 when there are no rendered rows
+   * @param {number} tableEndColumn Source index of the last rendered column in the table. Expecting -1 when there are no rendered columns
+   * @param {number} neighborOverlapRight
+   * @param {number} neighborOverlapBottom
+   * @param {number} neighborOverlapTop
    * @returns {Array.<Array.<*>>}
    */
-  draw(wotInstance) {
+  draw(wotInstance,
+       tableRowsCount, tableColumnsCount,
+       tableStartRow, tableStartColumn, tableEndRow, tableEndColumn,
+       neighborOverlapRight, neighborOverlapBottom, neighborOverlapTop) {
     if (this.isEmpty()) {
       if (this.hasSelectionHandle()) {
         const found = this.getSelectionHandleIfExists(wotInstance);
@@ -267,37 +283,10 @@ class Selection {
     }
 
     const { wtTable } = wotInstance;
-    const tableRowsCount = wtTable.getRenderedRowsCount();
-    const tableColumnsCount = wtTable.getRenderedColumnsCount();
 
     const { highlightHeaderClassName, highlightRowClassName, highlightColumnClassName } = this.settings;
     const selectionCorners = this.getCorners();
     const [selectionSettingTop, selectionSettingLeft, selectionSettingBottom, selectionSettingRight] = selectionCorners; // row/column values can be negative if row/column header was clicked
-
-    const tableStartRow = wtTable.getFirstRenderedRow(); // -1 when there are no rendered rows
-    const tableStartColumn = wtTable.getFirstRenderedColumn(); // -1 when there are no rendered columns
-    const tableEndRow = wtTable.getLastRenderedRow(); // null when there are no rendered rows
-    const tableEndColumn = wtTable.getLastRenderedColumn(); // null when there are no rendered columns
-
-    /*
-    neighborOverlaps are used to render side effects of borders from other overlays,
-    e.g. when fixedRowsTop === 1, this method will render the top border of the cell A2 (from the master table)
-    as the bottom border of the cell A1 (on the top overlay table).
-    */
-
-    let neighborOverlapRight = 0;
-    let neighborOverlapBottom = 0;
-    let neighborOverlapTop = 0;
-
-    if (wtTable.getTableNeighborEast && wtTable.getTableNeighborEast().getFirstVisibleColumn() === wtTable.getLastVisibleColumn() + 1) {
-      neighborOverlapRight = 1;
-    }
-    if (wtTable.getTableNeighborSouth && wtTable.getTableNeighborSouth().getFirstVisibleRow() === wtTable.getLastVisibleRow() + 1) {
-      neighborOverlapBottom = 1;
-    }
-    if (wtTable.getTableNeighborNorth && wtTable.getTableNeighborNorth().getLastVisibleRow() === wtTable.getFirstVisibleRow() - 1) {
-      neighborOverlapTop = -1;
-    }
 
     const selectionStartRow = Math.max(selectionSettingTop, tableStartRow + neighborOverlapTop);
     const selectionStartColumn = Math.max(selectionSettingLeft, tableStartColumn);
