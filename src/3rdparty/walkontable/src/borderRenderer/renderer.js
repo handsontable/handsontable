@@ -1,4 +1,3 @@
-import { getComputedStyle } from './../../../../helpers/dom/element';
 import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand, compareStrokePriority } from './svg/pathsRenderer';
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
@@ -307,7 +306,6 @@ export default class BorderRenderer {
 
     const firstTdBoundingRect = firstTd.getBoundingClientRect();
     const lastTdBoundingRect = (firstTd === lastTd) ? firstTdBoundingRect : lastTd.getBoundingClientRect();
-    const style = getComputedStyle(firstTd, this.rootWindow);
 
     let x1 = firstTdBoundingRect.left;
     let y1 = firstTdBoundingRect.top;
@@ -319,8 +317,9 @@ export default class BorderRenderer {
     x2 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.left);
     y2 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.top);
 
-    const isThisTheFirstColumn = parseInt(style.borderLeftWidth, 10) > 0;
-    const isThisTheFirstRow = parseInt(style.borderTopWidth, 10) > 0;
+    const prevElemSibling = firstTd.previousElementSibling;
+    const isThisTheFirstColumn = prevElemSibling === null || prevElemSibling.nodeName !== 'TD';
+    const isThisTheFirstRow = firstTd.parentNode.previousElementSibling === null;
     const isItASelectionBorder = !!selectionSetting.className;
 
     if (isThisTheFirstColumn) {
