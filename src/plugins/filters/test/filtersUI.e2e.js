@@ -404,6 +404,30 @@ describe('Filters UI', () => {
       }, 200);
     });
 
+    it('should focus dropdown menu after closing select component', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(1);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // is empty (test for condition which doesn't have input elements to provide filtered values)
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(3) td')).simulate('mousedown').simulate('mouseup');
+
+      expect(getPlugin('dropdownMenu').menu.hotMenu.isListening()).toBe(true);
+
+      // is equal to (test for condition which has input elements to provide filtered values, that focusable elements
+      // can cause the menu focus)
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown').simulate('mouseup');
+
+      expect(getPlugin('dropdownMenu').menu.hotMenu.isListening()).toBe(true);
+    });
+
     it('shouldn\'t disappear dropdown menu after conditional options menu click', () => {
       handsontable({
         data: getDataForFilters(),
@@ -710,6 +734,33 @@ describe('Filters UI', () => {
       // does not steal the components' element while recalculating column width (PR #5555).
       expect(dropdownMenuRootElement().querySelector('.htFiltersMenuValue .htFiltersMenuLabel').textContent).toBe('Filter by value:');
       expect(dropdownMenuRootElement().querySelector('.htFiltersMenuValue .htUIMultipleSelect')).not.toBeNull();
+    });
+
+    it('should not scroll the view after selecting the item (test for checking if the event bubbling is not blocked, #6497)', async() => {
+      handsontable({
+        data: getDataForFilters().slice(0, 15),
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(2);
+
+      await sleep(200);
+
+      $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('mousedown').simulate('mouseup').simulate('click');
+
+      expect($(byValueBoxRootElement()).find('.ht_master .wtHolder').scrollTop()).toBe(0);
+
+      $(byValueBoxRootElement()).find('tr:nth-child(5) :checkbox').simulate('mouseover');
+      $(byValueBoxRootElement()).find('tr:nth-child(6) :checkbox').simulate('mouseover');
+      $(byValueBoxRootElement()).find('tr:nth-child(7) :checkbox').simulate('mouseover');
+
+      await sleep(200);
+
+      expect($(byValueBoxRootElement()).find('.ht_master .wtHolder').scrollTop()).toBe(0);
     });
 
     it('should display empty values as "(Blank cells)"', () => {
