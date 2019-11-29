@@ -513,13 +513,9 @@ class Table {
     const borderEdgesDescriptors = [];
 
     for (let i = 0; i < len; i++) {
-      const selection = selections[i];
+      const borderEdgesDescriptor = selections[i].draw(wot);
 
-      selection.draw(wot);
-
-      const borderEdgesDescriptor = selection.getBorderEdgesDescriptor();
-
-      if (borderEdgesDescriptor.length > 0) {
+      if (borderEdgesDescriptor) {
         borderEdgesDescriptors.push(borderEdgesDescriptor);
       }
     }

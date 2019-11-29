@@ -17,7 +17,6 @@ class Selection {
     this.instanceSelectionHandles = new Map();
     this.classNames = [this.settings.className];
     this.classNameGenerator = this.linearClassNameGenerator(this.settings.className, this.settings.layerLevel);
-    this.borderEdgesDescriptor = [];
   }
 
   /**
@@ -137,17 +136,6 @@ class Selection {
   }
 
   /**
-   * Returns an array of arrays that contain information about border edges renderable in the current selection.
-   *
-   * Every nested array has the structure that is expected by {@link BorderRenderer.convertArgsToLines}:
-   *
-   * @returns {Array.<Array.<*>>}
-   */
-  getBorderEdgesDescriptor() {
-    return this.borderEdgesDescriptor;
-  }
-
-  /**
    * Adds class name to cell element at given coords
    *
    * @param {Table} wtTable
@@ -264,11 +252,16 @@ class Selection {
   }
 
   /**
+   * Renders the selection if it is within the current viewport.
+   *
+   * Returns an array of arrays that contain information about border edges renderable in the current selection or null,
+   * if no border edges should be rendered for the current viewport. Every nested array has the structure that is
+   * expected by {@link BorderRenderer.convertArgsToLines}:
+   *
    * @param {Walkontable} wotInstance
+   * @returns {Array.<Array.<*>>}
    */
   draw(wotInstance) {
-    this.borderEdgesDescriptor = [];
-
     if (this.isEmpty()) {
       if (this.hasSelectionHandle()) {
         const found = this.getSelectionHandleIfExists(wotInstance);
@@ -318,6 +311,12 @@ class Selection {
     const selectionStartColumn = Math.max(selectionSettingLeft, tableStartColumn);
     const selectionEndRow = Math.min(selectionSettingBottom, tableEndRow + neighborOverlapBottom);
     const selectionEndColumn = Math.min(selectionSettingRight, tableEndColumn + neighborOverlapRight);
+    const isSingle = selectionStartRow === selectionEndRow && selectionStartColumn === selectionEndColumn;
+    const hasTopEdge = selectionStartRow === selectionSettingTop;
+    const hasRightEdge = selectionEndColumn === selectionSettingRight;
+    const hasBottomEdge = selectionEndRow === selectionSettingBottom;
+    const hasLeftEdge = selectionStartColumn === selectionSettingLeft;
+    let borderEdgesDescriptor;
 
     if (tableColumnsCount && (highlightHeaderClassName || highlightColumnClassName)) {
       for (let sourceColumn = selectionStartColumn; sourceColumn <= selectionEndColumn; sourceColumn += 1) {
@@ -353,24 +352,13 @@ class Selection {
 
     if (tableRowsCount && tableColumnsCount) {
       if (this.settings.border && selectionStartRow <= selectionEndRow && selectionStartColumn <= selectionEndColumn) {
-        const hasTopEdge = selectionStartRow === selectionSettingTop;
-        const hasRightEdge = selectionEndColumn === selectionSettingRight;
-        const hasBottomEdge = selectionEndRow === selectionSettingBottom;
-        const hasLeftEdge = selectionStartColumn === selectionSettingLeft;
-
         const topLeftTd = this.getRelevantCell(wtTable, selectionStartRow, selectionStartColumn,
           tableStartRow, tableEndRow, tableEndColumn);
-        let bottomRightTd;
-
-        if (selectionStartRow === selectionEndRow && selectionStartColumn === selectionEndColumn) {
-          bottomRightTd = topLeftTd;
-        } else {
-          bottomRightTd = this.getRelevantCell(wtTable, selectionEndRow, selectionEndColumn,
-            tableStartRow, tableEndRow, tableEndColumn);
-        }
+        const bottomRightTd = isSingle ? topLeftTd : this.getRelevantCell(wtTable, selectionEndRow, selectionEndColumn,
+          tableStartRow, tableEndRow, tableEndColumn);
 
         if (topLeftTd && bottomRightTd) {
-          this.borderEdgesDescriptor = [this.settings, topLeftTd, bottomRightTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
+          borderEdgesDescriptor = [this.settings, topLeftTd, bottomRightTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
         }
       }
 
@@ -407,6 +395,8 @@ class Selection {
       // warning! selectionHandle.appear modifies corners!
       this.getSelectionHandle(wotInstance).appear(selectionCorners);
     }
+
+    return borderEdgesDescriptor;
   }
 
   /**
