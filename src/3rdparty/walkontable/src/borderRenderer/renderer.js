@@ -135,6 +135,35 @@ export default class BorderRenderer {
   }
 
   /**
+   * Get a value stored in a 2D map (key1->key2->value)
+   *
+   * @param {Map.<number, Map.<number, number>>} map
+   * @param {number} key1
+   * @param {number} key2
+   */
+  getFrom2dMap(map, key1, key2) {
+    const subMap = map.get(key1);
+    return subMap ? subMap.get(key2) : undefined;
+  }
+
+  /**
+   * Store a value in a 2D map key1->key2->value)
+   *
+   * @param {Map.<number, Map.<number, number>>} map
+   * @param {number} key1
+   * @param {number} key2
+   * @param {number} value
+   */
+  setIn2dMap(map, key1, key2, value) {
+    const subMap = map.get(key1);
+    if (subMap) {
+      subMap.set(key2, value);
+    } else {
+      map.set(key1, new Map([[key2, value]]));
+    }
+  }
+
+  /**
    * Adjusts the beginning and end tips of the lines to overlap each other according to the specification.
    * The specification is covered in TDD file border.spec.js   *
    *
@@ -145,6 +174,10 @@ export default class BorderRenderer {
    * @param {Map} verticalPointSizeMap
    */
   adjustTipsOfLines(lines, width, isVertical, horizontalPointSizeMap, verticalPointSizeMap) {
+    if (lines.length === 0) {
+      return;
+    }
+
     const lookupPointSizeMap = isVertical ? horizontalPointSizeMap : verticalPointSizeMap;
     const savedPointSizeMap = isVertical ? verticalPointSizeMap : horizontalPointSizeMap;
     const gridlineWidth = 1;
@@ -158,15 +191,12 @@ export default class BorderRenderer {
       const endX = lineLength - 2;
       const endY = lineLength - 1;
       const endIndex = isVertical ? endY : endX;
-      const startPointId = `${line[beginX]},${line[beginY]}`;
-      const endPointId = `${line[endX]},${line[endY]}`;
-      const cachedStartPointSize = lookupPointSizeMap.get(startPointId);
-      const cachedEndPointSize = lookupPointSizeMap.get(endPointId);
+      const cachedStartPointSize = this.getFrom2dMap(lookupPointSizeMap, line[beginX], line[beginY]);
+      const cachedEndPointSize = this.getFrom2dMap(lookupPointSizeMap, line[endX], line[endY]);
 
       if (width > 1) {
         for (let p = 0; p < lineLength; p += 2) {
-          const pointId = `${line[p]},${line[p + 1]}`;
-          savedPointSizeMap.set(pointId, width);
+          this.setIn2dMap(savedPointSizeMap, line[p], line[p + 1], width);
         }
       }
       if (cachedStartPointSize) {
