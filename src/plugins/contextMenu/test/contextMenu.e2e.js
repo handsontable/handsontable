@@ -3106,6 +3106,7 @@ describe('ContextMenu', () => {
       expect(callback.calls.count()).toEqual(0);
 
       item.simulate('contextmenu');
+
       expect(callback.calls.count()).toEqual(1);
     });
 
@@ -3125,6 +3126,7 @@ describe('ContextMenu', () => {
       contextMenu();
 
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('contextmenu');
+
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
   });
