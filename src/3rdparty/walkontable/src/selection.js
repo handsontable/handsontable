@@ -124,15 +124,7 @@ class Selection {
    * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`
    */
   getCorners() {
-    const topLeft = this.cellRange.getTopLeftCorner();
-    const bottomRight = this.cellRange.getBottomRightCorner();
-
-    return [
-      topLeft.row,
-      topLeft.col,
-      bottomRight.row,
-      bottomRight.col,
-    ];
+    return this.cellRange.getCorners();
   }
 
   /**
