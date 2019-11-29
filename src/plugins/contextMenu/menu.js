@@ -175,7 +175,7 @@ class Menu {
         renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value)
       }],
       renderAllRows: true,
-      fragmentSelection: 'cell',
+      fragmentSelection: false,
       disableVisualSelection: 'area',
       beforeKeyDown: event => this.onBeforeKeyDown(event),
       afterOnCellMouseOver: (event, coords) => {
