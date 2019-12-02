@@ -48,6 +48,7 @@ class AutocompleteEditor extends HandsontableEditor {
 
     privatePool.set(this, {
       skipOne: false,
+      isMacOS: this.hot.rootWindow.navigator.platform.indexOf('Mac') > -1,
     });
   }
 
@@ -97,12 +98,15 @@ class AutocompleteEditor extends HandsontableEditor {
 
     this.showEditableElement();
     this.focus();
+    let scrollbarWidth = getScrollbarWidth();
 
-    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
+    if (scrollbarWidth === 0 && priv.isMacOS) {
+      scrollbarWidth += 15; // default scroll bar width if scroll bars are visible only when scrolling
+    }
 
     choicesListHot.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
-      width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth + 2 : void 0,
+      width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth : void 0,
       renderer: (instance, TD, row, col, prop, value, cellProperties) => {
         getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
 
@@ -125,9 +129,6 @@ class AutocompleteEditor extends HandsontableEditor {
       },
       autoColumnSize: true,
     });
-
-    // Add additional space for autocomplete holder
-    this.htEditor.view.wt.wtTable.holder.parentNode.style['padding-right'] = `${scrollbarWidth + 2}px`;
 
     if (priv.skipOne) {
       priv.skipOne = false;

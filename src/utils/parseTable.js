@@ -74,6 +74,8 @@ export function instanceToHTML(instance) {
             cell = `<td ${attrs.join(' ')}></td>`;
           } else {
             const value = cellData.toString()
+              .replace('<', '&lt;')
+              .replace('>', '&gt;')
               .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
               .replace(/\x20/gi, '&nbsp;')
               .replace(/\t/gi, '&#9;');
@@ -123,7 +125,12 @@ export function _dataToHTML(input) {
       const cellData = rowData[column];
       const parsedCellData = isEmpty(cellData) ?
         '' :
-        cellData.toString().replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n').replace(/\x20/gi, '&nbsp;').replace(/\t/gi, '&#9;');
+        cellData.toString()
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
+          .replace(/\x20/gi, '&nbsp;')
+          .replace(/\t/gi, '&#9;');
 
       columnsResult.push(`<td>${parsedCellData}</td>`);
     }
@@ -157,7 +164,15 @@ export function htmlToGridSettings(element, rootDocument = document) {
   let checkElement = element;
 
   if (typeof checkElement === 'string') {
-    tempElem.insertAdjacentHTML('afterbegin', `${checkElement}`);
+    const escapedAdjacentHTML = checkElement.replace(/<td\b[^>]*?>([\s\S]*?)<\/\s*td>/g, (cellFragment) => {
+      const openingTag = cellFragment.match(/<td\b[^>]*?>/g)[0];
+      const cellValue = cellFragment.substring(openingTag.length, cellFragment.lastIndexOf('<')).replace(/(<(?!br)([^>]+)>)/gi, '');
+      const closingTag = '</td>';
+
+      return `${openingTag}${cellValue}${closingTag}`;
+    });
+
+    tempElem.insertAdjacentHTML('afterbegin', `${escapedAdjacentHTML}`);
     checkElement = tempElem.querySelector('table');
   }
 

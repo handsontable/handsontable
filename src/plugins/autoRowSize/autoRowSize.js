@@ -203,6 +203,7 @@ class AutoRowSize extends BasePlugin {
         arrayEach(samples, ([rowIndex, sample]) => this.ghostTable.addRow(rowIndex, sample));
       }
     });
+
     if (this.ghostTable.rows.length) {
       this.hot.executeBatchOperations(() => {
         this.ghostTable.getHeights((row, height) => {
@@ -214,7 +215,7 @@ class AutoRowSize extends BasePlugin {
         });
       });
 
-      this.measuredRows = this.ghostTable.rows.length;
+      this.measuredRows = rowsRange.to + 1;
 
       this.ghostTable.clean();
     }
