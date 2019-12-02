@@ -358,7 +358,7 @@ class TopOverlay extends Overlay {
 
         // cell borders should be positioned once again,
         // because we added / removed 1px border from table header
-        this.redrawAllSelectionsBorders();
+        this.redrawAllSelectionsBorders(); // TODO can we remove this method
       }
     }
 

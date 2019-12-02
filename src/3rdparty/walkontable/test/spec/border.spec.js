@@ -38,7 +38,7 @@ describe('Walkontable Border Renderer', () => {
   }
 
   beforeEach(function() {
-    this.$wrapper = $('<div></div>').addClass('handsontable');
+    this.$wrapper = $('<div></div>').addClass('handsontable').css({ overflow: 'hidden' });
     this.$container = $('<div></div>');
     this.$wrapper.width(100).height(100);
     this.$table = $('<table></table>').addClass('htCore');
@@ -205,7 +205,7 @@ describe('Walkontable Border Renderer', () => {
     });
   });
 
-  describe(`when vertical and horizontal line have the same width, 
+  describe(`when vertical and horizontal line have the same width,
         the horizontal line should be on top and cover the tips of the vertical line`, () => {
     it('should render 1px borders', () => {
       const wt = generateWalkontableWithSelection({
@@ -256,7 +256,7 @@ describe('Walkontable Border Renderer', () => {
     });
   });
 
-  describe(`when vertical line has a bigger width than the horizontal line, 
+  describe(`when vertical line has a bigger width than the horizontal line,
         the vertical line should be on top and cover the tips of the horizontal line`, () => {
     it('should render 1px, 2px borders', () => {
       const wt = generateWalkontableWithSelection({
@@ -307,7 +307,7 @@ describe('Walkontable Border Renderer', () => {
     });
   });
 
-  describe(`when horizontal line has a bigger width than the vertical line, 
+  describe(`when horizontal line has a bigger width than the vertical line,
         the horizontal line should be on top and cover the tips of the vertical line`, () => {
     it('should render 2px, 1px borders', () => {
       const wt = generateWalkontableWithSelection({
@@ -464,6 +464,99 @@ describe('Walkontable Border Renderer', () => {
       expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 99 24 99 47', 'M 51 46 100 46']);
       expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['2px green vertical', '4px green horizontal']);
 
+    });
+  });
+
+  describe('should render the overlapping fragment of the master column with the overlay', () => {
+    it('should render overlapping fragment on left overlay after scroll, with container scrollbars', () => {
+      createDataArray(100, 100);
+      spec().$wrapper.width(300).height(100); // set grid sizing to large container
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2,
+        selections: [
+          generateSelection({
+            left: THIN_GREEN_BORDER,
+            right: MEDIUM_GREEN_BORDER,
+            top: THICK_GREEN_BORDER,
+            bottom: HUGE_GREEN_BORDER
+          }).add(new Walkontable.CellCoords(0, 2))
+        ]
+      });
+
+      wt.draw();
+      wt.draw(); // TODO as it turns out, the desired rendering is only visible after the second draw. A problem that does not appear in HOT but appears in raw WOT. Why?
+
+      const topBorderSelector = 'svg path[data-stroke-style=\'3px green horizontal\']';
+      const topBorderExpectedPathInMaster = 'M 0 0.5 50 0.5'; // Master starts rendering from column 2
+      const topBorderExpectedPathInLeft = 'M 101 0.5 150 0.5'; // Left Overlay starts rendering from column 0
+      const pathInMaster = document.querySelector(`.ht_master ${topBorderSelector}`);
+      const pathInLeftOverlay = document.querySelector(`.ht_clone_left ${topBorderSelector}`);
+
+      expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection before scroll').toEqual(topBorderExpectedPathInMaster);
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection before scroll').toEqual(topBorderExpectedPathInLeft);
+
+      wt.wtTable.holder.scrollLeft = 30;
+      wt.draw();
+
+      expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection after scroll').toEqual(topBorderExpectedPathInMaster);
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection after scroll').toEqual(''); // the common border should not be rendered if the table is scrolled
+
+      wt.wtTable.holder.scrollLeft = 0;
+      wt.draw();
+      wt.draw(); // TODO as it turns out, the desired rendering is only visible after the second draw. A problem that does not appear in HOT but appears in raw WOT. Why?
+
+      expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection after scroll back').toEqual(topBorderExpectedPathInMaster);
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection after scroll back').toEqual(topBorderExpectedPathInLeft);
+    });
+
+    it('should render overlapping fragment on left overlay after scroll, with window scrollbars', () => {
+      createDataArray(100, 100);
+      spec().$wrapper[0].setAttribute('style', ''); // set grid sizing to window
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2,
+        selections: [
+          generateSelection({
+            left: THIN_GREEN_BORDER,
+            right: MEDIUM_GREEN_BORDER,
+            top: THICK_GREEN_BORDER,
+            bottom: HUGE_GREEN_BORDER
+          }).add(new Walkontable.CellCoords(0, 2))
+        ]
+      });
+
+      wt.draw();
+      wt.draw(); // TODO as it turns out, the desired rendering is only visible after the second draw. A problem that does not appear in HOT but appears in raw WOT. Why?
+
+      const topBorderSelector = 'svg path[data-stroke-style=\'3px green horizontal\']';
+      const topBorderExpectedPathInMaster = 'M 0 0.5 50 0.5'; // Master starts rendering from column 2
+      const topBorderExpectedPathInLeft = 'M 101 0.5 150 0.5'; // Left Overlay starts rendering from column 0
+      const pathInMaster = document.querySelector(`.ht_master ${topBorderSelector}`);
+      const pathInLeftOverlay = document.querySelector(`.ht_clone_left ${topBorderSelector}`);
+
+      expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection before scroll').toEqual(topBorderExpectedPathInMaster);
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection before scroll').toEqual(topBorderExpectedPathInLeft);
+
+      window.scroll(30, 0);
+      wt.draw();
+
+      expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection after scroll').toEqual(topBorderExpectedPathInMaster);
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection after scroll').toEqual(''); // the common border should not be rendered if the table is scrolled
+
+      window.scroll(0, 0);
+      wt.draw();
+      wt.draw(); // TODO as it turns out, the desired rendering is only visible after the second draw. A problem that does not appear in HOT but appears in raw WOT. Why?
+
+      expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection after scroll back').toEqual(topBorderExpectedPathInMaster);
+
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection after scroll back').toEqual(topBorderExpectedPathInLeft);
     });
   });
 });

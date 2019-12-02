@@ -252,16 +252,19 @@ class Table {
 
     if (this.isMaster) {
       syncScroll = wtOverlays.prepareOverlays();
+      // this.resetFixedPositions();
     }
 
     if (runFastDraw) {
       if (this.isMaster) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
         wtViewport.createVisibleCalculators();
+        this.resetFixedPositions();
       }
       if (wtOverlays) {
         wtOverlays.refresh(true);
       }
+
     } else {
       if (this.isMaster) {
         this.tableOffset = offset(this.TABLE);
@@ -321,6 +324,7 @@ class Table {
           this.wot.wtViewport.createVisibleCalculators();
           this.wot.wtOverlays.refresh(false);
           this.wot.wtOverlays.applyToDOM();
+          this.resetFixedPositions();
 
           const hiderWidth = outerWidth(this.hider);
           const tableWidth = outerWidth(this.TABLE);
@@ -347,21 +351,7 @@ class Table {
     }
 
     if (this.isMaster) {
-      wtOverlays.topOverlay.resetFixedPosition();
-
-      if (wtOverlays.bottomOverlay.clone) {
-        wtOverlays.bottomOverlay.resetFixedPosition();
-      }
-
-      wtOverlays.leftOverlay.resetFixedPosition();
-
-      if (wtOverlays.topLeftCornerOverlay) {
-        wtOverlays.topLeftCornerOverlay.resetFixedPosition();
-      }
-
-      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
-        wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
-      }
+      // this.resetFixedPositions();
     }
 
     this.refreshSelections(runFastDraw);
@@ -373,6 +363,29 @@ class Table {
     wot.drawn = true;
 
     return this;
+  }
+
+  /**
+   * For every overlay in the instance, update the overlay's position
+   */
+  resetFixedPositions() {
+    const { wtOverlays } = this.wot;
+
+    wtOverlays.topOverlay.resetFixedPosition();
+
+    if (wtOverlays.bottomOverlay.clone) {
+      wtOverlays.bottomOverlay.resetFixedPosition();
+    }
+
+    wtOverlays.leftOverlay.resetFixedPosition();
+
+    if (wtOverlays.topLeftCornerOverlay) {
+      wtOverlays.topLeftCornerOverlay.resetFixedPosition();
+    }
+
+    if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
+      wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
+    }
   }
 
   markIfOversizedColumnHeader(col) {
@@ -544,7 +557,12 @@ class Table {
 
     this.borderRenderer.skipFirstRowTopEdge = !!this.wot.getSetting('columnHeaders').length;
     this.borderRenderer.skipFirstColumnLeftEdge = !!this.wot.getSetting('rowHeaders').length;
+
+    // if (!fastDraw || JSON.stringify(borderEdgesDescriptors) !== this.lastBorderDesc) {
     this.borderRenderer.render(this.TABLE, borderEdgesDescriptors);
+    // }
+
+    // this.lastBorderDesc = JSON.stringify(borderEdgesDescriptors);
   }
 
   /**
