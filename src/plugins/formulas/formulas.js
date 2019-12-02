@@ -244,21 +244,23 @@ class Formulas extends BasePlugin {
    * @param ioMode
    */
   onModifySourceData(row, column, valueHolder, ioMode) {
-    const sheetDimensions = this.hyperformula.getSheetDimensions(this.sheetId);
+    if (this.isEnabled()) {
+      const sheetDimensions = this.hyperformula.getSheetDimensions(this.sheetId);
 
-    if (this.isEnabled() && (sheetDimensions.width !== 0 && sheetDimensions.height !== 0)) {
-      if (ioMode === 'get') {
-        valueHolder.value = this.hyperformula.getCellFormula({
-          row,
-          col: column,
-          sheet: this.sheetId
-        }) || this.hyperformula.getCellValue({
-          row,
-          col: column,
-          sheet: this.sheetId
-        }); //TODO: optimize
+      if (sheetDimensions.width !== 0 && sheetDimensions.height !== 0) {
+        if (ioMode === 'get') {
+          valueHolder.value = this.hyperformula.getCellFormula({
+            row,
+            col: column,
+            sheet: this.sheetId
+          }) || this.hyperformula.getCellValue({
+            row,
+            col: column,
+            sheet: this.sheetId
+          }); //TODO: optimize
 
-        valueHolder.value = parseHFValue(valueHolder.value);
+          valueHolder.value = parseHFValue(valueHolder.value);
+        }
       }
     }
   }
