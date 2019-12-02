@@ -1,9 +1,11 @@
+import { EmptyValue, CellError } from 'hyperformula/dist/unoptimized-full/bundle.js';
+
 // TODO: docs
 export function parseHFValue(value) {
-  if (value && value.constructor && value.constructor.name.includes('Error')) {
+  if (value instanceof CellError) {
     return parseErrorObject(value);
 
-  } else if (typeof value === 'symbol') { // TODO: parsing `Symbol`s received from HF to `null`, needs to be checked if `Symbol` always means `null`.
+  } else if (value === EmptyValue) {
     return null;
   }
 
