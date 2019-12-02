@@ -382,9 +382,9 @@ class Menu {
   isCommandPassive(commandDescriptor) {
     const { isCommand, name: commandName, disabled, submenu } = commandDescriptor;
 
-    const isDisabled = disabled === true || (typeof disabled === 'function' && disabled.call(this.hot) === true);
+    const isItemDisabled = disabled === true || (typeof disabled === 'function' && disabled.call(this.hot) === true);
 
-    return isCommand === false || commandName === SEPARATOR || isDisabled === true || submenu;
+    return isCommand === false || commandName === SEPARATOR || isItemDisabled === true || submenu;
   }
 
   /**
