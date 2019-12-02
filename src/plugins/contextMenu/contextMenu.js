@@ -157,7 +157,6 @@ class ContextMenu extends BasePlugin {
     this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
     this.addHook('afterOnCellContextMenu', event => this.onAfterOnCellContextMenu(event));
-    this.addHook('afterSelection', (...params) => this.onAfterSelection(...params));
 
     super.enablePlugin();
   }
@@ -201,7 +200,6 @@ class ContextMenu extends BasePlugin {
     }
 
     this.prepareMenuItems();
-
     this.menu.open();
 
     if (!this.menu.isOpened()) {
@@ -304,17 +302,6 @@ class ContextMenu extends BasePlugin {
 
     // Register all commands. Predefined and added by user or by plugins
     arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
-  }
-
-  /**
-   * Callback for the `afterSelection` hook.
-   *
-   * @private
-   */
-  onAfterSelection() {
-    if (this.menu.isOpened()) {
-      this.menu.close();
-    }
   }
 
   /**
