@@ -168,166 +168,169 @@ describe('IndexMapper', () => {
   });
 
   describe('removing items', () => {
-    it('should remove multiple items from the start', () => {
-      const indexMapper = new IndexMapper();
-      const indexToIndexMap = new IndexToIndexMap();
-      const indexToValueMap = new IndexToValueMap(index => index + 2);
-      const skipMap = new SkipMap();
+    describe('with skipped indexes', () => {
+      it('should remove multiple items from the start', () => {
+        const indexMapper = new IndexMapper();
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
+        const skipMap = new SkipMap();
 
-      indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
-      indexMapper.registerMap('indexToValueMap', indexToValueMap);
-      indexMapper.registerMap('skipMap', skipMap);
-      indexMapper.initToLength(10);
-      skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+        indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
+        indexMapper.registerMap('indexToValueMap', indexToValueMap);
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(10);
+        skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
 
-      indexMapper.removeIndexes([0, 1, 2]);
+        indexMapper.removeIndexes([0, 1, 2]);
 
-      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6]);
-      expect(indexMapper.getNotSkippedIndexes()).toEqual([0, 2, 4, 6]);
-      // Next values (indexes) are recounted (re-indexed).
-      expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6]);
-      // Next values are just preserved.
-      expect(indexToValueMap.getValues()).toEqual([5, 6, 7, 8, 9, 10, 11]);
-      expect(skipMap.getValues()).toEqual([false, true, false, true, false, true, false]);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([0, 2, 4, 6]);
+        // Next values (indexes) are recounted (re-indexed).
+        expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6]);
+        // Next values are just preserved.
+        expect(indexToValueMap.getValues()).toEqual([5, 6, 7, 8, 9, 10, 11]);
+        expect(skipMap.getValues()).toEqual([false, true, false, true, false, true, false]);
 
-      indexMapper.unregisterMap('indexToIndexMap');
-      indexMapper.unregisterMap('indexToValueMap');
-      indexMapper.unregisterMap('skipMap');
-    });
+        indexMapper.unregisterMap('indexToIndexMap');
+        indexMapper.unregisterMap('indexToValueMap');
+        indexMapper.unregisterMap('skipMap');
+      });
 
-    it('should remove multiple items from the middle', () => {
-      const indexMapper = new IndexMapper();
-      const indexToIndexMap = new IndexToIndexMap();
-      const indexToValueMap = new IndexToValueMap(index => index + 2);
-      const skipMap = new SkipMap();
+      it('should remove multiple items from the middle', () => {
+        const indexMapper = new IndexMapper();
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
+        const skipMap = new SkipMap();
 
-      indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
-      indexMapper.registerMap('indexToValueMap', indexToValueMap);
-      indexMapper.registerMap('skipMap', skipMap);
-      indexMapper.initToLength(10);
-      skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+        indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
+        indexMapper.registerMap('indexToValueMap', indexToValueMap);
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(10);
+        skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
 
-      indexMapper.removeIndexes([4, 5]);
+        indexMapper.removeIndexes([4, 5]);
 
-      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
-      expect(indexMapper.getNotSkippedIndexes()).toEqual([1, 3, 5, 7]);
-      // Next values (indexes) are recounted (re-indexed).
-      expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
-      // Next values are just preserved.
-      expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 5, 8, 9, 10, 11]);
-      expect(skipMap.getValues()).toEqual([true, false, true, false, true, false, true, false]);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([1, 3, 5, 7]);
+        // Next values (indexes) are recounted (re-indexed).
+        expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+        // Next values are just preserved.
+        expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 5, 8, 9, 10, 11]);
+        expect(skipMap.getValues()).toEqual([true, false, true, false, true, false, true, false]);
 
-      indexMapper.unregisterMap('indexToIndexMap');
-      indexMapper.unregisterMap('indexToValueMap');
-      indexMapper.unregisterMap('skipMap');
-    });
+        indexMapper.unregisterMap('indexToIndexMap');
+        indexMapper.unregisterMap('indexToValueMap');
+        indexMapper.unregisterMap('skipMap');
+      });
 
-    it('should remove multiple items from the end', () => {
-      const indexMapper = new IndexMapper();
-      const indexToIndexMap = new IndexToIndexMap();
-      const indexToValueMap = new IndexToValueMap(index => index + 2);
-      const skipMap = new SkipMap();
+      it('should remove multiple items from the end', () => {
+        const indexMapper = new IndexMapper();
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
+        const skipMap = new SkipMap();
 
-      indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
-      indexMapper.registerMap('indexToValueMap', indexToValueMap);
-      indexMapper.registerMap('skipMap', skipMap);
-      indexMapper.initToLength(10);
-      skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+        indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
+        indexMapper.registerMap('indexToValueMap', indexToValueMap);
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(10);
+        skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
 
-      indexMapper.removeIndexes([8, 9]);
+        indexMapper.removeIndexes([8, 9]);
 
-      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
-      expect(indexMapper.getNotSkippedIndexes()).toEqual([1, 3, 5, 7]);
-      // Next values (indexes) are recounted (re-indexed).
-      expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
-      // Next values are just preserved.
-      expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 8, 9]);
-      expect(skipMap.getValues()).toEqual([true, false, true, false, true, false, true, false]);
+        // Items from the end was removed, no re-indexation.
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([1, 3, 5, 7]);
+        // Items from the end was removed, no re-indexation.
+        expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+        // Items from the end was removed.
+        expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 8, 9]);
+        expect(skipMap.getValues()).toEqual([true, false, true, false, true, false, true, false]);
 
-      indexMapper.unregisterMap('indexToIndexMap');
-      indexMapper.unregisterMap('indexToValueMap');
-      indexMapper.unregisterMap('skipMap');
-    });
+        indexMapper.unregisterMap('indexToIndexMap');
+        indexMapper.unregisterMap('indexToValueMap');
+        indexMapper.unregisterMap('skipMap');
+      });
 
-    it('should remove multiple items with mixed order #1', () => {
-      const indexMapper = new IndexMapper();
-      const indexToIndexMap = new IndexToIndexMap();
-      const indexToValueMap = new IndexToValueMap(index => index + 2);
-      const skipMap = new SkipMap();
+      it('should remove multiple items with mixed order #1', () => {
+        const indexMapper = new IndexMapper();
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
+        const skipMap = new SkipMap();
 
-      indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
-      indexMapper.registerMap('indexToValueMap', indexToValueMap);
-      indexMapper.registerMap('skipMap', skipMap);
-      indexMapper.initToLength(10);
-      skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+        indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
+        indexMapper.registerMap('indexToValueMap', indexToValueMap);
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(10);
+        skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
 
-      indexMapper.removeIndexes([0, 1, 3, 5]);
+        indexMapper.removeIndexes([0, 1, 3, 5]);
 
-      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
-      expect(indexMapper.getNotSkippedIndexes()).toEqual([3, 5]);
-      // Next values (indexes) are recounted (re-indexed).
-      expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
-      // Next values are just preserved.
-      expect(indexToValueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
-      expect(skipMap.getValues()).toEqual([true, true, true, false, true, false]);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([3, 5]);
+        // Next values (indexes) are recounted (re-indexed).
+        expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
+        // Next values are just preserved.
+        expect(indexToValueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
+        expect(skipMap.getValues()).toEqual([true, true, true, false, true, false]);
 
-      indexMapper.unregisterMap('indexToIndexMap');
-      indexMapper.unregisterMap('indexToValueMap');
-      indexMapper.unregisterMap('skipMap');
-    });
+        indexMapper.unregisterMap('indexToIndexMap');
+        indexMapper.unregisterMap('indexToValueMap');
+        indexMapper.unregisterMap('skipMap');
+      });
 
-    it('should remove multiple items with mixed order #2', () => {
-      const indexMapper = new IndexMapper();
-      const indexToIndexMap = new IndexToIndexMap();
-      const indexToValueMap = new IndexToValueMap(index => index + 2);
-      const skipMap = new SkipMap();
+      it('should remove multiple items with mixed order #2', () => {
+        const indexMapper = new IndexMapper();
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
+        const skipMap = new SkipMap();
 
-      indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
-      indexMapper.registerMap('indexToValueMap', indexToValueMap);
-      indexMapper.registerMap('skipMap', skipMap);
-      indexMapper.initToLength(10);
-      skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+        indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
+        indexMapper.registerMap('indexToValueMap', indexToValueMap);
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(10);
+        skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
 
-      indexMapper.removeIndexes([5, 3, 1, 0]);
+        indexMapper.removeIndexes([5, 3, 1, 0]);
 
-      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
-      expect(indexMapper.getNotSkippedIndexes()).toEqual([3, 5]);
-      // Next values (indexes) are recounted (re-indexed).
-      expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
-      // Next values are just preserved.
-      expect(indexToValueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
-      expect(skipMap.getValues()).toEqual([true, true, true, false, true, false]);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([3, 5]);
+        // Next values (indexes) are recounted (re-indexed).
+        expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
+        // Next values are just preserved.
+        expect(indexToValueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
+        expect(skipMap.getValues()).toEqual([true, true, true, false, true, false]);
 
-      indexMapper.unregisterMap('indexToIndexMap');
-      indexMapper.unregisterMap('indexToValueMap');
-      indexMapper.unregisterMap('skipMap');
-    });
+        indexMapper.unregisterMap('indexToIndexMap');
+        indexMapper.unregisterMap('indexToValueMap');
+        indexMapper.unregisterMap('skipMap');
+      });
 
-    it('should remove multiple items with mixed order #3', () => {
-      const indexMapper = new IndexMapper();
-      const indexToIndexMap = new IndexToIndexMap();
-      const indexToValueMap = new IndexToValueMap(index => index + 2);
-      const skipMap = new SkipMap();
+      it('should remove multiple items with mixed order #3', () => {
+        const indexMapper = new IndexMapper();
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
+        const skipMap = new SkipMap();
 
-      indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
-      indexMapper.registerMap('indexToValueMap', indexToValueMap);
-      indexMapper.registerMap('skipMap', skipMap);
-      indexMapper.initToLength(10);
-      skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+        indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
+        indexMapper.registerMap('indexToValueMap', indexToValueMap);
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(10);
+        skipMap.setValues([true, false, true, false, true, false, true, false, true, false]);
 
-      indexMapper.removeIndexes([0, 5, 3, 1]);
+        indexMapper.removeIndexes([0, 5, 3, 1]);
 
-      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
-      expect(indexMapper.getNotSkippedIndexes()).toEqual([3, 5]);
-      // Next values (indexes) are recounted (re-indexed).
-      expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
-      // Next values are just preserved.
-      expect(indexToValueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
-      expect(skipMap.getValues()).toEqual([true, true, true, false, true, false]);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([3, 5]);
+        // Next values (indexes) are recounted (re-indexed).
+        expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
+        // Next values are just preserved.
+        expect(indexToValueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
+        expect(skipMap.getValues()).toEqual([true, true, true, false, true, false]);
 
-      indexMapper.unregisterMap('indexToIndexMap');
-      indexMapper.unregisterMap('indexToValueMap');
-      indexMapper.unregisterMap('skipMap');
+        indexMapper.unregisterMap('indexToIndexMap');
+        indexMapper.unregisterMap('indexToValueMap');
+        indexMapper.unregisterMap('skipMap');
+      });
     });
   });
 
@@ -659,7 +662,7 @@ describe('IndexMapper', () => {
       expect(indexMapper.getIndexesSequence()).toEqual([8, 2, 4, 0, 1, 3, 5, 6, 7, 9]);
     });
 
-    it('should not change order of itens after specific move', () => {
+    it('should not change order of items after specific move', () => {
       const indexMapper = new IndexMapper();
       indexMapper.initToLength(10);
 
