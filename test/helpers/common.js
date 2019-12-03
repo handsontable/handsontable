@@ -242,7 +242,6 @@ export async function selectContextSubmenuOption(submenuName, optionName) {
 
 export function closeContextMenu() {
   $(document).simulate('mousedown');
-  // $(document).trigger('mousedown');
 }
 
 /**
