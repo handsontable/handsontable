@@ -19,9 +19,15 @@ class VisualIndexToPhysicalIndexMap extends IndexMap {
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
+    // console.log(insertionIndex, insertedIndexes.slice(), this.indexedValues.slice());
+
     const listAfterUpdate = getIncreasedIndexes(this.indexedValues, insertionIndex, insertedIndexes);
 
+    // console.log(listAfterUpdate.slice());
+
     this.indexedValues = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes);
+
+    // console.log(this.indexedValues.slice());
 
     super.insert(insertionIndex, insertedIndexes);
   }
