@@ -1823,7 +1823,7 @@ declare namespace Handsontable {
       afterRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
       afterRender?: (isForced: boolean) => void;
       afterRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
-      afterRowMove?: (startRow: number, endRow: number) => void;
+      afterRowMove?: (rows: number[], target: number) => void;
       afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
       afterScrollHorizontally?: () => void;
       afterScrollVertically?: () => void;
