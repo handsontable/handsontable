@@ -230,6 +230,31 @@ describe('Filters UI', () => {
       ]);
     });
 
+    it('should not select dropdown menu item while pressing arrow up key when filter\'s input component is focused (#6506)', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300,
+      });
+
+      dropdownMenu(2);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('mousedown').simulate('mouseup').simulate('click');
+      // "Is equal to"
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown').simulate('mouseup').simulate('click');
+
+      await sleep(100); // Wait for autofocus of the filter input element
+
+      document.activeElement.value = '123';
+
+      keyDownUp('arrow_up');
+      keyDownUp('arrow_up');
+
+      expect(getPlugin('dropdownMenu').menu.hasSelectedItem()).toBe(false);
+    });
+
     it('should appear specified conditional options menu depends on cell types when table has all filtered rows', () => {
       handsontable({
         data: getDataForFilters(),
@@ -359,7 +384,7 @@ describe('Filters UI', () => {
     });
 
     it('should disappear dropdown menu after hitting ESC key in conditional component ' +
-      'which don\'t show other input and focus is loosen #86', (done) => {
+      'which don\'t show other input and focus is loosen #86', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -369,20 +394,31 @@ describe('Filters UI', () => {
         height: 300
       });
 
-      dropdownMenu(1);
-      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-      $(conditionMenuRootElements().first).find('tbody td:contains("Is empty")').simulate('mousedown').simulate('mouseup');
+      const button = hot().view.wt.wtTable.getColumnHeader(1).querySelector('.changeType');
 
-      setTimeout(() => {
-        keyDownUp('esc');
+      $(button).simulate('mousedown');
 
-        expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
-        expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
-        done();
-      }, 200);
+      // This sleep emulates more realistic user behavior. The `mouseup` event in all cases is not
+      // triggered directly after the `mousedown` event. First of all, a user is not able to
+      // click so fast. Secondly, there can be a device lag between `mousedown` and `mouseup`
+      // events. This fixes an issue related to failing test, which works on browser under
+      // user control but fails while automatic tests.
+      await sleep(0);
+
+      $(button).simulate('mouseup');
+      $(button).simulate('click');
+
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('mousedown').simulate('mouseup').simulate('click');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Is empty")').simulate('mousedown').simulate('mouseup').simulate('click');
+
+      await sleep(200);
+      keyDownUp('esc');
+
+      expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
+      expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
     });
 
-    it('should disappear dropdown menu after hitting ESC key, next to closing SelectUI #149', (done) => {
+    it('should disappear dropdown menu after hitting ESC key, next to closing SelectUI #149', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -392,16 +428,29 @@ describe('Filters UI', () => {
         height: 300
       });
 
-      dropdownMenu(1);
-      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      const button = hot().view.wt.wtTable.getColumnHeader(1).querySelector('.changeType');
 
-      setTimeout(() => {
-        keyDownUp('esc');
-        keyDownUp('esc');
-        expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
-        expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
-        done();
-      }, 200);
+      $(button).simulate('mousedown');
+
+      // This sleep emulates more realistic user behavior. The `mouseup` event in all cases is not
+      // triggered directly after the `mousedown` event. First of all, a user is not able to
+      // click so fast. Secondly, there can be a device lag between `mousedown` and `mouseup`
+      // events. This fixes an issue related to failing test, which works on browser under
+      // user control but fails while automatic tests.
+      await sleep(0);
+
+      $(button).simulate('mouseup');
+      $(button).simulate('click');
+
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('mousedown').simulate('mouseup').simulate('click');
+
+      await sleep(200);
+
+      keyDownUp('esc');
+      keyDownUp('esc');
+
+      expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
+      expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
     });
 
     it('should focus dropdown menu after closing select component', () => {

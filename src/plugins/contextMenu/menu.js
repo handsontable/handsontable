@@ -5,6 +5,7 @@ import {
   fastInnerHTML,
   getScrollbarWidth,
   isChildOf,
+  isInput,
   removeClass,
   getParentWindow,
 } from './../../helpers/dom/element';
@@ -670,6 +671,14 @@ class Menu {
    * @param {Event} event
    */
   onBeforeKeyDown(event) {
+    // For input elements, prevent event propagation. It allows entering text into an input
+    // element freely - without steeling the key events from the menu module (#6506).
+    if (isInput(event.target)) {
+      stopImmediatePropagation(event);
+
+      return;
+    }
+
     const selection = this.hotMenu.getSelectedLast();
     let stopEvent = false;
     this.keyEvent = true;
