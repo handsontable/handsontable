@@ -775,10 +775,40 @@ describe('IndexMapper', () => {
         indexMapper.moveIndexes([7, 2, 1, 6], 4);
         expect(indexMapper.getIndexesSequence()).toEqual([0, 3, 4, 5, 7, 2, 1, 6, 8, 9]);
       });
+
+      it('index of one from the moved elements is equal to the final index #1', () => {
+        const indexMapper = new IndexMapper();
+        indexMapper.initToLength(10);
+
+        indexMapper.moveIndexes([7, 8], 8);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 9, 7, 8]);
+      });
+
+      it('index of one from the moved elements is equal to the final index #2', () => {
+        const indexMapper = new IndexMapper();
+        indexMapper.initToLength(10);
+
+        indexMapper.moveIndexes([8, 7], 8);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 9, 8, 7]);
+      });
     });
 
     describe('should move items properly when there are skipped indexes', () => {
-      it('from the top down to element before skipped index', () => {
+      it('from the top, down to element with skipped index - actually placing it just after the skipped indexes', () => {
+        const indexMapper = new IndexMapper();
+        const skipMap = new SkipMap();
+
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(6);
+        skipMap.setValues([false, false, false, true, true, false]);
+
+        indexMapper.moveIndexes([0], 3);
+
+        expect(indexMapper.getIndexesSequence()).toEqual([1, 2, 3, 4, 0, 5]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([1, 2, 0, 5]);
+      });
+
+      it('from the top, down to element before skipped index', () => {
         const indexMapper = new IndexMapper();
         const skipMap = new SkipMap();
 
@@ -792,7 +822,7 @@ describe('IndexMapper', () => {
         expect(indexMapper.getNotSkippedIndexes()).toEqual([1, 2, 3, 0, 5, 6, 7, 8, 9]);
       });
 
-      it('from the bottom up to element before skipped index', () => {
+      it('from the bottom, up to element before skipped index', () => {
         const indexMapper = new IndexMapper();
         const skipMap = new SkipMap();
 
@@ -804,6 +834,20 @@ describe('IndexMapper', () => {
 
         expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 6, 3, 4, 5, 7, 8, 9]);
         expect(indexMapper.getNotSkippedIndexes()).toEqual([0, 1, 2, 6, 3, 5, 7, 8, 9]);
+      });
+
+      it('from the bottom, up to element before skipped index - actually placing it just after the skipped indexes', () => {
+        const indexMapper = new IndexMapper();
+        const skipMap = new SkipMap();
+
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(6);
+        skipMap.setValues([false, false, true, true, false, false]);
+
+        indexMapper.moveIndexes([3], 2); // Moving physical index 5 as there are two skipped index before the moved element.
+
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 5, 4]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([0, 1, 5, 4]);
       });
 
       it('when first few starting indexes are skipped', () => {
