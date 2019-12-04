@@ -418,7 +418,7 @@ export function handsontableKeyTriggerFactory(type) {
     } else if (typeof keyToTrigger === 'number') {
       ev.keyCode = keyToTrigger;
     }
-    //    ev.originalEvent = {}; //needed as long Handsontable searches for event.originalEvent
+
     $.extend(ev, extend);
     $(document.activeElement).simulate(type, ev);
   };

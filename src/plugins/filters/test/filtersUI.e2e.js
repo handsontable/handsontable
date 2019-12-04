@@ -230,6 +230,31 @@ describe('Filters UI', () => {
       ]);
     });
 
+    it('should not select dropdown menu item while pressing arrow up key when filter\'s input component is focused (#6506)', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300,
+      });
+
+      dropdownMenu(2);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('mousedown').simulate('mouseup').simulate('click');
+      // "Is equal to"
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown').simulate('mouseup').simulate('click');
+
+      await sleep(100); // Wait for autofocus of the filter input element
+
+      document.activeElement.value = '123';
+
+      keyDownUp('arrow_up');
+      keyDownUp('arrow_up');
+
+      expect(getPlugin('dropdownMenu').menu.hasSelectedItem()).toBe(false);
+    });
+
     it('should appear specified conditional options menu depends on cell types when table has all filtered rows', () => {
       handsontable({
         data: getDataForFilters(),
