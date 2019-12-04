@@ -89,11 +89,13 @@ class Walkontable {
 
       if (runFastDraw) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
-        this.wtOverlays.resetFixedPositions();
+        this.wtOverlays.resetFixedPositions(); // only if "resetFixedPositions" is before "refresh", the border is correctly drawn in overlays
         this.wtOverlays.refresh(true);
       } else {
-        this.wtOverlays.refresh(false);
         this.wtOverlays.applyToDOM();
+        this.wtOverlays.resetFixedPositions();
+
+        this.wtOverlays.refresh(false);
         this.wtOverlays.resetFixedPositions();
       }
       if (syncScroll) {

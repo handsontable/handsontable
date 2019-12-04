@@ -26,6 +26,7 @@ describe('WalkontableOverlay', () => {
       fixedRowsBottom: 2,
     });
     wt.draw();
+    // wt.draw(); // TODO as it turns out, the desired rendering is only visible after the second draw. A problem that does not appear in HOT but appears in raw WOT. Why?
 
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(47);
     expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).height()).toBe(47);
