@@ -74,6 +74,50 @@ class Walkontable {
    * @returns {Walkontable}
    */
   draw(fastDraw = false) {
+    if (this.cloneOverlay) {
+      throw new Error('This should not be called in clone');
+    }
+
+    this.drawInterrupted = false;
+
+    if (!fastDraw && !this.wtTable.isVisible()) {
+      // draw interrupted because TABLE is not visible
+      this.drawInterrupted = true;
+    } else {
+      const runFastDraw = this.wtTable.draw(fastDraw);
+      const syncScroll = this.wtOverlays.prepareOverlays();
+
+      if (runFastDraw) {
+        // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
+        this.wtOverlays.resetFixedPositions();
+        this.wtOverlays.refresh(true);
+      } else {
+        this.wtOverlays.refresh(false);
+        this.wtOverlays.applyToDOM();
+        this.wtOverlays.resetFixedPositions();
+      }
+      if (syncScroll) {
+        this.wtOverlays.syncScrollWithMaster();
+      }
+      this.drawn = true;
+    }
+
+    return this;
+  }
+
+  /**
+   * Force rerender of Walkontable
+   *
+   * @param {Boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
+   *                                   the data. It will only work if Table.draw() does not force
+   *                                   rendering anyway
+   * @returns {Walkontable}
+   */
+  drawClone(fastDraw = false) {
+    if (!this.cloneOverlay) {
+      throw new Error('This should be called in clone');
+    }
+
     this.drawInterrupted = false;
 
     if (!fastDraw && !this.wtTable.isVisible()) {

@@ -231,7 +231,6 @@ class Table {
     const rowHeadersCount = rowHeaders.length;
     const columnHeaders = wot.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
-    let syncScroll = false;
     let runFastDraw = fastDraw;
 
     if (this.isMaster) {
@@ -250,21 +249,11 @@ class Table {
       }
     }
 
-    if (this.isMaster) {
-      syncScroll = wtOverlays.prepareOverlays();
-      // wtOverlays.resetFixedPositions();
-    }
-
     if (runFastDraw) {
       if (this.isMaster) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
         wtViewport.createVisibleCalculators();
-        wtOverlays.resetFixedPositions();
       }
-      if (wtOverlays) {
-        wtOverlays.refresh(true);
-      }
-
     } else {
       if (this.isMaster) {
         this.tableOffset = offset(this.TABLE);
@@ -322,10 +311,6 @@ class Table {
 
         if (this.isMaster) {
           this.wot.wtViewport.createVisibleCalculators();
-          this.wot.wtOverlays.refresh(false);
-          // wtOverlays.resetFixedPositions();
-          this.wot.wtOverlays.applyToDOM();
-          wtOverlays.resetFixedPositions();
 
           const hiderWidth = outerWidth(this.hider);
           const tableWidth = outerWidth(this.TABLE);
@@ -351,15 +336,7 @@ class Table {
       }
     }
 
-    if (this.isMaster) {
-      // wtOverlays.resetFixedPositions();
-    }
-
     this.refreshSelections(runFastDraw);
-
-    if (syncScroll) {
-      wtOverlays.syncScrollWithMaster();
-    }
 
     return runFastDraw;
   }
