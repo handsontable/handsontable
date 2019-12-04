@@ -252,14 +252,14 @@ class Table {
 
     if (this.isMaster) {
       syncScroll = wtOverlays.prepareOverlays();
-      // this.resetFixedPositions();
+      // wtOverlays.resetFixedPositions();
     }
 
     if (runFastDraw) {
       if (this.isMaster) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
         wtViewport.createVisibleCalculators();
-        this.resetFixedPositions();
+        wtOverlays.resetFixedPositions();
       }
       if (wtOverlays) {
         wtOverlays.refresh(true);
@@ -323,8 +323,9 @@ class Table {
         if (this.isMaster) {
           this.wot.wtViewport.createVisibleCalculators();
           this.wot.wtOverlays.refresh(false);
+          // wtOverlays.resetFixedPositions();
           this.wot.wtOverlays.applyToDOM();
-          this.resetFixedPositions();
+          wtOverlays.resetFixedPositions();
 
           const hiderWidth = outerWidth(this.hider);
           const tableWidth = outerWidth(this.TABLE);
@@ -351,7 +352,7 @@ class Table {
     }
 
     if (this.isMaster) {
-      // this.resetFixedPositions();
+      // wtOverlays.resetFixedPositions();
     }
 
     this.refreshSelections(runFastDraw);
@@ -363,29 +364,6 @@ class Table {
     wot.drawn = true;
 
     return this;
-  }
-
-  /**
-   * For every overlay in the instance, update the overlay's position
-   */
-  resetFixedPositions() {
-    const { wtOverlays } = this.wot;
-
-    wtOverlays.topOverlay.resetFixedPosition();
-
-    if (wtOverlays.bottomOverlay.clone) {
-      wtOverlays.bottomOverlay.resetFixedPosition();
-    }
-
-    wtOverlays.leftOverlay.resetFixedPosition();
-
-    if (wtOverlays.topLeftCornerOverlay) {
-      wtOverlays.topLeftCornerOverlay.resetFixedPosition();
-    }
-
-    if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
-      wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
-    }
   }
 
   markIfOversizedColumnHeader(col) {

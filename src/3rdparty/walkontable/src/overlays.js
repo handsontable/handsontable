@@ -481,6 +481,27 @@ class Overlays {
   }
 
   /**
+   * For every overlay in the instance, update the overlay's position
+   */
+  resetFixedPositions() {
+    this.topOverlay.resetFixedPosition();
+
+    if (this.bottomOverlay.clone) {
+      this.bottomOverlay.resetFixedPosition();
+    }
+
+    this.leftOverlay.resetFixedPosition();
+
+    if (this.topLeftCornerOverlay) {
+      this.topLeftCornerOverlay.resetFixedPosition();
+    }
+
+    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
+      this.bottomLeftCornerOverlay.resetFixedPosition();
+    }
+  }
+
+  /**
    * Adjust overlays elements size and master table size
    *
    * @param {Boolean} [force=false]
