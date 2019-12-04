@@ -220,7 +220,7 @@ class Table {
    *
    * @param {Boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
    *                                   If FALSE or UNDEFINED, will perform a full redraw.
-   * @returns {Table}
+   * @returns {Boolean} TRUE if fastDraw was performed or FALSE if fastDraw was not possible or not requested
    */
   draw(fastDraw = false) {
     const { wot } = this;
@@ -361,9 +361,7 @@ class Table {
       wtOverlays.syncScrollWithMaster();
     }
 
-    wot.drawn = true;
-
-    return this;
+    return runFastDraw;
   }
 
   markIfOversizedColumnHeader(col) {

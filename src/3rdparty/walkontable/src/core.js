@@ -81,6 +81,7 @@ class Walkontable {
       this.drawInterrupted = true;
     } else {
       this.wtTable.draw(fastDraw);
+      this.drawn = true;
     }
 
     return this;
