@@ -279,18 +279,26 @@ class IndexMapper {
     const physicalMovedIndexes = arrayMap(movedIndexes, visualIndex => this.getPhysicalIndex(visualIndex));
     const notSkippedIndexesLength = this.getNotSkippedIndexesLength();
     const movedIndexesLength = movedIndexes.length;
+    let adaptedFinalIndex = finalIndex;
+
+    // When item(s) are moved after the last visible item we assign the last possible index.
+    if (finalIndex + movedIndexesLength > notSkippedIndexesLength) {
+      adaptedFinalIndex = notSkippedIndexesLength - movedIndexesLength; // Last possible, not skipped, final index.
+    }
 
     // Removing indexes without re-indexing.
     const listWithRemovedItems = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
+    const listOfNotSkippedItems = listWithRemovedItems.filter(index => this.isSkipped(index) === false);
 
-    // When item(s) are moved after the last visible item we assign the last possible index.
-    let destinationPosition = notSkippedIndexesLength - movedIndexesLength;
+    // We find proper index for inserted item(s). Physical index at final index position.
+    const physicalIndex = listOfNotSkippedItems[adaptedFinalIndex];
+    let destinationPosition; // Position for the list with removed items.
 
-    // Otherwise, we find proper index for inserted item(s).
-    if (finalIndex + movedIndexesLength < notSkippedIndexesLength) {
-      // Physical index at final index position.
-      const physicalIndex = listWithRemovedItems.filter(index => this.isSkipped(index) === false)[finalIndex];
+    if (isDefined(physicalIndex)) {
       destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
+
+    } else {
+      destinationPosition = notSkippedIndexesLength - movedIndexesLength; // Last possible, not skipped, final index.
     }
 
     // Adding indexes without re-indexing.

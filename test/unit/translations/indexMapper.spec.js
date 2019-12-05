@@ -794,7 +794,7 @@ describe('IndexMapper', () => {
     });
 
     describe('should move items properly when there are skipped indexes', () => {
-      it('from the top, down to element with skipped index - actually placing it just after the skipped indexes', () => {
+      it('single index from the top, down to element with skipped index - actually placing it just after the skipped indexes', () => {
         const indexMapper = new IndexMapper();
         const skipMap = new SkipMap();
 
@@ -802,10 +802,24 @@ describe('IndexMapper', () => {
         indexMapper.initToLength(6);
         skipMap.setValues([false, false, false, true, true, false]);
 
-        indexMapper.moveIndexes([0], 3);
+        indexMapper.moveIndexes([0], 2);
 
         expect(indexMapper.getIndexesSequence()).toEqual([1, 2, 3, 4, 0, 5]);
         expect(indexMapper.getNotSkippedIndexes()).toEqual([1, 2, 0, 5]);
+      });
+
+      it('multiple indexes from the top, down to element with skipped index - actually placing it just after the skipped indexes', () => {
+        const indexMapper = new IndexMapper();
+        const skipMap = new SkipMap();
+
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(6);
+        skipMap.setValues([false, false, false, true, true, false]);
+
+        indexMapper.moveIndexes([1, 0], 1);
+
+        expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 1, 0, 5]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([2, 1, 0, 5]);
       });
 
       it('from the top, down to element before skipped index', () => {
@@ -836,18 +850,32 @@ describe('IndexMapper', () => {
         expect(indexMapper.getNotSkippedIndexes()).toEqual([0, 1, 2, 6, 3, 5, 7, 8, 9]);
       });
 
-      it('from the bottom, up to element before skipped index - actually placing it just after the skipped indexes', () => {
+      it('single index from from the bottom, up to element before skipped index - actually placing it just after the skipped indexes', () => {
         const indexMapper = new IndexMapper();
         const skipMap = new SkipMap();
 
         indexMapper.registerMap('skipMap', skipMap);
         indexMapper.initToLength(6);
-        skipMap.setValues([false, false, true, true, false, false]);
+        skipMap.setValues([false, true, true, false, false, false]);
 
-        indexMapper.moveIndexes([3], 2); // Moving physical index 5 as there are two skipped index before the moved element.
+        indexMapper.moveIndexes([3], 1); // Moving physical index 5 as there are two skipped index before the moved element.
 
-        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 5, 4]);
-        expect(indexMapper.getNotSkippedIndexes()).toEqual([0, 1, 5, 4]);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 5, 3, 4]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([0, 5, 3, 4]);
+      });
+
+      it('multiple indexes from from the bottom, up to element before skipped index - actually placing it just after the skipped indexes', () => {
+        const indexMapper = new IndexMapper();
+        const skipMap = new SkipMap();
+
+        indexMapper.registerMap('skipMap', skipMap);
+        indexMapper.initToLength(6);
+        skipMap.setValues([false, true, true, false, false, false]);
+
+        indexMapper.moveIndexes([3, 2], 1); // Moving physical indexes 5 and 4 as there are two skipped index before the moved element.
+
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 5, 4, 3]);
+        expect(indexMapper.getNotSkippedIndexes()).toEqual([0, 5, 4, 3]);
       });
 
       it('when first few starting indexes are skipped', () => {
@@ -864,7 +892,7 @@ describe('IndexMapper', () => {
         expect(indexMapper.getNotSkippedIndexes()).toEqual([5, 6, 3, 4, 7, 8, 9]);
       });
 
-      it('when few last indexes are skipped #1', () => {
+      it('when few last indexes are skipped - move to the last visible position', () => {
         const indexMapper = new IndexMapper();
         const skipMap = new SkipMap();
 
@@ -877,7 +905,7 @@ describe('IndexMapper', () => {
         expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 0, 1, 7, 8, 9]);
       });
 
-      it('when few last indexes are skipped #2', () => {
+      it('when few last indexes are skipped - try of moving items to the too height index', () => {
         const indexMapper = new IndexMapper();
         const skipMap = new SkipMap();
 
