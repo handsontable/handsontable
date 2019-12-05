@@ -2,6 +2,8 @@ describe('Walkontable Border Renderer', () => {
   const debug = false;
 
   const THIN_GREEN_BORDER = { color: 'green', width: 1 };
+  const THIN_GREEN_BORDER_HEX = { color: '#0F0', width: 1 };
+  const THIN_GREEN_BORDER_RGB = { color: 'rgb(0%,   100%,   0%)', width: 1 }; // color contains spaces for additional complexity
   const THIN_RED_BORDER = { color: 'red', width: 1 };
   const MEDIUM_GREEN_BORDER = { color: 'green', width: 2 };
   const MEDIUM_RED_BORDER = { color: 'red', width: 2 };
@@ -464,6 +466,71 @@ describe('Walkontable Border Renderer', () => {
       expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 99 24 99 47', 'M 51 46 100 46']);
       expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['2px green vertical', '4px green horizontal']);
 
+    });
+  });
+
+  describe('colors', () => {
+    it('should correctly apply color expressed by keyword', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        selections: [
+          generateSelection({
+            left: THIN_GREEN_BORDER,
+          }).add(new Walkontable.CellCoords(0, 0))
+        ]
+      });
+      const expectedStrokeStyle = '1px green vertical';
+
+      wt.draw();
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual([expectedStrokeStyle]);
+
+      const elem = document.querySelector(`svg path[data-stroke-style='${expectedStrokeStyle}']`);
+
+      expect(elem.getAttribute('stroke')).toEqual('green');
+    });
+
+    it('should correctly apply color expressed by hex', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        selections: [
+          generateSelection({
+            left: THIN_GREEN_BORDER_HEX,
+          }).add(new Walkontable.CellCoords(0, 0))
+        ]
+      });
+      const expectedStrokeStyle = '1px #0F0 vertical';
+
+      wt.draw();
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual([expectedStrokeStyle]);
+
+      const elem = document.querySelector(`svg path[data-stroke-style='${expectedStrokeStyle}']`);
+
+      expect(elem.getAttribute('stroke')).toEqual('#0F0');
+    });
+
+    it('should correctly apply color expressed by rgb()', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        selections: [
+          generateSelection({
+            left: THIN_GREEN_BORDER_RGB,
+          }).add(new Walkontable.CellCoords(0, 0))
+        ]
+      });
+      const expectedStrokeStyle = '1px rgb(0%,   100%,   0%) vertical';
+
+      wt.draw();
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual([expectedStrokeStyle]);
+
+      const elem = document.querySelector(`svg path[data-stroke-style='${expectedStrokeStyle}']`);
+
+      expect(elem.getAttribute('stroke')).toEqual('rgb(0%,   100%,   0%)');
     });
   });
 });

@@ -5,8 +5,8 @@ let stringifyPath;
  *
  * `styles` is an array of stroke style strings, e.g.:
  * [
- *   '1px black',
- *   '2px #FF0000'
+ *   '1px rgb(0, 0, 0) horizontal',
+ *   '2px #FF0000 vertical'
  * ]
  *
  * `commands` is an array of path commands strings for each style, e.g.:
@@ -106,7 +106,7 @@ export function compareStrokePriority(style1, style2) {
  * Returns a state object for given style. Creates the state object if requested for the first time.
  *
  * @param {Map.<string, Object>} states
- * @param {String} style Stroke style description in format `width color direction`, e.g. `1px black horizontal`
+ * @param {String} style Stroke style description in format `width color direction`, e.g. `1px rgb(0, 0, 0) horizontal`
  * @param {HTMLElement} parent <svg> or <g> HTML element where the <path> elements should be appended
  */
 function getStateForStyle(states, style, parent) {
@@ -114,7 +114,10 @@ function getStateForStyle(states, style, parent) {
 
   if (!state) {
     const elem = parent.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'path');
-    const [size, color] = style.split(' ');
+    const styleSplitted = style.split(' ');
+    const size = styleSplitted.shift();
+    styleSplitted.pop(); // last item in the array is direction. Remove it, so we are left with color
+    const color = styleSplitted.join(' ');
 
     elem.setAttribute('stroke', color);
     elem.setAttribute('stroke-width', parseInt(size, 10));
