@@ -74,7 +74,7 @@ function renderState(state) {
  *
  * @param {string} style1
  * @param {string} style2
- * @returns {Number} 1 if path1 has a higher priority than path2, 0 if path1 has the same priority as path2, -1 if path1 has a lower priority than path2
+ * @returns {Number} 1 if style1 has a higher priority than style2, 0 if style1 has the same priority as style2, -1 if style1 has a lower priority than style2
  */
 export function compareStrokePriority(style1, style2) {
   const [size1, color1, direction1] = style1.split(' ');
