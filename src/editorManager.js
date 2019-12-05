@@ -4,6 +4,7 @@ import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStoppe
 import { getEditorInstance } from './editors';
 import EventManager from './eventManager';
 import { EditorState } from './editors/_baseEditor';
+import { getParentWindow } from './helpers/dom/element';
 
 class EditorManager {
   /**
@@ -79,7 +80,7 @@ class EditorManager {
         }
       });
 
-      frame = frame.frameElement && frame.frameElement.ownerDocument.defaultView;
+      frame = getParentWindow(frame);
     }
 
     // Open editor when text composition is started (IME editor)
