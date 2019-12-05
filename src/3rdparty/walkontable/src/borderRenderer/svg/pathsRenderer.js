@@ -1,3 +1,5 @@
+import { convertCssColorToRGBA, compareLuminance } from './color';
+
 let stringifyPath;
 
 /**
@@ -77,8 +79,16 @@ function renderState(state) {
  * @returns {Number} 1 if style1 has a higher priority than style2, 0 if style1 has the same priority as style2, -1 if style1 has a lower priority than style2
  */
 export function compareStrokePriority(style1, style2) {
-  const [size1, color1, direction1] = style1.split(' ');
-  const [size2, color2, direction2] = style2.split(' ');
+  const styleSplitted1 = style1.split(' ');
+  const size1 = styleSplitted1.shift();
+  const styleSplitted2 = style2.split(' ');
+  const size2 = styleSplitted2.shift();
+
+  const direction1 = styleSplitted1.pop();
+  const direction2 = styleSplitted2.pop();
+
+  const color1 = styleSplitted1.join(' ').toLowerCase();
+  const color2 = styleSplitted2.join(' ').toLowerCase();
   const parsedSize1 = parseInt(size1, 10);
   const parsedSize2 = parseInt(size2, 10);
 
@@ -89,12 +99,20 @@ export function compareStrokePriority(style1, style2) {
     return -1;
   }
 
+  // the lines have the same width. Sort them by the color (the darkest has a higher priority)
+  const luminanceResult = compareLuminance(convertCssColorToRGBA(color2), convertCssColorToRGBA(color1));
+
+  if (luminanceResult !== 0) {
+    return luminanceResult;
+  }
+
+  // size and luminance are the same, compare by direction
   const isHorizontal1 = direction1 === 'horizontal';
   const isHorizontal2 = direction2 === 'horizontal';
   const areParallel = isHorizontal1 === isHorizontal2;
 
   if (areParallel) {
-    return color1.localeCompare(color2); // the lines have the same priority. Sort them by name to keep the order stable
+    return 0;
   }
   if (isHorizontal1) {
     return 1;

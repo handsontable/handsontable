@@ -24,25 +24,23 @@ describe('borderRenderer', () => {
         expect(compareStrokePriority('1px black horizontal', '1px beige horizontal')).toBe(1);
         expect(compareStrokePriority('1px beige horizontal', '1px black horizontal')).toBe(-1);
 
-        // TODO the below comparisons don't work as expected, see: https://github.com/handsontable/handsontable/issues/6453
+        expect(compareStrokePriority('1px darkred horizontal', '1px red horizontal')).toBe(1);
+        expect(compareStrokePriority('1px red horizontal', '1px darkred horizontal')).toBe(-1);
 
-        // expect(compareStrokePriority('1px darkred horizontal', '1px red horizontal')).toBe(1);
-        // expect(compareStrokePriority('1px red horizontal', '1px darkred horizontal')).toBe(-1);
+        expect(compareStrokePriority('1px darkred horizontal', '1px RED horizontal')).toBe(1);
+        expect(compareStrokePriority('1px RED horizontal', '1px darkred horizontal')).toBe(-1);
 
-        // expect(compareStrokePriority('1px darkred horizontal', '1px RED horizontal')).toBe(1);
-        // expect(compareStrokePriority('1px RED horizontal', '1px darkred horizontal')).toBe(-1);
+        expect(compareStrokePriority('1px #000000 horizontal', '1px #FFFFFF horizontal')).toBe(1);
+        expect(compareStrokePriority('1px #FFFFFF horizontal', '1px #000000 horizontal')).toBe(-1);
 
-        // expect(compareStrokePriority('1px #000000 horizontal', '1px #FFFFFF horizontal')).toBe(1);
-        // expect(compareStrokePriority('1px #FFFFFF horizontal', '1px #000000 horizontal')).toBe(-1);
+        expect(compareStrokePriority('1px rgb(0, 0, 0) horizontal', '1px rgb(255, 255, 255) horizontal')).toBe(1);
+        expect(compareStrokePriority('1px rgb(255, 255, 255) horizontal', '1px rgb(0, 0, 0) horizontal')).toBe(-1);
 
-        // expect(compareStrokePriority('1px rgb(0, 0, 0) horizontal', '1px rgb(255, 255, 255) horizontal')).toBe(1);
-        // expect(compareStrokePriority('1px rgb(255, 255, 255) horizontal', '1px rgb(0, 0, 0) horizontal')).toBe(-1);
+        expect(compareStrokePriority('1px rgba(0, 0, 0, 1) horizontal', '1px rgba(255, 255, 255, 1) horizontal')).toBe(1);
+        expect(compareStrokePriority('1px rgba(255, 255, 255, 1) horizontal', '1px rgba(0, 0, 0, 1) horizontal')).toBe(-1);
 
-        // expect(compareStrokePriority('1px rgba(0, 0, 0, 1) horizontal', '1px rgba(255, 255, 255, 1) horizontal')).toBe(1);
-        // expect(compareStrokePriority('1px rgba(255, 255, 255, 1) horizontal', '1px rgba(0, 0, 0, 1) horizontal')).toBe(-1);
-
-        // expect(compareStrokePriority('1px black horizontal', '1px white horizontal')).toBe(1);
-        // expect(compareStrokePriority('1px white horizontal', '1px black horizontal')).toBe(-1);
+        expect(compareStrokePriority('1px black horizontal', '1px white horizontal')).toBe(1);
+        expect(compareStrokePriority('1px white horizontal', '1px black horizontal')).toBe(-1);
       });
     });
   });
