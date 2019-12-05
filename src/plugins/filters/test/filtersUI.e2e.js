@@ -477,6 +477,31 @@ describe('Filters UI', () => {
       expect(getPlugin('dropdownMenu').menu.hotMenu.isListening()).toBe(true);
     });
 
+    it('should not blur filter component\'s input element when it is clicked', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(1);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('mousedown').simulate('mouseup').simulate('click');
+      // "Is equal to"
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown').simulate('mouseup').simulate('click');
+
+      // The input element is focused asynchronously from the filter plugin code.
+      await sleep(50);
+
+      const inputElement = dropdownMenuRootElement().querySelector('.htUIInput input');
+
+      $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+
+      expect(document.activeElement).toBe(inputElement);
+    });
+
     it('shouldn\'t disappear dropdown menu after conditional options menu click', () => {
       handsontable({
         data: getDataForFilters(),
