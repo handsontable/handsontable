@@ -213,7 +213,7 @@ class Menu {
         // Restore menu focus, fix for `this.instance.unlisten();` call in the tableView.js@260 file.
         // This prevents losing table responsiveness for keyboard events when filter select menu is closed (#6497).
         if (!this.hasSelectedItem() && this.isOpened()) {
-          this.hotMenu.listen();
+          this.hotMenu.listen(false);
         }
       },
     };
