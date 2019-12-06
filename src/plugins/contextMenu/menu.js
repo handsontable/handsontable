@@ -177,6 +177,7 @@ class Menu {
       }],
       renderAllRows: true,
       fragmentSelection: false,
+      outsideClickDeselects: false,
       disableVisualSelection: 'area',
       beforeKeyDown: event => this.onBeforeKeyDown(event),
       afterOnCellMouseOver: (event, coords) => {
