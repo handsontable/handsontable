@@ -251,8 +251,10 @@ describe('Filters UI', () => {
 
       keyDownUp('arrow_up');
       keyDownUp('arrow_up');
+      keyDownUp('arrow_up');
 
-      expect(getPlugin('dropdownMenu').menu.hasSelectedItem()).toBe(false);
+      // The menu item is frozen on the lastly selected item
+      expect(getPlugin('dropdownMenu').menu.getSelectedItem().key).toBe('filter_by_condition');
     });
 
     it('should appear specified conditional options menu depends on cell types when table has all filtered rows', () => {

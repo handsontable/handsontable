@@ -1833,6 +1833,40 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
+    it('should not deselect submenu while selecting child items', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: ['row_above', 'remove_row', '---------', 'alignment'],
+        height: 400
+      });
+
+      selectCell(1, 0, 3, 0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore tbody td')
+        .not('.htSeparator')
+        .eq(2) // "Alignment"
+        .simulate('mousemove')
+        .simulate('mouseover')
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click')
+        .simulate('mouseout');
+
+      // wait for a debounced delay in the appearing sub-menu
+      await sleep(500);
+
+      $('.htContextMenuSub_Alignment .ht_master .htCore tbody td')
+        .not('.htSeparator')
+        .eq(0) // "Left"
+        .simulate('mousemove')
+        .simulate('mouseover')
+        .simulate('mousedown'); // Without finishing LMB
+
+      // The selection of the ContextMenu should be active and pointed to "alignment" item
+      expect(getPlugin('contextMenu').menu.getSelectedItem().key).toBe('alignment');
+    });
+
     it('should make a group of selected cells read-only, if all of them are writable (reverse selection)', () => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 4),
