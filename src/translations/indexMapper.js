@@ -9,22 +9,45 @@ import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
 
 /**
- * Index mapper manages the mappings provided by "smaller" maps called index map(s). Those maps provide links from
- * indexes (physical¹ or visual² depending on requirements) to another value. For example, we may link physical column
- * indexes with widths of columns. On every performed CRUD action such as insert column, move column and remove column
- * the value (column width) will stick to the proper index. The index mapper is used as the centralised source of truth
- * regarding row and column indexes (their sequence, information if they are skipped in the process of rendering,
- * values linked to them). It handles CRUD operations on indexes and translate the visual indexes to the physical
- * indexes and the other way round³. It has built in cache. Thus, this way, read operations are as fast as possible.
- * Cache updates are triggered only when the data or structure changes.
+ * Index mapper stores, registers and manages the indexes on the basis of calculations collected from this class objects.
+ * It should be seen as a single source of truth for any operation that considers CRUD actions such as **insertion**, **movement**, **removal** etc, and is used to properly calculate physical and visual indexes translations in both ways.
  *
- * ¹ Physical index is particular index from the sequence of indexes assigned to the data source rows / columns
- * (from 0 to n, where n is number of the cells on the axis).
- * ² Visual index is particular index from the sequence of indexes assigned to visible rows / columns
- * (from 0 to n, where n is number of the cells on the axis).
- * ³ It maps from visible row / column to its representation in the data source and the other way round.
- * For example, when we sorted data, our 1st visible row can represent 4th row from the original source data,
- * 2nd can be mapped to 3rd, 3rd to 2nd, etc. (keep in mind that indexes are represent from the zero).
+ * To ensure the calculation is done correctly **index mapper** also registers the skipping process
+ * and embeds **cache** which is triggered only when the data or structure changes.
+ *
+ *
+ * Index mapper can be called upon specific properties i.e. **rowIndexMapper**, **columnIndexMapper** which, respectively, manage **rows** and **columns**.
+ *
+ * **There are 3  main objects on class IndexMapper for storing different types of index information:**
+ *
+ * **-** Map for the **sequence** of indexes. It is registered by default and may be used from API methods like
+ * `getIndexesSequence`, `setIndexesSequence`, `getNumberOfIndexes` etc.
+ * ```js
+ * // type {VisualIndexToPhysicalIndexMap}
+ * this.indexesSequence = new IndexToIndexMap();
+ *
+ * ```
+ * **-** Collection for different **skip maps**. These indexes are bound to be skipped and will not be rendered.
+ * Examples of the API methods are: `getNotSkippedIndexes`, `getNotSkippedIndexesLength`, `isSkipped`
+ * ``` js
+ * // type {MapCollection}
+ * this.skipMapsCollection = new MapCollection();
+ * ```
+ *
+ * **-** Collection for any **other** kind of mapping.
+ * ``` js
+ * // type {MapCollection}
+ * this.variousMapsCollection = new MapCollection();
+ * ```
+ *
+ * **Complementary to the above there are 3 main kinds of index maps which may be registered in the collections.**
+ * They are registered to collections and can be used by reference. They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
+ *
+ * **-** `VisualIndexToPhysicalIndexMap` which provides mappings **from visual index to physical index** and update the physical index on remove/add row or column action.
+ *
+ * **-** `PhysicalIndexToValueMap` which provides mappings **from physical index to any value** and doesn't update the value on remove/add row or column action.
+ *
+ * **-** `SkipMap` - which is like `PhysicalIndexToValueMap` but for **skipping** some indexes inside index maps (values are booleans).
  */
 class IndexMapper {
   constructor() {
