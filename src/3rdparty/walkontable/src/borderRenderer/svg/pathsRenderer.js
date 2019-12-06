@@ -72,7 +72,7 @@ function renderState(state) {
 }
 
 /**
- * High stroke sizes have priority over small sizes. Darker lines have priority over ligher ones.
+ * High stroke widths have priority over small widths. Darker lines have priority over ligher ones.
  *
  * @param {string} style1
  * @param {string} style2
@@ -82,19 +82,19 @@ export function compareStrokePriority(style1, style2) {
   const styleSplitted1 = style1.split(' ');
   const styleSplitted2 = style2.split(' ');
 
-  const parsedSize1 = parseInt(styleSplitted1[0], 10);
-  const parsedSize2 = parseInt(styleSplitted2[0], 10);
-  styleSplitted1.shift(); // remove size/width
+  const parsedWidth1 = parseInt(styleSplitted1[0], 10);
+  const parsedWidth2 = parseInt(styleSplitted2[0], 10);
+  styleSplitted1.shift(); // remove width
   styleSplitted1.shift(); // remove linestyle
-  styleSplitted2.shift(); // remove size/width
+  styleSplitted2.shift(); // remove width
   styleSplitted2.shift(); // remove linestyle
   const color1 = styleSplitted1.join(' ').toLowerCase();
   const color2 = styleSplitted2.join(' ').toLowerCase();
 
-  if (parsedSize1 > parsedSize2) {
+  if (parsedWidth1 > parsedWidth2) {
     return 1;
   }
-  if (parsedSize1 < parsedSize2) {
+  if (parsedWidth1 < parsedWidth2) {
     return -1;
   }
 
@@ -115,13 +115,13 @@ function getStateForStyle(states, style, parent) {
   if (!state) {
     const elem = parent.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'path');
     const styleSplitted = style.split(' ');
-    const size = parseInt(styleSplitted[0], 10);
-    styleSplitted.shift(); // remove size/width
+    const width = parseInt(styleSplitted[0], 10);
+    styleSplitted.shift(); // remove width
     styleSplitted.shift(); // remove linestyle
     const color = styleSplitted.join(' ');
 
     elem.setAttribute('stroke', color);
-    elem.setAttribute('stroke-width', size);
+    elem.setAttribute('stroke-width', width);
     // elem.setAttribute('stroke-linecap', 'square'); // default: butt
     // elem.setAttribute('shape-rendering', 'optimizeSpeed');
     elem.setAttribute('shape-rendering', 'geometricPrecision'); // TODO why the border renders wrong when this is on
