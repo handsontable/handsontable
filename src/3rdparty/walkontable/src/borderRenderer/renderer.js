@@ -168,24 +168,24 @@ export default class BorderRenderer {
    *
    * @param {Array.<number>} lines
    * @param {Number} width
-   * @param {Boolean} isVertical
    * @param {Map} horizontalPointSizeMap
    * @param {Map} verticalPointSizeMap
    */
-  adjustTipsOfLines(lines, width, isVertical, horizontalPointSizeMap, verticalPointSizeMap) {
+  adjustTipsOfLines(lines, width, horizontalPointSizeMap, verticalPointSizeMap) {
     if (lines.length === 0) {
       return;
     }
 
-    const lookupPointSizeMap = isVertical ? horizontalPointSizeMap : verticalPointSizeMap;
-    const savedPointSizeMap = isVertical ? verticalPointSizeMap : horizontalPointSizeMap;
     const gridlineWidth = 1;
     const beginX = 0;
     const beginY = 1;
-    const beginIndex = isVertical ? beginY : beginX;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
+      const isVertical = line[0] === line[2];
+      const lookupPointSizeMap = isVertical ? horizontalPointSizeMap : verticalPointSizeMap;
+      const savedPointSizeMap = isVertical ? verticalPointSizeMap : horizontalPointSizeMap;
+      const beginIndex = isVertical ? beginY : beginX;
       const lineLength = line.length;
       const endX = lineLength - 2;
       const endY = lineLength - 1;
@@ -229,9 +229,8 @@ export default class BorderRenderer {
     pathGroup.styles.forEach((style) => {
       const lines = stylesAndLines.get(style);
       const width = parseInt(style, 10);
-      const isVertical = style.indexOf('vertical') > -1;
 
-      this.adjustTipsOfLines(lines, width, isVertical, horizontalPointSizeMap, verticalPointSizeMap);
+      this.adjustTipsOfLines(lines, width, horizontalPointSizeMap, verticalPointSizeMap);
 
       const adjustedLines = adjustLinesToViewBox(width, lines);
       const optimizedLines = svgOptimizePath(adjustedLines);
@@ -406,8 +405,7 @@ export default class BorderRenderer {
     }
 
     const color = (selectionSetting[edge] && selectionSetting[edge].color) || (selectionSetting.border && selectionSetting.border.color) || 'black';
-    const direction = (edge === 'top' || edge === 'bottom') ? 'horizontal' : 'vertical';
-    const stroke = `${width}px ${color} ${direction}`;
+    const stroke = `${width}px solid ${color}`;
     const lines = stylesAndLines.get(stroke);
 
     if (lines) {

@@ -4,43 +4,38 @@ describe('borderRenderer', () => {
   describe('pathsRenderer', () => {
     describe('compareStrokePriority', () => {
       it('should return 0 when given 2 borders that are the same', () => {
-        expect(compareStrokePriority('1px black horizontal', '1px black horizontal')).toBe(0);
+        expect(compareStrokePriority('1px solid black', '1px solid black')).toBe(0);
       });
 
       it('should give priority to a wider border', () => {
-        expect(compareStrokePriority('2px black horizontal', '1px black horizontal')).toBe(1);
-        expect(compareStrokePriority('1px black horizontal', '2px black horizontal')).toBe(-1);
+        expect(compareStrokePriority('2px solid black', '1px solid black')).toBe(1);
+        expect(compareStrokePriority('1px solid black', '2px solid black')).toBe(-1);
 
-        expect(compareStrokePriority('10px black horizontal', '2px black horizontal')).toBe(1);
-        expect(compareStrokePriority('2px black horizontal', '10px black horizontal')).toBe(-1);
-      });
-
-      it('should give priority to horizontal border', () => {
-        expect(compareStrokePriority('2px black horizontal', '2px black vertical')).toBe(1);
-        expect(compareStrokePriority('2px black vertical', '2px black horizontal')).toBe(-1);
+        expect(compareStrokePriority('10px solid black', '2px solid black')).toBe(1);
+        expect(compareStrokePriority('2px solid black', '10px solid black')).toBe(-1);
       });
 
       it('should give priority to a darker border', () => {
-        expect(compareStrokePriority('1px black horizontal', '1px beige horizontal')).toBe(1);
-        expect(compareStrokePriority('1px beige horizontal', '1px black horizontal')).toBe(-1);
+        expect(compareStrokePriority('1px solid black', '1px solid beige')).toBe(1);
+        expect(compareStrokePriority('1px solid beige', '1px solid black')).toBe(-1);
 
-        expect(compareStrokePriority('1px darkred horizontal', '1px red horizontal')).toBe(1);
-        expect(compareStrokePriority('1px red horizontal', '1px darkred horizontal')).toBe(-1);
+        expect(compareStrokePriority('1px solid darkred', '1px solid red')).toBe(1);
+        expect(compareStrokePriority('1px solid red', '1px solid darkred')).toBe(-1);
 
-        expect(compareStrokePriority('1px darkred horizontal', '1px RED horizontal')).toBe(1);
-        expect(compareStrokePriority('1px RED horizontal', '1px darkred horizontal')).toBe(-1);
+        expect(compareStrokePriority('1px solid darkred', '1px solid RED')).toBe(1);
+        expect(compareStrokePriority('1px solid RED', '1px solid darkred')).toBe(-1);
 
-        expect(compareStrokePriority('1px #000000 horizontal', '1px #FFFFFF horizontal')).toBe(1);
-        expect(compareStrokePriority('1px #FFFFFF horizontal', '1px #000000 horizontal')).toBe(-1);
+        expect(compareStrokePriority('1px solid #000000', '1px solid #FFFFFF')).toBe(1);
+        expect(compareStrokePriority('1px solid #FFFFFF', '1px solid #000000')).toBe(-1);
 
-        expect(compareStrokePriority('1px rgb(0, 0, 0) horizontal', '1px rgb(255, 255, 255) horizontal')).toBe(1);
-        expect(compareStrokePriority('1px rgb(255, 255, 255) horizontal', '1px rgb(0, 0, 0) horizontal')).toBe(-1);
+        expect(compareStrokePriority('1px solid rgb(0, 0, 0)', '1px solid rgb(255, 255, 255)')).toBe(1);
+        expect(compareStrokePriority('1px solid rgb(255, 255, 255)', '1px solid rgb(0, 0, 0)')).toBe(-1);
 
-        expect(compareStrokePriority('1px rgba(0, 0, 0, 1) horizontal', '1px rgba(255, 255, 255, 1) horizontal')).toBe(1);
-        expect(compareStrokePriority('1px rgba(255, 255, 255, 1) horizontal', '1px rgba(0, 0, 0, 1) horizontal')).toBe(-1);
+        expect(compareStrokePriority('1px solid rgba(0, 0, 0, 1)', '1px solid rgba(255, 255, 255, 1)')).toBe(1);
+        expect(compareStrokePriority('1px solid rgba(255, 255, 255, 1)', '1px solid rgba(0, 0, 0, 1)')).toBe(-1);
 
-        expect(compareStrokePriority('1px black horizontal', '1px white horizontal')).toBe(1);
-        expect(compareStrokePriority('1px white horizontal', '1px black horizontal')).toBe(-1);
+        expect(compareStrokePriority('1px solid black', '1px solid white')).toBe(1);
+        expect(compareStrokePriority('1px solid white', '1px solid black')).toBe(-1);
       });
     });
   });

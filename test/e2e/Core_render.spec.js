@@ -59,9 +59,8 @@ describe('Core_render', () => {
     const currentSelection = spec().$container.find('.wtBorder.current')[0];
     const left = currentSelection.offsetLeft;
     const paths = getRenderedBorderPaths(document.body);
-    expect(paths.length).toEqual(2);
+    expect(paths.length).toEqual(1);
     expect(paths[0].length).toBeGreaterThan(0);
-    expect(paths[1].length).toBeGreaterThan(0);
 
     data[1][1] = 'dddddddddddddddddddd';
     render();
@@ -70,9 +69,7 @@ describe('Core_render', () => {
     expect(currentSelection.offsetLeft).toBeGreaterThan(left);
     expect(newPaths.length).toEqual(paths.length);
     expect(newPaths[0].length).toBeGreaterThan(0);
-    expect(newPaths[1].length).toBeGreaterThan(0);
     expect(newPaths[0]).not.toEqual(paths[0]);
-    expect(newPaths[1]).not.toEqual(paths[1]);
   });
 
   it('should not render table twice', () => {

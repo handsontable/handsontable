@@ -292,21 +292,18 @@ describe('WalkontableScroll', () => {
       wt.draw();
 
       const svgPaths = spec().$wrapper.find('svg:eq(0) path[stroke-width="2"]');
-      const svgPathV = svgPaths[0];
-      const svgPathH = svgPaths[1];
-      expect(svgPathV.getAttribute('d')).not.toBe('');
-      expect(svgPathH.getAttribute('d')).not.toBe('');
+      expect(svgPaths.length).toBe(1);
+
+      const svgPath = svgPaths[0];
+      expect(svgPath.getAttribute('d')).not.toBe('');
 
       wt.scrollViewport(new Walkontable.CellCoords(12, 0));
       wt.draw();
-      expect(svgPathV.getAttribute('d')).toBe('');
-      expect(svgPathH.getAttribute('d')).toBe('');
+      expect(svgPath.getAttribute('d')).toBe('');
 
       wt.scrollViewport(new Walkontable.CellCoords(0, 0));
       wt.draw();
-      expect(svgPathV.getAttribute('d')).not.toBe('');
-      expect(svgPathH.getAttribute('d')).not.toBe('');
-
+      expect(svgPath.getAttribute('d')).not.toBe('');
     });
 
     it('scroll viewport to a cell on far top should make it visible on top edge', () => {

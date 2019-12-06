@@ -207,7 +207,7 @@ describe('Walkontable Border Renderer', () => {
     });
   });
 
-  describe(`when vertical and horizontal line have the same width, 
+  describe(`when vertical and horizontal line have the same width,
         the horizontal line should be on top and cover the tips of the vertical line`, () => {
     it('should render 1px borders', () => {
       const wt = generateWalkontableWithSelection({
@@ -258,7 +258,7 @@ describe('Walkontable Border Renderer', () => {
     });
   });
 
-  describe(`when vertical line has a bigger width than the horizontal line, 
+  describe(`when vertical line has a bigger width than the horizontal line,
         the vertical line should be on top and cover the tips of the horizontal line`, () => {
     it('should render 1px, 2px borders', () => {
       const wt = generateWalkontableWithSelection({
@@ -309,7 +309,7 @@ describe('Walkontable Border Renderer', () => {
     });
   });
 
-  describe(`when horizontal line has a bigger width than the vertical line, 
+  describe(`when horizontal line has a bigger width than the vertical line,
         the horizontal line should be on top and cover the tips of the vertical line`, () => {
     it('should render 2px, 1px borders', () => {
       const wt = generateWalkontableWithSelection({
@@ -400,7 +400,7 @@ describe('Walkontable Border Renderer', () => {
 
       wt.draw();
       expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 0.5 0 0.5 24', 'M 49 0 49 24', 'M 0 0.5 50 0.5', 'M 0 23 50 23']);
-      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px green vertical', '2px green vertical', '3px green horizontal', '4px green horizontal']);
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid green', '2px solid green', '3px solid green', '4px solid green']);
     });
 
     it('should not render top edge on master if column headers are present', () => {
@@ -421,7 +421,7 @@ describe('Walkontable Border Renderer', () => {
 
       wt.draw();
       expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 0.5 24 0.5 47', 'M 49 24 49 47', 'M 0 46 50 46']);
-      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px green vertical', '2px green vertical', '4px green horizontal']);
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid green', '2px solid green', '4px solid green']);
     });
 
     it('should not render left edge on master if row headers are present', () => {
@@ -442,7 +442,7 @@ describe('Walkontable Border Renderer', () => {
 
       wt.draw();
       expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 99 0 99 24', 'M 51 0.5 100 0.5', 'M 51 23 100 23']);
-      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['2px green vertical', '3px green horizontal', '4px green horizontal']);
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['2px solid green', '3px solid green', '4px solid green']);
     });
 
     it('should not render top and left edge on master if row or column headers are present', () => {
@@ -464,7 +464,7 @@ describe('Walkontable Border Renderer', () => {
 
       wt.draw();
       expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 99 24 99 47', 'M 51 46 100 46']);
-      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['2px green vertical', '4px green horizontal']);
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['2px solid green', '4px solid green']);
 
     });
   });
@@ -481,7 +481,7 @@ describe('Walkontable Border Renderer', () => {
           }).add(new Walkontable.CellCoords(0, 0))
         ]
       });
-      const expectedStrokeStyle = '1px green vertical';
+      const expectedStrokeStyle = '1px solid green';
 
       wt.draw();
       expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual([expectedStrokeStyle]);
@@ -502,7 +502,7 @@ describe('Walkontable Border Renderer', () => {
           }).add(new Walkontable.CellCoords(0, 0))
         ]
       });
-      const expectedStrokeStyle = '1px #0F0 vertical';
+      const expectedStrokeStyle = '1px solid #0F0';
 
       wt.draw();
       expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual([expectedStrokeStyle]);
@@ -523,7 +523,7 @@ describe('Walkontable Border Renderer', () => {
           }).add(new Walkontable.CellCoords(0, 0))
         ]
       });
-      const expectedStrokeStyle = '1px rgb(0%,   100%,   0%) vertical';
+      const expectedStrokeStyle = '1px solid rgb(0%,   100%,   0%)';
 
       wt.draw();
       expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual([expectedStrokeStyle]);

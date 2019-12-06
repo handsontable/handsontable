@@ -5,10 +5,10 @@ let stringifyPath;
 /**
  * getSvgPathsRenderer is a higher-order function that returns a function to render paths.
  *
- * `styles` is an array of stroke style strings, e.g.:
+ * `styles` is an array of stroke style strings (in format `width linestyle color`), e.g.:
  * [
- *   '1px rgb(0, 0, 0) horizontal',
- *   '2px #FF0000 vertical'
+ *   '1px solid rgb(0, 0, 0)',
+ *   '2px solid #FF0000'
  * ]
  *
  * `commands` is an array of path commands strings for each style, e.g.:
@@ -72,7 +72,7 @@ function renderState(state) {
 }
 
 /**
- * High stroke sizes have priority over small sizes. Horizontal lines have priority over vertical ones.
+ * High stroke sizes have priority over small sizes. Darker lines have priority over ligher ones.
  *
  * @param {string} style1
  * @param {string} style2
@@ -80,17 +80,16 @@ function renderState(state) {
  */
 export function compareStrokePriority(style1, style2) {
   const styleSplitted1 = style1.split(' ');
-  const size1 = styleSplitted1.shift();
   const styleSplitted2 = style2.split(' ');
-  const size2 = styleSplitted2.shift();
 
-  const direction1 = styleSplitted1.pop();
-  const direction2 = styleSplitted2.pop();
-
+  const parsedSize1 = parseInt(styleSplitted1[0], 10);
+  const parsedSize2 = parseInt(styleSplitted2[0], 10);
+  styleSplitted1.shift(); // remove size/width
+  styleSplitted1.shift(); // remove linestyle
+  styleSplitted2.shift(); // remove size/width
+  styleSplitted2.shift(); // remove linestyle
   const color1 = styleSplitted1.join(' ').toLowerCase();
   const color2 = styleSplitted2.join(' ').toLowerCase();
-  const parsedSize1 = parseInt(size1, 10);
-  const parsedSize2 = parseInt(size2, 10);
 
   if (parsedSize1 > parsedSize2) {
     return 1;
@@ -100,31 +99,14 @@ export function compareStrokePriority(style1, style2) {
   }
 
   // the lines have the same width. Sort them by the color (the darkest has a higher priority)
-  const luminanceResult = compareLuminance(convertCssColorToRGBA(color2), convertCssColorToRGBA(color1));
-
-  if (luminanceResult !== 0) {
-    return luminanceResult;
-  }
-
-  // size and luminance are the same, compare by direction
-  const isHorizontal1 = direction1 === 'horizontal';
-  const isHorizontal2 = direction2 === 'horizontal';
-  const areParallel = isHorizontal1 === isHorizontal2;
-
-  if (areParallel) {
-    return 0;
-  }
-  if (isHorizontal1) {
-    return 1;
-  }
-  return -1;
+  return compareLuminance(convertCssColorToRGBA(color2), convertCssColorToRGBA(color1));
 }
 
 /**
  * Returns a state object for given style. Creates the state object if requested for the first time.
  *
  * @param {Map.<string, Object>} states
- * @param {String} style Stroke style description in format `width color direction`, e.g. `1px rgb(0, 0, 0) horizontal`
+ * @param {String} style Stroke style description in format `width linestyle color`, e.g. `1px solid rgb(0, 0, 0)`
  * @param {HTMLElement} parent <svg> or <g> HTML element where the <path> elements should be appended
  */
 function getStateForStyle(states, style, parent) {
@@ -133,12 +115,13 @@ function getStateForStyle(states, style, parent) {
   if (!state) {
     const elem = parent.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'path');
     const styleSplitted = style.split(' ');
-    const size = styleSplitted.shift();
-    styleSplitted.pop(); // last item in the array is direction. Remove it, so we are left with color
+    const size = parseInt(styleSplitted[0], 10);
+    styleSplitted.shift(); // remove size/width
+    styleSplitted.shift(); // remove linestyle
     const color = styleSplitted.join(' ');
 
     elem.setAttribute('stroke', color);
-    elem.setAttribute('stroke-width', parseInt(size, 10));
+    elem.setAttribute('stroke-width', size);
     // elem.setAttribute('stroke-linecap', 'square'); // default: butt
     // elem.setAttribute('shape-rendering', 'optimizeSpeed');
     elem.setAttribute('shape-rendering', 'geometricPrecision'); // TODO why the border renders wrong when this is on
