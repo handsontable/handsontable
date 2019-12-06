@@ -12,7 +12,6 @@ import UndoRedoSnapshot from './undoRedoSnapshot';
  * The formulas plugin.
  *
  * @plugin Formulas
- * @experimental
  */
 class Formulas extends BasePlugin {
   constructor(hotInstance) {

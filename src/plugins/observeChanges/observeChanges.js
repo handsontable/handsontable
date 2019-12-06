@@ -7,6 +7,7 @@ import { registerPlugin } from './../../plugins';
 
 /**
  * @plugin ObserveChanges
+ * @deprecated This plugin is deprecated and will be deleted soon
  *
  * @description
  * This plugin allows to observe data source changes. By default, the plugin is declared as `undefined`, which makes it
