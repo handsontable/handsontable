@@ -60,7 +60,7 @@ let activeGuid = null;
  * const hot = new Handsontable(document.getElementById('example1'), options);
  *
  * // now, to use setDataAtCell method, you can either:
- * ht.setDataAtCell(0, 0, 'new value');
+ * hot.setDataAtCell(0, 0, 'new value');
  * ```
  *
  * Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
