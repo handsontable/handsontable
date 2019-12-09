@@ -202,6 +202,7 @@ class GanttChart extends BasePlugin {
       return;
     }
 
+    warn('Gantt Chart plugin is deprecated and will be removed');
     this.checkDependencies();
 
     this.parseSettings();

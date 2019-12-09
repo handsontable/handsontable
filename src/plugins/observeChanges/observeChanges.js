@@ -1,6 +1,7 @@
 import BasePlugin from './../_base';
 import DataObserver from './dataObserver';
 import { arrayEach } from './../../helpers/array';
+import { warn } from '../../helpers/console';
 import { registerPlugin } from './../../plugins';
 
 // Handsontable.hooks.register('afterChangesObserved');
@@ -51,6 +52,7 @@ class ObserveChanges extends BasePlugin {
       return;
     }
     if (!this.observer) {
+      warn('Observe Changes plugin is deprecated and will be removed');
       this.observer = new DataObserver(this.hot.getSourceData());
       this._exposePublicApi();
     }
