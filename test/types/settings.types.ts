@@ -475,7 +475,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   beforeRender: (isForced, skipRender) => {},
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
-  beforeRowMove: (startRow, endRow) => {},
+  beforeRowMove: (rows, target) => {},
   beforeRowResize: (newSize, row, isDoubleClick) => {},
   beforeSetRangeEnd: (coords) => {},
   beforeSetRangeStart: (coords) => {},
