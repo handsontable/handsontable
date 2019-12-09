@@ -2363,10 +2363,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         throw new Error('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
       }
 
-      arrayEach(cellMetaRows.reverse(), (cellMetas) => {
+      arrayEach(cellMetaRows.reverse(), (cellMetaRow) => {
         metaManager.createRow(this.toPhysicalRow(visualIndex));
 
-        arrayEach(cellMetas, (cellMeta, columnIndex) => this.setCellMetaObject(visualIndex, columnIndex, cellMeta));
+        arrayEach(cellMetaRow, (cellMeta, columnIndex) => this.setCellMetaObject(visualIndex, columnIndex, cellMeta));
       });
     }
   };

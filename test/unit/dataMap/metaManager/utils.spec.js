@@ -1,4 +1,4 @@
-import { expandMetaType, columnFactory, isFiniteUnsignedNumber, assert, isNullish } from 'handsontable/dataMap/metaManager/utils';
+import { expandMetaType, columnFactory, isUnsignedNumber, assert, isNullish } from 'handsontable/dataMap/metaManager/utils';
 
 describe('MetaManager utils', () => {
   describe('expandMetaType', () => {
@@ -129,22 +129,22 @@ describe('MetaManager utils', () => {
     });
   });
 
-  describe('isFiniteUnsignedNumber', () => {
-    it('should return true only for valid signed finite numbers', () => {
-      expect(isFiniteUnsignedNumber()).toBe(false);
-      expect(isFiniteUnsignedNumber(null)).toBe(false);
-      expect(isFiniteUnsignedNumber(false)).toBe(false);
-      expect(isFiniteUnsignedNumber('')).toBe(false);
-      expect(isFiniteUnsignedNumber('1')).toBe(false);
-      expect(isFiniteUnsignedNumber({ a: 1 })).toBe(false);
-      expect(isFiniteUnsignedNumber(Infinity)).toBe(false);
-      expect(isFiniteUnsignedNumber(-1)).toBe(false);
-      expect(isFiniteUnsignedNumber(-999)).toBe(false);
+  describe('isUnsignedNumber', () => {
+    it('should return true only for valid signed numbers', () => {
+      expect(isUnsignedNumber()).toBe(false);
+      expect(isUnsignedNumber(null)).toBe(false);
+      expect(isUnsignedNumber(false)).toBe(false);
+      expect(isUnsignedNumber('')).toBe(false);
+      expect(isUnsignedNumber('1')).toBe(false);
+      expect(isUnsignedNumber({ a: 1 })).toBe(false);
+      expect(isUnsignedNumber(Infinity)).toBe(false);
+      expect(isUnsignedNumber(-1)).toBe(false);
+      expect(isUnsignedNumber(-999)).toBe(false);
 
-      expect(isFiniteUnsignedNumber(0)).toBe(true);
-      expect(isFiniteUnsignedNumber(1)).toBe(true);
-      expect(isFiniteUnsignedNumber(100)).toBe(true);
-      expect(isFiniteUnsignedNumber(Number.MAX_SAFE_INTEGER)).toBe(true);
+      expect(isUnsignedNumber(0)).toBe(true);
+      expect(isUnsignedNumber(1)).toBe(true);
+      expect(isUnsignedNumber(100)).toBe(true);
+      expect(isUnsignedNumber(Number.MAX_SAFE_INTEGER)).toBe(true);
     });
   });
 

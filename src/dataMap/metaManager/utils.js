@@ -51,13 +51,13 @@ export function columnFactory(TableMeta, conflictList = []) {
 }
 
 /**
- * Helper which checks if the provided argument is an unsigned finite number.
+ * Helper which checks if the provided argument is an unsigned number.
  *
  * @param {*} value Value to check.
  * @return {Boolean}
  */
-export function isFiniteUnsignedNumber(value) {
-  return Number.isFinite(value) && value >= 0;
+export function isUnsignedNumber(value) {
+  return Number.isInteger(value) && value >= 0;
 }
 
 /**

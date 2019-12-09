@@ -1,5 +1,5 @@
 import { arrayFilter, arrayMap } from '../../helpers/array';
-import { assert, isFiniteUnsignedNumber, isNullish } from './utils';
+import { assert, isUnsignedNumber, isNullish } from './utils';
 
 /**
  * The LazyFactoryMap object holds key-value pairs in the structure similar to the
@@ -10,7 +10,8 @@ import { assert, isFiniteUnsignedNumber, isNullish } from './utils';
  * It's essential to notice that the "key" index under which the item was created
  * is volatile. After altering the grid, the "key" index can change.
  *
- * Having created N items with corresponding data
+ * Having created N items with corresponding example data where the data has 10
+ * holes (`undefined` values) within (that's why internal storage index counts from 10).
  * +------+------+------+------+------+
  * | 0/10 | 1/11 | 2/12 | 3/13 | 4/14 |  Keys (volatile zero-based index / internal storage index)
  * +------+------+------+------+------+
@@ -100,7 +101,10 @@ export default class LazyFactoryMap {
     this.index = [];
     /**
      * An array of indexes where points to the data items which can be replaced by obtaining new
-     * ones. The "holes" are a side effect of deleting entries.
+     * ones. The "holes" are an intended effect of deleting entries.
+     *
+     * The idea of "holes" generally allows us to not modify the "data" structure while removing
+     * items from the collection.
      *
      * @type {Number[]}
      */
@@ -114,7 +118,7 @@ export default class LazyFactoryMap {
    * @returns {*}
    */
   obtain(key) {
-    assert(() => isFiniteUnsignedNumber(key), 'Expecting an unsigned finite number.');
+    assert(() => isUnsignedNumber(key), 'Expecting an unsigned number.');
 
     const dataIndex = this._getStorageIndexByKey(key);
     let result;
@@ -151,7 +155,7 @@ export default class LazyFactoryMap {
    * @param {Number} [amount=1] Ammount data to insert.
    */
   insert(key, amount = 1) {
-    assert(() => (isFiniteUnsignedNumber(key) || isNullish(key)), 'Expecting an unsigned finite number or null/undefined argument.');
+    assert(() => (isUnsignedNumber(key) || isNullish(key)), 'Expecting an unsigned number or null/undefined argument.');
 
     const newIndexes = [];
     const dataLength = this.data.length;
@@ -171,7 +175,7 @@ export default class LazyFactoryMap {
    * @param {Number} [amount=1] Ammount data to remove.
    */
   remove(key, amount = 1) {
-    assert(() => (isFiniteUnsignedNumber(key) || isNullish(key)), 'Expecting an unsigned finite number or null/undefined argument.');
+    assert(() => (isUnsignedNumber(key) || isNullish(key)), 'Expecting an unsigned number or null/undefined argument.');
 
     const removed = this.index.splice(isNullish(key) ? this.index.length - amount : key, amount);
 
