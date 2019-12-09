@@ -408,7 +408,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
-  afterRowMove: (startRow, endRow) => {},
+  afterRowMove: (rows, target) => rows.forEach(row => row.toFixed(1) === target.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
