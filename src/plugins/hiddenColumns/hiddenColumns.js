@@ -263,7 +263,6 @@ class HiddenColumns extends BasePlugin {
       physicalColumn = this.hot.toPhysicalColumn(column);
     }
 
-    // return this.hiddenColumns.includes(physicalColumn);
     return this.hiddenColumnsMap.getValueAtIndex(physicalColumn);
   }
 

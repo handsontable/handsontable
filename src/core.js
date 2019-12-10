@@ -167,6 +167,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     countCols: () => instance.countCols(),
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
+    toRenderableColumn: col => instance.toRenderableColumn(col),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
   });
 

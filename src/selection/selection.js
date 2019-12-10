@@ -167,7 +167,7 @@ class Selection {
 
     const renderedCoords = new CellCoords(
       coords.row,
-      hot.toRenderableColumn(coords.col),
+      this.tableProps.toRenderableColumn(coords.col),
     );
 
     this.selectedRange.add(renderedCoords);

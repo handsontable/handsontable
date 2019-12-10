@@ -195,8 +195,6 @@ class IndexMapper {
 
     if (visualIndex < numberOfVisibleIndexes) {
       physicalIndex = visibleIndexes[visualIndex];
-    } else if (visualIndex >= this.getIndexesSequence().length) {
-      physicalIndex = null;
     }
 
     return physicalIndex;
