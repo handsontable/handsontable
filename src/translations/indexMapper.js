@@ -16,9 +16,9 @@ import { isDefined } from '../helpers/mixed';
  * and embeds **cache** which is triggered only when the data or structure changes.
  *
  *
- * Index mapper can be called upon specific properties i.e. **rowIndexMapper**, **columnIndexMapper** which, respectively, manage **rows** and **columns**.
+ *  **rowIndexMapper** and **columnIndexMapper** are instances ofindexMapper which, respectively, manage **rows** and **columns** by calling methods.
  *
- * **There are 3  main objects on class IndexMapper for storing different types of index information:**
+ * **These are the main objects on class IndexMapper for storing different types of index information:**
  *
  * **-** Map for the **sequence** of indexes. It is registered by default and may be used from API methods like
  * `getIndexesSequence`, `setIndexesSequence`, `getNumberOfIndexes` etc.
@@ -27,11 +27,22 @@ import { isDefined } from '../helpers/mixed';
  * this.indexesSequence = new IndexToIndexMap();
  *
  * ```
- * **-** Collection for different **skip maps**. These indexes are bound to be skipped and will not be rendered.
+ * **-** Collection for different **skip maps**. These indexes are bound to be skipped and will not be rendered and/or present in `getData` calls.
+ *
  * Examples of the API methods are: `getNotSkippedIndexes`, `getNotSkippedIndexesLength`, `isSkipped`
+ *
  * ``` js
  * // type {MapCollection}
+ * // Indexes not rendered and skipped in `getData`
+ *
  * this.skipMapsCollection = new MapCollection();
+ * ```
+ *
+ * ``` js
+ * // type {MapCollection}
+ * // Indexes not rendered only
+ * // hiddenMapsCollection is WIP
+ * this.hiddenMapsCollection = new MapCollection();
  * ```
  *
  * **-** Collection for any **other** kind of mapping.
