@@ -673,7 +673,7 @@ class Menu {
    */
   onBeforeKeyDown(event) {
     // For input elements, prevent event propagation. It allows entering text into an input
-    // element freely - without steeling the key events from the menu module (#6506).
+    // element freely - without steeling the key events from the menu module (#6506, #6549).
     if (isInput(event.target) && this.container.contains(event.target)) {
       stopImmediatePropagation(event);
 

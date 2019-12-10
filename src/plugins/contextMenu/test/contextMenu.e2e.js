@@ -2490,6 +2490,29 @@ describe('ContextMenu', () => {
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
       });
 
+      it('should select the first item in the menu, even when external input is focused (#6550)', () => {
+        handsontable({
+          contextMenu: true,
+          height: 100
+        });
+
+        const input = document.createElement('input');
+
+        document.body.appendChild(input);
+        contextMenu();
+
+        const menuHot = getPlugin('contextMenu').menu.hotMenu;
+
+        expect(menuHot.getSelected()).toBeUndefined();
+
+        input.focus();
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
+
+        document.body.removeChild(input);
+      });
+
       it('should NOT select any items in menu, when user hits ARROW_DOWN and there is no items enabled', () => {
         handsontable({
           contextMenu: {
