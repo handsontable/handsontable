@@ -375,7 +375,7 @@ class TableView {
 
         if (this.instance.hasColHeaders()) {
           headerRenderers.push((column, TH) => {
-            this.appendColHeader(this.instance.toRenderableColumn(column), TH);
+            this.appendColHeader(this.instance.renderedToPhysicalColumn(column), TH);
           });
         }
 
@@ -386,7 +386,7 @@ class TableView {
       columnWidth: this.instance.getColWidth,
       rowHeight: this.instance.getRowHeight,
       cellRenderer: (row, col, TD) => {
-        const cellProperties = this.instance.getCellMeta(row, this.instance.toRenderableColumn(col));
+        const cellProperties = this.instance.getCellMeta(row, this.instance.renderedToPhysicalColumn(col));
         const prop = this.instance.getColumnProperty(col);
         let value = this.instance.getDataAtRowProp(row, prop);
 

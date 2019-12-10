@@ -167,7 +167,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     countCols: () => instance.countCols(),
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
-    toRenderableColumn: col => instance.toRenderableColumn(col),
+    renderedToPhysicalColumn: col => instance.renderedToPhysicalColumn(col),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
   });
 
@@ -2049,13 +2049,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getCell = function(row, column, topmost = false) {
     const physicalColumn = this.toPhysicalColumn(column);
-    const isColumnHidden = this.columnIndexMapper.getFlattenHiddenList()[physicalColumn];
 
-    if (isColumnHidden) {
+    if (this.columnIndexMapper.isHidden(physicalColumn)) {
       return null;
     }
 
-    const wotIndex = column < 0 ? column : this.fromPhysicalToRenderableColumn(physicalColumn);
+    const wotIndex = column < 0 ? column : this.physicalToRenderedColumn(physicalColumn);
     return instance.view.getCellAtCoords(new CellCoords(row, wotIndex), topmost);
   };
 
@@ -2157,7 +2156,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * // Changed by @wszymanski as there was link to the not existing anymore RecordTranslator.
    * @TODO Description
    */
-  this.toRenderableColumn = (column) => {
+  this.renderedToPhysicalColumn = (column) => {
     if (column < 0) {
       return column;
     }
@@ -2168,14 +2167,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * @TODO Description
    */
-  this.fromPhysicalToRenderableColumn = (column) => {
+  this.physicalToRenderedColumn = (column) => {
     if (column < 0) {
       return column;
     }
 
     const position = this.columnIndexMapper.getNotHiddenIndexes().indexOf(column);
 
-    return position < 0 ? void 0 : position;
+    return position < 0 ? null : position;
   };
 
   /**
@@ -2187,7 +2186,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     const physicalColumn = this.toPhysicalColumn(column);
-    const renderedColumn = this.fromPhysicalToRenderableColumn(physicalColumn);
+    const renderedColumn = this.physicalToRenderedColumn(physicalColumn);
 
     return renderedColumn;
   };
@@ -2196,7 +2195,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @TODO Description
    */
   this.fromRenderedToPhysicalColumn = (column) => {
-    const renderableColumn = this.toRenderableColumn(column);
+    const renderableColumn = this.renderedToPhysicalColumn(column);
 
     return this.toVisualColumn(renderableColumn);
   };
@@ -2228,7 +2227,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @TODO Description
    */
   this.getColumnProperty = function(column) {
-    const columnIndex = this.toRenderableColumn(column);
+    const columnIndex = this.renderedToPhysicalColumn(column);
     const prop = datamap.colToPropCache[columnIndex];
 
     return prop !== void 0 ? prop : columnIndex;

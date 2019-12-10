@@ -43,7 +43,7 @@ describe('HiddenColumns', () => {
         // cells(row, col) {
         //   const meta = {};
 
-        //   if (this.instance.toRenderableColumn(col) === 2) {
+        //   if (this.instance.renderedToPhysicalColumn(col) === 2) {
         //     meta.type = 'date';
         //   }
 
