@@ -235,6 +235,7 @@ class AutocompleteEditor extends HandsontableEditor {
 
     this.updateDropdownHeight();
     this.flipDropdownIfNeeded();
+    this.alignDropdownRightIfNeeded();
 
     if (this.cellProperties.strict === true) {
       this.highlightBestMatchingChoice(highlightIndex);
@@ -335,13 +336,76 @@ class AutocompleteEditor extends HandsontableEditor {
   unflipDropdown() {
     const dropdownStyle = this.htEditor.rootElement.style;
 
-    if (dropdownStyle.position === 'absolute') {
+    if (dropdownStyle.top) {
       dropdownStyle.position = '';
       dropdownStyle.top = '';
     }
 
     this.htEditor.flipped = void 0;
   }
+
+  /**
+   * Aligns the dropdown width the right edge of the text area if there is inadequate space to the right.
+   *
+   * @private
+   * @returns {Boolean}
+   */
+  alignDropdownRightIfNeeded() {
+    var textareaOffset = (0, _element.offset)(this.TEXTAREA);
+    var textareaWidth = (0, _element.outerWidth)(this.TEXTAREA);
+    var dropdownWidth = this.getDropdownWidth();
+    var trimmingContainer = (0, _element.getTrimmingContainer)(this.instance.view.wt.wtTable.TABLE);
+    var containerOffset = {
+        row: 0,
+        col: 0
+    };
+
+    if (trimmingContainer !== window) {
+        containerOffset = (0, _element.offset)(trimmingContainer);
+    }
+
+    var spaceToLeft = textareaOffset.left + textareaWidth - containerOffset.left;
+    var spaceToRight = trimmingContainer.offsetWidth - spaceToLeft + textareaWidth;
+    var alignRightNeeded = dropdownWidth > spaceToRight && spaceToLeft > spaceToRight;
+
+    if (alignRightNeeded) {
+        this.alignDropdownRight(dropdownWidth, textareaWidth);
+    } else {
+        this.alignDropdownLeft();
+    }
+
+    return alignRightNeeded;
+  };
+
+  /**
+   * Configures the editor to open aligned with the right edge of the text area.
+   *
+   * @private
+   * @param {Number} dropdownWidth
+   * @param {Number} textareaWidth
+   */
+  alignDropdownRight(dropdownWidth, textareaWidth) {
+      var dropdownStyle = this.htEditor.rootElement.style;
+
+      dropdownStyle.position = 'absolute';
+      dropdownStyle.left = (textareaWidth - dropdownWidth) + 'px';
+  };
+
+  /**
+   * Configures the editor to open aligned with the left edge of the text area.
+   *
+   * @private
+   */
+  alignDropdownLeft() {
+      var dropdownStyle = this.htEditor.rootElement.style;
+
+      if (dropdownStyle.left) {
+          if (!this.htEditor.flipped) {
+              dropdownStyle.position = '';
+          }
+          dropdownStyle.left = '';
+      }
+  };
 
   /**
    * Updates width and height of the internal Handsontable's instance.
@@ -387,7 +451,7 @@ class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * Calculates and return the internal Handsontable's height.
+   * Calculates and returns the internal Handsontable's height.
    *
    * @private
    * @returns {Number}
@@ -398,6 +462,19 @@ class AutocompleteEditor extends HandsontableEditor {
 
     return this.strippedChoices.length >= visibleRows ? (visibleRows * firstRowHeight) : (this.strippedChoices.length * firstRowHeight) + 8;
   }
+
+  /**
+   * Calculates and returns the internal Handsontable's width.
+   *
+   * @private
+   * @returns {Number}
+   */
+  getDropdownWidth() {
+    var scrollContainer = $('.wtHolder', this.htEditor.rootElement)[0];
+    var scrollbarPresent = scrollContainer.scrollHeight > scrollContainer.clientHeight;
+    var widthElement = scrollbarPresent ? scrollContainer : $('table.htCore', scrollContainer)[0];
+    return widthElement.offsetWidth;
+  };
 
   /**
    * Sanitizes value from potential dangerous tags.
