@@ -377,7 +377,7 @@ class HiddenColumns extends BasePlugin {
       classList.push('afterHiddenColumn');
     }
 
-    if (this.isHidden(sequence[currentPosition + 1], true) && column > -1) {
+    if (column > -1 && this.isHidden(sequence[currentPosition + 1], true)) {
       classList.push('beforeHiddenColumn');
     }
 

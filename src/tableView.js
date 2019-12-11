@@ -374,8 +374,14 @@ class TableView {
         const headerRenderers = [];
 
         if (this.instance.hasColHeaders()) {
-          headerRenderers.push((column, TH) => {
-            this.appendColHeader(this.instance.renderedToPhysicalColumn(column), TH);
+          headerRenderers.push((renderedColumnIndex, TH) => {
+            let visualColumnIndex = renderedColumnIndex;
+
+            if (renderedColumnIndex >= 0) {
+              visualColumnIndex = this.instance.toVisualColumn(this.instance.renderedToPhysicalColumn(renderedColumnIndex));
+            }
+
+            this.appendColHeader(visualColumnIndex, TH);
           });
         }
 
