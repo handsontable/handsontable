@@ -355,7 +355,7 @@ class AutocompleteEditor extends HandsontableEditor {
     const textareaWidth = outerWidth(this.TEXTAREA);
     const dropdownWidth = this.getDropdownWidth();
     const trimmingContainer = getTrimmingContainer(this.instance.view.wt.wtTable.TABLE);
-    const containerOffset = {
+    let containerOffset = {
       row: 0,
       col: 0
     };
