@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.3.0
- * Release date: 12/12/2019 (built at 06/12/2019 11:51:40)
+ * Release date: 12/12/2019 (built at 11/12/2019 09:43:02)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -43307,8 +43307,8 @@ function () {
     key: "onBeforeKeyDown",
     value: function onBeforeKeyDown(event) {
       // For input elements, prevent event propagation. It allows entering text into an input
-      // element freely - without steeling the key events from the menu module (#6506).
-      if ((0, _element.isInput)(event.target)) {
+      // element freely - without steeling the key events from the menu module (#6506, #6549).
+      if ((0, _element.isInput)(event.target) && this.container.contains(event.target)) {
         (0, _event.stopImmediatePropagation)(event);
         return;
       }
@@ -60095,7 +60095,7 @@ Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "06/12/2019 11:51:40";
+Handsontable.buildDate = "11/12/2019 09:43:02";
 Handsontable.version = "7.3.0"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
