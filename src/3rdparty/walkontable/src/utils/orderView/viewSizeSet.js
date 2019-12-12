@@ -75,7 +75,7 @@ export default class ViewSizeSet {
    * @returns {Boolean}
    */
   isShared() {
-    return this.sharedSize instanceof ViewSize;
+    return this.sharedSize !== null;
   }
 
   /**

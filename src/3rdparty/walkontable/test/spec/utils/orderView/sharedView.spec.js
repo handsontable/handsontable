@@ -1,15 +1,18 @@
 describe('Walkontable.SharedOrderView', () => {
-  function createOrderView(rootNode = document.createElement('div'), childNodeType) {
-    const nodeFactoryFunction = () => document.createElement(childNodeType);
-    const orderView = new Walkontable.SharedOrderView(rootNode, nodeFactoryFunction, childNodeType);
+  function createSharedOrderView(rootNode, childNodeType) {
+    const nodesPool = new Walkontable.NodesPool(childNodeType);
 
-    return { orderView, nodeFactoryFunction, rootNode };
+    nodesPool.setRootDocument(document);
+
+    const orderView = new Walkontable.SharedOrderView(rootNode, sourceIndex => nodesPool.obtain(sourceIndex));
+
+    return { orderView };
   }
 
-  it('should generate correct DOM structure', () => {
+  it('should generate correct DOM structuree', () => {
     const rootNode = document.createElement('tr');
-    const { orderView } = createOrderView(rootNode, 'th');
-    const { orderView: secondOrderView } = createOrderView(rootNode, 'td');
+    const { orderView } = createSharedOrderView(rootNode, 'th');
+    const { orderView: secondOrderView } = createSharedOrderView(rootNode, 'td');
 
     orderView.appendView(secondOrderView);
 
@@ -40,8 +43,8 @@ describe('Walkontable.SharedOrderView', () => {
 
   it('should generate correct DOM structure while decreasing first OrderView size', () => {
     const rootNode = document.createElement('tr');
-    const { orderView } = createOrderView(rootNode, 'th');
-    const { orderView: secondOrderView } = createOrderView(rootNode, 'td');
+    const { orderView } = createSharedOrderView(rootNode, 'th');
+    const { orderView: secondOrderView } = createSharedOrderView(rootNode, 'td');
 
     orderView.appendView(secondOrderView);
 
@@ -114,8 +117,8 @@ describe('Walkontable.SharedOrderView', () => {
 
   it('should generate correct DOM structure while increasing first OrderView size', () => {
     const rootNode = document.createElement('tr');
-    const { orderView } = createOrderView(rootNode, 'th');
-    const { orderView: secondOrderView } = createOrderView(rootNode, 'td');
+    const { orderView } = createSharedOrderView(rootNode, 'th');
+    const { orderView: secondOrderView } = createSharedOrderView(rootNode, 'td');
 
     orderView.appendView(secondOrderView);
 
@@ -190,8 +193,8 @@ describe('Walkontable.SharedOrderView', () => {
 
   it('should generate correct DOM structure while decreasing last OrderView size', () => {
     const rootNode = document.createElement('tr');
-    const { orderView } = createOrderView(rootNode, 'th');
-    const { orderView: secondOrderView } = createOrderView(rootNode, 'td');
+    const { orderView } = createSharedOrderView(rootNode, 'th');
+    const { orderView: secondOrderView } = createSharedOrderView(rootNode, 'td');
 
     orderView.appendView(secondOrderView);
 
@@ -260,8 +263,8 @@ describe('Walkontable.SharedOrderView', () => {
 
   it('should generate correct DOM structure while increasing last OrderView size', () => {
     const rootNode = document.createElement('tr');
-    const { orderView } = createOrderView(rootNode, 'th');
-    const { orderView: secondOrderView } = createOrderView(rootNode, 'td');
+    const { orderView } = createSharedOrderView(rootNode, 'th');
+    const { orderView: secondOrderView } = createSharedOrderView(rootNode, 'td');
 
     orderView.appendView(secondOrderView);
 
@@ -326,94 +329,12 @@ describe('Walkontable.SharedOrderView', () => {
         <td></td>
       </tr>
       `);
-  });
-
-  it('should return correct count of rendered elements', () => {
-    const rootNode = document.createElement('tr');
-    const { orderView } = createOrderView(rootNode, 'th');
-    const { orderView: secondOrderView } = createOrderView(rootNode, 'td');
-
-    orderView.appendView(secondOrderView);
-
-    orderView.setSize(2);
-    secondOrderView.setSize(0);
-
-    orderView.start();
-    orderView.render();
-    orderView.render();
-    orderView.end();
-
-    secondOrderView.start();
-    secondOrderView.end();
-
-    expect(orderView.getRenderedChildCount()).toBe(2);
-    expect(secondOrderView.getRenderedChildCount()).toBe(0);
-
-    orderView.setSize(2);
-    secondOrderView.setSize(1);
-
-    orderView.start();
-    orderView.render();
-    orderView.render();
-    orderView.end();
-
-    secondOrderView.start();
-    secondOrderView.render();
-    secondOrderView.end();
-
-    expect(orderView.getRenderedChildCount()).toBe(2);
-    expect(secondOrderView.getRenderedChildCount()).toBe(1);
-
-    orderView.setSize(2);
-    secondOrderView.setSize(3);
-
-    orderView.start();
-    orderView.render();
-    orderView.render();
-    orderView.end();
-
-    secondOrderView.start();
-    secondOrderView.render();
-    secondOrderView.render();
-    secondOrderView.render();
-    secondOrderView.end();
-
-    expect(orderView.getRenderedChildCount()).toBe(2);
-    expect(secondOrderView.getRenderedChildCount()).toBe(3);
-
-    orderView.setSize(0);
-    secondOrderView.setSize(2);
-
-    orderView.start();
-    orderView.end();
-
-    secondOrderView.start();
-    secondOrderView.render();
-    secondOrderView.render();
-    secondOrderView.end();
-
-    expect(orderView.getRenderedChildCount()).toBe(0);
-    expect(secondOrderView.getRenderedChildCount()).toBe(2);
-
-    orderView.setSize(1);
-    secondOrderView.setSize(1);
-
-    orderView.start();
-    orderView.render();
-    orderView.end();
-
-    secondOrderView.start();
-    secondOrderView.render();
-    secondOrderView.end();
-
-    expect(orderView.getRenderedChildCount()).toBe(1);
-    expect(secondOrderView.getRenderedChildCount()).toBe(1);
   });
 
   it('should reuse already created elements after rerendering the View', () => {
     const rootNode = document.createElement('div');
-    const { orderView } = createOrderView(rootNode, 'p');
-    const { orderView: secondOrderView } = createOrderView(rootNode, 'div');
+    const { orderView } = createSharedOrderView(rootNode, 'p');
+    const { orderView: secondOrderView } = createSharedOrderView(rootNode, 'div');
 
     orderView.appendView(secondOrderView);
 

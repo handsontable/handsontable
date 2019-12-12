@@ -58,7 +58,7 @@ describe('ViewSizeSet', () => {
 
     expect(viewSizeSet.isShared()).toBe(false);
 
-    viewSizeSet.sharedSize = 1;
+    viewSizeSet.sharedSize = null;
 
     expect(viewSizeSet.isShared()).toBe(false);
   });

@@ -427,6 +427,7 @@ class Table {
    */
   resetOversizedRows() {
     const { wot } = this;
+
     if (!this.isMaster && !this.is(Overlay.CLONE_BOTTOM)) {
       return;
     }

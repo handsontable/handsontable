@@ -1,5 +1,5 @@
-import { WORKING_SPACE_TOP, WORKING_SPACE_BOTTOM } from './constants';
 import ViewSizeSet from './viewSizeSet';
+import ViewDiffer from './viewDiffer';
 
 /**
  * Executive model for each table renderer. It's responsible for injecting DOM nodes in a
@@ -10,7 +10,7 @@ import ViewSizeSet from './viewSizeSet';
  * @class {OrderView}
  */
 export default class OrderView {
-  constructor(rootNode, nodesPool, childNodeType) {
+  constructor(rootNode, nodesPool) {
     /**
      * The root node to manage with.
      *
@@ -30,12 +30,6 @@ export default class OrderView {
      */
     this.sizeSet = new ViewSizeSet();
     /**
-     * Node type which the order view will manage while rendering the DOM elements.
-     *
-     * @type {String}
-     */
-    this.childNodeType = childNodeType.toUpperCase();
-    /**
      * The visual index of currently processed row.
      *
      * @type {Number}
@@ -47,6 +41,18 @@ export default class OrderView {
      * @type {HTMLElement[]}
      */
     this.collectedNodes = [];
+    /**
+     * @type {ViewDiffer}
+     */
+    this.viewDiffer = new ViewDiffer(this.sizeSet);
+    /**
+     * @type {Number[]}
+     */
+    this.staleNodeIndexes = [];
+    /**
+     * @type {Array[]}
+     */
+    this.leads = [];
   }
 
   /**
@@ -63,8 +69,8 @@ export default class OrderView {
   }
 
   /**
-  * Sets the offset for rendered elements. The offset describes the shift between 0 and
-  * the first rendered element according to the scroll position.
+   * Sets the offset for rendered elements. The offset describes the shift between 0 and
+   * the first rendered element according to the scroll position.
    *
    * @param {Number} offset
    * @returns {OrderView}
@@ -73,6 +79,14 @@ export default class OrderView {
     this.sizeSet.setOffset(offset);
 
     return this;
+  }
+
+  /**
+   * @param {Number} sourceIndex
+   * @returns {Boolean}
+   */
+  hasStaleContent(sourceIndex) {
+    return this.staleNodeIndexes.includes(sourceIndex);
   }
 
   /**
@@ -108,64 +122,16 @@ export default class OrderView {
   }
 
   /**
-   * Returns rendered child count for this instance.
-   *
-   * @returns {Number}
-   */
-  getRenderedChildCount() {
-    const { rootNode, sizeSet } = this;
-    let childElementCount = 0;
-
-    if (this.isSharedViewSet()) {
-      let element = rootNode.firstElementChild;
-
-      while (element) {
-        if (element.tagName === this.childNodeType) {
-          childElementCount += 1;
-
-        } else if (sizeSet.isPlaceOn(WORKING_SPACE_TOP)) {
-          break;
-        }
-        element = element.nextElementSibling;
-      }
-    } else {
-      childElementCount = rootNode.childElementCount;
-    }
-
-    return childElementCount;
-  }
-
-  /**
    * Setups and prepares all necessary properties and start the rendering process.
    * This method has to be called only once (at the start) for the render cycle.
    */
   start() {
+    // @TODO(perf-tip): If view axis position doesn't change (scroll in a different direction) this can be
+    // optimized by reusing previously collected nodes.
     this.collectedNodes.length = 0;
     this.visualIndex = 0;
-
-    const { rootNode, sizeSet } = this;
-    const isShared = this.isSharedViewSet();
-    const { nextSize } = sizeSet.getViewSize();
-
-    let childElementCount = this.getRenderedChildCount();
-
-    while (childElementCount < nextSize) {
-      const newNode = this.nodesPool();
-
-      if (!isShared || (isShared && sizeSet.isPlaceOn(WORKING_SPACE_BOTTOM))) {
-        rootNode.appendChild(newNode);
-      } else {
-        rootNode.insertBefore(newNode, rootNode.firstChild);
-      }
-      childElementCount += 1;
-    }
-
-    const isSharedPlacedOnTop = (isShared && sizeSet.isPlaceOn(WORKING_SPACE_TOP));
-
-    while (childElementCount > nextSize) {
-      rootNode.removeChild(isSharedPlacedOnTop ? rootNode.firstChild : rootNode.lastChild);
-      childElementCount -= 1;
-    }
+    this.staleNodeIndexes.length = 0;
+    this.leads = this.viewDiffer.diff();
   }
 
   /**
@@ -173,29 +139,57 @@ export default class OrderView {
    * This method has to be called as many times as the size count is met (to cover all previously rendered DOM elements).
    */
   render() {
-    const { rootNode, sizeSet } = this;
-    let visualIndex = this.visualIndex;
+    if (this.leads.length > 0) {
+      this.applyCommand(this.leads.shift());
+    }
+  }
 
-    if (this.isSharedViewSet() && sizeSet.isPlaceOn(WORKING_SPACE_BOTTOM)) {
-      visualIndex += sizeSet.sharedSize.nextSize;
+  /**
+   * @param {Array} command
+   */
+  applyCommand(command) {
+    const { rootNode, collectedNodes } = this;
+    const [name, nodeIndex, nodePrevIndex, nodeIndexToRemove] = command;
+    const node = this.nodesPool(nodeIndex);
+
+    collectedNodes.push(node);
+
+    // @TODO(perf-tip): Only nodes which are first time rendered (hasn't any inner content) can be marked as stale
+    // e.q `name !== 'none' && !node.firstChild`.
+    if (name !== 'none') {
+      this.staleNodeIndexes.push(nodeIndex);
     }
 
-    let node = rootNode.childNodes[visualIndex];
-
-    if (node.tagName !== this.childNodeType) {
-      const newNode = this.nodesPool();
-
-      rootNode.replaceChild(newNode, node);
-      node = newNode;
+    switch (name) {
+      case 'prepend':
+        rootNode.insertBefore(node, rootNode.firstChild);
+        break;
+      case 'append':
+        rootNode.appendChild(node);
+        break;
+      case 'insert_before':
+        rootNode.insertBefore(node, this.nodesPool(nodePrevIndex));
+        // To keep the constant length of child nodes (after inserting a node) remove the last child.
+        rootNode.removeChild(this.nodesPool(nodeIndexToRemove));
+        break;
+      case 'replace':
+        rootNode.replaceChild(node, this.nodesPool(nodePrevIndex));
+        break;
+      case 'remove':
+        rootNode.removeChild(node);
+        break;
+      default:
+        break;
     }
-
-    this.collectedNodes.push(node);
-    this.visualIndex += 1;
   }
 
   /**
    * Ends the render process.
    * This method has to be called only once (at the end) for the render cycle.
    */
-  end() { }
+  end() {
+    while (this.leads.length > 0) {
+      this.applyCommand(this.leads.shift());
+    }
+  }
 }
