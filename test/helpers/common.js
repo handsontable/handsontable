@@ -208,18 +208,20 @@ export function getCorrespondingOverlay(cell, container) {
 /**
  * Shows context menu
  */
-export function contextMenu(cell) {
-  const hotInstance = spec().$container.data('handsontable');
+export function contextMenu(cell, instance) {
+  const hotInstance = instance || spec().$container.data('handsontable');
   let clickedCell = cell;
   let selected = hotInstance.getSelectedLast();
 
-  if (!selected) {
-    hotInstance.selectCell(0, 0);
-    selected = hotInstance.getSelectedLast();
-  }
   if (!clickedCell) {
-    clickedCell = getCell(selected[0], selected[1]);
+    if (!selected) {
+      hotInstance.selectCell(0, 0);
+      selected = hotInstance.getSelectedLast();
+    }
+
+    clickedCell = hotInstance.getCell(selected[0], selected[1]);
   }
+
   const cellOffset = $(clickedCell).offset();
 
   $(clickedCell).simulate('mousedown', { button: 2 });
@@ -227,8 +229,6 @@ export function contextMenu(cell) {
     clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hotInstance.rootWindow),
     clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hotInstance.rootWindow),
   });
-  // Chrome doesn't call `mouseup`.
-  // $(cell).simulate('mouseup', { button: 2 });
 }
 
 export async function selectContextSubmenuOption(submenuName, optionName) {
@@ -238,13 +238,12 @@ export async function selectContextSubmenuOption(submenuName, optionName) {
   await sleep(300);
   const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
   const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
-  button.simulate('mousedown');
+  button.simulate('mousedown').simulate('mouseup');
   closeContextMenu();
 }
 
 export function closeContextMenu() {
   $(document).simulate('mousedown');
-  // $(document).trigger('mousedown');
 }
 
 /**
@@ -421,7 +420,7 @@ export function handsontableKeyTriggerFactory(type) {
     } else if (typeof keyToTrigger === 'number') {
       ev.keyCode = keyToTrigger;
     }
-    //    ev.originalEvent = {}; //needed as long Handsontable searches for event.originalEvent
+
     $.extend(ev, extend);
     $(document.activeElement).simulate(type, ev);
   };

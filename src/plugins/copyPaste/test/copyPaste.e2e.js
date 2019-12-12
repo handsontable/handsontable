@@ -34,7 +34,7 @@ describe('CopyPaste', () => {
         copyPaste: false
       });
 
-      expect($('#HandsontableCopyPaste').length).toEqual(0);
+      expect($('.HandsontableCopyPaste').length).toEqual(0);
     });
   });
 
@@ -46,7 +46,7 @@ describe('CopyPaste', () => {
       await sleep(150);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
-      expect($('#HandsontableCopyPaste').length).toBe(0);
+      expect($('.HandsontableCopyPaste').length).toBe(0);
     });
 
     it('should create focusable element when cell editor doesn\'t exist', () => {
@@ -55,7 +55,7 @@ describe('CopyPaste', () => {
       });
       selectCell(0, 0);
 
-      expect($('#HandsontableCopyPaste').length).toEqual(1);
+      expect($('.HandsontableCopyPaste').length).toEqual(1);
     });
 
     it('should keep focusable element if updateSettings occurred after the end of the selection', () => {
@@ -91,7 +91,7 @@ describe('CopyPaste', () => {
       handsontable();
       spec().$container2.handsontable();
 
-      expect($('#HandsontableCopyPaste').length).toBe(0);
+      expect($('.HandsontableCopyPaste').length).toBe(0);
     });
 
     it('should use focusable element from cell editor of the lastly selected table', async() => {
@@ -103,7 +103,7 @@ describe('CopyPaste', () => {
 
       await sleep(100);
 
-      expect($('#HandsontableCopyPaste').length).toBe(0);
+      expect($('.HandsontableCopyPaste').length).toBe(0);
       expect(document.activeElement).toBe(hot2.getActiveEditor().TEXTAREA);
     });
 
@@ -114,15 +114,15 @@ describe('CopyPaste', () => {
       hot1.selectCell(0, 0);
       hot2.selectCell(0, 0);
 
-      expect($('#HandsontableCopyPaste').length).toBe(1);
+      expect($('.HandsontableCopyPaste').length).toBe(1);
 
       hot1.updateSettings({ copyPaste: false });
 
-      expect($('#HandsontableCopyPaste').length).toBe(1);
+      expect($('.HandsontableCopyPaste').length).toBe(1);
 
       hot2.updateSettings({ copyPaste: false });
 
-      expect($('#HandsontableCopyPaste').length).toBe(0);
+      expect($('.HandsontableCopyPaste').length).toBe(0);
     });
 
     it('should not touch focusable element borrowed from cell editors', () => {
@@ -276,7 +276,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
         '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody><tr><td>!@#$%^&*()_+-={[</td>',
-        '<td>]};:\'"\\|,<.>/?~</td></tr></tbody></table>'
+        '<td>]};:\'"\\|,&lt;.&gt;/?~</td></tr></tbody></table>'
       ].join(''));
     });
 
@@ -724,6 +724,32 @@ describe('CopyPaste', () => {
       plugin.onPaste(clipboardEvent);
 
       expect(getDataAtCell(0, 0)).toEqual('very\r\nlong\r\n\r\ntext');
+    });
+
+    it('should properly paste data with excel-style multiline text', async() => {
+      handsontable();
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<meta name=Generator content="Excel">',
+        '<table><tbody><tr><td>Line\r\n',
+        '  1<br>\r\n',
+        '    Line 2<br>\r\n',
+        '    <br>\r\n',
+        '    Line 3<br>\r\n',
+        '    Line 4<br>\r\n',
+        '    <br>\r\n',
+        '    <br>\r\n',
+        '    Line 5</td></tr></tbody></table>',
+      ].join(''));
+
+      selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      expect(getDataAtCell(0, 0)).toEqual('Line 1\r\nLine 2\r\n\r\nLine 3\r\nLine 4\r\n\r\n\r\nLine 5');
     });
 
     it('should properly paste data with merged cells', async() => {

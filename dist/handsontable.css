@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 7.2.2
- * Release date: 23/10/2019 (built at 21/10/2019 12:22:24)
+ * Version: 7.3.0
+ * Release date: 12/12/2019 (built at 12/12/2019 14:21:24)
  */
 /**
  * Fix for bootstrap styles
@@ -1235,7 +1235,7 @@ thead .htCollapseButton:after {
   overflow: hidden;
 }
 
-textarea#HandsontableCopyPaste {
+textarea.HandsontableCopyPaste {
   position: fixed !important;
   top: 0 !important;
   right: 100% !important;

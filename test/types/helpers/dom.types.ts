@@ -2,6 +2,7 @@ import Handsontable from 'handsontable';
 
 const domElement = new HTMLElement();
 const domEvent = new Event('foo');
+const cssRule = new CSSRule();
 
 const htmlCharacters = Handsontable.dom.HTML_CHARACTERS;
 
@@ -20,7 +21,9 @@ Handsontable.dom.getCaretPosition(domElement);
 Handsontable.dom.getComputedStyle(domElement);
 Handsontable.dom.getComputedStyle(domElement, window);
 Handsontable.dom.getCssTransform(domElement);
+Handsontable.dom.getFrameElement(window);
 Handsontable.dom.getParent(domElement, 1);
+Handsontable.dom.getParentWindow(window);
 Handsontable.dom.getScrollLeft(domElement);
 Handsontable.dom.getScrollLeft(domElement, window);
 Handsontable.dom.getScrollTop(domElement);
@@ -38,6 +41,7 @@ Handsontable.dom.getWindowScrollLeft();
 Handsontable.dom.getWindowScrollLeft(window);
 Handsontable.dom.getWindowScrollTop();
 Handsontable.dom.getWindowScrollTop(window);
+Handsontable.dom.hasAccessToParentWindow(window);
 Handsontable.dom.hasClass(domElement, 'foo');
 Handsontable.dom.hasHorizontalScrollbar(domElement);
 Handsontable.dom.hasVerticalScrollbar(domElement);
@@ -52,6 +56,7 @@ Handsontable.dom.isLeftClick(domEvent);
 Handsontable.dom.isOutsideInput(domElement);
 Handsontable.dom.isRightClick(domEvent);
 Handsontable.dom.isVisible(domElement);
+Handsontable.dom.matchesCSSRules(domElement, cssRule);
 Handsontable.dom.offset(domElement);
 Handsontable.dom.outerHeight(domElement);
 Handsontable.dom.outerWidth(domElement);

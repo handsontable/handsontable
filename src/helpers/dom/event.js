@@ -1,4 +1,4 @@
-import { getWindowScrollTop, getWindowScrollLeft } from './element';
+import { getWindowScrollTop, getWindowScrollLeft, getParentWindow } from './element';
 
 /**
  * Prevent other listeners of the same event from being called.
@@ -62,9 +62,16 @@ export function pageY(event) {
     return event.pageY;
   }
 
-  const rootWindow = event.target.ownerDocument.defaultView;
+  let frame = event.target.ownerDocument.defaultView;
+  let offset = getWindowScrollTop(frame);
+  frame = getParentWindow(frame);
 
-  return event.clientY + getWindowScrollTop(rootWindow);
+  while (frame) {
+    offset -= getWindowScrollTop(frame);
+    frame = getParentWindow(frame);
+  }
+
+  return event.clientY + offset;
 }
 
 /**

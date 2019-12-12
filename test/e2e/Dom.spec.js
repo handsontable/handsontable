@@ -4,8 +4,8 @@ describe('Handsontable.Dom', () => {
     const $window = $(window);
     const $forceScrollbar = $('<div id="forceScrollbar"></div>').css({
       position: 'absolute',
-      height: '4000px',
-      width: '4000px',
+      height: '10000px',
+      width: '10000px',
       top: 0,
       left: 0
     });
