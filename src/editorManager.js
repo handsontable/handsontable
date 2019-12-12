@@ -161,7 +161,7 @@ class EditorManager {
     const td = this.instance.getCell(row, this.instance.renderedToPhysicalColumn(col), true);
 
     if (editorClass && td) {
-      const prop = this.instance.getColumnProperty(col);
+      const prop = this.instance.colToProp(this.instance.renderedToVisualColumn(col));
       const originalValue = this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(row), col);
 
       this.activeEditor = getEditorInstance(editorClass, this.instance);

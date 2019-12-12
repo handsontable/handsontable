@@ -2208,17 +2208,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @TODO Description
    */
   this.getRenderableDataAtCell = function(row, column) {
-    return datamap.get(row, this.getColumnProperty(column));
-  };
-
-  /**
-   * @TODO Description
-   */
-  this.getColumnProperty = function(column) {
-    const columnIndex = this.renderedToPhysicalColumn(column);
-    const prop = datamap.colToPropCache[columnIndex];
-
-    return prop !== void 0 ? prop : columnIndex;
+    return datamap.get(row, this.colToProp(this.renderedToVisualColumn(column)));
   };
 
   /**

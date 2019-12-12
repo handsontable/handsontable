@@ -388,7 +388,7 @@ class TableView {
       cellRenderer: (row, renderedColumnIndex, TD) => {
         const visualColumnIndex = this.instance.renderedToVisualColumn(renderedColumnIndex);
         const cellProperties = this.instance.getCellMeta(row, visualColumnIndex);
-        const prop = this.instance.getColumnProperty(renderedColumnIndex);
+        const prop = this.instance.colToProp(this.instance.renderedToVisualColumn(renderedColumnIndex));
         let value = this.instance.getDataAtRowProp(row, prop);
 
         if (this.instance.hasHook('beforeValueRender')) {
