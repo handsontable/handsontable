@@ -167,7 +167,7 @@ class Selection {
 
     const renderedCoords = new CellCoords(
       coords.row,
-      this.tableProps.renderedToPhysicalColumn(coords.col),
+      coords.col,
     );
 
     this.selectedRange.add(renderedCoords);
@@ -218,7 +218,7 @@ class Selection {
 
     const renderedCoords = new CellCoords(
       coords.row,
-      this.tableProps.renderedToPhysicalColumn(coords.col),
+      coords.col,
     );
 
     if (this.settings.selectionMode !== 'single') {

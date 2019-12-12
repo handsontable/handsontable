@@ -2180,24 +2180,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * @TODO Description
    */
-  this.fromVisualToRenderedColumn = (column) => {
+  this.renderedToVisualColumn = (column) => {
     if (column < 0) {
       return column;
     }
 
-    const physicalColumn = this.toPhysicalColumn(column);
-    const renderedColumn = this.physicalToRenderedColumn(physicalColumn);
-
-    return renderedColumn;
-  };
-
-  /**
-   * @TODO Description
-   */
-  this.fromRenderedToPhysicalColumn = (column) => {
-    const renderableColumn = this.renderedToPhysicalColumn(column);
-
-    return this.toVisualColumn(renderableColumn);
+    return this.toVisualColumn(this.renderedToPhysicalColumn(column));
   };
 
   /**

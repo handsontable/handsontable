@@ -375,13 +375,7 @@ class TableView {
 
         if (this.instance.hasColHeaders()) {
           headerRenderers.push((renderedColumnIndex, TH) => {
-            let visualColumnIndex = renderedColumnIndex;
-
-            if (renderedColumnIndex >= 0) {
-              visualColumnIndex = this.instance.toVisualColumn(this.instance.renderedToPhysicalColumn(renderedColumnIndex));
-            }
-
-            this.appendColHeader(visualColumnIndex, TH);
+            this.appendColHeader(this.instance.renderedToVisualColumn(renderedColumnIndex), TH);
           });
         }
 
@@ -391,18 +385,19 @@ class TableView {
       },
       columnWidth: this.instance.getColWidth,
       rowHeight: this.instance.getRowHeight,
-      cellRenderer: (row, col, TD) => {
-        const cellProperties = this.instance.getCellMeta(row, this.instance.renderedToPhysicalColumn(col));
-        const prop = this.instance.getColumnProperty(col);
+      cellRenderer: (row, renderedColumnIndex, TD) => {
+        const visualColumnIndex = this.instance.renderedToVisualColumn(renderedColumnIndex);
+        const cellProperties = this.instance.getCellMeta(row, visualColumnIndex);
+        const prop = this.instance.getColumnProperty(renderedColumnIndex);
         let value = this.instance.getDataAtRowProp(row, prop);
 
         if (this.instance.hasHook('beforeValueRender')) {
           value = this.instance.runHooks('beforeValueRender', value, cellProperties);
         }
 
-        this.instance.runHooks('beforeRenderer', TD, row, col, prop, value, cellProperties);
-        this.instance.getCellRenderer(cellProperties)(this.instance, TD, row, col, prop, value, cellProperties);
-        this.instance.runHooks('afterRenderer', TD, row, col, prop, value, cellProperties);
+        this.instance.runHooks('beforeRenderer', TD, row, visualColumnIndex, prop, value, cellProperties);
+        this.instance.getCellRenderer(cellProperties)(this.instance, TD, row, visualColumnIndex, prop, value, cellProperties);
+        this.instance.runHooks('afterRenderer', TD, row, visualColumnIndex, prop, value, cellProperties);
       },
       selections: this.instance.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,

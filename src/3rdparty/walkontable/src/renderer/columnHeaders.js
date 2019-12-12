@@ -60,6 +60,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
   }
 
   /**
+   * // TODO: Change names of variables?
    * Renders the TH elements.
    */
   render() {
