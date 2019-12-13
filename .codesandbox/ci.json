@@ -1,0 +1,3 @@
+{
+  "sandboxes": ["github/handsontable/examples/tree/master/vanilla/basic", "github/handsontable/examples/tree/master/vue/basic", "github/handsontable/examples/tree/master/react/basic"]
+}
