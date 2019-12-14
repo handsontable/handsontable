@@ -3,15 +3,16 @@ import normalizeColor from 'normalize-css-color';
 /**
  * Converts keyword, short hex, long hex, rgb, rgba colors to [r, g, b] array
  *
- * orange, #FFA500, rgb(255,165,0) -> {"r": 255, "g": 165, "b": 0, "a": 1}
+ * orange, oRaNgE, #FFA500, #ffa500, rgb(255,165,0) -> {"r": 255, "g": 165, "b": 0, "a": 1}
  * #FA0 -> {"r": 255, "g": 170, "b": 0, "a": 1}
  * rgba(255,165,0,.2) -> {"r": 255, "g": 165, "b": 0, "a": 0.2}
+ * hsla(39,100%,50%,.2) -> { r: 255, g: 166, b: 0, a: 0.2 }
  *
  * @param {String} cssColor
  * @returns {Object} An object with properties: r, g, b, a
  */
 export function convertCssColorToRGBA(cssColor) {
-  const nullableColor = normalizeColor(cssColor);
+  const nullableColor = normalizeColor(cssColor.toLowerCase());
   const colorInt = nullableColor === null ? 0x00000000 : nullableColor;
   return normalizeColor.rgba(colorInt);
 }

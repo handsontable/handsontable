@@ -8,20 +8,32 @@ describe('borderRenderer', () => {
           expect(convertCssColorToRGBA('orange'))
             .toEqual({ r: 255, g: 165, b: 0, a: 1 });
 
+          expect(convertCssColorToRGBA('oRaNgE'))
+            .toEqual({ r: 255, g: 165, b: 0, a: 1 });
+
           expect(convertCssColorToRGBA('#FFA500'))
+            .toEqual({ r: 255, g: 165, b: 0, a: 1 });
+
+          expect(convertCssColorToRGBA('#ffa500'))
             .toEqual({ r: 255, g: 165, b: 0, a: 1 });
 
           expect(convertCssColorToRGBA('#FA0'))
             .toEqual({ r: 255, g: 170, b: 0, a: 1 });
 
-          expect(convertCssColorToRGBA('rgb(255,165,0)'))
-            .toEqual({ r: 255, g: 165, b: 0, a: 1 });
+          expect(convertCssColorToRGBA('#fa0'))
+            .toEqual({ r: 255, g: 170, b: 0, a: 1 });
 
           expect(convertCssColorToRGBA('rgb(255,165,0)'))
             .toEqual({ r: 255, g: 165, b: 0, a: 1 });
 
           expect(convertCssColorToRGBA('rgba(255,165,0,.2)'))
             .toEqual({ r: 255, g: 165, b: 0, a: 0.2 });
+
+          expect(convertCssColorToRGBA('hsl(39,100%,50%)'))
+            .toEqual({ r: 255, g: 166, b: 0, a: 1 });
+
+          expect(convertCssColorToRGBA('hsla(39,100%,50%,.2)'))
+            .toEqual({ r: 255, g: 166, b: 0, a: 0.2 });
         });
       });
 

@@ -88,8 +88,8 @@ export function compareStrokePriority(style1, style2) {
   styleSplitted1.shift(); // remove linestyle
   styleSplitted2.shift(); // remove width
   styleSplitted2.shift(); // remove linestyle
-  const color1 = styleSplitted1.join(' ').toLowerCase();
-  const color2 = styleSplitted2.join(' ').toLowerCase();
+  const color1 = styleSplitted1.join(' ');
+  const color2 = styleSplitted2.join(' ');
 
   if (parsedWidth1 > parsedWidth2) {
     return 1;
