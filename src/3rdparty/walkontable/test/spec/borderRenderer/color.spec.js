@@ -1,6 +1,9 @@
-import { convertCssColorToRGBA, getLuminance, compareLuminance } from 'walkontable/borderRenderer/svg/color';
+// This test could be in unit tests but it can't, because convertCssColorToRGBA does not work in unit tests due to poor implementation of getComputedStyle in JSDOM
+const { setCurrentWindowContext, convertCssColorToRGBA, getLuminance, compareLuminance } = Walkontable;
 
 describe('borderRenderer', () => {
+  setCurrentWindowContext(window);
+
   describe('svg', () => {
     describe('color', () => {
       describe('convertCssColorToRGBA', () => {

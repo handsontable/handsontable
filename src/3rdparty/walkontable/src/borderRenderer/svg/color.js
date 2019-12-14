@@ -1,7 +1,23 @@
-import normalizeColor from 'normalize-css-color';
+let helperSpanForColorPicking;
+/**
+ * Matches any numbers within string, including negative numbers and decimal fractions
+ */
+const numericRegexp = /[-]{0,1}[\d]*[.]{0,1}[\d]+/g;
 
 /**
- * Converts keyword, short hex, long hex, rgb, rgba colors to [r, g, b, a] array
+ * Sets up the window object for `convertCssColorToRGBA`.
+ * Needed because our linting rules prohibit to use globals like `window`
+ *
+ * @param {Object} window DOM window object
+ */
+export function setCurrentWindowContext(window) {
+  helperSpanForColorPicking = window.document.createElement('span');
+  helperSpanForColorPicking.style.display = 'none';
+}
+
+/**
+ * Converts keyword, short hex, long hex, rgb, rgba colors to [r, g, b, a] array.
+ * Before calling this function, make sure to call setCurrentWindowContext to set up.
  *
  * orange, oRaNgE, #FFA500, #ffa500, rgb(255,165,0) -> {"r": 255, "g": 165, "b": 0, "a": 1}
  * #FA0 -> {"r": 255, "g": 170, "b": 0, "a": 1}
@@ -12,9 +28,23 @@ import normalizeColor from 'normalize-css-color';
  * @returns {Array} An array with items: [r, g, b, a]
  */
 export function convertCssColorToRGBA(cssColor) {
-  const nullableColor = normalizeColor(cssColor.toLowerCase());
-  const colorInt = nullableColor === null ? 0x00000000 : nullableColor;
-  const { r, g, b, a } = normalizeColor.rgba(colorInt);
+  helperSpanForColorPicking.ownerDocument.body.appendChild(helperSpanForColorPicking);
+  helperSpanForColorPicking.style.color = cssColor;
+
+  const window = helperSpanForColorPicking.ownerDocument.defaultView; // needed because our linting rules prohibit to use globals like `window`
+  const colorInRgb = window.getComputedStyle(helperSpanForColorPicking).color; // returns format rgb(255, 255, 255) or rgba(255, 255, 255, 1)
+  const colorParsed = colorInRgb.match(numericRegexp);
+
+  helperSpanForColorPicking.ownerDocument.body.removeChild(helperSpanForColorPicking);
+  if (colorParsed === null || colorParsed.length < 2) {
+    return [0, 0, 0, 1]; // parsing went wrong, return black
+  }
+
+  const r = parseInt(colorParsed[0], 10);
+  const g = parseInt(colorParsed[1], 10);
+  const b = parseInt(colorParsed[2], 10);
+  const a = colorParsed.length > 3 ? parseFloat(colorParsed[3]) : 1;
+
   return [r, g, b, a];
 }
 

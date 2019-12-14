@@ -1,6 +1,9 @@
-import { compareStrokePriority } from 'walkontable/borderRenderer/svg/pathsRenderer';
+// This test could be in unit tests but it can't, because convertCssColorToRGBA does not work in unit tests due to poor implementation of getComputedStyle in JSDOM
+const { setCurrentWindowContext, compareStrokePriority } = Walkontable;
 
 describe('borderRenderer', () => {
+  setCurrentWindowContext(window);
+
   describe('pathsRenderer', () => {
     describe('compareStrokePriority', () => {
       it('should return 0 when given 2 borders that are the same', () => {

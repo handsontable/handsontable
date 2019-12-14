@@ -26,8 +26,9 @@ import { OrderView, SharedOrderView } from './utils/orderView';
 import Viewport from './viewport';
 import { getListenersCounter } from './../../../eventManager';
 
-import getSvgPathsRenderer, { precalculateStylesAndCommands } from './borderRenderer/svg/pathsRenderer';
+import getSvgPathsRenderer, { precalculateStylesAndCommands, compareStrokePriority } from './borderRenderer/svg/pathsRenderer';
 import getSvgResizer from './borderRenderer/svg/resizer';
+import { setCurrentWindowContext, convertCssColorToRGBA, getLuminance, compareLuminance } from './borderRenderer/svg/color';
 
 /**
  * The export `Walkontable as default` is intended for external use (i.e. in Handsontable). Other named exports
@@ -68,5 +69,10 @@ export {
 
   getSvgPathsRenderer,
   precalculateStylesAndCommands,
-  getSvgResizer
+  getSvgResizer,
+  setCurrentWindowContext,
+  convertCssColorToRGBA,
+  getLuminance,
+  compareLuminance,
+  compareStrokePriority
 };

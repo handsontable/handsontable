@@ -11,6 +11,7 @@ import Scroll from './scroll';
 import Settings from './settings';
 import MasterTable from './table/master';
 import Viewport from './viewport';
+import { setCurrentWindowContext } from './borderRenderer/svg/color';
 
 /**
  * @class Walkontable
@@ -26,6 +27,7 @@ class Walkontable {
     this.guid = `wt_${randomString()}`;
     this.rootDocument = settings.table.ownerDocument;
     this.rootWindow = this.rootDocument.defaultView;
+    setCurrentWindowContext(this.rootWindow);
 
     // bootstrap from settings
     if (settings.cloneSource) {
