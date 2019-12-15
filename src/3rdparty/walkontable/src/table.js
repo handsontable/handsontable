@@ -356,8 +356,6 @@ class Table {
       wtOverlays.syncScrollWithMaster();
     }
 
-    wot.drawn = true;
-
     return this;
   }
 

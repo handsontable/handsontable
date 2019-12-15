@@ -20,9 +20,6 @@ class Clone extends Core {
     this.wtViewport = settings.cloneSource.wtViewport;
     this.wtEvent = new Event(this);
     this.selections = this.cloneSource.selections;
-
-    this.drawn = false;
-    this.drawInterrupted = false;
   }
 
   /**
@@ -35,14 +32,7 @@ class Clone extends Core {
    * @returns {Walkontable}
    */
   drawClone(fastDraw = false) {
-    this.drawInterrupted = false;
-
-    if (!fastDraw && !this.wtTable.isVisible()) {
-      // draw interrupted because TABLE is not visible
-      this.drawInterrupted = true;
-    } else {
-      this.wtTable.draw(fastDraw);
-    }
+    this.wtTable.draw(fastDraw);
 
     return this;
   }
