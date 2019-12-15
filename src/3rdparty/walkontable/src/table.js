@@ -19,6 +19,7 @@ import Overlay from './overlay/_base';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
 import { BorderRenderer } from './borderRenderer';
+import Master from './core/master';
 
 /**
  *
@@ -34,7 +35,7 @@ class Table {
      *
      * @type {Boolean}
      */
-    this.isMaster = !wotInstance.cloneOverlay; // "instanceof" operator isn't used, because it caused a circular reference in Webpack
+    this.isMaster = wotInstance instanceof Master;
     this.wot = wotInstance;
 
     // legacy support
@@ -110,7 +111,7 @@ class Table {
    * @returns {Boolean}
    */
   is(overlayTypeName) {
-    return Overlay.isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
+    return !this.isMaster && this.wot.getOverlayName() === overlayTypeName;
   }
 
   /**

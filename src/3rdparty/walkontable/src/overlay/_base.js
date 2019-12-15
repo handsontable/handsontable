@@ -109,21 +109,6 @@ class Overlay {
   }
 
   /**
-   * Checks if overlay object (`overlay`) is instance of overlay type (`type`).
-   *
-   * @param {Overlay} overlay Overlay object
-   * @param {String} type Overlay type, one of the CLONE_TYPES value
-   * @returns {Boolean}
-   */
-  static isOverlayTypeOf(overlay, type) {
-    if (!overlay || !registeredOverlays[type]) {
-      return false;
-    }
-
-    return overlay instanceof registeredOverlays[type];
-  }
-
-  /**
    * @param {Walkontable} wotInstance
    */
   constructor(wotInstance) {
@@ -359,8 +344,9 @@ class Overlay {
     }
 
     return new Clone({
-      cloneSource: this.wot,
-      cloneOverlay: this,
+      masterInstance: this.wot,
+      type: this.type,
+      createTableFn: this.createTable,
       table: clonedTable,
     });
   }

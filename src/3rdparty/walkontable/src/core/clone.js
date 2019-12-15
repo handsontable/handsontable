@@ -12,12 +12,12 @@ class Clone extends Core {
   constructor(settings) {
     super(settings);
 
-    this.cloneSource = settings.cloneSource;
-    this.cloneOverlay = settings.cloneOverlay;
-    this.wtSettings = settings.cloneSource.wtSettings;
-    this.wtTable = this.cloneOverlay.createTable(this, settings.table);
+    this.cloneSource = settings.masterInstance;
+    this.overlayName = settings.type;
+    this.wtSettings = this.cloneSource.wtSettings;
+    this.wtTable = settings.createTableFn(this, settings.table);
     this.wtScroll = new Scroll(this);
-    this.wtViewport = settings.cloneSource.wtViewport;
+    this.wtViewport = this.cloneSource.wtViewport;
     this.wtEvent = new Event(this);
     this.selections = this.cloneSource.selections;
   }
@@ -43,7 +43,7 @@ class Clone extends Core {
    * @returns {String}
    */
   getOverlayName() {
-    return this.cloneOverlay.type;
+    return this.overlayName;
   }
 }
 
