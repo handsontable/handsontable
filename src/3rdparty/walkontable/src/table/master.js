@@ -72,7 +72,7 @@ class MasterTable extends Table {
 
   markOversizedColumnHeaders() {
     const { wot } = this;
-    const overlayName = wot.getOverlayName();
+    const overlayName = 'master';
     const columnHeaders = wot.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
 

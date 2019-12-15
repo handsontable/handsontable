@@ -180,15 +180,6 @@ class Master extends Core {
   }
 
   /**
-   * Get overlay name
-   *
-   * @returns {String}
-   */
-  getOverlayName() {
-    return 'master';
-  }
-
-  /**
    * Export settings as class names added to the parent element of the table.
    */
   exportSettingsAsClassNames() {
