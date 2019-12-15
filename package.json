@@ -96,7 +96,7 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-plugin-transform-require-ignore": "^0.1.1",
     "concurrently": "^4.1.1",
-    "copy-webpack-plugin": "^4.6.0",
+    "copy-webpack-plugin": "^5.1.0",
     "cpy-cli": "^2.0.0",
     "cross-env": "^5.0.1",
     "css-loader": "^2.1.1",
@@ -128,7 +128,6 @@
     "supports-color": "^4.2.1",
     "tree-kill": "^1.2.1",
     "typescript": "^3.3.3",
-    "uglifyjs-webpack-plugin": "^2.1.2",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
   },
