@@ -255,7 +255,7 @@ class AutoRowSize extends BasePlugin {
         this.hot.view.wt.wtOverlays.adjustElementsSize(true);
         // tmp
         if (this.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
-          this.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
+          this.hot.view.wt.wtOverlays.leftOverlay.clone.drawClone();
         }
       }
     };

@@ -68,7 +68,7 @@ class Walkontable {
   }
 
   /**
-   * Force rerender of Walkontable
+   * Force rerender of Walkontable. It draws the "master" table and any overlay sub-instances ("clones") of Walkontable.
    *
    * @param {Boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
    *                                   the data. It will only work if Table.draw() does not force
@@ -76,6 +76,36 @@ class Walkontable {
    * @returns {Walkontable}
    */
   draw(fastDraw = false) {
+    if (this.cloneOverlay) {
+      throw new Error('This should not be called in clone');
+    }
+
+    this.drawInterrupted = false;
+
+    if (!fastDraw && !this.wtTable.isVisible()) {
+      // draw interrupted because TABLE is not visible
+      this.drawInterrupted = true;
+    } else {
+      this.wtTable.draw(fastDraw);
+    }
+
+    return this;
+  }
+
+  /**
+   * Force rerender of Walkontable sub-instance ("clone") used for a single overlay. This method should only be called
+   * privately by Walkontable, not externally from Handsontable or any of the plugins.
+   *
+   * @param {Boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
+   *                                   the data. It will only work if Table.draw() does not force
+   *                                   rendering anyway
+   * @returns {Walkontable}
+   */
+  drawClone(fastDraw = false) {
+    if (!this.cloneOverlay) {
+      throw new Error('This should be called in clone');
+    }
+
     this.drawInterrupted = false;
 
     if (!fastDraw && !this.wtTable.isVisible()) {

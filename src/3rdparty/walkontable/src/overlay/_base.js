@@ -375,7 +375,7 @@ class Overlay {
     const nextCycleRenderFlag = this.shouldBeRendered();
 
     if (this.clone && (this.needFullRender || nextCycleRenderFlag)) {
-      this.clone.draw(fastDraw);
+      this.clone.drawClone(fastDraw);
     }
     this.needFullRender = nextCycleRenderFlag;
   }
