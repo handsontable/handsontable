@@ -1,4 +1,4 @@
-import { convertCssColorToRGBA, compareLuminance } from './color';
+import { getMemoizedLuminanceForColor, compareLuminance } from './color';
 
 let stringifyPath;
 
@@ -99,7 +99,7 @@ export function compareStrokePriority(style1, style2) {
   }
 
   // the lines have the same width. Sort them by the color (the darkest has a higher priority)
-  return compareLuminance(convertCssColorToRGBA(color2), convertCssColorToRGBA(color1));
+  return compareLuminance(getMemoizedLuminanceForColor(color2), getMemoizedLuminanceForColor(color1));
 }
 
 /**

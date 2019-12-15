@@ -49,22 +49,38 @@ export function convertCssColorToRGBA(cssColor) {
 }
 
 /**
- * Compares the luminance of two colors.
+ * Compares two color luminances
  *
- * @param {Array} rgba1 An array with items: [r, g, b, a]
- * @param {Array} rgba2 An array with items: [r, g, b, a]
- * @returns {Number} 1 if rgba1 has a higher luminance (is lighter) than rgba2, 0 if rgba1 has the same luminance as rgba2, -1 if rgba1 has a lower luminance (is darker) than rgba2
+ * @param {Number} luminance1 Color luminance expressed as a number in range 0-255
+ * @param {Number} luminance2 Color luminance expressed as a number in range 0-255
+ * @returns {Number} 1 if luminance1 is higher ("lighter") than luminance2, 0 if luminance1 is the same as luminance2, -1 if luminance1 is lower ("darker") than luminance2
  */
-export function compareLuminance(rgba1, rgba2) {
-  const luminance1 = getLuminance(rgba1);
-  const luminance2 = getLuminance(rgba2);
-
+export function compareLuminance(luminance1, luminance2) {
   if (luminance1 > luminance2) {
     return 1;
   } else if (luminance1 < luminance2) {
     return -1;
   }
   return 0;
+}
+
+const colorLuminances = new Map();
+
+/**
+ * Calculates luminance of a color given a string color definition. Memoizes the results for better performance.
+ *
+ * @param {String} color CSS3/SVG color definition
+ * @returns {Number} Color luminance expressed as a number in range 0-255
+ */
+export function getMemoizedLuminanceForColor(color) {
+  const memoizedLuminance = colorLuminances.get(color);
+  if (memoizedLuminance !== undefined) {
+    return memoizedLuminance;
+  }
+
+  const luminance = getLuminance(convertCssColorToRGBA(color));
+  colorLuminances.set(color, luminance);
+  return luminance;
 }
 
 /**
