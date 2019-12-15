@@ -347,21 +347,7 @@ class Table {
     }
 
     if (this.isMaster) {
-      wtOverlays.topOverlay.resetFixedPosition();
-
-      if (wtOverlays.bottomOverlay.clone) {
-        wtOverlays.bottomOverlay.resetFixedPosition();
-      }
-
-      wtOverlays.leftOverlay.resetFixedPosition();
-
-      if (wtOverlays.topLeftCornerOverlay) {
-        wtOverlays.topLeftCornerOverlay.resetFixedPosition();
-      }
-
-      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
-        wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
-      }
+      wtOverlays.resetFixedPositions();
     }
 
     this.refreshSelections(runFastDraw);
