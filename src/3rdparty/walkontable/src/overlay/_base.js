@@ -6,7 +6,7 @@ import { defineGetter } from './../../../../helpers/object';
 import { arrayEach } from './../../../../helpers/array';
 import { warn } from './../../../../helpers/console';
 import EventManager from './../../../../eventManager';
-import Walkontable from './../core';
+import Clone from '../core/clone';
 
 const registeredOverlays = {};
 
@@ -358,7 +358,7 @@ class Overlay {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
     }
 
-    return new Walkontable({
+    return new Clone({
       cloneSource: this.wot,
       cloneOverlay: this,
       table: clonedTable,
