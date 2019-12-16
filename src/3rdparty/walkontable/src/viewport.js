@@ -5,7 +5,6 @@ import {
   outerHeight,
   outerWidth,
 } from './../../../helpers/dom/element';
-import { objectEach } from './../../../helpers/object';
 import EventManager from './../../../eventManager';
 import {
   RENDER_TYPE,
@@ -28,7 +27,7 @@ class Viewport {
 
     this.oversizedRows = [];
     this.oversizedColumnHeaders = [];
-    this.hasOversizedColumnHeadersMarked = {};
+    this.hasOversizedColumnHeadersMarked = false;
     this.clientHeight = 0;
     this.containerWidth = NaN;
     this.rowHeaderWidth = NaN;
@@ -491,12 +490,10 @@ class Viewport {
   }
 
   /**
-   * Resets values in keys of the hasOversizedColumnHeadersMarked object after updateSettings.
+   * Resets the value of hasOversizedColumnHeadersMarked after updateSettings.
    */
   resetHasOversizedColumnHeadersMarked() {
-    objectEach(this.hasOversizedColumnHeadersMarked, (value, key, object) => {
-      object[key] = void 0;
-    });
+    this.hasOversizedColumnHeadersMarked = false;
   }
 }
 
