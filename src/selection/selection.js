@@ -165,12 +165,7 @@ class Selection {
       this.selectedRange.clear();
     }
 
-    const renderedCoords = new CellCoords(
-      coords.row,
-      coords.col,
-    );
-
-    this.selectedRange.add(renderedCoords);
+    this.selectedRange.add(coords);
 
     if (this.getLayerLevel() === 0) {
       this.selectedByRowHeader.clear();
@@ -216,13 +211,8 @@ class Selection {
 
     const cellRange = this.selectedRange.current();
 
-    const renderedCoords = new CellCoords(
-      coords.row,
-      coords.col,
-    );
-
     if (this.settings.selectionMode !== 'single') {
-      cellRange.setTo(new CellCoords(renderedCoords.row, renderedCoords.col));
+      cellRange.setTo(new CellCoords(coords.row, coords.col));
     }
 
     // Set up current selection.
