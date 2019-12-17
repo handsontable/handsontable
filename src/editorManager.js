@@ -148,8 +148,9 @@ class EditorManager {
     }
 
     const { row, col } = this.instance.selection.selectedRange.current().highlight;
+    const visualColumn = this.instance.renderedToVisualColumn(col);
 
-    this.cellProperties = this.instance.getCellMeta(row, col);
+    this.cellProperties = this.instance.getCellMeta(row, visualColumn);
 
     if (this.cellProperties.readOnly) {
       this.clearActiveEditor();
@@ -158,14 +159,14 @@ class EditorManager {
     }
 
     const editorClass = this.instance.getCellEditor(this.cellProperties);
-    const td = this.instance.getCell(row, this.instance.renderedToPhysicalColumn(col), true);
+    const td = this.instance.getCell(row, visualColumn, true);
 
     if (editorClass && td) {
-      const prop = this.instance.colToProp(this.instance.renderedToVisualColumn(col));
-      const originalValue = this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(row), col);
+      const prop = this.instance.colToProp(visualColumn);
+      const originalValue = this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(row), visualColumn);
 
       this.activeEditor = getEditorInstance(editorClass, this.instance);
-      this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
+      this.activeEditor.prepare(row, visualColumn, prop, td, originalValue, this.cellProperties);
 
     } else {
       this.clearActiveEditor();

@@ -164,7 +164,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   let selection = new Selection(priv.settings, {
-    countCols: () => instance.countCols(),
+    countCols: () => instance.countRenderedCols(),
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
     renderedToPhysicalColumn: col => instance.renderedToPhysicalColumn(col),
@@ -1409,12 +1409,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
       return arrayMap(selection.getSelectedRange(), ({ from, to }) => {
-        return [
-          from.row,
-          from.col,
-          to.row,
-          to.col,
-        ];
+        return [from.row, this.renderedToVisualColumn(from.col), to.row, this.renderedToVisualColumn(to.col)];
       });
     }
   };
