@@ -1813,8 +1813,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.runHooks('afterCellMetaReset');
 
     if (isDefined(settings.className)) {
-      if (tableMeta.className) {
-        removeClass(instance.rootElement, tableMeta.className);
+      if (globalMeta.className) {
+        removeClass(instance.rootElement, globalMeta.className);
       }
       if (settings.className) {
         addClass(instance.rootElement, settings.className);
