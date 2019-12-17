@@ -515,11 +515,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         if (rows < tableMeta.minRows) {
           for (let r = 0, minRows = tableMeta.minRows; r < minRows - rows; r++) {
-            const visualLastRowIndex = instance.countRows();
-            const physicalLastRowIndex = instance.toPhysicalRow(visualLastRowIndex);
-
-            datamap.createRow(visualLastRowIndex, 1, 'auto');
-            metaManager.createRow(physicalLastRowIndex, 1);
+            // The synchronization with cell meta is not desired here. For `minRows` option,
+            // we don't want to touch/shift cell meta objects.
+            datamap.createRow(instance.countRows(), 1, 'auto');
           }
         }
       }
@@ -529,11 +527,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         // should I add empty rows to meet minSpareRows?
         if (emptyRows < tableMeta.minSpareRows) {
           for (; emptyRows < tableMeta.minSpareRows && instance.countSourceRows() < tableMeta.maxRows; emptyRows++) {
-            const visualLastRowIndex = instance.countRows();
-            const physicalLastRowIndex = instance.toPhysicalRow(visualLastRowIndex);
-
-            datamap.createRow(visualLastRowIndex, 1, 'auto');
-            metaManager.createRow(physicalLastRowIndex, 1);
+            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+            // we don't want to touch/shift cell meta objects.
+            datamap.createRow(instance.countRows(), 1, 'auto');
           }
         }
       }
@@ -548,22 +544,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         // should I add empty cols to meet minCols?
         if (tableMeta.minCols && !tableMeta.columns && instance.countCols() < tableMeta.minCols) {
           for (; instance.countCols() < tableMeta.minCols; emptyCols++) {
-            const visualLastColumnIndex = instance.countCols();
-            const physicalLastColumnIndex = instance.toPhysicalRow(visualLastColumnIndex);
-
-            datamap.createCol(visualLastColumnIndex, 1, 'auto');
-            metaManager.createColumn(physicalLastColumnIndex, 1);
+            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+            // we don't want to touch/shift cell meta objects.
+            datamap.createCol(instance.countCols(), 1, 'auto');
           }
         }
         // should I add empty cols to meet minSpareCols?
         if (tableMeta.minSpareCols && !tableMeta.columns && instance.dataType === 'array' &&
             emptyCols < tableMeta.minSpareCols) {
           for (; emptyCols < tableMeta.minSpareCols && instance.countCols() < tableMeta.maxCols; emptyCols++) {
-            const visualLastColumnIndex = instance.countCols();
-            const physicalLastColumnIndex = instance.toPhysicalRow(visualLastColumnIndex);
-
-            datamap.createCol(visualLastColumnIndex, 1, 'auto');
-            metaManager.createColumn(physicalLastColumnIndex, 1);
+            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+            // we don't want to touch/shift cell meta objects.
+            datamap.createCol(instance.countCols(), 1, 'auto');
           }
         }
       }
