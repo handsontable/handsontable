@@ -88,8 +88,14 @@ class Table {
     // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
     this.wot.wtSettings.settings.rowHeaderWidth = () => this._modifyRowHeaderWidth(origRowHeaderWidth);
 
-    this.rowUtils = new RowUtils(this.wot);
-    this.columnUtils = new ColumnUtils(this.wot);
+    if (this.isMaster) {
+      this.rowUtils = new RowUtils(this.wot);
+      this.columnUtils = new ColumnUtils(this.wot);
+    } else {
+      this.rowUtils = this.wot.cloneSource.wtTable.rowUtils;
+      this.columnUtils = this.wot.cloneSource.wtTable.columnUtils;
+    }
+
     this.tableRenderer = new Renderer({
       TABLE: this.TABLE,
       THEAD: this.THEAD,
