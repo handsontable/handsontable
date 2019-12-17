@@ -164,7 +164,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   let selection = new Selection(priv.settings, {
-    countCols: () => instance.countRenderedCols(),
+    countCols: () => instance.countRenderableColumns(),
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
     renderedToPhysicalColumn: col => instance.renderedToPhysicalColumn(col),
