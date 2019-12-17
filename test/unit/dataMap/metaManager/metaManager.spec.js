@@ -215,9 +215,11 @@ describe('MetaManager', () => {
       const metaManager = new MetaManager();
 
       spyOn(metaManager.cellMeta, 'clearCache');
+      spyOn(metaManager.columnMeta, 'clearCache');
 
       expect(metaManager.clearCellsCache()).toBeUndefined();
       expect(metaManager.cellMeta.clearCache).toHaveBeenCalledWith();
+      expect(metaManager.columnMeta.clearCache).not.toHaveBeenCalledWith();
     });
   });
 
