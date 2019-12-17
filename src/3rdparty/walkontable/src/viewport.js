@@ -133,12 +133,11 @@ class Viewport {
    * @returns {Number}
    */
   sumColumnWidths(from, length) {
-    const { wtTable } = this.wot;
     let sum = 0;
     let column = from;
 
     while (column < length) {
-      sum += wtTable.getColumnWidth(column);
+      sum += this.wot.columnUtils.getWidth(column);
       column += 1;
     }
 
@@ -345,7 +344,7 @@ class Viewport {
       viewportSize: height,
       scrollOffset: pos,
       totalItems: wot.getSetting('totalRows'),
-      itemSizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
+      itemSizeFn: sourceRow => wot.rowUtils.getHeight(sourceRow),
       overrideFn: wtSettings.settings.viewportRowCalculatorOverride,
       calculationType,
       scrollbarHeight,
@@ -386,7 +385,7 @@ class Viewport {
       viewportSize: width,
       scrollOffset: pos,
       totalItems: wot.getSetting('totalColumns'),
-      itemSizeFn: sourceCol => wot.wtTable.getColumnWidth(sourceCol),
+      itemSizeFn: sourceCol => wot.columnUtils.getWidth(sourceCol),
       overrideFn: wtSettings.settings.viewportColumnCalculatorOverride,
       calculationType,
       stretchMode: wot.getSetting('stretchH'),

@@ -310,7 +310,7 @@ class ManualColumnMove extends BasePlugin {
       if (i < 0) {
         columnWidth = this.hot.view.wt.wtViewport.getRowHeaderWidth() || 0;
       } else {
-        columnWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(i) || 0;
+        columnWidth = this.hot.view.wt.columnUtils.getStretchedColumnWidth(i) || 0;
       }
 
       width += columnWidth;
@@ -556,7 +556,7 @@ class ManualColumnMove extends BasePlugin {
       priv.rootElementOffset = offset(this.hot.rootElement).left;
 
       const countColumnsFrom = priv.hasRowHeaders ? -1 : 0;
-      const topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
+      const topPos = wtTable.holder.scrollTop + this.hot.view.wt.columnUtils.getHeaderHeight(0) + 1;
       const fixedColumns = coords.col < priv.fixedColumns;
       const scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
       const wrapperIsWindow = scrollableElement.scrollX ? scrollableElement.scrollX - priv.rootElementOffset : 0;
@@ -684,7 +684,7 @@ class ManualColumnMove extends BasePlugin {
    */
   onAfterScrollVertically() {
     const wtTable = this.hot.view.wt.wtTable;
-    const headerHeight = wtTable.getColumnHeaderHeight(0) + 1;
+    const headerHeight = this.hot.view.wt.columnUtils.getHeaderHeight(0) + 1;
     const scrollTop = wtTable.holder.scrollTop;
     const posTop = headerHeight + scrollTop;
 

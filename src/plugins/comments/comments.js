@@ -400,7 +400,7 @@ class Comments extends BasePlugin {
     const row = this.range.from.row;
     const column = this.range.from.col;
     const cellOffset = offset(TD);
-    const lastColWidth = wtTable.getStretchedColumnWidth(column);
+    const lastColWidth = this.hot.view.wt.columnUtils.getStretchedColumnWidth(column);
     let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
     let cellLeftOffset = cellOffset.left;
 

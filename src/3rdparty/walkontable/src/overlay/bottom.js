@@ -142,13 +142,13 @@ class BottomOverlay extends Overlay {
    * @returns {Number} Height sum
    */
   sumCellSizes(from, to) {
-    const { wtTable, wtSettings } = this.wot;
+    const { wtSettings } = this.wot;
     const defaultRowHeight = wtSettings.settings.defaultRowHeight;
     let row = from;
     let sum = 0;
 
     while (row < to) {
-      const height = wtTable.getRowHeight(row);
+      const height = this.wot.rowUtils.getHeight(row);
 
       sum += height === void 0 ? defaultRowHeight : height;
       row += 1;

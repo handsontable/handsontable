@@ -16,8 +16,6 @@ import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 import { Renderer } from './renderer';
 import Overlay from './overlay/_base';
-import ColumnUtils from './utils/column';
-import RowUtils from './utils/row';
 import { BorderRenderer } from './borderRenderer';
 import Master from './core/master';
 
@@ -88,21 +86,13 @@ class Table {
     // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
     this.wot.wtSettings.settings.rowHeaderWidth = () => this._modifyRowHeaderWidth(origRowHeaderWidth);
 
-    if (this.isMaster) {
-      this.rowUtils = new RowUtils(this.wot);
-      this.columnUtils = new ColumnUtils(this.wot);
-    } else {
-      this.rowUtils = this.wot.cloneSource.wtTable.rowUtils;
-      this.columnUtils = this.wot.cloneSource.wtTable.columnUtils;
-    }
-
     this.tableRenderer = new Renderer({
       TABLE: this.TABLE,
       THEAD: this.THEAD,
       COLGROUP: this.COLGROUP,
       TBODY: this.TBODY,
-      rowUtils: this.rowUtils,
-      columnUtils: this.columnUtils,
+      rowUtils: this.isMaster ? this.wot.rowUtils : this.wot.cloneSource.rowUtils,
+      columnUtils: this.isMaster ? this.wot.columnUtils : this.wot.cloneSource.columnUtils,
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
 
@@ -334,14 +324,14 @@ class Table {
 
           if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
             // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
-            this.columnUtils.calculateWidths();
+            this.wot.columnUtils.calculateWidths();
             this.tableRenderer.renderer.colGroup.render();
           }
 
           if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
             // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
             this.wot.wtViewport.containerWidth = null;
-            this.columnUtils.calculateWidths();
+            this.wot.columnUtils.calculateWidths();
             this.tableRenderer.renderer.colGroup.render();
           }
 
@@ -378,7 +368,7 @@ class Table {
     while (level) {
       level -= 1;
 
-      previousColHeaderHeight = this.wot.wtTable.getColumnHeaderHeight(level);
+      previousColHeaderHeight = this.wot.columnUtils.getHeaderHeight(level);
       currentHeader = this.wot.wtTable.getColumnHeader(sourceColIndex, level);
 
       if (!currentHeader) {
@@ -703,6 +693,7 @@ class Table {
     let rowCount = this.TBODY.childNodes.length;
     const expectedTableHeight = rowCount * this.wot.wtSettings.settings.defaultRowHeight;
     const actualTableHeight = innerHeight(this.TBODY) - 1;
+    const rowUtils = this.isMaster ? this.wot.rowUtils : this.wot.cloneSource.rowUtils; // TODO this is not needed if we don't call markOversizedRows in the bottom overlay
     let previousRowHeight;
     let rowInnerHeight;
     let sourceRowIndex;
@@ -717,7 +708,7 @@ class Table {
     while (rowCount) {
       rowCount -= 1;
       sourceRowIndex = this.rowFilter.renderedToSource(rowCount);
-      previousRowHeight = this.getRowHeight(sourceRowIndex);
+      previousRowHeight = rowUtils.getHeight(sourceRowIndex);
       currentTr = this.getTrForRow(sourceRowIndex);
       rowHeader = currentTr.querySelector('th');
 
@@ -883,28 +874,6 @@ class Table {
 
   allColumnsInViewport() {
     return this.wot.getSetting('totalColumns') === this.getVisibleColumnsCount();
-  }
-
-  /**
-   * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height
-   *
-   * @param {Number} sourceRow
-   * @returns {Number}
-   */
-  getRowHeight(sourceRow) {
-    return this.rowUtils.getHeight(sourceRow);
-  }
-
-  getColumnHeaderHeight(level) {
-    return this.columnUtils.getHeaderHeight(level);
-  }
-
-  getColumnWidth(sourceColumn) {
-    return this.columnUtils.getWidth(sourceColumn);
-  }
-
-  getStretchedColumnWidth(sourceColumn) {
-    return this.columnUtils.getStretchedColumnWidth(sourceColumn);
   }
 
   /**

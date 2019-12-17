@@ -129,7 +129,7 @@ class TopOverlay extends Overlay {
     let sum = 0;
 
     while (row < to) {
-      const height = this.wot.wtTable.getRowHeight(row);
+      const height = this.wot.rowUtils.getHeight(row);
 
       sum += height === void 0 ? defaultRowHeight : height;
       row += 1;
@@ -318,7 +318,7 @@ class TopOverlay extends Overlay {
     });
     this.redrawSelectionBorders(selections.getFill());
 
-    this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
+    this.wot.wtOverlays.leftOverlay.refresh();
   }
 
   /**

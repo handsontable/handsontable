@@ -7,6 +7,8 @@ import Scroll from '../scroll';
 import Settings from '../settings';
 import MasterTable from '../table/master';
 import Viewport from '../viewport';
+import ColumnUtils from '../utils/column';
+import RowUtils from '../utils/row';
 
 /**
  * @class Master
@@ -20,6 +22,8 @@ class Master extends Core {
 
     // bootstrap from settings
     this.wtSettings = new Settings(this, settings);
+    this.rowUtils = new RowUtils(this);
+    this.columnUtils = new ColumnUtils(this);
     this.wtTable = new MasterTable(this, settings.table);
     this.wtScroll = new Scroll(this);
     this.wtViewport = new Viewport(this);
