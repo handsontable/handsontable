@@ -243,7 +243,6 @@ export async function selectContextSubmenuOption(submenuName, optionName) {
 
 export function closeContextMenu() {
   $(document).simulate('mousedown');
-  // $(document).trigger('mousedown');
 }
 
 /**
@@ -386,7 +385,7 @@ export function handsontableKeyTriggerFactory(type) {
     } else if (typeof keyToTrigger === 'number') {
       ev.keyCode = keyToTrigger;
     }
-    //    ev.originalEvent = {}; //needed as long Handsontable searches for event.originalEvent
+
     $.extend(ev, extend);
     $(document.activeElement).simulate(type, ev);
   };

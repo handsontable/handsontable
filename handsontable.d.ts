@@ -1823,7 +1823,7 @@ declare namespace Handsontable {
       afterRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
       afterRender?: (isForced: boolean) => void;
       afterRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
-      afterRowMove?: (startRow: number, endRow: number) => void;
+      afterRowMove?: (rows: number[], target: number) => void;
       afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
       afterScrollHorizontally?: () => void;
       afterScrollVertically?: () => void;
@@ -1890,7 +1890,7 @@ declare namespace Handsontable {
       beforeRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
       beforeRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
       beforeRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
-      beforeRowMove?: (columns: number[], target: number) => void;
+      beforeRowMove?: (rows: number[], target: number) => void;
       beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
       beforeSetRangeEnd?: (coords: wot.CellCoords) => void;
       beforeSetRangeStart?: (coords: wot.CellCoords) => void;
@@ -1988,7 +1988,7 @@ declare namespace Handsontable {
     column: boolean;
     cells: boolean;
   }
-  
+
   namespace RecordTranslation {
     interface IndexMap {
       getValues: number[],
@@ -1998,16 +1998,16 @@ declare namespace Handsontable {
       clear: () => void;
       getLength: () => number;
     }
-    
+
     interface IndexMapper {
       executeBatchOperations: (wrappedOperations: () => any) => void;
       registerMap: (uniqueName: string, indexMap: IndexMap) => IndexMap;
       unregisterMap: (name: string) => void;
-      getPhysicalIndex: (visualIndex: number) => number | null; 
+      getPhysicalIndex: (visualIndex: number) => number | null;
       getVisualIndex: (physicalIndex: number) => number | null;
       initToLength: (length?: number) => void;
       getIndexesSequence: () => number[];
-      setIndexesSequence: (indexes: number[]) => void;  
+      setIndexesSequence: (indexes: number[]) => void;
       getNotSkippedIndexes: (readFromCache?: boolean) => number[];
       getNotSkippedIndexesLength: () => number;
       getNumberOfIndexes: () => number;
@@ -2303,6 +2303,7 @@ declare namespace Handsontable {
     Comments: plugins.Comments;
     ContextMenu: plugins.ContextMenu;
     CopyPaste: plugins.CopyPaste;
+    CustomBorders: plugins.CustomBorders;                                    
     DragToScroll: plugins.DragToScroll;
     DropdownMenu: plugins.DropdownMenu;
     ExportFile: plugins.ExportFile;
@@ -2342,6 +2343,7 @@ declare namespace Handsontable {
     comments: plugins.Comments;
     contextMenu: plugins.ContextMenu;
     copyPaste: plugins.CopyPaste;
+    customBorders: plugins.CustomBorders;                                   
     dragToScroll: plugins.DragToScroll;
     dropdownMenu: plugins.DropdownMenu;
     exportFile: plugins.ExportFile;

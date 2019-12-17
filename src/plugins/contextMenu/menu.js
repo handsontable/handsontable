@@ -5,6 +5,7 @@ import {
   fastInnerHTML,
   getScrollbarWidth,
   isChildOf,
+  isInput,
   removeClass,
   getParentWindow,
 } from './../../helpers/dom/element';
@@ -83,6 +84,24 @@ class Menu {
   }
 
   /**
+   * Returns currently selected menu item. Returns `null` if no item was selected.
+   *
+   * @returns {Object|null}
+   */
+  getSelectedItem() {
+    return this.hasSelectedItem() ? this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelectedLast()[0]) : null;
+  }
+
+  /**
+   * Checks if the menu has selected (highlighted) any item from the menu list.
+   *
+   * @returns {Boolean}
+   */
+  hasSelectedItem() {
+    return Array.isArray(this.hotMenu.getSelectedLast());
+  }
+
+  /**
    * Set offset menu position for specified area (`above`, `below`, `left` or `right`).
    *
    * @param {String} area Specified area name (`above`, `below`, `left` or `right`).
@@ -134,6 +153,8 @@ class Menu {
 
     filteredItems = filterSeparators(filteredItems, SEPARATOR);
 
+    let shouldAutoCloseMenu = false;
+
     const settings = {
       data: filteredItems,
       colHeaders: false,
@@ -157,6 +178,7 @@ class Menu {
       }],
       renderAllRows: true,
       fragmentSelection: false,
+      outsideClickDeselects: false,
       disableVisualSelection: 'area',
       beforeKeyDown: event => this.onBeforeKeyDown(event),
       afterOnCellMouseOver: (event, coords) => {
@@ -169,12 +191,32 @@ class Menu {
       rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
-        stopImmediatePropagation(event);
-        this.executeCommand(event);
+
+        if (this.hasSelectedItem()) {
+          this.executeCommand(event);
+
+          if (!this.isCommandPassive(this.getSelectedItem())) {
+            this.close(true);
+          }
+        }
       },
       beforeOnCellMouseUp: (event) => {
-        stopImmediatePropagation(event);
-        this.executeCommand(event);
+        if (this.hasSelectedItem()) {
+          shouldAutoCloseMenu = !this.isCommandPassive(this.getSelectedItem());
+          this.executeCommand(event);
+        }
+      },
+      afterOnCellMouseUp: () => {
+        if (shouldAutoCloseMenu && this.hasSelectedItem()) {
+          this.close(true);
+        }
+      },
+      afterUnlisten: () => {
+        // Restore menu focus, fix for `this.instance.unlisten();` call in the tableView.js@260 file.
+        // This prevents losing table responsiveness for keyboard events when filter select menu is closed (#6497).
+        if (!this.hasSelectedItem() && this.isOpened()) {
+          this.hotMenu.listen(false);
+        }
       },
     };
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
@@ -197,6 +239,7 @@ class Menu {
     if (!this.isOpened()) {
       return;
     }
+
     if (closeParent && this.parentMenu) {
       this.parentMenu.close();
     } else {
@@ -309,36 +352,42 @@ class Menu {
    * @param {Event} [event]
    */
   executeCommand(event) {
-    if (!this.isOpened() || !this.hotMenu.getSelectedLast()) {
+    if (!this.isOpened() || !this.hasSelectedItem()) {
       return;
     }
-    const selectedItem = this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelectedLast()[0]);
+    const selectedItem = this.getSelectedItem();
 
     this.runLocalHooks('select', selectedItem, event);
 
-    if (selectedItem.isCommand === false || selectedItem.name === SEPARATOR) {
+    if (this.isCommandPassive(selectedItem)) {
       return;
     }
+
     const selRanges = this.hot.getSelectedRange();
     const normalizedSelection = selRanges ? normalizeSelection(selRanges) : [];
-    let autoClose = true;
-
-    // Don't close context menu if item is disabled or it has submenu
-    if (selectedItem.disabled === true ||
-        (typeof selectedItem.disabled === 'function' && selectedItem.disabled.call(this.hot) === true) ||
-        selectedItem.submenu) {
-      autoClose = false;
-    }
 
     this.runLocalHooks('executeCommand', selectedItem.key, normalizedSelection, event);
 
     if (this.isSubMenu()) {
       this.parentMenu.runLocalHooks('executeCommand', selectedItem.key, normalizedSelection, event);
     }
+  }
 
-    if (autoClose) {
-      this.close(true);
-    }
+  /**
+   * Checks if the passed command is passive or not. The command is passive when it's marked as
+   * disabled, the descriptor object contains `isCommand` property set to `false`, command
+   * is a separator, or the item is recognized as submenu. For passive items the menu is not
+   * closed automatically after the user trigger the command through the UI.
+   *
+   * @param {Object} commandDescriptor Selected menu item from the menu data source.
+   * @returns {Boolean}
+   */
+  isCommandPassive(commandDescriptor) {
+    const { isCommand, name: commandName, disabled, submenu } = commandDescriptor;
+
+    const isItemDisabled = disabled === true || (typeof disabled === 'function' && disabled.call(this.hot) === true);
+
+    return isCommand === false || commandName === SEPARATOR || isItemDisabled === true || submenu;
   }
 
   /**
@@ -624,6 +673,14 @@ class Menu {
    * @param {Event} event
    */
   onBeforeKeyDown(event) {
+    // For input elements, prevent event propagation. It allows entering text into an input
+    // element freely - without steeling the key events from the menu module (#6506, #6549).
+    if (isInput(event.target) && this.container.contains(event.target)) {
+      stopImmediatePropagation(event);
+
+      return;
+    }
+
     const selection = this.hotMenu.getSelectedLast();
     let stopEvent = false;
     this.keyEvent = true;

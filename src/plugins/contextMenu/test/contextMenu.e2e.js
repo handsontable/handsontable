@@ -1834,6 +1834,40 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
+    it('should not deselect submenu while selecting child items', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: ['row_above', 'remove_row', '---------', 'alignment'],
+        height: 400
+      });
+
+      selectCell(1, 0, 3, 0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore tbody td')
+        .not('.htSeparator')
+        .eq(2) // "Alignment"
+        .simulate('mousemove')
+        .simulate('mouseover')
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click')
+        .simulate('mouseout');
+
+      // wait for a debounced delay in the appearing sub-menu
+      await sleep(500);
+
+      $('.htContextMenuSub_Alignment .ht_master .htCore tbody td')
+        .not('.htSeparator')
+        .eq(0) // "Left"
+        .simulate('mousemove')
+        .simulate('mouseover')
+        .simulate('mousedown'); // Without finishing LMB
+
+      // The selection of the ContextMenu should be active and pointed to "alignment" item
+      expect(getPlugin('contextMenu').menu.getSelectedItem().key).toBe('alignment');
+    });
+
     it('should make a group of selected cells read-only, if all of them are writable (reverse selection)', () => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 4),
@@ -2454,6 +2488,29 @@ describe('ContextMenu', () => {
         keyDownUp('arrow_down');
 
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
+      });
+
+      it('should select the first item in the menu, even when external input is focused (#6550)', () => {
+        handsontable({
+          contextMenu: true,
+          height: 100
+        });
+
+        const input = document.createElement('input');
+
+        document.body.appendChild(input);
+        contextMenu();
+
+        const menuHot = getPlugin('contextMenu').menu.hotMenu;
+
+        expect(menuHot.getSelected()).toBeUndefined();
+
+        input.focus();
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
+
+        document.body.removeChild(input);
       });
 
       it('should NOT select any items in menu, when user hits ARROW_DOWN and there is no items enabled', () => {
@@ -3106,6 +3163,7 @@ describe('ContextMenu', () => {
       expect(callback.calls.count()).toEqual(0);
 
       item.simulate('contextmenu');
+
       expect(callback.calls.count()).toEqual(1);
     });
 
@@ -3125,6 +3183,7 @@ describe('ContextMenu', () => {
       contextMenu();
 
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('contextmenu');
+
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
   });
