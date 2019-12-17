@@ -1791,10 +1791,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (clen > 0) {
       for (i = 0, j = 0; i < clen; i++) {
-        if (columnsAsFunc && !columnSetting(i)) {
-          /* eslint-disable no-continue */
-          continue;
-        }
         // Use settings provided by user
         if (columnSetting) {
           const column = columnsAsFunc ? columnSetting(i) : columnSetting[j];
