@@ -2342,15 +2342,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {...Object} [cellMetaRows] The new cell meta row objects to be added to the cell meta collection.
    */
   this.spliceCellsMeta = function(visualIndex, deleteAmount = 0, ...cellMetaRows) {
+    if (cellMetaRows.length > 0 && !Array.isArray(cellMetaRows[0])) {
+      throw new Error('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
+    }
+
     if (deleteAmount > 0) {
       metaManager.removeRow(this.toPhysicalRow(visualIndex), deleteAmount);
     }
 
     if (cellMetaRows.length > 0) {
-      if (!Array.isArray(cellMetaRows[0])) {
-        throw new Error('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
-      }
-
       arrayEach(cellMetaRows.reverse(), (cellMetaRow) => {
         metaManager.createRow(this.toPhysicalRow(visualIndex));
 
