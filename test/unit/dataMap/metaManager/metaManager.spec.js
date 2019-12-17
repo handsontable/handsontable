@@ -149,7 +149,7 @@ describe('MetaManager', () => {
   });
 
   describe('createRow()', () => {
-    it('should pass a method call to only CellMeta layer', () => {
+    it('should pass a method call to CellMeta layer', () => {
       const metaManager = new MetaManager();
 
       spyOn(metaManager.cellMeta, 'createRow');
@@ -163,7 +163,7 @@ describe('MetaManager', () => {
   });
 
   describe('removeRow()', () => {
-    it('should pass a method call to only CellMeta layer', () => {
+    it('should pass a method call to CellMeta layer', () => {
       const metaManager = new MetaManager();
 
       spyOn(metaManager.cellMeta, 'removeRow');

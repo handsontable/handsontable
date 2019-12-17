@@ -1776,7 +1776,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     clen = instance.countCols();
 
-    const columnSetting = settings.columns || globalMeta.columns;
+    const columnSetting = tableMeta.columns;
 
     // Init columns constructors configuration
     if (columnSetting && isFunction(columnSetting)) {
