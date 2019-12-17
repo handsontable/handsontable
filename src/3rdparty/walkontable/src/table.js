@@ -310,11 +310,8 @@ class Table {
 
         this.adjustColumnHeaderHeights();
 
-        if (this.isMaster || this.is(Overlay.CLONE_BOTTOM)) {
-          this.markOversizedRows();
-        }
-
         if (this.isMaster) {
+          this.markOversizedRows();
           this.wot.wtViewport.createVisibleCalculators();
           this.wot.wtOverlays.refresh(false);
           this.wot.wtOverlays.applyToDOM();
@@ -693,7 +690,7 @@ class Table {
     let rowCount = this.TBODY.childNodes.length;
     const expectedTableHeight = rowCount * this.wot.wtSettings.settings.defaultRowHeight;
     const actualTableHeight = innerHeight(this.TBODY) - 1;
-    const rowUtils = this.isMaster ? this.wot.rowUtils : this.wot.cloneSource.rowUtils; // TODO this is not needed if we don't call markOversizedRows in the bottom overlay
+    const rowUtils = this.wot.rowUtils;
     let previousRowHeight;
     let rowInnerHeight;
     let sourceRowIndex;
