@@ -168,7 +168,7 @@ class Overlay {
   }
 
   /**
-   * Update the trimming container.
+   * Set the DOM element responsible for trimming the overlay's root element. It will be some parent element or the window.
    */
   updateTrimmingContainer() {
     this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);

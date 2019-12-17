@@ -144,7 +144,6 @@ class LeftOverlay extends Overlay {
 
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
-      this.adjustRootChildrenSize();
 
       if (!force) {
         this.areElementSizesAdjusted = true;
@@ -153,7 +152,7 @@ class LeftOverlay extends Overlay {
   }
 
   /**
-   * Adjust overlay root element size (width and height).
+   * Adjust the width and height of the overlay root element and its children (hider, holder) to the dimensions of the trimming container.
    */
   adjustRootElementSize() {
     const { wtTable, rootDocument, rootWindow } = this.wot;
@@ -176,20 +175,13 @@ class LeftOverlay extends Overlay {
       overlayRootStyle.height = '';
     }
 
-    this.clone.wtTable.holder.style.height = overlayRootStyle.height;
-
     const tableWidth = outerWidth(this.clone.wtTable.TABLE);
 
     overlayRootStyle.width = `${tableWidth}px`;
-  }
 
-  /**
-   * Adjust overlay root childs size.
-   */
-  adjustRootChildrenSize() {
-    const { holder } = this.clone.wtTable;
+    const { holder, hider } = this.clone.wtTable;
 
-    this.clone.wtTable.hider.style.height = this.hider.style.height;
+    hider.style.height = this.hider.style.height;
     holder.style.height = holder.parentNode.style.height;
     holder.style.width = holder.parentNode.style.width;
   }
