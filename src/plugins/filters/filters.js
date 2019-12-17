@@ -708,8 +708,8 @@ class Filters extends BasePlugin {
     const operationType = this.conditionCollection.columnTypes[column];
 
     if (conditionsByValue.length === 2 || conditionsWithoutByValue.length === 3) {
-      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually. 
-        The overall amount of conditions exceed the capability of the dropdown menu. 
+      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20
+        The overall amount of conditions exceed the capability of the dropdown menu.\x20
         For more details see the documentation.`);
 
     } else {

@@ -161,7 +161,6 @@ class SelectUI extends BaseUI {
   onMenuSelect(command) {
     if (command.name !== SEPARATOR) {
       this.options.value = command;
-      this.closeOptions();
       this.update();
       this.runLocalHooks('select', this.options.value);
     }
