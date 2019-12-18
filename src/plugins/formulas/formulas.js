@@ -199,7 +199,7 @@ class Formulas extends BasePlugin {
         sheet: this.sheetId
       }, this.hot.getSourceDataArray().map((row) => {
         return row.slice(0, this.hot.countCols()).map((el) => {
-          return el === null ? null : el.toString();
+          return el === null ? null : (el === void 0 ? '' : el.toString());
         });
       })); // TODO: optimize
     }
