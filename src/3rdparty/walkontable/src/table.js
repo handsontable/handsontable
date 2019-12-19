@@ -461,6 +461,12 @@ class Table {
     const len = selections.length;
 
     if (fastDraw) {
+      const isAtLeastOneSelectionDirty = selections.some(x => x.dirty);
+
+      if (!isAtLeastOneSelectionDirty) {
+        return;
+      }
+
       const classesToRemove = new Set();
       const additionalClassesToRemove = wot.getSetting('onBeforeRemoveCellClassNames');
 
@@ -513,10 +519,16 @@ class Table {
     }
 
     for (let i = 0; i < len; i++) {
-      const borderEdgesDescriptor = selections[i].draw(wot,
-        tableRowsCount, tableColumnsCount,
-        tableStartRow, tableStartColumn, tableEndRow, tableEndColumn,
-        neighborOverlapRight, neighborOverlapBottom, neighborOverlapTop);
+      let borderEdgesDescriptor;
+
+      if (fastDraw && !selections[i].dirty) {
+        borderEdgesDescriptor = selections[i].borderEdgesDescriptor.get(wot);
+      } else {
+        borderEdgesDescriptor = selections[i].draw(wot,
+          tableRowsCount, tableColumnsCount,
+          tableStartRow, tableStartColumn, tableEndRow, tableEndColumn,
+          neighborOverlapRight, neighborOverlapBottom, neighborOverlapTop);
+      }
 
       if (borderEdgesDescriptor) {
         borderEdgesDescriptors.push(borderEdgesDescriptor);

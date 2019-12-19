@@ -17,6 +17,8 @@ class Selection {
     this.instanceSelectionHandles = new Map();
     this.classNames = [this.settings.className];
     this.classNameGenerator = this.linearClassNameGenerator(this.settings.className, this.settings.layerLevel);
+    this.dirty = false; // was it changed from last render
+    this.borderEdgesDescriptor = new Map();
   }
 
   /**
@@ -78,6 +80,7 @@ class Selection {
     } else {
       this.cellRange.expand(coords);
     }
+    this.dirty = true;
 
     return this;
   }
@@ -94,11 +97,13 @@ class Selection {
     if (!this.isEmpty()) {
       if (this.cellRange.from.isEqual(oldCoords)) {
         this.cellRange.from = newCoords;
+        this.dirty = true;
 
         return true;
       }
       if (this.cellRange.to.isEqual(oldCoords)) {
         this.cellRange.to = newCoords;
+        this.dirty = true;
 
         return true;
       }
@@ -114,6 +119,7 @@ class Selection {
    */
   clear() {
     this.cellRange = null;
+    this.dirty = true;
 
     return this;
   }
@@ -270,6 +276,10 @@ class Selection {
        tableRowsCount, tableColumnsCount,
        tableStartRow, tableStartColumn, tableEndRow, tableEndColumn,
        neighborOverlapRight, neighborOverlapBottom, neighborOverlapTop) {
+    if (!wotInstance.cloneSource) {
+      this.dirty = false;
+    }
+
     if (this.isEmpty()) {
       if (this.hasSelectionHandle()) {
         const found = this.getSelectionHandleIfExists(wotInstance);
@@ -376,6 +386,8 @@ class Selection {
       // warning! selectionHandle.appear modifies corners!
       this.getSelectionHandle(wotInstance).appear(selectionCorners);
     }
+
+    this.borderEdgesDescriptor.set(wotInstance, borderEdgesDescriptor);
 
     return borderEdgesDescriptor;
   }
