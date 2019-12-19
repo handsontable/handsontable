@@ -301,8 +301,8 @@ class Table {
         let workspaceWidth;
 
         if (this.isMaster) {
-          workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
-          this.wot.wtViewport.containerWidth = null;
+          workspaceWidth = wtViewport.getWorkspaceWidth();
+          wtViewport.containerWidth = null;
           this.markOversizedColumnHeaders();
         }
 
@@ -313,9 +313,9 @@ class Table {
         }
 
         if (this.isMaster) {
-          this.wot.wtViewport.createVisibleCalculators();
-          this.wot.wtOverlays.refresh(false);
-          this.wot.wtOverlays.applyToDOM();
+          wtViewport.createVisibleCalculators();
+          wtOverlays.refresh(false);
+          wtOverlays.applyToDOM();
 
           const hiderWidth = outerWidth(this.hider);
           const tableWidth = outerWidth(this.TABLE);
@@ -326,9 +326,9 @@ class Table {
             this.tableRenderer.renderer.colGroup.render();
           }
 
-          if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
+          if (workspaceWidth !== wtViewport.getWorkspaceWidth()) {
             // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
-            this.wot.wtViewport.containerWidth = null;
+            wtViewport.containerWidth = null;
             this.wot.columnUtils.calculateWidths();
             this.tableRenderer.renderer.colGroup.render();
           }
