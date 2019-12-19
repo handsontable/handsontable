@@ -73,7 +73,7 @@ class Table {
     this.wtRootElement = this.holder.parentNode;
 
     if (this.isMaster) {
-      this.alignOverlaysWithTrimmingContainer();
+      this.alignOverlaysWithTrimmingContainer(); // TODO this better be removed
     }
     this.fixTableDomTree();
 
@@ -230,6 +230,7 @@ class Table {
     const columnHeadersCount = columnHeaders.length;
     let syncScroll = false;
     let runFastDraw = fastDraw;
+    let wtOverlaysNeedFullRefresh = false;
 
     if (this.isMaster) {
       this.holderOffset = offset(this.holder);
@@ -314,8 +315,7 @@ class Table {
 
         if (this.isMaster) {
           wtViewport.createVisibleCalculators();
-          wtOverlays.refresh(false);
-          wtOverlays.applyToDOM();
+          wtOverlaysNeedFullRefresh = true;
 
           const hiderWidth = outerWidth(this.hider);
           const tableWidth = outerWidth(this.TABLE);
@@ -342,7 +342,15 @@ class Table {
     }
 
     if (this.isMaster) {
+      if (wtOverlaysNeedFullRefresh) {
+        wtOverlays.refresh(false);
+        wtOverlays.applyToDOM();
+      }
       wtOverlays.resetFixedPositions();
+
+      // here be better for double draw
+      // wtOverlays.refresh(false);
+      // wtOverlays.applyToDOM();
     }
 
     this.refreshSelections(runFastDraw);
