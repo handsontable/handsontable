@@ -147,14 +147,20 @@ describe('Walkontable.Selection', () => {
       .toEqual(['M 0 253.5 50 253.5 M 49.5 253 49.5 300 M 0 299.5 50 299.5']);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top')[0])).withContext('ht_clone_top')
       .toEqual([]);
+
+    const scrollbarWidth = getScrollbarWidth(); // 17 on Windows
+    let expectedY = 321 + scrollbarWidth;
+
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_left')[0])).withContext('ht_clone_left')
-      .toEqual(['M 0 253.5 100 253.5 M 99.5 253 99.5 -336 M 0 -336.5 100 -336.5 M 0.5 253 0.5 -336']);
+      .toEqual([`M 0 253.5 100 253.5 M 99.5 253 99.5 -${expectedY} M 0 -${expectedY}.5 100 -${expectedY}.5 M 0.5 253 0.5 -${expectedY}`]);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top_left_corner')[0])).withContext('ht_clone_top_left_corner')
       .toEqual(null);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_bottom')[0])).withContext('ht_clone_bottom')
       .toEqual(['M 0 -22.5 50 -22.5 M 49.5 -23 49.5 24 M 0 23.5 50 23.5']);
+
+    expectedY = 598 + scrollbarWidth;
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_bottom_left_corner')[0])).withContext('ht_clone_bottom_left_corner')
-      .toEqual(['M 0 613.5 100 613.5 M 99.5 613 99.5 24 M 0 23.5 100 23.5 M 0.5 613 0.5 24']);
+      .toEqual([`M 0 ${expectedY}.5 100 ${expectedY}.5 M 99.5 ${expectedY} 99.5 24 M 0 23.5 100 23.5 M 0.5 ${expectedY} 0.5 24`]);
   });
 
   it('should not add class to selection until it is rerendered', () => {
