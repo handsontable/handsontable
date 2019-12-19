@@ -138,16 +138,16 @@ describe('IndexMapper', () => {
     const indexMapper = new IndexMapper();
     const skipMap = new SkipMap();
 
-    expect(indexMapper.getVisualIndex(0)).toBe(null);
-    expect(indexMapper.getPhysicalIndex(0)).toBe(null);
+    expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(null);
 
     indexMapper.initToLength(10);
 
-    expect(indexMapper.getVisualIndex(0)).toBe(0);
-    expect(indexMapper.getPhysicalIndex(0)).toBe(0);
+    expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(0);
+    expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(0);
 
-    expect(indexMapper.getVisualIndex(10)).toBe(null);
-    expect(indexMapper.getPhysicalIndex(10)).toBe(null);
+    expect(indexMapper.getVisualFromPhysicalIndex(10)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(10)).toBe(null);
 
     skipMap.addLocalHook('init', () => {
       skipMap.setValueAtIndex(0, true);
@@ -157,12 +157,12 @@ describe('IndexMapper', () => {
 
     indexMapper.registerMap('skipMap', skipMap);
 
-    expect(indexMapper.getVisualIndex(0)).toBe(null);
-    expect(indexMapper.getPhysicalIndex(0)).toBe(1);
-    expect(indexMapper.getVisualIndex(2)).toBe(null);
-    expect(indexMapper.getPhysicalIndex(2)).toBe(4);
-    expect(indexMapper.getVisualIndex(5)).toBe(null);
-    expect(indexMapper.getPhysicalIndex(5)).toBe(8);
+    expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(1);
+    expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(4);
+    expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(5)).toBe(8);
 
     indexMapper.unregisterMap('skipMap', skipMap);
   });

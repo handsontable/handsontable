@@ -115,8 +115,8 @@ hot.validateRows([1, 2, 3], (valid: boolean) => {});
 hot.isDestroyed === false;
 
 hot.rowIndexMapper.executeBatchOperations(() => {});
-hot.rowIndexMapper.getPhysicalIndex(0);
-hot.rowIndexMapper.getVisualIndex(0);
+hot.rowIndexMapper.getPhysicalFromVisualIndex(0);
+hot.rowIndexMapper.getVisualFromPhysicalIndex(0);
 hot.rowIndexMapper.getIndexesSequence();
 hot.rowIndexMapper.setIndexesSequence([0, 1, 2]);
 hot.rowIndexMapper.getNotSkippedIndexes();
@@ -129,8 +129,8 @@ hot.rowIndexMapper.moveIndexes([0], 1);
 hot.rowIndexMapper.isSkipped(0);
 
 hot.columnIndexMapper.executeBatchOperations(() => {});
-hot.columnIndexMapper.getPhysicalIndex(0);
-hot.columnIndexMapper.getVisualIndex(0);
+hot.columnIndexMapper.getPhysicalFromVisualIndex(0);
+hot.columnIndexMapper.getVisualFromPhysicalIndex(0);
 hot.columnIndexMapper.getIndexesSequence();
 hot.columnIndexMapper.setIndexesSequence([0, 1, 2]);
 hot.columnIndexMapper.getNotSkippedIndexes();

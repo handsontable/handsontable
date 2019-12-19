@@ -2003,8 +2003,8 @@ declare namespace Handsontable {
       executeBatchOperations: (wrappedOperations: () => any) => void;
       registerMap: (uniqueName: string, indexMap: IndexMap) => IndexMap;
       unregisterMap: (name: string) => void;
-      getPhysicalIndex: (visualIndex: number) => number | null;
-      getVisualIndex: (physicalIndex: number) => number | null;
+      getPhysicalFromVisualIndex: (visualIndex: number) => number | null;
+      getVisualFromPhysicalIndex: (physicalIndex: number) => number | null;
       initToLength: (length?: number) => void;
       getIndexesSequence: () => number[];
       setIndexesSequence: (indexes: number[]) => void;

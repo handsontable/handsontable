@@ -167,7 +167,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     countCols: () => instance.countRenderableColumns(),
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
-    renderedToPhysicalColumn: col => instance.renderedToPhysicalColumn(col),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
   });
 
@@ -2106,7 +2105,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} row Physical row index.
    * @returns {Number} Returns visual row index.
    */
-  this.toVisualRow = row => this.rowIndexMapper.getVisualIndex(row);
+  this.toVisualRow = row => this.rowIndexMapper.getVisualFromPhysicalIndex(row);
 
   /**
    * Translate physical column index into visual.
@@ -2119,7 +2118,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} column Physical column index.
    * @returns {Number} Returns visual column index.
    */
-  this.toVisualColumn = column => this.columnIndexMapper.getVisualIndex(column);
+  this.toVisualColumn = column => this.columnIndexMapper.getVisualFromPhysicalIndex(column);
 
   /**
    * Translate visual row index into physical.
@@ -2132,7 +2131,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} row Visual row index.
    * @returns {Number} Returns physical row index.
    */
-  this.toPhysicalRow = row => this.rowIndexMapper.getPhysicalIndex(row);
+  this.toPhysicalRow = row => this.rowIndexMapper.getPhysicalFromVisualIndex(row);
 
   /**
    * Translate visual column index into physical.
@@ -2145,7 +2144,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} column Visual column index.
    * @returns {Number} Returns physical column index.
    */
-  this.toPhysicalColumn = column => this.columnIndexMapper.getPhysicalIndex(column);
+  this.toPhysicalColumn = column => this.columnIndexMapper.getPhysicalFromVisualIndex(column);
 
   /**
    * // Changed by @wszymanski as there was link to the not existing anymore RecordTranslator.
@@ -2156,7 +2155,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return column;
     }
 
-    return this.columnIndexMapper.getRenderableIndex(column);
+    return this.columnIndexMapper.getPhysicalFromRenderableIndex(column);
   };
 
   /**
@@ -2181,6 +2180,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     return this.toVisualColumn(this.renderedToPhysicalColumn(column));
+  };
+
+  /**
+   * @TODO Description
+   */
+  this.visualToRenderedColumn = (column) => {
+    return this.columnIndexMapper.getRenderableFromVisualIndex(column);
   };
 
   /**

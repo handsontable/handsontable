@@ -188,7 +188,7 @@ class IndexMapper {
    * @param {Number} visualIndex Visual index.
    * @return {Number|null} Returns translated index mapped by passed visual index.
    */
-  getPhysicalIndex(visualIndex) {
+  getPhysicalFromVisualIndex(visualIndex) {
     const visibleIndexes = this.getNotSkippedIndexes();
     const numberOfVisibleIndexes = visibleIndexes.length;
     let physicalIndex = null;
@@ -202,17 +202,14 @@ class IndexMapper {
 
   /**
    * @TODO Description
-   *
-   * @param {Number} renderedIndex Rendered index.
-   * @return {Number|null} Returns translated index mapped by passed visual index.
    */
-  getRenderableIndex(renderedIndex) {
+  getPhysicalFromRenderableIndex(renderableIndex) {
     const renderableIndexes = this.getNotHiddenIndexes();
     const numberOfVisibleIndexes = renderableIndexes.length;
     let physicalIndex = null;
 
-    if (renderedIndex < numberOfVisibleIndexes) {
-      physicalIndex = renderableIndexes[renderedIndex];
+    if (renderableIndex < numberOfVisibleIndexes) {
+      physicalIndex = renderableIndexes[renderableIndex];
     }
 
     return physicalIndex;
@@ -224,7 +221,7 @@ class IndexMapper {
    * @param {Number} physicalIndex Physical index to search.
    * @returns {Number|null} Returns a visual index of the index mapper.
    */
-  getVisualIndex(physicalIndex) {
+  getVisualFromPhysicalIndex(physicalIndex) {
     const visibleIndexes = this.getNotSkippedIndexes();
     const visualIndex = visibleIndexes.indexOf(physicalIndex);
 
@@ -233,6 +230,17 @@ class IndexMapper {
     }
 
     return null;
+  }
+
+  /**
+   * @TODO Description
+   */
+  getRenderableFromVisualIndex(visualIndex) {
+    if (visualIndex >= this.getNotSkippedIndexes().length || this.isHidden(this.getPhysicalFromVisualIndex(visualIndex))) {
+      return null;
+    }
+
+    return visualIndex - this.getFlattenHiddenList().slice(0, visualIndex).filter(hidden => hidden).length;
   }
 
   /**
@@ -340,7 +348,7 @@ class IndexMapper {
       movedIndexes = [movedIndexes];
     }
 
-    const physicalMovedIndexes = arrayMap(movedIndexes, visualIndex => this.getPhysicalIndex(visualIndex));
+    const physicalMovedIndexes = arrayMap(movedIndexes, visualIndex => this.getPhysicalFromVisualIndex(visualIndex));
     const notSkippedIndexesLength = this.getNotSkippedIndexesLength();
     const movedIndexesLength = movedIndexes.length;
 
