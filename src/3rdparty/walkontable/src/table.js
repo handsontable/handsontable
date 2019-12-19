@@ -355,7 +355,7 @@ class Table {
   }
 
   markIfOversizedColumnHeader(col) {
-    const sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
+    const sourceColIndex = this.columnFilter.renderedToSource(col);
     let level = this.wot.getSetting('columnHeaders').length;
     const defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
     let previousColHeaderHeight;
@@ -367,7 +367,7 @@ class Table {
       level -= 1;
 
       previousColHeaderHeight = this.wot.columnUtils.getHeaderHeight(level);
-      currentHeader = this.wot.wtTable.getColumnHeader(sourceColIndex, level);
+      currentHeader = this.getColumnHeader(sourceColIndex, level);
 
       if (!currentHeader) {
         /* eslint-disable no-continue */
@@ -396,7 +396,7 @@ class Table {
 
   adjustColumnHeaderHeights() {
     const { wot } = this;
-    const children = wot.wtTable.THEAD.childNodes;
+    const children = this.THEAD.childNodes;
     const oversizedColumnHeaders = wot.wtViewport.oversizedColumnHeaders;
     const columnHeaders = wot.getSetting('columnHeaders');
 
