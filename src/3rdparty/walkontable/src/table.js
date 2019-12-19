@@ -245,9 +245,7 @@ class Table {
           runFastDraw = false;
         }
       }
-    }
 
-    if (this.isMaster) {
       syncScroll = wtOverlays.prepareOverlays();
     }
 
@@ -255,8 +253,6 @@ class Table {
       if (this.isMaster) {
         // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
         wtViewport.createVisibleCalculators();
-      }
-      if (wtOverlays) {
         wtOverlays.refresh(true);
       }
     } else {
@@ -293,7 +289,9 @@ class Table {
           this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
         }
 
-        this.resetOversizedRows();
+        if (this.isMaster || this.is(Overlay.CLONE_BOTTOM)) {
+          this.resetOversizedRows();
+        }
 
         this.tableRenderer
           .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
@@ -349,7 +347,7 @@ class Table {
 
     this.refreshSelections(runFastDraw);
 
-    if (syncScroll) {
+    if (this.isMaster && syncScroll) {
       wtOverlays.syncScrollWithMaster();
     }
 
@@ -418,10 +416,6 @@ class Table {
    */
   resetOversizedRows() {
     const { wot } = this;
-
-    if (!this.isMaster && !this.is(Overlay.CLONE_BOTTOM)) {
-      return;
-    }
 
     if (!wot.getSetting('externalRowCalculator')) {
       const rowsToRender = this.getRenderedRowsCount();
