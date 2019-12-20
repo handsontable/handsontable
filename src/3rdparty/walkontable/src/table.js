@@ -36,8 +36,6 @@ class Table {
     this.isMaster = wotInstance instanceof Master;
     this.wot = wotInstance;
 
-    // legacy support
-    this.instance = this.wot;
     this.TABLE = table;
     this.TBODY = null;
     this.THEAD = null;

@@ -26,7 +26,6 @@ class SelectionHandle {
       return;
     }
     this.eventManager = new EventManager(wotInstance);
-    this.instance = wotInstance;
     this.wot = wotInstance;
     this.settings = settings;
     this.mouseDown = false;

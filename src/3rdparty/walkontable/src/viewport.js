@@ -22,8 +22,6 @@ class Viewport {
    */
   constructor(wotInstance) {
     this.wot = wotInstance;
-    // legacy support
-    this.instance = this.wot;
 
     this.oversizedRows = [];
     this.oversizedColumnHeaders = [];
@@ -45,7 +43,7 @@ class Viewport {
    */
   getWorkspaceHeight() {
     const currentDocument = this.wot.rootDocument;
-    const trimmingContainer = this.instance.wtOverlays.topOverlay.trimmingContainer;
+    const trimmingContainer = this.wot.wtOverlays.topOverlay.trimmingContainer;
     let height = 0;
 
     if (trimmingContainer === this.wot.rootWindow) {
@@ -63,7 +61,7 @@ class Viewport {
   getWorkspaceWidth() {
     const { wot } = this;
     const { rootDocument, rootWindow } = wot;
-    const trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
+    const trimmingContainer = this.wot.wtOverlays.leftOverlay.trimmingContainer;
     const docOffsetWidth = rootDocument.documentElement.offsetWidth;
     const totalColumns = wot.getSetting('totalColumns');
     const preventOverflow = wot.getSetting('preventOverflow');
@@ -71,7 +69,7 @@ class Viewport {
     let overflow;
 
     if (preventOverflow) {
-      return outerWidth(this.instance.wtTable.wtRootElement);
+      return outerWidth(this.wot.wtTable.wtRootElement);
     }
 
     if (wot.getSetting('freezeOverlays')) {
@@ -89,7 +87,7 @@ class Viewport {
     }
 
     if (trimmingContainer !== rootWindow) {
-      overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow', rootWindow);
+      overflow = getStyle(this.wot.wtOverlays.leftOverlay.trimmingContainer, 'overflow', rootWindow);
 
       if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
         // this is used in `scroll.html`
@@ -102,7 +100,7 @@ class Viewport {
 
     if (stretchSetting === 'none' || !stretchSetting) {
       // if no stretching is used, return the maximum used workspace width
-      return Math.max(width, outerWidth(this.instance.wtTable.TABLE));
+      return Math.max(width, outerWidth(this.wot.wtTable.TABLE));
     }
 
     // if stretching is used, return the actual container width, so the columns can fit inside it
@@ -152,7 +150,7 @@ class Viewport {
       return this.containerWidth;
     }
 
-    const mainContainer = this.instance.wtTable.holder;
+    const mainContainer = this.wot.wtTable.holder;
     const dummyElement = this.wot.rootDocument.createElement('div');
 
     dummyElement.style.width = '100%';
@@ -195,7 +193,7 @@ class Viewport {
    * @returns {Number}
    */
   getColumnHeaderHeight() {
-    const columnHeaders = this.instance.getSetting('columnHeaders');
+    const columnHeaders = this.wot.getSetting('columnHeaders');
 
     if (!columnHeaders.length) {
       this.columnHeaderHeight = 0;
@@ -229,8 +227,8 @@ class Viewport {
    * @returns {Number}
    */
   getRowHeaderWidth() {
-    const rowHeadersWidthSetting = this.instance.getSetting('rowHeaderWidth');
-    const rowHeaders = this.instance.getSetting('rowHeaders');
+    const rowHeadersWidthSetting = this.wot.getSetting('rowHeaderWidth');
+    const rowHeaders = this.wot.getSetting('rowHeaders');
 
     if (rowHeadersWidthSetting) {
       this.rowHeaderWidth = 0;
@@ -247,7 +245,7 @@ class Viewport {
     if (isNaN(this.rowHeaderWidth)) {
 
       if (rowHeaders.length) {
-        let TH = this.instance.wtTable.TABLE.querySelector('TH');
+        let TH = this.wot.wtTable.TABLE.querySelector('TH');
         this.rowHeaderWidth = 0;
 
         for (let i = 0, len = rowHeaders.length; i < len; i++) {
@@ -266,7 +264,7 @@ class Viewport {
       }
     }
 
-    this.rowHeaderWidth = this.instance.getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
+    this.rowHeaderWidth = this.wot.getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
 
     return this.rowHeaderWidth;
   }

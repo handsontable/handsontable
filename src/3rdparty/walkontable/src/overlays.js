@@ -32,8 +32,6 @@ class Overlays {
     const BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).lineHeight, 10);
     const FALLBACK_BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).fontSize, 10) * 1.2;
 
-    // legacy support
-    this.instance = this.wot;
     this.eventManager = new EventManager(this.wot);
 
     this.scrollbarSize = getScrollbarWidth(rootDocument);

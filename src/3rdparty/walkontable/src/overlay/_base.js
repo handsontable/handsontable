@@ -124,9 +124,6 @@ class Overlay {
       wtRootElement,
     } = this.wot.wtTable;
 
-    // legacy support, deprecated in the future
-    this.instance = this.wot;
-
     this.type = '';
     this.mainTableScrollableElement = null;
     this.TABLE = TABLE;
