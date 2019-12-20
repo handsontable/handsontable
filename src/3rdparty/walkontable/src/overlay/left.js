@@ -232,8 +232,7 @@ class LeftOverlay extends Overlay {
    */
   scrollTo(sourceCol, beyondRendered) {
     let newX = this.getTableParentOffset();
-    const sourceInstance = this.master.overlay ? this.master.overlay.master : this.master; // TODO what?
-    const mainHolder = sourceInstance.wtTable.holder;
+    const mainHolder = this.master.wtTable.holder;
     let scrollbarCompensation = 0;
 
     if (beyondRendered && mainHolder.offsetWidth !== mainHolder.clientWidth) {
