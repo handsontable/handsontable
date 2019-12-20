@@ -118,7 +118,6 @@ class MasterTable extends Table {
     const columnHeaders = wot.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
     let runFastDraw = fastDraw;
-    let wtOverlaysNeedFullRefresh = false;
 
     this.holderOffset = offset(this.holder);
     runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
@@ -148,15 +147,14 @@ class MasterTable extends Table {
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
-      let performRedraw = true;
-
       // Only master table rendering can be skipped
       this.alignOverlaysWithTrimmingContainer();
 
       const skipRender = {};
 
       this.wot.getSetting('beforeDraw', true, skipRender);
-      performRedraw = skipRender.skipRender !== true;
+
+      const performRedraw = skipRender.skipRender !== true;
 
       if (performRedraw) {
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
@@ -177,7 +175,6 @@ class MasterTable extends Table {
         this.markOversizedRows();
 
         wtViewport.createVisibleCalculators();
-        wtOverlaysNeedFullRefresh = true;
 
         const hiderWidth = outerWidth(this.hider);
         const tableWidth = outerWidth(this.TABLE);
@@ -196,13 +193,12 @@ class MasterTable extends Table {
         }
 
         this.wot.getSetting('onDraw', true);
+
+        wtOverlays.refresh(false);
+        wtOverlays.applyToDOM();
       }
     }
 
-    if (wtOverlaysNeedFullRefresh) {
-      wtOverlays.refresh(false);
-      wtOverlays.applyToDOM();
-    }
     wtOverlays.resetFixedPositions();
 
     // here be better for double draw
