@@ -1,12 +1,10 @@
 import {
   hasClass,
   index,
-  offset,
   removeClass,
   removeTextNodes,
   overlayContainsElement,
   closest,
-  outerWidth,
   innerHeight,
   isVisible,
 } from './../../../helpers/dom/element';
@@ -211,7 +209,8 @@ class Table {
   }
 
   /**
-   * Redraws the table
+   * Redraws the table. Warning, this method is only used by the overlay tables.
+   * The master table (table/master.js) uses an override of this function.
    *
    * @param {Boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
    *                                   If FALSE or UNDEFINED, will perform a full redraw.
@@ -219,47 +218,15 @@ class Table {
    */
   draw(fastDraw = false) {
     const { wot } = this;
-    const { wtOverlays, wtViewport } = wot;
     const totalRows = wot.getSetting('totalRows');
     const totalColumns = wot.getSetting('totalColumns');
     const rowHeaders = wot.getSetting('rowHeaders');
     const rowHeadersCount = rowHeaders.length;
     const columnHeaders = wot.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
-    let syncScroll = false;
-    let runFastDraw = fastDraw;
-    let wtOverlaysNeedFullRefresh = false;
 
-    if (this.isMaster) {
-      this.holderOffset = offset(this.holder);
-      runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
-
-      if (rowHeadersCount && !wot.getSetting('fixedColumnsLeft')) {
-        const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
-        const previousState = this.correctHeaderWidth;
-
-        this.correctHeaderWidth = leftScrollPos > 0;
-
-        if (previousState !== this.correctHeaderWidth) {
-          runFastDraw = false;
-        }
-      }
-
-      syncScroll = wtOverlays.prepareOverlays();
-    }
-
-    if (runFastDraw) {
-      if (this.isMaster) {
-        // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
-        wtViewport.createVisibleCalculators();
-        wtOverlays.refresh(true);
-      }
-    } else {
-      if (this.isMaster) {
-        this.tableOffset = offset(this.TABLE);
-      } else {
-        this.tableOffset = this.wot.overlay.master.wtTable.tableOffset;
-      }
+    if (!fastDraw) {
+      this.tableOffset = this.wot.overlay.master.wtTable.tableOffset;
 
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
       const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
@@ -267,95 +234,32 @@ class Table {
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
-      let performRedraw = true;
+      this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
 
-      // Only master table rendering can be skipped
-      if (this.isMaster) {
-        this.alignOverlaysWithTrimmingContainer();
-
-        const skipRender = {};
-
-        this.wot.getSetting('beforeDraw', true, skipRender);
-        performRedraw = skipRender.skipRender !== true;
+      if (this.is(Overlay.CLONE_BOTTOM) ||
+        this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+        // do NOT render headers on the bottom or bottom-left corner overlay
+        this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
       }
 
-      if (performRedraw) {
-        this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
+      if (this.is(Overlay.CLONE_BOTTOM)) {
+        this.resetOversizedRows();
+      }
 
-        if (this.is(Overlay.CLONE_BOTTOM) ||
-          this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-          // do NOT render headers on the bottom or bottom-left corner overlay
-          this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
-        }
+      this.tableRenderer
+        .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
+        .setFilters(this.rowFilter, this.columnFilter)
+        .render();
 
-        if (this.isMaster || this.is(Overlay.CLONE_BOTTOM)) {
-          this.resetOversizedRows();
-        }
+      this.adjustColumnHeaderHeights();
 
-        this.tableRenderer
-          .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
-          .setFilters(this.rowFilter, this.columnFilter)
-          .render();
-
-        let workspaceWidth;
-
-        if (this.isMaster) {
-          workspaceWidth = wtViewport.getWorkspaceWidth();
-          wtViewport.containerWidth = null;
-          this.markOversizedColumnHeaders();
-        }
-
-        this.adjustColumnHeaderHeights();
-
-        if (this.isMaster || this.is(Overlay.CLONE_BOTTOM)) {
-          this.markOversizedRows();
-        }
-
-        if (this.isMaster) {
-          wtViewport.createVisibleCalculators();
-          wtOverlaysNeedFullRefresh = true;
-
-          const hiderWidth = outerWidth(this.hider);
-          const tableWidth = outerWidth(this.TABLE);
-
-          if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
-            // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
-            this.wot.columnUtils.calculateWidths();
-            this.tableRenderer.renderer.colGroup.render();
-          }
-
-          if (workspaceWidth !== wtViewport.getWorkspaceWidth()) {
-            // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
-            wtViewport.containerWidth = null;
-            this.wot.columnUtils.calculateWidths();
-            this.tableRenderer.renderer.colGroup.render();
-          }
-
-          this.wot.getSetting('onDraw', true);
-
-        } else if (this.is(Overlay.CLONE_BOTTOM)) {
-          this.wot.overlay.master.wtOverlays.adjustElementsSize();
-        }
+      if (this.is(Overlay.CLONE_BOTTOM)) {
+        this.markOversizedRows();
+        this.wot.overlay.master.wtOverlays.adjustElementsSize();
       }
     }
 
-    if (this.isMaster) {
-      if (wtOverlaysNeedFullRefresh) {
-        wtOverlays.refresh(false);
-        wtOverlays.applyToDOM();
-      }
-      wtOverlays.resetFixedPositions();
-
-      // here be better for double draw
-      // wtOverlays.refresh(false);
-      // wtOverlays.applyToDOM();
-
-      if (syncScroll) {
-        // wtOverlays.syncScrollWithMaster();
-      }
-    }
-
-    this.refreshSelections(runFastDraw);
+    this.refreshSelections(fastDraw);
 
     return this;
   }

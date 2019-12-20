@@ -3,11 +3,15 @@ import {
   getComputedStyle,
   getTrimmingContainer,
   isVisible,
+  offset,
+  outerWidth,
 } from './../../../../helpers/dom/element';
 import Table from '../table';
 import calculatedRows from './mixin/calculatedRows';
 import calculatedColumns from './mixin/calculatedColumns';
 import { mixin } from './../../../../helpers/object';
+import ColumnFilter from './../filter/column';
+import RowFilter from './../filter/row';
 
 /**
  * Subclass of `Table` that provides the helper methods relevant to the master table (not overlays), implemented through mixins.
@@ -87,6 +91,121 @@ class MasterTable extends Table {
       }
       wot.wtViewport.hasOversizedColumnHeadersMarked = true;
     }
+  }
+
+  /**
+   * Redraws the table
+   *
+   * @param {Boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
+   *                                   If FALSE or UNDEFINED, will perform a full redraw.
+   * @returns {Table}
+   */
+  draw(fastDraw = false) {
+    const { wot } = this;
+    const { wtOverlays, wtViewport } = wot;
+    const totalRows = wot.getSetting('totalRows');
+    const totalColumns = wot.getSetting('totalColumns');
+    const rowHeaders = wot.getSetting('rowHeaders');
+    const rowHeadersCount = rowHeaders.length;
+    const columnHeaders = wot.getSetting('columnHeaders');
+    const columnHeadersCount = columnHeaders.length;
+    let runFastDraw = fastDraw;
+    let wtOverlaysNeedFullRefresh = false;
+
+    this.holderOffset = offset(this.holder);
+    runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
+
+    if (rowHeadersCount && !wot.getSetting('fixedColumnsLeft')) {
+      const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
+      const previousState = this.correctHeaderWidth;
+
+      this.correctHeaderWidth = leftScrollPos > 0;
+
+      if (previousState !== this.correctHeaderWidth) {
+        runFastDraw = false;
+      }
+    }
+
+    wtOverlays.prepareOverlays();
+
+    if (runFastDraw) {
+      // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
+      wtViewport.createVisibleCalculators();
+      wtOverlays.refresh(true);
+
+    } else {
+      this.tableOffset = offset(this.TABLE);
+
+      const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
+      const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
+
+      this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
+      this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
+
+      let performRedraw = true;
+
+      // Only master table rendering can be skipped
+      this.alignOverlaysWithTrimmingContainer();
+
+      const skipRender = {};
+
+      this.wot.getSetting('beforeDraw', true, skipRender);
+      performRedraw = skipRender.skipRender !== true;
+
+      if (performRedraw) {
+        this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
+
+        this.resetOversizedRows();
+
+        this.tableRenderer
+          .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
+          .setFilters(this.rowFilter, this.columnFilter)
+          .render();
+
+        const workspaceWidth = wtViewport.getWorkspaceWidth();
+        wtViewport.containerWidth = null;
+        this.markOversizedColumnHeaders();
+
+        this.adjustColumnHeaderHeights();
+
+        this.markOversizedRows();
+
+        wtViewport.createVisibleCalculators();
+        wtOverlaysNeedFullRefresh = true;
+
+        const hiderWidth = outerWidth(this.hider);
+        const tableWidth = outerWidth(this.TABLE);
+
+        if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
+          // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
+          this.wot.columnUtils.calculateWidths();
+          this.tableRenderer.renderer.colGroup.render();
+        }
+
+        if (workspaceWidth !== wtViewport.getWorkspaceWidth()) {
+          // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
+          wtViewport.containerWidth = null;
+          this.wot.columnUtils.calculateWidths();
+          this.tableRenderer.renderer.colGroup.render();
+        }
+
+        this.wot.getSetting('onDraw', true);
+      }
+    }
+
+    if (wtOverlaysNeedFullRefresh) {
+      wtOverlays.refresh(false);
+      wtOverlays.applyToDOM();
+    }
+    wtOverlays.resetFixedPositions();
+
+    // here be better for double draw
+    // wtOverlays.refresh(false);
+    // wtOverlays.applyToDOM();
+
+    this.refreshSelections(runFastDraw);
+
+    return this;
   }
 }
 
