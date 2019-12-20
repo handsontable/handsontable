@@ -14,7 +14,7 @@ class TopOverlayTable extends Table {
    * @returns {Table}
    */
   getTableNeighborSouth() {
-    return this.wot.cloneSource.wtTable;
+    return this.wot.overlay.master.wtTable;
   }
 }
 

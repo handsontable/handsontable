@@ -241,7 +241,7 @@ class TopOverlay extends Overlay {
    */
   scrollTo(sourceRow, bottomEdge) {
     const { master } = this;
-    const sourceInstance = master.cloneSource ? master.cloneSource : master;
+    const sourceInstance = master.overlay ? master.overlay.master : master;
     const mainHolder = sourceInstance.wtTable.holder;
     let newY = this.getTableParentOffset();
     let scrollbarCompensation = 0;

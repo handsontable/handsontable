@@ -14,7 +14,7 @@ class TopLeftCornerOverlayTable extends Table {
    * @returns {Table}
    */
   getTableNeighborEast() {
-    return this.wot.cloneSource.wtOverlays.topOverlay.clone.wtTable;
+    return this.wot.overlay.master.wtOverlays.topOverlay.clone.wtTable;
   }
 
   /**
@@ -24,7 +24,7 @@ class TopLeftCornerOverlayTable extends Table {
    * @returns {Table}
    */
   getTableNeighborSouth() {
-    return this.wot.cloneSource.wtOverlays.leftOverlay.clone.wtTable;
+    return this.wot.overlay.master.wtOverlays.leftOverlay.clone.wtTable;
   }
 
   /**
@@ -34,7 +34,7 @@ class TopLeftCornerOverlayTable extends Table {
    * @returns {Table}
    */
   getTableNeighborDiagonal() {
-    return this.wot.cloneSource.wtTable;
+    return this.wot.overlay.master.wtTable;
   }
 }
 

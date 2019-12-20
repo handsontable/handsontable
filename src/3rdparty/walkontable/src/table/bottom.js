@@ -14,7 +14,7 @@ class BottomOverlayTable extends Table {
    * @returns {Table}
    */
   getTableNeighborNorth() {
-    return this.wot.cloneSource.wtTable;
+    return this.wot.overlay.master.wtTable;
   }
 }
 

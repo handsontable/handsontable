@@ -89,8 +89,8 @@ class Table {
       THEAD: this.THEAD,
       COLGROUP: this.COLGROUP,
       TBODY: this.TBODY,
-      rowUtils: this.isMaster ? this.wot.rowUtils : this.wot.cloneSource.rowUtils,
-      columnUtils: this.isMaster ? this.wot.columnUtils : this.wot.cloneSource.columnUtils,
+      rowUtils: this.isMaster ? this.wot.rowUtils : this.wot.overlay.master.rowUtils,
+      columnUtils: this.isMaster ? this.wot.columnUtils : this.wot.overlay.master.columnUtils,
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
 
@@ -258,7 +258,7 @@ class Table {
       if (this.isMaster) {
         this.tableOffset = offset(this.TABLE);
       } else {
-        this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
+        this.tableOffset = this.wot.overlay.master.wtTable.tableOffset;
       }
 
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
@@ -334,7 +334,7 @@ class Table {
           this.wot.getSetting('onDraw', true);
 
         } else if (this.is(Overlay.CLONE_BOTTOM)) {
-          this.wot.cloneSource.wtOverlays.adjustElementsSize();
+          this.wot.overlay.master.wtOverlays.adjustElementsSize();
         }
       }
     }
@@ -693,7 +693,7 @@ class Table {
     let rowCount = this.TBODY.childNodes.length;
     const expectedTableHeight = rowCount * this.wot.wtSettings.settings.defaultRowHeight;
     const actualTableHeight = innerHeight(this.TBODY) - 1;
-    const rowUtils = this.isMaster ? this.wot.rowUtils : this.wot.cloneSource.rowUtils; // TODO this is not needed if we don't call markOversizedRows in the bottom overlay
+    const rowUtils = this.isMaster ? this.wot.rowUtils : this.wot.overlay.master.rowUtils; // TODO this is not needed if we don't call markOversizedRows in the bottom overlay
     let previousRowHeight;
     let rowInnerHeight;
     let sourceRowIndex;

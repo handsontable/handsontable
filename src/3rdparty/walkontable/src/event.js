@@ -214,7 +214,7 @@ class Event {
 
     const table = this.instance.wtTable.TABLE;
     const td = closestDown(event.realTarget, ['TD', 'TH'], table);
-    const mainWOT = this.instance.cloneSource || this.instance;
+    const mainWOT = this.instance.overlay ? this.instance.overlay.master : this.instance;
 
     if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
       mainWOT.lastMouseOver = td;

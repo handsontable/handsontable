@@ -14,7 +14,7 @@ class LeftOverlayTable extends Table {
    * @returns {Table}
    */
   getTableNeighborEast() {
-    return this.wot.cloneSource.wtTable;
+    return this.wot.overlay.master.wtTable;
   }
 }
 

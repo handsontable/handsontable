@@ -12,14 +12,14 @@ class Clone extends Core {
   constructor(settings) {
     super(settings);
 
-    this.cloneSource = settings.masterInstance;
-    this.overlayName = settings.type;
-    this.wtSettings = this.cloneSource.wtSettings;
+    this.overlay = settings.overlay;
+    this.overlayName = settings.overlay.type;
+    this.wtSettings = this.overlay.master.wtSettings;
     this.wtTable = settings.createTableFn(this, settings.table);
     this.wtScroll = new Scroll(this);
-    this.wtViewport = this.cloneSource.wtViewport;
+    this.wtViewport = this.overlay.master.wtViewport;
     this.wtEvent = new Event(this);
-    this.selections = this.cloneSource.selections;
+    this.selections = this.overlay.master.selections;
   }
 
   /**

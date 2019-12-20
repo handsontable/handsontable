@@ -238,8 +238,8 @@ class Viewport {
       }
     }
 
-    if (this.wot.cloneSource) {
-      return this.wot.cloneSource.wtViewport.getRowHeaderWidth();
+    if (this.wot.overlay) {
+      return this.wot.overlay.master.wtViewport.getRowHeaderWidth();
     }
 
     if (isNaN(this.rowHeaderWidth)) {
