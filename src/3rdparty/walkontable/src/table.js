@@ -38,7 +38,6 @@ class Table {
     this.TBODY = null;
     this.THEAD = null;
     this.COLGROUP = null;
-    this.holderOffset = 0;
     /**
      * Indicates if the table has height bigger than 0px.
      *

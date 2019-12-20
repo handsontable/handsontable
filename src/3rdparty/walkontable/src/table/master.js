@@ -17,6 +17,15 @@ import RowFilter from './../filter/row';
  * Subclass of `Table` that provides the helper methods relevant to the master table (not overlays), implemented through mixins.
  */
 class MasterTable extends Table {
+  /**
+  * @param {Walkontable} wotInstance
+  * @param {HTMLTableElement} table
+  */
+  constructor(wotInstance, table) {
+    super(wotInstance, table);
+    this.holderOffset = 0;
+  }
+
   alignOverlaysWithTrimmingContainer() {
     const trimmingElement = getTrimmingContainer(this.wtRootElement);
     const { rootWindow } = this.wot;
