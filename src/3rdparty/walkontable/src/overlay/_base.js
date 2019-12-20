@@ -135,8 +135,6 @@ class Overlay {
 
   /**
    * Update internal state of object with an information about the need of full rendering of the overlay.
-   *
-   * @returns {Boolean} Returns `true` if the state has changed since the last check.
    */
   updateStateOfRendering() {
     const previousState = this.needFullRender;
@@ -148,8 +146,6 @@ class Overlay {
     if (changed && !this.needFullRender) {
       this.reset();
     }
-
-    return changed;
   }
 
   /**

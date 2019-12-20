@@ -72,14 +72,10 @@ class Overlays {
 
   /**
    * Prepare overlays based on user settings.
-   *
-   * @returns {Boolean} Returns `true` if changes applied to overlay needs scroll synchronization.
    */
   prepareOverlays() {
-    let syncScroll = false;
-
     if (this.topOverlay) {
-      syncScroll = this.topOverlay.updateStateOfRendering() || syncScroll;
+      this.topOverlay.updateStateOfRendering();
     } else {
       this.topOverlay = Overlay.createOverlay(Overlay.CLONE_TOP, this.wot);
     }
@@ -87,31 +83,31 @@ class Overlays {
     if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM)) {
       this.bottomOverlay = {
         needFullRender: false,
-        updateStateOfRendering: () => false,
+        updateStateOfRendering: () => {},
       };
     }
     if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       this.bottomLeftCornerOverlay = {
         needFullRender: false,
-        updateStateOfRendering: () => false,
+        updateStateOfRendering: () => {},
       };
     }
 
     if (this.bottomOverlay) {
-      syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
+      this.bottomOverlay.updateStateOfRendering();
     } else {
       this.bottomOverlay = Overlay.createOverlay(Overlay.CLONE_BOTTOM, this.wot);
     }
 
     if (this.leftOverlay) {
-      syncScroll = this.leftOverlay.updateStateOfRendering() || syncScroll;
+      this.leftOverlay.updateStateOfRendering();
     } else {
       this.leftOverlay = Overlay.createOverlay(Overlay.CLONE_LEFT, this.wot);
     }
 
     if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
       if (this.topLeftCornerOverlay) {
-        syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+        this.topLeftCornerOverlay.updateStateOfRendering();
       } else {
         this.topLeftCornerOverlay = Overlay.createOverlay(Overlay.CLONE_TOP_LEFT_CORNER, this.wot);
       }
@@ -119,7 +115,7 @@ class Overlays {
 
     if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender) {
       if (this.bottomLeftCornerOverlay) {
-        syncScroll = this.bottomLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+        this.bottomLeftCornerOverlay.updateStateOfRendering();
       } else {
         this.bottomLeftCornerOverlay = Overlay.createOverlay(Overlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
       }
@@ -128,8 +124,6 @@ class Overlays {
     if (this.wot.getSetting('debug') && !this.debug) {
       this.debug = Overlay.createOverlay(Overlay.CLONE_DEBUG, this.wot);
     }
-
-    return syncScroll;
   }
 
   /**
