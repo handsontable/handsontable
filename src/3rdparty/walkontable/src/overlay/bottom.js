@@ -21,6 +21,7 @@ class BottomOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_BOTTOM);
+    this.updateStateOfRendering();
   }
 
   /**

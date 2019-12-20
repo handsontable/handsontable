@@ -18,6 +18,7 @@ class TopLeftCornerOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_TOP_LEFT_CORNER);
+    this.updateStateOfRendering();
   }
 
   /**

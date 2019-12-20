@@ -22,6 +22,7 @@ class LeftOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_LEFT);
+    this.updateStateOfRendering();
   }
 
   /**

@@ -130,7 +130,6 @@ class Overlay {
     this.wtRootElement = wtRootElement;
     this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
     this.areElementSizesAdjusted = false;
-    this.updateStateOfRendering();
   }
 
   /**
@@ -349,7 +348,7 @@ class Overlay {
     // When hot settings are changed we allow to refresh overlay once before blocking
     const nextCycleRenderFlag = this.shouldBeRendered();
 
-    if (this.clone && (this.needFullRender || nextCycleRenderFlag)) {
+    if (this.needFullRender || nextCycleRenderFlag) {
       this.clone.drawClone(fastDraw);
     }
     this.needFullRender = nextCycleRenderFlag;
@@ -359,9 +358,6 @@ class Overlay {
    * Reset overlay styles to initial values.
    */
   reset() {
-    if (!this.clone) {
-      return;
-    }
     const { holder, hider, wtRootElement } = this.clone.wtTable;
     const holderStyle = holder.style;
     const hidderStyle = hider.style;
