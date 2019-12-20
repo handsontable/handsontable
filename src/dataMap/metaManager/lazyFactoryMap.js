@@ -81,7 +81,9 @@ import { assert, isUnsignedNumber, isNullish } from './utils';
  *         means that can be replaced by new item
  *         when that will be created.
  *
- * map.obtain(2) // returns the old value ("EEE") as it should
+ * map.obtain(2) // returns the value ("EEE") as it should. Access to the value is
+ *               // changed (the key was downshifted). However, the internal index has not changed,
+ *               // which means that the data does not need to be changed (spliced) too.
  */
 export default class LazyFactoryMap {
   constructor(valueFactory) {
