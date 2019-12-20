@@ -351,13 +351,13 @@ class Table {
       // here be better for double draw
       // wtOverlays.refresh(false);
       // wtOverlays.applyToDOM();
+
+      if (syncScroll) {
+        wtOverlays.syncScrollWithMaster();
+      }
     }
 
     this.refreshSelections(runFastDraw);
-
-    if (this.isMaster && syncScroll) {
-      wtOverlays.syncScrollWithMaster();
-    }
 
     return this;
   }
