@@ -134,8 +134,6 @@ class MasterTable extends Table {
       wtOverlays.refresh(true);
 
     } else {
-      this.tableOffset = offset(this.TABLE);
-
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
       const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
 

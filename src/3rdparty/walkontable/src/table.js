@@ -38,7 +38,6 @@ class Table {
     this.TBODY = null;
     this.THEAD = null;
     this.COLGROUP = null;
-    this.tableOffset = 0;
     this.holderOffset = 0;
     /**
      * Indicates if the table has height bigger than 0px.
@@ -226,8 +225,6 @@ class Table {
     const columnHeadersCount = columnHeaders.length;
 
     if (!fastDraw) {
-      this.tableOffset = this.wot.overlay.master.wtTable.tableOffset;
-
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
       const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
 
