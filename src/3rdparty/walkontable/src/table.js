@@ -231,12 +231,12 @@ class Table {
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
-      this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
-
       if (this.is(Overlay.CLONE_BOTTOM) ||
         this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
         // do NOT render headers on the bottom or bottom-left corner overlay
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
+      } else {
+        this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
       }
 
       if (this.is(Overlay.CLONE_BOTTOM)) {
