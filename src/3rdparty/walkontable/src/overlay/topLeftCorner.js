@@ -37,9 +37,9 @@ class TopLeftCornerOverlay extends Overlay {
    * @returns {Boolean}
    */
   shouldBeRendered() {
-    const { wot } = this;
-    return !!((wot.getSetting('fixedRowsTop') || wot.getSetting('columnHeaders').length) &&
-        (wot.getSetting('fixedColumnsLeft') || wot.getSetting('rowHeaders').length));
+    const { master } = this;
+    return !!((master.getSetting('fixedRowsTop') || master.getSetting('columnHeaders').length) &&
+        (master.getSetting('fixedColumnsLeft') || master.getSetting('rowHeaders').length));
   }
 
   /**
@@ -48,15 +48,15 @@ class TopLeftCornerOverlay extends Overlay {
   resetFixedPosition() {
     this.updateTrimmingContainer();
 
-    if (!this.wot.wtTable.holder.parentNode) {
+    if (!this.master.wtTable.holder.parentNode) {
       // removed from DOM
       return;
     }
     const overlayRoot = this.clone.wtTable.holder.parentNode;
-    const preventOverflow = this.wot.getSetting('preventOverflow');
+    const preventOverflow = this.master.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === this.wot.rootWindow) {
-      const box = this.wot.wtTable.hider.getBoundingClientRect();
+    if (this.trimmingContainer === this.master.rootWindow) {
+      const box = this.master.wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(box.top);
       const left = Math.ceil(box.left);
       const bottom = Math.ceil(box.bottom);
@@ -83,7 +83,7 @@ class TopLeftCornerOverlay extends Overlay {
     let tableHeight = outerHeight(this.clone.wtTable.TABLE);
     const tableWidth = outerWidth(this.clone.wtTable.TABLE);
 
-    if (!this.wot.wtTable.hasDefinedSize()) {
+    if (!this.master.wtTable.hasDefinedSize()) {
       tableHeight = 0;
     }
 

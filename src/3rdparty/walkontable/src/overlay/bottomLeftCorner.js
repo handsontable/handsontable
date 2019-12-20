@@ -36,17 +36,17 @@ class BottomLeftCornerOverlay extends Overlay {
    * @returns {Boolean}
    */
   shouldBeRendered() {
-    const { wot } = this;
+    const { master } = this;
     /* eslint-disable no-unneeded-ternary */
-    return wot.getSetting('fixedRowsBottom') &&
-      (wot.getSetting('fixedColumnsLeft') || wot.getSetting('rowHeaders').length) ? true : false;
+    return master.getSetting('fixedRowsBottom') &&
+      (master.getSetting('fixedColumnsLeft') || master.getSetting('rowHeaders').length) ? true : false;
   }
 
   /**
    * Reposition the overlay.
    */
   repositionOverlay() {
-    const { wtTable, rootDocument } = this.wot;
+    const { wtTable, rootDocument } = this.master;
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     let scrollbarWidth = getScrollbarWidth(rootDocument);
 
@@ -62,10 +62,10 @@ class BottomLeftCornerOverlay extends Overlay {
    * Updates the corner overlay position
    */
   resetFixedPosition() {
-    const { wot } = this;
+    const { master } = this;
     this.updateTrimmingContainer();
 
-    if (!wot.wtTable.holder.parentNode) {
+    if (!master.wtTable.holder.parentNode) {
       // removed from DOM
       return;
     }
@@ -73,13 +73,13 @@ class BottomLeftCornerOverlay extends Overlay {
 
     overlayRoot.style.top = '';
 
-    if (this.trimmingContainer === wot.rootWindow) {
-      const box = wot.wtTable.hider.getBoundingClientRect();
+    if (this.trimmingContainer === master.rootWindow) {
+      const box = master.wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(box.bottom);
       const left = Math.ceil(box.left);
       let finalLeft;
       let finalBottom;
-      const bodyHeight = wot.rootDocument.body.offsetHeight;
+      const bodyHeight = master.rootDocument.body.offsetHeight;
 
       if (left < 0) {
         finalLeft = -left;
@@ -107,7 +107,7 @@ class BottomLeftCornerOverlay extends Overlay {
     let tableHeight = outerHeight(this.clone.wtTable.TABLE);
     const tableWidth = outerWidth(this.clone.wtTable.TABLE);
 
-    if (!this.wot.wtTable.hasDefinedSize()) {
+    if (!this.master.wtTable.hasDefinedSize()) {
       tableHeight = 0;
     }
 

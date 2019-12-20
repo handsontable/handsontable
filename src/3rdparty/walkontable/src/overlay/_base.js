@@ -2,7 +2,6 @@ import {
   getScrollableElement,
   getTrimmingContainer
 } from './../../../../helpers/dom/element';
-import { defineGetter } from './../../../../helpers/object';
 import { arrayEach } from './../../../../helpers/array';
 import { warn } from './../../../../helpers/console';
 import EventManager from './../../../../eventManager';
@@ -112,9 +111,7 @@ class Overlay {
    * @param {Walkontable} wotInstance
    */
   constructor(wotInstance) {
-    defineGetter(this, 'wot', wotInstance, {
-      writable: false,
-    });
+    this.master = wotInstance;
 
     const {
       TABLE,
@@ -122,7 +119,7 @@ class Overlay {
       spreader,
       holder,
       wtRootElement,
-    } = this.wot.wtTable;
+    } = this.master.wtTable;
 
     this.type = '';
     this.mainTableScrollableElement = null;
@@ -175,10 +172,10 @@ class Overlay {
    * Update the main scrollable element.
    */
   updateMainScrollableElement() {
-    const { wtTable, rootWindow } = this.wot;
+    const { wtTable, rootWindow } = this.master;
 
     if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
-      this.mainTableScrollableElement = this.wot.wtTable.holder;
+      this.mainTableScrollableElement = this.master.wtTable.holder;
     } else {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
     }
@@ -199,10 +196,10 @@ class Overlay {
 
       return;
     }
-    const windowScroll = this.mainTableScrollableElement === this.wot.rootWindow;
-    const fixedColumn = columnIndex < this.wot.getSetting('fixedColumnsLeft');
-    const fixedRowTop = rowIndex < this.wot.getSetting('fixedRowsTop');
-    const fixedRowBottom = rowIndex >= this.wot.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom');
+    const windowScroll = this.mainTableScrollableElement === this.master.rootWindow;
+    const fixedColumn = columnIndex < this.master.getSetting('fixedColumnsLeft');
+    const fixedRowTop = rowIndex < this.master.getSetting('fixedRowsTop');
+    const fixedRowBottom = rowIndex >= this.master.getSetting('totalRows') - this.master.getSetting('fixedRowsBottom');
     const spreaderOffset = {
       left: this.clone.wtTable.spreader.offsetLeft,
       top: this.clone.wtTable.spreader.offsetTop
@@ -235,7 +232,7 @@ class Overlay {
    * @returns {{top: Number, left: Number}}
    */
   getRelativeCellPositionWithinWindow(onFixedRowTop, onFixedColumn, elementOffset, spreaderOffset) {
-    const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
+    const absoluteRootElementPosition = this.master.wtTable.wtRootElement.getBoundingClientRect();
     let horizontalOffset = 0;
     let verticalOffset = 0;
 
@@ -286,7 +283,7 @@ class Overlay {
     }
 
     if (onFixedRowBottom) {
-      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
+      const absoluteRootElementPosition = this.master.wtTable.wtRootElement.getBoundingClientRect();
       const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
       verticalOffset = (absoluteOverlayPosition.top * (-1)) + absoluteRootElementPosition.top;
 
@@ -311,7 +308,7 @@ class Overlay {
     if (Overlay.CLONE_TYPES.indexOf(direction) === -1) {
       throw new Error(`Clone type "${direction}" is not supported.`);
     }
-    const { wtTable, rootDocument, rootWindow } = this.wot;
+    const { wtTable, rootDocument, rootWindow } = this.master;
     const clone = rootDocument.createElement('DIV');
     const clonedTable = rootDocument.createElement('TABLE');
 
@@ -327,7 +324,7 @@ class Overlay {
     this.type = direction;
     wtTable.wtRootElement.parentNode.appendChild(clone);
 
-    const preventOverflow = this.wot.getSetting('preventOverflow');
+    const preventOverflow = this.master.getSetting('preventOverflow');
 
     if (preventOverflow === true ||
       preventOverflow === 'horizontal' && this.type === Overlay.CLONE_TOP ||
@@ -341,7 +338,7 @@ class Overlay {
     }
 
     return new Clone({
-      masterInstance: this.wot,
+      masterInstance: this.master,
       type: this.type,
       createTableFn: this.createTable,
       table: clonedTable,
