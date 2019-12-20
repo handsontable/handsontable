@@ -23,6 +23,7 @@ class MasterTable extends Table {
   constructor(wotInstance, table) {
     super(wotInstance, table);
     this.holderOffset = 0;
+    this.wtRootElement.className += 'ht_master handsontable';
   }
 
   alignOverlaysWithTrimmingContainer() {

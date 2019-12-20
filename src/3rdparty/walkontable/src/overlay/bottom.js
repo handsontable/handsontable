@@ -39,7 +39,7 @@ class BottomOverlay extends Overlay {
    */
   repositionOverlay() {
     const { wtTable, rootDocument } = this.master;
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const overlayRoot = this.clone.wtTable.wtRootElement;
     let scrollbarWidth = getScrollbarWidth(rootDocument);
 
     if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
@@ -69,7 +69,7 @@ class BottomOverlay extends Overlay {
       return;
     }
 
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const overlayRoot = this.clone.wtTable.wtRootElement;
     let headerPosition = 0;
     overlayRoot.style.top = '';
     const preventOverflow = this.master.getSetting('preventOverflow');
@@ -180,7 +180,7 @@ class BottomOverlay extends Overlay {
   adjustRootElementSize() {
     const { wtTable, wtViewport, rootWindow } = this.master;
     const scrollbarWidth = getScrollbarWidth(this.master.rootDocument);
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const overlayRoot = this.clone.wtTable.wtRootElement;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.master.getSetting('preventOverflow');
 
@@ -206,11 +206,11 @@ class BottomOverlay extends Overlay {
 
     overlayRootStyle.height = `${tableHeight}px`;
 
-    const { holder, hider } = this.clone.wtTable;
+    const { holder, hider, wtRootElement } = this.clone.wtTable;
 
     hider.style.width = this.hider.style.width;
-    holder.style.width = holder.parentNode.style.width;
-    holder.style.height = holder.parentNode.style.height;
+    holder.style.width = wtRootElement.style.width;
+    holder.style.height = wtRootElement.style.height;
   }
 
   /**
@@ -309,7 +309,7 @@ class BottomOverlay extends Overlay {
    */
   adjustHeaderBordersPosition(position) {
     if (this.master.getSetting('fixedRowsBottom') === 0 && this.master.getSetting('columnHeaders').length > 0) {
-      const masterParent = this.master.wtTable.holder.parentNode;
+      const masterParent = this.master.wtTable.wtRootElement;
       const previousState = hasClass(masterParent, 'innerBorderTop');
 
       if (position) {

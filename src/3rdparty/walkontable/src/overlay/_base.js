@@ -362,11 +362,10 @@ class Overlay {
     if (!this.clone) {
       return;
     }
-    const holder = this.clone.wtTable.holder;
-    const hider = this.clone.wtTable.hider;
+    const { holder, hider, wtRootElement } = this.clone.wtTable;
     const holderStyle = holder.style;
     const hidderStyle = hider.style;
-    const rootStyle = holder.parentNode.style;
+    const rootStyle = wtRootElement.style;
 
     arrayEach([holderStyle, hidderStyle, rootStyle], (style) => {
       style.width = '';

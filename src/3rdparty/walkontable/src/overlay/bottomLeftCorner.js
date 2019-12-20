@@ -47,7 +47,7 @@ class BottomLeftCornerOverlay extends Overlay {
    */
   repositionOverlay() {
     const { wtTable, rootDocument } = this.master;
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const overlayRoot = this.clone.wtTable.wtRootElement;
     let scrollbarWidth = getScrollbarWidth(rootDocument);
 
     if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
@@ -69,7 +69,7 @@ class BottomLeftCornerOverlay extends Overlay {
       // removed from DOM
       return;
     }
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const overlayRoot = this.clone.wtTable.wtRootElement;
 
     overlayRoot.style.top = '';
 

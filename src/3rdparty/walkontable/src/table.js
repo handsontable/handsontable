@@ -190,9 +190,6 @@ class Table {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
         parent.insertBefore(holder, hider);
       }
-      if (this.isMaster) {
-        holder.parentNode.className += 'ht_master handsontable';
-      }
       holder.appendChild(hider);
     }
 

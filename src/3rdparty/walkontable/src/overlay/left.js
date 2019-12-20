@@ -53,7 +53,7 @@ class LeftOverlay extends Overlay {
       // removed from DOM
       return;
     }
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const overlayRoot = this.clone.wtTable.wtRootElement;
     let headerPosition = 0;
     const preventOverflow = this.master.getSetting('preventOverflow');
 
@@ -157,7 +157,7 @@ class LeftOverlay extends Overlay {
   adjustRootElementSize() {
     const { wtTable, rootDocument, rootWindow } = this.master;
     const scrollbarHeight = getScrollbarWidth(rootDocument);
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const overlayRoot = this.clone.wtTable.wtRootElement;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.master.getSetting('preventOverflow');
 
@@ -179,11 +179,11 @@ class LeftOverlay extends Overlay {
 
     overlayRootStyle.width = `${tableWidth}px`;
 
-    const { holder, hider } = this.clone.wtTable;
+    const { holder, hider, wtRootElement } = this.clone.wtTable;
 
     hider.style.height = this.hider.style.height;
-    holder.style.height = holder.parentNode.style.height;
-    holder.style.width = holder.parentNode.style.width;
+    holder.style.height = wtRootElement.style.height;
+    holder.style.width = wtRootElement.style.width;
   }
 
   /**
@@ -282,7 +282,7 @@ class LeftOverlay extends Overlay {
    * @param {Number} position Header X position if trimming container is window or scroll top if not.
    */
   adjustHeaderBordersPosition(position) {
-    const masterParent = this.master.wtTable.holder.parentNode;
+    const masterParent = this.master.wtTable.wtRootElement;
     const rowHeaders = this.master.getSetting('rowHeaders');
     const fixedColumnsLeft = this.master.getSetting('fixedColumnsLeft');
     const totalRows = this.master.getSetting('totalRows');

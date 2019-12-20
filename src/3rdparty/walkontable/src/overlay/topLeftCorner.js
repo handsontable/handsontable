@@ -52,7 +52,7 @@ class TopLeftCornerOverlay extends Overlay {
       // removed from DOM
       return;
     }
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const overlayRoot = this.clone.wtTable.wtRootElement;
     const preventOverflow = this.master.getSetting('preventOverflow');
 
     if (this.trimmingContainer === this.master.rootWindow) {
