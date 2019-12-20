@@ -2,7 +2,6 @@ import {
   getStyle,
   getComputedStyle,
   getTrimmingContainer,
-  isVisible,
   offset,
   outerWidth,
 } from './../../../../helpers/dom/element';
@@ -79,8 +78,6 @@ class MasterTable extends Table {
       this.hasTableHeight = holderStyle.height === 'auto' ? true : height > 0;
       this.hasTableWidth = width > 0;
     }
-
-    this.isTableVisible = isVisible(this.TABLE);
   }
 
   markOversizedColumnHeaders() {

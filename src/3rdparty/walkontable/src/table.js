@@ -50,13 +50,6 @@ class Table {
      * @type {Boolean}
      */
     this.hasTableWidth = true;
-    /**
-     * Indicates if the table is visible. By visible, it means that the holder
-     * element has CSS 'display' property different than 'none'.
-     *
-     * @type {Boolean}
-     */
-    this.isTableVisible = false;
 
     removeTextNodes(this.TABLE);
 
