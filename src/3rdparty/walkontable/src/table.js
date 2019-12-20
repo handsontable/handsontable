@@ -353,7 +353,7 @@ class Table {
       // wtOverlays.applyToDOM();
 
       if (syncScroll) {
-        wtOverlays.syncScrollWithMaster();
+        // wtOverlays.syncScrollWithMaster();
       }
     }
 
