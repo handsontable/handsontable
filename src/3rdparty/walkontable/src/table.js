@@ -213,7 +213,6 @@ class Table {
    *
    * @param {Boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
    *                                   If FALSE or UNDEFINED, will perform a full redraw.
-   * @returns {Table}
    */
   draw(fastDraw = false) {
     const { wot } = this;
@@ -257,8 +256,6 @@ class Table {
     }
 
     this.refreshSelections(fastDraw);
-
-    return this;
   }
 
   markIfOversizedColumnHeader(col) {
