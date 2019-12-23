@@ -217,19 +217,12 @@ class TopOverlay extends Overlay {
     this.spreader.style.bottom = '';
 
     if (this.needFullRender) {
-      this.syncOverlayOffset();
-    }
-  }
+      if (typeof this.master.wtViewport.columnsRenderCalculator.startPosition === 'number') {
+        this.clone.wtTable.spreader.style.left = `${this.master.wtViewport.columnsRenderCalculator.startPosition}px`;
 
-  /**
-   * Synchronize calculated left position to an element.
-   */
-  syncOverlayOffset() {
-    if (typeof this.master.wtViewport.columnsRenderCalculator.startPosition === 'number') {
-      this.clone.wtTable.spreader.style.left = `${this.master.wtViewport.columnsRenderCalculator.startPosition}px`;
-
-    } else {
-      this.clone.wtTable.spreader.style.left = '';
+      } else {
+        this.clone.wtTable.spreader.style.left = '';
+      }
     }
   }
 

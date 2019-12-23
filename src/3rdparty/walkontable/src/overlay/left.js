@@ -208,19 +208,12 @@ class LeftOverlay extends Overlay {
     this.spreader.style.right = '';
 
     if (this.needFullRender) {
-      this.syncOverlayOffset();
-    }
-  }
+      if (typeof this.master.wtViewport.rowsRenderCalculator.startPosition === 'number') {
+        this.clone.wtTable.spreader.style.top = `${this.master.wtViewport.rowsRenderCalculator.startPosition}px`;
 
-  /**
-   * Synchronize calculated top position to an element.
-   */
-  syncOverlayOffset() {
-    if (typeof this.master.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-      this.clone.wtTable.spreader.style.top = `${this.master.wtViewport.rowsRenderCalculator.startPosition}px`;
-
-    } else {
-      this.clone.wtTable.spreader.style.top = '';
+      } else {
+        this.clone.wtTable.spreader.style.top = '';
+      }
     }
   }
 
