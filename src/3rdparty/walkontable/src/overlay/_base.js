@@ -143,7 +143,7 @@ class Overlay {
     const changed = previousState !== this.needFullRender;
 
     if (changed && !this.needFullRender) {
-      this.reset();
+      this.resetElementsSize();
     }
   }
 
@@ -340,11 +340,12 @@ class Overlay {
   }
 
   /**
-   * Refresh/Redraw overlay
+   * Redraws the content of the overlay's clone instance of Walkontable, including the cells, selections and borders.
+   * Does not change the size nor the position of the overlay root element.
    *
    * @param {Boolean} [fastDraw=false]
    */
-  refresh(fastDraw = false) {
+  redrawClone(fastDraw = false) {
     // When hot settings are changed we allow to refresh overlay once before blocking
     const nextCycleRenderFlag = this.shouldBeRendered();
 
@@ -355,9 +356,9 @@ class Overlay {
   }
 
   /**
-   * Reset overlay styles to initial values.
+   * Reset overlay root element's width and height to initial values.
    */
-  reset() {
+  resetElementsSize() {
     const { holder, hider, wtRootElement } = this.clone.wtTable;
     const holderStyle = holder.style;
     const hidderStyle = hider.style;

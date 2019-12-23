@@ -60,9 +60,9 @@ class BottomLeftCornerOverlay extends Overlay {
   }
 
   /**
-   * Updates the corner overlay position
+   * Updates the position of the overlay root element relatively to the position of the master instance
    */
-  resetFixedPosition() {
+  adjustElementsPosition() {
     const { master } = this;
     this.updateTrimmingContainer();
 

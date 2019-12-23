@@ -26,7 +26,7 @@ export default function hideRowItem(hiddenRowsPlugin) {
       rangeEach(start, end, row => hiddenRowsPlugin.hideRow(row));
 
       this.render();
-      this.view.wt.wtOverlays.adjustElementsSize(true);
+      this.view.wt.wtOverlays.adjustElementsSizes(true);
 
     },
     disabled: false,

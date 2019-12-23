@@ -636,7 +636,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         });
       }
       if (instance.view) {
-        instance.view.wt.wtOverlays.adjustElementsSize();
+        instance.view.wt.wtOverlays.adjustElementsSizes();
       }
     },
 
@@ -1093,7 +1093,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     editorManager.lockEditor();
     instance._refreshBorders(null);
     editorManager.unlockEditor();
-    instance.view.wt.wtOverlays.adjustElementsSize();
+    instance.view.wt.wtOverlays.adjustElementsSizes();
     instance.runHooks('afterChange', changes, source || 'edit');
 
     const activeEditor = instance.getActiveEditor();

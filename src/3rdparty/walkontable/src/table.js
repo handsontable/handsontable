@@ -240,7 +240,7 @@ class Table {
 
       if (this.is(Overlay.CLONE_BOTTOM)) {
         this.markOversizedRows();
-        this.wot.overlay.master.wtOverlays.adjustElementsSize();
+        this.wot.overlay.master.wtOverlays.adjustElementsSizes();
       }
     }
 

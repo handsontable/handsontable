@@ -134,7 +134,7 @@ class MasterTable extends Table {
     if (runFastDraw) {
       // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
       wtViewport.createVisibleCalculators();
-      wtOverlays.refresh(true);
+      wtOverlays.refreshClones(true);
       this.refreshSelections(true);
 
     } else {
@@ -192,7 +192,7 @@ class MasterTable extends Table {
 
         this.wot.getSetting('onDraw', true);
 
-        wtOverlays.refresh(false);
+        wtOverlays.refreshClones(false);
         this.refreshSelections(false);
       }
     }

@@ -386,7 +386,7 @@ class ManualColumnResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.wt.wtOverlays.adjustElementsSizes(true);
     };
     const resize = (column, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeColumnResize', this.newSize, column, true);
@@ -482,7 +482,7 @@ class ManualColumnResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.wt.wtOverlays.adjustElementsSizes(true);
     };
     const resize = (column, forceRender) => {
       this.hot.runHooks('beforeColumnResize', this.newSize, column, false);

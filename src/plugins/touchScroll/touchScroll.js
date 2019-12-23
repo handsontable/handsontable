@@ -170,8 +170,8 @@ class TouchScroll extends BasePlugin {
     }, 400);
 
     arrayEach(this.scrollbars, (scrollbar) => {
-      scrollbar.refresh();
-      scrollbar.resetFixedPosition();
+      scrollbar.redrawClone();
+      scrollbar.adjustElementsPosition();
     });
 
     this.hot.view.wt.wtOverlays.syncScrollWithMaster();

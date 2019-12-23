@@ -127,9 +127,9 @@ class Overlays {
   }
 
   /**
-   * Refresh and redraw table
+   * Refresh and redraw the master table, which will include refreshing of the clones
    */
-  refreshAll() {
+  refreshMasterAndClones() {
     if (!this.wot.drawn) {
       return;
     }
@@ -366,7 +366,7 @@ class Overlays {
       leftHolder.scrollTop = scrollTop;
     }
 
-    this.refreshAll();
+    this.refreshMasterAndClones();
   }
 
   /**
@@ -437,9 +437,10 @@ class Overlays {
   }
 
   /**
+   * Refresh (update the sizes and positions) and redraw the clones
    * @param {Boolean} [fastDraw=false]
    */
-  refresh(fastDraw = false) {
+  refreshClones(fastDraw = false) {
     if (!fastDraw) {
       this.prepareOverlays();
     }
@@ -452,54 +453,54 @@ class Overlays {
       if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
         this.spreaderLastSize.width = width;
         this.spreaderLastSize.height = height;
-        this.adjustElementsSize();
+        this.adjustElementsSizes();
       }
     }
 
     if (this.bottomOverlay.clone) {
-      this.bottomOverlay.refresh(fastDraw);
+      this.bottomOverlay.redrawClone(fastDraw);
     }
 
-    this.leftOverlay.refresh(fastDraw);
-    this.topOverlay.refresh(fastDraw);
+    this.leftOverlay.redrawClone(fastDraw);
+    this.topOverlay.redrawClone(fastDraw);
 
     if (this.topLeftCornerOverlay) {
-      this.topLeftCornerOverlay.refresh(fastDraw);
+      this.topLeftCornerOverlay.redrawClone(fastDraw);
     }
 
     if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
-      this.bottomLeftCornerOverlay.refresh(fastDraw);
+      this.bottomLeftCornerOverlay.redrawClone(fastDraw);
     }
 
     if (this.debug) {
-      this.debug.refresh(fastDraw);
+      this.debug.redrawClone(fastDraw);
     }
 
     if (!fastDraw) {
-      this.applyToDOM();
+      this.workaroundsForPositionsAndSizes();
     }
 
-    this.resetFixedPositions(); // to fix the problem with double draw, this should be at the top
+    this.adjustElementsPositions(); // to fix the problem with double draw, this should be at the top
   }
 
   /**
    * For every overlay in the instance, update the overlay's position
    */
-  resetFixedPositions() {
-    this.topOverlay.resetFixedPosition();
+  adjustElementsPositions() {
+    this.topOverlay.adjustElementsPosition();
 
     if (this.bottomOverlay.clone) {
-      this.bottomOverlay.resetFixedPosition();
+      this.bottomOverlay.adjustElementsPosition();
     }
 
-    this.leftOverlay.resetFixedPosition();
+    this.leftOverlay.adjustElementsPosition();
 
     if (this.topLeftCornerOverlay) {
-      this.topLeftCornerOverlay.resetFixedPosition();
+      this.topLeftCornerOverlay.adjustElementsPosition();
     }
 
     if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
-      this.bottomLeftCornerOverlay.resetFixedPosition();
+      this.bottomLeftCornerOverlay.adjustElementsPosition();
     }
   }
 
@@ -508,7 +509,7 @@ class Overlays {
    *
    * @param {Boolean} [force=false]
    */
-  adjustElementsSize(force = false) {
+  adjustElementsSizes(force = false) {
     const { wtViewport, wtTable } = this.wot;
     const totalColumns = this.wot.getSetting('totalColumns');
     const totalRows = this.wot.getSetting('totalRows');
@@ -547,7 +548,7 @@ class Overlays {
   /**
    *
    */
-  applyToDOM() {
+  workaroundsForPositionsAndSizes() {
     const { wtTable } = this.wot;
 
     if (!wtTable.isVisible()) {
@@ -555,16 +556,16 @@ class Overlays {
     }
 
     if (!this.topOverlay.areElementSizesAdjusted || !this.leftOverlay.areElementSizesAdjusted) {
-      this.adjustElementsSize();
+      this.adjustElementsSizes();
     }
 
-    this.topOverlay.applyToDOM();
+    this.topOverlay.workaroundsForPositionAndSize();
 
     if (this.bottomOverlay.clone) {
-      this.bottomOverlay.applyToDOM();
+      this.bottomOverlay.workaroundsForPositionAndSize();
     }
 
-    this.leftOverlay.applyToDOM();
+    this.leftOverlay.workaroundsForPositionAndSize();
   }
 
   /**

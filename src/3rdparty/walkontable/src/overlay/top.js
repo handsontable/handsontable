@@ -47,9 +47,9 @@ class TopOverlay extends Overlay {
   }
 
   /**
-   * Updates the top overlay position.
+   * Updates the position of the overlay root element relatively to the position of the master instance
    */
-  resetFixedPosition() {
+  adjustElementsPosition() {
     if (!this.needFullRender || !this.master.wtTable.holder.parentNode) {
       // removed from DOM
       return;
@@ -140,7 +140,7 @@ class TopOverlay extends Overlay {
   }
 
   /**
-   * Adjust overlay root element, childs and master table element sizes (width, height).
+   * If needed, adjust the sizes of the clone and the master elements to the dimensions of the trimming container.
    *
    * @param {Boolean} [force=false]
    */
@@ -148,7 +148,7 @@ class TopOverlay extends Overlay {
     this.updateTrimmingContainer();
 
     if (this.needFullRender || force) {
-      this.adjustRootElementSize();
+      this._adjustElementsSize();
 
       if (!force) {
         this.areElementSizesAdjusted = true;
@@ -157,9 +157,9 @@ class TopOverlay extends Overlay {
   }
 
   /**
-   * Adjust the width and height of the overlay root element and its children (hider, holder) to the dimensions of the trimming container.
+   * Adjust the sizes of the clone and the master elements to the dimensions of the trimming container.
    */
-  adjustRootElementSize() {
+  _adjustElementsSize() {
     const { wtTable, rootDocument, rootWindow } = this.master;
     const scrollbarWidth = getScrollbarWidth(rootDocument);
     const overlayRoot = this.clone.wtTable.wtRootElement;
@@ -198,7 +198,7 @@ class TopOverlay extends Overlay {
   /**
    * Adjust the overlay dimensions and position.
    */
-  applyToDOM() {
+  workaroundsForPositionAndSize() {
     const total = this.master.getSetting('totalRows');
 
     if (!this.areElementSizesAdjusted) {
@@ -318,7 +318,7 @@ class TopOverlay extends Overlay {
     });
     this.redrawSelectionBorders(selections.getFill());
 
-    this.master.wtOverlays.leftOverlay.refresh();
+    this.master.wtOverlays.leftOverlay.redrawClone();
   }
 
   /**
@@ -346,7 +346,7 @@ class TopOverlay extends Overlay {
       }
 
       if (!previousState && position || previousState && !position) {
-        this.master.wtOverlays.adjustElementsSize();
+        this.master.wtOverlays.adjustElementsSizes();
 
         // cell borders should be positioned once again,
         // because we added / removed 1px border from table header
