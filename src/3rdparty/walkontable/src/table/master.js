@@ -131,14 +131,16 @@ class MasterTable extends Table {
       }
     }
 
-    wtOverlays.prepareOverlays();
-
     if (runFastDraw) {
+      wtOverlays.prepareOverlays();
       // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
       wtViewport.createVisibleCalculators();
       wtOverlays.refresh(true);
+      wtOverlays.resetFixedPositions();
 
     } else {
+      wtOverlays.prepareOverlays();
+
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
       const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
 
@@ -194,15 +196,13 @@ class MasterTable extends Table {
 
         wtOverlays.refresh(false);
         wtOverlays.applyToDOM();
+        wtOverlays.resetFixedPositions();
+
+        // here be better for double draw
+        // wtOverlays.refresh(false);
+        // wtOverlays.applyToDOM();
       }
     }
-
-    wtOverlays.resetFixedPositions();
-
-    // here be better for double draw
-    // wtOverlays.refresh(false);
-    // wtOverlays.applyToDOM();
-
     this.refreshSelections(runFastDraw);
   }
 }
