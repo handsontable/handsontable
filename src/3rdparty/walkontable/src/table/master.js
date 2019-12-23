@@ -139,7 +139,6 @@ class MasterTable extends Table {
       wtOverlays.resetFixedPositions();
 
     } else {
-      wtOverlays.prepareOverlays();
 
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
       const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
@@ -194,6 +193,7 @@ class MasterTable extends Table {
 
         this.wot.getSetting('onDraw', true);
 
+        wtOverlays.prepareOverlays();
         wtOverlays.refresh(false);
         wtOverlays.applyToDOM();
         wtOverlays.resetFixedPositions();
