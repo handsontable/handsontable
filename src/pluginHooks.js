@@ -784,8 +784,6 @@ const REGISTERED_HOOKS = [
    * @param {Event} event The `mouseup` event object.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
    * @param {HTMLTableCellElement} TD TD element.
-   * @param {Object} controller An object with keys `row`, `column` and `cells` which contains boolean values. This
-   *                            object allows or disallows changing the selection for the particular axies.
    */
   'beforeOnCellMouseUp',
 

@@ -190,14 +190,6 @@ class Menu {
       rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
-
-        if (this.hasSelectedItem()) {
-          this.executeCommand(event);
-
-          if (!this.isCommandPassive(this.getSelectedItem())) {
-            this.close(true);
-          }
-        }
       },
       beforeOnCellMouseUp: (event) => {
         if (this.hasSelectedItem()) {
