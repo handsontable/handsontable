@@ -135,7 +135,6 @@ class MasterTable extends Table {
       // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
       wtViewport.createVisibleCalculators();
       wtOverlays.refresh(true);
-      wtOverlays.resetFixedPositions();
 
     } else {
 
@@ -192,14 +191,7 @@ class MasterTable extends Table {
 
         this.wot.getSetting('onDraw', true);
 
-        wtOverlays.prepareOverlays();
         wtOverlays.refresh(false);
-        wtOverlays.applyToDOM();
-        wtOverlays.resetFixedPositions();
-
-        // here be better for double draw
-        // wtOverlays.refresh(false);
-        // wtOverlays.applyToDOM();
       }
     }
     this.refreshSelections(runFastDraw);

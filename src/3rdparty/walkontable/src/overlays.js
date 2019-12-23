@@ -440,6 +440,10 @@ class Overlays {
    * @param {Boolean} [fastDraw=false]
    */
   refresh(fastDraw = false) {
+    if (!fastDraw) {
+      this.prepareOverlays();
+    }
+
     if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
       const container = this.wot.wtTable.wtRootElement.parentNode || this.wot.wtTable.wtRootElement;
       const width = container.clientWidth;
@@ -470,6 +474,12 @@ class Overlays {
     if (this.debug) {
       this.debug.refresh(fastDraw);
     }
+
+    if (!fastDraw) {
+      this.applyToDOM();
+    }
+
+    this.resetFixedPositions(); // to fix the problem with double draw, this should be at the top
   }
 
   /**
