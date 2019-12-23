@@ -132,7 +132,6 @@ class MasterTable extends Table {
     }
 
     if (runFastDraw) {
-      wtOverlays.prepareOverlays();
       // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
       wtViewport.createVisibleCalculators();
       wtOverlays.refresh(true);
