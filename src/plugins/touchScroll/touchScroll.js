@@ -174,7 +174,7 @@ class TouchScroll extends BasePlugin {
       scrollbar.adjustElementsPosition();
     });
 
-    this.hot.view.wt.wtOverlays.syncScrollWithMaster();
+    this.hot.view.wt.wtOverlays.propagateMasterScrollPositionsToClones();
   }
 }
 

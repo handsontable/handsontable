@@ -234,7 +234,8 @@ class Overlays {
       }
     }
 
-    this.syncScrollPositions(event);
+    this.propagateMasterScrollPositionsToClones();
+    this.refreshMasterAndClones();
   }
 
   /**
@@ -336,7 +337,7 @@ class Overlays {
    *
    * @private
    */
-  syncScrollPositions() {
+  propagateMasterScrollPositionsToClones() {
     if (this.destroyed) {
       return;
     }
@@ -344,6 +345,7 @@ class Overlays {
     const { rootWindow } = this.wot;
     const topHolder = this.topOverlay.clone.wtTable.holder;
     const leftHolder = this.leftOverlay.clone.wtTable.holder;
+    const bottomHolder = this.bottomOverlay.clone.wtTable.holder;
 
     const [scrollLeft, scrollTop] = [this.scrollableElement.scrollLeft, this.scrollableElement.scrollTop];
 
@@ -353,37 +355,19 @@ class Overlays {
     this.lastScrollY = rootWindow.scrollY;
 
     if (this.horizontalScrolling) {
-      topHolder.scrollLeft = scrollLeft;
+      if (this.topOverlay.needFullRender) {
+        topHolder.scrollLeft = scrollLeft;
+      }
 
-      const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null;
-
-      if (bottomHolder) {
+      if (this.bottomOverlay.needFullRender) {
         bottomHolder.scrollLeft = scrollLeft;
       }
     }
 
     if (this.verticalScrolling) {
-      leftHolder.scrollTop = scrollTop;
-    }
-
-    this.refreshMasterAndClones();
-  }
-
-  /**
-   * Synchronize overlay scrollbars with the master scrollbar
-   */
-  syncScrollWithMaster() {
-    const master = this.topOverlay.mainTableScrollableElement;
-    const { scrollLeft, scrollTop } = master;
-
-    if (this.topOverlay.needFullRender) {
-      this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
-    }
-    if (this.bottomOverlay.needFullRender) {
-      this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
-    }
-    if (this.leftOverlay.needFullRender) {
-      this.leftOverlay.clone.wtTable.holder.scrollTop = scrollTop;
+      if (this.leftOverlay.needFullRender) {
+        leftHolder.scrollTop = scrollTop;
+      }
     }
   }
 
