@@ -190,7 +190,7 @@ class TopOverlay extends Overlay {
 
     const { holder, hider, wtRootElement } = this.clone.wtTable;
 
-    hider.style.width = this.hider.style.width;
+    hider.style.width = this.master.wtTable.hider.style.width;
     holder.style.width = wtRootElement.style.width;
     holder.style.height = wtRootElement.style.height;
   }
@@ -205,16 +205,16 @@ class TopOverlay extends Overlay {
       this.adjustElementsSize();
     }
     if (typeof this.master.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-      this.spreader.style.top = `${this.master.wtViewport.rowsRenderCalculator.startPosition}px`;
+      this.master.wtTable.spreader.style.top = `${this.master.wtViewport.rowsRenderCalculator.startPosition}px`;
 
     } else if (total === 0) {
       // can happen if there are 0 rows
-      this.spreader.style.top = '0';
+      this.master.wtTable.spreader.style.top = '0';
 
     } else {
       throw new Error('Incorrect value of the rowsRenderCalculator');
     }
-    this.spreader.style.bottom = '';
+    this.master.wtTable.spreader.style.bottom = '';
 
     if (this.needFullRender) {
       if (typeof this.master.wtViewport.columnsRenderCalculator.startPosition === 'number') {

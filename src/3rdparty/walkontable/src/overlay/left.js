@@ -182,7 +182,7 @@ class LeftOverlay extends Overlay {
 
     const { holder, hider, wtRootElement } = this.clone.wtTable;
 
-    hider.style.height = this.hider.style.height;
+    hider.style.height = this.master.wtTable.hider.style.height;
     holder.style.height = wtRootElement.style.height;
     holder.style.width = wtRootElement.style.width;
   }
@@ -197,15 +197,15 @@ class LeftOverlay extends Overlay {
       this.adjustElementsSize();
     }
     if (typeof this.master.wtViewport.columnsRenderCalculator.startPosition === 'number') {
-      this.spreader.style.left = `${this.master.wtViewport.columnsRenderCalculator.startPosition}px`;
+      this.master.wtTable.spreader.style.left = `${this.master.wtViewport.columnsRenderCalculator.startPosition}px`;
 
     } else if (total === 0) {
-      this.spreader.style.left = '0';
+      this.master.wtTable.spreader.style.left = '0';
 
     } else {
       throw new Error('Incorrect value of the columnsRenderCalculator');
     }
-    this.spreader.style.right = '';
+    this.master.wtTable.spreader.style.right = '';
 
     if (this.needFullRender) {
       if (typeof this.master.wtViewport.rowsRenderCalculator.startPosition === 'number') {
