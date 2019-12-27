@@ -122,13 +122,11 @@ class Overlay {
    * Update internal state of object with an information about the need of full rendering of the overlay.
    */
   updateStateOfRendering() {
-    const previousState = this.needFullRender;
+    const oldNeedFullRender = this.needFullRender;
 
     this.needFullRender = this.shouldBeRendered();
 
-    const changed = previousState !== this.needFullRender;
-
-    if (changed && !this.needFullRender) {
+    if (oldNeedFullRender && !this.needFullRender) {
       this.resetElementsSize();
     }
   }
