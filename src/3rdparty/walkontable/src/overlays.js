@@ -429,18 +429,6 @@ class Overlays {
       this.prepareOverlays();
     }
 
-    if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
-      const container = this.wot.wtTable.wtRootElement.parentNode || this.wot.wtTable.wtRootElement;
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-
-      if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
-        this.spreaderLastSize.width = width;
-        this.spreaderLastSize.height = height;
-        this.adjustElementsSizes();
-      }
-    }
-
     if (this.bottomOverlay.clone) {
       this.bottomOverlay.redrawClone(fastDraw);
     }
@@ -458,6 +446,24 @@ class Overlays {
 
     if (this.debug) {
       this.debug.redrawClone(fastDraw);
+    }
+
+    if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
+      const container = this.wot.wtTable.wtRootElement.parentNode || this.wot.wtTable.wtRootElement;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
+        this.spreaderLastSize.width = width;
+        this.spreaderLastSize.height = height;
+        this.adjustElementsSizes();
+      }
+    }
+
+    if (!fastDraw) {
+      if (!this.topOverlay.areElementSizesAdjusted || !this.leftOverlay.areElementSizesAdjusted) {
+        this.adjustElementsSizes();
+      }
     }
 
     if (!fastDraw) {
@@ -533,10 +539,6 @@ class Overlays {
    *
    */
   workaroundsForPositionsAndSizes() {
-    if (!this.topOverlay.areElementSizesAdjusted || !this.leftOverlay.areElementSizesAdjusted) {
-      this.adjustElementsSizes();
-    }
-
     this.topOverlay.workaroundsForPositionAndSize();
 
     if (this.bottomOverlay.clone) {
