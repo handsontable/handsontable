@@ -2,7 +2,6 @@ import {
   getScrollableElement,
   getTrimmingContainer
 } from './../../../../helpers/dom/element';
-import { arrayEach } from './../../../../helpers/array';
 import { warn } from './../../../../helpers/console';
 import EventManager from './../../../../eventManager';
 import Clone from '../core/clone';
@@ -151,12 +150,12 @@ class Overlay {
    * Update the main scrollable element.
    */
   updateMainScrollableElement() {
-    const { wtTable, rootWindow } = this.master;
+    const { master } = this;
 
-    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
-      this.mainTableScrollableElement = this.master.wtTable.holder;
+    if (master.rootWindow.getComputedStyle(master.wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+      this.mainTableScrollableElement = master.wtTable.holder;
     } else {
-      this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
+      this.mainTableScrollableElement = getScrollableElement(master.wtTable.TABLE);
     }
   }
 
@@ -287,33 +286,33 @@ class Overlay {
     if (Overlay.CLONE_TYPES.indexOf(direction) === -1) {
       throw new Error(`Clone type "${direction}" is not supported.`);
     }
-    const { wtTable, rootDocument, rootWindow } = this.master;
-    const clone = rootDocument.createElement('DIV');
-    const clonedTable = rootDocument.createElement('TABLE');
+    const { master } = this;
+    const overlayRootElement = master.rootDocument.createElement('DIV');
+    const clonedTable = master.rootDocument.createElement('TABLE');
 
-    clone.className = `ht_clone_${direction} handsontable`;
-    clone.style.position = 'absolute';
-    clone.style.top = 0;
-    clone.style.left = 0;
-    clone.style.overflow = 'visible';
+    overlayRootElement.className = `ht_clone_${direction} handsontable`;
+    overlayRootElement.style.position = 'absolute';
+    overlayRootElement.style.top = 0;
+    overlayRootElement.style.left = 0;
+    overlayRootElement.style.overflow = 'visible';
 
-    clonedTable.className = wtTable.TABLE.className;
-    clone.appendChild(clonedTable);
+    clonedTable.className = master.wtTable.TABLE.className;
+    overlayRootElement.appendChild(clonedTable);
 
     this.type = direction;
-    wtTable.wtRootElement.parentNode.appendChild(clone);
+    master.wtTable.wtRootElement.parentNode.appendChild(overlayRootElement);
 
-    const preventOverflow = this.master.getSetting('preventOverflow');
+    const preventOverflow = master.getSetting('preventOverflow');
 
     if (preventOverflow === true ||
       preventOverflow === 'horizontal' && this.type === Overlay.CLONE_TOP ||
       preventOverflow === 'vertical' && this.type === Overlay.CLONE_LEFT) {
-      this.mainTableScrollableElement = rootWindow;
+      this.mainTableScrollableElement = master.rootWindow;
 
-    } else if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
-      this.mainTableScrollableElement = wtTable.holder;
+    } else if (master.rootWindow.getComputedStyle(master.wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+      this.mainTableScrollableElement = master.wtTable.holder;
     } else {
-      this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
+      this.mainTableScrollableElement = getScrollableElement(master.wtTable.TABLE);
     }
 
     return new Clone({
@@ -339,15 +338,14 @@ class Overlay {
    * Reset overlay root element's width and height to initial values.
    */
   resetElementsSize() {
-    const { holder, hider, wtRootElement } = this.clone.wtTable;
-    const holderStyle = holder.style;
-    const hidderStyle = hider.style;
-    const rootStyle = wtRootElement.style;
+    const { clone } = this;
 
-    arrayEach([holderStyle, hidderStyle, rootStyle], (style) => {
-      style.width = '';
-      style.height = '';
-    });
+    clone.wtTable.holder.style.width = '';
+    clone.wtTable.holder.style.height = '';
+    clone.wtTable.hider.style.width = '';
+    clone.wtTable.hider.style.height = '';
+    clone.wtTable.wtRootElement.style.width = '';
+    clone.wtTable.wtRootElement.style.height = '';
   }
 
   /**

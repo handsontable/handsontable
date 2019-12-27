@@ -49,26 +49,27 @@ class LeftOverlay extends Overlay {
    * Updates the position of the overlay root element relatively to the position of the master instance
    */
   adjustElementsPosition() {
-    const { wtTable } = this.master;
-    if (!this.needFullRender || !wtTable.holder.parentNode) {
+    const { master } = this;
+
+    if (!this.needFullRender || !master.wtTable.holder.parentNode) {
       // removed from DOM
       return;
     }
-    const overlayRoot = this.clone.wtTable.wtRootElement;
+    const overlayRootElement = this.clone.wtTable.wtRootElement;
     let headerPosition = 0;
-    const preventOverflow = this.master.getSetting('preventOverflow');
+    const preventOverflow = master.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === this.master.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
-      const box = wtTable.hider.getBoundingClientRect();
+    if (this.trimmingContainer === master.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
+      const box = master.wtTable.hider.getBoundingClientRect();
       const left = Math.ceil(box.left);
       const right = Math.ceil(box.right);
       let finalLeft;
       let finalTop;
 
-      finalTop = wtTable.hider.style.top;
+      finalTop = master.wtTable.hider.style.top;
       finalTop = finalTop === '' ? 0 : finalTop;
 
-      if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
+      if (left < 0 && (right - overlayRootElement.offsetWidth) > 0) {
         finalLeft = -left;
       } else {
         finalLeft = 0;
@@ -76,11 +77,11 @@ class LeftOverlay extends Overlay {
       headerPosition = finalLeft;
       finalLeft += 'px';
 
-      setOverlayPosition(overlayRoot, finalLeft, finalTop);
+      setOverlayPosition(overlayRootElement, finalLeft, finalTop);
 
     } else {
       headerPosition = this.getScrollPosition();
-      resetCssTransform(overlayRoot);
+      resetCssTransform(overlayRootElement);
     }
     this.adjustHeaderBordersPosition(headerPosition);
     this.adjustElementsSize();
@@ -156,56 +157,56 @@ class LeftOverlay extends Overlay {
    * Adjust the sizes of the clone and the master elements to the dimensions of the trimming container.
    */
   _adjustElementsSize() {
-    const scrollbarHeight = getScrollbarWidth(this.master.rootDocument);
-    const overlayRoot = this.clone.wtTable.wtRootElement;
-    const overlayRootStyle = overlayRoot.style;
-    const preventOverflow = this.master.getSetting('preventOverflow');
+    const { clone, master } = this;
+    const scrollbarHeight = getScrollbarWidth(master.rootDocument);
+    const overlayRootElement = clone.wtTable.wtRootElement;
+    const overlayRootElementStyle = overlayRootElement.style;
+    const preventOverflow = master.getSetting('preventOverflow');
 
-    if (this.trimmingContainer !== this.master.rootWindow || preventOverflow === 'vertical') {
-      let height = this.master.wtViewport.getWorkspaceHeight();
+    if (this.trimmingContainer !== master.rootWindow || preventOverflow === 'vertical') {
+      let height = master.wtViewport.getWorkspaceHeight();
 
-      if (this.master.wtOverlays.hasScrollbarBottom) {
+      if (master.wtOverlays.hasScrollbarBottom) {
         height -= scrollbarHeight;
       }
 
-      height = Math.min(height, this.master.wtTable.wtRootElement.scrollHeight);
-      overlayRootStyle.height = `${height}px`;
+      height = Math.min(height, master.wtTable.wtRootElement.scrollHeight);
+      overlayRootElementStyle.height = `${height}px`;
 
     } else {
-      overlayRootStyle.height = '';
+      overlayRootElementStyle.height = '';
     }
 
-    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    const tableWidth = outerWidth(clone.wtTable.TABLE);
 
-    overlayRootStyle.width = `${tableWidth}px`;
+    overlayRootElementStyle.width = `${tableWidth}px`;
 
-    const { holder, hider, wtRootElement } = this.clone.wtTable;
-
-    hider.style.height = this.master.wtTable.hider.style.height;
-    holder.style.height = wtRootElement.style.height;
-    holder.style.width = wtRootElement.style.width;
+    clone.wtTable.hider.style.height = master.wtTable.hider.style.height;
+    clone.wtTable.holder.style.height = clone.wtTable.wtRootElement.style.height;
+    clone.wtTable.holder.style.width = clone.wtTable.wtRootElement.style.width;
   }
 
   /**
    * Adjust the overlay dimensions and position.
    */
   workaroundsForPositionAndSize() {
-    const total = this.master.getSetting('totalColumns');
+    const { master } = this;
+    const total = master.getSetting('totalColumns');
 
-    if (typeof this.master.wtViewport.columnsRenderCalculator.startPosition === 'number') {
-      this.master.wtTable.spreader.style.left = `${this.master.wtViewport.columnsRenderCalculator.startPosition}px`;
+    if (typeof master.wtViewport.columnsRenderCalculator.startPosition === 'number') {
+      master.wtTable.spreader.style.left = `${master.wtViewport.columnsRenderCalculator.startPosition}px`;
 
     } else if (total === 0) {
-      this.master.wtTable.spreader.style.left = '0';
+      master.wtTable.spreader.style.left = '0';
 
     } else {
       throw new Error('Incorrect value of the columnsRenderCalculator');
     }
-    this.master.wtTable.spreader.style.right = '';
+    master.wtTable.spreader.style.right = '';
 
     if (this.needFullRender) {
-      if (typeof this.master.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-        this.clone.wtTable.spreader.style.top = `${this.master.wtViewport.rowsRenderCalculator.startPosition}px`;
+      if (typeof master.wtViewport.rowsRenderCalculator.startPosition === 'number') {
+        this.clone.wtTable.spreader.style.top = `${master.wtViewport.rowsRenderCalculator.startPosition}px`;
 
       } else {
         this.clone.wtTable.spreader.style.top = '';
@@ -221,19 +222,20 @@ class LeftOverlay extends Overlay {
    * @returns {Boolean}
    */
   scrollTo(sourceCol, beyondRendered) {
+    const { master } = this;
     let newX = this.getTableParentOffset();
-    const mainHolder = this.master.wtTable.holder;
+    const mainHolder = master.wtTable.holder;
     let scrollbarCompensation = 0;
 
     if (beyondRendered && mainHolder.offsetWidth !== mainHolder.clientWidth) {
-      scrollbarCompensation = getScrollbarWidth(this.master.rootDocument);
+      scrollbarCompensation = getScrollbarWidth(master.rootDocument);
     }
     if (beyondRendered) {
       newX += this.sumCellSizes(0, sourceCol + 1);
-      newX -= this.master.wtViewport.getViewportWidth();
+      newX -= master.wtViewport.getViewportWidth();
 
     } else {
-      newX += this.sumCellSizes(this.master.getSetting('fixedColumnsLeft'), sourceCol);
+      newX += this.sumCellSizes(master.getSetting('fixedColumnsLeft'), sourceCol);
     }
 
     newX += scrollbarCompensation;
@@ -272,30 +274,31 @@ class LeftOverlay extends Overlay {
    * @param {Number} position Header X position if trimming container is window or scroll top if not.
    */
   adjustHeaderBordersPosition(position) {
-    const masterParent = this.master.wtTable.wtRootElement;
-    const rowHeaders = this.master.getSetting('rowHeaders');
-    const fixedColumnsLeft = this.master.getSetting('fixedColumnsLeft');
-    const totalRows = this.master.getSetting('totalRows');
+    const { master } = this;
+    const masterRootElement = master.wtTable.wtRootElement;
+    const rowHeaders = master.getSetting('rowHeaders');
+    const fixedColumnsLeft = master.getSetting('fixedColumnsLeft');
+    const totalRows = master.getSetting('totalRows');
 
     if (totalRows) {
-      removeClass(masterParent, 'emptyRows');
+      removeClass(masterRootElement, 'emptyRows');
     } else {
-      addClass(masterParent, 'emptyRows');
+      addClass(masterRootElement, 'emptyRows');
     }
 
     if (fixedColumnsLeft && !rowHeaders.length) {
-      addClass(masterParent, 'innerBorderLeft');
+      addClass(masterRootElement, 'innerBorderLeft');
 
     } else if (!fixedColumnsLeft && rowHeaders.length) {
-      const previousState = hasClass(masterParent, 'innerBorderLeft');
+      const previousState = hasClass(masterRootElement, 'innerBorderLeft');
 
       if (position) {
-        addClass(masterParent, 'innerBorderLeft');
+        addClass(masterRootElement, 'innerBorderLeft');
       } else {
-        removeClass(masterParent, 'innerBorderLeft');
+        removeClass(masterRootElement, 'innerBorderLeft');
       }
       if (!previousState && position || previousState && !position) {
-        this.master.wtOverlays.adjustElementsSizes();
+        master.wtOverlays.adjustElementsSizes();
       }
     }
   }

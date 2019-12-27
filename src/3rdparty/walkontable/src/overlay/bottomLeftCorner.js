@@ -47,32 +47,32 @@ class BottomLeftCornerOverlay extends Overlay {
    * Reposition the overlay.
    */
   repositionOverlay() {
-    const { wtTable, rootDocument } = this.master;
-    const overlayRoot = this.clone.wtTable.wtRootElement;
-    let scrollbarWidth = getScrollbarWidth(rootDocument);
+    const { master } = this;
+    const overlayRootElement = this.clone.wtTable.wtRootElement;
+    let scrollbarWidth = getScrollbarWidth(master.rootDocument);
 
-    if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
+    if (master.wtTable.holder.clientHeight === master.wtTable.holder.offsetHeight) {
       scrollbarWidth = 0;
     }
 
-    overlayRoot.style.top = '';
-    overlayRoot.style.bottom = `${scrollbarWidth}px`;
+    overlayRootElement.style.top = '';
+    overlayRootElement.style.bottom = `${scrollbarWidth}px`;
   }
 
   /**
    * Updates the position of the overlay root element relatively to the position of the master instance
    */
   adjustElementsPosition() {
-    const { master } = this;
+    const { clone, master } = this;
     this.updateTrimmingContainer();
 
     if (!master.wtTable.holder.parentNode) {
       // removed from DOM
       return;
     }
-    const overlayRoot = this.clone.wtTable.wtRootElement;
+    const overlayRootElement = clone.wtTable.wtRootElement;
 
-    overlayRoot.style.top = '';
+    overlayRootElement.style.top = '';
 
     if (this.trimmingContainer === master.rootWindow) {
       const box = master.wtTable.hider.getBoundingClientRect();
@@ -96,24 +96,24 @@ class BottomLeftCornerOverlay extends Overlay {
       finalBottom += 'px';
       finalLeft += 'px';
 
-      overlayRoot.style.top = '';
-      overlayRoot.style.left = finalLeft;
-      overlayRoot.style.bottom = finalBottom;
+      overlayRootElement.style.top = '';
+      overlayRootElement.style.left = finalLeft;
+      overlayRootElement.style.bottom = finalBottom;
 
     } else {
-      resetCssTransform(overlayRoot);
+      resetCssTransform(overlayRootElement);
       this.repositionOverlay();
     }
 
-    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    let tableHeight = outerHeight(clone.wtTable.TABLE);
+    const tableWidth = outerWidth(clone.wtTable.TABLE);
 
-    if (!this.master.wtTable.hasDefinedSize()) {
+    if (!master.wtTable.hasDefinedSize()) {
       tableHeight = 0;
     }
 
-    overlayRoot.style.height = `${tableHeight}px`;
-    overlayRoot.style.width = `${tableWidth}px`;
+    overlayRootElement.style.height = `${tableHeight}px`;
+    overlayRootElement.style.width = `${tableWidth}px`;
   }
 }
 

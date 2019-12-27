@@ -47,17 +47,19 @@ class TopLeftCornerOverlay extends Overlay {
    * Updates the position of the overlay root element relatively to the position of the master instance
    */
   adjustElementsPosition() {
+    const { clone, master } = this;
+
     this.updateTrimmingContainer();
 
-    if (!this.master.wtTable.holder.parentNode) {
+    if (!master.wtTable.holder.parentNode) {
       // removed from DOM
       return;
     }
-    const overlayRoot = this.clone.wtTable.wtRootElement;
-    const preventOverflow = this.master.getSetting('preventOverflow');
+    const overlayRootElement = clone.wtTable.wtRootElement;
+    const preventOverflow = master.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === this.master.rootWindow) {
-      const box = this.master.wtTable.hider.getBoundingClientRect();
+    if (this.trimmingContainer === master.rootWindow) {
+      const box = master.wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(box.top);
       const left = Math.ceil(box.left);
       const bottom = Math.ceil(box.bottom);
@@ -66,30 +68,30 @@ class TopLeftCornerOverlay extends Overlay {
       let finalTop = '0';
 
       if (!preventOverflow || preventOverflow === 'vertical') {
-        if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
+        if (left < 0 && (right - overlayRootElement.offsetWidth) > 0) {
           finalLeft = `${-left}px`;
         }
       }
 
       if (!preventOverflow || preventOverflow === 'horizontal') {
-        if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
+        if (top < 0 && (bottom - overlayRootElement.offsetHeight) > 0) {
           finalTop = `${-top}px`;
         }
       }
-      setOverlayPosition(overlayRoot, finalLeft, finalTop);
+      setOverlayPosition(overlayRootElement, finalLeft, finalTop);
     } else {
-      resetCssTransform(overlayRoot);
+      resetCssTransform(overlayRootElement);
     }
 
-    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    let tableHeight = outerHeight(clone.wtTable.TABLE);
+    const tableWidth = outerWidth(clone.wtTable.TABLE);
 
-    if (!this.master.wtTable.hasDefinedSize()) {
+    if (!master.wtTable.hasDefinedSize()) {
       tableHeight = 0;
     }
 
-    overlayRoot.style.height = `${tableHeight}px`;
-    overlayRoot.style.width = `${tableWidth}px`;
+    overlayRootElement.style.height = `${tableHeight}px`;
+    overlayRootElement.style.width = `${tableWidth}px`;
   }
 }
 
