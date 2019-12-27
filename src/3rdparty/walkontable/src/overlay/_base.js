@@ -113,7 +113,7 @@ class Overlay {
     this.master = wotInstance;
     this.type = '';
     this.mainTableScrollableElement = null;
-    this.trimmingContainer = getTrimmingContainer(this.master.wtTable.hider.parentNode.parentNode);
+    this.updateTrimmingContainer();
     this.areElementSizesAdjusted = false;
   }
 
@@ -143,7 +143,7 @@ class Overlay {
    * Set the DOM element responsible for trimming the overlay's root element. It will be some parent element or the window.
    */
   updateTrimmingContainer() {
-    this.trimmingContainer = getTrimmingContainer(this.master.wtTable.hider.parentNode.parentNode);
+    this.trimmingContainer = getTrimmingContainer(this.master.wtTable.wtRootElement);
   }
 
   /**
