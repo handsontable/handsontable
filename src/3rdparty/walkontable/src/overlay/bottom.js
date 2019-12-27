@@ -106,7 +106,6 @@ class BottomOverlay extends Overlay {
       this.repositionOverlay();
     }
     this.adjustHeaderBordersPosition(headerPosition);
-    this.adjustElementsSize();
   }
 
   /**

@@ -84,7 +84,6 @@ class LeftOverlay extends Overlay {
       resetCssTransform(overlayRootElement);
     }
     this.adjustHeaderBordersPosition(headerPosition);
-    this.adjustElementsSize();
   }
 
   /**

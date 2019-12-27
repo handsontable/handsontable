@@ -86,7 +86,6 @@ class TopOverlay extends Overlay {
     }
 
     this.adjustHeaderBordersPosition(headerPosition);
-    this.adjustElementsSize();
   }
 
   /**
