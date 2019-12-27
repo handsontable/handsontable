@@ -464,9 +464,8 @@ class Overlays {
 
     if (!fastDraw) {
       this.workaroundsForPositions();
+      this.adjustElementsPositions(); // to fix the problem with double draw, this should be at the top
     }
-
-    this.adjustElementsPositions(); // to fix the problem with double draw, this should be at the top
   }
 
   /**
