@@ -49,11 +49,33 @@ class LeftOverlay extends Overlay {
    */
   adjustElementsPosition() {
     const { master } = this;
+    const total = master.getSetting('totalColumns');
+
+    if (typeof master.wtViewport.columnsRenderCalculator.startPosition === 'number') {
+      master.wtTable.spreader.style.left = `${master.wtViewport.columnsRenderCalculator.startPosition}px`;
+
+    } else if (total === 0) {
+      master.wtTable.spreader.style.left = '0';
+
+    } else {
+      throw new Error('Incorrect value of the columnsRenderCalculator');
+    }
+    master.wtTable.spreader.style.right = '';
+
+    if (this.needFullRender) {
+      if (typeof master.wtViewport.rowsRenderCalculator.startPosition === 'number') {
+        this.clone.wtTable.spreader.style.top = `${master.wtViewport.rowsRenderCalculator.startPosition}px`;
+
+      } else {
+        this.clone.wtTable.spreader.style.top = '';
+      }
+    }
 
     if (!this.needFullRender || !master.wtTable.holder.parentNode) {
       // removed from DOM
       return;
     }
+
     const overlayRootElement = this.clone.wtTable.wtRootElement;
     let headerPosition = 0;
     const preventOverflow = master.getSetting('preventOverflow');
@@ -176,34 +198,6 @@ class LeftOverlay extends Overlay {
 
     if (!force) {
       this.areElementSizesAdjusted = true;
-    }
-  }
-
-  /**
-   * Adjust the overlay position
-   */
-  workaroundsForPosition() {
-    const { master } = this;
-    const total = master.getSetting('totalColumns');
-
-    if (typeof master.wtViewport.columnsRenderCalculator.startPosition === 'number') {
-      master.wtTable.spreader.style.left = `${master.wtViewport.columnsRenderCalculator.startPosition}px`;
-
-    } else if (total === 0) {
-      master.wtTable.spreader.style.left = '0';
-
-    } else {
-      throw new Error('Incorrect value of the columnsRenderCalculator');
-    }
-    master.wtTable.spreader.style.right = '';
-
-    if (this.needFullRender) {
-      if (typeof master.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-        this.clone.wtTable.spreader.style.top = `${master.wtViewport.rowsRenderCalculator.startPosition}px`;
-
-      } else {
-        this.clone.wtTable.spreader.style.top = '';
-      }
     }
   }
 

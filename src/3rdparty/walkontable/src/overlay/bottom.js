@@ -35,22 +35,6 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   *
-   */
-  repositionOverlay() {
-    const { master } = this;
-    const overlayRootElement = this.clone.wtTable.wtRootElement;
-    let scrollbarWidth = getScrollbarWidth(master.rootDocument);
-
-    if (master.wtTable.holder.clientHeight === master.wtTable.holder.offsetHeight) {
-      scrollbarWidth = 0;
-    }
-
-    overlayRootElement.style.top = '';
-    overlayRootElement.style.bottom = `${scrollbarWidth}px`;
-  }
-
-  /**
    * Checks if overlay should be fully rendered
    *
    * @returns {Boolean}
@@ -65,6 +49,28 @@ class BottomOverlay extends Overlay {
    */
   adjustElementsPosition() {
     const { master } = this;
+    const total = master.getSetting('totalRows');
+
+    if (typeof master.wtViewport.rowsRenderCalculator.startPosition === 'number') {
+      master.wtTable.spreader.style.top = `${master.wtViewport.rowsRenderCalculator.startPosition}px`;
+
+    } else if (total === 0) {
+      // can happen if there are 0 rows
+      master.wtTable.spreader.style.top = '0';
+
+    } else {
+      throw new Error('Incorrect value of the rowsRenderCalculator');
+    }
+    master.wtTable.spreader.style.bottom = '';
+
+    if (this.needFullRender) {
+      if (typeof master.wtViewport.columnsRenderCalculator.startPosition === 'number') {
+        this.clone.wtTable.spreader.style.left = `${master.wtViewport.columnsRenderCalculator.startPosition}px`;
+
+      } else {
+        this.clone.wtTable.spreader.style.left = '';
+      }
+    }
 
     if (!this.needFullRender || !master.wtTable.holder.parentNode) {
       // removed from DOM
@@ -102,7 +108,15 @@ class BottomOverlay extends Overlay {
     } else {
       headerPosition = this.getScrollPosition();
       resetCssTransform(overlayRootElement);
-      this.repositionOverlay();
+
+      let scrollbarWidth = getScrollbarWidth(master.rootDocument);
+
+      if (master.wtTable.holder.clientHeight === master.wtTable.holder.offsetHeight) {
+        scrollbarWidth = 0;
+      }
+
+      overlayRootElement.style.top = '';
+      overlayRootElement.style.bottom = `${scrollbarWidth}px`;
     }
     this.adjustHeaderBordersPosition(headerPosition);
   }
@@ -204,35 +218,6 @@ class BottomOverlay extends Overlay {
 
     if (!force) {
       this.areElementSizesAdjusted = true;
-    }
-  }
-
-  /**
-   * Adjust the overlay position
-   */
-  workaroundsForPosition() {
-    const { master } = this;
-    const total = master.getSetting('totalRows');
-
-    if (typeof master.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-      master.wtTable.spreader.style.top = `${master.wtViewport.rowsRenderCalculator.startPosition}px`;
-
-    } else if (total === 0) {
-      // can happen if there are 0 rows
-      master.wtTable.spreader.style.top = '0';
-
-    } else {
-      throw new Error('Incorrect value of the rowsRenderCalculator');
-    }
-    master.wtTable.spreader.style.bottom = '';
-
-    if (this.needFullRender) {
-      if (typeof master.wtViewport.columnsRenderCalculator.startPosition === 'number') {
-        this.clone.wtTable.spreader.style.left = `${master.wtViewport.columnsRenderCalculator.startPosition}px`;
-
-      } else {
-        this.clone.wtTable.spreader.style.left = '';
-      }
     }
   }
 

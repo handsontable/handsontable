@@ -44,22 +44,6 @@ class BottomLeftCornerOverlay extends Overlay {
   }
 
   /**
-   * Reposition the overlay.
-   */
-  repositionOverlay() {
-    const { master } = this;
-    const overlayRootElement = this.clone.wtTable.wtRootElement;
-    let scrollbarWidth = getScrollbarWidth(master.rootDocument);
-
-    if (master.wtTable.holder.clientHeight === master.wtTable.holder.offsetHeight) {
-      scrollbarWidth = 0;
-    }
-
-    overlayRootElement.style.top = '';
-    overlayRootElement.style.bottom = `${scrollbarWidth}px`;
-  }
-
-  /**
    * Updates the position of the overlay root element relatively to the position of the master instance
    */
   adjustElementsPosition() {
@@ -102,7 +86,15 @@ class BottomLeftCornerOverlay extends Overlay {
 
     } else {
       resetCssTransform(overlayRootElement);
-      this.repositionOverlay();
+
+      let scrollbarWidth = getScrollbarWidth(master.rootDocument);
+
+      if (master.wtTable.holder.clientHeight === master.wtTable.holder.offsetHeight) {
+        scrollbarWidth = 0;
+      }
+
+      overlayRootElement.style.top = '';
+      overlayRootElement.style.bottom = `${scrollbarWidth}px`;
     }
 
     let tableHeight = outerHeight(clone.wtTable.TABLE);

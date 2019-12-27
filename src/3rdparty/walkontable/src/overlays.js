@@ -471,15 +471,12 @@ class Overlays {
    * For every overlay in the instance, update the overlay's position
    */
   adjustElementsPositions() {
-    this.topOverlay.workaroundsForPosition();
     this.topOverlay.adjustElementsPosition();
 
     if (this.bottomOverlay.clone) {
-      this.bottomOverlay.workaroundsForPosition();
       this.bottomOverlay.adjustElementsPosition();
     }
 
-    this.leftOverlay.workaroundsForPosition();
     this.leftOverlay.adjustElementsPosition();
 
     if (this.topLeftCornerOverlay) {
