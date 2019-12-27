@@ -180,9 +180,9 @@ class LeftOverlay extends Overlay {
   }
 
   /**
-   * Adjust the overlay dimensions and position.
+   * Adjust the overlay position
    */
-  workaroundsForPositionAndSize() {
+  workaroundsForPosition() {
     const { master } = this;
     const total = master.getSetting('totalColumns');
 
