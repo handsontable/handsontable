@@ -458,12 +458,8 @@ class Overlays {
         this.spreaderLastSize.height = height;
         this.adjustElementsSizes();
       }
-    }
-
-    if (!fastDraw) {
-      if (!this.topOverlay.areElementSizesAdjusted || !this.leftOverlay.areElementSizesAdjusted) {
-        this.adjustElementsSizes();
-      }
+    } else if (!fastDraw) {
+      this.adjustElementsSizes();
     }
 
     if (!fastDraw) {
