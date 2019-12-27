@@ -3,7 +3,6 @@ import {
   getScrollbarWidth,
   getScrollTop,
   getWindowScrollLeft,
-  hasClass,
   outerHeight,
   removeClass,
   resetCssTransform
@@ -299,15 +298,11 @@ class BottomOverlay extends Overlay {
 
     if (master.getSetting('fixedRowsBottom') === 0 && master.getSetting('columnHeaders').length > 0) {
       const masterRootElement = master.wtTable.wtRootElement;
-      const previousState = hasClass(masterRootElement, 'innerBorderTop');
 
       if (position) {
         addClass(masterRootElement, 'innerBorderTop');
       } else {
         removeClass(masterRootElement, 'innerBorderTop');
-      }
-      if (!previousState && position || previousState && !position) {
-        master.wtOverlays.adjustElementsSizes();
       }
     }
     // nasty workaround for double border in the header, TODO: find a pure-css solution
