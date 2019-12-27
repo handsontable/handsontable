@@ -201,8 +201,8 @@ class TopOverlay extends Overlay {
     overlayRootElementStyle.height = `${tableHeight}px`;
 
     clone.wtTable.hider.style.width = master.wtTable.hider.style.width;
-    clone.wtTable.holder.style.width = clone.wtTable.wtRootElement.style.width;
-    clone.wtTable.holder.style.height = clone.wtTable.wtRootElement.style.height;
+    clone.wtTable.holder.style.width = overlayRootElementStyle.width;
+    clone.wtTable.holder.style.height = overlayRootElementStyle.height;
 
     if (!force) {
       this.areElementSizesAdjusted = true;

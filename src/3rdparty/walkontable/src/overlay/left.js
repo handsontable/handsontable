@@ -192,8 +192,8 @@ class LeftOverlay extends Overlay {
     overlayRootElementStyle.width = `${tableWidth}px`;
 
     clone.wtTable.hider.style.height = master.wtTable.hider.style.height;
-    clone.wtTable.holder.style.height = clone.wtTable.wtRootElement.style.height;
-    clone.wtTable.holder.style.width = clone.wtTable.wtRootElement.style.width;
+    clone.wtTable.holder.style.height = overlayRootElementStyle.height;
+    clone.wtTable.holder.style.width = overlayRootElementStyle.width;
 
     if (!force) {
       this.areElementSizesAdjusted = true;
