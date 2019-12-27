@@ -200,9 +200,6 @@ class TopOverlay extends Overlay {
   workaroundsForPositionAndSize() {
     const total = this.master.getSetting('totalRows');
 
-    if (!this.areElementSizesAdjusted) {
-      this.adjustElementsSize();
-    }
     if (typeof this.master.wtViewport.rowsRenderCalculator.startPosition === 'number') {
       this.master.wtTable.spreader.style.top = `${this.master.wtViewport.rowsRenderCalculator.startPosition}px`;
 

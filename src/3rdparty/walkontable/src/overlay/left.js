@@ -192,9 +192,6 @@ class LeftOverlay extends Overlay {
   workaroundsForPositionAndSize() {
     const total = this.master.getSetting('totalColumns');
 
-    if (!this.areElementSizesAdjusted) {
-      this.adjustElementsSize();
-    }
     if (typeof this.master.wtViewport.columnsRenderCalculator.startPosition === 'number') {
       this.master.wtTable.spreader.style.left = `${this.master.wtViewport.columnsRenderCalculator.startPosition}px`;
 
