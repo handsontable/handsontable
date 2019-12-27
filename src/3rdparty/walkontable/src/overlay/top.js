@@ -147,19 +147,10 @@ class TopOverlay extends Overlay {
   adjustElementsSize(force = false) {
     this.updateTrimmingContainer();
 
-    if (this.needFullRender || force) {
-      this._adjustElementsSize();
-
-      if (!force) {
-        this.areElementSizesAdjusted = true;
-      }
+    if (!this.needFullRender && !force) {
+      return;
     }
-  }
 
-  /**
-   * Adjust the sizes of the clone and the master elements to the dimensions of the trimming container.
-   */
-  _adjustElementsSize() {
     const { clone, master } = this;
     const scrollbarWidth = getScrollbarWidth(master.rootDocument);
     const overlayRootElement = clone.wtTable.wtRootElement;
@@ -191,6 +182,10 @@ class TopOverlay extends Overlay {
     clone.wtTable.hider.style.width = master.wtTable.hider.style.width;
     clone.wtTable.holder.style.width = clone.wtTable.wtRootElement.style.width;
     clone.wtTable.holder.style.height = clone.wtTable.wtRootElement.style.height;
+
+    if (!force) {
+      this.areElementSizesAdjusted = true;
+    }
   }
 
   /**

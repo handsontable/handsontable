@@ -143,19 +143,10 @@ class LeftOverlay extends Overlay {
   adjustElementsSize(force = false) {
     this.updateTrimmingContainer();
 
-    if (this.needFullRender || force) {
-      this._adjustElementsSize();
-
-      if (!force) {
-        this.areElementSizesAdjusted = true;
-      }
+    if (!this.needFullRender && !force) {
+      return;
     }
-  }
 
-  /**
-   * Adjust the sizes of the clone and the master elements to the dimensions of the trimming container.
-   */
-  _adjustElementsSize() {
     const { clone, master } = this;
     const scrollbarHeight = getScrollbarWidth(master.rootDocument);
     const overlayRootElement = clone.wtTable.wtRootElement;
@@ -183,6 +174,10 @@ class LeftOverlay extends Overlay {
     clone.wtTable.hider.style.height = master.wtTable.hider.style.height;
     clone.wtTable.holder.style.height = clone.wtTable.wtRootElement.style.height;
     clone.wtTable.holder.style.width = clone.wtTable.wtRootElement.style.width;
+
+    if (!force) {
+      this.areElementSizesAdjusted = true;
+    }
   }
 
   /**
