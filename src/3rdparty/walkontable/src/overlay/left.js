@@ -156,20 +156,19 @@ class LeftOverlay extends Overlay {
    * Adjust the sizes of the clone and the master elements to the dimensions of the trimming container.
    */
   _adjustElementsSize() {
-    const { wtTable, rootDocument, rootWindow } = this.master;
-    const scrollbarHeight = getScrollbarWidth(rootDocument);
+    const scrollbarHeight = getScrollbarWidth(this.master.rootDocument);
     const overlayRoot = this.clone.wtTable.wtRootElement;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.master.getSetting('preventOverflow');
 
-    if (this.trimmingContainer !== rootWindow || preventOverflow === 'vertical') {
+    if (this.trimmingContainer !== this.master.rootWindow || preventOverflow === 'vertical') {
       let height = this.master.wtViewport.getWorkspaceHeight();
 
       if (this.master.wtOverlays.hasScrollbarBottom) {
         height -= scrollbarHeight;
       }
 
-      height = Math.min(height, wtTable.wtRootElement.scrollHeight);
+      height = Math.min(height, this.master.wtTable.wtRootElement.scrollHeight);
       overlayRootStyle.height = `${height}px`;
 
     } else {

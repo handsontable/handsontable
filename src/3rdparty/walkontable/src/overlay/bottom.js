@@ -179,20 +179,19 @@ class BottomOverlay extends Overlay {
    * Adjust the sizes of the clone and the master elements to the dimensions of the trimming container.
    */
   _adjustElementsSize() {
-    const { wtTable, wtViewport, rootWindow } = this.master;
     const scrollbarWidth = getScrollbarWidth(this.master.rootDocument);
     const overlayRoot = this.clone.wtTable.wtRootElement;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.master.getSetting('preventOverflow');
 
-    if (this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal') {
-      let width = wtViewport.getWorkspaceWidth();
+    if (this.trimmingContainer !== this.master.rootWindow || preventOverflow === 'horizontal') {
+      let width = this.master.wtViewport.getWorkspaceWidth();
 
       if (this.master.wtOverlays.hasScrollbarRight) {
         width -= scrollbarWidth;
       }
 
-      width = Math.min(width, wtTable.wtRootElement.scrollWidth);
+      width = Math.min(width, this.master.wtTable.wtRootElement.scrollWidth);
       overlayRootStyle.width = `${width}px`;
 
     } else {
