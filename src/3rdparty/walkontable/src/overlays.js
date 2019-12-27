@@ -533,12 +533,6 @@ class Overlays {
    *
    */
   workaroundsForPositionsAndSizes() {
-    const { wtTable } = this.wot;
-
-    if (!wtTable.isVisible()) {
-      return;
-    }
-
     if (!this.topOverlay.areElementSizesAdjusted || !this.leftOverlay.areElementSizesAdjusted) {
       this.adjustElementsSizes();
     }
