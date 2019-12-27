@@ -169,7 +169,6 @@ class LeftOverlay extends Overlay {
     }
 
     const { clone, master } = this;
-    const scrollbarHeight = getScrollbarWidth(master.rootDocument);
     const overlayRootElement = clone.wtTable.wtRootElement;
     const overlayRootElementStyle = overlayRootElement.style;
     const preventOverflow = master.getSetting('preventOverflow');
@@ -178,7 +177,7 @@ class LeftOverlay extends Overlay {
       let height = master.wtViewport.getWorkspaceHeight();
 
       if (master.wtOverlays.hasScrollbarBottom) {
-        height -= scrollbarHeight;
+        height -= getScrollbarWidth(master.rootDocument);
       }
 
       height = Math.min(height, master.wtTable.wtRootElement.scrollHeight);
