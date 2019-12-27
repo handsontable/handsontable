@@ -463,7 +463,6 @@ class Overlays {
     }
 
     if (!fastDraw) {
-      this.workaroundsForPositions();
       this.adjustElementsPositions(); // to fix the problem with double draw, this should be at the top
     }
   }
@@ -472,12 +471,15 @@ class Overlays {
    * For every overlay in the instance, update the overlay's position
    */
   adjustElementsPositions() {
+    this.topOverlay.workaroundsForPosition();
     this.topOverlay.adjustElementsPosition();
 
     if (this.bottomOverlay.clone) {
+      this.bottomOverlay.workaroundsForPosition();
       this.bottomOverlay.adjustElementsPosition();
     }
 
+    this.leftOverlay.workaroundsForPosition();
     this.leftOverlay.adjustElementsPosition();
 
     if (this.topLeftCornerOverlay) {
@@ -528,19 +530,6 @@ class Overlays {
     this.topOverlay.adjustElementsSize(force);
     this.leftOverlay.adjustElementsSize(force);
     this.bottomOverlay.adjustElementsSize(force);
-  }
-
-  /**
-   *
-   */
-  workaroundsForPositions() {
-    this.topOverlay.workaroundsForPosition();
-
-    if (this.bottomOverlay.clone) {
-      this.bottomOverlay.workaroundsForPosition();
-    }
-
-    this.leftOverlay.workaroundsForPosition();
   }
 
   /**
