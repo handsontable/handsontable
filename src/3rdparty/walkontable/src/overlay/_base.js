@@ -330,13 +330,9 @@ class Overlay {
    * @param {Boolean} [fastDraw=false]
    */
   redrawClone(fastDraw = false) {
-    // When hot settings are changed we allow to refresh overlay once before blocking
-    const nextCycleRenderFlag = this.shouldBeRendered();
-
-    if (this.needFullRender || nextCycleRenderFlag) {
+    if (this.needFullRender) {
       this.clone.drawClone(fastDraw);
     }
-    this.needFullRender = nextCycleRenderFlag;
   }
 
   /**
