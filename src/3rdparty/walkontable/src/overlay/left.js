@@ -80,7 +80,7 @@ class LeftOverlay extends Overlay {
     let headerPosition = 0;
     const preventOverflow = master.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === master.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
+    if (master.wtTable.trimmingContainer === master.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
       const box = master.wtTable.hider.getBoundingClientRect();
       const left = Math.ceil(box.left);
       const right = Math.ceil(box.right);
@@ -171,7 +171,7 @@ class LeftOverlay extends Overlay {
     const overlayRootElementStyle = overlayRootElement.style;
     const preventOverflow = master.getSetting('preventOverflow');
 
-    if (this.trimmingContainer !== master.rootWindow || preventOverflow === 'vertical') {
+    if (master.wtTable.trimmingContainer !== master.rootWindow || preventOverflow === 'vertical') {
       let height = master.wtViewport.getWorkspaceHeight();
 
       if (master.wtOverlays.hasScrollbarBottom) {
@@ -236,7 +236,7 @@ class LeftOverlay extends Overlay {
     const preventOverflow = this.master.getSetting('preventOverflow');
     let offset = 0;
 
-    if (!preventOverflow && this.trimmingContainer === this.master.rootWindow) {
+    if (!preventOverflow && this.master.wtTable.trimmingContainer === this.master.rootWindow) {
       offset = this.master.wtTable.holderOffset.left;
     }
 

@@ -57,7 +57,7 @@ class BottomLeftCornerOverlay extends Overlay {
 
     overlayRootElement.style.top = '';
 
-    if (this.trimmingContainer === master.rootWindow) {
+    if (master.wtTable.trimmingContainer === master.rootWindow) {
       const box = master.wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(box.bottom);
       const left = Math.ceil(box.left);

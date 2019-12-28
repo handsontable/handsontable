@@ -82,7 +82,7 @@ class TopOverlay extends Overlay {
     let headerPosition = 0;
     const preventOverflow = master.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === master.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+    if (master.wtTable.trimmingContainer === master.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const box = master.wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(box.top);
       const bottom = Math.ceil(box.bottom);
@@ -176,7 +176,7 @@ class TopOverlay extends Overlay {
     const overlayRootElementStyle = overlayRootElement.style;
     const preventOverflow = master.getSetting('preventOverflow');
 
-    if (this.trimmingContainer !== master.rootWindow || preventOverflow === 'horizontal') {
+    if (master.wtTable.trimmingContainer !== master.rootWindow || preventOverflow === 'horizontal') {
       let width = master.wtViewport.getWorkspaceWidth();
 
       if (master.wtOverlays.hasScrollbarRight) {

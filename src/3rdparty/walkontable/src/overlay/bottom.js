@@ -83,7 +83,7 @@ class BottomOverlay extends Overlay {
 
     overlayRootElement.style.top = '';
 
-    if (this.trimmingContainer === master.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+    if (master.wtTable.trimmingContainer === master.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const box = master.wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(box.bottom);
       let finalLeft;
@@ -187,7 +187,7 @@ class BottomOverlay extends Overlay {
     const overlayRootElementStyle = overlayRootElement.style;
     const preventOverflow = master.getSetting('preventOverflow');
 
-    if (this.trimmingContainer !== master.rootWindow || preventOverflow === 'horizontal') {
+    if (master.wtTable.trimmingContainer !== master.rootWindow || preventOverflow === 'horizontal') {
       let width = master.wtViewport.getWorkspaceWidth();
 
       if (master.wtOverlays.hasScrollbarRight) {

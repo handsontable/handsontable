@@ -43,7 +43,7 @@ class Viewport {
    */
   getWorkspaceHeight() {
     const currentDocument = this.wot.rootDocument;
-    const trimmingContainer = this.wot.wtOverlays.topOverlay.trimmingContainer;
+    const trimmingContainer = this.wot.wtTable.trimmingContainer;
     let height = 0;
 
     if (trimmingContainer === this.wot.rootWindow) {
@@ -61,7 +61,7 @@ class Viewport {
   getWorkspaceWidth() {
     const { wot } = this;
     const { rootDocument, rootWindow } = wot;
-    const trimmingContainer = this.wot.wtOverlays.leftOverlay.trimmingContainer;
+    const trimmingContainer = this.wot.wtTable.trimmingContainer;
     const docOffsetWidth = rootDocument.documentElement.offsetWidth;
     const totalColumns = wot.getSetting('totalColumns');
     const preventOverflow = wot.getSetting('preventOverflow');
@@ -87,7 +87,7 @@ class Viewport {
     }
 
     if (trimmingContainer !== rootWindow) {
-      overflow = getStyle(this.wot.wtOverlays.leftOverlay.trimmingContainer, 'overflow', rootWindow);
+      overflow = getStyle(trimmingContainer, 'overflow', rootWindow);
 
       if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
         // this is used in `scroll.html`
