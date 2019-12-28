@@ -1,6 +1,5 @@
 import {
   getScrollableElement,
-  getTrimmingContainer
 } from './../../../../helpers/dom/element';
 import { warn } from './../../../../helpers/console';
 import EventManager from './../../../../eventManager';
@@ -113,7 +112,7 @@ class Overlay {
     this.master = wotInstance;
     this.type = '';
     this.mainTableScrollableElement = null;
-    this.updateTrimmingContainer();
+    this.trimmingContainer = null;
     this.areElementSizesAdjusted = false;
   }
 
@@ -142,8 +141,8 @@ class Overlay {
   /**
    * Set the DOM element responsible for trimming the overlay's root element. It will be some parent element or the window.
    */
-  updateTrimmingContainer() {
-    this.trimmingContainer = getTrimmingContainer(this.master.wtTable.wtRootElement);
+  updateTrimmingContainer(trimmingContainer) {
+    this.trimmingContainer = trimmingContainer;
   }
 
   /**

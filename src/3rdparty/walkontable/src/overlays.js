@@ -1,6 +1,7 @@
 import {
   getScrollableElement,
   getScrollbarWidth,
+  getTrimmingContainer,
 } from './../../../helpers/dom/element';
 import { arrayEach } from './../../../helpers/array';
 import { isKey } from './../../../helpers/unicode';
@@ -74,22 +75,27 @@ class Overlays {
    * Prepare overlays based on user settings.
    */
   prepareOverlays() {
+    const trimmingContainer = getTrimmingContainer(this.wot.wtTable.wtRootElement);
+
     if (this.topOverlay) {
       this.topOverlay.updateStateOfRendering();
     } else {
       this.topOverlay = Overlay.createOverlay(Overlay.CLONE_TOP, this.wot);
     }
+    this.topOverlay.updateTrimmingContainer(trimmingContainer);
 
     if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM)) {
       this.bottomOverlay = {
         needFullRender: false,
         updateStateOfRendering: () => {},
+        updateTrimmingContainer: () => {},
       };
     }
     if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       this.bottomLeftCornerOverlay = {
         needFullRender: false,
         updateStateOfRendering: () => {},
+        updateTrimmingContainer: () => {},
       };
     }
 
@@ -98,12 +104,14 @@ class Overlays {
     } else {
       this.bottomOverlay = Overlay.createOverlay(Overlay.CLONE_BOTTOM, this.wot);
     }
+    this.bottomOverlay.updateTrimmingContainer(trimmingContainer);
 
     if (this.leftOverlay) {
       this.leftOverlay.updateStateOfRendering();
     } else {
       this.leftOverlay = Overlay.createOverlay(Overlay.CLONE_LEFT, this.wot);
     }
+    this.leftOverlay.updateTrimmingContainer(trimmingContainer);
 
     if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
       if (this.topLeftCornerOverlay) {
@@ -111,6 +119,7 @@ class Overlays {
       } else {
         this.topLeftCornerOverlay = Overlay.createOverlay(Overlay.CLONE_TOP_LEFT_CORNER, this.wot);
       }
+      this.topLeftCornerOverlay.updateTrimmingContainer(trimmingContainer);
     }
 
     if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender) {
@@ -119,6 +128,7 @@ class Overlays {
       } else {
         this.bottomLeftCornerOverlay = Overlay.createOverlay(Overlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
       }
+      this.bottomLeftCornerOverlay.updateTrimmingContainer(trimmingContainer);
     }
 
     if (this.wot.getSetting('debug') && !this.debug) {

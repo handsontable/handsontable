@@ -178,8 +178,6 @@ class BottomOverlay extends Overlay {
    * @param {Boolean} [force=false]
    */
   adjustElementsSize(force = false) {
-    this.updateTrimmingContainer();
-
     if (!this.needFullRender && !force) {
       return;
     }

@@ -48,7 +48,6 @@ class BottomLeftCornerOverlay extends Overlay {
    */
   adjustElementsPosition() {
     const { clone, master } = this;
-    this.updateTrimmingContainer();
 
     if (!master.wtTable.holder.parentNode) {
       // removed from DOM
