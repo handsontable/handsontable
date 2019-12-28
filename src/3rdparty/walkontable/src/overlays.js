@@ -431,17 +431,33 @@ class Overlays {
 
     if (this.bottomOverlay.clone) {
       this.bottomOverlay.redrawClone(fastDraw);
+      if (!fastDraw) {
+        this.bottomOverlay.adjustElementsPosition(); // to fix the problem with double draw, this should be at the top
+      }
     }
 
     this.leftOverlay.redrawClone(fastDraw);
+    if (!fastDraw) {
+      this.leftOverlay.adjustElementsPosition(); // to fix the problem with double draw, this should be at the top
+    }
+
     this.topOverlay.redrawClone(fastDraw);
+    if (!fastDraw) {
+      this.topOverlay.adjustElementsPosition(); // to fix the problem with double draw, this should be at the top
+    }
 
     if (this.topLeftCornerOverlay) {
       this.topLeftCornerOverlay.redrawClone(fastDraw);
+      if (!fastDraw) {
+        this.topLeftCornerOverlay.adjustElementsPosition(); // to fix the problem with double draw, this should be at the top
+      }
     }
 
     if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
       this.bottomLeftCornerOverlay.redrawClone(fastDraw);
+      if (!fastDraw) {
+        this.bottomLeftCornerOverlay.adjustElementsPosition(); // to fix the problem with double draw, this should be at the top
+      }
     }
 
     if (this.debug) {
@@ -460,31 +476,6 @@ class Overlays {
       }
     } else if (!fastDraw) {
       this.adjustElementsSizes();
-    }
-
-    if (!fastDraw) {
-      this.adjustElementsPositions(); // to fix the problem with double draw, this should be at the top
-    }
-  }
-
-  /**
-   * For every overlay in the instance, update the overlay's position
-   */
-  adjustElementsPositions() {
-    this.topOverlay.adjustElementsPosition();
-
-    if (this.bottomOverlay.clone) {
-      this.bottomOverlay.adjustElementsPosition();
-    }
-
-    this.leftOverlay.adjustElementsPosition();
-
-    if (this.topLeftCornerOverlay) {
-      this.topLeftCornerOverlay.adjustElementsPosition();
-    }
-
-    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
-      this.bottomLeftCornerOverlay.adjustElementsPosition();
     }
   }
 
