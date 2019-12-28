@@ -80,9 +80,22 @@ class TopLeftCornerOverlay extends Overlay {
     } else {
       resetCssTransform(overlayRootElement);
     }
+  }
 
+  /**
+   * If needed, adjust the sizes of the clone and the master elements to the dimensions of the trimming container.
+   *
+   * @param {Boolean} [force=false]
+   */
+  adjustElementsSize(force = false) {
+    if (!this.needFullRender && !force) {
+      return;
+    }
+
+    const { clone, master } = this;
     let tableHeight = outerHeight(clone.wtTable.TABLE);
     const tableWidth = outerWidth(clone.wtTable.TABLE);
+    const overlayRootElement = clone.wtTable.wtRootElement;
 
     if (!master.wtTable.hasDefinedSize()) {
       tableHeight = 0;

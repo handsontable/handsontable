@@ -518,6 +518,12 @@ class Overlays {
     this.topOverlay.adjustElementsSize(force);
     this.leftOverlay.adjustElementsSize(force);
     this.bottomOverlay.adjustElementsSize(force);
+    if (this.topLeftCornerOverlay) {
+      this.topLeftCornerOverlay.adjustElementsSize(force);
+    }
+    if (this.bottomLeftCornerOverlay) {
+      this.bottomLeftCornerOverlay.adjustElementsSize(force);
+    }
   }
 
   /**
