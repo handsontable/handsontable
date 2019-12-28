@@ -1,7 +1,6 @@
 import {
   getScrollableElement,
   getScrollbarWidth,
-  getTrimmingContainer,
 } from './../../../helpers/dom/element';
 import { arrayEach } from './../../../helpers/array';
 import { isKey } from './../../../helpers/unicode';
@@ -75,7 +74,7 @@ class Overlays {
    * Prepare overlays based on user settings.
    */
   prepareOverlays() {
-    const trimmingContainer = getTrimmingContainer(this.wot.wtTable.wtRootElement);
+    const trimmingContainer = this.wot.wtTable.trimmingContainer;
 
     if (this.topOverlay) {
       this.topOverlay.updateStateOfRendering();

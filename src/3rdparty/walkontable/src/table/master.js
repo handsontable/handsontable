@@ -27,7 +27,9 @@ class MasterTable extends Table {
   }
 
   alignOverlaysWithTrimmingContainer() {
-    const trimmingElement = getTrimmingContainer(this.wtRootElement);
+    this.trimmingContainer = getTrimmingContainer(this.wtRootElement);
+
+    const trimmingElement = this.trimmingContainer;
     const { rootWindow } = this.wot;
 
     if (trimmingElement === rootWindow) {
