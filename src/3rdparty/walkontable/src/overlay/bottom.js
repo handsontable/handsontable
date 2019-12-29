@@ -271,6 +271,27 @@ class BottomOverlay extends Overlay {
   }
 
   /**
+   * Redraws the content of the overlay's clone instance of Walkontable, including the cells, selections and borders.
+   * Does not change the size nor the position of the overlay root element.
+   *
+   * @param {Boolean} [fastDraw=false]
+   */
+  redrawClone(fastDraw = false) {
+    Overlay.prototype.redrawClone.call(this, fastDraw); // equals: super(fastDraw)
+
+    if (!fastDraw) {
+      // nasty workaround for double border in the header, TODO: find a pure-css solution
+      if (this.master.getSetting('rowHeaders').length === 0) {
+        const secondHeaderCell = this.clone.wtTable.THEAD.querySelector('th:nth-of-type(2)');
+
+        if (secondHeaderCell) {
+          secondHeaderCell.style['border-left-width'] = 0;
+        }
+      }
+    }
+  }
+
+  /**
    * Adds css classes to hide the header border's header (cell-selection border hiding issue)
    *
    * @param {Number} position Header Y position if trimming container is window or scroll top if not
@@ -285,14 +306,6 @@ class BottomOverlay extends Overlay {
         addClass(masterRootElement, 'innerBorderTop');
       } else {
         removeClass(masterRootElement, 'innerBorderTop');
-      }
-    }
-    // nasty workaround for double border in the header, TODO: find a pure-css solution
-    if (master.getSetting('rowHeaders').length === 0) {
-      const secondHeaderCell = this.clone.wtTable.THEAD.querySelector('th:nth-of-type(2)');
-
-      if (secondHeaderCell) {
-        secondHeaderCell.style['border-left-width'] = 0;
       }
     }
   }
