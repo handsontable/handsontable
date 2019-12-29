@@ -555,7 +555,6 @@ describe('Walkontable Border Renderer', () => {
       });
 
       wt.draw();
-      wt.draw(); // TODO as it turns out, the desired rendering is only visible after the second draw. A problem that does not appear in HOT but appears in raw WOT. Why?
 
       const topBorderSelector = 'svg path[data-stroke-style=\'3px solid green\']';
       const topBorderExpectedPathInMaster = 'M 0 0.5 50 0.5'; // Master starts rendering from column 2
@@ -574,7 +573,6 @@ describe('Walkontable Border Renderer', () => {
 
       wt.wtTable.holder.scrollLeft = 0;
       wt.draw();
-      wt.draw(); // TODO as it turns out, the desired rendering is only visible after the second draw. A problem that does not appear in HOT but appears in raw WOT. Why?
 
       expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection after scroll back').toEqual(topBorderExpectedPathInMaster);
       expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection after scroll back').toEqual(topBorderExpectedPathInLeft);
@@ -600,7 +598,6 @@ describe('Walkontable Border Renderer', () => {
       });
 
       wt.draw();
-      wt.draw(); // TODO as it turns out, the desired rendering is only visible after the second draw. A problem that does not appear in HOT but appears in raw WOT. Why?
 
       const topBorderSelector = 'svg path[data-stroke-style=\'3px solid green\']';
       const topBorderExpectedPathInMaster = 'M 0 0.5 50 0.5'; // Master starts rendering from column 2
@@ -619,7 +616,6 @@ describe('Walkontable Border Renderer', () => {
 
       window.scroll(0, 0);
       wt.draw();
-      wt.draw(); // TODO as it turns out, the desired rendering is only visible after the second draw. A problem that does not appear in HOT but appears in raw WOT. Why?
 
       expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection after scroll back').toEqual(topBorderExpectedPathInMaster);
 
