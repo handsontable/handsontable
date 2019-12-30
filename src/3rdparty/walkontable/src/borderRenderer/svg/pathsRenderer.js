@@ -122,10 +122,7 @@ function getStateForStyle(states, style, parent) {
 
     elem.setAttribute('stroke', color);
     elem.setAttribute('stroke-width', width);
-    // elem.setAttribute('stroke-linecap', 'square'); // default: butt
-    // elem.setAttribute('shape-rendering', 'optimizeSpeed');
-    elem.setAttribute('shape-rendering', 'geometricPrecision'); // TODO why the border renders wrong when this is on
-    // elem.setAttribute('shape-rendering', 'crispEdges');
+    elem.setAttribute('shape-rendering', 'geometricPrecision');
     elem.setAttribute('data-stroke-style', style);
 
     state = {
