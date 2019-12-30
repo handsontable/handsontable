@@ -208,47 +208,7 @@ class Selection {
   }
 
   /**
-   * Get TD from a relevant overlay in case when the TD is not rendered on the current overlay. The TD is needed for
-   * measurements done on `borderEdgesDescriptor`.
-   *
-   * @param {Table} wtTable
-   * @param {Number} row
-   * @param {Number} col
-   * @param {Number} tableStartRow
-   * @param {Number} tableEndRow
-   * @param {Number} tableEndColumn
-   */
-  getRelevantCell(wtTable, row, col, tableStartRow, tableEndRow, tableEndColumn) {
-    let td = wtTable.getCell({ row, col });
-
-    if (typeof td === 'number') {
-      let container;
-      if ((row > tableEndRow && col > tableEndColumn) || (col > tableEndColumn && row < tableStartRow)) {
-        container = wtTable.getTableNeighborDiagonal();
-      } else if (row > tableEndRow) {
-        container = wtTable.getTableNeighborSouth();
-      } else if (col > tableEndColumn) {
-        container = wtTable.getTableNeighborEast();
-      } else if (row < tableStartRow) {
-        container = wtTable.getTableNeighborNorth();
-      }
-
-      td = container.getCell({ row, col });
-    }
-
-    if (typeof td === 'number') {
-      td = undefined;
-    }
-
-    return td;
-  }
-
-  /**
    * Renders the selection if it is within the current viewport.
-   *
-   * Parameters neighborOverlapRight, neighborOverlapBottom, neighborOverlapTop are used to render side effects of borders from other overlays,
-   * e.g. when fixedRowsTop === 1, this method will render the top border of the cell A2 (from the master table)
-   * as the bottom border of the cell A1 (on the top overlay table).
    *
    * Returns an array of arrays that contain information about border edges renderable in the current selection or null,
    * if no border edges should be rendered for the current viewport. Every nested array has the structure that is
@@ -261,15 +221,11 @@ class Selection {
    * @param {number} tableStartColumn Source index of the first rendered column in the table. Expecting -1 when there are no rendered columns
    * @param {number} tableEndRow Source index of the last rendered row in the table. Expecting  -1 when there are no rendered rows
    * @param {number} tableEndColumn Source index of the last rendered column in the table. Expecting -1 when there are no rendered columns
-   * @param {number} neighborOverlapRight
-   * @param {number} neighborOverlapBottom
-   * @param {number} neighborOverlapTop
    * @returns {Array.<Array.<*>>}
    */
   draw(wotInstance,
        tableRowsCount, tableColumnsCount,
-       tableStartRow, tableStartColumn, tableEndRow, tableEndColumn,
-       neighborOverlapRight, neighborOverlapBottom, neighborOverlapTop) {
+       tableStartRow, tableStartColumn, tableEndRow, tableEndColumn) {
     if (this.isEmpty()) {
       if (this.hasSelectionHandle()) {
         const found = this.getSelectionHandleIfExists(wotInstance);
@@ -288,16 +244,18 @@ class Selection {
     const selectionCorners = this.getCorners();
     const [selectionSettingTop, selectionSettingLeft, selectionSettingBottom, selectionSettingRight] = selectionCorners; // row/column values can be negative if row/column header was clicked
 
-    const selectionStartRow = Math.max(selectionSettingTop, tableStartRow + neighborOverlapTop);
+    const selectionStartRow = Math.max(selectionSettingTop, tableStartRow);
     const selectionStartColumn = Math.max(selectionSettingLeft, tableStartColumn);
-    const selectionEndRow = Math.min(selectionSettingBottom, tableEndRow + neighborOverlapBottom);
-    const selectionEndColumn = Math.min(selectionSettingRight, tableEndColumn + neighborOverlapRight);
-    const isSingle = selectionStartRow === selectionEndRow && selectionStartColumn === selectionEndColumn;
+    const selectionEndRow = Math.min(selectionSettingBottom, tableEndRow);
+    const selectionEndColumn = Math.min(selectionSettingRight, tableEndColumn);
+    const selectionStart = { row: selectionStartRow, col: selectionStartColumn };
+    const selectionEnd = { row: selectionEndRow, col: selectionEndColumn };
     const hasTopEdge = selectionStartRow === selectionSettingTop;
     const hasRightEdge = selectionEndColumn === selectionSettingRight;
     const hasBottomEdge = selectionEndRow === selectionSettingBottom;
     const hasLeftEdge = selectionStartColumn === selectionSettingLeft;
     let borderEdgesDescriptor;
+    const getCellFn = wtTable.getCell.bind(wtTable);
 
     if (tableColumnsCount && (highlightHeaderClassName || highlightColumnClassName)) {
       for (let sourceColumn = selectionStartColumn; sourceColumn <= selectionEndColumn; sourceColumn += 1) {
@@ -333,14 +291,7 @@ class Selection {
 
     if (tableRowsCount && tableColumnsCount) {
       if (this.settings.border && selectionStartRow <= selectionEndRow && selectionStartColumn <= selectionEndColumn) {
-        const topLeftTd = this.getRelevantCell(wtTable, selectionStartRow, selectionStartColumn,
-          tableStartRow, tableEndRow, tableEndColumn);
-        const bottomRightTd = isSingle ? topLeftTd : this.getRelevantCell(wtTable, selectionEndRow, selectionEndColumn,
-          tableStartRow, tableEndRow, tableEndColumn);
-
-        if (topLeftTd && bottomRightTd) {
-          borderEdgesDescriptor = [this.settings, topLeftTd, bottomRightTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
-        }
+        borderEdgesDescriptor = [this.settings, getCellFn, selectionStart, selectionEnd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
       }
 
       for (let sourceRow = selectionStartRow; sourceRow <= selectionEndRow; sourceRow += 1) {

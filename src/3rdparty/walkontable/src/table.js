@@ -376,30 +376,33 @@ class Table {
 
     const tableRowsCount = this.getRenderedRowsCount();
     const tableColumnsCount = this.getRenderedColumnsCount();
-    const tableStartRow = this.getFirstRenderedRow();
+    let tableStartRow = this.getFirstRenderedRow();
     const tableStartColumn = this.getFirstRenderedColumn();
-    const tableEndRow = this.getLastRenderedRow();
-    const tableEndColumn = this.getLastRenderedColumn();
+    let tableEndRow = this.getLastRenderedRow();
+    let tableEndColumn = this.getLastRenderedColumn();
     const borderEdgesDescriptors = [];
-    let neighborOverlapRight = 0;
-    let neighborOverlapBottom = 0;
-    let neighborOverlapTop = 0;
 
-    if (this.getTableNeighborEast && this.getTableNeighborEast().getFirstVisibleColumn() === this.getLastVisibleColumn() + 1) {
-      neighborOverlapRight = 1;
+    /*
+    On the edge of overlays, render borders from the outside of the overlay so that they do not become obscured
+    by the overlay's gridline.
+    The below adjustments are used to render side effects of borders from other overlays,
+    e.g. when fixedRowsTop === 1, this method will render the top border of the cell A2 (from the master table)
+    as the bottom border of the cell A1 (on the top overlay table).
+    */
+    if (this.is(Overlay.CLONE_LEFT) || this.is(Overlay.CLONE_TOP_LEFT_CORNER) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      tableEndColumn += 1;
     }
-    if (this.getTableNeighborSouth && this.getTableNeighborSouth().getFirstVisibleRow() === this.getLastVisibleRow() + 1) {
-      neighborOverlapBottom = 1;
+    if (this.is(Overlay.CLONE_TOP) || this.is(Overlay.CLONE_TOP_LEFT_CORNER)) {
+      tableEndRow += 1;
     }
-    if (this.getTableNeighborNorth && this.getTableNeighborNorth().getLastVisibleRow() === this.getFirstVisibleRow() - 1) {
-      neighborOverlapTop = -1;
+    if (this.is(Overlay.CLONE_BOTTOM) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      tableStartRow -= 1;
     }
 
     for (let i = 0; i < len; i++) {
       const borderEdgesDescriptor = selections[i].draw(wot,
         tableRowsCount, tableColumnsCount,
-        tableStartRow, tableStartColumn, tableEndRow, tableEndColumn,
-        neighborOverlapRight, neighborOverlapBottom, neighborOverlapTop);
+        tableStartRow, tableStartColumn, tableEndRow, tableEndColumn);
 
       if (borderEdgesDescriptor) {
         borderEdgesDescriptors.push(borderEdgesDescriptor);
