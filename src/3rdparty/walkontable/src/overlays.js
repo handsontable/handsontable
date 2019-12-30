@@ -120,10 +120,6 @@ class Overlays {
         this.bottomLeftCornerOverlay = Overlay.createOverlay(Overlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
       }
     }
-
-    if (this.wot.getSetting('debug') && !this.debug) {
-      this.debug = Overlay.createOverlay(Overlay.CLONE_DEBUG, this.wot);
-    }
   }
 
   /**
@@ -414,9 +410,6 @@ class Overlays {
       this.bottomLeftCornerOverlay.destroy();
     }
 
-    if (this.debug) {
-      this.debug.destroy();
-    }
     this.destroyed = true;
   }
 
@@ -458,10 +451,6 @@ class Overlays {
         this.bottomLeftCornerOverlay.adjustElementsPosition(); // to fix the problem with double draw, this should be at the top
       }
       this.bottomLeftCornerOverlay.redrawClone(fastDraw);
-    }
-
-    if (this.debug) {
-      this.debug.redrawClone(fastDraw);
     }
 
     if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
