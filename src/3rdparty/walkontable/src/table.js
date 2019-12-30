@@ -59,16 +59,6 @@ class Table {
 
     this.wtRootElement = this.holder.parentNode;
 
-    /**
-     * Set the DOM element responsible for trimming the overlay's root element. It will be some parent element or the window. Only applicable to the master overlay.
-     *
-     * @type {HTMLElement|Window}
-     */
-    // this.trimmingContainer = null;
-
-    if (this.isMaster) {
-      this.alignOverlaysWithTrimmingContainer(); // TODO this better be removed
-    }
     this.fixTableDomTree();
 
     this.rowFilter = null;

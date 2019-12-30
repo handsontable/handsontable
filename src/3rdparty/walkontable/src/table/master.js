@@ -24,6 +24,13 @@ class MasterTable extends Table {
     super(wotInstance, table);
     this.holderOffset = 0;
     this.wtRootElement.className += 'ht_master handsontable';
+    /**
+     * Set the DOM element responsible for trimming the overlay's root element. It will be some parent element or the window. Only applicable to the master overlay.
+     *
+     * @type {HTMLElement|Window}
+     */
+    this.trimmingContainer = null;
+    this.alignOverlaysWithTrimmingContainer(); // TODO this better be removed
   }
 
   alignOverlaysWithTrimmingContainer() {
