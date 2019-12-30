@@ -312,6 +312,7 @@ class Overlay {
    * @param {Boolean} [fastDraw=false]
    */
   redrawClone(fastDraw = false) {
+    this.adjustElementsPosition();
     if (this.needFullRender) {
       this.clone.drawClone(fastDraw);
     }

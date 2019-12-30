@@ -423,33 +423,17 @@ class Overlays {
     }
 
     if (this.bottomOverlay.clone) {
-      if (!fastDraw) {
-        this.bottomOverlay.adjustElementsPosition(); // to fix the problem with double draw, this should be at the top
-      }
       this.bottomOverlay.redrawClone(fastDraw);
     }
 
-    if (!fastDraw) {
-      this.leftOverlay.adjustElementsPosition(); // to fix the problem with double draw, this should be at the top
-    }
     this.leftOverlay.redrawClone(fastDraw);
-
-    if (!fastDraw) {
-      this.topOverlay.adjustElementsPosition(); // to fix the problem with double draw, this should be at the top
-    }
     this.topOverlay.redrawClone(fastDraw);
 
     if (this.topLeftCornerOverlay) {
-      if (!fastDraw) {
-        this.topLeftCornerOverlay.adjustElementsPosition(); // to fix the problem with double draw, this should be at the top
-      }
       this.topLeftCornerOverlay.redrawClone(fastDraw);
     }
 
     if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
-      if (!fastDraw) {
-        this.bottomLeftCornerOverlay.adjustElementsPosition(); // to fix the problem with double draw, this should be at the top
-      }
       this.bottomLeftCornerOverlay.redrawClone(fastDraw);
     }
 
