@@ -569,7 +569,7 @@ describe('Walkontable Border Renderer', () => {
       wt.draw();
 
       expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection after scroll').toEqual(topBorderExpectedPathInMaster);
-      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection after scroll').toEqual(topBorderExpectedPathInLeft); // the common border should not be rendered if the table is scrolled
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection after scroll').toEqual(topBorderExpectedPathInLeft);
 
       wt.wtTable.holder.scrollLeft = 0;
       wt.draw();
@@ -612,7 +612,7 @@ describe('Walkontable Border Renderer', () => {
       wt.draw();
 
       expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection after scroll').toEqual(topBorderExpectedPathInMaster);
-      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection after scroll').toEqual(topBorderExpectedPathInLeft); // the common border should not be rendered if the table is scrolled
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection after scroll').toEqual(topBorderExpectedPathInLeft);
 
       window.scroll(0, 0);
       wt.draw();

@@ -149,9 +149,6 @@ describe('Walkontable.Selection', () => {
     const scrollbarWidth = getScrollbarWidth(); // 17 on Windows
     let expectedY = 285 + scrollbarWidth;
 
-    // M 0 253.5 100 253.5 M 99.5 253 99.5 300 M 0 299.5 100 299.5 M 0.5 253 0.5 300
-    // M 0 253.5 100 253.5 M 99.5 253 99.5 300 M 0 300.5 100 300.5 M 0.5 253 0.5 300
-
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_left')[0])).withContext('ht_clone_left')
       .toEqual([`M 0 253.5 100 253.5 M 99.5 253 99.5 ${expectedY} M 0 ${expectedY - 1}.5 100 ${expectedY - 1}.5 M 0.5 253 0.5 ${expectedY}`]);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top_left_corner')[0])).withContext('ht_clone_top_left_corner')
