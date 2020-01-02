@@ -146,7 +146,6 @@ class SelectionHandle {
     div.className = `wtBorder ${this.settings.className || ''}`;
 
     style = div.style;
-    style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
     style.height = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
     style.width = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
 
@@ -225,8 +224,9 @@ class SelectionHandle {
       height: `${width}px`,
       width: `${width}px`,
       'border-radius': `${parseInt(width / 1.5, 10)}px`,
-      background: '#F5F5FF',
-      border: '1px solid #4285c8'
+      background: '#FFFFFF',
+      'border-width': '1px',
+      'border-style': 'solid'
     };
 
     objectEach(handleStyle, (value, key) => {
@@ -255,6 +255,10 @@ class SelectionHandle {
   updateMultipleSelectionHandlesPosition(row, col, top, left, width, height) {
     const handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10);
     const hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
+
+    const color = (this.settings.corner && this.settings.corner.color) ? this.settings.corner.color : this.settings.border.color;
+    this.selectionHandles.styles.topLeft.borderColor = color;
+    this.selectionHandles.styles.bottomRight.borderColor = color;
 
     this.selectionHandles.styles.topLeft.top = `${parseInt(top - handleWidth, 10)}px`;
     this.selectionHandles.styles.topLeft.left = `${parseInt(left - handleWidth, 10)}px`;
@@ -427,6 +431,7 @@ class SelectionHandle {
       this.cornerStyle.left = `${left + width - 4}px`;
       this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
       this.cornerStyle.width = this.cornerDefaultStyle.width;
+      this.cornerStyle.backgroundColor = (this.settings.corner && this.settings.corner.color) ? this.settings.corner.color : this.settings.border.color;
 
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
       this.cornerStyle.display = 'none';

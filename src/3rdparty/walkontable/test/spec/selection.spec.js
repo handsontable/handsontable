@@ -19,6 +19,8 @@ describe('Walkontable.Selection', () => {
 
     this.$wrapper.remove();
     this.wotInstance.destroy();
+
+    Walkontable.setBrowserMeta(); // reset to original value from the current browser
   });
 
   it('should add/remove class to selection when cell is clicked', () => {
@@ -403,6 +405,86 @@ describe('Walkontable.Selection', () => {
     expect(getTableTopClone().find('.highlightRow').length).toEqual(0);
     expect(getTableLeftClone().find('.highlightColumn').length).toEqual(0);
     expect(getTableLeftClone().find('.highlightRow').length).toEqual(0);
+  });
+
+  it('should apply changed settings of a highlight (desktop browser)', () => {
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
+          className: 'current',
+          border: {
+            width: 1,
+            color: 'rgb(255, 0, 0)',
+            style: 'solid',
+            cornerVisible() {
+              return true;
+            }
+          }
+        })
+      }),
+    });
+    wt.draw();
+
+    wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
+    wt.draw();
+
+    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 1 1.5 50 1.5 M 49.5 1 49.5 24 M 1 23.5 50 23.5 M 1.5 1 1.5 24']);
+    expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid rgb(255, 0, 0)']);
+    expect($('.wtBorder.current.corner').css('background-color')).toEqual('rgb(255, 0, 0)');
+
+    wt.selections.getCell().settings.border.color = 'rgb(127, 124, 0)';
+    wt.selections.getCell().settings.border.width = 2;
+    wt.draw();
+
+    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['', 'M 1 1 50 1 M 49 0 49 24 M 1 23 50 23 M 1 0 1 24']);
+    expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid rgb(255, 0, 0)', '2px solid rgb(127, 124, 0)']);
+    expect($('.wtBorder.current.corner').css('background-color')).toEqual('rgb(127, 124, 0)');
+  });
+
+  it('should apply changed settings of a highlight (mobile browser)', () => {
+    Walkontable.setBrowserMeta({
+      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 8_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B411 Safari/600.1.4'
+    });
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
+          className: 'current',
+          border: {
+            width: 1,
+            color: 'rgb(255, 0, 0)',
+            style: 'solid',
+            cornerVisible() {
+              return true;
+            }
+          }
+        })
+      }),
+    });
+    wt.draw();
+
+    wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
+    wt.draw();
+
+    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 1 1.5 50 1.5 M 49.5 1 49.5 24 M 1 23.5 50 23.5 M 1.5 1 1.5 24']);
+    expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid rgb(255, 0, 0)']);
+    expect($('.topLeftSelectionHandle').css('border-color')).toEqual('rgb(255, 0, 0)');
+    expect($('.bottomRightSelectionHandle').css('border-color')).toEqual('rgb(255, 0, 0)');
+
+    wt.selections.getCell().settings.border.color = 'rgb(127, 124, 0)';
+    wt.selections.getCell().settings.border.width = 2;
+    wt.draw();
+
+    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['', 'M 1 1 50 1 M 49 0 49 24 M 1 23 50 23 M 1 0 1 24']);
+    expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid rgb(255, 0, 0)', '2px solid rgb(127, 124, 0)']);
+    expect($('.topLeftSelectionHandle').css('border-color')).toEqual('rgb(127, 124, 0)');
+    expect($('.bottomRightSelectionHandle').css('border-color')).toEqual('rgb(127, 124, 0)');
   });
 
   describe('replace', () => {
