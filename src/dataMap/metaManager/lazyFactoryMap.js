@@ -52,38 +52,72 @@ import { assert, isUnsignedNumber, isNullish } from './utils';
  * map.obtain(2) // returns new value "FFF" for newly created row.
  * map.obtain(4) // index shifted by 2 has access to the old "CCC" value, as before inserting.
  *
- * after removing 2 rows, keys that hold the data positioned after the place where the
- * rows are removed are downshifted by 2.
- *               │
- *               │ Remove 2 rows
- *               ├─────────────┐
- *              \│/            │
- * +------+------+------+------+------+
- * | 0/10 | 1/11 | 2/12 | 3/13 | 4/14 |  Keys before
- * +------+------+------+------+------+
+ * after removing 4 rows, keys that hold the data positioned after the place where the
+ * rows are removed are downshifted by 4.
+ *        │
+ *        │ Remove 4 rows
+ *        ├───────────────────────────┐
+ *       \│/                          │
+ * +------+------+------+------+------+------+------+
+ * | 0/10 | 1/11 | 2/15 | 3/16 | 4/12 | 5/13 | 6/14 |  Keys after
+ * +------+------+------+------+------+------+------+
+ *    │       │      │      │      │      │     │
+ *    │       │      └──────┼──────┼──────┼┐    │
+ *    │       │             └──────┼──────┼┼────┼┐
+ *    │       │      ┌─────────────┘      ││    ││
+ *    │       │      │      ┌─────────────┘│    ││
+ *    │       │      │      │      ┌───────┼────┘│
+ *    │       │      │      │      │       │     │
+ * +------+------+------+------+------+------+------+
+ * | AAA  | BBB  | CCC  | DDD  | EEE  | FFF  | GGG  |  Data
+ * +------+------+------+------+------+------+------+
  *
  * +------+------+------+
- * | 0/10 | 1/11 | 2/14 |  Keys after
+ * | 0/10 | 1/13 | 2/14 |  Keys after
  * +------+------+------+
  *    │       │      │
  *    │       │      └─────────────┐
- *    │       │                    │
- *    │       │                    │
- *    │       │                    │
- *    │       │                    │
- *    │       │                    │
- * +------+------+------+------+------+
- * | AAA  | BBB  | CCC  | DDD  | EEE  |  Data
- * +------+------+------+------+------+
- *                  /│\   /|\
- *                   └──┬──┘
- *         This data is marked as "hole" which
- *         means that can be replaced by new item
- *         when that will be created.
+ *    │       └────────────┐       │
+ *    │                    │       │
+ *    │                    │       │
+ *    │                    │       │
+ *    │                    │       │
+ * +------+------+------+------+------+------+------+
+ * | AAA  | BBB  | CCC  | DDD  | EEE  | FFF  | GGG  |  Data
+ * +------+------+------+------+------+------+------+
+ *           /│\   /│\                   /│\   /│\
+ *            └──┬──┘                     └──┬──┘
+ *           This data is marked as "hole" which
+ *           means that can be replaced by new item
+ *           when that will be created.
  *
  * map.obtain(2) // returns the value ("EEE") as it should. Access to the value is
  *               // changed (the key was downshifted). However, the internal index has not changed,
  *               // which means that the data does not need to be changed (spliced) too.
+ *
+ * After previous remove operation which creates some "holes" obtaining new
+ * items replaces that "holes" as follows:
+ *
+ * // Obtains new item
+ * map.obtain(90) // Returns "NEW" value
+ *
+ * +------+------+------+...+-------+
+ * | 0/10 | 1/13 | 2/14 |   | 90/16 |  Keys after
+ * +------+------+------+...+-------+
+ *    │       │      │          └───────────────┐
+ *    │       │      └─────────────┐            │
+ *    │       └────────────┐       │            │
+ *    │                    │       │            │
+ *    │                    │       │            │
+ *    │                    │       │            │
+ *    │                    │       │            │
+ * +------+------+------+------+------+------+------+
+ * | AAA  | BBB  | CCC  | DDD  | EEE  | FFF  | NEW  |  Data
+ * +------+------+------+------+------+------+------+
+ *                                             /│\
+ *                                              │
+ *           This "GGG" item is permanently removed and replaced by a new item.
+ *           The hole index is taken from the hole collection which act as FILO (First In Last Out).
  */
 export default class LazyFactoryMap {
   constructor(valueFactory) {
