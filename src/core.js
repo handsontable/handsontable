@@ -163,11 +163,32 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     firstRun: true
   };
 
+  const fromVisualToRenderableCoords = (coords) => {
+    const { row: visualRow, col: visualColumn } = coords;
+
+    return new CellCoords(
+      instance.rowIndexMapper.getRenderableFromVisualIndex(visualRow),
+      instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumn)
+    );
+  };
+
+  const fromRenderableToVisualCoords = (coords) => {
+    const { row: renderableRow, col: renderableColumn } = coords;
+
+    return new CellCoords(
+      instance.rowIndexMapper.getVisualFromPhysicalIndex(this.rowIndexMapper.getPhysicalFromRenderableIndex(renderableRow)),
+      instance.columnIndexMapper.getVisualFromPhysicalIndex(this.columnIndexMapper.getPhysicalFromRenderableIndex(renderableColumn))
+    );
+  };
+
   let selection = new Selection(priv.settings, {
-    countCols: () => instance.countRenderableColumns(),
+    countCols: () => instance.countCols(),
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
+    countColsTranslated: () => instance.countRenderableColumns(),
+    translateCoords: fromVisualToRenderableCoords,
+    untranslateCoords: fromRenderableToVisualCoords
   });
 
   this.selection = selection;
@@ -1408,7 +1429,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
       return arrayMap(selection.getSelectedRange(), ({ from, to }) => {
-        return [from.row, this.renderedToVisualColumn(from.col), to.row, this.renderedToVisualColumn(to.col)];
+        return [from.row, from.col, to.row, to.col];
       });
     }
   };

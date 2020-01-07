@@ -49,6 +49,17 @@ class Transformation {
     const autoWrapRow = this.options.autoWrapRow();
     const autoWrapCol = this.options.autoWrapCol();
     const highlightCoords = this.range.current().highlight;
+    const { row: transformedRow, col: transformedCol } = this.options.transformCoords(highlightCoords);
+
+    if (transformedCol + delta.col >= this.options.countColsTranslated()) {
+      return this.options.untransformCoords({ row: transformedRow, col: 0 });
+    }
+
+    if (transformedCol + delta.col < 0) {
+      return this.options.untransformCoords({ row: transformedRow, col: this.options.countColsTranslated() - 1 });
+    }
+
+    return this.options.untransformCoords({ row: transformedRow, col: transformedCol + delta.col });
 
     if (highlightCoords.row + rowDelta > totalRows - 1) {
       if (force && minSpareRows > 0 && !(fixedRowsBottom && highlightCoords.row >= totalRows - fixedRowsBottom - 1)) {

@@ -86,6 +86,9 @@ class Selection {
     this.transformation = new Transformation(this.selectedRange, {
       countRows: () => this.tableProps.countRows(),
       countCols: () => this.tableProps.countCols(),
+      countColsTranslated: () => this.tableProps.countColsTranslated(),
+      transformCoords: coords => this.tableProps.translateCoords(coords),
+      untransformCoords: coords => this.tableProps.untranslateCoords(coords),
       fixedRowsBottom: () => settings.fixedRowsBottom,
       minSpareRows: () => settings.minSpareRows,
       minSpareCols: () => settings.minSpareCols,
@@ -219,7 +222,7 @@ class Selection {
     this.highlight.getCell().clear();
 
     if (this.highlight.isEnabledFor(CELL_TYPE)) {
-      this.highlight.getCell().add(this.selectedRange.current().highlight);
+      this.highlight.getCell().add(this.tableProps.translateCoords(this.selectedRange.current().highlight));
     }
 
     const layerLevel = this.getLayerLevel();
@@ -244,8 +247,8 @@ class Selection {
 
     if (this.highlight.isEnabledFor(AREA_TYPE) && (this.isMultiple() || layerLevel >= 1)) {
       areaHighlight
-        .add(cellRange.from)
-        .add(cellRange.to);
+        .add(this.tableProps.translateCoords(cellRange.from))
+        .add(this.tableProps.translateCoords(cellRange.to));
 
       if (layerLevel === 1) {
         // For single cell selection in the same layer, we do not create area selection to prevent blue background.
@@ -266,8 +269,8 @@ class Selection {
 
       } else {
         headerHighlight
-          .add(cellRange.from)
-          .add(cellRange.to);
+          .add(this.tableProps.translateCoords(cellRange.from))
+          .add(this.tableProps.translateCoords(cellRange.to));
       }
     }
 
@@ -277,8 +280,8 @@ class Selection {
       // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
       if (isRowSelected) {
         activeHeaderHighlight
-          .add(new CellCoords(cellRange.from.row, -1))
-          .add(new CellCoords(cellRange.to.row, -1));
+          .add(this.tableProps.translateCoords(new CellCoords(cellRange.from.row, -1)))
+          .add(this.tableProps.translateCoords(new CellCoords(cellRange.to.row, -1)));
       }
     }
 
@@ -288,8 +291,8 @@ class Selection {
       // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
       if (isColumnSelected) {
         activeHeaderHighlight
-          .add(new CellCoords(-1, cellRange.from.col))
-          .add(new CellCoords(-1, cellRange.to.col));
+          .add(this.tableProps.translateCoords(new CellCoords(-1, cellRange.from.col)))
+          .add(this.tableProps.translateCoords(new CellCoords(-1, cellRange.to.col)));
       }
     }
 

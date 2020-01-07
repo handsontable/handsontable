@@ -409,6 +409,12 @@ class TableView {
         this.instance.refreshDimensions();
       },
       onCellMouseDown: (event, coords, TD, wt) => {
+        const columnIndexMapper = this.instance.columnIndexMapper;
+        const newCoords = {
+          row: coords.row,
+          col: coords.col > -1 ? columnIndexMapper.getVisualFromPhysicalIndex(columnIndexMapper.getPhysicalFromRenderableIndex(coords.col)) : -1
+        };
+
         const blockCalculations = {
           row: false,
           column: false,
@@ -420,19 +426,19 @@ class TableView {
         this.activeWt = wt;
         priv.mouseDown = true;
 
-        this.instance.runHooks('beforeOnCellMouseDown', event, coords, TD, blockCalculations);
+        this.instance.runHooks('beforeOnCellMouseDown', event, newCoords, TD, blockCalculations);
 
         if (isImmediatePropagationStopped(event)) {
           return;
         }
 
         handleMouseEvent(event, {
-          coords,
+          coords: newCoords,
           selection: this.instance.selection,
           controller: blockCalculations,
         });
 
-        this.instance.runHooks('afterOnCellMouseDown', event, coords, TD);
+        this.instance.runHooks('afterOnCellMouseDown', event, newCoords, TD);
         this.activeWt = this.wt;
       },
       onCellContextMenu: (event, coords, TD, wt) => {
