@@ -1,4 +1,4 @@
-import { arrayFilter, arrayMap } from '../../helpers/array';
+import { arrayFilter } from '../../helpers/array';
 import { assert, isUnsignedNumber, isNullish } from './utils';
 
 /**
@@ -250,8 +250,16 @@ export default class LazyFactoryMap {
    * @returns {Iterator}
    */
   entries() {
-    const entries = arrayMap(this.data, (value, dataIndex) => [this._getKeyByStorageIndex(dataIndex), value]);
-    const validEntries = arrayFilter(entries, ([dataIndex]) => dataIndex !== -1);
+    const validEntries = [];
+
+    for (let i = 0; i < this.data.length; i++) {
+      const keyIndex = this._getKeyByStorageIndex(i);
+
+      if (keyIndex !== -1) {
+        validEntries.push([keyIndex, this.data[i]]);
+      }
+    }
+
     let dataIndex = 0;
 
     return {
