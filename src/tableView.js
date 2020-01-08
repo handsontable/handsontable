@@ -12,7 +12,7 @@ import {
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
-import Walkontable from './3rdparty/walkontable/src';
+import Walkontable, { CellCoords } from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 
 const privatePool = new WeakMap();
@@ -410,10 +410,10 @@ class TableView {
       },
       onCellMouseDown: (event, coords, TD, wt) => {
         const columnIndexMapper = this.instance.columnIndexMapper;
-        const newCoords = {
-          row: coords.row,
-          col: coords.col > -1 ? columnIndexMapper.getVisualFromPhysicalIndex(columnIndexMapper.getPhysicalFromRenderableIndex(coords.col)) : -1
-        };
+        const newCoords = new CellCoords(
+          coords.row,
+          coords.col > -1 ? columnIndexMapper.getVisualFromPhysicalIndex(columnIndexMapper.getPhysicalFromRenderableIndex(coords.col)) : -1
+        );
 
         const blockCalculations = {
           row: false,
