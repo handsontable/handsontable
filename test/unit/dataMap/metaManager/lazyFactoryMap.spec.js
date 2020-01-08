@@ -23,19 +23,19 @@ describe('LazyFactoryMap', () => {
 
     expect(map.index).toEqual([,,,,,,,,,, 2, 3]); // <10 empty items>
     expect(map.data).toEqual([{ i: 10 }, { i: 11 }, { i: 12 }, { i: 13 }]);
-    expect(map.holes).toEqual([0, 1]);
+    expect(Array.from(map.holes)).toEqual([0, 1]);
 
     map.obtain(1);
 
-    expect(map.index).toEqual([, 1,,,,,,,,, 2, 3]); // <1 empty items>, 1, <8 empty items>, 2, 3
-    expect(map.data).toEqual([{ i: 10 }, { i: 1 }, { i: 12 }, { i: 13 }]);
-    expect(map.holes).toEqual([0]);
+    expect(map.index).toEqual([, 0,,,,,,,,, 2, 3]); // <1 empty items>, 0, <8 empty items>, 2, 3
+    expect(map.data).toEqual([{ i: 1 }, { i: 11 }, { i: 12 }, { i: 13 }]);
+    expect(Array.from(map.holes)).toEqual([1]);
 
     map.obtain(3);
 
-    expect(map.index).toEqual([, 1,, 0,,,,,,, 2, 3]); // <1 empty item>, 1, <1 empty item>, 0, <6 empty items>, 2, 3
-    expect(map.data).toEqual([{ i: 3 }, { i: 1 }, { i: 12 }, { i: 13 }]);
-    expect(map.holes).toEqual([]);
+    expect(map.index).toEqual([, 0,, 1,,,,,,, 2, 3]); // <1 empty item>, 0, <1 empty item>, 1, <6 empty items>, 2, 3
+    expect(map.data).toEqual([{ i: 1 }, { i: 3 }, { i: 12 }, { i: 13 }]);
+    expect(Array.from(map.holes)).toEqual([]);
   });
 
   describe('obtain()', () => {
@@ -169,19 +169,19 @@ describe('LazyFactoryMap', () => {
 
       expect(map.index).toEqual([]);
       expect(map.data).toEqual([]);
-      expect(map.holes).toEqual([]);
+      expect(Array.from(map.holes)).toEqual([]);
 
       map.remove(4, 5);
 
       expect(map.index).toEqual([]);
       expect(map.data).toEqual([]);
-      expect(map.holes).toEqual([]);
+      expect(Array.from(map.holes)).toEqual([]);
 
       map.remove(100);
 
       expect(map.index).toEqual([]);
       expect(map.data).toEqual([]);
-      expect(map.holes).toEqual([]);
+      expect(Array.from(map.holes)).toEqual([]);
     });
 
     it('should update index map leaving the data intact (an instance with sample data)', () => {
@@ -200,13 +200,13 @@ describe('LazyFactoryMap', () => {
 
       expect(map.index).toEqual([,,,,,,,, 0, 1, 2, 3]); // <8 empty items>
       expect(map.data).toEqual([{ i: 10 }, { i: 11 }, { i: 12 }, { i: 13 }]);
-      expect(map.holes).toEqual([]);
+      expect(Array.from(map.holes)).toEqual([]);
 
       map.remove(9, 2);
 
       expect(map.index).toEqual([,,,,,,,, 0, 3]); // <8 empty items>
       expect(map.data).toEqual([{ i: 10 }, { i: 11 }, { i: 12 }, { i: 13 }]);
-      expect(map.holes).toEqual([1, 2]); // Data at index 1 and 2 are marked as the hole so that slots will be used for obtaining new ones
+      expect(Array.from(map.holes)).toEqual([1, 2]); // Data at index 1 and 2 are marked as the hole so that slots will be used for obtaining new ones
     });
 
     it('should update index map by removing the items from the end of the data when method is called without arguments', () => {
@@ -225,7 +225,7 @@ describe('LazyFactoryMap', () => {
 
       expect(map.index).toEqual([,,,,,,,,,, 0, 1]); // [ <10 empty items>, 0, 1 ]
       expect(map.data).toEqual([{ i: 1 }, { i: 2 }, { i: 3 }]);
-      expect(map.holes).toEqual([2]);
+      expect(Array.from(map.holes)).toEqual([2]);
 
       // Generates object with i=4 so this is a proof that previous entry marked as "hole" was replaced
       expect(map.obtain(12)).toEqual({ i: 4 });
@@ -234,15 +234,15 @@ describe('LazyFactoryMap', () => {
 
       expect(map.index).toEqual([,,,,,,,,,,]); // [ <10 empty items> ]
       expect(map.data).toEqual([{ i: 1 }, { i: 2 }, { i: 4 }]);
-      expect(map.holes).toEqual([0, 1, 2]);
+      expect(Array.from(map.holes)).toEqual([0, 1, 2]);
 
       expect(map.obtain(10)).toEqual({ i: 5 });
       expect(map.obtain(11)).toEqual({ i: 6 });
       expect(map.obtain(12)).toEqual({ i: 7 });
 
-      expect(map.index).toEqual([,,,,,,,,,, 2, 1, 0]); // [ <10 empty items> ]
-      expect(map.data).toEqual([{ i: 7 }, { i: 6 }, { i: 5 }]);
-      expect(map.holes).toEqual([]);
+      expect(map.index).toEqual([,,,,,,,,,, 0, 1, 2]); // [ <10 empty items> ]
+      expect(map.data).toEqual([{ i: 5 }, { i: 6 }, { i: 7 }]);
+      expect(Array.from(map.holes)).toEqual([]);
     });
   });
 

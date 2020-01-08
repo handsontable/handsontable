@@ -101,23 +101,23 @@ import { assert, isUnsignedNumber, isNullish } from './utils';
  * // Obtains new item
  * map.obtain(90) // Returns "NEW" value
  *
- * +------+------+------+...+-------+
- * | 0/10 | 1/13 | 2/14 |   | 90/16 |  Keys after
- * +------+------+------+...+-------+
- *    │       │      │          └───────────────┐
- *    │       │      └─────────────┐            │
- *    │       └────────────┐       │            │
- *    │                    │       │            │
- *    │                    │       │            │
- *    │                    │       │            │
- *    │                    │       │            │
- * +------+------+------+------+------+------+------+
- * | AAA  | BBB  | CCC  | DDD  | EEE  | FFF  | NEW  |  Data
- * +------+------+------+------+------+------+------+
- *                                             /│\
- *                                              │
- *           This "GGG" item is permanently removed and replaced by a new item.
- *           The hole index is taken from the hole collection which act as FILO (First In Last Out).
+ * +------+------+------+...+------+
+ * | 0/10 | 1/13 | 2/14 |   | 90/0 |  Keys after
+ * +------+------+------+...+------+
+ *    │       │      │          │
+ *    │       │      └──────────┼────────────┐
+ *    │       └─────────────────┼─────┐      │
+ *    └──────────┐              │     │      │
+ *               │              │     │      │
+ *    ┌──────────┼──────────────┘     │      │
+ *    │          │                    │      │
+ * +------+...+------+------+------+------+------+-----+
+ * | NEW  |   | AAA  | BBB  | CCC  | DDD  | EEE  | FFF |  Data
+ * +------+...+------+------+------+------+------+-----+
+ *   /│\
+ *    │
+ * The first "hole" (at index 0) item is permanently removed and replaced by a new item.
+ * The hole index is taken from the hole collection which act as FIFO (First In First Out).
  */
 export default class LazyFactoryMap {
   constructor(valueFactory) {
@@ -136,15 +136,15 @@ export default class LazyFactoryMap {
      */
     this.index = [];
     /**
-     * An array of indexes where points to the data items which can be replaced by obtaining new
+     * The collection of indexes where points to the data items which can be replaced by obtaining new
      * ones. The "holes" are an intended effect of deleting entries.
      *
      * The idea of "holes" generally allows us to not modify the "data" structure while removing
      * items from the collection.
      *
-     * @type {Number[]}
+     * @type {Set<Number>}
      */
-    this.holes = [];
+    this.holes = new Set();
   }
 
   /**
@@ -169,8 +169,10 @@ export default class LazyFactoryMap {
     } else {
       result = this.valueFactory(key);
 
-      if (this.holes.length > 0) {
-        const reuseIndex = this.holes.pop();
+      if (this.holes.size > 0) {
+        const reuseIndex = this.holes.values().next().value; // Get first item form the collection
+
+        this.holes.delete(reuseIndex);
 
         this.data[reuseIndex] = result;
         this.index[key] = reuseIndex;
@@ -219,7 +221,7 @@ export default class LazyFactoryMap {
       const removedIndex = removed[i];
 
       if (typeof removedIndex === 'number') {
-        this.holes.push(removedIndex);
+        this.holes.add(removedIndex);
       }
     }
   }
@@ -230,7 +232,7 @@ export default class LazyFactoryMap {
    * @returns {Number}
    */
   size() {
-    return this.data.length - this.holes.length;
+    return this.data.length - this.holes.size;
   }
 
   /**
@@ -239,7 +241,7 @@ export default class LazyFactoryMap {
    * @returns {Iterator}
    */
   values() {
-    return arrayFilter(this.data, (_, index) => !this.holes.includes(index))[Symbol.iterator]();
+    return arrayFilter(this.data, (_, index) => !this.holes.has(index))[Symbol.iterator]();
   }
 
   /**
@@ -273,7 +275,7 @@ export default class LazyFactoryMap {
   clear() {
     this.data = [];
     this.index = [];
-    this.holes = [];
+    this.holes.clear();
   }
 
   /**
