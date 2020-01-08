@@ -42,7 +42,7 @@ class Transformation {
     this.runLocalHooks('beforeTransformStart', delta);
 
     let totalRows = this.options.countRows();
-    let totalCols = this.options.countCols();
+    let totalCols = this.options.countColsTranslated();
     const fixedRowsBottom = this.options.fixedRowsBottom();
     const minSpareRows = this.options.minSpareRows();
     const minSpareCols = this.options.minSpareCols();
@@ -51,45 +51,35 @@ class Transformation {
     const highlightCoords = this.range.current().highlight;
     const { row: transformedRow, col: transformedCol } = this.options.transformCoords(highlightCoords);
 
-    if (transformedCol + delta.col >= this.options.countColsTranslated()) {
-      return this.options.untransformCoords({ row: transformedRow, col: 0 });
-    }
-
-    if (transformedCol + delta.col < 0) {
-      return this.options.untransformCoords({ row: transformedRow, col: this.options.countColsTranslated() - 1 });
-    }
-
-    return this.options.untransformCoords({ row: transformedRow, col: transformedCol + delta.col });
-
-    if (highlightCoords.row + rowDelta > totalRows - 1) {
-      if (force && minSpareRows > 0 && !(fixedRowsBottom && highlightCoords.row >= totalRows - fixedRowsBottom - 1)) {
+    if (transformedRow + rowDelta > totalRows - 1) {
+      if (force && minSpareRows > 0 && !(fixedRowsBottom && transformedRow >= totalRows - fixedRowsBottom - 1)) {
         this.runLocalHooks('insertRowRequire', totalRows);
         totalRows = this.options.countRows();
 
       } else if (autoWrapCol) {
         delta.row = 1 - totalRows;
-        delta.col = highlightCoords.col + delta.col === totalCols - 1 ? 1 - totalCols : 1;
+        delta.col = transformedCol + delta.col === totalCols - 1 ? 1 - totalCols : 1;
       }
-    } else if (autoWrapCol && highlightCoords.row + delta.row < 0 && highlightCoords.col + delta.col >= 0) {
+    } else if (autoWrapCol && transformedRow + delta.row < 0 && transformedCol + delta.col >= 0) {
       delta.row = totalRows - 1;
-      delta.col = highlightCoords.col + delta.col === 0 ? totalCols - 1 : -1;
+      delta.col = transformedCol + delta.col === 0 ? totalCols - 1 : -1;
     }
 
-    if (highlightCoords.col + delta.col > totalCols - 1) {
+    if (transformedCol + delta.col > totalCols - 1) {
       if (force && minSpareCols > 0) {
         this.runLocalHooks('insertColRequire', totalCols);
-        totalCols = this.options.countCols();
+        totalCols = this.options.countColsTranslated();
 
       } else if (autoWrapRow) {
-        delta.row = highlightCoords.row + delta.row === totalRows - 1 ? 1 - totalRows : 1;
+        delta.row = transformedRow + delta.row === totalRows - 1 ? 1 - totalRows : 1;
         delta.col = 1 - totalCols;
       }
-    } else if (autoWrapRow && highlightCoords.col + delta.col < 0 && highlightCoords.row + delta.row >= 0) {
-      delta.row = highlightCoords.row + delta.row === 0 ? totalRows - 1 : -1;
+    } else if (autoWrapRow && transformedCol + delta.col < 0 && transformedRow + delta.row >= 0) {
+      delta.row = transformedRow + delta.row === 0 ? totalRows - 1 : -1;
       delta.col = totalCols - 1;
     }
 
-    const coords = new CellCoords(highlightCoords.row + delta.row, highlightCoords.col + delta.col);
+    const coords = new CellCoords(transformedRow + delta.row, transformedCol + delta.col);
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
@@ -110,9 +100,12 @@ class Transformation {
       colTransformDir = 1;
       coords.col = totalCols - 1;
     }
-    this.runLocalHooks('afterTransformStart', coords, rowTransformDir, colTransformDir);
 
-    return coords;
+    const untransformedCoords = this.options.untransformCoords(coords);
+
+    this.runLocalHooks('afterTransformStart', untransformedCoords, rowTransformDir, colTransformDir);
+
+    return untransformedCoords;
   }
 
   /**
@@ -128,9 +121,12 @@ class Transformation {
     this.runLocalHooks('beforeTransformEnd', delta);
 
     const totalRows = this.options.countRows();
-    const totalCols = this.options.countCols();
+    const totalCols = this.options.countColsTranslated();
     const cellRange = this.range.current();
-    const coords = new CellCoords(cellRange.to.row + delta.row, cellRange.to.col + delta.col);
+    const { row: transformedRow, col: transformedCol } = this.options.transformCoords(cellRange.to);
+
+    const coords = new CellCoords(transformedRow + delta.row, transformedCol + delta.col);
+
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
@@ -151,9 +147,12 @@ class Transformation {
       colTransformDir = 1;
       coords.col = totalCols - 1;
     }
-    this.runLocalHooks('afterTransformEnd', coords, rowTransformDir, colTransformDir);
 
-    return coords;
+    const untransformedCoords = this.options.untransformCoords(coords);
+
+    this.runLocalHooks('afterTransformEnd', untransformedCoords, rowTransformDir, colTransformDir);
+
+    return untransformedCoords;
   }
 }
 
