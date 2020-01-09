@@ -1,6 +1,6 @@
 <div align="center">
 
-[![Handsontable](https://raw.githubusercontent.com/handsontable/handsontable/feature/logo-and-screenshot/resources/handsontable-logo.svg?sanitize=true)](//handsontable.com)
+<a href="//handsontable.com" rel="nofollow"><img src="https://raw.githubusercontent.com/handsontable/handsontable/feature/logo-and-screenshot/resources/handsontable-logo.svg?sanitize=true" alt="Handsontable" width="300"></a>
 
 **Handsontable** is a JavaScript/HTML5 data grid component with spreadsheet look & feel. <br>
 It provides easy data binding, data validation, filtering, sorting and CRUD operations.
