@@ -3,7 +3,6 @@ import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
 
 const offsetToOverLapPrecedingBorder = -1;
-const insetPositioningForCurrentCellHighlight = 1;
 
 /**
  * Manages rendering of cell borders using SVG. Creates a single instance of SVG for each `Table`
@@ -342,7 +341,9 @@ export default class BorderRenderer {
       }
     }
 
-    if (selectionSetting.className === 'current') {
+    if (selectionSetting.className === 'current' && selectionSetting.border && selectionSetting.border.width) {
+      // current cell has inset left and top borders, not centered on the gridline
+      const insetPositioningForCurrentCellHighlight = Math.floor(selectionSetting.border.width / 2);
       x1 += insetPositioningForCurrentCellHighlight;
       y1 += insetPositioningForCurrentCellHighlight;
     }

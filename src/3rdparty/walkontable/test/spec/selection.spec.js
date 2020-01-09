@@ -431,7 +431,7 @@ describe('Walkontable.Selection', () => {
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
     wt.draw();
 
-    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 1 1.5 50 1.5 M 49.5 1 49.5 24 M 1 23.5 50 23.5 M 1.5 1 1.5 24']);
+    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 0 0.5 50 0.5 M 49.5 0 49.5 24 M 0 23.5 50 23.5 M 0.5 0 0.5 24']);
     expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid rgb(255, 0, 0)']);
     expect($('.wtBorder.current.corner').css('background-color')).toEqual('rgb(255, 0, 0)');
 
@@ -472,7 +472,7 @@ describe('Walkontable.Selection', () => {
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
     wt.draw();
 
-    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 1 1.5 50 1.5 M 49.5 1 49.5 24 M 1 23.5 50 23.5 M 1.5 1 1.5 24']);
+    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 0 0.5 50 0.5 M 49.5 0 49.5 24 M 0 23.5 50 23.5 M 0.5 0 0.5 24']);
     expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid rgb(255, 0, 0)']);
     expect($('.topLeftSelectionHandle').css('border-color')).toEqual('rgb(255, 0, 0)');
     expect($('.bottomRightSelectionHandle').css('border-color')).toEqual('rgb(255, 0, 0)');
