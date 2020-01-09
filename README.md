@@ -19,7 +19,7 @@ Handsontable works with [Vue](//github.com/handsontable/vue-handsontable-officia
 
 <div align="center">
 <a href="//handsontable.com/examples?headers">
-<img src="https://raw.githubusercontent.com/handsontable/handsontable/feature/logo-and-screenshot/resources/handsontable-github-preview.png" align="center" alt="Handsontable Screenshot"/>
+<img src="https://raw.githubusercontent.com/handsontable/handsontable/feature/logo-and-screenshot/resources/handsontable-github-preview.png" align="center" alt="Handsontable Screenshot" width="861"/>
 </a>
 </div>
 
