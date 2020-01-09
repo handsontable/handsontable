@@ -257,9 +257,14 @@ class IndexMapper {
     this.executeBatchOperations(() => {
       this.indexesSequence.init(length);
       this.skipMapsCollection.initEvery(length);
-      this.hiddenCollection.initEvery(length);
-      this.variousMapsCollection.initEvery(length);
     });
+
+    this.executeBatchOperations(() => {
+      this.hiddenCollection.initEvery(length);
+    });
+
+    // It shouldn't reset the cache.
+    this.variousMapsCollection.initEvery(length);
 
     this.runLocalHooks('init');
   }

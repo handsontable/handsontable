@@ -175,7 +175,7 @@ class HiddenColumns extends BasePlugin {
 
       this.hot.executeBatchOperations(() => {
         columns.forEach((visualColumn) => {
-          this.hiddenColumnsMap.setValueAtIndex(visualColumn, false);
+          this.hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), false);
         });
       });
     }
@@ -216,7 +216,7 @@ class HiddenColumns extends BasePlugin {
     if (validColumns) {
       this.hot.executeBatchOperations(() => {
         columns.forEach((visualColumn) => {
-          this.hiddenColumnsMap.setValueAtIndex(this.hot.renderedToPhysicalColumn(visualColumn), true);
+          this.hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
         });
       });
     }
