@@ -1,6 +1,6 @@
 <div align="center">
 
-<a href="//handsontable.com" rel="nofollow"><img src="https://raw.githubusercontent.com/handsontable/handsontable/feature/develop/resources/handsontable-logo.svg?sanitize=true" alt="Handsontable" width="300"></a>
+<a href="//handsontable.com" rel="nofollow"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo.svg?sanitize=true" alt="Handsontable" width="300"></a>
 
 **Handsontable** is a JavaScript/HTML5 data grid component with spreadsheet look & feel. <br>
 It provides easy data binding, data validation, filtering, sorting and CRUD operations.
@@ -19,7 +19,7 @@ Handsontable works with [Vue](//github.com/handsontable/vue-handsontable-officia
 
 <div align="center">
 <a href="//handsontable.com/examples?headers">
-<img src="https://raw.githubusercontent.com/handsontable/handsontable/feature/develop/resources/handsontable-github-preview.png" align="center" alt="Handsontable Screenshot" width="861"/>
+<img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview.png" align="center" alt="Handsontable Screenshot" width="861"/>
 </a>
 </div>
 
