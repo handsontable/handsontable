@@ -857,6 +857,7 @@ describe('IndexMapper', () => {
       // Actions on the first collection. No real change. We rebuild cache anyway (`change` hook should be called?).
       expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
       expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
+      expect(flattenSkipList.length).toBe(10);
       expect(notSkippedIndexesCache).toEqual(indexMapper.notSkippedIndexesCache);
       expect(flattenSkipList).toEqual(indexMapper.flattenSkipList);
       expect(cacheUpdatedCallback.calls.count()).toEqual(3);
@@ -868,6 +869,7 @@ describe('IndexMapper', () => {
 
       expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
       expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
+      expect(flattenSkipList.length).toBe(10);
       expect(cacheUpdatedCallback.calls.count()).toEqual(4);
 
       notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
@@ -877,6 +879,7 @@ describe('IndexMapper', () => {
 
       expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
       expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
+      expect(flattenSkipList.length).toBe(10);
       expect(cacheUpdatedCallback.calls.count()).toEqual(5);
 
       notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
@@ -887,6 +890,7 @@ describe('IndexMapper', () => {
       // Actions on the second collection. No real change.  We rebuild cache anyway (`change` hook should be called?).
       expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
       expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
+      expect(flattenSkipList.length).toBe(10);
       expect(notSkippedIndexesCache).toEqual(indexMapper.notSkippedIndexesCache);
       expect(flattenSkipList).toEqual(indexMapper.flattenSkipList);
       expect(cacheUpdatedCallback.calls.count()).toEqual(6);
@@ -898,6 +902,7 @@ describe('IndexMapper', () => {
 
       expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
       expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
+      expect(flattenSkipList.length).toBe(10);
       expect(cacheUpdatedCallback.calls.count()).toEqual(7);
 
       notSkippedIndexesCache = indexMapper.notSkippedIndexesCache;
@@ -907,6 +912,7 @@ describe('IndexMapper', () => {
 
       expect(notSkippedIndexesCache).not.toBe(indexMapper.notSkippedIndexesCache);
       expect(flattenSkipList).not.toBe(indexMapper.flattenSkipList);
+      expect(flattenSkipList.length).toBe(10);
       expect(cacheUpdatedCallback.calls.count()).toEqual(8);
     });
 

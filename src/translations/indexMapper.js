@@ -394,7 +394,7 @@ class IndexMapper {
     const result = [];
     const particularHiddensLists = arrayMap([...this.skipMapsCollection.get(), ...this.hiddenCollection.get()], list => list.getValues());
 
-    rangeEach(this.indexesSequence.getLength(), (physicalIndex) => {
+    rangeEach(this.indexesSequence.getLength() - 1, (physicalIndex) => {
       result[physicalIndex] = particularHiddensLists.some(particularHiddensList => particularHiddensList[physicalIndex]);
     });
 
@@ -477,7 +477,7 @@ class IndexMapper {
     const result = [];
     const particularSkipsLists = arrayMap(this.skipMapsCollection.get(), skipList => skipList.getValues());
 
-    rangeEach(this.indexesSequence.getLength(), (physicalIndex) => {
+    rangeEach(this.indexesSequence.getLength() - 1, (physicalIndex) => {
       result[physicalIndex] = particularSkipsLists.some(particularSkipsList => particularSkipsList[physicalIndex]);
     });
 
