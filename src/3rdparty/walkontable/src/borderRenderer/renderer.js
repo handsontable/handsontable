@@ -341,8 +341,8 @@ export default class BorderRenderer {
       }
     }
 
-    if (selectionSetting.className === 'current' && selectionSetting.border && selectionSetting.border.width) {
-      // current cell has inset left and top borders, not centered on the gridline
+    if (selectionSetting.border && selectionSetting.border.width && selectionSetting.border.strokeAlignment === 'inside') {
+      // cell selection has "inset" left and top borders, not centered on the gridline
       const insetPositioningForCurrentCellHighlight = Math.floor(selectionSetting.border.width / 2);
       x1 += insetPositioningForCurrentCellHighlight;
       y1 += insetPositioningForCurrentCellHighlight;

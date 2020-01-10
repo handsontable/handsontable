@@ -421,7 +421,8 @@ describe('Walkontable.Selection', () => {
             style: 'solid',
             cornerVisible() {
               return true;
-            }
+            },
+            strokeAlignment: 'inside'
           }
         })
       }),
@@ -462,7 +463,8 @@ describe('Walkontable.Selection', () => {
             style: 'solid',
             cornerVisible() {
               return true;
-            }
+            },
+            strokeAlignment: 'inside'
           }
         })
       }),
