@@ -2,6 +2,7 @@ import { arrayEach } from './helpers/array';
 import { objectEach } from './helpers/object';
 import { substitute } from './helpers/string';
 import { warn } from './helpers/console';
+import { toSingleLine } from './helpers/templateLiteralTag';
 
 /**
  * @description
@@ -1847,8 +1848,8 @@ const REGISTERED_HOOKS = [
  *
  * @type {String}
  */
-const REMOVED_MESSAGE = `The plugin hook "[hookName]" was removed in Handsontable [hotVersion].\x20
-Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[hotVersion] to learn about the migration path.`;
+const REMOVED_MESSAGE = toSingleLine`The plugin hook "[hookName]" was removed in Handsontable [hotVersion].\x20
+  Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[hotVersion] to learn about the migration path.`;
 
 /**
  * The list of the hooks which are removed from the API. The warning message is printed out in
