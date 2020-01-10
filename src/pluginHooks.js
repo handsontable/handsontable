@@ -2218,9 +2218,28 @@ class Hooks {
   }
 
   /**
+   * Returns a boolean value depending on if a hook by such name has been removed or deprecated.
+   *
+   * @param key {String} The hook name to check.
+   * @returns {Boolean} Returns `true` if the provided hook name was marked as deprecated or
+   *                    removed from API, `false` otherwise.
+   *
+   * @example
+   * ```js
+   * Handsontable.hooks.isDeprecated('skipLengthCache');
+   *
+   * // Results:
+   * true
+   * ```
+   */
+  isDeprecated(hookName) {
+    return DEPRECATED_HOOKS.has(hookName) || REMOVED_HOOKS.has(hookName);
+  }
+
+  /**
    * Returns a boolean depending on if a hook by such name has been registered.
    *
-   * @param key {String} Hook name.
+   * @param key {String} The hook name to check.
    * @returns {Boolean} `true` for success, `false` otherwise.
    *
    * @example
@@ -2231,8 +2250,8 @@ class Hooks {
    * true
    * ```
    */
-  isRegistered(key) {
-    return REGISTERED_HOOKS.indexOf(key) >= 0;
+  isRegistered(hookName) {
+    return REGISTERED_HOOKS.indexOf(hookName) >= 0;
   }
 
   /**
@@ -2258,29 +2277,6 @@ class Hooks {
    */
   getRegistered() {
     return REGISTERED_HOOKS;
-  }
-
-  /**
-   * Returns an array of removed and deprecated hooks from the API. The list is used to detect if the removed
-   * or deprecated hook is used. If true, then migration path or deprecation message is printed out in the
-   * developer console as warning message.
-   *
-   * @returns {Array} An array of removed and deprecated hooks.
-   *
-   * @example
-   * ```js
-   * Handsontable.hooks.getDeprecated();
-   *
-   * // Results:
-   * [
-   * ...
-   *   'modifyRow',
-   * ...
-   * ]
-   * ```
-   */
-  getDeprecated() {
-    return [...Array.from(DEPRECATED_HOOKS.keys()), ...Array.from(REMOVED_HOOKS.keys())];
   }
 }
 

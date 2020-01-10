@@ -1775,7 +1775,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         /* eslint-disable-next-line no-continue */
         continue;
 
-      } else if (Hooks.getSingleton().getRegistered().indexOf(i) > -1 || Hooks.getSingleton().getDeprecated().indexOf(i) > -1) {
+      } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
         if (isFunction(settings[i]) || Array.isArray(settings[i])) {
           settings[i].initialHook = true;
           instance.addHook(i, settings[i]);
