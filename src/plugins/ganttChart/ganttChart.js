@@ -13,7 +13,7 @@ import './ganttChart.css';
 /**
  * @plugin GanttChart
  * @dependencies CollapsibleColumns
- * @deprecated This plugin is deprecated and will be deleted soon
+ * @deprecated This plugin is deprecated and will be removed in the next major release
  * @description
  * GanttChart plugin enables a possibility to create a Gantt chart using a Handsontable instance.
  * In this case, the whole table becomes read-only.
