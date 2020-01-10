@@ -174,7 +174,8 @@ class Event {
       this.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, this.instance);
     }
 
-    if (event.button !== 2 && cell.TD) { // if not right mouse button
+    // doubleclick reacts only for left mouse button
+    if (event.button === 0 && cell.TD) {
       priv.dblClickOrigin[0] = cell.TD;
 
       clearTimeout(priv.dblClickTimeout[0]);
@@ -250,16 +251,16 @@ class Event {
    * @param {MouseEvent} event
    */
   onMouseUp(event) {
-    if (event.button === 2) {
-      return;
-    }
-
-    // if not right mouse button
     const priv = privatePool.get(this);
     const cell = this.parentCell(event.realTarget);
 
     if (cell.TD && this.instance.hasSetting('onCellMouseUp')) {
       this.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, this.instance);
+    }
+
+    // if not left mouse button, then ignore
+    if (event.button !== 0) {
+      return;
     }
 
     if (cell.TD === priv.dblClickOrigin[0] && cell.TD === priv.dblClickOrigin[1]) {

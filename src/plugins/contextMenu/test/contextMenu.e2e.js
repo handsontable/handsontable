@@ -3128,7 +3128,7 @@ describe('ContextMenu', () => {
       expect(scrollHeight).toBe(0);
     });
 
-    it('should fire commend after the \'mouseup\' event', () => {
+    it('should fire commend after the \'mouseup\' event triggered by the left mouse button', () => {
       const callback = jasmine.createSpy('callback');
 
       handsontable({
@@ -3146,15 +3146,17 @@ describe('ContextMenu', () => {
       contextMenu();
 
       const item = $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)');
+
       item.simulate('mousedown');
 
-      expect(callback.calls.count()).toEqual(0);
+      expect(callback.calls.count()).toBe(0);
 
       item.simulate('mouseup');
-      expect(callback.calls.count()).toEqual(1);
+
+      expect(callback.calls.count()).toBe(1);
     });
 
-    it('should fire commend after the \'contextmenu\' event', () => {
+    it('should fire commend after the \'mouseup\' event triggered by the middle mouse button', () => {
       const callback = jasmine.createSpy('callback');
 
       handsontable({
@@ -3172,16 +3174,73 @@ describe('ContextMenu', () => {
       contextMenu();
 
       const item = $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)');
+
       item.simulate('mousedown');
 
-      expect(callback.calls.count()).toEqual(0);
+      expect(callback.calls.count()).toBe(0);
+
+      item.simulate('mouseup', { button: 1 });
+
+      expect(callback.calls.count()).toBe(1);
+    });
+
+    it('should fire commend after the \'mouseup\' event triggered by the right mouse button', () => {
+      const callback = jasmine.createSpy('callback');
+
+      handsontable({
+        contextMenu: {
+          items: {
+            item1: {
+              name: 'Item',
+              callback,
+            },
+          },
+        },
+        height: 100
+      });
+
+      contextMenu();
+
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)');
+
+      item.simulate('mousedown');
+
+      expect(callback.calls.count()).toBe(0);
+
+      item.simulate('mouseup', { button: 2 });
+
+      expect(callback.calls.count()).toBe(1);
+    });
+
+    it('should not fire commend after the \'contextmenu\' event', () => {
+      const callback = jasmine.createSpy('callback');
+
+      handsontable({
+        contextMenu: {
+          items: {
+            item1: {
+              name: 'Item',
+              callback,
+            },
+          },
+        },
+        height: 100
+      });
+
+      contextMenu();
+
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)');
+
+      item.simulate('mousedown');
+
+      expect(callback.calls.count()).toBe(0);
 
       item.simulate('contextmenu');
 
-      expect(callback.calls.count()).toEqual(1);
+      expect(callback.calls.count()).toBe(0);
     });
 
-    it('should not open another instance of ContextMenu after fireing command by the \'contextmenu\' event', () => {
+    it('should not open another instance of ContextMenu after fireing command by the RMB', () => {
       handsontable({
         contextMenu: {
           items: {
@@ -3196,7 +3255,10 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('contextmenu');
+      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)')
+        .simulate('mousedown', { button: 2 })
+        .simulate('mouseup', { button: 2 })
+      ;
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
