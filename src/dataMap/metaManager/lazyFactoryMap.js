@@ -136,7 +136,7 @@ export default class LazyFactoryMap {
      */
     this.index = [];
     /**
-     * The collection of indexes where points to the data items which can be replaced by obtaining new
+     * The collection of indexes that points to the data items which can be replaced by obtaining new
      * ones. The "holes" are an intended effect of deleting entries.
      *
      * The idea of "holes" generally allows us to not modify the "data" structure while removing
