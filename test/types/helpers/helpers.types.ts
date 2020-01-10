@@ -47,8 +47,6 @@ Handsontable.helper.isEdge();
 Handsontable.helper.isEmpty(1);
 Handsontable.helper.isFunction(1);
 Handsontable.helper.isIE();
-Handsontable.helper.isIE8();
-Handsontable.helper.isIE9();
 Handsontable.helper.isKey(1, 'foo');
 Handsontable.helper.isMetaKey(1);
 Handsontable.helper.isMobileBrowser();

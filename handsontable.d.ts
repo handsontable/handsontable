@@ -2191,8 +2191,6 @@ declare namespace Handsontable {
     isFunction(func: any): boolean,
     isGetComputedStyleSupported(): boolean,
     isIE(): boolean,
-    isIE8(): boolean,
-    isIE9(): boolean,
     isKey(keyCode: number, baseCode: string): boolean
     isMetaKey(keyCode: number): boolean,
     isMobileBrowser(): boolean,
