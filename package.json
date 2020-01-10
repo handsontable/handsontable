@@ -124,7 +124,7 @@
     "style-loader": "^0.18.2",
     "stylelint": "^11.1.1",
     "supports-color": "^4.2.1",
-    "tree-kill": "^1.2.1",
+    "tree-kill": "^1.2.2",
     "typescript": "^3.3.3",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
