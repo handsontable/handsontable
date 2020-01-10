@@ -1848,8 +1848,8 @@ const REGISTERED_HOOKS = [
  *
  * @type {String}
  */
-const REMOVED_MESSAGE = toSingleLine`The plugin hook "[hookName]" was removed in Handsontable [hotVersion].\x20
-  Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[hotVersion] to learn about the migration path.`;
+const REMOVED_MESSAGE = toSingleLine`The plugin hook "[hookName]" was removed in Handsontable [removedInVersion].\x20
+  Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[removedInVersion] to learn about the migration path.`;
 
 /**
  * The list of the hooks which are removed from the API. The warning message is printed out in
@@ -1981,7 +1981,7 @@ class Hooks {
     } else {
 
       if (REMOVED_HOOKS.has(key)) {
-        warn(substitute(REMOVED_MESSAGE, { hookName: key, hotVersion: REMOVED_HOOKS.get(key) }));
+        warn(substitute(REMOVED_MESSAGE, { hookName: key, removedInVersion: REMOVED_HOOKS.get(key) }));
       }
       if (DEPRECATED_HOOKS.has(key)) {
         warn(DEPRECATED_HOOKS.get(key));
