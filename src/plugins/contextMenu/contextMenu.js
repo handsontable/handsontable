@@ -6,7 +6,6 @@ import EventManager from './../../eventManager';
 import ItemsFactory from './itemsFactory';
 import Menu from './menu';
 import { registerPlugin } from './../../plugins';
-import { stopPropagation, pageX, pageY } from './../../helpers/dom/event';
 import { getWindowScrollLeft, getWindowScrollTop, hasClass } from './../../helpers/dom/element';
 import {
   ROW_ABOVE,
@@ -222,12 +221,9 @@ class ContextMenu extends BasePlugin {
     }
 
     this.menu.setPosition({
-      top: parseInt(pageY(event), 10) + offsetTop,
-      left: parseInt(pageX(event), 10) + offsetLeft,
+      top: parseInt(event.pageY, 10) + offsetTop,
+      left: parseInt(event.pageX, 10) + offsetLeft,
     });
-
-    // ContextMenu is not detected HotTableEnv correctly because is injected outside hot-table
-    this.menu.hotMenu.isHotTableEnv = this.hot.isHotTableEnv;
   }
 
   /**
@@ -318,8 +314,7 @@ class ContextMenu extends BasePlugin {
     function isValidElement(element) {
       return element.nodeName === 'TD' || element.parentNode.nodeName === 'TD';
     }
-    // if event is from hot-table we must get web component element not element inside him
-    const element = event.realTarget;
+    const element = event.target;
     this.close();
 
     if (hasClass(element, 'handsontableInput')) {
@@ -327,7 +322,7 @@ class ContextMenu extends BasePlugin {
     }
 
     event.preventDefault();
-    stopPropagation(event);
+    event.stopPropagation();
 
     if (!(showRowHeaders || showColHeaders)) {
       if (!isValidElement(element) && !(hasClass(element, 'current') && hasClass(element, 'wtBorder'))) {

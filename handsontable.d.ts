@@ -2265,7 +2265,6 @@ declare namespace Handsontable {
     innerHeight: (element: HTMLElement) => number;
     innerWidth: (element: HTMLElement) => number;
     isChildOf: (child: HTMLElement, parent: object | string) => boolean;
-    isChildOfWebComponentTable: (element: Element) => boolean;
     isImmediatePropagationStopped: (event: Event) => boolean;
     isInput: (element: HTMLElement) => boolean;
     isLeftClick: (event: Event) => boolean;
@@ -2277,10 +2276,6 @@ declare namespace Handsontable {
     outerHeight: (elem: HTMLElement) => number;
     outerWidth: (element: HTMLElement) => number;
     overlayContainsElement: (overlayType: wot.OverlayType, element: HTMLElement, root: HTMLElement) => boolean;
-    pageX: (event: Event) => number;
-    pageY: (event: Event) => number;
-    polymerUnwrap: (element: HTMLElement) => any | void;
-    polymerWrap: (element: HTMLElement) => any | void;
     removeClass: (element: HTMLElement, className: string | any[]) => void;
     removeEvent: (element: HTMLElement, event: string, callback: () => void) => void;
     removeTextNodes: (element: HTMLElement, parent: HTMLElement) => void;
@@ -2288,7 +2283,6 @@ declare namespace Handsontable {
     setCaretPosition: (element: HTMLElement, pos: number, endPos: number) => void;
     setOverlayPosition: (overlayElem: HTMLElement, left: number, top: number) => void;
     stopImmediatePropagation: (event: Event) => void;
-    stopPropagation: (event: Event) => void;
   }
 
   interface Plugins {
@@ -2303,7 +2297,7 @@ declare namespace Handsontable {
     Comments: plugins.Comments;
     ContextMenu: plugins.ContextMenu;
     CopyPaste: plugins.CopyPaste;
-    CustomBorders: plugins.CustomBorders;                                    
+    CustomBorders: plugins.CustomBorders;
     DragToScroll: plugins.DragToScroll;
     DropdownMenu: plugins.DropdownMenu;
     ExportFile: plugins.ExportFile;
@@ -2343,7 +2337,7 @@ declare namespace Handsontable {
     comments: plugins.Comments;
     contextMenu: plugins.ContextMenu;
     copyPaste: plugins.CopyPaste;
-    customBorders: plugins.CustomBorders;                                   
+    customBorders: plugins.CustomBorders;
     dragToScroll: plugins.DragToScroll;
     dropdownMenu: plugins.DropdownMenu;
     exportFile: plugins.ExportFile;

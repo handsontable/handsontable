@@ -1,6 +1,6 @@
 import { CellCoords } from './3rdparty/walkontable/src';
 import { KEY_CODES, isMetaKey, isCtrlMetaKey } from './helpers/unicode';
-import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors';
 import EventManager from './eventManager';
 import { EditorState } from './editors/_baseEditor';
@@ -361,7 +361,7 @@ class EditorManager {
           this.instance.selectAll();
 
           event.preventDefault();
-          stopPropagation(event);
+          event.stopPropagation();
         }
         break;
 
@@ -372,7 +372,7 @@ class EditorManager {
         this.moveSelectionUp(isShiftPressed);
 
         event.preventDefault();
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.ARROW_DOWN:
@@ -383,7 +383,7 @@ class EditorManager {
         this.moveSelectionDown(isShiftPressed);
 
         event.preventDefault();
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.ARROW_RIGHT:
@@ -394,7 +394,7 @@ class EditorManager {
         this.moveSelectionRight(isShiftPressed);
 
         event.preventDefault();
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.ARROW_LEFT:
@@ -405,7 +405,7 @@ class EditorManager {
         this.moveSelectionLeft(isShiftPressed);
 
         event.preventDefault();
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.TAB:
@@ -419,7 +419,7 @@ class EditorManager {
           this.selection.transformStart(tabMoves.row, tabMoves.col, true);
         }
         event.preventDefault();
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.BACKSPACE:
@@ -480,7 +480,7 @@ class EditorManager {
           rangeModifier.call(this.selection, new CellCoords(this.selection.selectedRange.current().from.row, 0));
         }
         event.preventDefault(); // don't scroll the window
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.END:
@@ -490,19 +490,19 @@ class EditorManager {
           rangeModifier.call(this.selection, new CellCoords(this.selection.selectedRange.current().from.row, this.instance.countCols() - 1));
         }
         event.preventDefault(); // don't scroll the window
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.PAGE_UP:
         this.selection.transformStart(-this.instance.countVisibleRows(), 0);
         event.preventDefault(); // don't page up the window
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.PAGE_DOWN:
         this.selection.transformStart(this.instance.countVisibleRows(), 0);
         event.preventDefault(); // don't page down the window
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       default:

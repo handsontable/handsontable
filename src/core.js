@@ -1,4 +1,4 @@
-import { addClass, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
+import { addClass, empty, removeClass } from './helpers/dom/element';
 import { columnFactory } from './helpers/setting';
 import { isFunction } from './helpers/function';
 import { warn } from './helpers/console';
@@ -116,8 +116,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   keyStateStartObserving(this.rootDocument);
 
   this.isDestroyed = false;
-  this.isHotTableEnv = isChildOfWebComponentTable(this.rootElement);
-  EventManager.isHotTableEnv = this.isHotTableEnv;
 
   this.container = this.rootDocument.createElement('div');
   this.renderCall = false;

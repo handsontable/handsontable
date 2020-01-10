@@ -5,7 +5,6 @@ import { addClass, outerHeight } from './../helpers/dom/element';
 import { deepExtend } from './../helpers/object';
 import EventManager from './../eventManager';
 import { isMetaKey } from './../helpers/unicode';
-import { stopPropagation } from './../helpers/dom/event';
 import TextEditor from './textEditor';
 
 /**
@@ -65,7 +64,7 @@ class DateEditor extends TextEditor {
     /**
      * Prevent recognizing clicking on datepicker as clicking outside of table
      */
-    eventManager.addEventListener(this.datePicker, 'mousedown', event => stopPropagation(event));
+    eventManager.addEventListener(this.datePicker, 'mousedown', event => event.stopPropagation());
     this.hideDatepicker();
   }
 

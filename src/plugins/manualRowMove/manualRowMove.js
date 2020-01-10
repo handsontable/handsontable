@@ -568,7 +568,7 @@ class ManualRowMove extends BasePlugin {
     }
 
     // callback for browser which doesn't supports CSS pointer-event: none
-    if (event.realTarget === this.backlight.element) {
+    if (event.target === this.backlight.element) {
       const height = this.backlight.getSize().height;
       this.backlight.setSize(null, 0);
 
