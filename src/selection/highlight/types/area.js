@@ -14,6 +14,7 @@ function createHighlight({ layerLevel, areaCornerVisible }) {
       width: 1,
       color: '#4b89ff',
       cornerVisible: areaCornerVisible,
+      strokeAlignment: 'inside',
     },
   });
 

@@ -12,6 +12,7 @@ function createHighlight() {
     border: {
       width: 1,
       color: '#ff0000',
+      strokeAlignment: 'inside',
     },
   });
 
