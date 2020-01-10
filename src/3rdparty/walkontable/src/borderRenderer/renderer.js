@@ -342,10 +342,15 @@ export default class BorderRenderer {
     }
 
     if (selectionSetting.border && selectionSetting.border.width && selectionSetting.border.strokeAlignment === 'inside') {
-      // cell selection has "inset" left and top borders, not centered on the gridline
-      const insetPositioningForCurrentCellHighlight = Math.floor(selectionSetting.border.width / 2);
-      x1 += insetPositioningForCurrentCellHighlight;
-      y1 += insetPositioningForCurrentCellHighlight;
+      // strokeAlignment: 'inside' is used to render the border of selection "inside" a cell
+      // any other strokeAlignment value means to render the border centered on the gridlines. Other alignment types might be implemented in the future
+      const flooredHalfWidth = Math.floor(selectionSetting.border.width / 2);
+      const ceiledHalfWidth = Math.ceil(selectionSetting.border.width / 2) - 1;
+
+      x1 += flooredHalfWidth;
+      y1 += flooredHalfWidth;
+      x2 -= ceiledHalfWidth;
+      y2 -= ceiledHalfWidth;
     }
 
     if (x1 < 0 && x2 < 0 || y1 < 0 && y2 < 0) {
