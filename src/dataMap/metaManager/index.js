@@ -193,7 +193,7 @@ export default class MetaManager {
    * Creates one or more rows at specific position.
    *
    * @param {Number} physicalRow The physical row index which points from what position the row is added.
-   * @param {Number} [amount=1] An amount rows to add.
+   * @param {Number} [amount=1] An amount of rows to add.
    */
   createRow(physicalRow, amount = 1) {
     this.cellMeta.createRow(physicalRow, amount);
@@ -213,7 +213,7 @@ export default class MetaManager {
    * Creates one or more columns at specific position.
    *
    * @param {Number} physicalColumn The physical column index which points from what position the column is added.
-   * @param {Number} [amount=1] An amount columns to add.
+   * @param {Number} [amount=1] An amount of columns to add.
    */
   createColumn(physicalColumn, amount = 1) {
     this.cellMeta.createColumn(physicalColumn, amount);
@@ -224,7 +224,7 @@ export default class MetaManager {
    * Removes one or more columns from the collection.
    *
    * @param {Number} physicalColumn The physical column index which points from what position the column is removed.
-   * @param {Number} [amount=1] An amount columns to remove.
+   * @param {Number} [amount=1] An amount of columns to remove.
    */
   removeColumn(physicalColumn, amount = 1) {
     this.cellMeta.removeColumn(physicalColumn, amount);

@@ -23,7 +23,7 @@ import { assert, isUnsignedNumber, isNullish } from './utils';
  * map.obtain(0) // returns "AAA"
  * map.obtain(2) // returns "CCC"
  *
- * after inserting new 2 rows, keys that hold the data positioned after the place
+ * after inserting 2 new rows, keys that hold the data positioned after the place
  * where the new rows are added are upshifted by 2.
  *               │
  *               │ Insert 2 rows
@@ -170,7 +170,7 @@ export default class LazyFactoryMap {
       result = this.valueFactory(key);
 
       if (this.holes.size > 0) {
-        const reuseIndex = this.holes.values().next().value; // Get first item form the collection
+        const reuseIndex = this.holes.values().next().value; // Gets first item from the collection
 
         this.holes.delete(reuseIndex);
 
@@ -190,7 +190,7 @@ export default class LazyFactoryMap {
    * new data.
    *
    * @param {Number} key The key as volatile zero-based index at which to begin inserting space for new data.
-   * @param {Number} [amount=1] Ammount data to insert.
+   * @param {Number} [amount=1] Ammount of data to insert.
    */
   insert(key, amount = 1) {
     assert(() => (isUnsignedNumber(key) || isNullish(key)), 'Expecting an unsigned number or null/undefined argument.');

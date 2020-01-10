@@ -67,7 +67,7 @@ export default class CellMeta {
    * Creates one or more rows at specific position.
    *
    * @param {Number} physicalRow The physical row index which points from what position the row is added.
-   * @param {Number} amount An amount rows to add.
+   * @param {Number} amount An amount of rows to add.
    */
   createRow(physicalRow, amount) {
     this.metas.insert(physicalRow, amount);
@@ -77,7 +77,7 @@ export default class CellMeta {
    * Creates one or more columns at specific position.
    *
    * @param {Number} physicalColumn The physical column index which points from what position the column is added.
-   * @param {Number} amount An amount columns to add.
+   * @param {Number} amount An amount of columns to add.
    */
   createColumn(physicalColumn, amount) {
     for (let i = 0; i < this.metas.size(); i++) {
@@ -89,7 +89,7 @@ export default class CellMeta {
    * Removes one or more rows from the collection.
    *
    * @param {Number} physicalRow The physical row index which points from what position the row is removed.
-   * @param {Number} amount An amount rows to remove.
+   * @param {Number} amount An amount of rows to remove.
    */
   removeRow(physicalRow, amount) {
     this.metas.remove(physicalRow, amount);
@@ -99,7 +99,7 @@ export default class CellMeta {
    * Removes one or more columns from the collection.
    *
    * @param {Number} physicalColumn The physical column index which points from what position the column is removed.
-   * @param {Number} amount An amount columns to remove.
+   * @param {Number} amount An amount of columns to remove.
    */
   removeColumn(physicalColumn, amount) {
     for (let i = 0; i < this.metas.size(); i++) {

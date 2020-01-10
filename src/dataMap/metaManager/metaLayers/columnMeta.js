@@ -73,7 +73,7 @@ export default class ColumnMeta {
    * Creates one or more columns at specific position.
    *
    * @param {Number} physicalColumn The physical column index which points from what position the column is added.
-   * @param {Number} amount An amount columns to add.
+   * @param {Number} amount An amount of columns to add.
    */
   createColumn(physicalColumn, amount) {
     this.metas.insert(physicalColumn, amount);
