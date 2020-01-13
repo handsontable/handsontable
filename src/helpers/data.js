@@ -156,16 +156,16 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
 
   return function cellMethodLookup(row, col) {
     return (function getMethodFromProperties(properties) {
-
       if (!properties) {
-        return; // method not found
+        return; // method or property not found
+      }
 
-      } else if (hasOwnProperty(properties, methodName) && properties[methodName] !== void 0) { // check if it is own and is not empty
+      if (hasOwnProperty(properties, methodName) && properties[methodName] !== void 0) { // check if it is own and is not empty
         return properties[methodName]; // method defined directly
 
       } else if (hasOwnProperty(properties, 'type') && properties.type) { // check if it is own and is not empty
         if (typeof properties.type !== 'string') {
-          throw new Error('Cell type must be a string ');
+          throw new Error('Cell "type" must be a string');
         }
 
         const type = getCellType(properties.type);

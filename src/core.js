@@ -1,23 +1,21 @@
 import { addClass, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
-import { columnFactory } from './helpers/setting';
 import { isFunction } from './helpers/function';
 import { warn } from './helpers/console';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser } from './helpers/browser';
-import DataMap from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {
   deepClone,
   duckSchema,
-  extend, isObject,
+  isObject,
   isObjectEqual,
   deepObjectSize,
   hasOwnProperty,
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { arrayFlatten, arrayMap, arrayEach, arrayReduce } from './helpers/array';
+import { arrayMap, arrayEach, arrayReduce } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
@@ -31,13 +29,12 @@ import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
-import DefaultSettings from './defaultSettings';
-import { getCellType } from './cellTypes';
 import { getTranslatedPhrase } from './i18n';
 import { hasLanguageDictionary } from './i18n/dictionariesManager';
-import { warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLanguageCode } from './i18n/utils';
+import { warnUserAboutLanguageRegistration, getValidLanguageCode, normalizeLanguageCode } from './i18n/utils';
 import { startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving } from './utils/keyStateObserver';
 import { Selection } from './selection';
+import { MetaManager, DataMap } from './dataMap/index';
 
 let activeGuid = null;
 
@@ -72,19 +69,19 @@ let activeGuid = null;
 export default function Core(rootElement, userSettings, rootInstanceSymbol = false) {
   let preventScrollingToCell = false;
   let instance = this;
-  let GridSettings = function() {};
+
   const eventManager = new EventManager(instance);
-  let priv;
   let datamap;
   let dataSource;
   let grid;
   let editorManager;
+  let firstRun = true;
 
-  extend(GridSettings.prototype, DefaultSettings.prototype); // create grid settings as a copy of default settings
-  extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
-  extend(GridSettings.prototype, expandType(userSettings));
+  userSettings.language = getValidLanguageCode(userSettings.language);
 
-  applyLanguageSetting(GridSettings.prototype, userSettings.language);
+  const metaManager = new MetaManager(userSettings);
+  const tableMeta = metaManager.getTableMeta();
+  const globalMeta = metaManager.getGlobalMeta();
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -152,18 +149,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
     this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
   }
-  priv = {
-    cellSettings: [],
-    columnSettings: [],
-    columnsSettingConflicts: ['data', 'width', 'language'],
-    settings: new GridSettings(), // current settings instance
-    selRange: null, // exposed by public method `getSelectedRange`
-    isPopulated: null,
-    scrollable: null,
-    firstRun: true
-  };
 
-  let selection = new Selection(priv.settings, {
+  let selection = new Selection(tableMeta, {
     countCols: () => instance.countCols(),
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
@@ -319,25 +306,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     alter(action, index, amount = 1, source, keepEmptyRows) {
       let delta;
 
-      function spliceWith(data, startIndex, count, toInject) {
-        const valueFactory = () => {
-          let result;
-
-          if (toInject === 'array') {
-            result = [];
-
-          } else if (toInject === 'object') {
-            result = {};
-          }
-
-          return result;
-        };
-        const spliceArgs = arrayMap(new Array(count), () => valueFactory());
-
-        spliceArgs.unshift(startIndex, 0);
-        data.splice(...spliceArgs);
-      }
-
       const normalizeIndexesGroup = (indexes) => {
         if (indexes.length === 0) {
           return [];
@@ -380,16 +348,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
           const numberOfSourceRows = instance.countSourceRows();
 
-          if (instance.getSettings().maxRows === numberOfSourceRows) {
+          if (tableMeta.maxRows === numberOfSourceRows) {
             return;
           }
           // eslint-disable-next-line no-param-reassign
           index = (isDefined(index)) ? index : numberOfSourceRows;
-
           delta = datamap.createRow(index, amount, source);
-          spliceWith(priv.cellSettings, index, amount, 'array');
 
           if (delta) {
+            metaManager.createRow(instance.toPhysicalRow(index), amount);
+
             if (selection.isSelected() && selection.selectedRange.current().from.row >= index) {
               selection.selectedRange.current().from.row += delta;
               selection.transformEnd(delta, 0); // will call render() internally
@@ -402,17 +370,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'insert_col':
           delta = datamap.createCol(index, amount, source);
 
-          for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
-            if (priv.cellSettings[row]) {
-              spliceWith(priv.cellSettings[row], index, amount);
-            }
-          }
-
           if (delta) {
-            if (Array.isArray(instance.getSettings().colHeaders)) {
+            metaManager.createColumn(instance.toPhysicalColumn(index), amount);
+
+            if (Array.isArray(tableMeta.colHeaders)) {
               const spliceArray = [index, 0];
               spliceArray.length += delta; // inserts empty (undefined) elements at the end of an array
-              Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
+              Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
             }
 
             if (selection.isSelected() && selection.selectedRange.current().from.col >= index) {
@@ -442,20 +406,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeRow breaks the removing functionality.
-              datamap.removeRow(groupIndex, groupAmount, source);
-              priv.cellSettings.splice(calcIndex, amount);
+              const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
 
-              const totalRows = instance.countRows();
-              const fixedRowsTop = instance.getSettings().fixedRowsTop;
-
-              if (fixedRowsTop >= calcIndex + 1) {
-                instance.getSettings().fixedRowsTop -= Math.min(groupAmount, fixedRowsTop - calcIndex);
+              if (!wasRemoved) {
+                return;
               }
 
-              const fixedRowsBottom = instance.getSettings().fixedRowsBottom;
+              metaManager.removeRow(instance.toPhysicalRow(calcIndex), groupAmount);
+
+              const totalRows = instance.countRows();
+              const fixedRowsTop = tableMeta.fixedRowsTop;
+
+              if (fixedRowsTop >= calcIndex + 1) {
+                tableMeta.fixedRowsTop -= Math.min(groupAmount, fixedRowsTop - calcIndex);
+              }
+
+              const fixedRowsBottom = tableMeta.fixedRowsBottom;
 
               if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
-                instance.getSettings().fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
+                tableMeta.fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
               }
 
               offset += groupAmount;
@@ -492,24 +461,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeCol breaks the removing functionality.
-              datamap.removeCol(groupIndex, groupAmount, source);
+              const wasRemoved = datamap.removeCol(groupIndex, groupAmount, source);
 
-              for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
-                if (priv.cellSettings[row]) { // if row hasn't been rendered it wouldn't have cellSettings
-                  priv.cellSettings[row].splice(physicalColumnIndex, groupAmount);
-                }
+              if (!wasRemoved) {
+                return;
               }
-              const fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
+
+              metaManager.removeColumn(physicalColumnIndex, groupAmount);
+
+              const fixedColumnsLeft = tableMeta.fixedColumnsLeft;
 
               if (fixedColumnsLeft >= calcIndex + 1) {
-                instance.getSettings().fixedColumnsLeft -= Math.min(groupAmount, fixedColumnsLeft - calcIndex);
+                tableMeta.fixedColumnsLeft -= Math.min(groupAmount, fixedColumnsLeft - calcIndex);
               }
 
-              if (Array.isArray(instance.getSettings().colHeaders)) {
+              if (Array.isArray(tableMeta.colHeaders)) {
                 if (typeof physicalColumnIndex === 'undefined') {
                   physicalColumnIndex = -1;
                 }
-                instance.getSettings().colHeaders.splice(physicalColumnIndex, groupAmount);
+                tableMeta.colHeaders.splice(physicalColumnIndex, groupAmount);
               }
 
               offset += groupAmount;
@@ -539,22 +509,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * Makes sure there are empty rows at the bottom of the table
      */
     adjustRowsAndCols() {
-      if (priv.settings.minRows) {
+      if (tableMeta.minRows) {
         // should I add empty rows to data source to meet minRows?
         const rows = instance.countRows();
 
-        if (rows < priv.settings.minRows) {
-          for (let r = 0, minRows = priv.settings.minRows; r < minRows - rows; r++) {
+        if (rows < tableMeta.minRows) {
+          for (let r = 0, minRows = tableMeta.minRows; r < minRows - rows; r++) {
+            // The synchronization with cell meta is not desired here. For `minRows` option,
+            // we don't want to touch/shift cell meta objects.
             datamap.createRow(instance.countRows(), 1, 'auto');
           }
         }
       }
-      if (priv.settings.minSpareRows) {
+      if (tableMeta.minSpareRows) {
         let emptyRows = instance.countEmptyRows(true);
 
         // should I add empty rows to meet minSpareRows?
-        if (emptyRows < priv.settings.minSpareRows) {
-          for (; emptyRows < priv.settings.minSpareRows && instance.countSourceRows() < priv.settings.maxRows; emptyRows++) {
+        if (emptyRows < tableMeta.minSpareRows) {
+          for (; emptyRows < tableMeta.minSpareRows && instance.countSourceRows() < tableMeta.maxRows; emptyRows++) {
+            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+            // we don't want to touch/shift cell meta objects.
             datamap.createRow(instance.countRows(), 1, 'auto');
           }
         }
@@ -563,20 +537,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         let emptyCols;
 
         // count currently empty cols
-        if (priv.settings.minCols || priv.settings.minSpareCols) {
+        if (tableMeta.minCols || tableMeta.minSpareCols) {
           emptyCols = instance.countEmptyCols(true);
         }
 
         // should I add empty cols to meet minCols?
-        if (priv.settings.minCols && !priv.settings.columns && instance.countCols() < priv.settings.minCols) {
-          for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
+        if (tableMeta.minCols && !tableMeta.columns && instance.countCols() < tableMeta.minCols) {
+          for (; instance.countCols() < tableMeta.minCols; emptyCols++) {
+            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+            // we don't want to touch/shift cell meta objects.
             datamap.createCol(instance.countCols(), 1, 'auto');
           }
         }
         // should I add empty cols to meet minSpareCols?
-        if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' &&
-            emptyCols < priv.settings.minSpareCols) {
-          for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
+        if (tableMeta.minSpareCols && !tableMeta.columns && instance.dataType === 'array' &&
+            emptyCols < tableMeta.minSpareCols) {
+          for (; emptyCols < tableMeta.minSpareCols && instance.countCols() < tableMeta.maxCols; emptyCols++) {
+            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+            // we don't want to touch/shift cell meta objects.
             datamap.createCol(instance.countCols(), 1, 'auto');
           }
         }
@@ -681,6 +659,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           repeatRow = end ? end.row - start.row + 1 : 0;
           // eslint-disable-next-line no-param-reassign
           input = translateRowsToColumns(input);
+
           for (c = 0, clen = input.length, cmax = Math.max(clen, repeatCol); c < cmax; c++) {
             if (c < clen) {
               for (r = 0, rlen = input[c].length; r < repeatRow - rlen; r++) {
@@ -747,8 +726,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
           for (r = 0; r < rlen; r++) {
             if ((end && current.row > end.row && rowSelectionLength > rowInputLength) ||
-                (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) ||
-                (current.row >= priv.settings.maxRows)) {
+                (!tableMeta.allowInsertRow && current.row > instance.countRows() - 1) ||
+                (current.row >= tableMeta.maxRows)) {
               break;
             }
             const visualRow = r - skippedRow;
@@ -774,8 +753,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
             for (c = 0; c < clen; c++) {
               if ((end && current.col > end.col && colSelectionLength > colInputLength) ||
-                  (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) ||
-                  (current.col >= priv.settings.maxCols)) {
+                  (!tableMeta.allowInsertColumn && current.col > instance.countCols() - 1) ||
+                  (current.col >= tableMeta.maxCols)) {
                 break;
               }
               cellMeta = instance.getCellMeta(current.row, current.col);
@@ -857,7 +836,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (hasLanguageDictionary(normalizedLanguageCode)) {
       instance.runHooks('beforeLanguageChange', normalizedLanguageCode);
 
-      GridSettings.prototype.language = normalizedLanguageCode;
+      globalMeta.language = normalizedLanguageCode;
 
       instance.runHooks('afterLanguageChange', normalizedLanguageCode);
 
@@ -883,7 +862,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   this.init = function() {
-    dataSource.setData(priv.settings.data);
+    dataSource.setData(tableMeta.data);
 
     instance.runHooks('beforeInit');
 
@@ -891,19 +870,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       addClass(instance.rootElement, 'mobile');
     }
 
-    this.updateSettings(priv.settings, true);
+    this.updateSettings(tableMeta, true);
 
     this.view = new TableView(this);
-    editorManager = EditorManager.getInstance(instance, priv, selection, datamap);
+    editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
     this.forceFullRender = true; // used when data was changed
 
     instance.runHooks('init');
     this.view.render();
 
-    if (typeof priv.firstRun === 'object') {
-      instance.runHooks('afterChange', priv.firstRun[0], priv.firstRun[1]);
-      priv.firstRun = false;
+    if (typeof firstRun === 'object') {
+      instance.runHooks('afterChange', firstRun[0], firstRun[1]);
+      firstRun = false;
     }
     instance.runHooks('afterInit');
   };
@@ -1012,7 +991,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
 
                 if (cell !== null) {
-                  removeClass(cell, instance.getSettings().invalidCellClassName);
+                  removeClass(cell, tableMeta.invalidCellClassName);
                 }
                 // index -= 1;
               }
@@ -1056,22 +1035,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         continue;
       }
 
-      if (priv.settings.allowInsertRow) {
+      if (tableMeta.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
           const numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
 
-          if (numberOfCreatedRows === 0) {
+          if (numberOfCreatedRows >= 1) {
+            metaManager.createRow(null, numberOfCreatedRows);
+          } else {
             skipThisChange = true;
             break;
           }
         }
       }
 
-      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
+      if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) && tableMeta.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           const numberOfCreatedColumns = datamap.createCol(void 0, void 0, source);
 
-          if (numberOfCreatedColumns === 0) {
+          if (numberOfCreatedColumns >= 1) {
+            metaManager.createColumn(null, numberOfCreatedColumns);
+          } else {
             skipThisChange = true;
             break;
           }
@@ -1551,9 +1534,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterChange
    */
   this.loadData = function(data) {
-    if (Array.isArray(priv.settings.dataSchema)) {
+    if (Array.isArray(tableMeta.dataSchema)) {
       instance.dataType = 'array';
-    } else if (isFunction(priv.settings.dataSchema)) {
+    } else if (isFunction(tableMeta.dataSchema)) {
       instance.dataType = 'function';
     } else {
       instance.dataType = 'object';
@@ -1563,7 +1546,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       datamap.destroy();
     }
 
-    datamap = new DataMap(instance, data, priv, GridSettings);
+    datamap = new DataMap(instance, data, tableMeta);
 
     if (typeof data === 'object' && data !== null) {
       if (!(data.push && data.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it
@@ -1580,8 +1563,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       let r = 0;
       let rlen = 0;
 
-      for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
-        if ((instance.dataType === 'object' || instance.dataType === 'function') && priv.settings.dataSchema) {
+      for (r = 0, rlen = tableMeta.startRows; r < rlen; r++) {
+        if ((instance.dataType === 'object' || instance.dataType === 'function') && tableMeta.dataSchema) {
           row = deepClone(dataSchema);
           data.push(row);
 
@@ -1592,7 +1575,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         } else {
           row = [];
 
-          for (let c = 0, clen = priv.settings.startCols; c < clen; c++) {
+          for (let c = 0, clen = tableMeta.startCols; c < clen; c++) {
             row.push(null);
           }
 
@@ -1604,14 +1587,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       throw new Error(`loadData only accepts array of objects or array of arrays (${typeof data} given)`);
     }
 
-    priv.isPopulated = false;
-    GridSettings.prototype.data = data;
-
     if (Array.isArray(data[0])) {
       instance.dataType = 'array';
     }
 
-    instance.runHooks('beforeLoadData', data, priv.firstRun);
+    tableMeta.data = data;
+
+    instance.runHooks('beforeLoadData', data, firstRun);
 
     datamap.dataSource = data;
     dataSource.data = data;
@@ -1619,9 +1601,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource.colToProp = datamap.colToProp.bind(datamap);
     dataSource.propToCol = datamap.propToCol.bind(datamap);
 
-    clearCellSettingCache();
+    metaManager.clearCellsCache();
 
-    const columnsSettings = priv.settings.columns;
+    const columnsSettings = tableMeta.columns;
     let nrOfColumnsFromSettings = 0;
 
     // We will check number of columns only when the `columns` property was defined as an array.
@@ -1640,18 +1622,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     grid.adjustRowsAndCols();
 
-    instance.runHooks('afterLoadData', data, priv.firstRun);
+    instance.runHooks('afterLoadData', data, firstRun);
 
-    if (priv.firstRun) {
-      priv.firstRun = [null, 'loadData'];
+    if (firstRun) {
+      firstRun = [null, 'loadData'];
     } else {
       instance.runHooks('afterChange', null, 'loadData');
       instance.render();
-    }
-    priv.isPopulated = true;
-
-    function clearCellSettingCache() {
-      priv.cellSettings.length = 0;
     }
   };
 
@@ -1782,12 +1759,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         }
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
-        GridSettings.prototype[i] = settings[i];
+        globalMeta[i] = settings[i];
       }
     }
 
     // Load data or create data map
-    if (settings.data === void 0 && priv.settings.data === void 0) {
+    if (settings.data === void 0 && tableMeta.data === void 0) {
       instance.loadData(null); // data source created just now
 
     } else if (settings.data !== void 0) {
@@ -1799,7 +1776,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     clen = instance.countCols();
 
-    const columnSetting = settings.columns || GridSettings.prototype.columns;
+    const columnSetting = tableMeta.columns;
 
     // Init columns constructors configuration
     if (columnSetting && isFunction(columnSetting)) {
@@ -1807,37 +1784,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       columnsAsFunc = true;
     }
 
-    // Clear cellSettings cache
+    // Clear cell meta cache
     if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
-      priv.cellSettings.length = 0;
+      metaManager.clearCache();
     }
 
     if (clen > 0) {
-      let proto;
-      let column;
-
       for (i = 0, j = 0; i < clen; i++) {
-        if (columnsAsFunc && !columnSetting(i)) {
-          /* eslint-disable no-continue */
-          continue;
-        }
-        priv.columnSettings[j] = columnFactory(GridSettings, priv.columnsSettingConflicts);
-
-        // shortcut for prototype
-        proto = priv.columnSettings[j].prototype;
-
         // Use settings provided by user
         if (columnSetting) {
-          if (columnsAsFunc) {
-            column = columnSetting(i);
-
-          } else {
-            column = columnSetting[j];
-          }
+          const column = columnsAsFunc ? columnSetting(i) : columnSetting[j];
 
           if (column) {
-            extend(proto, column);
-            extend(proto, expandType(column));
+            metaManager.updateColumnMeta(j, column);
           }
         }
 
@@ -1854,8 +1813,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.runHooks('afterCellMetaReset');
 
     if (isDefined(settings.className)) {
-      if (GridSettings.prototype.className) {
-        removeClass(instance.rootElement, GridSettings.prototype.className);
+      if (globalMeta.className) {
+        removeClass(instance.rootElement, globalMeta.className);
       }
       if (settings.className) {
         addClass(instance.rootElement, settings.className);
@@ -1915,7 +1874,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     grid.adjustRowsAndCols();
-    if (instance.view && !priv.firstRun) {
+
+    if (instance.view && !firstRun) {
       instance.forceFullRender = true; // used when data was changed
       editorManager.lockEditor();
       instance._refreshBorders(null);
@@ -1937,42 +1897,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getValue = function() {
     const sel = instance.getSelectedLast();
 
-    if (GridSettings.prototype.getValue) {
-      if (isFunction(GridSettings.prototype.getValue)) {
-        return GridSettings.prototype.getValue.call(instance);
+    if (tableMeta.getValue) {
+      if (isFunction(tableMeta.getValue)) {
+        return tableMeta.getValue.call(instance);
       } else if (sel) {
-        return instance.getData()[sel[0][0]][GridSettings.prototype.getValue];
+        return instance.getData()[sel[0][0]][tableMeta.getValue];
       }
     } else if (sel) {
       return instance.getDataAtCell(sel[0], sel[1]);
     }
   };
-
-  function expandType(obj) {
-    if (!hasOwnProperty(obj, 'type')) {
-      // ignore obj.prototype.type
-      return;
-    }
-
-    const expandedType = {};
-    let type;
-
-    if (typeof obj.type === 'object') {
-      type = obj.type;
-    } else if (typeof obj.type === 'string') {
-      type = getCellType(obj.type);
-    }
-
-    // eslint-disable-next-line no-restricted-syntax
-    for (const i in type) {
-      if (hasOwnProperty(type, i) && !hasOwnProperty(obj, i)) {
-        expandedType[i] = type[i];
-      }
-    }
-
-    return expandedType;
-
-  }
 
   /**
    * Returns the object settings.
@@ -1982,7 +1916,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Object} Object containing the current table settings.
    */
   this.getSettings = function() {
-    return priv.settings;
+    return tableMeta;
   };
 
   /**
@@ -2180,7 +2114,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} Array of cell values.
    */
   this.getDataAtCol = function(column) {
-    return [].concat(...datamap.getRange(new CellCoords(0, column), new CellCoords(priv.settings.data.length - 1, column), datamap.DESTINATION_RENDERER));
+    return [].concat(...datamap.getRange(new CellCoords(0, column), new CellCoords(tableMeta.data.length - 1, column), datamap.DESTINATION_RENDERER));
   };
 
   /**
@@ -2196,7 +2130,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getDataAtProp = function(prop) {
     const range = datamap.getRange(
       new CellCoords(0, datamap.propToCol(prop)),
-      new CellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)),
+      new CellCoords(tableMeta.data.length - 1, datamap.propToCol(prop)),
       datamap.DESTINATION_RENDERER);
 
     return [].concat(...range);
@@ -2347,10 +2281,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     let type = 'mixed';
 
-    rangeEach(Math.min(rowStart, rowEnd), Math.max(rowStart, rowEnd), (row) => {
+    rangeEach(Math.max(Math.min(rowStart, rowEnd), 0), Math.max(rowStart, rowEnd), (row) => {
       let isTypeEqual = true;
 
-      rangeEach(Math.min(columnStart, columnEnd), Math.max(columnStart, columnEnd), (column) => {
+      rangeEach(Math.max(Math.min(columnStart, columnEnd), 0), Math.max(columnStart, columnEnd), (column) => {
         const cellType = this.getCellMeta(row, column);
 
         currentType = cellType.type;
@@ -2384,12 +2318,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.removeCellMeta = function(row, column, key) {
     const [physicalRow, physicalColumn] = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];
-    let cachedValue = priv.cellSettings[physicalRow][physicalColumn][key];
+    let cachedValue = metaManager.getCellMeta(physicalRow, physicalColumn, key);
 
     const hookResult = instance.runHooks('beforeRemoveCellMeta', row, column, key, cachedValue);
 
     if (hookResult !== false) {
-      delete priv.cellSettings[physicalRow][physicalColumn][key];
+      metaManager.removeCellMeta(physicalRow, physicalColumn, key);
 
       instance.runHooks('afterRemoveCellMeta', row, column, key, cachedValue);
     }
@@ -2398,15 +2332,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Remove one or more rows from the cell meta object.
+   * Removes or adds one or more rows of the cell meta objects to the cell meta collections.
    *
    * @since 0.30.0
-   * @param {Number} index An integer that specifies at what position to add/remove items, Use negative values to specify the position from the end of the array.
-   * @param {Number} deleteAmount The number of items to be removed. If set to 0, no items will be removed.
-   * @param {Array} items The new items to be added to the array.
+   * @memberof Core#
+   * @function spliceCellsMeta
+   * @param {Number} visualIndex A visual index that specifies at what position to add/remove items.
+   * @param {Number} [deleteAmount=0] The number of items to be removed. If set to 0, no cell meta objects will be removed.
+   * @param {...Object} [cellMetaRows] The new cell meta row objects to be added to the cell meta collection.
    */
-  this.spliceCellsMeta = function(index, deleteAmount, ...items) {
-    priv.cellSettings.splice(index, deleteAmount, ...items);
+  this.spliceCellsMeta = function(visualIndex, deleteAmount = 0, ...cellMetaRows) {
+    if (cellMetaRows.length > 0 && !Array.isArray(cellMetaRows[0])) {
+      throw new Error('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
+    }
+
+    if (deleteAmount > 0) {
+      metaManager.removeRow(this.toPhysicalRow(visualIndex), deleteAmount);
+    }
+
+    if (cellMetaRows.length > 0) {
+      arrayEach(cellMetaRows.reverse(), (cellMetaRow) => {
+        metaManager.createRow(this.toPhysicalRow(visualIndex));
+
+        arrayEach(cellMetaRow, (cellMeta, columnIndex) => this.setCellMetaObject(visualIndex, columnIndex, cellMeta));
+      });
+    }
   };
 
   /**
@@ -2449,17 +2399,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       physicalColumn = this.toPhysicalColumn(column);
     }
 
-    if (!priv.columnSettings[physicalColumn]) {
-      priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
-    }
+    metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
 
-    if (!priv.cellSettings[physicalRow]) {
-      priv.cellSettings[physicalRow] = [];
-    }
-    if (!priv.cellSettings[physicalRow][physicalColumn]) {
-      priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
-    }
-    priv.cellSettings[physicalRow][physicalColumn][key] = value;
     instance.runHooks('afterSetCellMeta', row, column, key, value);
   };
 
@@ -2471,7 +2412,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} Returns an array of ColumnSettings object instances.
    */
   this.getCellsMeta = function() {
-    return arrayFlatten(priv.cellSettings);
+    return metaManager.getCellsMeta();
   };
 
   /**
@@ -2498,20 +2439,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     const prop = datamap.colToProp(column);
+    const cellProperties = metaManager.getCellMeta(physicalRow, physicalColumn);
 
-    if (!priv.columnSettings[physicalColumn]) {
-      priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
-    }
-
-    if (!priv.cellSettings[physicalRow]) {
-      priv.cellSettings[physicalRow] = [];
-    }
-    if (!priv.cellSettings[physicalRow][physicalColumn]) {
-      priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
-    }
-
-    const cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
-
+    // TODO(perf): Add assigning this props and executing below code only once per table render cycle.
     cellProperties.row = physicalRow;
     cellProperties.col = physicalColumn;
     cellProperties.visualRow = row;
@@ -2520,14 +2450,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     cellProperties.instance = instance;
 
     instance.runHooks('beforeGetCellMeta', row, column, cellProperties);
-    extend(cellProperties, expandType(cellProperties)); // for `type` added in beforeGetCellMeta
+
+    // for `type` added or changed in beforeGetCellMeta
+    if (instance.hasHook('beforeGetCellMeta') && hasOwnProperty(cellProperties, 'type')) {
+      metaManager.updateCellMeta(physicalRow, physicalColumn, {
+        type: cellProperties.type,
+      });
+    }
 
     if (cellProperties.cells) {
-      const settings = cellProperties.cells.call(cellProperties, physicalRow, physicalColumn, prop);
+      const settings = cellProperties.cells(physicalRow, physicalColumn, prop);
 
       if (settings) {
-        extend(cellProperties, settings);
-        extend(cellProperties, expandType(settings)); // for `type` added in cells
+        metaManager.updateCellMeta(physicalRow, physicalColumn, settings);
       }
     }
 
@@ -2545,7 +2480,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array}
    */
   this.getCellMetaAtRow = function(row) {
-    return priv.cellSettings[row];
+    return metaManager.getCellsMetaAtRow(row);
   };
 
   /**
@@ -2556,7 +2491,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Boolean}
    */
   this.isColumnModificationAllowed = function() {
-    return !(instance.dataType === 'object' || instance.getSettings().columns);
+    return !(instance.dataType === 'object' || tableMeta.columns);
   };
 
   const rendererLookup = cellMethodLookupFactory('renderer');
@@ -2765,7 +2700,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array|String|Number} Array of header values / single header value.
    */
   this.getRowHeader = function(row) {
-    let rowHeader = priv.settings.rowHeaders;
+    let rowHeader = tableMeta.rowHeaders;
     let physicalRow = row;
 
     if (physicalRow !== void 0) {
@@ -2798,7 +2733,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Boolean} `true` if the instance has the row headers enabled, `false` otherwise.
    */
   this.hasRowHeaders = function() {
-    return !!priv.settings.rowHeaders;
+    return !!tableMeta.rowHeaders;
   };
 
   /**
@@ -2809,8 +2744,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Boolean} `true` if the instance has the column headers enabled, `false` otherwise.
    */
   this.hasColHeaders = function() {
-    if (priv.settings.colHeaders !== void 0 && priv.settings.colHeaders !== null) { // Polymer has empty value = null
-      return !!priv.settings.colHeaders;
+    if (tableMeta.colHeaders !== void 0 && tableMeta.colHeaders !== null) { // Polymer has empty value = null
+      return !!tableMeta.colHeaders;
     }
     for (let i = 0, ilen = instance.countCols(); i < ilen; i++) {
       if (instance.getColHeader(i)) {
@@ -2832,9 +2767,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array|String|Number} The column header(s).
    */
   this.getColHeader = function(column) {
-    const columnsAsFunc = priv.settings.columns && isFunction(priv.settings.columns);
+    const columnsAsFunc = tableMeta.columns && isFunction(tableMeta.columns);
     const columnIndex = instance.runHooks('modifyColHeader', column);
-    let result = priv.settings.colHeaders;
+    let result = tableMeta.colHeaders;
 
     if (columnIndex === void 0) {
       const out = [];
@@ -2853,7 +2788,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         let index = 0;
 
         for (; index < columnsLen; index++) {
-          if (isFunction(instance.getSettings().columns) && instance.getSettings().columns(index)) {
+          if (isFunction(tableMeta.columns) && tableMeta.columns(index)) {
             arr.push(index);
           }
         }
@@ -2864,22 +2799,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       const physicalColumn = instance.toPhysicalColumn(columnIndex);
       const prop = translateVisualIndexToColumns(physicalColumn);
 
-      if (priv.settings.colHeaders === false) {
+      if (tableMeta.colHeaders === false) {
         result = null;
 
-      } else if (priv.settings.columns && isFunction(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
-        result = priv.settings.columns(prop).title;
+      } else if (tableMeta.columns && isFunction(tableMeta.columns) && tableMeta.columns(prop) && tableMeta.columns(prop).title) {
+        result = tableMeta.columns(prop).title;
 
-      } else if (priv.settings.columns && priv.settings.columns[physicalColumn] && priv.settings.columns[physicalColumn].title) {
-        result = priv.settings.columns[physicalColumn].title;
+      } else if (tableMeta.columns && tableMeta.columns[physicalColumn] && tableMeta.columns[physicalColumn].title) {
+        result = tableMeta.columns[physicalColumn].title;
 
-      } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[physicalColumn] !== void 0) {
-        result = priv.settings.colHeaders[physicalColumn];
+      } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== void 0) {
+        result = tableMeta.colHeaders[physicalColumn];
 
-      } else if (isFunction(priv.settings.colHeaders)) {
-        result = priv.settings.colHeaders(physicalColumn);
+      } else if (isFunction(tableMeta.colHeaders)) {
+        result = tableMeta.colHeaders(physicalColumn);
 
-      } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
+      } else if (tableMeta.colHeaders && typeof tableMeta.colHeaders !== 'string' && typeof tableMeta.colHeaders !== 'number') {
         result = spreadsheetColumnLabel(columnIndex); // see #1458
       }
     }
@@ -2897,12 +2832,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number}
    */
   this._getColWidthFromSettings = function(col) {
-    const cellProperties = instance.getCellMeta(0, col);
-    let width = cellProperties.width;
+    let width;
 
-    if (width === void 0 || width === priv.settings.width) {
-      width = cellProperties.colWidths;
+    // We currently don't support cell meta objects for headers (negative values)
+    if (col >= 0) {
+      const cellProperties = instance.getCellMeta(0, col);
+
+      width = cellProperties.width;
     }
+
+    if (width === void 0 || width === tableMeta.width) {
+      width = tableMeta.colWidths;
+    }
+
     if (width !== void 0 && width !== null) {
       switch (typeof width) {
         case 'object': // array
@@ -2957,10 +2899,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     // let cellProperties = instance.getCellMeta(row, 0);
     // let height = cellProperties.height;
     //
-    // if (height === void 0 || height === priv.settings.height) {
+    // if (height === void 0 || height === tableMeta.height) {
     //  height = cellProperties.rowHeights;
     // }
-    let height = priv.settings.rowHeights;
+    let height = tableMeta.rowHeights;
 
     if (height !== void 0 && height !== null) {
       switch (typeof height) {
@@ -3051,18 +2993,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number} Total number of columns.
    */
   this.countCols = function() {
-    const maxCols = this.getSettings().maxCols;
+    const maxCols = tableMeta.maxCols;
     let dataLen = this.columnIndexMapper.getNotSkippedIndexesLength();
 
-    if (priv.settings.columns) {
-      const columnsIsFunction = isFunction(priv.settings.columns);
+    if (tableMeta.columns) {
+      const columnsIsFunction = isFunction(tableMeta.columns);
 
       if (columnsIsFunction) {
         if (instance.dataType === 'array') {
           let columnLen = 0;
 
           for (let i = 0; i < dataLen; i++) {
-            if (priv.settings.columns(i)) {
+            if (tableMeta.columns(i)) {
               columnLen += 1;
             }
           }
@@ -3073,7 +3015,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         }
 
       } else {
-        dataLen = priv.settings.columns.length;
+        dataLen = tableMeta.columns.length;
       }
 
     } else if (instance.dataType === 'object' || instance.dataType === 'function') {
@@ -3212,7 +3154,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Boolean} `true` if the row at the given `row` is empty, `false` otherwise.
    */
   this.isEmptyRow = function(row) {
-    return priv.settings.isEmptyRow.call(instance, row);
+    return tableMeta.isEmptyRow.call(instance, row);
   };
 
   /**
@@ -3224,7 +3166,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Boolean} `true` if the column at the given `col` is empty, `false` otherwise.
    */
   this.isEmptyCol = function(column) {
-    return priv.settings.isEmptyCol.call(instance, column);
+    return tableMeta.isEmptyCol.call(instance, column);
   };
 
   /**
@@ -3435,6 +3377,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     dataSource = null;
 
+    metaManager.clearCache();
+
     keyStateStopObserving();
 
     if (isRootInstance(instance)) {
@@ -3481,12 +3425,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.rowIndexMapper = null;
     instance.columnIndexMapper = null;
     datamap = null;
-    priv = null;
     grid = null;
     selection = null;
     editorManager = null;
     instance = null;
-    GridSettings = null;
   };
 
   /**
@@ -3644,7 +3586,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {String}
    */
   this.getTranslatedPhrase = function(dictionaryKey, extraArguments) {
-    return getTranslatedPhrase(priv.settings.language, dictionaryKey, extraArguments);
+    return getTranslatedPhrase(tableMeta.language, dictionaryKey, extraArguments);
   };
 
   /**

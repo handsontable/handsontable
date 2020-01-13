@@ -519,12 +519,13 @@ class Endpoints {
     const reverseRowOffset = (-1) * endpoint.alterRowOffset || 0;
     const reverseColOffset = (-1) * endpoint.alterColumnOffset || 0;
     const visualEndpointRowIndex = this.hot.toVisualRow(endpoint.destinationRow);
-    const cellMeta = this.hot.getCellMeta(this.hot.toVisualRow(endpoint.destinationRow + reverseRowOffset), endpoint.destinationColumn + reverseColOffset);
 
     if (endpoint.destinationRow >= this.hot.countRows() || endpoint.destinationColumn >= this.hot.countCols()) {
       this.throwOutOfBoundsWarning();
       return;
     }
+
+    const cellMeta = this.hot.getCellMeta(this.hot.toVisualRow(endpoint.destinationRow + reverseRowOffset), endpoint.destinationColumn + reverseColOffset);
 
     if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
       cellMeta.readOnly = endpoint.readOnly;

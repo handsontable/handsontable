@@ -3,7 +3,7 @@ import {
   createCellHeadersRange,
   normalizeLanguageCode,
   warnUserAboutLanguageRegistration,
-  applyLanguageSetting
+  getValidLanguageCode
 } from 'handsontable/i18n/utils';
 
 import { DEFAULT_LANGUAGE_CODE, registerLanguageDictionary } from 'handsontable/i18n/dictionariesManager';
@@ -91,7 +91,7 @@ describe('i18n helpers', () => {
     });
   });
 
-  describe('applyLanguageSetting', () => {
+  describe('getValidLanguageCode', () => {
     beforeAll(() => {
       // Note: please keep in mind that this language will be registered also for next unit tests (within this file)!
       // It's stored globally for already loaded Handsontable library.
@@ -99,28 +99,20 @@ describe('i18n helpers', () => {
       registerLanguageDictionary(plPL);
     });
 
-    it('should set `language` key of settings object when handling existing language', () => {
-      const settings = {};
-
-      applyLanguageSetting(settings, plPL.languageCode);
-
-      expect(settings.language).toEqual(plPL.languageCode);
+    it('should returns valid language code', () => {
+      expect(getValidLanguageCode(plPL.languageCode)).toEqual(plPL.languageCode);
     });
 
-    it('should set `language` key of settings object to default language code when handling not existing language', () => {
+    it('should returns default language code when provided valid code not exist in the registered languages', () => {
       spyOn(console, 'error');
-      const settings = {};
 
-      applyLanguageSetting(settings, 'aa-BB');
-
-      expect(settings.language).toEqual(DEFAULT_LANGUAGE_CODE);
+      expect(getValidLanguageCode('aa-BB')).toEqual(DEFAULT_LANGUAGE_CODE);
     });
 
     it('should log error when handling not existing language', () => {
       const spy = spyOn(console, 'error');
-      const settings = {};
 
-      applyLanguageSetting(settings, 'aa-BB');
+      getValidLanguageCode('aa-BB');
 
       expect(spy).toHaveBeenCalled();
     });
