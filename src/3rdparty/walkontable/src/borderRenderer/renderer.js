@@ -3,7 +3,6 @@ import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
 
 const offsetToOverLapPrecedingBorder = -1;
-const insetPositioningForCurrentCellHighlight = 1;
 
 /**
  * Manages rendering of cell borders using SVG. Creates a single instance of SVG for each `Table`
@@ -403,9 +402,16 @@ export default class BorderRenderer {
       }
     }
 
-    if (selectionSetting.className === 'current') {
-      x1 += insetPositioningForCurrentCellHighlight;
-      y1 += insetPositioningForCurrentCellHighlight;
+    if (selectionSetting.border && selectionSetting.border.width && selectionSetting.border.strokeAlignment === 'inside') {
+      // strokeAlignment: 'inside' is used to render the border of selection "inside" a cell
+      // any other strokeAlignment value means to render the border centered on the gridlines. Other alignment types might be implemented in the future
+      const flooredHalfWidth = Math.floor(selectionSetting.border.width / 2);
+      const ceiledHalfWidth = Math.ceil(selectionSetting.border.width / 2) - 1;
+
+      x1 += flooredHalfWidth;
+      y1 += flooredHalfWidth;
+      x2 -= ceiledHalfWidth;
+      y2 -= ceiledHalfWidth;
     }
 
     if (x1 < 0 && x2 < 0 || y1 < 0 && y2 < 0) {

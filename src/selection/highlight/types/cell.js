@@ -13,6 +13,7 @@ function createHighlight({ cellCornerVisible }) {
       width: 2,
       color: '#4b89ff',
       cornerVisible: cellCornerVisible,
+      strokeAlignment: 'inside',
     },
   });
 

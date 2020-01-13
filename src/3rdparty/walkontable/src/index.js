@@ -30,6 +30,8 @@ import getSvgPathsRenderer, { precalculateStylesAndCommands, compareStrokePriori
 import getSvgResizer from './borderRenderer/svg/resizer';
 import { setCurrentWindowContext, convertCssColorToRGBA, getLuminance, compareLuminance } from './borderRenderer/svg/color';
 
+import { setBrowserMeta } from '../../../helpers/browser';
+
 /**
  * The export `Walkontable as default` is intended for external use (i.e. in Handsontable). Other named exports
  * are intended for internal use in Walkontable test suites.
@@ -73,5 +75,7 @@ export {
   convertCssColorToRGBA,
   getLuminance,
   compareLuminance,
-  compareStrokePriority
+  compareStrokePriority,
+
+  setBrowserMeta
 };
