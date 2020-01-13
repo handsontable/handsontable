@@ -52,8 +52,7 @@
     "build:walkontable": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ./hot.config.js webpack --hide-modules ./src/3rdparty/walkontable/src/index.js",
     "build:languages": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ./hot.config.js webpack",
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ./hot.config.js webpack",
-    "release": "npm run clean && npm run build && npm publish",
-    "postinstall": "node -p \"'Handsontable is no longer released under the MIT license. Read more about this change on our blog at https://handsontable.com/blog.'\""
+    "release": "npm run clean && npm run build && npm publish"
   },
   "keywords": [
     "data",
@@ -98,7 +97,7 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-plugin-transform-require-ignore": "^0.1.1",
     "concurrently": "^4.1.1",
-    "copy-webpack-plugin": "^4.6.0",
+    "copy-webpack-plugin": "^5.1.0",
     "cpy-cli": "^2.0.0",
     "cross-env": "^5.0.1",
     "css-loader": "^2.1.1",
@@ -129,9 +128,8 @@
     "style-loader": "^0.18.2",
     "stylelint": "^11.1.1",
     "supports-color": "^4.2.1",
-    "tree-kill": "^1.2.1",
+    "tree-kill": "^1.2.2",
     "typescript": "^3.3.3",
-    "uglifyjs-webpack-plugin": "^2.1.2",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
   },
