@@ -371,7 +371,7 @@ class GhostTable {
   createColElement(column) {
     const col = this.hot.rootDocument.createElement('col');
 
-    col.style.width = `${this.hot.view.wt.wtTable.getStretchedColumnWidth(column)}px`;
+    col.style.width = `${this.hot.view.wt.columnUtils.getStretchedColumnWidth(column)}px`;
 
     return col;
   }

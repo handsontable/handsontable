@@ -86,8 +86,8 @@ export default class ColumnUtils {
    */
   calculateWidths() {
     const { wot } = this;
-    const { wtTable, wtViewport, cloneSource } = wot;
-    const mainHolder = cloneSource ? cloneSource.wtTable.holder : wtTable.holder;
+    const { wtTable, wtViewport, overlay } = wot;
+    const mainHolder = overlay ? overlay.master.wtTable.holder : wtTable.holder;
     const scrollbarCompensation = mainHolder.offsetHeight < mainHolder.scrollHeight ? getScrollbarWidth() : 0;
     let rowHeaderWidthSetting = wot.getSetting('rowHeaderWidth');
 

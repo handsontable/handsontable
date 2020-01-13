@@ -35,6 +35,7 @@ export function spec() {
  */
 export function walkontable(options, table) {
   const currentSpec = spec();
+  const WalkontableDefault = Walkontable.default; // default export of core.js
 
   if (!table) {
     table = currentSpec.$table[0];
@@ -42,7 +43,7 @@ export function walkontable(options, table) {
 
   options.table = table;
 
-  currentSpec.wotInstance = new Walkontable.Core(options);
+  currentSpec.wotInstance = new WalkontableDefault(options);
 
   return currentSpec.wotInstance;
 }

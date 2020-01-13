@@ -1,6 +1,5 @@
 import {
   getComputedStyle,
-  getTrimmingContainer,
   innerWidth,
   innerHeight,
   offset,
@@ -26,7 +25,6 @@ class SelectionHandle {
       return;
     }
     this.eventManager = new EventManager(wotInstance);
-    this.instance = wotInstance;
     this.wot = wotInstance;
     this.settings = settings;
     this.mouseDown = false;
@@ -431,7 +429,7 @@ class SelectionHandle {
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
       this.cornerStyle.display = 'none';
 
-      let trimmingContainer = getTrimmingContainer(wtTable.TABLE);
+      let trimmingContainer = this.wot.overlay ? this.wot.overlay.master.wtTable.trimmingContainer : wtTable.trimmingContainer;
       const trimToWindow = trimmingContainer === rootWindow;
 
       if (trimToWindow) {

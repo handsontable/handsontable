@@ -12,7 +12,7 @@ export default function freezeColumnItem(manualColumnFreezePlugin) {
       manualColumnFreezePlugin.freezeColumn(selectedColumn);
 
       this.render();
-      this.view.wt.wtOverlays.adjustElementsSize(true);
+      this.view.wt.wtOverlays.adjustElementsSizes(true);
     },
     hidden() {
       const selection = this.getSelectedRange();

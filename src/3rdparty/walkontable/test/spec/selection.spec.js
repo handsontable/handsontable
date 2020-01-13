@@ -98,7 +98,6 @@ describe('Walkontable.Selection', () => {
     wt.selections.createOrGetArea().add(new Walkontable.CellCoords(1, 1));
 
     wt.draw();
-    wt.draw(); // TODO as it turns out, the desired rendering is only visible after the second draw. A problem that does not appear in HOT but appears in raw WOT
 
     const paths = spec().$wrapper.find('svg path');
     expect(paths.length).toBe(4);
@@ -106,7 +105,7 @@ describe('Walkontable.Selection', () => {
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_master')[0])).withContext('ht_master')
       .toEqual(['M 49.5 0 49.5 24 M 0 23.5 50 23.5']);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top')[0])).withContext('ht_clone_top')
-      .toEqual(['M 0 0.5 50 0.5 M 49.5 0 49.5 47 M 0 46.5 50 46.5']);
+      .toEqual(['M 0 0.5 50 0.5 M 49.5 0 49.5 48 M 0 47.5 50 47.5']);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_left')[0])).withContext('ht_clone_left')
       .toEqual(['M 99.5 0 99.5 24 M 0 23.5 100 23.5 M 0.5 0 0.5 24']);
     expect(spec().$wrapper.find('.ht_clone_bottom_left_corner').length).withContext('ht_clone_top_left_corner')
@@ -138,7 +137,6 @@ describe('Walkontable.Selection', () => {
     wt.draw();
     wt.scrollViewport(new Walkontable.CellCoords(38, 0));
     wt.draw();
-    wt.draw(); // TODO as it turns out, the desired rendering is only visible after the second draw. A problem that does not appear in HOT but appears in raw WOT. Why?
 
     const paths = spec().$wrapper.find('svg path');
     expect(paths.length).toBe(4);
@@ -148,13 +146,13 @@ describe('Walkontable.Selection', () => {
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top')[0])).withContext('ht_clone_top')
       .toEqual([]);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_left')[0])).withContext('ht_clone_left')
-      .toEqual(['M 0 253.5 100 253.5 M 99.5 253 99.5 -336 M 0 -336.5 100 -336.5 M 0.5 253 0.5 -336']);
+      .toEqual(['M 0 253.5 100 253.5 M 99.5 253 99.5 300 M 0 299.5 100 299.5 M 0.5 253 0.5 300']);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top_left_corner')[0])).withContext('ht_clone_top_left_corner')
       .toEqual(null);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_bottom')[0])).withContext('ht_clone_bottom')
-      .toEqual(['M 0 -22.5 50 -22.5 M 49.5 -23 49.5 24 M 0 23.5 50 23.5']);
+      .toEqual(['M 0 -23.5 50 -23.5 M 49.5 -24 49.5 24 M 0 23.5 50 23.5']);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_bottom_left_corner')[0])).withContext('ht_clone_bottom_left_corner')
-      .toEqual(['M 0 613.5 100 613.5 M 99.5 613 99.5 24 M 0 23.5 100 23.5 M 0.5 613 0.5 24']);
+      .toEqual(['M 0 -23.5 100 -23.5 M 99.5 -24 99.5 24 M 0 23.5 100 23.5 M 0.5 -24 0.5 24']);
   });
 
   it('should not add class to selection until it is rerendered', () => {

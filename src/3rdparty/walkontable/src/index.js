@@ -15,7 +15,7 @@ import BottomOverlay from './overlay/bottom';
 import BottomLeftCornerOverlay from './overlay/bottomLeftCorner';
 
 import SelectionHandle from './selectionHandle';
-import Walkontable from './core';
+import Master from './core/master';
 import Event from './event';
 import Overlays from './overlays';
 import Scroll from './scroll';
@@ -53,8 +53,7 @@ export {
   BottomLeftCornerOverlay,
 
   SelectionHandle,
-  Walkontable as default,
-  Walkontable as Core,
+  Master as default,
   Event,
   Overlays,
   Scroll,

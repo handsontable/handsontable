@@ -18,6 +18,7 @@ class TopLeftCornerOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_TOP_LEFT_CORNER);
+    this.updateStateOfRendering();
   }
 
   /**
@@ -37,26 +38,26 @@ class TopLeftCornerOverlay extends Overlay {
    * @returns {Boolean}
    */
   shouldBeRendered() {
-    const { wot } = this;
-    return !!((wot.getSetting('fixedRowsTop') || wot.getSetting('columnHeaders').length) &&
-        (wot.getSetting('fixedColumnsLeft') || wot.getSetting('rowHeaders').length));
+    const { master } = this;
+    return !!((master.getSetting('fixedRowsTop') || master.getSetting('columnHeaders').length) &&
+        (master.getSetting('fixedColumnsLeft') || master.getSetting('rowHeaders').length));
   }
 
   /**
-   * Updates the corner overlay position
+   * Updates the position of the overlay root element relatively to the position of the master instance
    */
-  resetFixedPosition() {
-    this.updateTrimmingContainer();
+  adjustElementsPosition() {
+    const { clone, master } = this;
 
-    if (!this.wot.wtTable.holder.parentNode) {
+    if (!master.wtTable.holder.parentNode) {
       // removed from DOM
       return;
     }
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
-    const preventOverflow = this.wot.getSetting('preventOverflow');
+    const overlayRootElement = clone.wtTable.wtRootElement;
+    const preventOverflow = master.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === this.wot.rootWindow) {
-      const box = this.wot.wtTable.hider.getBoundingClientRect();
+    if (master.wtTable.trimmingContainer === master.rootWindow) {
+      const box = master.wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(box.top);
       const left = Math.ceil(box.left);
       const bottom = Math.ceil(box.bottom);
@@ -65,30 +66,43 @@ class TopLeftCornerOverlay extends Overlay {
       let finalTop = '0';
 
       if (!preventOverflow || preventOverflow === 'vertical') {
-        if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
+        if (left < 0 && (right - overlayRootElement.offsetWidth) > 0) {
           finalLeft = `${-left}px`;
         }
       }
 
       if (!preventOverflow || preventOverflow === 'horizontal') {
-        if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
+        if (top < 0 && (bottom - overlayRootElement.offsetHeight) > 0) {
           finalTop = `${-top}px`;
         }
       }
-      setOverlayPosition(overlayRoot, finalLeft, finalTop);
+      setOverlayPosition(overlayRootElement, finalLeft, finalTop);
     } else {
-      resetCssTransform(overlayRoot);
+      resetCssTransform(overlayRootElement);
+    }
+  }
+
+  /**
+   * If needed, adjust the sizes of the clone and the master elements to the dimensions of the trimming container.
+   *
+   * @param {Boolean} [force=false]
+   */
+  adjustElementsSize(force = false) {
+    if (!this.needFullRender && !force) {
+      return;
     }
 
-    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    const { clone, master } = this;
+    let tableHeight = outerHeight(clone.wtTable.TABLE);
+    const tableWidth = outerWidth(clone.wtTable.TABLE);
+    const overlayRootElement = clone.wtTable.wtRootElement;
 
-    if (!this.wot.wtTable.hasDefinedSize()) {
+    if (!master.wtTable.hasDefinedSize()) {
       tableHeight = 0;
     }
 
-    overlayRoot.style.height = `${tableHeight}px`;
-    overlayRoot.style.width = `${tableWidth}px`;
+    overlayRootElement.style.height = `${tableHeight}px`;
+    overlayRootElement.style.width = `${tableWidth}px`;
   }
 }
 

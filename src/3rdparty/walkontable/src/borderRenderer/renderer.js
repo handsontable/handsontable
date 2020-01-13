@@ -292,16 +292,72 @@ export default class BorderRenderer {
    * Generates lines in format `[[x1, y1, x2, y2], ...]` based on input given as arguments, and stores them in `pathGroup.stylesAndLines`
    *
    * @param {Object} selectionSetting Settings provided in the same format as used by `Selection.setting`
-   * @param {HTMLElement} firstTd TD element that corresponds of the top-left corner of the line that we are drawing
-   * @param {HTMLElement} lastTd TD element that corresponds of the bottom-right corner of the line that we are drawing
+   * @param {Function} getCellFn Function that returns a cell from the current overlay
+   * @param {Object} selectionStart Object with properties row, col that represents the top left corner of the selection
+   * @param {Object} selectionEnd Object with properties row, col that represents the bottom right corner of the selection
    * @param {Boolean} hasTopEdge TRUE if the range between `firstTd` and `lastTd` contains the top line, FALSE otherwise
    * @param {Boolean} hasRightEdge TRUE if the range between `firstTd` and `lastTd` contains the right line, FALSE otherwise
    * @param {Boolean} hasBottomEdge TRUE if the range between `firstTd` and `lastTd` contains bottom top line, FALSE otherwise
    * @param {Boolean} hasLeftEdge TRUE if the range between `firstTd` and `lastTd` contains left top line, FALSE otherwise
    */
-  convertArgsToLines(selectionSetting, firstTd, lastTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
+  convertArgsToLines(selectionSetting, getCellFn, selectionStart, selectionEnd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
     const layerNumber = this.getLayerNumber(selectionSetting);
     const stylesAndLines = this.ensurePathGroup(layerNumber).stylesAndLines;
+
+    const isSingle = selectionStart.row === selectionEnd.row && selectionStart.col === selectionEnd.col;
+    let addFirstTdWidth = 0;
+    let addFirstTdHeight = 0;
+    let firstTd = getCellFn(selectionStart);
+
+    if (firstTd === -1) {
+      selectionStart.row += 1;
+      firstTd = getCellFn(selectionStart);
+      addFirstTdHeight = -1;
+    }
+    if (firstTd === -2) {
+      selectionStart.row -= 1;
+      firstTd = getCellFn(selectionStart);
+      addFirstTdHeight = 1;
+    }
+    if (firstTd === -4) {
+      selectionStart.col -= 1;
+      firstTd = getCellFn(selectionStart);
+      addFirstTdWidth = 1;
+    }
+
+    if (typeof firstTd !== 'object') {
+      return;
+    }
+
+    let lastTd;
+    let addLastTdWidth = 0;
+    let addLastTdHeight = 0;
+    if (isSingle) {
+      lastTd = firstTd;
+      addLastTdWidth = addFirstTdWidth;
+      addLastTdHeight = addFirstTdHeight;
+    } else {
+      lastTd = getCellFn(selectionEnd);
+      if (lastTd === -1) {
+        selectionEnd.row += 1;
+        lastTd = getCellFn(selectionEnd);
+        addLastTdHeight = -1;
+      }
+      if (lastTd === -2) {
+        selectionEnd.row -= 1;
+        lastTd = getCellFn(selectionEnd);
+        addLastTdHeight = 1;
+      }
+      if (lastTd === -4) {
+        selectionEnd.col -= 1;
+        lastTd = getCellFn(selectionEnd);
+        addLastTdWidth = 1;
+      }
+    }
+
+    if (typeof lastTd !== 'object') {
+      return;
+    }
 
     const firstTdBoundingRect = firstTd.getBoundingClientRect();
     const lastTdBoundingRect = (firstTd === lastTd) ? firstTdBoundingRect : lastTd.getBoundingClientRect();
@@ -310,6 +366,11 @@ export default class BorderRenderer {
     let y1 = firstTdBoundingRect.top;
     let x2 = lastTdBoundingRect.left + lastTdBoundingRect.width;
     let y2 = lastTdBoundingRect.top + lastTdBoundingRect.height;
+
+    x1 += addFirstTdWidth * firstTdBoundingRect.width;
+    y1 += addFirstTdHeight * firstTdBoundingRect.height;
+    x2 += addLastTdWidth * lastTdBoundingRect.width;
+    y2 += addLastTdHeight * lastTdBoundingRect.height;
 
     x1 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.left);
     y1 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.top);

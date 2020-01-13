@@ -373,7 +373,7 @@ class Filters extends BasePlugin {
 
     this.hot.runHooks('afterFilter', conditions);
 
-    this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+    this.hot.view.wt.wtOverlays.adjustElementsSizes(true);
     this.hot.render();
     this.clearColumnSelection();
   }

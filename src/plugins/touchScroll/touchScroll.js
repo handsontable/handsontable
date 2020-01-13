@@ -121,19 +121,19 @@ class TouchScroll extends BasePlugin {
     this.clones.length = 0;
 
     if (topOverlay.needFullRender) {
-      this.clones.push(topOverlay.clone.wtTable.holder.parentNode);
+      this.clones.push(topOverlay.clone.wtTable.wtRootElement);
     }
     if (bottomOverlay.needFullRender) {
-      this.clones.push(bottomOverlay.clone.wtTable.holder.parentNode);
+      this.clones.push(bottomOverlay.clone.wtTable.wtRootElement);
     }
     if (leftOverlay.needFullRender) {
-      this.clones.push(leftOverlay.clone.wtTable.holder.parentNode);
+      this.clones.push(leftOverlay.clone.wtTable.wtRootElement);
     }
     if (topLeftCornerOverlay) {
-      this.clones.push(topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+      this.clones.push(topLeftCornerOverlay.clone.wtTable.wtRootElement);
     }
     if (bottomLeftCornerOverlay && bottomLeftCornerOverlay.clone) {
-      this.clones.push(bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
+      this.clones.push(bottomLeftCornerOverlay.clone.wtTable.wtRootElement);
     }
   }
 
@@ -170,11 +170,11 @@ class TouchScroll extends BasePlugin {
     }, 400);
 
     arrayEach(this.scrollbars, (scrollbar) => {
-      scrollbar.refresh();
-      scrollbar.resetFixedPosition();
+      scrollbar.redrawClone();
+      scrollbar.adjustElementsPosition();
     });
 
-    this.hot.view.wt.wtOverlays.syncScrollWithMaster();
+    this.hot.view.wt.wtOverlays.propagateMasterScrollPositionsToClones();
   }
 }
 

@@ -291,7 +291,7 @@ class ManualRowMove extends BasePlugin {
     let height = 0;
 
     for (let i = from; i < to; i++) {
-      const rowHeight = this.hot.view.wt.wtTable.getRowHeight(i) || 23;
+      const rowHeight = this.hot.view.wt.rowUtils.getHeight(i) || 23;
 
       height += rowHeight;
     }
@@ -644,7 +644,7 @@ class ManualRowMove extends BasePlugin {
     if (movePerformed === true) {
       this.persistentStateSave();
       this.hot.render();
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.wt.wtOverlays.adjustElementsSizes(true);
 
       const selectionStart = this.hot.toVisualRow(firstMovedPhysicalRow);
       const selectionEnd = selectionStart + rowsLen - 1;

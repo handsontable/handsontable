@@ -1,12 +1,10 @@
 import {
   hasClass,
   index,
-  offset,
   removeClass,
   removeTextNodes,
   overlayContainsElement,
   closest,
-  outerWidth,
   innerHeight,
   isVisible,
 } from './../../../helpers/dom/element';
@@ -16,9 +14,8 @@ import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 import { Renderer } from './renderer';
 import Overlay from './overlay/_base';
-import ColumnUtils from './utils/column';
-import RowUtils from './utils/row';
 import { BorderRenderer } from './borderRenderer';
+import Master from './core/master';
 
 /**
  *
@@ -34,17 +31,13 @@ class Table {
      *
      * @type {Boolean}
      */
-    this.isMaster = !wotInstance.cloneOverlay; // "instanceof" operator isn't used, because it caused a circular reference in Webpack
+    this.isMaster = wotInstance instanceof Master;
     this.wot = wotInstance;
 
-    // legacy support
-    this.instance = this.wot;
     this.TABLE = table;
     this.TBODY = null;
     this.THEAD = null;
     this.COLGROUP = null;
-    this.tableOffset = 0;
-    this.holderOffset = 0;
     /**
      * Indicates if the table has height bigger than 0px.
      *
@@ -57,13 +50,6 @@ class Table {
      * @type {Boolean}
      */
     this.hasTableWidth = true;
-    /**
-     * Indicates if the table is visible. By visible, it means that the holder
-     * element has CSS 'display' property different than 'none'.
-     *
-     * @type {Boolean}
-     */
-    this.isTableVisible = false;
 
     removeTextNodes(this.TABLE);
 
@@ -73,9 +59,6 @@ class Table {
 
     this.wtRootElement = this.holder.parentNode;
 
-    if (this.isMaster) {
-      this.alignOverlaysWithTrimmingContainer();
-    }
     this.fixTableDomTree();
 
     this.rowFilter = null;
@@ -87,15 +70,13 @@ class Table {
     // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
     this.wot.wtSettings.settings.rowHeaderWidth = () => this._modifyRowHeaderWidth(origRowHeaderWidth);
 
-    this.rowUtils = new RowUtils(this.wot);
-    this.columnUtils = new ColumnUtils(this.wot);
     this.tableRenderer = new Renderer({
       TABLE: this.TABLE,
       THEAD: this.THEAD,
       COLGROUP: this.COLGROUP,
       TBODY: this.TBODY,
-      rowUtils: this.rowUtils,
-      columnUtils: this.columnUtils,
+      rowUtils: this.isMaster ? this.wot.rowUtils : this.wot.overlay.master.rowUtils,
+      columnUtils: this.isMaster ? this.wot.columnUtils : this.wot.overlay.master.columnUtils,
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
 
@@ -110,7 +91,7 @@ class Table {
    * @returns {Boolean}
    */
   is(overlayTypeName) {
-    return Overlay.isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
+    return !this.isMaster && this.wot.getOverlayName() === overlayTypeName;
   }
 
   /**
@@ -206,9 +187,6 @@ class Table {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
         parent.insertBefore(holder, hider);
       }
-      if (this.isMaster) {
-        holder.parentNode.className += 'ht_master handsontable';
-      }
       holder.appendChild(hider);
     }
 
@@ -216,167 +194,57 @@ class Table {
   }
 
   /**
-   * Redraws the table
+   * Redraws the table. Warning, this method is only used by the overlay tables.
+   * The master table (table/master.js) uses an override of this function.
    *
    * @param {Boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
    *                                   If FALSE or UNDEFINED, will perform a full redraw.
-   * @returns {Table}
    */
   draw(fastDraw = false) {
     const { wot } = this;
-    const { wtOverlays, wtViewport } = wot;
     const totalRows = wot.getSetting('totalRows');
     const totalColumns = wot.getSetting('totalColumns');
     const rowHeaders = wot.getSetting('rowHeaders');
     const rowHeadersCount = rowHeaders.length;
     const columnHeaders = wot.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
-    let syncScroll = false;
-    let runFastDraw = fastDraw;
 
-    if (this.isMaster) {
-      this.holderOffset = offset(this.holder);
-      runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
-
-      if (rowHeadersCount && !wot.getSetting('fixedColumnsLeft')) {
-        const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
-        const previousState = this.correctHeaderWidth;
-
-        this.correctHeaderWidth = leftScrollPos > 0;
-
-        if (previousState !== this.correctHeaderWidth) {
-          runFastDraw = false;
-        }
-      }
-    }
-
-    if (this.isMaster) {
-      syncScroll = wtOverlays.prepareOverlays();
-    }
-
-    if (runFastDraw) {
-      if (this.isMaster) {
-        // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
-        wtViewport.createVisibleCalculators();
-      }
-      if (wtOverlays) {
-        wtOverlays.refresh(true);
-      }
-    } else {
-      if (this.isMaster) {
-        this.tableOffset = offset(this.TABLE);
-      } else {
-        this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
-      }
-
+    if (!fastDraw) {
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
       const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
 
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
-      let performRedraw = true;
-
-      // Only master table rendering can be skipped
-      if (this.isMaster) {
-        this.alignOverlaysWithTrimmingContainer();
-
-        const skipRender = {};
-
-        this.wot.getSetting('beforeDraw', true, skipRender);
-        performRedraw = skipRender.skipRender !== true;
-      }
-
-      if (performRedraw) {
+      if (this.is(Overlay.CLONE_BOTTOM) ||
+        this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+        // do NOT render headers on the bottom or bottom-left corner overlay
+        this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
+      } else {
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
+      }
 
-        if (this.is(Overlay.CLONE_BOTTOM) ||
-          this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-          // do NOT render headers on the bottom or bottom-left corner overlay
-          this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
-        }
-
+      if (this.is(Overlay.CLONE_BOTTOM)) {
         this.resetOversizedRows();
+      }
 
-        this.tableRenderer
-          .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
-          .setFilters(this.rowFilter, this.columnFilter)
-          .render();
+      this.tableRenderer
+        .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
+        .setFilters(this.rowFilter, this.columnFilter)
+        .render();
 
-        let workspaceWidth;
+      this.adjustColumnHeaderHeights();
 
-        if (this.isMaster) {
-          workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
-          this.wot.wtViewport.containerWidth = null;
-          this.markOversizedColumnHeaders();
-        }
-
-        this.adjustColumnHeaderHeights();
-
-        if (this.isMaster || this.is(Overlay.CLONE_BOTTOM)) {
-          this.markOversizedRows();
-        }
-
-        if (this.isMaster) {
-          this.wot.wtViewport.createVisibleCalculators();
-          this.wot.wtOverlays.refresh(false);
-          this.wot.wtOverlays.applyToDOM();
-
-          const hiderWidth = outerWidth(this.hider);
-          const tableWidth = outerWidth(this.TABLE);
-
-          if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
-            // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
-            this.columnUtils.calculateWidths();
-            this.tableRenderer.renderer.colGroup.render();
-          }
-
-          if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
-            // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
-            this.wot.wtViewport.containerWidth = null;
-            this.columnUtils.calculateWidths();
-            this.tableRenderer.renderer.colGroup.render();
-          }
-
-          this.wot.getSetting('onDraw', true);
-
-        } else if (this.is(Overlay.CLONE_BOTTOM)) {
-          this.wot.cloneSource.wtOverlays.adjustElementsSize();
-        }
+      if (this.is(Overlay.CLONE_BOTTOM)) {
+        this.markOversizedRows();
       }
     }
 
-    if (this.isMaster) {
-      wtOverlays.topOverlay.resetFixedPosition();
-
-      if (wtOverlays.bottomOverlay.clone) {
-        wtOverlays.bottomOverlay.resetFixedPosition();
-      }
-
-      wtOverlays.leftOverlay.resetFixedPosition();
-
-      if (wtOverlays.topLeftCornerOverlay) {
-        wtOverlays.topLeftCornerOverlay.resetFixedPosition();
-      }
-
-      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
-        wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
-      }
-    }
-
-    this.refreshSelections(runFastDraw);
-
-    if (syncScroll) {
-      wtOverlays.syncScrollWithMaster();
-    }
-
-    wot.drawn = true;
-
-    return this;
+    this.refreshSelections(fastDraw);
   }
 
   markIfOversizedColumnHeader(col) {
-    const sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
+    const sourceColIndex = this.columnFilter.renderedToSource(col);
     let level = this.wot.getSetting('columnHeaders').length;
     const defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
     let previousColHeaderHeight;
@@ -387,8 +255,8 @@ class Table {
     while (level) {
       level -= 1;
 
-      previousColHeaderHeight = this.wot.wtTable.getColumnHeaderHeight(level);
-      currentHeader = this.wot.wtTable.getColumnHeader(sourceColIndex, level);
+      previousColHeaderHeight = this.wot.columnUtils.getHeaderHeight(level);
+      currentHeader = this.getColumnHeader(sourceColIndex, level);
 
       if (!currentHeader) {
         /* eslint-disable no-continue */
@@ -417,7 +285,7 @@ class Table {
 
   adjustColumnHeaderHeights() {
     const { wot } = this;
-    const children = wot.wtTable.THEAD.childNodes;
+    const children = this.THEAD.childNodes;
     const oversizedColumnHeaders = wot.wtViewport.oversizedColumnHeaders;
     const columnHeaders = wot.getSetting('columnHeaders');
 
@@ -437,10 +305,6 @@ class Table {
    */
   resetOversizedRows() {
     const { wot } = this;
-
-    if (!this.isMaster && !this.is(Overlay.CLONE_BOTTOM)) {
-      return;
-    }
 
     if (!wot.getSetting('externalRowCalculator')) {
       const rowsToRender = this.getRenderedRowsCount();
@@ -512,30 +376,33 @@ class Table {
 
     const tableRowsCount = this.getRenderedRowsCount();
     const tableColumnsCount = this.getRenderedColumnsCount();
-    const tableStartRow = this.getFirstRenderedRow();
+    let tableStartRow = this.getFirstRenderedRow();
     const tableStartColumn = this.getFirstRenderedColumn();
-    const tableEndRow = this.getLastRenderedRow();
-    const tableEndColumn = this.getLastRenderedColumn();
+    let tableEndRow = this.getLastRenderedRow();
+    let tableEndColumn = this.getLastRenderedColumn();
     const borderEdgesDescriptors = [];
-    let neighborOverlapRight = 0;
-    let neighborOverlapBottom = 0;
-    let neighborOverlapTop = 0;
 
-    if (this.getTableNeighborEast && this.getTableNeighborEast().getFirstVisibleColumn() === this.getLastVisibleColumn() + 1) {
-      neighborOverlapRight = 1;
+    /*
+    On the edge of overlays, render borders from the outside of the overlay so that they do not become obscured
+    by the overlay's gridline.
+    The below adjustments are used to render side effects of borders from other overlays,
+    e.g. when fixedRowsTop === 1, this method will render the top border of the cell A2 (from the master table)
+    as the bottom border of the cell A1 (on the top overlay table).
+    */
+    if (this.is(Overlay.CLONE_LEFT) || this.is(Overlay.CLONE_TOP_LEFT_CORNER) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      tableEndColumn += 1;
     }
-    if (this.getTableNeighborSouth && this.getTableNeighborSouth().getFirstVisibleRow() === this.getLastVisibleRow() + 1) {
-      neighborOverlapBottom = 1;
+    if (this.is(Overlay.CLONE_TOP) || this.is(Overlay.CLONE_TOP_LEFT_CORNER)) {
+      tableEndRow += 1;
     }
-    if (this.getTableNeighborNorth && this.getTableNeighborNorth().getLastVisibleRow() === this.getFirstVisibleRow() - 1) {
-      neighborOverlapTop = -1;
+    if (this.is(Overlay.CLONE_BOTTOM) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      tableStartRow -= 1;
     }
 
     for (let i = 0; i < len; i++) {
       const borderEdgesDescriptor = selections[i].draw(wot,
         tableRowsCount, tableColumnsCount,
-        tableStartRow, tableStartColumn, tableEndRow, tableEndColumn,
-        neighborOverlapRight, neighborOverlapBottom, neighborOverlapTop);
+        tableStartRow, tableStartColumn, tableEndRow, tableEndColumn);
 
       if (borderEdgesDescriptor) {
         borderEdgesDescriptors.push(borderEdgesDescriptor);
@@ -712,6 +579,7 @@ class Table {
     let rowCount = this.TBODY.childNodes.length;
     const expectedTableHeight = rowCount * this.wot.wtSettings.settings.defaultRowHeight;
     const actualTableHeight = innerHeight(this.TBODY) - 1;
+    const rowUtils = this.isMaster ? this.wot.rowUtils : this.wot.overlay.master.rowUtils; // TODO this is not needed if we don't call markOversizedRows in the bottom overlay
     let previousRowHeight;
     let rowInnerHeight;
     let sourceRowIndex;
@@ -726,7 +594,7 @@ class Table {
     while (rowCount) {
       rowCount -= 1;
       sourceRowIndex = this.rowFilter.renderedToSource(rowCount);
-      previousRowHeight = this.getRowHeight(sourceRowIndex);
+      previousRowHeight = rowUtils.getHeight(sourceRowIndex);
       currentTr = this.getTrForRow(sourceRowIndex);
       rowHeader = currentTr.querySelector('th');
 
@@ -892,28 +760,6 @@ class Table {
 
   allColumnsInViewport() {
     return this.wot.getSetting('totalColumns') === this.getVisibleColumnsCount();
-  }
-
-  /**
-   * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height
-   *
-   * @param {Number} sourceRow
-   * @returns {Number}
-   */
-  getRowHeight(sourceRow) {
-    return this.rowUtils.getHeight(sourceRow);
-  }
-
-  getColumnHeaderHeight(level) {
-    return this.columnUtils.getHeaderHeight(level);
-  }
-
-  getColumnWidth(sourceColumn) {
-    return this.columnUtils.getWidth(sourceColumn);
-  }
-
-  getStretchedColumnWidth(sourceColumn) {
-    return this.columnUtils.getStretchedColumnWidth(sourceColumn);
   }
 
   /**

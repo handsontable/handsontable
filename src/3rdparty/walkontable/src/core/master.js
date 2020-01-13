@@ -1,56 +1,40 @@
-import {
-  addClass,
-  fastInnerText,
-  removeClass,
-} from './../../../helpers/dom/element';
-import { objectEach } from './../../../helpers/object';
-import { randomString } from './../../../helpers/string';
-import Event from './event';
-import Overlays from './overlays';
-import Scroll from './scroll';
-import Settings from './settings';
-import MasterTable from './table/master';
-import Viewport from './viewport';
-import { setCurrentWindowContext } from './borderRenderer/svg/color';
+import Core from './_base';
+import { addClass, fastInnerText, removeClass } from '../../../../helpers/dom/element';
+import { objectEach } from '../../../../helpers/object';
+import Event from '../event';
+import Overlays from '../overlays';
+import Scroll from '../scroll';
+import Settings from '../settings';
+import MasterTable from '../table/master';
+import Viewport from '../viewport';
+import ColumnUtils from '../utils/column';
+import RowUtils from '../utils/row';
 
 /**
- * @class Walkontable
+ * @class Master
  */
-class Walkontable {
+class Master extends Core {
   /**
    * @param {Object} settings
    */
   constructor(settings) {
-    const originalHeaders = [];
-
-    // this is the namespace for global events
-    this.guid = `wt_${randomString()}`;
-    this.rootDocument = settings.table.ownerDocument;
-    this.rootWindow = this.rootDocument.defaultView;
-    setCurrentWindowContext(this.rootWindow);
+    super(settings);
 
     // bootstrap from settings
-    if (settings.cloneSource) {
-      this.cloneSource = settings.cloneSource;
-      this.cloneOverlay = settings.cloneOverlay;
-      this.wtSettings = settings.cloneSource.wtSettings;
-      this.wtTable = this.cloneOverlay.createTable(this, settings.table);
-      this.wtScroll = new Scroll(this);
-      this.wtViewport = settings.cloneSource.wtViewport;
-      this.wtEvent = new Event(this);
-      this.selections = this.cloneSource.selections;
-    } else {
-      this.wtSettings = new Settings(this, settings);
-      this.wtTable = new MasterTable(this, settings.table);
-      this.wtScroll = new Scroll(this);
-      this.wtViewport = new Viewport(this);
-      this.wtEvent = new Event(this);
-      this.selections = this.getSetting('selections');
-      this.wtOverlays = new Overlays(this);
-      this.exportSettingsAsClassNames();
-    }
+    this.wtSettings = new Settings(this, settings);
+    this.rowUtils = new RowUtils(this);
+    this.columnUtils = new ColumnUtils(this);
+    this.wtTable = new MasterTable(this, settings.table);
+    this.wtScroll = new Scroll(this);
+    this.wtViewport = new Viewport(this);
+    this.wtEvent = new Event(this);
+    this.selections = this.getSetting('selections');
+    this.wtOverlays = new Overlays(this);
+    this.exportSettingsAsClassNames();
 
     // find original headers
+    const originalHeaders = [];
+
     if (this.wtTable.THEAD.childNodes.length && this.wtTable.THEAD.childNodes[0].childNodes.length) {
       for (let c = 0, clen = this.wtTable.THEAD.childNodes[0].childNodes.length; c < clen; c++) {
         originalHeaders.push(this.wtTable.THEAD.childNodes[0].childNodes[c].innerHTML);
@@ -68,12 +52,12 @@ class Walkontable {
   }
 
   /**
-   * Force rerender of Walkontable
+   * Force rerender of Walkontable. It draws the "master" table and any overlay sub-instances ("clones") of Walkontable.
    *
    * @param {Boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
    *                                   the data. It will only work if Table.draw() does not force
    *                                   rendering anyway
-   * @returns {Walkontable}
+   * @returns {Master}
    */
   draw(fastDraw = false) {
     this.drawInterrupted = false;
@@ -83,6 +67,7 @@ class Walkontable {
       this.drawInterrupted = true;
     } else {
       this.wtTable.draw(fastDraw);
+      this.drawn = true;
     }
 
     return this;
@@ -199,15 +184,6 @@ class Walkontable {
   }
 
   /**
-   * Get overlay name
-   *
-   * @returns {String}
-   */
-  getOverlayName() {
-    return this.cloneOverlay ? this.cloneOverlay.type : 'master';
-  }
-
-  /**
    * Export settings as class names added to the parent element of the table.
    */
   exportSettingsAsClassNames() {
@@ -229,31 +205,6 @@ class Walkontable {
   }
 
   /**
-   * Get/Set Walkontable instance setting
-   *
-   * @param {String} key
-   * @param {*} [param1]
-   * @param {*} [param2]
-   * @param {*} [param3]
-   * @param {*} [param4]
-   * @returns {*}
-   */
-  getSetting(key, param1, param2, param3, param4) {
-    // this is faster than .apply - https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
-    return this.wtSettings.getSetting(key, param1, param2, param3, param4);
-  }
-
-  /**
-   * Checks if setting exists
-   *
-   * @param {String} key
-   * @returns {Boolean}
-   */
-  hasSetting(key) {
-    return this.wtSettings.has(key);
-  }
-
-  /**
    * Destroy instance
    */
   destroy() {
@@ -262,4 +213,4 @@ class Walkontable {
   }
 }
 
-export default Walkontable;
+export default Master;

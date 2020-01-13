@@ -2,19 +2,41 @@ import {
   getStyle,
   getComputedStyle,
   getTrimmingContainer,
-  isVisible,
+  offset,
+  outerWidth,
 } from './../../../../helpers/dom/element';
 import Table from '../table';
 import calculatedRows from './mixin/calculatedRows';
 import calculatedColumns from './mixin/calculatedColumns';
 import { mixin } from './../../../../helpers/object';
+import ColumnFilter from './../filter/column';
+import RowFilter from './../filter/row';
 
 /**
  * Subclass of `Table` that provides the helper methods relevant to the master table (not overlays), implemented through mixins.
  */
 class MasterTable extends Table {
+  /**
+  * @param {Walkontable} wotInstance
+  * @param {HTMLTableElement} table
+  */
+  constructor(wotInstance, table) {
+    super(wotInstance, table);
+    this.holderOffset = 0;
+    this.wtRootElement.className += 'ht_master handsontable';
+    /**
+     * Set the DOM element responsible for trimming the overlay's root element. It will be some parent element or the window. Only applicable to the master overlay.
+     *
+     * @type {HTMLElement|Window}
+     */
+    this.trimmingContainer = null;
+    this.alignOverlaysWithTrimmingContainer(); // TODO this better be removed
+  }
+
   alignOverlaysWithTrimmingContainer() {
-    const trimmingElement = getTrimmingContainer(this.wtRootElement);
+    this.trimmingContainer = getTrimmingContainer(this.wtRootElement);
+
+    const trimmingElement = this.trimmingContainer;
     const { rootWindow } = this.wot;
 
     if (trimmingElement === rootWindow) {
@@ -66,17 +88,14 @@ class MasterTable extends Table {
       this.hasTableHeight = holderStyle.height === 'auto' ? true : height > 0;
       this.hasTableWidth = width > 0;
     }
-
-    this.isTableVisible = isVisible(this.TABLE);
   }
 
   markOversizedColumnHeaders() {
     const { wot } = this;
-    const overlayName = wot.getOverlayName();
     const columnHeaders = wot.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
 
-    if (columnHeadersCount && !wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName]) {
+    if (columnHeadersCount && !wot.wtViewport.hasOversizedColumnHeadersMarked) {
       const rowHeaders = wot.getSetting('rowHeaders');
       const rowHeaderCount = rowHeaders.length;
       const columnCount = this.getRenderedColumnsCount();
@@ -86,7 +105,105 @@ class MasterTable extends Table {
           this.markIfOversizedColumnHeader(renderedColumnIndex);
         }
       }
-      wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName] = true;
+      wot.wtViewport.hasOversizedColumnHeadersMarked = true;
+    }
+  }
+
+  /**
+   * Redraws the table
+   *
+   * @param {Boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
+   *                                   If FALSE or UNDEFINED, will perform a full redraw.
+   */
+  draw(fastDraw = false) {
+    const { wot } = this;
+    const { wtOverlays, wtViewport } = wot;
+    const totalRows = wot.getSetting('totalRows');
+    const totalColumns = wot.getSetting('totalColumns');
+    const rowHeaders = wot.getSetting('rowHeaders');
+    const rowHeadersCount = rowHeaders.length;
+    const columnHeaders = wot.getSetting('columnHeaders');
+    const columnHeadersCount = columnHeaders.length;
+    let runFastDraw = fastDraw;
+
+    this.holderOffset = offset(this.holder);
+    runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
+
+    if (rowHeadersCount && !wot.getSetting('fixedColumnsLeft')) {
+      const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
+      const previousState = this.correctHeaderWidth;
+
+      this.correctHeaderWidth = leftScrollPos > 0;
+
+      if (previousState !== this.correctHeaderWidth) {
+        runFastDraw = false;
+      }
+    }
+
+    if (runFastDraw) {
+      // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
+      wtViewport.createVisibleCalculators();
+      wtOverlays.refreshClones(true);
+      this.refreshSelections(true);
+
+    } else {
+
+      const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
+      const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
+
+      this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
+      this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
+
+      // Only master table rendering can be skipped
+      this.alignOverlaysWithTrimmingContainer();
+
+      const skipRender = {};
+
+      this.wot.getSetting('beforeDraw', true, skipRender);
+
+      const performRedraw = skipRender.skipRender !== true;
+
+      if (performRedraw) {
+        this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
+
+        this.resetOversizedRows();
+
+        this.tableRenderer
+          .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
+          .setFilters(this.rowFilter, this.columnFilter)
+          .render();
+
+        const workspaceWidth = wtViewport.getWorkspaceWidth();
+        wtViewport.containerWidth = null;
+        this.markOversizedColumnHeaders();
+
+        this.adjustColumnHeaderHeights();
+
+        this.markOversizedRows();
+
+        wtViewport.createVisibleCalculators();
+
+        const hiderWidth = outerWidth(this.hider);
+        const tableWidth = outerWidth(this.TABLE);
+
+        if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
+          // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
+          this.wot.columnUtils.calculateWidths();
+          this.tableRenderer.renderer.colGroup.render();
+        }
+
+        if (workspaceWidth !== wtViewport.getWorkspaceWidth()) {
+          // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
+          wtViewport.containerWidth = null;
+          this.wot.columnUtils.calculateWidths();
+          this.tableRenderer.renderer.colGroup.render();
+        }
+
+        this.wot.getSetting('onDraw', true);
+
+        wtOverlays.refreshClones(false);
+        this.refreshSelections(false);
+      }
     }
   }
 }

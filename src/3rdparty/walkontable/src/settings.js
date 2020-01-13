@@ -12,13 +12,9 @@ class Settings {
   constructor(wotInstance, settings) {
     this.wot = wotInstance;
 
-    // legacy support
-    this.instance = wotInstance;
-
     // default settings. void 0 means it is required, null means it can be empty
     this.defaults = {
       table: void 0,
-      debug: false, // shows WalkontableDebugOverlay
 
       // presentation mode
       externalRowCalculator: false,

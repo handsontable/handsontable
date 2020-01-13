@@ -32,8 +32,6 @@ class Overlays {
     const BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).lineHeight, 10);
     const FALLBACK_BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).fontSize, 10) * 1.2;
 
-    // legacy support
-    this.instance = this.wot;
     this.eventManager = new EventManager(this.wot);
 
     this.scrollbarSize = getScrollbarWidth(rootDocument);
@@ -74,14 +72,10 @@ class Overlays {
 
   /**
    * Prepare overlays based on user settings.
-   *
-   * @returns {Boolean} Returns `true` if changes applied to overlay needs scroll synchronization.
    */
   prepareOverlays() {
-    let syncScroll = false;
-
     if (this.topOverlay) {
-      syncScroll = this.topOverlay.updateStateOfRendering() || syncScroll;
+      this.topOverlay.updateStateOfRendering();
     } else {
       this.topOverlay = Overlay.createOverlay(Overlay.CLONE_TOP, this.wot);
     }
@@ -89,31 +83,31 @@ class Overlays {
     if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM)) {
       this.bottomOverlay = {
         needFullRender: false,
-        updateStateOfRendering: () => false,
+        updateStateOfRendering: () => {},
       };
     }
     if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       this.bottomLeftCornerOverlay = {
         needFullRender: false,
-        updateStateOfRendering: () => false,
+        updateStateOfRendering: () => {},
       };
     }
 
     if (this.bottomOverlay) {
-      syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
+      this.bottomOverlay.updateStateOfRendering();
     } else {
       this.bottomOverlay = Overlay.createOverlay(Overlay.CLONE_BOTTOM, this.wot);
     }
 
     if (this.leftOverlay) {
-      syncScroll = this.leftOverlay.updateStateOfRendering() || syncScroll;
+      this.leftOverlay.updateStateOfRendering();
     } else {
       this.leftOverlay = Overlay.createOverlay(Overlay.CLONE_LEFT, this.wot);
     }
 
     if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
       if (this.topLeftCornerOverlay) {
-        syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+        this.topLeftCornerOverlay.updateStateOfRendering();
       } else {
         this.topLeftCornerOverlay = Overlay.createOverlay(Overlay.CLONE_TOP_LEFT_CORNER, this.wot);
       }
@@ -121,23 +115,17 @@ class Overlays {
 
     if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender) {
       if (this.bottomLeftCornerOverlay) {
-        syncScroll = this.bottomLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+        this.bottomLeftCornerOverlay.updateStateOfRendering();
       } else {
         this.bottomLeftCornerOverlay = Overlay.createOverlay(Overlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
       }
     }
-
-    if (this.wot.getSetting('debug') && !this.debug) {
-      this.debug = Overlay.createOverlay(Overlay.CLONE_DEBUG, this.wot);
-    }
-
-    return syncScroll;
   }
 
   /**
-   * Refresh and redraw table
+   * Refresh and redraw the master table, which will include refreshing of the clones
    */
-  refreshAll() {
+  refreshMasterAndClones() {
     if (!this.wot.drawn) {
       return;
     }
@@ -242,7 +230,8 @@ class Overlays {
       }
     }
 
-    this.syncScrollPositions(event);
+    this.propagateMasterScrollPositionsToClones();
+    this.refreshMasterAndClones();
   }
 
   /**
@@ -344,7 +333,7 @@ class Overlays {
    *
    * @private
    */
-  syncScrollPositions() {
+  propagateMasterScrollPositionsToClones() {
     if (this.destroyed) {
       return;
     }
@@ -352,6 +341,7 @@ class Overlays {
     const { rootWindow } = this.wot;
     const topHolder = this.topOverlay.clone.wtTable.holder;
     const leftHolder = this.leftOverlay.clone.wtTable.holder;
+    const bottomHolder = this.bottomOverlay.clone.wtTable.holder;
 
     const [scrollLeft, scrollTop] = [this.scrollableElement.scrollLeft, this.scrollableElement.scrollTop];
 
@@ -361,37 +351,19 @@ class Overlays {
     this.lastScrollY = rootWindow.scrollY;
 
     if (this.horizontalScrolling) {
-      topHolder.scrollLeft = scrollLeft;
+      if (this.topOverlay.needFullRender) {
+        topHolder.scrollLeft = scrollLeft;
+      }
 
-      const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null;
-
-      if (bottomHolder) {
+      if (this.bottomOverlay.needFullRender) {
         bottomHolder.scrollLeft = scrollLeft;
       }
     }
 
     if (this.verticalScrolling) {
-      leftHolder.scrollTop = scrollTop;
-    }
-
-    this.refreshAll();
-  }
-
-  /**
-   * Synchronize overlay scrollbars with the master scrollbar
-   */
-  syncScrollWithMaster() {
-    const master = this.topOverlay.mainTableScrollableElement;
-    const { scrollLeft, scrollTop } = master;
-
-    if (this.topOverlay.needFullRender) {
-      this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
-    }
-    if (this.bottomOverlay.needFullRender) {
-      this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
-    }
-    if (this.leftOverlay.needFullRender) {
-      this.leftOverlay.clone.wtTable.holder.scrollTop = scrollTop;
+      if (this.leftOverlay.needFullRender) {
+        leftHolder.scrollTop = scrollTop;
+      }
     }
   }
 
@@ -438,16 +410,33 @@ class Overlays {
       this.bottomLeftCornerOverlay.destroy();
     }
 
-    if (this.debug) {
-      this.debug.destroy();
-    }
     this.destroyed = true;
   }
 
   /**
+   * Refresh (update the sizes and positions) and redraw the clones
    * @param {Boolean} [fastDraw=false]
    */
-  refresh(fastDraw = false) {
+  refreshClones(fastDraw = false) {
+    if (!fastDraw) {
+      this.prepareOverlays();
+    }
+
+    if (this.bottomOverlay.clone) {
+      this.bottomOverlay.redrawClone(fastDraw);
+    }
+
+    this.leftOverlay.redrawClone(fastDraw);
+    this.topOverlay.redrawClone(fastDraw);
+
+    if (this.topLeftCornerOverlay) {
+      this.topLeftCornerOverlay.redrawClone(fastDraw);
+    }
+
+    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
+      this.bottomLeftCornerOverlay.redrawClone(fastDraw);
+    }
+
     if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
       const container = this.wot.wtTable.wtRootElement.parentNode || this.wot.wtTable.wtRootElement;
       const width = container.clientWidth;
@@ -456,27 +445,10 @@ class Overlays {
       if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
         this.spreaderLastSize.width = width;
         this.spreaderLastSize.height = height;
-        this.adjustElementsSize();
+        this.adjustElementsSizes();
       }
-    }
-
-    if (this.bottomOverlay.clone) {
-      this.bottomOverlay.refresh(fastDraw);
-    }
-
-    this.leftOverlay.refresh(fastDraw);
-    this.topOverlay.refresh(fastDraw);
-
-    if (this.topLeftCornerOverlay) {
-      this.topLeftCornerOverlay.refresh(fastDraw);
-    }
-
-    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
-      this.bottomLeftCornerOverlay.refresh(fastDraw);
-    }
-
-    if (this.debug) {
-      this.debug.refresh(fastDraw);
+    } else if (!fastDraw) {
+      this.adjustElementsSizes();
     }
   }
 
@@ -485,7 +457,7 @@ class Overlays {
    *
    * @param {Boolean} [force=false]
    */
-  adjustElementsSize(force = false) {
+  adjustElementsSizes(force = false) {
     const { wtViewport, wtTable } = this.wot;
     const totalColumns = this.wot.getSetting('totalColumns');
     const totalRows = this.wot.getSetting('totalRows');
@@ -519,29 +491,12 @@ class Overlays {
     this.topOverlay.adjustElementsSize(force);
     this.leftOverlay.adjustElementsSize(force);
     this.bottomOverlay.adjustElementsSize(force);
-  }
-
-  /**
-   *
-   */
-  applyToDOM() {
-    const { wtTable } = this.wot;
-
-    if (!wtTable.isVisible()) {
-      return;
+    if (this.topLeftCornerOverlay) {
+      this.topLeftCornerOverlay.adjustElementsSize(force);
     }
-
-    if (!this.topOverlay.areElementSizesAdjusted || !this.leftOverlay.areElementSizesAdjusted) {
-      this.adjustElementsSize();
+    if (this.bottomLeftCornerOverlay) {
+      this.bottomLeftCornerOverlay.adjustElementsSize(force);
     }
-
-    this.topOverlay.applyToDOM();
-
-    if (this.bottomOverlay.clone) {
-      this.bottomOverlay.applyToDOM();
-    }
-
-    this.leftOverlay.applyToDOM();
   }
 
   /**

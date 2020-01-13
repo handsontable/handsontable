@@ -17,6 +17,7 @@ class BottomLeftCornerOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_BOTTOM_LEFT_CORNER);
+    this.updateStateOfRendering();
   }
 
   /**
@@ -36,50 +37,33 @@ class BottomLeftCornerOverlay extends Overlay {
    * @returns {Boolean}
    */
   shouldBeRendered() {
-    const { wot } = this;
+    const { master } = this;
     /* eslint-disable no-unneeded-ternary */
-    return wot.getSetting('fixedRowsBottom') &&
-      (wot.getSetting('fixedColumnsLeft') || wot.getSetting('rowHeaders').length) ? true : false;
+    return master.getSetting('fixedRowsBottom') &&
+      (master.getSetting('fixedColumnsLeft') || master.getSetting('rowHeaders').length) ? true : false;
   }
 
   /**
-   * Reposition the overlay.
+   * Updates the position of the overlay root element relatively to the position of the master instance
    */
-  repositionOverlay() {
-    const { wtTable, rootDocument } = this.wot;
-    const cloneRoot = this.clone.wtTable.holder.parentNode;
-    let scrollbarWidth = getScrollbarWidth(rootDocument);
+  adjustElementsPosition() {
+    const { clone, master } = this;
 
-    if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
-      scrollbarWidth = 0;
-    }
-
-    cloneRoot.style.top = '';
-    cloneRoot.style.bottom = `${scrollbarWidth}px`;
-  }
-
-  /**
-   * Updates the corner overlay position
-   */
-  resetFixedPosition() {
-    const { wot } = this;
-    this.updateTrimmingContainer();
-
-    if (!wot.wtTable.holder.parentNode) {
+    if (!master.wtTable.holder.parentNode) {
       // removed from DOM
       return;
     }
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const overlayRootElement = clone.wtTable.wtRootElement;
 
-    overlayRoot.style.top = '';
+    overlayRootElement.style.top = '';
 
-    if (this.trimmingContainer === wot.rootWindow) {
-      const box = wot.wtTable.hider.getBoundingClientRect();
+    if (master.wtTable.trimmingContainer === master.rootWindow) {
+      const box = master.wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(box.bottom);
       const left = Math.ceil(box.left);
       let finalLeft;
       let finalBottom;
-      const bodyHeight = wot.rootDocument.body.offsetHeight;
+      const bodyHeight = master.rootDocument.body.offsetHeight;
 
       if (left < 0) {
         finalLeft = -left;
@@ -95,24 +79,45 @@ class BottomLeftCornerOverlay extends Overlay {
       finalBottom += 'px';
       finalLeft += 'px';
 
-      overlayRoot.style.top = '';
-      overlayRoot.style.left = finalLeft;
-      overlayRoot.style.bottom = finalBottom;
+      overlayRootElement.style.top = '';
+      overlayRootElement.style.left = finalLeft;
+      overlayRootElement.style.bottom = finalBottom;
 
     } else {
-      resetCssTransform(overlayRoot);
-      this.repositionOverlay();
+      resetCssTransform(overlayRootElement);
+
+      let scrollbarWidth = getScrollbarWidth(master.rootDocument);
+
+      if (master.wtTable.holder.clientHeight === master.wtTable.holder.offsetHeight) {
+        scrollbarWidth = 0;
+      }
+
+      overlayRootElement.style.top = '';
+      overlayRootElement.style.bottom = `${scrollbarWidth}px`;
+    }
+  }
+
+  /**
+   * If needed, adjust the sizes of the clone and the master elements to the dimensions of the trimming container.
+   *
+   * @param {Boolean} [force=false]
+   */
+  adjustElementsSize(force = false) {
+    if (!this.needFullRender && !force) {
+      return;
     }
 
-    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    const { clone, master } = this;
+    let tableHeight = outerHeight(clone.wtTable.TABLE);
+    const tableWidth = outerWidth(clone.wtTable.TABLE);
+    const overlayRootElement = clone.wtTable.wtRootElement;
 
-    if (!this.wot.wtTable.hasDefinedSize()) {
+    if (!master.wtTable.hasDefinedSize()) {
       tableHeight = 0;
     }
 
-    overlayRoot.style.height = `${tableHeight}px`;
-    overlayRoot.style.width = `${tableWidth}px`;
+    overlayRootElement.style.height = `${tableHeight}px`;
+    overlayRootElement.style.width = `${tableWidth}px`;
   }
 }
 

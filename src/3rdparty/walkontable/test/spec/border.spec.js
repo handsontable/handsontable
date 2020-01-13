@@ -40,7 +40,7 @@ describe('Walkontable Border Renderer', () => {
   }
 
   beforeEach(function() {
-    this.$wrapper = $('<div></div>').addClass('handsontable');
+    this.$wrapper = $('<div></div>').addClass('handsontable').css({ overflow: 'hidden' });
     this.$container = $('<div></div>');
     this.$wrapper.width(100).height(100);
     this.$table = $('<table></table>').addClass('htCore');
@@ -531,6 +531,95 @@ describe('Walkontable Border Renderer', () => {
       const elem = document.querySelector(`svg path[data-stroke-style='${expectedStrokeStyle}']`);
 
       expect(elem.getAttribute('stroke')).toEqual('rgb(0%,   100%,   0%)');
+    });
+  });
+
+  describe('should render the overlapping fragment of the master column with the overlay', () => {
+    it('should render overlapping fragment on left overlay after scroll, with container scrollbars', () => {
+      createDataArray(100, 100);
+      spec().$wrapper.width(300).height(100); // set grid sizing to large container
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2,
+        selections: [
+          generateSelection({
+            left: THIN_GREEN_BORDER,
+            right: MEDIUM_GREEN_BORDER,
+            top: THICK_GREEN_BORDER,
+            bottom: HUGE_GREEN_BORDER
+          }).add(new Walkontable.CellCoords(0, 2))
+        ]
+      });
+
+      wt.draw();
+
+      const topBorderSelector = 'svg path[data-stroke-style=\'3px solid green\']';
+      const topBorderExpectedPathInMaster = 'M 0 0.5 50 0.5'; // Master starts rendering from column 2
+      const topBorderExpectedPathInLeft = 'M 99 0.5 150 0.5'; // Left Overlay starts rendering from column 0
+      const pathInMaster = document.querySelector(`.ht_master ${topBorderSelector}`);
+      const pathInLeftOverlay = document.querySelector(`.ht_clone_left ${topBorderSelector}`);
+
+      expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection before scroll').toEqual(topBorderExpectedPathInMaster);
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection before scroll').toEqual(topBorderExpectedPathInLeft);
+
+      wt.wtTable.holder.scrollLeft = 30;
+      wt.draw();
+
+      expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection after scroll').toEqual(topBorderExpectedPathInMaster);
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection after scroll').toEqual(topBorderExpectedPathInLeft);
+
+      wt.wtTable.holder.scrollLeft = 0;
+      wt.draw();
+
+      expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection after scroll back').toEqual(topBorderExpectedPathInMaster);
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection after scroll back').toEqual(topBorderExpectedPathInLeft);
+    });
+
+    it('should render overlapping fragment on left overlay after scroll, with window scrollbars', () => {
+      createDataArray(100, 100);
+      spec().$wrapper[0].setAttribute('style', ''); // set grid sizing to window
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2,
+        selections: [
+          generateSelection({
+            left: THIN_GREEN_BORDER,
+            right: MEDIUM_GREEN_BORDER,
+            top: THICK_GREEN_BORDER,
+            bottom: HUGE_GREEN_BORDER
+          }).add(new Walkontable.CellCoords(0, 2))
+        ]
+      });
+
+      wt.draw();
+
+      const topBorderSelector = 'svg path[data-stroke-style=\'3px solid green\']';
+      const topBorderExpectedPathInMaster = 'M 0 0.5 50 0.5'; // Master starts rendering from column 2
+      const topBorderExpectedPathInLeft = 'M 99 0.5 150 0.5'; // Left Overlay starts rendering from column 0
+      const pathInMaster = document.querySelector(`.ht_master ${topBorderSelector}`);
+      const pathInLeftOverlay = document.querySelector(`.ht_clone_left ${topBorderSelector}`);
+
+      expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection before scroll').toEqual(topBorderExpectedPathInMaster);
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection before scroll').toEqual(topBorderExpectedPathInLeft);
+
+      window.scroll(30, 0);
+      wt.draw();
+
+      expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection after scroll').toEqual(topBorderExpectedPathInMaster);
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection after scroll').toEqual(topBorderExpectedPathInLeft);
+
+      window.scroll(0, 0);
+      wt.draw();
+
+      expect(pathInMaster.getAttribute('d')).withContext('Master overlay top border of selection after scroll back').toEqual(topBorderExpectedPathInMaster);
+
+      expect(pathInLeftOverlay.getAttribute('d')).withContext('Left overlay top border of selection after scroll back').toEqual(topBorderExpectedPathInLeft);
     });
   });
 });
