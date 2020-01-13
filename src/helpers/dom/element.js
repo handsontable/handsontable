@@ -4,6 +4,7 @@ import {
   isTextContentSupported,
   isGetComputedStyleSupported,
 } from '../feature';
+import { isSafari, isIE9 } from '../browser';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -1021,7 +1022,15 @@ export function hasHorizontalScrollbar(element) {
  * Sets overlay position depending on it's type and used browser
  */
 export function setOverlayPosition(overlayElem, left, top) {
-  overlayElem.style.transform = `translate3d(${left},${top},0)`;
+  if (isIE9()) {
+    overlayElem.style.top = top;
+    overlayElem.style.left = left;
+  } else if (isSafari()) {
+    overlayElem.style['-webkit-transform'] = `translate3d(${left},${top},0)`;
+    overlayElem.style['-webkit-transform'] = `translate3d(${left},${top},0)`;
+  } else {
+    overlayElem.style.transform = `translate3d(${left},${top},0)`;
+  }
 }
 
 export function getCssTransform(element) {

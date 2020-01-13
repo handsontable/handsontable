@@ -2191,6 +2191,7 @@ declare namespace Handsontable {
     isFunction(func: any): boolean,
     isGetComputedStyleSupported(): boolean,
     isIE(): boolean,
+    isIE9(): boolean,
     isKey(keyCode: number, baseCode: string): boolean
     isMetaKey(keyCode: number): boolean,
     isMobileBrowser(): boolean,
@@ -2204,7 +2205,6 @@ declare namespace Handsontable {
     isTextContentSupported(): boolean,
     isTouchSupported(): boolean,
     isUndefined(variable: any): boolean,
-    isWebComponentSupportedNatively(): boolean,
     mixin(Base: object, ...mixins: object[]): object,
     objectEach(object: object, iteratee: (value: any, key: any, object: object) => void): object,
     padStart(string: string, maxLength: number, fillString?: string): string,

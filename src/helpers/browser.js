@@ -16,6 +16,8 @@ const browsers = {
   edge: tester(ua => /Edge/.test(ua)),
   firefox: tester(ua => /Firefox/.test(ua)),
   ie: tester(ua => /Trident/.test(ua)),
+  // eslint-disable-next-line no-restricted-globals
+  ie9: tester(() => !!(document.documentMode)),
   mobile: tester(ua => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
 };
@@ -36,6 +38,10 @@ export function isEdge() {
 
 export function isIE() {
   return browsers.ie.value;
+}
+
+export function isIE9() {
+  return browsers.ie9.value;
 }
 
 export function isMSBrowser() {
