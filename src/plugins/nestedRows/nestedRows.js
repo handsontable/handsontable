@@ -155,8 +155,8 @@ class NestedRows extends BasePlugin {
    */
   onBeforeRowMove(rows, finalIndex, dropIndex, movePossible) {
     if (isUndefined(dropIndex)) {
-      warn(toSingleLine`Since version 8.0.0 of the Handsontable the 'moveRows' method isn't used for moving rows when the NestedRows plugin is enabled. 
-      Please use the 'dragRows' method instead.`);
+      warn(toSingleLine`Since version 8.0.0 of the Handsontable the 'moveRows' method isn't used for moving rows when\x20
+      the NestedRows plugin is enabled. Please use the 'dragRows' method instead.`);
 
       // TODO: Trying to mock real work of the `ManualRowMove` plugin. It was blocked by returning `false` below.
       this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, false);
@@ -233,15 +233,22 @@ class NestedRows extends BasePlugin {
       }
     }
 
+    let hasDataChanged = false;
+
     for (i = 0; i < rowsLen; i++) {
       this.dataManager.moveRow(translatedStartIndexes[i], translatedDropIndex);
+      hasDataChanged = !hasDataChanged && translatedStartIndexes[i] !== translatedDropIndex;
+    }
+
+    if (!hasDataChanged) {
+      return false;
     }
 
     const movingDown = translatedStartIndexes[translatedStartIndexes.length - 1] < translatedDropIndex;
 
     if (movingDown) {
       for (i = rowsLen - 1; i >= 0; i--) {
-        this.dataManager.moveCellMeta(translatedStartIndexes[i], translatedDropIndex);
+        this.dataManager.moveCellMeta(translatedStartIndexes[i], sameParent ? translatedDropIndex : translatedDropIndex - 1);
       }
     } else {
       for (i = 0; i < rowsLen; i++) {

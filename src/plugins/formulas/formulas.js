@@ -7,6 +7,7 @@ import { isFormulaExpression, toUpperCaseFormula, isFormulaExpressionEscaped, un
 import Sheet from './sheet';
 import DataProvider from './dataProvider';
 import UndoRedoSnapshot from './undoRedoSnapshot';
+import CellValue from './cell/value';
 
 /**
  * The formulas plugin.
@@ -189,8 +190,12 @@ class Formulas extends BasePlugin {
     }
     const hot = this.hot;
 
-    arrayEach(cells, ({ row, column }) => {
-      hot.validateCell(hot.getDataAtCell(row, column), hot.getCellMeta(row, column), () => {});
+    arrayEach(cells, (cellValue) => {
+      if (cellValue instanceof CellValue) {
+        const { row, column } = cellValue;
+
+        hot.validateCell(hot.getDataAtCell(row, column), hot.getCellMeta(row, column), () => {});
+      }
     });
     hot.render();
   }
