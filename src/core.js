@@ -176,8 +176,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const { row: renderableRow, col: renderableColumn } = coords;
 
     return new CellCoords(
-      instance.rowIndexMapper.getVisualFromPhysicalIndex(this.rowIndexMapper.getPhysicalFromRenderableIndex(renderableRow)),
-      instance.columnIndexMapper.getVisualFromPhysicalIndex(this.columnIndexMapper.getPhysicalFromRenderableIndex(renderableColumn))
+      instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow),
+      instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn)
     );
   };
 
@@ -2069,7 +2069,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return null;
     }
 
-    const wotIndex = column < 0 ? column : this.physicalToRenderedColumn(physicalColumn);
+    const wotIndex = column < 0 ? column : this.columnIndexMapper.getRenderableFromVisualIndex(column);
     return instance.view.getCellAtCoords(new CellCoords(row, wotIndex), topmost);
   };
 
@@ -2168,49 +2168,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.toPhysicalColumn = column => this.columnIndexMapper.getPhysicalFromVisualIndex(column);
 
   /**
-   * // Changed by @wszymanski as there was link to the not existing anymore RecordTranslator.
-   * @TODO Description
-   */
-  this.renderedToPhysicalColumn = (column) => {
-    if (column < 0) {
-      return column;
-    }
-
-    return this.columnIndexMapper.getPhysicalFromRenderableIndex(column);
-  };
-
-  /**
-   * @TODO Description
-   */
-  this.physicalToRenderedColumn = (column) => {
-    if (column < 0) {
-      return column;
-    }
-
-    const position = this.columnIndexMapper.getRenderedIndexes().indexOf(column);
-
-    return position < 0 ? null : position;
-  };
-
-  /**
-   * @TODO Description
-   */
-  this.renderedToVisualColumn = (column) => {
-    if (column < 0) {
-      return column;
-    }
-
-    return this.toVisualColumn(this.renderedToPhysicalColumn(column));
-  };
-
-  /**
-   * @TODO Description
-   */
-  this.visualToRenderedColumn = (column) => {
-    return this.columnIndexMapper.getRenderableFromVisualIndex(column);
-  };
-
-  /**
    * @description
    * Returns the cell value at `row`, `column`.
    *
@@ -2230,7 +2187,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @TODO Description
    */
   this.getRenderableDataAtCell = function(row, column) {
-    return datamap.get(row, this.colToProp(this.renderedToVisualColumn(column)));
+    return datamap.get(row, this.colToProp(this.columnIndexMapper.getVisualFromRenderableIndex(column)));
   };
 
   /**

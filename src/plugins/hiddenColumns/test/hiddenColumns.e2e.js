@@ -39,16 +39,7 @@ describe('HiddenColumns', () => {
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         hiddenColumns: {
           columns: [1, 3],
-        },
-        // cells(row, col) {
-        //   const meta = {};
-
-        //   if (this.instance.renderedToPhysicalColumn(col) === 2) {
-        //     meta.type = 'date';
-        //   }
-
-        //   return meta;
-        // },
+        }
       });
 
       expect(countRenderableColumns()).toBe(3);

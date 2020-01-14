@@ -236,6 +236,13 @@ class IndexMapper {
   /**
    * @TODO Description
    */
+  getVisualFromRenderableIndex(renderableIndex) {
+    return this.getVisualFromPhysicalIndex(this.getPhysicalFromRenderableIndex(renderableIndex));
+  }
+
+  /**
+   * @TODO Description
+   */
   getRenderableFromVisualIndex(visualIndex) {
     if (visualIndex >= this.getNotSkippedIndexesLength()) {
       return null;

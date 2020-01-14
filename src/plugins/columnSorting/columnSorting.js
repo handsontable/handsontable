@@ -225,7 +225,7 @@ class ColumnSorting extends BasePlugin {
 
     if (sortPossible) {
       const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
-        ({ column: this.hot.renderedToPhysicalColumn(visualColumn), ...restOfProperties });
+        ({ column: this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(visualColumn), ...restOfProperties });
       const internalSortStates = arrayMap(destinationSortConfigs, columnSortConfig => translateColumnToPhysical(columnSortConfig));
 
       this.columnStatesManager.setSortStates(internalSortStates);
@@ -654,7 +654,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    const physicalColumn = this.hot.renderedToPhysicalColumn(column);
+    const physicalColumn = this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(column);
     const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
     const showSortIndicator = pluginSettingsForColumn.indicator;
     const headerActionEnabled = pluginSettingsForColumn.headerAction;

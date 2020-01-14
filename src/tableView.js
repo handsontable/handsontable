@@ -338,6 +338,24 @@ class TableView {
   }
 
   /**
+   * @TODO Description
+   */
+  translateFromRenderableToVisualCoords(renderableRow, renderableColumn) {
+    let visualRow = this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow);
+    let visualColumn = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn);
+
+    if (visualRow === null) {
+      visualRow = renderableRow;
+    }
+
+    if (visualColumn === null) {
+      visualColumn = renderableColumn;
+    }
+
+    return new CellCoords(visualRow, visualColumn);
+  }
+
+  /**
    * Defines default configuration and initializes WalkOnTable intance.
    *
    * @private
@@ -375,7 +393,13 @@ class TableView {
 
         if (this.instance.hasColHeaders()) {
           headerRenderers.push((renderedColumnIndex, TH) => {
-            this.appendColHeader(this.instance.renderedToVisualColumn(renderedColumnIndex), TH);
+            let visualColumnsIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
+
+            if (visualColumnsIndex === null) {
+              visualColumnsIndex = renderedColumnIndex;
+            }
+
+            this.appendColHeader(visualColumnsIndex, TH);
           });
         }
 
@@ -386,9 +410,9 @@ class TableView {
       columnWidth: this.instance.getColWidth,
       rowHeight: this.instance.getRowHeight,
       cellRenderer: (row, renderedColumnIndex, TD) => {
-        const visualColumnIndex = this.instance.renderedToVisualColumn(renderedColumnIndex);
+        const visualColumnIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
         const cellProperties = this.instance.getCellMeta(row, visualColumnIndex);
-        const prop = this.instance.colToProp(this.instance.renderedToVisualColumn(renderedColumnIndex));
+        const prop = this.instance.colToProp(visualColumnIndex);
         let value = this.instance.getDataAtRowProp(row, prop);
 
         if (this.instance.hasHook('beforeValueRender')) {
@@ -409,11 +433,7 @@ class TableView {
         this.instance.refreshDimensions();
       },
       onCellMouseDown: (event, coords, TD, wt) => {
-        const columnIndexMapper = this.instance.columnIndexMapper;
-        const newCoords = new CellCoords(
-          coords.row,
-          coords.col > -1 ? columnIndexMapper.getVisualFromPhysicalIndex(columnIndexMapper.getPhysicalFromRenderableIndex(coords.col)) : -1
-        );
+        const visualCoords = this.translateFromRenderableToVisualCoords(coords.row, coords.col);
 
         const blockCalculations = {
           row: false,
@@ -426,22 +446,24 @@ class TableView {
         this.activeWt = wt;
         priv.mouseDown = true;
 
-        this.instance.runHooks('beforeOnCellMouseDown', event, newCoords, TD, blockCalculations);
+        this.instance.runHooks('beforeOnCellMouseDown', event, visualCoords, TD, blockCalculations);
 
         if (isImmediatePropagationStopped(event)) {
           return;
         }
 
         handleMouseEvent(event, {
-          coords: newCoords,
+          coords: visualCoords,
           selection: this.instance.selection,
           controller: blockCalculations,
         });
 
-        this.instance.runHooks('afterOnCellMouseDown', event, newCoords, TD);
+        this.instance.runHooks('afterOnCellMouseDown', event, visualCoords, TD);
         this.activeWt = this.wt;
       },
       onCellContextMenu: (event, coords, TD, wt) => {
+        const visualCoords = this.translateFromRenderableToVisualCoords(coords.row, coords.col);
+
         this.activeWt = wt;
         priv.mouseDown = false;
 
@@ -449,28 +471,32 @@ class TableView {
           this.instance.selection.finish();
         }
 
-        this.instance.runHooks('beforeOnCellContextMenu', event, coords, TD);
+        this.instance.runHooks('beforeOnCellContextMenu', event, visualCoords, TD);
 
         if (isImmediatePropagationStopped(event)) {
           return;
         }
 
-        this.instance.runHooks('afterOnCellContextMenu', event, coords, TD);
+        this.instance.runHooks('afterOnCellContextMenu', event, visualCoords, TD);
 
         this.activeWt = this.wt;
       },
       onCellMouseOut: (event, coords, TD, wt) => {
+        const visualCoords = this.translateFromRenderableToVisualCoords(coords.row, coords.col);
+
         this.activeWt = wt;
-        this.instance.runHooks('beforeOnCellMouseOut', event, coords, TD);
+        this.instance.runHooks('beforeOnCellMouseOut', event, visualCoords, TD);
 
         if (isImmediatePropagationStopped(event)) {
           return;
         }
 
-        this.instance.runHooks('afterOnCellMouseOut', event, coords, TD);
+        this.instance.runHooks('afterOnCellMouseOut', event, visualCoords, TD);
         this.activeWt = this.wt;
       },
       onCellMouseOver: (event, coords, TD, wt) => {
+        const visualCoords = this.translateFromRenderableToVisualCoords(coords.row, coords.col);
+
         const blockCalculations = {
           row: false,
           column: false,
@@ -478,7 +504,7 @@ class TableView {
         };
 
         this.activeWt = wt;
-        this.instance.runHooks('beforeOnCellMouseOver', event, coords, TD, blockCalculations);
+        this.instance.runHooks('beforeOnCellMouseOver', event, visualCoords, TD, blockCalculations);
 
         if (isImmediatePropagationStopped(event)) {
           return;
@@ -486,24 +512,26 @@ class TableView {
 
         if (priv.mouseDown) {
           handleMouseEvent(event, {
-            coords,
+            visualCoords,
             selection: this.instance.selection,
             controller: blockCalculations,
           });
         }
 
-        this.instance.runHooks('afterOnCellMouseOver', event, coords, TD);
+        this.instance.runHooks('afterOnCellMouseOver', event, visualCoords, TD);
         this.activeWt = this.wt;
       },
       onCellMouseUp: (event, coords, TD, wt) => {
+        const visualCoords = this.translateFromRenderableToVisualCoords(coords.row, coords.col);
+
         this.activeWt = wt;
-        this.instance.runHooks('beforeOnCellMouseUp', event, coords, TD);
+        this.instance.runHooks('beforeOnCellMouseUp', event, visualCoords, TD);
 
         if (isImmediatePropagationStopped(event)) {
           return;
         }
 
-        this.instance.runHooks('afterOnCellMouseUp', event, coords, TD);
+        this.instance.runHooks('afterOnCellMouseUp', event, visualCoords, TD);
         this.activeWt = this.wt;
       },
       onCellCornerMouseDown: (event) => {
