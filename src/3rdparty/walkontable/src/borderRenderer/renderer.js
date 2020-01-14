@@ -63,6 +63,7 @@ export default class BorderRenderer {
     svg.style.position = 'absolute';
     svg.style.zIndex = '5';
     svg.setAttribute('pointer-events', 'none');
+    svg.setAttribute('class', 'wtBorders'); // in IE, classList is not defined on SVG elements and className is read-only
     parentElement.appendChild(svg);
 
     return svg;

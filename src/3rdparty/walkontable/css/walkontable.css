@@ -243,6 +243,12 @@
   overflow: hidden;
 }
 
-.handsontable svg:not(:root) {
+.handsontable svg.wtBorders:not(:root) {
   overflow: hidden; /* fix for IE, where SVG content is not cropped to the viewbox. Otherwise IE shows artifacts in SVG borders when scrolling with fixedColumnsLeft */
+}
+
+@media print {
+  .handsontable svg.wtBorders:not(:root) {
+    display: none;
+  }
 }
