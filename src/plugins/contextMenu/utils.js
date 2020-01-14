@@ -118,7 +118,8 @@ export function checkSelectionConsistency(ranges, comparator) {
   if (Array.isArray(ranges)) {
     arrayEach(ranges, (range) => {
       range.forAll((row, col) => {
-        if (comparator(row, col)) {
+        // Selection consistency should only check within cell ranges. We skip header coordinates.
+        if (row >= 0 && col >= 0 && comparator(row, col)) {
           result = true;
 
           return false;

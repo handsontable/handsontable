@@ -20,7 +20,7 @@ import { isMobileBrowser, isIE, isEdge } from './../helpers/browser';
 import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
 import { KEY_CODES } from './../helpers/unicode';
-import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
@@ -441,8 +441,8 @@ class TextEditor extends BaseEditor {
    * @private
    */
   bindEvents() {
-    this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => stopPropagation(event));
-    this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => stopPropagation(event));
+    this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => event.stopPropagation());
+    this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => event.stopPropagation());
 
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.addHook('afterScrollVertically', () => this.refreshDimensions());

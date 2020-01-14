@@ -1,6 +1,4 @@
-import { polymerWrap, closest } from './helpers/dom/element';
-import { hasOwnProperty, } from './helpers/object';
-import { isWebComponentSupportedNatively, isPassiveEventSupported } from './helpers/feature';
+import { isPassiveEventSupported } from './helpers/feature';
 import { stopImmediatePropagation as _stopImmediatePropagation } from './helpers/dom/event';
 
 /**
@@ -203,83 +201,12 @@ class EventManager {
  * @returns {*}
  */
 function extendEvent(context, event) {
-  const componentName = 'HOT-TABLE';
-  let isHotTableSpotted;
-  let fromElement;
-  let realTarget;
-  let target;
-  let len;
-
-  event.isTargetWebComponent = false;
-  event.realTarget = event.target;
-
   const nativeStopImmediatePropagation = event.stopImmediatePropagation;
 
   event.stopImmediatePropagation = function() {
     nativeStopImmediatePropagation.apply(this);
     _stopImmediatePropagation(this);
   };
-
-  if (!EventManager.isHotTableEnv) {
-    return event;
-  }
-  // eslint-disable-next-line no-param-reassign
-  event = polymerWrap(event);
-  len = event.path ? event.path.length : 0;
-
-  while (len) {
-    len -= 1;
-
-    if (event.path[len].nodeName === componentName) {
-      isHotTableSpotted = true;
-
-    } else if (isHotTableSpotted && event.path[len].shadowRoot) {
-      target = event.path[len];
-
-      break;
-    }
-    if (len === 0 && !target) {
-      target = event.path[len];
-    }
-  }
-  if (!target) {
-    target = event.target;
-  }
-  event.isTargetWebComponent = true;
-
-  if (isWebComponentSupportedNatively()) {
-    event.realTarget = event.srcElement || event.toElement;
-
-  } else if (hasOwnProperty(context, 'hot') || context.isHotTableEnv || context.wtTable) {
-    // Polymer doesn't support `event.target` property properly we must emulate it ourselves
-    if (hasOwnProperty(context, 'hot')) {
-      // Custom element
-      fromElement = context.hot ? context.hot.view.wt.wtTable.TABLE : null;
-
-    } else if (context.isHotTableEnv) {
-      // Handsontable.Core
-      fromElement = context.view.activeWt.wtTable.TABLE.parentNode.parentNode;
-
-    } else if (context.wtTable) {
-      // Walkontable
-      fromElement = context.wtTable.TABLE.parentNode.parentNode;
-    }
-    realTarget = closest(event.target, [componentName], fromElement);
-
-    if (realTarget) {
-      event.realTarget = fromElement.querySelector(componentName) || event.target;
-    } else {
-      event.realTarget = event.target;
-    }
-  }
-
-  Object.defineProperty(event, 'target', {
-    get() {
-      return polymerWrap(target);
-    },
-    enumerable: true,
-    configurable: true,
-  });
 
   return event;
 }

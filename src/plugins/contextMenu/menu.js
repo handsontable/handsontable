@@ -217,6 +217,7 @@ class Menu {
     this.hotMenu.addHook('afterSelection', (...args) => this.onAfterSelection(...args));
     this.hotMenu.init();
     this.hotMenu.listen();
+
     this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');
   }
