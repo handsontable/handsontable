@@ -3,6 +3,7 @@ import {
   getScrollbarWidth,
   getScrollTop,
   getWindowScrollLeft,
+  hasClass,
   outerHeight,
   removeClass,
   setOverlayPosition,
@@ -335,10 +336,20 @@ class TopOverlay extends Overlay {
     }
 
     if (master.getSetting('fixedRowsTop') === 0 && master.getSetting('columnHeaders').length > 0) {
+      const previousState = hasClass(masterRootElement, 'innerBorderTop');
+
       if (position || master.getSetting('totalRows') === 0) {
         addClass(masterRootElement, 'innerBorderTop');
       } else {
         removeClass(masterRootElement, 'innerBorderTop');
+      }
+
+      if (!previousState && position || previousState && !position) {
+        master.wtOverlays.adjustElementsSizes();
+
+        // cell borders should be positioned once again,
+        // because we added / removed 1px border from table header
+        this.redrawAllSelectionsBorders();
       }
     }
   }

@@ -3,6 +3,7 @@ import {
   getScrollbarWidth,
   getScrollLeft,
   getWindowScrollTop,
+  hasClass,
   outerWidth,
   removeClass,
   setOverlayPosition,
@@ -274,10 +275,15 @@ class LeftOverlay extends Overlay {
       addClass(masterRootElement, 'innerBorderLeft');
 
     } else if (!fixedColumnsLeft && rowHeaders.length) {
+      const previousState = hasClass(masterRootElement, 'innerBorderLeft');
+
       if (position) {
         addClass(masterRootElement, 'innerBorderLeft');
       } else {
         removeClass(masterRootElement, 'innerBorderLeft');
+      }
+      if (!previousState && position || previousState && !position) {
+        master.wtOverlays.adjustElementsSizes();
       }
     }
   }
