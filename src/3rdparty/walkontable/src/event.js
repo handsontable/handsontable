@@ -156,8 +156,8 @@ class Event {
   onMouseDown(event) {
     const priv = privatePool.get(this);
     const activeElement = this.instance.rootDocument.activeElement;
-    const getParentNode = partial(getParent, event.realTarget);
-    const realTarget = event.realTarget;
+    const getParentNode = partial(getParent, event.target);
+    const realTarget = event.target;
 
     // ignore focusable element from mouse down processing (https://github.com/handsontable/handsontable/issues/3555)
     if (realTarget === activeElement ||
@@ -194,7 +194,7 @@ class Event {
    */
   onContextMenu(event) {
     if (this.instance.hasSetting('onCellContextMenu')) {
-      const cell = this.parentCell(event.realTarget);
+      const cell = this.parentCell(event.target);
 
       if (cell.TD) {
         this.instance.getSetting('onCellContextMenu', event, cell.coords, cell.TD, this.instance);
@@ -214,7 +214,7 @@ class Event {
     }
 
     const table = this.instance.wtTable.TABLE;
-    const td = closestDown(event.realTarget, ['TD', 'TH'], table);
+    const td = closestDown(event.target, ['TD', 'TH'], table);
     const mainWOT = this.instance.cloneSource || this.instance;
 
     if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
@@ -236,7 +236,7 @@ class Event {
     }
 
     const table = this.instance.wtTable.TABLE;
-    const lastTD = closestDown(event.realTarget, ['TD', 'TH'], table);
+    const lastTD = closestDown(event.target, ['TD', 'TH'], table);
     const nextTD = closestDown(event.relatedTarget, ['TD', 'TH'], table);
 
     if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
@@ -252,7 +252,7 @@ class Event {
    */
   onMouseUp(event) {
     const priv = privatePool.get(this);
-    const cell = this.parentCell(event.realTarget);
+    const cell = this.parentCell(event.target);
 
     if (cell.TD && this.instance.hasSetting('onCellMouseUp')) {
       this.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, this.instance);
@@ -264,7 +264,7 @@ class Event {
     }
 
     if (cell.TD === priv.dblClickOrigin[0] && cell.TD === priv.dblClickOrigin[1]) {
-      if (hasClass(event.realTarget, 'corner')) {
+      if (hasClass(event.target, 'corner')) {
         this.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, this.instance);
       } else {
         this.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, this.instance);

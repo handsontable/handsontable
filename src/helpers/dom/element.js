@@ -1,10 +1,10 @@
-import { isIE8, isIE9, isSafari } from '../browser';
 import {
   hasCaptionProblem,
   isClassListSupported,
   isTextContentSupported,
   isGetComputedStyleSupported,
 } from '../feature';
+import { isSafari, isIE9 } from '../browser';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -154,61 +154,6 @@ export function isChildOf(child, parent) {
   }
 
   return false;
-}
-
-/**
- * Check if an element is part of `hot-table` web component.
- *
- * @param {Element} element
- * @returns {Boolean}
- */
-export function isChildOfWebComponentTable(element) {
-  const hotTableName = 'hot-table';
-  let result = false;
-  let parentNode = polymerWrap(element);
-
-  function isHotTable(testElement) {
-    return testElement.nodeType === Node.ELEMENT_NODE && testElement.nodeName === hotTableName.toUpperCase();
-  }
-
-  while (parentNode !== null) {
-    if (isHotTable(parentNode)) {
-      result = true;
-      break;
-    } else if (parentNode.host && parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      result = isHotTable(parentNode.host);
-
-      if (result) {
-        break;
-      }
-      parentNode = parentNode.host;
-    }
-    parentNode = parentNode.parentNode;
-  }
-
-  return result;
-}
-
-/* global Polymer wrap unwrap */
-
-/**
- * Wrap element into polymer/webcomponent container if exists
- *
- * @param element
- * @returns {*}
- */
-export function polymerWrap(element) {
-  return typeof Polymer !== 'undefined' && typeof wrap === 'function' ? wrap(element) : element;
-}
-
-/**
- * Unwrap element from polymer/webcomponent container if exists
- *
- * @param element
- * @returns {*}
- */
-export function polymerUnwrap(element) {
-  return typeof Polymer !== 'undefined' && typeof unwrap === 'function' ? unwrap(element) : element;
 }
 
 /**
@@ -437,7 +382,6 @@ export function removeTextNodes(element, parent) {
  * @param element
  * @returns {void}
  */
-//
 export function empty(element) {
   let child;
   /* eslint-disable no-cond-assign */
@@ -493,7 +437,7 @@ export function isVisible(elem) {
   const documentElement = elem.ownerDocument.documentElement;
   let next = elem;
 
-  while (polymerUnwrap(next) !== documentElement) { // until <html> reached
+  while (next !== documentElement) { // until <html> reached
     if (next === null) { // parent detached from DOM
       return false;
 
@@ -624,8 +568,8 @@ export function getScrollTop(element, rootWindow = window) {
   if (element === rootWindow) {
     return getWindowScrollTop(rootWindow);
   }
-  return element.scrollTop;
 
+  return element.scrollTop;
 }
 
 /**
@@ -640,6 +584,7 @@ export function getScrollLeft(element, rootWindow = window) {
   if (element === rootWindow) {
     return getWindowScrollLeft(rootWindow);
   }
+
   return element.scrollLeft;
 }
 
@@ -996,12 +941,6 @@ export function setCaretPosition(element, pos, endPos) {
       element.setSelectionRange(pos, endPos);
       elementParent.style.display = parentDisplayValue;
     }
-  } else if (element.createTextRange) { // IE8
-    const range = element.createTextRange();
-    range.collapse(true);
-    range.moveEnd('character', endPos);
-    range.moveStart('character', pos);
-    range.select();
   }
 }
 
@@ -1083,7 +1022,7 @@ export function hasHorizontalScrollbar(element) {
  * Sets overlay position depending on it's type and used browser
  */
 export function setOverlayPosition(overlayElem, left, top) {
-  if (isIE8() || isIE9()) {
+  if (isIE9()) {
     overlayElem.style.top = top;
     overlayElem.style.left = left;
   } else if (isSafari()) {
