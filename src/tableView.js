@@ -512,7 +512,7 @@ class TableView {
 
         if (priv.mouseDown) {
           handleMouseEvent(event, {
-            visualCoords,
+            coords: visualCoords,
             selection: this.instance.selection,
             controller: blockCalculations,
           });
