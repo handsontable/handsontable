@@ -3088,11 +3088,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number}
    */
   this.countRenderableColumns = function() {
-    const { columns, maxCols } = this.getSettings();
-    const cachedCols = instance.columnIndexMapper.getRenderedIndexesLength();
-    const columnsLen = Array.isArray(columns) ? columns.length : cachedCols;
+    const numberOfNotSkippedColumns = this.columnIndexMapper.getNotSkippedIndexesLength();
+    const numberOfHiddenColumns = numberOfNotSkippedColumns - this.columnIndexMapper.getNotHiddenIndexesLength();
 
-    return Math.min(maxCols, cachedCols, columnsLen);
+    return this.countCols() - numberOfHiddenColumns;
   };
 
   /**

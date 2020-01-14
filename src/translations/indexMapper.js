@@ -1,4 +1,4 @@
-import { arrayFilter, arrayMap } from './../helpers/array';
+import {arrayFilter, arrayMap, arrayReduce} from './../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/visuallyIndexed';
 import { rangeEach } from '../helpers/number';
 import IndexToIndexMap from './maps/visualIndexToPhysicalIndexMap';
@@ -273,12 +273,13 @@ class IndexMapper {
       this.skipMapsCollection.initEvery(length);
     });
 
+    // We move initialization of hidden collection to next batch for purpose of working on sequence of already skipped indexes.
     this.executeBatchOperations(() => {
       this.hiddenCollection.initEvery(length);
-    });
 
-    // It shouldn't reset the cache.
-    this.variousMapsCollection.initEvery(length);
+      // It shouldn't reset the cache.
+      this.variousMapsCollection.initEvery(length);
+    });
 
     this.runLocalHooks('init');
   }
@@ -358,9 +359,9 @@ class IndexMapper {
       return this.renderedIndexesCache;
     }
 
-    const flattenRenderedList = this.getFlattenRenderedList();
-
-    return arrayFilter(this.getIndexesSequence(), index => flattenRenderedList[index]);
+    return arrayFilter(this.getNotSkippedIndexes(), (physicalIndex) => {
+      return this.isHidden(physicalIndex) === false;
+    });
   }
 
   /**
@@ -411,22 +412,6 @@ class IndexMapper {
 
     // Adding indexes without re-indexing.
     this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, destinationPosition, physicalMovedIndexes));
-  }
-
-  /**
-   * @TODO Description.
-   *
-   * @private
-   * @returns {Array}
-   */
-  getFlattenRenderedList() {
-    const result = [];
-
-    rangeEach(this.indexesSequence.getLength() - 1, (physicalIndex) => {
-      result[physicalIndex] = this.isHidden(physicalIndex) === false && this.isSkipped(physicalIndex) === false;
-    });
-
-    return result;
   }
 
   // TODO: Comment and names of variables to change.
