@@ -83,6 +83,7 @@ class IndexMapper {
     this.hiddenCollection = new MapCollection();
     this.flattenHiddenList = [];
     this.notHiddenIndexesCache = [];
+    this.renderedIndexesCache = [];
 
     this.indexesSequence.addLocalHook('change', () => {
       this.cachedIndexesChange = true;
@@ -204,7 +205,7 @@ class IndexMapper {
    * @TODO Description
    */
   getPhysicalFromRenderableIndex(renderableIndex) {
-    const renderableIndexes = this.getNotHiddenIndexes();
+    const renderableIndexes = this.getRenderedIndexes();
     const numberOfVisibleIndexes = renderableIndexes.length;
     let physicalIndex = null;
 
@@ -236,11 +237,17 @@ class IndexMapper {
    * @TODO Description
    */
   getRenderableFromVisualIndex(visualIndex) {
-    if (visualIndex >= this.getNotSkippedIndexes().length || this.isHidden(this.getPhysicalFromVisualIndex(visualIndex))) {
+    if (visualIndex >= this.getNotSkippedIndexesLength()) {
       return null;
     }
 
-    return visualIndex - this.getFlattenHiddenList().slice(0, visualIndex).filter(hidden => hidden).length;
+    const physicalIndex = this.getPhysicalFromVisualIndex(visualIndex);
+
+    if (this.isHidden(physicalIndex)) {
+      return null;
+    }
+
+    return visualIndex - this.getFlattenHiddenList().slice(0, physicalIndex).filter(hidden => hidden).length;
   }
 
   /**
@@ -311,7 +318,7 @@ class IndexMapper {
   }
 
   /**
-   * Get all indexes NOT skipped in the process of rendering.
+   * @TODO Description.
    *
    * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
@@ -325,12 +332,37 @@ class IndexMapper {
   }
 
   /**
-   * Get length of all indexes NOT skipped in the process of rendering.
+   * @TODO Description.
    *
    * @returns {Number}
    */
   getNotHiddenIndexesLength() {
     return this.getNotHiddenIndexes().length;
+  }
+
+  /**
+   * @TODO Description.
+   *
+   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @returns {Array}
+   */
+  getRenderedIndexes(readFromCache = true) {
+    if (readFromCache === true) {
+      return this.renderedIndexesCache;
+    }
+
+    const flattenRenderedList = this.getFlattenRenderedList();
+
+    return arrayFilter(this.getIndexesSequence(), index => flattenRenderedList[index]);
+  }
+
+  /**
+   * @TODO Description.
+   *
+   * @returns {Number}
+   */
+  getRenderedIndexesLength() {
+    return this.getRenderedIndexes().length;
   }
 
   /**
@@ -374,6 +406,22 @@ class IndexMapper {
     this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, destinationPosition, physicalMovedIndexes));
   }
 
+  /**
+   * @TODO Description.
+   *
+   * @private
+   * @returns {Array}
+   */
+  getFlattenRenderedList() {
+    const result = [];
+
+    rangeEach(this.indexesSequence.getLength() - 1, (physicalIndex) => {
+      result[physicalIndex] = this.isHidden(physicalIndex) === false && this.isSkipped(physicalIndex) === false;
+    });
+
+    return result;
+  }
+
   // TODO: Comment and names of variables to change.
   /**
    * Get flat list of values, which are result whether index was skipped in any of skip collection's element.
@@ -392,7 +440,7 @@ class IndexMapper {
     }
 
     const result = [];
-    const particularHiddensLists = arrayMap([...this.skipMapsCollection.get(), ...this.hiddenCollection.get()], list => list.getValues());
+    const particularHiddensLists = arrayMap(this.hiddenCollection.get(), list => list.getValues());
 
     rangeEach(this.indexesSequence.getLength() - 1, (physicalIndex) => {
       result[physicalIndex] = particularHiddensLists.some(particularHiddensList => particularHiddensList[physicalIndex]);
@@ -497,6 +545,7 @@ class IndexMapper {
       this.flattenHiddenList = this.getFlattenHiddenList(false);
       this.notSkippedIndexesCache = this.getNotSkippedIndexes(false);
       this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
+      this.renderedIndexesCache = this.getRenderedIndexes(false);
       this.cachedIndexesChange = false;
 
       this.runLocalHooks('cacheUpdated');

@@ -2187,7 +2187,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return column;
     }
 
-    const position = this.columnIndexMapper.getNotHiddenIndexes().indexOf(column);
+    const position = this.columnIndexMapper.getRenderedIndexes().indexOf(column);
 
     return position < 0 ? null : position;
   };
@@ -3132,7 +3132,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countRenderableColumns = function() {
     const { columns, maxCols } = this.getSettings();
-    const cachedCols = instance.columnIndexMapper.getNotHiddenIndexesLength();
+    const cachedCols = instance.columnIndexMapper.getRenderedIndexesLength();
     const columnsLen = Array.isArray(columns) ? columns.length : cachedCols;
 
     return Math.min(maxCols, cachedCols, columnsLen);
