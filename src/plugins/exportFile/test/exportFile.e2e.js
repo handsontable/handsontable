@@ -94,11 +94,9 @@ describe('exportFile', () => {
 
       const result = plugin._createBlob(formatter);
 
-      if (!Handsontable.helper.isIE9()) {
-        expect(formatter.export).toHaveBeenCalled();
-        expect(result.size).toBe(7);
-        expect(result.type).toBe('foo;charset=iso-8859-1');
-      }
+      expect(formatter.export).toHaveBeenCalled();
+      expect(result.size).toBe(7);
+      expect(result.type).toBe('foo;charset=iso-8859-1');
     });
   });
 });

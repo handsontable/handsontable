@@ -723,7 +723,7 @@ class ColumnSorting extends BasePlugin {
     const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
 
-    return headerActionEnabled && event.realTarget.nodeName === 'SPAN';
+    return headerActionEnabled && event.target.nodeName === 'SPAN';
   }
 
   /**

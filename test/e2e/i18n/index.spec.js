@@ -20,12 +20,12 @@ describe('i18n', () => {
     }
   });
 
-  it('should not propagate `language` key to meta of cells', () => {
+  it('should propagate `language` key to meta of cells', () => {
     handsontable({
       language: POLISH_LANGUAGE_CODE
     });
 
-    expect(getCellMeta(0, 0).language).toBeUndefined();
+    expect(getCellMeta(0, 0).language).toBe('pl-PL');
   });
 
   describe('Hook `beforeLanguageChange`', () => {
