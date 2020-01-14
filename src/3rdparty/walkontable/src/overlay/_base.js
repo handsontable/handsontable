@@ -277,7 +277,6 @@ class Overlay {
     overlayRootElement.style.position = 'absolute';
     overlayRootElement.style.top = 0;
     overlayRootElement.style.left = 0;
-    overlayRootElement.style.overflow = 'visible';
 
     clonedTable.className = master.wtTable.TABLE.className;
     overlayRootElement.appendChild(clonedTable);

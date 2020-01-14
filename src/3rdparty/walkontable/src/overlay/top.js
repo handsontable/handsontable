@@ -329,13 +329,20 @@ class TopOverlay extends Overlay {
     const masterRootElement = master.wtTable.wtRootElement;
     const totalColumns = master.getSetting('totalColumns');
 
+    const fixedRowsTop = master.getSetting('fixedRowsTop');
+    if (fixedRowsTop > 0) {
+      addClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineHorizontal');
+    } else {
+      removeClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineHorizontal');
+    }
+
     if (totalColumns) {
       removeClass(masterRootElement, 'emptyColumns');
     } else {
       addClass(masterRootElement, 'emptyColumns');
     }
 
-    if (master.getSetting('fixedRowsTop') === 0 && master.getSetting('columnHeaders').length > 0) {
+    if (fixedRowsTop === 0 && master.getSetting('columnHeaders').length > 0) {
       const previousState = hasClass(masterRootElement, 'innerBorderTop');
 
       if (position || master.getSetting('totalRows') === 0) {

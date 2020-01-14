@@ -1,8 +1,10 @@
 
 import {
+  addClass,
   outerHeight,
   outerWidth,
   setOverlayPosition,
+  removeClass,
   resetCssTransform
 } from './../../../../helpers/dom/element';
 import TopLeftCornerOverlayTable from './../table/topLeftCorner';
@@ -93,6 +95,21 @@ class TopLeftCornerOverlay extends Overlay {
     }
 
     const { clone, master } = this;
+
+    const fixedRowsTop = master.getSetting('fixedRowsTop');
+    if (fixedRowsTop > 0) {
+      addClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineHorizontal');
+    } else {
+      removeClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineHorizontal');
+    }
+
+    const fixedColumnsLeft = master.getSetting('fixedColumnsLeft');
+    if (fixedColumnsLeft > 0) {
+      addClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineVertical');
+    } else {
+      removeClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineVertical');
+    }
+
     let tableHeight = outerHeight(clone.wtTable.TABLE);
     const tableWidth = outerWidth(clone.wtTable.TABLE);
     const overlayRootElement = clone.wtTable.wtRootElement;
@@ -103,6 +120,8 @@ class TopLeftCornerOverlay extends Overlay {
 
     overlayRootElement.style.height = `${tableHeight}px`;
     overlayRootElement.style.width = `${tableWidth}px`;
+    clone.wtTable.holder.style.height = overlayRootElement.style.height;
+    clone.wtTable.holder.style.width = overlayRootElement.style.width;
   }
 }
 

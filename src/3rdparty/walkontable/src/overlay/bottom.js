@@ -300,6 +300,13 @@ class BottomOverlay extends Overlay {
   adjustHeaderBordersPosition(position) {
     const { master } = this;
 
+    const fixedRowsBottom = master.getSetting('fixedRowsBottom');
+    if (fixedRowsBottom > 0) {
+      addClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineHorizontal');
+    } else {
+      removeClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineHorizontal');
+    }
+
     if (master.getSetting('fixedRowsBottom') === 0 && master.getSetting('columnHeaders').length > 0) {
       const masterRootElement = master.wtTable.wtRootElement;
       const previousState = hasClass(masterRootElement, 'innerBorderTop');

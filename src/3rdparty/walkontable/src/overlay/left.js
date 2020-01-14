@@ -172,6 +172,13 @@ class LeftOverlay extends Overlay {
     const overlayRootElementStyle = overlayRootElement.style;
     const preventOverflow = master.getSetting('preventOverflow');
 
+    const fixedColumnsLeft = master.getSetting('fixedColumnsLeft');
+    if (fixedColumnsLeft > 0) {
+      addClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineVertical');
+    } else {
+      removeClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineVertical');
+    }
+
     if (master.wtTable.trimmingContainer !== master.rootWindow || preventOverflow === 'vertical') {
       let height = master.wtViewport.getWorkspaceHeight();
 

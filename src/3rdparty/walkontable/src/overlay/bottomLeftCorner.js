@@ -1,7 +1,9 @@
 import {
+  addClass,
   getScrollbarWidth,
   outerHeight,
   outerWidth,
+  removeClass,
   resetCssTransform
 } from './../../../../helpers/dom/element';
 import BottomLeftCornerOverlayTable from './../table/bottomLeftCorner';
@@ -112,12 +114,28 @@ class BottomLeftCornerOverlay extends Overlay {
     const tableWidth = outerWidth(clone.wtTable.TABLE);
     const overlayRootElement = clone.wtTable.wtRootElement;
 
+    const fixedRowsBottom = master.getSetting('fixedRowsBottom');
+    if (fixedRowsBottom > 0) {
+      addClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineHorizontal');
+    } else {
+      removeClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineHorizontal');
+    }
+
+    const fixedColumnsLeft = master.getSetting('fixedColumnsLeft');
+    if (fixedColumnsLeft > 0) {
+      addClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineVertical');
+    } else {
+      removeClass(this.clone.wtTable.wtRootElement, 'wtFrozenLineVertical');
+    }
+
     if (!master.wtTable.hasDefinedSize()) {
       tableHeight = 0;
     }
 
     overlayRootElement.style.height = `${tableHeight}px`;
     overlayRootElement.style.width = `${tableWidth}px`;
+    clone.wtTable.holder.style.width = overlayRootElement.style.width;
+
   }
 }
 

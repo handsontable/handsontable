@@ -180,7 +180,6 @@ class Table {
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent, 'wtHolder')) {
       holder = this.wot.rootDocument.createElement('div');
-      holder.style.position = 'relative';
       holder.className = 'wtHolder';
 
       if (parent) {
