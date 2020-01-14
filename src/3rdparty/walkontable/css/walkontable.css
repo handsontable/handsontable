@@ -104,8 +104,14 @@
   border-left: 1px solid #ccc;
 }
 
-.handsontable tr:first-child th,
-.handsontable tr:first-child td {
+.handsontable.ht_master tr:first-child th,
+.handsontable.ht_master tr:first-child td,
+.handsontable.ht_clone_top tr:first-child th,
+.handsontable.ht_clone_top tr:first-child td,
+.handsontable.ht_clone_left tr:first-child th,
+.handsontable.ht_clone_left tr:first-child td,
+.handsontable.ht_clone_top_left_corner tr:first-child th,
+.handsontable.ht_clone_top_left_corner tr:first-child td {
   border-top: 1px solid #ccc;
 }
 
@@ -239,7 +245,9 @@
 
 .ht_clone_top .wtHolder,
 .ht_clone_left .wtHolder,
-.ht_clone_bottom .wtHolder {
+.ht_clone_bottom .wtHolder,
+.ht_clone_top_left_corner .wtHolder,
+.ht_clone_bottom_left_corner .wtHolder {
   overflow: hidden;
 }
 
@@ -251,4 +259,21 @@
   .handsontable svg.wtBorders:not(:root) {
     display: none;
   }
+}
+
+/**
+ * Frozen line is implemented as a special style of gridline
+ */
+ .handsontable .ht_clone_top,
+ .handsontable .ht_clone_top_left_corner {
+  border-bottom: 1px solid orange;
+}
+.handsontable .ht_clone_bottom,
+.handsontable .ht_clone_bottom_left_corner {
+  border-top: 1px solid orange;
+}
+.handsontable .ht_clone_left,
+.handsontable .ht_clone_top_left_corner,
+.handsontable .ht_clone_bottom_left_corner {
+  border-right: 1px solid orange;
 }

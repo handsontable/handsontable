@@ -191,7 +191,7 @@ class TopOverlay extends Overlay {
       overlayRootElementStyle.width = '';
     }
 
-    let tableHeight = outerHeight(clone.wtTable.TABLE);
+    let tableHeight = outerHeight(clone.wtTable.TABLE) - 1;
 
     if (!master.wtTable.hasDefinedSize()) {
       tableHeight = 0;

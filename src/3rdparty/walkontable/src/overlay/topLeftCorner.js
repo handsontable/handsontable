@@ -93,8 +93,8 @@ class TopLeftCornerOverlay extends Overlay {
     }
 
     const { clone, master } = this;
-    let tableHeight = outerHeight(clone.wtTable.TABLE);
-    const tableWidth = outerWidth(clone.wtTable.TABLE);
+    let tableHeight = outerHeight(clone.wtTable.TABLE) - 1;
+    const tableWidth = outerWidth(clone.wtTable.TABLE) - 1;
     const overlayRootElement = clone.wtTable.wtRootElement;
 
     if (!master.wtTable.hasDefinedSize()) {
@@ -103,6 +103,8 @@ class TopLeftCornerOverlay extends Overlay {
 
     overlayRootElement.style.height = `${tableHeight}px`;
     overlayRootElement.style.width = `${tableWidth}px`;
+    clone.wtTable.holder.style.height = overlayRootElement.style.height;
+    clone.wtTable.holder.style.width = overlayRootElement.style.width;
   }
 }
 
