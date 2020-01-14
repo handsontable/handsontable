@@ -71,7 +71,7 @@
   ],
   "dependencies": {
     "@types/pikaday": "1.6.0",
-    "core-js": "^3.0.0",
+    "core-js": "^3.6.4",
     "hot-formula-parser": "^3.0.1",
     "moment": "2.20.1",
     "numbro": "2.1.1",
@@ -83,7 +83,7 @@
     "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/plugin-proposal-object-rest-spread": "^7.8.3",
     "@babel/plugin-transform-runtime": "^7.4.0",
-    "@babel/polyfill": "^7.8.3",
+    "@babel/polyfill": "^7.4.0",
     "@babel/preset-env": "^7.8.3",
     "@babel/register": "^7.8.3",
     "@babel/runtime": "^7.8.3",
