@@ -206,7 +206,7 @@ class GanttChart extends BasePlugin {
 
     if (!isDeprecationMessageShowed) {
       isDeprecationMessageShowed = true;
-      warn('Gantt Chart plugin is deprecated and will be removed in the next major release');
+      warn('The Gantt Chart plugin is deprecated and will be removed in the next major release');
     }
     this.checkDependencies();
 

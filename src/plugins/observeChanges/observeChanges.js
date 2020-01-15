@@ -52,7 +52,7 @@ class ObserveChanges extends BasePlugin {
       return;
     }
     if (!this.observer) {
-      warn('Observe Changes plugin is deprecated and will be removed');
+      warn('The Observe Changes plugin is deprecated and will be removed in the next major release');
       this.observer = new DataObserver(this.hot.getSourceData());
       this._exposePublicApi();
     }
