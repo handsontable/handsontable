@@ -245,9 +245,10 @@ describe('HiddenColumns', () => {
             hiddenColumns: true,
           });
 
-          const header = getCell(-1, 0);
-          header.simulate('mousedown');
-          header.simulate('mouseup');
+          const $header = $(getCell(-1, 0));
+
+          $header.simulate('mousedown');
+          $header.simulate('mouseup');
           contextMenu();
 
           const items = $('.htContextMenu tbody td');
@@ -370,9 +371,10 @@ describe('HiddenColumns', () => {
             },
           });
 
-          const header = getCell(-1, 2);
-          header.simulate('mousedown');
-          header.simulate('mouseup');
+          const $header = $(getCell(-1, 2));
+
+          $header.simulate('mousedown');
+          $header.simulate('mouseup');
           contextMenu();
 
           const items = $('.htContextMenu tbody td');
@@ -391,9 +393,10 @@ describe('HiddenColumns', () => {
             },
           });
 
-          const header = getCell(-1, 2);
-          header.simulate('mousedown');
-          header.simulate('mouseup');
+          const $header = $(getCell(-1, 2));
+
+          $header.simulate('mousedown');
+          $header.simulate('mouseup');
           contextMenu();
 
           const items = $('.htContextMenu tbody td');
