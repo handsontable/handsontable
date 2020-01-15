@@ -80,7 +80,7 @@ class Table {
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
 
-    this.borderRenderer = new BorderRenderer(this.spreader);
+    this.borderRenderer = new BorderRenderer(this.spreader, this.createBorderPaddingObject());
   }
 
   /**
@@ -92,6 +92,31 @@ class Table {
    */
   is(overlayTypeName) {
     return !this.isMaster && this.wot.getOverlayName() === overlayTypeName;
+  }
+
+  /**
+   * Creates the border padding object as defined in BorderRenderer.padding
+   *
+   * @type {Object} Object with properties top, left, bottom, right
+   */
+  createBorderPaddingObject() {
+    let top = 0;
+    const left = 0;
+    let bottom = 0;
+    let right = 0;
+    const frozenLineWidth = 1;
+
+    if (this.is(Overlay.CLONE_LEFT) || this.is(Overlay.CLONE_TOP_LEFT_CORNER) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      right = frozenLineWidth;
+    }
+    if (this.is(Overlay.CLONE_TOP) || this.is(Overlay.CLONE_TOP_LEFT_CORNER)) {
+      bottom = frozenLineWidth;
+    }
+    if (this.is(Overlay.CLONE_BOTTOM) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      top = frozenLineWidth;
+    }
+
+    return { top, left, bottom, right };
   }
 
   /**

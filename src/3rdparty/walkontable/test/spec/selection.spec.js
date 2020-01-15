@@ -152,9 +152,9 @@ describe('Walkontable.Selection', () => {
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top_left_corner')[0])).withContext('ht_clone_top_left_corner')
       .toEqual(null);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_bottom')[0])).withContext('ht_clone_bottom')
-      .toEqual(['M 0 -23.5 50 -23.5 M 49.5 -24 49.5 24 M 0 23.5 50 23.5']);
+      .toEqual(['M 0 -24.5 50 -24.5 M 49.5 -25 49.5 23 M 0 22.5 50 22.5']);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_bottom_left_corner')[0])).withContext('ht_clone_bottom_left_corner')
-      .toEqual(['M 0 -23.5 100 -23.5 M 99.5 -24 99.5 24 M 0 23.5 100 23.5 M 0.5 -24 0.5 24']);
+      .toEqual(['M 0 -24.5 100 -24.5 M 99.5 -25 99.5 23 M 0 22.5 100 22.5 M 0.5 -25 0.5 23']);
   });
 
   it('should not add class to selection until it is rerendered', () => {
