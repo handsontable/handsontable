@@ -641,8 +641,8 @@ class DataManager {
   moveCellMeta(fromIndex, toIndex) {
     const rowOfMeta = this.hot.getCellMetaAtRow(fromIndex);
 
+    this.hot.spliceCellsMeta(fromIndex, 1);
     this.hot.spliceCellsMeta(toIndex, 0, rowOfMeta);
-    this.hot.spliceCellsMeta(fromIndex + (fromIndex < toIndex ? 0 : 1), 1);
   }
 
   /**

@@ -65,23 +65,21 @@ export function normalizeLanguageCode(languageCode) {
 }
 
 /**
- * Set proper start language code. User may set language code which is not proper.
+ * Returns valid language code. If the passed language code doesn't exist default one will be used.
  *
- * @param {Object} settings Settings object.
  * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @returns {String}
  */
-export function applyLanguageSetting(settings, languageCode) {
-  const normalizedLanguageCode = normalizeLanguageCode(languageCode);
+export function getValidLanguageCode(languageCode) {
+  let normalizedLanguageCode = normalizeLanguageCode(languageCode);
 
-  if (hasLanguageDictionary(normalizedLanguageCode)) {
-    settings.language = normalizedLanguageCode;
-
-  } else {
-    settings.language = DEFAULT_LANGUAGE_CODE;
+  if (!hasLanguageDictionary(normalizedLanguageCode)) {
+    normalizedLanguageCode = DEFAULT_LANGUAGE_CODE;
 
     warnUserAboutLanguageRegistration(languageCode);
   }
+
+  return normalizedLanguageCode;
 }
 
 /**
@@ -92,7 +90,7 @@ export function applyLanguageSetting(settings, languageCode) {
  */
 export function warnUserAboutLanguageRegistration(languageCode) {
   if (isDefined(languageCode)) {
-    error(toSingleLine`Language with code "${languageCode}" was not found. You should register particular language 
-    before using it. Read more about this issue at: https://handsontable.com/docs/i18n/missing-language-code.`);
+    error(toSingleLine`Language with code "${languageCode}" was not found. You should register particular language\x20
+    before using it. Read more about this issue at: https://docs.handsontable.com/i18n/missing-language-code.`);
   }
 }

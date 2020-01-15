@@ -190,14 +190,6 @@ class Menu {
       rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
-
-        if (this.hasSelectedItem()) {
-          this.executeCommand(event);
-
-          if (!this.isCommandPassive(this.getSelectedItem())) {
-            this.close(true);
-          }
-        }
       },
       beforeOnCellMouseUp: (event) => {
         if (this.hasSelectedItem()) {
@@ -225,6 +217,7 @@ class Menu {
     this.hotMenu.addHook('afterSelection', (...args) => this.onAfterSelection(...args));
     this.hotMenu.init();
     this.hotMenu.listen();
+
     this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');
   }
@@ -673,8 +666,8 @@ class Menu {
    */
   onBeforeKeyDown(event) {
     // For input elements, prevent event propagation. It allows entering text into an input
-    // element freely - without steeling the key events from the menu module (#6506).
-    if (isInput(event.target)) {
+    // element freely - without steeling the key events from the menu module (#6506, #6549).
+    if (isInput(event.target) && this.container.contains(event.target)) {
       stopImmediatePropagation(event);
 
       return;
