@@ -87,14 +87,6 @@ class HiddenColumns extends BasePlugin {
      * @type {null|PhysicalIndexToValueMap}
      */
     this.hiddenColumnsMap = null;
-    /**
-     * Last selected column index.
-     *
-     * @private
-     * @type {Number}
-     * @default -1
-     */
-    this.lastSelectedColumn = -1;
   }
 
   /**
@@ -121,8 +113,6 @@ class HiddenColumns extends BasePlugin {
 
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
     this.addHook('afterGetColHeader', (...args) => this.onAfterGetColHeader(...args));
-    // this.addHook('beforeSetRangeEnd', (...args) => this.onBeforeSetRangeEnd(...args));
-    // this.addHook('beforeSetRangeStartOnly', (...args) => this.onBeforeSetRangeStart(...args));
     this.addHook('hiddenColumn', (...args) => this.isHidden(...args));
 
     super.enablePlugin();
@@ -144,7 +134,6 @@ class HiddenColumns extends BasePlugin {
   disablePlugin() {
     this.hot.columnIndexMapper.unregisterMap(PLUGIN_NAME);
     this.settings = {};
-    this.lastSelectedColumn = -1;
 
     super.disablePlugin();
     this.resetCellsMeta();
@@ -385,75 +374,6 @@ class HiddenColumns extends BasePlugin {
   }
 
   /**
-   * On before set range start listener.
-   *
-   * @private
-   * @param {Object} coords Object with `row` and `col` properties.
-   */
-  onBeforeSetRangeStart(coords) {
-    if (coords.col > 0) {
-      return;
-    }
-
-    coords.col = 0;
-
-    const getNextColumn = (col) => {
-      let visualColumn = col;
-      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-      if (this.isHidden(physicalColumn, true)) {
-        visualColumn += 1;
-        visualColumn = getNextColumn(visualColumn);
-      }
-
-      return visualColumn;
-    };
-
-    coords.col = getNextColumn(coords.col);
-  }
-
-  /**
-   * On before set range end listener.
-   *
-   * @private
-   * @param {Object} coords Object with `row` and `col` properties.
-   */
-  onBeforeSetRangeEnd(coords) {
-    const columnCount = this.hot.countCols();
-
-    const getNextColumn = (col) => {
-      let visualColumn = col;
-      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-      if (this.isHidden(physicalColumn, true)) {
-        if (this.lastSelectedColumn > visualColumn || coords.col === columnCount - 1) {
-          if (visualColumn > 0) {
-            visualColumn -= 1;
-            visualColumn = getNextColumn(visualColumn);
-
-          } else {
-            rangeEach(0, this.lastSelectedColumn, (i) => {
-              if (!this.isHidden(i)) {
-                visualColumn = i;
-
-                return false;
-              }
-            });
-          }
-        } else {
-          visualColumn += 1;
-          visualColumn = getNextColumn(visualColumn);
-        }
-      }
-
-      return visualColumn;
-    };
-
-    coords.col = getNextColumn(coords.col);
-    this.lastSelectedColumn = coords.col;
-  }
-
-  /**
    * Add Show-hide columns to context menu.
    *
    * @private
@@ -485,7 +405,6 @@ class HiddenColumns extends BasePlugin {
       }
 
       if (Array.isArray(settings.columns)) {
-        // this.hiddenColumnsMap.clear();
         this.hideColumns(settings.columns);
       }
 
