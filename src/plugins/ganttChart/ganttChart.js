@@ -10,6 +10,8 @@ import GanttChartDataFeed from './ganttChartDataFeed';
 
 import './ganttChart.css';
 
+let isDeprecationMessageShowed = false;
+
 /**
  * @plugin GanttChart
  * @dependencies CollapsibleColumns
@@ -202,7 +204,10 @@ class GanttChart extends BasePlugin {
       return;
     }
 
-    warn('Gantt Chart plugin is deprecated and will be removed in the next major release');
+    if (!isDeprecationMessageShowed) {
+      isDeprecationMessageShowed = true;
+      warn('Gantt Chart plugin is deprecated and will be removed in the next major release');
+    }
     this.checkDependencies();
 
     this.parseSettings();
