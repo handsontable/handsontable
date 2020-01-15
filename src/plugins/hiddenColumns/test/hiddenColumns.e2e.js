@@ -231,7 +231,7 @@ describe('HiddenColumns', () => {
           selectCell(0, 0);
           contextMenu();
 
-          const items = spec().$container.find('.htContextMenu tbody td');
+          const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
           expect(actions.text()).toBe(MENU_NO_ITEMS);
@@ -250,7 +250,7 @@ describe('HiddenColumns', () => {
           header.simulate('mouseup');
           contextMenu();
 
-          const items = spec().$container.find('.htContextMenu tbody td');
+          const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
           expect(actions.text()).toEqual(MENU_ITEM_HIDE_COLUMN);
@@ -273,7 +273,7 @@ describe('HiddenColumns', () => {
 
           contextMenu();
 
-          const items = spec().$container.find('.htContextMenu tbody td');
+          const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
           expect(actions.text()).toEqual(MENU_ITEM_HIDE_COLUMNS);
@@ -292,7 +292,7 @@ describe('HiddenColumns', () => {
           selectCell(0, 0);
           contextMenu();
 
-          const items = spec().$container.find('.htContextMenu tbody td');
+          const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
           expect(actions.text()).toBe(MENU_NO_ITEMS);
@@ -314,7 +314,7 @@ describe('HiddenColumns', () => {
           mouseUp(header);
           contextMenu(header);
 
-          const items = spec().$container.find('.htContextMenu tbody td');
+          const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
           expect(actions.text()).toBe(MENU_NO_ITEMS);
@@ -334,7 +334,7 @@ describe('HiddenColumns', () => {
           mouseUp(header);
           contextMenu(header);
 
-          const items = spec().$container.find('.htContextMenu tbody td');
+          const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
           expect(actions.text()).toBe(MENU_NO_ITEMS);
@@ -354,7 +354,7 @@ describe('HiddenColumns', () => {
           mouseUp(header);
           contextMenu(header);
 
-          const items = spec().$container.find('.htContextMenu tbody td');
+          const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
           expect(actions.text()).toBe(MENU_NO_ITEMS);
@@ -375,7 +375,7 @@ describe('HiddenColumns', () => {
           header.simulate('mouseup');
           contextMenu();
 
-          const items = spec().$container.find('.htContextMenu tbody td');
+          const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
           expect(actions.text()).toEqual(MENU_ITEM_SHOW_COLUMNS);
@@ -396,7 +396,7 @@ describe('HiddenColumns', () => {
           header.simulate('mouseup');
           contextMenu();
 
-          const items = spec().$container.find('.htContextMenu tbody td');
+          const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
           expect(actions.text()).toEqual(MENU_ITEM_SHOW_COLUMNS);
@@ -421,7 +421,7 @@ describe('HiddenColumns', () => {
 
           contextMenu();
 
-          const items = spec().$container.find('.htContextMenu tbody td');
+          const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
           expect(actions.text()).toEqual(MENU_ITEM_SHOW_COLUMNS);
@@ -446,7 +446,7 @@ describe('HiddenColumns', () => {
 
           contextMenu();
 
-          const items = spec().$container.find('.htContextMenu tbody td');
+          const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
           expect(actions.text()).toEqual(MENU_ITEM_SHOW_COLUMN);
@@ -466,7 +466,7 @@ describe('HiddenColumns', () => {
 
           selectColumns(1, 2);
 
-          getPlugin('contextMenu').commandExecutor.execute(CONTEXTMENU_ITEM_HIDE);
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
           expect(countRenderableColumns()).toBe(3);
           expect(getCell(0, 0).innerText).toBe('A1');
@@ -486,7 +486,7 @@ describe('HiddenColumns', () => {
 
           selectColumns(1, 2);
 
-          getPlugin('contextMenu').commandExecutor.execute(CONTEXTMENU_ITEM_HIDE);
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
           expect(getSelectedLast()).toEqual([0, 3, 1, 3]);
         });
@@ -501,7 +501,7 @@ describe('HiddenColumns', () => {
 
           selectColumns(3, 4);
 
-          getPlugin('contextMenu').commandExecutor.execute(CONTEXTMENU_ITEM_HIDE);
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
           expect(getSelectedLast()).toEqual([0, 2, 1, 2]);
         });
@@ -527,7 +527,7 @@ describe('HiddenColumns', () => {
 
           selectColumns(0, 4);
 
-          getPlugin('contextMenu').commandExecutor.execute(CONTEXTMENU_ITEM_SHOW);
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
           expect(countRenderableColumns()).toBe(5);
           expect(getCell(0, 0).innerText).toBe('A1');
@@ -557,7 +557,7 @@ describe('HiddenColumns', () => {
 
           selectColumns(2);
 
-          getPlugin('contextMenu').commandExecutor.execute(CONTEXTMENU_ITEM_SHOW);
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
           expect(countRenderableColumns()).toBe(5);
           expect(getCell(0, 0).innerText).toBe('A1');
@@ -587,7 +587,7 @@ describe('HiddenColumns', () => {
 
           selectColumns(2);
 
-          getPlugin('contextMenu').commandExecutor.execute(CONTEXTMENU_ITEM_SHOW);
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
           expect(countRenderableColumns()).toBe(5);
           expect(getCell(0, 0).innerText).toBe('A1');

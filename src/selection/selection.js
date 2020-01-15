@@ -506,8 +506,6 @@ class Selection {
       arrayEach(selectionRanges, (selection) => {
         const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
 
-        console.log(rowStart, columnStart);
-
         this.setRangeStartOnly(new CellCoords(rowStart, columnStart), false);
         this.setRangeEnd(new CellCoords(rowEnd, columnEnd));
         this.finish();
