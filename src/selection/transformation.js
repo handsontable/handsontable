@@ -42,44 +42,44 @@ class Transformation {
     this.runLocalHooks('beforeTransformStart', delta);
 
     let totalRows = this.options.countRows();
-    let totalCols = this.options.countColsTranslated();
+    let totalCols = this.options.countCols();
     const fixedRowsBottom = this.options.fixedRowsBottom();
     const minSpareRows = this.options.minSpareRows();
     const minSpareCols = this.options.minSpareCols();
     const autoWrapRow = this.options.autoWrapRow();
     const autoWrapCol = this.options.autoWrapCol();
     const highlightCoords = this.range.current().highlight;
-    const { row: transformedRow, col: transformedCol } = this.options.transformCoords(highlightCoords);
+    const { row, col } = this.options.translateCoords(highlightCoords);
 
-    if (transformedRow + rowDelta > totalRows - 1) {
-      if (force && minSpareRows > 0 && !(fixedRowsBottom && transformedRow >= totalRows - fixedRowsBottom - 1)) {
+    if (row + rowDelta > totalRows - 1) {
+      if (force && minSpareRows > 0 && !(fixedRowsBottom && row >= totalRows - fixedRowsBottom - 1)) {
         this.runLocalHooks('insertRowRequire', totalRows);
         totalRows = this.options.countRows();
 
       } else if (autoWrapCol) {
         delta.row = 1 - totalRows;
-        delta.col = transformedCol + delta.col === totalCols - 1 ? 1 - totalCols : 1;
+        delta.col = col + delta.col === totalCols - 1 ? 1 - totalCols : 1;
       }
-    } else if (autoWrapCol && transformedRow + delta.row < 0 && transformedCol + delta.col >= 0) {
+    } else if (autoWrapCol && row + delta.row < 0 && col + delta.col >= 0) {
       delta.row = totalRows - 1;
-      delta.col = transformedCol + delta.col === 0 ? totalCols - 1 : -1;
+      delta.col = col + delta.col === 0 ? totalCols - 1 : -1;
     }
 
-    if (transformedCol + delta.col > totalCols - 1) {
+    if (col + delta.col > totalCols - 1) {
       if (force && minSpareCols > 0) {
         this.runLocalHooks('insertColRequire', totalCols);
-        totalCols = this.options.countColsTranslated();
+        totalCols = this.options.countCols();
 
       } else if (autoWrapRow) {
-        delta.row = transformedRow + delta.row === totalRows - 1 ? 1 - totalRows : 1;
+        delta.row = row + delta.row === totalRows - 1 ? 1 - totalRows : 1;
         delta.col = 1 - totalCols;
       }
-    } else if (autoWrapRow && transformedCol + delta.col < 0 && transformedRow + delta.row >= 0) {
-      delta.row = transformedRow + delta.row === 0 ? totalRows - 1 : -1;
+    } else if (autoWrapRow && col + delta.col < 0 && row + delta.row >= 0) {
+      delta.row = row + delta.row === 0 ? totalRows - 1 : -1;
       delta.col = totalCols - 1;
     }
 
-    const coords = new CellCoords(transformedRow + delta.row, transformedCol + delta.col);
+    const coords = new CellCoords(row + delta.row, col + delta.col);
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
@@ -101,7 +101,7 @@ class Transformation {
       coords.col = totalCols - 1;
     }
 
-    const untransformedCoords = this.options.untransformCoords(coords);
+    const untransformedCoords = this.options.untranslateCoords(coords);
 
     this.runLocalHooks('afterTransformStart', untransformedCoords, rowTransformDir, colTransformDir);
 
@@ -121,11 +121,11 @@ class Transformation {
     this.runLocalHooks('beforeTransformEnd', delta);
 
     const totalRows = this.options.countRows();
-    const totalCols = this.options.countColsTranslated();
+    const totalCols = this.options.countCols();
     const cellRange = this.range.current();
-    const { row: transformedRow, col: transformedCol } = this.options.transformCoords(cellRange.to);
+    const { row, col } = this.options.translateCoords(cellRange.to);
 
-    const coords = new CellCoords(transformedRow + delta.row, transformedCol + delta.col);
+    const coords = new CellCoords(row + delta.row, col + delta.col);
 
     let rowTransformDir = 0;
     let colTransformDir = 0;
@@ -148,7 +148,7 @@ class Transformation {
       coords.col = totalCols - 1;
     }
 
-    const untransformedCoords = this.options.untransformCoords(coords);
+    const untransformedCoords = this.options.untranslateCoords(coords);
 
     this.runLocalHooks('afterTransformEnd', untransformedCoords, rowTransformDir, colTransformDir);
 

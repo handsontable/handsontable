@@ -85,10 +85,9 @@ class Selection {
      */
     this.transformation = new Transformation(this.selectedRange, {
       countRows: () => this.tableProps.countRows(),
-      countCols: () => this.tableProps.countCols(),
-      countColsTranslated: () => this.tableProps.countColsTranslated(),
-      transformCoords: coords => this.tableProps.translateCoords(coords),
-      untransformCoords: coords => this.tableProps.untranslateCoords(coords),
+      countCols: () => this.tableProps.countColsTranslated(),
+      translateCoords: coords => this.tableProps.translateCoords(coords),
+      untranslateCoords: coords => this.tableProps.untranslateCoords(coords),
       fixedRowsBottom: () => settings.fixedRowsBottom,
       minSpareRows: () => settings.minSpareRows,
       minSpareCols: () => settings.minSpareCols,
