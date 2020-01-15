@@ -118,7 +118,9 @@ export default class BorderRenderer {
     this.pathGroups.forEach(pathGroup => this.convertLinesToCommands(pathGroup));
 
     // batch all DOM writes
-    this.svgResizer(Math.min(this.maxWidth, this.containerBoundingRect.width), Math.min(this.maxHeight, this.containerBoundingRect.height));
+    const width = Math.min(this.maxWidth, this.containerBoundingRect.width) - 1;
+    const height = Math.min(this.maxHeight, this.containerBoundingRect.height) - 1;
+    this.svgResizer(width, height);
     this.pathGroups.forEach(pathGroup => pathGroup.svgPathsRenderer(pathGroup.styles, pathGroup.commands));
   }
 
