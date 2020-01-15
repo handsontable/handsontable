@@ -256,7 +256,7 @@ class Selection {
         this.highlight
           .useLayerLevel(layerLevel - 1)
           .createOrGetArea()
-          .add(this.selectedRange.previous().from);
+          .add(this.tableProps.translateCoords(this.selectedRange.previous().from));
 
         this.highlight.useLayerLevel(layerLevel);
       }
@@ -505,6 +505,8 @@ class Selection {
 
       arrayEach(selectionRanges, (selection) => {
         const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
+
+        console.log(rowStart, columnStart);
 
         this.setRangeStartOnly(new CellCoords(rowStart, columnStart), false);
         this.setRangeEnd(new CellCoords(rowEnd, columnEnd));

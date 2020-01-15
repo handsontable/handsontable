@@ -1004,7 +1004,7 @@ describe('HiddenColumns', () => {
 
       selectCell(1, 2);
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
 
       expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
     });
