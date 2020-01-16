@@ -1,10 +1,9 @@
-name: lint
+name: Linter
 
 on: [push]
 
 jobs:
   build:
-    name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@722adc63f1aa60a57ec37892e133b1d319cae598 # https://github.com/actions/checkout/releases/tag/v2.0.0
