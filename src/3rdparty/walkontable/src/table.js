@@ -80,7 +80,7 @@ class Table {
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
 
-    this.borderRenderer = new BorderRenderer(this.spreader);
+    this.borderRenderer = new BorderRenderer(this.spreader, this.getBorderPadding());
   }
 
   /**
@@ -92,6 +92,25 @@ class Table {
    */
   is(overlayTypeName) {
     return !this.isMaster && this.wot.getOverlayName() === overlayTypeName;
+  }
+
+  getBorderPadding() {
+    let top = 0;
+    const left = 0;
+    let bottom = 0;
+    let right = 0;
+
+    if (this.is(Overlay.CLONE_LEFT) || this.is(Overlay.CLONE_TOP_LEFT_CORNER) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      right = 1;
+    }
+    if (this.is(Overlay.CLONE_TOP) || this.is(Overlay.CLONE_TOP_LEFT_CORNER)) {
+      bottom = 1;
+    }
+    if (this.is(Overlay.CLONE_BOTTOM) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      top = 1;
+    }
+
+    return { top, left, bottom, right };
   }
 
   /**

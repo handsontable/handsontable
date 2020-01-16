@@ -253,19 +253,22 @@
   }
 }
 
+/**
+ * Frozen line, implemented as a special color of the gridline
+ */
 .ht_clone_top_left_corner th:last-child:not(:first-child),
 .ht_clone_top_left_corner td:last-child,
 .ht_clone_bottom_left_corner td:last-child,
 .ht_clone_left td:last-child {
-  border-right: 1px solid orange;
+  border-right: 1px solid #969696;
 }
 .ht_clone_top tbody tr:last-child td,
 .ht_clone_top_left_corner tbody tr:last-child th,
 .ht_clone_top_left_corner tbody tr:last-child td {
-  border-bottom: 1px solid orange;
+  border-bottom: 1px solid #969696;
 }
 .ht_clone_bottom_left_corner tr:first-child th,
 .ht_clone_bottom_left_corner tr:first-child td,
 .ht_clone_bottom tr:first-child td {
-  border-top: 1px solid orange;
+  border-top: 1px solid #969696;
 }

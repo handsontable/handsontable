@@ -8,7 +8,13 @@ const offsetToOverLapPrecedingBorder = -1;
  * Manages rendering of cell borders using SVG. Creates a single instance of SVG for each `Table`
  */
 export default class BorderRenderer {
-  constructor(parentElement) {
+  constructor(parentElement, padding) {
+    /**
+     * SVG graphic will cover the area of the table element (element passed to the render function), minus the specified paddings.
+     *
+     * @type {Object} Object with properties top, left, bottom, right
+     */
+    this.padding = padding;
     /**
      * The SVG container element, where all SVG groups are rendered
      *
@@ -56,8 +62,8 @@ export default class BorderRenderer {
   createSvgContainer(parentElement) {
     const svg = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
 
-    svg.style.top = '0';
-    svg.style.left = '0';
+    svg.style.top = `${this.padding.top}px`;
+    svg.style.left = `${this.padding.left}px`;
     svg.style.width = '0';
     svg.style.height = '0';
     svg.style.position = 'absolute';
@@ -118,8 +124,14 @@ export default class BorderRenderer {
     this.pathGroups.forEach(pathGroup => this.convertLinesToCommands(pathGroup));
 
     // batch all DOM writes
-    const width = Math.min(this.maxWidth, this.containerBoundingRect.width) - 1;
-    const height = Math.min(this.maxHeight, this.containerBoundingRect.height) - 1;
+    let width = Math.min(this.maxWidth, this.containerBoundingRect.width) - (this.padding.left + this.padding.right);
+    let height = Math.min(this.maxHeight, this.containerBoundingRect.height) - (this.padding.top + this.padding.bottom);
+    if (width < 0) {
+      width = 0;
+    }
+    if (height < 0) {
+      height = 0;
+    }
     this.svgResizer(width, height);
     this.pathGroups.forEach(pathGroup => pathGroup.svgPathsRenderer(pathGroup.styles, pathGroup.commands));
   }
@@ -364,20 +376,23 @@ export default class BorderRenderer {
     const firstTdBoundingRect = firstTd.getBoundingClientRect();
     const lastTdBoundingRect = (firstTd === lastTd) ? firstTdBoundingRect : lastTd.getBoundingClientRect();
 
+    // initial coordinates are termined by the position of the top-left and bottom-right cell
     let x1 = firstTdBoundingRect.left;
     let y1 = firstTdBoundingRect.top;
     let x2 = lastTdBoundingRect.left + lastTdBoundingRect.width;
     let y2 = lastTdBoundingRect.top + lastTdBoundingRect.height;
 
+    // if top-left or bottom-right cell are not rendered, we use the neighboring cell adjusted by its width or height
     x1 += addFirstTdWidth * firstTdBoundingRect.width;
     y1 += addFirstTdHeight * firstTdBoundingRect.height;
     x2 += addLastTdWidth * lastTdBoundingRect.width;
     y2 += addLastTdHeight * lastTdBoundingRect.height;
 
-    x1 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.left);
-    y1 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.top);
-    x2 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.left);
-    y2 += (offsetToOverLapPrecedingBorder - this.containerBoundingRect.top);
+    // adjustments needed to render the border directly on the gridline, depending on the surrounding CSS
+    x1 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.left - this.padding.left;
+    y1 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.top - this.padding.top;
+    x2 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.left - this.padding.left;
+    y2 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.top - this.padding.top;
 
     const prevElemSibling = firstTd.previousElementSibling;
     const isThisTheFirstColumn = prevElemSibling === null || prevElemSibling.nodeName !== 'TD';
