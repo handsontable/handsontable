@@ -2,21 +2,33 @@ function getAllCells() {
   return Array.from(spec().$wrapper[0].querySelectorAll('th, td'));
 }
 
-function cellHasFrozenLine(elem) {
+function cellFrozenLineSummary(elem) {
   const frozenLineColor = 'rgb(150, 150, 150)'; // must be in RGB, because that's the format returned by getComputedStyle
   const computedStyle = window.getComputedStyle(elem);
-  if (computedStyle.borderTopColor === frozenLineColor
-        || computedStyle.borderLeftColor === frozenLineColor
-        || computedStyle.borderBottomColor === frozenLineColor
-        || computedStyle.borderRightColor === frozenLineColor) {
-    return true;
+  let suffix = '';
+
+  if (computedStyle.borderTopColor === frozenLineColor) {
+    suffix += '-top';
   }
-  return false;
+  if (computedStyle.borderLeftColor === frozenLineColor) {
+    suffix += '-left';
+  }
+  if (computedStyle.borderBottomColor === frozenLineColor) {
+    suffix += '-bottom';
+  }
+  if (computedStyle.borderRightColor === frozenLineColor) {
+    suffix += '-right';
+  }
+
+  if (suffix) {
+    return elem.innerText + suffix;
+  }
+  return null;
 }
 
 function getTextsOfCellsWithFrozenLine() {
-  const cellsWithFrozenLine = getAllCells().filter(cellHasFrozenLine);
-  return cellsWithFrozenLine.map(elem => elem.innerText);
+  const texts = getAllCells().map(cellFrozenLineSummary);
+  return texts.filter(x => x !== null);
 }
 
 function renderText(elem, text) {
@@ -55,7 +67,7 @@ describe('Frozen line', () => {
 
       wt.draw();
 
-      expect(getTextsOfCellsWithFrozenLine()).toEqual(['A2', 'B2', 'C2', 'D2']);
+      expect(getTextsOfCellsWithFrozenLine()).toEqual(['A2-bottom', 'B2-bottom', 'C2-bottom', 'D2-bottom']);
     });
 
     it('should render a frozen line at the bottom of fixed rows top, with row and column headers', () => {
@@ -70,7 +82,7 @@ describe('Frozen line', () => {
 
       wt.draw();
 
-      expect(getTextsOfCellsWithFrozenLine()).toEqual(['A2', 'B2', 'C2', 'D2', 'Row2']);
+      expect(getTextsOfCellsWithFrozenLine()).toEqual(['A2-bottom', 'B2-bottom', 'C2-bottom', 'D2-bottom', 'Row2-bottom']);
     });
 
     it('should not render a frozen line when there are no fixed rows top', () => {
@@ -113,7 +125,7 @@ describe('Frozen line', () => {
 
       wt.draw();
 
-      expect(getTextsOfCellsWithFrozenLine()).toEqual(['A3', 'B3', 'C3', 'D3']);
+      expect(getTextsOfCellsWithFrozenLine()).toEqual(['A3-top', 'B3-top', 'C3-top', 'D3-top']);
     });
 
     it('should render a frozen line at the top of fixed rows bottom, with row and column headers', () => {
@@ -128,7 +140,7 @@ describe('Frozen line', () => {
 
       wt.draw();
 
-      expect(getTextsOfCellsWithFrozenLine()).toEqual(['A3', 'B3', 'C3', 'D3', 'Row3']);
+      expect(getTextsOfCellsWithFrozenLine()).toEqual(['A3-top', 'B3-top', 'C3-top', 'D3-top', 'Row3-top']);
     });
 
     it('should not render a frozen line when there are no fixed rows bottom', () => {
@@ -171,7 +183,7 @@ describe('Frozen line', () => {
 
       wt.draw();
 
-      expect(getTextsOfCellsWithFrozenLine()).toEqual(['B1', 'B2', 'B3', 'B4']);
+      expect(getTextsOfCellsWithFrozenLine()).toEqual(['B1-right', 'B2-right', 'B3-right', 'B4-right']);
     });
 
     it('should render a frozen line at the right of fixed columns left, with row and column headers', () => {
@@ -186,7 +198,7 @@ describe('Frozen line', () => {
 
       wt.draw();
 
-      expect(getTextsOfCellsWithFrozenLine()).toEqual(['B1', 'B2', 'B3', 'B4', 'Col2']);
+      expect(getTextsOfCellsWithFrozenLine()).toEqual(['B1-right', 'B2-right', 'B3-right', 'B4-right', 'Col2-right']);
     });
 
     it('should not render a frozen line when there are no fixed columns left', () => {
@@ -215,6 +227,56 @@ describe('Frozen line', () => {
       wt.draw();
 
       expect(getTextsOfCellsWithFrozenLine()).toEqual([]);
+    });
+  });
+
+  describe('fixed columns and rows at all edges', () => {
+    it('should render a frozen line at the edge of all overlays', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+
+      expect(getTextsOfCellsWithFrozenLine()).toEqual([
+        'A2-bottom', 'B2-bottom', 'C2-bottom', 'D2-bottom',
+        'A3-top', 'B3-top', 'C3-top', 'D3-top',
+        'B1-right', 'B2-right', 'B3-right', 'B4-right', 'B1-right',
+        'A2-bottom',
+        'B2-bottom-right',
+        'A3-top',
+        'B3-top-right',
+        'B4-right']);
+    });
+
+    it('should render a frozen line at the edge of all overlays, with row and column headers', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+        columnHeaders,
+        rowHeaders,
+      });
+
+      wt.draw();
+
+      expect(getTextsOfCellsWithFrozenLine()).toEqual([
+        'A2-bottom', 'B2-bottom', 'C2-bottom', 'D2-bottom',
+        'A3-top', 'B3-top', 'C3-top', 'D3-top',
+        'B1-right', 'B2-right', 'B3-right', 'B4-right', 'Col2-right', 'B1-right',
+        'Row2-bottom', 'A2-bottom',
+        'B2-bottom-right',
+        'Row3-top', 'A3-top',
+        'B3-top-right',
+        'B4-right']);
     });
   });
 
