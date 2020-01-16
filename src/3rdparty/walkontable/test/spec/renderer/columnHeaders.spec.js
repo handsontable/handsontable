@@ -35,12 +35,12 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
-          <th class="">1</th>
+          <th class="wtTableCornerCell">1</th>
           <th class="">1</th>
           <th class="">1</th>
         </tr>
         <tr>
-          <th class="">1</th>
+          <th class="wtTableCornerCell">1</th>
           <th class="">1</th>
           <th class="">1</th>
         </tr>
@@ -60,7 +60,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
-          <th class="">2</th>
+          <th class="wtTableCornerCell">2</th>
           <th class="">2</th>
         </tr>
       </thead>
@@ -141,12 +141,12 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
-          <th class="">1</th>
+          <th class="wtTableCornerCell">1</th>
           <th class="">1</th>
           <th class="">1</th>
         </tr>
         <tr>
-          <th class="">1</th>
+          <th class="wtTableCornerCell">1</th>
           <th class="">1</th>
           <th class="">1</th>
         </tr>
@@ -188,12 +188,12 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
-          <th class=""></th>
+          <th class="wtTableCornerCell"></th>
           <th class=""></th>
           <th class=""></th>
         </tr>
         <tr>
-          <th class=""></th>
+          <th class="wtTableCornerCell"></th>
           <th class=""></th>
           <th class=""></th>
         </tr>

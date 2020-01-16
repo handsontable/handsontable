@@ -256,7 +256,7 @@
 /**
  * Frozen line, implemented as a special color of the gridline
  */
-.ht_clone_top_left_corner th:last-child:not(:first-child),
+.ht_clone_top_left_corner thead th:last-child:not(.wtTableCornerCell),
 .ht_clone_top_left_corner td:last-child,
 .ht_clone_bottom_left_corner td:last-child,
 .ht_clone_left td:last-child {

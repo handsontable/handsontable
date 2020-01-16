@@ -99,15 +99,16 @@ class Table {
     const left = 0;
     let bottom = 0;
     let right = 0;
+    const frozenLineWidth = 1;
 
     if (this.is(Overlay.CLONE_LEFT) || this.is(Overlay.CLONE_TOP_LEFT_CORNER) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      right = 1;
+      right = frozenLineWidth;
     }
     if (this.is(Overlay.CLONE_TOP) || this.is(Overlay.CLONE_TOP_LEFT_CORNER)) {
-      bottom = 1;
+      bottom = frozenLineWidth;
     }
     if (this.is(Overlay.CLONE_BOTTOM) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      top = 1;
+      top = frozenLineWidth;
     }
 
     return { top, left, bottom, right };

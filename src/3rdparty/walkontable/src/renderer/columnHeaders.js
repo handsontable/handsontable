@@ -77,6 +77,10 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
         TH.removeAttribute('style');
 
         columnHeaderFunctions[visibleRowIndex](sourceColumnIndex, TH, visibleRowIndex);
+
+        if (sourceColumnIndex < 0) {
+          TH.classList.add('wtTableCornerCell');
+        }
       }
     }
   }
