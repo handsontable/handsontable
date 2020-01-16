@@ -35,8 +35,10 @@ function renderText(elem, text) {
   elem.innerText = text;
 }
 
-const columnHeaders = [(col, TH) => renderText(TH, `Col${col + 1}`)];
-const rowHeaders = [(row, TH) => renderText(TH, `Row${row + 1}`)];
+const columnHeaderRenderer = (col, TH) => renderText(TH, `Col${col + 1}`);
+const columnHeaders = [columnHeaderRenderer, columnHeaderRenderer];
+const rowHeaderRenderer = (row, TH) => renderText(TH, `Row${row + 1}`);
+const rowHeaders = [rowHeaderRenderer, rowHeaderRenderer];
 
 describe('Frozen line', () => {
   beforeEach(function() {
@@ -82,7 +84,7 @@ describe('Frozen line', () => {
 
       wt.draw();
 
-      expect(getTextsOfCellsWithFrozenLine()).toEqual(['A2-bottom', 'B2-bottom', 'C2-bottom', 'D2-bottom', 'Row2-bottom']);
+      expect(getTextsOfCellsWithFrozenLine()).toEqual(['A2-bottom', 'B2-bottom', 'C2-bottom', 'D2-bottom', 'Row2-bottom', 'Row2-bottom']);
     });
 
     it('should not render a frozen line when there are no fixed rows top', () => {
@@ -140,7 +142,7 @@ describe('Frozen line', () => {
 
       wt.draw();
 
-      expect(getTextsOfCellsWithFrozenLine()).toEqual(['A3-top', 'B3-top', 'C3-top', 'D3-top', 'Row3-top']);
+      expect(getTextsOfCellsWithFrozenLine()).toEqual(['A3-top', 'B3-top', 'C3-top', 'D3-top', 'Row3-top', 'Row3-top']);
     });
 
     it('should not render a frozen line when there are no fixed rows bottom', () => {
@@ -198,7 +200,7 @@ describe('Frozen line', () => {
 
       wt.draw();
 
-      expect(getTextsOfCellsWithFrozenLine()).toEqual(['B1-right', 'B2-right', 'B3-right', 'B4-right', 'Col2-right']);
+      expect(getTextsOfCellsWithFrozenLine()).toEqual(['B1-right', 'B2-right', 'B3-right', 'B4-right', 'Col2-right', 'Col2-right']);
     });
 
     it('should not render a frozen line when there are no fixed columns left', () => {
@@ -269,12 +271,12 @@ describe('Frozen line', () => {
       wt.draw();
 
       expect(getTextsOfCellsWithFrozenLine()).toEqual([
-        'A2-bottom', 'B2-bottom', 'C2-bottom', 'D2-bottom',
-        'A3-top', 'B3-top', 'C3-top', 'D3-top',
-        'B1-right', 'B2-right', 'B3-right', 'B4-right', 'Col2-right', 'B1-right',
-        'Row2-bottom', 'A2-bottom',
+        'C2-bottom', 'D2-bottom',
+        'C3-top', 'D3-top',
+        'B1-right', 'B2-right', 'B3-right', 'B4-right', 'Col2-right', 'Col2-right', 'B1-right',
+        'Row2-bottom', 'Row2-bottom', 'A2-bottom',
         'B2-bottom-right',
-        'Row3-top', 'A3-top',
+        'Row3-top', 'Row3-top', 'A3-top',
         'B3-top-right',
         'B4-right']);
     });
