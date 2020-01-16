@@ -1,7 +1,6 @@
 import BasePlugin from './../_base';
 import { addClass, hasClass, removeClass, outerHeight } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
-import { pageX } from './../../helpers/dom/event';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import { registerPlugin } from './../../plugins';
@@ -446,7 +445,7 @@ class ManualColumnResize extends BasePlugin {
       }
       this.dblclick += 1;
 
-      this.startX = pageX(event);
+      this.startX = event.pageX;
       this.newSize = this.startWidth;
     }
   }
@@ -459,7 +458,7 @@ class ManualColumnResize extends BasePlugin {
    */
   onMouseMove(event) {
     if (this.pressed) {
-      this.currentWidth = this.startWidth + (pageX(event) - this.startX);
+      this.currentWidth = this.startWidth + (event.pageX - this.startX);
 
       arrayEach(this.selectedCols, (selectedCol) => {
         this.newSize = this.setManualSize(selectedCol, this.currentWidth);

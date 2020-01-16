@@ -7,7 +7,6 @@ import ItemsFactory from '../contextMenu/itemsFactory';
 import Menu from '../contextMenu/menu';
 import { registerPlugin } from '../../plugins';
 import Hooks from '../../pluginHooks';
-import { stopPropagation } from '../../helpers/dom/event';
 import {
   COLUMN_LEFT,
   COLUMN_RIGHT,
@@ -232,10 +231,6 @@ class DropdownMenu extends BasePlugin {
       this.menu.setOffset('left', position.width);
     }
     this.menu.setPosition(position);
-
-    // ContextMenu is not detected HotTableEnv correctly because is injected outside hot-table
-    this.menu.hotMenu.isHotTableEnv = this.hot.isHotTableEnv;
-    // Handsontable.eventManager.isHotTableEnv = this.hot.isHotTableEnv;
   }
 
   /**
@@ -301,7 +296,7 @@ class DropdownMenu extends BasePlugin {
    * @param {Event} event The mouse event object.
    */
   onTableClick(event) {
-    stopPropagation(event);
+    event.stopPropagation();
 
     if (hasClass(event.target, BUTTON_CLASS_NAME) && !this.menu.isOpened()) {
       let offsetTop = 0;

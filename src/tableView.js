@@ -11,7 +11,7 @@ import {
   isOutsideInput,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
-import { stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
+import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 
@@ -590,14 +590,14 @@ class TableView {
     this.eventManager.addEventListener(spreader, 'mousedown', (event) => {
       // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
       if (event.target === spreader && event.which === 3) {
-        stopPropagation(event);
+        event.stopPropagation();
       }
     });
 
     this.eventManager.addEventListener(spreader, 'contextmenu', (event) => {
       // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
       if (event.target === spreader && event.which === 3) {
-        stopPropagation(event);
+        event.stopPropagation();
       }
     });
 

@@ -2,7 +2,8 @@ module.exports = {
   "extends": ["airbnb-base", "plugin:jsdoc/recommended"],
   "parser": "babel-eslint",
   "plugins": [
-    "jsdoc"
+    "babel",
+    "jsdoc",
   ],
   "env": {
     "browser": true,

@@ -75,17 +75,6 @@ export function isTouchSupported() {
   return ('ontouchstart' in window);
 }
 
-/**
- * Checks if browser is support web components natively
- *
- * @returns {boolean}
- */
-export function isWebComponentSupportedNatively() {
-  const test = document.createElement('div');
-
-  return !!(test.createShadowRoot && test.createShadowRoot.toString().match(/\[native code\]/));
-}
-
 let _hasCaptionProblem;
 
 /**
