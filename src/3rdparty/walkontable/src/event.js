@@ -99,8 +99,8 @@ class Event {
    * Checks if an element is already selected.
    *
    * @private
-   * @param {Element} touchTarget
-   * @returns {Boolean}
+   * @param {Element} touchTarget An element to check.
+   * @returns {boolean}
    */
   selectedCellWasTouched(touchTarget) {
     const priv = privatePool.get(this);
@@ -121,8 +121,8 @@ class Event {
    * Gets closest TD or TH element.
    *
    * @private
-   * @param {Element} elem
-   * @returns {Object} Contains coordinates and reference to TD or TH if it exists. Otherwise it's empty object.
+   * @param {Element} elem An element from the traversing starts.
+   * @returns {object} Contains coordinates and reference to TD or TH if it exists. Otherwise it's empty object.
    */
   parentCell(elem) {
     const cell = {};
@@ -151,7 +151,7 @@ class Event {
    * onMouseDown callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseDown(event) {
     const priv = privatePool.get(this);
@@ -190,7 +190,7 @@ class Event {
    * onContextMenu callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onContextMenu(event) {
     if (this.instance.hasSetting('onCellContextMenu')) {
@@ -206,7 +206,7 @@ class Event {
    * onMouseOver callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseOver(event) {
     if (!this.instance.hasSetting('onCellMouseOver')) {
@@ -228,7 +228,7 @@ class Event {
    * onMouseOut callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseOut(event) {
     if (!this.instance.hasSetting('onCellMouseOut')) {
@@ -248,7 +248,7 @@ class Event {
    * onMouseUp callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseUp(event) {
     const priv = privatePool.get(this);
@@ -288,7 +288,7 @@ class Event {
    * onTouchStart callback. Simulates mousedown event.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onTouchStart(event) {
     const priv = privatePool.get(this);
@@ -303,7 +303,7 @@ class Event {
    * onTouchEnd callback. Simulates mouseup event.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onTouchEnd(event) {
     const excludeTags = ['A', 'BUTTON', 'INPUT'];

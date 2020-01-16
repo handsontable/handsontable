@@ -6,7 +6,7 @@ import { stopImmediatePropagation as _stopImmediatePropagation } from './helpers
 /**
  * Counter which tracks unregistered listeners (useful for detecting memory leaks).
  *
- * @type {Number}
+ * @type {number}
  */
 let listenersCounter = 0;
 
@@ -18,7 +18,7 @@ let listenersCounter = 0;
  */
 class EventManager {
   /**
-   * @param {Object} [context=null]
+   * @param {object} [context=null] An object to which event listeners will be stored.
    * @private
    */
   constructor(context = null) {
@@ -33,14 +33,17 @@ class EventManager {
    * Register specified listener (`eventName`) to the element.
    *
    * @param {Element} element Target element.
-   * @param {String} eventName Event name.
+   * @param {string} eventName Event name.
    * @param {Function} callback Function which will be called after event occur.
-   * @param {AddEventListenerOptions|Boolean} [options] Listener options if object or useCapture if boolean.
+   * @param {AddEventListenerOptions|boolean} [options] Listener options if object or useCapture if boolean.
    * @returns {Function} Returns function which you can easily call to remove that event
    */
   addEventListener(element, eventName, callback, options = false) {
     const context = this.context;
 
+    /**
+     * @param {Event} event The event object.
+     */
     function callbackProxy(event) {
       callback.call(this, extendEvent(context, event));
     }
@@ -70,9 +73,9 @@ class EventManager {
    * Remove the event listener previously registered.
    *
    * @param {Element} element Target element.
-   * @param {String} eventName Event name.
+   * @param {string} eventName Event name.
    * @param {Function} callback Function to remove from the event target. It must be the same as during registration listener.
-   * @param {Boolean} [onlyOwnEvents] Whether whould remove only events registered using this instance of EventManager
+   * @param {boolean} [onlyOwnEvents] Whether whould remove only events registered using this instance of EventManager
    */
   removeEventListener(element, eventName, callback, onlyOwnEvents = false) {
     let len = this.context.eventListeners.length;
@@ -102,7 +105,7 @@ class EventManager {
    *
    * @private
    * @since 0.15.0-beta3
-   * @param {Boolean} [onlyOwnEvents] Whether whould remove only events registered using this instance of EventManager
+   * @param {boolean} [onlyOwnEvents] Whether whould remove only events registered using this instance of EventManager
    */
   clearEvents(onlyOwnEvents = false) {
     if (!this.context) {
@@ -147,7 +150,7 @@ class EventManager {
    * Trigger event at the specified target element.
    *
    * @param {Element} element Target element.
-   * @param {String} eventName Event name.
+   * @param {string} eventName Event name.
    */
   fireEvent(element, eventName) {
     let rootDocument = element.document;
@@ -197,7 +200,7 @@ class EventManager {
 }
 
 /**
- * @param {Object} context
+ * @param {object} context
  * @param {Event} event
  * @private
  * @returns {*}
@@ -286,6 +289,9 @@ function extendEvent(context, event) {
 
 export default EventManager;
 
+/**
+ * @returns {number}
+ */
 export function getListenersCounter() {
   return listenersCounter;
 }

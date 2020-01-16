@@ -66,7 +66,7 @@ class ManualColumnResize extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ManualColumnResize#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return this.hot.getSettings().manualColumnResize;
@@ -140,9 +140,9 @@ class ManualColumnResize extends BasePlugin {
   /**
    * Sets the new width for specified column index.
    *
-   * @param {Number} column Visual column index.
-   * @param {Number} width Column width (no less than 20px).
-   * @returns {Number} Returns new width.
+   * @param {number} column Visual column index.
+   * @param {number} width Column width (no less than 20px).
+   * @returns {number} Returns new width.
    */
   setManualSize(column, width) {
     const newWidth = Math.max(width, 20);
@@ -156,7 +156,7 @@ class ManualColumnResize extends BasePlugin {
   /**
    * Clears the cache for the specified column index.
    *
-   * @param {Number} column Visual column index.
+   * @param {number} column Visual column index.
    */
   clearManualSize(column) {
     const physicalColumn = this.hot.toPhysicalColumn(column);
@@ -208,7 +208,7 @@ class ManualColumnResize extends BasePlugin {
    */
   setupHandlePosition(TH) {
     if (!TH.parentNode) {
-      return false;
+      return;
     }
 
     this.currentTH = TH;
@@ -316,7 +316,7 @@ class ManualColumnResize extends BasePlugin {
    *
    * @private
    * @param {HTMLElement} element HTML element.
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   checkIfColumnHeader(element) {
     if (element !== this.hot.rootElement) {
@@ -355,7 +355,7 @@ class ManualColumnResize extends BasePlugin {
    * 'mouseover' event callback - set the handle position.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event.
    */
   onMouseOver(event) {
     if (this.checkIfColumnHeader(event.target)) {
@@ -432,7 +432,7 @@ class ManualColumnResize extends BasePlugin {
    * 'mousedown' event callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event.
    */
   onMouseDown(event) {
     if (hasClass(event.target, 'manualColumnResizer')) {
@@ -455,7 +455,7 @@ class ManualColumnResize extends BasePlugin {
    * 'mousemove' event callback - refresh the handle and guide positions, cache the new column width.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event.
    */
   onMouseMove(event) {
     if (this.pressed) {
@@ -537,9 +537,9 @@ class ManualColumnResize extends BasePlugin {
    * Modifies the provided column width, based on the plugin settings
    *
    * @private
-   * @param {Number} width Column width.
-   * @param {Number} column Visual column index.
-   * @returns {Number}
+   * @param {number} width Column width.
+   * @param {number} column Visual column index.
+   * @returns {number}
    */
   onModifyColWidth(width, column) {
     let newWidth = width;
@@ -560,9 +560,9 @@ class ManualColumnResize extends BasePlugin {
    * Modifies the provided column stretched width. This hook decides if specified column should be stretched or not.
    *
    * @private
-   * @param {Number} stretchedWidth Stretched width.
-   * @param {Number} column Physical column index.
-   * @returns {Number}
+   * @param {number} stretchedWidth Stretched width.
+   * @param {number} column Physical column index.
+   * @returns {number}
    */
   onBeforeStretchingColumnWidth(stretchedWidth, column) {
     let width = this.columnWidthsMap.getValueAtIndex(column);

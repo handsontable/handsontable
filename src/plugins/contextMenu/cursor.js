@@ -54,7 +54,7 @@ class Cursor {
    * Get source type name.
    *
    * @param {*} object Event or Object with coordinates.
-   * @returns {String} Returns one of this values: `'literal'`, `'event'`.
+   * @returns {string} Returns one of this values: `'literal'`, `'event'`.
    */
   getSourceType(object) {
     let type = 'literal';
@@ -70,7 +70,7 @@ class Cursor {
    * Checks if element can be placed above the cursor.
    *
    * @param {HTMLElement} element Element to check if it's size will fit above the cursor.
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   fitsAbove(element) {
     return this.topRelative >= element.offsetHeight;
@@ -80,8 +80,8 @@ class Cursor {
    * Checks if element can be placed below the cursor.
    *
    * @param {HTMLElement} element Element to check if it's size will fit below the cursor.
-   * @param {Number} [viewportHeight] The viewport height.
-   * @returns {Boolean}
+   * @param {number} [viewportHeight] The viewport height.
+   * @returns {boolean}
    */
   fitsBelow(element, viewportHeight = this.rootWindow.innerHeight) {
     return this.topRelative + element.offsetHeight <= viewportHeight;
@@ -91,8 +91,8 @@ class Cursor {
    * Checks if element can be placed on the right of the cursor.
    *
    * @param {HTMLElement} element Element to check if it's size will fit on the right of the cursor.
-   * @param {Number} [viewportWidth] The viewport width.
-   * @returns {Boolean}
+   * @param {number} [viewportWidth] The viewport width.
+   * @returns {boolean}
    */
   fitsOnRight(element, viewportWidth = this.rootWindow.innerWidth) {
     return this.leftRelative + this.cellWidth + element.offsetWidth <= viewportWidth;
@@ -102,7 +102,7 @@ class Cursor {
    * Checks if element can be placed on the left on the cursor.
    *
    * @param {HTMLElement} element Element to check if it's size will fit on the left of the cursor.
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   fitsOnLeft(element) {
     return this.leftRelative >= element.offsetWidth;

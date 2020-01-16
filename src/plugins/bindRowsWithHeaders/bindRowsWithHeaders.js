@@ -45,7 +45,7 @@ class BindRowsWithHeaders extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link BindRowsWithHeaders#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().bindRowsWithHeaders;
@@ -87,8 +87,8 @@ class BindRowsWithHeaders extends BasePlugin {
    * On modify row header listener.
    *
    * @private
-   * @param {Number} row Row index.
-   * @returns {Number}
+   * @param {number} row Row index.
+   * @returns {number}
    */
   onModifyRowHeader(row) {
     return this.headerIndexes.getValueAtIndex(this.hot.toPhysicalRow(row));

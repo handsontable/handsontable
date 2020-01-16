@@ -9,8 +9,8 @@ import {
 /**
  * Get the parent of the specified node in the DOM tree.
  *
- * @param  {HTMLElement} element Element from which traversing is started.
- * @param  {Number} [level=0] Traversing deep level.
+ * @param {HTMLElement} element Element from which traversing is started.
+ * @param {number} [level=0] Traversing deep level.
  * @returns {HTMLElement|null}
  */
 export function getParent(element, level = 0) {
@@ -58,8 +58,9 @@ export function getParentWindow(frame) {
 
 /**
  * Checks if script has access to read from parent frame of specified frame.
-
+ *
  * @param {Window} frame Frame from which should be get frameElement in safe way.
+ * @returns {boolean}
  */
 export function hasAccessToParentWindow(frame) {
   return !!Object.getPrototypeOf(frame.parent);
@@ -71,7 +72,7 @@ export function hasAccessToParentWindow(frame) {
  *
  * @param {HTMLElement} element Element from which traversing is started
  * @param {Array} nodes Array of elements or Array of elements name
- * @param {HTMLElement} [until]
+ * @param {HTMLElement} [until] The element until the traversing ends.
  * @returns {HTMLElement|null}
  */
 export function closest(element, nodes, until) {
@@ -97,7 +98,7 @@ export function closest(element, nodes, until) {
  *
  * @param {HTMLElement} element Element from which traversing is started
  * @param {Array} nodes Array of elements or Array of elements name
- * @param {HTMLElement} [until]
+ * @param {HTMLElement} [until] The list of elements until the traversing ends.
  * @returns {HTMLElement|null}
  */
 export function closestDown(element, nodes, until) {
@@ -127,10 +128,10 @@ export function closestDown(element, nodes, until) {
 /**
  * Goes up the DOM tree and checks if element is child of another element.
  *
- * @param child Child element
- * @param {Object|String} parent Parent element OR selector of the parent element.
+ * @param child Child element An element to check.
+ * @param {object|string} parent Parent element OR selector of the parent element.
  *                               If string provided, function returns `true` for the first occurrence of element with that class.
- * @returns {Boolean}
+ * @returns {boolean}
  */
 export function isChildOf(child, parent) {
   let node = child.parentNode;
@@ -160,13 +161,16 @@ export function isChildOf(child, parent) {
  * Check if an element is part of `hot-table` web component.
  *
  * @param {Element} element
- * @returns {Boolean}
+ * @returns {boolean}
  */
 export function isChildOfWebComponentTable(element) {
   const hotTableName = 'hot-table';
   let result = false;
   let parentNode = polymerWrap(element);
 
+  /**
+   * @param testElement
+   */
   function isHotTable(testElement) {
     return testElement.nodeType === Node.ELEMENT_NODE && testElement.nodeName === hotTableName.toUpperCase();
   }
@@ -217,8 +221,8 @@ export function polymerUnwrap(element) {
  * Otherwise would need to check for nodeType or use previousElementSibling
  *
  * @see http://jsperf.com/sibling-index/10
- * @param {Element} element
- * @returns {Number}
+ * @param {Element} element The element to check.
+ * @returns {number}
  */
 export function index(element) {
   let i = 0;
@@ -237,9 +241,9 @@ export function index(element) {
 /**
  * Check if the provided overlay contains the provided element
  *
- * @param {String} overlay
- * @param {HTMLElement} element
- * @param {HTMLElement} root
+ * @param {string} overlayType The type of the overlay.
+ * @param {HTMLElement} element An element to check.
+ * @param {HTMLElement} root The root element.
  * @returns {boolean}
  */
 export function overlayContainsElement(overlayType, element, root) {
@@ -251,6 +255,10 @@ let _hasClass;
 let _addClass;
 let _removeClass;
 
+/**
+ * @param {string} classNames The element "class" attribute string.
+ * @returns {string[]}
+ */
 function filterEmptyClassNames(classNames) {
   const result = [];
 
@@ -386,11 +394,11 @@ if (isClassListSupported()) {
 }
 
 /**
- * Checks if element has class name
+ * Checks if element has class name.
  *
- * @param {HTMLElement} element
- * @param {String} className Class name to check
- * @returns {Boolean}
+ * @param {HTMLElement} element An element to check.
+ * @param {string} className Class name to check.
+ * @returns {boolean}
  */
 export function hasClass(element, className) {
   return _hasClass(element, className);
@@ -399,26 +407,29 @@ export function hasClass(element, className) {
 /**
  * Add class name to an element
  *
- * @param {HTMLElement} element
- * @param {String|Array} className Class name as string or array of strings
+ * @param {HTMLElement} element An element to process.
+ * @param {string|Array} className Class name as string or array of strings.
  */
 export function addClass(element, className) {
-  return _addClass(element, className);
+  _addClass(element, className);
 }
 
 /**
  * Remove class name from an element
  *
- * @param {HTMLElement} element
- * @param {String|Array} className Class name as string or array of strings
+ * @param {HTMLElement} element An element to process.
+ * @param {string|Array} className Class name as string or array of strings
  */
 export function removeClass(element, className) {
-  return _removeClass(element, className);
+  _removeClass(element, className);
 }
 
-export function removeTextNodes(element, parent) {
+/**
+ * @param {HTMLElement} element An element from the text is removed.
+ */
+export function removeTextNodes(element) {
   if (element.nodeType === 3) {
-    parent.removeChild(element); // bye text nodes!
+    element.parentNode.removeChild(element); // bye text nodes!
 
   } else if (['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].indexOf(element.nodeName) > -1) {
     const childs = element.childNodes;
@@ -434,8 +445,7 @@ export function removeTextNodes(element, parent) {
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/11 - no siginificant improvement with Chrome remove() method
  *
- * @param element
- * @returns {void}
+ * @param {HTMLElement} element An element to clear.
  */
 //
 export function empty(element) {
@@ -450,7 +460,9 @@ export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
 
 /**
  * Insert content into element trying avoid innerHTML method.
- * @returns {void}
+ *
+ * @param {HTMLElement} element An element to write into.
+ * @param {string} content The text to write.
  */
 export function fastInnerHTML(element, content) {
   if (HTML_CHARACTERS.test(content)) {
@@ -462,7 +474,9 @@ export function fastInnerHTML(element, content) {
 
 /**
  * Insert text content into element
- * @returns {Boolean}
+ *
+ * @param {HTMLElement} element An element to write into.
+ * @param {string} content The text to write.
  */
 export function fastInnerText(element, content) {
   const child = element.firstChild;
@@ -486,12 +500,13 @@ export function fastInnerText(element, content) {
 
 /**
  * Returns true if element is attached to the DOM and visible, false otherwise
- * @param elem
+ *
+ * @param {HTMLElement} element An element to check.
  * @returns {boolean}
  */
-export function isVisible(elem) {
-  const documentElement = elem.ownerDocument.documentElement;
-  let next = elem;
+export function isVisible(element) {
+  const documentElement = element.ownerDocument.documentElement;
+  let next = element;
 
   while (polymerUnwrap(next) !== documentElement) { // until <html> reached
     if (next === null) { // parent detached from DOM
@@ -527,14 +542,14 @@ export function isVisible(elem) {
 /**
  * Returns elements top and left offset relative to the document. Function is not compatible with jQuery offset.
  *
- * @param {HTMLElement} elem
- * @returns {Object} Returns object with `top` and `left` props
+ * @param {HTMLElement} element An element to get the offset position from.
+ * @returns {object} Returns object with `top` and `left` props
  */
-export function offset(elem) {
-  const rootDocument = elem.ownerDocument;
+export function offset(element) {
+  const rootDocument = element.ownerDocument;
   const rootWindow = rootDocument.defaultView;
   const documentElement = rootDocument.documentElement;
-  let elementToCheck = elem;
+  let elementToCheck = element;
   let offsetLeft;
   let offsetTop;
   let lastElem;
@@ -581,8 +596,8 @@ export function offset(elem) {
 /**
  * Returns the document's scrollTop property.
  *
- * @param {Window} rootWindow
- * @returns {Number}
+ * @param {Window} [rootWindow] The document window owner.
+ * @returns {number}
  */
 // eslint-disable-next-line no-restricted-globals
 export function getWindowScrollTop(rootWindow = window) {
@@ -598,8 +613,8 @@ export function getWindowScrollTop(rootWindow = window) {
 /**
  * Returns the document's scrollLeft property.
  *
- * @param {Window} rootWindow
- * @returns {Number}
+ * @param {Window} [rootWindow] The document window owner.
+ * @returns {number}
  */
 // eslint-disable-next-line no-restricted-globals
 export function getWindowScrollLeft(rootWindow = window) {
@@ -615,9 +630,9 @@ export function getWindowScrollLeft(rootWindow = window) {
 /**
  * Returns the provided element's scrollTop property.
  *
- * @param element
- * @param {Window} rootWindow
- * @returns {Number}
+ * @param {HTMLElement} element An element to get the scroll top position from.
+ * @param {Window} [rootWindow] The document window owner.
+ * @returns {number}
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollTop(element, rootWindow = window) {
@@ -631,9 +646,9 @@ export function getScrollTop(element, rootWindow = window) {
 /**
  * Returns the provided element's scrollLeft property.
  *
- * @param element
- * @param {Window} rootWindow
- * @returns {Number}
+ * @param {HTMLElement} element An element to get the scroll left position from.
+ * @param {Window} [rootWindow] The document window owner.
+ * @returns {number}
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollLeft(element, rootWindow = window) {
@@ -646,7 +661,7 @@ export function getScrollLeft(element, rootWindow = window) {
 /**
  * Returns a DOM element responsible for scrolling of the provided element.
  *
- * @param {HTMLElement} element
+ * @param {HTMLElement} element An element to get the scrollable element from.
  * @returns {HTMLElement} Element's scrollable parent
  */
 export function getScrollableElement(element) {
@@ -726,10 +741,10 @@ export function getTrimmingContainer(base) {
 /**
  * Returns a style property for the provided element. (Be it an inline or external style).
  *
- * @param {HTMLElement} element
- * @param {String} prop Wanted property
- * @param {Window} rootWindow
- * @returns {String|undefined} Element's style property
+ * @param {HTMLElement} element An element to get the style from.
+ * @param {string} prop Wanted property
+ * @param {Window} [rootWindow] The document window owner.
+ * @returns {string|undefined} Element's style property
  */
 // eslint-disable-next-line no-restricted-globals
 export function getStyle(element, prop, rootWindow = window) {
@@ -765,7 +780,7 @@ export function getStyle(element, prop, rootWindow = window) {
  *
  * @param {Element} element Element to verify with selector text.
  * @param {CSSRule} rule Selector text from CSSRule.
- * @returns {Boolean}
+ * @returns {boolean}
  */
 export function matchesCSSRules(element, rule) {
   const { selectorText } = rule;
@@ -786,8 +801,8 @@ export function matchesCSSRules(element, rule) {
 /**
  * Returns a computed style object for the provided element. (Needed if style is declared in external stylesheet).
  *
- * @param element
- * @param {Window} rootWindow
+ * @param {HTMLElement} element An element to get style from.
+ * @param {Window} [rootWindow] The document window owner.
  * @returns {IEElementStyle|CssStyle} Elements computed style object
  */
 // eslint-disable-next-line no-restricted-globals
@@ -798,7 +813,7 @@ export function getComputedStyle(element, rootWindow = window) {
 /**
  * Returns the element's outer width.
  *
- * @param element
+ * @param {HTMLElement} element An element to get the width from.
  * @returns {number} Element's outer width
  */
 export function outerWidth(element) {
@@ -808,11 +823,11 @@ export function outerWidth(element) {
 /**
  * Returns the element's outer height
  *
- * @param elem
+ * @param {HTMLElement} element An element to get the height from.
  * @returns {number} Element's outer height
  */
-export function outerHeight(elem) {
-  if (hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
+export function outerHeight(element) {
+  if (hasCaptionProblem() && element.firstChild && element.firstChild.nodeName === 'CAPTION') {
     // fixes problem with Firefox ignoring <caption> in TABLE.offsetHeight
     // jQuery (1.10.1) still has this unsolved
     // may be better to just switch to getBoundingClientRect
@@ -820,16 +835,16 @@ export function outerHeight(elem) {
     // http://lists.w3.org/Archives/Public/www-style/2009Oct/0089.html
     // http://bugs.jquery.com/ticket/2196
     // http://lists.w3.org/Archives/Public/www-style/2009Oct/0140.html#start140
-    return elem.offsetHeight + elem.firstChild.offsetHeight;
+    return element.offsetHeight + element.firstChild.offsetHeight;
   }
 
-  return elem.offsetHeight;
+  return element.offsetHeight;
 }
 
 /**
  * Returns the element's inner height.
  *
- * @param element
+ * @param {HTMLElement} element An element to get the height from.
  * @returns {number} Element's inner height
  */
 export function innerHeight(element) {
@@ -839,46 +854,37 @@ export function innerHeight(element) {
 /**
  * Returns the element's inner width.
  *
- * @param element
+ * @param {HTMLElement} element An element to get the width from.
  * @returns {number} Element's inner width
  */
 export function innerWidth(element) {
   return element.clientWidth || element.innerWidth;
 }
 
+/**
+ * @param {HTMLElement} element An element to which the event is added.
+ * @param {string} event The event name.
+ * @param {Function} callback The callback to add.
+ */
 export function addEvent(element, event, callback) {
-  let rootWindow = element.defaultView;
-
-  if (!rootWindow) {
-    rootWindow = element.document ? element : element.ownerDocument.defaultView;
-  }
-
-  if (rootWindow.addEventListener) {
-    element.addEventListener(event, callback, false);
-  } else {
-    element.attachEvent(`on${event}`, callback);
-  }
+  element.addEventListener(event, callback, false);
 }
 
+/**
+ * @param {HTMLElement} element An element from which the event is removed.
+ * @param {string} event The event name.
+ * @param {Function} callback The function reference to remove.
+ */
 export function removeEvent(element, event, callback) {
-  let rootWindow = element.defaultView;
-
-  if (!rootWindow) {
-    rootWindow = element.document ? element : element.ownerDocument.defaultView;
-  }
-
-  if (rootWindow.removeEventListener) {
-    element.removeEventListener(event, callback, false);
-  } else {
-    element.detachEvent(`on${event}`, callback);
-  }
+  element.removeEventListener(event, callback, false);
 }
 
 /**
  * Returns caret position in text input
  *
  * @author https://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
- * @returns {Number}
+ * @param {HTMLElement} el An element to check.
+ * @returns {number}
  */
 export function getCaretPosition(el) {
   const rootDocument = el.ownerDocument;
@@ -909,7 +915,8 @@ export function getCaretPosition(el) {
 /**
  * Returns end of the selection in text input
  *
- * @returns {Number}
+ * @param {HTMLElement} el An element to check.
+ * @returns {number}
  */
 export function getSelectionEndPosition(el) {
   const rootDocument = el.ownerDocument;
@@ -935,8 +942,8 @@ export function getSelectionEndPosition(el) {
 /**
  * Returns text under selection.
  *
- * @param {Window} rootWindow
- * @returns {String}
+ * @param {Window} [rootWindow] The document window owner.
+ * @returns {string}
  */
 // eslint-disable-next-line no-restricted-globals
 export function getSelectionText(rootWindow = window) {
@@ -955,7 +962,7 @@ export function getSelectionText(rootWindow = window) {
 /**
  * Cross-platform helper to clear text selection.
  *
- * @param {Window} rootWindow
+ * @param {Window} [rootWindow] The document window owner.
  */
 // eslint-disable-next-line no-restricted-globals
 export function clearTextSelection(rootWindow = window) {
@@ -976,9 +983,9 @@ export function clearTextSelection(rootWindow = window) {
  * Sets caret position in text input.
  *
  * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
- * @param {Element} element
- * @param {Number} pos
- * @param {Number} endPos
+ * @param {Element} element An element to process.
+ * @param {number} pos The selection start position.
+ * @param {number} endPos The selection end position.
  */
 export function setCaretPosition(element, pos, endPos) {
   if (endPos === void 0) {
@@ -1012,7 +1019,8 @@ let cachedScrollbarWidth;
  * Source: https://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
  *
  * @private
- * @param {Document} rootDocument
+ * @param {Document} rootDocument The onwer of the document.
+ * @returns {number}
  */
 // eslint-disable-next-line no-restricted-globals
 function walkontableCalculateScrollbarWidth(rootDocument = document) {
@@ -1047,8 +1055,8 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
 /**
  * Returns the computed width of the native browser scroll bar.
  *
- * @param {Document} rootDocument
- * @returns {Number} width
+ * @param {Document} [rootDocument] The owner of the document.
+ * @returns {number} width
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollbarWidth(rootDocument = document) {
@@ -1062,8 +1070,8 @@ export function getScrollbarWidth(rootDocument = document) {
 /**
  * Checks if the provided element has a vertical scrollbar.
  *
- * @param {HTMLElement} element
- * @returns {Boolean}
+ * @param {HTMLElement} element An element to check.
+ * @returns {boolean}
  */
 export function hasVerticalScrollbar(element) {
   return element.offsetWidth !== element.clientWidth;
@@ -1072,8 +1080,8 @@ export function hasVerticalScrollbar(element) {
 /**
  * Checks if the provided element has a vertical scrollbar.
  *
- * @param {HTMLElement} element
- * @returns {Boolean}
+ * @param {HTMLElement} element An element to check.
+ * @returns {boolean}
  */
 export function hasHorizontalScrollbar(element) {
   return element.offsetHeight !== element.clientHeight;
@@ -1081,6 +1089,10 @@ export function hasHorizontalScrollbar(element) {
 
 /**
  * Sets overlay position depending on it's type and used browser
+ *
+ * @param {HTMLElement} overlayElem An element to process.
+ * @param {number} left The left position of the overlay.
+ * @param {number} top The top position of the overlay.
  */
 export function setOverlayPosition(overlayElem, left, top) {
   if (isIE8() || isIE9()) {
@@ -1094,6 +1106,10 @@ export function setOverlayPosition(overlayElem, left, top) {
   }
 }
 
+/**
+ * @param {HTMLElement} element An element to process.
+ * @returns {number|Array}
+ */
 export function getCssTransform(element) {
   let transform;
 
@@ -1108,6 +1124,9 @@ export function getCssTransform(element) {
   return -1;
 }
 
+/**
+ * @param {HTMLElement} element An element to process.
+ */
 export function resetCssTransform(element) {
   if (element.style.transform && element.style.transform !== '') {
     element.style.transform = '';
@@ -1121,7 +1140,7 @@ export function resetCssTransform(element) {
  * Notice: By 'input' we mean input, textarea and select nodes
  *
  * @param {HTMLElement} element - DOM element
- * @returns {Boolean}
+ * @returns {boolean}
  */
 export function isInput(element) {
   const inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
@@ -1134,7 +1153,7 @@ export function isInput(element) {
  * Notice: By 'input' we mean input, textarea and select nodes
  *
  * @param {HTMLElement} element - DOM element
- * @returns {Boolean}
+ * @returns {boolean}
  */
 export function isOutsideInput(element) {
   return isInput(element) && element.className.indexOf('handsontableInput') === -1 && element.className.indexOf('HandsontableCopyPaste') === -1;

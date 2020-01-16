@@ -71,7 +71,7 @@ class ContextMenu extends BasePlugin {
   /**
    * Context menu default items order when `contextMenu` options is set as `true`.
    *
-   * @returns {String[]}
+   * @returns {string[]}
    */
   static get DEFAULT_ITEMS() {
     return [
@@ -125,7 +125,7 @@ class ContextMenu extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ContextMenu#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().contextMenu;
@@ -187,12 +187,7 @@ class ContextMenu extends BasePlugin {
   /**
    * Opens menu and re-position it based on the passed coordinates.
    *
-   * @param {Object|Event} position An object with `pageX` and `pageY` properties which contains values relative to
-   *                                the top left of the fully rendered content area in the browser or with `clientX`
-   *                                and `clientY` properties which contains values relative to the upper left edge
-   *                                of the content area (the viewport) of the browser window. `target` property is
-   *                                also required. This object is structurally compatible with the native mouse event
-   *                                so it can be used either.
+   * @param {Event} event The mouse event object.
    */
   open(event) {
     if (!this.menu) {
@@ -265,8 +260,8 @@ class ContextMenu extends BasePlugin {
    *
    * Or you can execute command registered in settings where `key` is your command name.
    *
-   * @param {String} commandName The command name to be executed.
-   * @param {...*} params
+   * @param {string} commandName The command name to be executed.
+   * @param {*} params Additional paramteres passed to command executor module.
    */
   executeCommand(commandName, ...params) {
     if (this.itemsFactory === null) {
@@ -308,13 +303,17 @@ class ContextMenu extends BasePlugin {
    * On contextmenu listener.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event The mouse event object.
    */
   onAfterOnCellContextMenu(event) {
     const settings = this.hot.getSettings();
     const showRowHeaders = settings.rowHeaders;
     const showColHeaders = settings.colHeaders;
 
+    /**
+     * @param {HTMLElement} element The element to validate.
+     * @returns {boolean}
+     */
     function isValidElement(element) {
       return element.nodeName === 'TD' || element.parentNode.nodeName === 'TD';
     }

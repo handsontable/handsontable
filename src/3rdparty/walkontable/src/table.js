@@ -24,14 +24,14 @@ import RowUtils from './utils/row';
  */
 class Table {
   /**
-   * @param {Walkontable} wotInstance
-   * @param {HTMLTableElement} table
+   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {HTMLTableElement} table An element to the Walkontable generated table is injected.
    */
   constructor(wotInstance, table) {
     /**
      * Indicates if this instance is of type `MasterTable` (i.e. it is NOT an overlay)
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.isMaster = !wotInstance.cloneOverlay; // "instanceof" operator isn't used, because it caused a circular reference in Webpack
     this.wot = wotInstance;
@@ -47,20 +47,20 @@ class Table {
     /**
      * Indicates if the table has height bigger than 0px.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.hasTableHeight = true;
     /**
      * Indicates if the table has width bigger than 0px.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.hasTableWidth = true;
     /**
      * Indicates if the table is visible. By visible, it means that the holder
      * element has CSS 'display' property different than 'none'.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.isTableVisible = false;
 
@@ -103,8 +103,8 @@ class Table {
    * Returns a boolean that is true if this intance of Table represents a specific overlay, identified by the overlay name.
    * For MasterTable, it returns false.
    *
-   * @param {String} overlayTypeName
-   * @returns {Boolean}
+   * @param {string} overlayTypeName The overlay type.
+   * @returns {boolean}
    */
   is(overlayTypeName) {
     return Overlay.isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
@@ -141,7 +141,7 @@ class Table {
   }
 
   /**
-   * @param table
+   * @param {HTMLTableElement} table An element to process.
    * @returns {HTMLElement}
    */
   createSpreader(table) {
@@ -164,7 +164,7 @@ class Table {
   }
 
   /**
-   * @param spreader
+   * @param {HTMLElement} spreader An element to the hider element is injected.
    * @returns {HTMLElement}
    */
   createHider(spreader) {
@@ -187,7 +187,7 @@ class Table {
 
   /**
    *
-   * @param hider
+   * @param {HTMLElement} hider An element to the holder element is injected.
    * @returns {HTMLElement}
    */
   createHolder(hider) {
@@ -215,7 +215,7 @@ class Table {
   /**
    * Redraws the table
    *
-   * @param {Boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
+   * @param {boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
    *                                   If FALSE or UNDEFINED, will perform a full redraw.
    * @returns {Table}
    */
@@ -365,6 +365,9 @@ class Table {
     return this;
   }
 
+  /**
+   * @param {number} col The visual column index.
+   */
   markIfOversizedColumnHeader(col) {
     const sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
     let level = this.wot.getSetting('columnHeaders').length;
@@ -405,6 +408,9 @@ class Table {
     }
   }
 
+  /**
+   *
+   */
   adjustColumnHeaderHeights() {
     const { wot } = this;
     const children = wot.wtTable.THEAD.childNodes;
@@ -445,6 +451,9 @@ class Table {
     }
   }
 
+  /**
+   * @param {string} className The CSS class name to remove from the table cells.
+   */
   removeClassFromCells(className) {
     const nodes = this.TABLE.querySelectorAll(`.${className}`);
 
@@ -456,7 +465,7 @@ class Table {
   /**
    * Refresh the table selection by re-rendering Selection instances connected with that instance.
    *
-   * @param {Boolean} fastDraw If fast drawing is enabled than additionally className clearing is applied.
+   * @param {boolean} fastDraw If fast drawing is enabled than additionally className clearing is applied.
    */
   refreshSelections(fastDraw) {
     const { wot } = this;
@@ -529,8 +538,8 @@ class Table {
    * are given. Thus, if both the row and the column coords are out of the rendered bounds,
    * the method returns the error code for the row.
    *
-   * @param {CellCoords} coords
-   * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:
+   * @param {CellCoords} coords The cell coordinates.
+   * @returns {HTMLElement|number} HTMLElement on success or Number one of the exit codes on error:
    *  -1 row before viewport
    *  -2 row after viewport
    *  -3 column before viewport
@@ -587,9 +596,9 @@ class Table {
   /**
    * getColumnHeader
    *
-   * @param {Number} col Column index
-   * @param {Number} [level=0] Header level (0 = most distant to the table)
-   * @returns {Object} HTMLElement on success or undefined on error
+   * @param {number} col Column index
+   * @param {number} [level=0] Header level (0 = most distant to the table)
+   * @returns {object} HTMLElement on success or undefined on error
    */
   getColumnHeader(col, level = 0) {
     const TR = this.THEAD.childNodes[level];
@@ -602,7 +611,7 @@ class Table {
   /**
    * getRowHeader
    *
-   * @param {Number} row Row index
+   * @param {number} row Row index
    * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have row headers`
    */
   getRowHeader(row) {
@@ -711,6 +720,10 @@ class Table {
     }
   }
 
+  /**
+   * @param {number} row The visual row index.
+   * @returns {HTMLTableElement}
+   */
   getTrForRow(row) {
     return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
   }
@@ -718,8 +731,8 @@ class Table {
   /**
    * 0-based index of column header
    *
-   * @param {Number} level
-   * @returns {Boolean}
+   * @param {number} level The header level to check.
+   * @returns {boolean}
    */
   isColumnHeaderLevelRendered(level) {
     const columnHeaders = this.wot.getSetting('columnHeaders');
@@ -731,8 +744,8 @@ class Table {
   /**
    * 0-based index of row header
    *
-   * @param {Number} level
-   * @returns {Boolean}
+   * @param {number} level The header level to check.
+   * @returns {boolean}
    */
   isRowHeaderLevelRendered(level) {
     const columnHeaders = this.wot.getSetting('rowHeaders');
@@ -749,8 +762,8 @@ class Table {
    * the same way as a regular row 0. You can interpret this as follows: If the row 0 is rendered, all header
    * cells are also rendered.
    *
-   * @param {Number} row
-   * @returns {Boolean}
+   * @param {number} row The visual row index.
+   * @returns {boolean}
    */
   isRowBeforeRenderedRows(row) {
     const first = this.getFirstRenderedRow();
@@ -775,8 +788,8 @@ class Table {
    *
    * Negative column index is used to check the header cells.
    *
-   * @param {Number} column
-   * @returns {Boolean}
+   * @param {nunber} row The visual row index.
+   * @returns {boolean}
    */
   isRowAfterRenderedRows(row) {
     if (row < 0) {
@@ -800,8 +813,8 @@ class Table {
    * the same way as a regular column 0. You can interpret this as follows: If the column 0 is rendered, all header
    * cells are also rendered.
    *
-   * @param {Number} column
-   * @returns {Boolean}
+   * @param {number} column The visual column index.
+   * @returns {boolean}
    */
   isColumnBeforeRenderedColumns(column) {
     const first = this.getFirstRenderedColumn();
@@ -826,8 +839,8 @@ class Table {
    *
    * Negative column index is used to check the header cells.
    *
-   * @param {Number} column
-   * @returns {Boolean}
+   * @param {number} column The visual column index.
+   * @returns {boolean}
    */
   isColumnAfterRenderedColumns(column) {
     if (column < 0) {
@@ -858,21 +871,33 @@ class Table {
   /**
    * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height
    *
-   * @param {Number} sourceRow
-   * @returns {Number}
+   * @param {number} sourceRow The physical row index.
+   * @returns {number}
    */
   getRowHeight(sourceRow) {
     return this.rowUtils.getHeight(sourceRow);
   }
 
+  /**
+   * @param {number} level The column level.
+   * @returns {number}
+   */
   getColumnHeaderHeight(level) {
     return this.columnUtils.getHeaderHeight(level);
   }
 
+  /**
+   * @param {number} sourceColumn The physical column index.
+   * @returns {number}
+   */
   getColumnWidth(sourceColumn) {
     return this.columnUtils.getWidth(sourceColumn);
   }
 
+  /**
+   * @param {number} sourceColumn The physical column index.
+   * @returns {number}
+   */
   getStretchedColumnWidth(sourceColumn) {
     return this.columnUtils.getStretchedColumnWidth(sourceColumn);
   }
@@ -881,7 +906,7 @@ class Table {
    * Checks if the table has defined size. It returns `true` when the table has width and height
    * set bigger than `0px`.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   hasDefinedSize() {
     return this.hasTableHeight && this.hasTableWidth;
@@ -891,7 +916,7 @@ class Table {
    * Checks if the table is visible. It returns `true` when the holder element (or its parents)
    * has CSS 'display' property different than 'none'.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isVisible() {
     return isVisible(this.TABLE);
@@ -901,6 +926,8 @@ class Table {
    * Modify row header widths provided by user in class contructor.
    *
    * @private
+   * @param {Function} rowHeaderWidthFactory The function which can provide default width values for rows..
+   * @returns {number}
    */
   _modifyRowHeaderWidth(rowHeaderWidthFactory) {
     let widths = isFunction(rowHeaderWidthFactory) ? rowHeaderWidthFactory() : null;
@@ -919,6 +946,8 @@ class Table {
    * Correct row header width if necessary.
    *
    * @private
+   * @param {number} width The width to process.
+   * @returns {number}
    */
   _correctRowHeaderWidth(width) {
     let rowHeaderWidth = width;

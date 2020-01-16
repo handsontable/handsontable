@@ -58,7 +58,7 @@ class RadioInputUI extends BaseUI {
   /**
    * Check if radio button is checked.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isChecked() {
     return this.options.checked;
@@ -67,7 +67,7 @@ class RadioInputUI extends BaseUI {
   /**
    * Set input checked attribute
    *
-   * @param value {Boolean} value
+   * @param {boolean} value Set the component state.
    */
   setChecked(value = true) {
     this.options.checked = value;

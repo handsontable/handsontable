@@ -1,3 +1,7 @@
+/* eslint-disable jsdoc/require-returns  */
+/* eslint-disable jsdoc/require-param-type */
+/* eslint-disable jsdoc/require-param-description */
+
 /**
  * Handsontable UndoRedo class
  */
@@ -10,16 +14,16 @@ import { align } from './../contextMenu/utils';
 
 /**
  * @description
- * Handsontable UndoRedo plugin allows to undo and redo certain actions done in the table.
+Handsontable UndoRedo plugin allows to undo and redo certain actions done in the table.
  *
  * __Note__, that not all actions are currently undo-able. The UndoRedo plugin is enabled by default.
- *
  * @example
  * ```js
  * undo: true
  * ```
  * @class UndoRedo
  * @plugin UndoRedo
+ * @param instance
  */
 function UndoRedo(instance) {
   const plugin = this;
@@ -231,7 +235,7 @@ UndoRedo.prototype.redo = function() {
  *
  * @function isUndoAvailable
  * @memberof UndoRedo#
- * @return {Boolean} Return `true` if undo can be performed, `false` otherwise.
+ * @returns {boolean} Return `true` if undo can be performed, `false` otherwise.
  */
 UndoRedo.prototype.isUndoAvailable = function() {
   return this.doneActions.length > 0;
@@ -242,7 +246,7 @@ UndoRedo.prototype.isUndoAvailable = function() {
  *
  * @function isRedoAvailable
  * @memberof UndoRedo#
- * @return {Boolean} Return `true` if redo can be performed, `false` otherwise.
+ * @returns {boolean} Return `true` if redo can be performed, `false` otherwise.
  */
 UndoRedo.prototype.isRedoAvailable = function() {
   return this.undoneActions.length > 0;
@@ -267,6 +271,8 @@ UndoRedo.Action.prototype.redo = function() {};
  * Change action.
  *
  * @private
+ * @param changes
+ * @param selected
  */
 UndoRedo.ChangeAction = function(changes, selected) {
   this.changes = changes;
@@ -327,6 +333,8 @@ UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
  * Create row action.
  *
  * @private
+ * @param index
+ * @param amount
  */
 UndoRedo.CreateRowAction = function(index, amount) {
   this.index = index;
@@ -355,6 +363,8 @@ UndoRedo.CreateRowAction.prototype.redo = function(instance, redoneCallback) {
  * Remove row action.
  *
  * @private
+ * @param index
+ * @param data
  */
 UndoRedo.RemoveRowAction = function(index, data) {
   this.index = index;
@@ -377,6 +387,8 @@ UndoRedo.RemoveRowAction.prototype.redo = function(instance, redoneCallback) {
  * Create column action.
  *
  * @private
+ * @param index
+ * @param amount
  */
 UndoRedo.CreateColumnAction = function(index, amount) {
   this.index = index;
@@ -398,6 +410,11 @@ UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) 
  * Remove column action.
  *
  * @private
+ * @param index
+ * @param indexes
+ * @param data
+ * @param headers
+ * @param columnPositions
  */
 UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions) {
   this.index = index;
@@ -425,7 +442,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
 
   const changes = [];
 
-  // TODO: Temporary hook for undo/redo mess
+  // TODO Temporary hook for undo/redo mess
   instance.runHooks('beforeCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   rangeEach(this.data.length - 1, (i) => {
@@ -439,7 +456,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
 
   instance.columnIndexMapper.insertIndexes(ascendingIndexes[0], ascendingIndexes.length);
 
-  // TODO: Temporary hook for undo/redo mess
+  // TODO Temporary hook for undo/redo mess
   if (instance.getPlugin('formulas')) {
     instance.getPlugin('formulas').onAfterSetDataAtCell(changes);
   }
@@ -454,7 +471,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
 
   instance.addHookOnce('afterRender', undoneCallback);
 
-  // TODO: Temporary hook for undo/redo mess
+  // TODO Temporary hook for undo/redo mess
   instance.runHooks('afterCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   if (instance.getPlugin('formulas')) {
@@ -473,6 +490,10 @@ UndoRedo.RemoveColumnAction.prototype.redo = function(instance, redoneCallback) 
  * Cell alignment action.
  *
  * @private
+ * @param stateBefore
+ * @param range
+ * @param type
+ * @param alignment
  */
 UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.stateBefore = stateBefore;
@@ -504,6 +525,7 @@ UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback)
  * Filters action.
  *
  * @private
+ * @param conditionsStack
  */
 UndoRedo.FiltersAction = function(conditionsStack) {
   this.conditionsStack = conditionsStack;
@@ -530,6 +552,7 @@ UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
 
 /**
  * Merge Cells action.
+ *
  * @util
  */
 class MergeCellsAction extends UndoRedo.Action {
@@ -558,6 +581,7 @@ UndoRedo.MergeCellsAction = MergeCellsAction;
 
 /**
  * Unmerge Cells action.
+ *
  * @util
  */
 class UnmergeCellsAction extends UndoRedo.Action {
@@ -587,7 +611,9 @@ UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
  * ManualRowMove action.
  *
  * @private
- * @TODO: removeRow undo should works on logical index
+ * @TODO removeRow undo should works on logical index
+ * @param rows
+ * @param finalIndex
  */
 UndoRedo.RowMoveAction = function(rows, finalIndex) {
   this.rows = rows.slice();
@@ -628,6 +654,9 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
   instance.selectRows(this.finalIndex, this.finalIndex + this.rows.length - 1);
 };
 
+/**
+ *
+ */
 function init() {
   const instance = this;
   const pluginEnabled = typeof instance.getSettings().undo === 'undefined' || instance.getSettings().undo;
@@ -658,6 +687,9 @@ function init() {
   }
 }
 
+/**
+ * @param event
+ */
 function onBeforeKeyDown(event) {
   if (isImmediatePropagationStopped(event)) {
     return;
@@ -695,6 +727,10 @@ function onBeforeKeyDown(event) {
   }
 }
 
+/**
+ * @param changes
+ * @param source
+ */
 function onAfterChange(changes, source) {
   const instance = this;
   if (source === 'loadData') {
@@ -702,9 +738,13 @@ function onAfterChange(changes, source) {
   }
 }
 
+/**
+ * @param instance
+ */
 function exposeUndoRedoMethods(instance) {
   /**
    * {@link UndoRedo#undo}
+   *
    * @alias undo
    * @memberof! Handsontable.Core#
    */
@@ -714,6 +754,7 @@ function exposeUndoRedoMethods(instance) {
 
   /**
    * {@link UndoRedo#redo}
+   *
    * @alias redo
    * @memberof! Handsontable.Core#
    */
@@ -723,6 +764,7 @@ function exposeUndoRedoMethods(instance) {
 
   /**
    * {@link UndoRedo#isUndoAvailable}
+   *
    * @alias isUndoAvailable
    * @memberof! Handsontable.Core#
    */
@@ -732,6 +774,7 @@ function exposeUndoRedoMethods(instance) {
 
   /**
    * {@link UndoRedo#isRedoAvailable}
+   *
    * @alias isRedoAvailable
    * @memberof! Handsontable.Core#
    */
@@ -741,6 +784,7 @@ function exposeUndoRedoMethods(instance) {
 
   /**
    * {@link UndoRedo#clear}
+   *
    * @alias clearUndo
    * @memberof! Handsontable.Core#
    */
@@ -749,6 +793,9 @@ function exposeUndoRedoMethods(instance) {
   };
 }
 
+/**
+ * @param instance
+ */
 function removeExposedUndoRedoMethods(instance) {
   delete instance.undo;
   delete instance.redo;

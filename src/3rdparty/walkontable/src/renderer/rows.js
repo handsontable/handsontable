@@ -35,8 +35,8 @@ export default class RowsRenderer extends BaseRenderer {
   /**
    * Returns currently rendered node.
    *
-   * @param {String} visualIndex Visual index of the rendered node (it always goeas from 0 to N).
-   * @return {HTMLTableRowElement}
+   * @param {string} visualIndex Visual index of the rendered node (it always goeas from 0 to N).
+   * @returns {HTMLTableRowElement}
    */
   getRenderedNode(visualIndex) {
     return this.orderView.getNode(visualIndex);

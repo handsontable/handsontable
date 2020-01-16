@@ -3,7 +3,7 @@ import { getWindowScrollTop, getWindowScrollLeft, getParentWindow } from './elem
 /**
  * Prevent other listeners of the same event from being called.
  *
- * @param {Event} event
+ * @param {Event} event The mouse event object.
  */
 export function stopImmediatePropagation(event) {
   event.isImmediatePropagationEnabled = false;
@@ -13,8 +13,8 @@ export function stopImmediatePropagation(event) {
 /**
  * Check if event was stopped by `stopImmediatePropagation`.
  *
- * @param event {Event}
- * @returns {Boolean}
+ * @param {Event} event The mouse event object.
+ * @returns {boolean}
  */
 export function isImmediatePropagationStopped(event) {
   return event.isImmediatePropagationEnabled === false;
@@ -23,7 +23,7 @@ export function isImmediatePropagationStopped(event) {
 /**
  * Prevent further propagation of the current event (prevent bubbling).
  *
- * @param event {Event}
+ * @param {Event} event The mouse event object.
  */
 export function stopPropagation(event) {
   // ie8
@@ -38,8 +38,8 @@ export function stopPropagation(event) {
 /**
  * Get horizontal coordinate of the event object relative to the whole document.
  *
- * @param {Event} event
- * @returns {Number}
+ * @param {Event} event The mouse event object.
+ * @returns {number}
  */
 export function pageX(event) {
   if (event.pageX) {
@@ -54,8 +54,8 @@ export function pageX(event) {
 /**
  * Get vertical coordinate of the event object relative to the whole document.
  *
- * @param {Event} event
- * @returns {Number}
+ * @param {Event} event The mouse event object.
+ * @returns {number}
  */
 export function pageY(event) {
   if (event.pageY) {
@@ -77,8 +77,8 @@ export function pageY(event) {
 /**
  * Check if provided event was triggered by clicking the right mouse button.
  *
- * @param {Event} event DOM Event.
- * @returns {Boolean}
+ * @param {Event} event The mouse event object.
+ * @returns {boolean}
  */
 export function isRightClick(event) {
   return event.button === 2;
@@ -87,8 +87,8 @@ export function isRightClick(event) {
 /**
  * Check if provided event was triggered by clicking the left mouse button.
  *
- * @param {Event} event DOM Event.
- * @returns {Boolean}
+ * @param {Event} event The mouse event object.
+ * @returns {boolean}
  */
 export function isLeftClick(event) {
   return event.button === 0;

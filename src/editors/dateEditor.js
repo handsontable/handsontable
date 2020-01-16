@@ -10,9 +10,7 @@ import TextEditor from './textEditor';
 
 /**
  * @private
- * @editor DateEditor
  * @class DateEditor
- * @dependencies TextEditor
  */
 class DateEditor extends TextEditor {
   /**
@@ -85,21 +83,21 @@ class DateEditor extends TextEditor {
   /**
    * Prepare editor to appear
    *
-   * @param {Number} row Row index
-   * @param {Number} col Column index
-   * @param {String} prop Property name (passed when datasource is an array of objects)
-   * @param {HTMLTableCellElement} td Table cell element
-   * @param {*} originalValue Original value
-   * @param {Object} cellProperties Object with cell properties ({@see Core#getCellMeta})
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number|string} prop The column property (passed when datasource is an array of objects).
+   * @param {HTMLTableCellElement} td The rendered cell element.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
    */
-  prepare(row, col, prop, td, originalValue, cellProperties) {
-    super.prepare(row, col, prop, td, originalValue, cellProperties);
+  prepare(row, col, prop, td, value, cellProperties) {
+    super.prepare(row, col, prop, td, value, cellProperties);
   }
 
   /**
    * Open editor
    *
-   * @param {Event} [event=null]
+   * @param {Event} [event=null] The event object.
    */
   open(event = null) {
     super.open();
@@ -119,11 +117,13 @@ class DateEditor extends TextEditor {
   }
 
   /**
-   * @param {Boolean} [isCancelled=false]
-   * @param {Boolean} [ctrlDown=false]
+   * Finishes editing and start saving or restoring process for editing cell or last selected range.
+   *
+   * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
+   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
    */
-  finishEditing(isCancelled = false, ctrlDown = false) {
-    if (isCancelled) { // pressed ESC, restore original value
+  finishEditing(restoreOriginalValue = false, ctrlDown = false) {
+    if (restoreOriginalValue) { // pressed ESC, restore original value
       // var value = this.instance.getDataAtCell(this.row, this.col);
       const value = this.originalValue;
 
@@ -132,13 +132,13 @@ class DateEditor extends TextEditor {
       }
     }
     this.hideDatepicker();
-    super.finishEditing(isCancelled, ctrlDown);
+    super.finishEditing(restoreOriginalValue, ctrlDown);
   }
 
   /**
    * Show data picker
    *
-   * @param {Event} event
+   * @param {Event} event The event object.
    */
   showDatepicker(event) {
     this.$datePicker.config(this.getDatePickerConfig());
@@ -205,7 +205,7 @@ class DateEditor extends TextEditor {
   /**
    * Get date picker options.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   getDatePickerConfig() {
     const htInput = this.TEXTAREA;

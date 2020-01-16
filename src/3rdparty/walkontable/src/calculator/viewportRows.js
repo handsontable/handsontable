@@ -12,21 +12,21 @@ class ViewportRowsCalculator {
   /**
    * Default row height
    *
-   * @type {Number}
+   * @type {number}
    */
   static get DEFAULT_HEIGHT() {
     return 23;
   }
 
   /**
-   * @param {Object} options Object with all options specyfied for row viewport calculation.
-   * @param {Number} options.viewportHeight Height of the viewport
-   * @param {Number} options.scrollOffset Current vertical scroll position of the viewport
-   * @param {Number} options.totalRows Total number of rows
+   * @param {object} options Object with all options specyfied for row viewport calculation.
+   * @param {number} options.viewportHeight Height of the viewport
+   * @param {number} options.scrollOffset Current vertical scroll position of the viewport
+   * @param {number} options.totalRows Total number of rows
    * @param {Function} options.rowHeightFn Function that returns the height of the row at a given index (in px)
    * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
-   * @param {String} options.calculationType String which describes types of calculation which will be performed.
-   * @param {Number} options.horizontalScrollbarHeight
+   * @param {string} options.calculationType String which describes types of calculation which will be performed.
+   * @param {number} options.horizontalScrollbarHeight The scrollbar height.
    */
   constructor({
     viewportSize,
@@ -50,14 +50,14 @@ class ViewportRowsCalculator {
     /**
      * Number of rendered/visible rows
      *
-     * @type {Number}
+     * @type {number}
      */
     this.count = 0;
 
     /**
      * Index of the first rendered/visible row (can be overwritten using overrideFn)
      *
-     * @type {Number|null}
+     * @type {number|null}
      */
     this.startRow = null;
 
@@ -71,7 +71,7 @@ class ViewportRowsCalculator {
     /**
      * Position of the first rendered/visible row (in px)
      *
-     * @type {Number|null}
+     * @type {number|null}
      */
     this.startPosition = null;
 

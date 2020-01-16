@@ -55,7 +55,7 @@ class ActionBarComponent extends BaseComponent {
   /**
    * Get menu object descriptor.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   getMenuItemDescriptor() {
     return {

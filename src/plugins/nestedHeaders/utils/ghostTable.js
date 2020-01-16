@@ -51,7 +51,7 @@ class GhostTable {
    * Build temporary table for getting minimal columns widths.
    *
    * @private
-   * @param {HTMLElement} container
+   * @param {HTMLElement} container The element where the DOM nodes are injected.
    */
   buildGhostTable(container) {
     const { rootDocument } = this.nestedHeaders.hot;

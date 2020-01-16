@@ -25,6 +25,9 @@ describe('CustomBorders', () => {
     return $(`${CUSTOM_BORDER_SELECTOR}:visible`).length;
   }
 
+  /**
+   * @param numRows
+   */
   function generateCustomBordersForAllRows(numRows) {
     const bordersConfig = [];
 

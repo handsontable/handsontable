@@ -1,6 +1,9 @@
 module.exports = {
-  "extends": "airbnb-base",
+  "extends": ["airbnb-base", "plugin:jsdoc/recommended"],
   "parser": "babel-eslint",
+  "plugins": [
+    "jsdoc"
+  ],
   "env": {
     "browser": true,
     "commonjs": true,
@@ -77,6 +80,14 @@ module.exports = {
     "padded-blocks": "off",
     "quotes": [ "error", "single" ],
     "space-before-function-paren": ["error", "never"],
+    "jsdoc/require-returns-description": "off",
+    "jsdoc/no-undefined-types": "off",
+    "jsdoc/check-tag-names": [
+      "warn",
+      {
+        "definedTags": ["plugin", "util", "experimental", "deprecated", "preserve", "core", "TODO"]
+      }
+    ],
   },
   "overrides": [
     {
@@ -89,6 +100,17 @@ module.exports = {
         ],
         "no-restricted-globals": "off",
         "no-undef": "off",
+      }
+    },
+    {
+      "files": ["*.unit.js", "*.e2e.js", "*.spec.js"],
+      "rules": {
+        "no-restricted-globals": "off",
+        "no-undef": "off",
+        "jsdoc/require-returns": "off",
+        "jsdoc/require-param-description": "off",
+        "jsdoc/require-param-type": "off",
+        "jsdoc/require-jsdoc": "off",
       }
     }
   ],

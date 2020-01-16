@@ -6,10 +6,10 @@ import { arrayFilter } from '../../../helpers/array';
  *
  * @private
  * @param {Array} indexedValues List of values for particular indexes.
- * @param {Number} insertionIndex Position inside the actual list.
+ * @param {number} insertionIndex Position inside the actual list.
  * @param {Array} insertedIndexes List of inserted indexes.
  * @param {*} insertedValuesMapping Mapping which may provide value or function returning value for the specific parameters.
- * @returns List with new mappings.
+ * @returns {Array} List with new mappings.
  */
 export function getListWithInsertedItems(indexedValues, insertionIndex, insertedIndexes, insertedValuesMapping) {
   const firstInsertedIndex = insertedIndexes[0];
@@ -33,7 +33,7 @@ export function getListWithInsertedItems(indexedValues, insertionIndex, inserted
  * @private
  * @param {Array} indexedValues List of values for particular indexes.
  * @param {Array} removedIndexes List of removed indexes.
- * @returns Reduced list of mappings.
+ * @returns {Array} Reduced list of mappings.
  */
 export function getListWithRemovedItems(indexedValues, removedIndexes) {
   return arrayFilter(indexedValues, (_, index) => removedIndexes.includes(index) === false);

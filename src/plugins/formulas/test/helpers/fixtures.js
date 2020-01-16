@@ -1,5 +1,8 @@
 export const FORMULAS_DATE_FORMAT = 'YYYY-MM-DD';
 
+/**
+ * @returns {Array[]}
+ */
 export function getDataSimpleExampleFormulas() {
   return [
     ['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1'],
@@ -10,6 +13,9 @@ export function getDataSimpleExampleFormulas() {
   ];
 }
 
+/**
+ * @returns {Array[]}
+ */
 export function getDataAdvancedExampleFormulas() {
   /* eslint-disable */
   return [
@@ -33,6 +39,14 @@ export function getDataAdvancedExampleFormulas() {
   ];
 }
 
+/**
+ * Returns fixed length dataset which can be extended.
+ *
+ * @param {number} row The row index from the "value" argument will injected.
+ * @param {number} column The column index from the "value" argument will injected.
+ * @param {Array} value The value that overwrites the dataset.
+ * @returns {object[]}
+ */
 export function getDataForFormulas(row, column, value) {
   var data = [
     {
@@ -400,6 +414,9 @@ export function getDataForFormulas(row, column, value) {
   return data;
 }
 
+/**
+ * @returns {object[]}
+ */
 export function getColumnsForFormulas() {
   return [
     {data: 'id', type: 'numeric', title: 'ID'},

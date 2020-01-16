@@ -2,9 +2,9 @@
  * Apply the `colspan`/`rowspan` properties.
  *
  * @param {HTMLElement} TD The soon-to-be-modified cell.
- * @param {MergedCellCoords} merged cellInfo The merged cell in question.
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {MergedCellCoords} mergedCellInfo The merged cell in question.
+ * @param {number} row Row index.
+ * @param {number} col Column index.
  */
 // eslint-disable-next-line import/prefer-default-export
 export function applySpanProperties(TD, mergedCellInfo, row, col) {
@@ -27,4 +27,3 @@ export function applySpanProperties(TD, mergedCellInfo, row, col) {
     TD.style.display = '';
   }
 }
-

@@ -1,3 +1,6 @@
+/**
+ * @param {Array} arr An array to process.
+ */
 export function to2dArray(arr) {
   const ilen = arr.length;
   let i = 0;
@@ -8,6 +11,10 @@ export function to2dArray(arr) {
   }
 }
 
+/**
+ * @param {Array} arr An array to extend.
+ * @param {Array} extension The data to extend from.
+ */
 export function extendArray(arr, extension) {
   const ilen = extension.length;
   let i = 0;
@@ -18,6 +25,10 @@ export function extendArray(arr, extension) {
   }
 }
 
+/**
+ * @param {Array} arr An array to pivot.
+ * @returns {Array}
+ */
 export function pivot(arr) {
   const pivotedArr = [];
 
@@ -50,7 +61,7 @@ export function pivot(arr) {
  * @param {Array} array The array to iterate over.
  * @param {Function} iteratee The function invoked per iteration.
  * @param {*} [accumulator] The initial value.
- * @param {Boolean} [initFromArray] Specify using the first element of `array` as the initial value.
+ * @param {boolean} [initFromArray] Specify using the first element of `array` as the initial value.
  * @returns {*} Returns the accumulated value.
  */
 export function arrayReduce(array, iteratee, accumulator, initFromArray) {
@@ -180,7 +191,7 @@ export function arrayEach(array, iteratee) {
  * Calculate sum value for each item of the array.
  *
  * @param {Array} array The array to process.
- * @returns {Number} Returns calculated sum value.
+ * @returns {number} Returns calculated sum value.
  */
 export function arraySum(array) {
   return arrayReduce(array, (a, b) => (a + b), 0);
@@ -191,7 +202,7 @@ export function arraySum(array) {
  * NOTICE: Mixed values is not supported.
  *
  * @param {Array} array The array to process.
- * @returns {Number} Returns the highest value from an array.
+ * @returns {number} Returns the highest value from an array.
  */
 export function arrayMax(array) {
   return arrayReduce(array, (a, b) => (a > b ? a : b), Array.isArray(array) ? array[0] : void 0);
@@ -202,7 +213,7 @@ export function arrayMax(array) {
  * NOTICE: Mixed values is not supported.
  *
  * @param {Array} array The array to process.
- * @returns {Number} Returns the lowest value from an array.
+ * @returns {number} Returns the lowest value from an array.
  */
 export function arrayMin(array) {
   return arrayReduce(array, (a, b) => (a < b ? a : b), Array.isArray(array) ? array[0] : void 0);
@@ -212,7 +223,7 @@ export function arrayMin(array) {
  * Calculate average value for each item of the array.
  *
  * @param {Array} array The array to process.
- * @returns {Number} Returns calculated average value.
+ * @returns {number} Returns calculated average value.
  */
 export function arrayAvg(array) {
   if (!array.length) {

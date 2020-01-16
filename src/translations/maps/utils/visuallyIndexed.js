@@ -5,9 +5,9 @@ import { arrayFilter } from '../../../helpers/array';
  *
  * @private
  * @param {Array} indexedValues List of values for particular indexes.
- * @param {Number} insertionIndex Position inside the actual list.
+ * @param {number} insertionIndex Position inside the actual list.
  * @param {Array} insertedIndexes List of inserted indexes.
- * @returns List with new mappings.
+ * @returns {Array} List with new mappings.
  */
 export function getListWithInsertedItems(indexedValues, insertionIndex, insertedIndexes) {
   return [...indexedValues.slice(0, insertionIndex), ...insertedIndexes, ...indexedValues.slice(insertionIndex)];
@@ -19,7 +19,7 @@ export function getListWithInsertedItems(indexedValues, insertionIndex, inserted
  * @private
  * @param {Array} indexedValues List of values for particular indexes.
  * @param {Array} removedIndexes List of removed indexes.
- * @returns Reduced list of mappings.
+ * @returns {Array} Reduced list of mappings.
  */
 export function getListWithRemovedItems(indexedValues, removedIndexes) {
   return arrayFilter(indexedValues, (index) => {

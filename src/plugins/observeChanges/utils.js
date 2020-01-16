@@ -3,7 +3,7 @@ import { arrayFilter, arrayMap } from '../../helpers/array';
 /**
  * Clean and extend patches from jsonpatch observer.
  *
- * @param {Array} patches
+ * @param {Array} patches The list of patches from jsonpatch lib to process.
  * @returns {Array}
  */
 export function cleanPatches(patches) {
@@ -56,8 +56,8 @@ export function cleanPatches(patches) {
 /**
  * Extract coordinates from path where data was changed.
  *
- * @param {String} path Path describing where data was changed.
- * @returns {Object|null} Returns an object with `row` and `col` properties or `null` if path doesn't have necessary information.
+ * @param {string} path Path describing where data was changed.
+ * @returns {object|null} Returns an object with `row` and `col` properties or `null` if path doesn't have necessary information.
  */
 export function parsePath(path) {
   const match = path.match(/^\/(\d+)\/?(.*)?$/);
