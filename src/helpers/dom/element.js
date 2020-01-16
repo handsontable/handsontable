@@ -128,7 +128,7 @@ export function closestDown(element, nodes, until) {
 /**
  * Goes up the DOM tree and checks if element is child of another element.
  *
- * @param child Child element An element to check.
+ * @param {HTMLElement} child Child element An element to check.
  * @param {object|string} parent Parent element OR selector of the parent element.
  *                               If string provided, function returns `true` for the first occurrence of element with that class.
  * @returns {boolean}

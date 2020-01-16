@@ -37,13 +37,11 @@ class EventManager {
    * @returns {Function} Returns function which you can easily call to remove that event
    */
   addEventListener(element, eventName, callback, options = false) {
-    const context = this.context;
-
     /**
      * @param {Event} event The event object.
      */
     function callbackProxy(event) {
-      callback.call(this, extendEvent(context, event));
+      callback.call(this, extendEvent(event));
     }
 
     if (typeof options !== 'boolean' && !isPassiveEventSupported()) {
@@ -198,12 +196,11 @@ class EventManager {
 }
 
 /**
- * @param {object} context
- * @param {Event} event
  * @private
- * @returns {*}
+ * @param {Event} event The event object.
+ * @returns {Event}
  */
-function extendEvent(context, event) {
+function extendEvent(event) {
   const nativeStopImmediatePropagation = event.stopImmediatePropagation;
 
   event.stopImmediatePropagation = function() {
