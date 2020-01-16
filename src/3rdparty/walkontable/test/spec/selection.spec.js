@@ -448,6 +448,8 @@ describe('Walkontable.Selection', () => {
       userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 8_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B411 Safari/600.1.4'
     });
 
+    const redColor = 'rgb(255, 0, 0)';
+    const greenColor = 'rgb(127, 124, 0)';
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -457,7 +459,7 @@ describe('Walkontable.Selection', () => {
           className: 'current',
           border: {
             width: 1,
-            color: 'rgb(255, 0, 0)',
+            color: redColor,
             style: 'solid',
             cornerVisible() {
               return true;
@@ -472,19 +474,36 @@ describe('Walkontable.Selection', () => {
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
     wt.draw();
 
+    const topLeftComputedStyle = window.getComputedStyle(document.querySelector('.topLeftSelectionHandle'));
+    const bottomRightComputedStyle = window.getComputedStyle(document.querySelector('.bottomRightSelectionHandle'));
+
     expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 0 0.5 50 0.5 M 49.5 0 49.5 24 M 0 23.5 50 23.5 M 0.5 0 0.5 24']);
     expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid rgb(255, 0, 0)']);
-    expect($('.topLeftSelectionHandle').css('border-color')).toEqual('rgb(255, 0, 0)');
-    expect($('.bottomRightSelectionHandle').css('border-color')).toEqual('rgb(255, 0, 0)');
 
-    wt.selections.getCell().settings.border.color = 'rgb(127, 124, 0)';
+    expect(topLeftComputedStyle.borderTopColor).toEqual(redColor);
+    expect(topLeftComputedStyle.borderLeftColor).toEqual(redColor);
+    expect(topLeftComputedStyle.borderBottomColor).toEqual(redColor);
+    expect(topLeftComputedStyle.borderRightColor).toEqual(redColor);
+    expect(bottomRightComputedStyle.borderTopColor).toEqual(redColor);
+    expect(bottomRightComputedStyle.borderLeftColor).toEqual(redColor);
+    expect(bottomRightComputedStyle.borderBottomColor).toEqual(redColor);
+    expect(bottomRightComputedStyle.borderRightColor).toEqual(redColor);
+
+    wt.selections.getCell().settings.border.color = greenColor;
     wt.selections.getCell().settings.border.width = 2;
     wt.draw();
 
     expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['', 'M 1 1 50 1 M 49 0 49 24 M 1 23 50 23 M 1 0 1 24']);
     expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid rgb(255, 0, 0)', '2px solid rgb(127, 124, 0)']);
-    expect($('.topLeftSelectionHandle').css('border-color')).toEqual('rgb(127, 124, 0)');
-    expect($('.bottomRightSelectionHandle').css('border-color')).toEqual('rgb(127, 124, 0)');
+
+    expect(topLeftComputedStyle.borderTopColor).toEqual(greenColor);
+    expect(topLeftComputedStyle.borderLeftColor).toEqual(greenColor);
+    expect(topLeftComputedStyle.borderBottomColor).toEqual(greenColor);
+    expect(topLeftComputedStyle.borderRightColor).toEqual(greenColor);
+    expect(bottomRightComputedStyle.borderTopColor).toEqual(greenColor);
+    expect(bottomRightComputedStyle.borderLeftColor).toEqual(greenColor);
+    expect(bottomRightComputedStyle.borderBottomColor).toEqual(greenColor);
+    expect(bottomRightComputedStyle.borderRightColor).toEqual(greenColor);
   });
 
   describe('replace', () => {
