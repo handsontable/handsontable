@@ -46,8 +46,8 @@ class BaseType {
   /**
    * Merge options provided by users with defaults.
    *
-   * @returns {object} Returns new options object.
    * @param {object} options An object with options to merge with.
+   * @returns {object} Returns new options object.
    */
   _mergeOptions(options) {
     let _options = clone(this.constructor.DEFAULT_OPTIONS);
