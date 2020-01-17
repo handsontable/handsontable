@@ -74,7 +74,10 @@ class Table {
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
 
-    this.borderRenderer = new BorderRenderer(this.spreader, this.createBorderPaddingObject());
+    this.borderRenderer = new BorderRenderer(this.spreader,
+      this.createBorderPaddingObject(),
+      `${this.wot.guid}-border-renderer`,
+      this.isMaster ? 'master' : this.wot.getOverlayName());
   }
 
   /**
@@ -95,16 +98,22 @@ class Table {
    */
   createBorderPaddingObject() {
     let top = 0;
-    const left = 0;
+    let left = 0;
     let bottom = 0;
     let right = 0;
     const frozenLineWidth = 1;
 
     if (this.is(Overlay.CLONE_LEFT) || this.is(Overlay.CLONE_TOP_LEFT_CORNER) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       right = frozenLineWidth;
+      if (this.wot.getSetting('rowHeaders').length > 0) {
+        left = frozenLineWidth;
+      }
     }
     if (this.is(Overlay.CLONE_TOP) || this.is(Overlay.CLONE_TOP_LEFT_CORNER)) {
       bottom = frozenLineWidth;
+      if (this.wot.getSetting('columnHeaders').length > 0) {
+        top = frozenLineWidth;
+      }
     }
     if (this.is(Overlay.CLONE_BOTTOM) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       top = frozenLineWidth;
