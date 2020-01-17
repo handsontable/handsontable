@@ -23,7 +23,9 @@ const browsers = {
 };
 
 /**
- *
+ * @param {object} [metaObject] The browser identity collection.
+ * @param {object} [metaObject.userAgent] The user agent reported by browser.
+ * @param {object} [metaObject.vendor] The vendor name reported by browser.
  */
 export function setBrowserMeta({ userAgent = navigator.userAgent, vendor = navigator.vendor } = {}) {
   objectEach(browsers, ({ test }) => void test(userAgent, vendor));
