@@ -18,10 +18,11 @@ const childCall = Symbol('child');
  * Detect selection schema structure.
  *
  * @param {*} selectionRanges The selected range or and array of selected ranges. This type of data is produced by
- *                            `hot.getSelected()`, `hot.getSelectedLast()`, `hot.getSelectedRange()`
- *                            and `hot.getSelectedRangeLast()` methods.
- * @returns {Number} Returns a number that specifies the type of detected selection schema. If selection schema type
- *                   is unrecognized than it returns `0`.
+ * `hot.getSelected()`, `hot.getSelectedLast()`, `hot.getSelectedRange()`
+ * and `hot.getSelectedRangeLast()` methods.
+ * @param {symbol} _callSymbol The symbol object which indicates source of the helper invocation.
+ * @returns {number} Returns a number that specifies the type of detected selection schema. If selection schema type
+ * is unrecognized than it returns `0`.
  */
 export function detectSelectionType(selectionRanges, _callSymbol = rootCall) {
   if (_callSymbol !== rootCall && _callSymbol !== childCall) {
@@ -59,14 +60,14 @@ export function detectSelectionType(selectionRanges, _callSymbol = rootCall) {
 /**
  * Factory function designed for normalization data schema from different data structures of the selection ranges.
  *
- * @param {String} type Selection type which will be processed.
- * @param {Object} [options]
- * @param {Boolean} [options.keepDirection=false] If `true`, the coordinates which contain the direction of the
+ * @param {string} type Selection type which will be processed.
+ * @param {object} [options] The normalization options.
+ * @param {boolean} [options.keepDirection=false] If `true`, the coordinates which contain the direction of the
  *                                                selected cells won't be changed. Otherwise, the selection will be
  *                                                normalized to values starting from top-left to bottom-right.
  * @param {Function} [options.propToCol] Pass the converting function (usually `datamap.propToCol`) if the column
  *                                       defined as props should be normalized to the numeric values.
- * @returns {Number[]} Returns normalized data about selected range as an array (`[rowStart, columnStart, rowEnd, columnEnd]`).
+ * @returns {number[]} Returns normalized data about selected range as an array (`[rowStart, columnStart, rowEnd, columnEnd]`).
  */
 export function normalizeSelectionFactory(type, { keepDirection = false, propToCol } = {}) {
   if (!SELECTION_TYPES.includes(type)) {
@@ -119,7 +120,7 @@ export function normalizeSelectionFactory(type, { keepDirection = false, propToC
  * started and at index 1 distance as a count of selected columns.
  *
  * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
- * @return {Array[]} Returns an array of arrays with ranges defines in that schema:
+ * @returns {Array[]} Returns an array of arrays with ranges defines in that schema:
  *                   `[[visualColumnStart, distance], [visualColumnStart, distance], ...]`.
  *                   The column distances are always created starting from the left (zero index) to the
  *                   right (the latest column index).
@@ -169,7 +170,7 @@ export function transformSelectionToColumnDistance(selectionRanges) {
  * started and at index 1 distance as a count of selected columns.
  *
  * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
- * @return {Array[]} Returns an array of arrays with ranges defines in that schema:
+ * @returns {Array[]} Returns an array of arrays with ranges defines in that schema:
  *                   `[[visualColumnStart, distance], [visualColumnStart, distance], ...]`.
  *                   The column distances are always created starting from the left (zero index) to the
  *                   right (the latest column index).
@@ -216,9 +217,9 @@ export function transformSelectionToRowDistance(selectionRanges) {
  * Check if passed value can be treated as valid cell coordinate. The second argument is
  * used to check if the value doesn't exceed the defined max table rows/columns count.
  *
- * @param {*} coord
- * @param {Number} maxTableItemsCount The value that declares the maximum coordinate that is still validatable.
- * @return {Boolean}
+ * @param {number} coord The coordinate to validate (row index or column index).
+ * @param {number} maxTableItemsCount The value that declares the maximum coordinate that is still validatable.
+ * @returns {boolean}
  */
 export function isValidCoord(coord, maxTableItemsCount = Infinity) {
   return typeof coord === 'number' && coord >= 0 && coord < maxTableItemsCount;

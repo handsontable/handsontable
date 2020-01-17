@@ -7,6 +7,8 @@ let refCount = 0;
 
 /**
  * Begins observing keyboard keys states.
+ *
+ * @param {Document} rootDocument The document owner.
  */
 function startObserving(rootDocument) {
   if (refCount === 0) {
@@ -58,8 +60,8 @@ function _resetState() {
 /**
  * Checks if provided keyCode or keyCodes are pressed.
  *
- * @param {String} keyCodes The key codes passed as a string defined in helpers/unicode.js file delimited with '|'.
- * @return {Boolean}
+ * @param {string} keyCodes The key codes passed as a string defined in helpers/unicode.js file delimited with '|'.
+ * @returns {boolean}
  */
 function isPressed(keyCodes) {
   return Array.from(pressedKeys.values()).some(_keyCode => isKey(_keyCode, keyCodes));
@@ -68,7 +70,7 @@ function isPressed(keyCodes) {
 /**
  * Checks if ctrl keys are pressed.
  *
- * @return {Boolean}
+ * @returns {boolean}
  */
 function isPressedCtrlKey() {
   const values = Array.from(pressedKeys.values());
@@ -79,7 +81,7 @@ function isPressedCtrlKey() {
 /**
  * Returns reference count. Useful for debugging and testing purposes.
  *
- * @return {Number}
+ * @returns {number}
  */
 function _getRefCount() {
   return refCount;

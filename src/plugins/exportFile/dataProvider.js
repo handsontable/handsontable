@@ -18,7 +18,7 @@ class DataProvider {
     /**
      * Format type class options.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.options = {};
   }
@@ -26,7 +26,7 @@ class DataProvider {
   /**
    * Set options for data provider.
    *
-   * @param {Object} options Object with specified options.
+   * @param {object} options Object with specified options.
    */
   setOptions(options) {
     this.options = options;
@@ -64,7 +64,7 @@ class DataProvider {
   /**
    * Gets list of row headers.
    *
-   * @return {Array}
+   * @returns {Array}
    */
   getRowHeaders() {
     const headers = [];
@@ -87,7 +87,7 @@ class DataProvider {
   /**
    * Gets list of columns headers.
    *
-   * @return {Array}
+   * @returns {Array}
    */
   getColumnHeaders() {
     const headers = [];
@@ -111,7 +111,7 @@ class DataProvider {
    * Get data range object based on settings provided in the class constructor.
    *
    * @private
-   * @returns {Object} Returns object with keys `startRow`, `startCol`, `endRow` and `endCol`.
+   * @returns {object} Returns object with keys `startRow`, `startCol`, `endRow` and `endCol`.
    */
   _getDataRange() {
     const cols = this.hot.countCols() - 1;
@@ -130,8 +130,8 @@ class DataProvider {
    * Check if row at specified row index is hidden.
    *
    * @private
-   * @param {Number} row Row index.
-   * @returns {Boolean}
+   * @param {number} row Row index.
+   * @returns {boolean}
    */
   _isHiddenRow(row) {
     return this.hot.hasHook('hiddenRow') && this.hot.runHooks('hiddenRow', row);
@@ -141,8 +141,8 @@ class DataProvider {
    * Check if column at specified column index is hidden.
    *
    * @private
-   * @param {Number} column Column index.
-   * @returns {Boolean}
+   * @param {number} column Column index.
+   * @returns {boolean}
    */
   _isHiddenColumn(column) {
     return this.hot.hasHook('hiddenColumn') && this.hot.runHooks('hiddenColumn', column);

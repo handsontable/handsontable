@@ -25,7 +25,7 @@ Hooks.getSingleton().register('afterUnhideRows');
  * Possible plugin settings:
  *  * `copyPasteEnabled` as `Boolean` (default `true`)
  *  * `rows` as `Array`
- *  * `indicators` as `Boolean` (default `false`)
+ *  * `indicators` as `Boolean` (default `false`).
  *
  * @example
  *
@@ -72,21 +72,21 @@ class HiddenRows extends BasePlugin {
      * Cached settings from Handsontable settings.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      */
     this.settings = {};
     /**
      * List of hidden rows indexes.
      *
      * @private
-     * @type {Number[]}
+     * @type {number[]}
      */
     this.hiddenRows = [];
     /**
      * Last selected row index.
      *
      * @private
-     * @type {Number}
+     * @type {number}
      * @default -1
      */
     this.lastSelectedRow = -1;
@@ -96,7 +96,7 @@ class HiddenRows extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link HiddenRows#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().hiddenRows;
@@ -162,7 +162,7 @@ class HiddenRows extends BasePlugin {
   /**
    * Shows the rows provided in the array.
    *
-   * @param {Number[]} rows Array of visual row indexes.
+   * @param {number[]} rows Array of visual row indexes.
    */
   showRows(rows) {
     const currentHideConfig = this.hiddenRows;
@@ -192,7 +192,7 @@ class HiddenRows extends BasePlugin {
   /**
    * Shows the row provided as row index (counting from 0).
    *
-   * @param {...Number} row Visual row index.
+   * @param {...number} row Visual row index.
    */
   showRow(...row) {
     this.showRows(row);
@@ -201,7 +201,7 @@ class HiddenRows extends BasePlugin {
   /**
    * Hides the rows provided in the array.
    *
-   * @param {Number[]} rows Array of visual row indexes.
+   * @param {number[]} rows Array of visual row indexes.
    */
   hideRows(rows) {
     const currentHideConfig = this.hiddenRows;
@@ -231,7 +231,7 @@ class HiddenRows extends BasePlugin {
   /**
    * Hides the row provided as row index (counting from 0).
    *
-   * @param {...Number} row Visual row index.
+   * @param {...number} row Visual row index.
    */
   hideRow(...row) {
     this.hideRows(row);
@@ -240,9 +240,9 @@ class HiddenRows extends BasePlugin {
   /**
    * Checks if given row is hidden.
    *
-   * @param {Number} row Row index.
-   * @param {Boolean} isPhysicalIndex flag which determines type of index.
-   * @returns {Boolean}
+   * @param {number} row Row index.
+   * @param {boolean} isPhysicalIndex Flag which determines type of index.
+   * @returns {boolean}
    */
   isHidden(row, isPhysicalIndex = false) {
     let physicalRow = row;
@@ -258,6 +258,7 @@ class HiddenRows extends BasePlugin {
    * Check whether all of the provided row indexes are within the bounds of the table.
    *
    * @param {Array} rows Array of visual row indexes.
+   * @returns {boolean}
    */
   isRowDataValid(rows) {
     return rows.every(row => Number.isInteger(row) && row >= 0 && row < this.hot.countRows());
@@ -280,9 +281,9 @@ class HiddenRows extends BasePlugin {
    * Sets the copy-related cell meta.
    *
    * @private
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
-   * @param {Object} cellProperties Cell meta object properties.
+   * @param {number} row Row index.
+   * @param {number} col Column index.
+   * @param {object} cellProperties Cell meta object properties.
    */
   onAfterGetCellMeta(row, col, cellProperties) {
     const visualRow = this.hot.toVisualRow(row);
@@ -340,7 +341,7 @@ class HiddenRows extends BasePlugin {
    * Adds the needed classes to the headers.
    *
    * @private
-   * @param {Number} row Row index.
+   * @param {number} row Row index.
    * @param {HTMLElement} th Table header element.
    */
   onAfterGetRowHeader(row, th) {
@@ -383,9 +384,9 @@ class HiddenRows extends BasePlugin {
    * Adds the additional row height for the hidden row indicators.
    *
    * @private
-   * @param {Number} height Row height.
-   * @param {Number} row Row index.
-   * @returns {Number}
+   * @param {number} height Row height.
+   * @param {number} row Row index.
+   * @returns {number}
    */
   onModifyRowHeight(height, row) {
     if (this.isHidden(row)) {
@@ -438,7 +439,7 @@ class HiddenRows extends BasePlugin {
    * On before set range start listener, when selection was triggered by the cell.
    *
    * @private
-   * @param {Object} coords Object with `row` and `col` properties.
+   * @param {object} coords Object with `row` and `col` properties.
    */
   onBeforeSetRangeStart(coords) {
     const actualSelection = this.hot.getSelectedLast() || false;
@@ -472,7 +473,7 @@ class HiddenRows extends BasePlugin {
    * On before set range start listener, when selection was triggered by the headers.
    *
    * @private
-   * @param {Object} coords Object with `row` and `col` properties.
+   * @param {object} coords Object with `row` and `col` properties.
    */
   onBeforeSetRangeStartOnly(coords) {
     if (coords.row > 0) {
@@ -499,7 +500,7 @@ class HiddenRows extends BasePlugin {
    * On before set range end listener.
    *
    * @private
-   * @param {Object} coords Object with `row` and `col` properties.
+   * @param {object} coords Object with `row` and `col` properties.
    */
   onBeforeSetRangeEnd(coords) {
     const rowCount = this.hot.countRows();
@@ -540,7 +541,7 @@ class HiddenRows extends BasePlugin {
    * Adds Show-hide columns to context menu.
    *
    * @private
-   * @param {Object} options
+   * @param {object} options The context menu ordered item list to generate.
    */
   onAfterContextMenuDefaultOptions(options) {
     options.items.push(
@@ -553,11 +554,11 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Recalculates index of hidden rows after add row action
+   * Recalculates index of hidden rows after add row action.
    *
    * @private
-   * @param {Number} index
-   * @param {Number} amount
+   * @param {number} index Represents the visual index of first newly created row in the data source array.
+   * @param {number} amount Number of newly created rows in the data source array.
    */
   onAfterCreateRow(index, amount) {
     const tempHidden = [];
@@ -574,11 +575,11 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Recalculates index of hidden rows after remove row action
+   * Recalculates index of hidden rows after remove row action.
    *
    * @private
-   * @param {Number} index
-   * @param {Number} amount
+   * @param {number} index Represents the visual index from which rows are removed.
+   * @param {number} amount Number of removed rows in the data source array.
    */
   onAfterRemoveRow(index, amount) {
     const tempHidden = [];

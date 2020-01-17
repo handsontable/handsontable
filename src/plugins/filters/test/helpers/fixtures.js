@@ -1,5 +1,8 @@
 export const FILTERS_DATE_FORMAT = 'YYYY-MM-DD';
 
+/**
+ * @returns {object[]}
+ */
 export function getDataForFilters() {
   return [
     {
@@ -356,6 +359,9 @@ export function getDataForFilters() {
   ];
 }
 
+/**
+ * @returns {object[]}
+ */
 export function getColumnsForFilters() {
   return [
     { data: 'id', type: 'numeric', title: 'ID' },

@@ -17,7 +17,7 @@ import Overlay from './_base';
  */
 class LeftOverlay extends Overlay {
   /**
-   * @param {Walkontable} wotInstance
+   * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     super(wotInstance);
@@ -28,7 +28,7 @@ class LeftOverlay extends Overlay {
    * Factory method to create a subclass of `Table` that is relevant to this overlay.
    *
    * @see Table#constructor
-   * @param {...*} args Parameters that will be forwarded to the `Table` constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {Table}
    */
   createTable(...args) {
@@ -38,7 +38,7 @@ class LeftOverlay extends Overlay {
   /**
    * Checks if overlay should be fully rendered.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   shouldBeRendered() {
     return !!(this.wot.getSetting('fixedColumnsLeft') || this.wot.getSetting('rowHeaders').length);
@@ -88,8 +88,8 @@ class LeftOverlay extends Overlay {
   /**
    * Sets the main overlay's horizontal scroll position.
    *
-   * @param {Number} pos
-   * @returns {Boolean}
+   * @param {number} pos The scroll position.
+   * @returns {boolean}
    */
   setScrollPosition(pos) {
     const { rootWindow } = this.wot;
@@ -117,9 +117,9 @@ class LeftOverlay extends Overlay {
   /**
    * Calculates total sum cells width.
    *
-   * @param {Number} from Column index which calculates started from.
-   * @param {Number} to Column index where calculation is finished.
-   * @returns {Number} Width sum.
+   * @param {number} from Column index which calculates started from.
+   * @param {number} to Column index where calculation is finished.
+   * @returns {number} Width sum.
    */
   sumCellSizes(from, to) {
     const defaultColumnWidth = this.wot.wtSettings.defaultColumnWidth;
@@ -137,7 +137,7 @@ class LeftOverlay extends Overlay {
   /**
    * Adjust overlay root element, childs and master table element sizes (width, height).
    *
-   * @param {Boolean} [force=false]
+   * @param {boolean} [force=false] When `true`, it adjusts the DOM nodes sizes for that overlay.
    */
   adjustElementsSize(force = false) {
     this.updateTrimmingContainer();
@@ -234,9 +234,9 @@ class LeftOverlay extends Overlay {
   /**
    * Scrolls horizontally to a column at the left edge of the viewport.
    *
-   * @param {Number} sourceCol  Column index which you want to scroll to.
-   * @param {Boolean} [beyondRendered]  if `true`, scrolls according to the bottom edge (top edge is by default).
-   * @returns {Boolean}
+   * @param {number} sourceCol  Column index which you want to scroll to.
+   * @param {boolean} [beyondRendered]  If `true`, scrolls according to the bottom edge (top edge is by default).
+   * @returns {boolean}
    */
   scrollTo(sourceCol, beyondRendered) {
     let newX = this.getTableParentOffset();
@@ -263,7 +263,7 @@ class LeftOverlay extends Overlay {
   /**
    * Gets table parent left position.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getTableParentOffset() {
     const preventOverflow = this.wot.getSetting('preventOverflow');
@@ -279,7 +279,7 @@ class LeftOverlay extends Overlay {
   /**
    * Gets the main overlay's horizontal scroll position.
    *
-   * @returns {Number} Main table's vertical scroll position.
+   * @returns {number} Main table's vertical scroll position.
    */
   getScrollPosition() {
     return getScrollLeft(this.mainTableScrollableElement, this.wot.rootWindow);
@@ -288,7 +288,7 @@ class LeftOverlay extends Overlay {
   /**
    * Adds css classes to hide the header border's header (cell-selection border hiding issue).
    *
-   * @param {Number} position Header X position if trimming container is window or scroll top if not.
+   * @param {number} position Header X position if trimming container is window or scroll top if not.
    */
   adjustHeaderBordersPosition(position) {
     const masterParent = this.wot.wtTable.holder.parentNode;

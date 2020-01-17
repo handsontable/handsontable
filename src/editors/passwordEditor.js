@@ -3,9 +3,7 @@ import TextEditor from './textEditor';
 
 /**
  * @private
- * @editor PasswordEditor
  * @class PasswordEditor
- * @dependencies TextEditor
  */
 class PasswordEditor extends TextEditor {
   createElements() {

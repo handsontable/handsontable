@@ -86,7 +86,7 @@ class Menu {
   /**
    * Returns currently selected menu item. Returns `null` if no item was selected.
    *
-   * @returns {Object|null}
+   * @returns {object|null}
    */
   getSelectedItem() {
     return this.hasSelectedItem() ? this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelectedLast()[0]) : null;
@@ -95,7 +95,7 @@ class Menu {
   /**
    * Checks if the menu has selected (highlighted) any item from the menu list.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   hasSelectedItem() {
     return Array.isArray(this.hotMenu.getSelectedLast());
@@ -104,8 +104,8 @@ class Menu {
   /**
    * Set offset menu position for specified area (`above`, `below`, `left` or `right`).
    *
-   * @param {String} area Specified area name (`above`, `below`, `left` or `right`).
-   * @param {Number} offset Offset value.
+   * @param {string} area Specified area name (`above`, `below`, `left` or `right`).
+   * @param {number} offset Offset value.
    */
   setOffset(area, offset = 0) {
     this.offset[area] = offset;
@@ -114,7 +114,7 @@ class Menu {
   /**
    * Check if menu is using as sub-menu.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isSubMenu() {
     return this.parentMenu !== null;
@@ -225,7 +225,7 @@ class Menu {
   /**
    * Close menu.
    *
-   * @param {Boolean} [closeParent=false] if `true` try to close parent menu if exists.
+   * @param {boolean} [closeParent=false] If `true` try to close parent menu if exists.
    */
   close(closeParent = false) {
     if (!this.isOpened()) {
@@ -252,8 +252,8 @@ class Menu {
   /**
    * Open sub menu at the provided row index.
    *
-   * @param {Number} row Row index.
-   * @returns {Menu|Boolean} Returns created menu or `false` if no one menu was created.
+   * @param {number} row Row index.
+   * @returns {Menu|boolean} Returns created menu or `false` if no one menu was created.
    */
   openSubMenu(row) {
     if (!this.hotMenu) {
@@ -285,7 +285,7 @@ class Menu {
   /**
    * Close sub menu at row index.
    *
-   * @param {Number} row Row index.
+   * @param {number} row Row index.
    */
   closeSubMenu(row) {
     const dataItem = this.hotMenu.getSourceDataAtRow(row);
@@ -307,7 +307,7 @@ class Menu {
   /**
    * Checks if all created and opened sub menus are closed.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isAllSubMenusClosed() {
     return Object.keys(this.hotSubMenus).length === 0;
@@ -332,7 +332,7 @@ class Menu {
   /**
    * Checks if menu was opened.
    *
-   * @returns {Boolean} Returns `true` if menu was opened.
+   * @returns {boolean} Returns `true` if menu was opened.
    */
   isOpened() {
     return this.hotMenu !== null;
@@ -341,7 +341,7 @@ class Menu {
   /**
    * Execute menu command.
    *
-   * @param {Event} [event]
+   * @param {Event} [event] The mouse event object.
    */
   executeCommand(event) {
     if (!this.isOpened() || !this.hasSelectedItem()) {
@@ -371,8 +371,8 @@ class Menu {
    * is a separator, or the item is recognized as submenu. For passive items the menu is not
    * closed automatically after the user trigger the command through the UI.
    *
-   * @param {Object} commandDescriptor Selected menu item from the menu data source.
-   * @returns {Boolean}
+   * @param {object} commandDescriptor Selected menu item from the menu data source.
+   * @returns {boolean}
    */
   isCommandPassive(commandDescriptor) {
     const { isCommand, name: commandName, disabled, submenu } = commandDescriptor;
@@ -385,7 +385,7 @@ class Menu {
   /**
    * Set menu position based on dom event or based on literal object.
    *
-   * @param {Event|Object} coords Event or literal Object with coordinates.
+   * @param {Event|object} coords Event or literal Object with coordinates.
    */
   setPosition(coords) {
     const cursor = new Cursor(coords, this.container.ownerDocument.defaultView);
@@ -497,8 +497,8 @@ class Menu {
   /**
    * Select next cell in opened menu.
    *
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {number} row Row index.
+   * @param {number} col Column index.
    */
   selectNextCell(row, col) {
     const nextRow = row + 1;
@@ -517,8 +517,8 @@ class Menu {
   /**
    * Select previous cell in opened menu.
    *
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {number} row Row index.
+   * @param {number} col Column index.
    */
   selectPrevCell(row, col) {
     const prevRow = row - 1;
@@ -538,6 +538,12 @@ class Menu {
    * Menu item renderer.
    *
    * @private
+   * @param {Core} hot The Handsontable instance.
+   * @param {HTMLCellElement} TD The rendered cell element.
+   * @param {number} row The visual index.
+   * @param {number} col The visual index.
+   * @param {string} prop The column property if used.
+   * @param {string} value The cell value.
    */
   menuItemRenderer(hot, TD, row, col, prop, value) {
     const item = hot.getSourceDataAtRow(row);
@@ -597,7 +603,7 @@ class Menu {
    * Create container/wrapper for handsontable.
    *
    * @private
-   * @param {String} [name] Class name.
+   * @param {string} [name] Class name.
    * @returns {HTMLElement}
    */
   createContainer(name = null) {
@@ -662,7 +668,7 @@ class Menu {
    * On before key down listener.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event The keyaboard event object.
    */
   onBeforeKeyDown(event) {
     // For input elements, prevent event propagation. It allows entering text into an input
@@ -768,12 +774,11 @@ class Menu {
   /**
    * On after selection listener.
    *
-   * @param {Number} r Selection start row index.
-   * @param {Number} c Selection start column index.
-   * @param {Number} r2 Selection end row index.
-   * @param {Number} c2 Selection end column index.
-   * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
-   * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
+   * @param {number} r Selection start row index.
+   * @param {number} c Selection start column index.
+   * @param {number} r2 Selection end row index.
+   * @param {number} c2 Selection end column index.
+   * @param {object} preventScrolling Object with `value` property where its value change will be observed.
    */
   onAfterSelection(r, c, r2, c2, preventScrolling) {
     if (this.keyEvent === false) {
@@ -785,7 +790,7 @@ class Menu {
    * Document mouse down listener.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event The mouse event object.
    */
   onDocumentMouseDown(event) {
     if (!this.isOpened()) {

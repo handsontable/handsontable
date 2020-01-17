@@ -17,7 +17,7 @@ const {
 /**
  * Gets sort function for the particular column basing on it's data type.
  *
- * @param {String} dataType Data type for the particular column.
+ * @param {string} type The data type.
  * @returns {Function}
  */
 export function getCompareFunctionFactory(type) {

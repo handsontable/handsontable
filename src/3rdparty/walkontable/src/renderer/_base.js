@@ -19,7 +19,7 @@ export default class BaseRenderer {
     /**
      * Node type which the renderer will manage while building the table (eg. 'TD', 'TR', 'TH').
      *
-     * @type {String}
+     * @type {string}
      */
     this.nodeType = nodeType;
     /**
@@ -37,7 +37,7 @@ export default class BaseRenderer {
     /**
      * Counter of nodes already added.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.renderedNodes = 0;
   }

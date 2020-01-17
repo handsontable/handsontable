@@ -1,6 +1,10 @@
 import * as C from './../../../i18n/constants';
 import { checkSelectionBorders, markSelected } from './../utils';
 
+/**
+ * @param {CustomBorders} customBordersPlugin The plugin instance.
+ * @returns {object}
+ */
 export default function right(customBordersPlugin) {
   return {
     key: 'borders:right',

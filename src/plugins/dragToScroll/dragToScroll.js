@@ -40,7 +40,7 @@ class DragToScroll extends BasePlugin {
      * Flag indicates mouseDown/mouseUp.
      *
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.listening = false;
   }
@@ -49,7 +49,7 @@ class DragToScroll extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link DragToScroll#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().dragToScroll;
@@ -93,7 +93,7 @@ class DragToScroll extends BasePlugin {
   /**
    * Sets the value of the visible element.
    *
-   * @param boundaries {DOMRect} An object with coordinates compatible with DOMRect.
+   * @param {DOMRect} boundaries An object with coordinates compatible with DOMRect.
    */
   setBoundaries(boundaries) {
     this.boundaries = boundaries;
@@ -102,7 +102,7 @@ class DragToScroll extends BasePlugin {
   /**
    * Changes callback function.
    *
-   * @param callback {Function}
+   * @param {Function} callback The callback function.
    */
   setCallback(callback) {
     this.callback = callback;
@@ -112,8 +112,8 @@ class DragToScroll extends BasePlugin {
    * Checks if the mouse position (X, Y) is outside of the viewport and fires a callback with calculated X an Y diffs
    * between passed boundaries.
    *
-   * @param {Number} x Mouse X coordinate to check.
-   * @param {Number} y Mouse Y coordinate to check.
+   * @param {number} x Mouse X coordinate to check.
+   * @param {number} y Mouse Y coordinate to check.
    */
   check(x, y) {
     let diffX = 0;
@@ -162,7 +162,7 @@ class DragToScroll extends BasePlugin {
    * Returns current state of listening.
    *
    * @private
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isListening() {
     return this.listening;
@@ -200,7 +200,7 @@ class DragToScroll extends BasePlugin {
    * On after on cell/cellCorner mouse down listener.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   setupListening(event) {
     if (isRightClick(event)) {

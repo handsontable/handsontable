@@ -66,7 +66,7 @@ export const TYPE_DATE = 'date';
 /**
  * Default types and order for filter conditions.
  *
- * @type {Object}
+ * @type {object}
  */
 export const TYPES = {
   [TYPE_NUMERIC]: [
@@ -122,7 +122,8 @@ export const TYPES = {
 /**
  * Get options list for conditional filter by data type (e.q: `'text'`, `'numeric'`, `'date'`).
  *
- * @returns {Object}
+ * @param {string} type The data type.
+ * @returns {object}
  */
 export default function getOptionsList(type) {
   const items = [];

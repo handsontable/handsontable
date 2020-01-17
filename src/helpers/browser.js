@@ -22,40 +22,69 @@ const browsers = {
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
 };
 
+/**
+ * @param {object} [metaObject] The browser identity collection.
+ * @param {object} [metaObject.userAgent] The user agent reported by browser.
+ * @param {object} [metaObject.vendor] The vendor name reported by browser.
+ */
 export function setBrowserMeta({ userAgent = navigator.userAgent, vendor = navigator.vendor } = {}) {
   objectEach(browsers, ({ test }) => void test(userAgent, vendor));
 }
 
 setBrowserMeta();
 
+/**
+ * @returns {boolean}
+ */
 export function isChrome() {
   return browsers.chrome.value;
 }
 
+/**
+ * @returns {boolean}
+ */
 export function isEdge() {
   return browsers.edge.value;
 }
 
+/**
+ * @returns {boolean}
+ */
 export function isIE() {
   return browsers.ie.value;
 }
 
+/**
+ * @returns {boolean}
+ */
 export function isIE9() {
   return browsers.ie9.value;
 }
 
+/**
+ * @returns {boolean}
+ */
 export function isMSBrowser() {
   return browsers.ie.value || browsers.edge.value;
 }
 
+/**
+ * @returns {boolean}
+ */
 export function isMobileBrowser() {
   return browsers.mobile.value;
 }
 
+/**
+ * @returns {boolean}
+ */
 export function isSafari() {
   return browsers.safari.value;
 }
 
+/**
+ * @returns {boolean}
+ */
 export function isFirefox() {
   return browsers.firefox.value;
 }

@@ -1,6 +1,10 @@
 describe('TrimRows', () => {
   const id = 'testContainer';
 
+  /**
+   * @param rows
+   * @param cols
+   */
   function getMultilineData(rows, cols) {
     const data = Handsontable.helper.createSpreadsheetData(rows, cols);
 
@@ -713,6 +717,9 @@ describe('TrimRows', () => {
       }
     }
 
+    /**
+     *
+     */
     function getClipboardEventMock() {
       const event = {};
       event.clipboardData = new DataTransferObject();

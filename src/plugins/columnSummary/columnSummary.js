@@ -9,7 +9,7 @@ import Endpoints from './endpoints';
  * @description
  * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
  * [See the demo for more information](https://handsontable.com/docs/demo-summary-calculations.html).
- *s
+ *
  * @example
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -53,7 +53,7 @@ class ColumnSummary extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ColumnSummary#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().columnSummary;
@@ -100,7 +100,7 @@ class ColumnSummary extends BasePlugin {
    * Calculates math for a single endpoint.
    *
    * @private
-   * @param {Object} endpoint Contains information about the endpoint.
+   * @param {object} endpoint Contains information about the endpoint.
    */
   calculate(endpoint) {
     switch (endpoint.type.toLowerCase()) {
@@ -131,8 +131,8 @@ class ColumnSummary extends BasePlugin {
    * Calculates sum of the values contained in ranges provided in the plugin config.
    *
    * @private
-   * @param {Object} endpoint Contains the endpoint information.
-   * @returns {Number} Sum for the selected range
+   * @param {object} endpoint Contains the endpoint information.
+   * @returns {number} Sum for the selected range.
    */
   calculateSum(endpoint) {
     let sum = 0;
@@ -145,12 +145,12 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Returns partial sum of values from a single row range
+   * Returns partial sum of values from a single row range.
    *
    * @private
    * @param {Array} rowRange Range for the sum.
-   * @param {Number} col Column index.
-   * @returns {Number} The partial sum.
+   * @param {number} col Column index.
+   * @returns {number} The partial sum.
    */
   getPartialSum(rowRange, col) {
     let sum = 0;
@@ -174,12 +174,12 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Calculates the minimal value for the selected ranges
+   * Calculates the minimal value for the selected ranges.
    *
    * @private
-   * @param {Object} endpoint Contains the endpoint information.
-   * @param {String} type `'min'` or `'max'`.
-   * @returns {Number} Min or Max value.
+   * @param {object} endpoint Contains the endpoint information.
+   * @param {string} type `'min'` or `'max'`.
+   * @returns {number} Min or Max value.
    */
   calculateMinMax(endpoint, type) {
     let result = null;
@@ -209,13 +209,13 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Returns a local minimum of the provided sub-range
+   * Returns a local minimum of the provided sub-range.
    *
    * @private
    * @param {Array} rowRange Range for the calculation.
-   * @param {Number} col Column index.
-   * @param {String} type `'min'` or `'max'`
-   * @returns {Number} Min or max value.
+   * @param {number} col Column index.
+   * @param {string} type `'min'` or `'max'`.
+   * @returns {number} Min or max value.
    */
   getPartialMinMax(rowRange, col, type) {
     let result = null;
@@ -252,8 +252,8 @@ class ColumnSummary extends BasePlugin {
    *
    * @private
    * @param {Array} rowRange Row range for the calculation.
-   * @param {Number} col Column index.
-   * @returns {Number} Empty cells count.
+   * @param {number} col Column index.
+   * @returns {number} Empty cells count.
    */
   countEmpty(rowRange, col) {
     let cellValue;
@@ -277,8 +277,8 @@ class ColumnSummary extends BasePlugin {
    * Counts non-empty cells in the provided row range.
    *
    * @private
-   * @param {Object} endpoint Contains the endpoint information.
-   * @returns {Number} Entry count.
+   * @param {object} endpoint Contains the endpoint information.
+   * @returns {number} Entry count.
    */
   countEntries(endpoint) {
     let result = 0;
@@ -299,8 +299,8 @@ class ColumnSummary extends BasePlugin {
    * Calculates the average value from the cells in the range.
    *
    * @private
-   * @param {Object} endpoint Contains the endpoint information.
-   * @returns {Number} Avarage value.
+   * @param {object} endpoint Contains the endpoint information.
+   * @returns {number} Avarage value.
    */
   calculateAverage(endpoint) {
     const sum = this.calculateSum(endpoint);
@@ -313,9 +313,9 @@ class ColumnSummary extends BasePlugin {
    * Returns a cell value, taking into consideration a basic validation.
    *
    * @private
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
-   * @returns {String} The cell value.
+   * @param {number} row Row index.
+   * @param {number} col Column index.
+   * @returns {string} The cell value.
    */
   getCellValue(row, col) {
     const visualRowIndex = this.hot.toVisualRow(row);
@@ -363,8 +363,8 @@ class ColumnSummary extends BasePlugin {
    * `afterChange` hook callback.
    *
    * @private
-   * @param {Array} changes
-   * @param {String} source
+   * @param {Array} changes 2D array containing information about each of the edited cells.
+   * @param {string} source The string that identifies source of changes.
    */
   onAfterChange(changes, source) {
     if (changes && source !== 'ColumnSummary.reset' && source !== 'ColumnSummary.set' && source !== 'loadData') {
@@ -377,7 +377,7 @@ class ColumnSummary extends BasePlugin {
    *
    * @private
    * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    */
   onAfterRowMove(rows, finalIndex) {

@@ -1,8 +1,9 @@
 module.exports = {
-  "extends": "airbnb-base",
+  "extends": ["airbnb-base"],
   "parser": "babel-eslint",
   "plugins": [
-    "babel"
+    "babel",
+    "jsdoc",
   ],
   "env": {
     "browser": true,
@@ -80,6 +81,48 @@ module.exports = {
     "padded-blocks": "off",
     "quotes": [ "error", "single" ],
     "space-before-function-paren": ["error", "never"],
+    'jsdoc/check-access': 'error',
+    'jsdoc/check-alignment': 'error',
+    'jsdoc/check-examples': 'off',
+    'jsdoc/check-indentation': 'off',
+    'jsdoc/check-param-names': 'error',
+    'jsdoc/check-property-names': 'error',
+    'jsdoc/check-syntax': 'error',
+    'jsdoc/check-tag-names': [
+      "error",
+      {
+        "definedTags": ["plugin", "util", "experimental", "deprecated", "preserve", "core", "TODO"]
+      }
+    ],
+    'jsdoc/check-types': 'error',
+    'jsdoc/check-values': 'error',
+    'jsdoc/empty-tags': 'error',
+    'jsdoc/implements-on-classes': 'error',
+    'jsdoc/match-description': 'off',
+    'jsdoc/newline-after-description': 'error',
+    'jsdoc/no-bad-blocks': 'off',
+    'jsdoc/no-defaults': 'off',
+    'jsdoc/no-types': 'off',
+    'jsdoc/no-undefined-types': 'off',
+    'jsdoc/require-description-complete-sentence': 'error',
+    'jsdoc/require-description': 'off',
+    'jsdoc/require-example': 'off',
+    'jsdoc/require-file-overview': 'off',
+    'jsdoc/require-hyphen-before-param-description': 'off',
+    'jsdoc/require-jsdoc': 'error',
+    'jsdoc/require-param-description': 'error',
+    'jsdoc/require-param-name': 'error',
+    'jsdoc/require-param-type': 'error',
+    'jsdoc/require-param': 'error',
+    'jsdoc/require-property-description': 'error',
+    'jsdoc/require-property-name': 'error',
+    'jsdoc/require-property-type': 'error',
+    'jsdoc/require-property': 'error',
+    'jsdoc/require-returns-check': 'error',
+    'jsdoc/require-returns-description': 'off',
+    'jsdoc/require-returns-type': 'error',
+    'jsdoc/require-returns': 'error',
+    'jsdoc/valid-types': 'error',
   },
   "overrides": [
     {
@@ -92,6 +135,18 @@ module.exports = {
         ],
         "no-restricted-globals": "off",
         "no-undef": "off",
+      }
+    },
+    {
+      "files": ["*.unit.js", "*.e2e.js", "*.spec.js"],
+      "rules": {
+        "no-restricted-globals": "off",
+        "no-undef": "off",
+        "jsdoc/require-description-complete-sentence": "off",
+        "jsdoc/require-jsdoc": "off",
+        "jsdoc/require-param-description": "off",
+        "jsdoc/require-param-type": "off",
+        "jsdoc/require-returns": "off",
       }
     }
   ],

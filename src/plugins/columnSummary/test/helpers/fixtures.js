@@ -1,4 +1,7 @@
 /* eslint-disable import/prefer-default-export */
+/**
+ * @returns {object[]}
+ */
 export function getDataForColumnSummary() {
   return [
     {

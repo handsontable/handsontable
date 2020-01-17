@@ -7,8 +7,8 @@ const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
 /**
  * Generates spreadsheet-like column names: A, B, C, ..., Z, AA, AB, etc.
  *
- * @param {Number} index Column index.
- * @returns {String}
+ * @param {number} index Column index.
+ * @returns {string}
  */
 export function spreadsheetColumnLabel(index) {
   let dividend = index + 1;
@@ -27,8 +27,8 @@ export function spreadsheetColumnLabel(index) {
 /**
  * Generates spreadsheet-like column index from theirs labels: A, B, C ...., Z, AA, AB, etc.
  *
- * @param {String} label Column label.
- * @returns {Number}
+ * @param {string} label Column label.
+ * @returns {number}
  */
 export function spreadsheetColumnIndex(label) {
   let result = 0;
@@ -46,8 +46,8 @@ export function spreadsheetColumnIndex(label) {
 /**
  * Creates 2D array of Excel-like values "A1", "A2", ...
  *
- * @param {Number} rows Number of rows to generate.
- * @param {Number} columns Number of columns to generate.
+ * @param {number} rows Number of rows to generate.
+ * @param {number} columns Number of columns to generate.
  * @returns {Array}
  */
 export function createSpreadsheetData(rows = 100, columns = 4) {
@@ -70,8 +70,8 @@ export function createSpreadsheetData(rows = 100, columns = 4) {
 /**
  * Creates 2D array of Excel-like values "A1", "A2", as an array of objects.
  *
- * @param {Number} rows Number of rows to generate.
- * @param {Number} colCount Number of columns to generate.
+ * @param {number} rows Number of rows to generate.
+ * @param {number} colCount Number of columns to generate.
  * @returns {Array}
  */
 export function createSpreadsheetObjectData(rows = 100, colCount = 4) {
@@ -94,8 +94,8 @@ export function createSpreadsheetObjectData(rows = 100, colCount = 4) {
 /**
  * Generates an empty data object.
  *
- * @param {Number} rows Number of rows to generate.
- * @param {Number} columns Number of columns to generate
+ * @param {number} rows Number of rows to generate.
+ * @param {number} columns Number of columns to generate.
  * @returns {Array}
  */
 export function createEmptySpreadsheetData(rows, columns) {
@@ -113,6 +113,10 @@ export function createEmptySpreadsheetData(rows, columns) {
   return data;
 }
 
+/**
+ * @param {Array} input The data to translate.
+ * @returns {Array}
+ */
 export function translateRowsToColumns(input) {
   const output = [];
   let i;
@@ -147,8 +151,8 @@ export function translateRowsToColumns(input) {
  * it reaches the Object.prototype.
  *
  *
- * @param methodName {String} name of the method/property to search (i.e. 'renderer', 'validator', 'copyable')
- * @param allowUndefined {Boolean} [optional] if false, the search is continued if methodName has not been found in cell "type"
+ * @param {string} methodName Name of the method/property to search (i.e. 'renderer', 'validator', 'copyable').
+ * @param {boolean} [allowUndefined] If `false`, the search is continued if methodName has not been found in cell "type".
  * @returns {Function}
  */
 export function cellMethodLookupFactory(methodName, allowUndefined) {

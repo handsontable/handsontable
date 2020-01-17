@@ -156,7 +156,7 @@ class SelectUI extends BaseUI {
    * On menu selected listener.
    *
    * @private
-   * @param {Object} command Selected item
+   * @param {object} command Selected item.
    */
   onMenuSelect(command) {
     if (command.name !== SEPARATOR) {

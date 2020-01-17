@@ -27,13 +27,11 @@ const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
 
 /**
  * @private
- * @editor TextEditor
  * @class TextEditor
- * @dependencies autoResize
  */
 class TextEditor extends BaseEditor {
   /**
-   * @param {Handsontable} instance
+   * @param {Core} instance The Handsontable instance.
    */
   constructor(instance) {
     super(instance);
@@ -80,7 +78,7 @@ class TextEditor extends BaseEditor {
      */
     this.textareaParentStyle = void 0;
     /**
-     * z-index class style for the editor.
+     * Z-index class style for the editor.
      *
      * @private
      * @type {string}
@@ -96,7 +94,7 @@ class TextEditor extends BaseEditor {
   /**
    * Gets current value from editable element.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getValue() {
     return this.TEXTAREA.value;
@@ -105,7 +103,7 @@ class TextEditor extends BaseEditor {
   /**
    * Sets new value into editable element.
    *
-   * @param {*} newValue
+   * @param {*} newValue The editor value.
    */
   setValue(newValue) {
     this.TEXTAREA.value = newValue;
@@ -138,17 +136,17 @@ class TextEditor extends BaseEditor {
   /**
    * Prepares editor's meta data.
    *
-   * @param {Number} row
-   * @param {Number} col
-   * @param {Number|String} prop
-   * @param {HTMLTableCellElement} td
-   * @param {*} originalValue
-   * @param {Object} cellProperties
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number|string} prop The column property (passed when datasource is an array of objects).
+   * @param {HTMLTableCellElement} td The rendered cell element.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
    */
-  prepare(row, col, prop, td, originalValue, cellProperties) {
+  prepare(row, col, prop, td, value, cellProperties) {
     const previousState = this.state;
 
-    super.prepare(row, col, prop, td, originalValue, cellProperties);
+    super.prepare(row, col, prop, td, value, cellProperties);
 
     if (!cellProperties.readOnly) {
       this.refreshDimensions(true);
@@ -179,8 +177,8 @@ class TextEditor extends BaseEditor {
   /**
    * Begins editing on a highlighted cell and hides fillHandle corner if was present.
    *
-   * @param {*} newInitialValue
-   * @param {*} event
+   * @param {*} newInitialValue The editor initial value.
+   * @param {Event} event The keyboard event object.
    */
   beginEditing(newInitialValue, event) {
     if (this.state !== EditorState.VIRGIN) {
@@ -194,7 +192,7 @@ class TextEditor extends BaseEditor {
   /**
    * Sets focus state on the select element.
    *
-   * @param {Boolean} [safeFocus=false] If `true` select element only when is handsontableInput. Otherwise sets focus on this element.
+   * @param {boolean} [safeFocus=false] If `true` select element only when is handsontableInput. Otherwise sets focus on this element.
    * If focus is calling without param textarea need be select and set caret position.
    */
   focus(safeFocus = false) {
@@ -324,7 +322,7 @@ class TextEditor extends BaseEditor {
    * Refreshes editor's size and position.
    *
    * @private
-   * @param {Boolean} force
+   * @param {boolean} force Indicates if the refreshing editor dimensions should be triggered.
    */
   refreshDimensions(force = false) {
     if (this.state !== EditorState.EDITING && !force) {
@@ -476,9 +474,9 @@ class TextEditor extends BaseEditor {
   }
 
   /**
-   * onBeforeKeyDown callback.
+   * OnBeforeKeyDown callback.
    *
-   * @param {Event} event
+   * @param {Event} event The keyboard event object.
    */
   onBeforeKeyDown(event) {
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
